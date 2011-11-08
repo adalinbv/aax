@@ -121,13 +121,13 @@ int main(int argc, char **argv)
 
       do
       {
+         unsigned long offs;
          float off_s;
-         size_t offs;
 
          off_s = aaxEmitterGetOffsetSec(emitter);
          offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
 
-         printf("buffer position: %5.2f (%i samples)\n", off_s, offs);
+         printf("buffer position: %5.2f (%li samples)\n", off_s, offs);
          res = aaxEmitterGetState(emitter);
          
          nanoSleep(5e8);

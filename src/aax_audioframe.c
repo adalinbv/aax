@@ -38,7 +38,7 @@ aaxAudioFrameCreate(aaxConfig config)
    aaxFrame rv = NULL;
    if (handle && VALID_HANDLE(handle))
    {
-      unsigned int size;
+      unsigned long size;
       char* ptr2;
       void* ptr1;
 

@@ -448,7 +448,7 @@ _aax_malloc_align16(char **start, unsigned int size)
       ptr = (char *)(int64_t *)malloc(size);
       if (ptr)
       {
-         char *s = ptr + (unsigned int)*start;
+         char *s = ptr + (unsigned long)*start;
          unsigned int tmp;
 
          tmp = (long)s & 0xF;
@@ -490,7 +490,7 @@ _aax_calloc_align16(char **start, unsigned int num, unsigned int size)
       ptr = (char *)malloc(num*size);
       if (ptr)
       {
-         char *s = ptr + (unsigned int)*start;
+         char *s = ptr + (unsigned long)*start;
          unsigned long tmp;
 
          tmp = (long)s & 0xF;

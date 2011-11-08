@@ -575,7 +575,7 @@ get_backends()
 _handle_t*
 new_handle()
 {
-   unsigned int size;
+   unsigned long size;
    _handle_t *rv = NULL;
    void *ptr1;
    char *ptr2;
@@ -649,7 +649,7 @@ _open_handle(aaxConfig config)
          unsigned int res = _intBufCreate(&handle->sensors, _AAX_SENSOR);
          if (res != UINT_MAX)
          {
-            unsigned int size;
+            unsigned long size;
             char* ptr2;
             void* ptr1;
 

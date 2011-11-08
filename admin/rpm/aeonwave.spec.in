@@ -147,7 +147,7 @@ ldconfig
 %doc %{_defaultdocdir}/%{name}/examples/*
 
 %{_bindir}/aaxinfo
-%{_libdir}/libaax.so.*
+%{_libdir}/libaax.so*
 %{_includedir}/aax*.h
 
 %changelog -n aax

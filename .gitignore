@@ -9,7 +9,7 @@ INSTALL
 install-sh
 ltmain.sh
 missing
-build/
+build*
 Debug/
 *.o
 lib*.a

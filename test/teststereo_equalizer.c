@@ -95,14 +95,14 @@ int main(int argc, char **argv)
             q++;
             if (q > 10)
             {
-               size_t offs, offs_bytes;
+               unsigned long offs, offs_bytes;
                float off_s;
                q = 0;
 
                off_s = aaxEmitterGetOffsetSec(emitter);
                offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
                offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
-               printf("playing time: %5.2f, buffer position: %5.2f (%i samples/ %i bytes)\n", dt, off_s, offs, offs_bytes);
+               printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
             }
 #endif
             state = aaxEmitterGetState(emitter);
@@ -183,14 +183,14 @@ int main(int argc, char **argv)
             q++;
             if (q > 10)
             {
+               unsigned long offs;
                float off_s;
-               size_t offs;
                q = 0;
 
                off_s = aaxEmitterGetOffsetSec(emitter);
                offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
 
-               printf("playing time: %5.2f, buffer position: %5.2f (%i samples)\n", dt, off_s, offs);
+               printf("playing time: %5.2f, buffer position: %5.2f (%li samples)\n", dt, off_s, offs);
             }
 #endif
             state = aaxEmitterGetState(emitter);
@@ -248,14 +248,14 @@ int main(int argc, char **argv)
             q++;
             if (q > 10)
             {
+               unsigned long offs;
                float off_s;
-               size_t offs;
                q = 0;
 
                off_s = aaxEmitterGetOffsetSec(emitter2);
                offs = aaxEmitterGetOffset(emitter2, AAX_SAMPLES);
 
-               printf("playing time: %5.2f, buffer position: %5.2f (%i samples)\n", dt, off_s, offs);
+               printf("playing time: %5.2f, buffer position: %5.2f (%li samples)\n", dt, off_s, offs);
             }
 #endif
             state = aaxEmitterGetState(emitter2);

@@ -39,7 +39,7 @@ aaxEmitter
 aaxEmitterCreate()
 {
    aaxEmitter rv = NULL;
-   unsigned int size;
+   unsigned long size;
    void *ptr1;
    char* ptr2;
 

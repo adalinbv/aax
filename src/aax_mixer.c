@@ -750,7 +750,7 @@ _aaxMixerInit(_handle_t *handle)
    enum aaxFormat fmt = info->format;			/* playback format */
    unsigned ch = info->no_tracks;
    float freq = info->frequency;
-   unsigned int bufsz = 0;
+   size_t bufsz = 0;
 
    assert(be != 0);
 
