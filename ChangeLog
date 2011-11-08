@@ -1,0 +1,34 @@
+AeonWave (2.1) stable; urgency=low
+
+  * Added waveform generator
+  * Added timed-gain filter and timed-pitch effect (envelopes)
+  * Assorted small bug-fixes and usability updates.
+
+ -- Erik Hofman <tech@adalin.org>  Mon, 10 Oct 2011 11:05:00 +0100
+
+AeonWave (2.0) stable; urgency=low
+
+  * Added hardware acceleration
+  * Added submixing capable audio-frames
+  * Added support for Filters and Effects
+  * New simplified, robust and consistent API
+  * New spatialised speaker setup
+
+ -- Erik Hofman <tech@adalin.org>  Tue, 27 Aug 2011 14:08:00 +0100
+
+
+AeonWave (1.0) stable; urgency=low
+
+  * Split up the AeonWave library and the OpenAL support code
+  * New HRTF and Surround sound setups
+  * Added matrix operations
+
+ -- Erik Hofman <tech@adalin.org>  Wed, 23 Dec 2009 15:21:00 +0100
+
+
+OpenAL (1.0) stable; urgency=low
+
+  * Initial version following the Openal 1.1 specification
+
+ -- Erik Hofman <erik@ehofman.com>  Wed, 21 May 2008 13:42:00 +0100
+

@@ -1,0 +1,6 @@
+noinst_LTLIBRARIES = libalsasoftdriver.la
+
+libalsasoftdriver_la_SOURCES = \
+	device.c
+
+AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir) -I$(top_srcdir)/src

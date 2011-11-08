@@ -1,0 +1,299 @@
+/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
+
+         
+ * vi:set ts=8:
+ *
+ * This file is in the Public Domain and comes with no warranty.
+ * Erik Hofman <erik@ehofman.com>
+ *
+ */
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdio.h>
+#include <unistd.h>
+#include <math.h>
+
+#include <aax.h>
+#include <aaxdefs.h>
+
+#include "base/types.h"
+#include "driver.h"
+#include "wavfile.h"
+
+#define FILE_PATH               SRC_PATH"/wasp.wav"
+#define FFRAME			400.0
+#define DEG			(360.0/2)
+
+aaxVec3f EmitterPos = { 0.0f, 0.0f, -1.0f };
+aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
+aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
+
+aaxVec3f FramePos = { 10000.0, -1000.0, -10.0f };
+aaxVec3f FrameAt = {  0.0f, 0.0f,  1.0f };
+aaxVec3f FrameUp = {  0.0f, 1.0f,  0.0f };
+aaxVec3f FrameVel = { 0.0f, 0.0f,  0.0f };
+
+aaxVec3f SensorPos = { 10000.0, -1000.0,  0.0f };
+aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
+aaxVec3f SensorUp = {  0.0f, 1.0f,  0.0f };
+aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
+
+int main(int argc, char **argv)
+{
+   char *devname, *infile;
+   enum aaxRenderMode mode;
+   aaxConfig config;
+   aaxFrame frame;
+   int res;
+
+   infile = getInputFile(argc, argv, FILE_PATH);
+   devname = getDeviceName(argc, argv);
+   mode = getMode(argc, argv);
+   config = aaxDriverOpenByName(devname, mode);
+   testForError(config, "No default audio device available.");
+
+   if (config)
+   {
+      aaxBuffer buffer = bufferFromFile(config, infile);
+      if (buffer)
+      {
+         float ang, pitch, r;
+         aaxEmitter emitter;
+         aaxFilter fframe;
+         aaxMtx4f mtx;
+         int deg = 0;
+
+         /** mixer */
+         res = aaxMixerInit(config);
+         testForState(res, "aaxMixerInit");
+
+         res = aaxMixerSetState(config, AAX_PLAYING);
+         testForState(res, "aaxMixerStart");
+
+         /** sensor settings */
+         res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
+         testForState(res, "aaxSensorSetOrientation");
+
+         res = aaxMatrixInverse(mtx);
+         testForState(res, "aaxMatrixInverse");
+
+         res = aaxSensorSetMatrix(config, mtx);
+         testForState(res, "aaxSensorSetOrientation");
+
+         res = aaxSensorSetVelocity(config, SensorVel);
+         testForState(res, "aaxSensorSetVelocity");
+
+         /** audio frame */
+         frame = aaxAudioFrameCreate(config);
+         testForError(frame, "Unable to create a new audio frame\n");
+
+         res = aaxMatrixSetOrientation(mtx, FramePos, FrameAt, FrameUp);
+         testForState(res, "aaxAudioFrameSetOrientation");
+
+         res = aaxAudioFrameSetMatrix(frame, mtx);
+         testForState(res, "aaxAudioFrameSetMatrix");
+
+         res = aaxAudioFrameSetMode(frame, AAX_POSITION, AAX_ABSOLUTE);
+         testForState(res, "aaxAudioFrameSetMode");
+
+         res = aaxAudioFrameSetVelocity(frame, FrameVel);
+         testForState(res, "aaxAudioFrameSetVelocity");
+
+         pitch = getPitch(argc, argv);
+         res = aaxAudioFrameSetPitch(frame, pitch);
+         testForState(res, "aaxAudioFrameSetPitch");
+
+
+#if 1
+         /* frequency filter */
+         fframe = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
+         testForError(fframe, "aaxFilterCreate");
+
+         fframe = aaxFilterSetSlot(fframe, 0, AAX_LINEAR, FFRAME, 1.0, 0.0, 0.0);
+         testForError(fframe, "aaxFilterSetSlot");
+
+         fframe = aaxFilterSetState(fframe, AAX_FALSE);
+         testForError(fframe, "aaxFilterSetState");
+
+         res = aaxAudioFrameSetFilter(frame, fframe);
+         testForState(res, "aaxAudioFrameSetFilter");
+
+         res = aaxFilterDestroy(fframe);
+         testForState(res, "aaxAudioFrameSetFilter");
+#endif
+
+         /** register audio frame */
+         res = aaxMixerRegisterAudioFrame(config, frame);
+         testForState(res, "aaxMixerRegisterAudioFrame");
+
+         /** schedule the audioframe for playback */
+         res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+         testForState(res, "aaxAudioFrameStart");
+
+
+         /** emitter */
+         emitter = aaxEmitterCreate();
+         testForError(emitter, "Unable to create a new emitter\n");
+
+         res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
+         testForState(res, "aaxMatrixSetDirection");
+
+         res = aaxEmitterSetMatrix(emitter, mtx);
+         testForState(res, "aaxEmitterSetMatrix");
+
+         res = aaxEmitterAddBuffer(emitter, buffer);
+         testForState(res, "aaxEmitterAddBuffer");
+
+         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
+         testForState(res, "aaxEmitterSetMode");
+
+         res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
+         testForState(res, "aaxEmitterSetLooping");
+
+         /** register the emitter to the audio-frame */
+         res = aaxAudioFrameRegisterEmitter(frame, emitter);
+         testForState(res, "aaxMixerRegisterEmitter");
+
+         /** schedule the emitter for playback */
+         res = aaxEmitterSetState(emitter, AAX_PLAYING);
+         testForState(res, "aaxEmitterStart");
+
+         printf("\nAudioFrame registered to the Mixer\n");
+#if 1
+         printf("---------------------------------------------------\n\n");
+         printf("Audio frame frequency filter\n");
+
+         FramePos[2] = -1.0;
+         res= aaxMatrixSetOrientation(mtx, FramePos, FrameAt, FrameUp);
+         testForState(res, "aaxMatrixSetDirection");
+
+         res = aaxAudioFrameSetMatrix(frame, mtx);
+         testForState(res, "aaxAudioFrameSetMatrix");
+
+         deg = 0;
+//       pitch = 1.0;
+         while(deg < 360)
+         {
+            nanoSleep(5e7);
+
+            deg += 3;
+            if (deg < DEG)
+            {
+               res = aaxAudioFrameSetPitch(frame, pitch);
+               testForState(res, "aaxAudioFrameSetPitch");
+               pitch += 0.01;
+            }
+            else if ((deg > DEG) && (deg < (DEG+4)))
+            {
+               aaxAudioFrameSetPitch(frame, 1.0);
+
+               printf("frame lowpass filter at %3.1f Hz\n", FFRAME);
+               fframe = aaxAudioFrameGetFilter(frame, AAX_FREQUENCY_FILTER);
+               testForError(fframe, "aaxAudioFrameGetFilter");
+
+               fframe = aaxFilterSetState(fframe, AAX_TRUE);
+               testForError(fframe, "aaxFilterSetState");
+
+               res = aaxAudioFrameSetFilter(frame, fframe);
+               testForState(res, "aaxAudioFrameSetFilter");
+
+               res = aaxFilterDestroy(fframe);
+               testForState(res, "aaxFilterDestroy");
+            }
+         }
+#endif
+
+#if 1
+         printf("\n---------------------------------------------------\n\n");
+         printf("Emitter moving around the audio frame's center\n");
+         r = 10.0;
+         deg = 0;
+         while(deg < 360)
+         {
+            nanoSleep(5e7);
+
+            ang = (float)deg / 180.0f * GMATH_PI;
+            EmitterPos[0] = +r * sinf(ang);
+            EmitterPos[2] = -r * cosf(ang);
+#if 1
+            printf("emitter deg: %03u\tpos (% f, % f, % f)\n", deg,
+                     EmitterPos[0], EmitterPos[1], EmitterPos[2]);
+#endif
+            res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
+            testForState(res, "aaxMatrixSetDirection");
+
+            res = aaxEmitterSetMatrix(emitter, mtx);
+            testForState(res, "aaxAudioFrameSetMatrix");
+
+            deg += 3;
+         }
+#endif
+
+         EmitterPos[0] = 0.0f;
+         EmitterPos[2] = -1.0f;
+         res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
+         testForState(res, "aaxMatrixSetDirection");
+
+         res = aaxEmitterSetMatrix(emitter, mtx);
+         testForState(res, "aaxAudioFrameSetMatrix");
+
+         printf("\n---------------------------------------------------\n\n");
+         printf("Audio frame moving around\n");
+         r = 10.0;
+         deg = 0;
+         while(deg < 360)
+         {
+            nanoSleep(5e7);
+
+            ang = (float)deg / 180.0f * GMATH_PI;
+            FramePos[0] = 10000.0 +r * sinf(ang);
+            FramePos[2] = -r * cosf(ang);
+#if 1
+            printf("frame deg: %03u\tpos (% f, % f, % f)\n", deg,
+                     FramePos[0], FramePos[1], FramePos[2]);
+#endif
+            res= aaxMatrixSetOrientation(mtx, FramePos, FrameAt, FrameUp);
+            testForState(res, "aaxMatrixSetDirection");
+
+            res = aaxAudioFrameSetMatrix(frame, mtx);
+            testForState(res, "aaxAudioFrameSetMatrix");
+
+            deg += 3;
+         }
+
+         res = aaxAudioFrameSetState(frame, AAX_STOPPED);
+         testForState(res, "aaxAudioFrameStop");
+
+         res = aaxMixerDeregisterAudioFrame(config, frame);
+         testForState(res, "aaxMixerDeregisterAudioFrame");
+
+         res = aaxEmitterSetState(emitter, AAX_STOPPED);
+         testForState(res, "aaxEmitterStop");
+
+         res = aaxAudioFrameDeregisterEmitter(frame, emitter);
+         testForState(res, "aaxMixerDeregisterEmitter");
+
+         res = aaxEmitterDestroy(emitter);
+         testForState(res, "aaxEmitterDestroy");
+
+         res = aaxAudioFrameDestroy(frame);
+         testForState(res, "aaxAudioFrameStop");
+
+         res = aaxBufferDestroy(buffer);
+         testForState(res, "aaxBufferDestroy");
+
+         res = aaxMixerSetState(config, AAX_STOPPED);
+         testForState(res, "aaxMixerStop");
+      }
+   }
+
+   res = aaxDriverClose(config);
+   testForState(res, "aaxDriverClose");
+
+   res = aaxDriverDestroy(config);
+   testForState(res, "aaxDriverDestroy");
+
+   return 0;
+}

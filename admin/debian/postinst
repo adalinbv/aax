@@ -1,0 +1,38 @@
+#!/bin/sh -e
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+USER="$SUDO_USER"
+if [ x"$USER" = x ]; then
+  CONFIGFILE="$HOME/.aaxconfig.xml"
+  USER=`stat -c %U $HOME`
+  GROUP=`stat -c %G $HOME`
+else
+  USER_HOME=`grep $USER /etc/passwd | cut -d ":" -f6`
+  CONFIGFILE="$USER_HOME/.aaxconfig.xml"
+  GROUP=`stat -c %G $USER_HOME`
+fi
+
+if [ x"$USER" = xroot ]; then
+  if [ ! -d /etc/aax ] ;then
+    mkdir /etc/aax;
+  fi
+  CONFIGFILE="/etc/aax/config.xml"
+fi
+
+db_reset libaax2/copyright_accept
+db_reset libaax2/copyright
+
+if [ ! -f "$CONFIGFILE" ]; then
+
+  db_get libaax2/product_key
+  KEY="$RET"
+
+  echo "<?xml version="1.0"?>\n\n<Configuration>\n<product-key>$KEY</product-key>\n <output>\n  <frequency-hz>48000</frequency-hz>\n  <interval-hz>46</interval-hz>\n  <update-hz>20</update-hz>\n  <setup>stereo</setup>\n </output>\n</Configuration>" > $CONFIGFILE
+
+  chmod 600 $CONFIGFILE
+  chown $USER:$GROUP $CONFIGFILE
+fi
+db_reset libaax2/product_key
+
+ldconfig

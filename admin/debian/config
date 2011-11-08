@@ -1,0 +1,69 @@
+#!/bin/sh -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+USER="$SUDO_USER"
+if [ x"$USER" = x ]; then
+  CONFIGFILE="$HOME/.aaxconfig.xml"
+  USER=`stat -c %U $HOME`
+  GROUP=`stat -c %G $HOME`
+else
+  USER_HOME=`grep $USER /etc/passwd | cut -d ":" -f6`
+  CONFIGFILE="$USER_HOME/.aaxconfig.xml"
+  GROUP=`stat -c %G $USER_HOME`
+fi
+
+# arguments:
+# configure, reconfigure, upgrade, remove
+
+if [ x"$1" = xconfigure ]; then
+
+  db_settitle libaax2/title
+
+  STATE=1
+  while [ "$STATE" != 0 -a "$STATE" != 4 ]; do
+    case "$STATE" in
+    1)
+      db_beginblock
+      db_input high libaax2/copyright || true
+      db_input critical libaax2/copyright_accept || true
+      db_endblock
+    ;;
+
+    2)
+      db_get libaax2/copyright_accept
+      if [ ! x"$RET" = xtrue ]; then
+        db_reset libaax2/copyright_accept
+        exit 1;
+      fi
+
+      if [ ! -f "$CONFIGFILE" ]; then
+        # Ask questions.
+        db_beginblock
+        db_info libaax2/description
+        db_input high libaax2/product_key || true
+        db_endblock
+      fi
+    ;;
+
+    3)
+      if [ ! -f "$CONFIGFILE" ]; then
+        db_capb backup
+        db_get libaax2/product_key
+        len=`echo -n "$RET" | wc -m`
+        if [ ! x$len = "x26" ]; then
+          db_input high libaax2/failed_key || true
+        fi
+      fi
+    ;;
+    esac
+
+    if db_go; then
+      STATE=$(($STATE + 1))
+    else
+      STATE=$(($STATE - 1))
+    fi
+  done
+fi
+

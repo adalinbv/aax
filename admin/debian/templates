@@ -1,0 +1,49 @@
+Template: libaax2/title
+Type: title
+Description: Software install
+ AeonWave Audio eXtensions Library install
+
+Template: libaax2/description
+Type: text
+Description: Please enter the personal product-key:
+
+Template: libaax2/product_key
+Type: string
+Description: product-key:
+ The product-key is a series of letters and digits separated by dashes,
+ and was provided when you purchased the software. Without a proper
+ product-key the software will function in the Lite mode which is with
+ limited functionality.
+ .
+ Keep this line empty if you did not yet pruchase the product key.
+
+Template: libaax2/failed_key
+Type: error
+Description: An incorrect product-key was entered
+ If you don't provide a valid product-key the software will function in the
+ Lite mode with reduced functionality.
+ .
+ The personal product-key was provided when you purchased the software.
+ If you don't have the product-key at hand at this time please leave the
+ line empty. A stub configuration file called .aaxconfig.xml will
+ then be created in your home directory (or in case of the root user
+ in the file /etc/aax/config.xml)
+ .
+ It is always possibel to add a valid product-key afterwards by editing the
+ configuration file and enter the personal product-key between the
+ <product-key> and the </product-key> tags
+
+Template: libaax2/copyright
+Type: note
+Description: License For Customer Use of ADALIN Software
+ IMPORTANT NOTICE -- READ CAREFULLY: This License For Customer Use of ADALIN Software ("LICENSE") is the agreement which governs use of the software of ADALIN B.V. (“ADALIN”) obtainable herefrom, including computer software and associated printed materials ("SOFTWARE"). By obtaining, installing, copying, or otherwise using the SOFTWARE, you agree to be bound by the terms of this LICENSE. If you do not agree to the terms of this LICENSE, do not install the SOFTWARE.
+ .
+ The complete license is available online at:
+ .
+ http://www.adalin.com/LICENSE-AeonWave.html
+
+Template: libaax2/copyright_accept
+Type: boolean
+Description: Do you accept?
+ This Software is licensed material an by accepting you agree to be bound by
+ the terms and conditions laid out in the Customer License.
