@@ -71,7 +71,7 @@ static char _default_renderer[100] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxALSADriverBackend =
 {
    1.0,
-   AAX_FORMAT_PCM16S,
+   AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
    2,
 
@@ -632,7 +632,7 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
 
    assert(handle != 0);
 
-   if (fmt == AAX_FORMAT_PCM16S)
+   if (fmt == AAX_PCM16S)
    {
       _alsa_hw_channel **ch;
       unsigned int i;

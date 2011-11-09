@@ -68,13 +68,13 @@ int main(int argc, char **argv)
 
       if (bps == 8)
       {
-         format = AAX_FORMAT_PCM8U;
+         format = AAX_PCM8U;
          codec = _oalRingBufferCodecs[0];
 
       }
       else if (bps == 16)
       {
-         format = AAX_FORMAT_PCM16S;
+         format = AAX_PCM16S;
          codec = _oalRingBufferCodecs[1];
       }
       else

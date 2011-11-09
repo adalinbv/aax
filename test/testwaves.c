@@ -19,7 +19,7 @@
 #include "wavfile.h"
 
 #define	SAMPLE_FREQ		16000.0
-#define SAMPLE_FORMAT		AAX_FORMAT_PCM16S
+#define SAMPLE_FORMAT		AAX_PCM16S
 #define FILE_PATH		SRC_PATH"/stereo.wav"
 #define MAX_WAVES		AAX_MAX_WAVE+1
 

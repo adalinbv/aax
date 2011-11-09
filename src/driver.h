@@ -48,7 +48,8 @@
 #define AAX_MKSTR(X)		AAX_DO_MKSTR(X)
 
 #define AAX_VERSION_STR		AAX_MKSTR(AAX_MAJOR_VERSION)"." \
-				AAX_MKSTR(AAX_MINOR_VERSION)"-" \
+				AAX_MKSTR(AAX_MINOR_VERSION)"." \
+				AAX_MKSTR(AAX_MICRO_VERSION)"-" \
 				AAX_MKSTR(AAX_PATCH_LEVEL)
 
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);

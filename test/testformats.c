@@ -32,22 +32,22 @@ static int _mask_t[MAX_LOOPS] = {
 };
 
 static const char* _format_s[] = {
-   "AAX_FORMAT_PCM8S:  signed, 8-bits per sample",
-   "AAX_FORMAT_PCM16S: signed, 16-bits per sample",
-   "AAX_FORMAT_PCM24S: signed, 24-bits per sample, 32-bit encoded",
-   "AAX_FORMAT_PCM32S: signed, 32-bits per sample",
-   "AAX_FORMAT_FLOAT:  32-bit floating point, -1.0 to 1.0",
-   "AAX_FORMAT_DOUBLE: 64-bit floating point, -1.0 to 1.0",
-   "AAX_FORMAT_MULAW",
-   "AAX_FORMAT_ALAW",
-   "AAX_FORMAT_IMA4_ADPCM"
+   "AAX_PCM8S:  signed, 8-bits per sample",
+   "AAX_PCM16S: signed, 16-bits per sample",
+   "AAX_PCM24S: signed, 24-bits per sample, 32-bit encoded",
+   "AAX_PCM32S: signed, 32-bits per sample",
+   "AAX_FLOAT:  32-bit floating point, -1.0 to 1.0",
+   "AAX_DOUBLE: 64-bit floating point, -1.0 to 1.0",
+   "AAX_MULAW",
+   "AAX_ALAW",
+   "AAX_IMA4_ADPCM"
 };
 
 static const char* _format_us[] = {
-   "AAX_FORMAT_PCM8U:  unsigned, 8-bits per sample",
-   "AAX_FORMAT_PCM16U: unsigned, 16-bits per sample",
-   "AAX_FORMAT_PCM24U: unsigned, 24-bits per sample, 32-bit encoded",
-   "AAX_FORMAT_PCM32U: unsigned, 32-bits per sample",
+   "AAX_PCM8U:  unsigned, 8-bits per sample",
+   "AAX_PCM16U: unsigned, 16-bits per sample",
+   "AAX_PCM24U: unsigned, 24-bits per sample, 32-bit encoded",
+   "AAX_PCM32U: unsigned, 32-bits per sample",
 };
 
 static const char* _mask_s[MAX_LOOPS] = {
@@ -113,8 +113,8 @@ int main(int argc, char **argv)
                if (q)
                {
                   if (q>1 && fmt == 0) continue;
-                  if (fmt >= AAX_FORMAT_FLOAT && nfmt & AAX_FORMAT_UNSIGNED) break;
-                  if (fmt >= AAX_FORMAT_MULAW) break;
+                  if (fmt >= AAX_FLOAT && nfmt & AAX_FORMAT_UNSIGNED) break;
+                  if (fmt >= AAX_MULAW) break;
                }
 
                /** schedule the emitter for playback */

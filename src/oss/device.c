@@ -65,7 +65,7 @@ static char _default_renderer[100] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxOSSDriverBackend =
 {
    1.0,
-   AAX_FORMAT_PCM16S,
+   AAX_PCM16S,
    48000,
    2,
 
@@ -339,10 +339,10 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    switch(fmt)
    {
-   case AAX_FORMAT_PCM8S:	
+   case AAX_PCM8S:	
       format = AFMT_S8;
       break;
-   case AAX_FORMAT_PCM16S:
+   case AAX_PCM16S:
       format = AFMT_S16_LE;
       break;
    default:

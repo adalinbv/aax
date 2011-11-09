@@ -38,7 +38,7 @@ int main(int argc, char **argv)
       int channels;
       float f, freq;
 
-      format = AAX_FORMAT_PCM16S;
+      format = AAX_PCM16S;
       freq = 44100.0;
       channels = 2;
 

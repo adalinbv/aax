@@ -69,7 +69,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
 
             switch(native_fmt)
             {
-            case AAX_FORMAT_IMA4_ADPCM:
+            case AAX_IMA4_ADPCM:
                buf->blocksize = DEFAULT_IMA4_BLOCKSIZE;
                break;
             default:
@@ -133,7 +133,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
             buf->format = setup;
             switch(native_fmt)
             {
-            case AAX_FORMAT_IMA4_ADPCM:
+            case AAX_IMA4_ADPCM:
                buf->blocksize = DEFAULT_IMA4_BLOCKSIZE;
                break;
             default:
@@ -171,13 +171,13 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
       case AAX_BLOCK_ALIGNMENT:
          if (setup > 1)
          {
-            if (buf->format == AAX_FORMAT_IMA4_ADPCM)
+            if (buf->format == AAX_IMA4_ADPCM)
             {
                buf->blocksize = setup;
                rv = AAX_TRUE;
             }
          }
-         else if (buf->format != AAX_FORMAT_IMA4_ADPCM)
+         else if (buf->format != AAX_IMA4_ADPCM)
          {
             buf->blocksize = setup;
             rv = AAX_TRUE;
@@ -280,15 +280,15 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             {
                switch (native_fmt)
                {
-               case AAX_FORMAT_PCM16S:
+               case AAX_PCM16S:
                   _batch_endianswap16(data, buf_samples);
                   break;
-               case AAX_FORMAT_PCM24S:
-               case AAX_FORMAT_PCM32S:
-               case AAX_FORMAT_FLOAT:
+               case AAX_PCM24S:
+               case AAX_PCM32S:
+               case AAX_FLOAT:
                   _batch_endianswap32(data, buf_samples);
                   break;
-               case AAX_FORMAT_DOUBLE:
+               case AAX_DOUBLE:
                   _batch_endianswap64(data, buf_samples);
                   break;
                default:
@@ -300,16 +300,16 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             {
                switch (native_fmt)
                {  
-               case AAX_FORMAT_PCM8S:
+               case AAX_PCM8S:
                   _batch_cvt8u_8s(data, buf_samples);
                   break;
-               case AAX_FORMAT_PCM16S:
+               case AAX_PCM16S:
                   _batch_cvt16u_16s(data, buf_samples);
                   break;
-               case AAX_FORMAT_PCM24S:
+               case AAX_PCM24S:
                   _batch_cvt24u_24s(data, buf_samples);
                   break;
-               case AAX_FORMAT_PCM32S:
+               case AAX_PCM32S:
                   _batch_cvt32u_32s(data, buf_samples);
                   break;
                default:
@@ -504,7 +504,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       if (rb_format != native_fmt)
       {
 					/* first convert to signed 24-bit */
-         if (rb_format != AAX_FORMAT_PCM24S)
+         if (rb_format != AAX_PCM24S)
          {
             void** ndata;
             ptr = (char*)sizeof(void*);
@@ -515,38 +515,38 @@ aaxBufferGetData(const aaxBuffer buffer)
 
                switch(rb_format)
                {
-               case AAX_FORMAT_PCM8S:
+               case AAX_PCM8S:
                   _batch_cvt8_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_IMA4_ADPCM:
-               case AAX_FORMAT_PCM16S:
+               case AAX_IMA4_ADPCM:
+               case AAX_PCM16S:
                   _batch_cvt16_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_PCM32S:
+               case AAX_PCM32S:
                   _batch_cvt32_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_FLOAT:
+               case AAX_FLOAT:
                  _batch_cvtps_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_DOUBLE:
+               case AAX_DOUBLE:
                   _batch_cvtpd_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_MULAW:
+               case AAX_MULAW:
                   _aaxMuLaw2Linear(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_ALAW:
+               case AAX_ALAW:
                   _aaxALaw2Linear(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
@@ -556,10 +556,10 @@ aaxBufferGetData(const aaxBuffer buffer)
                }
                if (ndata != data) free(ndata);
             } /* ndata */
-         } /* rb_format != AAX_FORMAT_PCM24S */
+         } /* rb_format != AAX_PCM24S */
 
 					/* then convert to requested format */
-         if (native_fmt != AAX_FORMAT_PCM24S)
+         if (native_fmt != AAX_PCM24S)
          {
             int new_bps = aaxGetBytesPerSample(native_fmt);
             int block_smp = BLOCKSIZE_TO_SMP(buf->blocksize);
@@ -575,42 +575,42 @@ aaxBufferGetData(const aaxBuffer buffer)
 
                switch(native_fmt)
                {
-               case AAX_FORMAT_PCM8S:
+               case AAX_PCM8S:
                   _batch_cvt24_8(*ndata, *data, buf_samples);
                   free(data); 
                   data = ndata;
                   break;
-               case AAX_FORMAT_PCM16S:
+               case AAX_PCM16S:
                   _batch_cvt24_16(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_PCM32S:
+               case AAX_PCM32S:
                   _batch_cvt24_32(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_FLOAT:
+               case AAX_FLOAT:
                   _batch_cvt24_ps(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_DOUBLE:
+               case AAX_DOUBLE:
                   _batch_cvt24_pd(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_MULAW:
+               case AAX_MULAW:
                   _aaxLinear2MuLaw(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_ALAW:
+               case AAX_ALAW:
                   _aaxLinear2ALaw(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
-               case AAX_FORMAT_IMA4_ADPCM:
+               case AAX_IMA4_ADPCM:
                {
                   unsigned t, blocksz = buf->blocksize;
                   for (t=0; t<tracks; t++)
@@ -628,7 +628,7 @@ aaxBufferGetData(const aaxBuffer buffer)
                }
                if (ndata != data) free(ndata);
             } /* ndata */
-         } /* native_fmt != AAX_FORMAT_PCM24S */
+         } /* native_fmt != AAX_PCM24S */
       } /* rb_format != native_fmt */
  
 				/* do we need to convert to user format? */
@@ -640,16 +640,16 @@ aaxBufferGetData(const aaxBuffer buffer)
             int signed_format = user_format & ~(AAX_FORMAT_LE | AAX_FORMAT_BE);
             switch (signed_format)
             {
-            case AAX_FORMAT_PCM8U:
+            case AAX_PCM8U:
                _batch_cvt8s_8u(*data, buf_samples);
                break;
-            case AAX_FORMAT_PCM16U:
+            case AAX_PCM16U:
                _batch_cvt16s_16u(*data, buf_samples);
                break;
-            case AAX_FORMAT_PCM24U:
+            case AAX_PCM24U:
                _batch_cvt24s_24u(*data, buf_samples);
                break;
-            case AAX_FORMAT_PCM32U:
+            case AAX_PCM32U:
                _batch_cvt32s_32u(*data, buf_samples);
                break;
             default:
@@ -662,15 +662,15 @@ aaxBufferGetData(const aaxBuffer buffer)
          {
             switch (native_fmt)
             {
-            case AAX_FORMAT_PCM16S:
+            case AAX_PCM16S:
                _batch_endianswap16(*data, buf_samples);
                break;
-            case AAX_FORMAT_PCM24S:
-            case AAX_FORMAT_PCM32S:
-            case AAX_FORMAT_FLOAT:
+            case AAX_PCM24S:
+            case AAX_PCM32S:
+            case AAX_FLOAT:
                _batch_endianswap32(*data, buf_samples);
                break;
-            case AAX_FORMAT_DOUBLE:
+            case AAX_DOUBLE:
                _batch_endianswap64(*data, buf_samples);
                break;
             default:

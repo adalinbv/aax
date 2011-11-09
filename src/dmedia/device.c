@@ -72,7 +72,7 @@ static char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
 {
    1.0,
-   AAX_FORMAT_PCM16S,
+   AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
    2,
 
@@ -524,11 +524,11 @@ _aaxDMediaDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tr
 
    switch(fmt)
    {
-   case AAX_FORMAT_PCM8S:
+   case AAX_PCM8S:
       data_format = AL_SAMPLE_8;
       handle->port[0].bytes_sample = 1;
       break;
-   case AAX_FORMAT_PCM16S:
+   case AAX_PCM16S:
       data_format = AL_SAMPLE_16;
       handle->port[0].bytes_sample = 2;
       break;

@@ -950,7 +950,7 @@ _aaxAudioFrameThread(void* config)
       tracks = (!handle && _IS_POSITIONAL(frame)) ? 1 : info->no_tracks;
       _oalRingBufferSetNoTracks(dest_rb, tracks);
 
-      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_FORMAT_PCM24S);
+      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
       _oalRingBufferSetFrequency(dest_rb, info->frequency);
       _oalRingBufferSetDuration(dest_rb, delay_sec);
       _oalRingBufferInit(dest_rb, AAX_TRUE);

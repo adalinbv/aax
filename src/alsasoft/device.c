@@ -74,7 +74,7 @@ static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxALSASoftDriverBackend =
 {
    1.0,
-   AAX_FORMAT_PCM16S,
+   AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
    2,
 
@@ -1656,7 +1656,7 @@ _aaxALSASoftDriverThread(void* config)
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
       mixer = sensor->mixer;
 
-      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_FORMAT_PCM24S);
+      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
       _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
       _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
       _oalRingBufferSetDuration(dest_rb, delay_sec);

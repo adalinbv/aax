@@ -47,7 +47,7 @@ static _aaxDriverThread _aaxNoneDriverThread;
 const _aaxDriverBackend _aaxNoneDriverBackend =
 {
    0.8,
-   AAX_FORMAT_PCM8S,
+   AAX_PCM8S,
    0,
    0,
 
@@ -90,7 +90,7 @@ static char _default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
    1.0,
-   AAX_FORMAT_PCM16S,
+   AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
    2,
 

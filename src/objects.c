@@ -171,7 +171,7 @@ const _aaxMixerInfo _aaxDefaultMixerInfo =
   1.0f,				/* pitch */
   48000.0f,			/* frequency */
   20.0f,			/* refresh_rate */
-  AAX_FORMAT_PCM16S,		/* format */
+  AAX_PCM16S,			/* format */
   AAX_MODE_WRITE_STEREO,	/* render mode */
   _AAX_MAX_MIXER_SOURCES,	/* max emitters */
 

@@ -63,7 +63,7 @@ writeSineWave(const char *fname, double freq, double sample_freq, int tracks, do
    enum aaxFormat format;
    aaxBuffer buffer;
 
-   format = AAX_FORMAT_PCM16S;
+   format = AAX_PCM16S;
    no_samples = duration*sample_freq;
 
    buffer = aaxBufferCreate(NULL, no_samples, tracks, format);
@@ -121,7 +121,7 @@ writeSawtoothWave(const char *fname, double freq, double sample_freq, int tracks
    enum aaxFormat format;
    aaxBuffer buffer;
 
-   format = AAX_FORMAT_PCM16S;
+   format = AAX_PCM16S;
    no_samples = duration*sample_freq;
 
    buffer = aaxBufferCreate(NULL, no_samples, tracks, format);
@@ -191,7 +191,7 @@ double duration)
    enum aaxFormat format;
    aaxBuffer buffer;
 
-   format = AAX_FORMAT_PCM16S;
+   format = AAX_PCM16S;
    no_samples = duration*sample_freq;
 
    buffer = aaxBufferCreate(NULL, no_samples, tracks, format);

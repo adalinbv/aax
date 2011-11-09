@@ -41,7 +41,7 @@ int main(int argc, char **argv)
       float pitch;
 
       /** buffer */
-      buffer = aaxBufferCreate(config, 1.1*SAMPLE_FREQUENCY, 1, AAX_FORMAT_PCM16S);
+      buffer = aaxBufferCreate(config, 1.1*SAMPLE_FREQUENCY, 1, AAX_PCM16S);
       testForError(buffer, "Unable to create a new buffer\n");
 
       res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);

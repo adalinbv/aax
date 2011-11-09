@@ -65,7 +65,7 @@ static char _default_renderer[100] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxSoftwareDriverBackend =
 {
    1.0,
-   AAX_FORMAT_PCM16S,
+   AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
    2,
 
@@ -308,10 +308,10 @@ _aaxSoftwareDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    switch(fmt)
    {
-   case AAX_FORMAT_PCM8S:
+   case AAX_PCM8S:
       handle->bytes_sample = 1;
       break;
-   case AAX_FORMAT_PCM16S:
+   case AAX_PCM16S:
       handle->bytes_sample = 2;
       break;
    default:
@@ -692,7 +692,7 @@ _aaxSoftwareDriverThreadSignal(void* config)
          if (info->mode == AAX_MODE_READ) {
             _oalRingBufferSetFormat(dest_rb, be->codecs, info->format);
          } else {
-            _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_FORMAT_PCM24S);
+            _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
          }
          tracks = info->no_tracks;
          _oalRingBufferSetNoTracks(dest_rb, tracks);
@@ -814,7 +814,7 @@ _aaxSoftwareDriverThread(void* config)
          if (info->mode == AAX_MODE_READ) {
             _oalRingBufferSetFormat(dest_rb, be->codecs, info->format);
          } else {
-            _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_FORMAT_PCM24S);
+            _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
          }
          tracks = info->no_tracks;
          _oalRingBufferSetNoTracks(dest_rb, tracks);
@@ -1300,20 +1300,20 @@ _aaxSoftwareDriverWriteFile(const char *file, enum aaxProcessingType type,
    off_t floc;
 
    switch (format) {
-   case AAX_FORMAT_PCM8S:
-   case AAX_FORMAT_PCM16S:
-   case AAX_FORMAT_PCM24S:
-   case AAX_FORMAT_PCM32S:
+   case AAX_PCM8S:
+   case AAX_PCM16S:
+   case AAX_PCM24S:
+   case AAX_PCM32S:
       fmt = 0x1;
       break;
-   case AAX_FORMAT_FLOAT:
-   case AAX_FORMAT_DOUBLE:
+   case AAX_FLOAT:
+   case AAX_DOUBLE:
       fmt = 0x3;
       break;
-   case AAX_FORMAT_ALAW:
+   case AAX_ALAW:
       fmt = 0x6;
       break;
-   case AAX_FORMAT_MULAW:
+   case AAX_MULAW:
       fmt = 0x7;
       break;
    default:

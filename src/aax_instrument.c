@@ -34,7 +34,7 @@ aaxInstrumentCeate(aaxConfig config)
         inst->id = INSTRUMENT_ID;
         inst->handle = config;
         inst->frequency_hz = 44100;
-        inst->format = AAX_FORMAT_PCM16S;
+        inst->format = AAX_PCM16S;
         inst->sound_min = 3;
         inst->sound_max = 87;
         inst->sound_step = 12;		/* one octave */
@@ -474,7 +474,7 @@ _add_buffers(_instrument_t* inst, void *xbid)
 
     for (j=inst->sound_min; j<inst->sound_max; j += inst->sound_step)
     {
-        enum aaxFormat format = AAX_FORMAT_PCM16S;
+        enum aaxFormat format = AAX_PCM16S;
         aaxBuffer buf;
         float freq;
         int k,n;

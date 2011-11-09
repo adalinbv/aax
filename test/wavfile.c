@@ -246,7 +246,7 @@ bufferFromFile(aaxConfig config, const char *infile)
    if (data && format != AAX_FORMAT_NONE)
    {
       buffer = aaxBufferCreate(config, no_samples, channels, format);
-      if (format == AAX_FORMAT_IMA4_ADPCM)
+      if (format == AAX_IMA4_ADPCM)
       {
          bufferComvertMSIMA_IMA4(data, channels, no_samples, &block);
 
@@ -318,22 +318,22 @@ getFormatFromFileFormat(unsigned int format, int  bps)
    switch (format)
    {
    case 1:
-      if (bps == 8) rv = AAX_FORMAT_PCM8U;
-      else if (bps == 16) rv = AAX_FORMAT_PCM16S_LE;
-      else if (bps == 32) rv = AAX_FORMAT_PCM32S_LE;
+      if (bps == 8) rv = AAX_PCM8U;
+      else if (bps == 16) rv = AAX_PCM16S_LE;
+      else if (bps == 32) rv = AAX_PCM32S_LE;
       break;
    case 3:
-      if (bps == 32) rv = AAX_FORMAT_FLOAT_LE;
-      else if (bps == 64) rv = AAX_FORMAT_DOUBLE_LE;
+      if (bps == 32) rv = AAX_FLOAT_LE;
+      else if (bps == 64) rv = AAX_DOUBLE_LE;
       break;
    case 6:
-      rv = AAX_FORMAT_ALAW;
+      rv = AAX_ALAW;
       break;
    case 7:
-      rv = AAX_FORMAT_MULAW;
+      rv = AAX_MULAW;
       break;
    case 17:
-      rv = AAX_FORMAT_IMA4_ADPCM;
+      rv = AAX_IMA4_ADPCM;
       break;
    default:
       break;

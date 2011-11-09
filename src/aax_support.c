@@ -138,21 +138,21 @@ aaxGetBytesPerSample(enum aaxFormat format)
 
    switch(native_fmt)
    {
-   case AAX_FORMAT_PCM8S:
-   case AAX_FORMAT_MULAW:
-   case AAX_FORMAT_ALAW:
+   case AAX_PCM8S:
+   case AAX_MULAW:
+   case AAX_ALAW:
       rv = 1;
       break;
-   case AAX_FORMAT_PCM16S:
-   case AAX_FORMAT_IMA4_ADPCM:		/* gets decoded before use */
+   case AAX_PCM16S:
+   case AAX_IMA4_ADPCM:		/* gets decoded before use */
       rv = 2;
       break;
-   case AAX_FORMAT_PCM24S:
-   case AAX_FORMAT_PCM32S:
-   case AAX_FORMAT_FLOAT:
+   case AAX_PCM24S:
+   case AAX_PCM32S:
+   case AAX_FLOAT:
       rv = 4;
       break;
-   case AAX_FORMAT_DOUBLE:
+   case AAX_DOUBLE:
       rv = 8;
       break;
    default:

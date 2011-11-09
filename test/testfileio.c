@@ -44,8 +44,8 @@ int main(int argc, char **argv)
       d1 = fileLoad((char *)&infile, &no_samples, &freq, &bps, &tracks);
       testForError(d1, "Input file not found.\naborted.\n\n");
 
-      if      (bps == 8) fmt = AAX_FORMAT_PCM8U;
-      else if (bps == 16) fmt = AAX_FORMAT_PCM16S;
+      if      (bps == 8) fmt = AAX_PCM8U;
+      else if (bps == 16) fmt = AAX_PCM16S;
       else break;
 
       rb = _oalRingBufferCreate();

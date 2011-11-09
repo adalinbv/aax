@@ -40,7 +40,7 @@ int main(int argc, char **argv)
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
    testForError(config, "No default audio device available.");
 
-   buffer = aaxBufferCreate(config, 0.3*SAMPLE_FREQUENCY, 1, AAX_FORMAT_PCM16S);
+   buffer = aaxBufferCreate(config, 0.3*SAMPLE_FREQUENCY, 1, AAX_PCM16S);
    testForError(buffer, "Unable to generate buffer\n");
 
    res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);

@@ -68,7 +68,7 @@ _oalRingBufferCreate(char dde)
          rb->streaming = 0;
          rb->add_dde = dde;
          rb->pitch_norm = 1.0f;
-         rb->format = AAX_FORMAT_PCM16S;
+         rb->format = AAX_PCM16S;
 
          format = rb->format;
          rbd->no_tracks = 1;
@@ -287,10 +287,10 @@ _oalRingBufferFillNonInterleaved(_oalRingBuffer *rb, const void *data, unsigned 
    tracksize = rbd->no_samples * rbd->bytes_sample;
    switch (rb->format)
    {
-   case AAX_FORMAT_IMA4_ADPCM:
+   case AAX_IMA4_ADPCM:
    {
 #if 1
-      printf("WARNING: AAX_FORMAT_IMA4_ADPCM not implemented for _oalRingBufferFillNonInterleaved\n");
+      printf("WARNING: AAX_IMA4_ADPCM not implemented for _oalRingBufferFillNonInterleaved\n");
       exit(-1);
 #else
       int t;
@@ -299,7 +299,7 @@ _oalRingBufferFillNonInterleaved(_oalRingBuffer *rb, const void *data, unsigned 
          int32_t **track = &tracks[t];
          _oalRingBufferIMA4ToPCM16(track, data, 1, blocksize, no_samples);
       }
-      rb->format = AAX_FORMAT_PCM16S;
+      rb->format = AAX_PCM16S;
 #endif
       break;
    }
@@ -353,17 +353,17 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
 
    switch (rb->format)
    {
-   case AAX_FORMAT_IMA4_ADPCM:
+   case AAX_IMA4_ADPCM:
       _oalRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
-      rb->format = AAX_FORMAT_PCM16S;
+      rb->format = AAX_PCM16S;
       break;
-   case AAX_FORMAT_PCM32S:
+   case AAX_PCM32S:
       _batch_cvt32_24_intl(tracks, data, no_tracks, no_samples);
       break;
-   case AAX_FORMAT_FLOAT:
+   case AAX_FLOAT:
       _batch_cvtps_24_intl(tracks, data, no_tracks, no_samples);
       break;
-   case AAX_FORMAT_DOUBLE:
+   case AAX_DOUBLE:
       _batch_cvtpd_24_intl(tracks, data, no_tracks, no_samples);
       break;
    default:
