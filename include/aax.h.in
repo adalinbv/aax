@@ -32,9 +32,10 @@ extern "C" {
 #endif
 
 
-#define AAX_MAJOR_VERSION	2
-#define AAX_MINOR_VERSION	1
-#define AAX_PATCH_LEVEL		111010
+#define AAX_MAJOR_VERSION	@AAX_MAJOR_VERSION@
+#define AAX_MINOR_VERSION	@AAX_MINOR_VERSION@
+#define AAX_MICRO_VERSION	@AAX_MICRO_VERSION@
+#define AAX_PATCH_LEVEL		111111
 
 enum aaxHandleType
 {
@@ -54,11 +55,11 @@ enum aaxFormat
 
    /* native endianness */
    AAX_PCM8S = 0,		/* signed, 8-bits per sample  */
-   AAX_PCM16S,			/* signed, 16-bits per sample   */
-   AAX_PCM24S,			/* signed, 24-bits per sample   */
-   AAX_PCM32S,			/* signed, 32-bits per sample   */
-   AAX_FLOAT,		/* 32-bit floating point, -1.0 to 1.0   */
-   AAX_DOUBLE,		/* 64-bit floating point, -1.0 to 1.0   */
+   AAX_PCM16S,			/* signed, 16-bits per sample */
+   AAX_PCM24S,			/* signed, 24-bits per sample */
+   AAX_PCM32S,			/* signed, 32-bits per sample */
+   AAX_FLOAT,		/* 32-bit floating point, -1.0 to 1.0 */
+   AAX_DOUBLE,		/* 64-bit floating point, -1.0 to 1.0 */
    AAX_MULAW,
    AAX_ALAW,
    AAX_IMA4_ADPCM,
@@ -68,7 +69,7 @@ enum aaxFormat
 
    			/* the following formats get converted before use */
    AAX_FORMAT_UNSIGNED = 0x080,
-   AAX_PCM8U = 0x080,		/* unsigned, 8-bits per sample    */
+   AAX_PCM8U = 0x080,		/* unsigned, 8-bits per sample  */
    AAX_PCM16U,			/* unsigned, 16-bits per sample */
    AAX_PCM24U,			/* unsigned, 24-bits per sample */
    AAX_PCM32U,			/* unsigned, 32-bits per sample */
@@ -521,28 +522,6 @@ AAX_API int AAX_APIENTRY aaxAudioFrameWaitForBuffer(aaxFrame, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxAudioFrameGetBuffer(const aaxFrame);
 AAX_API const aaxFilter AAX_APIENTRY aaxAudioFrameGetFilter(const aaxFrame, enum aaxFilterType);
 AAX_API const aaxEffect AAX_APIENTRY aaxAudioFrameGetEffect(const aaxFrame, enum aaxEffectType);
-
-
-/*
- * Instrument support (version 2.2 and later)
- */
-#if AAX_PATCH_LEVEL > 111101
-AAX_API aaxInstrument AAX_APIENTRY aaxInstrumentCeate(aaxConfig);
-AAX_API int AAX_APIENTRY aaxInstrumentDestroy(aaxInstrument);
-AAX_API int AAX_APIENTRY aaxInstrumentLoad(aaxInstrument, const char*, unsigned int, unsigned int);
-AAX_API int AAX_APIENTRY aaxInstrumentLoadByName(aaxInstrument, const char*, const char*);
-AAX_API int AAX_APIENTRY aaxInstrumentSetSetup(aaxInstrument, enum aaxSetupType, int);
-AAX_API int AAX_APIENTRY aaxInstrumentRegister(aaxInstrument);
-AAX_API int AAX_APIENTRY aaxInstrumentDeregister(aaxInstrument);
-AAX_API int AAX_APIENTRY aaxInstrumentSetParam(aaxInstrument, enum aaxInstrumentParameter, float);
-AAX_API int AAX_APIENTRY aaxInstrumentNoteOn(aaxInstrument, unsigned int);
-AAX_API int AAX_APIENTRY aaxInstrumentNoteOff(aaxInstrument, unsigned int);
-AAX_API int AAX_APIENTRY aaxInstrumentNoteSetParam(aaxInstrument, unsigned int, enum aaxInstrumentParameter, float);
-
-AAX_API int AAX_APIENTRY aaxInstrumentGetSetup(aaxInstrument, enum aaxSetupType);
-AAX_API float AAX_APIENTRY aaxInstrumentGetParam(aaxInstrument, enum aaxInstrumentParameter);
-AAX_API float AAX_APIENTRY aaxInstrumentNoteGetParam(aaxInstrument, unsigned int, enum aaxInstrumentParameter);
-#endif
 
 
 #if defined(TARGET_OS_MAC) && TARGET_OS_MAC

@@ -2,7 +2,7 @@ dnl Process this file with aclocal ; automake -a ; autoconf to produce a
 dnl working configure script.
 dnl
 
-AC_INIT(include/aax.h)
+AC_INIT(include/aaxdefs.h)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_HOST
@@ -21,7 +21,7 @@ AC_PREREQ(2.52)
 #
 AAX_MAJOR_VERSION=2
 AAX_MINOR_VERSION=1
-AAX_MICRO_VERSION=0
+AAX_MICRO_VERSION=2
 AAX_INTERFACE_AGE=0
 AAX_BINARY_AGE=0
 AAX_VERSION=$AAX_MAJOR_VERSION.$AAX_MINOR_VERSION.$AAX_MICRO_VERSION
@@ -185,6 +185,7 @@ AM_CONFIG_HEADER(include/config.h)
 AC_CONFIG_FILES([ \
 	Makefile \
 	include/Makefile \
+	include/aax.h \
 	src/Makefile \
 	src/alsa/Makefile \
 	src/alsasoft/Makefile \
