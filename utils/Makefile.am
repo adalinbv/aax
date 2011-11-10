@@ -1,5 +1,5 @@
 noinst_PROGRAMS = \
-	xmlgrep printxml createwaves mkaulaw_tables
+	createwaves
 
 check_PROGRAMS = \
 	alsa-info alsa-params create_cannonwav diffwave cvt16k32k \
@@ -35,18 +35,6 @@ createwaves_LDADD = \
 	$(top_builddir)/base/libbase.la \
 	$(top_builddir)/src/libaax.la \
 	$(RMALLOC_LIB)
-
-mkaulaw_tables_SOURCES = mkaulaw_tables.c
-
-xmlgrep_SOURCES = xmlgrep.c
-xmlgrep_LDADD = \
-	$(top_builddir)/test/libtest.la \
-	-lzeroxml $(RMALLOC_LIB)
-
-printxml_SOURCES = printxml.c
-printxml_LDADD = \
-	$(top_builddir)/test/libtest.la \
-	-lzeroxml $(RMALLOC_LIB)
 
 cvt16k32k_SOURCES = cvt16k32k.c
 cvt16k32k_LDADD = \

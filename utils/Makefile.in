@@ -34,8 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS = xmlgrep$(EXEEXT) printxml$(EXEEXT) \
-	createwaves$(EXEEXT) mkaulaw_tables$(EXEEXT)
+noinst_PROGRAMS = createwaves$(EXEEXT) mkaulaw_tables$(EXEEXT)
 check_PROGRAMS = alsa-info$(EXEEXT) alsa-params$(EXEEXT) \
 	create_cannonwav$(EXEEXT) diffwave$(EXEEXT) cvt16k32k$(EXEEXT) \
 	oss-audioctl$(EXEEXT)
@@ -81,14 +80,6 @@ mkaulaw_tables_LDADD = $(LDADD)
 am_oss_audioctl_OBJECTS = oss-audioctl.$(OBJEXT)
 oss_audioctl_OBJECTS = $(am_oss_audioctl_OBJECTS)
 oss_audioctl_LDADD = $(LDADD)
-am_printxml_OBJECTS = printxml.$(OBJEXT)
-printxml_OBJECTS = $(am_printxml_OBJECTS)
-printxml_DEPENDENCIES = $(top_builddir)/test/libtest.la \
-	$(am__DEPENDENCIES_1)
-am_xmlgrep_OBJECTS = xmlgrep.$(OBJEXT)
-xmlgrep_OBJECTS = $(am_xmlgrep_OBJECTS)
-xmlgrep_DEPENDENCIES = $(top_builddir)/test/libtest.la \
-	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -105,13 +96,11 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(alsa_info_SOURCES) $(alsa_params_SOURCES) \
 	$(create_cannonwav_SOURCES) $(createwaves_SOURCES) \
 	$(cvt16k32k_SOURCES) $(diffwave_SOURCES) \
-	$(mkaulaw_tables_SOURCES) $(oss_audioctl_SOURCES) \
-	$(printxml_SOURCES) $(xmlgrep_SOURCES)
+	$(mkaulaw_tables_SOURCES) $(oss_audioctl_SOURCES)
 DIST_SOURCES = $(alsa_info_SOURCES) $(alsa_params_SOURCES) \
 	$(create_cannonwav_SOURCES) $(createwaves_SOURCES) \
 	$(cvt16k32k_SOURCES) $(diffwave_SOURCES) \
-	$(mkaulaw_tables_SOURCES) $(oss_audioctl_SOURCES) \
-	$(printxml_SOURCES) $(xmlgrep_SOURCES)
+	$(mkaulaw_tables_SOURCES) $(oss_audioctl_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -267,16 +256,6 @@ createwaves_LDADD = \
 	$(RMALLOC_LIB)
 
 mkaulaw_tables_SOURCES = mkaulaw_tables.c
-xmlgrep_SOURCES = xmlgrep.c
-xmlgrep_LDADD = \
-	$(top_builddir)/test/libtest.la \
-	-lzeroxml $(RMALLOC_LIB)
-
-printxml_SOURCES = printxml.c
-printxml_LDADD = \
-	$(top_builddir)/test/libtest.la \
-	-lzeroxml $(RMALLOC_LIB)
-
 cvt16k32k_SOURCES = cvt16k32k.c
 cvt16k32k_LDADD = \
 	$(top_builddir)/test/libtest.la \
@@ -359,12 +338,6 @@ mkaulaw_tables$(EXEEXT): $(mkaulaw_tables_OBJECTS) $(mkaulaw_tables_DEPENDENCIES
 oss-audioctl$(EXEEXT): $(oss_audioctl_OBJECTS) $(oss_audioctl_DEPENDENCIES) 
 	@rm -f oss-audioctl$(EXEEXT)
 	$(LINK) $(oss_audioctl_OBJECTS) $(oss_audioctl_LDADD) $(LIBS)
-printxml$(EXEEXT): $(printxml_OBJECTS) $(printxml_DEPENDENCIES) 
-	@rm -f printxml$(EXEEXT)
-	$(LINK) $(printxml_OBJECTS) $(printxml_LDADD) $(LIBS)
-xmlgrep$(EXEEXT): $(xmlgrep_OBJECTS) $(xmlgrep_DEPENDENCIES) 
-	@rm -f xmlgrep$(EXEEXT)
-	$(LINK) $(xmlgrep_OBJECTS) $(xmlgrep_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -380,8 +353,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/diffwave.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mkaulaw_tables.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/oss-audioctl.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printxml.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xmlgrep.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
