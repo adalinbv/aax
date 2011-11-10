@@ -1,5 +1,4 @@
-Makefile
-Makefile.in
+Makefile.am
 autom4te.cache
 config.guess
 config.sub
