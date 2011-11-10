@@ -470,7 +470,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
    int rv = AAX_FALSE;
    if (frame)
    {
-      _emitter_t* emitter = get_emitter(em);
+      _emitter_t* emitter = get_emitter_unregistered(em);
       if (emitter && !emitter->handle && emitter->pos == UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
@@ -522,9 +522,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
       }
-      else
-      {
-         if (emitter->handle) put_emitter(emitter);
+      else {
+//       if (emitter->handle) put_emitter(emitter);
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }

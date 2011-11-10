@@ -145,7 +145,9 @@ aaxEmitterDestroy(aaxEmitter emitter)
          handle = 0;
          rv = AAX_TRUE;
       }
-      else {
+      else
+      {
+         put_emitter(emitter);
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
