@@ -832,10 +832,10 @@ _aaxBufResampleNearest_sse2(int32_ptr d, const int32_ptr s, unsigned int dmin, u
          *dptr++ = *sptr;
 
          smu += freq_factor;
-         if (smu > 0.5)
+         if (smu > 0.5f)
          {
             sptr++;
-            smu -= 1.0;
+            smu -= 1.0f;
          }
       }
       while (--i);

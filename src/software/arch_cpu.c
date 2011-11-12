@@ -19,7 +19,7 @@ _batch_fmadd_cpu(int32_ptr d, const int32_ptr sptr, unsigned int num, float f, f
 {
    int32_t* s = (int32_t* )sptr;
    unsigned int i = num;
-   int v = f*1024.0;
+   int v = f*1024.0f;
 
    do {
       *d++ += ((*s++ >> 2) * v) >> 8;

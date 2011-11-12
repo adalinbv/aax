@@ -12,6 +12,7 @@ Release:        2
 Requires(pre):  dialog 
 Summary:	Stereo and 4D Audio eXtensions library
 Group:          System/Libraries
+Provides:       libaax2
 License:        License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software
 Vendor:         Adalin B.V.
 URL:            http://www.adalin.com/
@@ -151,6 +152,8 @@ ldconfig
 %{_includedir}/aax*.h
 
 %changelog -n aax
+* Fri Nov 11 2011 - tech@adalin.org
+- Fix a possible deadlock situation
 * Mon Oct 10 2011 - tech@adalin.org
 - Added waveform generator
 - Added timed-gain filter and timed-pitch effect (envelopes)

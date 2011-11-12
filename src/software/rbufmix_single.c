@@ -85,20 +85,20 @@ _oalRingBufferMixMonoSetRenderer(enum aaxRenderMode mode)
  * @src single track source buffer
  * @p2d 3d positioning information structure
  */
-unsigned int
+int
 _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
                               _oalRingBuffer2dProps *p2d,
                               _oalRingBuffer2dProps *mix_p2d,
                               float gain, unsigned char ch)
 {
-   unsigned int track, ret = 0;
-   unsigned int offs, dno_samples;
+   unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
    float svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
+   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -224,20 +224,20 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
  * @src single track source buffer
  * @p2d 3d positioning information structure
  */
-unsigned int
+int
 _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
                                 _oalRingBuffer2dProps *p2d,
                                 _oalRingBuffer2dProps *mix_p2d,
                                 float gain, unsigned char ch)
 {
-   unsigned int track, ret = 0;
-   unsigned int offs, dno_samples;
+   unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
    float svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
+   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -399,20 +399,20 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
  * @src single track source buffer
  * @p2d 3d positioning information structure
  */
-unsigned int
+int
 _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
                                _oalRingBuffer2dProps *p2d,
                                _oalRingBuffer2dProps *mix_p2d,
                                float gain, unsigned char ch)
 {
-   unsigned int track, ret = 0;
-   unsigned int offs, dno_samples;
+   unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
    float svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
+   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -534,20 +534,20 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 #define IDT_UD_DEVIDER	(p2d->head[0] / p2d->head[2])
 #define IDT_UD_OFFSET	p2d->head[3]
 
-unsigned int
+int
 _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
                             _oalRingBuffer2dProps *p2d,
                             _oalRingBuffer2dProps *mix_p2d,
                             float gain, unsigned char ch)
 {
-   unsigned int track, ret = 0;
-   unsigned int offs, dno_samples, ddesamps;
+   unsigned int track, offs, dno_samples, ddesamps;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
    float svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
+   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -820,7 +820,7 @@ PRINT_MATRIX(mtx);
          float dist_fact, cone_volume = 1.0f;
          float refdist, maxdist, rolloff;
          float gain_min, gain_max;
-         int i;
+         unsigned int i;
 
          _PROP_MTX_CLEAR_CHANGED(eprops3d);
          _PROP_MTX_CLEAR_CHANGED(sprops3d);

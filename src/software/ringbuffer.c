@@ -1165,8 +1165,8 @@ _oalRingBufferLFOGetTriangle(void* data)
 static float
 _fast_sin1(float x)
 {
-   float y = fmod(x+0.5f, 2.0f) - 1.0f;
-   return 0.5f + 2.0f*y - 2.0f*y*fabs(y);
+   float y = fmodf(x+0.5f, 2.0f) - 1.0f;
+   return 0.5f + 2.0f*y - 2.0f*y*fabsf(y);
 }
 
 

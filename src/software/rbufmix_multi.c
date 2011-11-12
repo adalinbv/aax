@@ -42,15 +42,16 @@ _oalRingBufferMixMNFunc *_oalRingBufferMixMulti16 = _oalRingBufferMixMulti16Effe
  * @p2d 2d emitter 2d properties
  * @mix_p2d mixter 2d properties
  */
-unsigned int
+int
 _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *p2d, _oalRingBuffer2dProps *mix_p2d, float pitch, float gain)
 {
-   unsigned int offs, dno_samples, track, ret = 0;
+   unsigned int offs, dno_samples, track;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
    float svol, evol, max;
    int32_t **sptr;
    void *env;
+   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -122,8 +123,8 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    for (track=0; track<rbd->no_tracks; track++)
    {
       _oalRingBufferSample *rbs = src->sample;
-      int rbs_track = track % rbs->no_tracks;
-      int rbd_track = track % rbd->no_tracks;
+      unsigned int rbs_track = track % rbs->no_tracks;
+      unsigned int rbd_track = track % rbd->no_tracks;
       float vstart, vend, vstep;
       int32_t *dptr;
 

@@ -356,11 +356,11 @@ typedef struct
 } _oalRingBuffer2dProps ALIGN16;
 
 
-typedef unsigned int
+typedef int
 _oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, 
                         float, unsigned char);
-typedef unsigned int
+typedef int
 _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*,
                         float, float);

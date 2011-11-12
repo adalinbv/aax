@@ -341,15 +341,15 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
 void
 iir_compute_coefs(float fc, float fs, float *coef, float *gain)
 {
-   float k = 1.0;
-   float Q = 1.0;
+   float k = 1.0f;
+   float Q = 1.0f;
 
-   float a0 = 1.0;
-   float a1 = 0;
-   float a2 = 0;
-   float b0 = 1.0;
-   float b1 = 1.4142 / Q;
-   float b2 = 1.0;
+   float a0 = 1.0f;
+   float a1 = 0.0f;
+   float a2 = 0.0f;
+   float b0 = 1.0f;
+   float b1 = 1.4142f / Q;
+   float b2 = 1.0f;
 
    szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
 
@@ -368,19 +368,19 @@ bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
 {
    float ad, bd;
 
-   a2 *= (4.0 * fs*fs);
-   b2 *= (4.0 * fs*fs);
-   a1 *= (2.0 * fs);
-   b1 *= (2.0 * fs);
+   a2 *= (4.0f * fs*fs);
+   b2 *= (4.0f * fs*fs);
+   a1 *= (2.0f * fs);
+   b1 *= (2.0f * fs);
 
    ad = a2 + a1 + a0;
    bd = b2 + b1 + b0;
 
    *k *= ad/bd;
 
-   *coef++ = (-2.0*b2 + 2.0*b0) / bd;
+   *coef++ = (-2.0f*b2 + 2.0f*b0) / bd;
    *coef++ = (b2 - b1 + b0) / bd;
-   *coef++ = (-2.0*a2 + 2.0*a0) / ad;
+   *coef++ = (-2.0f*a2 + 2.0f*a0) / ad;
    *coef   = (a2 - a1 + a0) / ad;
 }
 
@@ -390,7 +390,7 @@ szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
 {
    float wp;
 
-   wp = 2.0*fs * tan(GMATH_PI * fc/fs);
+   wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
    *a2 /= wp*wp;
    *b2 /= wp*wp;
    *a1 /= wp;

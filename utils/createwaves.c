@@ -35,7 +35,7 @@ void testForError(void *p, char *s)
 #define _2PI	2*3.14159265358979323846
 
 void
-writeConstantOffset(const char *fname, int val, double sample_freq, int tracks,int bps, double duration)
+writeConstantOffset(const char *fname, int val, float sample_freq, unsigned int tracks,int bps, float duration)
 {
 #if 0
    unsigned int n, size;
@@ -57,7 +57,7 @@ writeConstantOffset(const char *fname, int val, double sample_freq, int tracks,i
 }
 
 void
-writeSineWave(const char *fname, double freq, double sample_freq, int tracks, double duration)
+writeSineWave(const char *fname, float freq, float sample_freq, unsigned int tracks, float duration)
 {
    unsigned int no_samples;
    enum aaxFormat format;
@@ -73,9 +73,9 @@ writeSineWave(const char *fname, double freq, double sample_freq, int tracks, do
    aaxBufferWriteToFile(buffer, fname, AAX_OVERWRITE);
 
 #if 0
-   static const double mul = (double)(int)0x7FFF;
+   static const float mul = (float)(int)0x7FFF;
    unsigned int i, no_samples, size, bps = 2;
-   double n, dt, f, s;
+   float n, dt, f, s;
    int16_t *data, *ptr;
 
    n = duration * sample_freq;
@@ -115,7 +115,7 @@ writeSineWave(const char *fname, double freq, double sample_freq, int tracks, do
 }
 
 void
-writeSawtoothWave(const char *fname, double freq, double sample_freq, int tracks, double duration)
+writeSawtoothWave(const char *fname, float freq, float sample_freq, unsigned int tracks, float duration)
 {
    unsigned int no_samples;
    enum aaxFormat format;
@@ -132,9 +132,9 @@ writeSawtoothWave(const char *fname, double freq, double sample_freq, int tracks
 
 #if 0
    static const int no_harmoncs = 16;
-   static double mul = (double)((int)0x7FFF / 2);
+   static float mul = (float)((int)0x7FFF / 2);
    unsigned int i, j, no_samples, size, bps = 2;
-   double n, dt, f, s;
+   float n, dt, f, s;
    int16_t *data, *ptr;
 
    n = duration * sample_freq;
@@ -153,8 +153,8 @@ writeSawtoothWave(const char *fname, double freq, double sample_freq, int tracks
    f = sample_freq / freq;
    do
    {
-      double ndt = dt*j;
-      double nmul = mul/j;
+      float ndt = dt*j;
+      float nmul = mul/j;
 
       s = 0;
       ptr = data;
@@ -184,8 +184,8 @@ writeSawtoothWave(const char *fname, double freq, double sample_freq, int tracks
 }
 
 void
-writeSquareWave(const char *fname, double freq, double sample_freq, int tracks,
-double duration)
+writeSquareWave(const char *fname, float freq, float sample_freq, unsigned int tracks,
+float duration)
 {
    unsigned int no_samples;
    enum aaxFormat format;
@@ -201,11 +201,11 @@ double duration)
    aaxBufferWriteToFile(buffer, fname, AAX_OVERWRITE);
 
 #if 0
-   static double mul = (double)((int)0x7FFF) * 0.75;
+   static float mul = (float)((int)0x7FFF) * 0.75;
    static const int no_harmoncs = 4;
    unsigned int i, j, no_samples;
    unsigned int size, bps = 2;
-   double n, dt, f, s;
+   float n, dt, f, s;
    int16_t *data, *ptr;
 
    n = duration * sample_freq;
@@ -222,8 +222,8 @@ double duration)
    j = no_harmoncs;
    do
    {
-      double nfreq = 2*freq + freq*(j-1);
-      double nmul = mul/(2*j-1);
+      float nfreq = 2*freq + freq*(j-1);
+      float nmul = mul/(2*j-1);
 
       if (nfreq > sample_freq) continue;
 

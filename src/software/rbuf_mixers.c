@@ -100,7 +100,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          // new_src_pos_sec = fmod(new_src_pos_sec, sduration);
          float loop_length_sec = rbs->loop_end_sec - rbs->loop_start_sec;
          new_src_pos_sec -= rbs->loop_start_sec;
-         new_src_pos_sec = fmod(new_src_pos_sec, loop_length_sec);
+         new_src_pos_sec = fmodf(new_src_pos_sec, loop_length_sec);
          new_src_pos_sec += rbs->loop_start_sec;
          dest->curr_pos_sec = 0.0f;
       }  
@@ -334,7 +334,7 @@ bufCompressHQ(void *d, unsigned int dmin, unsigned int dmax)
             i = 0x007fffff;
          }
 
-         f = pow((_MAX_INT32_T-samp)*div, 8);
+         f = powf((_MAX_INT32_T-samp)*div, 8);
          f = 1.0f - f;
          f *= mul;
 

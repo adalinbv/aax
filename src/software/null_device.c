@@ -46,7 +46,7 @@ static _aaxDriverThread _aaxNoneDriverThread;
 
 const _aaxDriverBackend _aaxNoneDriverBackend =
 {
-   0.8,
+   0.8f,
    AAX_PCM8S,
    0,
    0,
@@ -265,7 +265,7 @@ _aaxNoneDriverProcessFrame(void* config)
    float dt, d_pos;
    int stage;
 
-   dt = 1.0/frame->info->refresh_rate;
+   dt = 1.0f/frame->info->refresh_rate;
 
    stage = 0;
    he = frame->emitters_3d;
@@ -283,7 +283,7 @@ _aaxNoneDriverProcessFrame(void* config)
          dptr_src = _intBufGet(he, _AAX_EMITTER, i);
          if (!dptr_src) continue;
 
-         d_pos = 0.0;
+         d_pos = 0.0f;
 
          emitter = _intBufGetDataPtr(dptr_src);
          src = emitter->source;
@@ -328,7 +328,7 @@ _aaxNoneDriverProcessFrame(void* config)
                         rv = AAX_TRUE;
                      }
                      else {
-                        s_offs = fmod(s_offs+dt, s_duration);
+                        s_offs = fmodf(s_offs+dt, s_duration);
                      }
                   } else {
                      s_offs += dt;
@@ -433,7 +433,7 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 1.0/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->refresh_rate;
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
@@ -472,10 +472,10 @@ _aaxNoneDriverThread(void* config)
          dt -= fdt;
          dt += now.tv_usec*1e-6f;
          ts.tv_nsec = dt*1e9f;
-         if (ts.tv_nsec >= 1e9)
+         if (ts.tv_nsec >= 1e9f)
          {
             ts.tv_sec++;
-            ts.tv_nsec -= 1e9;
+            ts.tv_nsec -= 1e9f;
          }
       }
       else

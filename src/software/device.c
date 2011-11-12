@@ -431,7 +431,7 @@ int
 _aaxSoftwareDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n)
 {
    float gain;
-   char ret;
+   int ret;
 
    assert(s);
    assert(d);
@@ -570,7 +570,7 @@ _aaxSoftwareDriverPostProcess(const void *id, void *d, const void *s)
 int
 _aaxSoftwareDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume)
 {
-   char ret;
+   int ret;
 
    assert(s);
    assert(d);
@@ -785,7 +785,7 @@ _aaxSoftwareDriverThread(void* config)
    float delay_sec;
    float dt = 0.0;
    float elapsed;
-   char state;
+   int state;
    int tracks;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
@@ -794,7 +794,7 @@ _aaxSoftwareDriverThread(void* config)
    }
 
    be = handle->backend.ptr;
-   delay_sec = 1.0/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->refresh_rate;
 
    tracks = 2;
    mixer = NULL;
@@ -845,7 +845,7 @@ _aaxSoftwareDriverThread(void* config)
    do
    {
       static int res = 0;
-      float time_fact = 1.0 -(float)res/(float)bufsz;
+      float time_fact = 1.0f -(float)res/(float)bufsz;
       float delay = delay_sec*time_fact;
 
 if (res != 0 && res != 1) printf("res: %i\n\t\t\t", res);
@@ -869,10 +869,10 @@ if (res != 0 && res != 1) printf("res: %i\n\t\t\t", res);
          dt -= fdt;
          dt += now.tv_usec*1e-6f;
          ts.tv_nsec = dt*1e9f;
-         if (ts.tv_nsec >= 1e9)
+         if (ts.tv_nsec >= 1e9f)
          {
             ts.tv_sec++;
-            ts.tv_nsec -= 1e9;
+            ts.tv_nsec -= 1e9f;
          }
       }
       else
@@ -1183,7 +1183,7 @@ _aaxSoftwareDriverReadFrame(void *config, const void* backend, void *handle)
        _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, dest_rb);
 
        mixer->ringbuffer = nrb;
-       rv = 1.0/mixer->info->refresh_rate;
+       rv = 1.0f/mixer->info->refresh_rate;
    }
    return rv;
 }
