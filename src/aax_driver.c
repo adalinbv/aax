@@ -41,7 +41,7 @@
 static _intBuffers* _backends;
 static const char* _aax_default_devname;
 static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
-static long _tvnow = 0;
+static time_t _tvnow = 0;
 
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);

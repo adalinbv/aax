@@ -147,10 +147,12 @@ int main(int argc, char **argv)
          x = aaxMixerGetRefreshRate(cfg);
          printf("Mixer refresh rate: %u Hz\n", x);
 
-         x = aaxMixerGetSetup(cfg, AAX_MONO_SOURCES);
-         y = aaxMixerGetSetup(cfg, AAX_STEREO_SOURCES);
-         printf("Number of available  mono  sources: %i\n", x);
-         printf("Number of available stereo sources: %i\n", y);
+         x = aaxMixerGetSetup(cfg, AAX_MONO_EMITTERS);
+         y = aaxMixerGetSetup(cfg, AAX_STEREO_EMITTERS);
+         printf("Number of available  mono  emitters: %i\n", x);
+         printf("Number of available stereo emitters: %i\n", y);
+         x = aaxMixerGetSetup(cfg, AAX_AUDIO_FRAMES);
+         printf("Number of available  audio  frames:  %i\n", x);
 
       }
 

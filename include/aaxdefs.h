@@ -131,9 +131,9 @@ extern aaxMtx4f aaxIdentityMatrix;
 #define aaxMixerSetFormat(a,b)						\
 	aaxMixerSetSetup((a),AAX_FORMAT,(b))
 #define aaxMixerSetMonoSources(a)					\
-	aaxMixerSetSetup(NULL,AAX_MONO_SOURCES,(a))
+	aaxMixerSetSetup(NULL,AAX_MONO_EMITTERS,(a))
 #define aaxMixerSetStereoSources(a)					\
-	aaxMixerSetSetup(NULL,AAX_STEREO_SOURCES,(a))
+	aaxMixerSetSetup(NULL,AAX_STEREO_EMITTERS,(a))
 #define aaxMixerSetup(a,b,c,d,e)					\
 	aaxMixerSetSetup((a),AAX_FREQUENCY,(b))?			\
 	(aaxMixerSetSetup((a),AAX_TRACKS,(c))?				\
@@ -163,9 +163,9 @@ extern aaxMtx4f aaxIdentityMatrix;
 #define aaxMixerGetRefreshRate(a)					\
 	aaxMixerGetSetup((a),AAX_REFRESHRATE)
 #define aaxMixerGetNoMonoSources()					\
-	aaxMixerGetSetup(NULL,AAX_MONO_SOURCES)
+	aaxMixerGetSetup(NULL,AAX_MONO_EMITTERS)
 #define aaxMixerGetNoStereoSources()					\
-	aaxMixerGetSetup(NULL,AAX_STEREO_SOURCES)
+	aaxMixerGetSetup(NULL,AAX_STEREO_EMITTERS)
 #define aaxMixerGetGain(a,b)						\
 	__aaxFilterGetParam1((a),(b),VOLUME,Mixer)
 #define aaxMixerGetPitch(a)						\

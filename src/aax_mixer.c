@@ -49,10 +49,10 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
    {
       switch(type)
       {
-      case AAX_STEREO_SOURCES:
+      case AAX_STEREO_EMITTERS:
          setup *= 2;
          /* break not needed */
-      case AAX_MONO_SOURCES:
+      case AAX_MONO_EMITTERS:
          rv = (setup <= _oalRingBufferGetNoSources()) ? AAX_TRUE : AAX_FALSE;
          break;
       default:
@@ -67,10 +67,10 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          _aaxMixerInfo* info = handle->info;
          switch(type)
          {
-         case AAX_STEREO_SOURCES:
+         case AAX_STEREO_EMITTERS:
             setup *= 2;
             /* break not needed */
-         case AAX_MONO_SOURCES:
+         case AAX_MONO_EMITTERS:
             rv = (setup <= info->max_emitters) ? AAX_TRUE : AAX_FALSE;
             break;
          case AAX_FREQUENCY:
@@ -145,11 +145,14 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
    {
       switch(type)
       {
-      case AAX_MONO_SOURCES:
+      case AAX_MONO_EMITTERS:
          rv = _oalRingBufferGetNoSources();
          break;
-      case AAX_STEREO_SOURCES:
+      case AAX_STEREO_EMITTERS:
          rv = _oalRingBufferGetNoSources()/2;
+         break;
+      case AAX_AUDIO_FRAMES:
+         rv = 0;
          break;
       default:
          break;
@@ -163,11 +166,14 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
          _aaxMixerInfo* info = handle->info;
          switch(type)
          {
-         case AAX_MONO_SOURCES:
+         case AAX_MONO_EMITTERS:
             rv = info->max_emitters;
             break;
-         case AAX_STEREO_SOURCES:
+         case AAX_STEREO_EMITTERS:
             rv = info->max_emitters/2;
+            break;
+         case AAX_AUDIO_FRAMES:
+            rv = VALID_HANDLE(handle) ? 256 : 0;
             break;
          case AAX_FREQUENCY:
             rv = info->frequency;

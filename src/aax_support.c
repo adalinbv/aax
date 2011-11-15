@@ -175,6 +175,11 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
          const _handle_t* ptr = (const _handle_t*)handle;
          if (ptr->id == HANDLE_ID) rv = AAX_TRUE;
       }
+      case AAX_CONFIG_HD:
+      {
+          const _handle_t* ptr = (const _handle_t*)handle;
+          if (ptr->id == HANDLE_ID && VALID_HANDLE(ptr)) rv = AAX_TRUE;
+      }
       case AAX_BUFFER:
       {  
          const _buffer_t* ptr = (const _buffer_t*)handle;
