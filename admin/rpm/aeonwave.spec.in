@@ -91,13 +91,13 @@ case $? in
     if [ ! -f "$CONFIGFILE" ]; then
 
       $DIALOG --title "Personal product-key" --nocancel --clear --cr-wrap \
-          --inputbox "The product-key is a series of letters and digits separated by dashes, and was\nprovided when you purchased the software. Without a proper product-key the\nsoftware will function in the Lite mode which is with limited functionality.\nKeep this line empty if you did not yet pruchase the product key.\n\nPlease enter the personal product-key:" 16 60 2> $tempfile
+          --inputbox "The product-key is a series of letters and digits separated by dashes, and was provided when you purchased the software. Without a proper product-key the software will function in the Lite mode which is with limited functionality.\nKeep this line empty if you did not yet pruchase the product key.\n\nPlease enter the personal product-key:" 16 60 2> $tempfile
       retval=$?
 
       case $retval in
         0)
           KEY=`cat $tempfile`
-          echo -e "<?xml version="1.0"?>\n\n<Configuration>\n<product-key>$KEY</product-key>\n <output>\n  <frequency-hz>48000</frequency-hz>\n  <interval-hz>46</interval-hz>\n  <update-hz>20</update-hz>\n  <setup>stereo</setup>\n </output>\n</Configuration>" > $CONFIGFILE
+          echo -e "<?xml version="1.0"?>\n\n<Configuration>\n <product-key>$KEY</product-key>\n <output>\n  <frequency-hz>48000</frequency-hz>\n  <interval-hz>46</interval-hz>\n  <update-hz>20</update-hz>\n  <setup>stereo</setup>\n </output>\n</Configuration>" > $CONFIGFILE
           chmod 600 $CONFIGFILE
           chown $USER:$GROUP $CONFIGFILE
           ;;
