@@ -289,6 +289,8 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
       handle->port[0].frequency_hz = 44100;
       handle->port[0].bytes_sample = 2;
       handle->port[0].no_channels = 2;
+      if (renderer) handle->port[0].name = (char *)renderer;
+      else handle->port[0].name = (char *)_default_name;
       handle->mode = (mode > 0) ? 1 : 0;
 
       if (xid)
@@ -300,7 +302,6 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          {
             s = xmlNodeGetString(xid, "renderer");
             if (s && strcmp(s, "default")) handle->port[0].name = s;
-            else handle->port[0].name = (char *)_default_name;
          }
 
          i = xmlNodeGetInt(xid, "frequency-hz");
@@ -418,7 +419,6 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
        * Only the master port has a configurtion assigned to it.
        * All slave ports share the same config.
        */
-
       handle->port[0].config = palNewConfig();
       if (handle->port[0].config == NULL)
       {
