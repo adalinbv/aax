@@ -189,6 +189,7 @@ int main(int argc, char **argv)
       {
           res = aaxEmitterStop(emitter);
          res = aaxEmitterRewind(emitter);
+         res = aaxEmitterSetPitch(emitter, 0.87);
          res = aaxEmitterStart(emitter);
       }
    }
