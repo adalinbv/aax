@@ -126,14 +126,10 @@ fi
 
 dnl Thread related checks
 AC_CHECK_HEADER(pthread.h,
-  AC_SEARCH_LIBS(pthread_create, [pthread c_r], [
+  AC_SEARCH_LIBS([pthread_attr_setschedparam], [pthread c_r], [
     AC_DEFINE([HAVE_PTHREAD_H], 1, [Define to 1 if you have the <pthread.h> header file.])
    ]))
 
-#AC_CHECK_HEADER(pthread.h,
-#  AC_SEARCH_LIBS(pthread_cancel, [pthread c_r], [
-#    AC_DEFINE([HAVE_PTHREAD_H], 1, [Define to 1 if you have the <pthread.h> header file.])
-#   ]))
 if test "x$ac_cv_header_pthread_h" = "xyes"; then
   CFLAGS="$CFLAGS -D_REENTRANT"
 #  if test "x$ac_cv_search_pthread_cancel" = "x-lc_r"; then
