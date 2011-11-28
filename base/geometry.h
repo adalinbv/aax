@@ -47,7 +47,7 @@ typedef float vec4[4] ALIGN16;
 typedef int32_t ivec4[4] ALIGN16;
 typedef float mtx4[4][4] ALIGN16;
 
-mtx4 aaxIdentityMatrix;
+extern mtx4 aaxIdentityMatrix;
 
 typedef void (*vec3Copy_proc)(vec3 d, const vec3 v);
 typedef void (*vec3Add_proc)(vec3 d, vec3 v);
