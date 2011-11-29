@@ -353,8 +353,10 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                output = xmlNodeCopy(xbid, "output");
                if (output)
                {
+                  *rr = '\0';
                   size = xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
-                  if (!size || (devname[1] && strncasecmp(devname[1],rr,size)))
+                  if (size && devname[1] && (strncasecmp(devname[1], rr, size)
+                                             && strcasecmp(rr,"default")))
                   {
                      xmlFree(output);
                      continue;
@@ -369,7 +371,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                   unsigned int q, i, index = -1;
                   void *xsid;
 
-                  free(config->backend.output);
+                  xmlFree(config->backend.output);
                   config->backend.output = output;
 
                   /* setup speakers */
@@ -397,6 +399,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                         index = _AAX_MAX_SPEAKERS;
                      }
 
+                     xmlFree(config->node[n].speaker[index]);
                      ptr = xmlNodeCopyPos(output, xsid, "speaker", q);
                      config->node[n].speaker[index] = ptr;
                   }
@@ -406,7 +409,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                input = xmlNodeCopy(xbid, "input");
                if (input)
                {
-                  free(config->backend.input);
+                  xmlFree(config->backend.input);
                   config->backend.input = input;
                }
             }
