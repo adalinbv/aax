@@ -226,7 +226,7 @@ _aaxGetDriverBackendName(const _aaxDriverBackend *be)
 }
 
 long
-_aaxDriverBackendSetConfigSettings(const _intBuffers *bs, _aaxConfig *config)
+_aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxConfig *config)
 {
    _intBuffers *dbe = (_intBuffers *)&_aaxIntDriverBackends;
    long rv = time(NULL);
@@ -243,9 +243,12 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, _aaxConfig *config)
          _intBufferData *dptr;
          dptr = _intBufGetNoLock(dbe, _AAX_BACKEND, i);
          be = _intBufGetDataPtr(dptr);
-         config->backend[i].driver = _aax_strdup(be->driver);
-         config->backend[i].input = 0;
-         config->backend[i].output = 0;
+         if (!strcasecmp(devname[0], be->driver))
+         {
+            config->backend.driver = _aax_strdup(be->driver);
+            config->backend.input = 0;
+            config->backend.output = 0;
+         }
       }
 
       be = _aaxGetDriverBackendDefault(bs);
@@ -259,6 +262,160 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, _aaxConfig *config)
       config->node[0].no_speakers = 2;
    }
    return rv; 
+}
+
+void
+_aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *config, const char *path)
+{
+   void *xcid = xmlNodeGet(xid, "/configuration");
+
+   if (xcid != NULL && config != NULL)
+   {
+      unsigned int n, num;
+      void *xoid;
+
+      xoid = xmlMarkId(xcid);
+      num = xmlNodeGetNum(xoid, "output");      /* global output sections */
+      config->no_nodes = num;
+      for (n=0; n<num; n++)
+      {
+         unsigned int be, be_num;
+         char *dev;
+
+         xmlNodeGetPos(xcid, xoid, "output", n);
+
+         if (n < _AAX_MAX_SLAVES)
+         {
+            unsigned int i, q;
+            char *setup;
+            void *xbid;
+            float f;
+
+            dev = xmlNodeGetString(xoid, "device");
+            if (dev)
+            {
+               free(config->node[n].devname);
+               config->node[n].devname = strdup(dev);
+               xmlFree(dev);
+            }
+
+            setup = getenv("AAX_VALVE_COMPRESSOR");
+            if (setup) {
+               q = _oal_getbool(setup);
+            } else {
+               q = xmlNodeGetBool(xoid, "valve-compressor");
+            }
+            if (q) {
+               _aaxProcessCompression = bufCompressValve;
+            } else {
+               _aaxProcessCompression = bufCompressFast;
+            }
+
+            setup = xmlNodeGetString(xoid, "setup");
+            if (setup)
+            {
+               free(config->node[n].setup);
+               config->node[n].setup = strdup(setup);
+               xmlFree(setup);
+            }
+
+            config->node[n].hrtf = xmlNodeCopy(xoid, "head");
+
+            f = xmlNodeGetDouble(xoid, "frequency-hz");
+            if (f) config->node[n].frequency = f;
+
+            f = xmlNodeGetDouble(xoid, "interval-hz");
+            if (f) config->node[n].interval = f;
+
+            f = xmlNodeGetDouble(xoid, "update-hz");
+            if (f) config->node[n].update = f;
+
+            i = xmlNodeGetInt(xoid, "max-emitters");
+            if (i) config->node[n].no_emitters = i;
+
+
+            /* find a mathcing backend */
+            xbid = xmlMarkId(xcid);
+            be_num = xmlNodeGetNum(xbid, "backend");
+            for (be=0; be<be_num; be++)
+            {
+               char name[64], rr[255];
+               char *input, *output;
+               unsigned int size;
+
+               xmlNodeGetPos(xcid, xbid, "backend", be);
+
+               size = xmlNodeCopyString(xbid, "name", (char*)&name, 64);
+               if (!size || strcasecmp(config->backend.driver, name)) {
+                  continue;
+               }
+
+               output = xmlNodeCopy(xbid, "output");
+               if (output)
+               {
+                  size = xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
+                  if (!size || (devname[1] && strncasecmp(devname[1],rr,size)))
+                  {
+                     xmlFree(output);
+                     continue;
+                  }
+               }
+
+               free(config->backend.driver);
+               config->backend.driver = _aax_strdup(name);
+
+               if (output)
+               {
+                  unsigned int q, i, index = -1;
+                  void *xsid;
+
+                  free(config->backend.output);
+                  config->backend.output = output;
+
+                  /* setup speakers */
+                  xsid = xmlMarkId(output);
+
+                  i = xmlNodeGetInt(xsid, "channels");
+                  if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
+                  config->node[n].no_speakers = i;
+
+                  i = xmlNodeGetNum(xsid, "speaker");
+                  if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
+
+                  for (q=0; q<i; q++)
+                  {
+                     char attrib[10];
+                     void *ptr;
+
+                     if (xmlAttributeCopyString(output, "n", (char*)&attrib, 9))
+                     {
+                        char *pe = (char *)&attrib + index;
+                        index = strtol(attrib, &pe, 10);
+                     }
+                     else index++;
+                     if (index >= _AAX_MAX_SPEAKERS) {
+                        index = _AAX_MAX_SPEAKERS;
+                     }
+
+                     ptr = xmlNodeCopyPos(output, xsid, "speaker", q);
+                     config->node[n].speaker[index] = ptr;
+                  }
+                  xmlFree(xsid);
+               }
+
+               input = xmlNodeCopy(xbid, "input");
+               if (input)
+               {
+                  free(config->backend.input);
+                  config->backend.input = input;
+               }
+            }
+            xmlFree(xbid);
+         }
+      }
+      xmlFree(xoid);
+      xmlFree(xcid);
+   }
 }
 
 void
@@ -276,12 +433,9 @@ _aaxDriverBackendClearConfigSettings(_aaxConfig *config)
       }
    }
 
-   for (i=0; i<config->no_backends; i++)
-   {
-      free(config->backend[i].driver);
-      xmlFree(config->backend[i].input);
-      xmlFree(config->backend[i].output);
-   }
+   free(config->backend.driver);
+   xmlFree(config->backend.input);
+   xmlFree(config->backend.output);
 
    free(config);
 }

@@ -46,7 +46,6 @@ static time_t _tvnow = 0;
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*);
-static void _aaxReadConfigSettings(void *, _aaxConfig *, const char *);
 static void _aaxContextSetupHRTF(void *, unsigned int);
 static void _aaxContextSetupSpeakers(void **, unsigned int);
 static void removeMixerByPos(void *, unsigned int);
@@ -278,7 +277,7 @@ aaxDriverOpen(aaxConfig config)
 
       if (cfg)
       {
-         xoid = cfg->backend[cfg->backend_pos].output;
+         xoid = cfg->backend.output;
          if (be)
          {
             const char* name = handle->devname[1];
@@ -323,7 +322,7 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
 
             if (cfg)
             {
-               xoid = cfg->backend[cfg->backend_pos].output;
+               xoid = cfg->backend.output;
                if (be)
                {
                   const char* name = handle->devname[1];
@@ -753,11 +752,12 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
       char *ptr, *name;
       void *xid, *be;
       float fq, iv;
-      int i, key;
+      int key;
 
       /* read the default setup */
       key = AAX_TRUE;
-      tract_now = _aaxDriverBackendSetConfigSettings(handle->backends, config);
+      tract_now = _aaxDriverBackendSetConfigSettings(handle->backends,
+                                                     handle->devname, config);
       if (!_tvnow) _tvnow = tract_now;
 
       /* read the system wide configuration file */
@@ -766,7 +766,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
       {
          
          key = _aaxCheckKeyValidity(xid);
-         _aaxReadConfigSettings(xid, config, SYSTEM_CONFIG_FILE);
+         _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
+                                             SYSTEM_CONFIG_FILE);
          xmlClose(xid);
       }
 
@@ -784,7 +785,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
             {
                int res = _aaxCheckKeyValidity(xid);
                if ((key == AAX_TRUE) && res) key = res;
-               _aaxReadConfigSettings(xid, config, path);
+               _aaxDriverBackendReadConfigSettings(xid, handle->devname,
+                                                   config, path);
                xmlClose(xid);
             }
             free(path);
@@ -815,15 +817,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
          be = _aaxGetDriverBackendByName(handle->backends, name);
          if (be || (handle->devname[0] != _aax_default_devname)) {
             handle->backend.ptr = be;
-         }
-
-         for (i=0; i<config->no_backends; i++)
-         {
-            if (!strcasecmp(name, config->backend[i].driver))
-            {
-               config->backend_pos = i;
-               break;
-            }
          }
 
          key ^= 0x21051974;
@@ -960,7 +953,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
             for (i=0; i<config->no_backends; i++)
             {
                snprintf(buf,1024,"backend[%i]: '%s'\n",
-                                 i, config->backend[i].driver);
+                                 i, config->backend.driver);
                _AAX_SYSLOG(buf);
             }
          }
@@ -974,154 +967,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
    }
 
    return config;
-}
-
-static void
-_aaxReadConfigSettings(void *xid, _aaxConfig *config, const char *path)
-{
-   void *xcid = xmlNodeGet(xid, "/configuration");
-
-   if (xcid != NULL && config != NULL)
-   {
-      unsigned int i, n, num;
-      void *xoid, *xbid;
-
-      xoid = xmlMarkId(xcid);
-      num = xmlNodeGetNum(xoid, "output");	/* global output sections */
-      config->no_nodes = num;
-      for (n=0; n<num; n++)
-      {
-         char *devname;
-         void *xsid;
-
-         xmlNodeGetPos(xcid, xoid, "output", n);
-
-         if (n < _AAX_MAX_SLAVES)
-         {
-            unsigned int q, index = -1;
-            char *setup;
-            float f;
-
-            devname = xmlNodeGetString(xoid, "device");
-            if (devname)
-            {
-               free(config->node[n].devname);
-               config->node[n].devname = strdup(devname);
-               xmlFree(devname);
-            }
-
-            setup = getenv("AAX_HQ_COMPRESSOR");
-            if (setup) {
-               q = _oal_getbool(setup);
-            } else {
-               q = xmlNodeGetBool(xoid, "hq-compressor");
-            }
-            if (q) {
-               _aaxProcessCompression = bufCompressValve;
-            } else {
-               _aaxProcessCompression = bufCompressFast;
-            }
-
-            setup = xmlNodeGetString(xoid, "setup");
-            if (setup)
-            {
-               free(config->node[n].setup);
-               config->node[n].setup = strdup(setup);
-               xmlFree(setup);
-            }
-
-            xsid = xmlMarkId(xoid);
-            i = xmlNodeGetNum(xsid, "speaker");
-            if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
-
-            config->node[n].no_speakers = _AAX_MAX_SPEAKERS;
-            for (q=0; q<i; q++)
-            {
-               char attrib[10];
-               void *ptr;
-
-               if (xmlAttributeCopyString(xoid, "n", (char *)&attrib, 10))
-               {
-                  char *pe = (char *)&attrib + index;
-                  index = strtol(attrib, &pe, 10);
-               }
-               else index++;
-               if (index >= _AAX_MAX_SPEAKERS) {
-                  index = _AAX_MAX_SPEAKERS;
-               }
-
-               ptr = xmlNodeCopyPos(xoid, xsid, "speaker", q);
-               config->node[n].speaker[index] = ptr;
-            }
-            xmlFree(xsid);
-
-            config->node[n].hrtf = xmlNodeCopy(xoid, "head");
-
-            f = xmlNodeGetDouble(xoid, "frequency-hz");
-            if (f) config->node[n].frequency = f;
-
-            f = xmlNodeGetDouble(xoid, "interval-hz");
-            if (f) config->node[n].interval = f;
-
-            f = xmlNodeGetDouble(xoid, "update-hz");
-            if (f) config->node[n].update = f;
-
-            i = xmlNodeGetInt(xoid, "max-emitters");
-            if (i) config->node[n].no_emitters = i;
-         }
-      }
-      xmlFree(xoid);
-
-
-      xbid = xmlMarkId(xcid);
-      num = xmlNodeGetNum(xbid, "backend");	/* backend sections */
-      for (n=0; n<num; n++)
-      {
-         unsigned int q;
-         char *name;
-
-         xmlNodeGetPos(xcid, xbid, "backend", n);
-
-         name = xmlNodeGetString(xbid, "name");
-         if (!name) {
-            continue;
-         }
-
-         for (q=0; q<config->no_backends; q++) {
-            if (!strcasecmp(config->backend[q].driver, name)) break;
-         }
-
-         if (q == config->no_backends) {
-            continue;
-         }
-
-         if (q < _AAX_MAX_BACKENDS)
-         {
-            char *input, *output;
-
-            free(config->backend[q].driver);
-            config->backend[q].driver = _aax_strdup(name);
-
-            output = xmlNodeCopy(xbid, "output");
-            if (output)
-            {
-               free(config->backend[q].output);
-               config->backend[q].output = output;
-            }
-
-            input = xmlNodeCopy(xbid, "input");
-            if (input)
-            {
-               free(config->backend[q].input);
-               config->backend[q].input = input;
-            }
-         }
-         xmlFree(name);
-      }
-
-      xmlFree(xbid);
-      xmlFree(xcid);
-   }
 }
 
 static void
@@ -1172,7 +1017,7 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
 
          v[0] = -xmlNodeGetDouble(xsid, "pos-x");
          v[1] = -xmlNodeGetDouble(xsid, "pos-y");
-         v[2] = -xmlNodeGetDouble(xsid, "pos-z");
+         v[2] = xmlNodeGetDouble(xsid, "pos-z");
          /* vec3Normalize(_aaxContextDefaultSpeakers[channel], v); */
          vec3Copy(_aaxContextDefaultSpeakers[channel], v);
       }

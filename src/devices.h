@@ -20,7 +20,7 @@ typedef struct
 {
    unsigned int no_nodes;
    unsigned int no_backends;
-   unsigned int backend_pos;
+// unsigned int backend_pos;
    struct {
       char *devname;
       char *setup;
@@ -36,7 +36,7 @@ typedef struct
       char *driver;
       void *output;
       void *input;
-   } backend[_AAX_MAX_BACKENDS];
+   } backend; // [_AAX_MAX_BACKENDS];
 } _aaxConfig;
 
 
@@ -54,7 +54,9 @@ _aaxDriverBackend *_aaxGetDriverBackendDefaultCapture(const _intBuffers *);
 _aaxDriverBackend *_aaxGetDriverBackendByName(const _intBuffers *, const char *);
 _aaxDriverBackend *_aaxGetDriverBackendByPos(const _intBuffers *, unsigned int);
 const char *_aaxGetDriverBackendName(const _aaxDriverBackend *);
-long _aaxDriverBackendSetConfigSettings(const _intBuffers *, _aaxConfig *);
+
+long _aaxDriverBackendSetConfigSettings(const _intBuffers *,char**, _aaxConfig *);
+void _aaxDriverBackendReadConfigSettings(void *, char**, _aaxConfig *, const char *);
 void _aaxDriverBackendClearConfigSettings(_aaxConfig *);
 char _aaxGetDriverBackendExtensionSupport(const _aaxDriverBackend *, const char *);
 
