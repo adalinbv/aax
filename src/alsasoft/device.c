@@ -356,7 +356,11 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
          {
             s = xmlNodeGetString(xid, "renderer");
             if (s && strcmp(s, "default")) handle->name = s;
-            else handle->name = (char *)_default_name;
+            else
+            {
+               free(s); /* 'default' */
+               handle->name = (char *)_default_name;
+            }
          }
 
          i = xmlNodeGetDouble(xid, "frequency-hz");
