@@ -120,7 +120,6 @@ int main(int argc, char **argv)
          {
             nanoSleep(5e7);
             deg += 5;
-if (0) break;
          }
 
          _neg(EmitterPos[0]); /* restore original */
@@ -137,6 +136,29 @@ if (0) break;
 
 #if 1
          printf("front (left) / back (right)\n");
+         deg = 0;
+         while(deg < 360)
+         {
+            nanoSleep(5e7);
+            deg += 5;
+         }
+#endif
+
+
+         //_neg(EmitterPos[2]); /* restore original */
+         _swap(EmitterPos[1], EmitterPos[2]);
+         for (i=0; i<num; i++)
+         {
+            if (i == 1) _neg(EmitterPos[1]);
+            res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
+            testForState(res, "aaxMatrixSetDirection");
+
+            res = aaxEmitterSetMatrix(emitter[i], mtx);
+            testForState(res, "aaxSensorSetMatrix");
+         }
+
+#if 1
+         printf("front (up) / back (down)\n");
          deg = 0;
          while(deg < 360)
          {
