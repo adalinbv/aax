@@ -1197,7 +1197,7 @@ _aaxAudioFrameThread(void* config)
                                      _AAX_MAX_SPEAKERS*sizeof(vec4));
                memcpy(&fp2d.hrtf, fmixer->info->hrtf, 2*sizeof(vec4));
 
-               _aaxSoftwareDriverProcessFrame(mixer->ringbuffer, mixer->info,
+               _aaxSoftwareMixerProcessFrame(mixer->ringbuffer, mixer->info,
                                               &sp2d, &sp3d, &fp2d, &fp3d,
                                               mixer->emitters_2d,
                                               mixer->emitters_3d,
@@ -1211,7 +1211,7 @@ _aaxAudioFrameThread(void* config)
       }
 
       /*
-       * _aaxSoftwareDriverSignalFrames uses _aaxConditionSignal to let the
+       * _aaxSoftwareMixerSignalFrames uses _aaxConditionSignal to let the
        * frame procede in advance, before the main thread starts mixing so
        * threads will be finished soon after the main thread.
        * As a result _aaxConditionWaitTimed may return 0 instead,

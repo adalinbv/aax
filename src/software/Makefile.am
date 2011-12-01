@@ -16,6 +16,7 @@ libsoftwaredriver_la_SOURCES = \
 	device.c \
 	arch.c \
 	arch_cpu.c \
+	mixer.c \
 	ringbuffer.c \
 	rbuf_mixers.c \
 	rbuf_mixer_tables.c \

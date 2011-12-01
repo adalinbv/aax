@@ -125,14 +125,19 @@ extern _aaxDriverPrepare _aaxSoftwareDriverApplyEffects;
 extern _aaxDriver3dMixerCB _aaxSoftwareDriver3dMixer;
 extern _aaxDriver2dMixerCB _aaxSoftwareDriverStereoMixer;
 extern _aaxDriverPrepare3d _aaxSoftwareDriver3dPrepare;
-extern _aaxDriverThread _aaxSoftwareDriverThread;
+extern _aaxDriverThread _aaxSoftwareMixerThread;
 
 void _aaxNoneDriverProcessFrame(void*);
 
-float _aaxSoftwareDriverReadFrame(void*, const void*, void*);
-unsigned int _aaxSoftwareDriverSignalFrames(void*);
-void _aaxSoftwareDriverProcessFrame(void*, void*, void*, void*, void*, void*, void*, void*, const void*, void*);
-int _aaxSoftwareDriverPlayFrame(void*, const void*, void*, void*);
+unsigned int _aaxSoftwareMixerSignalFrames(void*);
+float _aaxSoftwareMixerReadFrame(void*, const void*, void*);
+int _aaxSoftwareMixerPlayFrame(void*, const void*, void*, void*);
+void _aaxSoftwareMixerProcessFrame(void*, void*, void*, void*, void*, void*, void*, void*, const void*, void*);
+
+void* _aaxSoftwareMixerThread(void*);
+int _aaxSoftwareMixerThreadUpdate(void*, void*);
+void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
+void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
 
 #endif /* !_AAX_DRIVER_H */
 

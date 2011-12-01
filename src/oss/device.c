@@ -81,7 +81,7 @@ _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxOSSDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxOSSDriverGetName,
-   (_aaxDriverThread *)&_aaxSoftwareDriverThread,
+   (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
    (_aaxDriverConnect *)&_aaxOSSDriverConnect,
    (_aaxDriverDisconnect *)&_aaxOSSDriverDisconnect,
@@ -94,8 +94,8 @@ _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
-   (_aaxDriverPostProcess *)&_aaxSoftwareDriverPostProcess,
-   (_aaxDriverPrepare *)&_aaxSoftwareDriverApplyEffects,
+   (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
+   (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)*_aaxOSSDriverAvailable,
    (_aaxDriverState *)*_aaxOSSDriverAvailable,

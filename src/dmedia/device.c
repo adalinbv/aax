@@ -88,7 +88,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxDMediaDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxDMediaGetName,
-   (_aaxDriverThread *)&_aaxSoftwareDriverThread,
+   (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
    (_aaxDriverConnect *)&_aaxDMediaDriverConnect,
    (_aaxDriverDisconnect *)&_aaxDMediaDriverDisconnect,
@@ -101,8 +101,8 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
-   (_aaxDriverPostProcess *)&_aaxSoftwareDriverPostProcess,
-   (_aaxDriverPrepare *)&_aaxSoftwareDriverApplyEffects,
+   (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
+   (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)&_aaxDMediaDriverAvailable,
    (_aaxDriverState *)&_aaxDMediaDriverAvailable,

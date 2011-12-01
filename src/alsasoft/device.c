@@ -103,8 +103,8 @@ _aaxDriverBackend _aaxALSASoftDriverBackend =
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
-   (_aaxDriverPostProcess *)&_aaxSoftwareDriverPostProcess,
-   (_aaxDriverPrepare *)&_aaxSoftwareDriverApplyEffects,
+   (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
+   (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)&_aaxALSASoftDriverAvailable,
    (_aaxDriverState *)&_aaxALSASoftDriverAvailable,
@@ -1740,7 +1740,7 @@ _aaxALSASoftDriverThread(void* config)
             {
                float dt;
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               dt = _aaxSoftwareDriverReadFrame(mixer, be, be_handle);
+               dt = _aaxSoftwareMixerReadFrame(mixer, be, be_handle);
                mixer->curr_pos_sec += dt;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
@@ -1753,7 +1753,7 @@ _aaxALSASoftDriverThread(void* config)
                /* thread == -1: mixer; attached frames are threads */
                /* thread >=  0: frame; call updates manually       */
                if (mixer->thread == -1) {
-                  _aaxSoftwareDriverSignalFrames(mixer->frames);
+                  _aaxSoftwareMixerSignalFrames(mixer->frames);
                }
 
                /* copying here prevents locking the listener the whole time */
@@ -1767,12 +1767,12 @@ _aaxALSASoftDriverThread(void* config)
                memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
-               _aaxSoftwareDriverProcessFrame(dest_rb,  mixer->info,
+               _aaxSoftwareMixerProcessFrame(dest_rb,  mixer->info,
                                          &sp2d, &sp3d, NULL, NULL,
                                          mixer->emitters_2d, mixer->emitters_3d,
                                          be, be_handle);
 
-               _aaxSoftwareDriverPlayFrame(mixer, be, sensor, be_handle);
+               _aaxSoftwareMixerPlayFrame(mixer, be, sensor, be_handle);
             }
          }
          else /* if (IS_STANDBY(handle) */
