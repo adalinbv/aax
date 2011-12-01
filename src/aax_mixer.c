@@ -650,7 +650,6 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                }
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
-
             
             if (dptr && pos != UINT_MAX)
             {
@@ -680,9 +679,10 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                _intBufReleaseData(dptr, _AAX_SENSOR);
                rv = AAX_TRUE;
 
+               frame->submix->refcount++;
+               frame->submix->thread = AAX_TRUE;
                frame->handle = handle;
                frame->pos = pos;
-
             }
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -692,12 +692,13 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
 
-         /* No need ti put the frame since it was not registered yet.
+         /* No need to put the frame since it was not registered yet.
           * This means there is no lock to unlock 
           * put_frame(frame);
           */
       }
-      else {
+      else
+      {
          if (frame->handle) put_frame(frame);
          _aaxErrorSet(AAX_INVALID_STATE);
       }
@@ -728,6 +729,8 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
 
+         frame->submix->refcount--;
+         frame->submix->thread = AAX_FALSE;
          frame->handle = NULL;
          frame->pos = UINT_MAX;
          rv = AAX_TRUE;

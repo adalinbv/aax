@@ -1259,18 +1259,18 @@ _aaxSoftwareDriverUpdateHeader(const void *id)
       }
 
 #if 0
-printf("Write:\n");
-printf(" 0: %08x\n", handle->waveHeader[0]);
-printf(" 1: %08x\n", handle->waveHeader[1]);
-printf(" 2: %08x\n", handle->waveHeader[2]);
-printf(" 3: %08x\n", handle->waveHeader[3]);
-printf(" 4: %08x\n", handle->waveHeader[4]);
-printf(" 5: %08x\n", handle->waveHeader[5]);
-printf(" 6: %08x\n", handle->waveHeader[6]);
-printf(" 7: %08x\n", handle->waveHeader[7]);
-printf(" 8: %08x\n", handle->waveHeader[8]);
-printf(" 9: %08x\n", handle->waveHeader[9]);
-printf("10: %08x\n", handle->waveHeader[10]);
+// printf("Write:\n");
+// printf(" 0: %08x\n", handle->waveHeader[0]);
+// printf(" 1: %08x\n", handle->waveHeader[1]);
+// printf(" 2: %08x\n", handle->waveHeader[2]);
+// printf(" 3: %08x\n", handle->waveHeader[3]);
+// printf(" 4: %08x\n", handle->waveHeader[4]);
+// printf(" 5: %08x\n", handle->waveHeader[5]);
+// printf(" 6: %08x\n", handle->waveHeader[6]);
+// printf(" 7: %08x\n", handle->waveHeader[7]);
+// printf(" 8: %08x\n", handle->waveHeader[8]);
+// printf(" 9: %08x\n", handle->waveHeader[9]);
+// printf("10: %08x\n", handle->waveHeader[10]);
 #endif
    }
 
@@ -1406,7 +1406,10 @@ _aaxSoftwareDriverMixFrames(_oalRingBuffer *dest_rb, _intBuffers *hf)
             sleep = 0.1f / frame->submix->info->refresh_rate;
             sleept.tv_nsec = sleep * 1e9f;
 
-            /* Can't call aaxAudioFrameWaitForBuffer because of a dead-lock */
+            /*
+             * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
+             * mixer->capturing is set to AAX_FALSE when a buffer is available
+             */
             ringbuffers = mixer->ringbuffers;
             while ((mixer->capturing == 1) && (p++ < 500))
             {
@@ -1416,6 +1419,7 @@ _aaxSoftwareDriverMixFrames(_oalRingBuffer *dest_rb, _intBuffers *hf)
 
                dptr = _intBufGet(hf, _AAX_FRAME, i);
                if (!dptr) break;
+
                frame = _intBufGetDataPtr(dptr);
             }
 
@@ -1514,7 +1518,11 @@ _aaxSoftwareDriverThreadUpdate(_handle_t *handle, _oalRingBuffer *dest_rb)
             _oalRingBuffer3dProps sp3d;
 
             /* signal frames to update */
-            _aaxSoftwareDriverSignalFrames(mixer->frames);
+            /* thread == -1: mixer; attached frames are threads */
+            /* thread >=  0: frame; call updates manually       */
+            if (mixer->thread == -1) {
+               _aaxSoftwareDriverSignalFrames(mixer->frames);
+            }
 
             /* copying here prevents locking the listener the whole time */
             /* it's used for just one time-frame anyhow                  */

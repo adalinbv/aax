@@ -118,8 +118,10 @@ typedef struct
    float curr_pos_sec;
    int no_emitters;
 
-   char capturing;
-   char dist_delaying;
+   signed char thread;
+   unsigned char refcount;
+   unsigned char capturing;
+   unsigned char dist_delaying;
  
 } _aaxAudioFrame;
 

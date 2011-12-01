@@ -427,11 +427,11 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       }
 
 #if 0
-printf("frequency-hz: %f\n", handle->frequency_hz);
-printf("channels: %i\n", handle->no_channels);
-printf("bytes-per-sample: %i\n", handle->bytes_sample);
-printf("periods: %i\n", handle->no_periods);
-printf("renderer: %s\n", handle->name);
+// printf("frequency-hz: %f\n", handle->frequency_hz);
+// printf("channels: %i\n", handle->no_channels);
+// printf("bytes-per-sample: %i\n", handle->bytes_sample);
+// printf("periods: %i\n", handle->no_periods);
+// printf("renderer: %s\n", handle->name);
 #endif
    }
 
@@ -633,7 +633,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
             _AAX_SYSLOG(str);
 #if 0
-printf("\tformat: %X", fmt);
+// printf("\tformat: %X", fmt);
 #endif
          } while (0);
       }
@@ -1715,8 +1715,8 @@ _aaxALSASoftDriverThread(void* config)
 #endif
 
 #if 0
-printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
-printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
+// printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
+// printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
       if (state != handle->state)
       {
@@ -1750,7 +1750,11 @@ printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
                _oalRingBuffer3dProps sp3d;
 
                /* signal frames to update */
-               _aaxSoftwareDriverSignalFrames(mixer->frames);
+               /* thread == -1: mixer; attached frames are threads */
+               /* thread >=  0: frame; call updates manually       */
+               if (mixer->thread == -1) {
+                  _aaxSoftwareDriverSignalFrames(mixer->frames);
+               }
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one frame anyhow                       */

@@ -20,7 +20,8 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FRAMES			8
+#define FRAMES			4
+#define SUBFRAMES		4
 #define RADIUS			15
 #define FILE_PATH               SRC_PATH"/tictac.wav"
 
@@ -41,9 +42,10 @@ aaxVec3f SensorVel = { 0.0f, 0.0f, 0.0f };
 
 int main(int argc, char **argv)
 {
+   aaxFrame subframe[FRAMES][SUBFRAMES];
+   aaxFrame frame[FRAMES];
    char *devname, *infile;
    enum aaxRenderMode mode;
-   aaxFrame frame[FRAMES];
    aaxConfig config;
    int num, res;
 
@@ -86,14 +88,17 @@ int main(int argc, char **argv)
 
          /** audio frame */
          pitch = getPitch(argc, argv);
-         num = ((getNumSources(argc, argv)-1)/FRAMES)+1;
-         printf("starting %i frames\n", FRAMES);
+         num = ((getNumSources(argc, argv)-1)/(FRAMES*SUBFRAMES))+1;
+         printf("starting %i frames with %i subframes ", FRAMES, SUBFRAMES);
+         printf("and %i emitters per subframe\nfor a total of %i emitters\n", num, num*SUBFRAMES*FRAMES);
 
          res = aaxMatrixSetOrientation(mtx, FramePos, FrameAt, FrameUp);
          testForState(res, "aaxAudioFrameSetOrientation");
 
          for (j=0; j<FRAMES; j++)
          {
+            int k;
+
             frame[j] = aaxAudioFrameCreate(config);
             testForError(frame[j], "Unable to create a new audio frame\n");
 
@@ -114,107 +119,125 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetState(frame[j], AAX_PLAYING);
             testForState(res, "aaxAudioFrameStart");
 
-            /** emitter */
-            /* Set sources to located in a circle around the listener */
-            anglestep = (2 * 3.1416) / (float)(FRAMES*num);
-            printf("Starting %i emitters\n", num);
-            i = 0;
-            do
+            for (k=0; k<SUBFRAMES; k++)
             {
-               unsigned int p = j*num + i;
-               static float mul = 1.0;
-               aaxVec3f pos;
+               subframe[j][k] = aaxAudioFrameCreate(config);
+               testForError(subframe[j][k], "Unable to create a new sub-frame\n");
 
-               emitter[p] = aaxEmitterCreate();
-               testForError(emitter[p], "Unable to create a new emitter\n");
+               res = aaxAudioFrameSetMatrix(subframe[j][k], mtx);
+               testForState(res, "aaxAudioFrameSetMatrix");
 
-               res = aaxEmitterAddBuffer(emitter[p], buffer);
-               testForState(res, "aaxEmitterAddBuffer");
+               res = aaxAudioFrameSetMode(subframe[j][k], AAX_POSITION, AAX_RELATIVE);
+               testForState(res, "aaxAudioFrameSetMode");
 
-               pos[1] = EmitterPos[1] + cos(anglestep * p) * RADIUS;
-               pos[0] = EmitterPos[0] + mul*cos(anglestep * p) * RADIUS;
-               pos[2] = EmitterPos[2] + sin(anglestep * p) * RADIUS;
-               aaxMatrixSetDirection(mtx, pos, EmitterDir);
-               res = aaxEmitterSetMatrix(emitter[p], mtx);
-               testForState(res, "aaxEmitterSetIdentityMatrix");
-               mul *= -1.0;
+               res = aaxAudioFrameSetVelocity(subframe[j][k], FrameVel);
+               testForState(res, "aaxAudioFrameSetVelocity");
 
-               res = aaxEmitterSetMode(emitter[p], AAX_POSITION, AAX_ABSOLUTE);
-               testForState(res, "aaxEmitterSetMode");
+               /** register audio frame */
+               res = aaxAudioFrameRegisterAudioFrame(frame[j], subframe[j][k]);
+               testForState(res, "aaxAudioFrameRegisterAudioFrame");
 
-               res = aaxEmitterSetMode(emitter[p], AAX_LOOPING, AAX_TRUE);
-               testForState(res, "aaxEmitterSetLooping");
+               /** schedule the audioframe for playback */
+               res = aaxAudioFrameSetState(subframe[j][k], AAX_PLAYING);
+               testForState(res, "aaxAudioFrameStart");
 
-               res = aaxEmitterSetReferenceDistance(emitter[p], 3.3f);
-               testForState(res, "aaxEmitterSetReferenceDistance");
+               /** emitter */
+               /* Set sources to located in a circle around the listener */
+               anglestep = (2 * 3.1416) / (float)(FRAMES*SUBFRAMES*num);
+               printf("Starting %i emitters\n", num);
+               i = 0;
+               do
+               {
+                  unsigned int p = (j*FRAMES+k)*num + i;
+                  static float mul = 1.0;
+                  aaxVec3f pos;
 
-               res = aaxEmitterSetPitch(emitter[p], pitch);
-               testForState(res, "aaxEmitterSetPitch");
+                  emitter[p] = aaxEmitterCreate();
+                  testForError(emitter[p], "Unable to create a new emitter\n");
 
-               /** register the emitter to the audio-frame */
-               res = aaxAudioFrameRegisterEmitter(frame[j], emitter[p]);
-               testForState(res, "aaxMixerRegisterEmitter");
+                  res = aaxEmitterAddBuffer(emitter[p], buffer);
+                  testForState(res, "aaxEmitterAddBuffer");
 
-               /** schedule the emitter for playback */
-               res = aaxEmitterSetState(emitter[p], AAX_PLAYING);
-               testForState(res, "aaxEmitterStart");
+                  pos[1] = EmitterPos[1] + cos(anglestep * p) * RADIUS;
+                  pos[0] = EmitterPos[0] + mul*cos(anglestep * p) * RADIUS;
+                  pos[2] = EmitterPos[2] + sin(anglestep * p) * RADIUS;
+                  aaxMatrixSetDirection(mtx, pos, EmitterDir);
+                  res = aaxEmitterSetMatrix(emitter[p], mtx);
+                  testForState(res, "aaxEmitterSetIdentityMatrix");
+                  mul *= -1.0;
 
-               nanoSleep(7e7);
+                  res = aaxEmitterSetMode(emitter[p], AAX_POSITION, AAX_ABSOLUTE);
+                  testForState(res, "aaxEmitterSetMode");
+
+                  res = aaxEmitterSetMode(emitter[p], AAX_LOOPING, AAX_TRUE);
+                  testForState(res, "aaxEmitterSetLooping");
+
+                  res = aaxEmitterSetReferenceDistance(emitter[p], 3.3f);
+                  testForState(res, "aaxEmitterSetReferenceDistance");
+
+                  res = aaxEmitterSetPitch(emitter[p], pitch);
+                  testForState(res, "aaxEmitterSetPitch");
+
+                  /** register the emitter to the audio-frame */
+                  res = aaxAudioFrameRegisterEmitter(subframe[j][k], emitter[p]);
+                  testForState(res, "aaxMixerRegisterEmitter");
+
+                  /** schedule the emitter for playback */
+                  res = aaxEmitterSetState(emitter[p], AAX_PLAYING);
+                  testForState(res, "aaxEmitterStart");
+
+                  nanoSleep(7e7);
+               }
+               while (++i < num);
+
+               nanoSleep(5e7);
             }
-            while (++i < num);
-
-            nanoSleep(5e7);
          }
 
          deg = 0;
          while(deg < 360)
          {
             nanoSleep(5e7);
-#if 0
-            ang = (float)deg / 180.0f * GMATH_PI;
-            EmitterPos[0] = 10000.0 + rad * sinf(ang);
-            EmitterPos[2] = -r * cosf(ang);
-//          EmitterPos[1] = -1000.0 -r * cosf(ang);
-#if 1
-            printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
-                     EmitterPos[0], EmitterPos[1], EmitterPos[2]);
-#endif
-            res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-            testForState(res, "aaxMatrixSetDirection");
-
-            i = 0;
-            do
-            {
-               res = aaxEmitterSetMatrix(emitter[p], mtx);
-               testForState(res, "aaxSensorSetMatrix");
-            } while (++i < num);
-#endif
             deg += 1;
          }
 
          for (j=0; j<FRAMES; j++)
          {
+            int k;
+
             res = aaxAudioFrameSetState(frame[j], AAX_STOPPED);
             testForState(res, "aaxAudioFrameStop");
 
-            for(i=0; i<num; i++)
+            for (k=0; k<SUBFRAMES; k++)
             {
-               unsigned int p = j*num + i;
-               res = aaxEmitterSetState(emitter[p], AAX_STOPPED);
-               testForState(res, "aaxEmitterStop");
+                res = aaxAudioFrameSetState(subframe[j][k], AAX_STOPPED);
+                testForState(res, "aaxAudioFrameStop");           
 
-               res = aaxAudioFrameDeregisterEmitter(frame[j], emitter[p]);
-               testForState(res, "aaxMixerDeregisterEmitter");
+               for(i=0; i<num; i++)
+               {
+                  unsigned int p = (j*FRAMES+k)*num + i;
+                  res = aaxEmitterSetState(emitter[p], AAX_STOPPED);
+                  testForState(res, "aaxEmitterStop");
 
-               res = aaxEmitterDestroy(emitter[p]);
-               testForState(res, "aaxEmitterDestroy");
+                  res = aaxAudioFrameDeregisterEmitter(subframe[j][k], emitter[p]);
+                  testForState(res, "aaxMixerDeregisterEmitter");
+
+                  res = aaxEmitterDestroy(emitter[p]);
+                  testForState(res, "aaxEmitterDestroy");
+               }
+
+               res = aaxAudioFrameDeregisterAudioFrame(frame[j], subframe[j][k]);
+               testForState(res, "aaxMixerDeregisterAudioFrame");
+
+               res = aaxAudioFrameDestroy(subframe[j][k]);
+               testForState(res, "aaxAudioFrameStop");
             }
 
             res = aaxMixerDeregisterAudioFrame(config, frame[j]);
-            testForState(res, "aaxMixerDeregisterAudioFrame");
+               testForState(res, "aaxMixerDeregisterAudioFrame");
 
-            res = aaxAudioFrameDestroy(frame[j]);
-            testForState(res, "aaxAudioFrameStop");
+               res = aaxAudioFrameDestroy(frame[j]);
+               testForState(res, "aaxAudioFrameStop");
          }
 
          res = aaxBufferDestroy(buffer);

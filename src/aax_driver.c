@@ -710,6 +710,7 @@ _open_handle(aaxConfig config)
 
                      sensor->count = 1;
 
+                     sensor->mixer->thread = -1;
                      num = _oalRingBufferGetNoSources();
                      sensor->mixer->info->max_emitters = num;
 
@@ -1048,8 +1049,8 @@ _aaxCheckKeyValidityStr(char *keystr)
          key += *(uint32_t*)(&tmp);
       }
 #if 0
-printf("tmp: %llx\n", tmp);
-printf("*(uint32_t*)(&tmp): %x\n((uint32_t*)(&tmp)+1): %x\n", *(uint32_t*)(&tmp), *((uint32_t*)(&tmp)+1));
+// printf("tmp: %llx\n", tmp);
+// printf("*(uint32_t*)(&tmp): %x\n((uint32_t*)(&tmp)+1): %x\n", *(uint32_t*)(&tmp), *((uint32_t*)(&tmp)+1));
 #endif
 
       nptr = eptr+1;

@@ -514,6 +514,8 @@ AAX_API int AAX_APIENTRY aaxAudioFrameDestroy(aaxFrame);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
 AAX_API int AAX_APIENTRY aaxAudioFrameRegisterEmitter(const aaxFrame, const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aaxEmitter);
+AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
+AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
