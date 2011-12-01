@@ -640,7 +640,7 @@ _get_inst_num(const char* name)
     }
     else if (rid)
     {
-        void *xsid = xmlNodeGet(rid, "synthesizer");
+        void *xsid = xmlNodeGet(rid, "soundbank");
         if (xsid)
         {
             unsigned int bank, numbanks;
@@ -653,20 +653,20 @@ _get_inst_num(const char* name)
                 if (xmlNodeGetPos(xsid, xbid, "bank", bank) != 0)
                 {
                     unsigned int i, num;
-                    void *xiid = xmlMarkId(xbid);
-                    num = xmlNodeGetNum(xiid, "instrument");
+                    void *xcid = xmlMarkId(xbid);
+                    num = xmlNodeGetNum(xcid, "controller");
                     for (i=0; i<num; i++)
                     {
-                        if (xmlNodeGetPos(xbid, xiid, "instrument", i)  != 0)
+                        if (xmlNodeGetPos(xbid, xcid, "controller", i)  != 0)
                         {
-                            if (!xmlNodeCompareString(xiid, "name", name))
+                            if (!xmlAttributeCompareString(xcid, "name", name))
                             {
                                 rv = i;
                                 break;
                             }
                         }
                     }
-                    xmlFree(xiid);
+                    xmlFree(xcid);
                 }
                 if (rv) break;
             }
