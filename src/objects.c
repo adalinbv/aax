@@ -155,14 +155,14 @@ const _aaxMixerInfo _aaxDefaultMixerInfo =
 
   /* speaker setup */
   {
-    { 1.0f, 0.0f,-1.0f, 1.0f },		/* front left speaker    */
-    {-1.0f, 0.0f,-1.0f, 1.0f },		/* front right speaker   */
-    { 0.0f, 0.0f, 1.0f, 0.0f },		/* rear left speaker     */
-    { 0.0f, 0.0f, 1.0f, 0.0f },		/* rear right speaker    */
-    { 0.0f, 0.0f,-1.0f, 0.0f },		/* front center speaker  */
-    { 0.0f, 0.0f,-1.0f, 0.0f },		/* low frequency emitter */
-    { 1.0f, 0.0f, 0.0f, 1.0f },		/* left side speaker     */
-    {-1.0f, 0.0f, 0.0f, 1.0f }		/* right side speaker    */
+    {-1.0f, 0.0f, 1.0f, 1.0f },		/* front left speaker    */
+    { 1.0f, 0.0f, 1.0f, 1.0f },		/* front right speaker   */
+    {-1.0f, 0.0f,-1.0f, 1.0f },		/* rear left speaker     */
+    { 1.0f, 0.0f,-1.0f, 1.0f },		/* rear right speaker    */
+    { 0.0f, 0.0f, 1.0f, 1.0f },		/* front center speaker  */
+    { 0.0f, 0.0f, 1.0f, 1.0f },		/* low frequency emitter */
+    {-1.0f, 0.0f, 0.0f, 1.0f },		/* left side speaker     */
+    { 1.0f, 0.0f, 0.0f, 1.0f }		/* right side speaker    */
   },
 
   { 0, 1, 0, 1, 0, 1, 0, 1 },	/* speaker router setup */
