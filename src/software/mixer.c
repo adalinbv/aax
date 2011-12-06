@@ -13,36 +13,6 @@
 #include "config.h"
 #endif
 
-#if 0
-#include <math.h>		/* for floor, and rint */
-#include <errno.h>		/* for ETIMEDOUT */
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>		/* for getenv */
-#include <assert.h>
-#include <strings.h>
-#include <sys/stat.h>
-#include <sys/time.h>		/* for struct timeval */
-
-#include <signal.h>
-#ifdef SOLARIS /* needed with at least Solaris 8 */
-# include <siginfo.h>
-#endif
-
-
-#include <aax.h>
-#include <xml.h>
-
-#include <api.h>
-#include <arch.h>
-#include <devices.h>
-#include <base/types.h>
-#include <base/logging.h>
-#include <base/threads.h>
-
-#include "device.h"
-#endif
-
 #include <math.h>		/* for floor, and rint */
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
@@ -317,7 +287,7 @@ if (res != 0 && res != 1) printf("res: %i\n\t\t\t", res);
 }
 
 void
-_aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void *fp2d, void *fp3d, void *e2d, void *e3d, const void* backend, void* handle)
+_aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void *fp2d, void *fp3d, void *e2d, void *e3d, const void* backend, void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
@@ -386,13 +356,14 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
                      assert(_IS_POSITIONAL(src));
                      be->prepare3d(sp3d, fp3d, info, props2d, src);
                      if (src->curr_pos_sec >= props2d->delay_sec)
-                        rv = be->mix3d(handle, dest_rb, src_rb, src->props2d,
+// printf("mix3d\n");
+                        rv = be->mix3d(be_handle, dest_rb, src_rb, src->props2d,
                                                props2d, emitter->track);
                   }
                   else
                   {
                      assert(!_IS_POSITIONAL(src));
-                     rv = be->mix2d(handle, dest_rb, src_rb, src->props2d,
+                     rv = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
                                            props2d, 1.0, 1.0);
                   }
 
@@ -455,7 +426,7 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
       {
          /* apply environmental effects */
          if (num > 0) {
-            be->effects(handle, dest_rb, props2d);
+            be->effects(be_handle, dest_rb, props2d);
          }
          he = e2d;
       }
@@ -483,7 +454,6 @@ _aaxSoftwareMixerSignalFrames(void *frames)
          if (dptr)
          {
             _frame_t* frame = _intBufGetDataPtr(dptr);
-            // _intBuffers *ringbuffers = frame->submix->ringbuffers;
 
             if TEST_FOR_TRUE(frame->submix->capturing)
             {
@@ -552,32 +522,43 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
          _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
          if (dptr)
          {
-            static struct timespec sleept = {0, 1000};
             _frame_t* frame = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = frame->submix;
             _intBuffers *ringbuffers;
-            float sleep;
-            int p = 0;
-
-            sleep = 0.1f / frame->submix->info->refresh_rate;
-            sleept.tv_nsec = sleep * 1e9f;
 
             /*
-             * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
-             * mixer->capturing is set to AAX_FALSE when a buffer is available
+             * mixer->thread  = -1: mixer
+             * mixer->thread  =  1: threaded frame
+             * mixer->thread  =  0: non threaded frame, call update ourselves.
              */
-            ringbuffers = mixer->ringbuffers;
-            while ((mixer->capturing == 1) && (p++ < 500))
+//          if (!mixer->thread)
+//          {
+// printf("non threaded frame\n");
+//          }
+//          else
             {
-               _intBufReleaseData(dptr, _AAX_FRAME);
+               static struct timespec sleept = {0, 1000};
+               float sleep = 0.1f / frame->submix->info->refresh_rate;
+               int p = 0;
 
-               nanosleep(&sleept, 0);
+               /*
+                * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
+                * mixer->capturing is AAX_FALSE when a buffer is available
+                */
+               sleept.tv_nsec = sleep * 1e9f;
+               ringbuffers = mixer->ringbuffers;
+               while ((mixer->capturing == 1) && (p++ < 500))
+               {
+                  _intBufReleaseData(dptr, _AAX_FRAME);
 
-               dptr = _intBufGet(hf, _AAX_FRAME, i);
-               if (!dptr) break;
+                  nanosleep(&sleept, 0);
 
-               frame = _intBufGetDataPtr(dptr);
-            }
+                  dptr = _intBufGet(hf, _AAX_FRAME, i);
+                  if (!dptr) break;
+
+                  frame = _intBufGetDataPtr(dptr);
+               }
+            } /* mixer->thread */
 
             if (dptr)
             {
@@ -628,7 +609,7 @@ for (i=0; i<_oalRingBufferGetNoTracks(dest_rb); i++) {
 }
 
 int
-_aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void* handle)
+_aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _aaxAudioFrame* mixer = (_aaxAudioFrame*)frame;
@@ -639,10 +620,10 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
    if (mixer->frames) {
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
    }
-   be->postprocess(handle, dest_rb, sensor);
+   be->postprocess(be_handle, dest_rb, sensor);
 
    /* play all mixed audio */
-   res = be->play(handle, 0, dest_rb, 1.0, 1.0);
+   res = be->play(be_handle, 0, dest_rb, 1.0, 1.0);
 
    if TEST_FOR_TRUE(mixer->capturing)
    {
@@ -678,7 +659,6 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
 int
 _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 {
-   _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
    _handle_t *handle = (_handle_t *)config;
    const _aaxDriverBackend* be;
    _intBufferData *dptr_sensor;
@@ -718,7 +698,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             mixer->curr_pos_sec += dt;
             _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
          }
-         else if (mixer->emitters_3d || mixer->emitters_2d)
+         else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
          {
             _oalRingBuffer2dProps sp2d;
             _oalRingBuffer3dProps sp3d;
@@ -726,7 +706,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             /* signal frames to update */
             /* thread == -1: mixer; attached frames are threads */
             /* thread >=  0: frame; call updates manually       */
-            if (mixer->thread == -1) {
+            if (mixer->thread < 0) {
                _aaxSoftwareMixerSignalFrames(mixer->frames);
             }
 

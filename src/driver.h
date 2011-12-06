@@ -138,6 +138,7 @@ void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
 void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
+unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
 
 #endif /* !_AAX_DRIVER_H */
 

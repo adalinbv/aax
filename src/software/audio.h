@@ -35,7 +35,6 @@ void iir_compute_coefs(float, float, float *, float *);
 
 void _aaxSoftwareDriverWriteFile(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, char);
 
-unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
 int _aaxSoftwareMixerPlayFrame(void*, const void*, void*, void*);
 
 

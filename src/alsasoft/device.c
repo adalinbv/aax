@@ -1744,7 +1744,7 @@ _aaxALSASoftDriverThread(void* config)
                mixer->curr_pos_sec += dt;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
-            else if (mixer->emitters_3d || mixer->emitters_2d)
+            else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
@@ -1752,7 +1752,7 @@ _aaxALSASoftDriverThread(void* config)
                /* signal frames to update */
                /* thread == -1: mixer; attached frames are threads */
                /* thread >=  0: frame; call updates manually       */
-               if (mixer->thread == -1) {
+               if (mixer->thread < 0) {
                   _aaxSoftwareMixerSignalFrames(mixer->frames);
                }
 

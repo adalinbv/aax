@@ -13,31 +13,15 @@
 #include "config.h"
 #endif
 
-#include <math.h>		/* for floor, and rint */
-#include <errno.h>		/* for ETIMEDOUT */
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>		/* for getenv */
-#include <assert.h>
-#include <strings.h>
-#include <sys/stat.h>
-#include <sys/time.h>		/* for struct timeval */
+#include <strings.h>		/* strncasecmp */
+#include <errno.h>		/* for ETIMEDOUT, errno */
+#include <fcntl.h>		/* SEEK_*, O_* */
+#include <assert.h>		/* assert */
 
-#include <signal.h>
-#ifdef SOLARIS /* needed with at least Solaris 8 */
-# include <siginfo.h>
-#endif
-
-
-#include <aax.h>
 #include <xml.h>
 
 #include <api.h>
 #include <arch.h>
-#include <devices.h>
-#include <base/types.h>
-#include <base/logging.h>
-#include <base/threads.h>
 
 #include "device.h"
 
