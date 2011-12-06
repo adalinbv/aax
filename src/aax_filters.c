@@ -50,13 +50,14 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
 
       switch (type)
       {
-      case AAX_EQUALIZER:
-         size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
-         break;
-      case AAX_TIMED_GAIN_FILTER:
+      case AAX_TIMED_GAIN_FILTER:		/* three slots */
          size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_oalRingBufferFilterInfo);
          break;
-      default:
+      case AAX_EQUALIZER:			/* two slots */
+      case AAX_GRAPHIC_EQUALIZER:
+         size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
+         break;
+      default:					/* one slot */
          size += sizeof(_oalRingBufferFilterInfo);
          break;
       }
@@ -80,6 +81,7 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
          switch (type)
          {
          case AAX_EQUALIZER:
+         case AAX_GRAPHIC_EQUALIZER:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             memcpy(flt->slot[1], &_aaxDefault2dProps.filter[flt->pos], size);
             /* break not needed */
@@ -131,6 +133,7 @@ aaxFilterDestroy(aaxFilter f)
       switch (filter->type)
       {
       case AAX_EQUALIZER:
+      case AAX_GRAPHIC_EQUALIZER:
          filter->slot[1]->data = NULL;
          /* break not needed */
       case AAX_TIMED_GAIN_FILTER:
@@ -235,6 +238,65 @@ aaxFilterSetState(aaxFilter f, int state)
    {
       switch(filter->type)
       {
+      case AAX_GRAPHIC_EQUALIZER:
+#if !ENABLE_LITE
+         if EBF_VALID(filter)
+         {
+            if TEST_FOR_TRUE(state)
+            {
+               _oalRingBufferEqualizerInfo *eq = filter->slot[0]->data;
+               if (eq == NULL)
+               {
+                  eq = calloc(1, sizeof(_oalRingBufferEqualizerInfo));
+                  filter->slot[EQUALIZER_LF]->data = eq;
+               }
+
+               if (eq)
+               {
+                  float gain_hf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND3];
+                  float gain_lf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND2];
+                  int s = EQUALIZER_HF, b = AAX_EQ_BAND2;
+                  float fband = logf(22.05f)/7.0f;
+
+                  eq = filter->slot[0]->data;
+                  do
+                  {
+                     _oalRingBufferFreqFilterInfo *flt;
+                     float *cptr, fc, k, gain;
+                     int pos = s*4+b;
+
+                     flt = &eq->band[pos];
+                     cptr = flt->coeff;
+
+                     /* gain_lf can never get below 0.001f */
+                     gain = (pos == 7) ? gain_lf : gain_hf/gain_lf;
+                     fc = expf((float)pos*fband)*100.0f;
+                     k = 1.0f;
+
+                     iir_compute_coefs(fc, filter->info->frequency, cptr, &k);
+                     flt->lf_gain = (pos == 7) ? gain_hf : 1.0f;
+                     flt->hf_gain = gain;
+                     flt->k = k;
+
+                     if (--b < 0)
+                     {
+                        b += 4;
+                        s--;
+                     }
+
+                     gain_hf = gain_lf;
+                     gain_lf = filter->slot[s]->param[b];
+                  }
+                  while (s && b);
+               }
+               else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            }
+            else {
+               filter->slot[0]->data = NULL;
+            }
+         }
+#endif
+         break;
       case AAX_EQUALIZER:
 #if !ENABLE_LITE
          if EBF_VALID(filter)
@@ -571,10 +633,11 @@ static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
   { AAX_EQUALIZER,          FREQUENCY_FILTER },
   { AAX_VOLUME_FILTER,      VOLUME_FILTER },
   { AAX_TREMOLO_FILTER,     TREMOLO_FILTER },
-  { AAX_TIMED_GAIN_FILTER,        TIMED_GAIN_FILTER },
+  { AAX_TIMED_GAIN_FILTER,  TIMED_GAIN_FILTER },
   { AAX_ANGULAR_FILTER,     ANGULAR_FILTER },
   { AAX_DISTANCE_FILTER,    DISTANCE_FILTER },
-  { AAX_FREQUENCY_FILTER,   FREQUENCY_FILTER }
+  { AAX_FREQUENCY_FILTER,   FREQUENCY_FILTER },
+  { AAX_GRAPHIC_EQUALIZER,  FREQUENCY_FILTER }
 };
 
 /* see above for the proper sequence */
@@ -595,7 +658,9 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX] =
   /* AAX_DISTANCE_FILTER  */
   { {  0.0f,  0.0f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
   /* AAX_FREQUENCY_FILTER */
-  { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     0.0f } }
+  { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     0.0f } },
+  /* AAX_GRAPHIC_EQUALIZER */
+  { {0.001f,0.001f,0.001f,0.001f }, {   1.0f,     1.0f,  1.0f,     1.0f } }
 };
 
 /* internal use only, used by aaxdefs.h */
@@ -650,13 +715,14 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
 
       switch (type)
       {
-      case AAX_EQUALIZER:
-         size += sizeof(_oalRingBufferFilterInfo);
-         break;
-      case AAX_TIMED_GAIN_FILTER:
+      case AAX_TIMED_GAIN_FILTER:		/* three slots */
          size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_oalRingBufferFilterInfo);
          break;
-      default:
+      case AAX_EQUALIZER:                       /* two slots */
+      case AAX_GRAPHIC_EQUALIZER:
+         size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
+         break;
+      default:					/* one slot */
          size += sizeof(_oalRingBufferFilterInfo);
          break;
       }
@@ -676,6 +742,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
          switch (type)
          {
          case AAX_EQUALIZER:
+         case AAX_GRAPHIC_EQUALIZER:
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             memcpy(rv->slot[1], &p2d->filter[rv->pos], size);
             rv->slot[1]->data = NULL;

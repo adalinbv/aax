@@ -25,6 +25,7 @@
 #define _AAX_MAX_LOOPBACKS	3
 #define _AAX_MAX_FILTERS	2
 #define _MAX_ENVELOPE_STAGES	6
+#define _AAX_MAX_EQBANDS	8
 #define _MAX_SLOTS		3
 #define CUBIC_SAMPS		4
 #define DELAY_EFFECTS_TIME	0.070f
@@ -260,6 +261,11 @@ typedef struct
    float k, lf_gain, hf_gain;
    float freqfilter_history[_AAX_MAX_SPEAKERS][2];
 } _oalRingBufferFreqFilterInfo;
+
+typedef struct
+{
+   _oalRingBufferFreqFilterInfo band[_AAX_MAX_EQBANDS];
+} _oalRingBufferEqualizerInfo;
 
 typedef struct			/* static information about the sample*/
 {
