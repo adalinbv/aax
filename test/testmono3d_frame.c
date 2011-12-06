@@ -20,8 +20,8 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FRAMES			4
-#define SUBFRAMES		4
+#define FRAMES			2
+#define SUBFRAMES		8
 #define RADIUS			15
 #define FILE_PATH               SRC_PATH"/tictac.wav"
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
                i = 0;
                do
                {
-                  unsigned int p = (j*FRAMES+k)*num + i;
+                  unsigned int p = (j*SUBFRAMES+k)*num + i;
                   static float mul = 1.0;
                   aaxVec3f pos;
 
@@ -215,7 +215,8 @@ int main(int argc, char **argv)
 
                for(i=0; i<num; i++)
                {
-                  unsigned int p = (j*FRAMES+k)*num + i;
+                  unsigned int p = (j*SUBFRAMES+k)*num + i;
+
                   res = aaxEmitterSetState(emitter[p], AAX_STOPPED);
                   testForState(res, "aaxEmitterStop");
 
@@ -234,10 +235,10 @@ int main(int argc, char **argv)
             }
 
             res = aaxMixerDeregisterAudioFrame(config, frame[j]);
-               testForState(res, "aaxMixerDeregisterAudioFrame");
+            testForState(res, "aaxMixerDeregisterAudioFrame");
 
-               res = aaxAudioFrameDestroy(frame[j]);
-               testForState(res, "aaxAudioFrameStop");
+            res = aaxAudioFrameDestroy(frame[j]);
+            testForState(res, "aaxAudioFrameStop");
          }
 
          res = aaxBufferDestroy(buffer);
