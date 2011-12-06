@@ -210,7 +210,7 @@ _mix_fn _get_mixfn(char bps, float *gain)
 void
 __bufferPinkNoiseFilter(int32_t *data, unsigned int no_samples, float fs)
 {
-   float f = (float)log(fs/100.0f)/(float)NO_FILTER_STEPS;
+   float f = (float)logf(fs/100.0f)/(float)NO_FILTER_STEPS;
    unsigned int q = NO_FILTER_STEPS;
    int32_t *dst, *tmp, *ptr = data;
    dst = ptr + no_samples;
@@ -222,7 +222,7 @@ __bufferPinkNoiseFilter(int32_t *data, unsigned int no_samples, float fs)
 
       v1 = pow(1.043f, q);
       v2 = pow(0.93f, q);
-      fc = exp((float)(q-1)*f)*100.0f;
+      fc = expf((float)(q-1)*f)*100.0f;
       hist[0] = 0.0f; hist[1] = 0.0f;
       iir_compute_coefs(fc, fs, cptr, &k);
       _batch_freqfilter(dst, ptr, no_samples, hist, v1, v2, k, cptr);
