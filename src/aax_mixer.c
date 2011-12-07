@@ -244,6 +244,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
                break;
             }
             case AAX_EQUALIZER:
+            case AAX_GRAPHIC_EQUALIZER:
                type = EQUALIZER_HF;
                _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
                _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
