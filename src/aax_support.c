@@ -63,16 +63,30 @@ int
 aaxIsFilterSupported(aaxConfig cfg, const char *filter)
 {
    _handle_t* handle = (_handle_t*)cfg;
-   int i, rv = AAX_FALSE;
-   for(i=0; i<AAX_FILTER_MAX; i++)
+   int rv = AAX_FALSE;
+   if (handle)
    {
-      if (!strcasecmp(filter, _aax_filter_s[i].name))
+      if (filter)
       {
-         if (_aax_filter_s[i].supported || (handle && VALID_HANDLE(handle))) {
-            rv = AAX_TRUE;
+         int i;
+         for(i=0; i<AAX_FILTER_MAX; i++)
+         {
+            if (!strcasecmp(filter, _aax_filter_s[i].name))
+            {
+               if (_aax_filter_s[i].supported ||
+                   (handle && VALID_HANDLE(handle))) {
+                  rv = AAX_TRUE;
+               }
+               break;
+            }
          }
-         break;
       }
+      else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -81,16 +95,30 @@ int
 aaxIsEffectSupported(aaxConfig cfg, const char *effect)
 {
    _handle_t* handle = (_handle_t*)cfg;
-   int i, rv = AAX_FALSE;
-   for(i=0; i<AAX_EFFECT_MAX; i++)
+   int rv = AAX_FALSE;
+   if (handle)
    {
-      if (!strcasecmp(effect, _aax_effect_s[i].name))
+      if (effect)
       {
-         if (_aax_effect_s[i].supported || (handle && VALID_HANDLE(handle))) {
-            rv = AAX_TRUE;
+         int i;
+         for(i=0; i<AAX_EFFECT_MAX; i++)
+         {
+            if (!strcasecmp(effect, _aax_effect_s[i].name))
+            {
+               if (_aax_effect_s[i].supported ||
+                   (handle && VALID_HANDLE(handle))) {
+                  rv = AAX_TRUE;
+               }
+               break;
+            }
          }
-         break;
       }
+      else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -233,7 +261,12 @@ static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
 #endif
    { 1, "AAX_ANGULAR_FILTER" },
    { 1, "AAX_DISTANCE_FILTER" },
-   { 1, "AAX_FREQUENCY_FILTER" }
+   { 1, "AAX_FREQUENCY_FILTER" },
+#if ENABLE_LITE
+   { 0, "" }
+#else
+   { 1, "AAX_GRAPHIC_EQUALIZER" }
+#endif
 };
 
 static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
