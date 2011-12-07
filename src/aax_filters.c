@@ -249,45 +249,61 @@ aaxFilterSetState(aaxFilter f, int state)
                {
                   eq = calloc(1, sizeof(_oalRingBufferEqualizerInfo));
                   filter->slot[EQUALIZER_LF]->data = eq;
+                  filter->slot[EQUALIZER_HF]->data = NULL;
+
+                  if (eq)	/* fill in the fixed frequencies */
+                  {
+                     float fband = logf(22000.0f/100.0f)/8.0f;
+                     int pos = 7;
+                     do
+                     {
+                        _oalRingBufferFreqFilterInfo *flt;
+                        float *cptr, fc, k;
+
+                        flt = &eq->band[pos];
+                        cptr = flt->coeff;
+
+                        k = 1.0f;
+                        fc = expf((float)pos*fband)*100.0f;
+                        iir_compute_coefs(fc, filter->info->frequency, cptr,&k);
+                        flt->k = k;
+                     }
+                     while (--pos >= 0);
+                  }
                }
 
-               if (eq)
+               if (eq)		/* fill in the gains */
                {
                   float gain_hf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND3];
                   float gain_lf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND2];
+                  _oalRingBufferFreqFilterInfo *flt = &eq->band[7];
                   int s = EQUALIZER_HF, b = AAX_EQ_BAND2;
-                  float fband = logf(22.05f)/7.0f;
 
                   eq = filter->slot[0]->data;
+                  flt->hf_gain = gain_hf;
+                  flt->lf_gain = gain_lf;
                   do
                   {
-                     _oalRingBufferFreqFilterInfo *flt;
-                     float *cptr, fc, k, gain;
                      int pos = s*4+b;
+                     float gain;
 
                      flt = &eq->band[pos];
-                     cptr = flt->coeff;
 
-                     /* gain_lf can never get below 0.001f */
-                     gain = (pos == 7) ? gain_lf : gain_hf/gain_lf;
-                     fc = expf((float)pos*fband)*100.0f;
-                     k = 1.0f;
+                     gain_hf = gain_lf;
+                     gain_lf = filter->slot[s]->param[--b];
 
-                     iir_compute_coefs(fc, filter->info->frequency, cptr, &k);
-                     flt->lf_gain = (pos == 7) ? gain_hf : 1.0f;
-                     flt->hf_gain = gain;
-                     flt->k = k;
+                     /* gain_hf can never get below 0.001f */
+                     gain = gain_lf/gain_hf;
+                     flt->hf_gain = 1.0f;
+                     flt->lf_gain = gain;
 
-                     if (--b < 0)
+                     if (b == 0)
                      {
                         b += 4;
                         s--;
                      }
-
-                     gain_hf = gain_lf;
-                     gain_lf = filter->slot[s]->param[b];
                   }
-                  while (s && b);
+                  while (s >= 0);
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
