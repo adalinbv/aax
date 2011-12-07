@@ -30,7 +30,8 @@ static const char *_filter_s[AAX_FILTER_MAX] =
    "AAX_timed_gain_filter",
    "AAX_angular_filter",
    "AAX_distance_filter",
-   "AAX_frequency_filter"
+   "AAX_frequency_filter",
+   "AAX_graphics_equalizer"
 };
 
 static const char *_effect_s[AAX_EFFECT_MAX] =
