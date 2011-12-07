@@ -253,7 +253,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                   if (eq)	/* fill in the fixed frequencies */
                   {
-                     float fband = logf(32000.0f/42.0f)/8.0f;
+                     float fband = logf(44000.0f/67.0f)/8.0f;
                      int pos = 7;
                      do
                      {
@@ -264,7 +264,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         cptr = flt->coeff;
 
                         k = 1.0f;
-                        fc = expf((float)pos*fband)*42.0f;
+                        fc = expf((float)pos*fband)*67.0f;
                         iir_compute_coefs(fc, filter->info->frequency, cptr,&k);
                         flt->k = k;
                      }
