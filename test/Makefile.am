@@ -11,7 +11,7 @@ noinst_PROGRAMS = \
         testphasing testmono3d_frame testlst_rotation testdistance testcone \
 	testposition teststream testcapture testenvelope testwaves testloop \
         testformats teststream_phasing testmono3d_oneshot testframe_detached \
-	testleftright testdistortion testinstrument
+	testleftright testdistortion testinstrument teststereo_grapheq
 
 check_PROGRAMS = \
         testringbuf testerrors testfileio testxml testsource testcodec
@@ -55,6 +55,11 @@ teststereo_frame_LDADD = \
 
 teststereo_equalizer_SOURCES = teststereo_equalizer.c
 teststereo_equalizer_LDADD = \
+	$(top_builddir)/test/libtest.la \
+	$(top_builddir)/src/libaax.la
+
+teststereo_grapheq_SOURCES = teststereo_grapheq.c
+teststereo_grapheq_LDADD = \
 	$(top_builddir)/test/libtest.la \
 	$(top_builddir)/src/libaax.la
 
