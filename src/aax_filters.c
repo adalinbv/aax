@@ -132,8 +132,10 @@ aaxFilterDestroy(aaxFilter f)
        */
       switch (filter->type)
       {
-      case AAX_EQUALIZER:
       case AAX_GRAPHIC_EQUALIZER:
+         free(filter->slot[1]->data);
+         /* break not needed */
+      case AAX_EQUALIZER:
          filter->slot[1]->data = NULL;
          /* break not needed */
       case AAX_TIMED_GAIN_FILTER:
@@ -244,12 +246,15 @@ aaxFilterSetState(aaxFilter f, int state)
          {
             if TEST_FOR_TRUE(state)
             {
-               _oalRingBufferEqualizerInfo *eq = filter->slot[0]->data;
+               /* use EQUALIZER_HF to distinquish between GRAPHIC_EQUALIZER
+                * and FREQ_FILTER (which only uses EQUALIZER_LF)
+                */
+               _oalRingBufferEqualizerInfo *eq=filter->slot[EQUALIZER_HF]->data;
                if (eq == NULL)
                {
                   eq = calloc(1, sizeof(_oalRingBufferEqualizerInfo));
-                  filter->slot[EQUALIZER_LF]->data = eq;
-                  filter->slot[EQUALIZER_HF]->data = NULL;
+                  filter->slot[EQUALIZER_LF]->data = NULL;
+                  filter->slot[EQUALIZER_HF]->data = eq;
 
                   if (eq)	/* fill in the fixed frequencies */
                   {
@@ -265,6 +270,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                         k = 1.0f;
                         fc = expf((float)pos*fband)*67.0f;
+printf("band: %i, fc: %5.4f\n", pos, fc);
                         iir_compute_coefs(fc, filter->info->frequency, cptr,&k);
                         flt->k = k;
                      }
@@ -276,10 +282,10 @@ aaxFilterSetState(aaxFilter f, int state)
                {
                   float gain_hf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND3];
                   float gain_lf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND2];
-                  _oalRingBufferFreqFilterInfo *flt = &eq->band[7];
+                  _oalRingBufferFreqFilterInfo *flt = &eq->band[6];
                   int s = EQUALIZER_HF, b = AAX_EQ_BAND2;
 
-                  eq = filter->slot[0]->data;
+                  eq = filter->slot[EQUALIZER_HF]->data;
                   flt->hf_gain = gain_hf;
                   flt->lf_gain = gain_lf;
                   do
@@ -287,7 +293,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      int pos = s*4+b;
                      float gain;
 
-                     flt = &eq->band[pos];
+                     flt = &eq->band[pos-1];
 
                      gain_hf = gain_lf;
                      gain_lf = filter->slot[s]->param[--b];
@@ -319,7 +325,7 @@ aaxFilterSetState(aaxFilter f, int state)
          {
             if TEST_FOR_TRUE(state)
             {
-               _oalRingBufferFreqFilterInfo *flt = filter->slot[0]->data;
+               _oalRingBufferFreqFilterInfo *flt=filter->slot[EQUALIZER_LF]->data;
                if (flt == NULL)
                {
                   char *ptr;

@@ -107,9 +107,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    rbd = rb->sample;
 
-   parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
-   parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
-   graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_HF) == NULL);
+   parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
+   parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
+   graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
 
    if (sensor && (parametric || graphic))
    {
@@ -140,7 +140,25 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       }
       else if (ptr && graphic)
       {
-         _oalRingBufferEqualizerInfo *eq=_FILTER_GET_DATA(sensor, EQUALIZER_LF);
+         _oalRingBufferEqualizerInfo *eq=_FILTER_GET_DATA(sensor, EQUALIZER_HF);
+         _oalRingBufferFreqFilterInfo* filter;
+         int32_t *d2 = (int32_t *)p;
+         int32_t *d3 = d2 + dmax;
+         int b = 6;
+
+         _aax_memcpy(d3, d1, rbd->track_len_bytes);
+         do
+         {
+            filter = &eq->band[b--];
+            bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter);
+
+            filter = &eq->band[b--];
+            bufFilterFrequency(d3, d2, 0, dmax, 0, track, filter);
+         }
+         while (b > 0);
+
+         filter = &eq->band[b];
+         bufFilterFrequency(d1, d3,  0, dmax, 0, track, filter);
       }
       _aaxProcessCompression(d1, 0, dmax);
    }
