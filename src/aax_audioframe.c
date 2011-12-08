@@ -278,6 +278,20 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          int type = filter->pos;
          switch (filter->type)
          {
+#if 0
+         case AAX_EQUALIZER:
+         {
+            _oalRingBuffer2dProps *p2d = handle->submix->props2d;
+            type = EQUALIZER_HF;
+            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
+            _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
+            _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
+            _FILTER_SWAP_SLOT_DATA(p2d, EQUALIZER_HF, filter, 1);
+
+            type = EQUALIZER_LF;
+            /* break is not needed */
+         }
+#endif
          case AAX_FREQUENCY_FILTER:
          case AAX_TREMOLO_FILTER:
          case AAX_VOLUME_FILTER:

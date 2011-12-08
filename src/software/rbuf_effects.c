@@ -247,10 +247,10 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 #if 0
          static unsigned int bps = sizeof(int32_t);
          unsigned int aoffs = rint(offs/fact);
-_aax_memcpy(scratch-ds, sptr-ds, ds*bps);
+// _aax_memcpy(scratch-ds, sptr-ds, ds*bps);
          resamplefn(scratch-aoffs,sptr-offs, 0, offs+no_samples, 0, 0.0f, fact);
-if (0) { static int ct = 0;
-if (ct++ > 4) WRITE_BUFFER_TO_FILE(scratch-ds, ds+no_samples);
+// if (0) { static int ct = 0;
+// if (ct++ > 4) WRITE_BUFFER_TO_FILE(scratch-ds, ds+no_samples);
 }
          _batch_fmadd(dptr, scratch-offs, no_samples, volume, 0.0f);
 #endif

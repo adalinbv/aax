@@ -107,14 +107,18 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    rbd = rb->sample;
 
-   parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
-   parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
-   graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
-
-   if (sensor && (parametric || graphic))
+   parametric = graphic = 0;
+   if (sensor)
    {
-      p = 0;
-      ptr = _aax_malloc(&p, 2*rbd->track_len_bytes);
+      parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
+      parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
+      graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
+
+      if (parametric || graphic)
+      {
+         p = 0;
+         ptr = _aax_malloc(&p, 2*rbd->track_len_bytes);
+      }
    }
 
    /* set up this way because we always need to apply compression */
@@ -241,7 +245,6 @@ _aaxSoftwareMixerThread(void* config)
       float time_fact = 1.0f -(float)res/(float)bufsz;
       float delay = delay_sec*time_fact;
 
-if (res != 0 && res != 1) printf("res: %i\n\t\t\t", res);
       /* once per second when standby */
 //    if (_IS_STANDBY(handle)) delay = 1.0f;
 
@@ -381,10 +384,10 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
                   {
                      assert(_IS_POSITIONAL(src));
                      be->prepare3d(sp3d, fp3d, info, props2d, src);
-                     if (src->curr_pos_sec >= props2d->delay_sec)
-// printf("mix3d\n");
+                     if (src->curr_pos_sec >= props2d->delay_sec) {
                         rv = be->mix3d(be_handle, dest_rb, src_rb, src->props2d,
                                                props2d, emitter->track);
+                     }
                   }
                   else
                   {

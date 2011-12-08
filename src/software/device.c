@@ -376,7 +376,7 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
       unsigned int j;
       j = no_samples-offs;
       do {
-if (*ptr > 0x007fffff || -(*ptr) > 0x007ffff) printf("! ptr; %08X (%08X)\n", *ptr, -(*ptr));
+// if (*ptr > 0x007fffff || -(*ptr) > 0x007ffff) printf("! ptr; %08X (%08X)\n", *ptr, -(*ptr));
          ptr++;
       } while (--j);
    }

@@ -36,8 +36,9 @@ int main(int argc, char **argv)
       aaxBuffer buffer = bufferFromFile(config, infile);
       if (buffer)
       {
-         aaxFrame frame;
          aaxEmitter emitter;
+         aaxFrame frame;
+         aaxFilter f;
          float dt = 0.0f;
          int q, state;
          float pitch;
@@ -60,6 +61,27 @@ int main(int argc, char **argv)
          /** register audio frame */
          res = aaxMixerRegisterAudioFrame(config, frame);
          testForState(res, "aaxMixerRegisterAudioFrame");
+
+#if 1
+         /* equalizer */
+         f = aaxFilterCreate(config, AAX_EQUALIZER);
+         testForError(f, "aaxFilterCreate");
+
+         f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0, 1.0, 0.1, 0.0);
+         testForError(f, "aaxFilterSetSlot/0");
+
+         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0, 0.1, 0.5, 0.0);
+         testForError(f, "aaxFilterSetSlot/1");
+
+         f = aaxFilterSetState(f, AAX_TRUE);
+         testForError(f, "aaxFilterSetState");
+
+         res = aaxAudioFrameSetFilter(frame, f);
+         testForState(res, "aaxAudioFrameSetFilter");
+
+         res = aaxFilterDestroy(f);
+         testForState(res, "aaxFilterDestroy");
+#endif
 
          /** schedule the audioframe for playback */
          res = aaxAudioFrameSetState(frame, AAX_PLAYING);
