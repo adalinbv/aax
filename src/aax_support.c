@@ -69,7 +69,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
       if (filter)
       {
          int i;
-         for(i=0; i<AAX_FILTER_MAX; i++)
+         for(i=1; i<AAX_FILTER_MAX; i++)
          {
             if (!strcasecmp(filter, _aax_filter_s[i].name))
             {
@@ -101,7 +101,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
       if (effect)
       {
          int i;
-         for(i=0; i<AAX_EFFECT_MAX; i++)
+         for(i=1; i<AAX_EFFECT_MAX; i++)
          {
             if (!strcasecmp(effect, _aax_effect_s[i].name))
             {
