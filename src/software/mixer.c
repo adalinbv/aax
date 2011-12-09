@@ -150,7 +150,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int32_t *d3 = d2 + dmax;
          int b = 6;
 
-         _aax_memcpy(d3, d1, rbd->track_len_bytes);
+         filter = &eq->band[b--];
+         bufFilterFrequency(d3, d1,  0, dmax, 0, track, filter);
          do
          {
             filter = &eq->band[b--];
@@ -158,11 +159,11 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
             filter = &eq->band[b--];
             bufFilterFrequency(d3, d2, 0, dmax, 0, track, filter);
+
+            filter = &eq->band[b--];
+            bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter);
          }
          while (b > 0);
-
-         filter = &eq->band[b];
-         bufFilterFrequency(d1, d3,  0, dmax, 0, track, filter);
       }
       _aaxProcessCompression(d1, 0, dmax);
    }

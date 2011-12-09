@@ -270,7 +270,6 @@ aaxFilterSetState(aaxFilter f, int state)
 
                         k = 1.0f;
                         fc = expf((float)pos*fband)*67.0f;
-printf("band: %i, fc: %5.4f\n", pos, fc);
                         iir_compute_coefs(fc, filter->info->frequency, cptr,&k);
                         flt->k = k;
                      }
@@ -682,7 +681,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX] =
   /* AAX_FREQUENCY_FILTER */
   { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     0.0f } },
   /* AAX_GRAPHIC_EQUALIZER */
-  { {0.001f,0.001f,0.001f,0.001f }, {   1.0f,     1.0f,  1.0f,     1.0f } }
+  { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,     2.0f,  2.0f,     2.0f } }
 };
 
 /* internal use only, used by aaxdefs.h */
