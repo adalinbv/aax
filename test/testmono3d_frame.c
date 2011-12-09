@@ -60,10 +60,13 @@ int main(int argc, char **argv)
       aaxBuffer buffer = bufferFromFile(config, infile);
       if (buffer)
       {
-         aaxEmitter emitter[256];
+         aaxEmitter *emitter;
          float pitch, anglestep;
          int i, j, deg = 0;
          aaxMtx4f mtx;
+
+         num = ((getNumSources(argc, argv)-1)/(FRAMES*SUBFRAMES))+1;
+         emitter = calloc(num*SUBFRAMES*FRAMES, sizeof(aaxEmitter));
 
          /** mixer */
          res = aaxMixerInit(config);
@@ -88,7 +91,6 @@ int main(int argc, char **argv)
 
          /** audio frame */
          pitch = getPitch(argc, argv);
-         num = ((getNumSources(argc, argv)-1)/(FRAMES*SUBFRAMES))+1;
          printf("starting %i frames with %i subframes ", FRAMES, SUBFRAMES);
          printf("and %i emitters per subframe\nfor a total of %i emitters\n", num, num*SUBFRAMES*FRAMES);
 
@@ -240,6 +242,8 @@ int main(int argc, char **argv)
             res = aaxAudioFrameDestroy(frame[j]);
             testForState(res, "aaxAudioFrameStop");
          }
+
+         free(emitter);
 
          res = aaxBufferDestroy(buffer);
          testForState(res, "aaxBufferDestroy");
