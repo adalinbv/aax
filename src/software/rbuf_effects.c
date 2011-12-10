@@ -284,23 +284,18 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       const int32_ptr sptr = s - ds + dmin;
       int32_t *dptr = d - ds + dmin;
       unsigned int no_samples, bps;
-      float fact, mixfact;
+      float clip, fact, mixfact;
 
       bps = sizeof(int32_t);
       no_samples = dmax+ds-dmin;
       _aax_memcpy(dptr, sptr, no_samples*bps);
 
-      mixfact = distort[AAX_MIX_FACTOR]*distort[AAX_MIX_FACTOR];
+      mixfact = distort[AAX_MIX_FACTOR];
       fact = distort[AAX_DISTORTION_FACTOR];
+      clip = distort[CLIPPING_FACTOR];
       
-      _batch_mul_value(dptr, bps, no_samples, (1.0f+255.0f*fact*fact)*mixfact);
-      if (distort[CLIPPING_FACTOR] >= 0.66f) {
-         bufCompressHQ(dptr, 0, no_samples);
-      } else if (distort[CLIPPING_FACTOR] >= 0.33f) {
-         bufCompressFast(dptr, 0, no_samples);
-      } else {
-         bufCompressValve(dptr, 0, no_samples);
-      }
+      _batch_mul_value(dptr, bps, no_samples, (1.0f+128.0f*fact)*mixfact);
+       bufCompress(dptr, 0, no_samples, clip);
       _batch_fmadd(dptr, sptr, no_samples, 1.0f-mixfact, 0.0f);
    }
    while (0);

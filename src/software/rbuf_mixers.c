@@ -29,7 +29,7 @@
 #include "audio.h"
 
 
-_aaxDriverCompress _aaxProcessCompression = bufCompressFast;
+_aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
 static void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
 
@@ -277,8 +277,9 @@ _aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned 
    resamplefn(d, s, dmin, dmax, 0, smu, fact);
 }
 
+#if 0
 void
-bufCompressFast(void *d, unsigned int dmin, unsigned int dmax)
+bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax)
 {
    int32_t *ptr = (int32_t*)d;
    unsigned int j;
@@ -312,7 +313,7 @@ bufCompressFast(void *d, unsigned int dmin, unsigned int dmax)
 #define _MAX_INT24_T   0x007fffff
 #define _THRESHOLD     0x000001ff
 void
-bufCompressHQ(void *d, unsigned int dmin, unsigned int dmax)
+bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
 {
    static const float div = 1/(float)_MAX_INT32_T;
    static const float mul = (float)0x007fffff;
@@ -374,8 +375,8 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
          unsigned int pos;
 
          pos = asamp >> SHIFT;
-         ct0 = _compress_tbl[pos-1];
-         ct1 = _compress_tbl[pos];
+         ct0 = _compress_tbl[0][pos-1];
+         ct1 = _compress_tbl[0][pos];
          diff = ct1 - ct0;
          fact = (float)(asamp - (pos<<SHIFT))/(float)START;
 
@@ -386,4 +387,68 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
    }
    while (--j);
 }
+#else
 
+void
+bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax)
+{
+   bufCompress(d, dmin, dmax, 0.5f);
+}
+void
+bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
+{
+   bufCompress(d, dmin, dmax, 0.9f);
+}
+void
+bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
+{
+   bufCompress(d, dmin, dmax, 0.1f);
+}
+#endif
+
+
+#define BITS		11
+#define SHIFT		(31-BITS)
+#define START		((1<<SHIFT)-1)
+#define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
+void
+bufCompress(void *d, unsigned int dmin, unsigned int dmax, float mix)
+{
+   int32_t *ptr = (int32_t*)d;
+   unsigned int j;
+   float imix;
+
+   mix = _MINMAX(mix, 0.0, 0.95);
+   imix = 1.0f - mix;
+   j = dmax-dmin;
+   do
+   {
+      int32_t samp, asamp;
+
+      samp = *ptr;
+      asamp = abs(samp);
+
+      if (asamp & ~START)
+      {
+         float val, diff, fact, ct0, ct1, ct2;
+         unsigned int pos;
+
+         pos = asamp >> SHIFT;
+         ct1 = _compress_tbl[0][pos-1];	/* valve compression */
+         ct2 = _compress_tbl[0][pos];
+         diff = imix*(ct2 - ct1);
+         ct0 = imix*ct1;
+
+         ct1 = _compress_tbl[1][pos-1];	/* digital compression */
+         ct2 = _compress_tbl[1][pos];
+         diff += mix*(ct2 - ct1);
+         ct0 += mix*ct1;
+
+         fact = (float)(asamp - (pos<<SHIFT))/(float)START;
+         val = (float)samp*(ct0 + diff*fact);
+         *ptr = (int32_t)val;
+      }
+      ptr++;
+   }
+   while (--j);
+}

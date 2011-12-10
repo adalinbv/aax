@@ -128,6 +128,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       int32_t *d1 = (int32_t *)rbd->track[track];
       unsigned int dmax = rbd->no_samples;
 
+_aaxProcessCompression(d1, 0, dmax);
       if (ptr && parametric)
       {
          _oalRingBufferFreqFilterInfo* filter;
