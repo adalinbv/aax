@@ -308,7 +308,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             if (q) {
                _aaxProcessCompression = bufCompressValve;
             } else {
-               _aaxProcessCompression = bufCompressFast;
+               _aaxProcessCompression = bufCompressElectronic;
             }
 
             setup = xmlNodeGetString(xoid, "setup");

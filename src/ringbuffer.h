@@ -704,8 +704,10 @@ void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigne
 
 void iir_compute_coefs(float, float, float*, float*);
 void _oalRingBufferMixMonoSetRenderer(enum aaxRenderMode);
-void bufCompressFast(void*, unsigned int, unsigned int);
-void bufCompressHQ(void*, unsigned int, unsigned int);
+
+void bufCompress(void*, unsigned int, unsigned int, float);
+void bufCompressElectronic(void*, unsigned int, unsigned int);
+void bufCompressDigital(void*, unsigned int, unsigned int);
 void bufCompressValve(void*, unsigned int, unsigned int);
 
 #endif /* !_AAX_RINGBUFFER_H*/
