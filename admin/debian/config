@@ -3,15 +3,22 @@
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
-USER="$SUDO_USER"
-if [ x"$USER" = x ]; then
-  CONFIGFILE="$HOME/.aaxconfig.xml"
-  USER=`stat -c %U $HOME`
-  GROUP=`stat -c %G $HOME`
+if [ x$SUDO_USER != "x" ]; then
+  INSTALLER=$SUDO_USER;
+elif [ x$USER != "x" ]; then
+  INSTALLER=$USER;
 else
-  USER_HOME=`grep $USER /etc/passwd | cut -d ":" -f6`
-  CONFIGFILE="$USER_HOME/.aaxconfig.xml"
-  GROUP=`stat -c %G $USER_HOME`
+  INSTALLER=root;
+fi
+
+if [ x$INSTALLER = "x" ]; then
+  CONFIGFILE="$HOME/.aaxconfig.xml"
+  INSTALLER=`stat -c %U $HOME`
+# GROUP=`stat -c %G $HOME`
+else
+  INSTALLER_HOME=`grep $INSTALLER /etc/passwd | cut -d ":" -f6`
+  CONFIGFILE="$INSTALLER_HOME/.aaxconfig.xml"
+# GROUP=`stat -c %G $INSTALLER_HOME`
 fi
 
 # arguments:
