@@ -444,7 +444,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float mix)
          diff += mix*(ct2 - ct1);
          ct0 += mix*ct1;
 
-         fact = (float)(asamp - (pos<<SHIFT))/(float)START;
+         fact = (float)(asamp & START)/(float)START;
          val = (float)samp*(ct0 + diff*fact);
          *ptr = (int32_t)val;
       }
