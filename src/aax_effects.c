@@ -243,8 +243,10 @@ aaxEffectSetState(aaxEffect e, int state)
          break;
       case AAX_DISTORTION_EFFECT:
          if TEST_FOR_TRUE(state) {
+            effect->slot[0]->param[0] = powf(effect->slot[0]->param[0], 2.5f);
             effect->slot[0]->data = &effect->slot[0]->param[0];
          } else {
+            effect->slot[0]->param[0] = powf(effect->slot[0]->param[0], 0.4f);
             effect->slot[0]->data = NULL;
          }
          break;

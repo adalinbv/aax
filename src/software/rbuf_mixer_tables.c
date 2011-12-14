@@ -1,15 +1,13 @@
-/*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
- * All Rights Reserved.
- *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
- * the contents of this file may not be disclosed to third partiesf, copied or
- * duplicated in any formf, in whole or in partf, without the prior written
- * permission of Adalin B.V.
- */
-
-
+ /*
+  * Copyright 2005-2011 by Erik Hofman.
+  * Copyright 2009-2011 by Adalin B.V.
+  * All Rights Reserved.
+  *
+  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
+  * the contents of this file may not be disclosed to third partiesf, copied or
+  * duplicated in any formf, in whole or in partf, without the prior written
+  * permission of Adalin B.V.
+  */
 const float _compress_tbl[2][2048] = {
  {
    1.0000000f, 0.8145525f, 0.6795050f, 0.5874253f, 0.5203807f, 0.4690476f, 
@@ -353,7 +351,7 @@ const float _compress_tbl[2][2048] = {
    0.0039428f, 0.0039409f, 0.0039389f, 0.0039370f, 0.0039351f, 0.0039331f, 
    0.0039312f, 0.0039293f, 0.0039273f, 0.0039254f, 0.0039235f, 0.0039216f, 
    0.0039196f, 0.0039177f, 0.0039158f, 0.0039139f, 0.0039120f, 0.0039101f, 
-   0.0039082f, 0.0039062f 
+   0.0039082f, 0.0039062f
  }, {
    1.0000000f, 1.0000000f, 1.0000000f, 1.0000000f, 1.0000000f, 1.0000000f, 
    1.0000000f, 1.0000000f, 0.8888896f, 0.8000007f, 0.7272733f, 0.6666672f, 
