@@ -392,7 +392,7 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
 void
 bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax)
 {
-   bufCompress(d, dmin, dmax, 0.5f);
+   bufCompress(d, dmin, dmax, 0.7f);
 }
 void
 bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
@@ -402,7 +402,7 @@ bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
 void
 bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
 {
-   bufCompress(d, dmin, dmax, 0.1f);
+   bufCompress(d, dmin, dmax, 0.4f);
 }
 #endif
 
