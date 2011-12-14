@@ -24,10 +24,12 @@ int main(int argc, char **argv)
 {
    char *devname, *infile;
    aaxConfig config;
-   int res;
+   int num, res;
 
    infile = getInputFile(argc, argv, FILE_PATH);
    devname = getDeviceName(argc, argv);
+   num = getNumSources(argc, argv);
+   if (num>256) num = 256;
 
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
    testForError(config, "No default audio device available.");
@@ -36,35 +38,38 @@ int main(int argc, char **argv)
       aaxBuffer buffer = bufferFromFile(config, infile);
       if (buffer)
       {
-         aaxEmitter emitter;
+         aaxEmitter emitter[256];
          float dt = 0.0f;
          int q, state;
          float pitch;
-
-         /** emitter */
-         emitter = aaxEmitterCreate();
-         testForError(emitter, "Unable to create a new emitter");
-
-         pitch = getPitch(argc, argv);
-         res = aaxEmitterSetPitch(emitter, pitch);
-         testForState(res, "aaxEmitterSetPitch");
-
-         res = aaxEmitterAddBuffer(emitter, buffer);
-         testForState(res, "aaxEmitterAddBuffer");
 
          /** mixer */
          res = aaxMixerInit(config);
          testForState(res, "aaxMixerInit");
 
-         res = aaxMixerRegisterEmitter(config, emitter);
-         testForState(res, "aaxMixerRegisterEmitter");
-
          res = aaxMixerSetState(config, AAX_PLAYING);
          testForState(res, "aaxMixerStart");
 
-         /** schedule the emitter for playback */
-         res = aaxEmitterSetState(emitter, AAX_PLAYING);
-         testForState(res, "aaxEmitterStart");
+         /** emitter */
+         pitch = getPitch(argc, argv);
+         for (q=0; q<num; q++)
+         {
+            emitter[q] = aaxEmitterCreate();
+            testForError(emitter[q], "Unable to create a new emitter");
+
+            res = aaxEmitterSetPitch(emitter[q], pitch);
+            testForState(res, "aaxEmitterSetPitch");
+
+            res = aaxEmitterAddBuffer(emitter[q], buffer);
+            testForState(res, "aaxEmitterAddBuffer");
+
+            res = aaxMixerRegisterEmitter(config, emitter[q]);
+            testForState(res, "aaxMixerRegisterEmitter");
+
+            /** schedule the emitter for playback */
+            res = aaxEmitterSetState(emitter[q], AAX_PLAYING);
+            testForState(res, "aaxEmitterStart");
+         }
 
          q = 0;
          do
@@ -89,7 +94,9 @@ int main(int argc, char **argv)
          }
          while (state == AAX_PLAYING);
 
-         res = aaxMixerDeregisterEmitter(config, emitter);
+         for (q=0; q<num; q++) {
+            res = aaxMixerDeregisterEmitter(config, emitter[q]);
+         }
          res = aaxMixerSetState(config, AAX_STOPPED);
          res = aaxEmitterDestroy(emitter);
          res = aaxBufferDestroy(buffer);
