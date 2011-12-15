@@ -392,7 +392,7 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
 void
 bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax)
 {
-   bufCompress(d, dmin, dmax, 0.7f);
+   bufCompress(d, dmin, dmax, 0.5f);
 }
 void
 bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
@@ -402,7 +402,7 @@ bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
 void
 bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
 {
-   bufCompress(d, dmin, dmax, 0.4f);
+   bufCompress(d, dmin, dmax, 0.2f);
 }
 #endif
 
@@ -412,14 +412,14 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
 #define START		((1<<SHIFT)-1)
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 void
-bufCompress(void *d, unsigned int dmin, unsigned int dmax, float mix)
+bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip)
 {
    int32_t *ptr = (int32_t*)d;
+   float imix, mix;
    unsigned int j;
-   float imix;
 
-   mix = _MINMAX(mix, 0.0, 0.95);
-   imix = 1.0f - mix;
+   mix = _MINMAX(clip, 0.0, 1.0);
+   imix = 0.88f*(1.0f - mix);
    j = dmax-dmin;
    do
    {

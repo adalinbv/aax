@@ -292,9 +292,9 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
       clip = distort[CLIPPING_FACTOR];
       mixfact = distort[AAX_MIX_FACTOR];
-      fact = distort[AAX_DISTORTION_FACTOR];
+      fact = 128.0f*distort[AAX_DISTORTION_FACTOR];
       
-      _batch_mul_value(dptr, bps, no_samples, (1.0f+255.0f*fact)*mixfact);
+      _batch_mul_value(dptr, bps, no_samples, (1.0f+fact)*mixfact);
        bufCompress(dptr, 0, no_samples, clip);
       _batch_fmadd(dptr, sptr, no_samples, 1.0f-mixfact, 0.0f);
    }
