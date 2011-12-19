@@ -237,6 +237,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
          i = no_samples;
          step = doffs ? no_samples/doffs : no_samples;
+         if (step < 2) step = no_samples;
          do
          {
             _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
