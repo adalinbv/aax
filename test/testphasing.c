@@ -72,6 +72,9 @@ int main(int argc, char **argv)
          res = aaxEmitterSetPitch(emitter, pitch);
          testForState(res, "aaxEmitterSetPitch");
 
+         res = aaxEmitterSetGain(emitter, 0.7f);
+         testForState(res, "aaxEmitterSetGain");
+
          res = aaxMixerRegisterEmitter(config, emitter);
          testForState(res, "aaxMixerRegisterEmitter");
 
@@ -97,17 +100,23 @@ int main(int argc, char **argv)
             }
 # endif
 
-# if 0
+# if 1
             /* flanging effect */
-            printf("source flanging..\n");
+            printf("source flanging.. (sine wave)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.8, 1.0, 0.0);
-            effect = aaxEffectSetState(effect, AAX_TRUE);
+            effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.9, 0.2, 0.8, 0.0);
+            effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
 
             DELAY;
+
+            effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
+            effect = aaxEffectSetState(effect, AAX_FALSE);
+            res = aaxEmitterSetEffect(emitter, effect);
+            res = aaxEffectDestroy(effect);
+            testForError(effect, "aaxEffect Disable");
 # endif
 
 
@@ -141,12 +150,12 @@ int main(int argc, char **argv)
            DELAY;
 # endif
 
-# if 0
+# if 1
             /* flanging effect */
-            printf("source flanging..\n");
+            printf("source flanging.. (triangle wave)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.08, 1.0, 0.0);
-            effect = aaxEffectSetState(effect, AAX_TRUE);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.8, 1.0, 0.0);
+            effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
@@ -199,12 +208,12 @@ int main(int argc, char **argv)
          DELAY;
 #endif
 
-#if 0
+#if 1
          /* flanging effect */
-         printf("listener flanging..\n");
+         printf("listener flanging.. (sawtooth wave)\n");
          effect = aaxEffectCreate(config, AAX_FLANGING_EFFECT);
          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.08, 1.0, 0.0);
-         effect = aaxEffectSetState(effect, AAX_TRUE);
+         effect = aaxEffectSetState(effect, AAX_SAWTOOTH_WAVE);
          testForError(effect, "aaxEffectCreate");
          res = aaxMixerSetEffect(config, effect);
          res = aaxEffectDestroy(effect);
