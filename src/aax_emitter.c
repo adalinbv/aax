@@ -560,7 +560,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          case AAX_TIMED_PITCH_EFFECT:
             _PROP_PITCH_SET_CHANGED(src->props3d);
             /* break not needed */
-//       case AAX_FLANGING_EFFECT:
+         case AAX_FLANGING_EFFECT:
          case AAX_DISTORTION_EFFECT:
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
@@ -646,7 +646,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
-//    case AAX_FLANGING_EFFECT:
+      case AAX_FLANGING_EFFECT:
       case AAX_VELOCITY_EFFECT:
       {
          _aaxEmitter *src = handle->source;

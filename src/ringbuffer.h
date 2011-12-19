@@ -698,7 +698,7 @@ float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);
 void bufEffectsApply(int32_ptr, int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, void*, void*);
 void bufFilterFrequency(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
 void bufEffectDistort(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
-void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, void*);
+void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, void*, unsigned int);
 void bufEffectReflections(int32_t*, const int32_ptr, unsigned int, unsigned int, unsigned int, const void*);
 void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 
