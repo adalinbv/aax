@@ -22,6 +22,13 @@
 static void szxform(float *, float *, float *, float *, float *, float *,
                     float, float, float *, float *);
 
+// *(sptr-4) = 0; *(sptr+4) = 0;
+#define WRITE(a, b, dptr, ds, no_samples) \
+	if (a) { static int ct = 0; \
+	  if (++ct > (b)) { \
+*(dptr-4) = 0; *(dptr+4) = 0; \
+             WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }
+
 
 /**
  * - dst and scratch point to the beginning of a buffer containing room for
@@ -59,18 +66,15 @@ bufEffectsApply(int32_ptr dst, int32_ptr scratch0, int32_ptr scratch1,
       }
 
       /* Apply delay effects */
-      if (effect->history_ptr)			/*  flanging */
-      {
-         _aax_memcpy(dst-ds, effect->reverb_history[track], ds*bps);
-         bufEffectDelay(dst, dst, scratch1, start, end, ds, delay);
-         _aax_memcpy(effect->reverb_history[track], dst+end-ds, ds*bps);
+      if (effect->history_ptr) {			/*  flanging */
+         bufEffectDelay(dst, dst, scratch1, start, end, ds, delay, track);
       }
       else					/* phasing, chorus */
       {
          if (freq) {			/* copy the filtered data back */
             _aax_memcpy(scratch0+start-offs, dst+start-offs, no_samples*bps);
          }
-         bufEffectDelay(dst, scratch0, scratch1, start, end, offs, delay);
+         bufEffectDelay(dst, scratch0, scratch1, start, end, offs, delay, track);
       }
    }
    else
@@ -188,7 +192,7 @@ bufEffectReverb(int32_t *s,
 void
 bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
                unsigned int start, unsigned int end,
-               unsigned int ds, void *data)
+               unsigned int ds, void *data, unsigned int track)
 {
    _oalRingBufferDelayEffectData* effect = data;
    unsigned int no_samples = end-start;
@@ -209,56 +213,56 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       int32_t *sptr = (int32_t*)src;
       int32_t *dptr = d + start;
       unsigned int offs, noffs;
-      int delta_offs;
-      float fact;
 
-#if 1
       offs = effect->delay.sample_offs;
-      noffs = effect->lfo.get(&effect->lfo);
-      delta_offs = noffs - offs;
-      if (delta_offs > (int)no_samples) delta_offs = no_samples;
-      effect->delay.sample_offs += delta_offs;
-
       assert(offs <= ds);
 
-      delta_offs = effect->delay.sample_offs - offs;
-      fact = (float)(no_samples-delta_offs)/(float)(no_samples);
-#else
-      offs = effect->delay.sample_offs;
       noffs = effect->lfo.get(&effect->lfo);
       effect->delay.sample_offs = noffs;
-      delta_offs = noffs-offs;
-
-      assert(offs <= ds);
-
-      fact = (float)(no_samples-delta_offs)/(float)no_samples;
-#endif
 
       resamplefn = _aaxBufResampleNearest;
-      if (fact < 1.0f) {
-         resamplefn = _aaxBufResampleLinear;
-      }
-      else if (fact > 1.0f) {
-         resamplefn = _aaxBufResampleSkip;
-      }
-
       if (s == d)	/*  flanging */
       {
-#if 0
-         static unsigned int bps = sizeof(int32_t);
-         unsigned int aoffs = rint(offs/fact);
-// _aax_memcpy(scratch-ds, sptr-ds, ds*bps);
-         resamplefn(scratch-aoffs,sptr-offs, 0, offs+no_samples, 0, 0.0f, fact);
-// if (0) { static int ct = 0;
-// if (ct++ > 4) WRITE_BUFFER_TO_FILE(scratch-ds, ds+no_samples);
-}
-         _batch_fmadd(dptr, scratch-offs, no_samples, volume, 0.0f);
-#endif
+         static const unsigned int bps = sizeof(int32_t);
+         unsigned int i, coffs, doffs, step;
+         int32_t *ptr;
+         int sign;
+
+         ptr = dptr;
+         _aax_memcpy(ptr-ds, effect->reverb_history[track], ds*bps);
+
+         coffs = offs;
+         doffs = abs(noffs - offs);
+         sign = (noffs < offs) ? -1 : 1;
+
+         i = no_samples;
+         step = doffs ? no_samples/doffs : no_samples;
+         do
+         {
+            _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
+            ptr += step;
+            coffs += sign;
+            i -= step;
+         }
+         while(i >= step);
+
+         if (i) {
+            _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
+         }
+         _aax_memcpy(effect->reverb_history[track], dptr+no_samples-ds, ds*bps);
       }
       else	/* chorus, phasing */
       {
-         resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
-         _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+         int doffs = noffs - offs;
+         float fact = (float)(no_samples-doffs)/(float)no_samples;
+         if (fact < 1.0f) {
+            resamplefn = _aaxBufResampleLinear;
+         }
+         else if (fact > 1.0f) {
+            resamplefn = _aaxBufResampleSkip;
+         }
+         resamplefn(scratch-offs, sptr-offs, 0, no_samples, 0, 0.0f, fact);
+         _batch_fmadd(dptr, scratch-offs, no_samples, volume, 0.0f);
       }
    }
 }
