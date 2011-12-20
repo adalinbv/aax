@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 //       printf("67Hz | 150Hz | 340Hz | 763Hz | 1.7kHz | 3.9kHz | 8.7kHz\n\n");
 
          /* sqrt(fc_low*fc_high) */
-         printf("36Hz | 100Hz | 220Hz | 500Hz | 1.1kHz | 2.5kHz | 5.7kHz | 13.8kHz\n\n");
+         printf("44Hz | 100Hz | 220Hz | 500Hz | 1.1kHz | 2.5kHz | 5.7kHz | 13kHz\n\n");
          /** emitter */
          emitter = aaxEmitterCreate();
          testForError(emitter, "Unable to create a new emitter");
