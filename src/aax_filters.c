@@ -279,10 +279,10 @@ aaxFilterSetState(aaxFilter f, int state)
 
                if (eq)		/* fill in the gains */
                {
-                  float gain_hf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND3];
-                  float gain_lf=filter->slot[EQUALIZER_HF]->param[AAX_EQ_BAND2];
+                  float gain_hf=filter->slot[EQUALIZER_HF]->param[AAX_GAIN_BAND3];
+                  float gain_lf=filter->slot[EQUALIZER_HF]->param[AAX_GAIN_BAND2];
                   _oalRingBufferFreqFilterInfo *flt = &eq->band[6];
-                  int s = EQUALIZER_HF, b = AAX_EQ_BAND2;
+                  int s = EQUALIZER_HF, b = AAX_GAIN_BAND2;
 
                   eq = filter->slot[EQUALIZER_HF]->data;
                   flt->hf_gain = gain_hf;
