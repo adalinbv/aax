@@ -299,7 +299,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                xmlFree(dev);
             }
 
-            setup = getenv("AAX_VALVE_COMPRESSOR");
+            setup = getenv("AAX_TUBE_COMPRESSOR");
             if (setup) {
                q = _oal_getbool(setup);
             } else {
