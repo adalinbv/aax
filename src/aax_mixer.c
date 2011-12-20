@@ -334,7 +334,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             case AAX_DISTORTION_EFFECT:
             case AAX_PHASING_EFFECT:
             case AAX_CHORUS_EFFECT:
-//          case AAX_FLANGING_EFFECT:
+            case AAX_FLANGING_EFFECT:
             {
                _oalRingBuffer2dProps *p2d = mixer->props2d;
                _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
