@@ -381,7 +381,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          case AAX_DISTORTION_EFFECT:
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
-//       case AAX_FLANGING_EFFECT:
+         case AAX_FLANGING_EFFECT:
          case AAX_PITCH_EFFECT:
          {
             _oalRingBuffer2dProps *p2d = mixer->props2d;
@@ -420,7 +420,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
-//    case AAX_FLANGING_EFFECT:
+      case AAX_FLANGING_EFFECT:
       case AAX_PITCH_EFFECT:
       {
          _aaxAudioFrame* mixer = handle->submix;
