@@ -170,8 +170,8 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rb->add_dde) ? (rbd->dde_samples * bps) : 0;
-      tracksize = dde_bytes + + no_samples * bps;
+      dde_bytes = TEST_FOR_TRUE(rb->add_dde) ? (rbd->dde_samples*bps) : 0;
+      tracksize = dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
 #if BYTE_ALIGN
