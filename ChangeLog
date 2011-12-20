@@ -1,7 +1,7 @@
-eonWave (2.2.0) stable; urgency=low
+AeonWave (2.2.0) stable; urgency=low
   * Add flanging effect.
-  * Add seamless transisition from Valve compression to digital comrpession
-    (clipping). This is most noticeable for the distortion effect.
+  * Add seamless transisition from tube-like compression to digital
+    compression (clipping). This is most noticeable for the distortion effect.
   * Add an 8 band graphical equalizer for the final mixer stage.
   * Add support for a dedicated configuration file entry for every device.
   * Move the speaker setup from the global section to device specific section
