@@ -220,7 +220,7 @@ __bufferPinkNoiseFilter(int32_t *data, unsigned int no_samples, float fs)
       float fc, v1, v2;
       float k = 1.0f;
 
-      v1 = pow(1.043f, q);
+      v1 = pow(1.003f, q);
       v2 = pow(0.93f, q);
       fc = expf((float)(q-1)*f)*100.0f;
       hist[0] = 0.0f; hist[1] = 0.0f;
