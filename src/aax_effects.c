@@ -271,11 +271,17 @@ aaxEffectSetState(aaxEffect e, int state)
                if (lfo)
                {
                   float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-
-                  lfo->step = 2.0f*depth;
-                  lfo->step *= effect->slot[0]->param[AAX_LFO_FREQUENCY];
-                  lfo->step /= effect->info->refresh_rate;
-                  lfo->value = 1.0f;
+                  int t;
+                  for(t=0; t<_AAX_MAX_SPEAKERS; t++)
+                  {
+                     lfo->step[t] = 2.0f*depth;
+                     lfo->step[t] *= effect->slot[0]->param[AAX_LFO_FREQUENCY];
+                     lfo->step[t] /= effect->info->refresh_rate;
+                     lfo->value[t] = 1.0f;
+                     if (state == AAX_SAWTOOTH_WAVE) {
+                        lfo->step[t] *= 0.5f;
+                     }
+                  }
                   lfo->min = 1.0f - depth/2.0f;
                   lfo->max = 1.0f + depth/2.0f;
                   if (depth > 0.01f)
@@ -293,7 +299,6 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      case AAX_SAWTOOTH_WAVE:
                         lfo->get = _oalRingBufferLFOGetSawtooth;
-                        lfo->step *= 0.5f;
                         break;
                      default:
                         break;
@@ -408,11 +413,15 @@ aaxEffectSetState(aaxEffect e, int state)
                _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
                if (data == NULL)
                {
+                  int t;
                   data  = malloc(sizeof(_oalRingBufferDelayEffectData));
                   effect->slot[0]->data = data;
                   data->history_ptr = 0;
-                  data->lfo.value = 0.0f;
-                  data->lfo.step = 0.0f;
+                  for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+                  {
+                     data->lfo.value[t] = 0.0f;
+                     data->lfo.step[t] = 0.0f;
+                  }
                }
 
                if (data)
@@ -421,11 +430,17 @@ aaxEffectSetState(aaxEffect e, int state)
                   float frequency = effect->info->frequency;
                   float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
                   float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
-                  float sign, range, step = data->lfo.step;
+                  float sign, range, step;
+                  int t;
 
-                  sign = step ? (step/fabs(step)) : 1.0f;
-                  data->lfo.step = sign * effect->info->refresh_rate;
-                  data->lfo.step*=effect->slot[0]->param[AAX_LFO_FREQUENCY]/2.0;
+                  for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+                  {
+                     step = data->lfo.step[t];
+                     sign = step ? (step/fabs(step)) : 1.0f;
+                     data->lfo.step[t] = sign * effect->info->refresh_rate;
+                     data->lfo.step[t]
+                               *= effect->slot[0]->param[AAX_LFO_FREQUENCY]/2.0;
+                  }
                   data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
 
                   if ((offset + depth) > 1.0f) {
@@ -455,10 +470,17 @@ aaxEffectSetState(aaxEffect e, int state)
 
                   if (depth > 0.05f)
                   {
-                     if (data->lfo.value == 0) {
-                        data->lfo.value = data->lfo.min;
+                     int t;
+                     for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+                     {
+                        if (data->lfo.value[t] == 0) {
+                           data->lfo.value[t] = data->lfo.min;
+                        }
+                        data->delay.sample_offs[t] = data->lfo.value[t];
+                        if (state == AAX_SAWTOOTH_WAVE) {
+                           data->lfo.step[t] *= 0.5f;
+                        }
                      }
-                     data->delay.sample_offs = data->lfo.value;
 
                      switch (state)
                      {
@@ -473,7 +495,6 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      case AAX_SAWTOOTH_WAVE:
                         data->lfo.get = _oalRingBufferLFOGetSawtooth;
-                        data->lfo.step *= 0.5f;
                         break;
                      default:
                         _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -482,8 +503,12 @@ aaxEffectSetState(aaxEffect e, int state)
                   }
                   else
                   {
-                     data->lfo.value = data->lfo.min;
-                     data->delay.sample_offs = data->lfo.value;
+                     int t;
+                     for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+                     {
+                        data->lfo.value[t] = data->lfo.min;
+                        data->delay.sample_offs[t] = data->lfo.value[t];
+                     }
                      data->lfo.get = _oalRingBufferLFOGetFixedValue;
                }
                }

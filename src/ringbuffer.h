@@ -208,13 +208,13 @@ enum
 typedef int16_t _oalRingBufferGetData(const void*, unsigned char, unsigned int);
 typedef float _oalRingBufferDistFunc(float, float, float, float, float, float);
 typedef float _oalRingBufferPitchShiftFunc(float, float, float);
-typedef float _oalRingBufferLFOGetFunc(void*);
+typedef float _oalRingBufferLFOGetFunc(void*, unsigned);
 
 typedef struct
 {
-   float step;			/* step = frequency / refresh_rate */
-   float value;			/* current value */
    float min, max;
+   float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
+   float value[_AAX_MAX_SPEAKERS];	/* current value */
    _oalRingBufferLFOGetFunc *get;
 } _oalRingBufferLFOInfo;
 
@@ -230,7 +230,7 @@ typedef struct
 typedef struct
 {
    float gain;
-   unsigned int sample_offs;
+   unsigned int sample_offs[_AAX_MAX_SPEAKERS];
 } _oalRingBufferDelayInfo;
 
 typedef struct
@@ -688,11 +688,11 @@ extern _oalRingBufferPitchShiftFunc* _oalRingBufferDopplerFunc[];
 void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
 int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*);
 
-float _oalRingBufferLFOGetSine(void*);
-float _oalRingBufferLFOGetSquare(void*);
-float _oalRingBufferLFOGetTriangle(void*);
-float _oalRingBufferLFOGetSawtooth(void*);
-float _oalRingBufferLFOGetFixedValue(void*);
+float _oalRingBufferLFOGetSine(void*, unsigned track);
+float _oalRingBufferLFOGetSquare(void*, unsigned track);
+float _oalRingBufferLFOGetTriangle(void*, unsigned track);
+float _oalRingBufferLFOGetSawtooth(void*, unsigned track);
+float _oalRingBufferLFOGetFixedValue(void*, unsigned track);
 float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);
 
 void bufEffectsApply(int32_ptr, int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, void*, void*);

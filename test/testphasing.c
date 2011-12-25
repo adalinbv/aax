@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 
 #if 1
          /* phasing effect */
-         printf("listener phasing.. (square wave)\n");
+         printf("mixer phasing.. (square wave)\n");
          effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.5, 1.0, 0.0);
          effect = aaxEffectSetState(effect, AAX_SQUARE_WAVE);
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 
 #if 1
          /* chorus effect */
-         printf("listener chorus.. (sawtooth wave)\n");
+         printf("mixer chorus.. (sawtooth wave)\n");
          effect = aaxEffectCreate(config, AAX_CHORUS_EFFECT);
          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.2, 1.0, 0.0);
          effect = aaxEffectSetState(effect, AAX_SAWTOOTH_WAVE);
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
 #if 1
          /* flanging effect */
-         printf("listener flanging.. (sawtooth wave)\n");
+         printf("mixer flanging.. (sawtooth wave)\n");
          effect = aaxEffectCreate(config, AAX_FLANGING_EFFECT);
          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.08, 1.0, 0.0);
          effect = aaxEffectSetState(effect, AAX_SAWTOOTH_WAVE);

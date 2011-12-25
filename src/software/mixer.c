@@ -26,67 +26,57 @@
 #include "device.h"
 #include "audio.h"
 
+
 void
 _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
 {
    _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
    _oalRingBuffer *rb = (_oalRingBuffer *)drb;
-   _oalRingBufferDelayEffectData* delay_effect;
+   _oalRingBufferDelayEffectData* delay;
    _oalRingBufferFreqFilterInfo* freq_filter;
    _oalRingBufferSample *rbd;
-   void* distortion_effect;
+   void* distortion;
 
    assert(rb != 0);
    assert(rb->sample != 0);
 
    rbd = rb->sample;
 
-   delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-   distortion_effect = _EFFECT_GET_DATA(p2d, DISTORTION_EFFECT);
+   delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+   distortion = _EFFECT_GET_DATA(p2d, DISTORTION_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-   if (delay_effect || freq_filter || distortion_effect)
+   if (delay || freq_filter || distortion)
    {
-      unsigned int dde_bytes, track_len_bytes;
-      unsigned int track, tracks, dno_samples;
-      unsigned int bps, dde_samps;
+      int32_t *scratch0 = rbd->scratch[SCRATCH_BUFFER0];
+      int32_t *scratch1 = rbd->scratch[SCRATCH_BUFFER1];
+      unsigned int bps, no_samples, ddesamps;
+      unsigned int track, tracks;
 
       bps = rbd->bytes_sample;
-      dde_samps = rbd->dde_samples;
-      track_len_bytes = rbd->track_len_bytes;
-      dde_bytes = dde_samps * bps;
-      dno_samples = rbd->no_samples;
+      ddesamps = rbd->dde_samples;
+      no_samples = rbd->no_samples;
+
+      if ( distortion) {
+         distortion = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
+      }
 
       tracks = rbd->no_tracks;
       for (track=0; track<tracks; track++)
       {
-         int32_t *scratch = rbd->scratch[SCRATCH_BUFFER1];
-         int32_t *d2 = rbd->scratch[SCRATCH_BUFFER0];
-         int32_t *d1 = rbd->track[track];
-         char *cd2 = (char*)d2 - dde_bytes;
-         char *cd1 = (char*)d1 - dde_bytes;
+         int32_t *dptr = rbd->track[track];
+         int32_t *ddeptr = dptr - ddesamps;
 
-         /* save the unmodified next dde buffer for later use */
-         _aax_memcpy(cd2-dde_bytes, cd1+track_len_bytes, dde_bytes);
+         /* save the unmodified next effects buffer for later use          */
+         /* (scratch buffers have a leading and a trailing effects buffer) */
+         _aax_memcpy(scratch1+no_samples, ddeptr+no_samples, ddesamps*bps);
 
-         /* copy the data for processing */
-         if ( distortion_effect) {
-            distortion_effect = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
-         }
-         _aax_memcpy(cd2, cd1, dde_bytes+track_len_bytes);
-         bufEffectsApply(d1, d2, scratch, 0, dno_samples, dde_samps, track,
-                         freq_filter, delay_effect, distortion_effect);
+         /* mix the buffer and the delay buffer */
+         bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, ddesamps,
+                         track, freq_filter, delay, distortion);
 
-         /* restore the unmodified next dde buffer */
-         _aax_memcpy(cd1, cd2-dde_bytes, dde_bytes);
-#if 0
-{
-   unsigned int i, diff = 0;
-   for (i=0; i<dno_samples; i++) {
-      if (d2[i] != d1[i]) diff++;
-   }
-   printf("no diff samples: %i\n", diff);
-}
-#endif
+         /* copy the data back from scratch0 to dptr */
+         _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
+         _aax_memcpy(dptr, scratch0, no_samples*bps);
       }
    }
 }
@@ -128,7 +118,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       int32_t *d1 = (int32_t *)rbd->track[track];
       unsigned int dmax = rbd->no_samples;
 
-_aaxProcessCompression(d1, 0, dmax);
       if (ptr && parametric)
       {
          _oalRingBufferFreqFilterInfo* filter;

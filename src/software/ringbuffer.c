@@ -171,7 +171,7 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
       dde_bytes = TEST_FOR_TRUE(rb->add_dde) ? (rbd->dde_samples*bps) : 0;
-      tracksize = dde_bytes + no_samples*bps;
+      tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
 #if BYTE_ALIGN
@@ -977,6 +977,8 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
 
    if (reverb)
    {
+      unsigned int j, num = _AAX_MAX_SPEAKERS;
+
       if (reverb->history_ptr == 0) {
          _oalRingBufferCreateHistoryBuffer(reverb, fs, tracks);
       }
@@ -990,7 +992,9 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
          {
             if ((gain[i] > 0.001f) || (gain[i] < -0.001f))
             {
-               reverb->delay[i].sample_offs = (int)(delay[i] * fs);
+               for (j=0; j<num; j++) {
+                  reverb->delay[i].sample_offs[j] = (int)(delay[i] * fs);
+               }
                reverb->delay[i].gain = gain[i];
             }
             else {
@@ -1002,12 +1006,16 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
       if ((num > 0) && (loopback != 0) && (lb_gain != 0))
       {
          reverb->no_loopbacks = 3;
-         reverb->loopback[0].sample_offs = (int)(loopback * fs);
          reverb->loopback[0].gain = lb_gain;
-         reverb->loopback[1].sample_offs = (int)(loopback * fs)*0.79f;
          reverb->loopback[1].gain = lb_gain*0.873f;
-         reverb->loopback[2].sample_offs = (int)(loopback * fs)*0.677f;
          reverb->loopback[2].gain = lb_gain*0.70317f;
+
+         for (j=0; j<num; j++)
+         {
+            reverb->loopback[0].sample_offs[j] = (int)(loopback * fs);
+            reverb->loopback[1].sample_offs[j] = (int)(loopback * fs)*0.79f;
+            reverb->loopback[2].sample_offs[j] = (int)(loopback * fs)*0.677f;
+         }
       }
       rb->reverb = reverb;
    }
@@ -1136,26 +1144,26 @@ _oalGetSetMonoSources(unsigned int src, int num)
 }
 
 float
-_oalRingBufferLFOGetFixedValue(void* data)
+_oalRingBufferLFOGetFixedValue(void* data, unsigned track)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
-   return lfo ? lfo->value : 1.0f;
+   return lfo ? lfo->value[track] : 1.0f;
 }
 
 float
-_oalRingBufferLFOGetTriangle(void* data)
+_oalRingBufferLFOGetTriangle(void* data, unsigned track)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
-      rv = lfo->value;
-      lfo->value += lfo->step;
-      if (((lfo->value < lfo->min) && (lfo->step < 0))
-          || ((lfo->value > lfo->max) && (lfo->step > 0))) 
+      rv = lfo->value[track];
+      lfo->value[track] += lfo->step[track];
+      if (((lfo->value[track] < lfo->min) && (lfo->step[track] < 0))
+          || ((lfo->value[track] > lfo->max) && (lfo->step[track] > 0))) 
       {
-         lfo->step *= -1.0f;
-         lfo->value += lfo->step;
+         lfo->step[track] *= -1.0f;
+         lfo->value[track] += lfo->step[track];
       }
    }
    return rv;
@@ -1171,21 +1179,21 @@ _fast_sin1(float x)
 
 
 float
-_oalRingBufferLFOGetSine(void* data)
+_oalRingBufferLFOGetSine(void* data, unsigned track)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
       float max = (lfo->max - lfo->min);
-      float v = (lfo->value - lfo->min)/max;
+      float v = (lfo->value[track] - lfo->min)/max;
 
-      lfo->value += lfo->step;
-      if (((lfo->value < lfo->min) && (lfo->step < 0))
-          || ((lfo->value > lfo->max) && (lfo->step > 0)))
+      lfo->value[track] += lfo->step[track];
+      if (((lfo->value[track] < lfo->min) && (lfo->step[track] < 0))
+          || ((lfo->value[track] > lfo->max) && (lfo->step[track] > 0)))
       {
-         lfo->step *= -1.0f;
-         lfo->value += lfo->step;
+         lfo->step[track] *= -1.0f;
+         lfo->value[track] += lfo->step[track];
       }
 
       rv = lfo->min + max*_fast_sin1(v);
@@ -1194,19 +1202,19 @@ _oalRingBufferLFOGetSine(void* data)
 }
 
 float
-_oalRingBufferLFOGetSquare(void* data)
+_oalRingBufferLFOGetSquare(void* data, unsigned track)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
-      rv = (lfo->step >= 0.0f ) ? lfo->max : lfo->min;
-      lfo->value += lfo->step;
-      if (((lfo->value < lfo->min) && (lfo->step < 0))
-          || ((lfo->value > lfo->max) && (lfo->step > 0)))
+      rv = (lfo->step[track] >= 0.0f ) ? lfo->max : lfo->min;
+      lfo->value[track] += lfo->step[track];
+      if (((lfo->value[track] < lfo->min) && (lfo->step[track] < 0))
+          || ((lfo->value[track] > lfo->max) && (lfo->step[track] > 0)))
       {
-         lfo->step *= -1.0f;
-         lfo->value += lfo->step;
+         lfo->step[track] *= -1.0f;
+         lfo->value[track] += lfo->step[track];
       }
    }
    return rv;
@@ -1214,18 +1222,18 @@ _oalRingBufferLFOGetSquare(void* data)
 
 
 float
-_oalRingBufferLFOGetSawtooth(void* data)
+_oalRingBufferLFOGetSawtooth(void* data, unsigned track)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
-      rv = lfo->value;
-      lfo->value += lfo->step;
-      if (lfo->value <= lfo->min) {
-         lfo->value += (lfo->max - lfo->min);
-      } else if (lfo->value >= lfo->max) {
-         lfo->value -= (lfo->max - lfo->min);
+      rv = lfo->value[track];
+      lfo->value[track] += lfo->step[track];
+      if (lfo->value[track] <= lfo->min) {
+         lfo->value[track] += (lfo->max - lfo->min);
+      } else if (lfo->value[track] >= lfo->max) {
+         lfo->value[track] -= (lfo->max - lfo->min);
       }
    }
    return rv;

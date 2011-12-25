@@ -48,34 +48,47 @@ bufEffectsApply(int32_ptr dst, int32_ptr scratch0, int32_ptr scratch1,
    if (delay)
    {
       _oalRingBufferDelayEffectData* effect = delay;
-      unsigned int offs = effect->delay.sample_offs;
+      unsigned int offs = effect->delay.sample_offs[track];
       unsigned int no_samples = end+offs - start;
+      int32_t *psbuf0 = scratch0;
+      int32_t *pdst = dst;
+//    int32_t *tmp;
 
       /* Apply frequency filter first */
       if (freq) {
-         bufFilterFrequency(dst, scratch0 , start, end, ds, track, freq);
+         bufFilterFrequency(pdst, psbuf0 , start, end, ds, track, freq);
       } else {
          _aax_memcpy(dst+start-offs, scratch0+start-offs, no_samples*bps);
+//       tmp = pdst; pdst = psbuf0; psbuf0 = tmp;
       }
       if (distort)
       {
-         if (freq) {
+         if (freq) { 		/* copy the data back to the scratch buffer */
             _aax_memcpy(scratch0+start-offs, dst+start-offs, no_samples*bps);
+//          tmp  = psbuf0; psbuf0 = pdst; pdst = tmp;
          } 
-         bufEffectDistort(dst, scratch0 , start, end, ds, track, distort);
+         bufEffectDistort(pdst, psbuf0, start, end, ds, track, distort);
       }
 
       /* Apply delay effects */
-      if (effect->history_ptr) {			/*  flanging */
-         bufEffectDelay(dst, dst, scratch1, start, end, ds, delay, track);
+      if (effect->history_ptr) {	/*    flanging     */
+         bufEffectDelay(pdst, pdst, scratch1, start, end, ds, delay, track);
       }
-      else					/* phasing, chorus */
+      else				/* phasing, chorus */
       {
-         if (freq) {			/* copy the filtered data back */
+         if (freq) {		/* copy the data back to the scratch buffer */
             _aax_memcpy(scratch0+start-offs, dst+start-offs, no_samples*bps);
+//          tmp = psbuf0; psbuf0 = pdst; pdst = tmp;
          }
-         bufEffectDelay(dst, scratch0, scratch1, start, end, offs, delay, track);
+      // bufEffectDelay(pdst, psbuf0, scratch1, start, end, offs, delay, track);
+         bufEffectDelay(pdst, psbuf0, scratch1, start, end, ds, delay, track);
       }
+
+# if !USE_MEMCPY
+      if (dst != pdst) {
+         _aax_memcpy(dst, pdst, no_samples*bps);
+      }
+# endif
    }
    else
 #else
@@ -87,7 +100,7 @@ bufEffectsApply(int32_ptr dst, int32_ptr scratch0, int32_ptr scratch1,
       }
       if (distort)
       {
-         if (freq) {
+         if (freq) {		/* copy the data back to the scratch buffer */
             unsigned int no_samples = end-start;
             _aax_memcpy(scratch0+start, dst+start, no_samples*bps);
          }
@@ -128,7 +141,7 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
          --q;
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            unsigned int samples = delay[q].sample_offs;
+            unsigned int samples = delay[q].sample_offs[track];
             assert(samples < dmin);
 
             _batch_fmadd(dptr, sptr-samples, dmax-dmin, volume, 0.0f);
@@ -169,7 +182,7 @@ bufEffectReverb(int32_t *s,
       _aax_memcpy(s, reverb->reverb_history[track], ds*sizeof(int32_t));
       do
       {
-         unsigned int samples = reverb->loopback[q].sample_offs;
+         unsigned int samples = reverb->loopback[q].sample_offs[track];
          float volume = -reverb->loopback[q].gain / (snum+1);
 
          --q;
@@ -214,11 +227,11 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       int32_t *dptr = d + start;
       unsigned int offs, noffs;
 
-      offs = effect->delay.sample_offs;
+      offs = effect->delay.sample_offs[track];
       assert(offs <= ds);
 
-      noffs = effect->lfo.get(&effect->lfo);
-      effect->delay.sample_offs = noffs;
+      noffs = effect->lfo.get(&effect->lfo, track);
+      effect->delay.sample_offs[track] = noffs;
 
       resamplefn = _aaxBufResampleNearest;
       if (s == d)	/*  flanging */
@@ -237,7 +250,10 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
          i = no_samples;
          step = doffs ? no_samples/doffs : no_samples;
-         if (step < 2) step = no_samples;
+         if (step < 2) {
+            step = no_samples;
+         }
+
          do
          {
             _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
@@ -262,8 +278,9 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          else if (fact > 1.0f) {
             resamplefn = _aaxBufResampleSkip;
          }
-         resamplefn(scratch-offs, sptr-offs, 0, no_samples, 0, 0.0f, fact);
-         _batch_fmadd(dptr, scratch-offs, no_samples, volume, 0.0f);
+
+         resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
+         _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
       }
    }
 }

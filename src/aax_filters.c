@@ -467,11 +467,17 @@ aaxFilterSetState(aaxFilter f, int state)
                if (lfo)
                {
                   float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
-
-                  lfo->step = 2.0f*depth;
-                  lfo->step *= filter->slot[0]->param[AAX_LFO_FREQUENCY];
-                  lfo->step /= filter->info->refresh_rate;
-                  lfo->value = 1.0f - depth;
+                  int t;
+                  for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+                  {
+                     lfo->step[t] = 2.0f*depth;
+                     lfo->step[t] *= filter->slot[0]->param[AAX_LFO_FREQUENCY];
+                     lfo->step[t] /= filter->info->refresh_rate;
+                     lfo->value[t] = 1.0f - depth;
+                     if (state == AAX_SAWTOOTH_WAVE) {
+                        lfo->step[t] *= 0.5f;
+                     }
+                  }
                   lfo->min = 1.0f - depth;
                   lfo->max = 1.0f;
                   if (depth > 0.01f)
@@ -489,7 +495,6 @@ aaxFilterSetState(aaxFilter f, int state)
                         break;
                      case AAX_SAWTOOTH_WAVE:
                         lfo->get = _oalRingBufferLFOGetSawtooth;
-                        lfo->step *= 0.5f;
                         break;
                      default:
                         break;
