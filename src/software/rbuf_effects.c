@@ -236,6 +236,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          static const unsigned int bps = sizeof(int32_t);
          unsigned int i, coffs, doffs, step;
          int32_t *ptr, *ddeptr;
+//       int32_t v1, v2;
          int sign;
 
          ptr = dptr;
@@ -254,16 +255,27 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          do
          {
             _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
+#if 0
+            v1 = *(ptr-1); v2 = v1*0.5f + *ptr*0.5f;
+            *(ptr-1) = *(ptr-2)*0.5f + v1*0.2f + v2*0.3f;
+            *ptr = v1*0.3f + v2*0.2f + *(ptr+1)*0.5f;
+#endif
             ptr += step;
             coffs += sign;
             i -= step;
          }
          while(i >= step);
 
-         if (i) {
-            coffs -= sign;
+         if (i)
+         {
             _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
+#if 0
+            v1 = *(ptr-1); v2 = v1*0.5f + *ptr*0.5f;
+            *(ptr-1) = *(ptr-2)*0.5f + v1*0.2f + v2*0.3f;
+            *ptr = v1*0.3f + v2*0.2f + *(ptr+1)*0.5f;
+#endif
          }
+
          _aax_memcpy(effect->reverb_history[track], ddeptr+end, ds*bps);
       }
       else	/* chorus, phasing */
