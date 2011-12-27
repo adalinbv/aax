@@ -1089,7 +1089,6 @@ _oalRingBufferCreateHistoryBuffer(void *effect, float frequency, int tracks)
 #endif
    if (ptr)
    {
-      size /= bps;
       data->history_ptr = ptr;
       for (i=0; i<tracks; i++)
       {

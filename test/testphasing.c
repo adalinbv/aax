@@ -106,6 +106,7 @@ int main(int argc, char **argv)
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
             effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.9, 0.9, 0.8, 0.0);
             effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
+
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
