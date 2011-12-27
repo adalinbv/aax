@@ -10,6 +10,7 @@ install-sh
 ltmain.sh
 missing
 build*
+.*.swp
 Debug/
 *.o
 lib*.a
