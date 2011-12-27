@@ -275,7 +275,6 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
             *ptr = v1*0.3f + v2*0.2f + *(ptr+1)*0.5f;
 #endif
          }
-
          _aax_memcpy(effect->reverb_history[track], ddeptr+end, ds*bps);
       }
       else	/* chorus, phasing */
