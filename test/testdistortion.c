@@ -58,6 +58,7 @@ int main(int argc, char **argv)
          testForState(res, "aaxEmitterSetMode");
 
          /* frequency filter */
+         printf("Add frequency filter at 150Hz\n");
          filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
          testForError(filter, "aaxFilterCreate");
 
