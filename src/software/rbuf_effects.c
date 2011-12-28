@@ -37,74 +37,53 @@ static void szxform(float *, float *, float *, float *, float *, float *,
  * - end is the end pointer (end-start is the number of smaples)
  * - dmax does not include ds
  */
+#define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 void
-bufEffectsApply(int32_ptr dst, int32_ptr scratch0, int32_ptr scratch1,
-          unsigned int start, unsigned int end, unsigned int ds,
+bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
+          unsigned int start, unsigned int end, unsigned int ddesamps,
           unsigned int track, void *freq, void *delay, void *distort)
 {
    static const unsigned int bps = sizeof(int32_t);
+   unsigned int ds = delay ? ddesamps : 0;
+   unsigned int no_samples = end - start;
+   int32_t *psrc = src;
+   int32_t *pdst = dst;
+
+   if (freq)				/* Apply frequency filter first */
+   {
+      bufFilterFrequency(pdst, psrc, start, end, ds, track, freq);
+      BUFSWAP(pdst, psrc);
+   }
+
+   if (distort)				/* distortion is second */
+   {
+      bufEffectDistort(pdst, psrc , start, end, ds, track, distort);
+      BUFSWAP(pdst, psrc);
+   }  
 
 #if !ENABLE_LITE
    if (delay)
    {
       _oalRingBufferDelayEffectData* effect = delay;
       unsigned int offs = effect->delay.sample_offs[track];
-      unsigned int no_samples = end+offs - start;
-      int32_t *psbuf0 = scratch0;
-      int32_t *pdst = dst;
-//    int32_t *tmp;
-
-      /* Apply frequency filter first */
-      if (freq) {
-         bufFilterFrequency(pdst, psbuf0 , start, end, ds, track, freq);
-      } else {
-         _aax_memcpy(dst+start-offs, scratch0+start-offs, no_samples*bps);
-//       tmp = pdst; pdst = psbuf0; psbuf0 = tmp;
-      }
-      if (distort)
-      {
-         if (freq) { 		/* copy the data back to the scratch buffer */
-            _aax_memcpy(scratch0+start-offs, dst+start-offs, no_samples*bps);
-//          tmp  = psbuf0; psbuf0 = pdst; pdst = tmp;
-         } 
-         bufEffectDistort(pdst, psbuf0, start, end, ds, track, distort);
-      }
 
       /* Apply delay effects */
       if (effect->history_ptr) {	/*    flanging     */
-         bufEffectDelay(pdst, pdst, scratch0, start, end, ds, delay, track);
+         bufEffectDelay(psrc, psrc, scratch, start, end, ds, delay, track);
       }
       else				/* phasing, chorus */
       {
-         if (freq) {		/* copy the data back to the scratch buffer */
-            _aax_memcpy(scratch0+start-offs, dst+start-offs, no_samples*bps);
-//          tmp = psbuf0; psbuf0 = pdst; pdst = tmp;
-         }
-         bufEffectDelay(pdst, psbuf0, scratch1, start, end, offs, delay, track);
-      }
+         unsigned int ext_no_samples = no_samples + offs;
 
-# if !USE_MEMCPY
-      if (dst != pdst) {
-         _aax_memcpy(dst, pdst, no_samples*bps);
+         _aax_memcpy(pdst+start-offs, psrc+start-offs, ext_no_samples*bps);
+         bufEffectDelay(pdst, psrc, scratch, start, end, offs, delay, track);
+         BUFSWAP(pdst, psrc);
       }
-# endif
    }
-   else
-#else
-   if (1)
 #endif
-   {
-      if (freq) {
-         bufFilterFrequency(dst, scratch0, start, end, 0, track, freq);
-      }
-      if (distort)
-      {
-         if (freq) {		/* copy the data back to the scratch buffer */
-            unsigned int no_samples = end-start;
-            _aax_memcpy(scratch0+start, dst+start, no_samples*bps);
-         }
-         bufEffectDistort(dst, scratch0 , start, end, 0, track, distort);
-      }
+
+   if (dst == pdst) {	/* copy the data back to the dst buffer */
+      _aax_memcpy(dst, src, no_samples*bps);
    }
 }
 
