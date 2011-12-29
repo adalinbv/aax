@@ -57,7 +57,7 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
 
    if (distort)				/* distortion is second */
    {
-      bufEffectDistort(pdst, psrc , start, end, ds, track, distort);
+      bufEffectDistort(pdst, psrc, start, end, ds, track, distort);
       BUFSWAP(pdst, psrc);
    }  
 
@@ -220,7 +220,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
          ptr = dptr;
          ddeptr = d - ds;
-         _aax_memcpy(ddeptr, effect->reverb_history[track], ds*bps);
+         _aax_memcpy(ddeptr, effect->delay_history[track], ds*bps);
 
          doffs = abs(noffs - offs);
          step = doffs ? no_samples/doffs : no_samples;
@@ -254,7 +254,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
             *ptr = v1*0.3f + v2*0.2f + *(ptr+1)*0.5f;
 #endif
          }
-         _aax_memcpy(effect->reverb_history[track], ddeptr+end, ds*bps);
+         _aax_memcpy(effect->delay_history[track], ddeptr+end, ds*bps);
       }
       else	/* chorus, phasing */
       {

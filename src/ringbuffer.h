@@ -238,7 +238,7 @@ typedef struct
    _oalRingBufferLFOInfo lfo;
    _oalRingBufferDelayInfo delay;
 
-   int32_t* reverb_history[_AAX_MAX_SPEAKERS];
+   int32_t* delay_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
 } _oalRingBufferDelayEffectData;
 
@@ -671,7 +671,7 @@ void _oalRingBufferDelayRemoveNum(_oalRingBuffer*, unsigned int);
 int _oalRingBufferGetNoSources();
 int _oalRingBufferSetNoSources(int);
 
-void _oalRingBufferCreateHistoryBuffer(void*, float, int);
+void _oalRingBufferCreateHistoryBuffer(void**, int32_t**, float, int);
 
 /* --------------------------------------------------------------------------*/
 

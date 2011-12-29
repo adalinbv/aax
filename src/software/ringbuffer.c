@@ -980,7 +980,9 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
       unsigned int j, num = _AAX_MAX_SPEAKERS;
 
       if (reverb->history_ptr == 0) {
-         _oalRingBufferCreateHistoryBuffer(reverb, fs, tracks);
+         _oalRingBufferCreateHistoryBuffer(&reverb->history_ptr,
+                                           reverb->reverb_history,
+                                           fs, tracks);
       }
 
       if (num < _AAX_MAX_DELAYS)
@@ -1067,11 +1069,10 @@ _oalRingBufferSetNoSources(int src)
 }
 
 void
-_oalRingBufferCreateHistoryBuffer(void *effect, float frequency, int tracks)
+_oalRingBufferCreateHistoryBuffer(void **hptr, int32_t **history, float frequency, int tracks)
 {
-   _oalRingBufferDelayEffectData* data = (_oalRingBufferDelayEffectData*)effect;
    unsigned int i, bps, size;
-   char *p, *ptr;
+   char *ptr, *p;
 
    bps = sizeof(int32_t);
    size = ceilf(DELAY_EFFECTS_TIME * frequency);
@@ -1089,10 +1090,10 @@ _oalRingBufferCreateHistoryBuffer(void *effect, float frequency, int tracks)
 #endif
    if (ptr)
    {
-      data->history_ptr = ptr;
+      *hptr = ptr;
       for (i=0; i<tracks; i++)
       {
-         data->reverb_history[i] = (int32_t *)p;
+         history[i] = (int32_t*)p;
          p += size;
       }
    }

@@ -455,7 +455,9 @@ aaxEffectSetState(aaxEffect e, int state)
                      data->lfo.min = (range * offset + 50e-6f)*frequency;
                      break;
                   case AAX_FLANGING_EFFECT:
-                     _oalRingBufferCreateHistoryBuffer(data, frequency, tracks);
+                     _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
+                                                       data->delay_history,
+                                                       frequency, tracks);
                      /* break not needed */
                   case AAX_CHORUS_EFFECT:
                      range = (60e-3f - 10e-3f);		// 10ms .. 60ms
