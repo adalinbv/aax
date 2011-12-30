@@ -130,7 +130,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Resample */
    offs = 0;
-   sptr=_aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
    if (sptr == NULL) {
       return ret;
    }
@@ -168,7 +168,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    svol = evol = 1.0f;
    if (!env && (src->playing == src->stopped))
    {
-      svol = (src->stopped) ? 1.0f : 0.0f;
+      svol = (src->stopped || offs) ? 1.0f : 0.0f;
       evol = (src->stopped) ? 0.0f : 1.0f;
       src->playing = !src->stopped;
    }
@@ -269,7 +269,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Resample */
    offs = 0;
-   sptr=_aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
    if (sptr == NULL) {
       return ret;
    }
@@ -307,7 +307,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    svol = evol = 1.0f;
    if (!env && (src->playing == src->stopped))
    {
-      svol = (src->stopped) ? 1.0f : 0.0f;
+      svol = (src->stopped || offs) ? 1.0f : 0.0f;
       evol = (src->stopped) ? 0.0f : 1.0f;
       src->playing = !src->stopped;
    }
@@ -444,7 +444,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Resample */
    offs = 0;
-   sptr=_aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
    if (sptr == NULL) {
       return ret;
    }
@@ -482,7 +482,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    svol = evol = 1.0f;
    if (!env && (src->playing == src->stopped))
    {
-      svol = (src->stopped) ? 1.0f : 0.0f;
+      svol = (src->stopped || offs) ? 1.0f : 0.0f;
       evol = (src->stopped) ? 0.0f : 1.0f;
       src->playing = !src->stopped;
    }
@@ -581,7 +581,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    // make sure the returned buffer has at least ddesamps prior to sptr[track]
    rbd = dest->sample;
    offs = ddesamps = rbd->dde_samples;
-   sptr=_aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
    if (sptr == NULL) {
       return ret;
    }
@@ -619,7 +619,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    svol = evol = 1.0f;
    if (!env && (src->playing == src->stopped))
    {
-      svol = (src->stopped) ? 1.0f : 0.0f;
+      svol = (src->stopped || offs) ? 1.0f : 0.0f;
       evol = (src->stopped) ? 0.0f : 1.0f;
       src->playing = !src->stopped;
    }
