@@ -451,18 +451,34 @@ aaxEffectSetState(aaxEffect e, int state)
                   {
                   case AAX_PHASING_EFFECT:
                      range = (10e-3f - 50e-6f);		// 50us .. 10ms
-                     depth *= range * frequency;	// cvt to samples
+                     depth *= range * frequency;	// convert to samples
                      data->lfo.min = (range * offset + 50e-6f)*frequency;
+                     data->reverb = AAX_FALSE;
+                     if (data->history_ptr)
+                     {
+                        free(data->history_ptr);
+                        data->history_ptr = 0;
+                     }
+                     break;
+                  case AAX_CHORUS_EFFECT:
+                     range = (60e-3f - 10e-3f);         // 10ms .. 60ms
+                     depth *= range * frequency;        // convert to samples
+                     data->lfo.min = (range * offset + 10e-3f)*frequency;
+                     data->reverb = AAX_FALSE;
+                     if (data->history_ptr)
+                     {
+                        free(data->history_ptr);
+                        data->history_ptr = 0;
+                     }
                      break;
                   case AAX_FLANGING_EFFECT:
+                     range = (60e-3f - 10e-3f);         // 10ms .. 60ms
+                     depth *= range * frequency;        // convert to samples
+                     data->lfo.min = (range * offset + 10e-3f)*frequency;
+                     data->reverb = AAX_TRUE;
                      _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                        data->delay_history,
                                                        frequency, tracks);
-                     /* break not needed */
-                  case AAX_CHORUS_EFFECT:
-                     range = (60e-3f - 10e-3f);		// 10ms .. 60ms
-                     depth *= range * frequency; 	// cvt to samples
-                     data->lfo.min = (range * offset + 10e-3f)*frequency;
                      break;
                   default:
                      break;
