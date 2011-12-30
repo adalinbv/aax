@@ -113,7 +113,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    svol = evol = 1.0f;
    if (!env && src->playing && src->stopped)
    {
-      svol = (src->stopped) ? 1.0f : 0.0f;
+      svol = (src->stopped || offs) ? 1.0f : 0.0f;
       evol = (src->stopped) ? 0.0f : 1.0f;
       src->playing = 0;
    }
