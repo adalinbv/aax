@@ -26,7 +26,6 @@ static void szxform(float *, float *, float *, float *, float *, float *,
 #define WRITE(a, b, dptr, ds, no_samples) \
 	if (a) { static int ct = 0; \
 	  if (++ct > (b)) { \
-*(dptr-4) = 0; *(dptr+4) = 0; \
              WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }
 
 
@@ -44,10 +43,17 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
           unsigned int track, void *freq, void *delay, void *distort)
 {
    static const unsigned int bps = sizeof(int32_t);
-   unsigned int ds = delay ? ddesamps : 0;
+   _oalRingBufferDelayEffectData* effect = delay;
+   unsigned int ds = effect ? ddesamps : 1;	/* 1 for frequency filtering */
    unsigned int no_samples = end - start;
    int32_t *psrc = src;
    int32_t *pdst = dst;
+
+   if (effect && !effect->reverb && effect->history_ptr)	/* streaming */
+   {
+      if (!start) _aax_memcpy(src-ds, effect->delay_history[track], ds*bps);
+      _aax_memcpy(effect->delay_history[track], src+end-ds, ds*bps);
+   }
 
    if (freq)				/* Apply frequency filter first */
    {
@@ -64,26 +70,24 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
 #if !ENABLE_LITE
    if (delay)
    {
-      _oalRingBufferDelayEffectData* effect = delay;
-      unsigned int offs = effect->delay.sample_offs[track];
-
       /* Apply delay effects */
-      if (effect->history_ptr) {	/*    flanging     */
+      if (effect->reverb) {		/*    flanging     */
          bufEffectDelay(psrc, psrc, scratch, start, end, ds, delay, track);
       }
       else				/* phasing, chorus */
       {
+         unsigned int offs = effect->delay.sample_offs[track];
          unsigned int ext_no_samples = no_samples + offs;
 
          _aax_memcpy(pdst+start-offs, psrc+start-offs, ext_no_samples*bps);
-         bufEffectDelay(pdst, psrc, scratch, start, end, offs, delay, track);
+         bufEffectDelay(pdst, psrc, scratch, start, end, ds, delay, track);
          BUFSWAP(pdst, psrc);
       }
    }
 #endif
 
    if (dst == pdst) {	/* copy the data back to the dst buffer */
-      _aax_memcpy(dst, src, no_samples*bps);
+      _aax_memcpy(dst+start, src+start, no_samples*bps);
    }
 }
 
@@ -185,6 +189,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
                unsigned int start, unsigned int end,
                unsigned int ds, void *data, unsigned int track)
 {
+   static const unsigned int bps = sizeof(int32_t);
    _oalRingBufferDelayEffectData* effect = data;
    unsigned int no_samples = end-start;
    float volume;
@@ -197,10 +202,9 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
    assert(data != NULL);
 
    volume =  effect->delay.gain;
-   if (volume > 0.001f || volume < -0.001f)
+// if (volume > 0.001f || volume < -0.001f)
    {
-      const int32_ptr src = s + start;
-      int32_t *sptr = (int32_t*)src;
+      int32_t *sptr = s + start;
       int32_t *dptr = d + start;
       unsigned int offs, noffs;
 
@@ -212,16 +216,11 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
       if (s == d)	/*  flanging */
       {
-         static const unsigned int bps = sizeof(int32_t);
          unsigned int i, coffs, doffs, step;
-         int32_t *ptr, *ddeptr;
-//       int32_t v1, v2;
+         int32_t *ptr;
          int sign;
 
          ptr = dptr;
-         ddeptr = d - ds;
-         _aax_memcpy(ddeptr, effect->delay_history[track], ds*bps);
-
          doffs = abs(noffs - offs);
          step = doffs ? no_samples/doffs : no_samples;
          if (step < 2) {
@@ -231,30 +230,21 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          coffs = offs;
          sign = (noffs < offs) ? -1 : 1;
          i = no_samples;
+
+         _aax_memcpy(s-ds, effect->delay_history[track], ds*bps);
          do
          {
             _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
-#if 0
-            v1 = *(ptr-1); v2 = v1*0.5f + *ptr*0.5f;
-            *(ptr-1) = *(ptr-2)*0.5f + v1*0.2f + v2*0.3f;
-            *ptr = v1*0.3f + v2*0.2f + *(ptr+1)*0.5f;
-#endif
             ptr += step;
             coffs += sign;
             i -= step;
          }
          while(i >= step);
 
-         if (i)
-         {
+         if (i) {
             _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
-#if 0
-            v1 = *(ptr-1); v2 = v1*0.5f + *ptr*0.5f;
-            *(ptr-1) = *(ptr-2)*0.5f + v1*0.2f + v2*0.3f;
-            *ptr = v1*0.3f + v2*0.2f + *(ptr+1)*0.5f;
-#endif
          }
-         _aax_memcpy(effect->delay_history[track], ddeptr+end, ds*bps);
+         _aax_memcpy(effect->delay_history[track], d+end-ds, ds*bps);
       }
       else	/* chorus, phasing */
       {
