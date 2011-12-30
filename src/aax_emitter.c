@@ -560,8 +560,18 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          case AAX_TIMED_PITCH_EFFECT:
             _PROP_PITCH_SET_CHANGED(src->props3d);
             /* break not needed */
-         case AAX_FLANGING_EFFECT:
          case AAX_DISTORTION_EFFECT:
+         {
+            _oalRingBuffer2dProps *p2d = src->props2d;
+            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+            rv = AAX_TRUE;
+            break;
+         }
+         case AAX_FLANGING_EFFECT:
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
          {
@@ -571,6 +581,19 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
             _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+            if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) > 1)
+            {
+               _oalRingBufferDelayEffectData* data;
+               data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
+               if (data && !data->history_ptr)
+               {
+                  unsigned int tracks = effect->info->no_tracks;
+                  float frequency = effect->info->frequency;
+                  _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
+                                                    data->delay_history,
+                                                    frequency, tracks);
+               }
+            }
             rv = AAX_TRUE;
             break;
          }
