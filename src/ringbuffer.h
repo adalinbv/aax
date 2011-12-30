@@ -240,6 +240,7 @@ typedef struct
 
    int32_t* delay_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
+   char reverb;
 } _oalRingBufferDelayEffectData;
 
 typedef struct
