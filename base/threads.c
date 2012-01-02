@@ -240,7 +240,16 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       {
          struct timespec to;
 #ifdef __GNUC__
-         int mtx;
+         unsigned int mtx;
+ 
+         mtx = m->mutex.__data.__count;
+         
+         if (mtx > 1) {
+            printf("lock mutex > 1 (%i) in %s line %i, for: %s in %s\n",
+                                         mtx, file, line, m->name, m->function);
+            r = -mtx;
+            abort();
+         }
 #endif
 
          to.tv_sec = time(NULL) + 2;
@@ -296,7 +305,7 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
    if (__threads_enabled && m)
    {
 #ifdef __GNUC__
-      int mtx;
+      unsigned int mtx;
 
       mtx = m->mutex.__data.__count;
       if (mtx != 1) {
