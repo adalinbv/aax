@@ -429,7 +429,7 @@ _aaxSensorCaptureStop(_handle_t *handle)
          {
             _sensor_t *sensor = _intBufGetDataPtr(dptr);
             sensor->mixer->capturing = AAX_FALSE;
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+//          _intBufReleaseData(dptr, _AAX_SENSOR);
          }
 
          _SET_STOPPED(handle);

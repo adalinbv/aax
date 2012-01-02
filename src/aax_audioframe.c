@@ -1108,14 +1108,14 @@ _aaxAudioFrameThread(void* config)
 
       if (handle->id == HANDLE_ID)
       {
-         _intBufferData *dptr_sensor=_intBufGet(handle->sensors,_AAX_SENSOR, 0);
-         if (dptr_sensor)
+         _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
             smixer = sensor->mixer;
             fmixer = frame->submix;
             mixer = fmixer;
-            _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
    }
@@ -1251,16 +1251,16 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
    if (handle) /* frame is registered */
    {
       _handle_t* handle = frame->handle;
-      _intBufferData *dptr_sensor;
+      _intBufferData *dptr;
 
        /* copying prevents locking the listener the whole time */
        /* it's used for just one time-frame anyhow             */
-       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+       dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
        memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
        memcpy(&sp2d.pos, smixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4));
        memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4));
        memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
-       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+       _intBufReleaseData(dptr, _AAX_SENSOR);
    }
    memcpy(&fp3d, fmixer->props3d, sizeof(_oalRingBuffer3dProps));
    memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
