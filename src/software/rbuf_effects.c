@@ -51,8 +51,15 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
 
    if (effect && !effect->reverb && effect->history_ptr)	/* streaming */
    {
-      if (!start) _aax_memcpy(src-ds, effect->delay_history[track], ds*bps);
-      _aax_memcpy(effect->delay_history[track], src+end-ds, ds*bps);
+      if (!start)
+      {
+         _aax_memcpy(src-ds, effect->delay_history[track], ds*bps);
+         _aax_memcpy(effect->delay_history[track], src+end-ds, ds*bps);
+      }
+      else {
+         _aax_memcpy(effect->delay_history[track]+ds-no_samples,
+                     src+start, no_samples*bps);
+      }
    }
 
    if (freq)				/* Apply frequency filter first */
@@ -203,16 +210,24 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
    volume =  effect->delay.gain;
 // if (volume > 0.001f || volume < -0.001f)
+   do
    {
       int32_t *sptr = s + start;
       int32_t *dptr = d + start;
       unsigned int offs, noffs;
 
-      offs = effect->delay.sample_offs[track];
-      assert(offs <= ds);
+       offs = effect->delay.sample_offs[track];
+       assert(offs <= ds);
 
-      noffs = effect->lfo.get(&effect->lfo, track);
-      effect->delay.sample_offs[track] = noffs;
+      if (start) {
+         noffs = effect->curr_noffs;
+      }
+      else
+      {
+         noffs = effect->lfo.get(&effect->lfo, track);
+         effect->delay.sample_offs[track] = noffs;
+         effect->curr_noffs = noffs;
+      }
 
       if (s == d)	/*  flanging */
       {
@@ -221,17 +236,26 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          int sign;
 
          ptr = dptr;
+         step = no_samples;
          doffs = abs(noffs - offs);
-         step = doffs ? no_samples/doffs : no_samples;
-         if (step < 2) {
-            step = no_samples;
+         if (doffs)
+         {
+//          float fstep = (float)no_samples/(float)doffs;
+//          step = rintf(fstep);
+            step = no_samples/doffs;
+            if (step < 2) {
+               step = no_samples;
+            }
          }
 
          coffs = offs;
          sign = (noffs < offs) ? -1 : 1;
          i = no_samples;
 
-         _aax_memcpy(s-ds, effect->delay_history[track], ds*bps);
+         if (!start) {
+            _aax_memcpy(s-ds, effect->delay_history[track], ds*bps);
+         }
+
          do
          {
             _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
@@ -244,7 +268,14 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          if (i) {
             _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
          }
-         _aax_memcpy(effect->delay_history[track], d+end-ds, ds*bps);
+
+         if (!start) {
+            _aax_memcpy(effect->delay_history[track], d+end-ds, ds*bps);
+         } else {
+            _aax_memcpy(effect->delay_history[track]+ds-no_samples,
+                        d+start, no_samples*bps);
+         }
+         
       }
       else	/* chorus, phasing */
       {
@@ -252,7 +283,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          int doffs = noffs - offs;
          float fact;
 
-         fact = (float)(no_samples-doffs)/(float)no_samples;
+         fact = (float)(end-doffs)/(float)end;
          if (fact < 1.0f) {
             resamplefn = _aaxBufResampleLinear;
          }
@@ -264,6 +295,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
       }
    }
+   while (0);
 }
 
 void

@@ -236,12 +236,21 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                _aaxProcessResample(scratch1-ddesamps, scratch0-cdesamps,
                                dest_pos, dmax+ddesamps, smu, fact);
 
-               if ( distortion_effect) {
-                   distortion_effect = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
+               /*
+                * Only apply effects is source is not stopped.
+                * In case of a streaming source this means that effects are
+                * only applied if the dest buffer is completely filled again,
+                * even if that takes two rendering pases.
+                */
+               if (!src->stopped)
+               {
+                  if ( distortion_effect) {
+                      distortion_effect=&_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
+                  }
+                  bufEffectsApply(dptr, scratch1, scratch0,
+                                  dest_pos, dmax, ddesamps, track,
+                                  freq_filter, delay_effect, distortion_effect);
                }
-               bufEffectsApply(dptr, scratch1, scratch0,
-                               dest_pos, dmax, ddesamps, track,
-                               freq_filter, delay_effect, distortion_effect);
             }
          }
       }
