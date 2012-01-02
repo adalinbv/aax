@@ -1,5 +1,6 @@
 AeonWave (2.2.0) stable; urgency=low
   * Add flanging effect.
+  * Add filter and effect support for streaming audio.
   * Add seamless transisition from tube-like compression to digital
     compression (clipping). This is most noticeable for the distortion effect.
   * Add an 8 band graphical equalizer for the final mixer stage.
