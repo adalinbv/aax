@@ -653,11 +653,11 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[AAX_EFFECT_MAX] =
   /* AAX_DISTORTION_EFFECT */
   { {  0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f,     1.0f, 1.0f,     0.0f } },
   /* AAX_PHASING_EFFECT   */
-  { { 0.0f, 0.01f, 0.0f, 0.0f }, {    0.99f,    10.0f, 1.0f,     0.0f } },
+  { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
   /* AAX_CHORUS_EFFECT    */
-  { { 0.0f, 0.01f, 0.0f, 0.0f }, {    0.99f,    10.0f, 1.0f,     0.0f } },
+  { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
   /* AAX_FLANGING_EFFECT  */
-  { { 0.0f, 0.01f, 0.0f, 0.0f }, {    0.99f,    10.0f, 1.0f,     0.0f } },
+  { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
   /* AAX_VELOCITY_EFFECT  */
   { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } }
 };
