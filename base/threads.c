@@ -19,7 +19,9 @@
 # if HAVE_TIME_H
 #  include <time.h>
 # endif
-#include <math.h>
+#if HAVE_MATH_H
+# include <math.h>
+#endif
 #include <errno.h>
 #include <string.h>	/* for memcpy */
 

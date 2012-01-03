@@ -6,7 +6,9 @@
 #include "config.h"
 #endif
 
+#if HAVE_TIME_H
 #include <time.h>
+#endif
 
 #if HAVE_PTHREAD_H
 

@@ -19,25 +19,25 @@ OPTION(WERROR "Treat compile warnings as errors"   OFF)
 IF(WIN32)
     SET(LIBAEONWAVE AAX32)
     ADD_DEFINITIONS("-D_WIN32")
-ELSE()
+ELSE(WIN32)
     SET(LIBAEONWAVE aax)
-ENDIF()
+ENDIF(WIN32)
 
 IF(NOT LIBTYPE)
     SET(LIBTYPE SHARED)
-ENDIF()
+ENDIF(NOT LIBTYPE)
 
 # read 'version' file into a variable (stripping any newlines or spaces)
 file(READ version versionFile)
-STRING(STRIP ${versionFile} AEONWAVE_VERSION)
-SET(VERSION AEONWAVE_VERSION)
+STRING(STRIP ${versionFile} AAX_VERSION)
+SET(VERSION AAX_VERSION)
 
 #  read 'description` file into a variable
 file(STRINGS description descriptionFile)
 STRING(REGEX REPLACE ";" " " descriptionFile "${descriptionFile}")
 
 # split version string into components, note CMAKE_MATCH_0 is the entire regexp match
-STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AEONWAVE_VERSION})
+STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AAX_VERSION})
 SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
 SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
 SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
@@ -68,7 +68,7 @@ SET(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
 
 
 SET(CPACK_SOURCE_GENERATOR TBZ2 ZIP)
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AEONWAVE_VERSION}" CACHE INTERNAL "tarball basename")
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 SET(CPACK_SOURCE_IGNORE_FILES
   "^${PROJECT_SOURCE_DIR}/.git;\\\\.gitignore;Makefile.am;~$;${CPACK_SOURCE_IGNORE_FILES}")
 
@@ -81,7 +81,7 @@ INCLUDE (CPack)
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 # Required libraries
-FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
+#FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
 
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}" include base "${CMAKE_BINARY_DIR}/include")
@@ -100,9 +100,16 @@ IF(WERROR)
 ENDIF()
 
 # Check for the dlopen API (for alGetProcAddress)
-CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
 CHECK_INCLUDE_FILE(assert.h HAVE_ASSERT_H)
+CHECK_INCLUDE_FILE(syslog.h HAVE_SYSLOG_H)
+CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILE(values.h HAVE_VALUES_H)
 CHECK_INCLUDE_FILE(dlfcn.h HAVE_DLFCN_H)
+CHECK_INCLUDE_FILE(libio.h HAVE_LIBIO_H)
+CHECK_INCLUDE_FILE(time.h HAVE_TIME_H)
+CHECK_INCLUDE_FILE(math.h HAVE_MATH_H)
 IF(HAVE_DLFCN_H)
   CHECK_LIBRARY_EXISTS(dl dlopen "" HAVE_LIBDL)
   IF(HAVE_LIBDL)
@@ -114,21 +121,69 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
+SET(CMAKE_C_FLAGS
+    "${CMAKE_C_FLAGS} -Os -fPIC -fomit-frame-pointer -funroll-loops"
+   )
+IF(CMAKE_COMPILER_IS_GNUCC)
+  SET(CMAKE_C_FLAGS
+      "${CMAKE_C_FLAGS} -shared -march=i586 -std=c99 -Wl,--hash-style=both -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=199309L -fvisibility=hidden"
+     )
+ENDIF(CMAKE_COMPILER_IS_GNUCC)
+
+SET(BASE_OBJS
+     base/buffers.c
+     base/dlsym.c
+     base/geometry.c
+     base/gmath.c
+     base/logging.c
+     base/memory.c
+     base/threads.c
+     base/types.c
+   )
 
 SET( AEONWAVE_OBJS
-     src/alContext.c
-     src/alSource.c
-     src/alBuffer.c
-     src/alListener.c
-     src/alState.c
+     src/aax_audioframe.c
+     src/aax_buffer.c
+     src/aax_driver.c
+     src/aax_effects.c
+     src/aax_emitter.c
+     src/aax_filters.c
+     src/aax_instrument.c
+     src/aax_matrix.c
+     src/aax_mixer.c
+     src/aax_scenery.c
+     src/aax_sensor.c
      src/aax_support.c
-     src/api.c
+     src/aax_waveforms.c
+     src/devices.c
+     src/objects.c
+     src/alsa/device.c
+     src/alsasoft/device.c
+     src/dmedia/codecs.c
+     src/dmedia/device.c
+     src/oss/device.c
+     src/software/arch.c
+     src/software/arch_cpu.c
+     src/software/arch_neon.c
+     src/software/arch_sse2.c
+     src/software/arch_sse.c
+     src/software/device.c
+     src/software/mixer.c
+     src/software/null_device.c
+     src/software/rbuf_codecs.c
+     src/software/rbuf_codec_tables.c
+     src/software/rbuf_effects.c
+     src/software/rbuf_mixers.c
+     src/software/rbuf_mixer_tables.c
+     src/software/rbufmix_multi.c
+     src/software/rbufmix_single.c
+     src/software/ringbuffer.c
    )
 ADD_SUBDIRECTORY(base src)
 
 # Build a library
 SET(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-ADD_LIBRARY(${LIBAEONWAVE} ${LIBTYPE} ${LIBBASE} ${LIBAEONWAVE_INT})
+ADD_LIBRARY(${LIBAEONWAVE} ${LIBTYPE} ${BASE_OBJS} ${AEONWAVE_OBJS})
 SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES DEFINE_SYMBOL AL_BUILD_LIBRARY
                                        COMPILE_FLAGS -DAL_ALEXT_PROTOTYPES
                                        VERSION ${LIB_VERSION}

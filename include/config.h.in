@@ -14,6 +14,7 @@
 
 /* Define to 1 if you have the <assert.h> header file. */
 #undef HAVE_ASSERT_H
+#cmakedefine HAVE_ASSERT_H @HAVE_ASSERT_H@
 
 /* Define if you have a version of the snprintf function with semantics as
    specified by the ISO C99 standard. */
@@ -25,9 +26,11 @@
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
+#cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+#cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
 
 /* Define to 1 if you have the `ioctl' function. */
 #undef HAVE_IOCTL
@@ -37,12 +40,14 @@
 
 /* Define to 1 if you have the <libio.h> header file. */
 #undef HAVE_LIBIO_H
+#cmakedefine HAVE_LIBIO_H @HAVE_LIBIO_H@
 
 /* Define to 1 if you have the <machine/cpu-features.h> header file. */
 #undef HAVE_MACHINE_CPU_FEATURES_H
 
 /* Define to 1 if you have the <math.h> header file. */
 #undef HAVE_MATH_H
+#cmakedefine HAVE_MATH_H @HAVE_MATH_H@
 
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
@@ -61,6 +66,7 @@
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
+#cmakedefine HAVE_PTHREAD_H @HAVE_PTHREAD_H@
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
@@ -73,6 +79,7 @@
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
@@ -88,6 +95,7 @@
 
 /* Define to 1 if you have the <syslog.h> header file. */
 #undef HAVE_SYSLOG_H
+#cmakedefine HAVE_SYSLOG_H @HAVE_SYSLOG_H@
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
@@ -103,6 +111,7 @@
 
 /* Define to 1 if you have the <time.h> header file. */
 #undef HAVE_TIME_H
+#cmakedefine HAVE_TIME_H @HAVE_TIME_H@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
@@ -113,6 +122,7 @@
 
 /* Define to 1 if you have the <values.h> header file. */
 #undef HAVE_VALUES_H
+#cmakedefine HAVE_VALUES_H @HAVE_VALUES_H@
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
