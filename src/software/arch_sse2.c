@@ -16,8 +16,10 @@
 #include <math.h>	/* for floorf */
 
 #include <ringbuffer.h>
-#include "arch_simd.h"
 
+#pragma GCC target ("arch=pentium-m","sse2","fpmath=sse")
+
+#include "arch_simd.h"
 
 #ifdef __SSE2__
 

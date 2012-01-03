@@ -72,13 +72,13 @@ i?86-*-*-*)
     ;;
   *gcc*)
     CFLAGS="$CFLAGS -Wl,--hash-style=both"
-    SSEFLAGS="$OPTFLAGS -march=pentium3m -msse -mfpmath=sse"
-    SSE2FLAGS="$OPTFLAGS -march=pentium-m -msse2 -mfpmath=sse"
+    SSEFLAGS="$OPTFLAGS"
+    SSE2FLAGS="$OPTFLAGS"
     ;;
   esac
   ;;
 arm-*-eabi)
-  NEONFLAGS="$OPTFLAGS -static -fno-short-enums -mfpu=neon -mfloat-abi=softfp"
+  NEONFLAGS="$OPTFLAGS -static -fno-short-enums"
   ;;
 esac
 AC_SUBST(SSEFLAGS)

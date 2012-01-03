@@ -16,6 +16,8 @@
 #ifdef HAVE_ARM_NEON_H
 #include <arm_neon.h>
 
+#pragma GCC target ("fpu=neon","float-abi=softfp")
+
 #include "arch_simd.h"
 
 void

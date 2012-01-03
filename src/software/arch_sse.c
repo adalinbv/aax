@@ -14,6 +14,9 @@
 #endif
 
 #include <api.h>
+
+#pragma GCC target ("arch=pentium3m","sse","fpmath=sse")
+
 #include "arch_simd.h"
 
 #ifdef __SSE__
