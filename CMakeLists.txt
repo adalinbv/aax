@@ -118,7 +118,7 @@ IF(HAVE_DLFCN_H)
 ENDIF()
 
 CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
 SET(CMAKE_C_FLAGS
