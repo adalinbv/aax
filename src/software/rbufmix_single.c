@@ -491,25 +491,17 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    rbd = dest->sample;
    for (track=0; track<rbd->no_tracks; track++)
    {
-      int32_t *t = (int32_t *)rbd->track[track];
-      float ch_volume, dir_fact;
+      int32_t *dptr = (int32_t *)rbd->track[track] + offs;
+      float vstart, vend, vstep;
+      float dir_fact;
 
-      dir_fact = p2d->pos[track][0];
-      ch_volume = gain * dir_fact;
-      do
-      {
-         float vol_start, vol_end, volume_step;
-         int32_t *dptr = t + offs;
+      dir_fact = p2d->pos[track][DIR_RIGHT];
+      vstart = svol * gain * dir_fact * p2d->prev_gain[track];
+      vend   = evol * gain * dir_fact * gain;
+      vstep  = (vend - vstart) / dno_samples;
+      _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
-         vol_start = gain * svol * p2d->prev_gain[track];
-         vol_end = gain * evol * ch_volume;
-         volume_step = (vol_end - vol_start) / dno_samples;
-
-         assert(dptr+dno_samples <= t+rbd->no_samples);
-         _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vol_start, volume_step);
-         p2d->prev_gain[track] = ch_volume;
-      }
-      while (0);
+      p2d->prev_gain[track] = gain;
    }
 
    return ret;

@@ -39,13 +39,14 @@ static void szxform(float *, float *, float *, float *, float *, float *,
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 void
 bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
-          unsigned int start, unsigned int end, unsigned int ddesamps,
-          unsigned int track, void *freq, void *delay, void *distort)
+          unsigned int start, unsigned int end, unsigned int no_samples,
+          unsigned int ddesamps, unsigned int track,
+          void *freq, void *delay, void *distort)
 {
    static const unsigned int bps = sizeof(int32_t);
    _oalRingBufferDelayEffectData* effect = delay;
    unsigned int ds = effect ? ddesamps : 1;	/* 1 for frequency filtering */
-   unsigned int no_samples = end - start;
+// unsigned int no_samples = end - start;
    int32_t *psrc = src;
    int32_t *pdst = dst;
 
@@ -79,7 +80,8 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
    {
       /* Apply delay effects */
       if (effect->reverb) {		/*    flanging     */
-         bufEffectDelay(psrc, psrc, scratch, start, end, ds, delay, track);
+         bufEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds, delay, track);
+//       bufCompress(psrc, start, end, 0.5f);
       }
       else				/* phasing, chorus */
       {
@@ -87,7 +89,7 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
          unsigned int ext_no_samples = no_samples + offs;
 
          _aax_memcpy(pdst+start-offs, psrc+start-offs, ext_no_samples*bps);
-         bufEffectDelay(pdst, psrc, scratch, start, end, ds, delay, track);
+         bufEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds, delay, track);
          BUFSWAP(pdst, psrc);
       }
    }
@@ -188,17 +190,18 @@ bufEffectReverb(int32_t *s,
  * - d and s point to a buffer containing the delay effects buffer prior to
  *   the pointer.
  * - start is the starting pointer
- * - end is the end pointer (end-start is the number of smaples)
+ * - end is the end pointer (end-start is the number of samples)
+ * - no_samples is the number of samples to process this run
  * - dmax does not include ds
  */
 void
 bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
-               unsigned int start, unsigned int end,
+               unsigned int start, unsigned int end, unsigned int no_samples,
                unsigned int ds, void *data, unsigned int track)
 {
    static const unsigned int bps = sizeof(int32_t);
    _oalRingBufferDelayEffectData* effect = data;
-   unsigned int no_samples = end-start;
+// unsigned int no_samples = end-start;
    float volume;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -212,12 +215,12 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 // if (volume > 0.001f || volume < -0.001f)
    do
    {
+      unsigned int offs, noffs;
       int32_t *sptr = s + start;
       int32_t *dptr = d + start;
-      unsigned int offs, noffs;
 
-       offs = effect->delay.sample_offs[track];
-       assert(offs <= ds);
+      offs = effect->delay.sample_offs[track];
+      assert(offs <= ds);
 
       if (start) {
          noffs = effect->curr_noffs;
@@ -231,39 +234,39 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
       if (s == d)	/*  flanging */
       {
-         unsigned int i, coffs, doffs, step;
-         int32_t *ptr;
-         int sign;
+         unsigned int sign = (noffs < offs) ? -1 : 1;
+         unsigned int doffs = abs(noffs - offs);
+         unsigned int i = no_samples;
+         unsigned int coffs = offs;
+         unsigned int step = end;
+         int32_t * ptr = dptr;
 
-         ptr = dptr;
-         step = no_samples;
-         doffs = abs(noffs - offs);
-         if (doffs)
-         {
-//          float fstep = (float)no_samples/(float)doffs;
-//          step = rintf(fstep);
-            step = no_samples/doffs;
-            if (step < 2) {
-               step = no_samples;
-            }
+         if (start) {
+            step = effect->curr_step;
          }
-
-         coffs = offs;
-         sign = (noffs < offs) ? -1 : 1;
-         i = no_samples;
-
-         if (!start) {
+         else
+         {
+            if (doffs)
+            {
+               step = end/doffs;
+               if (step < 2) step = end;
+               effect->curr_step = step;
+            }
             _aax_memcpy(s-ds, effect->delay_history[track], ds*bps);
          }
 
-         do
+         i = no_samples;
+         if (i > step)
          {
-            _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
-            ptr += step;
-            coffs += sign;
-            i -= step;
+            do
+            {
+               _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
+               ptr += step;
+               coffs += sign;
+               i -= step;
+            }
+            while(i >= step);
          }
-         while(i >= step);
 
          if (i) {
             _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
@@ -272,10 +275,10 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          if (!start) {
             _aax_memcpy(effect->delay_history[track], d+end-ds, ds*bps);
          } else {
+//memset(d+start, 0, no_samples*bps);
             _aax_memcpy(effect->delay_history[track]+ds-no_samples,
                         d+start, no_samples*bps);
          }
-         
       }
       else	/* chorus, phasing */
       {
@@ -327,7 +330,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
       clip = distort[CLIPPING_FACTOR];
       mixfact = distort[AAX_MIX_FACTOR];
-      fact = 128.0f*distort[AAX_DISTORTION_FACTOR];
+      fact = 256.0f*distort[AAX_DISTORTION_FACTOR];
       
       _batch_mul_value(dptr, bps, no_samples, (1.0f+fact)*mixfact);
        bufCompress(dptr, 0, no_samples, clip);

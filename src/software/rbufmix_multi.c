@@ -125,14 +125,12 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       _oalRingBufferSample *rbs = src->sample;
       unsigned int rbs_track = track % rbs->no_tracks;
       unsigned int rbd_track = track % rbd->no_tracks;
+      int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;
       float vstart, vend, vstep;
-      int32_t *dptr;
 
       vstart = gain * svol * p2d->prev_gain[track];
       vend = gain * evol * gain;
       vstep = (vend - vstart) / dno_samples;
-
-      dptr = (int32_t *)rbd->track[rbd_track]+offs;
       _batch_fmadd(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
 
       p2d->prev_gain[track] = gain;

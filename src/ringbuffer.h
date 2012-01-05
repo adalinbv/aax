@@ -242,6 +242,7 @@ typedef struct
    void* history_ptr;
 
    unsigned int curr_noffs;
+   unsigned int curr_step;
    char reverb;
 } _oalRingBufferDelayEffectData;
 
@@ -698,10 +699,10 @@ float _oalRingBufferLFOGetSawtooth(void*, unsigned track);
 float _oalRingBufferLFOGetFixedValue(void*, unsigned track);
 float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);
 
-void bufEffectsApply(int32_ptr, int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, void*, void*);
+void bufEffectsApply(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, void*, void*, void*);
 void bufFilterFrequency(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
 void bufEffectDistort(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
-void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, void*, unsigned int);
+void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned int);
 void bufEffectReflections(int32_t*, const int32_ptr, unsigned int, unsigned int, unsigned int, const void*);
 void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 

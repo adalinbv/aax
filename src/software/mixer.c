@@ -71,8 +71,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
          _aax_memcpy(scratch1+no_samples, ddeptr+no_samples, ddesamps*bps);
 
          /* mix the buffer and the delay buffer */
-         bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, ddesamps,
-                         track, freq_filter, delay, distortion);
+         bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, no_samples,
+                         ddesamps, track, freq_filter, delay, distortion);
 
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
