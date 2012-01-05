@@ -58,11 +58,12 @@ int main(int argc, char **argv)
          testForState(res, "aaxEmitterSetMode");
 
          /* frequency filter */
+#if 1
          printf("Add frequency filter at 150Hz\n");
          filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
          testForError(filter, "aaxFilterCreate");
 
-         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 150.0, 1.7, 0.25,0.0);
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 150.0, 2.0, 0.5,0.0);
          testForError(filter, "aaxFilterSetSlot");
         
          filter = aaxFilterSetState(filter, AAX_TRUE);
@@ -73,12 +74,13 @@ int main(int argc, char **argv)
 
          res = aaxFilterDestroy(filter);
          testForState(res, "aaxFilterDestroy");
+#endif
 
          /* distortion effect for emitter */
          effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
          testForError(effect, "aaxEffectCreate");
 
-         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.67, 0.5, 0.5, 0.0);
+         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.2, 0.5, 0.0);
          testForError(effect, "aaxEffectSetSlot 0");
 
          effect = aaxEffectSetState(effect, AAX_TRUE);
