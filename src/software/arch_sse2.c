@@ -116,12 +116,12 @@ _batch_cvtpd_24_sse2(int32_t*__restrict d, const void*__restrict sptr, unsigned 
 }
 
 void
-_batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float f, float fstep)
+_batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float v, float vstep)
 {
    int32_ptr s = (int32_ptr)src;
    __m128i *sptr = (__m128i *)s;
    __m128i *dptr = (__m128i*)d;
-   __m128 tv = _mm_set1_ps(f);
+   __m128 tv = _mm_set1_ps(v);
    unsigned int i, size, step;
    long dtmp, stmp;
 
@@ -133,8 +133,8 @@ _batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
       i = num;				/* improperly aligned,            */
       do				/* let the compiler figure it out */
       {
-         *d++ += *s++ * f;
-         f += fstep;
+         *d++ += *s++ * v;
+         v += vstep;
       }
       while (--i);
       return;
@@ -149,14 +149,14 @@ _batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
       i = (0x10 - dtmp)/sizeof(int32_t);
       num -= i;
       do {
-         *d++ += *s++ * f;
-         f += fstep;
+         *d++ += *s++ * v;
+         v += vstep;
       } while(--i);
       dptr = (__m128i *)d;
       sptr = (__m128i *)s;
    }
 
-   fstep *= step;				/* 8 samples at a time */
+   vstep *= step;				/* 8 samples at a time */
    i = size = num/step;
    if (i)
    {
@@ -174,7 +174,7 @@ _batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
          xmm0i = _mm_load_si128(dptr);
          xmm4i = _mm_load_si128(dptr+1);
 
-         f += fstep;
+         v += vstep;
 
          xmm2 = _mm_mul_ps(tv, xmm1);
          xmm6 = _mm_mul_ps(tv, xmm5);
@@ -188,7 +188,7 @@ _batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
          _mm_store_si128(dptr+1, xmm4i);
          dptr += 2;
 
-         tv = _mm_set1_ps(f);
+         tv = _mm_set1_ps(v);
       }
       while(--i);
    }
@@ -197,10 +197,10 @@ _batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
    if (i) {
       d = (int32_t *)dptr;
       s = (int32_t *)sptr;
-      fstep /= step;
+      vstep /= step;
       do {
-         *d++ += *s++ * f;
-         f += fstep;
+         *d++ += *s++ * v;
+         v += vstep;
       } while(--i);
    }
 }
