@@ -242,6 +242,7 @@ typedef struct
    void* history_ptr;
 
    unsigned int curr_noffs;
+   unsigned int curr_coffs;
    unsigned int curr_step;
    char reverb;
 } _oalRingBufferDelayEffectData;

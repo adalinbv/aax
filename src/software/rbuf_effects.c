@@ -52,15 +52,8 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
 
    if (effect && !effect->reverb && effect->history_ptr)	/* streaming */
    {
-      if (!start)
-      {
-         _aax_memcpy(src-ds, effect->delay_history[track], ds*bps);
-         _aax_memcpy(effect->delay_history[track], src+end-ds, ds*bps);
-      }
-      else {
-         _aax_memcpy(effect->delay_history[track]+ds-no_samples,
-                     src+start, no_samples*bps);
-      }
+      _aax_memcpy(src+start-ds, effect->delay_history[track], ds*bps);
+      _aax_memcpy(effect->delay_history[track], src+start+no_samples-ds,ds*bps);
    }
 
    if (freq)				/* Apply frequency filter first */
@@ -241,8 +234,8 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          unsigned int step = end;
          int32_t *ptr = dptr;
 
-
-         if (start) {
+         if (start)
+         {
             step = effect->curr_step;
             coffs = effect->curr_coffs;
          }
@@ -257,8 +250,6 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          effect->curr_step = step;
 
          _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
-
-         i = no_samples;
          if (i >= step)
          {
             do
@@ -269,15 +260,12 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
                i -= step;
             }
             while(i >= step);
-            coffs -= sign;
          }
-
          if (i) {
             _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
          }
-         effect->curr_coffs = coffs;
-
          _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
+         effect->curr_coffs = coffs;
       }
       else	/* chorus, phasing */
       {

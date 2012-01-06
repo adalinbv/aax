@@ -126,7 +126,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             dest->playing = 0;
             dest->stopped = 1;
          }
-else dduration = dt;
+         else dduration = dt;
       }
    }
 
@@ -158,7 +158,7 @@ else dduration = dt;
 
       /* destination */
       dend = rbd->no_samples;
-      dno_samples = ceilf(dduration*dfreq);
+      dno_samples = rintf(dduration*dfreq);
       if (src_pos_sec >= 0) {
          dest_pos = rint(dest_pos_sec * dfreq);
       } else {						/* distance delay */
