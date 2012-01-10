@@ -254,12 +254,13 @@ aaxEffectSetState(aaxEffect e, int state)
 #if !ENABLE_LITE
          if EBF_VALID(effect)
          {
-            switch (state)
+            switch (state & ~AAX_INVERSE)
             {
             case AAX_TRIANGLE_WAVE:
             case AAX_SINE_WAVE:
             case AAX_SQUARE_WAVE:
             case AAX_SAWTOOTH_WAVE:
+            case AAX_ENVELOPE_FOLLOW:
             {
                 _oalRingBufferLFOInfo* lfo = effect->slot[0]->data;
                if (lfo == NULL)
@@ -278,15 +279,28 @@ aaxEffectSetState(aaxEffect e, int state)
                      lfo->step[t] *= effect->slot[0]->param[AAX_LFO_FREQUENCY];
                      lfo->step[t] /= effect->info->refresh_rate;
                      lfo->value[t] = 1.0f;
-                     if (state == AAX_SAWTOOTH_WAVE) {
+                     switch (state & ~AAX_INVERSE)
+                     {
+                     case AAX_SAWTOOTH_WAVE:
                         lfo->step[t] *= 0.5f;
+                        break;
+                     case AAX_ENVELOPE_FOLLOW:
+                     {
+                        float fact = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+                        lfo->value[t] /= lfo->max;
+                        lfo->step[t] = -0.1005f+pow(fact, 0.25f)/3.15f;
+                        break;
+                     }
+                     default:
+                        break;
                      }
                   }
+                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                   lfo->min = 1.0f - depth/2.0f;
                   lfo->max = 1.0f + depth/2.0f;
                   if (depth > 0.01f)
                   {
-                     switch (state)
+                     switch (state & ~AAX_INVERSE)
                      {
                      case AAX_TRIANGLE_WAVE:
                         lfo->get = _oalRingBufferLFOGetTriangle;
@@ -299,6 +313,9 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      case AAX_SAWTOOTH_WAVE:
                         lfo->get = _oalRingBufferLFOGetSawtooth;
+                        break;
+                     case AAX_ENVELOPE_FOLLOW:
+                         lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
                         break;
                      default:
                         break;
@@ -403,12 +420,13 @@ aaxEffectSetState(aaxEffect e, int state)
 #if !ENABLE_LITE
          if EBF_VALID(effect)
          {
-            switch (state)
+            switch (state & ~AAX_INVERSE)
             {
             case AAX_TRIANGLE_WAVE:
             case AAX_SINE_WAVE:
             case AAX_SQUARE_WAVE:
             case AAX_SAWTOOTH_WAVE:
+            case AAX_ENVELOPE_FOLLOW:
             {
                _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
                if (data == NULL)
@@ -485,6 +503,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   }
 
                   data->lfo.max = data->lfo.min + depth;
+                  data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
                   if (depth > 0.05f)
                   {
@@ -495,12 +514,24 @@ aaxEffectSetState(aaxEffect e, int state)
                            data->lfo.value[t] = data->lfo.min;
                         }
                         data->delay.sample_offs[t] = data->lfo.value[t];
-                        if (state == AAX_SAWTOOTH_WAVE) {
+                        switch (state & ~AAX_INVERSE)
+                        {
+                        case AAX_SAWTOOTH_WAVE:
                            data->lfo.step[t] *= 0.5f;
+                           break;
+                        case AAX_ENVELOPE_FOLLOW:
+                        {
+                           float fact = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+                           data->lfo.value[t] /= data->lfo.max;
+                           data->lfo.step[t] = -0.1005f+pow(fact, 0.25f)/3.15f;
+                           break;
+                        }
+                        default:
+                           break;
                         }
                      }
 
-                     switch (state)
+                     switch (state & ~AAX_INVERSE)
                      {
                      case AAX_TRIANGLE_WAVE:
                         data->lfo.get = _oalRingBufferLFOGetTriangle;
@@ -513,6 +544,9 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      case AAX_SAWTOOTH_WAVE:
                         data->lfo.get = _oalRingBufferLFOGetSawtooth;
+                        break;
+                     case AAX_ENVELOPE_FOLLOW:
+                         data->lfo.get = _oalRingBufferLFOGetEnvelopeFollow;
                         break;
                      default:
                         _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -698,7 +732,7 @@ static float _lin(float v) { return v; }
 static float _lin2db(float v) { return 20.0f*log(v); }
 static float _db2lin(float v) { return _MINMAX(pow(10.0f,v/20.0f),0.0f,10.0f); }
 // static float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-// static float _deg2rad(float v) { return fmod(v, 360.0f)*GMATH_DEG_TO_RAD; }
+// static float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
 
 _filter_t*
 new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2dProps* p2d, _oalRingBuffer3dProps* p3d)

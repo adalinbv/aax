@@ -450,7 +450,7 @@ aaxFilterSetState(aaxFilter f, int state)
 #if !ENABLE_LITE
          if EBF_VALID(filter)
          {
-            switch (state)
+            switch (state & ~AAX_INVERSE)
             {
             case AAX_TRIANGLE_WAVE:
             case AAX_SINE_WAVE:
@@ -480,9 +480,10 @@ aaxFilterSetState(aaxFilter f, int state)
                   }
                   lfo->min = 1.0f - depth;
                   lfo->max = 1.0f;
+                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                   if (depth > 0.01f)
                   {
-                     switch (state)
+                     switch (state & ~AAX_INVERSE)
                      {
                      case AAX_TRIANGLE_WAVE:
                         lfo->get = _oalRingBufferLFOGetTriangle;
@@ -725,7 +726,7 @@ static float _lin(float v) { return v; }
 static float _lin2db(float v) { return 20.0f*log(v); }
 static float _db2lin(float v) { return _MINMAX(pow(10.0f,v/20.0f),0.0f,10.0f); }
 static float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-static float _deg2rad(float v) { return fmod(v, 360.0f)*GMATH_DEG_TO_RAD; }
+static float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
 static float _cos_deg2rad_2(float v) { return cos(_deg2rad(v)/2); }
 static float _2acos_rad2deg(float v) { return 2*acos(_rad2deg(v)); }
 static float _cos_2(float v) { return cos(v/2); }

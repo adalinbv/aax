@@ -97,7 +97,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
    {
       if (src_loops)
       {
-         // new_src_pos_sec = fmod(new_src_pos_sec, sduration);
+         // new_src_pos_sec = fmodf(new_src_pos_sec, sduration);
          float loop_length_sec = rbs->loop_end_sec - rbs->loop_start_sec;
          new_src_pos_sec -= rbs->loop_start_sec;
          new_src_pos_sec = fmodf(new_src_pos_sec, loop_length_sec);

@@ -77,6 +77,9 @@ int main(int argc, char **argv)
          res = aaxEmitterSetPitch(emitter, pitch);
          testForState(res, "aaxEmitterSetPitch");
 
+         res = aaxEmitterSetGain(emitter, 0.7f);
+         testForState(res, "aaxEmitterSetGain");
+
          res = aaxMixerRegisterEmitter(config, emitter);
          testForState(res, "aaxMixerRegisterEmitter");
 
@@ -105,8 +108,10 @@ int main(int argc, char **argv)
             /* flanging effect */
             printf("source flanging..\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.08, 1.0, 0.0);
-            effect = aaxEffectSetState(effect, AAX_TRUE);
+//          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.08, 1.0, 0.0);
+//          effect = aaxEffectSetState(effect, AAX_TRUE);
+effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.9, 0.9, 0.8, 0.0);
+effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
@@ -130,23 +135,23 @@ int main(int argc, char **argv)
 
             DELAY;
 #else
-           printf("no effect\n");
+            printf("no effect\n");
 #endif
 
-# if 1
-           /* chorus effect */
-           printf("source chorus..\n");
-           effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
-           effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.08, 1.0, 0.0);
-           effect = aaxEffectSetState(effect, AAX_TRUE);
-           res = aaxEmitterSetEffect(emitter, effect);
-           res = aaxEffectDestroy(effect);
-           testForError(effect, "aaxEffectCreate");
+# if 0
+            /* chorus effect */
+            printf("source chorus..\n");
+            effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.08, 1.0, 0.0);
+            effect = aaxEffectSetState(effect, AAX_TRUE);
+            res = aaxEmitterSetEffect(emitter, effect);
+            res = aaxEffectDestroy(effect);
+            testForError(effect, "aaxEffectCreate");
 
-           DELAY;
+            DELAY;
 # endif
 
-# if 1
+# if 0
             /* flanging effect */
             printf("source flanging..\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
@@ -176,7 +181,7 @@ int main(int argc, char **argv)
          testForError(filter, "aaxFilterCreate");
 #endif
 
-#if 1
+#if 0
          /* phasing effect */
          printf("listener phasing..\n");
          effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
@@ -190,7 +195,7 @@ int main(int argc, char **argv)
          DELAY;
 #endif
 
-#if 1
+#if 0
          /* chorus effect */
          printf("listener chorus..\n");
          effect = aaxEffectCreate(config, AAX_CHORUS_EFFECT);
@@ -204,7 +209,7 @@ int main(int argc, char **argv)
          DELAY;
 #endif
 
-#if 1
+#if 0
          /* flanging effect */
          printf("listener flanging..\n");
          effect = aaxEffectCreate(config, AAX_FLANGING_EFFECT);

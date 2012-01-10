@@ -220,7 +220,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       }
       else
       {
-         noffs = effect->lfo.get(&effect->lfo, track);
+         noffs = effect->lfo.get(&effect->lfo, s, track, end);
          effect->delay.sample_offs[track] = noffs;
          effect->curr_noffs = noffs;
       }
@@ -273,7 +273,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          int doffs = noffs - offs;
          float fact;
 
-         fact = (float)(end-doffs)/(float)end;
+         fact = _MAX((float)((int)end-doffs)/(float)(end), 0.0f);
          if (fact < 1.0f) {
             resamplefn = _aaxBufResampleLinear;
          }

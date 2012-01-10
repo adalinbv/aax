@@ -113,13 +113,13 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
@@ -155,12 +155,12 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
    if (lfo) {
-      gain *= lfo->get(lfo, 0);
+      gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
    lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
    if (lfo) {
-       gain *= lfo->get(lfo, 0);
+       gain *= lfo->get(lfo, NULL, 0, 0);
    }
    gain *= p2d->final.gain;
 
@@ -252,13 +252,13 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
@@ -294,12 +294,12 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
    if (lfo) {
-      gain *= lfo->get(lfo, 0);
+      gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
    lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
    if (lfo) {
-       gain *= lfo->get(lfo, 0);
+       gain *= lfo->get(lfo, NULL, 0, 0);
    }
    gain *= p2d->final.gain;
 
@@ -427,13 +427,13 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
@@ -469,12 +469,12 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
    if (lfo) {
-      gain *= lfo->get(lfo, 0);
+      gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
    lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
    if (lfo) {
-       gain *= lfo->get(lfo, 0);
+       gain *= lfo->get(lfo, NULL, 0, 0);
    }
    gain *= p2d->final.gain;
 
@@ -554,13 +554,13 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, 0);
+      pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
@@ -598,12 +598,12 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
    if (lfo) {
-      gain *= lfo->get(lfo, 0);
+      gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
    lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
    if (lfo) {
-       gain *= lfo->get(lfo, 0);
+       gain *= lfo->get(lfo, NULL, 0, 0);
    }
    gain *= p2d->final.gain;
 
