@@ -32,14 +32,14 @@ static float _rand_sample(float *s, float g)
 
 static float _sin_sample(float *s, float g)
 {
-   *s = fmod(*s, GMATH_2PI);
+   *s = fmodf(*s, GMATH_2PI);
    return floor(fast_sin(*s) * g);
 }
 
 #if 0
 static float _powsin_sample(float *s, float g)
 {
-   *s = fmod(*s, GMATH_2PI);
+   *s = fmodf(*s, GMATH_2PI);
    return floor(pow(fast_sin(*s), 143.0f) * g);
 }
 #endif
@@ -63,7 +63,7 @@ void _mul_8bps(void* data, unsigned int samples, float dt, float phase, unsigned
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
       *ptr = RINGMODULATE(*ptr, fact*samp, mul, max);
-      s = fmod(s+dt, GMATH_2PI);
+      s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
@@ -87,7 +87,7 @@ void _mix_8bps(void* data, unsigned int samples, float dt, float phase, unsigned
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
       *ptr = MIX(*ptr, fact*samp, max);
-      s = fmod(s+dt, GMATH_2PI);
+      s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
@@ -111,7 +111,7 @@ void _mul_16bps(void* data, unsigned int samples, float dt, float phase, unsigne
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
       *ptr = RINGMODULATE(*ptr, fact*samp, mul, max);
-      s = fmod(s+dt, GMATH_2PI);
+      s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
@@ -135,7 +135,7 @@ void _mix_16bps(void* data, unsigned int samples, float dt, float phase, unsigne
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
       *ptr = MIX(*ptr, fact * samp, max);
-      s = fmod(s+dt, GMATH_2PI);
+      s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
@@ -159,7 +159,7 @@ void _mul_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
       *ptr = RINGMODULATE(*ptr, fact*samp, mul, max);
-      s = fmod(s+dt, GMATH_2PI);
+      s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
@@ -183,7 +183,7 @@ void _mix_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
       *ptr = MIX(*ptr, fact*samp, max);
-      s = fmod(s+dt, GMATH_2PI);
+      s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
