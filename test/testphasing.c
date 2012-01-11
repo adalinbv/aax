@@ -82,6 +82,55 @@ int main(int argc, char **argv)
          res = aaxEmitterSetState(emitter, AAX_PLAYING);
          testForState(res, "aaxEmitterStart");
 
+# if 1
+         /* flanging effect */
+         printf("source flanging.. (envelope following)\n");
+         effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
+         effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7, 1.0, 0.2, 0.0);
+         effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
+         res = aaxEmitterSetEffect(emitter, effect);
+         res = aaxEffectDestroy(effect);
+         testForError(effect, "aaxEffectCreate");
+
+         DELAY;
+
+         effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
+         effect = aaxEffectSetState(effect, AAX_FALSE);
+         res = aaxEmitterSetEffect(emitter, effect);
+         res = aaxEffectDestroy(effect);
+         testForError(effect, "aaxEffect Disable");
+# endif
+
+# if 1
+         /* phasing effect */
+         printf("source phasing.. (inverse envelope following)\n");
+         effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
+         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 8.0, 1.0, 0.0);
+         effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
+         testForError(effect, "aaxEffectCreate");
+         res = aaxEmitterSetEffect(emitter, effect);
+         res = aaxEffectDestroy(effect);
+         testForState(res, "aaxEmitterSetEffect");
+
+         DELAY;
+#else
+         printf("no effect\n");
+#endif
+
+# if 1
+         /* flanging effect */
+         printf("source chorus.. (envelope following)\n");
+         effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
+         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.8, 1.0, 0.0);
+         effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
+         res = aaxEmitterSetEffect(emitter, effect);
+         res = aaxEffectDestroy(effect);
+         testForError(effect, "aaxEffectCreate");
+
+         DELAY;
+# endif
+
+
 #if 1
          /* source effects */
          for (q=0; q<2; q++)
