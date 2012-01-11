@@ -1,6 +1,9 @@
 AeonWave (2.2.0) stable; urgency=low
   * Add flanging effect.
+  * Speed-up of filter and effect processing.
   * Add filter and effect support for streaming audio.
+  * Add the inverse of the modulation-waveform for filters and effects.
+  * Add an envelope following option for filters and effects (auto-wah).
   * Add seamless transisition from tube-like compression to digital
     compression (clipping). This is most noticeable for the distortion effect.
   * Add an 8 band graphical equalizer for the final mixer stage.
@@ -12,7 +15,7 @@ AeonWave (2.2.0) stable; urgency=low
     audio-frames render in their own thread, subframes will render in
     their parents thread.
 
- -- Erik Hofman <tech@adalin.org>  Mon 22 Dec 2011 12:30:00 +0100;
+ -- Erik Hofman <tech@adalin.org>  Tue 10 Jan 2012 14:10:00 +0100;
 
 
 AeonWave (2.1.2) stable; urgency=medium
