@@ -216,9 +216,12 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                int32_t *dptr = track_ptr[track];
                void *sptr = rbs->track[track];
 
+               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
+
+               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessResample(dptr-ddesamps, scratch0-cdesamps, dest_pos,
                                    dest_pos+dno_samples+ddesamps, smu, fact);
             }
@@ -237,12 +240,17 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                int32_t *dptr = track_ptr[track];
                void *sptr = rbs->track[track];
 
+               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
+
+               DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessResample(scratch1-ddesamps, scratch0-cdesamps,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
+
+               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
                bufEffectsApply(dptr, scratch1, scratch0, dest_pos, dend,
                                dno_samples, ddesamps, track,
                                freq_filter, delay_effect, distortion_effect);
@@ -281,135 +289,20 @@ _aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned 
    resamplefn(d, s, dmin, dmax, 0, smu, fact);
 }
 
-#if 0
 void
-bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax)
-{
-   int32_t *ptr = (int32_t*)d;
-   unsigned int j;
-
-   j = dmax-dmin;
-   do
-   {
-      int32_t i, samp = abs(*ptr);
-      int sign = (*ptr > 0) ? 1 : -1;
-
-      if (samp > 0x1ff)
-      {
-         int j = samp >> 8;
-
-         i = samp;
-         if (i & 0xFF800000) {
-            i = 0x007fffff;
-         }
-         samp = (i+3*j) >> 1;
-         if (samp & 0xFF800000) {
-            samp = 0x007fffff;
-         }
-         *ptr = sign*samp;
-      }
-      ptr++;
-   }
-   while (--j);
-}
-
-#define _MAX_INT32_T   0x7fffffff
-#define _MAX_INT24_T   0x007fffff
-#define _THRESHOLD     0x000001ff
-void
-bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
-{
-   static const float div = 1/(float)_MAX_INT32_T;
-   static const float mul = (float)0x007fffff;
-   int32_t *ptr = (int32_t*)d;
-   unsigned int j;
-
-   j = dmax-dmin;
-   do
-   {
-      int32_t i, samp = abs(*ptr);
-      int32_t sign = (*ptr >= 0) ? 1 : -1;
-
-      if (samp > _THRESHOLD)
-      {
-         float f;
-
-         i = samp >> 3;
-         if (i & 0xFF800000) {
-            i = 0x007fffff;
-         }
-
-         f = powf((_MAX_INT32_T-samp)*div, 8);
-         f = 1.0f - f;
-         f *= mul;
-
-         samp = (int32_t)f;
-         samp = (3*i+samp) >> 1;
-         if (samp & 0xFF800000) {
-            samp = 0x007fffff;
-         }
-         *ptr = sign*samp;
-      }
-      ptr++;
-   }
-   while (--j);
-}
-
-#define BITS		11
-#define SHIFT		(31-BITS)
-#define START		((1<<SHIFT)-1)
-#define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
-void
-bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
-{
-   int32_t *ptr = (int32_t*)d;
-   unsigned int j;
-
-   j = dmax-dmin;
-   do
-   {
-      int32_t samp, asamp;
-
-      samp = *ptr;
-      asamp = abs(samp);
-
-      if (asamp & ~START)
-      {
-         float val, diff, fact, ct0, ct1;
-         unsigned int pos;
-
-         pos = asamp >> SHIFT;
-         ct0 = _compress_tbl[0][pos-1];
-         ct1 = _compress_tbl[0][pos];
-         diff = ct1 - ct0;
-         fact = (float)(asamp - (pos<<SHIFT))/(float)START;
-
-         val = (float)samp*(ct0 + diff*fact);
-         *ptr = (int32_t)val;
-      }
-      ptr++;
-   }
-   while (--j);
-}
-#else
-
-void
-bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax)
-{
+bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax) {
    bufCompress(d, dmin, dmax, 0.5f);
 }
+
 void
-bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax)
-{
+bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax) {
    bufCompress(d, dmin, dmax, 0.9f);
 }
+
 void
-bufCompressValve(void *d, unsigned int dmin, unsigned int dmax)
-{
+bufCompressValve(void *d, unsigned int dmin, unsigned int dmax) {
    bufCompress(d, dmin, dmax, 0.2f);
 }
-#endif
-
 
 #define BITS		11
 #define SHIFT		(31-BITS)
