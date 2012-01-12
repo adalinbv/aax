@@ -256,6 +256,7 @@ aaxEffectSetState(aaxEffect e, int state)
          {
             switch (state & ~AAX_INVERSE)
             {
+            case AAX_CONSTANT_VALUE:
             case AAX_TRIANGLE_WAVE:
             case AAX_SINE_WAVE:
             case AAX_SQUARE_WAVE:
@@ -288,7 +289,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      {
                         float fact = effect->slot[0]->param[AAX_LFO_FREQUENCY];
                         lfo->value[t] /= lfo->max;
-                        lfo->step[t] = -0.1005f+pow(fact, 0.25f)/3.15f;
+                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
                         break;
                      }
                      default:
@@ -302,6 +303,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   {
                      switch (state & ~AAX_INVERSE)
                      {
+                     case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
                      case AAX_TRIANGLE_WAVE:
                         lfo->get = _oalRingBufferLFOGetTriangle;
                         break;
@@ -422,6 +424,7 @@ aaxEffectSetState(aaxEffect e, int state)
          {
             switch (state & ~AAX_INVERSE)
             {
+            case AAX_CONSTANT_VALUE:
             case AAX_TRIANGLE_WAVE:
             case AAX_SINE_WAVE:
             case AAX_SQUARE_WAVE:
@@ -521,9 +524,9 @@ aaxEffectSetState(aaxEffect e, int state)
                            break;
                         case AAX_ENVELOPE_FOLLOW:
                         {
-                           float fact = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+                           float fact=effect->slot[0]->param[AAX_LFO_FREQUENCY];
                            data->lfo.value[t] /= data->lfo.max;
-                           data->lfo.step[t] = -0.1005f+pow(fact, 0.25f)/3.15f;
+                           data->lfo.step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
                            break;
                         }
                         default:
@@ -533,6 +536,7 @@ aaxEffectSetState(aaxEffect e, int state)
 
                      switch (state & ~AAX_INVERSE)
                      {
+                     case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
                      case AAX_TRIANGLE_WAVE:
                         data->lfo.get = _oalRingBufferLFOGetTriangle;
                         break;
