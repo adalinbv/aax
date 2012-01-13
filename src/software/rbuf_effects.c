@@ -358,9 +358,10 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
       if (filter->lfo)
       {
          float fc = filter->lfo->get(filter->lfo, s, track, dmax);
+         float Q = filter->lfo_param[0];
 
          k = 1.0f;
-         iir_compute_coefs(fc, filter->fs, cptr, &k);
+         iir_compute_coefs(fc, filter->fs, cptr, &k, Q);
       }
 
       _batch_freqfilter(dptr, sptr, dmax+ds-dmin, hist, lf, hf, k, cptr);
@@ -368,10 +369,10 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
 }
 
 void
-iir_compute_coefs(float fc, float fs, float *coef, float *gain)
+iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q)
 {
    float k = 1.0f;
-   float Q = 1.0f;
+// float Q = 1.0f;
 
    float a0 = 1.0f;
    float a1 = 0.0f;

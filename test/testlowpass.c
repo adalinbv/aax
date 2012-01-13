@@ -133,8 +133,9 @@ int main(int argc, char **argv)
             {
                printf("envelope following filtering (auto wah)\n");
                femitter = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
-               femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR, 0.0, 0.1, 0.046, 0.95);
-               femitter = aaxFilterSetState(femitter, AAX_INVERSE_ENVELOPE_FOLLOW);
+               femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 900.0, 0.5, 1.0, 0.0);
+               femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR, 8.0, 0.1, 0.046, 0.95);
+               femitter = aaxFilterSetState(femitter, AAX_ENVELOPE_FOLLOW);
                res = aaxEmitterSetFilter(emitter, femitter);
             }
          }

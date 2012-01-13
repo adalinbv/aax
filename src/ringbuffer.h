@@ -733,7 +733,7 @@ void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigne
 void bufEffectReflections(int32_t*, const int32_ptr, unsigned int, unsigned int, unsigned int, const void*);
 void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 
-void iir_compute_coefs(float, float, float*, float*);
+void iir_compute_coefs(float, float, float*, float*, float);
 void _oalRingBufferMixMonoSetRenderer(enum aaxRenderMode);
 
 void bufCompress(void*, unsigned int, unsigned int, float);

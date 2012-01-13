@@ -268,14 +268,15 @@ aaxFilterSetState(aaxFilter f, int state)
                      do
                      {
                         _oalRingBufferFreqFilterInfo *flt;
-                        float *cptr, fc, k;
+                        float *cptr, fc, k, Q;
 
                         flt = &eq->band[pos];
                         cptr = flt->coeff;
 
                         k = 1.0f;
+                        Q = 1.0f;
                         fc = expf((float)pos*fband)*67.0f;
-                        iir_compute_coefs(fc, filter->info->frequency, cptr,&k);
+                        iir_compute_coefs(fc,filter->info->frequency,cptr,&k,Q);
                         flt->k = k;
                      }
                      while (--pos >= 0);
@@ -343,15 +344,15 @@ aaxFilterSetState(aaxFilter f, int state)
 
                if (flt)
                {
-                  float *cptr, fc, k;
+                  float *cptr, fc, k, Q;
 
                   /* LF frequency setup */
                   flt = filter->slot[EQUALIZER_LF]->data;
                   fc = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
                   cptr = flt->coeff;
                   k = 1.0f;
-
-                  iir_compute_coefs(fc, filter->info->frequency, cptr, &k);
+                  Q = 1.0f;
+                  iir_compute_coefs(fc, filter->info->frequency, cptr, &k, Q);
                   flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
                   flt->k = k;
@@ -361,8 +362,8 @@ aaxFilterSetState(aaxFilter f, int state)
                   fc = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
                   cptr = flt->coeff;
                   k = 1.0f;
-
-                  iir_compute_coefs(fc, filter->info->frequency, cptr, &k);
+                  Q = 1.0f;
+                  iir_compute_coefs(fc, filter->info->frequency, cptr, &k, Q);
                   flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
                   flt->k = k;
@@ -563,12 +564,12 @@ aaxFilterSetState(aaxFilter f, int state)
                float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                float *cptr = flt->coeff;
                float frequency = 48000.0f; 
-               float k = 1.0f;
+               float Q = 1.0f, k = 1.0f;
 
                if (filter->info) {
                   frequency = filter->info->frequency;
                }
-               iir_compute_coefs(fc, frequency, cptr, &k);
+               iir_compute_coefs(fc, frequency, cptr, &k, Q);
                flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
                flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
                flt->fs = frequency;
@@ -803,7 +804,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX] =
   /* AAX_DISTANCE_FILTER  */
   { {  0.0f,  0.0f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
   /* AAX_FREQUENCY_FILTER */
-  { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     1.0f } },
+  { {  1.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     1.0f } },
   /* AAX_GRAPHIC_EQUALIZER */
   { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,     2.0f,  2.0f,     2.0f } }
 };
