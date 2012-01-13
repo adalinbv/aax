@@ -86,7 +86,7 @@ int main(int argc, char **argv)
          /* flanging effect */
          printf("source flanging.. (envelope following)\n");
          effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-         effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7, 1.0, 0.2, 0.0);
+         effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7, 0.7, 0.5, 0.0);
          effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
          res = aaxEmitterSetEffect(emitter, effect);
          res = aaxEffectDestroy(effect);

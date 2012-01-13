@@ -22,13 +22,6 @@
 static void szxform(float *, float *, float *, float *, float *, float *,
                     float, float, float *, float *);
 
-// *(sptr-4) = 0; *(sptr+4) = 0;
-#define WRITE(a, b, dptr, ds, no_samples) \
-	if (a) { static int ct = 0; \
-	  if (++ct > (b)) { \
-             WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }
-
-
 /**
  * - dst and scratch point to the beginning of a buffer containing room for
  *   the delay effects prior to the pointer.
@@ -46,13 +39,15 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
    static const unsigned int bps = sizeof(int32_t);
    _oalRingBufferDelayEffectData* effect = delay;
    unsigned int ds = effect ? ddesamps : 1;	/* 1 for frequency filtering */
-// unsigned int no_samples = end - start;
    int32_t *psrc = src;
    int32_t *pdst = dst;
 
    if (effect && !effect->reverb && effect->history_ptr)	/* streaming */
    {
+      DBG_MEMCLR(1, src-ds, ds+start, bps);
       _aax_memcpy(src+start-ds, effect->delay_history[track], ds*bps);
+
+//    DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
       _aax_memcpy(effect->delay_history[track], src+start+no_samples-ds,ds*bps);
    }
 
@@ -74,7 +69,6 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
       /* Apply delay effects */
       if (effect->reverb) {		/*    flanging     */
          bufEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds, delay, track);
-//       bufCompress(psrc, start, end, 0.5f);
       }
       else				/* phasing, chorus */
       {
@@ -88,9 +82,12 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
    }
 #endif
 
-   if (dst == pdst) {	/* copy the data back to the dst buffer */
+   if (dst == pdst)	/* copy the data back to the dst buffer */
+   {
+      DBG_MEMCLR(1, dst-ds, ds+end, bps);
       _aax_memcpy(dst+start, src+start, no_samples*bps);
    }
+   bufCompress(dst, start, end, 0.7f);
 }
 
 #if !ENABLE_LITE
@@ -194,7 +191,6 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 {
    static const unsigned int bps = sizeof(int32_t);
    _oalRingBufferDelayEffectData* effect = data;
-// unsigned int no_samples = end-start;
    float volume;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -205,7 +201,6 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
    assert(data != NULL);
 
    volume =  effect->delay.gain;
-// if (volume > 0.001f || volume < -0.001f)
    do
    {
       unsigned int offs, noffs;
@@ -249,6 +244,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          }
          effect->curr_step = step;
 
+         DBG_MEMCLR(1, s-ds, ds+start, bps);
          _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
          if (i >= step)
          {
@@ -264,6 +260,8 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          if (i) {
             _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
          }
+
+//       DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
          _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
          effect->curr_coffs = coffs;
       }
@@ -281,6 +279,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
             resamplefn = _aaxBufResampleSkip;
          }
 
+         DBG_MEMCLR(1, scratch-ds, ds+end, bps);
          resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
          _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
       }
@@ -306,13 +305,15 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
    do
    {
+      static const unsigned int bps = sizeof(int32_t);
       const int32_ptr sptr = s - ds + dmin;
       int32_t *dptr = d - ds + dmin;
-      unsigned int no_samples, bps;
       float clip, fact, mixfact;
+      unsigned int no_samples;
 
-      bps = sizeof(int32_t);
       no_samples = dmax+ds-dmin;
+
+      DBG_MEMCLR(1, d-ds, ds+dmax, bps);
       _aax_memcpy(dptr, sptr, no_samples*bps);
 
       clip = distort[CLIPPING_FACTOR];
@@ -353,6 +354,14 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
       float lf = filter->lf_gain;
       float hf = filter->hf_gain;
       float k = filter->k;
+
+      if (filter->lfo)
+      {
+         float fc = filter->lfo->get(filter->lfo, s, track, dmax);
+
+         k = 1.0f;
+         iir_compute_coefs(fc, filter->fs, cptr, &k);
+      }
 
       _batch_freqfilter(dptr, sptr, dmax+ds-dmin, hist, lf, hf, k, cptr);
    }

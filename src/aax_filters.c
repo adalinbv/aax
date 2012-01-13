@@ -53,10 +53,13 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
       case AAX_TIMED_GAIN_FILTER:		/* three slots */
          size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_oalRingBufferFilterInfo);
          break;
-      case AAX_EQUALIZER:			/* two slots */
+      case AAX_EQUALIZER:			/* two or more slots */
       case AAX_GRAPHIC_EQUALIZER:
          size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
          break;
+      case AAX_FREQUENCY_FILTER:		/* two slots */
+         size += sizeof(_oalRingBufferFilterInfo);
+         /* break not needed */
       default:					/* one slot */
          size += sizeof(_oalRingBufferFilterInfo);
          break;
@@ -85,9 +88,11 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             memcpy(flt->slot[1], &_aaxDefault2dProps.filter[flt->pos], size);
             /* break not needed */
+         case AAX_FREQUENCY_FILTER:
+            flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_TREMOLO_FILTER:
-         case AAX_FREQUENCY_FILTER:
             memcpy(flt->slot[0], &_aaxDefault2dProps.filter[flt->pos], size);
             break;
          case AAX_TIMED_GAIN_FILTER:
@@ -136,11 +141,11 @@ aaxFilterDestroy(aaxFilter f)
          free(filter->slot[1]->data);
          /* break not needed */
       case AAX_EQUALIZER:
+      case AAX_FREQUENCY_FILTER:
          filter->slot[1]->data = NULL;
          /* break not needed */
       case AAX_TIMED_GAIN_FILTER:
       case AAX_TREMOLO_FILTER:
-      case AAX_FREQUENCY_FILTER:
          free(filter->slot[0]->data);
          filter->slot[0]->data = NULL;
          break;
@@ -236,7 +241,7 @@ aaxFilterSetState(aaxFilter f, int state)
 {
    _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
-   if (filter && filter->info)
+   if (filter)
    {
       switch(filter->type)
       {
@@ -452,10 +457,12 @@ aaxFilterSetState(aaxFilter f, int state)
          {
             switch (state & ~AAX_INVERSE)
             {
+            case AAX_CONSTANT_VALUE:
             case AAX_TRIANGLE_WAVE:
             case AAX_SINE_WAVE:
             case AAX_SQUARE_WAVE:
             case AAX_SAWTOOTH_WAVE:
+            case AAX_ENVELOPE_FOLLOW:
             {
                _oalRingBufferLFOInfo* lfo = filter->slot[0]->data;
                if (lfo == NULL)
@@ -474,17 +481,31 @@ aaxFilterSetState(aaxFilter f, int state)
                      lfo->step[t] *= filter->slot[0]->param[AAX_LFO_FREQUENCY];
                      lfo->step[t] /= filter->info->refresh_rate;
                      lfo->value[t] = 1.0f - depth;
-                     if (state == AAX_SAWTOOTH_WAVE) {
+                     switch (state & ~AAX_INVERSE)
+                     {
+                     case AAX_SAWTOOTH_WAVE:
                         lfo->step[t] *= 0.5f;
+                        break;
+                     case AAX_ENVELOPE_FOLLOW:
+                     {
+                        float fact = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+                        lfo->value[t] /= lfo->max;
+                        lfo->step[t] = -0.1005f+pow(fact, 0.25f)/3.15f;
+                        break;
+                     }
+                     default:
+                        break;
                      }
                   }
                   lfo->min = 1.0f - depth;
                   lfo->max = 1.0f;
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->convert = _lin;
                   if (depth > 0.01f)
                   {
                      switch (state & ~AAX_INVERSE)
                      {
+                     case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
                      case AAX_TRIANGLE_WAVE:
                         lfo->get = _oalRingBufferLFOGetTriangle;
                         break;
@@ -496,6 +517,9 @@ aaxFilterSetState(aaxFilter f, int state)
                         break;
                      case AAX_SAWTOOTH_WAVE:
                         lfo->get = _oalRingBufferLFOGetSawtooth;
+                        break;
+                     case AAX_ENVELOPE_FOLLOW:
+                        lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
                         break;
                      default:
                         break;
@@ -518,7 +542,14 @@ aaxFilterSetState(aaxFilter f, int state)
 #endif
          break;
       case AAX_FREQUENCY_FILTER:
-         if TEST_FOR_TRUE(state)
+         switch (state & ~AAX_INVERSE)
+         {
+         case AAX_TRUE:
+         case AAX_TRIANGLE_WAVE:
+         case AAX_SINE_WAVE:
+         case AAX_SQUARE_WAVE:
+         case AAX_SAWTOOTH_WAVE:
+         case AAX_ENVELOPE_FOLLOW:
          {
             _oalRingBufferFreqFilterInfo *flt = filter->slot[0]->data;
             if (flt == NULL)
@@ -540,12 +571,99 @@ aaxFilterSetState(aaxFilter f, int state)
                iir_compute_coefs(fc, frequency, cptr, &k);
                flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
                flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
+               flt->fs = frequency;
                flt->k = k;
+
+               if ((state & ~AAX_INVERSE) != AAX_TRUE && EBF_VALID(filter)
+                   && filter->slot[1])
+               {
+                  _oalRingBufferLFOInfo* lfo = flt->lfo;
+
+                  memcpy(flt->lfo_param,filter->slot[1]->param,4*sizeof(float));
+
+                  if (lfo == NULL) {
+                     lfo = flt->lfo = malloc(sizeof(_oalRingBufferLFOInfo));
+                  }
+
+                  if (lfo)
+                  {
+                     static const float range = (22050.0f - 20.0f);
+                     float depth = filter->slot[1]->param[AAX_LFO_DEPTH];
+                     float offset = filter->slot[1]->param[AAX_LFO_OFFSET];
+                     int t;
+
+                     if ((offset + depth) > 1.0f) {
+                        depth = 1.0f - offset;
+                     }
+
+                     depth *= range;
+                     offset *= range;
+                     lfo->convert = _log2lin;
+                     lfo->min = _lin2log(22050.0f - offset - depth);
+                     lfo->max = _lin2log(22050.0f - offset);
+                     lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+                     for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+                     {
+                        float step = 2.0f*(lfo->max - lfo->min);
+                        step *= filter->slot[1]->param[AAX_LFO_FREQUENCY];
+                        step /= filter->info->refresh_rate;
+                        lfo->step[t] = step;
+                        lfo->value[t] = lfo->max;
+                        switch (state & ~AAX_INVERSE)
+                        {
+                        case AAX_SAWTOOTH_WAVE:
+                           lfo->step[t] *= 0.5f;
+                           break;
+                        case AAX_ENVELOPE_FOLLOW:
+                        {
+                           float fact=filter->slot[1]->param[AAX_LFO_FREQUENCY];
+                           lfo->value[t] /= lfo->max;
+                           lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
+                           break;
+                        }
+                        default:
+                           break;
+                        }
+                     }
+
+                     if (depth > 0.01f)
+                     {
+                        switch (state & ~AAX_INVERSE)
+                        {
+                        case AAX_TRIANGLE_WAVE:
+                           lfo->get = _oalRingBufferLFOGetTriangle;
+                           break;
+                        case AAX_SINE_WAVE:
+                           lfo->get = _oalRingBufferLFOGetSine;
+                           break;
+                        case AAX_SQUARE_WAVE:
+                           lfo->get = _oalRingBufferLFOGetSquare;
+                           break;
+                        case AAX_SAWTOOTH_WAVE:
+                           lfo->get = _oalRingBufferLFOGetSawtooth;
+                           break;
+                        case AAX_ENVELOPE_FOLLOW:
+                           lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                           break;
+                        default:
+                           break;
+                        }
+                     } else {
+                        lfo->get = _oalRingBufferLFOGetFixedValue;
+                     }
+                  } /* flt->lfo */
+               } /* flt */
             }
             else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            break;
          }
-         else {
+         case AAX_FALSE:
             filter->slot[0]->data = NULL;
+            break;
+         default:
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
          }
          break;
       case AAX_DISTANCE_FILTER:
@@ -685,7 +803,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX] =
   /* AAX_DISTANCE_FILTER  */
   { {  0.0f,  0.0f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
   /* AAX_FREQUENCY_FILTER */
-  { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     0.0f } },
+  { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     1.0f } },
   /* AAX_GRAPHIC_EQUALIZER */
   { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,     2.0f,  2.0f,     2.0f } }
 };
@@ -722,16 +840,6 @@ aaxFilterApplyParam(const aaxFilter f, int s, int p, int ptype)
    return rv;
 }
 
-static float _lin(float v) { return v; }
-static float _lin2db(float v) { return 20.0f*log(v); }
-static float _db2lin(float v) { return _MINMAX(pow(10.0f,v/20.0f),0.0f,10.0f); }
-static float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-static float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
-static float _cos_deg2rad_2(float v) { return cos(_deg2rad(v)/2); }
-static float _2acos_rad2deg(float v) { return 2*acos(_rad2deg(v)); }
-static float _cos_2(float v) { return cos(v/2); }
-static float _2acos(float v) { return 2*acos(v); }
-
 _filter_t*
 new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2dProps* p2d, _oalRingBuffer3dProps* p3d)
 {
@@ -749,6 +857,9 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
       case AAX_GRAPHIC_EQUALIZER:
          size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
          break;
+      case AAX_FREQUENCY_FILTER:
+         size += sizeof(_oalRingBufferFilterInfo);
+         /* break not needed */
       default:					/* one slot */
          size += sizeof(_oalRingBufferFilterInfo);
          break;
@@ -776,10 +887,22 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
             /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_TREMOLO_FILTER:
-         case AAX_FREQUENCY_FILTER:
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;
             break;
+         case AAX_FREQUENCY_FILTER:
+         {
+            _oalRingBufferFreqFilterInfo *freq; 
+
+            freq = (_oalRingBufferFreqFilterInfo *)p2d->filter[rv->pos].data;
+            rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            if (freq) {
+               memcpy(rv->slot[1], freq->lfo_param, 4*sizeof(float));
+            }
+            memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+            rv->slot[0]->data = NULL;
+            break;
+         }
          case AAX_TIMED_GAIN_FILTER:
          {
             _oalRingBufferEnvelopeInfo *env;

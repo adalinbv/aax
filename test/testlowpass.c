@@ -61,7 +61,7 @@ int main(int argc, char **argv)
          fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0, 1.0, 0.0);
          fscene = aaxFilterSetState(fscene, AAX_FALSE);
          res = aaxScenerySetFilter(config, fscene);
-//       res = aaxFilterDestroy(fscene);
+         res = aaxFilterDestroy(fscene);
 #endif
 
          /** emitter */
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
          femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0, 1.0, 0.0, 0.0);
          femitter = aaxFilterSetState(femitter, AAX_FALSE);
          res = aaxEmitterSetFilter(emitter, femitter);
-//       res = aaxFilterDestroy(femitter);
+         res = aaxFilterDestroy(femitter);
          testForError(femitter, "aaxFilterCreate");
 #endif
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
          printf("No filtering\n");
          deg = 0;
-         while(deg < 360)
+         while(deg < 2*360)
          {
             nanoSleep(5e7);
 
@@ -131,8 +131,10 @@ int main(int argc, char **argv)
             }
             else if ((deg > 4*DEG) && (deg < (4*DEG+4)))
             {
-               printf("No filtering\n");
-               femitter = aaxFilterSetState(femitter, AAX_FALSE);
+               printf("envelope following filtering (auto wah)\n");
+               femitter = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
+               femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR, 0.0, 0.1, 0.046, 0.95);
+               femitter = aaxFilterSetState(femitter, AAX_INVERSE_ENVELOPE_FOLLOW);
                res = aaxEmitterSetFilter(emitter, femitter);
             }
          }

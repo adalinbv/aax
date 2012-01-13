@@ -1114,6 +1114,18 @@ unsigned char  _oalRingBufferFormatsBPS[AAX_FORMAT_MAX] =
 };
 
 
+float _lin(float v) { return v; }
+float _lin2log(float v) { return log10(v); }
+float _log2lin(float v) { return pow(10.0f,v); }
+float _lin2db(float v) { return 20.0f*log10(v); }
+float _db2lin(float v) { return _MINMAX(pow(10.0f,v/20.0f),0.0f,10.0f); }
+float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
+float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
+float _cos_deg2rad_2(float v) { return cos(_deg2rad(v)/2); }
+float _2acos_rad2deg(float v) { return 2*acos(_rad2deg(v)); }
+float _cos_2(float v) { return cos(v/2); }
+float _2acos(float v) { return 2*acos(v); }
+
 static int
 _oalGetSetMonoSources(unsigned int src, int num)
 {
@@ -1153,7 +1165,7 @@ _oalRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsi
       rv = lfo->value[track];
       rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
    }
-   return rv;
+   return lfo->convert(rv);
 }
 
 float
@@ -1174,7 +1186,7 @@ _oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
          lfo->value[track] += lfo->step[track];
       }
    }
-   return rv;
+   return lfo->convert(rv);
 }
 
 
@@ -1207,7 +1219,7 @@ _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
       rv = lfo->min + max*_fast_sin1(v);
       rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
    }
-   return rv;
+   return lfo->convert(rv);
 }
 
 float
@@ -1228,7 +1240,7 @@ _oalRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned
          lfo->value[track] += lfo->step[track];
       }
    }
-   return rv;
+   return lfo->convert(rv);
 }
 
 
@@ -1249,7 +1261,7 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
          lfo->value[track] -= (lfo->max - lfo->min);
       }
    }
-   return rv;
+   return lfo->convert(rv);
 }
 
 float
@@ -1277,7 +1289,7 @@ _oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, 
       fact = lfo->step[track];
       lfo->value[track] = _MINMAX(fact*(val - nval) + nval, 0.0f, 1.0f);
    }
-   return rv;
+   return lfo->convert(rv);
 }
 
 float

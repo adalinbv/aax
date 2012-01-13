@@ -296,6 +296,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      }
                   }
+                  lfo->convert = _lin;
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                   lfo->min = 1.0f - depth/2.0f;
                   lfo->max = 1.0f + depth/2.0f;
@@ -731,12 +732,6 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
    }
    return rv;
 }
-
-static float _lin(float v) { return v; }
-static float _lin2db(float v) { return 20.0f*log(v); }
-static float _db2lin(float v) { return _MINMAX(pow(10.0f,v/20.0f),0.0f,10.0f); }
-// static float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-// static float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
 
 _filter_t*
 new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2dProps* p2d, _oalRingBuffer3dProps* p3d)

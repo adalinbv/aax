@@ -214,6 +214,7 @@ enum
     do { void* ptr = P->effect[f].data;					\
     P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr; } while (0);
 
+typedef float _convert_fn(float);
 typedef int16_t _oalRingBufferGetData(const void*, unsigned char, unsigned int);
 typedef float _oalRingBufferDistFunc(float, float, float, float, float, float);
 typedef float _oalRingBufferPitchShiftFunc(float, float, float);
@@ -225,6 +226,7 @@ typedef struct
    float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
    float value[_AAX_MAX_SPEAKERS];	/* current value */
    _oalRingBufferLFOGetFunc *get;
+   _convert_fn *convert;
    char inv;
 } _oalRingBufferLFOInfo;
 
@@ -703,6 +705,18 @@ extern _oalRingBufferPitchShiftFunc* _oalRingBufferDopplerFunc[];
 
 void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
 int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*);
+
+float _lin(float v);
+float _lin2log(float v);
+float _log2lin(float v);
+float _lin2db(float v);
+float _db2lin(float v);
+float _rad2deg(float v);
+float _deg2rad(float v);
+float _cos_deg2rad_2(float v);
+float _2acos_rad2deg(float v);
+float _cos_2(float v);
+float _2acos(float v);
 
 float _oalRingBufferLFOGetSine(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);
