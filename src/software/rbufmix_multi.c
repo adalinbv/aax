@@ -132,7 +132,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       vend = gain * evol * gain;
       vstep = (vend - vstart) / dno_samples;
 
-      DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
+//    DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
       _batch_fmadd(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
 
       p2d->prev_gain[track] = gain;
