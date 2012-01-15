@@ -82,27 +82,27 @@ const _oalRingBuffer2dProps _aaxDefault2dProps =
   /* filters */
   {
     /* VOLUME_FILTER: volume, min_gain, max_gain / filter data */
-    { { 1.0f, 0.0f, 1.0f, 0.0f }, NULL },
+    { { 1.0f, 0.0f, 1.0f, 0.0f }, NULL, AAX_TRUE },
     /* DYNAMIC_GAIN_FILTER */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
     /* TIMED_GAIN_FILTER: next-volume, transition time */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
     /* FREQUENCY_FILTER: cutoff_freq, lf_gain, hf_gain / filter data */
-    { { 22050.0f, 1.0f, 1.0f }, NULL }
+    { { 22050.0f, 1.0f, 1.0f }, NULL, AAX_FALSE }
   },
 
   /* effects */
   {
     /* PITCH_EFFECT */
-    { { 1.0f, 4.0f, 0.0f, 0.0f }, NULL },
+    { { 1.0f, 4.0f, 0.0f, 0.0f }, NULL, AAX_TRUE },
     /* DYNAMIC_PITCH_EFFECT */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
     /* TIMED_PITCH_EFFECT */
-    { { 1.0f, 0.0f, 1.0f, 0.0f }, NULL },
+    { { 1.0f, 0.0f, 1.0f, 0.0f }, NULL, AAX_FALSE },
     /* DISTORTION_EFFECT */
-    { { 0.0f, 1.0f, 0.0f, 0.0f }, NULL },
+    { { 0.0f, 1.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
     /* DELAY_EFFECT */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
   },
 
 	/* previous gains */
@@ -133,15 +133,15 @@ const _oalRingBuffer3dProps _aaxDefault3dProps =
   /* filters */
   {
     /* DISTANCE_FILTER: ref_distance, max_distance, rolloff factor */
-    { { 1.0f, MAXFLOAT, 1.0f, 0.0f }, NULL },
+    { { 1.0f, MAXFLOAT, 1.0f, 0.0f }, NULL, AAX_AL_INVERSE_DISTANCE },
     /* ANGULAR_FILTER: inner_vec, outer_vec, outer_gain */
-    { { 0.0f, 1.0f, 1.0f, 0.0f }, NULL }
+    { { 0.0f, 1.0f, 1.0f, 0.0f }, NULL, AAX_TRUE }
   },
 
   /* effects */
   {
     /* VELOCITY_EFFECT */
-    { { 343.0f, 1.0f, 0.0f, 0.0f }, NULL },
+    { { 343.0f, 1.0f, 0.0f, 0.0f }, NULL, AAX_TRUE },
   }
 };
 
