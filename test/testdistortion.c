@@ -59,16 +59,26 @@ int main(int argc, char **argv)
 
          /* frequency filter */
 #if 1
-         printf("Add frequency filter at 150Hz\n");
          filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
          testForError(filter, "aaxFilterCreate");
-
-         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 150.0, 2.0, 0.5,0.0);
+# if 0
+	 /* straight frequency filter */
+         printf("Add frequency filter at 150Hz\n");
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 150.0, 2.0, 0.5, 0.0);
          testForError(filter, "aaxFilterSetSlot");
-        
          filter = aaxFilterSetState(filter, AAX_TRUE);
          testForError(filter, "aaxFilterSetState");
+# else
+          /* envelope following dynamic frequency filter (auto-wah) */
+         printf("Add auto-wah\n");
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 400.0, 0.5, 1.0, 0.0);
+         testForError(filter, "aaxFilterSetSlot 0");
 
+         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 11, 10.04, 0.046, 0.95);
+         testForError(filter, "aaxFilterSetSlot 1");
+         filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
+         testForError(filter, "aaxFilterSetState");
+# endif
          res = aaxEmitterSetFilter(emitter, filter);
          testForState(res, "aaxEmitterSetFilter");
 
@@ -77,10 +87,11 @@ int main(int argc, char **argv)
 #endif
 
          /* distortion effect for emitter */
+#if 1
          effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
          testForError(effect, "aaxEffectCreate");
 
-         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.2, 0.5, 0.0);
+         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.5, 0.2, 0.5, 0.0);
          testForError(effect, "aaxEffectSetSlot 0");
 
          effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -91,6 +102,7 @@ int main(int argc, char **argv)
 
          res = aaxEffectDestroy(effect);
          testForState(res, "aaxEffectDestroy");
+#endif
 
          /** mixer */
          res = aaxMixerInit(config);
@@ -103,8 +115,8 @@ int main(int argc, char **argv)
          /* chorus effect */
          printf("source chorus..\n");
          effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
-         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.6, 0.08, 0.8, 0.0);
-         effect = aaxEffectSetState(effect, AAX_TRUE);
+         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.6, 0.01, 0.8, 0.0);
+         effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
          res = aaxEmitterSetEffect(emitter, effect);
          res = aaxEffectDestroy(effect);
          testForError(effect, "aaxEffectCreate");
