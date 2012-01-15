@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 # if 1
          /* phasing effect */
-         printf("source phasing.. (inverse envelope following)\n");
+         printf("source phasing.. (envelope following)\n");
          effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 8.0, 1.0, 0.0);
          effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
