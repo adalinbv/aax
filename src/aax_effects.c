@@ -670,15 +670,15 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 
 static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
 {
-  { AAX_EFFECT_NONE,       MAX_STEREO_EFFECT },
-  { AAX_PITCH_EFFECT,      PITCH_EFFECT },
-  { AAX_DYNAMIC_PITCH_EFFECT,    DYNAMIC_PITCH_EFFECT },
-  { AAX_TIMED_PITCH_EFFECT,TIMED_PITCH_EFFECT },
-  { AAX_DISTORTION_EFFECT, DISTORTION_EFFECT},
-  { AAX_PHASING_EFFECT,    DELAY_EFFECT },
-  { AAX_CHORUS_EFFECT,     DELAY_EFFECT },
-  { AAX_FLANGING_EFFECT,   DELAY_EFFECT },
-  { AAX_VELOCITY_EFFECT,   VELOCITY_EFFECT }
+  { AAX_EFFECT_NONE,		MAX_STEREO_EFFECT },
+  { AAX_PITCH_EFFECT,		PITCH_EFFECT },
+  { AAX_DYNAMIC_PITCH_EFFECT,	DYNAMIC_PITCH_EFFECT },
+  { AAX_TIMED_PITCH_EFFECT,	TIMED_PITCH_EFFECT },
+  { AAX_DISTORTION_EFFECT,	DISTORTION_EFFECT},
+  { AAX_PHASING_EFFECT,		DELAY_EFFECT },
+  { AAX_CHORUS_EFFECT,		DELAY_EFFECT },
+  { AAX_FLANGING_EFFECT,	DELAY_EFFECT },
+  { AAX_VELOCITY_EFFECT,	VELOCITY_EFFECT }
 };
 
 static const _eff_minmax_tbl_t _eff_minmax_tbl[AAX_EFFECT_MAX] =
@@ -762,6 +762,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
          rv->info = info;
          rv->slot[0] = (_oalRingBufferFilterInfo*)ptr;
          rv->pos = _eff_cvt_tbl[type].pos;
+         rv->state = p2d->effect[rv->pos].state;
          rv->type = type;
 
          size = sizeof(_oalRingBufferFilterInfo);

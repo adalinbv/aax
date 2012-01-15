@@ -463,7 +463,6 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
             _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
             _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
-
             rv = AAX_TRUE;
             break;
          }      

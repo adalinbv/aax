@@ -258,7 +258,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
                _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-               _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
+               _FILTER_SET_STATE(sensor, type, _FILTER_GET_STATE(filter));
                _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 0);
                rv = AAX_TRUE;
                break;

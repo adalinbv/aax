@@ -286,7 +286,7 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
    { 0, "AAX_DISTORTION_EFFECT" },
    { 0, "AAX_PHASING_EFFECT" },
    { 0, "AAX_CHORUS_EFFECT" },
-   { 0, "\0AAX_FLANGING_EFFECT" },
+   { 0, "AAX_FLANGING_EFFECT" },
 #endif
    { 1, "AAX_VELOCITY_EFFECT" }
 };

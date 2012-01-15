@@ -568,7 +568,6 @@ aaxFilterSetState(aaxFilter f, int state)
                float frequency = 48000.0f; 
                float Q = 1.0f, k = 1.0f;
 
-               filter->slot[0]->state = state;
                if (filter->info) {
                   frequency = filter->info->frequency;
                }
@@ -778,15 +777,15 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 
 static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] = 
 {
-  { AAX_FILTER_NONE,        MAX_STEREO_FILTER },
-  { AAX_EQUALIZER,          FREQUENCY_FILTER },
-  { AAX_VOLUME_FILTER,      VOLUME_FILTER },
-  { AAX_DYNAMIC_GAIN_FILTER,     DYNAMIC_GAIN_FILTER },
-  { AAX_TIMED_GAIN_FILTER,  TIMED_GAIN_FILTER },
-  { AAX_ANGULAR_FILTER,     ANGULAR_FILTER },
-  { AAX_DISTANCE_FILTER,    DISTANCE_FILTER },
-  { AAX_FREQUENCY_FILTER,   FREQUENCY_FILTER },
-  { AAX_GRAPHIC_EQUALIZER,  FREQUENCY_FILTER }
+  { AAX_FILTER_NONE,		MAX_STEREO_FILTER },
+  { AAX_EQUALIZER,		FREQUENCY_FILTER },
+  { AAX_VOLUME_FILTER,		VOLUME_FILTER },
+  { AAX_DYNAMIC_GAIN_FILTER,	DYNAMIC_GAIN_FILTER },
+  { AAX_TIMED_GAIN_FILTER,	TIMED_GAIN_FILTER },
+  { AAX_ANGULAR_FILTER,		ANGULAR_FILTER },
+  { AAX_DISTANCE_FILTER,	DISTANCE_FILTER },
+  { AAX_FREQUENCY_FILTER,	FREQUENCY_FILTER },
+  { AAX_GRAPHIC_EQUALIZER,	FREQUENCY_FILTER }
 };
 
 /* see above for the proper sequence */
@@ -878,6 +877,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
          rv->info = info;
          rv->slot[0] = (_oalRingBufferFilterInfo*)ptr;
          rv->pos = _flt_cvt_tbl[type].pos;
+         rv->state = p2d->filter[rv->pos].state;
          rv->type = type;
 
          size = sizeof(_oalRingBufferFilterInfo);
@@ -904,7 +904,6 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
                memcpy(rv->slot[1], freq->lfo_param, 4*sizeof(float));
             }
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-            rv->state = rv->slot[0]->state;
             rv->slot[0]->data = NULL;
             break;
          }
