@@ -26,7 +26,7 @@ static const char *_filter_s[AAX_FILTER_MAX] =
    "_",
    "AAX_equalizer",
    "AAX_volume_filter",
-   "AAX_tremolo_filter",
+   "AAX_dynamic_gain_filter",
    "AAX_timed_gain_filter",
    "AAX_angular_filter",
    "AAX_distance_filter",
@@ -38,7 +38,7 @@ static const char *_effect_s[AAX_EFFECT_MAX] =
 {
    "_",
    "AAX_pitch_effect",
-   "AAX_vibrato_effect",
+   "AAX_dynamic_pitch_effect",
    "AAX_timed_pitch_effect",
    "AAX_distortion_effect",
    "AAX_phasing_effect",
