@@ -227,11 +227,12 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
                    /* gain min and gain max are fixed values for the mixer   */
                /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
                /* _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2)); */
+               _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
                _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
                rv = AAX_TRUE;
                break;
             }
-            case AAX_TREMOLO_FILTER:
+            case AAX_DYNAMIC_GAIN_FILTER:
             case AAX_TIMED_GAIN_FILTER:
             {
                _aaxAudioFrame* mixer = sensor->mixer;
@@ -239,6 +240,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+               _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
                _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
                rv = AAX_TRUE;
                break;
@@ -256,6 +258,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
                _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+               _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
                _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 0);
                rv = AAX_TRUE;
                break;
@@ -287,7 +290,7 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
       {
       case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
-      case AAX_TREMOLO_FILTER:
+      case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_EQUALIZER:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -330,7 +333,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             switch (effect->type)
             {
             case AAX_PITCH_EFFECT:
-            case AAX_VIBRATO_EFFECT:
+            case AAX_DYNAMIC_PITCH_EFFECT:
             case AAX_DISTORTION_EFFECT:
             case AAX_PHASING_EFFECT:
             case AAX_CHORUS_EFFECT:
@@ -340,6 +343,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
                _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+               _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_STATE(effect));
                _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
                rv = AAX_TRUE;
                break;
@@ -370,7 +374,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       const _intBufferData* dptr;
       switch(type)
       {
-      case AAX_VIBRATO_EFFECT:
+      case AAX_DYNAMIC_PITCH_EFFECT:
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
@@ -499,7 +503,8 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             if (_FILTER_GET2D_DATA(emitter->source, FREQUENCY_FILTER)) 
             {
                aaxFilter f = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
-               aaxFilterSetState(f, AAX_TRUE);
+               _filter_t *filter = (_filter_t *)f;
+               aaxFilterSetState(f, filter->slot[0]->state);
                aaxEmitterSetFilter(emitter, f);
             }
 

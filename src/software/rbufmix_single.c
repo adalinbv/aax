@@ -111,13 +111,13 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    /** Pitch */
    pitch = p2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(mix_p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -153,12 +153,12 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(mix_p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
       gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
        gain *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -252,13 +252,13 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    /** Pitch */
    pitch = p2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(mix_p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -294,12 +294,12 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(mix_p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
       gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
        gain *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -429,13 +429,13 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    /** Pitch */
    pitch = p2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(mix_p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -471,12 +471,12 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(mix_p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
       gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
        gain *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -558,13 +558,13 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    /** Pitch */
    pitch = p2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(mix_p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(mix_p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, VIBRATO_EFFECT);
+   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
@@ -602,12 +602,12 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   lfo = _FILTER_GET_DATA(mix_p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(mix_p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
       gain *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   lfo = _FILTER_GET_DATA(p2d, TREMOLO_FILTER);
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo) {
        gain *= lfo->get(lfo, NULL, 0, 0);
    }

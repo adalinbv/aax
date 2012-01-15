@@ -83,7 +83,7 @@ const _oalRingBuffer2dProps _aaxDefault2dProps =
   {
     /* VOLUME_FILTER: volume, min_gain, max_gain / filter data */
     { { 1.0f, 0.0f, 1.0f, 0.0f }, NULL },
-    /* TREMOLO_FILTER */
+    /* DYNAMIC_GAIN_FILTER */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
     /* TIMED_GAIN_FILTER: next-volume, transition time */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
@@ -95,7 +95,7 @@ const _oalRingBuffer2dProps _aaxDefault2dProps =
   {
     /* PITCH_EFFECT */
     { { 1.0f, 4.0f, 0.0f, 0.0f }, NULL },
-    /* VIBRATO_EFFECT */
+    /* DYNAMIC_PITCH_EFFECT */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL },
     /* TIMED_PITCH_EFFECT */
     { { 1.0f, 0.0f, 1.0f, 0.0f }, NULL },

@@ -1106,9 +1106,9 @@ removeMixerByPos(void *config, unsigned int pos)
       free(sensor->filter[EQUALIZER_LF].data);
 
       free(_FILTER_GET2D_DATA(mixer, FREQUENCY_FILTER));
-      free(_FILTER_GET2D_DATA(mixer, TREMOLO_FILTER));
+      free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
       free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
-      free(_EFFECT_GET2D_DATA(mixer, VIBRATO_EFFECT));
+      free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
       free(mixer->props3d_ptr);
       /* mixer->ringbuffer gets removed bij the mixer thread */
       /* _oalRingBufferDelete(mixer->ringbuffer); */

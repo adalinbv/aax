@@ -78,7 +78,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          switch (type)
          {
          case AAX_PITCH_EFFECT:
-         case AAX_VIBRATO_EFFECT:
+         case AAX_DYNAMIC_PITCH_EFFECT:
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
          case AAX_FLANGING_EFFECT:
@@ -134,7 +134,7 @@ aaxEffectDestroy(aaxEffect f)
          /* break is not needed */
       }
       case AAX_TIMED_PITCH_EFFECT:
-      case AAX_VIBRATO_EFFECT:
+      case AAX_DYNAMIC_PITCH_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
          free(effect->slot[0]->data);
@@ -181,7 +181,7 @@ aaxEffectSetSlotParams(aaxEffect f, unsigned slot, int ptype, aaxVec4f p)
             }
          }
          if TEST_FOR_TRUE(effect->state) {
-            rv = aaxEffectSetState(effect, AAX_TRUE);
+            rv = aaxEffectSetState(effect, effect->state);
          } else {
             rv = effect;
          }
@@ -236,6 +236,7 @@ aaxEffectSetState(aaxEffect e, int state)
    if (effect && effect->info)
    {
       effect->state = state;
+      effect->slot[0]->state = state;
       switch(effect->type)
       {
       case AAX_PITCH_EFFECT:
@@ -250,7 +251,7 @@ aaxEffectSetState(aaxEffect e, int state)
             effect->slot[0]->data = NULL;
          }
          break;
-      case AAX_VIBRATO_EFFECT:
+      case AAX_DYNAMIC_PITCH_EFFECT:
 #if !ENABLE_LITE
          if EBF_VALID(effect)
          {
@@ -506,6 +507,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      break;
                   }
 
+                  data->lfo.convert = _lin;
                   data->lfo.max = data->lfo.min + depth;
                   data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
@@ -670,7 +672,7 @@ static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
 {
   { AAX_EFFECT_NONE,       MAX_STEREO_EFFECT },
   { AAX_PITCH_EFFECT,      PITCH_EFFECT },
-  { AAX_VIBRATO_EFFECT,    VIBRATO_EFFECT },
+  { AAX_DYNAMIC_PITCH_EFFECT,    DYNAMIC_PITCH_EFFECT },
   { AAX_TIMED_PITCH_EFFECT,TIMED_PITCH_EFFECT },
   { AAX_DISTORTION_EFFECT, DISTORTION_EFFECT},
   { AAX_PHASING_EFFECT,    DELAY_EFFECT },
@@ -685,7 +687,7 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[AAX_EFFECT_MAX] =
   { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
   /* AAX_PITCH_EFFECT     */
   { { 0.0f, 0.0f,  0.0f, 0.0f }, {    1.99f,    1.99f, 0.0f,     0.0f } },
-  /* AAX_VIBRATO_EFFECT   */
+  /* AAX_DYNAMIC_PITCH_EFFECT   */
   { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
   /* AAX_TIMED_PITCH_EFFECT */
   { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
@@ -766,7 +768,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
          switch (type)
          {
          case AAX_PITCH_EFFECT:
-         case AAX_VIBRATO_EFFECT:
+         case AAX_DYNAMIC_PITCH_EFFECT:
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
          case AAX_FLANGING_EFFECT:

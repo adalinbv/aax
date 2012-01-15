@@ -535,7 +535,7 @@ _add_filters(_instrument_t* inst, void *xbid)
             if (!xmlCompareString(node, "timed gain")) {
                 type = AAX_TIMED_GAIN_FILTER;
             } else if (!xmlCompareString(node, "tremolo")) {
-                type = AAX_TREMOLO_FILTER;
+                type = AAX_DYNAMIC_GAIN_FILTER;
             }
 
             if (type != AAX_FILTER_NONE)
@@ -590,7 +590,7 @@ _add_effects(_instrument_t* inst, void *xbid)
             if (!xmlCompareString(node, "timed pitch")) {
                 type = AAX_TIMED_PITCH_EFFECT;
             } else if (!xmlCompareString(node, "vibrato")) {
-                type = AAX_VIBRATO_EFFECT;
+                type = AAX_DYNAMIC_PITCH_EFFECT;
             }
 
             if (type != AAX_EFFECT_NONE)

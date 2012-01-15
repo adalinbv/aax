@@ -72,7 +72,7 @@ enum
 
     /* stereo filters */
     VOLUME_FILTER = 0,
-    TREMOLO_FILTER,
+    DYNAMIC_GAIN_FILTER,
     TIMED_GAIN_FILTER,
     FREQUENCY_FILTER,
     MAX_STEREO_FILTER,
@@ -84,7 +84,7 @@ enum
 
     /* stereo effects */
     PITCH_EFFECT = 0,
-    VIBRATO_EFFECT,
+    DYNAMIC_PITCH_EFFECT,
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,
     DELAY_EFFECT,		/* phasing, chorus, flanging  */
@@ -102,7 +102,7 @@ enum
     DIST_CHANGED		= 0x00000004,
     MTX_CHANGED			= 0x00000008,
     CONE_DEFINED		= 0x00000010,
-    VIBRATO_DEFINED		= 0x00000020,
+    DYNAMIC_PITCH_DEFINED	= 0x00000020,
 
     /* SCENE*/
     SCENE_CHANGED		= 0x10000000,
@@ -119,7 +119,7 @@ enum
     MAX_SCRATCH_BUFFERS
 };
 
-#define PITCH_CHANGE			(PITCH_CHANGED | VIBRATO_DEFINED)
+#define PITCH_CHANGE			(PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
 #define _PROP_PITCH_HAS_CHANGED(q)	((q)->state & PITCH_CHANGE)
 #define _PROP_GAIN_HAS_CHANGED(q)	((q)->state & GAIN_CHANGED)
 #define _PROP_DIST_HAS_CHANGED(q)	((q)->state & DIST_CHANGED)
@@ -131,14 +131,14 @@ enum
 #define _PROP_DIST_SET_CHANGED(q)	((q)->state |= DIST_CHANGED)
 #define _PROP_MTX_SET_CHANGED(q)	((q)->state |= MTX_CHANGED)
 #define _PROP_CONE_SET_DEFINED(q)	((q)->state |= CONE_DEFINED)
-#define _PROP_VIBRATO_SET_DEFINED(q)	((q)->state |= VIBRATO_DEFINED)
+#define _PROP_DYNAMIC_PITCH_SET_DEFINED(q)	((q)->state |= DYNAMIC_PITCH_DEFINED)
 
 #define _PROP_PITCH_CLEAR_CHANGED(q)	((q)->state &= ~PITCH_CHANGED)
 #define _PROP_GAIN_CLEAR_CHANGED(q)	((q)->state &= ~GAIN_CHANGED)
 #define _PROP_DIST_CLEAR_CHANGED(q)	((q)->state &= ~DIST_CHANGED)
 #define _PROP_MTX_CLEAR_CHANGED(q)	((q)->state &= ~MTX_CHANGED)
 #define _PROP_CONE_CLEAR_DEFINED(q)	((q)->state &= ~CONE_DEFINED)
-#define _PROP_VIBRATO_CLEAR_DEFINED(q)	((q)->state &= ~VIBRATO_DEFINED)
+#define _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(q)	((q)->state &= ~DYNAMIC_PITCH_DEFINED)
 
 /* AAX Scene extension*/
 #define _PROP_SCENE_IS_DEFINED(q)	((q)->state & SCENE_CHANGED)
@@ -158,17 +158,17 @@ enum
 
 
 #define _FILTER_GET_SLOT(F, s, p)	F->slot[s]->param[p]
+#define _FILTER_GET_STATE(F)		F->slot[0]->state
 #define _FILTER_GET_SLOT_DATA(F, s)	F->slot[s]->data
 #define _FILTER_SET_SLOT(F, s, p, v)	F->slot[s]->param[p] = v
 #define _FILTER_SET_SLOT_DATA(F, s, v)	F->slot[s]->data = v
- 
 
 #define _FILTER_GET(P, f, p)		P->filter[f].param[p]
 #define _FILTER_GET_DATA(P, f)		P->filter[f].data
 #define _FILTER_SET(P, f, p, v)		P->filter[f].param[p] = v
+#define _FILTER_SET_STATE(P, f, v)	P->filter[f].state = v;
 #define _FILTER_SET_DATA(P, f, v)	P->filter[f].data = v
-#define _FILTER_COPY(P1, P2, f, p)	\
-				P1->filter[f].param[p] = P2->filter[f].param[p]
+#define _FILTER_COPY(P1, P2, f, p)	P1->filter[f].param[p] = P2->filter[f].param[p]
 #define _FILTER_COPY_DATA(P1, P2, f)	P1->filter[f].data = P2->filter[f].data
 
 #define _FILTER_GET2D(G, f, p)		_FILTER_GET(G->props2d, f, p)
@@ -187,11 +187,13 @@ enum
     P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr; } while (0);
 
 #define _EFFECT_GET_SLOT		_FILTER_GET_SLOT
+#define _EFFECT_GET_STATE		_FILTER_GET_STATE
 #define _EFFECT_GET_SLOT_DATA		_FILTER_GET_SLOT_DATA
 
 #define _EFFECT_GET(P, f, p)		P->effect[f].param[p]
 #define _EFFECT_GET_DATA(P, f)		P->effect[f].data
 #define _EFFECT_SET(P, f, p, v)		P->effect[f].param[p] = v
+#define _EFFECT_SET_STATE(P, f, v)	P->effect[f].state = v;
 #define _EFFECT_SET_DATA(P, f, v)	P->effect[f].data = v
 #define _EFFECT_COPY(P1, P2, f, p)	\
 				P1->effect[f].param[p] = P2->effect[f].param[p]
@@ -333,6 +335,7 @@ typedef struct
 {
    float param[4];
    void* data;		/* filter specific interal data structure */
+   int state;
 } _oalRingBufferFilterInfo;
 
 typedef struct

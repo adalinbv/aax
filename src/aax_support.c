@@ -256,7 +256,7 @@ static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
 #else
    { 0, "AAX_EQUALIZER" },
    { 1, "AAX_VOLUME_FILTER" },
-   { 0, "AAX_TREMOLO_FILTER" },
+   { 0, "AAX_DYNAMIC_GAIN_FILTER" },
    { 0, "AAX_TIMED_GAIN_FILTER" },
 #endif
    { 1, "AAX_ANGULAR_FILTER" },
@@ -281,7 +281,7 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
    { 0, "" },
    { 0, "" },
 #else
-   { 0, "AAX_VIBRATO_EFFECT" },
+   { 0, "AAX_DYNAMIC_PITCH_EFFECT" },
    { 0, "AAX_TIMED_PITCH_EFFECT" },
    { 0, "AAX_DISTORTION_EFFECT" },
    { 0, "AAX_PHASING_EFFECT" },

@@ -131,9 +131,9 @@ aaxAudioFrameDestroy(aaxFrame frame)
          _aaxAudioFrame* mixer = handle->submix;
 
          free(_FILTER_GET2D_DATA(mixer, FREQUENCY_FILTER));
-         free(_FILTER_GET2D_DATA(mixer, TREMOLO_FILTER));
+         free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
          free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
-         free(_EFFECT_GET2D_DATA(mixer, VIBRATO_EFFECT));
+         free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
 
          effect = _EFFECT_GET2D_DATA(mixer, DELAY_EFFECT);
          if (effect) free(effect->history_ptr);
@@ -286,6 +286,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
+            _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, EQUALIZER_HF, filter, 1);
 
             type = EQUALIZER_LF;
@@ -293,7 +294,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          }
 #endif
          case AAX_FREQUENCY_FILTER:
-         case AAX_TREMOLO_FILTER:
+         case AAX_DYNAMIC_GAIN_FILTER:
          case AAX_VOLUME_FILTER:
          case AAX_TIMED_GAIN_FILTER:
          {
@@ -301,6 +302,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+            _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
             rv = AAX_TRUE;
             break;
@@ -312,6 +314,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+            _FILTER_SET_STATE(p3d, type, _FILTER_GET_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
             rv = AAX_TRUE;
             break;
@@ -341,7 +344,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       switch(type)
       {
       case AAX_FREQUENCY_FILTER:
-      case AAX_TREMOLO_FILTER:
+      case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DISTANCE_FILTER:
@@ -377,7 +380,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          int type = effect->pos;
          switch (effect->type)
          {
-         case AAX_VIBRATO_EFFECT:
+         case AAX_DYNAMIC_PITCH_EFFECT:
          case AAX_DISTORTION_EFFECT:
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
@@ -388,6 +391,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_STATE(effect));
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
             rv = AAX_TRUE;
             break;
@@ -416,7 +420,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
    {
       switch(type)
       {
-      case AAX_VIBRATO_EFFECT:
+      case AAX_DYNAMIC_PITCH_EFFECT:
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:

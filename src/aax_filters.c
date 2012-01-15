@@ -92,7 +92,7 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             /* break not needed */
          case AAX_VOLUME_FILTER:
-         case AAX_TREMOLO_FILTER:
+         case AAX_DYNAMIC_GAIN_FILTER:
             memcpy(flt->slot[0], &_aaxDefault2dProps.filter[flt->pos], size);
             break;
          case AAX_TIMED_GAIN_FILTER:
@@ -145,7 +145,7 @@ aaxFilterDestroy(aaxFilter f)
          filter->slot[1]->data = NULL;
          /* break not needed */
       case AAX_TIMED_GAIN_FILTER:
-      case AAX_TREMOLO_FILTER:
+      case AAX_DYNAMIC_GAIN_FILTER:
          free(filter->slot[0]->data);
          filter->slot[0]->data = NULL;
          break;
@@ -190,7 +190,7 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
             }
          }
          if TEST_FOR_TRUE(filter->state) {
-            rv = aaxFilterSetState(filter, AAX_TRUE);
+            rv = aaxFilterSetState(filter, filter->state);
          } else {
             rv = filter;
          }
@@ -243,6 +243,8 @@ aaxFilterSetState(aaxFilter f, int state)
    aaxFilter rv = NULL;
    if (filter)
    {
+      filter->state = state;
+      filter->slot[0]->state = state;
       switch(filter->type)
       {
       case AAX_GRAPHIC_EQUALIZER:
@@ -452,7 +454,7 @@ aaxFilterSetState(aaxFilter f, int state)
          }
 #endif
          break;
-      case AAX_TREMOLO_FILTER:
+      case AAX_DYNAMIC_GAIN_FILTER:
 #if !ENABLE_LITE
          if EBF_VALID(filter)
          {
@@ -566,6 +568,7 @@ aaxFilterSetState(aaxFilter f, int state)
                float frequency = 48000.0f; 
                float Q = 1.0f, k = 1.0f;
 
+               filter->slot[0]->state = state;
                if (filter->info) {
                   frequency = filter->info->frequency;
                }
@@ -778,7 +781,7 @@ static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
   { AAX_FILTER_NONE,        MAX_STEREO_FILTER },
   { AAX_EQUALIZER,          FREQUENCY_FILTER },
   { AAX_VOLUME_FILTER,      VOLUME_FILTER },
-  { AAX_TREMOLO_FILTER,     TREMOLO_FILTER },
+  { AAX_DYNAMIC_GAIN_FILTER,     DYNAMIC_GAIN_FILTER },
   { AAX_TIMED_GAIN_FILTER,  TIMED_GAIN_FILTER },
   { AAX_ANGULAR_FILTER,     ANGULAR_FILTER },
   { AAX_DISTANCE_FILTER,    DISTANCE_FILTER },
@@ -795,7 +798,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX] =
   { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     0.0f } },
   /* AAX_VOLUME_FILTER    */
   { {  0.0f,  0.0f, 0.0f, 0.0f }, {     1.0f,     1.0f, 10.0f,     0.0f } },
-  /* AAX_TREMOLO_FILTER   */
+  /* AAX_DYNAMIC_GAIN_FILTER   */
   { {  0.0f, 0.01f, 0.0f, 0.0f }, {     0.0f,    10.0f,  1.0f,     1.0f } },
   /* AAX_TIMED_GAIN_FILTER */
   { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
@@ -887,7 +890,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
             rv->slot[1]->data = NULL;
             /* break not needed */
          case AAX_VOLUME_FILTER:
-         case AAX_TREMOLO_FILTER:
+         case AAX_DYNAMIC_GAIN_FILTER:
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;
             break;
@@ -901,6 +904,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
                memcpy(rv->slot[1], freq->lfo_param, 4*sizeof(float));
             }
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+            rv->state = rv->slot[0]->state;
             rv->slot[0]->data = NULL;
             break;
          }
