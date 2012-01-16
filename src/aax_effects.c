@@ -36,7 +36,7 @@ typedef struct {
 typedef float (*cvtfn_t)(float);
 
 static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
-static const _eff_minmax_tbl_t _eff_minmax_tbl[AAX_EFFECT_MAX];
+static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX];
 static cvtfn_t get_cvtfn(enum aaxEffectType, int, int, char);
 
 aaxEffect
@@ -174,8 +174,8 @@ aaxEffectSetSlotParams(aaxEffect f, unsigned slot, int ptype, aaxVec4f p)
          {
             if (!is_nan(p[i]))
             {
-               float min = _eff_minmax_tbl[type].min[i];
-               float max = _eff_minmax_tbl[type].max[i];
+               float min = _eff_minmax_tbl[slot][type].min[i];
+               float max = _eff_minmax_tbl[slot][type].max[i];
                cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, WRITEFN, i);
                effect->slot[slot]->param[i] = _MINMAX(cvtfn(p[i]), min, max);
             }
@@ -275,10 +275,16 @@ aaxEffectSetState(aaxEffect e, int state)
                {
                   float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
                   int t;
+
+                  lfo->min = 1.0f - depth/2.0f;
+                  lfo->max = 1.0f + depth/2.0f;
+                  lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->convert = _lin;
+
                   for(t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
-                     lfo->step[t] = 2.0f*depth;
-                     lfo->step[t] *= effect->slot[0]->param[AAX_LFO_FREQUENCY];
+                     lfo->step[t] = 2.0f*depth * lfo->f;
                      lfo->step[t] /= effect->info->refresh_rate;
                      lfo->value[t] = 1.0f;
                      switch (state & ~AAX_INVERSE)
@@ -287,20 +293,14 @@ aaxEffectSetState(aaxEffect e, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                     {
-                        float fact = effect->slot[0]->param[AAX_LFO_FREQUENCY];
                         lfo->value[t] /= lfo->max;
-                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
+                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                         break;
-                     }
                      default:
                         break;
                      }
                   }
-                  lfo->convert = _lin;
-                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->min = 1.0f - depth/2.0f;
-                  lfo->max = 1.0f + depth/2.0f;
+
                   if (depth > 0.01f)
                   {
                      switch (state & ~AAX_INVERSE)
@@ -450,19 +450,20 @@ aaxEffectSetState(aaxEffect e, int state)
                if (data)
                {
                   unsigned int tracks = effect->info->no_tracks;
-                  float frequency = effect->info->frequency;
+                  float fs = effect->info->frequency;
                   float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
                   float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
                   float sign, range, step;
                   int t;
+
+                  data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
 
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
                      step = data->lfo.step[t];
                      sign = step ? (step/fabs(step)) : 1.0f;
                      data->lfo.step[t] = sign * effect->info->refresh_rate;
-                     data->lfo.step[t]
-                               *= effect->slot[0]->param[AAX_LFO_FREQUENCY]/2.0;
+                     data->lfo.step[t] *= 0.5f * data->lfo.f;
                   }
                   data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
 
@@ -474,8 +475,8 @@ aaxEffectSetState(aaxEffect e, int state)
                   {
                   case AAX_PHASING_EFFECT:
                      range = (10e-3f - 50e-6f);		// 50us .. 10ms
-                     depth *= range * frequency;	// convert to samples
-                     data->lfo.min = (range * offset + 50e-6f)*frequency;
+                     depth *= range * fs;		// convert to samples
+                     data->lfo.min = (range * offset + 50e-6f)*fs;
                      data->reverb = AAX_FALSE;
                      if (data->history_ptr)
                      {
@@ -484,9 +485,9 @@ aaxEffectSetState(aaxEffect e, int state)
                      }
                      break;
                   case AAX_CHORUS_EFFECT:
-                     range = (60e-3f - 10e-3f);         // 10ms .. 60ms
-                     depth *= range * frequency;        // convert to samples
-                     data->lfo.min = (range * offset + 10e-3f)*frequency;
+                     range = (60e-3f - 10e-3f);		// 10ms .. 60ms
+                     depth *= range * fs;		// convert to samples
+                     data->lfo.min = (range * offset + 10e-3f)*fs;
                      data->reverb = AAX_FALSE;
                      if (data->history_ptr)
                      {
@@ -495,13 +496,13 @@ aaxEffectSetState(aaxEffect e, int state)
                      }
                      break;
                   case AAX_FLANGING_EFFECT:
-                     range = (60e-3f - 10e-3f);         // 10ms .. 60ms
-                     depth *= range * frequency;        // convert to samples
-                     data->lfo.min = (range * offset + 10e-3f)*frequency;
+                     range = (60e-3f - 10e-3f);		// 10ms .. 60ms
+                     depth *= range * fs;		// convert to samples
+                     data->lfo.min = (range * offset + 10e-3f)*fs;
                      data->reverb = AAX_TRUE;
                      _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                        data->delay_history,
-                                                       frequency, tracks);
+                                                       fs, tracks);
                      break;
                   default:
                      break;
@@ -681,26 +682,68 @@ static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
   { AAX_VELOCITY_EFFECT,	VELOCITY_EFFECT }
 };
 
-static const _eff_minmax_tbl_t _eff_minmax_tbl[AAX_EFFECT_MAX] =
+static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
 {    /* min[4] */		   /* max[4] */
-  /* AAX_EFFECT_NONE      */
-  { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-  /* AAX_PITCH_EFFECT     */
-  { { 0.0f, 0.0f,  0.0f, 0.0f }, {    1.99f,    1.99f, 0.0f,     0.0f } },
-  /* AAX_DYNAMIC_PITCH_EFFECT   */
-  { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
-  /* AAX_TIMED_PITCH_EFFECT */
-  { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
-  /* AAX_DISTORTION_EFFECT */
-  { {  0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f,     1.0f, 1.0f,     0.0f } },
-  /* AAX_PHASING_EFFECT   */
-  { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
-  /* AAX_CHORUS_EFFECT    */
-  { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
-  /* AAX_FLANGING_EFFECT  */
-  { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
-  /* AAX_VELOCITY_EFFECT  */
-  { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } }
+  {
+    /* AAX_EFFECT_NONE      */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_PITCH_EFFECT     */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {    1.99f,    1.99f, 0.0f,     0.0f } },
+    /* AAX_DYNAMIC_PITCH_EFFECT   */
+    { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
+    /* AAX_TIMED_PITCH_EFFECT */
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    /* AAX_DISTORTION_EFFECT */
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f,     1.0f, 1.0f,     0.0f } },
+    /* AAX_PHASING_EFFECT   */
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
+    /* AAX_CHORUS_EFFECT    */
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
+    /* AAX_FLANGING_EFFECT  */
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
+    /* AAX_VELOCITY_EFFECT  */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } }
+  },
+  {
+    /* AAX_EFFECT_NONE      */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_PITCH_EFFECT     */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_DYNAMIC_PITCH_EFFECT */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_TIMED_PITCH_EFFECT */
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    /* AAX_DISTORTION_EFFECT */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_PHASING_EFFECT   */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_CHORUS_EFFECT    */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_FLANGING_EFFECT  */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_VELOCITY_EFFECT  */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+  },
+  {
+    /* AAX_EFFECT_NONE      */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_PITCH_EFFECT     */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_DYNAMIC_PITCH_EFFECT */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_TIMED_PITCH_EFFECT */
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    /* AAX_DISTORTION_EFFECT */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_PHASING_EFFECT   */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_CHORUS_EFFECT    */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_FLANGING_EFFECT  */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_VELOCITY_EFFECT  */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+  }
 };
 
 /* internal use only, used by aaxdefs.h */

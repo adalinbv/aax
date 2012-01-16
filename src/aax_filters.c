@@ -35,7 +35,7 @@ typedef struct {
 typedef float (*cvtfn_t)(float);
 
 static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
-static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX];
+static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX];
 static cvtfn_t get_cvtfn(enum aaxFilterType, int, int, char);
 
 aaxFilter
@@ -183,8 +183,8 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
          {
             if (!is_nan(p[i]))
             {
-               float min = _flt_minmax_tbl[type].min[i];
-               float max = _flt_minmax_tbl[type].max[i];
+               float min = _flt_minmax_tbl[slot][type].min[i];
+               float max = _flt_minmax_tbl[slot][type].max[i];
                cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, WRITEFN, i);
                filter->slot[slot]->param[i] = _MINMAX(cvtfn(p[i]), min, max);
             }
@@ -353,7 +353,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   fc = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
                   cptr = flt->coeff;
                   k = 1.0f;
-                  Q = 1.0f;
+                  Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
                   iir_compute_coefs(fc, filter->info->frequency, cptr, &k, Q);
                   flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
@@ -364,7 +364,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   fc = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
                   cptr = flt->coeff;
                   k = 1.0f;
-                  Q = 1.0f;
+                  Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
                   iir_compute_coefs(fc, filter->info->frequency, cptr, &k, Q);
                   flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
@@ -478,10 +478,16 @@ aaxFilterSetState(aaxFilter f, int state)
                {
                   float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
                   int t;
+
+                  lfo->min = 1.0f - depth;
+                  lfo->max = 1.0f;
+                  lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->convert = _lin;
+
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
-                     lfo->step[t] = 2.0f*depth;
-                     lfo->step[t] *= filter->slot[0]->param[AAX_LFO_FREQUENCY];
+                     lfo->step[t] = 2.0f*depth * lfo->f;
                      lfo->step[t] /= filter->info->refresh_rate;
                      lfo->value[t] = 1.0f - depth;
                      switch (state & ~AAX_INVERSE)
@@ -490,20 +496,14 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                     {
-                        float fact = filter->slot[0]->param[AAX_LFO_FREQUENCY];
                         lfo->value[t] /= lfo->max;
-                        lfo->step[t] = -0.1005f+pow(fact, 0.25f)/3.15f;
+                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                         break;
-                     }
                      default:
                         break;
                      }
                   }
-                  lfo->min = 1.0f - depth;
-                  lfo->max = 1.0f;
-                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->convert = _lin;
+
                   if (depth > 0.01f)
                   {
                      switch (state & ~AAX_INVERSE)
@@ -564,9 +564,10 @@ aaxFilterSetState(aaxFilter f, int state)
             if (flt)
             {
                float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+               float Q = filter->slot[0]->param[AAX_RESONANCE];
                float *cptr = flt->coeff;
                float frequency = 48000.0f; 
-               float Q = 1.0f, k = 1.0f;
+               float k = 1.0f;
 
                if (filter->info) {
                   frequency = filter->info->frequency;
@@ -575,6 +576,7 @@ aaxFilterSetState(aaxFilter f, int state)
                flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
                flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
                flt->fs = frequency;
+               flt->Q = Q;
                flt->k = k;
 
                if ((state & ~AAX_INVERSE) != AAX_TRUE && EBF_VALID(filter)
@@ -582,34 +584,23 @@ aaxFilterSetState(aaxFilter f, int state)
                {
                   _oalRingBufferLFOInfo* lfo = flt->lfo;
 
-                  memcpy(flt->lfo_param,filter->slot[1]->param,4*sizeof(float));
-
                   if (lfo == NULL) {
                      lfo = flt->lfo = malloc(sizeof(_oalRingBufferLFOInfo));
                   }
 
                   if (lfo)
                   {
-                     static const float range = (22050.0f - 20.0f);
-                     float depth = filter->slot[1]->param[AAX_LFO_DEPTH];
-                     float offset = filter->slot[1]->param[AAX_LFO_OFFSET];
                      int t;
 
-                     if ((offset + depth) > 1.0f) {
-                        depth = 1.0f - offset;
-                     }
-
-                     depth *= range;
-                     offset *= range;
-                     lfo->convert = _log2lin;
-                     lfo->min = _lin2log(22050.0f - offset - depth);
-                     lfo->max = _lin2log(22050.0f - offset);
+                     lfo->min = filter->slot[1]->param[AAX_MIN_FREQUENCY & 0xF];
+                     lfo->max = filter->slot[1]->param[AAX_MAX_FREQUENCY & 0xF];
+                     lfo->f = filter->slot[1]->param[AAX_SWEEP_RATE & 0xF];
                      lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                     lfo->convert = _lin; // _log2lin;
 
                      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                      {
-                        float step = 2.0f*(lfo->max - lfo->min);
-                        step *= filter->slot[1]->param[AAX_LFO_FREQUENCY];
+                        float step = 2.0f*(lfo->max - lfo->min) * lfo->f;
                         step /= filter->info->refresh_rate;
                         lfo->step[t] = step;
                         lfo->value[t] = lfo->max;
@@ -619,18 +610,15 @@ aaxFilterSetState(aaxFilter f, int state)
                            lfo->step[t] *= 0.5f;
                            break;
                         case AAX_ENVELOPE_FOLLOW:
-                        {
-                           float fact=filter->slot[1]->param[AAX_LFO_FREQUENCY];
                            lfo->value[t] /= lfo->max;
-                           lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
+                           lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                            break;
-                        }
                         default:
                            break;
                         }
                      }
 
-                     if (depth > 0.01f)
+                     if ((lfo->max - lfo->min) > 0.01f)
                      {
                         switch (state & ~AAX_INVERSE)
                         {
@@ -789,26 +777,68 @@ static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
 };
 
 /* see above for the proper sequence */
-static const _flt_minmax_tbl_t _flt_minmax_tbl[AAX_FILTER_MAX] =
+static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
 {   /* min[4] */	  /* max[4] */
-  /* AAX_FILTER_NONE      */
-  { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,  0.0f,     0.0f } },
-  /* AAX_EQUALIZER        */
-  { { 10.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     0.0f } },
-  /* AAX_VOLUME_FILTER    */
-  { {  0.0f,  0.0f, 0.0f, 0.0f }, {     1.0f,     1.0f, 10.0f,     0.0f } },
-  /* AAX_DYNAMIC_GAIN_FILTER   */
-  { {  0.0f, 0.01f, 0.0f, 0.0f }, {     0.0f,    10.0f,  1.0f,     1.0f } },
-  /* AAX_TIMED_GAIN_FILTER */
-  { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
-  /* AAX_ANGULAR_FILTER   */
-  { { -1.0f, -1.0f, 0.0f, 0.0f }, {     1.0f,     1.0f,  1.0f,     0.0f } },
-  /* AAX_DISTANCE_FILTER  */
-  { {  0.0f,  0.0f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
-  /* AAX_FREQUENCY_FILTER */
-  { {  1.0f,  0.0f, 0.0f, 0.0f }, { 22050.0f,    10.0f, 10.0f,     1.0f } },
-  /* AAX_GRAPHIC_EQUALIZER */
-  { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,     2.0f,  2.0f,     2.0f } }
+  {
+    /* AAX_FILTER_NONE      */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,  0.0f,     0.0f } },
+    /* AAX_EQUALIZER        */
+    { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
+    /* AAX_VOLUME_FILTER    */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     1.0f,     1.0f, 10.0f,     0.0f } },
+    /* AAX_DYNAMIC_GAIN_FILTER   */
+    { {  0.0f, 0.01f, 0.0f, 0.0f }, {     0.0f,    10.0f,  1.0f,     1.0f } },
+    /* AAX_TIMED_GAIN_FILTER */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
+    /* AAX_ANGULAR_FILTER   */
+    { { -1.0f, -1.0f, 0.0f, 0.0f }, {     1.0f,     1.0f,  1.0f,     0.0f } },
+    /* AAX_DISTANCE_FILTER  */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
+    /* AAX_FREQUENCY_FILTER */
+    { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
+    /* AAX_GRAPHIC_EQUALIZER */
+    { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,      2.0f,  2.0f,     2.0f } },
+  },
+  {
+     /* AAX_FILTER_NONE      */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_EQUALIZER        */
+     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f,    10.0f, 100.0f } },
+     /* AAX_VOLUME_FILTER    */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DYNAMIC_GAIN_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_TIMED_GAIN_FILTER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,   4.0f, MAXFLOAT } },
+     /* AAX_ANGULAR_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DISTANCE_FILTER  */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_FREQUENCY_FILTER */
+     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f, 22050.0f, 22050.0f, 100.0f } },
+     /* AAX_GRAPHIC_EQUALIZER */
+     { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,      2.0f,     2.0f,   2.0f } }
+  },
+  {
+     /* AAX_FILTER_NONE      */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_EQUALIZER        */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_VOLUME_FILTER    */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DYNAMIC_GAIN_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_TIMED_GAIN_FILTER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,   4.0f, MAXFLOAT } },
+     /* AAX_ANGULAR_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DISTANCE_FILTER  */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_FREQUENCY_FILTER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_GRAPHIC_EQUALIZER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } }
+  }
 };
 
 /* internal use only, used by aaxdefs.h */
@@ -900,8 +930,11 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
 
             freq = (_oalRingBufferFreqFilterInfo *)p2d->filter[rv->pos].data;
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
-            if (freq) {
-               memcpy(rv->slot[1], freq->lfo_param, 4*sizeof(float));
+            if (freq && freq->lfo)
+            {
+               rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = freq->lfo->f;
+               rv->slot[1]->param[AAX_MIN_FREQUENCY & 0xF] = freq->lfo->min;
+               rv->slot[1]->param[AAX_MAX_FREQUENCY & 0xF] = freq->lfo->max;
             }
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;

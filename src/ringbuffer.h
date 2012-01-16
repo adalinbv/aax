@@ -224,7 +224,7 @@ typedef float _oalRingBufferLFOGetFunc(void*, const void*, unsigned, unsigned in
 
 typedef struct
 {
-   float min, max;
+   float f, min, max;
    float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
    float value[_AAX_MAX_SPEAKERS];	/* current value */
    _oalRingBufferLFOGetFunc *get;
@@ -276,10 +276,9 @@ typedef struct
 typedef struct
 {
    float coeff[4];
-   float fs, k, lf_gain, hf_gain;
+   float Q, k, fs, lf_gain, hf_gain;
    float freqfilter_history[_AAX_MAX_SPEAKERS][2];
    _oalRingBufferLFOInfo *lfo;
-   float lfo_param[4];
 } _oalRingBufferFreqFilterInfo;
 
 typedef struct

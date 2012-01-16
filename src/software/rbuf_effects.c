@@ -358,7 +358,7 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
       if (filter->lfo)
       {
          float fc = filter->lfo->get(filter->lfo, s, track, dmax);
-         float Q = filter->lfo_param[0];
+         float Q = filter->Q;
 
          k = 1.0f;
          iir_compute_coefs(fc, filter->fs, cptr, &k, Q);
@@ -372,7 +372,6 @@ void
 iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q)
 {
    float k = 1.0f;
-// float Q = 1.0f;
 
    float a0 = 1.0f;
    float a1 = 0.0f;

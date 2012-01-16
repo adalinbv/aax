@@ -87,8 +87,8 @@ const _oalRingBuffer2dProps _aaxDefault2dProps =
     { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
     /* TIMED_GAIN_FILTER: next-volume, transition time */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, NULL, AAX_FALSE },
-    /* FREQUENCY_FILTER: cutoff_freq, lf_gain, hf_gain / filter data */
-    { { 22050.0f, 1.0f, 1.0f }, NULL, AAX_FALSE }
+    /* FREQUENCY_FILTER: cutoff_freq, lf_gain, hf_gain, Q / filter data */
+    { { 22050.0f, 1.0f, 1.0f, 1.0f }, NULL, AAX_FALSE }
   },
 
   /* effects */
