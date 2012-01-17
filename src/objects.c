@@ -13,12 +13,171 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_LIBIO_H
-#include <libio.h>		/* for NULL */
+#ifdef HAVE_ASSERT_H
+# include <assert.h>
 #endif
+#ifdef HAVE_LIBIO_H
+# include <libio.h>		/* for NULL */
+#endif
+#include <string.h>		/* for memset */
 #include <math.h>		/* for MAXFLOAT */
 
 #include "objects.h"
+
+void
+_aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
+{
+   unsigned int size;
+
+   assert (p2d);
+
+   /* normalized  directions */
+   size = _AAX_MAX_SPEAKERS*sizeof(vec4);
+   memset(p2d->pos, 0, size);
+
+   /* heade setup, unused for emitters */
+   size = sizeof(vec4);
+   memset(p2d->head, 0, size);
+
+   /* hrtf sample offsets */
+   size = 2*sizeof(vec4);
+   memset(p2d->hrtf, 0, size);
+   memset(p2d->hrtf_prev, 0, size);
+
+   _aaxSetDefaultFilter2d(&p2d->filter[VOLUME_FILTER], VOLUME_FILTER);
+   _aaxSetDefaultFilter2d(&p2d->filter[DYNAMIC_GAIN_FILTER],DYNAMIC_GAIN_FILTER);
+   _aaxSetDefaultFilter2d(&p2d->filter[TIMED_GAIN_FILTER], TIMED_GAIN_FILTER);
+
+   _aaxSetDefaultEffect2d(&p2d->effect[PITCH_EFFECT], PITCH_EFFECT);
+   _aaxSetDefaultEffect2d(&p2d->effect[TIMED_PITCH_EFFECT], TIMED_PITCH_EFFECT);
+   _aaxSetDefaultEffect2d(&p2d->effect[DYNAMIC_PITCH_EFFECT],DYNAMIC_PITCH_EFFECT);
+   _aaxSetDefaultEffect2d(&p2d->effect[DISTORTION_EFFECT], DISTORTION_EFFECT);
+   _aaxSetDefaultEffect2d(&p2d->effect[DELAY_EFFECT], DELAY_EFFECT);
+
+   /* previous gains */
+   size = _AAX_MAX_SPEAKERS*sizeof(float);
+   memset(&p2d->prev_gain, 0, size);
+   p2d->prev_freq_fact = 0.0f;
+   p2d->delay_sec = 0.0f;
+   p2d->final.pitch = 1.0f;
+   p2d->final.gain = 1.0f;
+}
+
+void
+_aaxSetDefault3dProps(_oalRingBuffer3dProps *p3d)
+{
+   unsigned int size;
+
+   assert(p3d);
+
+   /* modelview matrix */
+   mtx4Copy(p3d->matrix, aaxIdentityMatrix);
+
+   /* velocity     */
+   size = sizeof(vec4);
+   memset(p3d->velocity, 0, size);
+
+   /* status */
+   p3d->state = _STATE_PAUSED;
+
+   _aaxSetDefaultFilter3d(&p3d->filter[DISTANCE_FILTER], DISTANCE_FILTER);
+   _aaxSetDefaultFilter3d(&p3d->filter[ANGULAR_FILTER], ANGULAR_FILTER);
+
+   _aaxSetDefaultEffect3d(&p3d->effect[VELOCITY_EFFECT], VELOCITY_EFFECT);
+}
+
+
+void
+_aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *filter, unsigned int type)
+{
+   assert(type < MAX_STEREO_FILTER);
+
+   memset(filter, 0, sizeof(_oalRingBufferFilterInfo));
+   switch(type)
+   {
+   case VOLUME_FILTER:
+      filter->param[AAX_GAIN] = 1.0f;
+      filter->param[AAX_MAX_GAIN] = 1.0f;
+      filter->state = AAX_TRUE;
+      break;
+   case FREQUENCY_FILTER:
+      filter->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
+      filter->param[AAX_LF_GAIN] = 1.0f;
+      filter->param[AAX_HF_GAIN] = 1.0f;
+      filter->param[AAX_RESONANCE] = 1.0f;
+      break;
+   default:
+      break;
+   }
+}
+
+void
+_aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
+{
+   assert(type < MAX_STEREO_EFFECT);
+
+   memset(effect, 0, sizeof(_oalRingBufferFilterInfo));
+   switch(type)
+   {
+   case PITCH_EFFECT:
+      effect->param[AAX_PITCH] = 1.0f;
+      effect->param[AAX_MAX_PITCH] = 4.0f;
+      effect->state = AAX_TRUE;
+      break;
+   case TIMED_PITCH_EFFECT:
+      effect->param[AAX_LEVEL0] = 1.0f;
+      effect->param[AAX_LEVEL1] = 1.0f;
+      break;
+   case DISTORTION_EFFECT:
+      effect->param[CLIPPING_FACTOR] = 1.0f;
+      break;
+   default:
+      break;
+   }
+}
+
+void
+_aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *filter, unsigned int type)
+{
+   assert(type < MAX_3D_FILTER);
+
+   memset(filter, 0, sizeof(_oalRingBufferFilterInfo));
+   switch(type)
+   {
+   case DISTANCE_FILTER:
+      filter->param[AAX_REF_DISTANCE] = 1.0f;
+      filter->param[AAX_MAX_DISTANCE] = MAXFLOAT;
+      filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
+      filter->state = AAX_AL_INVERSE_DISTANCE;
+      break;
+   case ANGULAR_FILTER:
+      filter->param[AAX_OUTER_ANGLE] = 1.0f;
+      filter->param[AAX_OUTER_GAIN] = 1.0f;
+      filter->state = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+}
+
+void
+_aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *effect, unsigned int type)
+{
+   assert(type < MAX_3D_EFFECT);
+
+   memset(effect, 0, sizeof(_oalRingBufferFilterInfo));
+   switch(type)
+   {
+   case VELOCITY_EFFECT:
+      effect->param[AAX_SOUND_VELOCITY] = 343.0f;
+      effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
+      effect->state = AAX_TRUE;
+   default:
+      break;
+   }
+}
+
+/* -------------------------------------------------------------------------- */
 
 char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
  { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -56,6 +215,7 @@ vec4 _aaxContextDefaultHead[2] =
    { 0.00000f, 0.000100f, 0.00000f, 1.000f }	/* head delay offsets */
 };
 
+#if 0
 const _oalRingBuffer2dProps _aaxDefault2dProps =
 {
   {				/* normalized  directions */
@@ -144,6 +304,7 @@ const _oalRingBuffer3dProps _aaxDefault3dProps =
     { { 343.0f, 1.0f, 0.0f, 0.0f }, NULL, AAX_TRUE },
   }
 };
+#endif
 
 const _aaxMixerInfo _aaxDefaultMixerInfo =
 {

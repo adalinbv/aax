@@ -83,17 +83,17 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          case AAX_CHORUS_EFFECT:
          case AAX_FLANGING_EFFECT:
          case AAX_DISTORTION_EFFECT:
-            memcpy(eff->slot[0], &_aaxDefault2dProps.effect[eff->pos], size);
+            _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
             break;
          case AAX_TIMED_PITCH_EFFECT:
             for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
             {
                eff->slot[i] = (_oalRingBufferFilterInfo*)(ptr + i*size);
-               memcpy(eff->slot[i], &_aaxDefault2dProps.filter[eff->pos], size);
+               _aaxSetDefaultEffect2d(eff->slot[i], eff->pos);
             }
             break;
          case AAX_VELOCITY_EFFECT:
-            memcpy(eff->slot[0], &_aaxDefault3dProps.effect[eff->pos], size);
+            _aaxSetDefaultEffect3d(eff->slot[0], eff->pos);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);

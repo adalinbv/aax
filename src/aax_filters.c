@@ -86,25 +86,25 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
          case AAX_EQUALIZER:
          case AAX_GRAPHIC_EQUALIZER:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
-            memcpy(flt->slot[1], &_aaxDefault2dProps.filter[flt->pos], size);
+            _aaxSetDefaultFilter2d(flt->slot[1], flt->pos);
             /* break not needed */
          case AAX_FREQUENCY_FILTER:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
-            memcpy(flt->slot[0], &_aaxDefault2dProps.filter[flt->pos], size);
+            _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
             break;
          case AAX_TIMED_GAIN_FILTER:
             for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
             {
                flt->slot[i] = (_oalRingBufferFilterInfo*)(ptr + i*size);
-               memcpy(flt->slot[i], &_aaxDefault2dProps.filter[flt->pos], size);
+               _aaxSetDefaultFilter2d(flt->slot[i], flt->pos);
             }
             break;
          case AAX_ANGULAR_FILTER:
          case AAX_DISTANCE_FILTER:
-            memcpy(flt->slot[0],&_aaxDefault3dProps.filter[flt->pos], size);
+            _aaxSetDefaultFilter3d(flt->slot[0], flt->pos);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);

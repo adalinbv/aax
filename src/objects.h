@@ -159,14 +159,20 @@ extern vec4 _aaxContextDefaultHead[2];
 extern vec4 _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS];
 extern vec4 _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS];
 extern char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS];
-extern const _oalRingBuffer2dProps _aaxDefault2dProps;
-extern const _oalRingBuffer3dProps _aaxDefault3dProps;
 extern const _aaxMixerInfo _aaxDefaultMixerInfo;
 
 void _aaxListenerCreate(void *);
 void _aaxRemoveSourceByPos(void *, unsigned int);
 void _aaxRemoveRingBufferByPos(void *, unsigned int);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
+
+void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
+void _aaxSetDefault3dProps(_oalRingBuffer3dProps *);
+
+void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *, unsigned int);
 
 #endif /* !_AAX_OBJECT_H */
 

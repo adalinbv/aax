@@ -60,7 +60,7 @@ aaxEmitterCreate()
 
       assert(((long int)ptr2 & 0xF) == 0);
       src->props2d = (_oalRingBuffer2dProps*)ptr2;
-      _aax_memcpy(ptr2, &_aaxDefault2dProps, sizeof(_oalRingBuffer2dProps));
+      _aaxSetDefault2dProps(src->props2d);
 
       /* unfortunatelly postponing the allocation of the 3d data info buffer
        * is not possible since it prevents setting 3d position and orientation
@@ -75,7 +75,7 @@ aaxEmitterCreate()
          {
             src->props3d_ptr = ptr1;
             src->props3d = (_oalRingBuffer3dProps*)ptr2;
-            _aax_memcpy(ptr2, &_aaxDefault3dProps, size);
+            _aaxSetDefault3dProps(src->props3d);
          }
          else
          {

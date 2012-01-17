@@ -61,9 +61,8 @@ aaxAudioFrameCreate(aaxConfig config)
          submix = (_aaxAudioFrame*)((char*)frame + size);
          frame->submix = submix;
 
-         size = sizeof(_oalRingBuffer2dProps);
          submix->props2d = (_oalRingBuffer2dProps*)ptr2;
-         _aax_memcpy(ptr2, &_aaxDefault2dProps, size);
+         _aaxSetDefault2dProps(submix->props2d);
          _EFFECT_SET2D(submix, PITCH_EFFECT, AAX_PITCH, handle->info->pitch);
 
          ptr2 = (char*)0;
@@ -75,7 +74,7 @@ aaxAudioFrameCreate(aaxConfig config)
          {
             const _intBufferData* dptr;
 
-            _aax_memcpy(ptr2, &_aaxDefault3dProps, size);
+            _aaxSetDefault3dProps(submix->props3d);
 
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)

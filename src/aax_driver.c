@@ -674,9 +674,8 @@ _open_handle(aaxConfig config)
 
                assert(((long int)ptr2 & 0xF) == 0);
 
-               size = sizeof(_oalRingBuffer2dProps);
                mixer->props2d = (_oalRingBuffer2dProps*)ptr2;
-               _aax_memcpy(ptr2, &_aaxDefault2dProps, size);
+               _aaxSetDefault2dProps(mixer->props2d);
                _EFFECT_SET2D(mixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
 
                ptr2 = (char*)0;
@@ -686,7 +685,7 @@ _open_handle(aaxConfig config)
                mixer->props3d = (_oalRingBuffer3dProps*)ptr2;
                if (ptr1)
                {
-                  _aax_memcpy(ptr2, &_aaxDefault3dProps, size);
+                  _aaxSetDefault3dProps(mixer->props3d);
                   _EFFECT_SET3D_DATA(mixer, VELOCITY_EFFECT,
                                             _oalRingBufferDopplerFunc[0]);
                   _FILTER_SET3D_DATA(mixer, DISTANCE_FILTER,

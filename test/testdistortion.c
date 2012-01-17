@@ -71,10 +71,10 @@ int main(int argc, char **argv)
 # else
           /* envelope following dynamic frequency filter (auto-wah) */
          printf("Add auto-wah\n");
-         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 400.0, 0.5, 1.0, 0.0);
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 400.0, 0.5, 1.0, 11.0);
          testForError(filter, "aaxFilterSetSlot 0");
 
-         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 11, 10.04, 0.046, 0.95);
+         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 10, 100, 950, 0.0);
          testForError(filter, "aaxFilterSetSlot 1");
          filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
          testForError(filter, "aaxFilterSetState");
