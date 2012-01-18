@@ -27,7 +27,7 @@
 void
 _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 {
-   unsigned int size;
+   unsigned int pos, size;
 
    assert (p2d);
 
@@ -44,15 +44,12 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    memset(p2d->hrtf, 0, size);
    memset(p2d->hrtf_prev, 0, size);
 
-   _aaxSetDefaultFilter2d(&p2d->filter[VOLUME_FILTER], VOLUME_FILTER);
-   _aaxSetDefaultFilter2d(&p2d->filter[DYNAMIC_GAIN_FILTER],DYNAMIC_GAIN_FILTER);
-   _aaxSetDefaultFilter2d(&p2d->filter[TIMED_GAIN_FILTER], TIMED_GAIN_FILTER);
-
-   _aaxSetDefaultEffect2d(&p2d->effect[PITCH_EFFECT], PITCH_EFFECT);
-   _aaxSetDefaultEffect2d(&p2d->effect[TIMED_PITCH_EFFECT], TIMED_PITCH_EFFECT);
-   _aaxSetDefaultEffect2d(&p2d->effect[DYNAMIC_PITCH_EFFECT],DYNAMIC_PITCH_EFFECT);
-   _aaxSetDefaultEffect2d(&p2d->effect[DISTORTION_EFFECT], DISTORTION_EFFECT);
-   _aaxSetDefaultEffect2d(&p2d->effect[DELAY_EFFECT], DELAY_EFFECT);
+   for (pos=0; pos<MAX_STEREO_FILTER; pos++) {
+      _aaxSetDefaultFilter2d(&p2d->filter[pos], pos);
+   }
+   for (pos=0; pos<MAX_STEREO_EFFECT; pos++) {
+      _aaxSetDefaultEffect2d(&p2d->effect[pos], pos);
+   }
 
    /* previous gains */
    size = _AAX_MAX_SPEAKERS*sizeof(float);
@@ -66,7 +63,7 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 void
 _aaxSetDefault3dProps(_oalRingBuffer3dProps *p3d)
 {
-   unsigned int size;
+   unsigned int pos, size;
 
    assert(p3d);
 
@@ -80,10 +77,12 @@ _aaxSetDefault3dProps(_oalRingBuffer3dProps *p3d)
    /* status */
    p3d->state = _STATE_PAUSED;
 
-   _aaxSetDefaultFilter3d(&p3d->filter[DISTANCE_FILTER], DISTANCE_FILTER);
-   _aaxSetDefaultFilter3d(&p3d->filter[ANGULAR_FILTER], ANGULAR_FILTER);
-
-   _aaxSetDefaultEffect3d(&p3d->effect[VELOCITY_EFFECT], VELOCITY_EFFECT);
+   for (pos=0; pos<MAX_3D_FILTER; pos++) {
+      _aaxSetDefaultFilter3d(&p3d->filter[pos], pos);
+   }
+   for (pos=0; pos<MAX_3D_EFFECT; pos++) {
+      _aaxSetDefaultEffect3d(&p3d->effect[pos], pos);
+   }
 }
 
 
@@ -129,7 +128,7 @@ _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
       effect->param[AAX_LEVEL1] = 1.0f;
       break;
    case DISTORTION_EFFECT:
-      effect->param[CLIPPING_FACTOR] = 1.0f;
+      effect->param[CLIPPING_FACTOR] = 0.3f;
       break;
    default:
       break;
@@ -148,9 +147,10 @@ _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *filter, unsigned int type)
       filter->param[AAX_REF_DISTANCE] = 1.0f;
       filter->param[AAX_MAX_DISTANCE] = MAXFLOAT;
       filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
-      filter->state = AAX_AL_INVERSE_DISTANCE;
+      filter->state = AAX_EXPONENTIAL_DISTANCE;
       break;
    case ANGULAR_FILTER:
+      filter->param[AAX_INNER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_GAIN] = 1.0f;
       filter->state = AAX_TRUE;
