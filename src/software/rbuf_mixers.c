@@ -325,7 +325,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip)
       samp = *ptr;
       asamp = abs(samp);
 
-      if (asamp & ~START)
+      if (1) // asamp & ~START)
       {
          float val, diff, fact, ct0, ct1, ct2;
          unsigned int pos;

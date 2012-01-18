@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 {
    char *devname, *infile;
    aaxConfig config;
-   float pitch;
-   int res;
+   float gain, pitch;
+   int num, res;
 
    infile = getInputFile(argc, argv, FILE_PATH);
    devname = getDeviceName(argc, argv);
@@ -40,61 +40,83 @@ int main(int argc, char **argv)
       aaxBuffer buffer = bufferFromFile(config, infile);
       if (buffer)
       {
-         aaxEmitter emitter;
-         int state;
+         aaxEmitter emitter[256];
+         int i, state;
 
          /** mixer */
          res = aaxMixerInit(config);
          testForState(res, "aaxMixerInit");
 
+         gain = getGain(argc, argv);
+         pitch = getPitch(argc, argv);
+         num = getNumSources(argc, argv);
+         printf("Starting %i emitters. gain = %f, pitch = %f\n", num, gain, pitch);
+         i = 0;
+         do
+         {
+            /** emitters */
+            emitter[i] = aaxEmitterCreate();
+            testForError(emitter[i], "Unable to create a new emitter\n");
+
+            res = aaxEmitterAddBuffer(emitter[i], buffer);
+            testForState(res, "aaxEmitterAddBuffer");
+
+            res = aaxEmitterSetMode(emitter[i], AAX_POSITION, AAX_RELATIVE);
+            testForState(res, "aaxEmitterSetMode");
+
+            res = aaxEmitterSetMode(emitter[i], AAX_LOOPING, AAX_FALSE);
+            testForState(res, "aaxEmitterSetLooping");
+
+            res = aaxEmitterSetPitch(emitter[i], pitch);
+            testForState(res, "aaxEmitterSetPitch");
+
+            res = aaxEmitterSetGain(emitter[i], gain);
+            testForState(res, "aaxEmitterSetGain");
+
+            res = aaxMixerRegisterEmitter(config, emitter[i]);
+            testForState(res, "aaxMixerRegisterEmitter");
+
+            /** schedule the emitter for playback */
+            res = aaxEmitterSetState(emitter[i], AAX_PLAYING);
+            testForState(res, "aaxEmitterStart");
+         }
+         while (++i < num);
+
          res = aaxMixerSetState(config, AAX_PLAYING);
          testForState(res, "aaxMixerStart");
-
-         /** emitter */
-         emitter = aaxEmitterCreate();
-         testForError(emitter, "Unable to create a new emitter\n");
-
-         res = aaxEmitterAddBuffer(emitter, buffer);
-         testForState(res, "aaxEmitterAddBuffer");
-
-         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_RELATIVE);
-         testForState(res, "aaxEmitterSetMode");
-
-         res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_FALSE);
-         testForState(res, "aaxEmitterSetLooping");
-
-         pitch = getPitch(argc, argv);
-         res = aaxEmitterSetPitch(emitter, pitch);
-         testForState(res, "aaxEmitterSetPitch");
-
-         res = aaxMixerRegisterEmitter(config, emitter);
-         testForState(res, "aaxMixerRegisterEmitter");
-
-         /** schedule the emitter for playback */
-         res = aaxEmitterSetState(emitter, AAX_PLAYING);
-         testForState(res, "aaxEmitterStart");
 
          do
          {
             nanoSleep(5e7);
-            state = aaxEmitterGetState(emitter);
+            state = aaxEmitterGetState(emitter[0]);
          }
          while (state == AAX_PLAYING);
 
-         res = aaxEmitterSetState(emitter, AAX_STOPPED);
-         testForState(res, "aaxEmitterStop");
+         i = 0;
+         do
+         {
+            res = aaxEmitterSetState(emitter[i], AAX_STOPPED);
+            testForState(res, "aaxEmitterStop");
+         }
+         while (++i < num);
 
          printf("emitter stopped\n");
          state = 0;
          do {
             nanoSleep(5e7);
-         } while (state++ < 50);
+            res = aaxEmitterGetState(emitter[0]);
+         } while ((res != AAX_PROCESSED) && (state++ < 50));
 
-         res = aaxMixerDeregisterEmitter(config, emitter);
-         testForState(res, "aaxMixerDeregisterEmitter");
+         i = 0;
+         do
+         {
+            res = aaxMixerDeregisterEmitter(config, emitter[i]);
+            testForState(res, "aaxMixerDeregisterEmitter");
 
-         res = aaxEmitterDestroy(emitter);
-         testForState(res, "aaxEmitterDestroy");
+            res = aaxEmitterDestroy(emitter[i]);
+            testForState(res, "aaxEmitterDestroy");
+         }
+         while (++i < num);
 
          res = aaxBufferDestroy(buffer);
          testForState(res, "aaxBufferDestroy");

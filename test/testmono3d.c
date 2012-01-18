@@ -20,7 +20,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define RADIUS			10
+#define RADIUS			1
 #define FILE_PATH               SRC_PATH"/tictac.wav"
 
 aaxVec3f EmitterPos = { 10000.0, -1000.0, 0.0 };
@@ -128,13 +128,15 @@ int main(int argc, char **argv)
          deg = 0;
          while(deg < 360)
          {
+            float ang;
+
             nanoSleep(5e7);
 
-#if 0
+#if 1
             ang = (float)deg / 180.0f * GMATH_PI;
-            EmitterPos[0] = 10000.0 + rad * sinf(ang);
-            EmitterPos[2] = -r * cosf(ang);
-//          EmitterPos[1] = -1000.0 -r * cosf(ang);
+            EmitterPos[0] = 10000.0 + RADIUS * sinf(ang);
+            EmitterPos[2] = -RADIUS * cosf(ang);
+//          EmitterPos[1] = -1000.0 -RADIUS * cosf(ang);
 #if 1
             printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                      EmitterPos[0], EmitterPos[1], EmitterPos[2]);

@@ -233,7 +233,7 @@ aaxEffectSetState(aaxEffect e, int state)
 {
    _filter_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
-   if (effect && effect->info)
+   if (effect)
    {
       effect->state = state;
       effect->slot[0]->state = state;

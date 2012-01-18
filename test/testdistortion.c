@@ -64,17 +64,17 @@ int main(int argc, char **argv)
 # if 0
 	 /* straight frequency filter */
          printf("Add frequency filter at 150Hz\n");
-         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 150.0, 2.0, 0.5, 0.0);
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 250.0, 1.4, 0.4, 0.0);
          testForError(filter, "aaxFilterSetSlot");
          filter = aaxFilterSetState(filter, AAX_TRUE);
          testForError(filter, "aaxFilterSetState");
 # else
           /* envelope following dynamic frequency filter (auto-wah) */
          printf("Add auto-wah\n");
-         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 400.0, 0.5, 1.0, 11.0);
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 400.0, 0.5, 1.0, 8.0);
          testForError(filter, "aaxFilterSetSlot 0");
 
-         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 10, 100, 950, 0.0);
+         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 1, 150, 850, 0.0);
          testForError(filter, "aaxFilterSetSlot 1");
          filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
          testForError(filter, "aaxFilterSetState");
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
          effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
          testForError(effect, "aaxEffectCreate");
 
-         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.5, 0.2, 0.5, 0.0);
+         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.7, 0.0, 0.5, 0.0);
          testForError(effect, "aaxEffectSetSlot 0");
 
          effect = aaxEffectSetState(effect, AAX_TRUE);

@@ -72,6 +72,15 @@ getPitch(int argc, char **argv)
    return num;
 }
 
+float
+getGain(int argc, char **argv)
+{
+   float num = 1.0;
+   char *ret = getCommandLineOption(argc, argv, "-g");
+   if (ret) num = atof(ret);
+   return num;
+}
+
 int
 printCopyright(int argc, char **argv)
 {

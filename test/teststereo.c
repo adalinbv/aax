@@ -90,7 +90,7 @@ int main(int argc, char **argv)
                printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
             }
 #endif
-            state = aaxEmitterGetState(emitter);
+            state = aaxEmitterGetState(emitter[0]);
          }
          while (state == AAX_PLAYING);
 
