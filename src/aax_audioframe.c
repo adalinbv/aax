@@ -508,6 +508,20 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             emitter->handle = frame;
             emitter->pos = pos;
 
+            /*
+             * The mixer frequency is not know by the frequency filter
+             * (which needs it to properly compute the filter coefficients)
+             * until it has been registered to the mixer.
+             * So we need to update the filter coefficients one more time.
+             */
+            if (_FILTER_GET2D_DATA(src, FREQUENCY_FILTER))
+            {
+               aaxFilter f = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
+               _filter_t *filter = (_filter_t *)f;
+               aaxFilterSetState(f, filter->slot[0]->state);
+               aaxEmitterSetFilter(emitter, f);
+            }
+
             if (src->update_rate == 0) {
                src->update_rate = handle->submix->info->update_rate;
             }
