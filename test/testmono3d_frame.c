@@ -174,7 +174,7 @@ int main(int argc, char **argv)
                   res = aaxEmitterSetMode(emitter[p], AAX_LOOPING, AAX_TRUE);
                   testForState(res, "aaxEmitterSetLooping");
 
-                  res = aaxEmitterSetReferenceDistance(emitter[p], 3.3f);
+                  res = aaxEmitterSetReferenceDistance(emitter[p], 6.3f);
                   testForState(res, "aaxEmitterSetReferenceDistance");
 
                   res = aaxEmitterSetPitch(emitter[p], pitch);

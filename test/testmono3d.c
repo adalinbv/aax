@@ -20,7 +20,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define RADIUS			1
+#define RADIUS			10
 #define FILE_PATH               SRC_PATH"/tictac.wav"
 
 aaxVec3f EmitterPos = { 10000.0, -1000.0, 0.0 };
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter[i], AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetLooping");
 
-            res = aaxEmitterSetReferenceDistance(emitter[i], RADIUS/8.0f);
+            res = aaxEmitterSetReferenceDistance(emitter[i], RADIUS/2.0f);
             testForState(res, "aaxEmitterSetReferenceDistance");
 
             res = aaxEmitterSetPitch(emitter[i], pitch);
