@@ -592,9 +592,9 @@ aaxFilterSetState(aaxFilter f, int state)
                   {
                      int t;
 
-                     lfo->min = filter->slot[1]->param[AAX_MIN_FREQUENCY & 0xF];
-                     lfo->max = filter->slot[1]->param[AAX_MAX_FREQUENCY & 0xF];
-                     lfo->f = filter->slot[1]->param[AAX_SWEEP_RATE & 0xF];
+                     lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+                     lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+                     lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                      lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                      lfo->convert = _lin; // _log2lin;
 
@@ -815,7 +815,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
      /* AAX_DISTANCE_FILTER  */
      { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
      /* AAX_FREQUENCY_FILTER */
-     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f, 22050.0f, 22050.0f, 100.0f } },
+     { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  10.0f } },
      /* AAX_GRAPHIC_EQUALIZER */
      { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,      2.0f,     2.0f,   2.0f } }
   },
@@ -932,9 +932,9 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             if (freq && freq->lfo)
             {
-               rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = freq->lfo->f;
-               rv->slot[1]->param[AAX_MIN_FREQUENCY & 0xF] = freq->lfo->min;
-               rv->slot[1]->param[AAX_MAX_FREQUENCY & 0xF] = freq->lfo->max;
+               rv->slot[1]->param[AAX_RESONANCE] = freq->lfo->f;
+//             rv->slot[0]->param[AAX_CUTOFF_FREQUENCY] = freq->lfo->min;
+               rv->slot[1]->param[AAX_CUTOFF_FREQUENCY] = freq->lfo->max;
             }
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;

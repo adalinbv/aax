@@ -59,7 +59,7 @@ int main(int argc, char **argv)
          /* frequency filter */
          fscene = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
 printf("fscene\n");
-         fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0, 1.0, 0.0);
+         fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0, 1.0, 1.0);
          fscene = aaxFilterSetState(fscene, AAX_FALSE);
          res = aaxScenerySetFilter(config, fscene);
          res = aaxFilterDestroy(fscene);
@@ -86,7 +86,7 @@ printf("fscene\n");
 #if 1
          femitter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
 printf("femitter\n");
-         femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0, 1.0, 0.0, 0.0);
+         femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0, 1.0, 0.0, 1.0);
          femitter = aaxFilterSetState(femitter, AAX_FALSE);
          res = aaxEmitterSetFilter(emitter, femitter);
          res = aaxFilterDestroy(femitter);
@@ -135,8 +135,8 @@ printf("femitter\n");
             {
                printf("envelope following filtering (auto wah)\n");
                femitter = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
-               femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0, 0.4, 1.0, 12.0);
-               femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR, 0.2, 400.0, 800.0, 0.0);
+               femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 300.0, 0.4, 1.0, 12.0);
+               femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR, 600.0, 0.0, 0.0, 0.2);
                femitter = aaxFilterSetState(femitter, AAX_ENVELOPE_FOLLOW);
                res = aaxEmitterSetFilter(emitter, femitter);
             }
