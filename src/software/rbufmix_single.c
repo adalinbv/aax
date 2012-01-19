@@ -893,6 +893,7 @@ PRINT_MATRIX(mtx);
 
          gain = _FILTER_GET2D(src, VOLUME_FILTER, AAX_GAIN);
          gain *= distfn(dist, refdist, maxdist, rolloff, ss, 1.0f);
+
          /*
           * audio cone recalculaion
           */
@@ -1021,11 +1022,9 @@ _oalRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
-
    dist = _MAX(dist, ref_dist);
    dist = _MIN(dist, max_dist);
    if (denom) gain = (1-rolloff)*(dist-ref_dist)/denom;
-
    return gain;
 }
 
