@@ -87,7 +87,7 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
       DBG_MEMCLR(1, dst-ds, ds+end, bps);
       _aax_memcpy(dst+start, src+start, no_samples*bps);
    }
-   bufCompress(dst, start, end, 0.7f);
+// bufCompress(dptr, start, end, 0.2f);
 }
 
 #if !ENABLE_LITE
@@ -313,17 +313,9 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
       clip = distort[CLIPPING_FACTOR];
       mixfact = distort[AAX_MIX_FACTOR];
-      fact = 256.0f*distort[AAX_DISTORTION_FACTOR];
+      fact = 192.0f*distort[AAX_DISTORTION_FACTOR];
 
       no_samples = dmax+ds-dmin;
-#if 0
-      DBG_MEMCLR(1, d-ds, ds+dmax, bps);
-      _aax_memcpy(dptr, sptr, no_samples*bps);
-      _batch_mul_value(dptr, bps, no_samples, 128.0f*distort[3]);
-      bufCompress(dptr, 0, no_samples, 1.0);
-      _batch_mul_value(dptr, bps, no_samples, distort[3]/128.0f);
-      _batch_fmadd(sptr, dptr, no_samples, 1.0f-mixfact, 0.0f);
-#endif
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
       _aax_memcpy(dptr, sptr, no_samples*bps);
       _batch_mul_value(dptr, bps, no_samples, (1.0f+fact)*mixfact);

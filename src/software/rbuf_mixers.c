@@ -256,6 +256,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                                freq_filter, delay_effect, distortion_effect);
             }
          }
+         bufCompress(track_ptr[track], dest_pos, dend, 0.2f);
       }
 
       src->curr_sample = floorf(new_src_pos_sec * sfreq);
@@ -316,36 +317,30 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip)
    unsigned int j;
 
    mix = _MINMAX(clip, 0.0, 1.0);
-   imix = 0.88f*(1.0f - mix);
+   imix = (1.0f - mix);
    j = dmax-dmin;
    do
    {
+      static const float df = 1.0f/(float)0x7FFFFFFF;
+      float fact1, fact2, sdf;
+      unsigned int pos;
       int32_t samp, asamp;
 
       samp = *ptr;
       asamp = abs(samp);
+      pos = 1+(asamp >> SHIFT);
+      sdf = asamp*df;
 
-      if (1) // asamp & ~START)
-      {
-         float val, diff, fact, ct0, ct1, ct2;
-         unsigned int pos;
+      assert(sdf >= 0.0f);
+      assert(sdf <= 1.0f);
 
-         pos = asamp >> SHIFT;
-         ct1 = _compress_tbl[0][pos-1];	/* valve compression */
-         ct2 = _compress_tbl[0][pos];
-         diff = imix*(ct2 - ct1);
-         ct0 = imix*ct1;
+      fact1 = (1.0f-sdf)*_compress_tbl[0][pos-1];
+      fact1 += sdf*_compress_tbl[0][pos];
 
-         ct1 = _compress_tbl[1][pos-1];	/* digital compression */
-         ct2 = _compress_tbl[1][pos];
-         diff += mix*(ct2 - ct1);
-         ct0 += mix*ct1;
+      fact2 = (1.0f-sdf)*_compress_tbl[1][pos-1];
+      fact2 += sdf*_compress_tbl[1][pos];
 
-         fact = (float)(asamp & START)/(float)START;
-         val = (float)samp*(ct0 + diff*fact);
-         *ptr = (int32_t)val;
-      }
-      ptr++;
+      *ptr++ = (imix*fact1 + mix*fact2)*samp;
    }
    while (--j);
 }
