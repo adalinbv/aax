@@ -375,7 +375,9 @@ typedef struct
    float delay_sec;
 
    struct {
+      float pitch_lfo;
       float pitch;
+      float gain_lfo;
       float gain;
    } final;
 

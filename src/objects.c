@@ -56,7 +56,9 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    memset(&p2d->prev_gain, 0, size);
    p2d->prev_freq_fact = 0.0f;
    p2d->delay_sec = 0.0f;
+   p2d->final.pitch_lfo = 1.0;
    p2d->final.pitch = 1.0f;
+   p2d->final.gain_lfo = 1.0;
    p2d->final.gain = 1.0f;
 }
 
