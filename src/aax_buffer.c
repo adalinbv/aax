@@ -490,12 +490,13 @@ aaxBufferGetData(const aaxBuffer buffer)
 
       ptr = (char*)sizeof(void*);
       data = (void**)_aax_malloc(&ptr, buf_samples*bps);
-      _oalRingBufferGetDataInterleaved(buf->ringbuffer, data);
       if (data == NULL) 
       {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          return data;
       }
+
+      _oalRingBufferGetDataInterleaved(buf->ringbuffer, data);
       *data = (void*)ptr;
 
       user_format = buf->format;
