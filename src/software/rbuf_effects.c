@@ -248,9 +248,20 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
          if (i >= step)
          {
+            float diff;
             do
             {
                _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
+#if 0
+               /* gradually fade to the new value */
+               diff = (float)*ptr - (float)*(ptr-1);
+               *(ptr-1) += (6.0f/7.0f)*diff;
+               *(ptr-2) += (5.0f/7.0f)*diff;
+               *(ptr-3) += (4.0f/7.0f)*diff;
+               *(ptr-4) += (3.0f/7.0f)*diff;
+               *(ptr-5) += (2.0f/7.0f)*diff;
+               *(ptr-6) += (1.0f/7.0f)*diff;
+#endif
                ptr += step;
                coffs += sign;
                i -= step;
