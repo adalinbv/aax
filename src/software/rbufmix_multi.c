@@ -96,10 +96,6 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
    gain *= mix_p2d->final.gain_lfo;
    gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
-   if (lfo) {
-      gain *= lfo->get(lfo, NULL, 0, 0);
-   }
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -112,16 +108,21 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
 
    /** Mix */
    rbd = dest->sample;
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    for (track=0; track<rbd->no_tracks; track++)
    {
       _oalRingBufferSample *rbs = src->sample;
       unsigned int rbs_track = track % rbs->no_tracks;
       unsigned int rbd_track = track % rbd->no_tracks;
       int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;
-      float vstart, vend, vstep;
+      float vstart, vend, vstep, g;
 
-      vstart = gain * svol * p2d->prev_gain[track];
-      vend = gain * evol * gain;
+      if (lfo) {
+         g = lfo->get(lfo, sptr[rbs_track]+offs, 0, dno_samples);
+      }
+
+      vstart = g*gain * svol * p2d->prev_gain[track];
+      vend = g*gain * evol * gain;
       vstep = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
