@@ -115,7 +115,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       unsigned int rbs_track = track % rbs->no_tracks;
       unsigned int rbd_track = track % rbd->no_tracks;
       int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;
-      float vstart, vend, vstep, g;
+      float vstart, vend, vstep, g = 1.0f;
 
       if (lfo) {
          g = lfo->get(lfo, sptr[rbs_track]+offs, 0, dno_samples);
