@@ -104,7 +104,7 @@ int main(int argc, char **argv)
       testForState(res, "aaxEffectDestroy");
 
       /* tremolo filter for emitter */
-      filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
+      filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
       testForError(filter, "aaxFilterCreate");
 
       filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 6.0, 1.0, 0.0);
@@ -136,26 +136,27 @@ int main(int argc, char **argv)
       res = aaxEmitterSetState(emitter, AAX_PLAYING);
       testForState(res, "aaxEmitterStart");
 
-#if 0
+#if 1
       /* tremolo effect for mixer*/
-      effect = aaxEffectCreate(config, AAX_TREMOLO_EFFECT);
+      filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
       testForError(effect, "aaxEffectCreate");
 
-      effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0, 4.7, 0.6, 0.0);
+      filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.9, 1.0, 0.0);
       testForError(effect, "aaxEffectSetSlot");
 
-      effect = aaxEffectSetState(effect, AAX_TRUE);
+      filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
       testForError(effect, "aaxEffectSetState");
 
-      res = aaxMixerSetEffect(config, effect);
+      res = aaxMixerSetFilter(config, filter);
       testForState(res, "aaxMixerSetEffect");
 
-      res = aaxEffectDestroy(effect);
+      res = aaxFilterDestroy(filter);
       testForState(res, "aaxEffectDestroy");
 #endif
 
       /* vibrato effect for emitter */
-      effect = aaxEffectCreate(config, AAX_VIBRATO_EFFECT);
+#if 1
+      effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
       testForError(effect, "aaxEffectCreate");
 
       effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0, 4.0, 0.4, 0.0);
@@ -169,6 +170,7 @@ int main(int argc, char **argv)
 
       res = aaxEffectDestroy(effect);
       testForState(res, "aaxEffectDestroy");
+#endif
 
       q = 0;
       do
