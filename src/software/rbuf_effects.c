@@ -329,8 +329,9 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       no_samples = dmax+ds-dmin;
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
       _aax_memcpy(dptr, sptr, no_samples*bps);
-      _batch_mul_value(dptr, bps, no_samples, (1.0f+fact)*mixfact);
+      _batch_mul_value(dptr, bps, no_samples, 1.0f+fact);
       bufCompress(dptr, 0, no_samples, clip);
+      _batch_mul_value(dptr, bps, no_samples, mixfact);
       _batch_fmadd(dptr, sptr, no_samples, 1.0f-mixfact, 0.0f);
    }
    while (0);
