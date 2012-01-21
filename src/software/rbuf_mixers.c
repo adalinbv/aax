@@ -256,7 +256,6 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                                freq_filter, delay_effect, distortion_effect);
             }
          }
-         bufCompress(track_ptr[track], dest_pos, dend, 0.2f);
       }
 
       src->curr_sample = floorf(new_src_pos_sec * sfreq);
