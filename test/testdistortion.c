@@ -91,7 +91,7 @@ int main(int argc, char **argv)
          effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
          testForError(effect, "aaxEffectCreate");
 
-         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.7, 0.0, 0.7, 1.0);
+         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.0, 1.0, 0.5);
          testForError(effect, "aaxEffectSetSlot 0");
 
          effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -111,16 +111,35 @@ int main(int argc, char **argv)
          res = aaxMixerRegisterEmitter(config, emitter);
          testForState(res, "aaxMixerRegisterEmitter");
 
-# if 2
+# if 1
          /* phasing effect */
          printf("source phasing..\n");
          effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
-         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.0, 0.0, 0.0715);
+         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.0, 0.0, 0.095);
          effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
          res = aaxEmitterSetEffect(emitter, effect);
          res = aaxEffectDestroy(effect);
          testForError(effect, "aaxEffectCreate");
 #endif
+
+#if 1
+         /* dynamic gain filter for emitter (compressor) */
+         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
+         testForError(filter, "aaxFilterCreate");
+
+         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.2, 2.0, 0.5);
+         testForError(filter, "aaxFilterSetSlot");
+
+         filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
+         testForError(filter, "aaxFilterSetState");
+
+         res = aaxEmitterSetFilter(emitter, filter);
+         testForState(res, "aaxEmitterSetFilter");
+
+         res = aaxFilterDestroy(filter);
+         testForState(res, "aaxFilterDestroy");
+#endif
+
 
          res = aaxMixerSetState(config, AAX_PLAYING);
          testForState(res, "aaxMixerStart");

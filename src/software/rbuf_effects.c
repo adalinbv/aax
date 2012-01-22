@@ -51,19 +51,18 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
       _aax_memcpy(effect->delay_history[track], src+start+no_samples-ds,ds*bps);
    }
 
-   if (freq)				/* Apply frequency filter first */
+   /* Apply frequency filter first */
+   if (freq)
    {
       bufFilterFrequency(pdst, psrc, start, end, ds, track, freq);
       BUFSWAP(pdst, psrc);
    }
 
-   if (distort)				/* distortion is second */
-   {
-      bufEffectDistort(pdst, psrc, start, end, ds, track, distort);
-      BUFSWAP(pdst, psrc);
-   }  
-
 #if !ENABLE_LITE
+   /*
+    * phasing is second because it can be used to alter the sound of
+    * a guitar before is gets distorted.
+    */
    if (delay)
    {
       /* Apply delay effects */
@@ -81,6 +80,12 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
       }
    }
 #endif
+
+   if (distort)
+   {
+      bufEffectDistort(pdst, psrc, start, end, ds, track, distort);
+      BUFSWAP(pdst, psrc);
+   }
 
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
@@ -322,16 +327,19 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       float clip, fact, mixfact;
       unsigned int no_samples;
 
-      clip = distort[CLIPPING_FACTOR];
+      clip = distort[AAX_CLIPPING_FACTOR];
       mixfact = distort[AAX_MIX_FACTOR];
-      fact = 192.0f*distort[AAX_DISTORTION_FACTOR];
+      fact = 100.0f*distort[AAX_DISTORTION_FACTOR];
 
       no_samples = dmax+ds-dmin;
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
+
       _aax_memcpy(dptr, sptr, no_samples*bps);
-      _batch_mul_value(dptr, bps, no_samples, 1.0f+fact);
+      _batch_mul_value(dptr, bps, no_samples, (1.0f+fact));
+
       bufCompress(dptr, 0, no_samples, clip);
-      _batch_mul_value(dptr, bps, no_samples, mixfact);
+      _batch_mul_value(dptr, bps, no_samples, distort[3]*mixfact);
+
       _batch_fmadd(dptr, sptr, no_samples, 1.0f-mixfact, 0.0f);
    }
    while (0);

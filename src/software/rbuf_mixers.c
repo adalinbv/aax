@@ -323,7 +323,8 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip)
       static const float df = 1.0f/(float)0x7FFFFFFF;
       float fact1, fact2, sdf;
       unsigned int pos;
-      int32_t samp, asamp;
+      uint32_t asamp;
+      int32_t samp;
 
       samp = *ptr;
       asamp = abs(samp);
