@@ -131,7 +131,7 @@ _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
       break;
    case DISTORTION_EFFECT:
       effect->param[AAX_CLIPPING_FACTOR] = 0.3f;
-      effect->param[AAX_DISTORTED_GAIN] = 0.7f;
+      effect->param[AAX_ASYMMETRY] = 0.7f;
       break;
    default:
       break;

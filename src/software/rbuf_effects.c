@@ -58,6 +58,12 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
       BUFSWAP(pdst, psrc);
    }
 
+   if (distort)
+   {
+      bufEffectDistort(pdst, psrc, start, end, ds, track, distort);
+      BUFSWAP(pdst, psrc);
+   }
+
 #if !ENABLE_LITE
    /*
     * phasing is second because it can be used to alter the sound of
@@ -81,18 +87,12 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
    }
 #endif
 
-   if (distort)
-   {
-      bufEffectDistort(pdst, psrc, start, end, ds, track, distort);
-      BUFSWAP(pdst, psrc);
-   }
-
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
       DBG_MEMCLR(1, dst-ds, ds+end, bps);
       _aax_memcpy(dst+start, src+start, no_samples*bps);
    }
-// bufCompress(dptr, start, end, 0.2f);
+// bufCompress(dptr, start, end, 0.2f, 0.0f);
 }
 
 #if !ENABLE_LITE
@@ -324,12 +324,13 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       static const unsigned int bps = sizeof(int32_t);
       const int32_ptr sptr = s - ds + dmin;
       int32_t *dptr = d - ds + dmin;
-      float clip, fact, mixfact;
+      float clip, fact, mix, asym;
       unsigned int no_samples;
 
       clip = distort[AAX_CLIPPING_FACTOR];
-      mixfact = distort[AAX_MIX_FACTOR];
       fact = 100.0f*distort[AAX_DISTORTION_FACTOR];
+      mix = distort[AAX_MIX_FACTOR];
+      asym = distort[AAX_ASYMMETRY];
 
       no_samples = dmax+ds-dmin;
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
@@ -337,10 +338,10 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       _aax_memcpy(dptr, sptr, no_samples*bps);
       _batch_mul_value(dptr, bps, no_samples, (1.0f+fact));
 
-      bufCompress(dptr, 0, no_samples, clip);
-      _batch_mul_value(dptr, bps, no_samples, distort[3]*mixfact);
+      bufCompress(dptr, 0, no_samples, clip, asym);
+      _batch_mul_value(dptr, bps, no_samples, mix/GMATH_PI);
 
-      _batch_fmadd(dptr, sptr, no_samples, 1.0f-mixfact, 0.0f);
+      _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
    }
    while (0);
 }
