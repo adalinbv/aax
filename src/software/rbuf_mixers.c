@@ -316,10 +316,10 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
    float imix, mix;
    unsigned int j;
 
-   asym *= 256.0f;
    mix = _MINMAX(clip, 0.0, 1.0);
    imix = (1.0f - mix);
    j = dmax-dmin;
+   asym *= 256.0f;
    do
    {
       static const float df = 1.0f/(float)0x7FFFFFFF;
@@ -337,14 +337,12 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
 
       assert(sdf >= 0.0f);
       assert(sdf <= 1.0f);
-#if 1
-      afact = _MIN((float)asamp/(float)0x07ffffff, 1.0f);	// 0.0 .. 1.0
-      rise = _MINMAX((asamp - osamp)/(float)0x7fffff, 0.0, 1.0f);
+
+      afact = _MIN((float)asamp/(float)0x7fffffff, 1.0f);	// 0.0 .. 1.0
+      rise = _MINMAX((asamp - osamp)/(float)0x7fffffff, 0.02, 1.0f);
       osamp = asamp;
 
-      afact = asym*(0.5f+rise)*(1.0-pow(1.0-afact, 0.1));
-      pos = _MINMAX(pos + afact, 0, ((1<<BITS)-1));
-#endif
+      pos = _MINMAX(pos + asym*rise, 0, ((1<<BITS)-1));
 
       fact1 = (1.0f-sdf)*_compress_tbl[0][pos-1];
       fact1 += sdf*_compress_tbl[0][pos];

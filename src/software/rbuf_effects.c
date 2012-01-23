@@ -309,6 +309,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
                    unsigned int track, void *data)
 {
    float *distort = data;
+   float fact, mix;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -319,31 +320,30 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
    assert(data != NULL);
    assert(track < _AAX_MAX_SPEAKERS);
 
-   do
+   fact = distort[AAX_DISTORTION_FACTOR];
+   mix = distort[AAX_MIX_FACTOR];
+   if (fact && mix)
    {
       static const unsigned int bps = sizeof(int32_t);
       const int32_ptr sptr = s - ds + dmin;
       int32_t *dptr = d - ds + dmin;
-      float clip, fact, mix, asym;
       unsigned int no_samples;
+      float clip, asym;
 
       clip = distort[AAX_CLIPPING_FACTOR];
-      fact = 100.0f*distort[AAX_DISTORTION_FACTOR];
-      mix = distort[AAX_MIX_FACTOR];
       asym = distort[AAX_ASYMMETRY];
 
       no_samples = dmax+ds-dmin;
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
 
       _aax_memcpy(dptr, sptr, no_samples*bps);
-      _batch_mul_value(dptr, bps, no_samples, (1.0f+fact));
+      _batch_mul_value(dptr, bps, no_samples, (1.0f+100.0f*fact));
 
       bufCompress(dptr, 0, no_samples, clip, asym);
-      _batch_mul_value(dptr, bps, no_samples, mix/GMATH_PI);
+      _batch_mul_value(dptr, bps, no_samples, mix);
 
       _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
    }
-   while (0);
 }
 
 #endif /* !ENABLE_LITE */
