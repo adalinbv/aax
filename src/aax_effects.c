@@ -244,10 +244,8 @@ aaxEffectSetState(aaxEffect e, int state)
          break;
       case AAX_DISTORTION_EFFECT:
          if TEST_FOR_TRUE(state) {
-            effect->slot[0]->param[0]=powf(effect->slot[0]->param[0]/1.3f,2.5f);
             effect->slot[0]->data = &effect->slot[0]->param[0];
          } else {
-            effect->slot[0]->param[0]=1.3f*powf(effect->slot[0]->param[0],0.4f);
             effect->slot[0]->data = NULL;
          }
          break;
@@ -694,7 +692,7 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_TIMED_PITCH_EFFECT */
     { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
     /* AAX_DISTORTION_EFFECT */
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f,     1.0f, 1.0f,     1.0f } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f,     1.0f, 1.0f,     2.0f } },
     /* AAX_PHASING_EFFECT   */
     { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     1.0f } },
     /* AAX_CHORUS_EFFECT    */
