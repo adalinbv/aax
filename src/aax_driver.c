@@ -935,7 +935,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
          do
          {
             char buffer[1024], *buf = (char *)&buffer;
-            unsigned int i;
+            _intBuffers* backends = get_backends();
+            unsigned int i, count;
 
             for (i=0; i<config->no_nodes; i++)
             {
@@ -950,11 +951,15 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
                _AAX_SYSLOG(buf);
             }
 
-            for (i=0; i<config->no_backends; i++)
+            count = _intBufGetNumNoLock(backends, _AAX_BACKEND);
+            for (i=0; i<count; i++)
             {
-               snprintf(buf,1024,"backend[%i]: '%s'\n",
-                                 i, config->backend.driver);
-               _AAX_SYSLOG(buf);
+               _aaxDriverBackend *be = _aaxGetDriverBackendByPos(backends, i);
+               if (be)
+               {
+                  snprintf(buf,1024,"backend[%i]: '%s'\n", i, be->driver);
+                  _AAX_SYSLOG(buf);
+               }
             }
          }
          while (0);
