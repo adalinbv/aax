@@ -122,7 +122,7 @@ int main(int argc, char **argv)
          testForError(effect, "aaxEffectCreate");
 #endif
 
-#if 1
+#if 0
          /* dynamic gain filter for emitter (compressor) */
          filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
          testForError(filter, "aaxFilterCreate");
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
          filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.2, 2.0, 0.5);
          testForError(filter, "aaxFilterSetSlot");
 
-         filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
+         filter = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
          testForError(filter, "aaxFilterSetState");
 
          res = aaxEmitterSetFilter(emitter, filter);
