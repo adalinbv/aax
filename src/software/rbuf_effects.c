@@ -337,7 +337,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       _aax_memcpy(dptr, sptr, no_samples*bps);
 
       if (fact > 0.01f) {
-         _batch_mul_value(dptr, bps, no_samples, 1.0f+31.0f*fact);
+         _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
       }
 
       if ((fact > 0.01f) || (asym > 0.01f)) {
