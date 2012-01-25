@@ -49,7 +49,7 @@ static const char *_effect_s[AAX_EFFECT_MAX] =
 
 int main(int argc, char **argv)
 {
-   unsigned i, x, y, z, max;
+   unsigned int i, x, y, z, max;
    aaxConfig cfg;
    const char *s;
    char *devname;
@@ -150,10 +150,14 @@ int main(int argc, char **argv)
 
          x = aaxMixerGetSetup(cfg, AAX_MONO_EMITTERS);
          y = aaxMixerGetSetup(cfg, AAX_STEREO_EMITTERS);
-         printf("Number of available  mono  emitters: %i\n", x);
-         printf("Number of available stereo emitters: %i\n", y);
+         printf("Number of available  mono  emitters: ");
+         if (x == UINT_MAX) printf("infinite\n");
+         else printf("%i\n", x);
+         printf("Number of available stereo emitters: ");
+         if (y == UINT_MAX/2) printf("infinite\n");
+         else printf("%i\n", y);
          x = aaxMixerGetSetup(cfg, AAX_AUDIO_FRAMES);
-         printf("Number of available  audio  frames:  %i\n", x);
+         printf("Number of available  audio  frames:  %u\n", x);
 
       }
 
