@@ -1054,7 +1054,7 @@ _oalRingBufferDelayRemoveNum(_oalRingBuffer *rb, unsigned int n)
    }
 }
 
-int
+unsigned int
 _oalRingBufferGetNoSources()
 {
    int num = _oalGetSetMonoSources(0, 0);
@@ -1062,8 +1062,8 @@ _oalRingBufferGetNoSources()
    return num;
 }
 
-int
-_oalRingBufferSetNoSources(int src)
+unsigned int
+_oalRingBufferSetNoSources(unsigned int src)
 {
    return _oalGetSetMonoSources(src, 0);
 }

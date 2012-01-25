@@ -690,8 +690,8 @@ void _oalRingBufferDelaysAdd(_oalRingBuffer*, float, unsigned int, const float*,
 void _oalRingBufferDelaysRemove(_oalRingBuffer*);
 void _oalRingBufferDelayRemoveNum(_oalRingBuffer*, unsigned int);
 
-int _oalRingBufferGetNoSources();
-int _oalRingBufferSetNoSources(int);
+unsigned int _oalRingBufferGetNoSources();
+unsigned int _oalRingBufferSetNoSources(unsigned int);
 
 void _oalRingBufferCreateHistoryBuffer(void**, int32_t**, float, int);
 

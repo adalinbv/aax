@@ -94,7 +94,7 @@ typedef struct
    float refresh_rate;
    enum aaxFormat format;
    enum aaxRenderMode mode;
-   int max_emitters;
+   unsigned int max_emitters;
 
    uint8_t update_rate;	/* how many frames get processed before an update */
 
