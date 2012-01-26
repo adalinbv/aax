@@ -166,8 +166,8 @@ extern aaxMtx4f aaxIdentityMatrix;
 	aaxMixerGetSetup(NULL,AAX_MONO_EMITTERS)
 #define aaxMixerGetNoStereoSources()					\
 	aaxMixerGetSetup(NULL,AAX_STEREO_EMITTERS)
-#define aaxMixerGetGain(a,b)						\
-	__aaxFilterGetParam1((a),(b),VOLUME,Mixer)
+#define aaxMixerGetGain(a)						\
+	__aaxFilterGetParam1((a),AAX_LINEAR,VOLUME,Mixer)
 #define aaxMixerGetPitch(a)						\
 	__aaxEffectGetParam1((a),AAX_LINEAR,PITCH,Mixer)
 
@@ -275,11 +275,11 @@ extern aaxMtx4f aaxIdentityMatrix;
 	aaxEmitterGetSetup((a),AAX_TRACKS)
 #define aaxEmitterGetFormat(a)						\
 	aaxEmitterGetSetup((a),AAX_FORMAT)
-#define aaxEmitterGetGain(a,b)						\
-	__aaxFilterGetParam1((a),(b),VOLUME,Emitter)
+#define aaxEmitterGetGain(a)						\
+	__aaxFilterGetParam1((a),AAX_LINEAR,VOLUME,Emitter)
 #define aaxEmitterGetPitch(a)						\
 	__aaxEffectGetParam1((a),AAX_LINEAR,PITCH,Emitter)
-#define aaxEmitterGetGainMinMax(a,b,c,d)				\
+#define aaxEmitterGetGainMinMax(a,b,c)				\
 	__aaxFilterGet((a),AAX_LINEAR,NULL,(b),(c),VOLUME,Emitter)
 #define aaxEmitterGetReferenceDistance(a)				\
 	__aaxFilterGetParam1((a),AAX_LINEAR,DISTANCE,Emitter)
@@ -329,8 +329,8 @@ extern aaxMtx4f aaxIdentityMatrix;
 	__aaxEffectSetParam1((a),AAX_LINEAR,(b),VELOCITY,AudioFrame)
 #define aaxAudioFrameSetDopplerFactor(a,b)				\
 	__aaxEffectSetParam2((a),AAX_LINEAR,(b),VELOCITY,AudioFrame)
-#define aaxAudioFrameGetGain(a,b)					\
-	__aaxFilterGetParam1((a),(b),VOLUME,AudioFrame)
+#define aaxAudioFrameGetGain(a)					\
+	__aaxFilterGetParam1((a),AAX_LINEAR,VOLUME,AudioFrame)
 #define aaxAudioFrameGetPitch(a)					\
 	__aaxEffectGetParam1((a),AAX_LINEAR,PITCH,AudioFrame)
 #define aaxAudioFrameGetSoundVelocity(a)				\
