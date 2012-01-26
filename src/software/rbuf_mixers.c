@@ -351,3 +351,25 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
    }
    while (--j);
 }
+
+#if 0
+void
+bufCompressArcTan(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
+{
+   int32_t *ptr = (int32_t*)d;
+   unsigned int j;
+   float mix;
+
+   mix = 256.0f; //  * _MINMAX(clip, 0.0, 1.0);
+   j = dmax-dmin;
+   do
+   {
+      static const float df = 1.0f/(float)0x7FFFFFFF;
+      float samp;
+
+      samp = atan(*ptr*df*mix)*GMATH_1_PI_2;
+      *ptr++ = samp*(float)0x7FFFFF;
+   }
+   while (--j);
+}
+#endif
