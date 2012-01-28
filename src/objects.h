@@ -127,6 +127,8 @@ typedef struct
 
 typedef struct
 {
+   _aaxMixerInfo *info;
+
    _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
    _oalRingBuffer3dProps *props3d;	/* 16 byte aligned */
    void *props3d_ptr;

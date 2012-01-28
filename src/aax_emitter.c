@@ -680,9 +680,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_VELOCITY_EFFECT:
       {
          _aaxEmitter *src = handle->source;
-         _handle_t *cfg = (_handle_t*)handle->handle;
-         _aaxMixerInfo* info = (cfg) ? cfg->info : NULL;
-         rv = new_effect_handle(info, type, src->props2d, src->props3d);
+         rv = new_effect_handle(src->info, type, src->props2d, src->props3d);
          break;
       }
       default:

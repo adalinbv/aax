@@ -505,7 +505,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
          if (pos != UINT_MAX)
          {
             _aaxEmitter *src = emitter->source;
-            emitter->handle = frame;
+            emitter->handle = handle;
             emitter->pos = pos;
 
             /*
@@ -522,6 +522,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                aaxEmitterSetFilter(emitter, f);
             }
 
+            src->info = handle->submix->info;
             if (src->update_rate == 0) {
                src->update_rate = handle->submix->info->update_rate;
             }

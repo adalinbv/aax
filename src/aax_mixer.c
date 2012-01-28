@@ -508,6 +508,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                aaxEmitterSetFilter(emitter, f);
             }
 
+            src->info = handle->info;
             if (src->update_rate == 0) {
                src->update_rate = handle->info->update_rate;
             }
