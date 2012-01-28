@@ -241,13 +241,7 @@ aaxEffectSetState(aaxEffect e, int state)
       {
       case AAX_PITCH_EFFECT:
       case AAX_VELOCITY_EFFECT:
-         break;
       case AAX_DISTORTION_EFFECT:
-         if TEST_FOR_TRUE(state) {
-            effect->slot[0]->data = &effect->slot[0]->param[0];
-         } else {
-            effect->slot[0]->data = NULL;
-         }
          break;
       case AAX_DYNAMIC_PITCH_EFFECT:
 #if !ENABLE_LITE

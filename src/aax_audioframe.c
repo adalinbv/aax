@@ -285,7 +285,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-            _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
+            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, EQUALIZER_HF, filter, 1);
 
             type = EQUALIZER_LF;
@@ -301,7 +301,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET_STATE(p2d, type, _FILTER_GET_STATE(filter));
+            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
             rv = AAX_TRUE;
             break;
@@ -313,7 +313,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET_STATE(p3d, type, _FILTER_GET_STATE(filter));
+            _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
             rv = AAX_TRUE;
             break;
@@ -390,7 +390,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_STATE(effect));
+            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
             rv = AAX_TRUE;
             break;

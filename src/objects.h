@@ -16,7 +16,7 @@
 
 #include <ringbuffer.h>
 
-
+#include <software/audio.h>
 #define WRITE_BUFFER_TO_FILE(dptr, bufsz) \
  do { \
    int16_t q, *data = malloc((bufsz)*2); \

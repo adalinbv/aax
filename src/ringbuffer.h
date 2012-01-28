@@ -47,6 +47,8 @@
              WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }
 #else
 # define DBG_MEMCLR(a, b, c, d)
+# define WRITE(a, b, dptr, ds, no_samples) \
+	printf("Need to turn on debugging to use the WRITE macro\n")
 #endif
 
 
@@ -158,12 +160,13 @@ enum
 
 
 #define _FILTER_GET_SLOT(F, s, p)	F->slot[s]->param[p]
-#define _FILTER_GET_STATE(F)		F->slot[0]->state
+#define _FILTER_GET_SLOT_STATE(F)	F->slot[0]->state
 #define _FILTER_GET_SLOT_DATA(F, s)	F->slot[s]->data
 #define _FILTER_SET_SLOT(F, s, p, v)	F->slot[s]->param[p] = v
 #define _FILTER_SET_SLOT_DATA(F, s, v)	F->slot[s]->data = v
 
 #define _FILTER_GET(P, f, p)		P->filter[f].param[p]
+#define _FILTER_GET_STATE(P, f)		P->filter[f].state
 #define _FILTER_GET_DATA(P, f)		P->filter[f].data
 #define _FILTER_SET(P, f, p, v)		P->filter[f].param[p] = v
 #define _FILTER_SET_STATE(P, f, v)	P->filter[f].state = v;
@@ -187,10 +190,11 @@ enum
     P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr; } while (0);
 
 #define _EFFECT_GET_SLOT		_FILTER_GET_SLOT
-#define _EFFECT_GET_STATE		_FILTER_GET_STATE
+#define _EFFECT_GET_SLOT_STATE		_FILTER_GET_SLOT_STATE
 #define _EFFECT_GET_SLOT_DATA		_FILTER_GET_SLOT_DATA
 
 #define _EFFECT_GET(P, f, p)		P->effect[f].param[p]
+#define _EFFECT_GET_STATE(P, f)		P->effect[f].state
 #define _EFFECT_GET_DATA(P, f)		P->effect[f].data
 #define _EFFECT_SET(P, f, p, v)		P->effect[f].param[p] = v
 #define _EFFECT_SET_STATE(P, f, v)	P->effect[f].state = v;
