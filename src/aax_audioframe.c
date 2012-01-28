@@ -485,7 +485,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
    _frame_t* handle = get_frame(frame);
    int rv = AAX_FALSE;
-   if (frame)
+   if (handle)
    {
       _emitter_t* emitter = get_emitter_unregistered(em);
       if (emitter && !emitter->handle && emitter->pos == UINT_MAX)
@@ -570,7 +570,7 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
    _frame_t* handle = get_frame(frame);
    int rv = AAX_FALSE;
-   if (frame)
+   if (handle)
    {
       _emitter_t* emitter = get_emitter(em);
       if (emitter && emitter->pos != UINT_MAX)
