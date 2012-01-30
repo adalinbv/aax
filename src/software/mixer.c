@@ -35,7 +35,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
    _oalRingBufferDelayEffectData* delay;
    _oalRingBufferFreqFilterInfo* freq_filter;
    _oalRingBufferSample *rbd;
-   void* distortion;
+   int dist_state;
 
    assert(rb != 0);
    assert(rb->sample != 0);
@@ -43,20 +43,21 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
    rbd = rb->sample;
 
    delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-   distortion = _EFFECT_GET_DATA(p2d, DISTORTION_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-   if (delay || freq_filter || distortion)
+   dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
+   if (delay || freq_filter || dist_state)
    {
       int32_t *scratch0 = rbd->scratch[SCRATCH_BUFFER0];
       int32_t *scratch1 = rbd->scratch[SCRATCH_BUFFER1];
       unsigned int bps, no_samples, ddesamps;
       unsigned int track, tracks;
+      void* distortion = NULL;
 
       bps = rbd->bytes_sample;
       ddesamps = rbd->dde_samples;
       no_samples = rbd->no_samples;
 
-      if ( distortion) {
+      if (dist_state) {
          distortion = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
       }
 
@@ -74,8 +75,10 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
          bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, no_samples,
                          ddesamps, track, freq_filter, delay, distortion);
 
-         /* copy the data back from scratch0 to dptr */
+         /* copy the unmodified next effects buffer back */
          _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
+
+         /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
       }
    }
@@ -314,8 +317,8 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    _oalRingBuffer3dProps *props3d;
    _oalRingBuffer2dProps *props2d;
    _oalRingBufferLFOInfo *lfo;
+   unsigned int num, stage;
    _intBuffers *he;
-   int stage;
    float dt;
 
    dt = _oalRingBufferGetDuration(dest_rb);
@@ -331,14 +334,17 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
       props2d->final.gain_lfo =  lfo->get(lfo, NULL, 0, 0);
    }
 
+   num = 0;
    stage = 0;
    he = e3d;
    do
    {
-      unsigned int i, num;
+      unsigned int i, no_emitters;
 
-      num = _intBufGetMaxNum(he, _AAX_EMITTER);
-      for (i=0; i<num; i++)
+      no_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
+      num += no_emitters;
+
+      for (i=0; i<no_emitters; i++)
       {
          _intBufferData *dptr_src;
          _emitter_t *emitter;
@@ -452,16 +458,19 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
       }
       _intBufReleaseNum(he, _AAX_EMITTER);
 
-      if (stage == 0)   /* 3d stage */
-      {
-         /* apply environmental effects */
-         if (num > 0) {
-            be->effects(be_handle, dest_rb, props2d);
-         }
-         he = e2d;
+      /*
+       * stage == 0 is 3d positional audio
+       * stage == 1 is stereo audio
+       */
+      if (stage == 0) {
+         he = e2d;	/* switch to stereo */
       }
    }
-   while (++stage < 2); /* positional and stereo */
+   while (++stage < 2); /* process 3d positional and stereo emitters */
+
+   if (num) {
+      be->effects(be_handle, dest_rb, props2d);
+   }
 
    _PROP_MTX_CLEAR_CHANGED(props3d);
    _PROP_PITCH_CLEAR_CHANGED(props3d);
