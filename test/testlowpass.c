@@ -58,7 +58,6 @@ int main(int argc, char **argv)
 #if 1
          /* frequency filter */
          fscene = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
-printf("fscene\n");
          fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0, 1.0, 1.0);
          fscene = aaxFilterSetState(fscene, AAX_FALSE);
          res = aaxScenerySetFilter(config, fscene);
@@ -85,7 +84,6 @@ printf("fscene\n");
          /* frequency filter */
 #if 1
          femitter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
-printf("femitter\n");
          femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0, 1.0, 0.0, 1.0);
          femitter = aaxFilterSetState(femitter, AAX_FALSE);
          res = aaxEmitterSetFilter(emitter, femitter);
