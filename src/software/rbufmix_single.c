@@ -188,7 +188,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
          int32_t *dptr = t + offs;
 
          if (lfo) {
-            g = lfo->get(lfo, sptr[track]+offs, 0, dno_samples);
+            g = lfo->get(lfo, dptr, 0, dno_samples);
          }
 
          vol_start = g*gain * svol * p2d->prev_gain[track];
@@ -305,7 +305,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       float hrtf_volume[3];
 
       if (lfo) {
-         g = lfo->get(lfo, sptr[track]+offs, 0, dno_samples);
+         g = lfo->get(lfo, t+offs, 0, dno_samples);
       }
 
       /**
@@ -475,7 +475,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       float dir_fact, g = 1.0f;
 
       if (lfo) {
-         g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
+         g = lfo->get(lfo, dptr, 0, dno_samples);
       }
 
       dir_fact = p2d->pos[track][DIR_RIGHT];
@@ -600,7 +600,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       int j;
 
       if (lfo) {
-         g = lfo->get(lfo, sptr[track]+offs, 0, dno_samples);
+         g = lfo->get(lfo, t+offs, 0, dno_samples);
       }
 
       vol_start = g*gain * svol * p2d->prev_gain[track];

@@ -118,7 +118,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       float vstart, vend, vstep, g = 1.0f;
 
       if (lfo) {
-         g = lfo->get(lfo, sptr[rbs_track]+offs, 0, dno_samples);
+         g = lfo->get(lfo, dptr, 0, dno_samples);
       }
 
       vstart = g*gain * svol * p2d->prev_gain[track];
