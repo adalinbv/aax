@@ -316,7 +316,6 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
    _oalRingBuffer3dProps *props3d;
    _oalRingBuffer2dProps *props2d;
-   _oalRingBufferLFOInfo *lfo;
    unsigned int num, stage;
    _intBuffers *he;
    float dt;
@@ -324,11 +323,6 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    dt = _oalRingBufferGetDuration(dest_rb);
    props2d = fp2d ? (_oalRingBuffer2dProps*)fp2d : (_oalRingBuffer2dProps*)sp2d;
    props3d = fp3d ? (_oalRingBuffer3dProps*)fp2d : (_oalRingBuffer3dProps*)sp2d;
-
-   lfo = _EFFECT_GET_DATA(props2d, DYNAMIC_PITCH_EFFECT);
-   if (lfo) {
-      props2d->final.pitch_lfo =  lfo->get(lfo, NULL, 0, 0);
-   }
 
    num = 0;
    stage = 0;
@@ -611,10 +605,16 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                      unsigned int dno_samples;
                      unsigned char track, tracks;
                      _oalRingBuffer *src_rb;
+                     float pitch = 1.0f;
 
                      dno_samples =_oalRingBufferGetNoSamples(dest_rb);
                      tracks=_oalRingBufferGetNoTracks(dest_rb);
                      src_rb = _intBufGetDataPtr(buf);
+
+                     lfo =_EFFECT_GET_DATA(mixer->props2d,DYNAMIC_PITCH_EFFECT);
+                     if (lfo) {
+                        pitch =  lfo->get(lfo, NULL, 0, 0);
+                     }
 
                      lfo = _FILTER_GET_DATA(mixer->props2d,DYNAMIC_GAIN_FILTER);
                      for (track=0; track<tracks; track++)
