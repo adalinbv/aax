@@ -140,8 +140,8 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
       _oalRingBufferFreqFilterInfo* freq_filter;
       unsigned int sno_samples, sstart, sno_tracks;
       unsigned int dest_pos, dno_samples, dend;
-      void* distortion_effect;
       unsigned char sbps;
+      int dist_state;
 
       /* source */
       sstart = 0;
@@ -183,8 +183,8 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
       }
 
       delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);	// phasing, etc.
-      distortion_effect = _EFFECT_GET_DATA(p2d, DISTORTION_EFFECT);
       freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
+      dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
       if (delay_effect) {
          ddesamps = rbd->dde_samples;
       }
@@ -208,7 +208,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             cdesamps = 0;
          }
 
-         if (!freq_filter && !delay_effect && !distortion_effect)
+         if (!freq_filter && !delay_effect && !dist_state)
          {
             int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
             for (track=0; track<sno_tracks; track++)
@@ -230,9 +230,10 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          {
             int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
             int32_t *scratch1 = track_ptr[SCRATCH_BUFFER1];
+            void* distortion_effect = NULL;
             
-            if ( distortion_effect) {
-                distortion_effect=&_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
+            if ( dist_state) {
+                distortion_effect = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
             }
 
             for (track=0; track<sno_tracks; track++)
