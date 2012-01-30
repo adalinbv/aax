@@ -65,10 +65,6 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
    }
 
 #if !ENABLE_LITE
-   /*
-    * phasing is second because it can be used to alter the sound of
-    * a guitar before is gets distorted.
-    */
    if (delay)
    {
       /* Apply delay effects */

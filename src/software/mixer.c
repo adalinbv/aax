@@ -329,10 +329,6 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    if (lfo) {
       props2d->final.pitch_lfo =  lfo->get(lfo, NULL, 0, 0);
    }
-   lfo = _FILTER_GET_DATA(props2d, DYNAMIC_GAIN_FILTER);
-   if (lfo) {
-      props2d->final.gain_lfo =  lfo->get(lfo, NULL, 0, 0);
-   }
 
    num = 0;
    stage = 0;
@@ -604,12 +600,14 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                if (mixer->capturing > 1)
                {
                   _intBufferData *buf;
+
                   _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
                   buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
                   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
                   if (buf)
                   {
+                     _oalRingBufferLFOInfo *lfo;
                      unsigned int dno_samples;
                      unsigned char track, tracks;
                      _oalRingBuffer *src_rb;
@@ -618,11 +616,17 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                      tracks=_oalRingBufferGetNoTracks(dest_rb);
                      src_rb = _intBufGetDataPtr(buf);
 
+                     lfo = _FILTER_GET_DATA(mixer->props2d,DYNAMIC_GAIN_FILTER);
                      for (track=0; track<tracks; track++)
                      {
                         int32_t *data = dest_rb->sample->track[track];
                         int32_t *sptr = src_rb->sample->track[track];
-                        _batch_fmadd(data, sptr, dno_samples, 1.0, 0.0);
+                        float g = 1.0f;
+
+                        if (lfo) {
+                           g = lfo->get(lfo, sptr, 0, dno_samples);
+                        }
+                        _batch_fmadd(data, sptr, dno_samples, g, 0.0);
                      }
 
                      _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
