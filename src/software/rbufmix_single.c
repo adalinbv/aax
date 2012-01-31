@@ -151,6 +151,18 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    gain *= mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   if (lfo)
+   {
+      if (!lfo->envelope)
+      {
+         float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
+         if (g > 1e-3) gain *= 1.0f/g;
+      }
+      else {
+         gain *= lfo->get(lfo, NULL, 0, 0);
+      }
+   }
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -163,7 +175,6 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Mix */
    rbd = dest->sample;
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    for (track=0; track<rbd->no_tracks; track++)
    {
       int32_t *t = (int32_t *)rbd->track[track];
@@ -183,16 +194,12 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
       ch_volume = gain * dir_fact;
       do
       {
-         float g, vol_start, vol_end, volume_step;
+         float vol_start, vol_end, volume_step;
          int32_t *ptr = sptr[ch]+offs;
          int32_t *dptr = t + offs;
 
-         if (lfo) {
-            g = lfo->get(lfo, dptr, 0, dno_samples);
-         }
-
-         vol_start = g*gain * svol * p2d->prev_gain[track];
-         vol_end = g*gain * evol * ch_volume;
+         vol_start = gain * svol * p2d->prev_gain[track];
+         vol_end = gain * evol * ch_volume;
          volume_step = (vol_end - vol_start) / dno_samples;
 
          assert(dptr+dno_samples <= t+rbd->no_samples);
@@ -285,6 +292,18 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    gain *= mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   if (lfo)
+   {
+      if (!lfo->envelope) 
+      {
+         float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
+         if (g > 1e-3) gain *= 1.0f/g;
+      } 
+      else {
+         gain *= lfo->get(lfo, NULL, 0, 0);
+      }
+   }
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -297,16 +316,11 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Mix */
    rbd = dest->sample;
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    for (track=0; track<rbd->no_tracks; track++)
    {
       int32_t *t = (int32_t *)rbd->track[track];
-      float ch_volume, dir_fact, g = 1.0f;
+      float ch_volume, dir_fact;
       float hrtf_volume[3];
-
-      if (lfo) {
-         g = lfo->get(lfo, t+offs, 0, dno_samples);
-      }
 
       /**
        * vertical positioning
@@ -341,7 +355,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
        * 0.8776 = cosf(0.5)
        */
       dir_fact = _MIN(0.8776f + p2d->pos[track][DIR_RIGHT], 1.0f);
-      ch_volume = g*gain * dir_fact;
+      ch_volume = gain * dir_fact;
       do
       {
          float vol_start, vol_end, volume_step;
@@ -349,8 +363,8 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          int32_t *dptr = t + offs;
          int j;
 
-         vol_start = g*gain * svol * p2d->prev_gain[track];
-         vol_end = g*gain * evol * ch_volume;
+         vol_start = gain * svol * p2d->prev_gain[track];
+         vol_end = gain * evol * ch_volume;
          volume_step = (vol_end - vol_start) / dno_samples;
 
          assert(dptr+dno_samples <= t+rbd->no_samples);
@@ -455,6 +469,18 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    gain *= mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   if (lfo)
+   {
+      if (!lfo->envelope) 
+      {
+         float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
+         if (g > 1e-3) gain *= 1.0f/g;
+      } 
+      else {
+         gain *= lfo->get(lfo, NULL, 0, 0);
+      }
+   }
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -467,20 +493,15 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Mix */
    rbd = dest->sample;
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    for (track=0; track<rbd->no_tracks; track++)
    {
       int32_t *dptr = (int32_t *)rbd->track[track] + offs;
       float vstart, vend, vstep;
-      float dir_fact, g = 1.0f;
-
-      if (lfo) {
-         g = lfo->get(lfo, dptr, 0, dno_samples);
-      }
+      float dir_fact;
 
       dir_fact = p2d->pos[track][DIR_RIGHT];
-      vstart = svol * g*gain * dir_fact * p2d->prev_gain[track];
-      vend   = evol * g*gain * dir_fact * gain;
+      vstart = svol * gain * dir_fact * p2d->prev_gain[track];
+      vend   = evol * gain * dir_fact * gain;
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
@@ -579,6 +600,18 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    gain *= mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
+   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   if (lfo)
+   {
+      if (!lfo->envelope) 
+      {
+         float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
+         if (g > 1e-3) gain *= 1.0f/g;
+      } 
+      else {
+         gain *= lfo->get(lfo, NULL, 0, 0);
+      }
+   }
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -589,22 +622,16 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       src->playing = !src->stopped;
    }
 
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    for (track=0; track<rbd->no_tracks; track++)
    {
       int32_t *t = (int32_t *)rbd->track[track];
-      float vol_start, vol_end; //, volume_step;
-      float dir_fact, g = 1.0f;
+      float vol_start, vol_end, dir_fact; //, volume_step;
       int32_t *dptr, *ptr;
       float hrtf_volume[3];
       int j;
 
-      if (lfo) {
-         g = lfo->get(lfo, t+offs, 0, dno_samples);
-      }
-
-      vol_start = g*gain * svol * p2d->prev_gain[track];
-      vol_end = g*gain * evol * gain;
+      vol_start = gain * svol * p2d->prev_gain[track];
+      vol_end = gain * evol * gain;
       p2d->prev_gain[track] = vol_end;
 
       /*
