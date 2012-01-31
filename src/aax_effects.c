@@ -272,6 +272,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   lfo->max = 1.0f + depth/2.0f;
                   lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->envelope = AAX_FALSE;
                   lfo->convert = _lin;
 
                   for(t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -312,6 +313,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      case AAX_ENVELOPE_FOLLOW:
                          lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                         lfo->envelope = AAX_TRUE;
                         break;
                      default:
                         break;
@@ -547,6 +549,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         break;
                      case AAX_ENVELOPE_FOLLOW:
                          data->lfo.get = _oalRingBufferLFOGetEnvelopeFollow;
+                         data->lfo.envelope = AAX_TRUE;
                         break;
                      default:
                         _aaxErrorSet(AAX_INVALID_PARAMETER);

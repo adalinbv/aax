@@ -233,7 +233,7 @@ typedef struct
    float value[_AAX_MAX_SPEAKERS];	/* current value */
    _oalRingBufferLFOGetFunc *get;
    _convert_fn *convert;
-   char inv;
+   char inv, envelope;
 } _oalRingBufferLFOInfo;
 
 typedef struct

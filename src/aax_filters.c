@@ -481,6 +481,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                   lfo->min = 1.0f - depth;
                   lfo->max = 1.0f;
+                  lfo->envelope = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                   lfo->convert = _lin;
@@ -523,6 +524,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         break;
                      case AAX_ENVELOPE_FOLLOW:
                         lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                        lfo->envelope = AAX_TRUE;
                         break;
                      default:
                         break;
@@ -596,6 +598,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                      lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                     lfo->envelope = AAX_FALSE;
                      lfo->convert = _lin; // _log2lin;
 
                      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -636,6 +639,7 @@ aaxFilterSetState(aaxFilter f, int state)
                            break;
                         case AAX_ENVELOPE_FOLLOW:
                            lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                           lfo->envelope = AAX_TRUE;
                            break;
                         default:
                            break;
