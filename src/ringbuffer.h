@@ -488,12 +488,13 @@ _oalRingBufferReference(_oalRingBuffer*);
  * Duplicate a RingBuffer based on another ringbuffer.
  *
  * @param rb the ringbuffer to duplicate
- * @param copy, true if data needs to be copied, false otherwise
+ * @param copy, true if the sample data needs to be copied, false otherwise
+ * @param dde, true if the delay effects buffers needs to be copied
  *
  * returns the newly created ringbuffer
  */
 _oalRingBuffer*
-_oalRingBufferDuplicate(_oalRingBuffer*, char);
+_oalRingBufferDuplicate(_oalRingBuffer*, char, char);
 
 /**
  * Fill the buffer with sound data.
@@ -616,24 +617,13 @@ void
 _oalRingBufferStartStreaming(_oalRingBuffer*);
 
 /**
- * Get a single audio sample from the soundbuffer
- *
- * @param rb the audiobuffer
- * @param track_no get a sample from this track
- * @param pos sample offset position in seconds within the buffer
- */
-int
-_oalRingBufferGetSample(_oalRingBuffer*, unsigned char, float);
-
-/**
- * Get the next audio sample from the soundbuffer
+ * Copy the delay effetcs buffers from one ringbuffer to the other.
  * 
- * @param rb the audiobuffer
- * @param track_no get a sample from this track
- * @param step the number of seconds to skip
+ * @param dest destination ringbuffer
+ * @param src source ringbuffer
  */
-int
-_oalRingBufferGetNextSample(_oalRingBuffer*, unsigned char, float);
+void
+_oalRingBufferCopyDelyEffectsData(_oalRingBuffer*, const _oalRingBuffer*);
 
 /**
  * M:N channel ringbuffer mixer.

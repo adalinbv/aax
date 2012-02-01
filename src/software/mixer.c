@@ -69,13 +69,16 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
 
          /* save the unmodified next effects buffer for later use          */
          /* (scratch buffers have a leading and a trailing effects buffer) */
+         DBG_MEMCLR(1, scratch1-ddesamps, no_samples+2*ddesamps, bps);
          _aax_memcpy(scratch1+no_samples, ddeptr+no_samples, ddesamps*bps);
 
          /* mix the buffer and the delay buffer */
+         DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
          bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, no_samples,
                          ddesamps, track, freq_filter, delay, distortion);
 
          /* copy the unmodified next effects buffer back */
+         DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
          _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
 
          /* copy the data back from scratch0 to dptr */
@@ -532,7 +535,7 @@ _aaxSoftwareMixerReadFrame(void *config, const void* backend, void *handle)
       _oalRingBuffer *nrb;
 
       _oalRingBufferFillInterleaved(dest_rb, dbuf, 1, AAX_FALSE);
-      nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE);
+      nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
 
        _oalRingBufferForward(dest_rb);
        /*
@@ -682,7 +685,7 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
 
       nbufs = _intBufGetNum(mixer->ringbuffers, _AAX_RINGBUFFER);
       if (nbufs == 1) {
-         dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE);
+         dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
       }
       else
       {

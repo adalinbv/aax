@@ -1045,13 +1045,14 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
 
    if TEST_FOR_TRUE(mixer->capturing)
    {
+      char dde = (_EFFECT_GET2D_DATA(mixer, DELAY_EFFECT) != NULL);
       _intBuffers *ringbuffers = mixer->ringbuffers;
       unsigned int nbufs; 
  
       nbufs = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
       if (nbufs == 0)
       {
-         _oalRingBuffer *nrb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE);
+         _oalRingBuffer *nrb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE, dde);
          _intBufAddData(ringbuffers, _AAX_RINGBUFFER, dest_rb);
          dest_rb = nrb;
       }
@@ -1063,6 +1064,10 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
          _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
          _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
          _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
+         if (dde) {
+            _oalRingBufferCopyDelyEffectsData(nrb, dest_rb);
+         }
          dest_rb = nrb;
       }
       mixer->ringbuffer = dest_rb;

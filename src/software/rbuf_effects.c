@@ -73,10 +73,7 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
       }
       else				/* phasing, chorus */
       {
-         unsigned int offs = effect->delay.sample_offs[track];
-         unsigned int ext_no_samples = no_samples + offs;
-
-         _aax_memcpy(pdst+start-offs, psrc+start-offs, ext_no_samples*bps);
+         _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
          bufEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds, delay, track);
          BUFSWAP(pdst, psrc);
       }
@@ -249,7 +246,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
          if (i >= step)
          {
-            float diff;
+//          float diff;
             do
             {
                _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);

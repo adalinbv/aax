@@ -752,7 +752,7 @@ _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n)
       float gain = _aaxALSADriverBackend.gain;
 
       if (hwbuf == 0)
-         hwbuf = _oalRingBufferDuplicate(d, AAX_TRUE);
+         hwbuf = _oalRingBufferDuplicate(d, AAX_TRUE, AAX_FALSE);
 
       pos = handle->sources_list[n];
       if (pos == 0)

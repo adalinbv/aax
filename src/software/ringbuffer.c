@@ -225,7 +225,7 @@ _oalRingBufferReference(_oalRingBuffer *ringbuffer)
 }
 
 _oalRingBuffer *
-_oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy)
+_oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
 {
    _oalRingBuffer *rb;
 
@@ -264,6 +264,9 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy)
       {
          rbdd->scratch = rbsd->scratch;
          rbsd->scratch = NULL;
+      }
+      if (dde) {
+         _oalRingBufferCopyDelyEffectsData(rb, ringbuffer);
       }
    }
 
@@ -633,6 +636,43 @@ _oalRingBufferStartStreaming(_oalRingBuffer *rb)
 // rb->playing = 1;
    rb->stopped = 0;
    rb->streaming = 1;
+}
+
+void
+_oalRingBufferCopyDelyEffectsData(_oalRingBuffer *d, const _oalRingBuffer *s)
+{
+   _oalRingBufferSample *srbd, *drbd;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(s);
+   assert(d);
+
+   srbd = s->sample;
+   drbd = d->sample;
+
+   if (srbd->bytes_sample == drbd->bytes_sample)
+   {
+      unsigned int t, tracks, ds, bps;
+
+      ds = srbd->dde_samples;
+      if (ds > drbd->dde_samples) {
+         ds = drbd->dde_samples;
+      }
+
+      tracks = srbd->no_tracks;
+      if (tracks > drbd->no_tracks) {
+         tracks = drbd->no_tracks;
+      }
+
+     bps = srbd->bytes_sample;
+      for (t=0; t<tracks; t++)
+      {
+         int32_t *sptr = srbd->track[t];
+         int32_t *dptr = drbd->track[t];
+         _aax_memcpy(dptr-ds, sptr-ds, ds*bps);
+      }
+   }
 }
 
 
