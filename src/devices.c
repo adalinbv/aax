@@ -14,7 +14,7 @@
 #endif
 
 #include <assert.h>
-#include <strings.h>	/* strncasecmp */
+#include <strings.h>	/* strncasecmp, strstr */
 #include <time.h>	/* time */
 
 #include <xml.h>
@@ -274,6 +274,13 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       unsigned int n, num;
       void *xoid;
 
+      if (xmlNodeCompareString(xcid, "version", AAX_VERSION_STR))
+      {
+         xmlFree(xcid);
+         printf("Warning: incorrect configuration file version, skipping.\n");
+         return;
+      }
+
       xoid = xmlMarkId(xcid);
       num = xmlNodeGetNum(xoid, "output");      /* global output sections */
       config->no_nodes = num;
@@ -303,7 +310,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             if (setup) {
                q = _oal_getbool(setup);
             } else {
-               q = xmlNodeGetBool(xoid, "valve-compressor");
+               q = xmlNodeGetBool(xoid, "tube-compressor");
             }
             if (q) {
                _aaxProcessCompression = bufCompressValve;
@@ -334,42 +341,73 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             if (i) config->node[n].no_emitters = i;
 
 
-            /* find a mathcing backend */
+            /*
+             * find a mathcing backend
+             * level == 0, not fout
+             * level == 1, defaul device found
+             * level == 2, requested device found
+             * level == 3, requested device found with requested output port
+             */
             xbid = xmlMarkId(xcid);
             be_num = xmlNodeGetNum(xbid, "backend");
             for (be=0; be<be_num; be++)
             {
-               char name[64], rr[255];
+               static char curlevel = 0;
                char *input, *output;
-               unsigned int size;
+               char rr[255];
+               char level;
 
                xmlNodeGetPos(xcid, xbid, "backend", be);
-
-               size = xmlNodeCopyString(xbid, "name", (char*)&name, 64);
-               if (!size || strcasecmp(config->backend.driver, name)) {
+               if (xmlNodeCompareString(xbid, "name", config->backend.driver)) {
                   continue;
                }
 
+               level = 0;
                output = xmlNodeCopy(xbid, "output");
                if (output)
                {
+                  unsigned int size;
+
                   *rr = '\0';
                   size = xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
-                  if (size && devname[1] && (strncasecmp(devname[1], rr, size)
-                                             && strcasecmp(rr,"default")))
+                  if (size && devname[1])
                   {
-                     xmlFree(output);
-                     continue;
+                     if (strlen(devname[1]) < size) size = strlen(devname[1]);
+
+                     if (!strcasecmp(rr, "default") && level < 2) level = 1;
+                     else if (!strncasecmp(devname[1], rr, size))
+                     {
+                        char *dptr = strstr(devname[1], ": ");
+                        char *rrptr = strstr(rr, ": ");
+                        if ((dptr-devname[1]) == (rrptr-rr)) level = 3;
+                        else level = 2;
+                     }
+                     else
+                     {
+                        xmlFree(output);
+                        output = 0;
+                        continue;
+                     }
+                  }
+                  else {		/* no renderer specified or requested */
+                     level = 1;
                   }
                }
 
-               free(config->backend.driver);
-               config->backend.driver = _aax_strdup(name);
-
-               if (output)
+               if (level > curlevel)
                {
-                  unsigned int q, i, index = -1;
-                  void *xsid;
+                  unsigned int q, i, l, index = -1;
+                  void *xsid, *ptr;
+
+                  curlevel = level;
+
+                  ptr = config->backend.driver;
+                  l = strlen(config->backend.driver) + strlen(rr) + 5;
+                  config->backend.driver = malloc(l);
+                  strcpy(config->backend.driver, ptr);
+                  strcat(config->backend.driver, " on ");
+                  strcat(config->backend.driver, rr);
+                  free(ptr);
 
                   xmlFree(config->backend.output);
                   config->backend.output = output;

@@ -64,6 +64,7 @@ typedef struct
    enum aaxRenderMode mode;
 
    struct {
+      char *driver;
       void *handle;
       const _aaxDriverBackend *ptr;
    } backend;

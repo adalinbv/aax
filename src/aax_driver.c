@@ -63,7 +63,11 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       switch(type)
       {
       case AAX_NAME_STRING:
-         rv = (char*)be->driver;
+         if (handle->backend.driver) {
+            rv = (char*)handle->backend.driver;
+         } else {
+            v = (char*)be->driver;
+         }
          break;
       case AAX_VERSION_STRING:
          rv = (char*)be->version;
@@ -368,6 +372,8 @@ aaxDriverDestroy(aaxConfig config)
          free(handle->devname[0]);
          handle->devname[0] = (char *)_aax_default_devname;
       }
+
+      free(handle->backend.driver);
 
       /* safeguard against using already destroyed handles */
       handle->id = 0xdeadbeef;
@@ -818,6 +824,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
          if (be || (handle->devname[0] != _aax_default_devname)) {
             handle->backend.ptr = be;
          }
+         handle->backend.driver = strdup(config->backend.driver);
 
          key ^= 0x21051974;
          if (config->node[0].no_emitters)
