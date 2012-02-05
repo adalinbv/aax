@@ -74,7 +74,7 @@ int main(int argc, char **argv)
             unsigned max_device;
             const char *d;
 
-            d = aaxDriverGetSetup(cfg, AAX_NAME_STRING);
+            d = aaxDriverGetSetup(cfg, AAX_RENDERER_STRING);
             max_device = aaxDriverGetDeviceCount(cfg, mode);
             if (max_device)
             {
