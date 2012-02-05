@@ -66,7 +66,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          if (handle->backend.driver) {
             rv = (char*)handle->backend.driver;
          } else {
-            v = (char*)be->driver;
+            rv = (char*)be->driver;
          }
          break;
       case AAX_VERSION_STRING:

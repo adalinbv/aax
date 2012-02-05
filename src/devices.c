@@ -397,7 +397,8 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                if (level > curlevel)
                {
                   unsigned int q, i, l, index = -1;
-                  void *xsid, *ptr;
+                  void *xsid;
+                  char *ptr;
 
                   curlevel = level;
 
@@ -421,6 +422,14 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                   i = xmlNodeGetNum(xsid, "speaker");
                   if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
+
+                  ptr = xmlNodeGetString(xsid, "setup");
+                  if (ptr)
+                  {
+                     free(config->node[0].setup);
+                     config->node[0].setup = strdup(ptr);
+                     xmlFree(ptr);
+                  }
 
                   for (q=0; q<i; q++)
                   {
