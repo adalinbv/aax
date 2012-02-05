@@ -427,11 +427,12 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       }
 
 #if 0
-// printf("frequency-hz: %f\n", handle->frequency_hz);
-// printf("channels: %i\n", handle->no_channels);
-// printf("bytes-per-sample: %i\n", handle->bytes_sample);
-// printf("periods: %i\n", handle->no_periods);
-// printf("renderer: %s\n", handle->name);
+ printf("\nrenderer: %s\n", handle->name);
+ printf("frequency-hz: %f\n", handle->frequency_hz);
+ printf("channels: %i\n", handle->no_channels);
+ printf("bytes-per-sample: %i\n", handle->bytes_sample);
+ printf("periods: %i\n", handle->no_periods);
+ printf("\n");
 #endif
    }
 
@@ -557,7 +558,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       TRUN( psnd_pcm_hw_params_set_format(hid, hwparams, data_format),
             "unsupported audio fromat" );
 
-      if (err >= 0 && handle->mode == 0)	/* capture */
+      if (err >= 0  && handle->mode == 0)	/* capture */
       {
          handle->interleaved = 1;
          handle->use_mmap = 0;
@@ -609,34 +610,34 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 #endif
 
          handle->latency = (float)size*(float)periods/((float)rate*(float)*tracks*(float)bps);
+      }
 
-         do
-         {
-            char str[255];
+      do
+      {
+         char str[255];
 
-            _AAX_SYSLOG("alsa; driver settings:");
+         _AAX_SYSLOG("alsa; driver settings:");
 
-            snprintf(str,255,"  output renderer: '%s'", handle->name);
-            _AAX_SYSLOG(str);
-            snprintf(str,255, "  playback rate: %u hz",  rate);
-            _AAX_SYSLOG(str);
-            snprintf(str,255, "  buffer size: %u bytes", (unsigned int)size);
-            _AAX_SYSLOG(str);
-            snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
-            _AAX_SYSLOG(str);
-            snprintf(str,255, "  no. periods: %i", handle->no_periods);
-            _AAX_SYSLOG(str);
-            snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
-            _AAX_SYSLOG(str);
-            snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
-            _AAX_SYSLOG(str);
-            snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
-            _AAX_SYSLOG(str);
+         snprintf(str,255,"  output renderer: '%s'", handle->name);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  playback rate: %u hz",  rate);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)size);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  no. periods: %i", handle->no_periods);
+         _AAX_SYSLOG(str);
+         snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
+         _AAX_SYSLOG(str);
+         snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
+         _AAX_SYSLOG(str);
+         snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
+         _AAX_SYSLOG(str);
 #if 0
 // printf("\tformat: %X", fmt);
 #endif
-         } while (0);
-      }
+      } while (0);
 
       do
       {
@@ -1715,8 +1716,8 @@ _aaxALSASoftDriverThread(void* config)
 #endif
 
 #if 0
-// printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
-// printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
+ printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
+ printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
       if (state != handle->state)
       {
