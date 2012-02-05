@@ -1,24 +1,25 @@
 AeonWave (2.2.0) stable; urgency=low
-  * Added flanging effect.
-  * Speed-up of filter and effect processing.
-  * Added filter and effect support for streaming audio.
-  * Added the option to modify the Q factor of frequency filters.
   * Added an 8 band graphical equalizer for the final mixer stage.
-  * Added the inverse of the modulation-waveform for filters and effects.
   * Added an envelope following option for filters and effects (auto-wah).
-  * Added seamless transisition from tube-like clipping to digital clipping
+  * Added seamless transisition from tube-like soft-clipping to sharp-clipping
     and add an asymmetric clipping option. This is most noticeable for
     the distortion effect.
-  * Added support for a dedicated configuration file entry for every device.
-  * Move the speaker setup from the global section to device specific section
-    in the configuration file.
   * Added support for subframes. Subframes are like regular audio-frames
     but they are registered at other audio-frames. Where audio-frames
     render in their own thread, subframes will render in their parents thread.
-    This removes any limit to the number of supported emitters as long as the
+  - This removes any limit to the number of supported emitters as long as the
     system can handle the load.
+  * Move the speaker setup from the global section to device specific section
+    in the configuration file.
+  * Added support for a dedicated configuration file entry for every device.
+  * Added the inverse of the modulation-waveform for filters and effects.
+  * Added the option to modify the Q factor of frequency filters.
+  * Added filter and effect support for streaming audio.
+  * Speed-up of filter and effect processing.
+  * Fix delay effects for audio-frames.
+  * Added flanging effect.
 
- -- Erik Hofman <tech@adalin.org>  Tue 25 Jan 2012 15:15:00 +0100;
+ -- Erik Hofman <tech@adalin.org>  Tue 01 Feb 2012 10:55:00 +0100;
 
 
 AeonWave (2.1.2) stable; urgency=medium
