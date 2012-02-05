@@ -114,6 +114,8 @@ extern aaxMtx4f aaxIdentityMatrix;
 	aaxDriverGetSetup((a),AAX_VERSION_STRING)
 #define aaxDriverGetRenderer(a)						\
 	aaxDriverGetSetup((a),AAX_RENDERER_STRING)
+#define aaxDriverGetDriver(a)						\
+	aaxDriverGetSetup((a),AAX_DRIVER_STRING)
 #define aaxDriverGetVendor(a)						\
 	aaxDriverGetSetup((a),AAX_VENDOR_STRING)
 

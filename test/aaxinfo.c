@@ -126,18 +126,18 @@ int main(int argc, char **argv)
       x = aaxGetMajorVersion();
       y = aaxGetMinorVersion();
       s = (char *)aaxGetVersionString(cfg);
-      printf("\nVersion: %s (%i.%i)\n", s, x, y);
+      printf("\nVersion : %s (%i.%i)\n", s, x, y);
 
       if (cfg)
       {
          int res =  aaxMixerInit(cfg);
          testForState(res, "aaxMixerInit");
 
-         s = aaxDriverGetSetup(cfg, AAX_NAME_STRING);
-         printf("Driver: %s\n", s);
-
          s = aaxDriverGetVendor(cfg);
-         printf("Vendor: %s\n", s);
+         printf("Vendor  : %s\n", s);
+
+         s = aaxDriverGetDriver(cfg);
+         printf("Driver  : %s\n", s);
 
          s = aaxDriverGetRenderer(cfg);
          printf("Renderer: %s\n", s);

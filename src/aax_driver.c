@@ -62,7 +62,10 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       const _aaxDriverBackend *be = handle->backend.ptr;
       switch(type)
       {
-      case AAX_NAME_STRING:
+      case AAX_DRIVER_STRING:
+         rv = (char*)be->renderer;
+         break;
+      case AAX_RENDERER_STRING:
          if (handle->backend.driver) {
             rv = (char*)handle->backend.driver;
          } else {
@@ -71,9 +74,6 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          break;
       case AAX_VERSION_STRING:
          rv = (char*)be->version;
-         break;
-      case AAX_RENDERER_STRING:
-         rv = (char*)be->renderer;
          break;
       case AAX_VENDOR_STRING:
          rv = (char*)be->vendor;
