@@ -273,11 +273,13 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
    {
       unsigned int n, num;
       void *xoid;
+      float v;
 
-      if (xmlNodeCompareString(xcid, "version", AAX_VERSION_STR))
+      v = xmlNodeGetDouble(xcid, "version");
+      if ((v < AAX_MIN_CONFIG_VERSION) || (v > AAX_MAX_CONFIG_VERSION))
       {
          xmlFree(xcid);
-         printf("Warning: incorrect configuration file version, skipping.\n");
+         fprintf(stderr, "AAX: incompattible configuration file version, skipping.\n");
          return;
       }
 
