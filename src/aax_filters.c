@@ -276,7 +276,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         cptr = flt->coeff;
 
                         k = 1.0f;
-                        Q = 1.0f;
+                        Q = 2.0f;
                         fc = expf((float)pos*fband)*67.0f;
                         iir_compute_coefs(fc,filter->info->frequency,cptr,&k,Q);
                         flt->k = k;
