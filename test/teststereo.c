@@ -84,9 +84,9 @@ int main(int argc, char **argv)
                float off_s;
                q = 0;
 
-               off_s = aaxEmitterGetOffsetSec(emitter);
-               offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
-               offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
+               off_s = aaxEmitterGetOffsetSec(emitter[q]);
+               offs = aaxEmitterGetOffset(emitter[q], AAX_SAMPLES);
+               offs_bytes = aaxEmitterGetOffset(emitter[q], AAX_BYTES);
                printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
             }
 #endif
