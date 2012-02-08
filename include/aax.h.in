@@ -533,6 +533,8 @@ AAX_API int AAX_APIENTRY aaxMatrixGetOrientation(aaxMtx4f, aaxVec3f, aaxVec3f, a
 AAX_API aaxFrame AAX_APIENTRY aaxAudioFrameCreate(aaxConfig);
 AAX_API int AAX_APIENTRY aaxAudioFrameDestroy(aaxFrame);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
+AAX_API int AAX_APIENTRY aaxAudioFrameRegisterSensor(const aaxFrame, const aaxConfig);
+AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterSensor(const aaxFrame, const aaxConfig);
 AAX_API int AAX_APIENTRY aaxAudioFrameRegisterEmitter(const aaxFrame, const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
