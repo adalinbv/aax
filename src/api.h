@@ -101,7 +101,6 @@ typedef struct
    _aaxAudioFrame *submix;
 
    unsigned int pos;
-   void* handle_ptr;
    void* handle;	/* assigned when registered to the mixer */
 
    int state;
