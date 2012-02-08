@@ -1737,11 +1737,24 @@ _aaxALSASoftDriverThread(void* config)
 
          if (_IS_PLAYING(handle) && be->is_available(be_handle))
          {
+            dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            sensor = _intBufGetDataPtr(dptr_sensor);
+            mixer = sensor->mixer;
+
             if (mixer->info->mode == AAX_MODE_READ)
             {
-               float dt;
-               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               dt = _aaxSoftwareMixerReadFrame(mixer, be, be_handle);
+               float dt = mixer->info->refresh_rate;
+               void *rv, *rb = mixer->ringbuffer;
+
+               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+               rv = _aaxSoftwareMixerReadFrame(rb, be, be_handle, &dt);
+
+               _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               if (rb != rv)
+               {
+                  _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, rb);
+                  mixer->ringbuffer = rv;
+               }
                mixer->curr_pos_sec += dt;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
@@ -1759,8 +1772,6 @@ _aaxALSASoftDriverThread(void* config)
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one frame anyhow                       */
-               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               sensor = _intBufGetDataPtr(dptr_sensor);
                memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
                memcpy(&sp2d.pos, mixer->info->speaker,
                                   _AAX_MAX_SPEAKERS*sizeof(vec4));

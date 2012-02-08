@@ -875,7 +875,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
 }
 
 _filter_t*
-get_effect(aaxEffect f)
+get_effect(const aaxEffect f)
 {
    _filter_t* rv = (_filter_t*)f;
    if (rv && rv->id == EFFECT_ID) {

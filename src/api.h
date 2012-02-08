@@ -54,6 +54,13 @@ typedef struct
 
 #define VALID_HANDLE(handle)	((handle->valid & ~AAX_TRUE) == HANDLE_ID)
 
+struct backend_t
+{
+   char *driver;
+   void *handle;
+   const _aaxDriverBackend *ptr;
+};
+
 typedef struct
 {
    unsigned int id;
@@ -63,11 +70,7 @@ typedef struct
    char *devname[2];
    enum aaxRenderMode mode;
 
-   struct {
-      char *driver;
-      void *handle;
-      const _aaxDriverBackend *ptr;
-   } backend;
+   struct backend_t backend;
    _intBuffers *backends;
 
    int state;

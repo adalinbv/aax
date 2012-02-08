@@ -334,74 +334,91 @@ _aaxSensorCaptureStart(_handle_t *handle)
 {
    int rv = AAX_FALSE;
 
-// if (handle->info->mode == AAX_MODE_READ)
-   if (handle && TEST_FOR_FALSE(handle->thread.started))
+   assert(handle);
+   assert(handle->info->mode == AAX_MODE_READ);
+   assert(handle->thread.started == AAX_FALSE);
+
+   if (_IS_INITIAL(handle) || _IS_STOPPED(handle))
    {
-      const _aaxDriverBackend *be = handle->backend.ptr;
-
-      if (be->thread)
+      _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
       {
-         int r;
-
-         handle->thread.update = 1;
-
-         handle->thread.ptr = _aaxThreadCreate();
-         assert(handle->thread.ptr != 0);
-
-         handle->thread.condition = _aaxConditionCreate();
-         assert(handle->thread.condition != 0);
-
-         handle->thread.mutex = _aaxMutexCreate(0);
-         assert(handle->thread.mutex != 0);
-
-         handle->thread.started = AAX_TRUE;
-         r = _aaxThreadStart(handle->thread.ptr, _aaxSoftwareMixerThread, handle);
-         if (r == 0)
+         _sensor_t *sensor = _intBufGetDataPtr(dptr);
+         char thread = sensor->mixer->thread;
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+         if (thread)
          {
-            int p = 0;
-            do
+            const _aaxDriverBackend *be = handle->backend.ptr;
+
+            if (be->thread)
             {
-               static const struct timespec sleept = {0, 100000};
-               _intBufferData *dptr;
+               int r;
 
-               nanosleep(&sleept, 0);
+               handle->thread.update = 1;
 
-               dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               if (dptr)
+               handle->thread.ptr = _aaxThreadCreate();
+               assert(handle->thread.ptr != 0);
+
+               handle->thread.condition = _aaxConditionCreate();
+               assert(handle->thread.condition != 0);
+
+               handle->thread.mutex = _aaxMutexCreate(0);
+               assert(handle->thread.mutex != 0);
+
+               handle->thread.started = AAX_TRUE;
+               r = _aaxThreadStart(handle->thread.ptr, _aaxSoftwareMixerThread,
+                                   handle);
+               if (r == 0)
                {
-                  _sensor_t *sensor = _intBufGetDataPtr(dptr);
-                  r = (sensor->mixer->ringbuffer != 0);
-                  _intBufReleaseData(dptr, _AAX_SENSOR);
+                  int p = 0;
+                  do
+                  {
+                     static const struct timespec sleept = {0, 100000};
+
+                     nanosleep(&sleept, 0);
+
+                     dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+                     if (dptr)
+                     {
+                        sensor = _intBufGetDataPtr(dptr);
+                        r = (sensor->mixer->ringbuffer != 0);
+                        _intBufReleaseData(dptr, _AAX_SENSOR);
+                     }
+                     if (p++ > 500) break;
+                  }
+                  while (r == 0);
+
+                  if (r == 0)
+                  {
+                     _aaxErrorSet(AAX_TIMEOUT);
+                     handle->thread.started = AAX_FALSE;
+                  }
+                  else
+                  {
+                     dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+                     if (dptr)
+                     {
+                        sensor = _intBufGetDataPtr(dptr);
+                        sensor->mixer->capturing = AAX_TRUE;
+                        _intBufReleaseData(dptr, _AAX_SENSOR);
+                     }
+
+                     _SET_PLAYING(handle);
+                     rv = AAX_TRUE;
+                  }
                }
-               if (p++ > 500) break;
             }
-            while (r == 0);
-
-            if (r == 0)
-            {
-               _aaxErrorSet(AAX_TIMEOUT);
-               handle->thread.started = AAX_FALSE;
+            else {
+               _aaxErrorSet(AAX_INVALID_STATE);
             }
-            else
-            {
-               _intBufferData *dptr;
-
-               dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               if (dptr)
-               {
-                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                  sensor->mixer->capturing = AAX_TRUE;
-                  _intBufReleaseData(dptr, _AAX_SENSOR);
-               }
-
-               _SET_PLAYING(handle);
-               rv = AAX_TRUE;
-            }
-         }
+         } /* sensor->mixer->thread */
          else {
-            _aaxErrorSet(AAX_INVALID_STATE);
+            rv = AAX_TRUE;
          }
-      }
+      }	
+   }
+   else if (_IS_STANDBY(handle)) {
+      rv = AAX_TRUE;
    }
    return rv;
 }

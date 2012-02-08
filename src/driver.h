@@ -19,6 +19,9 @@
 #define AAX_LIBRARY_STR			"AeonWave-HD"
 #define AAX_LIBRARY_STR_LT		"AeonWave-Lite"
 
+#define AAX_MIN_CONFIG_VERSION		0.0f
+#define AAX_MAX_CONFIG_VERSION		1.1f
+
 #define _AAX_MAX_MIXER_FREQUENCY	192000
 #define _AAX_MAX_MIXER_FREQUENCY_LT	44100
 
@@ -130,7 +133,7 @@ extern _aaxDriverThread _aaxSoftwareMixerThread;
 void _aaxNoneDriverProcessFrame(void*);
 
 unsigned int _aaxSoftwareMixerSignalFrames(void*);
-float _aaxSoftwareMixerReadFrame(void*, const void*, void*);
+void* _aaxSoftwareMixerReadFrame(void*, const void*, void*, float*);
 int _aaxSoftwareMixerPlayFrame(void*, const void*, void*, void*);
 void _aaxSoftwareMixerProcessFrame(void*, void*, void*, void*, void*, void*, void*, void*, const void*, void*);
 

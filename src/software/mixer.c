@@ -511,21 +511,21 @@ _aaxSoftwareMixerSignalFrames(void *frames)
    return num;
 }
 
-float
-_aaxSoftwareMixerReadFrame(void *config, const void* backend, void *handle)
+void*
+_aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *rr)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
-   _aaxAudioFrame* mixer = (_aaxAudioFrame*)config;
-   _oalRingBuffer *dest_rb;
+   _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
    size_t tracksize;
-   float rv = 0;
+   void *rv = rb;
    char *dbuf;
    int res;
 
    /*
     * dest_rb is thread specific and does not need a lock
     */
-   dest_rb = mixer->ringbuffer;
+   assert(dest_rb->sample);
+
    dbuf = dest_rb->sample->scratch[0];
    tracksize = _oalRingBufferGetTrackSize(dest_rb);
 
@@ -536,16 +536,9 @@ _aaxSoftwareMixerReadFrame(void *config, const void* backend, void *handle)
 
       _oalRingBufferFillInterleaved(dest_rb, dbuf, 1, AAX_FALSE);
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-
-       _oalRingBufferForward(dest_rb);
-       /*
-        * mixer->ringbuffers is shared between threads and needs
-        * to be locked
-        */
-       _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, dest_rb);
-
-       mixer->ringbuffer = nrb;
-       rv = 1.0f/mixer->info->refresh_rate;
+      _oalRingBufferForward(dest_rb);
+      *rr = 1.0f / *rr;
+      rv = nrb;
    }
    return rv;
 }
@@ -713,8 +706,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
    _handle_t *handle = (_handle_t *)config;
    const _aaxDriverBackend* be;
    _intBufferData *dptr_sensor;
-   _aaxAudioFrame *mixer;
-   _sensor_t* sensor;
    int res = 0;
 
    assert(handle);
@@ -722,30 +713,34 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
    assert(handle->backend.ptr);
    assert(handle->info->no_tracks);
 
-   dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-   if (dptr_sensor)
-   {
-      sensor = _intBufGetDataPtr(dptr_sensor);
-      mixer = sensor->mixer;
-      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-   }
-   else {
-      return 0;
-   }
-
    be = handle->backend.ptr;
-   if (_IS_PLAYING(handle) || _IS_STANDBY(handle))
+   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor && (_IS_PLAYING(handle) || _IS_STANDBY(handle)))
    {
       void* be_handle = handle->backend.handle;
+      _aaxAudioFrame *mixer = NULL;
+      _sensor_t* sensor;
 
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
+         dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         sensor = _intBufGetDataPtr(dptr_sensor);
+         mixer = sensor->mixer;
+
          if (handle->info->mode == AAX_MODE_READ)
          {
-            float dt;
+            float dt = mixer->info->refresh_rate;
+            void *rv, *rb = mixer->ringbuffer;
 
-            dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            dt = _aaxSoftwareMixerReadFrame(mixer, be, be_handle);
+            _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+            rv = _aaxSoftwareMixerReadFrame(rb, be, be_handle, &dt);
+
+            _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (rb != rv)
+            {
+               _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, rb);
+               mixer->ringbuffer = rv;
+            }
             mixer->curr_pos_sec += dt;
             _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
          }
@@ -763,8 +758,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 
             /* copying here prevents locking the listener the whole time */
             /* it's used for just one time-frame anyhow                  */
-            dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            sensor = _intBufGetDataPtr(dptr_sensor);
             memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
             memcpy(&sp2d.pos, handle->info->speaker,
                                _AAX_MAX_SPEAKERS*sizeof(vec4));
@@ -785,12 +778,14 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
       {
          if (handle->info->mode != AAX_MODE_READ)
          {
-            if (mixer->emitters_3d || mixer->emitters_2d)
-            {
-               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            sensor = _intBufGetDataPtr(dptr_sensor);
+            mixer = sensor->mixer;
+
+            if (mixer->emitters_3d || mixer->emitters_2d) {
                _aaxNoneDriverProcessFrame(mixer);
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
+            _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
          }
       }
    }
