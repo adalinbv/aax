@@ -37,12 +37,17 @@ enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
 typedef struct
 {
-   /* parametric equalizer **/
-   _oalRingBufferFilterInfo filter[EQUALIZER_MAX];
+   int state;
+   unsigned int pos;
+   void* handle;        /* assigned when registered to a (sub)mixer */
+
    _aaxAudioFrame *mixer;
 
    size_t count;
    size_t no_speakers;
+
+   /* parametric equalizer, located at _handle_t **/
+   _oalRingBufferFilterInfo *filter;
 
 } _sensor_t;
 
@@ -61,28 +66,32 @@ struct backend_t
    const _aaxDriverBackend *ptr;
 };
 
+struct threat_t
+{
+   void *ptr;
+   void *mutex;
+   void *condition;
+   char started;
+   char update;
+};
+
 typedef struct
 {
    unsigned int id;
-   int valid;
 
-   _aaxMixerInfo* info;
-   char *devname[2];
+   int valid;
+   int state;
    enum aaxRenderMode mode;
 
-   struct backend_t backend;
+   char *devname[2];
+   _aaxMixerInfo *info;
+   _intBuffers *sensors;		/* locked sensor and scene properies */
    _intBuffers *backends;
+   struct backend_t backend;
+   struct threat_t thread;
 
-   int state;
-   struct {
-      void* ptr;
-      void* mutex;
-      void* condition;
-      char started;
-      char update;
-   } thread;
-
-   _intBuffers* sensors;		/* locked sensor and scene properies */
+   /* parametric equalizer **/
+   _oalRingBufferFilterInfo filter[EQUALIZER_MAX];
 
 } _handle_t;
 
@@ -98,19 +107,13 @@ typedef struct
 {
    int id;
 
+   int state;
+   unsigned int pos;
+   void* handle;	/* assigned when registered to a (sub)mixer */
+
    _aaxAudioFrame *submix;
 
-   unsigned int pos;
-   void* handle;	/* assigned when registered to the mixer */
-
-   int state;
-   struct {
-      void* ptr;
-      void* mutex;
-      void* condition;
-      char started;
-      char update;
-   } thread;
+   struct threat_t thread;
 
 } _frame_t;
 

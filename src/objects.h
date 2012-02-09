@@ -108,9 +108,10 @@ typedef struct
    _oalRingBuffer3dProps* props3d;
    void *props3d_ptr;
 
-   _intBuffers* emitters_2d;		/* plain stereo emitters */
-   _intBuffers* emitters_3d;	/* emitters with positional information */
-   _intBuffers* frames;			/* other audio frames */
+   _intBuffers *emitters_2d;		/* plain stereo emitters	*/
+   _intBuffers *emitters_3d;	/* emitters with positional information	*/
+   _intBuffers *frames;			/* other audio frames		*/
+   _intBuffers *sensors;		/* registered input ports	*/
 
    _oalRingBuffer* ringbuffer;
    _intBuffers *ringbuffers;		/* for loopback capture */

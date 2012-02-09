@@ -601,7 +601,6 @@ new_handle()
 
       handle->id = HANDLE_ID;
       handle->backends = get_backends();
-      _SET_STOPPED(handle);
 
       info = (_aaxMixerInfo*)ptr2;
       _aax_memcpy(info, &_aaxDefaultMixerInfo, sizeof(_aaxMixerInfo));
@@ -673,13 +672,13 @@ _open_handle(aaxConfig config)
                _sensor_t* sensor = ptr1;
                _aaxAudioFrame* mixer;
 
-               sensor->filter = handle->filter;
                size = EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
-               memcpy(sensor->filter, &_aaxMixerDefaultEqualizer, size);
+               memcpy(&sensor->filter, &_aaxMixerDefaultEqualizer, size);
 
                size = sizeof(_sensor_t);
                mixer = (_aaxAudioFrame*)((char*)sensor + size);
 
+               _SET_STOPPED(sensor);
                sensor->mixer = mixer;
                sensor->mixer->info = handle->info;
 
