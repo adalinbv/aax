@@ -872,7 +872,7 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
          break;
       case AAX_STOPPED:
          rv = _aaxAudioFrameStop(handle);
-         if (rv) _SET_STOPPED(handle);
+         if (rv) _SET_PROCESSED(handle);
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1051,7 +1051,7 @@ _aaxAudioFrameStart(_frame_t *frame)
    assert(frame);
 
 // if (frame->handle && TEST_FOR_FALSEframe->thread.started))
-   if ( (_IS_INITIAL(frame) || _IS_STOPPED(frame)) && (frame->submix->thread) )
+   if ( (_IS_INITIAL(frame) || _IS_PROCESSED(frame)) && (frame->submix->thread) )
    {
       int r;
 

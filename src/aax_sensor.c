@@ -311,11 +311,21 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       switch(state)
       {
       case AAX_CAPTURING:
-         rv = _aaxSensorCaptureStart(handle);
+         if (handle->info->mode == AAX_MODE_READ) {
+            rv = _aaxSensorCaptureStart(handle);
+         } else if (_IS_PLAYING(handle)) {
+            rv = AAX_TRUE;
+         } else {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         }
          break;
 //    case AAX_PROCESSED:
       case AAX_STOPPED:
-         rv = _aaxSensorCaptureStop(handle);
+         if (handle->info->mode == AAX_MODE_READ) {
+            rv = _aaxSensorCaptureStop(handle);
+         } else {
+            rv = AAX_TRUE;
+         }
          break;
       default:
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -338,7 +348,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
    assert(handle->info->mode == AAX_MODE_READ);
    assert(handle->thread.started == AAX_FALSE);
 
-   if (_IS_INITIAL(handle) || _IS_STOPPED(handle))
+   if (_IS_INITIAL(handle) || _IS_PROCESSED(handle))
    {
       _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr)
@@ -429,7 +439,7 @@ _aaxSensorCaptureStop(_handle_t *handle)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(handle->thread.started)
    {
-      if (1) // handle->info->mode == AAX_MODE_READ)
+      if (handle->info->mode == AAX_MODE_READ)
       {
          const _intBufferData* dptr;
 
@@ -449,7 +459,7 @@ _aaxSensorCaptureStop(_handle_t *handle)
 //          _intBufReleaseData(dptr, _AAX_SENSOR);
          }
 
-         _SET_STOPPED(handle);
+         _SET_PROCESSED(handle);
          rv = AAX_TRUE;
       }
    }

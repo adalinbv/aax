@@ -601,7 +601,7 @@ new_handle()
 
       handle->id = HANDLE_ID;
       handle->backends = get_backends();
-      _SET_STOPPED(handle);
+      _SET_PROCESSED(handle);
 
       info = (_aaxMixerInfo*)ptr2;
       _aax_memcpy(info, &_aaxDefaultMixerInfo, sizeof(_aaxMixerInfo));

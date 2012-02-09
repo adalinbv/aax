@@ -436,7 +436,7 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
          break;
       case AAX_STOPPED:
          rv = _aaxMixerStop(handle);
-         if (rv) _SET_STOPPED(handle);
+         if (rv) _SET_PROCESSED(handle);
          break;
       default:
          _aaxErrorSet(AAX_INVALID_PARAMETER);
