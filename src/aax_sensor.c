@@ -313,7 +313,10 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       case AAX_CAPTURING:
          if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
             rv = _aaxSensorCaptureStart(handle);
-         } else if (_IS_PLAYING(handle)) {
+         }
+         else if (handle->handle)
+         {
+            _SET_PLAYING(handle);
             rv = AAX_TRUE;
          } else {
             _aaxErrorSet(AAX_INVALID_STATE);

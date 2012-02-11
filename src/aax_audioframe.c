@@ -526,6 +526,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _oalRingBuffer3dProps *mp3d, *sp3d;
                   _aaxAudioFrame* mixer, *submix;
+                  _oalRingBuffer *rb;
 
                   mixer = handle->submix;
                   submix = sensor->mixer;
@@ -545,11 +546,33 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
                   }
 
-                  sensor->mixer->thread = AAX_TRUE;
-                  sensor->mixer->refcount++;
+                  submix->thread = AAX_TRUE;
+                  submix->refcount++;
                   config->info = handle->submix->info;
                   config->handle = handle;
                   config->pos = pos;
+
+                  if (!submix->ringbuffer) {
+                     submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+                  }
+
+                  rb = submix->ringbuffer;
+                  if (rb)
+                  {
+                     _aaxMixerInfo* info = config->info;
+                     const _aaxDriverBackend *be;
+                     float delay_sec;
+
+                     be = _aaxGetDriverBackendLoopback();
+                     delay_sec = 1.0f / config->info->refresh_rate;
+
+                     _oalRingBufferSetNoTracks(rb, info->no_tracks);
+                     _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+                     _oalRingBufferSetFrequency(rb, info->frequency);
+                     _oalRingBufferSetDuration(rb, delay_sec);
+                     _oalRingBufferInit(rb, AAX_TRUE);
+                     _oalRingBufferStart(rb);
+                  }
 
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                   rv = AAX_TRUE;
