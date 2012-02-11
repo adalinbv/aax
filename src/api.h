@@ -37,10 +37,6 @@ enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
 typedef struct
 {
-   int state;
-   unsigned int pos;
-   void* handle;        /* assigned when registered to a (sub)mixer */
-
    _aaxAudioFrame *mixer;
 
    size_t count;
@@ -81,7 +77,8 @@ typedef struct
 
    int valid;
    int state;
-   enum aaxRenderMode mode;
+   unsigned int pos;
+   void* handle;		/* assigned when registered to a (sub)mixer */
 
    char *devname[2];
    _aaxMixerInfo *info;
@@ -98,7 +95,8 @@ typedef struct
 _handle_t* new_handle();
 _handle_t* get_handle(aaxConfig);
 _handle_t* get_valid_handle(aaxConfig);
-_handle_t* get_capture(aaxConfig);
+_handle_t* get_read_handle(aaxConfig);
+_handle_t* get_write_handle(aaxConfig);
 
 /* --- AudioFrame --- */
 #define AUDIOFRAME_ID   0x3137ABFF

@@ -601,6 +601,8 @@ new_handle()
 
       handle->id = HANDLE_ID;
       handle->backends = get_backends();
+
+      handle->pos = UINT_MAX;
       _SET_PROCESSED(handle);
 
       info = (_aaxMixerInfo*)ptr2;
@@ -617,26 +619,64 @@ _handle_t*
 get_handle(aaxConfig config)
 {
    _handle_t *handle = (_handle_t *)config;
+   _handle_t *rv = NULL;
 
-   if (handle && handle->id != HANDLE_ID) {
-      handle = NULL;
+   if (handle && handle->id == HANDLE_ID) {
+      rv = handle;
    }
 
-   return handle;
+   return rv;
 }
 
 _handle_t*
 get_valid_handle(aaxConfig config)
 {
+   _handle_t *handle = (_handle_t *)config;
    _handle_t *rv = NULL;
 
-   if (config)
+   if (handle)
    {
-      _handle_t *handle = (_handle_t *)config;
-      if(handle->id == HANDLE_ID && (handle->valid & ~HANDLE_ID)) {
-         rv = handle;
+      if (handle->id == HANDLE_ID)
+      {
+         if (handle->valid & ~HANDLE_ID) {
+            rv = handle;
+         }
       }
       else if (handle->id == AUDIOFRAME_ID) {
+         rv = handle;
+      }
+   }
+
+   return rv;
+}
+
+_handle_t*
+get_write_handle(aaxConfig config)
+{
+   _handle_t *handle = (_handle_t *)config;
+   _handle_t *rv = NULL;
+
+   if (handle && handle->id == HANDLE_ID)
+   {
+      assert(handle->info);
+      if (handle->info->mode != AAX_MODE_READ) {
+         rv = handle;
+      }
+   }
+
+   return rv;
+}
+
+_handle_t*
+get_read_handle(aaxConfig config)
+{
+   _handle_t *handle = (_handle_t *)config;
+   _handle_t *rv = NULL;
+
+   if (handle && handle->id == HANDLE_ID)
+   {
+      assert(handle->info);
+      if (handle->info->mode == AAX_MODE_READ) {
          rv = handle;
       }
    }
@@ -719,7 +759,6 @@ _open_handle(aaxConfig config)
                      unsigned int size, num;
 
                      sensor->count = 1;
-
                      sensor->mixer->thread = -1;
                      num = _oalRingBufferGetNoSources();
                      sensor->mixer->info->max_emitters = num;

@@ -546,6 +546,129 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 /*-------------------------------------------------------------------------- */
 
 unsigned int
+_aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
+{
+   _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
+   unsigned int i, num = 0;
+   if (hs)
+   {
+      num = _intBufGetMaxNum(hs, _AAX_DEVICE);
+      for (i=0; i<num; i++)
+      {
+         _intBufferData *dptr = _intBufGet(hs, _AAX_DEVICE, i);
+         if (dptr)
+         {
+            _handle_t* config = _intBufGetDataPtr(dptr);
+            const _intBufferData* dptr_sensor;
+            char capture = 0;
+
+            dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
+            if (dptr_sensor)
+            {
+               static struct timespec sleept = {0, 1000};
+               _intBuffers *ringbuffers;
+               _aaxAudioFrame *mixer;
+               _sensor_t* sensor;
+               int sleep, p = 0;
+
+               sensor = _intBufGetDataPtr(dptr_sensor);
+               mixer = sensor->mixer;
+               capture = mixer->capturing;
+               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+               
+               /*
+                * Can't call aaxAudioSensorWaitForBuffer because of a dead-lock
+                * mixer->capturing is AAX_FALSE when a buffer is available
+                */
+               sleep = 0.1f / config->info->refresh_rate;
+               sleept.tv_nsec = sleep * 1e9f;
+               ringbuffers = mixer->ringbuffers;
+               while ((capture == 1) && (p++ < 500))
+               {
+                  _intBufReleaseData(dptr, _AAX_DEVICE);
+
+                  nanosleep(&sleept, 0);
+
+                  dptr = _intBufGet(hs, _AAX_DEVICE, i);
+                  if (!dptr) break;
+
+                  config = _intBufGetDataPtr(dptr);
+
+                  dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
+                  if (dptr_sensor)
+                  {
+                     sensor = _intBufGetDataPtr(dptr_sensor);
+                     mixer = sensor->mixer;
+                     capture = mixer->capturing;
+                     _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+                  }
+               }
+            } /* mixer->thread */
+
+            if (dptr)
+            {
+               _intBuffers *ringbuffers;
+               _aaxAudioFrame *mixer;
+               _sensor_t* sensor;
+
+               dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
+               if (dptr_sensor)
+               {
+                  sensor = _intBufGetDataPtr(dptr_sensor);
+                  mixer = sensor->mixer;
+                  ringbuffers = mixer->ringbuffers;
+                  capture = mixer->capturing;
+
+printf("capture: %i\n", capture);
+                  if (capture > 1)
+                  {
+                     _intBufferData *buf;
+                     _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+                     buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+                     _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
+                     if (buf)
+                     {
+                        _oalRingBufferLFOInfo *lfo;
+                        unsigned int dno_samples;
+                        unsigned char track, tracks;
+                        _oalRingBuffer *src_rb;
+                        dno_samples =_oalRingBufferGetNoSamples(dest_rb);
+                        tracks=_oalRingBufferGetNoTracks(dest_rb);
+                        src_rb = _intBufGetDataPtr(buf);
+   
+                        lfo = _FILTER_GET_DATA(mixer->props2d,DYNAMIC_GAIN_FILTER);
+                        for (track=0; track<tracks; track++)
+                        {
+                           int32_t *data = dest_rb->sample->track[track];
+                           int32_t *sptr = src_rb->sample->track[track];
+                           float g = 1.0f, gstep = 0.0f;
+
+                           if (lfo && lfo->envelope) {
+                              g = lfo->get(lfo, sptr, track, dno_samples);
+                           }
+printf("sensor fmadd\n");
+                           _batch_fmadd(data, sptr, dno_samples, g, gstep);
+                        }
+                        _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+                        _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
+                        _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+                        mixer->capturing = 1;
+                     }
+                  }
+                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+               }
+               _intBufReleaseData(dptr, _AAX_DEVICE);
+            }
+         }
+      }
+      _intBufReleaseNum(hs, _AAX_DEVICE);
+   }
+   return num;
+}
+
+
+unsigned int
 _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
@@ -663,6 +786,9 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
    /* postprocess registered audio frames */
    if (mixer->frames) {
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
+   }
+   if (mixer->sensors) {
+      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors);
    }
    be->postprocess(be_handle, dest_rb, sensor);
 

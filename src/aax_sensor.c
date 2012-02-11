@@ -311,7 +311,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       switch(state)
       {
       case AAX_CAPTURING:
-         if (handle->info->mode == AAX_MODE_READ) {
+         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
             rv = _aaxSensorCaptureStart(handle);
          } else if (_IS_PLAYING(handle)) {
             rv = AAX_TRUE;
@@ -321,7 +321,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
          break;
 //    case AAX_PROCESSED:
       case AAX_STOPPED:
-         if (handle->info->mode == AAX_MODE_READ) {
+         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
             rv = _aaxSensorCaptureStop(handle);
          } else {
             rv = AAX_TRUE;
@@ -456,7 +456,9 @@ _aaxSensorCaptureStop(_handle_t *handle)
          {
             _sensor_t *sensor = _intBufGetDataPtr(dptr);
             sensor->mixer->capturing = AAX_FALSE;
-//          _intBufReleaseData(dptr, _AAX_SENSOR);
+/*          Note: _intBufGetNoLock above, no need to unlock
+ *          _intBufReleaseData(dptr, _AAX_SENSOR);
+ */
          }
 
          _SET_PROCESSED(handle);

@@ -62,7 +62,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
    else
    {
       _handle_t *handle = get_handle(config);
-      if (handle)
+      if (handle && !handle->handle)
       {
          _aaxMixerInfo* info = handle->info;
          switch(type)
@@ -204,7 +204,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 int
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -281,7 +281,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 const aaxFilter
 aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    aaxFilter rv = AAX_FALSE;
    if (handle)
    {
@@ -316,7 +316,7 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 int
 aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -367,7 +367,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 const aaxEffect
 aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    aaxEffect rv = AAX_FALSE;
    if (handle)
    {
@@ -451,7 +451,7 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
 int
 aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -565,7 +565,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 int
 aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -617,7 +617,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 int
 aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
    if (handle && VALID_HANDLE(handle))
    {
@@ -719,7 +719,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 int
 aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
