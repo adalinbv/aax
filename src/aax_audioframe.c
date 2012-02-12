@@ -546,11 +546,10 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
                   }
 
-                  submix->thread = AAX_TRUE;
-                  submix->refcount++;
-                  config->info = handle->submix->info;
                   config->handle = handle;
                   config->pos = pos;
+                  submix->refcount++;
+                  submix->thread = AAX_TRUE;
 
                   if (!submix->ringbuffer) {
                      submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);

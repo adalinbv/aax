@@ -31,6 +31,8 @@ int16_t ima2linear (uint8_t, int16_t *, uint8_t *);
 void    linear2ima(int16_t *, int16_t, uint8_t *, uint8_t *);
 void    _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
 
+void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
+
 void _aaxSoftwareDriverWriteFile(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
 
 int _aaxSoftwareMixerPlayFrame(void*, const void*, void*, void*);

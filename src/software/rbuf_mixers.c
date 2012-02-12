@@ -30,7 +30,6 @@
 
 
 _aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
-static void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
 
 /**
@@ -268,7 +267,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
 
 /* -------------------------------------------------------------------------- */
 
-static void
+void
 _aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
 {
    _batch_resample_proc resamplefn;

@@ -581,35 +581,64 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt);
-
-               dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
-               mixer->ringbuffer = rv;
-               mixer->curr_pos_sec += dt;
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-
-               do
+               if (rv)
                {
-                  _oalRingBufferLFOInfo *lfo;
-                  unsigned int dno_samples;
-                  unsigned char track, tracks;
-
-                  dno_samples =_oalRingBufferGetNoSamples(dest_rb);
-                  tracks=_oalRingBufferGetNoTracks(dest_rb);
-
-                  lfo = _FILTER_GET_DATA(mixer->props2d,DYNAMIC_GAIN_FILTER);
-                  for (track=0; track<tracks; track++)
+                  dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
+                  if (dptr_sensor)
                   {
-                     int32_t *data = dest_rb->sample->track[track];
-                     int32_t *sptr = src_rb->sample->track[track];
-                     float g = 1.0f, gstep = 0.0f;
+                     float fact, sfreq, dfreq, pitch, max;
+                     unsigned int dno_samples, cdesamps, ddesamps;
+                     unsigned char track, tracks;
+                     _oalRingBuffer2dProps *p2d;
+                     _oalRingBufferLFOInfo *lfo;
+                     int32_t *scratch0;
+                     void *env;
 
-                     if (lfo && lfo->envelope) {
-                        g = lfo->get(lfo, sptr, track, dno_samples);
+                     mixer->ringbuffer = rv;
+                     mixer->curr_pos_sec += dt;
+                     sfreq = mixer->info->frequency;
+                     p2d = mixer->props2d;
+
+                     /** Pitch */
+                     pitch = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
+                     lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+                     if (lfo) {
+                        pitch *= lfo->get(lfo, NULL, 0, 0);
                      }
-                     _batch_fmadd(data, sptr, dno_samples, g, gstep);
+
+                     env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
+                     pitch *= _oalRingBufferEnvelopeGet(env, src_rb->stopped);
+
+                     max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
+                     pitch = _MINMAX(pitch, 0.0f, max);
+
+                     /** Gain */
+                     lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+                     _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
+                     dno_samples =_oalRingBufferGetNoSamples(dest_rb);
+                     tracks = _oalRingBufferGetNoTracks(dest_rb);
+                     dfreq = _oalRingBufferGetFrequency(dest_rb);
+
+                     fact = (sfreq * pitch) / dfreq;
+                     scratch0 = dest_rb->sample->scratch[SCRATCH_BUFFER0];
+                     cdesamps = ddesamps = 0; /* for now */
+                     for (track=0; track<tracks; track++)
+                     {
+                        int32_t *dptr = dest_rb->sample->track[track];
+                        int32_t *sptr = src_rb->sample->track[track];
+                        float g = 1.0f, gstep = 0.0f;
+
+                        _aaxProcessResample(scratch0-ddesamps, sptr-cdesamps,
+                                           0, dno_samples+ddesamps, 0.0f, fact);
+
+                        if (lfo && lfo->envelope) {
+                           g = lfo->get(lfo, sptr, track, dno_samples);
+                        }
+                        _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
+                     }
                   }
                }
-               while(0);
                _intBufReleaseData(dptr, _AAX_DEVICE);
             }
          }
