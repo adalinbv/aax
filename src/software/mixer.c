@@ -586,12 +586,14 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                   dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
                   if (dptr_sensor)
                   {
+                     unsigned int dno_samples, ddesamps, cdesamps;
+                     unsigned int sbps, sno_samples, cno_samples;
                      float fact, sfreq, dfreq, pitch, max;
-                     unsigned int dno_samples, cdesamps, ddesamps;
+                     _oalRingBufferSample *rbd, *rbs;
                      unsigned char track, tracks;
                      _oalRingBuffer2dProps *p2d;
                      _oalRingBufferLFOInfo *lfo;
-                     int32_t *scratch0;
+                     int32_t *scr0, *scr1;
                      void *env;
 
                      mixer->ringbuffer = rv;
@@ -616,28 +618,41 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                      lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
                      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
-                     dno_samples =_oalRingBufferGetNoSamples(dest_rb);
+                     dno_samples = _oalRingBufferGetNoSamples(dest_rb);
                      tracks = _oalRingBufferGetNoTracks(dest_rb);
                      dfreq = _oalRingBufferGetFrequency(dest_rb);
 
+                     sno_samples = _oalRingBufferGetNoSamples(src_rb);
+                     sbps = _oalRingBufferGetBytesPerSample(src_rb);
+
+                     rbs = src_rb->sample;
+                     rbd = dest_rb->sample;
                      fact = (sfreq * pitch) / dfreq;
-                     scratch0 = dest_rb->sample->scratch[SCRATCH_BUFFER0];
+                     scr0 = rbd->scratch[SCRATCH_BUFFER0];
+                     scr1 = rbd->scratch[SCRATCH_BUFFER1];
                      cdesamps = ddesamps = 0; /* for now */
+                     cno_samples = ceilf(dno_samples*fact);
                      for (track=0; track<tracks; track++)
                      {
-                        int32_t *dptr = dest_rb->sample->track[track];
-                        int32_t *sptr = src_rb->sample->track[track];
+                        int32_t *dptr = rbd->track[track];
+                        int32_t *sptr = rbs->track[track];
                         float g = 1.0f, gstep = 0.0f;
 
-                        _aaxProcessResample(scratch0-ddesamps, sptr-cdesamps,
-                                           0, dno_samples+ddesamps, 0.0f, fact);
-
                         if (lfo && lfo->envelope) {
-                           g = lfo->get(lfo, sptr, track, dno_samples);
+                           g = lfo->get(lfo, sptr, track, sno_samples);
                         }
-                        _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
+
+                        _aaxProcessCodec(scr0, sptr, rbs->codec, 0, 0,
+                                         sno_samples, cdesamps, cno_samples,
+                                         sbps, 0);
+                        
+                        _aaxProcessResample(scr1-ddesamps, scr0-cdesamps, 0,
+                                            dno_samples+ddesamps, 0.0f, fact);
+
+                        _batch_fmadd(dptr, scr1, dno_samples, g, gstep);
                      }
                   }
+                  _oalRingBufferDelete(src_rb);
                }
                _intBufReleaseData(dptr, _AAX_DEVICE);
             }

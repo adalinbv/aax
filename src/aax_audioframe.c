@@ -566,7 +566,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      delay_sec = 1.0f / config->info->refresh_rate;
 
                      _oalRingBufferSetNoTracks(rb, info->no_tracks);
-                     _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+                     _oalRingBufferSetFormat(rb, be->codecs, info->format);
                      _oalRingBufferSetFrequency(rb, info->frequency);
                      _oalRingBufferSetDuration(rb, delay_sec);
                      _oalRingBufferInit(rb, AAX_TRUE);
