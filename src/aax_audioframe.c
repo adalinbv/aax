@@ -1179,6 +1179,14 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
       unsigned int i, num;
       _intBuffers *hf;
 
+      /* copying here prevents locking the listener the whole time */
+      /* it's used for just one time-frame anyhow                  */
+      memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
+      memcpy(&sp2d.pos, mixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4));
+      memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4));
+      memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
+
+
       hf = mixer->frames;
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
@@ -1189,27 +1197,19 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
             _frame_t* subframe = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *fmixer = subframe->submix;
 
-            /* copying here prevents locking the listener the whole time */
-            /* it's used for just one time-frame anyhow                  */
-            memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
-            memcpy(&sp2d.pos, mixer->info->speaker,
-                            _AAX_MAX_SPEAKERS*sizeof(vec4));
-            memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4));
-            memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
             _intBufReleaseData(dptr, _AAX_FRAME);
-
-            _aaxSoftwareMixerProcessFrame(dest_rb, mixer->info,
-                                           &sp2d, &sp3d,
-                                           fmixer->props2d, fmixer->props3d,
-                                           fmixer->emitters_2d,
-                                           fmixer->emitters_3d,
-                                           be, NULL);
+            _aaxSoftwareMixerProcessFrame(dest_rb, mixer->info, &sp2d, &sp3d,
+                                          fmixer->props2d, fmixer->props3d,
+                                          fmixer->emitters_2d,
+                                          fmixer->emitters_3d,
+                                          be, NULL);
          }
       }
       _intBufReleaseNum(hf, _AAX_FRAME);
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
    }
 
+   /** process registered sensors */
    if (mixer->sensors) {
       _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors);
    }
@@ -1463,10 +1463,12 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
    memcpy(&fp2d.pos, fmixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4));
    memcpy(&fp2d.hrtf, fmixer->info->hrtf, 2*sizeof(vec4));
 
+   /** process registered emitetrs */
    _aaxSoftwareMixerProcessFrame(mixer->ringbuffer, mixer->info,
                                               &sp2d, &sp3d, &fp2d, &fp3d,
                                               mixer->emitters_2d,
                                               mixer->emitters_3d,
                                               be, NULL);
+   /** process registered audio-frames and sensors */
    _aaxAudioFramePlayFrame(mixer, be, NULL, NULL);
 }
