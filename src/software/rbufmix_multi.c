@@ -61,8 +61,11 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    assert(dest->sample != 0);
 
    /** Pitch */
-   pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-   pitch *= mix_p2d->final.pitch_lfo;
+   if (mix_p2d)
+   {
+      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
+      pitch *= mix_p2d->final.pitch_lfo;
+   }
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
@@ -79,7 +82,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    offs = 0;
    sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
    if (sptr == NULL) {
-      return ret;
+      return -1;
    }
 
    /** Volume */
@@ -93,8 +96,11 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       ret = -1;
    }
 
-   gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
-   gain *= mix_p2d->final.gain_lfo;
+   if (mix_p2d)
+   {
+      gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
+      gain *= mix_p2d->final.gain_lfo;
+   }
    gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
 
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);

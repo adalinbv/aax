@@ -534,6 +534,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   mp3d = mixer->props3d;
                   sp3d = submix->props3d;
 
+                  submix->info->refresh_rate = mixer->info->refresh_rate;
                   submix->dist_delaying = mixer->dist_delaying;
                   if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
                      _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
@@ -563,7 +564,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      float delay_sec;
 
                      be = _aaxGetDriverBackendLoopback();
-                     delay_sec = 1.0f / config->info->refresh_rate;
+                     delay_sec = 1.0f / info->refresh_rate;
 
                      _oalRingBufferSetNoTracks(rb, info->no_tracks);
                      _oalRingBufferSetFormat(rb, be->codecs, info->format);
