@@ -584,15 +584,27 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)
                {
-                  mixer->ringbuffer = rv;
                   _oalRingBufferRewind(src_rb);
                   _oalRingBufferStart(src_rb);
-                  _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, src_rb);
+                  if (rv != src_rb)
+                  {
+                     _intBufAddData(mixer->ringbuffers,_AAX_RINGBUFFER, src_rb);
+                     mixer->ringbuffer = rv;
+                  }
+                  mixer->curr_pos_sec += dt;
                }
 
                if (dptr_sensor)
                {
                   const _intBufferData* dptr_rb;
+                  _oalRingBuffer2dProps sp2d;
+
+                  memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
+                  memcpy(&sp2d.pos, mixer->info->speaker,
+                                    _AAX_MAX_SPEAKERS*sizeof(vec4));
+                  memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4));
+                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
 
                   dptr_rb = _intBufGet(mixer->ringbuffers, _AAX_RINGBUFFER, 0);
                   if (dptr_rb)
@@ -602,35 +614,31 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
 
                      do
                      {
-                        rv = be->mix2d(be_handle, dest_rb, src_rb,
-                                       mixer->props2d, NULL, 1.0f, 1.0f);
-
+                        rv = be->mix2d(be_handle, dest_rb, src_rb, &sp2d, NULL,
+                                       1.0f, 1.0f);
                         if (rv)	/* always streaming */
                         {
-//                         rv &= _oalRingBufferTestPlaying(dest_rb);
-                           if (rv)
-                           {
-                              _intBufferData *buf;
+                           _intBuffers *ringbuffers = mixer->ringbuffers;
+                           _intBufferData *buf;
 
-                              _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
+                           _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
 
-                              buf = _intBufPopData(mixer->ringbuffers,
-                                                   _AAX_RINGBUFFER);
-                              src_rb = _intBufGetDataPtr(buf);
-                              _oalRingBufferDelete(src_rb);
-                              free(buf);
+//                         _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+                           buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+//                         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
-                              dptr_rb = _intBufGet(mixer->ringbuffers,
-                                                   _AAX_RINGBUFFER, 0);
-                              src_rb = _intBufGetDataPtr(dptr_rb);
-                              if (!dptr_rb) rv = 0;
-                           }
+                           src_rb = _intBufGetDataPtr(buf);
+                           _oalRingBufferDelete(src_rb);
+                           free(buf);
+
+                           dptr_rb =_intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
+                           src_rb = _intBufGetDataPtr(dptr_rb);
+                           if (!dptr_rb) rv = 0;
                         }
                      }
                      while(rv);
                      if (dptr_rb)  _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
                   }
-                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
                _intBufReleaseData(dptr, _AAX_DEVICE);
             }
@@ -677,6 +685,9 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                /*
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 * mixer->capturing is AAX_FALSE when a buffer is available
+                *
+                * mixer->capturing == 1 means there is the intention to
+                * capture frames but no frame has yet been added.
                 */
                sleept.tv_nsec = sleep * 1e9f;
                ringbuffers = mixer->ringbuffers;
@@ -727,10 +738,15 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                         _batch_fmadd(data, sptr, dno_samples, g, gstep);
                      }
 
+                     /*
+                      * push the ringbuffer to the back of the stack so it can
+                      * be used without the need to create a new ringbuffer
+                      * and delete this one now.
+                      */
                      _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
                      _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
                      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-                     mixer->capturing = 1;
+                     mixer->capturing--; //  = 1;
                   }
                }
                _intBufReleaseData(dptr, _AAX_FRAME);
