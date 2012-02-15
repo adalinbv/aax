@@ -285,7 +285,11 @@ aaxDriverOpen(aaxConfig config)
 
       if (cfg)
       {
-         xoid = cfg->backend.output;
+         if (handle->info->mode == AAX_MODE_READ) {
+            xoid = cfg->backend.input;
+         } else {
+            xoid = cfg->backend.output;
+         }
          if (be)
          {
             const char* name = handle->devname[1];
@@ -330,7 +334,11 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
 
             if (cfg)
             {
-               xoid = cfg->backend.output;
+               if (handle->info->mode == AAX_MODE_READ) {
+                  xoid = cfg->backend.input;
+               } else {
+                  xoid = cfg->backend.output;
+               }
                if (be)
                {
                   const char* name = handle->devname[1];
@@ -994,7 +1002,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
                snprintf(buf,1024,"output[%i]: '%s'\n", i, config->node[i].devname);
               _AAX_SYSLOG(buf);
 
-               snprintf(buf,1024,"setup: %s\n", config->node[i].setup);
+               snprintf(buf,1024,"setup: %s\n", (handle->info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
                _AAX_SYSLOG(buf);
 
                snprintf(buf,1024,"frequency: %5.1f, interval: %5.1f\n",
