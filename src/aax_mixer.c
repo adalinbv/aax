@@ -779,16 +779,18 @@ _aaxMixerInit(_handle_t *handle)
    res = be->setup(handle->backend.handle, &bufsz, fmt, &ch, &freq);
    if TEST_FOR_TRUE(res)
    {
-      float iv;
-
       handle->valid |= AAX_TRUE;
       info->pitch = info->frequency/freq;
       info->no_tracks = ch;
-
-      iv = info->refresh_rate;
-      iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
       info->frequency = freq;
-      info->refresh_rate = iv;
+
+      /* don't alter the refresh rate when registered */
+      if (!handle->handle)
+      {
+         float iv = info->refresh_rate;
+         iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
+         info->refresh_rate = iv;
+      }
    }
    else {
       __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
