@@ -559,15 +559,15 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   rb = submix->ringbuffer;
                   if (rb)
                   {
-                     _aaxMixerInfo* info = config->info;
+                     _aaxMixerInfo* info = submix->info;
                      const _aaxDriverBackend *be;
                      float delay_sec;
 
                      be = _aaxGetDriverBackendLoopback();
                      delay_sec = 1.0f / info->refresh_rate;
 
-                     _oalRingBufferSetNoTracks(rb, info->no_tracks);
                      _oalRingBufferSetFormat(rb, be->codecs, info->format);
+                     _oalRingBufferSetNoTracks(rb, info->no_tracks);
                      _oalRingBufferSetFrequency(rb, info->frequency);
                      _oalRingBufferSetDuration(rb, delay_sec);
                      _oalRingBufferInit(rb, AAX_TRUE);
@@ -1232,10 +1232,14 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
       }
       else
       {
-         _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-         _oalRingBuffer *nrb = _intBufSetDataPtr(buf, dest_rb);
+         _intBufferData *buf;
+         _oalRingBuffer *nrb;
 
          _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+         buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+
+         /* switch ringbuffers */
+         nrb = _intBufSetDataPtr(buf, dest_rb);
          _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
          _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
