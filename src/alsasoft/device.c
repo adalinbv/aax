@@ -609,7 +609,8 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
          handle->use_mmap = (err == 1);
 #endif
 
-         handle->latency = (float)size*(float)periods/((float)rate*(float)*tracks*(float)bps);
+         handle->latency = (float)size*(float)periods;
+         handle->latency /= (float)rate*(float)*tracks*(float)bps;
       }
 
       do
@@ -618,7 +619,11 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
          _AAX_SYSLOG("alsa; driver settings:");
 
-         snprintf(str,255,"  output renderer: '%s'", handle->name);
+         if (handle->mode != 0) {
+            snprintf(str,255,"  output renderer: '%s'", handle->name);
+         } else {
+            snprintf(str,255,"  input renderer: '%s'", handle->name);
+         }
          _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
          _AAX_SYSLOG(str);
