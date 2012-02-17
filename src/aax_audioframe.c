@@ -1172,7 +1172,7 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
    _oalRingBuffer *dest_rb = mixer->ringbuffer;
    // unsigned int rv;
 
-   /* postprocess registered audio frames */
+   /* postprocess registered (non threaded) audio frames */
    if (mixer->frames)
    {
       _oalRingBuffer2dProps sp2d;
@@ -1187,7 +1187,6 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
       memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4));
       memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
 
-
       hf = mixer->frames;
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
@@ -1199,6 +1198,7 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
             _aaxAudioFrame *fmixer = subframe->submix;
 
             _intBufReleaseData(dptr, _AAX_FRAME);
+
             _aaxSoftwareMixerProcessFrame(dest_rb, mixer->info, &sp2d, &sp3d,
                                           fmixer->props2d, fmixer->props3d,
                                           fmixer->emitters_2d,
@@ -1249,7 +1249,6 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
          dest_rb = nrb;
       }
       mixer->ringbuffer = dest_rb;
-      mixer->capturing++;
    }
 
    _oalRingBufferClear(dest_rb);
@@ -1362,10 +1361,10 @@ _aaxAudioFrameThread(void* config)
          dt -= fdt;
          dt += now.tv_usec*1e-6f;
          ts.tv_nsec = dt*1e9f;
-         if (ts.tv_nsec >= 1e9)
+         if (ts.tv_nsec >= 1e9f)
          {
             ts.tv_sec++;
-            ts.tv_nsec -= 1e9;
+            ts.tv_nsec -= 1e9f;
          }
       }
       else
@@ -1384,7 +1383,7 @@ _aaxAudioFrameThread(void* config)
          break;
       }
 
-      state = frame->state;
+//    state = frame->state;
       if (state != frame->state)
       {
          if (_IS_PAUSED(frame)) {
@@ -1401,26 +1400,25 @@ _aaxAudioFrameThread(void* config)
       {
          if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
          {
-            if (_IS_PLAYING(frame) && be->is_available(NULL))
-            {
-               _aaxAudioFrameProcessFrame(handle, frame, mixer, smixer, fmixer, be);
-             }
-             else { /* if (_IS_STANDBY(frame)) */
-                _aaxNoneDriverProcessFrame(mixer);
-             }
+            if (_IS_PLAYING(frame) && be->is_available(NULL)) {
+               _aaxAudioFrameProcessFrame(handle,frame,mixer,smixer,fmixer,be);
+            }
+            else { /* if (_IS_STANDBY(frame)) */
+               _aaxNoneDriverProcessFrame(mixer);
+            }
          }
       }
 
-      /*
+      /**
        * _aaxSoftwareMixerSignalFrames uses _aaxConditionSignal to let the
        * frame procede in advance, before the main thread starts mixing so
        * threads will be finished soon after the main thread.
-       * As a result _aaxConditionWaitTimed may return 0 instead,
-       * which is not a problem since earlier in the loop there is a test
-       * to see if the thread really is finished and then breaks.
+       * As a result _aaxConditionWaitTimed may return 0 instead, which is
+       * not a problem since earlier in the loop there is a test to see if
+       * the thread really is finished and then breaks the loop.
        *
-       * Note: the thread will nof be signaled to start mixing if there's
-       *       already a buffer in the buffer queue.
+       * Note: the thread will not be signaled to start mixing if there's
+       *       already a buffer in it's buffer queue.
        *
        * there is an optional variable which will turn to
        * frame->thread.update = 1 when the thread is signaled to start mixing
@@ -1449,6 +1447,7 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
    _oalRingBuffer2dProps fp2d;
    _oalRingBuffer3dProps fp3d;
 
+
    if (handle) /* frame is registered */
    {
       _handle_t* handle = frame->handle;
@@ -1468,12 +1467,13 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
    memcpy(&fp2d.pos, fmixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4));
    memcpy(&fp2d.hrtf, fmixer->info->hrtf, 2*sizeof(vec4));
 
-   /** process registered emitetrs */
+   /** process threaded frames */
    _aaxSoftwareMixerProcessFrame(mixer->ringbuffer, mixer->info,
                                               &sp2d, &sp3d, &fp2d, &fp3d,
                                               mixer->emitters_2d,
                                               mixer->emitters_3d,
                                               be, NULL);
+
    /** process registered audio-frames and sensors */
    _aaxAudioFramePlayFrame(mixer, be, NULL, NULL);
 }
