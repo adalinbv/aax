@@ -575,16 +575,12 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
             if (dptr_sensor)
             {
                _intBuffers *ringbuffers;
-               _oalRingBuffer *src_rb;
                _aaxAudioFrame *mixer;
                _sensor_t* sensor;
                unsigned int nbuf;
-               float dt;
 
                sensor = _intBufGetDataPtr(dptr_sensor);
                mixer = sensor->mixer;
-               src_rb = mixer->ringbuffer;
-               dt = mixer->info->refresh_rate;
                ringbuffers = mixer->ringbuffers;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
