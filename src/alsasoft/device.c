@@ -425,7 +425,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
             handle->no_periods = i;
          }
       }
-
+   }
 #if 0
  printf("\nrenderer: %s\n", handle->name);
  printf("frequency-hz: %f\n", handle->frequency_hz);
@@ -434,7 +434,6 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
  printf("periods: %i\n", handle->no_periods);
  printf("\n");
 #endif
-   }
 
    if (handle)
    {
@@ -447,8 +446,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       handle->devnum = detect_devnum(handle->name, m);
 
       handle->name = detect_devname(handle->name, handle->devnum, handle->no_channels, m);
-      err = psnd_pcm_open(&handle->id, handle->name, __mode[m],
-                                                    SND_PCM_NONBLOCK);
+      err = psnd_pcm_open(&handle->id, handle->name, __mode[m], SND_PCM_NONBLOCK);
       if (err >= 0)
       {
          err = psnd_pcm_nonblock(handle->id, 0);
@@ -683,6 +681,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             "unsupported no. periods" );
       TRUN( psnd_pcm_hw_params(hid, hwparams),
             "incompatible hardware parameters"  );
+      *bufsize = size;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -718,17 +717,16 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       }
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unabel to configure hardware" );
 
-      size /= (channels*bps);
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
             "unable to set software config" );
-      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, size),
-            "wakeup treshold unsupported" );
       TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 0U),
             "improper interrupt treshold" );
+      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, 4),
+            "wakeup treshold unsupported" );
       TRUN( psnd_pcm_sw_params(hid, swparams),
             "unable to configure software" );
 
-      TRUN( psnd_pcm_prepare(hid), "vailed preparation" );
+      TRUN( psnd_pcm_prepare(hid), "failed preparation" );
    }
 
    if (swparams) free(swparams);
@@ -813,7 +811,8 @@ static int
 _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int frames, frame_sz;
+   unsigned int frames, frame_size;
+   int rv = AAX_FALSE;
 
    if ((handle->mode != 0) || (size == 0) || (data == 0))
    {
@@ -824,46 +823,49 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
       } else {
          _AAX_SYSLOG("alsa; calling the record function with null pointer");
       }
-      return AAX_FALSE;
+      return rv;
    }
 
-   frame_sz = handle->no_channels; // * handle->bytes_sample;
-   frames = *size / frame_sz;
-   if (frames == 0) {
-      return AAX_TRUE;
-   }
+   frame_size = handle->no_channels * handle->bytes_sample;
+   frames = *size / frame_size;
 
    *size = 0;
-   if (data)
+   if (frames)
    {
-      int res;
+      int res = 0;
 
       do {
          res = psnd_pcm_readi(handle->id, data, frames);
-      } while (res == -EAGAIN);
+      }
+      while (res == -EAGAIN);
 
-      if (res == -EPIPE) {
+      if (res == -EPIPE)
+      {
          psnd_pcm_prepare(handle->id);
          do {
             res = psnd_pcm_readi(handle->id, data, frames);
          } while (res == -EAGAIN);
 
-         if (res < 0) {
+         if (res < 0)
+         {
             _AAX_SYSLOG("alsa; pcm read error");
-            return AAX_FALSE;
+            rv = AAX_FALSE;
          }
       }
-      else if (res < 0) {
+      else if (res < 0)
+      {
           _AAX_SYSLOG("alsa; pcm read error");
-         return AAX_FALSE;
+         rv = AAX_FALSE;
       }
-
-      *size = (res * frame_sz);
-
-      return AAX_TRUE;
+      else
+      {
+         *size = (res * frame_size);
+         rv = AAX_TRUE;
+      }
    }
+   else rv = AAX_TRUE;
 
-   return AAX_FALSE;
+   return rv;
 }
 
 static char *
