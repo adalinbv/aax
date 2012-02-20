@@ -503,7 +503,11 @@ _aaxOSSDriverRecord(const void *id, void *data, size_t *size, float pitch, float
       int res;
 
       res = read(handle->fd, data, buflen);
-      if (res == -1) return AAX_FALSE;
+      if (res == -1)
+      {
+         _AAX_SYSLOG(strerror(errno));
+         return AAX_FALSE;
+      }
       *size = res;
 
       return AAX_TRUE;
