@@ -222,10 +222,10 @@ aaxSensorGetBuffer(const aaxConfig config)
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* mixer = sensor->mixer;
          _intBuffers *dptr_rb = mixer->ringbuffers;
-         unsigned int num;
+         unsigned int nbuf;
 
-         num = _intBufGetNum(dptr_rb, _AAX_RINGBUFFER);
-         if (num > 0)
+         nbuf = _intBufGetNum(dptr_rb, _AAX_RINGBUFFER);
+         if (nbuf > 0)
          {
             void **ptr = _intBufShiftIndex(dptr_rb, _AAX_RINGBUFFER, 0, 1);
             if (ptr)
@@ -269,30 +269,30 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
       const _intBufferData* dptr;
       float sleep, duration = 0.0f;
       _sensor_t* sensor;
-      unsigned int num;
+      unsigned int nbuf;
 
       sleep = 1.0 / (handle->info->refresh_rate * 10.0);
       sleept.tv_nsec = sleep * 1e9f;
       do
       {
-         num = 0;
+         nbuf = 0;
          duration += sleep;
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
             sensor = _intBufGetDataPtr(dptr);
-            num=_intBufGetNumNoLock(sensor->mixer->ringbuffers,_AAX_RINGBUFFER);
+            nbuf=_intBufGetNumNoLock(sensor->mixer->ringbuffers,_AAX_RINGBUFFER);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
-         if (!num)
+         if (!nbuf)
          {
             int err = nanosleep(&sleept, 0);
             if (err < 0) break;
          }
       }
-      while ((num == 0) && (duration < timeout));
+      while ((nbuf == 0) && (duration < timeout));
 
-      if (num) rv = AAX_TRUE;
+      if (nbuf) rv = AAX_TRUE;
       else _aaxErrorSet(AAX_TIMEOUT);
    }
    else {
@@ -311,7 +311,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       switch(state)
       {
       case AAX_CAPTURING:
-         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
+         if ((handle->info->mode == AAX_MODE_READ)) { //  && !handle->handle) {
             rv = _aaxSensorCaptureStart(handle);
          }
          else if (handle->handle)
@@ -324,7 +324,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
          break;
 //    case AAX_PROCESSED:
       case AAX_STOPPED:
-         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
+         if ((handle->info->mode == AAX_MODE_READ)) { //  && !handle->handle) {
             rv = _aaxSensorCaptureStop(handle);
          } else {
             rv = AAX_TRUE;
@@ -366,8 +366,6 @@ _aaxSensorCaptureStart(_handle_t *handle)
             if (be->thread)
             {
                int r;
-
-               handle->thread.update = 1;
 
                handle->thread.ptr = _aaxThreadCreate();
                assert(handle->thread.ptr != 0);

@@ -791,6 +791,13 @@ _aaxMixerInit(_handle_t *handle)
          iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
          info->refresh_rate = iv;
       }
+#if 0
+      else
+      {
+         float no_samples = bufsz / (ch *_oalRingBufferFormatsBPS[fmt]);
+         info->refresh_rate = freq / no_samples;
+      }
+#endif
    }
    else {
       __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
@@ -807,7 +814,6 @@ _aaxMixerStart(_handle_t *handle)
    {
       int r;
 
-      handle->thread.update = 1;
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);
 
@@ -886,7 +892,6 @@ _aaxMixerSignal(_handle_t *handle)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(handle->thread.started)
    {
-      handle->thread.update = 1;
       _aaxConditionSignal(handle->thread.condition);
       rv = AAX_TRUE;
    }
