@@ -68,7 +68,6 @@ struct threat_t
    void *mutex;
    void *condition;
    char started;
-   char update;
 };
 
 typedef struct
