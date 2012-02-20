@@ -144,7 +144,7 @@ _aaxSoftwareDriverDetect()
 static void *
 _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
 {
-   const int _mode[] = {O_WRONLY|O_CREAT|O_TRUNC|O_BINARY, O_RDONLY|O_BINARY};
+   const int _mode[] = {O_WRONLY|O_CREAT|O_TRUNC|O_BINARY | O_RDONLY|O_BINARY};
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;
 
@@ -350,6 +350,7 @@ _aaxSoftwareDriverSetup(const void *id, size_t *bufsize, int fmt,
        * the start of the data section
        */
       rv = _aaxSoftwareDriverReadHeader(handle);
+printf("rv: %i\n", rv);
    }
 
    return (rv != -1) ? AAX_TRUE : AAX_FALSE;
@@ -595,8 +596,9 @@ _aaxSoftwareDriverReadHeader(_driver_t *handle)
    char buf[4];
    int i, res;
 
-// lseek(handle->fd, 0L, SEEK_SET);
+   lseek(handle->fd, 0L, SEEK_SET);
    res = read(handle->fd, &header, WAVE_EXT_HEADER_SIZE*4);
+printf("res: %i\n", res);
    if (res <= 0) return -1;
 
    if (is_bigendian())
@@ -617,6 +619,7 @@ _aaxSoftwareDriverReadHeader(_driver_t *handle)
 
    /* search for the data chunk */
    buflen = 0;
+printf("a\n");
    if (lseek(handle->fd, 32L, SEEK_SET) > 0)
    {
       do
@@ -630,6 +633,7 @@ _aaxSoftwareDriverReadHeader(_driver_t *handle)
                  buf[2] == 't' && buf[3] == 'a'))
             {
                res = read(handle->fd, &buflen, 4); /* chunk size */
+printf("data section: res: %i\n", res);
                if (is_bigendian()) buflen = _bswap32(buflen);
                break;
             }
@@ -641,6 +645,7 @@ _aaxSoftwareDriverReadHeader(_driver_t *handle)
                                          * handle->info.file.bps);
    }
    else {
+printf("z\n");
       res = -1;
    }
 
