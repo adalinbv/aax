@@ -43,6 +43,7 @@ static _aaxDriverSetup _aaxSoftwareDriverSetup;
 static _aaxDriverState _aaxSoftwareDriverAvailable;
 static _aaxDriverState _aaxSoftwareDriverNotAvail;
 static _aaxDriverCallback _aaxSoftwareDriverPlayback;
+static _aaxDriverRecordCallback _aaxSoftwareDriverRecord;
 static _aaxDriverGetName _aaxSoftwareDriverGetName;
 
 static char _default_renderer[100] = DEFAULT_RENDERER;
@@ -72,8 +73,9 @@ _aaxDriverBackend _aaxSoftwareDriverBackend =
    (_aaxDriverSetup *)&_aaxSoftwareDriverSetup,
    (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
    (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
-   NULL,
+   (_aaxDriverRecordCallback *)&_aaxSoftwareDriverRecord,
    (_aaxDriverCallback *)&_aaxSoftwareDriverPlayback,
+
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
@@ -89,12 +91,14 @@ typedef struct
 {
    uint32_t waveHeader[WAVE_EXT_HEADER_SIZE];
    int fd;
+   int mode;
    char *name;
    float frequency_hz;
    float update_dt;
    uint32_t size_bytes;
    uint16_t no_channels;
    uint8_t bytes_sample;
+   unsigned char capture;
    char sse_level;
 
    int16_t *ptr, *scratch;
@@ -122,10 +126,9 @@ _aaxSoftwareDriverDetect()
 static void *
 _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
 {
+   const int _mode[] = {O_WRONLY|O_CREAT|O_TRUNC|O_BINARY | O_RDONLY|O_BINARY};
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;
-
-   if (mode == AAX_MODE_READ) return NULL;
 
    if (!renderer) {
       renderer = (char*)default_renderer;
@@ -134,7 +137,6 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
    if (xid || renderer)
    {
       char *s = NULL;
-      int fd = -1;
 
       if (renderer)
       {
@@ -176,17 +178,20 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
          }
       }
 
-      if (s) {
-         fd = open(s, O_WRONLY|O_CREAT|O_TRUNC, 0644);
+      if (!handle) {
+         handle = (_driver_t *)calloc(1, sizeof(_driver_t));
       }
 
-      if (fd != -1)
+      if (handle)
       {
-         if (!handle) {
-            handle = (_driver_t *)calloc(1, sizeof(_driver_t));
+         handle->capture = (mode > 0) ? 0 : 1;
+         handle->mode = _mode[handle->capture];
+
+         if (s) {
+            handle->fd = open(s, handle->mode, 0644);
          }
 
-         if (handle)
+         if (handle->fd >= 0)
          {
             const char *hwstr = _aaxGetSIMDSupportString();
             snprintf(_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
@@ -244,7 +249,6 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
             _oalRingBufferMixMonoSetRenderer(mode);
             handle->name = s;
          }
-         close(fd);
       }
       else {
          handle = NULL;
@@ -300,21 +304,30 @@ _aaxSoftwareDriverSetup(const void *id, size_t *bufsize, int fmt,
       return AAX_FALSE;
    }
 
-   handle->fd = open(handle->name, O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0644);
+   if (handle->fd < 0) {
+      handle->fd = open(handle->name, handle->mode, 0644);
+   }
    if (handle->fd < 0) return AAX_FALSE;
 
-
-   memcpy(handle->waveHeader, _aaxDefaultWaveHeader, 4*WAVE_EXT_HEADER_SIZE);
-   if (is_bigendian())
+   if (!handle->capture)
    {
-      int i;
-      for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
-         handle->waveHeader[i] = _bswap32(handle->waveHeader[i]);
+      memcpy(handle->waveHeader, _aaxDefaultWaveHeader, 4*WAVE_EXT_HEADER_SIZE);
+      if (is_bigendian())
+      {
+         int i;
+         for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
+            handle->waveHeader[i] = _bswap32(handle->waveHeader[i]);
+         }
       }
-   }
 
-   _aaxSoftwareDriverUpdateHeader(id);
-   rv = write(handle->fd, handle->waveHeader, WAVE_HEADER_SIZE*4);
+      _aaxSoftwareDriverUpdateHeader(id);
+      rv = write(handle->fd, handle->waveHeader, WAVE_HEADER_SIZE*4);
+   }
+   else
+   {
+// read file header
+      rv = 0;
+   }
 
    return (rv != -1) ? AAX_TRUE : AAX_FALSE;
 }
@@ -382,7 +395,8 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
    }
 }
 #endif
-   _batch_cvt24_16_intl(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
+   _batch_cvt24_16_intl(data, (const int32_t**)rbd->track,
+                        offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
@@ -407,6 +421,44 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
    }
 
    return 0;
+}
+
+static int
+_aaxSoftwareDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
+{
+   _driver_t *handle = (_driver_t *)id;
+   size_t buflen;
+
+   if (handle->mode != O_RDONLY || (size == 0) || (data == 0))
+      return AAX_FALSE;
+
+   buflen = *size;
+   if (buflen == 0)
+      return AAX_TRUE;
+
+   *size = 0;
+   if (data)
+   {
+      int res;
+
+      res = read(handle->fd, data, buflen);
+      if (res == -1)
+      {
+         _AAX_SYSLOG(strerror(errno));
+         return AAX_FALSE;
+      }
+      *size = res;
+
+      if (is_bigendian()) {
+         _batch_endianswap16((uint16_t*)data, res);
+      }
+// TODO: possibly adjust format or resample since the requested specifications
+//       probably difffer from the data in the file.
+
+      return AAX_TRUE;
+   }
+
+   return AAX_FALSE;
 }
 
 int
