@@ -924,30 +924,30 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    {
       static struct timespec sleept = {0, 1000};
       float sleep, duration = 0.0f;
-      int num;
+      _aaxAudioFrame* mixer;
+      int nbuf;
 
       sleep = 1.0f / (handle->submix->info->refresh_rate * 10.0f);
       sleept.tv_nsec = sleep * 1e9f;
+
+      mixer = handle->submix;
       put_frame(frame);
 
       do
       {
-         num = 0;
+         nbuf = 0;
          duration += sleep;
 
-         handle = get_frame(frame);
-         num =_intBufGetNumNoLock(handle->submix->ringbuffers, _AAX_RINGBUFFER);
-         put_frame(frame);
-
-         if (!num)
+         nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
+         if (!nbuf)
          {
             int err = nanosleep(&sleept, 0);
             if (err < 0) break;
          }
       }
-      while ((num == 0) && (duration < timeout));
+      while ((nbuf == 0) && (duration < timeout));
 
-      if (num) rv = AAX_TRUE;
+      if (nbuf) rv = AAX_TRUE;
       else _aaxErrorSet(AAX_TIMEOUT);
    }
    else {
@@ -964,13 +964,12 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
    if (handle)
    {
       _aaxAudioFrame* mixer = handle->submix;
-      _intBuffers *lr = mixer->ringbuffers;
-      unsigned int num;
+      unsigned int nbuf;
 
-      num = _intBufGetNum(lr, _AAX_RINGBUFFER);
-      if (num > 0)
+      nbuf = _intBufGetNum(mixer->ringbuffers, _AAX_RINGBUFFER);
+      if (nbuf > 0)
       {
-         void **ptr = _intBufShiftIndex(lr, _AAX_RINGBUFFER, 0, 1);
+         void **ptr =_intBufShiftIndex(mixer->ringbuffers,_AAX_RINGBUFFER,0,1);
          if (ptr)
          {
             _buffer_t *buf = calloc(1, sizeof(_buffer_t));
@@ -991,7 +990,7 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
       }
-      _intBufReleaseNum(lr, _AAX_RINGBUFFER);
+      _intBufReleaseNum(mixer->ringbuffers, _AAX_RINGBUFFER);
    }
    put_frame(frame);
 
@@ -1085,8 +1084,6 @@ _aaxAudioFrameStart(_frame_t *frame)
    {
       int r;
 
-      frame->thread.update = 0;
-
       frame->thread.ptr = _aaxThreadCreate();
       assert(frame->thread.ptr != 0);
 
@@ -1157,7 +1154,6 @@ _aaxAudioFrameSignal(_frame_t *frame)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(frame->thread.started)
    {
-      frame->thread.update = 1;
       _aaxConditionSignal(frame->thread.condition);
       rv = AAX_TRUE;
    }
@@ -1221,10 +1217,10 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
    {
       char dde = (_EFFECT_GET2D_DATA(mixer, DELAY_EFFECT) != NULL);
       _intBuffers *ringbuffers = mixer->ringbuffers;
-      unsigned int nbufs; 
+      unsigned int nbuf; 
  
-      nbufs = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
-      if (nbufs == 0)
+      nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
+      if (nbuf == 0)
       {
          _oalRingBuffer *nrb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE, dde);
          _intBufAddData(ringbuffers, _AAX_RINGBUFFER, dest_rb);
@@ -1340,10 +1336,8 @@ _aaxAudioFrameThread(void* config)
    do
    {
       float delay = delay_sec;			/* twice as slow when standby */
-      int state;
 
 //    if (_IS_STANDBY(frame)) delay *= 2;
-
       elapsed -= delay;
       if (elapsed <= 0.0f)
       {
@@ -1383,19 +1377,6 @@ _aaxAudioFrameThread(void* config)
          break;
       }
 
-//    state = frame->state;
-      if (state != frame->state)
-      {
-         if (_IS_PAUSED(frame)) {
-            be->pause(NULL);
-         }
-         else if (_IS_PLAYING(frame) || _IS_STANDBY(frame))
-         {
-            be->resume(NULL);
-         }
-         state = frame->state;
-      }
-
       if (_IS_PLAYING(frame) || _IS_STANDBY(frame))
       {
          if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
@@ -1419,13 +1400,9 @@ _aaxAudioFrameThread(void* config)
        *
        * Note: the thread will not be signaled to start mixing if there's
        *       already a buffer in it's buffer queue.
-       *
-       * there is an optional variable which will turn to
-       * frame->thread.update = 1 when the thread is signaled to start mixing
        */
       res = _aaxConditionWaitTimed(frame->thread.condition,
                                    frame->thread.mutex, &ts);
-      frame->thread.update = 0;
    }
    while ((res == ETIMEDOUT) || (res == 0));
 
@@ -1446,7 +1423,6 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
    _oalRingBuffer3dProps sp3d;
    _oalRingBuffer2dProps fp2d;
    _oalRingBuffer3dProps fp3d;
-
 
    if (handle) /* frame is registered */
    {
