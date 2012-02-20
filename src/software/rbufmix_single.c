@@ -730,21 +730,21 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          mtx4Mul(fmatrix, sprops3d->matrix, fprops3d->matrix);
          mtx4Mul(mtx, fmatrix, eprops3d->matrix);
 #if 0
-printf("sensor:\t\t\t\tframe:\n");
-PRINT_MATRICES(sprops3d->matrix, fprops3d->matrix);
-printf("sensor-frame:\t\t\temitter:\n");
-PRINT_MATRICES(fmatrix, eprops3d->matrix);
-printf("modified frame-emitter:\n");
-PRINT_MATRIX(mtx);
+ printf("sensor:\t\t\t\tframe:\n");
+ PRINT_MATRICES(sprops3d->matrix, fprops3d->matrix);
+ printf("sensor-frame:\t\t\temitter:\n");
+ PRINT_MATRICES(fmatrix, eprops3d->matrix);
+ printf("modified frame-emitter:\n");
+ PRINT_MATRIX(mtx);
 #endif
       }
       else {
          mtx4Mul(mtx, sprops3d->matrix, eprops3d->matrix);
 #if 0
-printf("sensor:\t\t\t\temitter:\n");
-PRINT_MATRICES(sprops3d->matrix, eprops3d->matrix);
-printf("modified emitter\n");
-PRINT_MATRIX(mtx);
+ printf("sensor:\t\t\t\temitter:\n");
+ PRINT_MATRICES(sprops3d->matrix, eprops3d->matrix);
+ printf("modified emitter\n");
+ PRINT_MATRIX(mtx);
 #endif
       }
       dist = vec3Normalize(epos, mtx[LOCATION]);
