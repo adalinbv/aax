@@ -33,7 +33,7 @@ static _aaxDriverConnect _aaxNoneDriverConnect;
 static _aaxDriverDisconnect _aaxNoneDriverDisconnect;
 static _aaxDriverSetup _aaxNoneDriverSetup;
 static _aaxDriverState _aaxNoneDriverAvailable;
-static _aaxDriverState _aaxNoneDriverNotAvail;
+static _aaxDriverState _aaxNoneDriverNotAvailable;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
 static _aaxDriver2dMixerCB _aaxNoneDriverStereoMixer;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
@@ -80,7 +80,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverPrepare *)&_aaxNoneDriverPrepare,		/* effects */
 
    (_aaxDriverState *)_aaxNoneDriverAvailable,	/* supports playback */
-   (_aaxDriverState *)_aaxNoneDriverNotAvail,	/* supports capture  */
+   (_aaxDriverState *)_aaxNoneDriverNotAvailable,	/* supports capture  */
    (_aaxDriverState *)_aaxNoneDriverAvailable	/* is available      */
 };
 
@@ -123,7 +123,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)_aaxNoneDriverAvailable,
-   (_aaxDriverState *)_aaxNoneDriverNotAvail,
+   (_aaxDriverState *)_aaxNoneDriverNotAvailable,
    (_aaxDriverState *)_aaxNoneDriverAvailable
 };
 
@@ -163,7 +163,7 @@ _aaxNoneDriverAvailable(const void *id)
 }
 
 static int
-_aaxNoneDriverNotAvail(const void *id)
+_aaxNoneDriverNotAvailable(const void *id)
 {
    return AAX_FALSE;
 }
