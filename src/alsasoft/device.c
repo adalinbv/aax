@@ -189,6 +189,7 @@ DECL_FUNCTION(snd_pcm_mmap_commit);
 DECL_FUNCTION(snd_pcm_writen);
 DECL_FUNCTION(snd_pcm_writei);
 DECL_FUNCTION(snd_pcm_readi);
+DECL_FUNCTION(snd_pcm_format_width);
 DECL_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
 DECL_FUNCTION(snd_pcm_hw_params_get_rate_numden);
 DECL_FUNCTION(snd_pcm_hw_params_get_buffer_size);
@@ -291,6 +292,7 @@ _aaxALSASoftDriverDetect()
          TIE_FUNCTION(snd_pcm_writen);
          TIE_FUNCTION(snd_pcm_writei);
          TIE_FUNCTION(snd_pcm_readi);
+         TIE_FUNCTION(snd_pcm_format_width);
          TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
          TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);
          TIE_FUNCTION(snd_pcm_hw_params_get_buffer_size);
@@ -719,10 +721,33 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
             "unable to set software config" );
-      TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 0U),
-            "improper interrupt treshold" );
-      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, 4),
-            "wakeup treshold unsupported" );
+      if (handle->mode == 0)	/* record */
+      {
+         snd_pcm_uframes_t period_size;
+         int dir;
+
+         TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
+               "unable to get period size" );
+#if 0
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 0U),
+               "improper interrupt treshold" );
+#endif
+         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_size),
+               "wakeup treshold unsupported" );
+      }
+      else			/* playback */
+      {
+         snd_pcm_uframes_t period_size;
+         int dir;
+
+         TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
+               "unable to get period size" );
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
+                                                (size/period_size)*period_size),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_size),
+               "wakeup treshold unsupported" );
+      }
       TRUN( psnd_pcm_sw_params(hid, swparams),
             "unable to configure software" );
 
@@ -811,7 +836,8 @@ static int
 _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int frames, frame_size;
+   unsigned int frames, frame_size, avail;
+   snd_pcm_state_t state;
    int rv = AAX_FALSE;
 
    if ((handle->mode != 0) || (size == 0) || (data == 0))
@@ -826,42 +852,65 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
       return rv;
    }
 
+   state = psnd_pcm_state(handle->id);
+   if (state != SND_PCM_STATE_RUNNING)
+   {
+      if (state == SND_PCM_STATE_PREPARED)
+      {
+         if (handle->playing++ < 1) {
+            psnd_pcm_prepare(handle->id);
+         } else {
+            psnd_pcm_start(handle->id);
+         }
+      }
+      else if (state == SND_PCM_STATE_XRUN) {
+         _AAX_SYSLOG("alsa (mmap_ni): state = SND_PCM_STATE_XRUN.");
+         xrun_recovery(handle->id, -EPIPE);
+      }
+   }
+
    frame_size = handle->no_channels * handle->bytes_sample;
    frames = *size / frame_size;
 
    *size = 0;
-   if (frames)
+   avail = psnd_pcm_avail_update(handle->id);
+   if (frames && (avail >= frames))
    {
       int res = 0;
 
-      do {
-         res = psnd_pcm_readi(handle->id, data, frames);
-      }
-      while (res == -EAGAIN);
-
-      if (res == -EPIPE)
+      do
       {
-         psnd_pcm_prepare(handle->id);
          do {
             res = psnd_pcm_readi(handle->id, data, frames);
-         } while (res == -EAGAIN);
+         }
+         while (res == -EAGAIN);
 
-         if (res < 0)
+         if (res == -EPIPE)
          {
-            _AAX_SYSLOG("alsa; pcm read error");
+            psnd_pcm_prepare(handle->id);
+            do {
+               res = psnd_pcm_readi(handle->id, data, frames);
+            } while (res == -EAGAIN);
+
+            if (res < 0)
+            {
+               _AAX_SYSLOG("alsa; pcm read error");
+               rv = AAX_FALSE;
+            }
+         }
+         else if (res < 0)
+         {
+             _AAX_SYSLOG("alsa; pcm read error");
             rv = AAX_FALSE;
          }
+         else
+         {
+            *size += (res * frame_size);
+            frames -= res;
+            rv = AAX_TRUE;
+         }
       }
-      else if (res < 0)
-      {
-          _AAX_SYSLOG("alsa; pcm read error");
-         rv = AAX_FALSE;
-      }
-      else
-      {
-         *size = (res * frame_size);
-         rv = AAX_TRUE;
-      }
+      while ((res > 0) && frames);
    }
    else rv = AAX_TRUE;
 
