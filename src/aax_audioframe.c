@@ -964,12 +964,13 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
    if (handle)
    {
       _aaxAudioFrame* mixer = handle->submix;
+      _intBuffers *ringbuffers = mixer->ringbuffers;
       unsigned int nbuf;
 
-      nbuf = _intBufGetNum(mixer->ringbuffers, _AAX_RINGBUFFER);
+      nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
       if (nbuf > 0)
       {
-         void **ptr =_intBufShiftIndex(mixer->ringbuffers,_AAX_RINGBUFFER,0,1);
+         void **ptr = _intBufShiftIndex(ringbuffers, _AAX_RINGBUFFER, 0, 1);
          if (ptr)
          {
             _buffer_t *buf = calloc(1, sizeof(_buffer_t));
@@ -990,7 +991,7 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
       }
-      _intBufReleaseNum(mixer->ringbuffers, _AAX_RINGBUFFER);
+      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
    }
    put_frame(frame);
 
