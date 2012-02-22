@@ -171,10 +171,14 @@ int main(int argc, char **argv)
          res = aaxEmitterSetState(emitter, AAX_PLAYING);
          testForState(res, "aaxEmitterStart");
 
-         q = 0;
          printf("Starting recording using the '%s' device\n", device);
+         res = aaxMixerSetState(record, AAX_PLAYING);
+         testForState(res, "aaxMixerStart");
+
          res = aaxSensorSetState(record, AAX_CAPTURING);
          testForState(res, "aaxSensorSetState");
+
+         q = 0;
          do
          {
             nanoSleep(5e7);

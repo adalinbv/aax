@@ -62,7 +62,7 @@ int main(int argc, char **argv)
          res = aaxMixerRegisterAudioFrame(config, frame);
          testForState(res, "aaxMixerRegisterAudioFrame");
 
-#if 1
+#if 0
          /* equalizer */
          f = aaxFilterCreate(config, AAX_EQUALIZER);
          testForError(f, "aaxFilterCreate");

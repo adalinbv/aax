@@ -11,7 +11,8 @@ noinst_PROGRAMS = \
         testphasing testmono3d_frame testlst_rotation testdistance testcone \
 	testposition teststream testcapture testenvelope testwaves testloop \
         testformats teststream_phasing testmono3d_oneshot testframe_detached \
-	testleftright testdistortion testinstrument teststereo_grapheq
+	testleftright testdistortion testinstrument teststereo_grapheq \
+	testregisteredsensor testdistortion_frame
 
 check_PROGRAMS = \
         testringbuf testerrors testfileio testxml testsource testcodec
@@ -143,6 +144,12 @@ testdistortion_LDADD = \
 	$(top_builddir)/test/libtest.la \
 	$(top_builddir)/src/libaax.la
 
+testdistortion_frame_SOURCES = testdistortion_frame.c
+testdistortion_frame_LDADD = \
+	$(top_builddir)/test/libtest.la \
+	$(top_builddir)/src/libaax.la
+
+
 teststream_SOURCES = teststream.c
 teststream_LDADD = \
 	$(top_builddir)/test/libtest.la \
@@ -153,13 +160,19 @@ teststream_phasing_LDADD = \
         $(top_builddir)/test/libtest.la \
         $(top_builddir)/src/libaax.la
 
+testenvelope_SOURCES = testenvelope.c
+testenvelope_LDADD = \
+	$(top_builddir)/test/libtest.la \
+	$(top_builddir)/src/libaax.la
+
+
 testcapture_SOURCES = testcapture.c
 testcapture_LDADD = \
 	$(top_builddir)/test/libtest.la \
 	$(top_builddir)/src/libaax.la
 
-testenvelope_SOURCES = testenvelope.c
-testenvelope_LDADD = \
+testregisteredsensor_SOURCES = testregisteredsensor.c
+testregisteredsensor_LDADD = \
 	$(top_builddir)/test/libtest.la \
 	$(top_builddir)/src/libaax.la
 

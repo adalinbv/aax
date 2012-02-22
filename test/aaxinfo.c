@@ -58,13 +58,13 @@ int main(int argc, char **argv)
    if (printCopyright(argc, argv))
       return 0;
 
-   printf("Run %s -copyright to read the copyright information.\n\n", argv[0]);
+   printf("Run %s -copyright to read the copyright information.\n", argv[0]);
 
    for (mode = AAX_MODE_READ; mode <= AAX_MODE_WRITE_STEREO; mode++)
    {
       char *desc[2] = { "capture", "playback"};
 
-      printf("Devices that support %s:\n", desc[mode]);
+      printf("\nDevices that support %s:\n", desc[mode]);
 
       max = aaxDriverGetCount(mode);
       for (x=0; x<max; x++)
