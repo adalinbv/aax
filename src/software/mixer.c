@@ -772,7 +772,6 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 // printf("non threaded frame\n");
 //          }
 //          else
-#if 0
             {
                static struct timespec sleept = {0, 1000};
                float sleep = 0.1f / mixer->info->refresh_rate;
@@ -783,13 +782,11 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                 */
                sleept.tv_nsec = sleep * 1e9f;
                ringbuffers = mixer->ringbuffers;
-               nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
-               while (!nbuf && (p++ < 500))
+               while ((mixer->capturing == 1) && (p++ < 500))
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
                   nanosleep(&sleept, 0);
-                  nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
@@ -797,11 +794,9 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                   frame = _intBufGetDataPtr(dptr);
                }
             } /* mixer->thread */
-#endif
 
             ringbuffers = mixer->ringbuffers;
-            nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
-            if (dptr && nbuf)
+            if (dptr && mixer->capturing > 1)
             {
                _intBufferData *buf;
 
@@ -831,6 +826,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                         g = lfo->get(lfo, sptr, track, dno_samples);
                      }
                      _batch_fmadd(data, sptr, dno_samples, g, gstep);
+                     mixer->capturing = 1;
                   }
 
                   /*

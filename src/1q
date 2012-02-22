@@ -1246,7 +1246,6 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
          dest_rb = nrb;
       }
       mixer->ringbuffer = dest_rb;
-      mixer->capturing++;
    }
 
    _oalRingBufferClear(dest_rb);

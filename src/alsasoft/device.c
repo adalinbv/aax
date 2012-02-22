@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2012 by Erik Hofman.
+ * Copyright 2009-2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -742,6 +742,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
          TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
                "unable to get period size" );
+
          TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
                                                 (size/period_size)*period_size),
                "improper interrupt treshold" );
