@@ -268,7 +268,6 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
       static struct timespec sleept = {0, 1000};
       const _intBufferData* dptr;
       float sleep, duration = 0.0f;
-      _sensor_t* sensor;
       unsigned int nbuf;
 
       sleep = 1.0 / (handle->info->refresh_rate * 10.0);
@@ -280,8 +279,9 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
-            sensor = _intBufGetDataPtr(dptr);
-            nbuf=_intBufGetNumNoLock(sensor->mixer->ringbuffers,_AAX_RINGBUFFER);
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _intBuffers *ringbuffers = sensor->mixer->ringbuffers;
+            nbuf=_intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          if (!nbuf)
