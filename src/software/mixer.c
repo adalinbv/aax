@@ -552,7 +552,7 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 /*-------------------------------------------------------------------------- */
 
 unsigned int
-_aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
+_aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
    unsigned int i, num = 0;
@@ -631,7 +631,7 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
 }
 
 unsigned int
-_aaxSoftwareMixerMixSensorsNonThreaded(void *dest, _intBuffers *hs)
+_aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
    unsigned int i, num = 0;

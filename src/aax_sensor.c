@@ -311,7 +311,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       switch(state)
       {
       case AAX_CAPTURING:
-         if ((handle->info->mode == AAX_MODE_READ)) { //  && !handle->handle) {
+         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
             rv = _aaxSensorCaptureStart(handle);
          }
          else if (handle->handle)
@@ -324,7 +324,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
          break;
 //    case AAX_PROCESSED:
       case AAX_STOPPED:
-         if ((handle->info->mode == AAX_MODE_READ)) { //  && !handle->handle) {
+         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
             rv = _aaxSensorCaptureStop(handle);
          } else {
             rv = AAX_TRUE;
