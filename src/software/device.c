@@ -41,7 +41,7 @@ static _aaxDriverConnect _aaxSoftwareDriverConnect;
 static _aaxDriverDisconnect _aaxSoftwareDriverDisconnect;
 static _aaxDriverSetup _aaxSoftwareDriverSetup;
 static _aaxDriverState _aaxSoftwareDriverAvailable;
-// static _aaxDriverState _aaxSoftwareDriverNotAvailable;
+static _aaxDriverState _aaxSoftwareDriverNotAvailable;
 static _aaxDriverCallback _aaxSoftwareDriverPlayback;
 static _aaxDriverRecordCallback _aaxSoftwareDriverRecord;
 static _aaxDriverGetName _aaxSoftwareDriverGetName;
@@ -83,7 +83,7 @@ _aaxDriverBackend _aaxSoftwareDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
-   (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
+   (_aaxDriverState *)&_aaxSoftwareDriverNotAvailable,
    (_aaxDriverState *)&_aaxSoftwareDriverAvailable
 };
 
@@ -362,7 +362,7 @@ _aaxSoftwareDriverAvailable(const void *id)
 }
 
 static int
-_aaxSoftwareDriverNotAvail(const void *id)
+_aaxSoftwareDriverNotAvailable(const void *id)
 {  
    return AAX_FALSE; 
 }
