@@ -839,7 +839,7 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
    _driver_t *handle = (_driver_t *)id;
    unsigned int frames, frame_size, avail;
    snd_pcm_state_t state;
-   int rv = AAX_FALSE;
+   int res, rv = AAX_FALSE;
 
    if ((handle->mode != 0) || (size == 0) || (data == 0))
    {
@@ -875,9 +875,20 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
 
    *size = 0;
    avail = psnd_pcm_avail_update(handle->id);
+   if (avail < 0)
+   {
+      if ((res = xrun_recovery(handle->id, avail)) < 0)
+      {
+         char s[255];
+         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(res));
+         _AAX_SYSLOG(s);
+         avail = -1;
+      }
+   }
+
    if (frames && (avail >= frames))
    {
-      int res = 0;
+      int try = 0;
 
       do
       {
@@ -886,30 +897,28 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
          }
          while (res == -EAGAIN);
 
-         if (res == -EPIPE)
+          if (res < 0)
          {
-            psnd_pcm_prepare(handle->id);
-            do {
-               res = psnd_pcm_readi(handle->id, data, frames);
-            } while (res == -EAGAIN);
-
-            if (res < 0)
+            if (xrun_recovery(handle->id, res) < 0)
             {
-               _AAX_SYSLOG("alsa; pcm read error");
+               _AAX_SYSLOG("alsa; unable to run xrun_recovery");
                rv = AAX_FALSE;
+               break;
             }
+            if (try++ > 2)
+            {
+               _AAX_SYSLOG("alsa; unable to recover from pcm read error");
+               rv = AAX_FALSE;
+               break;
+            }
+            _AAX_SYSLOG("alsa; warning: pcm read error");
+printf("alsa; warning: pcm read error\n");
+            continue;
          }
-         else if (res < 0)
-         {
-             _AAX_SYSLOG("alsa; pcm read error");
-            rv = AAX_FALSE;
-         }
-         else
-         {
-            *size += (res * frame_size);
-            frames -= res;
-            rv = AAX_TRUE;
-         }
+
+         *size += (res * frame_size);
+         frames -= res;
+         rv = AAX_TRUE;
       }
       while ((res > 0) && frames);
    }
@@ -1584,10 +1593,10 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
 
    while (no_samples > 0)
    {
-      err = psnd_pcm_writen(handle->id, (void**)data, no_samples);
-
-      if (err == -EAGAIN)
-         continue;
+      do {
+         err = psnd_pcm_writen(handle->id, (void**)data, no_samples);
+      }
+      while (err == -EAGAIN);
 
       if (err < 0)
       {
@@ -1651,10 +1660,10 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
    {
       static int try = 0;
 
-      err = psnd_pcm_writei(handle->id, data, no_samples);
-
-      if (err == -EAGAIN)
-         continue;
+      do {
+         err = psnd_pcm_writei(handle->id, data, no_samples);
+      }
+      while (err == -EAGAIN);
 
       if (err < 0)
       {
