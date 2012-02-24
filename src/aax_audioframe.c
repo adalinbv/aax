@@ -534,6 +534,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   mp3d = mixer->props3d;
                   sp3d = submix->props3d;
 
+                  submix->info->frequency = mixer->info->frequency;
                   submix->info->refresh_rate = mixer->info->refresh_rate;
                   submix->dist_delaying = mixer->dist_delaying;
                   if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
