@@ -133,11 +133,12 @@ typedef struct
     char playing;
     char sse_level;
 
-    void **scratch;
-    int16_t **data;
 #ifndef NDEBUG
    unsigned int buf_len;
 #endif
+
+    void **scratch;
+    int16_t **data;
 
 } _driver_t;
 
@@ -196,6 +197,7 @@ DECL_FUNCTION(snd_pcm_hw_params_get_buffer_size);
 DECL_FUNCTION(snd_pcm_hw_params_get_periods);
 DECL_FUNCTION(snd_pcm_hw_params_get_period_size);
 DECL_FUNCTION(snd_pcm_avail_update);
+DECL_FUNCTION(snd_pcm_avail);
 DECL_FUNCTION(snd_pcm_state);
 DECL_FUNCTION(snd_pcm_start);
 DECL_FUNCTION(snd_pcm_delay);
@@ -299,6 +301,7 @@ _aaxALSASoftDriverDetect()
          TIE_FUNCTION(snd_pcm_hw_params_get_periods);
          TIE_FUNCTION(snd_pcm_hw_params_get_period_size);
          TIE_FUNCTION(snd_pcm_avail_update);
+         TIE_FUNCTION(snd_pcm_avail);
          TIE_FUNCTION(snd_pcm_state);
          TIE_FUNCTION(snd_pcm_start);
          TIE_FUNCTION(snd_pcm_delay);
@@ -680,7 +683,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
             "unvalid buffer size" );
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
-            "unsupported no. periods" );
+            "unsupported no. periods" ); 
       TRUN( psnd_pcm_hw_params(hid, hwparams),
             "incompatible hardware parameters"  );
       *bufsize = size;
@@ -874,7 +877,7 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
    frames = *size / frame_size;
 
    *size = 0;
-   avail = psnd_pcm_avail_update(handle->id);
+   avail = psnd_pcm_avail(handle->id);
    if (avail < 0)
    {
       if ((res = xrun_recovery(handle->id, avail)) < 0)
@@ -897,7 +900,7 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
          }
          while (res == -EAGAIN);
 
-          if (res < 0)
+         if (res < 0)
          {
             if (xrun_recovery(handle->id, res) < 0)
             {
@@ -912,7 +915,6 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
                break;
             }
             _AAX_SYSLOG("alsa; warning: pcm read error");
-printf("alsa; warning: pcm read error\n");
             continue;
          }
 
@@ -1658,7 +1660,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
 
    while (no_samples > 0)
    {
-      static int try = 0;
+      int try = 0;
 
       do {
          err = psnd_pcm_writei(handle->id, data, no_samples);
