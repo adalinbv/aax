@@ -211,6 +211,7 @@ typedef int (*snd_pcm_hw_params_get_buffer_size_proc)(const snd_pcm_hw_params_t 
 typedef int (*snd_pcm_hw_params_get_periods_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_get_period_size_proc)(const snd_pcm_hw_params_t *,  	snd_pcm_uframes_t *, int*);
 typedef snd_pcm_sframes_t (*snd_pcm_avail_update_proc)(snd_pcm_t *);
+typedef snd_pcm_sframes_t (*snd_pcm_avail_proc)(snd_pcm_t *);
 typedef snd_pcm_state_t (*snd_pcm_state_proc)(snd_pcm_t *);
 typedef int (*snd_pcm_hwsync_proc)(snd_pcm_t *);
 typedef int (*snd_pcm_delay_proc)(snd_pcm_t *, snd_pcm_sframes_t *);
