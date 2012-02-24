@@ -520,32 +520,41 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
+   size_t nsize, size, dde;
+   int tracks, res;
    void *rv = rb;
-   size_t size;
    char *dbuf;
-   int res;
 
    /*
     * dest_rb is thread specific and does not need a lock
     */
    assert(dest_rb->sample);
 
-   size = _oalRingBufferGetTrackSize(dest_rb);
-   size *= _oalRingBufferGetNoTracks(dest_rb);
+   tracks = _oalRingBufferGetNoTracks(dest_rb);
+   size = tracks * _oalRingBufferGetTrackSize(dest_rb);
+   nsize = size;
 
-   dbuf = dest_rb->sample->scratch[0];
-   res = be->record(handle, dbuf, &size, 1.0, 1.0);
+   dde = dest_rb->sample->dde_samples * dest_rb->sample->bytes_sample;
+   dbuf = dest_rb->sample->scratch[0] - dde;
+   res = be->record(handle, dbuf, &nsize, 1.0, 1.0);
 
    if TEST_FOR_TRUE(res)
    {
+      float fact = (float)nsize / (float)size;
       _oalRingBuffer *nrb;
 
-      _oalRingBufferFillInterleaved(dest_rb, dbuf, 1, AAX_FALSE);
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+
+// TODO: resample!
+      _oalRingBufferFillInterleaved(dest_rb, dbuf, 1, AAX_FALSE);
       _oalRingBufferRewind(dest_rb);
-      *rr = 1.0f / *rr;
+      *rr *= fact;
       rv = nrb;
    }
+   else {
+      _oalRingBufferClear(dest_rb);
+   }
+
    return rv;
 }
 
@@ -760,7 +769,6 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
             _frame_t* frame = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = frame->submix;
             _intBuffers *ringbuffers;
-            int nbuf = 0;
 
             /*
              * mixer->thread  = -1: mixer
@@ -800,7 +808,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
             {
                _intBufferData *buf;
 
-               nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+               _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
                buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
                _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
@@ -834,7 +842,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                    * be used without the need to create a new ringbuffer
                    * and delete this one now.
                    */
-                  nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+                  _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
                   _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
                   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
                }
