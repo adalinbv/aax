@@ -859,7 +859,7 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
    state = psnd_pcm_state(handle->id);
    if (state != SND_PCM_STATE_RUNNING)
    {
-      if (state == SND_PCM_STATE_PREPARED)
+      if (state <= SND_PCM_STATE_PREPARED)
       {
          if (handle->playing++ < 1) {
             psnd_pcm_prepare(handle->id);
@@ -868,13 +868,17 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
          }
       }
       else if (state == SND_PCM_STATE_XRUN) {
-         _AAX_SYSLOG("alsa (mmap_ni): state = SND_PCM_STATE_XRUN.");
+         _AAX_SYSLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
          xrun_recovery(handle->id, -EPIPE);
       }
    }
 
    frame_size = handle->no_channels * handle->bytes_sample;
    frames = *size / frame_size;
+#ifndef NDEBUG
+   handle->buf_len = frames * frame_size;
+#endif
+
 
    *size = 0;
    avail = psnd_pcm_avail(handle->id);
@@ -1654,7 +1658,9 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
 #endif
    }
    data = (int16_t*)handle->data;
+#if 0
    assert(outbuf_size <= handle->buf_len);
+#endif
 
    _batch_cvt24_16_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
 
