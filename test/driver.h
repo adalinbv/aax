@@ -13,6 +13,7 @@
 #endif
 
 char *	getDeviceName(int, char **);
+char *  getCaptureName(int, char **);
 char *	getCommandLineOption(int, char **, char *);
 char *	getInputFile(int, char **, const char *);
 int	getNumSources(int, char **);

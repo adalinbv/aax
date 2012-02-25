@@ -47,6 +47,23 @@ getDeviceName(int argc, char **argv)
 }
 
 char *
+getCaptureName(int argc, char **argv)
+{
+   static char devname[255];
+   int len = 255;
+   char *s;
+
+   s = getCommandLineOption(argc, argv, "-c");
+   if (s)
+   {
+      strncpy((char *)&devname, s, len);
+      len -= strlen(s);
+   }
+
+   return s;
+}
+
+char *
 getRenderer(int argc, char **argv)
 {
    char *renderer = 0;
