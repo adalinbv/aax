@@ -74,7 +74,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             rv = (setup <= info->max_emitters) ? AAX_TRUE : AAX_FALSE;
             break;
          case AAX_FREQUENCY:
-            if ((setup > 1000) && (setup < 96000))
+            if ((setup > 1000) && (setup <= _AAX_MAX_MIXER_FREQUENCY))
             {
                float iv = info->refresh_rate;
                iv = setup / (float)get_pow2((unsigned int)ceilf(setup / iv));
