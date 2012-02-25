@@ -694,8 +694,9 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       {
          handle->frequency_hz = (float)val1/(float)val2;
          rate = (unsigned)handle->frequency_hz;
-         *speed = rate;
       }
+      handle->frequency_hz = rate;
+      *speed = rate;
 
       err = psnd_pcm_hw_params_get_buffer_size(hwparams, &size);
       err = psnd_pcm_hw_params_get_periods(hwparams, &periods, 0);
