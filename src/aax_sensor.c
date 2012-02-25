@@ -29,6 +29,7 @@
 
 #include "api.h"
 
+static int _aaxSensorCreateRingBuffer(_handle_t *);
 static int _aaxSensorCaptureStart(_handle_t *);
 static int _aaxSensorCaptureStop(_handle_t *);
 
@@ -316,6 +317,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
          }
          else if (handle->handle)
          {
+            _aaxSensorCreateRingBuffer(handle);
             _SET_PLAYING(handle);
             rv = AAX_TRUE;
          } else {
@@ -341,6 +343,51 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
 }
 
 /* -------------------------------------------------------------------------- */
+
+int
+_aaxSensorCreateRingBuffer(_handle_t *handle)
+{
+   _intBufferData *dptr;
+   int rv = AAX_FALSE;
+
+   assert(handle);
+   assert(handle->info->mode == AAX_MODE_READ);
+   assert(handle->thread.started == AAX_FALSE);
+
+   dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr)
+   {
+      _sensor_t *sensor = _intBufGetDataPtr(dptr);
+      _aaxAudioFrame *submix = sensor->mixer;
+      _oalRingBuffer *rb;
+
+      if (submix->ringbuffer) {
+         _oalRingBufferDelete(submix->ringbuffer);
+      }
+
+      submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+      rb = submix->ringbuffer;
+      if (rb)
+      {
+         _aaxMixerInfo* info = submix->info;
+         const _aaxDriverBackend *be;
+         float delay_sec;
+
+         be = _aaxGetDriverBackendLoopback();
+         delay_sec = 1.0f / info->refresh_rate;
+
+         _oalRingBufferSetFormat(rb, be->codecs, info->format);
+         _oalRingBufferSetNoTracks(rb, info->no_tracks);
+         _oalRingBufferSetFrequency(rb, info->frequency);
+         _oalRingBufferSetDuration(rb, delay_sec);
+         _oalRingBufferInit(rb, AAX_TRUE);
+         _oalRingBufferStart(rb);
+      }
+      _intBufReleaseData(dptr, _AAX_SENSOR);
+   }
+
+   return rv;
+}
 
 int
 _aaxSensorCaptureStart(_handle_t *handle)
