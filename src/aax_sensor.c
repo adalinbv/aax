@@ -320,16 +320,43 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
             _aaxSensorCreateRingBuffer(handle);
             _SET_PLAYING(handle);
             rv = AAX_TRUE;
-         } else {
-            _aaxErrorSet(AAX_INVALID_STATE);
+         }
+         else
+         {
+            const _intBufferData* dptr;
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               sensor->mixer->capturing = AAX_TRUE;
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+               rv = AAX_TRUE;
+            }
+//          _aaxErrorSet(AAX_INVALID_STATE);
          }
          break;
 //    case AAX_PROCESSED:
       case AAX_STOPPED:
          if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
             rv = _aaxSensorCaptureStop(handle);
-         } else {
+         }
+         else if (handle->handle)
+         {
+            _aaxSensorCreateRingBuffer(handle);
+            _SET_STOPPED(handle);
             rv = AAX_TRUE;
+         }
+         else
+         {
+            const _intBufferData* dptr;
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               sensor->mixer->capturing = AAX_FALSE;
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+               rv = AAX_TRUE;
+            }
          }
          break;
       default:
