@@ -890,6 +890,7 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
       _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, dest_rb);
 
       nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
+#if 0
       if (nbuf == 1) {
          dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
       }
@@ -907,6 +908,9 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
          dest_rb = (_oalRingBuffer *)ptr[0];
          free(ptr);
       }
+#else
+      dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
+#endif
       mixer->ringbuffer = dest_rb;
    }
 
