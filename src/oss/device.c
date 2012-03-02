@@ -577,7 +577,7 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
    }
 
    ioctl(handle->fd, SNDCTL_DSP_GETOSPACE, &info);
-   assert(outbuf_size == info.fragsize);
+   assert(outbuf_size <= info.fragsize);
 
    res = write(handle->fd, data, outbuf_size);
 // printf("#frags: %i, #frags total: %i, fragsize: %i, bytes: %i, outbuf_size: %i\n", info.fragments, info.fragstotal, info.fragsize, info.bytes, outbuf_size);
