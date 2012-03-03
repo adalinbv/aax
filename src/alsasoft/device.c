@@ -210,7 +210,13 @@ static const char *_const_default_name = DEFAULT_DEVNAME;
 static char *_default_name = NULL;
 static int _default_devnum = DEFAULT_DEVNUM;
 
-static int xrun_recovery(snd_pcm_t *, int);
+#ifndef NDEBUG
+#define xrun_recovery(a,b)     _xrun_recovery_debug(a,b, __LINE__)
+static int _xrun_recovery_debug(snd_pcm_t *, int, int);
+#else
+#define xrun_recovery(a,b)	_xrun_recovery(a,b)
+static int _xrun_recovery(snd_pcm_t *, int);
+#endif
 
 static unsigned int get_devices_avail(int);
 static char *detect_devname(const char*, int, unsigned int, int);
@@ -454,7 +460,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       err = psnd_pcm_open(&handle->id, handle->name, __mode[m], SND_PCM_NONBLOCK);
       if (err >= 0)
       {
-         err = psnd_pcm_nonblock(handle->id, 0);
+         err = psnd_pcm_nonblock(handle->id, 1);
          if (err < 0) psnd_pcm_close(handle->id);
       }
 
@@ -894,14 +900,18 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
       }
    }
 
-   if (frames && (avail >= frames))
+   if (frames && (avail >= 32))
    {
+      unsigned int fetch = frames;
       int try = 0;
+
+      if (avail > (frames+4)) fetch++;
+      else if (avail < (frames-4)) fetch--;
 
       do
       {
          do {
-            res = psnd_pcm_readi(handle->id, data, frames);
+            res = psnd_pcm_readi(handle->id, data, fetch);
          }
          while (res == -EAGAIN);
 
@@ -924,10 +934,13 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
          }
 
          *size += (res * frame_size);
+         data += (res + frame_size);
+         avail -= res;
          frames -= res;
          rv = AAX_TRUE;
       }
-      while ((res > 0) && frames);
+      while(0);
+//    while ((res > 0) && frames);
    }
    else rv = AAX_TRUE;
 
@@ -1275,11 +1288,11 @@ get_devices_avail(int m)
 }
 
 static int
-xrun_recovery(snd_pcm_t *handle, int err)
+_xrun_recovery(snd_pcm_t *handle, int err)
 {
    if (err == -EPIPE)   /* under-run */
    {
-      _AAX_SYSLOG("alsa; buffer underrun.");
+      _AAX_SYSLOG("alsa; buffer underrun or overrun.");
 
       err = psnd_pcm_prepare(handle);
       if (err < 0) {
@@ -1314,6 +1327,15 @@ xrun_recovery(snd_pcm_t *handle, int err)
 
    return err;
 }
+
+#ifndef NDEBUG
+static int
+_xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
+{
+    printf("Alsa xrun error at line: %i\n", line);
+    return _xrun_recovery(handle, err);
+}
+#endif
 
 
 static int
