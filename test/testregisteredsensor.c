@@ -18,7 +18,7 @@
 #include "wavfile.h"
 
 #define REFRESH_RATE		  50.0f
-#define RECORD_TIME_SEC		6000.0f
+#define RECORD_TIME_SEC		60000.0f
 
 int main(int argc, char **argv)
 {
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
       /** mixer */
 #if 0
-      res = aaxMixerSetSetup(config, AAX_FREQUENCY, 192000);
+      res = aaxMixerSetSetup(config, AAX_FREQUENCY, 64000);
       testForState(res, "aaxMixerSeFrequency");
 #endif
 
@@ -85,6 +85,7 @@ int main(int argc, char **argv)
       res = aaxAudioFrameRegisterSensor(frame, record);
       testForState(res, "aaxAudioFrameRegisterSensor");
 
+      /** must be called after aaxAudioFrameRegisterSensor */
       res = aaxMixerSetState(record, AAX_INITIALIZED);
       testForState(res, "aaxMixerSetInitialize");
 
