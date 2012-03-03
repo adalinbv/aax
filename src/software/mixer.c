@@ -538,7 +538,7 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    dbuf = dest_rb->sample->scratch[0] - dde;
    res = be->record(handle, dbuf, &nsize, 1.0, 1.0);
 
-   if TEST_FOR_TRUE(res)
+   if (TEST_FOR_TRUE(res) && nsize)
    {
       float fact = (float)nsize / (float)size;
       _oalRingBuffer *nrb;
@@ -662,6 +662,7 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
             dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
+               const _intBufferData* dptr_rb;
                _intBuffers *ringbuffers;
                _oalRingBuffer *src_rb;
                _aaxAudioFrame *mixer;
@@ -679,73 +680,64 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt);
 
                dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
-               if (dptr_sensor)
+               _oalRingBufferRewind(src_rb);
+               _oalRingBufferStart(src_rb);
+               if (rv != src_rb)
                {
-                  _oalRingBufferRewind(src_rb);
-                  _oalRingBufferStart(src_rb);
-                  if (rv != src_rb)
-                  {
-                     /**
-                      * Add the new buffer to the buffer queue and pop the
-                      * first buffer from the queue when needed (below).
-                      * This way pitch effects (< 1.0) can be processed safely.
-                      */
-                     _intBufAddData(ringbuffers, _AAX_RINGBUFFER, src_rb);
-                     mixer->ringbuffer = rv;
-                  }
+                  /**
+                   * Add the new buffer to the buffer queue and pop the
+                   * first buffer from the queue when needed (below).
+                   * This way pitch effects (< 1.0) can be processed safely.
+                   */
+                  _intBufAddData(ringbuffers, _AAX_RINGBUFFER, src_rb);
+                  mixer->ringbuffer = rv;
                }
 
-               if (dptr_sensor)
+               dptr_rb = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
+               if (dptr_rb)
                {
-                  const _intBufferData* dptr_rb;
+                  _oalRingBuffer *src_rb = _intBufGetDataPtr(dptr_rb);
+                  unsigned int rv = 0;
 
-                  dptr_rb = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
-                  if (dptr_rb)
+                  do
                   {
-                     _oalRingBuffer *src_rb = _intBufGetDataPtr(dptr_rb);
-                     unsigned int rv = 0;
+                     rv = be->mix2d(be_handle, dest_rb, src_rb,
+                                    mixer->props2d, NULL, 1.0f, 1.0f);
 
-                     do
+                     if (rv)	/* always streaming */
                      {
-                        rv = be->mix2d(be_handle, dest_rb, src_rb,
-                                       mixer->props2d, NULL, 1.0f, 1.0f);
+                        unsigned int nbuf;
+                        void **ptr;
 
-                        if (rv)	/* always streaming */
+                        _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
+
+                        nbuf=_intBufGetNumNoLock(ringbuffers,_AAX_RINGBUFFER);
+                        if (nbuf)
                         {
-                           unsigned int nbuf;
-                           void **ptr;
-
-                           _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
-
-                           nbuf=_intBufGetNumNoLock(ringbuffers,_AAX_RINGBUFFER);
-                           if (nbuf)
+                           ptr = _intBufShiftIndex(ringbuffers,
+                                                   _AAX_RINGBUFFER, 0, 1);
+//                         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+                           if (ptr)
                            {
-                              ptr = _intBufShiftIndex(ringbuffers,
-                                                      _AAX_RINGBUFFER, 0, 1);
-//                            _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-                              if (ptr)
-                              {
-                                 nbuf--;
-                                 _oalRingBufferDelete(ptr[0]);
-                                 free(ptr);
-                              }
+                              nbuf--;
+                              _oalRingBufferDelete(ptr[0]);
+                              free(ptr);
                            }
-
-                           if (nbuf)
-                           {
-                              dptr_rb=_intBufGet(ringbuffers,_AAX_RINGBUFFER,0);
-                              src_rb = _intBufGetDataPtr(dptr_rb);
-                           }
-                           else rv = 0;
                         }
+
+                        if (nbuf)
+                        {
+                           dptr_rb=_intBufGet(ringbuffers,_AAX_RINGBUFFER,0);
+                           src_rb = _intBufGetDataPtr(dptr_rb);
+                        }
+                        else rv = 0;
                      }
-                     while(rv);
-                     _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
                   }
-                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+                  while(rv);
                }
-               _intBufReleaseData(dptr, _AAX_DEVICE);
+               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
+            _intBufReleaseData(dptr, _AAX_DEVICE);
          }
       }
       _intBufReleaseNum(hs, _AAX_DEVICE);
