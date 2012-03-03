@@ -545,7 +545,7 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
 
-// TODO: resample!
+// TODO: resample?
       _oalRingBufferFillInterleaved(dest_rb, dbuf, 1, AAX_FALSE);
       _oalRingBufferRewind(dest_rb);
       *rr *= fact;
