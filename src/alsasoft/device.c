@@ -469,7 +469,6 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
          if (id == 0) free(handle);
          handle = 0;
       }
-      
    }
 
    _oalRingBufferMixMonoSetRenderer(mode);
@@ -1317,6 +1316,11 @@ _xrun_recovery(snd_pcm_t *handle, int err)
          }
       }
       return 0;
+   }
+   else if (err == -EINVAL) {
+      fprintf(stderr, "alsa; unhandled error: invalid PCM handle: %i\n", handle);
+   } else { 
+      fprintf(stderr, "alsa; unhandled error number: %i\n", err);
    }
 
    /*
