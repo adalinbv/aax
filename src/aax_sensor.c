@@ -403,8 +403,8 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          be = _aaxGetDriverBackendLoopback();
          delay_sec = 1.0f / info->refresh_rate;
 
-         _oalRingBufferSetFormat(rb, be->codecs, info->format);
-         _oalRingBufferSetNoTracks(rb, info->no_tracks);
+         _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+         _oalRingBufferSetNoTracks(rb, 2);
          _oalRingBufferSetFrequency(rb, info->frequency);
          _oalRingBufferSetDuration(rb, delay_sec);
          _oalRingBufferInit(rb, AAX_TRUE);
