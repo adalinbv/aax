@@ -485,7 +485,7 @@ _aaxOSSDriverIsAvailable(const void *id)
 }
 
 static int
-_aaxOSSDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
+_aaxOSSDriverRecord(const void *id, void **data, size_t *size, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t buflen;
@@ -502,13 +502,14 @@ _aaxOSSDriverRecord(const void *id, void *data, size_t *size, float pitch, float
    {
       int res;
 
-      res = read(handle->fd, data, buflen);
+      res = read(handle->fd, scratch, buflen);
       if (res == -1)
       {
          _AAX_SYSLOG(strerror(errno));
          return AAX_FALSE;
       }
       *size = res;
+      _batch_cvt16_24_intl((int32_t**)data, scratch, 2, res);
 
       return AAX_TRUE;
    }
