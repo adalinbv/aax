@@ -520,24 +520,27 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
+   _oalRingBufferSample *rbd;
    size_t nsize, size, dde;
    int tracks, res;
    void *rv = rb;
-   char *dbuf;
 
    /*
     * dest_rb is thread specific and does not need a lock
+    * Note:
+    *  - samples are always captured in signed 16-bit PCM, stereo
+    *  - The ringbuffer is singed 24-bit PCM, stereo
     */
    assert(dest_rb->sample);
 
    tracks = _oalRingBufferGetNoTracks(dest_rb);
-   size = tracks * _oalRingBufferGetTrackSize(dest_rb);
+   size = tracks * _oalRingBufferGetNoSamples(dest_rb) * sizeof(int16_t);
    nsize = size;
 
-   dde = dest_rb->sample->dde_samples * dest_rb->sample->bytes_sample;
-   dbuf = dest_rb->sample->scratch[0] - dde;
-   res = be->record(handle, dbuf, &nsize, 1.0, 1.0);
+   rbd = dest_rb->sample;
+   dde = rbd->dde_samples * rbd->bytes_sample;
 
+   res = be->record(handle, rbd->track, &nsize, rbd->scratch[0]-dde);
    if (TEST_FOR_TRUE(res) && nsize)
    {
       float fact = (float)nsize / (float)size;
@@ -546,7 +549,6 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
 
 // TODO: resample?
-      _oalRingBufferFillInterleaved(dest_rb, dbuf, 1, AAX_FALSE);
       _oalRingBufferRewind(dest_rb);
       *rr *= fact;
       rv = nrb;
