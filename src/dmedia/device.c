@@ -678,24 +678,25 @@ _aaxDMediaDriverAvailable(const void *id)
 }
 
 static int
-_aaxDMediaDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
+_aaxDMediaDriverRecord(const void *id, void **data, size_t *size, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   int frames, frame_sz;
+   int frames, frame_sz, tracks;
 
    if ((handle->mode != 0) || (size == 0) || (data == 0)) {
      return AAX_FALSE;
    }
 
-   frame_sz = handle->port[0].no_channels * (handle->port[0].bytes_sample);
+   tracks = handle->port[0].no_channels;
+   frame_sz = tracks * (handle->port[0].bytes_sample);
    frames = *size / frame_sz;
    if (frames > 0)
    {
       *size = 0;
       if (data)
       {
-         palReadFrames(handle->port[0].port, data, frames);
-         /* TODO: Change pitch and volume */
+         palReadFrames(handle->port[0].port, scratch, frames);
+         _batch_cvt16_24_intl((int32_t**)data, scratch, 2, frames);
          return AAX_TRUE;
       }
    }
