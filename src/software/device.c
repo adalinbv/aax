@@ -447,7 +447,7 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
 }
 
 static int
-_aaxSoftwareDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
+_aaxSoftwareDriverRecord(const void *id, void **data, size_t *size, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t buflen;
@@ -464,7 +464,7 @@ _aaxSoftwareDriverRecord(const void *id, void *data, size_t *size, float pitch, 
    {
       int res;
 
-      res = read(handle->fd, data, buflen);
+      res = read(handle->fd, scratch, buflen);
       if (res == -1)
       {
          _AAX_SYSLOG(strerror(errno));
@@ -473,8 +473,10 @@ _aaxSoftwareDriverRecord(const void *id, void *data, size_t *size, float pitch, 
       *size = res;
 
       if (is_bigendian()) {
-         _batch_endianswap16((uint16_t*)data, res);
+         _batch_endianswap16((uint16_t*)scratch, res);
       }
+      _batch_cvt16_24_intl((int32_t**)data, scratch, 2, res);
+
 // TODO: possibly adjust format or resample since the requested specifications
 //       probably difffer from the data in the file.
 
