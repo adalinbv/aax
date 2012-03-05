@@ -230,7 +230,7 @@ _aaxNoneDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static int
-_aaxLoopbackDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
+_aaxLoopbackDriverRecord(const void *id, void **data, size_t *size, void *scratch)
 {
 #if 0
    _driver_t *handle = (_driver_t *)id;
