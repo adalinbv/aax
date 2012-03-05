@@ -15,6 +15,7 @@ AeonWave (2.2.0) stable; urgency=low
   * Added the inverse of the modulation-waveform for filters and effects.
   * Added the option to modify the Q factor of frequency filters.
   * Added filter and effect support for streaming audio.
+  * A complete overhaul of the recording code.
   * Speed-up of filter and effect processing.
   * Fix delay effects for audio-frames.
   * Added flanging effect.
