@@ -64,6 +64,7 @@ void _batch_cvt16_24_cpu(int32_t*__restrict, const void*__restrict, unsigned int
 void _batch_cvt32_24_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvtps_24_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvtpd_24_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
+void _batch_cvt16_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvt32_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvtps_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvtpd_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);

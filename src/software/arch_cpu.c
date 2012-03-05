@@ -128,6 +128,25 @@ _batch_cvtpd_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned i
 }
 
 void
+_batch_cvt16_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
+{
+   unsigned int t;
+   for (t=0; t<tracks; t++)
+   {
+      int16_t *s = (int16_t *)sptr + t;
+      int32_t *d = dptr[t];
+      unsigned int i = num;
+
+      do
+      {
+         *d++ = (int32_t)*s << 8;
+         s += tracks;
+      }
+      while (--i);
+   }
+}
+
+void
 _batch_cvt32_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
