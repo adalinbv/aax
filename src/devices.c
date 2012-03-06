@@ -265,7 +265,7 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
 }
 
 static char*
-_aaxDriverDetectConfigRenderer(char *output, char **devname, char *l, char *cl)
+_aaxDriverDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
 {
    unsigned int size;
    char curlevel = *cl;
@@ -273,7 +273,7 @@ _aaxDriverDetectConfigRenderer(char *output, char **devname, char *l, char *cl)
    char rr[255];
 
    *rr = '\0';
-   size = xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
+   size = xmlNodeCopyString(xid, "renderer", (char*)&rr, 255);
    if (size && devname[1])
    {
       if (strlen(devname[1]) < size) size = strlen(devname[1]);
@@ -286,10 +286,8 @@ _aaxDriverDetectConfigRenderer(char *output, char **devname, char *l, char *cl)
          if ((dptr-devname[1]) == (rrptr-rr)) level = 3;
          else level = 2;
       }
-      else
-      {
-         xmlFree(output);
-         output = 0;
+      else {
+         xid = 0;
       }
    }
    else {                /* no renderer specified or requested */
@@ -299,7 +297,7 @@ _aaxDriverDetectConfigRenderer(char *output, char **devname, char *l, char *cl)
    *l = level;
    *cl = curlevel;
 
-   return output;
+   return xid;
 }
 
 void
@@ -403,13 +401,16 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                level[0] = 0;
                output = xmlNodeCopy(xbid, "output");
-               if (output) {
-                  output = _aaxDriverDetectConfigRenderer(output, devname,
-                                                         (char *)&level[0],
-                                                         (char *)&curlevel[0]);
+               if (output &&
+                   (_aaxDriverDetectConfigRenderer(output, devname,
+                                                   (char *)&level[0],
+                                                   (char *)&curlevel[0]) == 0))
+               {
+                  xmlFree(output);
+                  output = 0;
                }
 
-               if (output && (level[0] >= curlevel[0]))
+               if (output && (level[0] > curlevel[0]))
                {
                   unsigned int q, i, l, index = -1;
                   char rr[255];
@@ -418,6 +419,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                   curlevel[0] = level[0];
 
+                  xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
                   ptr = config->backend.driver;
                   l = strlen(config->backend.driver) + strlen(rr) + 5;
                   config->backend.driver = malloc(l);
@@ -471,28 +473,18 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                level[1] = 0;
                input = xmlNodeCopy(xbid, "input");
-               if (input) {
-                  input = _aaxDriverDetectConfigRenderer(input, devname,
-                                                         (char *)&level[1],
-                                                         (char *)&curlevel[1]);
+               if (input &&
+                   (_aaxDriverDetectConfigRenderer(input, devname,
+                                                   (char *)&level[1],
+                                                   (char *)&curlevel[1]) == 0))
+               {
+                  xmlFree(input);
+                  input = 0;
                }
 
                if (input && (level[1] >= curlevel[1]))
                {
-                  unsigned int l;
-                  char rr[255];
-                  char *ptr;
-
                   curlevel[1] = level[1];
-
-                  ptr = config->backend.driver;
-                  l = strlen(config->backend.driver) + strlen(rr) + 5;
-                  config->backend.driver = malloc(l);
-                  strcpy(config->backend.driver, ptr);
-                  strcat(config->backend.driver, " on ");
-                  strcat(config->backend.driver, rr);
-                  free(ptr);
-
                   xmlFree(config->backend.input);
                   config->backend.input = input;
                }
