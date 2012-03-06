@@ -90,6 +90,41 @@ typedef enum _snd_pcm_state
     SND_PCM_STATE_DISCONNECTED
 } snd_pcm_state_t;
 
+typedef enum _snd_pcm_type 
+{
+    SND_PCM_TYPE_HW = 0,
+    SND_PCM_TYPE_HOOKS,
+    SND_PCM_TYPE_MULTI,
+    SND_PCM_TYPE_FILE,
+    SND_PCM_TYPE_NULL,
+    SND_PCM_TYPE_SHM,
+    SND_PCM_TYPE_INET,
+    SND_PCM_TYPE_COPY,
+    SND_PCM_TYPE_LINEAR,
+    SND_PCM_TYPE_ALAW,
+    SND_PCM_TYPE_MULAW,
+    SND_PCM_TYPE_ADPCM,
+    SND_PCM_TYPE_RATE,
+    SND_PCM_TYPE_ROUTE,
+    SND_PCM_TYPE_PLUG,
+    SND_PCM_TYPE_SHARE,
+    SND_PCM_TYPE_METER,
+    SND_PCM_TYPE_MIX,
+    SND_PCM_TYPE_DROUTE,
+    SND_PCM_TYPE_LBSERVER,
+    SND_PCM_TYPE_LINEAR_FLOAT,
+    SND_PCM_TYPE_LADSPA,
+    SND_PCM_TYPE_DMIX,
+    SND_PCM_TYPE_JACK,
+    SND_PCM_TYPE_DSNOOP,
+    SND_PCM_TYPE_DSHARE,
+    SND_PCM_TYPE_IEC958,
+    SND_PCM_TYPE_SOFTVOL,
+    SND_PCM_TYPE_IOPLUG,
+    SND_PCM_TYPE_EXTPLUG,
+    SND_PCM_TYPE_MMAP_EMUL
+} snd_pcm_type_t;
+
 enum _snd_ctl_elem_iface
 {
     SND_CTL_ELEM_IFACE_CARD = 0,
@@ -199,6 +234,9 @@ typedef snd_pcm_sframes_t(*snd_pcm_mmap_writen_proc)(snd_pcm_t *, void **, snd_p
 typedef int (*snd_pcm_mmap_begin_proc)(snd_pcm_t *, const snd_pcm_channel_area_t **, snd_pcm_uframes_t *, snd_pcm_uframes_t *);
 typedef snd_pcm_sframes_t(*snd_pcm_mmap_commit_proc)(snd_pcm_t *, snd_pcm_uframes_t, snd_pcm_uframes_t);
 typedef snd_pcm_sframes_t(*snd_pcm_readi_proc)(snd_pcm_t *, void *, snd_pcm_uframes_t);
+typedef snd_pcm_sframes_t(*snd_pcm_readn_proc)(snd_pcm_t *, void **, snd_pcm_uframes_t);
+typedef snd_pcm_sframes_t(*snd_pcm_mmap_readi_proc)(snd_pcm_t *, void *, snd_pcm_uframes_t);
+typedef snd_pcm_sframes_t(*snd_pcm_mmap_readn_proc)(snd_pcm_t *, void **, snd_pcm_uframes_t);
 
 typedef int (*snd_pcm_hw_params_get_sbits_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_get_format_proc)(const snd_pcm_hw_params_t *, snd_pcm_format_t *);
@@ -249,6 +287,9 @@ typedef size_t (*snd_ctl_elem_id_sizeof_proc)(void);
 typedef void (*snd_ctl_elem_id_set_name_proc)(snd_ctl_elem_id_t *, const char *);
 typedef void (*snd_ctl_elem_id_set_interface_proc)(snd_ctl_elem_id_t *, snd_ctl_elem_iface_t);
 
+
+typedef ssize_t (*snd_pcm_frames_to_bytes_proc)(snd_pcm_t *, snd_pcm_sframes_t);
+typedef snd_pcm_type_t (*snd_pcm_type_proc)(snd_pcm_t *);
 
 #endif /* _ALSA_AUDIO_H */
 

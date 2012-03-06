@@ -180,6 +180,7 @@ DECL_FUNCTION(snd_pcm_hw_params_test_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
+DECL_FUNCTION(snd_pcm_hw_params_get_channels);
 DECL_FUNCTION(snd_pcm_sw_params_sizeof);
 DECL_FUNCTION(snd_pcm_sw_params_current);
 DECL_FUNCTION(snd_pcm_sw_params);
@@ -190,6 +191,9 @@ DECL_FUNCTION(snd_pcm_mmap_commit);
 DECL_FUNCTION(snd_pcm_writen);
 DECL_FUNCTION(snd_pcm_writei);
 DECL_FUNCTION(snd_pcm_readi);
+DECL_FUNCTION(snd_pcm_readn);
+DECL_FUNCTION(snd_pcm_mmap_readi);
+DECL_FUNCTION(snd_pcm_mmap_readn);
 DECL_FUNCTION(snd_pcm_format_width);
 DECL_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
 DECL_FUNCTION(snd_pcm_hw_params_get_rate_numden);
@@ -203,6 +207,9 @@ DECL_FUNCTION(snd_pcm_start);
 DECL_FUNCTION(snd_pcm_delay);
 DECL_FUNCTION(snd_strerror);
 DECL_FUNCTION(snd_lib_error_set_handler);
+
+DECL_FUNCTION(snd_pcm_frames_to_bytes);
+DECL_FUNCTION(snd_pcm_type);
 
 static const snd_pcm_format_t _alsa_formats[];
 static const char *_const_default_name = DEFAULT_DEVNAME;
@@ -290,6 +297,7 @@ _aaxALSASoftDriverDetect()
          TIE_FUNCTION(snd_pcm_hw_params_set_channels);
          TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);
          TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
+         TIE_FUNCTION(snd_pcm_hw_params_get_channels);
          TIE_FUNCTION(snd_pcm_sw_params_sizeof);
          TIE_FUNCTION(snd_pcm_sw_params_current);
          TIE_FUNCTION(snd_pcm_sw_params);
@@ -300,6 +308,9 @@ _aaxALSASoftDriverDetect()
          TIE_FUNCTION(snd_pcm_writen);
          TIE_FUNCTION(snd_pcm_writei);
          TIE_FUNCTION(snd_pcm_readi);
+         TIE_FUNCTION(snd_pcm_readn);
+         TIE_FUNCTION(snd_pcm_mmap_readi);
+         TIE_FUNCTION(snd_pcm_mmap_readn);
          TIE_FUNCTION(snd_pcm_format_width);
          TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
          TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);
@@ -313,6 +324,9 @@ _aaxALSASoftDriverDetect()
          TIE_FUNCTION(snd_pcm_delay);
          TIE_FUNCTION(snd_strerror);
          TIE_FUNCTION(snd_lib_error_set_handler);
+
+         TIE_FUNCTION(snd_pcm_frames_to_bytes);
+         TIE_FUNCTION(snd_pcm_type);
       }
 
       error = _oalGetSymError(0);
@@ -566,15 +580,21 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       TRUN( psnd_pcm_hw_params_set_format(hid, hwparams, data_format),
             "unsupported audio fromat" );
 
-      if (err >= 0  && handle->mode == 0)	/* capture */
+#if 1
+      /* for testing purposes */
+      /* and until there is a way to have mmap, 4 channel out and 2 channel in
+       * working ..
+       */
+      if (err >= 0)
       {
          handle->interleaved = 1;
          handle->use_mmap = 0;
          err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                          SND_PCM_ACCESS_RW_INTERLEAVED);
          if (err < 0) _AAX_SYSLOG("alsa; unable to set interleaved mode");
-      }
-      else if (err >= 0)			/* playback */
+      } else
+#endif
+      if (err >= 0)			/* playback */
       {
          handle->use_mmap = 1;
          handle->interleaved = 0;
@@ -843,12 +863,13 @@ _aaxALSASoftDriverIsAvailable(const void *id)
 }
 
 static int
-_aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, float volume)
+_aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int frames, frame_size, avail;
+   unsigned int frames, frame_size, tracks;
    snd_pcm_state_t state;
-   int res, rv = AAX_FALSE;
+   int res, avail;
+   int rv = AAX_FALSE;
 
    if ((handle->mode != 0) || (size == 0) || (data == 0))
    {
@@ -879,7 +900,8 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
       }
    }
 
-   frame_size = handle->no_channels * handle->bytes_sample;
+   tracks = handle->no_channels;
+   frame_size = tracks * handle->bytes_sample;
    frames = *size / frame_size;
 #ifndef NDEBUG
    handle->buf_len = frames * frame_size;
@@ -907,12 +929,99 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
       if (avail > (frames+4)) fetch++;
       else if (avail < (frames-4)) fetch--;
 
+      rv = AAX_TRUE;
       do
       {
-         do {
-            res = psnd_pcm_readi(handle->id, data, fetch);
+         /*
+          * Note: When recording from a device that is also opened for playback
+          *       the frame size will be different when output is opened using
+          *       a different number of channels than the 2 cannel recording!
+          */
+         if (handle->use_mmap)
+         {
+            const snd_pcm_channel_area_t *area;
+            snd_pcm_uframes_t no_frames = fetch;
+            snd_pcm_uframes_t offset = 0;
+
+            res = psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
+            if (res < 0)
+            {
+               if ((res = xrun_recovery(handle->id, res)) < 0)
+               {
+                  char s[255];
+                  snprintf(s, 255, "MMAP begin avail error: %s\n", 
+                                   psnd_strerror(res));
+                  _AAX_SYSLOG(s);
+                  return 0;
+               }
+            }
+
+            if (!no_frames) break;
+
+            if (handle->interleaved)
+            {
+               do {
+                  res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
+               }
+               while (res == -EAGAIN);
+
+               if (res > 0)
+               {
+                  char *p = (char *)area->addr; 
+
+                  p += (area->first + area->step*offset) >> 3;
+                  _batch_cvt16_24_intl((int32_t**)data, p, 2, no_frames);
+               }
+            }
+            else
+            {
+               char *s[2];
+               s[0] = scratch;
+               s[1] = (char*)scratch + fetch*frame_size;
+
+               do {
+                  res = psnd_pcm_mmap_readn(handle->id, (void**)s, fetch);
+               } while (res == -EAGAIN);
+
+               if (res > 0)
+               {
+                  int32_t **d = (int32_t **)data;
+                  _batch_cvt16_24(d[0], s[0], res);
+                  _batch_cvt16_24(d[1], s[1], res);
+               }
+            }
          }
-         while (res == -EAGAIN);
+         else
+         {
+            if (handle->interleaved)
+            {
+               do {
+                  res = psnd_pcm_readi(handle->id, scratch, fetch);
+               }
+               while (res == -EAGAIN);
+
+               if (res > 0) {
+                  _batch_cvt16_24_intl((int32_t**)data, scratch, 2, res);
+               }
+            }
+            else
+            {
+               char *s[2];
+               s[0] = scratch;
+               s[1] = (char*)scratch + fetch*frame_size;
+
+               do {
+                  res = psnd_pcm_readn(handle->id, data, fetch);
+               } while (res == -EAGAIN);
+
+               if (res > 0)
+               {
+                  int32_t **d = (int32_t **)data;
+                  _batch_cvt16_24(d[0], s[0], res);
+                  _batch_cvt16_24(d[1], s[1], res);
+               }
+            }
+         }
 
          if (res < 0)
          {
@@ -932,14 +1041,12 @@ _aaxALSASoftDriverRecord(const void *id, void *data, size_t *size, float pitch, 
             continue;
          }
 
-         *size += (res * frame_size);
-         data += (res + frame_size);
-         avail -= res;
-         frames -= res;
-         rv = AAX_TRUE;
+         *size += res * frame_size;
+         data += res * frame_size;
+         fetch -= res;
       }
       while(0);
-//    while ((res > 0) && frames);
+//    while (fetch);
    }
    else rv = AAX_TRUE;
 
@@ -1297,8 +1404,7 @@ _xrun_recovery(snd_pcm_t *handle, int err)
       if (err < 0) {
          _AAX_SYSLOG("alsa; unable to recover from underrun");
       }
-
-      return 0;
+      else err = 0;
    }
    else if (err == -ESTRPIPE)
    {
@@ -1315,13 +1421,15 @@ _xrun_recovery(snd_pcm_t *handle, int err)
             _AAX_SYSLOG("alsa; unable to recover from suspend");
          }
       }
-      return 0;
+      else err = 0;
    }
+#ifndef NDEBUG
    else if (err == -EINVAL) {
-      fprintf(stderr, "alsa; unhandled error: invalid PCM handle: %i\n", handle);
+      fprintf(stderr, "alsa; unhandled error: invalid access type\n");
    } else { 
       fprintf(stderr, "alsa; unhandled error number: %i\n", err);
    }
+#endif
 
    /*
     *  Make sure PCM is in the right state:
@@ -1426,13 +1534,6 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
          char *p = (char *)areas[t].addr + handle->bytes_sample*offset;
          ptr = (int16_t *)p;
          _batch_cvt24_16(ptr, (const int32_t *)rbsd->track[t]+offs, frames);
-#if 0
-         for (s=0; s<frames; s++)
-         {
-            int16_t smp = rbsd->get_sample(rbsd, t, s);
-            *ptr++ = smp;
-         }
-#endif
       }
 
       result = psnd_pcm_mmap_commit(handle->id, offset, frames);
