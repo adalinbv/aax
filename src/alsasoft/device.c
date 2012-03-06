@@ -210,6 +210,7 @@ DECL_FUNCTION(snd_lib_error_set_handler);
 
 DECL_FUNCTION(snd_pcm_frames_to_bytes);
 DECL_FUNCTION(snd_pcm_type);
+DECL_FUNCTION(snd_pcm_recover);
 
 static const snd_pcm_format_t _alsa_formats[];
 static const char *_const_default_name = DEFAULT_DEVNAME;
@@ -327,6 +328,7 @@ _aaxALSASoftDriverDetect()
 
          TIE_FUNCTION(snd_pcm_frames_to_bytes);
          TIE_FUNCTION(snd_pcm_type);
+         TIE_FUNCTION(snd_pcm_recover);
       }
 
       error = _oalGetSymError(0);
@@ -909,7 +911,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
 
 
    *size = 0;
-   avail = psnd_pcm_avail(handle->id);
+   avail = psnd_pcm_avail_update(handle->id);
    if (avail < 0)
    {
       if ((res = xrun_recovery(handle->id, avail)) < 0)
@@ -926,8 +928,8 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
       unsigned int fetch = frames;
       int try = 0;
 
-      if (avail > (frames+4)) fetch++;
-      else if (avail < (frames-4)) fetch--;
+      if (avail > (2*frames+4)) fetch++;
+      else if (avail < (2*frames-4)) fetch--;
 
       rv = AAX_TRUE;
       do
@@ -1396,6 +1398,9 @@ get_devices_avail(int m)
 static int
 _xrun_recovery(snd_pcm_t *handle, int err)
 {
+   psnd_pcm_recover(handle, err, 1);
+   return 0;
+#if 0
    if (err == -EPIPE)   /* under-run */
    {
       _AAX_SYSLOG("alsa; buffer underrun or overrun.");
@@ -1438,6 +1443,7 @@ _xrun_recovery(snd_pcm_t *handle, int err)
    assert(err != -EBADFD);
 
    return err;
+#endif
 }
 
 #ifndef NDEBUG
@@ -1792,7 +1798,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
 
    _batch_cvt24_16_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
 
-   while (no_samples > 0)
+   do
    {
       int try = 0;
 
@@ -1820,6 +1826,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
       data += err * no_tracks;
       no_samples -= err;
    }
+   while (no_samples);
 
    return 0;
 }
