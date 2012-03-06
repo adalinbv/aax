@@ -520,9 +520,10 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
+   int no_samples, tracks, res;
    _oalRingBufferSample *rbd;
    size_t nsize, size, dde;
-   int tracks, res;
+   char **scratch;
    void *rv = rb;
 
    /*
@@ -534,21 +535,30 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    assert(dest_rb->sample);
 
    tracks = _oalRingBufferGetNoTracks(dest_rb);
-   size = tracks * _oalRingBufferGetNoSamples(dest_rb) * sizeof(int16_t);
+   no_samples = _oalRingBufferGetNoSamples(dest_rb);
+   size = tracks * no_samples * sizeof(int16_t);
    nsize = size;
 
    rbd = dest_rb->sample;
    dde = rbd->dde_samples * rbd->bytes_sample;
 
-   res = be->record(handle, rbd->track, &nsize, rbd->scratch[0]-dde);
+   scratch = (char**)rbd->scratch;
+   res = be->record(handle, rbd->track, &nsize, scratch[0]-dde);
    if (TEST_FOR_TRUE(res) && nsize)
    {
-      float fact = (float)nsize / (float)size;
+      float fact = (float)nsize/(float)size;
       _oalRingBuffer *nrb;
-
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-
-// TODO: resample?
+#if 0
+      if (nsize != size)
+      {
+         int32_t *tmp = (int32_t*)(scratch[0]-dde);
+         _aaxProcessResample(tmp, rbd->track[0], 0, no_samples, 0, fact);
+         memcpy(rbd->track[0], tmp, size);
+         _aaxProcessResample(tmp, rbd->track[1], 0, no_samples, 0, fact);
+         memcpy(rbd->track[1], tmp, size);
+      }
+#endif
       _oalRingBufferRewind(dest_rb);
       *rr *= fact;
       rv = nrb;
