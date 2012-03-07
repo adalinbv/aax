@@ -216,6 +216,7 @@ DECL_FUNCTION(snd_lib_error_set_handler);
 DECL_FUNCTION(snd_pcm_frames_to_bytes);
 DECL_FUNCTION(snd_pcm_type);
 DECL_FUNCTION(snd_pcm_recover);
+DECL_FUNCTION(snd_pcm_stream);
 
 static const snd_pcm_format_t _alsa_formats[];
 static const char *_const_default_name = DEFAULT_DEVNAME;
@@ -336,6 +337,7 @@ _aaxALSASoftDriverDetect()
          TIE_FUNCTION(snd_pcm_frames_to_bytes);
          TIE_FUNCTION(snd_pcm_type);
          TIE_FUNCTION(snd_pcm_recover);
+         TIE_FUNCTION(snd_pcm_stream);
       }
 
       error = _oalGetSymError(0);
@@ -1706,52 +1708,20 @@ get_devices_avail(int m)
 static int
 _xrun_recovery(snd_pcm_t *handle, int err)
 {
-   psnd_pcm_recover(handle, err, 1);
-   return 0;
-#if 0
-   if (err == -EPIPE)   /* under-run */
+   int res = psnd_pcm_recover(handle, err, 1);
+   if (res != 0) {
+      _AAX_SYSLOG("alsa; Unable to recover from xrun situation");
+   }
+   else if ((err == -EPIPE) &&
+            (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE))
    {
-      _AAX_SYSLOG("alsa; buffer underrun or overrun.");
-
-      err = psnd_pcm_prepare(handle);
-      if (err < 0) {
-         _AAX_SYSLOG("alsa; unable to recover from underrun");
+      /* capturing requirs an explicit call to snd_pcm_start */
+      res = psnd_pcm_start(handle);
+      if (res != 0) {
+         _AAX_SYSLOG("alsa; unable to restart input stream");
       }
-      else err = 0;
    }
-   else if (err == -ESTRPIPE)
-   {
-      static const struct timespec sleept = {0, 1000};
-
-      /* wait until the suspend flag is released */
-      while ((err = psnd_pcm_resume(handle)) == -EAGAIN) {
-         nanosleep(&sleept, 0); /* wait until the suspend flag is released */
-      }
-      if (err < 0)
-      {
-         err = psnd_pcm_prepare(handle);
-         if (err < 0) {
-            _AAX_SYSLOG("alsa; unable to recover from suspend");
-         }
-      }
-      else err = 0;
-   }
-#ifndef NDEBUG
-   else if (err == -EINVAL) {
-      fprintf(stderr, "alsa; unhandled error: invalid access type\n");
-   } else { 
-      fprintf(stderr, "alsa; unhandled error number: %i\n", err);
-   }
-#endif
-
-   /*
-    *  Make sure PCM is in the right state:
-    *    SND_PCM_STATE_PREPARED or SND_PCM_STATE_RUNNING
-    */
-   assert(err != -EBADFD);
-
-   return err;
-#endif
+   return res;
 }
 
 #ifndef NDEBUG

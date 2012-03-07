@@ -294,6 +294,7 @@ typedef void (*snd_ctl_elem_id_set_interface_proc)(snd_ctl_elem_id_t *, snd_ctl_
 typedef ssize_t (*snd_pcm_frames_to_bytes_proc)(snd_pcm_t *, snd_pcm_sframes_t);
 typedef snd_pcm_type_t (*snd_pcm_type_proc)(snd_pcm_t *);
 typedef int (*snd_pcm_recover_proc)(snd_pcm_t *, int, int);
+typedef snd_pcm_stream_t (*snd_pcm_stream_proc)(snd_pcm_t *);
 
 #endif /* _ALSA_AUDIO_H */
 
