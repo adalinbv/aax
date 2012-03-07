@@ -1080,7 +1080,7 @@ static char *
 _aaxALSASoftDriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
-   int m = (mode > 0) ? 1 : 0;
+   int m = (mode > 0) ? 0 : 1;
    void **hints;
    int res;
 
@@ -1136,7 +1136,7 @@ static char *
 _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
-   int m = (mode > 0) ? 1 : 0;
+   int m = (mode > 0) ? 0 : 1;
    void **hints;
    int res;
 
