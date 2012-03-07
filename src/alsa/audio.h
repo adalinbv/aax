@@ -200,8 +200,11 @@ typedef const char *(*snd_asoundlib_version_proc)(void);
 typedef int (*snd_card_get_name_proc)(int, char **);
 typedef int (*snd_card_get_longname_proc)(int, char **);
 typedef int (*snd_card_get_index_proc)(const char *);
-
 typedef int (*snd_card_next_proc)(int *);
+typedef char* (*snd_device_name_get_hint_proc)(const void*, const char*);
+typedef int (*snd_device_name_hint_proc)(int, const char*, void***);
+typedef int (*snd_device_name_free_hint_proc)(void**);
+
 typedef int (*snd_pcm_hw_params_malloc_proc)(snd_pcm_hw_params_t **);
 typedef void (*snd_pcm_hw_params_free_proc)(snd_pcm_hw_params_t *);
 typedef size_t (*snd_pcm_hw_params_sizeof_proc)(void);
