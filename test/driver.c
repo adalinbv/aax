@@ -155,6 +155,7 @@ testForState(int res, const char *func)
       int err = aaxGetErrorNo();
       printf("%s:\t\t%i\n", func, res);
       printf("(%i) %s\n\n", err, aaxGetErrorString(err));
+      exit(-1);
    }
 }
 
