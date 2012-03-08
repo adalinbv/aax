@@ -156,6 +156,8 @@ DECL_FUNCTION(snd_pcm_prepare);
 DECL_FUNCTION(snd_pcm_resume);
 DECL_FUNCTION(snd_pcm_drop);
 DECL_FUNCTION(snd_pcm_pause);
+DECL_FUNCTION(snd_pcm_stream);
+DECL_FUNCTION(snd_pcm_recover);
 DECL_FUNCTION(snd_pcm_hw_params_can_pause);
 DECL_FUNCTION(snd_pcm_info);
 DECL_FUNCTION(snd_pcm_info_sizeof);
@@ -267,6 +269,8 @@ _aaxALSADriverDetect()
          TIE_FUNCTION(snd_pcm_resume);
          TIE_FUNCTION(snd_pcm_drop);
          TIE_FUNCTION(snd_pcm_pause);
+         TIE_FUNCTION(snd_pcm_stream);
+         TIE_FUNCTION(snd_pcm_recover);
          TIE_FUNCTION(snd_pcm_hw_params_can_pause);
          TIE_FUNCTION(snd_pcm_state);
          TIE_FUNCTION(snd_pcm_start);
@@ -1032,42 +1036,20 @@ detect_device(const char *name)
 static int
 xrun_recovery(snd_pcm_t *handle, int err)
 {
-   if (err == -EPIPE)   /* under-run */
-   {
-      err = psnd_pcm_prepare(handle);
-      if (err < 0)
-      {
-         _AAX_LOG(LOG_ERR, "Unable to recover from underrun");
-      }
-
-      return 0;
+   int res = psnd_pcm_recover(handle, err, 1);
+   if (res != 0) {
+      _AAX_SYSLOG("alsa; Unable to recover from xrun situation");
    }
-   else if (err == -ESTRPIPE)
+   else if ((err == -EPIPE) &&
+            (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE))
    {
-      static const struct timespec sleept = {0, 1000};
-
-      /* wait until the suspend flag is released */
-      while ((err = psnd_pcm_resume(handle)) == -EAGAIN)
-         nanosleep(&sleept, 0);
-
-      if (err < 0)
-      {
-         err = psnd_pcm_prepare(handle);
-         if (err < 0)
-         {
-            _AAX_LOG(LOG_ERR, "Unable to recover from underrun");
-         }
+      /* capturing requirs an explicit call to snd_pcm_start */
+      res = psnd_pcm_start(handle);
+      if (res != 0) {
+         _AAX_SYSLOG("alsa; unable to restart input stream");
       }
-      return 0;
    }
-
-   /*
-    *  Make sure PCM is in the right state:
-    *    SND_PCM_STATE_PREPARED or SND_PCM_STATE_RUNNING
-    */
-   assert(err != -EBADFD);
-
-   return err;
+   return res;
 }
 
 
@@ -1367,3 +1349,301 @@ _aaxALSADriverPlayback_mmap(const void *hid, void *cid, void *src, float pitch, 
    return 0;
 }
 
+#if 0
+static char *
+_aaxALSASoftDriverGetHardwareDevices(const void *id, int mode)
+{
+   static char names[2][1024] = { "\0\0", "\0\0" };
+   int card_idx;
+   char *ptr;
+   int m, len;
+
+   len = 1024;
+   m = (mode > 0) ? 1 : 0;
+   ptr = (char *)&names[m];
+   card_idx = -1;
+   while ((psnd_card_next(&card_idx) == 0) && (card_idx >= 0))
+   {
+      static char _found = 0;
+      char *cardname, *devname;
+      int slen, err, devnum;
+      snd_pcm_t *id;
+
+      psnd_card_get_name(card_idx, &cardname);
+      devnum = detect_devnum(cardname, m);
+      devname = detect_hardware_devname(cardname, devnum, 2, __mode[m]);
+      err = psnd_pcm_open(&id, devname, __mode[m], SND_PCM_NONBLOCK);
+      if (err == 0)
+      {
+         psnd_pcm_close(id);
+         snprintf(ptr, len, "%s", cardname);
+
+         slen = strlen(ptr)+1;
+         if (slen > (len-1)) break;
+
+         len -= slen;
+         ptr += slen;
+
+         if (!_found)
+         {
+            _default_name = devname;
+            _default_devnum = devnum;
+            _found = 1;
+         }
+         else {
+            free(devname);
+         }
+      }
+      else {
+         free(devname);
+      }
+   }
+   *ptr = 0;
+   return (char *)&names[mode];
+}
+
+static char *
+_aaxALSASoftDriverGetHardwareInterfaces(const void *id, const char *name, int mode)
+{
+   static char names[2][256] = { "\0\0", "\0\0" };
+   char devname[64] = "hw:0";
+   int m, card_idx;
+   snd_ctl_t *ctl;
+
+   m = (mode > 0) ? 1 : 0;
+   card_idx = detect_devnum(name, m);
+   snprintf(devname, 64, "hw:%i", card_idx);
+
+   if (psnd_ctl_open(&ctl, devname, 0) >= 0)
+   {
+      snd_pcm_info_t *info;
+      int len, dev_idx;
+      char *ptr;
+
+      info = (snd_pcm_info_t *) calloc(1, psnd_pcm_info_sizeof());
+
+      len = 256;
+      ptr = (char *)&names[m];
+      dev_idx = -1;
+      while ((psnd_ctl_pcm_next_device(ctl, &dev_idx) == 0) && (dev_idx >= 0))
+      {
+         psnd_pcm_info_set_device(info, dev_idx);
+         psnd_pcm_info_set_subdevice(info, 0);
+         psnd_pcm_info_set_stream(info, __mode[m]);
+
+         if (psnd_ctl_pcm_info(ctl, info) >= 0)
+         {
+            char *ifname = (char *)psnd_pcm_info_get_name(info);
+//          int subdev_ct = psnd_pcm_info_get_subdevices_count(info);
+            int slen;
+
+            snprintf(ptr, len, "%s (hw:%i,%i)", ifname, card_idx, dev_idx);
+
+            slen = strlen(ptr)+1;
+            if (slen > (len-1)) break;
+
+            len -= slen;
+            ptr += slen;
+         }
+      }
+
+      *ptr = 0;
+      free(info);
+      psnd_ctl_close(ctl);
+   }
+
+   return (char *)&names[mode];
+}
+
+static int detect_hardware_ifnum(char *, const char *, int);
+
+static char *
+detect_harware_devname(const char *devname, int devnum, unsigned int tracks, int m)
+{
+   static const char* dev_prefix[] = {
+         "plughw:", "hw:", "surround40:", "surround51:", "surround71:"
+   };
+   char *rv = (char*)_default_name;
+
+   if (tracks <= _AAX_MAX_SPEAKERS)
+   {
+      unsigned int len;
+      char *name;
+
+      tracks /= 2;
+      len = strlen(dev_prefix[tracks])+6;
+
+      name = malloc(len);
+      if (name)
+      {
+         char *ptr;
+
+         snprintf(name, len, "%s%i", dev_prefix[tracks], devnum);
+         rv = name;
+
+         if (devname && (ptr = strstr(devname, ": ")) != NULL)
+         {
+            int ifnum = 0;
+
+            ptr += 2;
+            while (*ptr == ' ' && *ptr != '\0') ptr++;
+
+            ifnum = detect_hardware_ifnum(name, ptr, m);
+            snprintf(name, len, "%s%i,%i", dev_prefix[tracks], devnum, ifnum);
+         }
+      }
+   }
+   return rv;
+}
+
+static int
+detect_hardware_devnum(const char *name, int m)
+{
+   int devnum = _default_devnum;
+   char *ptr = NULL;
+
+   if ( !name ) {
+      devnum = _default_devnum;
+   }
+   else if ( !strncmp(name, "hw:", strlen("hw:"))
+             || (ptr = strstr(name, "(hw:")) != NULL )
+   {
+      if (!ptr) ptr = (char *)name;
+      else ptr++;
+
+      devnum = atoi(ptr+3);
+   }
+   else if ( !strncmp(name, "surround:", strlen("surround:")) )
+   {
+      char *c = strchr(name, ':');
+      if (c) {
+         devnum = atoi(c+1);
+      } else {
+         devnum = 0;
+      }
+   }
+   else if ( !strcasecmp(name, "default") )
+   {
+      int card_idx;
+
+      card_idx = -1;
+      while ((psnd_card_next(&card_idx) == 0) && (card_idx >= 0))
+      {
+         char *cardname, *devname;
+         snd_pcm_t *id;
+         int err;
+
+         psnd_card_get_name(card_idx, &cardname);
+         devnum = detect_devnum(cardname, m);
+         devname = detect_hardware_devname(cardname, devnum, 2, __mode[m]);
+         err = psnd_pcm_open(&id, devname, __mode[m], SND_PCM_NONBLOCK);
+         free(devname);
+         if (err >= 0)
+         {
+            psnd_pcm_close(id);
+            devnum = card_idx;
+            break;
+         }
+      }
+   }   else
+   {
+      char *ptr = strstr(name, ": ");
+      int len, card_idx;
+
+      if (ptr) {
+         len = ptr - name;
+      } else {
+         len = strlen(name);
+      }
+
+      card_idx = -1;
+      while ((psnd_card_next(&card_idx) == 0) && (card_idx >= 0))
+      {
+         char *cardname;
+
+         psnd_card_get_name(card_idx, &cardname);
+         if ( !strncasecmp(name, cardname, len) )
+         {
+            devnum = card_idx;
+            break;
+         }
+      }
+   }
+
+   return devnum;
+}
+
+static int
+detect_hardware_ifnum(char *devname, const char *name, int m)
+{
+   snd_ctl_t *ctl;
+   int rv = 0;
+   char *ptr;
+
+   ptr = strstr(name, "(hw:");
+   if (ptr)
+   {
+      ptr = strchr(ptr+4, ',');
+      if (ptr) {
+         rv = atoi(ptr+1);
+      }
+   }
+   else if (psnd_ctl_open(&ctl, devname, 0) >= 0)
+   {
+      snd_pcm_info_t *info;
+      int dev_idx;
+
+      info = (snd_pcm_info_t *) calloc(1, psnd_pcm_info_sizeof());
+
+      dev_idx = -1;
+      while ((psnd_ctl_pcm_next_device(ctl, &dev_idx) == 0) && (dev_idx >= 0))
+      {
+         psnd_pcm_info_set_device(info, dev_idx);
+         psnd_pcm_info_set_stream(info, __mode[m]);
+
+         psnd_pcm_info_set_subdevice(info, 0);
+         if (psnd_ctl_pcm_info(ctl, info) >= 0)
+         {
+            char *ifname = (char *)psnd_pcm_info_get_name(info);
+            if (!strcasecmp(ifname, name))
+            {
+               rv = dev_idx;
+               break;
+            }
+         }
+      }
+      psnd_ctl_close(ctl);
+   }
+   return rv;
+}
+
+unsigned int
+get_hardware_devices_avail(int m)
+{
+   unsigned int rv = 0;
+   int card_idx;
+
+   card_idx = -1;
+   while ((psnd_card_next(&card_idx) == 0) && (card_idx >= 0))
+   {
+      char *cardname, *devname;
+      int err, devnum;
+      snd_pcm_t *id;
+
+      psnd_card_get_name(card_idx, &cardname);
+
+      devnum = detect_hardware_devnum(cardname, m);
+      devname = detect_hardware_devname(cardname, devnum, 2, __mode[m]);
+      err = psnd_pcm_open(&id, devname, __mode[m], SND_PCM_NONBLOCK);
+      free(devname);
+      if (err >= 0)
+      {
+         psnd_pcm_close(id);
+         rv++;
+         break;
+      }
+   }
+
+   return rv;
+}
+#endif
