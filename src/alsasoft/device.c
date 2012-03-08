@@ -24,9 +24,7 @@
 #include <strings.h>
 #include <stdlib.h>	/* nanosleep */
 #define _GNU_SOURCE
-#ifndef NDEBUG
 #include <stdarg.h>	/* va_start */
-#endif
 
 #include <xml.h>
 
@@ -1218,10 +1216,10 @@ static void
 _alsa_error_handler(const char *file, int line, const char *function, int err,
                     const char *fmt, ...)
 {
-#ifndef NDEBUG
    char s[1024];
    va_list ap;
 
+#ifndef NDEBUG
    snprintf((char *)&s, 1024, "%s at line %i in function %s:", file, line, function);
    _AAX_LOG(LOG_ERR, s);
 #endif
