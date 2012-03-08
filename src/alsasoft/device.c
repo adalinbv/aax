@@ -529,7 +529,11 @@ _aaxALSASoftDriverDisconnect(void *id)
 }
 
 
-#define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_SYSLOG("alsa; "s); }
+#ifndef NDEBUG
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_SYSLOG("alsa; "s); printf("ALSA error: %s (%i) at line %i\n", s, err, __LINE__); } }
+#else
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_SYSLOG("alsa; "s); }
+#endif
 
 static int
 _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
@@ -574,8 +578,10 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       if (size < (128*channels*bps)) size = 128*channels*bps;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
-      TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
-            "unable to disable sample rate conversion" );
+      if (!handle->vmixer) {
+         TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
+               "unable to disable sample rate conversion" );
+      }
 
       /* TODO: opt for 32-bit (bps = 4) if possible */
       bps = 2;
@@ -634,7 +640,8 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
          handle->bytes_sample = bps;
 
 #if 0
-         TRUN( psnd_pcm_hw_params_can_mmap_sample_resolution(params) );
+         TRUN( psnd_pcm_hw_params_can_mmap_sample_resolution(hwparams),
+               "unable to determine if mmap is supported" );
          handle->use_mmap = (err == 1);
 #endif
 
@@ -708,11 +715,10 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             "unsupported sample rate" );
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
             "unvalid buffer size" );
+      *bufsize = size;
+
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" ); 
-      TRUN( psnd_pcm_hw_params(hid, hwparams),
-            "incompatible hardware parameters"  );
-      *bufsize = size;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -747,7 +753,10 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       {
          _aaxALSASoftDriverBackend.play = _aaxALSASoftDriverPlayback_rw_il;
       }
-      TRUN( psnd_pcm_hw_params(hid, hwparams), "unabel to configure hardware" );
+      TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
+      if (err == -EBUSY) {
+         _AAX_SYSLOG("alsa; device busy\n");
+      }
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
             "unable to set software config" );
@@ -1079,7 +1088,7 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
    res = psnd_device_name_hint(-1, "pcm", &hints);
    if (!res && hints)
    {
-      const char *_type = m ? "Input" : "Output";
+      const char *_type = m ? "Output" : "Input";
       void **lst = hints;
       int len = 1024;
       char *ptr;
@@ -1135,7 +1144,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
    res = psnd_device_name_hint(-1, "pcm", &hints);
    if (!res && hints)
    {
-      const char *_type = m ? "Input" : "Output";
+      const char *_type = m ? "Output" : "Input";
       void **lst = hints;
       int len = 1024;
       char *ptr;
@@ -1215,20 +1224,20 @@ _alsa_error_handler(const char *file, int line, const char *function, int err,
 
    snprintf((char *)&s, 1024, "%s at line %i in function %s:", file, line, function);
    _AAX_LOG(LOG_ERR, s);
+#endif
 
    va_start(ap, fmt);
    snprintf((char *)&s, 1024, fmt, va_arg(ap, char *));
    va_end(ap);
 
-   _AAX_LOG(LOG_ERR, s);
-#endif
+   _AAX_SYSLOG(s);
 }
 
 static char *
 detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char vmix)
 {
    static const char* dev_prefix[] = {
-         "plug:front:", "front:", "surround40:", "surround51:", "surround71:"
+         "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
    char *rv = (char*)_default_name;
 
@@ -1241,7 +1250,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
       res = psnd_device_name_hint(-1, "pcm", &hints);
       if (!res && hints)
       {
-         const char *_type = m ? "Input" : "Output";
+         const char *_type = m ? "Output" : "Input";
          void **lst = hints;
          char *ptr;
          int len;
@@ -1258,7 +1267,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
-                  if (strncmp(name, dev_prefix[tracks],
+                  if (strncmp(name, dev_prefix[m ? tracks : 0],
                                     strlen(dev_prefix[tracks])) == 0)
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -1315,7 +1324,7 @@ detect_devnum(const char *devname, int m)
 
       if (!res && hints)
       {
-         const char *_type = m ? "Input" : "Output";
+         const char *_type = m ? "Output" : "Input";
          void **lst = hints;
          int len, ctr = 0;
          char *ptr;
@@ -1383,7 +1392,7 @@ get_devices_avail(int m)
    res = psnd_device_name_hint(-1, "pcm", &hints);
    if (!res && hints)
    {
-      const char *_type = m ? "Input" : "Output";
+      const char *_type = m ? "Output" : "Input";
       void **lst = hints;
 
       do
