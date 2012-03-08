@@ -14,48 +14,37 @@ int main()
 
    for (i=0; i<2; i++)
    {
-      char *mode_str[2] = { "Playback", "Capture" };
-      int mode[2] = { SND_PCM_STREAM_PLAYBACK, SND_PCM_STREAM_CAPTURE };
+      const char *_type = i ? "Output" : "Input";
+      void **hints;
+      int res;
 
-      printf("\nAvailable devices for %s:\n", mode_str[i]);
-
-      card_idx = -1;
-      while ((snd_card_next(&card_idx) == 0) && (card_idx >= 0))
+      res= snd_device_name_hint(-1, "pcm", &hints);
+      if (!res && hints)
       {
-         char alsaname[256];
-         int dev_idx;
-         int subdev_idx;
-         snd_ctl_t *ctl;
-         char *cardname;
-
-         snd_card_get_name(card_idx, &cardname);
-         printf("card %d: %s\n", card_idx, cardname);
-
-         dev_idx = -1;
-         sprintf(alsaname, "hw:%d", card_idx);
-         snd_ctl_open(&ctl, alsaname, 0);
-         while ((snd_ctl_pcm_next_device(ctl, &dev_idx) == 0)
-                && (dev_idx >=0))
+         void **lst = hints;
+         while (*lst)
          {
-            char *devname;
-            int subdev_cnt;
-
-            snd_pcm_info_set_device(info, dev_idx);
-            snd_pcm_info_set_stream(info, mode[i]);
-
-            subdev_idx = 0;
-            subdev_cnt = 0;
-            snd_pcm_info_set_subdevice(info, subdev_idx);
-            if (snd_ctl_pcm_info(ctl, info) >= 0)
+            char *type = snd_device_name_get_hint(*lst, "IOID");
+            if (!type || (type && !strcmp(type, _type)))
             {
-               subdev_cnt = snd_pcm_info_get_subdevices_count(info);
-               devname = (char *)snd_pcm_info_get_name(info);
-               printf("\tdev %d: %-40s", dev_idx, devname);
-               printf("\tno. subdevices: %3i\n", subdev_cnt);
+               char *name = snd_device_name_get_hint(*lst, "NAME");
+               if (name)
+               {
+                  char *ptr, *desc = snd_device_name_get_hint(*lst, "DESC");
+                  if (!desc) desc = name;
+                  ptr = strchr(desc, '\n');
+                  if (ptr) *ptr = '|';
+                  printf("%s: %s\n", _type ? _type : "I/O", name);
+                  printf("  %s\n\n", desc);
+                  free(desc);
+               }
+               free(name);
             }
+            free(type);
+            ++lst;
          }
-         snd_ctl_close(ctl);
       }
+      res = snd_device_name_free_hint(hints);
    }
 
    return 0;
