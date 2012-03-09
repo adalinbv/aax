@@ -1359,6 +1359,10 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                               break;
                            }
                         }
+                        else {
+                           rv = name;
+                           break;
+                        }
                      }
                      if (desc != name) free(desc);
                   }
