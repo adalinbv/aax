@@ -1432,7 +1432,6 @@ detect_devnum(const char *devname, int m)
 
       res = psnd_device_name_free_hint(hints);
    }
-printf("devnum: %s | %i\n", devname, devnum);
 
    return devnum;
 }
