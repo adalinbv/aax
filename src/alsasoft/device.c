@@ -1342,7 +1342,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                  *rv = 0;
                                  if (vmix) strcat(rv, "plug:'");
 
-                                 ptr = strchr(name, ':')+1;
+                                 ptr = strchr(name, ':');
                                  if (ptr)
                                  {
                                     strcat(rv, dev_prefix[m ? tracks : 0]);
@@ -1359,8 +1359,32 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                               break;
                            }
                         }
-                        else {
-                           rv = name;
+                        else
+                        {
+                           int dlen = strlen(name)+1;
+                           if (vmix) dlen += strlen("plug:''");
+                           rv = malloc(dlen);
+                           if (rv)
+                           {
+                              char *ptr;
+
+                              *rv = 0;
+                              if (vmix) strcat(rv, "plug:'");
+
+                              ptr = strchr(name, ':');
+                              if (ptr)
+                              {
+                                 strcat(rv, dev_prefix[m ? tracks : 0]);
+                                 strcat(rv, ptr+1);
+                              } else {
+                                 strcat(rv, name);
+                              }
+
+                              if (vmix) strcat(rv, "'");
+                           } else {
+                              rv = name;
+                           }
+                           free(name);
                            break;
                         }
                      }
@@ -1378,6 +1402,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
       res = psnd_device_name_free_hint(hints);
    }
 
+printf("rv: %s\n", rv);
    return rv;
 }
 
