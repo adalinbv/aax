@@ -67,6 +67,7 @@ static _aaxDriverThread _aaxALSASoftDriverThread;
 static _aaxDriverState _aaxALSASoftDriverIsAvailable;
 static _aaxDriverState _aaxALSASoftDriverAvailable;
 
+static const char* __type[2] = { "Input", "Output" };
 static const snd_pcm_stream_t __mode[2] = {
        SND_PCM_STREAM_CAPTURE, SND_PCM_STREAM_PLAYBACK
    };
@@ -1079,54 +1080,72 @@ static char *
 _aaxALSASoftDriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
+   static time_t t_previous[2] = { 0, 0 };
    int m = (mode > 0) ? 1 : 0;
-   void **hints;
-   int res;
+   time_t t_now;
 
-   res = psnd_device_name_hint(-1, "pcm", &hints);
-   if (!res && hints)
+   t_now = time(NULL);
+   if (t_now > (t_previous[m]+5))
    {
-      const char *_type = m ? "Output" : "Input";
-      void **lst = hints;
-      int len = 1024;
-      char *ptr;
+      void **hints;
+      int res;
 
-      ptr = (char *)&names[m];
-      do
+      t_previous[m] = t_now;
+
+      res = psnd_device_name_hint(-1, "pcm", &hints);
+      if (!res && hints)
       {
-         char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _type)))
+         void **lst = hints;
+         int len = 1024;
+         char *ptr;
+
+         ptr = (char *)&names[m];
+         do
          {
-            char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && !strncmp(name, "front:", strlen("front:")))
+            char *type = psnd_device_name_get_hint(*lst, "IOID");
+            if (!type || (type && !strcmp(type, __type[m])))
             {
-               char *desc = psnd_device_name_get_hint(*lst, "DESC");
-               char *interface;
-               int slen;
+               char *name = psnd_device_name_get_hint(*lst, "NAME");
+               if (name && !(!strncmp(name, "null", strlen("null"))
+                         || !strncmp(name, "surround", strlen("surround"))
+                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                         || !strncmp(name, "rear:", strlen("rear:"))
+                         || !strncmp(name, "iec958:", strlen("iec958:"))))
+               {
+                  snd_pcm_t *id;
+                  if (!psnd_pcm_open(&id, name, __mode[m], SND_PCM_NONBLOCK))
+                  {
+                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                     char *interface;
+                     int slen;
 
-               if (!desc) desc = name;
-               interface = strstr(desc, ", ");
-               if (interface) *interface = 0;
+                     psnd_pcm_close(id);
+                     if (!desc) desc = name;
 
-               snprintf(ptr, len, "%s", desc);
-               slen = strlen(ptr)+1;	/* skip the trailing 0 */
-               if (slen > (len-1)) break;
+                     interface = strstr(desc, ", ");
+                     if (interface) *interface = 0;
 
-               len -= slen;
-               ptr += slen;
+                     snprintf(ptr, len, "%s", desc);
+                     slen = strlen(ptr)+1;	/* skip the trailing 0 */
+                     if (slen > (len-1)) break;
 
-               if (desc != name) free(desc);
+                     len -= slen;
+                     ptr += slen;
+
+                     if (desc != name) free(desc);
+                  }
+               }
+               free(name);
             }
-            free(name);
+            free(type);
+            ++lst;
          }
-         free(type);
-         ++lst;
+         while (*lst != NULL);
+         *ptr = 0;
       }
-      while (*lst != NULL);
-      *ptr = 0;
-   }
 
-   res = psnd_device_name_free_hint(hints);
+      res = psnd_device_name_free_hint(hints);
+   }
 
    return (char *)&names[m];
 }
@@ -1142,7 +1161,6 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
    res = psnd_device_name_hint(-1, "pcm", &hints);
    if (!res && hints)
    {
-      const char *_type = m ? "Output" : "Input";
       void **lst = hints;
       int len = 1024;
       char *ptr;
@@ -1151,40 +1169,46 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _type)))
+         if (!type || (type && !strcmp(type, __type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name)
+            if (name && strncmp(name, "null", strlen("null")) &&
+                        strncmp(name, "surround", strlen("surround")))
             {
-               if (!strncmp(name, "front:", strlen("front:")) ||
-                   !strncmp(name, "iec958:", strlen("iec958:")))
-               {
+               if ((m || (strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                          && strncmp(name, "rear:", strlen("rear")))))
+                  {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *p, *interface;
-                  int slen;
+                  char *interface = strstr(desc, ", ");
 
-                  if (!desc) interface = name;
-                  else interface = strstr(desc, ", ");
-
-                  if (interface)
+                  if (interface) *interface = 0;
+                  if (interface && !strcmp(devname, desc))
                   {
-                     *interface = 0;
-                     interface += 2;
-                     p = strchr(interface, '\n');
-                     if (p) *p++ = 0;
+                     snd_pcm_t *id;
+                     if (!psnd_pcm_open(&id, name, __mode[m], SND_PCM_NONBLOCK))
+                     {
+                        int slen;
+
+                        psnd_pcm_close(id);
+                        if (m || strncmp(name, "front:", strlen("front:")))
+                        {
+                           interface = strchr(interface+2, '\n')+1;
+                           snprintf(ptr, len, "%s", interface);
+                        }
+                        else
+                        {
+                           snprintf(ptr, len, "%s", interface+2);
+                           interface = strchr(ptr, '\n');
+                           if (interface) *interface = 0;
+                        }
+                        slen = strlen(ptr)+1; /* skip the trailing 0 */
+                        if (slen > (len-1)) break;
+
+                        len -= slen;
+                        ptr += slen;
+                     }
                   }
-
-                  if (!strcmp(devname, desc))
-                  {
-                     snprintf(ptr, len, "%s", interface);
-                     slen = strlen(ptr)+1;	/* skip the trailing 0 */
-                     if (slen > (len-1)) break;
-
-                     len -= slen;
-                     ptr += slen;
-                  }
-
-                  if (desc != name) free(desc);
+                  free(desc);
                }
                free(name);
             }
@@ -1248,7 +1272,6 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
       res = psnd_device_name_hint(-1, "pcm", &hints);
       if (!res && hints)
       {
-         const char *_type = m ? "Output" : "Input";
          void **lst = hints;
          char *ptr;
          int len;
@@ -1260,42 +1283,76 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _type)))
+            if (!type || (type && !strcmp(type, __type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
-                  if (strncmp(name, dev_prefix[m ? tracks : 0],
-                                    strlen(dev_prefix[tracks])) == 0)
+                  if (!strcmp(devname, name))
+                  {
+                     int dlen = strlen(name)+1;
+                     if (vmix) dlen += strlen("plug:''");
+                     rv = malloc(dlen);
+                     if (rv)
+                     {
+                        *rv = 0;
+                        if (vmix) strcat(rv, "plug:'");
+                        strcat(rv, name);
+                        if (vmix) strcat(rv, "'");
+                        free(name);
+                     } else {
+                        rv = name;
+                     }
+                     break;
+                  }
+                  else if ((tracks <= 2)
+                            || (strncmp(name, dev_prefix[m ? tracks : 0],
+                                    strlen(dev_prefix[m ? tracks : 0])) == 0))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *interface;
+                     char *interface, *description = 0;
 
                      if (!desc) desc = name;
 
                      interface = strstr(desc, ", ");
-                     if (interface) *interface = 0;
+                     if (interface)
+                     {
+                        *interface++ = 0;
+                        description = strchr(++interface, '\n');
+                        if (description) *description++ = 0;
+                        else description = interface;
+                     }
 
                      if (!strncmp(devname, desc, len))
                      {
-                        int len = strlen(name)+1;
-                        if (vmix) len += strlen("plug:''");
-                        rv = malloc(len);
-                        if (rv)
+                        char *devptr = strstr(devname, ": ");
+                        if (devptr)
                         {
-                           *rv = 0;
-                           if (vmix) strcat(rv, "plug:'");
-                           strcat(rv, name);
-                           if (vmix) strcat(rv, "'");
-                           free(name);
-                        } else {
-                           rv = name;
+                           devptr += 2;
+                           if (!strcmp(devptr, interface) ||
+                               (description && !strcmp(devptr, description)))
+                           {
+                              int dlen = strlen(name)+1;
+                              if (vmix) dlen += strlen("plug:''");
+                              rv = malloc(dlen);
+                              if (rv)
+                              {
+                                 *rv = 0;
+                                 if (vmix) strcat(rv, "plug:'");
+                                 strcat(rv, name);
+                                 if (vmix) strcat(rv, "'");
+                                 free(name);
+                              } else {
+                                 rv = name;
+                              }
+                              break;
+                           }
                         }
-                        break;
                      }
                      if (desc != name) free(desc);
                   }
                }
+               free(name);
             }
             free(type);
             ++lst;
@@ -1322,7 +1379,6 @@ detect_devnum(const char *devname, int m)
 
       if (!res && hints)
       {
-         const char *_type = m ? "Output" : "Input";
          void **lst = hints;
          int len, ctr = 0;
          char *ptr;
@@ -1334,7 +1390,7 @@ detect_devnum(const char *devname, int m)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _type)))
+            if (!type || (type && !strcmp(type, __type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
@@ -1376,6 +1432,7 @@ detect_devnum(const char *devname, int m)
 
       res = psnd_device_name_free_hint(hints);
    }
+printf("devnum: %s | %i\n", devname, devnum);
 
    return devnum;
 }
@@ -1390,13 +1447,12 @@ get_devices_avail(int m)
    res = psnd_device_name_hint(-1, "pcm", &hints);
    if (!res && hints)
    {
-      const char *_type = m ? "Output" : "Input";
       void **lst = hints;
 
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _type)))
+         if (!type || (type && !strcmp(type, __type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name && !strncmp(name, "front:", strlen("front:"))) rv++;
