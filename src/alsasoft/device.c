@@ -45,7 +45,8 @@
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_IFNUM		0
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"hw:0,0" // "deafult"
+#define DEFAULT_DEVNAME		"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
+                                     ","AAX_MKSTR(DEFAULT_IFNUM)
 #define DEFAULT_RENDERER	"ALSA"
 
 static _aaxDriverDetect _aaxALSASoftDriverDetect;
