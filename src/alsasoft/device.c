@@ -45,8 +45,7 @@
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_IFNUM		0
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
-                                     ","AAX_MKSTR(DEFAULT_IFNUM)
+#define DEFAULT_DEVNAME		"hw:0,0" // "deafult"
 #define DEFAULT_RENDERER	"ALSA"
 
 static _aaxDriverDetect _aaxALSASoftDriverDetect;
@@ -1337,9 +1336,20 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                               rv = malloc(dlen);
                               if (rv)
                               {
+                                 char *ptr;
+
                                  *rv = 0;
                                  if (vmix) strcat(rv, "plug:'");
-                                 strcat(rv, name);
+
+                                 ptr = strchr(name, ':')+1;
+                                 if (ptr)
+                                 {
+                                    strcat(rv, dev_prefix[m ? tracks : 0]);
+                                    strcat(rv, ptr+1);
+                                 } else {
+                                    strcat(rv, name);
+                                 }
+
                                  if (vmix) strcat(rv, "'");
                                  free(name);
                               } else {
@@ -1362,6 +1372,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
 
       res = psnd_device_name_free_hint(hints);
    }
+printf("rv: %s\n", rv);
 
    return rv;
 }
