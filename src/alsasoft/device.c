@@ -1402,7 +1402,6 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
       res = psnd_device_name_free_hint(hints);
    }
 
-printf("rv: %s\n", rv);
    return rv;
 }
 
