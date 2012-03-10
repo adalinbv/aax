@@ -379,7 +379,9 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
          if (!handle->name)
          {
             s = xmlNodeGetString(xid, "renderer");
-            if (s && strcmp(s, "default")) handle->name = s;
+            if (s && strcmp(s, "default")) {
+               handle->name = s;
+            }
             else
             {
                free(s); /* 'default' */
@@ -1229,8 +1231,8 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                   }
                   if (desc != name) free(desc);
                }
-               free(name);
             }
+            free(name);
          }
          free(type);
          ++lst;
@@ -1305,7 +1307,18 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
             if (!type || (type && !strcmp(type, __type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name)
+               if (name && !(!strncmp(name, "null", strlen("null"))
+                         || !strncmp(name, "surround", strlen("surround"))
+                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                         || !strncmp(name, "rear:", strlen("rear:"))
+                         || !strncmp(name, "dmix:", strlen("dmix:"))
+                         || !strncmp(name, "dsnoop:", strlen("dsnoop:"))
+                         || !strncmp(name, "plughw:", strlen("plughw:"))
+                         || !strncmp(name, "hw:", strlen("hw:"))
+                         || !strncmp(name, "default:", strlen("default:"))
+                         || !strncmp(name, "pulse:", strlen("pulse:"))
+                         || !strncmp(name, "iec958:", strlen("iec958:"))))
+
                {
                   if (!strcmp(devname, name))
                   {
@@ -1318,9 +1331,8 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         if (vmix) strcat(rv, "plug:'");
                         strcat(rv, name);
                         if (vmix) strcat(rv, "'");
-                        free(name);
                      } else {
-                        rv = name;
+                        rv = _aax_strdup(name);
                      }
                      break;
                   }
@@ -1371,9 +1383,8 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                  }
 
                                  if (vmix) strcat(rv, "'");
-                                 free(name);
                               } else {
-                                 rv = name;
+                                 rv = _aax_strdup(name);
                               }
                               break;
                            }
@@ -1401,16 +1412,15 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
 
                               if (vmix) strcat(rv, "'");
                            } else {
-                              rv = name;
+                              rv = _aax_strdup(name);
                            }
-                           free(name);
                            break;
                         }
                      }
                      if (desc != name) free(desc);
                   }
+                  free(name);
                }
-               free(name);
             }
             free(type);
             ++lst;
