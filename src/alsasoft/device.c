@@ -1110,6 +1110,12 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
                          || !strncmp(name, "surround", strlen("surround"))
                          || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
                          || !strncmp(name, "rear:", strlen("rear:"))
+                         || !strncmp(name, "dmix:", strlen("dmix:"))
+                         || !strncmp(name, "dsnoop:", strlen("dsnoop:"))
+                         || !strncmp(name, "plughw:", strlen("plughw:"))
+                         || !strncmp(name, "hw:", strlen("hw:"))
+                         || !strncmp(name, "default:", strlen("default:"))
+                         || !strncmp(name, "pulse:", strlen("pulse:"))
                          || !strncmp(name, "iec958:", strlen("iec958:"))))
                {
                   snd_pcm_t *id;
@@ -1173,16 +1179,26 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name && strncmp(name, "null", strlen("null")) &&
+                        strncmp(name, "dmix:", strlen("dmix:")) && 
+                        strncmp(name, "dsnoop:", strlen("dsnoop:")) &&
+                        strncmp(name, "plughw:", strlen("plughw:")) &&
+                        strncmp(name, "hw:", strlen("hw:")) &&
+                        strncmp(name, "default:", strlen("default:")) &&
+                        strncmp(name, "pulse:", strlen("pulse:")) &&
                         strncmp(name, "surround", strlen("surround")))
             {
                if ((m || (strncmp(name, "center_lfe:", strlen("center_lfe:"))
                           && strncmp(name, "rear:", strlen("rear")))))
                   {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *interface = strstr(desc, ", ");
+                  char *interface;
+
+                  if (!desc) desc = name;
+                  interface = strstr(desc, ", ");
 
                   if (interface) *interface = 0;
-                  if (interface && !strcmp(devname, desc))
+                  else interface = desc;
+                  if (!strcmp(devname, desc))
                   {
                      snd_pcm_t *id;
                      if (!psnd_pcm_open(&id, name, __mode[m], SND_PCM_NONBLOCK))
@@ -1192,12 +1208,15 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                         psnd_pcm_close(id);
                         if (m || strncmp(name, "front:", strlen("front:")))
                         {
-                           interface = strchr(interface+2, '\n')+1;
+                           if (interface != desc) {
+                              interface = strchr(interface+2, '\n')+1;
+                           }
                            snprintf(ptr, len, "%s", interface);
                         }
                         else
                         {
-                           snprintf(ptr, len, "%s", interface+2);
+                           if (interface != desc) interface += 2;
+                           snprintf(ptr, len, "%s", interface);
                            interface = strchr(ptr, '\n');
                            if (interface) *interface = 0;
                         }
@@ -1208,7 +1227,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                         ptr += slen;
                      }
                   }
-                  free(desc);
+                  if (desc != name) free(desc);
                }
                free(name);
             }
