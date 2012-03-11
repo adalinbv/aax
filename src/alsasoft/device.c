@@ -1111,6 +1111,7 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
                if (name && !(!strncmp(name, "null", strlen("null"))
                          || !strncmp(name, "surround", strlen("surround"))
                          || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                         || !strncmp(name, "side:", strlen("side:"))
                          || !strncmp(name, "rear:", strlen("rear:"))
                          || !strncmp(name, "dmix:", strlen("dmix:"))
                          || !strncmp(name, "dsnoop:", strlen("dsnoop:"))
@@ -1190,7 +1191,8 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                         strncmp(name, "surround", strlen("surround")))
             {
                if ((m || (strncmp(name, "center_lfe:", strlen("center_lfe:"))
-                          && strncmp(name, "rear:", strlen("rear")))))
+                          && strncmp(name, "rear:", strlen("rear"))
+                          && strncmp(name, "side:", strlen("side")))))
                   {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
                   char *interface;
@@ -1199,8 +1201,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                   interface = strstr(desc, ", ");
 
                   if (interface) *interface = 0;
-                  else interface = desc;
-                  if (!strcmp(devname, desc))
+                  if (interface && !strcmp(devname, desc))
                   {
                      snd_pcm_t *id;
                      if (!psnd_pcm_open(&id, name, __mode[m], SND_PCM_NONBLOCK))
@@ -1310,6 +1311,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                if (name && !(!strncmp(name, "null", strlen("null"))
                          || !strncmp(name, "surround", strlen("surround"))
                          || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                         || !strncmp(name, "side:", strlen("side:"))
                          || !strncmp(name, "rear:", strlen("rear:"))
                          || !strncmp(name, "dmix:", strlen("dmix:"))
                          || !strncmp(name, "dsnoop:", strlen("dsnoop:"))
