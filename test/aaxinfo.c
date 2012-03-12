@@ -200,13 +200,7 @@ int main(int argc, char **argv)
          aaxDriverDestroy(cfg);
       }
    }
-   else
-   {
-      printf("\nDefault driver not available.\n");
-
-      x = aaxMixerGetNoMonoSources();
-      y = aaxMixerGetNoStereoSources();
-      printf("Number of available  mono  sources: %i\n", x);
-      printf("Number of available stereo sources: %i\n", y);
+   else {
+      printf("\nDefault driver not available.\n\n");
    }
 }
