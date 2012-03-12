@@ -696,7 +696,7 @@ _aaxDMediaDriverRecord(const void *id, void **data, size_t *size, void *scratch)
       if (data)
       {
          palReadFrames(handle->port[0].port, scratch, frames);
-         _batch_cvt16_24_intl((int32_t**)data, scratch, 2, frames);
+         _batch_cvt24_16_intl((int32_t**)data, scratch, 2, frames);
          return AAX_TRUE;
       }
    }
@@ -744,7 +744,7 @@ _aaxDMediaDriverPlayback(const void *id, void *d, void *s, float pitch, float vo
    data = (int16_t*)handle->data;
    assert(outbuf_size <= handle->buf_len);
 
-   _batch_cvt24_16_intl(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
+   _batch_cvt16_intl_24(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);

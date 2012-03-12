@@ -192,7 +192,7 @@ _sw_bufcpy_16s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
    assert(sbps == 2);
 
-   _batch_cvt16_24(dst, src, l);
+   _batch_cvt24_16(dst, src, l);
 }
 
 static void
@@ -209,7 +209,7 @@ _sw_bufcpy_32s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
    assert (sbps == 4);
 
-   _batch_cvt32_24(dst, src, l);
+   _batch_cvt24_32(dst, src, l);
 }
 #endif
 

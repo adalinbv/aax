@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2012 by Erik Hofman.
+ * Copyright 2009-2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -66,7 +66,7 @@ _batch_mul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
 }
 
 void
-_batch_cvt32_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_32_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    int32_t *s = (int32_t *)sptr;
    unsigned int i = num;
@@ -78,7 +78,7 @@ _batch_cvt32_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned i
 }
 
 void
-_batch_cvt24_32_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
+_batch_cvt32_24_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
 {
    int32_t *d = (int32_t *)dptr;
    int32_t *s = (int32_t *)sptr;
@@ -91,7 +91,7 @@ _batch_cvt24_32_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigne
 }
 
 void
-_batch_cvtps_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_ps_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    static const float mul = (float)(1<<23);
    float* s = (float*)sptr;
@@ -103,7 +103,7 @@ _batch_cvtps_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned i
 }
 
 void
-_batch_cvt24_ps_cpu(void*__restrict dst, const int32_t*__restrict sptr, unsigned int num)
+_batch_cvtps_24_cpu(void*__restrict dst, const int32_t*__restrict sptr, unsigned int num)
 {
    static const float mul = 1.0/(float)(1<<23);
    int32_t* s = (int32_t*)sptr;
@@ -116,7 +116,7 @@ _batch_cvt24_ps_cpu(void*__restrict dst, const int32_t*__restrict sptr, unsigned
 }
 
 void
-_batch_cvtpd_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_pd_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    static const double mul = (double)(1<<23);
    double* s = (double*)sptr;
@@ -128,7 +128,7 @@ _batch_cvtpd_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned i
 }
 
 void
-_batch_cvt16_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
+_batch_cvt24_16_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
    for (t=0; t<tracks; t++)
@@ -147,7 +147,7 @@ _batch_cvt16_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
 }
 
 void
-_batch_cvt32_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
+_batch_cvt24_32_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
    for (t=0; t<tracks; t++)
@@ -165,7 +165,7 @@ _batch_cvt32_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
 }
 
 void
-_batch_cvtps_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
+_batch_cvt24_ps_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
 {
    static const float mul = (float)(1<<23);
    unsigned int t;
@@ -184,7 +184,7 @@ _batch_cvtps_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
 }
 
 void
-_batch_cvtpd_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
+_batch_cvt24_pd_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, unsigned int tracks, unsigned int num)
 {
    static const double mul = (double)(1<<23);
    unsigned int t;
@@ -202,7 +202,7 @@ _batch_cvtpd_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
 }
 
 void
-_batch_cvt24_pd_cpu(void*__restrict dst, const int32_t*__restrict sptr, unsigned int num)
+_batch_cvtpd_24_cpu(void*__restrict dst, const int32_t*__restrict sptr, unsigned int num)
 {
    static const double mul = 1.0/(double)(1<<23);
    int32_t* s = (int32_t*)sptr;
@@ -214,7 +214,7 @@ _batch_cvt24_pd_cpu(void*__restrict dst, const int32_t*__restrict sptr, unsigned
 }
 
 void
-_batch_cvt8_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_8_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    int8_t* s = (int8_t*)sptr;
    unsigned int i = num;
@@ -226,7 +226,7 @@ _batch_cvt8_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned in
 }
 
 void
-_batch_cvt16_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_16_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    int16_t* s = (int16_t*)sptr;
    unsigned int i = num;
@@ -238,7 +238,7 @@ _batch_cvt16_24_cpu(int32_t*__restrict d, const void*__restrict sptr, unsigned i
 }
 
 void
-_batch_cvt24_8_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
+_batch_cvt8_24_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
 {
    int32_t* s = (int32_t*)sptr;
    int8_t* d = (int8_t*)dptr;
@@ -251,7 +251,7 @@ _batch_cvt24_8_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned
 }
 
 void
-_batch_cvt24_16_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
+_batch_cvt16_24_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
 {
    int32_t* s = (int32_t*)sptr;
    int16_t* d = (int16_t*)dptr;
@@ -264,7 +264,7 @@ _batch_cvt24_16_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigne
 }
 
 void
-_batch_cvt24_16_intl_cpu(void*__restrict dptr, const int32_t**__restrict sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt16_intl_24_cpu(void*__restrict dptr, const int32_t**__restrict sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
 
@@ -284,7 +284,7 @@ _batch_cvt24_16_intl_cpu(void*__restrict dptr, const int32_t**__restrict sptr, u
 }
 
 void
-_batch_cvt24_ps_intl_cpu(void*__restrict d, const int32_t**__restrict s, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvtps_intl_24_cpu(void*__restrict d, const int32_t**__restrict s, unsigned int offset, unsigned int tracks, unsigned int num)
 {
    static const float mul = 1.0/(float)(1<<23);
    unsigned int t;
@@ -305,7 +305,7 @@ _batch_cvt24_ps_intl_cpu(void*__restrict d, const int32_t**__restrict s, unsigne
 }
 
 void
-_batch_cvt24_pd_intl_cpu(void*__restrict d, const int32_t**__restrict s, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvtpd_intl_24_cpu(void*__restrict d, const int32_t**__restrict s, unsigned int offset, unsigned int tracks, unsigned int num)
 {
    static const double mul = 1.0/(double)(1<<23);
    unsigned int t;
@@ -319,6 +319,46 @@ _batch_cvt24_pd_intl_cpu(void*__restrict d, const int32_t**__restrict s, unsigne
       do 
       {
          *dptr = (double)*sptr++ * mul;
+         dptr += tracks;
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_cvt24_intl_24_cpu(void*__restrict d, const int32_t**__restrict s, unsigned int offset, unsigned int tracks, unsigned int num)
+{
+   unsigned int t;
+
+   for (t=0; t<tracks; t++)
+   {
+      int32_t *sptr = (int32_t *)s[t] + offset;
+      int32_t *dptr = (int32_t *)d + t;
+      unsigned int i = num;
+
+      do
+      {
+         *dptr = *sptr++;
+         dptr += tracks;
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_cvt32_intl_24_cpu(void*__restrict d, const int32_t**__restrict s, unsigned int offset, unsigned int tracks, unsigned int num)
+{
+   unsigned int t;
+
+   for (t=0; t<tracks; t++)
+   {
+      int32_t *sptr = (int32_t *)s[t] + offset;
+      int32_t *dptr = (int32_t *)d + t;
+      unsigned int i = num;
+
+      do
+      {
+         *dptr = *sptr++ << 8;
          dptr += tracks;
       }
       while (--i);

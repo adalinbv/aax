@@ -517,28 +517,28 @@ aaxBufferGetData(const aaxBuffer buffer)
                switch(rb_format)
                {
                case AAX_PCM8S:
-                  _batch_cvt8_24(*ndata, *data, buf_samples);
+                  _batch_cvt24_8(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_IMA4_ADPCM:
                case AAX_PCM16S:
-                  _batch_cvt16_24(*ndata, *data, buf_samples);
+                  _batch_cvt24_16(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_PCM32S:
-                  _batch_cvt32_24(*ndata, *data, buf_samples);
+                  _batch_cvt24_32(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_FLOAT:
-                 _batch_cvtps_24(*ndata, *data, buf_samples);
+                 _batch_cvt24_ps(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_DOUBLE:
-                  _batch_cvtpd_24(*ndata, *data, buf_samples);
+                  _batch_cvt24_pd(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
@@ -577,27 +577,27 @@ aaxBufferGetData(const aaxBuffer buffer)
                switch(native_fmt)
                {
                case AAX_PCM8S:
-                  _batch_cvt24_8(*ndata, *data, buf_samples);
+                  _batch_cvt8_24(*ndata, *data, buf_samples);
                   free(data); 
                   data = ndata;
                   break;
                case AAX_PCM16S:
-                  _batch_cvt24_16(*ndata, *data, buf_samples);
+                  _batch_cvt16_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_PCM32S:
-                  _batch_cvt24_32(*ndata, *data, buf_samples);
+                  _batch_cvt32_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_FLOAT:
-                  _batch_cvt24_ps(*ndata, *data, buf_samples);
+                  _batch_cvtps_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;
                case AAX_DOUBLE:
-                  _batch_cvt24_pd(*ndata, *data, buf_samples);
+                  _batch_cvtpd_24(*ndata, *data, buf_samples);
                   free(data);
                   data = ndata;
                   break;

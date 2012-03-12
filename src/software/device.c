@@ -418,7 +418,7 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
    }
 }
 #endif
-   _batch_cvt24_16_intl(data, (const int32_t**)rbd->track,
+   _batch_cvt16_intl_24(data, (const int32_t**)rbd->track,
                         offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
@@ -475,7 +475,7 @@ _aaxSoftwareDriverRecord(const void *id, void **data, size_t *size, void *scratc
       if (is_bigendian()) {
          _batch_endianswap16((uint16_t*)scratch, res);
       }
-      _batch_cvt16_24_intl((int32_t**)data, scratch, 2, res);
+      _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
 
 // TODO: possibly adjust format or resample since the requested specifications
 //       probably difffer from the data in the file.

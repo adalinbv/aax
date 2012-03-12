@@ -20,9 +20,9 @@ typedef char* (*_aax_malloc_proc)(char**, unsigned int);
 
 typedef void (*_batch_cvt_proc)(void*, unsigned int);
 typedef void (*_batch_cvt_to_proc)(int32_t*__restrict, const void*__restrict, unsigned int);
-typedef void (*_batch_cvt_to_intl_proc)(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
+typedef void (*_batch_cvt_from_intl_proc)(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 typedef void (*_batch_cvt_from_proc)(void*__restrict, const int32_t*__restrict, unsigned int);
-typedef void (*_batch_cvt_from_intl_proc)(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
+typedef void (*_batch_cvt_to_intl_proc)(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
 
 
 typedef void (*_batch_fmadd_proc)(int32_ptr, const int32_ptr, unsigned int, float, float);
@@ -58,24 +58,26 @@ extern _batch_cvt_proc _batch_endianswap16;
 extern _batch_cvt_proc _batch_endianswap32;
 extern _batch_cvt_proc _batch_endianswap64;
 
-extern _batch_cvt_to_proc _batch_cvt8_24;
-extern _batch_cvt_to_proc _batch_cvt16_24;
-extern _batch_cvt_to_proc _batch_cvt32_24;
-extern _batch_cvt_to_proc _batch_cvtps_24;
-extern _batch_cvt_to_proc _batch_cvtpd_24;
-extern _batch_cvt_to_intl_proc _batch_cvt16_24_intl;
-extern _batch_cvt_to_intl_proc _batch_cvt32_24_intl;
-extern _batch_cvt_to_intl_proc _batch_cvtps_24_intl;
-extern _batch_cvt_to_intl_proc _batch_cvtpd_24_intl;
-
-extern _batch_cvt_from_proc _batch_cvt24_8;
-extern _batch_cvt_from_proc _batch_cvt24_16;
-extern _batch_cvt_from_proc _batch_cvt24_32;
-extern _batch_cvt_from_proc _batch_cvt24_ps;
-extern _batch_cvt_from_proc _batch_cvt24_pd;
+extern _batch_cvt_to_proc _batch_cvt24_8;
+extern _batch_cvt_to_proc _batch_cvt24_16;
+extern _batch_cvt_to_proc _batch_cvt24_32;
+extern _batch_cvt_to_proc _batch_cvt24_ps;
+extern _batch_cvt_to_proc _batch_cvt24_pd;
 extern _batch_cvt_from_intl_proc _batch_cvt24_16_intl;
+extern _batch_cvt_from_intl_proc _batch_cvt24_32_intl;
 extern _batch_cvt_from_intl_proc _batch_cvt24_ps_intl;
 extern _batch_cvt_from_intl_proc _batch_cvt24_pd_intl;
+
+extern _batch_cvt_from_proc _batch_cvt8_24;
+extern _batch_cvt_from_proc _batch_cvt16_24;
+extern _batch_cvt_from_proc _batch_cvt32_24;
+extern _batch_cvt_from_proc _batch_cvtps_24;
+extern _batch_cvt_from_proc _batch_cvtpd_24;
+extern _batch_cvt_to_intl_proc _batch_cvt16_intl_24;
+extern _batch_cvt_to_intl_proc _batch_cvtps_intl_24;
+extern _batch_cvt_to_intl_proc _batch_cvtpd_intl_24;
+extern _batch_cvt_to_intl_proc _batch_cvt24_intl_24;
+extern _batch_cvt_to_intl_proc _batch_cvt32_intl_24;
 
 char _aaxDetectNeon();
 char _aaxDetectMMX();

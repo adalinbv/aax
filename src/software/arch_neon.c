@@ -293,7 +293,7 @@ _batch_fmadd_neon(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
 }
 
 void
-_batch_cvt16_24_neon(int32_t*__restrict d, const void*__restrict src, unsigned int num)
+_batch_cvt24_16_neon(int32_t*__restrict d, const void*__restrict src, unsigned int num)
 {
    // int32x4_t  vshlq_n_s32(int32x4_t a, __constrange(0,31) int b);
    int32x4_t *sptr = (int32x4_t*)src;
@@ -365,7 +365,7 @@ _batch_cvt16_24_neon(int32_t*__restrict d, const void*__restrict src, unsigned i
 }
 
 void
-_batch_cvt24_16_neon(void*__restrict dst, const int32_t*__restrict s, unsigned int num)
+_batch_cvt16_24_neon(void*__restrict dst, const int32_t*__restrict s, unsigned int num)
 {
    // int32x4_t  vshrq_n_s32(int32x4_t a, __constrange(1,32) int b);
    int32x4_t *sptr = (int32x4_t*)s;
@@ -438,7 +438,7 @@ _batch_cvt24_16_neon(void*__restrict dst, const int32_t*__restrict s, unsigned i
 }
 
 void
-_batch_cvt24_16_intl_neon(void*__restrict dst, const int32_t**__restrict src,
+_batch_cvt16_intl_24_neon(void*__restrict dst, const int32_t**__restrict src,
                                 unsigned int offset, unsigned int tracks,
                                 unsigned int num)
 {
@@ -451,7 +451,7 @@ _batch_cvt24_16_intl_neon(void*__restrict dst, const int32_t**__restrict src,
 #if 0
    if (tracks != 2)
    {
-      _batch_cvt24_16_intl_cpu(d, src, offset, tracks, num);
+      _batch_cvt24_intl_16_cpu(d, src, offset, tracks, num);
       return;
    }
 #endif

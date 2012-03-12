@@ -71,15 +71,15 @@ _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_align16;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_align16;
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 
-_batch_cvt_to_proc _batch_cvt8_24 = _batch_cvt8_24_cpu;
-_batch_cvt_to_proc _batch_cvt16_24 = _batch_cvt16_24_cpu;
-_batch_cvt_to_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
-_batch_cvt_to_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
-_batch_cvt_to_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
-_batch_cvt_to_intl_proc _batch_cvt16_24_intl = _batch_cvt16_24_intl_cpu;
-_batch_cvt_to_intl_proc _batch_cvt32_24_intl = _batch_cvt32_24_intl_cpu;
-_batch_cvt_to_intl_proc _batch_cvtps_24_intl = _batch_cvtps_24_intl_cpu;
-_batch_cvt_to_intl_proc _batch_cvtpd_24_intl = _batch_cvtpd_24_intl_cpu;
+_batch_cvt_to_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
+_batch_cvt_to_proc _batch_cvt24_16 = _batch_cvt24_16_cpu;
+_batch_cvt_to_proc _batch_cvt24_32 = _batch_cvt24_32_cpu;
+_batch_cvt_to_proc _batch_cvt24_ps = _batch_cvt24_ps_cpu;
+_batch_cvt_to_proc _batch_cvt24_pd = _batch_cvt24_pd_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_16_intl = _batch_cvt24_16_intl_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_32_intl = _batch_cvt24_32_intl_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_cpu;
 
 _batch_cvt_proc _batch_saturate24 = _batch_saturate24_cpu;
 
@@ -96,14 +96,16 @@ _batch_cvt_proc _batch_endianswap16 = _batch_endianswap16_cpu;
 _batch_cvt_proc _batch_endianswap32 = _batch_endianswap32_cpu;
 _batch_cvt_proc _batch_endianswap64 = _batch_endianswap64_cpu;
 
-_batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
-_batch_cvt_from_proc _batch_cvt24_16 = _batch_cvt24_16_cpu;
-_batch_cvt_from_proc _batch_cvt24_32 = _batch_cvt24_32_cpu;
-_batch_cvt_from_proc _batch_cvt24_ps = _batch_cvt24_ps_cpu;
-_batch_cvt_from_proc _batch_cvt24_pd = _batch_cvt24_pd_cpu;
-_batch_cvt_from_intl_proc _batch_cvt24_16_intl = _batch_cvt24_16_intl_cpu;
-_batch_cvt_from_intl_proc _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_cpu;
-_batch_cvt_from_intl_proc _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_cpu;
+_batch_cvt_from_proc _batch_cvt8_24 = _batch_cvt8_24_cpu;
+_batch_cvt_from_proc _batch_cvt16_24 = _batch_cvt16_24_cpu;
+_batch_cvt_from_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
+_batch_cvt_from_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
+_batch_cvt_from_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvt16_intl_24 = _batch_cvt16_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvtps_intl_24 = _batch_cvtps_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvt24_intl_24 = _batch_cvt24_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvt32_intl_24 = _batch_cvt32_intl_24_cpu;
 
 _batch_mul_value_proc _batch_mul_value = _batch_mul_value_cpu;
 _batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
@@ -149,9 +151,9 @@ _aaxDetectNeon()
          ivec4Mulivec4 = _ivec4Mulivec4_neon;
 
          _batch_fmadd = _batch_fmadd_neon;
-         _batch_cvt16_24 = _batch_cvt16_24_neon;
          _batch_cvt24_16 = _batch_cvt24_16_neon;
-         _batch_cvt24_16_intl = _batch_cvt24_16_intl_neon;
+         _batch_cvt16_24 = _batch_cvt16_24_neon;
+         _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
          _batch_freqfilter = _batch_freqfilter_neon;
 
          _aaxBufResampleSkip = _aaxBufResampleSkip_neon;
@@ -214,10 +216,10 @@ _aaxDetectSSE2()
 
 //       _aax_memcpy = _aax_memcpy_sse2;
          _batch_fmadd = _batch_fmadd_sse2;
-         _batch_cvt16_24 = _batch_cvt16_24_sse2;
          _batch_cvt24_16 = _batch_cvt24_16_sse2;
+         _batch_cvt16_24 = _batch_cvt16_24_sse2;
          _batch_freqfilter = _batch_freqfilter_sse2;
-         _batch_cvt24_16_intl = _batch_cvt24_16_intl_sse2;
+         _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
          _aaxBufResampleSkip = _aaxBufResampleSkip_sse2;
          _aaxBufResampleNearest = _aaxBufResampleNearest_sse2;

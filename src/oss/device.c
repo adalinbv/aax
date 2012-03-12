@@ -509,7 +509,7 @@ _aaxOSSDriverRecord(const void *id, void **data, size_t *size, void *scratch)
          return AAX_FALSE;
       }
       *size = res;
-      _batch_cvt16_24_intl((int32_t**)data, scratch, 2, res);
+      _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
 
       return AAX_TRUE;
    }
@@ -571,7 +571,7 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
    data = handle->scratch;
    assert(outbuf_size <= handle->buf_len);
 
-   _batch_cvt24_16_intl(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
+   _batch_cvt16_intl_24(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);

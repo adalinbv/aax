@@ -361,13 +361,13 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
       rb->format = AAX_PCM16S;
       break;
    case AAX_PCM32S:
-      _batch_cvt32_24_intl(tracks, data, no_tracks, no_samples);
+      _batch_cvt24_32_intl(tracks, data, no_tracks, no_samples);
       break;
    case AAX_FLOAT:
-      _batch_cvtps_24_intl(tracks, data, no_tracks, no_samples);
+      _batch_cvt24_ps_intl(tracks, data, no_tracks, no_samples);
       break;
    case AAX_DOUBLE:
-      _batch_cvtpd_24_intl(tracks, data, no_tracks, no_samples);
+      _batch_cvt24_pd_intl(tracks, data, no_tracks, no_samples);
       break;
    default:
       if (rbd->no_tracks == 1) {
@@ -437,11 +437,11 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data)
          {
             unsigned int i =  rbd->no_samples;
             uint8_t *s = (uint8_t*)rbd->track[t];
-            uint8_t *p = (uint8_t *)data + t*bps;
+            uint8_t *d = (uint8_t *)data + t*bps;
             do
             {
-               memcpy(p, s, bps);
-               p += no_tracks*bps;
+               memcpy(d, s, bps);
+               d += no_tracks*bps;
                s += bps;
             }
             while (--i);

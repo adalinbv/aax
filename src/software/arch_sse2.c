@@ -94,7 +94,7 @@ _ivec4Mulivec4_sse2(ivec4 d, const ivec4 v1, const ivec4 v2)
 }
 
 void
-_batch_cvtps_24_sse2(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_ps_sse2(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    static const float mul = (float)(1<<24);
    float* s = (float*)sptr;
@@ -105,7 +105,7 @@ _batch_cvtps_24_sse2(int32_t*__restrict d, const void*__restrict sptr, unsigned 
 }
 
 void
-_batch_cvtpd_24_sse2(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
+_batch_cvt24_pd_sse2(int32_t*__restrict d, const void*__restrict sptr, unsigned int num)
 {
    static const double mul = (double)(1<<24);
    double* s = (double*)sptr;
@@ -206,7 +206,7 @@ _batch_fmadd_sse2(int32_ptr d, const int32_ptr src, unsigned int num, float v, f
 }
 
 void
-_batch_cvt16_24_sse2(int32_t*__restrict d, const void*__restrict sbuf, unsigned int num)
+_batch_cvt24_16_sse2(int32_t*__restrict d, const void*__restrict sbuf, unsigned int num)
 {
    int16_t *s = (int16_t *)sbuf;
    __m128i *dptr = (__m128i*)d;
@@ -277,7 +277,7 @@ _batch_cvt16_24_sse2(int32_t*__restrict d, const void*__restrict sbuf, unsigned 
 }
 
 void
-_batch_cvt24_16_sse2(void*__restrict dst, const int32_t*__restrict src, unsigned int num)
+_batch_cvt16_24_sse2(void*__restrict dst, const int32_t*__restrict src, unsigned int num)
 {
    int32_t* s = (int32_t*)src;
    int16_t* d = (int16_t*)dst;
@@ -372,7 +372,7 @@ _batch_cvt24_16_sse2(void*__restrict dst, const int32_t*__restrict src, unsigned
 }
 
 void
-_batch_cvt24_16_intl_sse2(void*__restrict dst, const int32_t**__restrict src,
+_batch_cvt16_intl_24_sse2(void*__restrict dst, const int32_t**__restrict src,
                                 unsigned int offset, unsigned int tracks,
                                 unsigned int num)
 {
@@ -384,7 +384,7 @@ _batch_cvt24_16_intl_sse2(void*__restrict dst, const int32_t**__restrict src,
 
    if (tracks != 2)
    {
-      // _batch_cvt24_16_intl_cpu(d, src, offset, tracks, num);
+      // _batch_cvt24_intl_16_cpu(d, src, offset, tracks, num);
       int t;
       for (t=0; t<tracks; t++)
       {

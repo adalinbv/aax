@@ -1206,7 +1206,7 @@ _aaxALSADriverPlayback_rw(const void *hid, void *cid, void *src, float pitch, fl
       if (ptr == 0) return 0;
 
       data = (int16_t *)p;
-      _batch_cvt24_16_intl(data, (const int32_t**)rbsd->track, 0, no_tracks, no_frames);
+      _batch_cvt16_intl_24(data, (const int32_t**)rbsd->track, 0, no_tracks, no_frames);
    }
    else return 0;
 
@@ -1324,7 +1324,7 @@ _aaxALSADriverPlayback_mmap(const void *hid, void *cid, void *src, float pitch, 
 
       p = (char *)area->addr + ((area->first + area->step*offset) >> 3);
       ptr = (int16_t *)p;
-      _batch_cvt24_16_intl(ptr, (const int32_t**)rbsd->track, start, no_tracks, frames);
+      _batch_cvt16_intl_24(ptr, (const int32_t**)rbsd->track, start, no_tracks, frames);
 
       result = psnd_pcm_mmap_commit(ch->id, offset, frames);
       if (result < 0 || (snd_pcm_uframes_t)result != frames)
