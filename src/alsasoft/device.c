@@ -140,7 +140,7 @@ typedef struct
 #endif
 
     void **scratch;
-    int16_t **data;
+    char **data;
 
 } _driver_t;
 
@@ -212,7 +212,12 @@ DECL_FUNCTION(snd_pcm_type);
 DECL_FUNCTION(snd_pcm_recover);
 DECL_FUNCTION(snd_pcm_stream);
 
-static const snd_pcm_format_t _alsa_formats[];
+typedef struct {
+   char bps;
+   snd_pcm_format_t format;
+} _alsa_formats_t;
+
+static const _alsa_formats_t _alsa_formats[];
 static const char *_const_default_name = DEFAULT_DEVNAME;
 
 static char *_default_name = NULL;
@@ -431,12 +436,13 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
          i = xmlNodeGetInt(xid, "bits-per-sample");
          if (i)
          {
-            if (i != 16)
+            i /= 8;
+            if (i < 2 || i > 4)
             {
                _AAX_SYSLOG("alsa; unsupported bits-per-sample");
-               i = 16;
+               i = 2;
             }
-            handle->bytes_sample = i/8;
+            handle->bytes_sample = i;
          }
 
          i = xmlNodeGetInt(xid, "periods");
@@ -569,27 +575,12 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       unsigned int periods = handle->no_periods;
       unsigned int val1, val2;
 
-      /* Set buffer size (in frames). The resulting latency is given by */
-      /* latency = size * periods / (rate * tracks * bps))     */
-      if (bufsize && (*bufsize > 0)) {
-         size = *bufsize; // * *tracks;
-      } else {
-         size = rate/periods;
-      }
-      if (size < (128*channels*bps)) size = 128*channels*bps;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
       if (!handle->vmixer) {
          TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
                "unable to disable sample rate conversion" );
       }
-
-      /* TODO: opt for 32-bit (bps = 4) if possible */
-      bps = 2;
-      data_format = _alsa_formats[bps];
-
-      TRUN( psnd_pcm_hw_params_set_format(hid, hwparams, data_format),
-            "unsupported audio fromat" );
 
 #if 0
       /* for testing purposes */
@@ -617,7 +608,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
          if (err < 0)
          {
-
             handle->use_mmap = 1;
             handle->interleaved = 1;
             err = psnd_pcm_hw_params_set_access(hid, hwparams,
@@ -631,15 +621,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
             if (err < 0) _AAX_SYSLOG("alsa; unable to find a proper renderer");
          }
-
-         do
-         {
-            data_format = _alsa_formats[bps];
-            err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
-         }
-         while ((err < 0) && (bps-- != 0));
-         handle->bytes_sample = bps;
-
 #if 0
          TRUN( psnd_pcm_hw_params_can_mmap_sample_resolution(hwparams),
                "unable to determine if mmap is supported" );
@@ -650,36 +631,16 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
          handle->latency /= (float)rate*(float)*tracks*(float)bps;
       }
 
+      /* test for supported sample formats*/
+      bps = 4;
       do
       {
-         char str[255];
+         data_format = _alsa_formats[bps].format;
 
-         _AAX_SYSLOG("alsa; driver settings:");
-
-         if (handle->mode != 0) {
-            snprintf(str,255,"  output renderer: '%s'", handle->name);
-         } else {
-            snprintf(str,255,"  input renderer: '%s'", handle->name);
-         }
-         _AAX_SYSLOG(str);
-         snprintf(str,255, "  playback rate: %u hz",  rate);
-         _AAX_SYSLOG(str);
-         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)size);
-         _AAX_SYSLOG(str);
-         snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
-         _AAX_SYSLOG(str);
-         snprintf(str,255, "  no. periods: %i", handle->no_periods);
-         _AAX_SYSLOG(str);
-         snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
-         _AAX_SYSLOG(str);
-         snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
-         _AAX_SYSLOG(str);
-         snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
-         _AAX_SYSLOG(str);
-#if 0
-// printf("\tformat: %X", fmt);
-#endif
-      } while (0);
+         err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
+      }
+      while ((err < 0) && bps-- > 2);
+      handle->bytes_sample = bps;
 
       do
       {
@@ -714,12 +675,53 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
+
+      /* Set buffer size (in frames). The resing latency is given by */
+      /* latency = size * periods / (rate * tracks * bps))     */
+      if (bufsize && (*bufsize > 0)) {
+         size = *bufsize; // * *tracks;
+      } else {
+         size = rate/periods;
+      }
+      if (size < (128*channels*bps)) size = 128*channels*bps;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
             "unvalid buffer size" );
       *bufsize = size;
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" ); 
+
+      do
+      {
+         char str[255];
+
+         _AAX_SYSLOG("alsa; driver settings:");
+
+         if (handle->mode != 0) {
+            snprintf(str,255,"  output renderer: '%s'", handle->name);
+         } else {
+            snprintf(str,255,"  input renderer: '%s'", handle->name);
+         }
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  playback rate: %u hz",  rate);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)size);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
+         _AAX_SYSLOG(str);
+         snprintf(str,255, "  no. periods: %i", handle->no_periods);
+         _AAX_SYSLOG(str);
+         snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
+         _AAX_SYSLOG(str);
+         snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
+         _AAX_SYSLOG(str);
+         snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
+         _AAX_SYSLOG(str);
+#if 0
+// printf("\tformat: %X", fmt);
+#endif
+      } while (0);
+
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -981,7 +983,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
                   char *p = (char *)area->addr; 
 
                   p += (area->first + area->step*offset) >> 3;
-                  _batch_cvt16_24_intl((int32_t**)data, p, 2, no_frames);
+                  _batch_cvt24_16_intl((int32_t**)data, p, 2, no_frames);
                }
             }
             else
@@ -997,8 +999,8 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
                if (res > 0)
                {
                   int32_t **d = (int32_t **)data;
-                  _batch_cvt16_24(d[0], s[0], res);
-                  _batch_cvt16_24(d[1], s[1], res);
+                  _batch_cvt24_16(d[0], s[0], res);
+                  _batch_cvt24_16(d[1], s[1], res);
                }
             }
          }
@@ -1012,7 +1014,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  _batch_cvt16_24_intl((int32_t**)data, scratch, 2, res);
+                  _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
                }
             }
             else
@@ -1028,8 +1030,8 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
                if (res > 0)
                {
                   int32_t **d = (int32_t **)data;
-                  _batch_cvt16_24(d[0], s[0], res);
-                  _batch_cvt16_24(d[1], s[1], res);
+                  _batch_cvt24_16(d[0], s[0], res);
+                  _batch_cvt24_16(d[1], s[1], res);
                }
             }
          }
@@ -1249,13 +1251,13 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 /*-------------------------------------------------------------------------- */
 
-static const snd_pcm_format_t _alsa_formats[] =
+static const _alsa_formats_t _alsa_formats[] =
 {
-   SND_PCM_FORMAT_UNKNOWN,
-   SND_PCM_FORMAT_U8,
-   SND_PCM_FORMAT_S16,
-   SND_PCM_FORMAT_S24,
-   SND_PCM_FORMAT_S32
+   {0, SND_PCM_FORMAT_UNKNOWN},
+   {1, SND_PCM_FORMAT_U8},
+   {2, SND_PCM_FORMAT_S16_LE},
+   {4, SND_PCM_FORMAT_S24_3LE},
+   {4, SND_PCM_FORMAT_S32_LE}
 };
 
 static void
@@ -1571,12 +1573,11 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs, t;
+   unsigned int no_tracks, offs, t, hw_bps;
    _oalRingBufferSample *rbsd;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   unsigned int start = 0;
    int err;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -1591,6 +1592,7 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
+   hw_bps = handle->bytes_sample;
 
    state = psnd_pcm_state(handle->id);
    if (state != SND_PCM_STATE_RUNNING)
@@ -1630,8 +1632,7 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
       const snd_pcm_channel_area_t *areas;
       snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t offset;
-      snd_pcm_sframes_t result;
-      int16_t *ptr;
+      snd_pcm_sframes_t res;
 
       err = psnd_pcm_mmap_begin(handle->id, &areas, &offset, &frames);
       if (err < 0)
@@ -1647,20 +1648,24 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
 
       for (t=0; t<no_tracks; t++)
       {
-         char *p = (char *)areas[t].addr + handle->bytes_sample*offset;
-         ptr = (int16_t *)p;
-         _batch_cvt24_16(ptr, (const int32_t *)rbsd->track[t]+offs, frames);
+         char *p = (char *)areas[t].addr + offset*hw_bps;
+         if (hw_bps == 2) {
+            _batch_cvt16_24(p, (const int32_t *)rbsd->track[t]+offs, frames);
+         }
+         else {		/* 24/32-bit */
+            _batch_cvt32_24(p, (const int32_t *)rbsd->track[t]+offs, frames);
+         }
       }
 
-      result = psnd_pcm_mmap_commit(handle->id, offset, frames);
-      if (result < 0 || (snd_pcm_uframes_t)result != frames)
+      res = psnd_pcm_mmap_commit(handle->id, offset, frames);
+      if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
-         if (xrun_recovery(handle->id, result >= 0 ? -EPIPE : result) < 0) {
+         if (xrun_recovery(handle->id, res >= 0 ? -EPIPE : res) < 0) {
             return 0;
          }
       }
-      start += result;
-      avail -= result;
+      offs += res;
+      avail -= res;
    }
 
    return 0;
@@ -1672,12 +1677,11 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs;
+   unsigned int no_tracks, offs, hw_bps;
    _oalRingBufferSample *rbsd;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   unsigned int start = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -1690,6 +1694,7 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
+   hw_bps = handle->bytes_sample;
 
    state = psnd_pcm_state(handle->id);
    if (state != SND_PCM_STATE_RUNNING)
@@ -1729,9 +1734,8 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
       const snd_pcm_channel_area_t *area;
       snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t offset;
-      snd_pcm_sframes_t result;
-      int16_t *ptr;
-      char *tmp;
+      snd_pcm_sframes_t res;
+      char *p;
       int err;
 
       err = psnd_pcm_mmap_begin(handle->id, &area, &offset, &frames);
@@ -1746,19 +1750,23 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
          }
       }
 
-      tmp = (char *)area->addr + ((area->first + area->step*offset) >> 3);
-      ptr = (int16_t *)tmp;
-      _batch_cvt24_16_intl(ptr, (const int32_t**)rbsd->track, start, no_tracks, frames);
+      p = (char *)area->addr + ((area->first + area->step*offset) >> 3);
+      if (hw_bps == 2) {
+         _batch_cvt16_intl_24(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
+      }
+      else {	/* 24/32-bps */
+         _batch_cvt32_intl_24(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
+      }
 
-      result = psnd_pcm_mmap_commit(handle->id, offset, frames);
-      if (result < 0 || (snd_pcm_uframes_t)result != frames)
+      res = psnd_pcm_mmap_commit(handle->id, offset, frames);
+      if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
-         if (xrun_recovery(handle->id, result >= 0 ? -EPIPE : result) < 0) {
+         if (xrun_recovery(handle->id, res >= 0 ? -EPIPE : res) < 0) {
             return 0;
          }
       }
-      start += result;
-      avail -= result;
+      offs += res;
+      avail -= res;
    }
 
    return 0;
@@ -1770,9 +1778,9 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_samples, no_tracks, offs, t;
+   unsigned int no_samples, no_tracks, offs, t, hw_bps;
    _oalRingBufferSample *rbsd;
-   int16_t **data;
+   char **data;
    int err;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -1787,6 +1795,7 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_samples = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
+   hw_bps = handle->bytes_sample;
 
    if (handle->scratch == 0)
    {
@@ -1795,7 +1804,7 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
       char *p;
 
       samples = _oalRingBufferGetNoSamples(rbs);
-      outbuf_size = samples * sizeof(int16_t);
+      outbuf_size = samples * hw_bps;
       if (outbuf_size & 0xF)
       {
          outbuf_size|= 0xF;
@@ -1803,13 +1812,11 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
       }
 
       size = no_tracks * (2*sizeof(void*));
-      if (handle->bytes_sample == 2) {
-         size += no_tracks * outbuf_size;
-      }
+      size += no_tracks * outbuf_size;
 
       p = (char *)(no_tracks * 2*sizeof(void*));
       handle->scratch = (void**)_aax_malloc(&p, size);
-      handle->data = (int16_t **)handle->scratch + no_tracks;
+      handle->data = (char**)handle->scratch + no_tracks;
 
       ptr = (int16_t*)p;
       for (t=0; t<no_tracks; t++)
@@ -1821,25 +1828,29 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
       handle->buf_len = outbuf_size;
 #endif
    }
-  
-   data = handle->data;
+
 #ifndef NDEBUG
-   assert(no_samples*sizeof(int16_t) <= handle->buf_len);
+      assert(no_samples*hw_bps <= handle->buf_len);
 #endif
 
-   if (handle->bytes_sample == 4)
+  
+   data = handle->data;
+   if (hw_bps == 2)
    {
       for (t=0; t<no_tracks; t++)
-         data[t] = (int16_t*)rbsd->track[t] + offs * 4;
-   }
-   else if (handle->bytes_sample == 2)
-   {
-      for (t=0; t<no_tracks; t++) {
+      {
          data[t] = handle->scratch[t];
-         _batch_cvt24_16(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
+         _batch_cvt16_24(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
       }
    }
-   else return 0;
+   else 		/* 24/32-bit */
+   {
+      for (t=0; t<no_tracks; t++)
+      {
+         data[t] = handle->scratch[t];
+         _batch_cvt32_24(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
+      }
+   }
 
    while (no_samples > 0)
    {
@@ -1872,10 +1883,10 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_samples, no_tracks, offs;
+   unsigned int no_samples, no_tracks, offs, hw_bps;
    unsigned int outbuf_size;
    _oalRingBufferSample *rbsd;
-   int16_t *data;
+   char *data;
    int err;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -1890,23 +1901,30 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_samples = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
+   hw_bps = handle->bytes_sample;
 
-   outbuf_size = no_tracks * no_samples*sizeof(int16_t);
+   outbuf_size = no_tracks * no_samples*hw_bps;
    if (handle->scratch == 0)
    {
       char *p = 0;
       handle->scratch = (void**)_aax_malloc(&p, outbuf_size);
-      handle->data = (int16_t**)p;
+      handle->data = (char**)p;
 #ifndef NDEBUG
       handle->buf_len = outbuf_size;
 #endif
    }
-   data = (int16_t*)handle->data;
+
+   data = (char*)handle->data;
 #if 0
    assert(outbuf_size <= handle->buf_len);
 #endif
 
-   _batch_cvt24_16_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
+   if (hw_bps == 2) {
+      _batch_cvt16_intl_24(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
+   }
+   else { 	/* 24/32-bits */
+      _batch_cvt32_intl_24(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
+   }
 
    do
    {
