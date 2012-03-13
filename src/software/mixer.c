@@ -888,13 +888,13 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
 
    if TEST_FOR_TRUE(mixer->capturing)
    {
-      unsigned int nbuf;
+//    unsigned int nbuf;
 
       _oalRingBufferForward(dest_rb);
       _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, dest_rb);
 
-      nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
 #if 0
+      nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
       if (nbuf == 1) {
          dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
       }
@@ -913,6 +913,7 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
          free(ptr);
       }
 #else
+      _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
       dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
 #endif
       mixer->ringbuffer = dest_rb;

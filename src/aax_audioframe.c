@@ -491,26 +491,28 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
       {
          if (config->pos == UINT_MAX)
          {
+            _aaxAudioFrame* mixer = handle->submix;
+            _intBuffers *hs = mixer->sensors;
             unsigned int pos = UINT_MAX;
-            _intBuffers *hs = handle->submix->sensors;
 
             if (hs == NULL)
             {
                unsigned int res;
 
-               res = _intBufCreate(&handle->submix->sensors, _AAX_DEVICE);
+               res = _intBufCreate(&mixer->sensors, _AAX_DEVICE);
                if (res != UINT_MAX) {
-                  hs = handle->submix->sensors;
+                  hs = mixer->sensors;
                }
             }
 
-            if (hs)
+            if (hs && (mixer->no_registered < mixer->info->max_registered))
             {
                aaxBuffer buf; /* clear the sensors buffer queue */
                while ((buf = aaxSensorGetBuffer(config)) != NULL) {
                   aaxBufferDestroy(buf);
                }
                pos = _intBufAddData(hs, _AAX_DEVICE, config);
+               mixer->no_registered++;
             }
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -525,10 +527,9 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _oalRingBuffer3dProps *mp3d, *sp3d;
-                  _aaxAudioFrame* mixer, *submix;
+                  _aaxAudioFrame *submix;
                   _oalRingBuffer *rb;
 
-                  mixer = handle->submix;
                   submix = sensor->mixer;
 
                   mp3d = mixer->props3d;
@@ -617,7 +618,7 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-
+            handle->submix->no_registered--;
             sensor->mixer->refcount--;
             config->handle = NULL;
             config->pos = UINT_MAX;
@@ -648,18 +649,30 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       _emitter_t* emitter = get_emitter_unregistered(em);
       if (emitter && !emitter->handle && emitter->pos == UINT_MAX)
       {
+         _aaxAudioFrame* mixer = handle->submix;
          _aaxEmitter *src = emitter->source;
-         unsigned int pos, positional;
+         unsigned int pos = UINT_MAX;
+         unsigned int positional;
          _intBuffers *he;
 
          positional = _IS_POSITIONAL(src);
          if (!positional) {
-            he = handle->submix->emitters_2d;
+            he = mixer->emitters_2d;
          } else {
-            he = handle->submix->emitters_3d;
+            he = mixer->emitters_3d;
          }
 
-         pos = _intBufAddData(he, _AAX_EMITTER, emitter);
+         if (mixer->no_registered < mixer->info->max_registered)
+         {
+printf("mixer->no_registered: %i\n", mixer->no_registered);
+            if (_oalRingBufferGetSource())
+            {
+printf("get source\n");
+               pos = _intBufAddData(he, _AAX_EMITTER, emitter);
+               mixer->no_registered++;
+            }
+         }
+
          if (pos != UINT_MAX)
          {
             _aaxEmitter *src = emitter->source;
@@ -680,9 +693,9 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                aaxEmitterSetFilter(emitter, f);
             }
 
-            src->info = handle->submix->info;
+            src->info = mixer->info;
             if (src->update_rate == 0) {
-               src->update_rate = handle->submix->info->update_rate;
+               src->update_rate = mixer->info->update_rate;
             }
             src->update_ctr = 0;
 
@@ -690,8 +703,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             {
                _oalRingBuffer3dProps *mp3d, *ep3d = src->props3d;
 
-               mp3d = handle->submix->props3d;
-               if (handle->submix->dist_delaying) {
+               mp3d = mixer->props3d;
+               if (mixer->dist_delaying) {
                   _PROP_DISTDELAY_SET_DEFINED(ep3d);
                }
 
@@ -734,18 +747,21 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
       _emitter_t* emitter = get_emitter(em);
       if (emitter && emitter->pos != UINT_MAX)
       {
+         _aaxAudioFrame* mixer = handle->submix;
          _aaxEmitter *src = emitter->source;
          _intBuffers *he;
 
          if (_IS_POSITIONAL(src))
          {
-            he = handle->submix->emitters_3d;
+            he = mixer->emitters_3d;
             _PROP_DISTDELAY_CLEAR_DEFINED(src->props3d);
          } else {
-            he = handle->submix->emitters_2d;
+            he = mixer->emitters_2d;
          }
 
          _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
+         _oalRingBufferPutSource();
+         mixer->no_registered--;
          emitter->handle = NULL;
          emitter->pos = UINT_MAX;
          rv = AAX_TRUE;
@@ -788,13 +804,14 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
                }
             }
 
-            if (hf)
+            if (hf && (mixer->no_registered < mixer->info->max_registered))
             {
                aaxBuffer buf; /* clear the frames buffer queue */
                while ((buf = aaxAudioFrameGetBuffer(sframe)) != NULL) {
                   aaxBufferDestroy(buf);
                }
                pos = _intBufAddData(hf, _AAX_FRAME, sframe);
+               mixer->no_registered++;
             }
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -862,6 +879,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          _intBuffers *hf = handle->submix->frames;
 
          _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
+         handle->submix->no_registered--;
          frame->submix->refcount--;
          frame->handle = NULL;
          frame->pos = UINT_MAX;

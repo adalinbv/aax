@@ -337,7 +337,7 @@ const _aaxMixerInfo _aaxDefaultMixerInfo =
   20.0f,			/* refresh_rate */
   AAX_PCM16S,			/* format */
   AAX_MODE_WRITE_STEREO,	/* render mode */
-  _AAX_MAX_MIXER_SOURCES,	/* max emitters */
+  _AAX_MAX_MIXER_REGISTERED,	/* max emitters */
 
   0				/* update counter */
 };

@@ -94,7 +94,8 @@ typedef struct
    float refresh_rate;
    enum aaxFormat format;
    enum aaxRenderMode mode;
-   unsigned int max_emitters;
+   unsigned int max_emitters;		/* total */
+   unsigned int max_registered;		/* per (sub)mixer */
 
    uint8_t update_rate;	/* how many frames get processed before an update */
 
@@ -117,12 +118,12 @@ typedef struct
    _intBuffers *ringbuffers;		/* for loopback capture */
 
    float curr_pos_sec;
-   int no_emitters;
-
-   signed char thread;
+   int no_registered;
    unsigned char refcount;
    unsigned char capturing;
    unsigned char dist_delaying;
+
+   signed char thread;
  
 } _aaxAudioFrame;
 

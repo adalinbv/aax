@@ -478,10 +478,13 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                he = mixer->emitters_3d;
             }
 
-            if ((mixer->no_emitters+1) <= mixer->info->max_emitters)
+            if (mixer->no_registered < mixer->info->max_registered)
             {
-               mixer->no_emitters++;
-               pos = _intBufAddData(he, _AAX_EMITTER, emitter);
+               if (_oalRingBufferGetSource())
+               {
+                  mixer->no_registered++;
+                  pos = _intBufAddData(he, _AAX_EMITTER, emitter);
+               }
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -595,7 +598,8 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             ptr = _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
             if (ptr)
             {
-               mixer->no_emitters--;
+               _oalRingBufferPutSource();
+               mixer->no_registered--;
                emitter->handle = NULL;
                emitter->pos = UINT_MAX;
                rv = AAX_TRUE;
@@ -644,13 +648,14 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   }
                }
 
-               if (hf)
+               if (hf && (mixer->no_registered < mixer->info->max_registered))
                {
                   aaxBuffer buf; /* clear the frames buffer queue */
                   while ((buf = aaxAudioFrameGetBuffer(frame)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
                   pos = _intBufAddData(hf, _AAX_FRAME, frame);
+                  mixer->no_registered++;
                }
                else {
                   _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -733,6 +738,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _aaxAudioFrame* mixer = sensor->mixer;
             _intBuffers *hf = mixer->frames;
             _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
+            mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
 
@@ -779,25 +785,31 @@ _aaxMixerInit(_handle_t *handle)
    res = be->setup(handle->backend.handle, &bufsz, fmt, &ch, &freq);
    if TEST_FOR_TRUE(res)
    {
-      handle->valid |= AAX_TRUE;
-      info->pitch = info->frequency/freq;
-      info->no_tracks = ch;
-      info->frequency = freq;
+      if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
+      {
+         handle->valid |= AAX_TRUE;
+         info->pitch = info->frequency/freq;
+         info->no_tracks = ch;
+         info->frequency = freq;
 
-      /* don't alter the refresh rate when registered */
-      if (!handle->handle)
-      {
-         float iv = info->refresh_rate;
-         iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
-         info->refresh_rate = iv;
-      }
+         /* don't alter the refresh rate when registered */
+         if (!handle->handle)
+         {
+            float iv = info->refresh_rate;
+            iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
+            info->refresh_rate = iv;
+         }
 #if 0
-      else
-      {
-         float no_samples = bufsz / (ch *_oalRingBufferFormatsBPS[fmt]);
-         info->refresh_rate = freq / no_samples;
-      }
+         else
+         {
+            float no_samples = bufsz / (ch *_oalRingBufferFormatsBPS[fmt]);
+            info->refresh_rate = freq / no_samples;
+         }
 #endif
+      }
+      else {
+         __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
+      }
    }
    else {
       __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");

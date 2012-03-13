@@ -770,6 +770,7 @@ _open_handle(aaxConfig config)
                      sensor->mixer->thread = -1;
                      num = _oalRingBufferGetNoSources();
                      sensor->mixer->info->max_emitters = num;
+                     sensor->mixer->info->max_registered = _AAX_MAX_MIXER_REGISTERED;
 
                      size = _AAX_MAX_SPEAKERS;
                      memcpy(&info->router, &_aaxContextDefaultRouter, size);
@@ -881,8 +882,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
          key ^= 0x21051974;
          if (config->node[0].no_emitters)
          {
-            int emitters = config->node[0].no_emitters;
-            int system_max = _oalRingBufferGetNoSources();
+            unsigned int emitters = config->node[0].no_emitters;
+            unsigned int system_max = _oalRingBufferGetNoSources();
             handle->info->max_emitters = _MINMAX(emitters, 4, system_max);
             _oalRingBufferSetNoSources(handle->info->max_emitters);
          }
@@ -955,7 +956,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
             handle->info->refresh_rate = iv;
             handle->info->frequency = fq;
             handle->info->update_rate = iv/config->node[0].update;
-            handle->info->max_emitters =  _AAX_MAX_MIXER_SOURCES_LT;
+            handle->info->max_emitters =  _AAX_MAX_MIXER_REGISTERED_LT;
+            handle->info->max_registered = _AAX_MAX_MIXER_REGISTERED_LT;
             _oalRingBufferSetNoSources(handle->info->max_emitters);
          }
 
