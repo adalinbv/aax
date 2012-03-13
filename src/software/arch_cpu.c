@@ -303,8 +303,18 @@ _batch_cvt24_16_cpu(int32_t*__restrict dptr, const void*__restrict sptr, unsigne
 }
 
 void
-_batch_cvt24_24_3_cpu(int32_t*__restrict dptr, const void*__restrict sptr, unsigned int num) {
-// TODO:
+_batch_cvt24_24_3_cpu(int32_t*__restrict dptr, const void*__restrict sptr, unsigned int num)
+{
+   int8_t *s = (int8_t *)sptr;
+   int32_t *d = dptr;
+   unsigned int i = num;
+
+   do {
+      *d = (int32_t)*s++;
+      *d |= *s++ << 8;
+      *d++ |= *s++ << 16;
+   }
+   while (--i);
 }
 
 
@@ -337,7 +347,17 @@ _batch_cvt16_24_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigne
 void
 _batch_cvt24_3_24_cpu(void*__restrict dptr, const int32_t*__restrict sptr, unsigned int num)
 {
-// TODO
+   int8_t *d = (int8_t *)dptr;
+   int32_t *s = (int32_t*)sptr;
+   unsigned int i = num;
+
+   do
+   {
+      *d++ = *s & 0xFF;
+      *d++ = (*s >> 8) & 0xFF;
+      *d++ = (*s++ >> 16) & 0xFF;
+   }
+   while (--i);
 }
 
 void
