@@ -1098,14 +1098,24 @@ unsigned int
 _oalRingBufferGetNoSources()
 {
    int num = _oalGetSetMonoSources(0, 0);
-   if (num > _AAX_MAX_MIXER_SOURCES) num = _AAX_MAX_MIXER_SOURCES;
+   if (num > _AAX_MAX_MIXER_REGISTERED) num = _AAX_MAX_MIXER_REGISTERED;
    return num;
 }
 
 unsigned int
-_oalRingBufferSetNoSources(unsigned int src)
+_oalRingBufferSetNoSources(unsigned int max)
 {
-   return _oalGetSetMonoSources(src, 0);
+   return _oalGetSetMonoSources(max, 0);
+}
+
+unsigned int
+_oalRingBufferGetSource() {
+   return _oalGetSetMonoSources(0, 1);
+}
+
+unsigned int
+_oalRingBufferPutSource() {
+   return _oalGetSetMonoSources(0, -1);
 }
 
 void
@@ -1167,22 +1177,22 @@ float _cos_2(float v) { return cos(v/2); }
 float _2acos(float v) { return 2*acos(v); }
 
 static int
-_oalGetSetMonoSources(unsigned int src, int num)
+_oalGetSetMonoSources(unsigned int max, int num)
 {
    static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
    static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
-   unsigned int anum = abs(num);
+   unsigned int abs_num = abs(num);
    int ret = _sources;
 
-   if (src)
+   if (max)
    {
-      if (src > _AAX_MAX_SOURCES_AVAIL) src = _AAX_MAX_SOURCES_AVAIL;
-      _max_sources = src;
-      _sources = src;
-      ret = src;
+      if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
+      _max_sources = max;
+      _sources = max;
+      ret = max;
    }
 
-   if (anum && (anum < _AAX_MAX_MIXER_SOURCES))
+   if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
    {
       int _src = _sources - num;
       if ((_src > 0) && (_src < _max_sources))
