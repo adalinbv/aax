@@ -626,23 +626,26 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
                "unable to determine if mmap is supported" );
          handle->use_mmap = (err == 1);
 #endif
-
-         handle->latency = (float)size*(float)periods;
-         handle->latency /= (float)rate*(float)*tracks*(float)bps;
       }
 
       /* test for supported sample formats*/
-      bps = 4;
-      do
+      bps = 0;
+      if (err >= 0)
       {
-         data_format = _alsa_formats[bps].format;
-
-         err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
+         do
+         {
+            data_format = _alsa_formats[bps].format;
+            err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
+         }
+         while ((err < 0) && !_alsa_formats[++bps].bps);
+         handle->bytes_sample = _alsa_formats[bps].bps;
+         bps = handle->bytes_sample;
+         if (!bps) {
+            _AAX_SYSLOG("alsa; unable to match hardware format");
+         }
       }
-      while ((err < 0) && bps-- > 2);
-      handle->bytes_sample = bps;
 
-      do
+      if (err >= 0)
       {
          int err = psnd_pcm_hw_params_test_channels(hid, hwparams, channels);
          int tracks = channels;
@@ -666,7 +669,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             _AAX_SYSLOG(str);
          }
       }
-      while (0);
 
       TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, channels),
             "unsupported no. channels" );
@@ -690,6 +692,9 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" ); 
+
+      handle->latency = (float)size*(float)periods;
+      handle->latency /= (float)rate*(float)*tracks*(float)bps;
 
       do
       {
@@ -733,9 +738,13 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       handle->frequency_hz = rate;
       *speed = rate;
 
-      err = psnd_pcm_hw_params_get_buffer_size(hwparams, &size);
-      err = psnd_pcm_hw_params_get_periods(hwparams, &periods, 0);
-      handle->no_periods = periods;
+      TRUN( psnd_pcm_hw_params_get_buffer_size(hwparams, &size),
+            "unable to detect hardware buffer size" );
+      TRUN( psnd_pcm_hw_params_get_periods(hwparams, &periods, 0),
+            "unable to detect no. hadrware periods" );
+      if (err >= 0) {
+         handle->no_periods = periods;
+      }
 
       handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
       handle->can_pause &= psnd_pcm_hw_params_can_resume(hwparams);
@@ -1253,11 +1262,12 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 static const _alsa_formats_t _alsa_formats[] =
 {
-   {0, SND_PCM_FORMAT_UNKNOWN},
-   {1, SND_PCM_FORMAT_U8},
    {2, SND_PCM_FORMAT_S16_LE},
-   {4, SND_PCM_FORMAT_S24_3LE},
-   {4, SND_PCM_FORMAT_S32_LE}
+   {4, SND_PCM_FORMAT_S32_LE},
+   {4, SND_PCM_FORMAT_S24_LE},
+   {3, SND_PCM_FORMAT_S24_3LE},
+   {1, SND_PCM_FORMAT_U8},
+   {0, 0}
 };
 
 static void
