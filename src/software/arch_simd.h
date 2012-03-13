@@ -35,6 +35,7 @@
 /* CPU*/
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
 char* _aax_malloc_align16(char**, unsigned int);
+void _batch_cvt24_24_cpu(void*__restrict, const void*, size_t);
 
 void _batch_mul_value_cpu(void*, unsigned, unsigned int, float);
 void _batch_fmadd_cpu(int32_ptr, const int32_ptr, unsigned int, float, float);
@@ -61,24 +62,31 @@ void _batch_endianswap64_cpu(void*, unsigned int);
 
 void _batch_cvt24_8_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvt24_16_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
+void _batch_cvt24_24_3_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvt24_32_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvt24_ps_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvt24_pd_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
+void _batch_cvt24_8_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvt24_16_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
+void _batch_cvt24_24_3intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
+void _batch_cvt24_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvt24_32_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvt24_ps_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 void _batch_cvt24_pd_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
 
 void _batch_cvt8_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
 void _batch_cvt16_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
+void _batch_cvt24_3_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
 void _batch_cvt32_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
 void _batch_cvtps_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
 void _batch_cvtpd_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
+void _batch_cvt8_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
 void _batch_cvt16_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
-void _batch_cvtps_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
-void _batch_cvtpd_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_3intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
 void _batch_cvt24_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
 void _batch_cvt32_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvtps_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvtpd_intl_24_cpu(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
 
 
 /* SSE*/

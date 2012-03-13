@@ -51,6 +51,17 @@ enum {
     CPUID_FEAT_EDX_SSE2         = 1 << 26, 
 };
 
+enum {
+    AAX_NO_SIMD = 0,
+    AAX_NEON,
+
+    AAX_MMX = AAX_NEON,
+    AAX_SSE,
+    AAX_SSE2,
+    AAX_SSE3,
+    AAX_SSE4
+};
+
 #define MAX_SSE_LEVEL		9
 #define SSE_LEVEL_SSE4		5
 #define DMAc			0x444d4163 
@@ -67,16 +78,21 @@ static char check_extcpuid_ecx(unsigned int);
 # define check_extcpuid_ecx(a)  0
 #endif
 
+_aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_align16;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_align16;
-_aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
+_aax_memcpy_proc _batch_cvt24_24 = (_aax_memcpy_proc)_batch_cvt24_24_cpu;
 
-_batch_cvt_to_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
-_batch_cvt_to_proc _batch_cvt24_16 = _batch_cvt24_16_cpu;
-_batch_cvt_to_proc _batch_cvt24_32 = _batch_cvt24_32_cpu;
-_batch_cvt_to_proc _batch_cvt24_ps = _batch_cvt24_ps_cpu;
-_batch_cvt_to_proc _batch_cvt24_pd = _batch_cvt24_pd_cpu;
+_batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
+_batch_cvt_from_proc _batch_cvt24_16 = _batch_cvt24_16_cpu;
+_batch_cvt_from_proc _batch_cvt24_24_3 = _batch_cvt24_24_3_cpu;
+_batch_cvt_from_proc _batch_cvt24_32 = _batch_cvt24_32_cpu;
+_batch_cvt_from_proc _batch_cvt24_ps = _batch_cvt24_ps_cpu;
+_batch_cvt_from_proc _batch_cvt24_pd = _batch_cvt24_pd_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_8_intl = _batch_cvt24_8_intl_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_16_intl = _batch_cvt24_16_intl_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_24_3intl = _batch_cvt24_24_3intl_cpu;
+_batch_cvt_from_intl_proc _batch_cvt24_24_intl = _batch_cvt24_24_intl_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_32_intl = _batch_cvt24_32_intl_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_cpu;
@@ -96,19 +112,22 @@ _batch_cvt_proc _batch_endianswap16 = _batch_endianswap16_cpu;
 _batch_cvt_proc _batch_endianswap32 = _batch_endianswap32_cpu;
 _batch_cvt_proc _batch_endianswap64 = _batch_endianswap64_cpu;
 
-_batch_cvt_from_proc _batch_cvt8_24 = _batch_cvt8_24_cpu;
-_batch_cvt_from_proc _batch_cvt16_24 = _batch_cvt16_24_cpu;
-_batch_cvt_from_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
-_batch_cvt_from_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
-_batch_cvt_from_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
+_batch_cvt_to_proc _batch_cvt8_24 = _batch_cvt8_24_cpu;
+_batch_cvt_to_proc _batch_cvt16_24 = _batch_cvt16_24_cpu;
+_batch_cvt_to_proc _batch_cvt24_3_24 = _batch_cvt24_3_24_cpu;
+_batch_cvt_to_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
+_batch_cvt_to_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
+_batch_cvt_to_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvt8_intl_24 = _batch_cvt8_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt16_intl_24 = _batch_cvt16_intl_24_cpu;
-_batch_cvt_to_intl_proc _batch_cvtps_intl_24 = _batch_cvtps_intl_24_cpu;
-_batch_cvt_to_intl_proc _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvt24_3intl_24 = _batch_cvt24_3intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt24_intl_24 = _batch_cvt24_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt32_intl_24 = _batch_cvt32_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvtps_intl_24 = _batch_cvtps_intl_24_cpu;
+_batch_cvt_to_intl_proc _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_cpu;
 
 _batch_mul_value_proc _batch_mul_value = _batch_mul_value_cpu;
-_batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
+_batch_fmadd_proc _batch_fmadd; //  = _batch_fmadd_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
 _batch_resample_proc _aaxBufResampleCubic = _aaxBufResampleCubic_cpu;
 _batch_resample_proc _aaxBufResampleLinear = _aaxBufResampleLinear_cpu;
@@ -134,33 +153,6 @@ _aaxDetectNeon()
             res = 1;
          }
       }
-
-      if (res)
-      {
-         vec4Add = _vec4Add_neon;
-         vec4Sub = _vec4Sub_neon;
-         vec4Copy = _vec4Copy_neon;
-         vec4Devide = _vec4Devide_neon;
-         vec4Mulvec4 = _vec4Mulvec4_neon;
-         vec4Matrix4 = _vec4Matrix4_neon;
-
-         mtx4Mul = _mtx4Mul_neon;
-         ivec4Add = _ivec4Add_neon;
-         ivec4Sub = _ivec4Sub_neon;
-         ivec4Devide = _ivec4Devide_neon;
-         ivec4Mulivec4 = _ivec4Mulivec4_neon;
-
-         _batch_fmadd = _batch_fmadd_neon;
-         _batch_cvt24_16 = _batch_cvt24_16_neon;
-         _batch_cvt16_24 = _batch_cvt16_24_neon;
-         _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
-         _batch_freqfilter = _batch_freqfilter_neon;
-
-         _aaxBufResampleSkip = _aaxBufResampleSkip_neon;
-         _aaxBufResampleCubic = _aaxBufResampleCubic_neon;
-         _aaxBufResampleLinear = _aaxBufResampleLinear_neon;
-         _aaxBufResampleNearest = _aaxBufResampleNearest_neon;
-      }
 #endif
    }
    return res;
@@ -183,18 +175,6 @@ _aaxDetectSSE()
    if (res == (char)-1)
    {
       res = check_cpuid_edx(CPUID_FEAT_EDX_SSE);
-      if (res)
-      {
-#ifdef __i386__
-         vec4Add = _vec4Add_sse;
-         vec4Sub = _vec4Sub_sse;
-         vec4Copy = _vec4Copy_sse;
-         vec4Devide = _vec4Devide_sse;
-         vec4Mulvec4 = _vec4Mulvec4_sse;
-         vec4Matrix4 = _vec4Matrix4_sse;
-         mtx4Mul = _mtx4Mul_sse;
-#endif
-      }
    }
    return res;
 }
@@ -206,27 +186,6 @@ _aaxDetectSSE2()
    if (res == (char)-1)
    {
       res = check_cpuid_edx(CPUID_FEAT_EDX_SSE2);
-      if (res)
-      {
-#ifdef __i386__
-         ivec4Add = _ivec4Add_sse2;
-         ivec4Devide = _ivec4Devide_sse2;
-         ivec4Mulivec4 = _ivec4Mulivec4_sse2;
-         ivec4Sub = _ivec4Sub_sse2;
-
-//       _aax_memcpy = _aax_memcpy_sse2;
-         _batch_fmadd = _batch_fmadd_sse2;
-         _batch_cvt24_16 = _batch_cvt24_16_sse2;
-         _batch_cvt16_24 = _batch_cvt16_24_sse2;
-         _batch_freqfilter = _batch_freqfilter_sse2;
-         _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
-
-         _aaxBufResampleSkip = _aaxBufResampleSkip_sse2;
-         _aaxBufResampleNearest = _aaxBufResampleNearest_sse2;
-         _aaxBufResampleLinear = _aaxBufResampleLinear_sse2;
-         _aaxBufResampleCubic = _aaxBufResampleCubic_sse2;
-#endif
-      }
    }
    return res;
 }
@@ -281,15 +240,18 @@ _aaxGetSSELevel()
          res = _aaxDetectMMX();
          res += _aaxDetectSSE();
          res += _aaxDetectSSE2();
-         // res += _aaxDetectSSE3();
+#if 0
+         res += _aaxDetectSSE3();
+#endif
          sse_level = res;
-
-         // if ((res = _aaxDetectSSE4()) > 0) {
-         //    sse_level = SSE_LEVEL_SSE4 + res;
-         // }
-         // if (sse_level >= MAX_SSE_LEVEL) {
-         //    sse_level = MAX_SSE_LEVEL-1;
-         // }
+#if 0
+         if ((res = _aaxDetectSSE4()) > 0) {
+            sse_level = SSE_LEVEL_SSE4 + res;
+         }
+         if (sse_level >= MAX_SSE_LEVEL) {
+            sse_level = MAX_SSE_LEVEL-1;
+         }
+#endif
       }
    }
 
@@ -313,29 +275,73 @@ _aaxGetSIMDSupportString()
    };
    int level = 0;
 
-   if (_aaxDetectNeon()) {
+   if (_aaxDetectNeon())
+   {
       level = MAX_SSE_LEVEL;
-   } else {
+#if HAVE_CPU_FEATURES_H
+      vec4Add = _vec4Add_neon;
+      vec4Sub = _vec4Sub_neon;
+      vec4Copy = _vec4Copy_neon;
+      vec4Devide = _vec4Devide_neon;
+      vec4Mulvec4 = _vec4Mulvec4_neon;
+      vec4Matrix4 = _vec4Matrix4_neon;
+
+      mtx4Mul = _mtx4Mul_neon;
+      ivec4Add = _ivec4Add_neon;
+      ivec4Sub = _ivec4Sub_neon;
+      ivec4Devide = _ivec4Devide_neon;
+      ivec4Mulivec4 = _ivec4Mulivec4_neon;
+
+      _batch_fmadd = _batch_fmadd_neon;
+      _batch_cvt24_16 = _batch_cvt24_16_neon;
+      _batch_cvt16_24 = _batch_cvt16_24_neon;
+      _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
+      _batch_freqfilter = _batch_freqfilter_neon;
+
+      _aaxBufResampleSkip = _aaxBufResampleSkip_neon;
+      _aaxBufResampleCubic = _aaxBufResampleCubic_neon;
+      _aaxBufResampleLinear = _aaxBufResampleLinear_neon;
+      _aaxBufResampleNearest = _aaxBufResampleNearest_neon;
+#endif
+   }
+   else
+   {
       level = _aaxGetSSELevel();
+#ifdef __i386__
+      if (level >= AAX_SSE)
+      {
+         vec4Add = _vec4Add_sse;
+         vec4Sub = _vec4Sub_sse;
+         vec4Copy = _vec4Copy_sse;
+         vec4Devide = _vec4Devide_sse;
+         vec4Mulvec4 = _vec4Mulvec4_sse;
+         vec4Matrix4 = _vec4Matrix4_sse;
+         mtx4Mul = _mtx4Mul_sse;
+      }
+      if (level >= AAX_SSE2)
+      {
+         ivec4Add = _ivec4Add_sse2;
+         ivec4Devide = _ivec4Devide_sse2;
+         ivec4Mulivec4 = _ivec4Mulivec4_sse2;
+         ivec4Sub = _ivec4Sub_sse2;
+
+//       _aax_memcpy = _aax_memcpy_sse2;
+         _batch_fmadd = _batch_fmadd_sse2;
+         _batch_cvt24_16 = _batch_cvt24_16_sse2;
+         _batch_cvt16_24 = _batch_cvt16_24_sse2;
+         _batch_freqfilter = _batch_freqfilter_sse2;
+         _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
+
+         _aaxBufResampleSkip = _aaxBufResampleSkip_sse2;
+         _aaxBufResampleNearest = _aaxBufResampleNearest_sse2;
+         _aaxBufResampleLinear = _aaxBufResampleLinear_sse2;
+         _aaxBufResampleCubic = _aaxBufResampleCubic_sse2;
+      }
+#endif
    }
 
    return _aaxSSESupportString[level];
 }
-
-#if 0
-char *
-_aaxGetNeonSupportString()
-{
-   static char *_aaxNeonSupportString[MAX_SSE_LEVEL] = {
-      "",
-      "Neon"
-   };
-
-   int level = 0;
-   level = _aaxDetectNeon();
-   return _aaxNeonSupportString[level];
-}
-#endif
 
 
 /* -------------------------------------------------------------------------- */

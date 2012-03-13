@@ -139,6 +139,11 @@ typedef struct
    unsigned int buf_len;
 #endif
 
+    _batch_cvt_to_proc cvt_to;
+    _batch_cvt_from_proc cvt_from;
+    _batch_cvt_to_intl_proc cvt_to_intl;
+    _batch_cvt_from_intl_proc cvt_from_intl;
+
     void **scratch;
     char **data;
 
@@ -637,10 +642,51 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             data_format = _alsa_formats[bps].format;
             err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
          }
-         while ((err < 0) && !_alsa_formats[++bps].bps);
-         handle->bytes_sample = _alsa_formats[bps].bps;
-         bps = handle->bytes_sample;
-         if (!bps) {
+         while ((err < 0) && (_alsa_formats[++bps].bps != 0));
+
+         if ((err >= 0) && (_alsa_formats[bps].bps > 0))
+         {
+            switch (bps)
+            {
+            case 0:				/* SND_PCM_FORMAT_S16_LE */
+               handle->cvt_to = _batch_cvt16_24;
+               handle->cvt_from = _batch_cvt24_16;
+               handle->cvt_to_intl = _batch_cvt16_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_16_intl;
+               break;
+            case 1:				/* SND_PCM_FORMAT_S32_LE */
+               handle->cvt_to = _batch_cvt32_24;
+               handle->cvt_from = _batch_cvt24_32;
+               handle->cvt_to_intl = _batch_cvt32_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_32_intl;
+               break;
+            case 2:				/* SND_PCM_FORMAT_S24_LE */
+               handle->cvt_to = (_batch_cvt_to_proc)_batch_cvt24_24;
+               handle->cvt_from = (_batch_cvt_from_proc)_batch_cvt24_24;
+               handle->cvt_to_intl = _batch_cvt24_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_24_intl;
+               break;
+            case 3:				/* SND_PCM_FORMAT_S24_3LE */
+               handle->cvt_to = _batch_cvt24_3_24;
+               handle->cvt_from = _batch_cvt24_24_3;
+               handle->cvt_to_intl = _batch_cvt24_3intl_24;
+               handle->cvt_from_intl = _batch_cvt24_24_3intl;
+               break;
+            case 4:				/* SND_PCM_FORMAT_U8 */
+               handle->cvt_to = _batch_cvt8_24;
+               handle->cvt_from = _batch_cvt24_8;
+               handle->cvt_to_intl = _batch_cvt8_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_8_intl;
+               break;
+            default:
+               _AAX_SYSLOG("alsa; error: hardware format mismatch!\n");
+               err = -EINVAL;
+               break;
+            }
+            handle->bytes_sample = _alsa_formats[bps].bps;
+            bps = handle->bytes_sample;
+         }
+         else {
             _AAX_SYSLOG("alsa; unable to match hardware format");
          }
       }
@@ -1659,12 +1705,7 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
       for (t=0; t<no_tracks; t++)
       {
          char *p = (char *)areas[t].addr + offset*hw_bps;
-         if (hw_bps == 2) {
-            _batch_cvt16_24(p, (const int32_t *)rbsd->track[t]+offs, frames);
-         }
-         else {		/* 24/32-bit */
-            _batch_cvt32_24(p, (const int32_t *)rbsd->track[t]+offs, frames);
-         }
+         handle->cvt_to(p, (const int32_t *)rbsd->track[t]+offs, frames);
       }
 
       res = psnd_pcm_mmap_commit(handle->id, offset, frames);
@@ -1687,7 +1728,7 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs, hw_bps;
+   unsigned int no_tracks, offs;
    _oalRingBufferSample *rbsd;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
@@ -1704,7 +1745,6 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
-   hw_bps = handle->bytes_sample;
 
    state = psnd_pcm_state(handle->id);
    if (state != SND_PCM_STATE_RUNNING)
@@ -1761,12 +1801,7 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
       }
 
       p = (char *)area->addr + ((area->first + area->step*offset) >> 3);
-      if (hw_bps == 2) {
-         _batch_cvt16_intl_24(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
-      }
-      else {	/* 24/32-bps */
-         _batch_cvt32_intl_24(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
-      }
+      handle->cvt_to_intl(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
 
       res = psnd_pcm_mmap_commit(handle->id, offset, frames);
       if (res < 0 || (snd_pcm_uframes_t)res != frames)
@@ -1845,21 +1880,10 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
 
   
    data = handle->data;
-   if (hw_bps == 2)
+   for (t=0; t<no_tracks; t++)
    {
-      for (t=0; t<no_tracks; t++)
-      {
-         data[t] = handle->scratch[t];
-         _batch_cvt16_24(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
-      }
-   }
-   else 		/* 24/32-bit */
-   {
-      for (t=0; t<no_tracks; t++)
-      {
-         data[t] = handle->scratch[t];
-         _batch_cvt32_24(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
-      }
+      data[t] = handle->scratch[t];
+      handle->cvt_to(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
    }
 
    while (no_samples > 0)
@@ -1924,17 +1948,12 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
 #endif
    }
 
-   data = (char*)handle->data;
 #if 0
    assert(outbuf_size <= handle->buf_len);
 #endif
 
-   if (hw_bps == 2) {
-      _batch_cvt16_intl_24(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
-   }
-   else { 	/* 24/32-bits */
-      _batch_cvt32_intl_24(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
-   }
+   data = (char*)handle->data;
+   handle->cvt_to_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
 
    do
    {
