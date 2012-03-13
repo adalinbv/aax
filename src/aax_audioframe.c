@@ -664,10 +664,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
          if (mixer->no_registered < mixer->info->max_registered)
          {
-printf("mixer->no_registered: %i\n", mixer->no_registered);
             if (_oalRingBufferGetSource())
             {
-printf("get source\n");
                pos = _intBufAddData(he, _AAX_EMITTER, emitter);
                mixer->no_registered++;
             }
