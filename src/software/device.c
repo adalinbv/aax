@@ -447,19 +447,20 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
 }
 
 static int
-_aaxSoftwareDriverRecord(const void *id, void **data, size_t *size, void *scratch)
+_aaxSoftwareDriverRecord(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t buflen;
+   size_t buflen, frame_size;
 
-   if (handle->mode != O_RDONLY || (size == 0) || (data == 0))
+   if (handle->mode != O_RDONLY || (frames == 0) || (data == 0))
       return AAX_FALSE;
 
-   buflen = *size;
-   if (buflen == 0)
+   if (*frames == 0)
       return AAX_TRUE;
 
-   *size = 0;
+   frame_size = handle->info.file.bps * handle->info.file.no_tracks;
+   buflen = *frames * frame_size;
+   *frames = 0;
    if (data)
    {
       int res;
@@ -470,7 +471,7 @@ _aaxSoftwareDriverRecord(const void *id, void **data, size_t *size, void *scratc
          _AAX_SYSLOG(strerror(errno));
          return AAX_FALSE;
       }
-      *size = res;
+      *frames = res / frame_size;
 
       if (is_bigendian()) {
          _batch_endianswap16((uint16_t*)scratch, res);

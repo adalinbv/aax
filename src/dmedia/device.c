@@ -678,30 +678,24 @@ _aaxDMediaDriverAvailable(const void *id)
 }
 
 static int
-_aaxDMediaDriverRecord(const void *id, void **data, size_t *size, void *scratch)
+_aaxDMediaDriverRecord(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   int frames, frame_sz, tracks;
+   unsigned int nframes = *frames;
 
-   if ((handle->mode != 0) || (size == 0) || (data == 0)) {
+   if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
      return AAX_FALSE;
    }
 
-   tracks = handle->port[0].no_channels;
-   frame_sz = tracks * (handle->port[0].bytes_sample);
-   frames = *size / frame_sz;
-   if (frames > 0)
-   {
-      *size = 0;
-      if (data)
-      {
-         palReadFrames(handle->port[0].port, scratch, frames);
-         _batch_cvt24_16_intl((int32_t**)data, scratch, 2, frames);
-         return AAX_TRUE;
-      }
+   if (nframes == 0) {
+      return AAX_TRUE;
    }
 
-   return AAX_FALSE;
+   *frames = 0;
+   palReadFrames(handle->port[0].port, scratch, nframes);
+   _batch_cvt24_16_intl((int32_t**)data, scratch, 2, nframes);
+   *frames = nframes;
+   return AAX_TRUE;
 }
 
 static int

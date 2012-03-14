@@ -110,13 +110,14 @@ typedef struct
    int fd;
    float frequency_hz;
    unsigned int format;
-   unsigned int no_channels;
+   unsigned int no_tracks;
    unsigned int buffer_size;
 
    int mode;
    int oss_version;
    int exclusive;
    char sse_level;
+   char bytes_sample;
 
    int16_t *ptr, *scratch;
 #ifndef NDEBUG
@@ -163,7 +164,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 
       handle->sse_level = _aaxGetSSELevel();
       handle->frequency_hz = _aaxOSSDriverBackend.rate;
-      handle->no_channels = _aaxOSSDriverBackend.tracks;
+      handle->no_tracks = _aaxOSSDriverBackend.tracks;
 
       if (xid)
       {
@@ -207,7 +208,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
                   _AAX_SYSLOG("oss; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
-               handle->no_channels = i;
+               handle->no_tracks = i;
             }
          }
 
@@ -233,7 +234,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
       }
 #if 0
 printf("frequency-hz: %f\n", handle->frequency_hz);
-printf("channels: %i\n", handle->no_channels);
+printf("channels: %i\n", handle->no_tracks);
 printf("device number: %i\n", handle->devnum);
 #endif
    }
@@ -246,7 +247,7 @@ printf("device number: %i\n", handle->devnum);
 
       m = (mode > 0) ? 1 : 0;
       handle->mode = _mode[m];
-      handle->name = detect_devname(handle->devnum, handle->no_channels, m);
+      handle->name = detect_devname(handle->devnum, handle->no_tracks, m);
       fd = open(handle->name, handle->mode|handle->exclusive);
       if (fd)
       {
@@ -317,12 +318,12 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    assert(handle);
 
-   if (handle->no_channels > *tracks) {
-      handle->no_channels = *tracks;
+   if (handle->no_tracks > *tracks) {
+      handle->no_tracks = *tracks;
    }
-   bufsz *= handle->no_channels;
+   bufsz *= handle->no_tracks;
    bufsz /= *tracks;
-   *tracks = handle->no_channels;
+   *tracks = handle->no_tracks;
 
    if (*tracks > 2)
    {
@@ -335,15 +336,17 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    fd = handle->fd;
    freq = (unsigned int)*speed;
-   channels = *tracks; // handle->no_channels;
+   channels = *tracks; // handle->no_tracks;
 
    switch(fmt)
    {
    case AAX_PCM8S:	
       format = AFMT_S8;
+      handle->bytes_sample = 1;
       break;
    case AAX_PCM16S:
       format = AFMT_S16_LE;
+      handle->bytes_sample = 2;
       break;
    default:
       _AAX_SYSLOG("oss; unsupported audio format.");
@@ -384,7 +387,7 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
    if (err >= 0)
    {
       handle->format = format;
-      handle->no_channels = channels;
+      handle->no_tracks = channels;
       handle->frequency_hz = (float)freq;
       handle->buffer_size = bufsz;
       if (bufsize) *bufsize = bufsz;
@@ -435,7 +438,7 @@ _aaxOSSDriverResume(const void *id)
          err = ioctl(fd, SNDCTL_DSP_SETFMT, &param);
          if (err >= 0)
          {
-            param = handle->no_channels;
+            param = handle->no_tracks;
             err = ioctl(fd, SNDCTL_DSP_CHANNELS, &param);
          }
          if (err >= 0)
@@ -485,19 +488,21 @@ _aaxOSSDriverIsAvailable(const void *id)
 }
 
 static int
-_aaxOSSDriverRecord(const void *id, void **data, size_t *size, void *scratch)
+_aaxOSSDriverRecord(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t buflen;
+   size_t buflen, frame_size;
 
-   if (handle->mode != O_RDONLY || (size == 0) || (data == 0))
+   if (handle->mode != O_RDONLY || (frames == 0) || (data == 0))
       return AAX_FALSE;
 
-   buflen = *size;
-   if (buflen == 0)
+   if (*frames == 0)
       return AAX_TRUE;
 
-   *size = 0;
+   frame_size = handle->bytes_sample * handle->no_tracks;
+   buflen = *frames * frame_size;
+
+   *frames = 0;
    if (data)
    {
       int res;
@@ -508,7 +513,7 @@ _aaxOSSDriverRecord(const void *id, void **data, size_t *size, void *scratch)
          _AAX_SYSLOG(strerror(errno));
          return AAX_FALSE;
       }
-      *size = res;
+      *frames = res / frame_size;
       _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
 
       return AAX_TRUE;
