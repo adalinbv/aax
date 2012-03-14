@@ -931,7 +931,7 @@ _aaxALSASoftDriverIsAvailable(const void *id)
 }
 
 static int
-_aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratch)
+_aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int frames, frame_size, tracks;
@@ -939,11 +939,11 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
    int res, avail;
    int rv = AAX_FALSE;
 
-   if ((handle->mode != 0) || (size == 0) || (data == 0))
+   if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
       if (handle->mode == 0) {
          _AAX_SYSLOG("alsa; calling the record function with a playback handle");
-      } else if (size == 0) {
+      } else if (req_frames == 0) {
          _AAX_SYSLOG("alsa; record buffer size is zero bytes");
       } else {
          _AAX_SYSLOG("alsa; calling the record function with null pointer");
@@ -970,14 +970,19 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
 
    tracks = handle->no_channels;
    frame_size = tracks * handle->bytes_sample;
-   frames = *size / frame_size;
+   frames = *req_frames;
 #ifndef NDEBUG
    handle->buf_len = frames * frame_size;
 #endif
 
 
-   *size = 0;
-   avail = psnd_pcm_avail_update(handle->id);
+   *req_frames = 0;
+   /*
+    * snd_pcm_avail_update is less reliable as snd_pcm_avail which shows 
+    * particularly for registered sensors.
+    *   avail = psnd_pcm_avail_update(handle->id);
+    */
+   avail = psnd_pcm_avail(handle->id);
    if (avail < 0)
    {
       if ((res = xrun_recovery(handle->id, avail)) < 0)
@@ -994,16 +999,17 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
       unsigned int fetch = frames;
       int try = 0;
 
-      if (avail > (2*frames+4)) fetch++;
-      else if (avail < (2*frames-4)) fetch--;
+      if (avail > (frames+4)) fetch++;
+      else if (avail < (frames-4)) fetch--;
 
       rv = AAX_TRUE;
       do
       {
          /*
-          * Note: When recording from a device that is also opened for playback
-          *       the frame size will be different when output is opened using
-          *       a different number of channels than the 2 cannel recording!
+          * Note:
+          * When recording from a device that is also opened for playback the
+          * frame size will be different when output is opened using a different
+          * number of channels than the 2 cannel recording!
           */
          if (handle->use_mmap)
          {
@@ -1109,7 +1115,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *size, void *scratc
             continue;
          }
 
-         *size += res * frame_size;
+         *req_frames += res;
          data += res * frame_size;
          fetch -= res;
       }

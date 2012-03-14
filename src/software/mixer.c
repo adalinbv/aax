@@ -520,11 +520,11 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
-   int no_samples, tracks, res;
+   unsigned int tracks, nframes, frames, dde;
    _oalRingBufferSample *rbd;
-   size_t nsize, size, dde;
    char **scratch;
    void *rv = rb;
+   int res;
 
    /*
     * dest_rb is thread specific and does not need a lock
@@ -535,28 +535,27 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    assert(dest_rb->sample);
 
    tracks = _oalRingBufferGetNoTracks(dest_rb);
-   no_samples = _oalRingBufferGetNoSamples(dest_rb);
-   size = tracks * no_samples * sizeof(int16_t);
-   nsize = size;
+   nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
 
    rbd = dest_rb->sample;
    dde = rbd->dde_samples * rbd->bytes_sample;
 
    scratch = (char**)rbd->scratch;
-   res = be->record(handle, rbd->track, &nsize, scratch[0]-dde);
-   if (TEST_FOR_TRUE(res) && nsize)
+   res = be->record(handle, rbd->track, &nframes, scratch[0]-dde);
+   if (TEST_FOR_TRUE(res) && nframes)
    {
-      float fact = (float)nsize/(float)size;
+      float fact = (float)frames/(float)nframes;
       _oalRingBuffer *nrb;
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
 #if 0
-      if (nsize != size)
+// TODO: fix
+      if (nframes != frames)
       {
-         int32_t *tmp = (int32_t*)(scratch[0]-dde);
-         _aaxProcessResample(tmp, rbd->track[0], 0, no_samples, 0, fact);
-         memcpy(rbd->track[0], tmp, size);
-         _aaxProcessResample(tmp, rbd->track[1], 0, no_samples, 0, fact);
-         memcpy(rbd->track[1], tmp, size);
+         int32_t *tmp = (int32_t*)scratch[0]-dde;
+         _aaxProcessResample(tmp, rbd->track[0], 0, frames, 0, fact);
+         memcpy(rbd->track[0], tmp, frames*tracks*sizeof(int32_t));
+         _aaxProcessResample(tmp, rbd->track[1], 0, frames, 0, fact);
+         memcpy(rbd->track[1], tmp, frames*tracks*sizeof(int32_t));
       }
 #endif
       _oalRingBufferRewind(dest_rb);
