@@ -123,8 +123,10 @@ typedef struct
     float frequency_hz;
     unsigned int no_channels;
     unsigned int no_periods;
+    unsigned int period_size;
 
     int mode;
+    int fetch;
     char pause;
     char can_pause;
     char use_mmap;
@@ -831,6 +833,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 #endif
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_size),
                "wakeup treshold unsupported" );
+         handle->period_size = period_size;
       }
       else			/* playback */
       {
@@ -982,7 +985,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
     * particularly for registered sensors.
     *   avail = psnd_pcm_avail_update(handle->id);
     */
-   avail = psnd_pcm_avail(handle->id);
+   avail = psnd_pcm_avail_update(handle->id);
    if (avail < 0)
    {
       if ((res = xrun_recovery(handle->id, avail)) < 0)
@@ -994,13 +997,15 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
       }
    }
 
-   if (frames && (avail >= 32))
+   if (frames && (avail > 32)) // (avail > handle->period_size))
    {
       unsigned int fetch = frames;
       int try = 0;
 
-      if (avail > (frames+4)) fetch++;
-      else if (avail < (frames-4)) fetch--;
+#if 0
+      if (avail > frames) fetch++;
+      else if (avail < frames) fetch--;
+#endif
 
       rv = AAX_TRUE;
       do
@@ -1011,59 +1016,67 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
           * frame size will be different when output is opened using a different
           * number of channels than the 2 cannel recording!
           */
+         /* See http://www.alsa-project.org/alsa-doc/alsa-lib/group___p_c_m___direct.html#g3e3d8bb878f70e94a746d17410e93273 for more information */
          if (handle->use_mmap)
          {
             const snd_pcm_channel_area_t *area;
             snd_pcm_uframes_t no_frames = fetch;
+            snd_pcm_uframes_t size = fetch;
             snd_pcm_uframes_t offset = 0;
 
-            res = psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
-            if (res < 0)
+            do
             {
-               if ((res = xrun_recovery(handle->id, res)) < 0)
+               res= psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
+               if (res < 0)
                {
-                  char s[255];
-                  snprintf(s, 255, "MMAP begin avail error: %s\n", 
+                  if ((res = xrun_recovery(handle->id, res)) < 0)
+                  {
+                     char s[255];
+                     snprintf(s, 255, "MMAP begin avail error: %s\n", 
                                    psnd_strerror(res));
-                  _AAX_SYSLOG(s);
-                  return 0;
+                     _AAX_SYSLOG(s);
+                     return 0;
+                  }
                }
-            }
 
-            if (!no_frames) break;
+               if (!no_frames) break;
 
-            if (handle->interleaved)
-            {
-               do {
-                  res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
-               }
-               while (res == -EAGAIN);
-
-               if (res > 0)
+               if (handle->interleaved)
                {
-                  char *p = (char *)area->addr; 
+                  do {
+                     res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
+                  }
+                  while (res == -EAGAIN);
 
-                  p += (area->first + area->step*offset) >> 3;
-                  _batch_cvt24_16_intl((int32_t**)data, p, 2, no_frames);
+                  if (res > 0)
+                  {
+                     char *p = (char *)area->addr; 
+
+                     p += (area->first + area->step*offset) >> 3;
+                     _batch_cvt24_16_intl((int32_t**)data, p, 2, no_frames);
+                  }
                }
-            }
-            else
-            {
-               char *s[2];
-               s[0] = scratch;
-               s[1] = (char*)scratch + fetch*frame_size;
-
-               do {
-                  res = psnd_pcm_mmap_readn(handle->id, (void**)s, fetch);
-               } while (res == -EAGAIN);
-
-               if (res > 0)
+               else
                {
-                  int32_t **d = (int32_t **)data;
-                  _batch_cvt24_16(d[0], s[0], res);
-                  _batch_cvt24_16(d[1], s[1], res);
+                  do {
+                     res = psnd_pcm_mmap_commit(handle->id, offset, frames);
+                  }
+                  while (res == -EAGAIN);
+
+                  if (res > 0)
+                  {
+                     int32_t **d = (int32_t **)data;
+                     char *p;
+
+                     p = (char *)area[0].addr + offset*handle->bytes_sample;
+                     _batch_cvt24_16(d[0], p, res);
+                     p = (char *)area[1].addr + offset*handle->bytes_sample;
+                     _batch_cvt24_16(d[1], p, res);
+                  }
                }
+               size -= no_frames;
             }
+            while(size > 0);
          }
          else
          {
@@ -1115,6 +1128,10 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
             continue;
          }
 
+#if 0
+if (res != fetch)
+printf("!fetch: %i, avail: %i, res: %i\n", fetch, avail, res);
+#endif
          *req_frames += res;
          data += res * frame_size;
          fetch -= res;
