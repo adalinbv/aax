@@ -1053,7 +1053,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
                      char *p = (char *)area->addr; 
 
                      p += (area->first + area->step*offset) >> 3;
-                     _batch_cvt24_16_intl((int32_t**)data, p, 2, no_frames);
+                     handle->cvt_from_intl((int32_t**)data, p, 2, no_frames);
                   }
                }
                else
@@ -1066,12 +1066,12 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
                   if (res > 0)
                   {
                      int32_t **d = (int32_t **)data;
-                     char *p;
+                     char *s[2];
 
-                     p = (char *)area[0].addr + offset*handle->bytes_sample;
-                     _batch_cvt24_16(d[0], p, res);
-                     p = (char *)area[1].addr + offset*handle->bytes_sample;
-                     _batch_cvt24_16(d[1], p, res);
+                     s[0] = (char *)area[0].addr + offset*handle->bytes_sample;
+                     s[1] = (char *)area[1].addr + offset*handle->bytes_sample;
+                     handle->cvt_from(d[0], s[0], res);
+                     handle->cvt_from(d[1], s[1], res);
                   }
                }
                size -= no_frames;
@@ -1088,7 +1088,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
+                  handle->cvt_from_intl((int32_t**)data, scratch, 2, res);
                }
             }
             else
@@ -1104,8 +1104,8 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
                if (res > 0)
                {
                   int32_t **d = (int32_t **)data;
-                  _batch_cvt24_16(d[0], s[0], res);
-                  _batch_cvt24_16(d[1], s[1], res);
+                  handle->cvt_from(d[0], s[0], res);
+                  handle->cvt_from(d[1], s[1], res);
                }
             }
          }

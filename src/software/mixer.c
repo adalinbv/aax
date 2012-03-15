@@ -205,13 +205,9 @@ _aaxSoftwareMixerThread(void* config)
          mixer = sensor->mixer;
          info = mixer->info;
 
-         if (info->mode == AAX_MODE_READ) {
-            _oalRingBufferSetFormat(dest_rb, be->codecs, info->format);
-         } else {
-            _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-         }
          tracks = info->no_tracks;
          _oalRingBufferSetNoTracks(dest_rb, tracks);
+         _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
          _oalRingBufferSetFrequency(dest_rb, info->frequency);
          _oalRingBufferSetDuration(dest_rb, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
