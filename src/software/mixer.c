@@ -680,7 +680,7 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                sensor = _intBufGetDataPtr(dptr_sensor);
                mixer = sensor->mixer;
                src_rb = mixer->ringbuffer;
-               dt = mixer->info->refresh_rate;
+               dt = 1.0f / mixer->info->refresh_rate;
                ringbuffers = mixer->ringbuffers;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
@@ -949,7 +949,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 
          if (handle->info->mode == AAX_MODE_READ)
          {
-            float dt = mixer->info->refresh_rate;
+            float dt = 1.0f / mixer->info->refresh_rate;
             void *rv, *rb = mixer->ringbuffer;
 
             _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
