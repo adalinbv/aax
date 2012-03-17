@@ -1,6 +1,7 @@
+
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2012 by Erik Hofman.
+ * Copyright 2009-2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -232,7 +233,9 @@ typedef int (*snd_pcm_hw_params_set_channels_proc)(snd_pcm_t *, snd_pcm_hw_param
 typedef int (*snd_pcm_hw_params_test_channels_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int);
 typedef int (*snd_pcm_hw_params_get_channels_proc)(snd_pcm_t *, unsigned int*);
 typedef int (*snd_pcm_hw_params_set_buffer_size_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_uframes_t *);
+typedef int (*snd_pcm_hw_params_set_buffer_time_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_set_periods_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
+typedef int (*snd_pcm_hw_params_set_period_time_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_set_periods_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int, int);
 typedef int (*snd_pcm_hw_params_can_pause_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_can_resume_proc)(const snd_pcm_hw_params_t *);
@@ -309,6 +312,12 @@ typedef ssize_t (*snd_pcm_frames_to_bytes_proc)(snd_pcm_t *, snd_pcm_sframes_t);
 typedef snd_pcm_type_t (*snd_pcm_type_proc)(snd_pcm_t *);
 typedef int (*snd_pcm_recover_proc)(snd_pcm_t *, int, int);
 typedef snd_pcm_stream_t (*snd_pcm_stream_proc)(snd_pcm_t *);
+typedef snd_pcm_sframes_t (*snd_pcm_rewind_proc)(snd_pcm_t *, snd_pcm_uframes_t);
+typedef snd_pcm_sframes_t (*snd_pcm_forward_proc)(snd_pcm_t *, snd_pcm_uframes_t);
+typedef void snd_output_t;
+typedef int (*snd_pcm_dump_proc)(snd_pcm_t *, snd_output_t *);
+typedef int (*snd_output_stdio_attach_proc)(snd_output_t **, FILE*, int);
+
 
 #endif /* _ALSA_AUDIO_H */
 
