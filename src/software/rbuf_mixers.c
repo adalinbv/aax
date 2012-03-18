@@ -86,7 +86,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
    }
 
    /* conversion */
-   fact = (sfreq * pitch_norm) / dfreq;
+   fact = (sfreq * pitch_norm*src->pitch_norm) / dfreq;
    if (fact < 0.01f) fact = 0.01f;
 // else if (fact > 2.0f) fact = 2.0f;
 
