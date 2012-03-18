@@ -80,12 +80,12 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverPrepare *)&_aaxNoneDriverPrepare,		/* effects */
 
    (_aaxDriverState *)_aaxNoneDriverAvailable,	/* supports playback */
-   (_aaxDriverState *)_aaxNoneDriverNotAvailable,	/* supports capture  */
+   (_aaxDriverState *)_aaxNoneDriverNotAvailable, /* supports capture  */
    (_aaxDriverState *)_aaxNoneDriverAvailable	/* is available      */
 };
 
 
-static _aaxDriverRecordCallback _aaxLoopbackDriverRecord;
+static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 
 static char _default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
@@ -114,7 +114,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverSetup *)&_aaxNoneDriverSetup,
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
-   (_aaxDriverRecordCallback *)&_aaxLoopbackDriverRecord,
+   (_aaxDriverCaptureCallback *)&_aaxLoopbackDriverCapture,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
@@ -230,7 +230,7 @@ _aaxNoneDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static int
-_aaxLoopbackDriverRecord(const void *id, void **data, size_t *size, void *scratch)
+_aaxLoopbackDriverCapture(const void *id, void **data, size_t *size, void *scratch)
 {
 #if 0
    _driver_t *handle = (_driver_t *)id;

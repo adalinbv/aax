@@ -537,25 +537,16 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    dde = rbd->dde_samples * rbd->bytes_sample;
 
    scratch = (char**)rbd->scratch;
-   res = be->record(handle, rbd->track, &nframes, scratch[0]-dde);
+   res = be->capture(handle, rbd->track, &nframes, scratch[0]-dde);
    if (TEST_FOR_TRUE(res) && nframes)
    {
-      float fact = (float)frames/(float)nframes;
+      float pitch = (float)frames/(float)nframes;
       _oalRingBuffer *nrb;
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-#if 0
-// TODO: fix
-      if (nframes != frames)
-      {
-         int32_t *tmp = (int32_t*)scratch[0]-dde;
-         _aaxProcessResample(tmp, rbd->track[0], 0, frames, 0, fact);
-         memcpy(rbd->track[0], tmp, frames*tracks*sizeof(int32_t));
-         _aaxProcessResample(tmp, rbd->track[1], 0, frames, 0, fact);
-         memcpy(rbd->track[1], tmp, frames*tracks*sizeof(int32_t));
-      }
-#endif
+      dest_rb->pitch_norm = 1.0f/pitch;
+
       _oalRingBufferRewind(dest_rb);
-      *rr *= fact;
+      *rr = (*rr * pitch);
       rv = nrb;
    }
    else {

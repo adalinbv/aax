@@ -43,7 +43,7 @@ static _aaxDriverSetup _aaxSoftwareDriverSetup;
 static _aaxDriverState _aaxSoftwareDriverAvailable;
 static _aaxDriverState _aaxSoftwareDriverNotAvailable;
 static _aaxDriverCallback _aaxSoftwareDriverPlayback;
-static _aaxDriverRecordCallback _aaxSoftwareDriverRecord;
+static _aaxDriverCaptureCallback _aaxSoftwareDriverCapture;
 static _aaxDriverGetName _aaxSoftwareDriverGetName;
 
 static char _default_renderer[100] = DEFAULT_RENDERER;
@@ -73,7 +73,7 @@ _aaxDriverBackend _aaxSoftwareDriverBackend =
    (_aaxDriverSetup *)&_aaxSoftwareDriverSetup,
    (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
    (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
-   (_aaxDriverRecordCallback *)&_aaxSoftwareDriverRecord,
+   (_aaxDriverCaptureCallback *)&_aaxSoftwareDriverCapture,
    (_aaxDriverCallback *)&_aaxSoftwareDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
@@ -447,7 +447,7 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
 }
 
 static int
-_aaxSoftwareDriverRecord(const void *id, void **data, size_t *frames, void *scratch)
+_aaxSoftwareDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t buflen, frame_size;

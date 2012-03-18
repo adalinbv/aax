@@ -61,7 +61,7 @@ static _aaxDriverCallback _aaxALSASoftDriverPlayback_rw_ni;
 static _aaxDriverCallback _aaxALSASoftDriverPlayback_rw_il;
 static _aaxDriverState _aaxALSASoftDriverPause;
 static _aaxDriverState _aaxALSASoftDriverResume;
-static _aaxDriverRecordCallback _aaxALSASoftDriverRecord;
+static _aaxDriverCaptureCallback _aaxALSASoftDriverCapture;
 static _aaxDriverGetName _aaxALSASoftDriverGetName;
 static _aaxDriverThread _aaxALSASoftDriverThread;
 static _aaxDriverState _aaxALSASoftDriverIsAvailable;
@@ -98,7 +98,7 @@ _aaxDriverBackend _aaxALSASoftDriverBackend =
    (_aaxDriverSetup *)&_aaxALSASoftDriverSetup,
    (_aaxDriverState *)&_aaxALSASoftDriverPause,
    (_aaxDriverState *)&_aaxALSASoftDriverResume,
-   (_aaxDriverRecordCallback *)&_aaxALSASoftDriverRecord,
+   (_aaxDriverCaptureCallback *)&_aaxALSASoftDriverCapture,
    (_aaxDriverCallback *)&_aaxALSASoftDriverPlayback_mmap_ni,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
@@ -121,6 +121,7 @@ typedef struct
 
     float latency;
     float frequency_hz;
+    float pitch;       /* difference between requested freq and returned freq */
 
     unsigned int no_channels;
     unsigned int no_periods;
@@ -393,7 +394,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       handle->frequency_hz = _aaxALSASoftDriverBackend.rate;
       handle->no_channels = _aaxALSASoftDriverBackend.tracks;
       handle->bytes_sample = 2;
-      handle->no_periods = (mode == AAX_MODE_READ) ? 4 : 2;
+      handle->no_periods = 2; // (mode == AAX_MODE_READ) ? 4 : 2;
 
       if (xid)
       {
@@ -734,40 +735,38 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       if (channels > handle->no_channels) handle->no_channels = channels;
       *tracks = channels;
 
-      TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, &dir),
-            "unsupported sample rate" );
+      handle->pitch = rate;
+      TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
 
-#if 0
-      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, &dir),
-            "unable to set the period count" );
-#endif
+            "unsupported sample rate" );
+      handle->pitch = rate/handle->pitch;
 
       /* Set buffer size (in frames). The resing latency is given by */
       /* latency = size * periods / (rate * tracks * bps))     */
       if (bufsize && (*bufsize > 0))
       {
          size = *bufsize / (channels*bps);
-         if (handle->mode == 0) size /= 2;
+         if (handle->mode == 0) size *= 2;
       } else {
          size = rate/25;
       }
       if (size < 64) size = 64;
 
       /* calculate the buffer length in usec. */
-      dt = (float)size*1e6f/(float)rate;
+      dt = handle->pitch * (float)size*1e6f/(float)rate;
       val2 = (unsigned int)dt;
       val1 = val2*periods;
 
-      TRUN( psnd_pcm_hw_params_set_buffer_time_near(hid, hwparams, &val1, &dir),
+      TRUN( psnd_pcm_hw_params_set_buffer_time_near(hid, hwparams, &val1, 0),
             "invalid buffer time");
 
-      TRUN( psnd_pcm_hw_params_set_period_time_near(hid, hwparams, &val2, &dir),
+      TRUN( psnd_pcm_hw_params_set_period_time_near(hid, hwparams, &val2, 0),
             "invalid period time");
       TRUN( psnd_pcm_hw_params_get_buffer_size(hwparams, &size),
             "unable to detect hardware buffer size" );
       *bufsize = size*channels*bps;
 
-      TRUN( psnd_pcm_hw_params_get_periods(hwparams, &periods, 0),
+      TRUN( psnd_pcm_hw_params_get_periods(hwparams, &periods, &dir),
             "unable to detect no. hadrware periods" );
       if (err >= 0) {
          handle->no_periods = periods;
@@ -955,7 +954,7 @@ _aaxALSASoftDriverIsAvailable(const void *id)
 }
 
 static int
-_aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *scratch)
+_aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int frames, frame_size, tracks;
@@ -981,9 +980,9 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
    {
       if (state <= SND_PCM_STATE_PREPARED)
       {
-         if (handle->playing++ < 1) {
+         if (handle->playing++ < 1)
+         {
             psnd_pcm_prepare(handle->id);
-//       } else {
             psnd_pcm_start(handle->id);
          }
       }
@@ -1021,13 +1020,16 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
    }
 
    threshold = handle->period_size;
-   if (frames && (avail > threshold))
+   if (frames && (avail >= threshold))
    {
       unsigned int fetch = frames;
-      int try = 0;
+      int error, try = 0;
 
-//    int error = _MINMAX(((int)avail - threshold)/5, -4, 4);
-//    fetch += error;
+      error = _MINMAX(((int)avail - threshold)/4, -2, 2);
+      fetch += error;
+#if 0
+printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, threshold);
+#endif
 
       rv = AAX_TRUE;
       do
@@ -1042,12 +1044,13 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
          if (handle->use_mmap)
          {
             const snd_pcm_channel_area_t *area;
-            snd_pcm_uframes_t no_frames = fetch;
             snd_pcm_uframes_t size = fetch;
             snd_pcm_uframes_t offset = 0;
 
             do
             {
+               snd_pcm_uframes_t no_frames = size;
+
                psnd_pcm_avail_update(handle->id);
                res= psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
                if (res < 0)
@@ -1077,12 +1080,13 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
 
                      p += (area->first + area->step*offset) >> 3;
                      handle->cvt_from_intl((int32_t**)data, p, 2, no_frames);
+                     *req_frames += no_frames;
                   }
                }
                else
                {
                   do {
-                     res = psnd_pcm_mmap_commit(handle->id, offset, frames);
+                     res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
                   }
                   while (res == -EAGAIN);
 
@@ -1095,6 +1099,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
                      s[1] = (char *)area[1].addr + offset*handle->bytes_sample;
                      handle->cvt_from(d[0], s[0], res);
                      handle->cvt_from(d[1], s[1], res);
+                     *req_frames += no_frames;
                   }
                }
                size -= no_frames;
@@ -1112,6 +1117,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
 
                if (res > 0) {
                   handle->cvt_from_intl((int32_t**)data, scratch, 2, res);
+                  *req_frames += res;
                }
             }
             else
@@ -1129,6 +1135,7 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
                   int32_t **d = (int32_t **)data;
                   handle->cvt_from(d[0], s[0], res);
                   handle->cvt_from(d[1], s[1], res);
+                  *req_frames += res;
                }
             }
          }
@@ -1155,7 +1162,6 @@ _aaxALSASoftDriverRecord(const void *id, void **data, size_t *req_frames, void *
 if (res != fetch)
 printf("!fetch: %i, avail: %i, res: %i\n", fetch, avail, res);
 #endif
-         *req_frames += res;
          data += res * frame_size;
          fetch -= res;
       }

@@ -63,7 +63,7 @@ static _aaxDriverDisconnect _aaxDMediaDriverDisconnect;
 static _aaxDriverSetup _aaxDMediaDriverSetup;
 static _aaxDriverState _aaxDMediaDriverPause;
 static _aaxDriverState _aaxDMediaDriverResume;
-static _aaxDriverRecordCallback _aaxDMediaDriverRecord;
+static _aaxDriverCaptureCallback _aaxDMediaDriverCapture;
 static _aaxDriverCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
 static _aaxDriverState _aaxDMediaDriverAvailable;
@@ -95,7 +95,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverSetup *)&_aaxDMediaDriverSetup,
    (_aaxDriverState *)&_aaxDMediaDriverPause,
    (_aaxDriverState *)&_aaxDMediaDriverResume,
-   (_aaxDriverRecordCallback *)&_aaxDMediaDriverRecord,
+   (_aaxDriverCaptureCallback *)&_aaxDMediaDriverCapture,
    (_aaxDriverCallback *)&_aaxDMediaDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
@@ -678,7 +678,7 @@ _aaxDMediaDriverAvailable(const void *id)
 }
 
 static int
-_aaxDMediaDriverRecord(const void *id, void **data, size_t *frames, void *scratch)
+_aaxDMediaDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int nframes = *frames;
