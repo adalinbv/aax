@@ -13,6 +13,9 @@
 #ifndef _ALSA_AUDIO_H
 #define _ALSA_AUDIO_H 1
 
+#define PLAYBACK_PERIODS	2
+#define CAPTURE_PERIODS		4
+
 typedef enum
 {
     SND_PCM_STREAM_PLAYBACK = 0,

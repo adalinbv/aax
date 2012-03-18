@@ -394,7 +394,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       handle->frequency_hz = _aaxALSASoftDriverBackend.rate;
       handle->no_channels = _aaxALSASoftDriverBackend.tracks;
       handle->bytes_sample = 2;
-      handle->no_periods = 2; // (mode == AAX_MODE_READ) ? 4 : 2;
+      handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
       if (xid)
       {
@@ -593,8 +593,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       snd_pcm_uframes_t size;
       unsigned int bps = handle->bytes_sample;
       unsigned int periods = handle->no_periods;
-      unsigned int val1, val2;
-      float dt;
+      unsigned int val1, val2, period_fact;
       int dir;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
@@ -741,36 +740,33 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             "unsupported sample rate" );
       handle->pitch = rate/handle->pitch;
 
+      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
+            "unsupported no. periods" );
+      period_fact = handle->no_periods/periods;
+      if (err >= 0) {
+         handle->no_periods = periods;
+      }
+
       /* Set buffer size (in frames). The resing latency is given by */
       /* latency = size * periods / (rate * tracks * bps))     */
       if (bufsize && (*bufsize > 0))
       {
          size = *bufsize / (channels*bps);
-         if (handle->mode == 0) size *= 2;
+         if (!handle->mode) size *= period_fact;
       } else {
          size = rate/25;
       }
       if (size < 64) size = 64;
 
-      /* calculate the buffer length in usec. */
-      dt = handle->pitch * (float)size*1e6f/(float)rate;
-      val2 = (unsigned int)dt;
-      val1 = val2*periods;
-
-      TRUN( psnd_pcm_hw_params_set_buffer_time_near(hid, hwparams, &val1, 0),
-            "invalid buffer time");
-
-      TRUN( psnd_pcm_hw_params_set_period_time_near(hid, hwparams, &val2, 0),
-            "invalid period time");
-      TRUN( psnd_pcm_hw_params_get_buffer_size(hwparams, &size),
-            "unable to detect hardware buffer size" );
+      printf("req size: %i\t", size*periods);
+      size *= periods;
+      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
+            "unvalid buffer size" );
+      size /= periods;
       *bufsize = size*channels*bps;
 
-      TRUN( psnd_pcm_hw_params_get_periods(hwparams, &periods, &dir),
-            "unable to detect no. hadrware periods" );
-      if (err >= 0) {
-         handle->no_periods = periods;
-      }
+      if (!handle->mode) size /= period_fact;
+      handle->period_size = size;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -845,10 +841,10 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             "unable to set software config" );
       if (handle->mode == 0)	/* record */
       {
-          snd_pcm_uframes_t period_size;
-         TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
-               "unable to get period size" );
-         handle->period_size = period_size;
+         snd_pcm_uframes_t period_size = handle->period_size;
+//       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
+//             "unable to get period size" );
+//       handle->period_size = period_size;
 
          TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,0x7fffffff),
                "improper interrupt treshold" );
@@ -857,10 +853,10 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       }
       else			/* playback */
       {
-         snd_pcm_uframes_t period_size;
-         TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
-               "unable to get period size" );
-         handle->period_size = period_size;
+         snd_pcm_uframes_t period_size = handle->period_size;
+//       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
+//             "unable to get period size" );
+//       handle->period_size = period_size;
 
          TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
                                                 (size/period_size)*period_size),
@@ -1020,15 +1016,15 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    }
 
    threshold = handle->period_size;
-   if (frames && (avail >= threshold))
+   if (frames && (avail > 2*threshold-64))
    {
       unsigned int fetch = frames;
       int error, try = 0;
 
-      error = _MINMAX(((int)avail - threshold)/4, -2, 2);
+      error = _MINMAX(((int)avail - 2*threshold)/5, -2, 2);
       fetch += error;
 #if 0
-printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, threshold);
+printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold);
 #endif
 
       rv = AAX_TRUE;
