@@ -594,7 +594,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       unsigned int bps = handle->bytes_sample;
       unsigned int periods = handle->no_periods;
       unsigned int val1, val2, period_fact;
-      int dir;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
@@ -758,7 +757,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       }
       if (size < 64) size = 64;
 
-      printf("req size: %i\t", size*periods);
       size *= periods;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
             "unvalid buffer size" );
@@ -842,6 +840,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       if (handle->mode == 0)	/* record */
       {
          snd_pcm_uframes_t period_size = handle->period_size;
+//       int dir;
 //       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
 //             "unable to get period size" );
 //       handle->period_size = period_size;
@@ -854,6 +853,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       else			/* playback */
       {
          snd_pcm_uframes_t period_size = handle->period_size;
+//       int dir;
 //       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
 //             "unable to get period size" );
 //       handle->period_size = period_size;
@@ -1016,17 +1016,22 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    }
 
    threshold = handle->period_size;
-   if (frames && (avail > 2*threshold-64))
+   if (frames && (avail > 2*threshold-32))
    {
       unsigned int fetch = frames;
+      snd_pcm_uframes_t size;
       int error, try = 0;
+      int32_t *d[2];
 
-      error = _MINMAX(((int)avail - 2*threshold)/5, -2, 2);
+      error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
       fetch += error;
 #if 0
 printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold);
 #endif
 
+      size = fetch;
+      d[0] = data[0];
+      d[1] = data[1];
       rv = AAX_TRUE;
       do
       {
@@ -1040,67 +1045,57 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
          if (handle->use_mmap)
          {
             const snd_pcm_channel_area_t *area;
-            snd_pcm_uframes_t size = fetch;
+            snd_pcm_uframes_t no_frames = size;
             snd_pcm_uframes_t offset = 0;
 
-            do
+            psnd_pcm_avail_update(handle->id);
+            res = psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
+            if (res < 0)
             {
-               snd_pcm_uframes_t no_frames = size;
-
-               psnd_pcm_avail_update(handle->id);
-               res= psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
-               if (res < 0)
+               if ((res = xrun_recovery(handle->id, res)) < 0)
                {
-                  if ((res = xrun_recovery(handle->id, res)) < 0)
-                  {
-                     char s[255];
-                     snprintf(s, 255, "MMAP begin avail error: %s\n", 
-                                   psnd_strerror(res));
-                     _AAX_SYSLOG(s);
-                     return 0;
-                  }
+                  char s[255];
+                  snprintf(s, 255, "MMAP begin avail error: %s\n", 
+                                psnd_strerror(res));
+                  _AAX_SYSLOG(s);
+                  return 0;
                }
-
-               if (!no_frames) break;
-
-               if (handle->interleaved)
-               {
-                  do {
-                     res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
-                  }
-                  while (res == -EAGAIN);
-
-                  if (res > 0)
-                  {
-                     char *p = (char *)area->addr; 
-
-                     p += (area->first + area->step*offset) >> 3;
-                     handle->cvt_from_intl((int32_t**)data, p, 2, no_frames);
-                     *req_frames += no_frames;
-                  }
-               }
-               else
-               {
-                  do {
-                     res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
-                  }
-                  while (res == -EAGAIN);
-
-                  if (res > 0)
-                  {
-                     int32_t **d = (int32_t **)data;
-                     char *s[2];
-
-                     s[0] = (char *)area[0].addr + offset*handle->bytes_sample;
-                     s[1] = (char *)area[1].addr + offset*handle->bytes_sample;
-                     handle->cvt_from(d[0], s[0], res);
-                     handle->cvt_from(d[1], s[1], res);
-                     *req_frames += no_frames;
-                  }
-               }
-               size -= no_frames;
             }
-            while(size > 0);
+
+            if (!no_frames) break;
+
+            if (handle->interleaved)
+            {
+               do {
+                  res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
+               }
+               while (res == -EAGAIN);
+
+               if (res > 0)
+               {
+                  char *p = (char *)area->addr; 
+
+                  p += (area->first + area->step*offset) >> 3;
+                  handle->cvt_from_intl(d, p, 2, no_frames);
+               }
+            }
+            else
+            {
+               do {
+                  res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
+               }
+               while (res == -EAGAIN);
+
+               if (res > 0)
+               {
+                  char *s[2];
+
+                  s[0] = (char *)area[0].addr + offset*handle->bytes_sample;
+                  s[1] = (char *)area[1].addr + offset*handle->bytes_sample;
+                  handle->cvt_from(d[0], s[0], res);
+                  handle->cvt_from(d[1], s[1], res);
+               }
+            }
          }
          else
          {
@@ -1112,8 +1107,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  handle->cvt_from_intl((int32_t**)data, scratch, 2, res);
-                  *req_frames += res;
+                  handle->cvt_from_intl(d, scratch, 2, res);
                }
             }
             else
@@ -1123,20 +1117,25 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                s[1] = (char*)scratch + fetch*frame_size;
 
                do {
-                  res = psnd_pcm_readn(handle->id, data, fetch);
+                  res = psnd_pcm_readn(handle->id, scratch, fetch);
                } while (res == -EAGAIN);
 
                if (res > 0)
                {
-                  int32_t **d = (int32_t **)data;
                   handle->cvt_from(d[0], s[0], res);
                   handle->cvt_from(d[1], s[1], res);
-                  *req_frames += res;
                }
             }
          }
 
-         if (res < 0)
+         if (res > 0)
+         {
+             d[0] += res;
+             d[1] += res;
+             size -= res;
+             *req_frames += res;
+         }
+         else if (res < 0)
          {
             if (xrun_recovery(handle->id, res) < 0)
             {
@@ -1153,16 +1152,8 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
             _AAX_SYSLOG("alsa; warning: pcm read error");
             continue;
          }
-
-#if 0
-if (res != fetch)
-printf("!fetch: %i, avail: %i, res: %i\n", fetch, avail, res);
-#endif
-         data += res * frame_size;
-         fetch -= res;
       }
-      while(0);
-//    while (fetch);
+      while(size > 0);
    }
    else rv = AAX_TRUE;
 
