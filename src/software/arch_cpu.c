@@ -160,7 +160,7 @@ _batch_cvt24_16_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
    for (t=0; t<tracks; t++)
    {
       int16_t *s = (int16_t *)sptr + t;
-      int32_t *d = dptr[t];
+      int32_t *d = dptr[t] + offset;
       unsigned int i = num;
 
       do
@@ -179,7 +179,7 @@ _batch_cvt24_24_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
    for (t=0; t<tracks; t++)
    {
       int32_t *s = (int32_t *)sptr + t;
-      int32_t *d = dptr[t];
+      int32_t *d = dptr[t] + offset;
       unsigned int i = num;
 
       do {
@@ -197,7 +197,7 @@ _batch_cvt24_24_3intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, 
    for (t=0; t<tracks; t++)
    {
       int8_t *s = (int8_t *)sptr + 3*t;
-      int32_t *d = dptr[t];
+      int32_t *d = dptr[t] + offset;
       unsigned int i = num;
 
       do {
@@ -216,7 +216,7 @@ _batch_cvt24_32_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
    for (t=0; t<tracks; t++)
    {
       int32_t *s = (int32_t *)sptr + t;
-      int32_t *d = dptr[t];
+      int32_t *d = dptr[t] + offset;
       unsigned int i = num;
 
       do {
@@ -236,7 +236,7 @@ _batch_cvt24_ps_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
    for (t=0; t<tracks; t++)
    {
       float *s = (float*)sptr + t;
-      int32_t *d = dptr[t];
+      int32_t *d = dptr[t] + offset;
       unsigned int i = num;
 
       do {
@@ -254,7 +254,7 @@ _batch_cvt24_pd_intl_cpu(int32_t**__restrict dptr, const void*__restrict sptr, u
    for (t=0; t<tracks; t++)
    {
       double *s = (double*)sptr + t;
-      int32_t *d = dptr[t];
+      int32_t *d = dptr[t] + offset;
       unsigned int i = num;
 
       do {
