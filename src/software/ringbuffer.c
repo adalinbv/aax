@@ -249,7 +249,7 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
 
       _oalRingBufferSetNoTracks(rb, rbsd->no_tracks);
       _oalRingBufferSetFrequency(rb, rbsd->frequency_hz);
-      _oalRingBufferSetDuration(rb, rbsd->duration_sec);
+      _oalRingBufferSetNoSamples(rb, rbsd->no_samples_avail);
 
       /*set looping */
       rbdd->loop_start_sec = rbsd->loop_start_sec;
@@ -257,6 +257,7 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
 
       add_scratchbuf = (copy && rbsd->scratch) ? AAX_TRUE : AAX_FALSE;
       _oalRingBufferInit(rb, add_scratchbuf);
+      _oalRingBufferSetNoSamples(rb, rbsd->no_samples);
       if (copy) {
          _oalRingBufferFillNonInterleaved(rb, rbsd->track, 1, ringbuffer->looping);
       }
@@ -712,6 +713,11 @@ _oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
    }
    else if (no_samples <= rbd->no_samples_avail)
    {
+      /**
+       * Note:
+       * Sensors rely in the fact that resizing to a smaller bufferr-size does
+       * not alter the actual buffer size, so it can overrun if required.
+       */
       rbd->no_samples = no_samples;
       rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
    }

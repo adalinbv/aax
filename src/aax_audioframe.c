@@ -572,10 +572,19 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      delay_sec = 1.0f / info->refresh_rate;
 
                      _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-                     _oalRingBufferSetNoTracks(rb, 2);
                      _oalRingBufferSetFrequency(rb, info->frequency);
-                     _oalRingBufferSetDuration(rb, delay_sec);
+                     _oalRingBufferSetNoTracks(rb, 2);
+
+                     /* create a ringbuffer with a but of overrun space */
+                     _oalRingBufferSetDuration(rb, delay_sec*1.0f);
                      _oalRingBufferInit(rb, AAX_TRUE);
+
+                     /* 
+                      * Now set the actual duration, this will not alter the
+                      * allocated space since it is lower that the initial
+                      * duration.
+                      */
+                     _oalRingBufferSetDuration(rb, delay_sec);
                      _oalRingBufferStart(rb);
                   }
 

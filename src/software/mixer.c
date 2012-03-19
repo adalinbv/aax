@@ -543,10 +543,10 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
       float pitch = (float)frames/(float)nframes;
       _oalRingBuffer *nrb;
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-      dest_rb->pitch_norm = 1.0f/pitch;
+      dest_rb->pitch_norm = pitch;
 
       _oalRingBufferRewind(dest_rb);
-      *rr = (*rr * pitch);
+      *rr *= pitch;
       rv = nrb;
    }
    else {

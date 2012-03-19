@@ -307,7 +307,7 @@ typedef struct			/* static information about the sample*/
     float loop_end_sec;
 
     unsigned int no_samples;		/* actual no. samples*/
-    unsigned int no_samples_avail;	/* available no. samples*/
+    unsigned int no_samples_avail;	/* maximum available no. samples*/
     unsigned int track_len_bytes;
     unsigned int dde_samples;
 
