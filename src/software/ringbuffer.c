@@ -362,13 +362,13 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
       rb->format = AAX_PCM16S;
       break;
    case AAX_PCM32S:
-      _batch_cvt24_32_intl(tracks, data, no_tracks, no_samples);
+      _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
       break;
    case AAX_FLOAT:
-      _batch_cvt24_ps_intl(tracks, data, no_tracks, no_samples);
+      _batch_cvt24_ps_intl(tracks, data, 0, no_tracks, no_samples);
       break;
    case AAX_DOUBLE:
-      _batch_cvt24_pd_intl(tracks, data, no_tracks, no_samples);
+      _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
       break;
    default:
       if (rbd->no_tracks == 1) {

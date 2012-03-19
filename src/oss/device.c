@@ -514,7 +514,7 @@ _aaxOSSDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
          return AAX_FALSE;
       }
       *frames = res / frame_size;
-      _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
+      _batch_cvt24_16_intl((int32_t**)data, scratch, 0, 2, res);
 
       return AAX_TRUE;
    }

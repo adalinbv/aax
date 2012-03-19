@@ -1018,10 +1018,9 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    threshold = handle->period_size;
    if (frames && (avail > 2*threshold-32))
    {
-      unsigned int fetch = frames;
+      unsigned int offset, fetch = frames;
       snd_pcm_uframes_t size;
       int error, try = 0;
-      int32_t *d[2];
 
       error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
       fetch += error;
@@ -1029,9 +1028,8 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
 printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold);
 #endif
 
+      offset = 0;
       size = fetch;
-      d[0] = data[0];
-      d[1] = data[1];
       rv = AAX_TRUE;
       do
       {
@@ -1046,10 +1044,10 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
          {
             const snd_pcm_channel_area_t *area;
             snd_pcm_uframes_t no_frames = size;
-            snd_pcm_uframes_t offset = 0;
+            snd_pcm_uframes_t mmap_offs = 0;
 
             psnd_pcm_avail_update(handle->id);
-            res = psnd_pcm_mmap_begin(handle->id, &area, &offset, &no_frames);
+            res =psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &no_frames);
             if (res < 0)
             {
                if ((res = xrun_recovery(handle->id, res)) < 0)
@@ -1067,7 +1065,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
             if (handle->interleaved)
             {
                do {
-                  res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
+                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, no_frames);
                }
                while (res == -EAGAIN);
 
@@ -1075,14 +1073,14 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                {
                   char *p = (char *)area->addr; 
 
-                  p += (area->first + area->step*offset) >> 3;
-                  handle->cvt_from_intl(d, p, 2, no_frames);
+                  p += (area->first + area->step*mmap_offs) >> 3;
+                  handle->cvt_from_intl((int32_t**)data, p, offset,2,no_frames);
                }
             }
             else
             {
                do {
-                  res = psnd_pcm_mmap_commit(handle->id, offset, no_frames);
+                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, no_frames);
                }
                while (res == -EAGAIN);
 
@@ -1090,10 +1088,10 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                {
                   char *s[2];
 
-                  s[0] = (char *)area[0].addr + offset*handle->bytes_sample;
-                  s[1] = (char *)area[1].addr + offset*handle->bytes_sample;
-                  handle->cvt_from(d[0], s[0], res);
-                  handle->cvt_from(d[1], s[1], res);
+                  s[0] = (char *)area[0].addr + mmap_offs*handle->bytes_sample;
+                  s[1] = (char *)area[1].addr + mmap_offs*handle->bytes_sample;
+                  handle->cvt_from(data[0]+offset, s[0], res);
+                  handle->cvt_from(data[1]+offset, s[1], res);
                }
             }
          }
@@ -1107,7 +1105,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  handle->cvt_from_intl(d, scratch, 2, res);
+                  handle->cvt_from_intl((int32_t**)data, scratch, offset,2,res);
                }
             }
             else
@@ -1122,18 +1120,16 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
 
                if (res > 0)
                {
-                  handle->cvt_from(d[0], s[0], res);
-                  handle->cvt_from(d[1], s[1], res);
+                  handle->cvt_from(data[0]+offset, s[0], res);
+                  handle->cvt_from(data[1]+offset, s[1], res);
                }
             }
          }
 
          if (res > 0)
          {
-             d[0] += res;
-             d[1] += res;
              size -= res;
-             *req_frames += res;
+             offset += res;
          }
          else if (res < 0)
          {
@@ -1154,6 +1150,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
          }
       }
       while(size > 0);
+      *req_frames = offset;
    }
    else rv = AAX_TRUE;
 

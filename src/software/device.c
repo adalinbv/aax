@@ -476,7 +476,7 @@ _aaxSoftwareDriverCapture(const void *id, void **data, size_t *frames, void *scr
       if (is_bigendian()) {
          _batch_endianswap16((uint16_t*)scratch, res);
       }
-      _batch_cvt24_16_intl((int32_t**)data, scratch, 2, res);
+      _batch_cvt24_16_intl((int32_t**)data, scratch, 0, 2, res);
 
 // TODO: possibly adjust format or resample since the requested specifications
 //       probably difffer from the data in the file.

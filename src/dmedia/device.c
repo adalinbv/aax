@@ -693,7 +693,7 @@ _aaxDMediaDriverCapture(const void *id, void **data, size_t *frames, void *scrat
 
    *frames = 0;
    palReadFrames(handle->port[0].port, scratch, nframes);
-   _batch_cvt24_16_intl((int32_t**)data, scratch, 2, nframes);
+   _batch_cvt24_16_intl((int32_t**)data, scratch, 0, 2, nframes);
    *frames = nframes;
    return AAX_TRUE;
 }

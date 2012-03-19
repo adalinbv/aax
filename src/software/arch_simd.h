@@ -66,13 +66,13 @@ void _batch_cvt24_24_3_cpu(int32_t*__restrict, const void*__restrict, unsigned i
 void _batch_cvt24_32_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvt24_ps_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
 void _batch_cvt24_pd_cpu(int32_t*__restrict, const void*__restrict, unsigned int);
-void _batch_cvt24_8_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
-void _batch_cvt24_16_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
-void _batch_cvt24_24_3intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
-void _batch_cvt24_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
-void _batch_cvt24_32_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
-void _batch_cvt24_ps_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
-void _batch_cvt24_pd_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
+void _batch_cvt24_8_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_16_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_24_3intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_24_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_32_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_ps_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_pd_intl_cpu(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
 
 void _batch_cvt8_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);
 void _batch_cvt16_24_cpu(void*__restrict, const int32_t*__restrict, unsigned int);

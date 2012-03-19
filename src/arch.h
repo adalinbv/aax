@@ -20,7 +20,7 @@ typedef char* (*_aax_malloc_proc)(char**, unsigned int);
 
 typedef void (*_batch_cvt_proc)(void*, unsigned int);
 typedef void (*_batch_cvt_from_proc)(int32_t*__restrict, const void*__restrict, unsigned int);
-typedef void (*_batch_cvt_from_intl_proc)(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int);
+typedef void (*_batch_cvt_from_intl_proc)(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
 typedef void (*_batch_cvt_to_proc)(void*__restrict, const int32_t*__restrict, unsigned int);
 typedef void (*_batch_cvt_to_intl_proc)(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
 
