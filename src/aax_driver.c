@@ -38,11 +38,6 @@
 #define USER_CONFIG_FILE	"/.aaxconfig.xml"
 #define SYSTEM_CONFIG_FILE	"/etc/aax/config.xml"
 
-static _intBuffers* _backends;
-static const char* _aax_default_devname;
-static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
-static time_t _tvnow = 0;
-
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*);
@@ -51,6 +46,13 @@ static void _aaxContextSetupSpeakers(void **, unsigned int);
 static void removeMixerByPos(void *, unsigned int);
 static int _aaxCheckKeyValidity(void*);
 static int _aaxCheckKeyValidityStr(char*);
+
+const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
+const char* _aax_default_devname;
+
+_intBuffers* _backends;
+time_t _tvnow = 0;
+
 
 const char*
 aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
@@ -571,10 +573,10 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 /* -------------------------------------------------------------------------- */
 
-static _intBuffers* _backends = NULL;
-static const char* _aax_default_devname = "None";
+_intBuffers* _backends = NULL;
+const char* _aax_default_devname = "None";
 
-static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
+const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
 {
   { { 22050.0f, 1.0f, 1.0f }, NULL },
   { { 22050.0f, 1.0f, 1.0f }, NULL }

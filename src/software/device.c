@@ -46,7 +46,7 @@ static _aaxDriverCallback _aaxSoftwareDriverPlayback;
 static _aaxDriverCaptureCallback _aaxSoftwareDriverCapture;
 static _aaxDriverGetName _aaxSoftwareDriverGetName;
 
-static char _default_renderer[100] = DEFAULT_RENDERER;
+char _wave_default_renderer[100] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxSoftwareDriverBackend =
 {
    1.0,
@@ -57,7 +57,7 @@ _aaxDriverBackend _aaxSoftwareDriverBackend =
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_default_renderer,
+   (char *)&_wave_default_renderer,
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
@@ -123,15 +123,15 @@ typedef struct
 
 } _driver_t;
 
-static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
-static const char *default_renderer = "File: /tmp/AWaveOutput.wav";
-#ifndef strdup
-char *strdup(const char *);
-#endif
-
 static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
 static int _aaxSoftwareDriverUpdateHeader(_driver_t *);
 static int _aaxSoftwareDriverReadHeader(_driver_t *);
+
+uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
+const char *default_renderer = "File: /tmp/AWaveOutput.wav";
+#ifndef strdup
+char *strdup(const char *);
+#endif
 
 static int
 _aaxSoftwareDriverDetect()
@@ -212,7 +212,7 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
          if (handle->fd >= 0)
          {
             const char *hwstr = _aaxGetSIMDSupportString();
-            snprintf(_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
+            snprintf(_wave_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
             handle->sse_level = _aaxGetSSELevel();
 
             if (xid)
@@ -567,7 +567,7 @@ _aaxSoftwareDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 /*-------------------------------------------------------------------------- */
 
-static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
+uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
     0x46464952,                 /*  0. "RIFF"                                */
     0x00000024,                 /*  1. (file_length - 8)                     */

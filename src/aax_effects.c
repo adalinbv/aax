@@ -35,9 +35,10 @@ typedef struct {
 } _eff_minmax_tbl_t;
 typedef float (*cvtfn_t)(float);
 
-static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
-static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX];
 static cvtfn_t get_cvtfn(enum aaxEffectType, int, int, char);
+
+const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
+const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX];
 
 aaxEffect
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
@@ -664,7 +665,7 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 
 /* -------------------------------------------------------------------------- */
 
-static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
+const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
 {
   { AAX_EFFECT_NONE,		MAX_STEREO_EFFECT },
   { AAX_PITCH_EFFECT,		PITCH_EFFECT },
@@ -677,7 +678,7 @@ static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
   { AAX_VELOCITY_EFFECT,	VELOCITY_EFFECT }
 };
 
-static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
+const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
 {    /* min[4] */		   /* max[4] */
   {
     /* AAX_EFFECT_NONE      */

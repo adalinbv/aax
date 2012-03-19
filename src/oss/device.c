@@ -61,7 +61,7 @@ static _aaxDriverGetName _aaxOSSDriverGetName;
 static _aaxDriverState _aaxOSSDriverIsAvailable;
 static _aaxDriverState _aaxOSSDriverAvailable;
 
-static char _default_renderer[100] = DEFAULT_RENDERER;
+char _oss_default_renderer[100] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxOSSDriverBackend =
 {
    1.0,
@@ -72,7 +72,7 @@ _aaxDriverBackend _aaxOSSDriverBackend =
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_default_renderer,
+   (char *)&_oss_default_renderer,
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
@@ -126,13 +126,13 @@ typedef struct
 
 } _driver_t;
 
-static int _default_devnum = DEFAULT_DEVNUM;
-static char *_default_name = DEFAULT_DEVNAME;
-static char *_default_mixer = DEFAULT_MIXER;
-
 static int get_oss_version();
 static char *detect_devname(int, unsigned int, char);
 static int detect_devnum(const char *);
+
+int _oss_default_devnum = DEFAULT_DEVNUM;
+char *_oss_default_name = DEFAULT_DEVNAME;
+char *_default_mixer = DEFAULT_MIXER;
 
 static int
 _aaxOSSDriverDetect()
@@ -260,7 +260,7 @@ printf("device number: %i\n", handle->devnum);
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_default_renderer, 99,"%s %x.%x.%x %s %s",
+         snprintf(_oss_default_renderer, 99,"%s %x.%x.%x %s %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
                    (version & 0xFF), os_name, hwstr);
 
@@ -288,7 +288,7 @@ _aaxOSSDriverDisconnect(void *id)
    {
       if (handle->name)
       {
-         if (handle->name != _default_name) {
+         if (handle->name != _oss_default_name) {
             free(handle->name);
          }
          handle->name = 0;
@@ -608,7 +608,7 @@ static char *
 _aaxOSSDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_default_name;
+   char *ret = (char *)_oss_default_name;
 
    if (handle && handle->name)
       ret = handle->name;
@@ -697,10 +697,10 @@ get_oss_version()
 
    if (version < 0)
    {
-      int fd = open(_default_name, O_WRONLY);  /* open /dev/dsp */
+      int fd = open(_oss_default_name, O_WRONLY);  /* open /dev/dsp */
       if (fd < 0)                          /* test for /dev/dsp0 instead */
       {
-         char *name = _aax_strdup(_default_name);
+         char *name = _aax_strdup(_oss_default_name);
 
          *(name+strlen(name)-1) = '\0';
          fd = open(name, O_WRONLY);
@@ -720,7 +720,7 @@ get_oss_version()
 static char *
 detect_devname(int devnum, unsigned int tracks, char mode)
 {
-   char *rv = (char*)_default_name;
+   char *rv = (char*)_oss_default_name;
 
    if (devnum > 0)
    {
@@ -743,7 +743,7 @@ static int
 detect_devnum(const char *devname)
 {
    int version = get_oss_version();
-   int devnum = _default_devnum;
+   int devnum = _oss_default_devnum;
    char *name = (char *)devname;
 
    if (!strncmp(name, "/dev/dsp", 8) ) {

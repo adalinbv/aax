@@ -67,10 +67,6 @@ static _aaxDriverThread _aaxALSASoftDriverThread;
 static _aaxDriverState _aaxALSASoftDriverIsAvailable;
 static _aaxDriverState _aaxALSASoftDriverAvailable;
 
-static const char* __type[2] = { "Input", "Output" };
-static const snd_pcm_stream_t __mode[2] = {
-       SND_PCM_STREAM_CAPTURE, SND_PCM_STREAM_PLAYBACK
-   };
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxALSASoftDriverBackend =
 {
@@ -229,13 +225,7 @@ DECL_FUNCTION(snd_output_stdio_attach);
 typedef struct {
    char bps;
    snd_pcm_format_t format;
-} _alsa_formats_t;
-
-static const _alsa_formats_t _alsa_formats[];
-static const char *_const_default_name = DEFAULT_DEVNAME;
-
-static char *_default_name = NULL;
-static int _default_devnum = DEFAULT_DEVNUM;
+} _alsasoft_formats_t;
 
 #ifndef NDEBUG
 #define xrun_recovery(a,b)     _xrun_recovery_debug(a,b, __LINE__)
@@ -246,10 +236,18 @@ static int _xrun_recovery(snd_pcm_t *, int);
 #endif
 
 static unsigned int get_devices_avail(int);
-static char *detect_devname(const char*, int, unsigned int, int, char);
 static int detect_devnum(const char *, int);
-
+static char *detect_devname(const char*, int, unsigned int, int, char);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
+
+
+const char* _alsa_type[2];
+const snd_pcm_stream_t _alsa_mode[2];
+const _alsasoft_formats_t _alsasoft_formats[];
+const char *_const_soft_default_name = DEFAULT_DEVNAME;
+
+char *_soft_default_name = NULL;
+int _default_devnum = DEFAULT_DEVNUM;
 
 static int
 _aaxALSASoftDriverDetect()
@@ -259,8 +257,8 @@ _aaxALSASoftDriverDetect()
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   if (_default_name == NULL) {
-      _default_name = (char*)_const_default_name;
+   if (_soft_default_name == NULL) {
+      _soft_default_name = (char*)_const_soft_default_name;
    }
 
    if TEST_FOR_FALSE(rv) {
@@ -272,9 +270,7 @@ _aaxALSASoftDriverDetect()
       const char *hwstr = _aaxGetSIMDSupportString();
       char *error;
 
-      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
-                                  DEFAULT_RENDERER, hwstr);
-
+      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, hwstr);
       _oalGetSymError(0);
 
       TIE_FUNCTION(snd_pcm_open);
@@ -410,7 +406,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
             else
             {
                free(s); /* 'default' */
-               handle->name = (char *)_default_name;
+               handle->name = (char *)_soft_default_name;
             }
          }
 
@@ -502,7 +498,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       handle->devnum = detect_devnum(handle->name, m);
 
       handle->name = detect_devname(handle->name, handle->devnum, handle->no_channels, m, handle->vmixer);
-      err = psnd_pcm_open(&handle->id, handle->name, __mode[m], SND_PCM_NONBLOCK);
+      err = psnd_pcm_open(&handle->id, handle->name, _alsa_mode[m], SND_PCM_NONBLOCK);
       if (err >= 0)
       {
          err = psnd_pcm_nonblock(handle->id, 1);
@@ -532,7 +528,7 @@ _aaxALSASoftDriverDisconnect(void *id)
    {
       if (handle->name)
       {
-         if (handle->name != _default_name) {
+         if (handle->name != _soft_default_name) {
             free(handle->name);
          }
          handle->name = 0;
@@ -542,10 +538,10 @@ _aaxALSASoftDriverDisconnect(void *id)
       free(handle->scratch);
       free(handle);
 
-      if (_default_name != _const_default_name)
+      if (_soft_default_name != _const_soft_default_name)
       {
-         free(_default_name);
-         _default_name = (char*)_const_default_name;
+         free(_soft_default_name);
+         _soft_default_name = (char*)_const_soft_default_name;
          _default_devnum = DEFAULT_DEVNUM;
       }
 
@@ -651,12 +647,12 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       {
          do
          {
-            data_format = _alsa_formats[bps].format;
+            data_format = _alsasoft_formats[bps].format;
             err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
          }
-         while ((err < 0) && (_alsa_formats[++bps].bps != 0));
+         while ((err < 0) && (_alsasoft_formats[++bps].bps != 0));
 
-         if ((err >= 0) && (_alsa_formats[bps].bps > 0))
+         if ((err >= 0) && (_alsasoft_formats[bps].bps > 0))
          {
             switch (bps)
             {
@@ -695,7 +691,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
                err = -EINVAL;
                break;
             }
-            handle->bytes_sample = _alsa_formats[bps].bps;
+            handle->bytes_sample = _alsasoft_formats[bps].bps;
             bps = handle->bytes_sample;
          }
          else {
@@ -1150,9 +1146,8 @@ static char *
 _aaxALSASoftDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_default_name;
+   char *ret = (char *)_soft_default_name;
 
-   /* TODO: distinguish between playback and record */
    if (handle && handle->name) {
       ret = handle->name;
    }
@@ -1187,7 +1182,7 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, __type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name && !(!strncmp(name, "null", strlen("null"))
@@ -1204,7 +1199,7 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
                          || !strncmp(name, "iec958:", strlen("iec958:"))))
                {
                   snd_pcm_t *id;
-                  if (!psnd_pcm_open(&id, name, __mode[m], SND_PCM_NONBLOCK))
+                  if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *interface;
@@ -1260,7 +1255,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, __type[m])))
+         if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name && strncmp(name, "null", strlen("null")) &&
@@ -1286,7 +1281,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                   if (interface && !strcmp(devname, desc))
                   {
                      snd_pcm_t *id;
-                     if (!psnd_pcm_open(&id, name, __mode[m], SND_PCM_NONBLOCK))
+                     if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
                      {
                         int slen;
 
@@ -1331,7 +1326,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 /*-------------------------------------------------------------------------- */
 
-static const _alsa_formats_t _alsa_formats[] =
+const _alsasoft_formats_t _alsasoft_formats[] =
 {
    {2, SND_PCM_FORMAT_S16_LE},
    {4, SND_PCM_FORMAT_S32_LE},
@@ -1340,6 +1335,12 @@ static const _alsa_formats_t _alsa_formats[] =
    {1, SND_PCM_FORMAT_U8},
    {0, 0}
 };
+
+const char* _alsa_type[2] = { "Input", "Output" };
+
+const snd_pcm_stream_t _alsa_mode[2] = {
+       SND_PCM_STREAM_CAPTURE, SND_PCM_STREAM_PLAYBACK
+   };
 
 static void
 _alsa_error_handler(const char *file, int line, const char *function, int err,
@@ -1366,7 +1367,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
    static const char* dev_prefix[] = {
          "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
-   char *rv = (char*)_default_name;
+   char *rv = (char*)_soft_default_name;
 
    if (devname && (tracks <= _AAX_MAX_SPEAKERS))
    {
@@ -1388,7 +1389,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, __type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name && !(!strncmp(name, "null", strlen("null"))
@@ -1543,7 +1544,7 @@ detect_devnum(const char *devname, int m)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, __type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
@@ -1604,7 +1605,7 @@ get_devices_avail(int m)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, __type[m])))
+         if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name && !strncmp(name, "front:", strlen("front:"))) rv++;

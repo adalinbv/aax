@@ -68,7 +68,7 @@ static _aaxDriverCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
 static _aaxDriverState _aaxDMediaDriverAvailable;
 
-static char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
+char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
 {
    1.0,
@@ -175,7 +175,7 @@ DECL_FUNCTION(dmG711MulawDecode);
 DECL_FUNCTION(dmDVIAudioDecoderCreate);
 DECL_FUNCTION(dmDVIAudioDecode);
 
-static const char *_default_name = DEFAULT_DEVNAME;
+const char *_dmedia_default_name = DEFAULT_DEVNAME;
 
 static int detect_devnum(const char *);
 static void sync_ports(const void *);
@@ -290,7 +290,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
       handle->port[0].bytes_sample = 2;
       handle->port[0].no_channels = 2;
       if (renderer) handle->port[0].name = (char *)renderer;
-      else handle->port[0].name = (char *)_default_name;
+      else handle->port[0].name = (char *)_dmedia_default_name;
       handle->mode = (mode > 0) ? 1 : 0;
 
       if (xid)
@@ -799,7 +799,7 @@ static char *
 _aaxDMediaGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_default_name;
+   char *ret = (char *)_dmedia_default_name;
 
 #if 0
    ALpv pvs;
@@ -935,7 +935,7 @@ detect_devnum(const char *devname)
    if (!name || !strcasecmp(name, DEFAULT_RENDERER)
        || !strcasecmp(name, "default"))
    {
-      name = (char *)_default_name;
+      name = (char *)_dmedia_default_name;
    }
 
    device = palGetResourceByName(AL_SYSTEM, name, AL_DEVICE_TYPE);

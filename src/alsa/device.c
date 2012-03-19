@@ -67,7 +67,7 @@ static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
 static _aaxDriverState _aaxALSADriverAvailable;
 
-static char _default_renderer[100] = DEFAULT_RENDERER;
+char _hw_default_renderer[100] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxALSADriverBackend =
 {
    1.0,
@@ -78,7 +78,7 @@ _aaxDriverBackend _aaxALSADriverBackend =
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_default_renderer,
+   (char *)&_hw_default_renderer,
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
@@ -231,9 +231,6 @@ DECL_FUNCTION(snd_hctl_last_elem);
 DECL_FUNCTION(snd_hctl_elem_info);
 
 
-static const snd_pcm_format_t _alsa_formats[];
-static const char *_default_name = DEFAULT_NAME;
-
 static _aaxDriverCallback _aaxALSADriverPlayback_rw;
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap;
 static _aaxDriverCallback *_alsa_playback_fn = _aaxALSADriverPlayback_rw;
@@ -245,6 +242,10 @@ static char *detect_device(const char *);
 static unsigned int _detect_no_hw_channels(char *);
 static char _setup_channel(_alsa_hw_channel *, unsigned int, unsigned int, char);
 static void _alsa_error_handler(const char *, int, const char *, int, const char*,...);
+
+
+const snd_pcm_format_t _alsa_formats[];
+const char *_hw_default_name = DEFAULT_NAME;
 
 static int
 _aaxALSADriverDetect()
@@ -375,7 +376,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
       {
          const char *hwstr = _aaxGetSIMDSupportString();
-         snprintf(_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
+         snprintf(_hw_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
          handle->sse_level = _aaxGetSSELevel();
       }
 
@@ -595,12 +596,12 @@ _aaxALSADriverDisconnect(void *id)
 
       if (handle->name)
       {
-         if (handle->name != _default_name)
+         if (handle->name != _hw_default_name)
          {
             free(handle->name);
          }
          if (handle->detected_device_name &&
-             handle->detected_device_name != _default_name)
+             handle->detected_device_name != _hw_default_name)
          {
             free(handle->detected_device_name);
          }
@@ -794,7 +795,7 @@ static char *
 _aaxALSADriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_default_name;
+   char *ret = (char *)_hw_default_name;
 
    /* TODO: distinguish between playback and record */
    if (handle && handle->name)
@@ -901,7 +902,7 @@ _aaxALSADriverPlayback(const void *id, void *dst, void *src, float pitch, float 
 
 /*-------------------------------------------------------------------------- */
 
-static const snd_pcm_format_t _alsa_formats[] =
+const snd_pcm_format_t _alsa_formats[] =
 {
    SND_PCM_FORMAT_UNKNOWN,
    SND_PCM_FORMAT_U8,
@@ -950,7 +951,7 @@ detect_default_interface(char *device)
       else
       {
          free(name);
-         name = (char *)_default_name;
+         name = (char *)_hw_default_name;
       }
       psnd_ctl_close(ctl);
    }
@@ -961,7 +962,7 @@ detect_default_interface(char *device)
 static char*
 detect_default_device()
 {
-   char *name = (char *)_default_name;
+   char *name = (char *)_hw_default_name;
    int cidx = -1;
 
    if ((psnd_card_next(&cidx) == 0) && (cidx >= 0))
@@ -983,7 +984,7 @@ detect_default_device()
          else
          {
             free(name);
-            name = (char *)_default_name;
+            name = (char *)_hw_default_name;
          }
          psnd_ctl_close(ctl);
       }
@@ -995,7 +996,7 @@ detect_default_device()
 static char *
 detect_device(const char *name)
 {
-   char *device_name = (char *)_default_name;
+   char *device_name = (char *)_hw_default_name;
 
    if (!strncmp(name, "default", 7) || strstr(name, "hw:"))
    {
@@ -1386,8 +1387,8 @@ _aaxALSASoftDriverGetHardwareDevices(const void *id, int mode)
 
          if (!_found)
          {
-            _default_name = devname;
-            _default_devnum = devnum;
+            _hw_default_name = devname;
+            _hw_default_devnum = devnum;
             _found = 1;
          }
          else {
@@ -1463,7 +1464,7 @@ detect_harware_devname(const char *devname, int devnum, unsigned int tracks, int
    static const char* dev_prefix[] = {
          "plughw:", "hw:", "surround40:", "surround51:", "surround71:"
    };
-   char *rv = (char*)_default_name;
+   char *rv = (char*)_hw_default_name;
 
    if (tracks <= _AAX_MAX_SPEAKERS)
    {
@@ -1499,11 +1500,11 @@ detect_harware_devname(const char *devname, int devnum, unsigned int tracks, int
 static int
 detect_hardware_devnum(const char *name, int m)
 {
-   int devnum = _default_devnum;
+   int devnum = _hw_default_devnum;
    char *ptr = NULL;
 
    if ( !name ) {
-      devnum = _default_devnum;
+      devnum = _hw_default_devnum;
    }
    else if ( !strncmp(name, "hw:", strlen("hw:"))
              || (ptr = strstr(name, "(hw:")) != NULL )

@@ -87,7 +87,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 
 static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 
-static char _default_renderer[100] = DEFAULT_RENDERER;
+char _null_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
    1.0,
@@ -98,7 +98,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    AAX_VERSION_STR,
    LOOPBACK_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_default_renderer,
+   (char *)&_null_default_renderer,
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
@@ -139,7 +139,7 @@ _aaxNoneDriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    if (mode == AAX_MODE_READ) return NULL;
    const char *hwstr = _aaxGetSIMDSupportString();
 
-   snprintf(_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
+   snprintf(_null_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
 
    return (void *)&_aaxNoneDriverBackend;
 }
