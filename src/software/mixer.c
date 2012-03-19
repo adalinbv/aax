@@ -539,7 +539,7 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    res = be->capture(handle, rbd->track, &nframes, scratch[0]-dde);
    if (TEST_FOR_TRUE(res) && nframes)
    {
-      float pitch = (float)nframes/(float)frames;
+      float pitch = (float)frames/(float)nframes;
       _oalRingBuffer *nrb;
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
       dest_rb->pitch_norm = pitch;
