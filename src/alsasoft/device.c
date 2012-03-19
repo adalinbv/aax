@@ -976,7 +976,7 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    {
       if (state <= SND_PCM_STATE_PREPARED)
       {
-         if (handle->playing++ < 1)
+         if (handle->playing == 0)
          {
             psnd_pcm_prepare(handle->id);
             psnd_pcm_start(handle->id);
@@ -995,14 +995,7 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    handle->buf_len = frames * frame_size;
 #endif
 
-
-   *req_frames = 0;
-   /*
-    * snd_pcm_avail_update is less reliable as snd_pcm_avail which shows 
-    * particularly for registered sensors.
-    *   avail = psnd_pcm_avail_update(handle->id);
-    */
-// res = avail = psnd_pcm_avail_update(handle->id);
+   /* synchronise capture and playback for registered sensors */
    res = psnd_pcm_delay(handle->id, &avail);
    if (res < 0)
    {
@@ -1015,10 +1008,11 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
        }
    }
 
+   *req_frames = 0;
    threshold = handle->period_size;
    if (frames && (avail > 2*threshold-32))
    {
-      unsigned int offset, fetch = frames;
+      unsigned int offs, fetch = frames;
       snd_pcm_uframes_t size;
       int error, try = 0;
 
@@ -1028,7 +1022,7 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
 printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold);
 #endif
 
-      offset = 0;
+      offs = 0;
       size = fetch;
       rv = AAX_TRUE;
       do
@@ -1053,8 +1047,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                if ((res = xrun_recovery(handle->id, res)) < 0)
                {
                   char s[255];
-                  snprintf(s, 255, "MMAP begin avail error: %s\n", 
-                                psnd_strerror(res));
+                  snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(res));
                   _AAX_SYSLOG(s);
                   return 0;
                }
@@ -1072,9 +1065,8 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                if (res > 0)
                {
                   char *p = (char *)area->addr; 
-
                   p += (area->first + area->step*mmap_offs) >> 3;
-                  handle->cvt_from_intl((int32_t**)data, p, offset,2,no_frames);
+                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, no_frames);
                }
             }
             else
@@ -1086,12 +1078,11 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
 
                if (res > 0)
                {
-                  char *s[2];
-
-                  s[0] = (char *)area[0].addr + mmap_offs*handle->bytes_sample;
-                  s[1] = (char *)area[1].addr + mmap_offs*handle->bytes_sample;
-                  handle->cvt_from(data[0]+offset, s[0], res);
-                  handle->cvt_from(data[1]+offset, s[1], res);
+                  char *s;
+                  s = (char *)area[0].addr + mmap_offs*handle->bytes_sample;
+                  handle->cvt_from(data[0]+offs, s, res);
+                  s = (char *)area[1].addr + mmap_offs*handle->bytes_sample;
+                  handle->cvt_from(data[1]+offs, s, res);
                }
             }
          }
@@ -1105,33 +1096,28 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  handle->cvt_from_intl((int32_t**)data, scratch, offset,2,res);
+                  handle->cvt_from_intl((int32_t**)data, scratch, offs, 2 ,res);
                }
             }
             else
             {
-               char *s[2];
-               s[0] = scratch;
-               s[1] = (char*)scratch + fetch*frame_size;
+               void *s[2];
 
+               s[0] = scratch;
+               s[1] = (void*)((char*)s[0] + fetch*frame_size);
                do {
-                  res = psnd_pcm_readn(handle->id, scratch, fetch);
+                  res = psnd_pcm_readn(handle->id, s, fetch);
                } while (res == -EAGAIN);
 
                if (res > 0)
                {
-                  handle->cvt_from(data[0]+offset, s[0], res);
-                  handle->cvt_from(data[1]+offset, s[1], res);
+                  handle->cvt_from(data[0]+offs, s[0], res);
+                  handle->cvt_from(data[1]+offs, s[1], res);
                }
             }
          }
 
-         if (res > 0)
-         {
-             size -= res;
-             offset += res;
-         }
-         else if (res < 0)
+         if (res < 0)
          {
             if (xrun_recovery(handle->id, res) < 0)
             {
@@ -1148,9 +1134,12 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
             _AAX_SYSLOG("alsa; warning: pcm read error");
             continue;
          }
+
+         size -= res;
+         offs += res;
       }
       while(size > 0);
-      *req_frames = offset;
+      *req_frames = offs;
    }
    else rv = AAX_TRUE;
 
@@ -1825,27 +1814,27 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
    {
       const snd_pcm_channel_area_t *area;
       snd_pcm_uframes_t frames = avail;
-      snd_pcm_uframes_t offset;
+      snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
       char *p;
       int err;
 
-      err = psnd_pcm_mmap_begin(handle->id, &area, &offset, &frames);
+      err = psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &frames);
       if (err < 0)
       {
          if ((err = xrun_recovery(handle->id, err)) < 0)
          {
             char s[255];
-            snprintf(s, 255, "MMAP begin avail error: %s\n",psnd_strerror(err));
+            snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(err));
             _AAX_SYSLOG(s);
             return 0;
          }
       }
 
-      p = (char *)area->addr + ((area->first + area->step*offset) >> 3);
+      p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
       handle->cvt_to_intl(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
 
-      res = psnd_pcm_mmap_commit(handle->id, offset, frames);
+      res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
       if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
          if (xrun_recovery(handle->id, res >= 0 ? -EPIPE : res) < 0) {
