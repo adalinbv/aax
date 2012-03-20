@@ -1150,8 +1150,6 @@ _aaxALSASoftDriverGetName(const void *id, int playback)
    _driver_t *handle = (_driver_t *)id;
    char *ret = (char *)_soft_default_name[handle->mode];
 
-printf("handle: %x\n", handle);
-if (handle->name) printf("handle->name: %s\n", handle->name);
    if (handle && handle->name) {
       ret = handle->name;
    }
