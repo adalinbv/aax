@@ -482,10 +482,10 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                if (hs && (mixer->no_registered < mixer->info->max_registered))
                {
                   aaxBuffer buf; /* clear the sensors buffer queue */
-                  while ((buf = aaxSensorGetBuffer(config)) != NULL) {
+                  while ((buf = aaxSensorGetBuffer(sframe)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
-                  pos = _intBufAddData(hs, _AAX_DEVICE, config);
+                  pos = _intBufAddData(hs, _AAX_DEVICE, sframe);
                   mixer->no_registered++;
                }
                else {
@@ -531,6 +531,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
                      _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
                   }
+                  _intBufReleaseData(dptr, _AAX_SENSOR);
 
                   sframe->handle = handle;
                   sframe->pos = pos;
