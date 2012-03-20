@@ -248,7 +248,7 @@ const snd_pcm_format_t _alsa_formats[];
 const char *_hw_default_name = DEFAULT_NAME;
 
 static int
-_aaxALSADriverDetect()
+_aaxALSADriverDetect(int mode)
 {
    static void *audio = 0;
 

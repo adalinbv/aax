@@ -71,7 +71,7 @@ _aaxGetDriverBackends()
 #if 0
          printf("Backend #%i: '%s'\n", i, be->driver);
 #endif
-         if (be->detect())
+         if (be->detect(AAX_MODE_WRITE_STEREO))
          {
             unsigned int r;
 
@@ -145,7 +145,9 @@ _aaxGetDriverBackendDefault(const _intBuffers *bs)
 
       dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
       be = _intBufGetDataPtr(dptr);
-      if (be->detect() && be->support_playback(NULL)) break;
+      if (be->detect(AAX_MODE_WRITE_STEREO) && be->support_playback(NULL)) {
+         break;
+      }
    }
    while (i);
 
@@ -194,7 +196,9 @@ _aaxGetDriverBackendDefaultCapture(const _intBuffers *bs)
 
       dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
       be = _intBufGetDataPtr(dptr);
-      if (be->detect() && be->support_recording(NULL)) break;
+      if (be->detect(AAX_MODE_READ) && be->support_recording(NULL)) {
+         break;
+      }
    }
    while (i);
 
@@ -274,23 +278,35 @@ _aaxDriverDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
 
    *rr = '\0';
    size = xmlNodeCopyString(xid, "renderer", (char*)&rr, 255);
-   if (size && devname[1])
+   if (size)
    {
-      if (strlen(devname[1]) < size) size = strlen(devname[1]);
-
-      if (!strcasecmp(rr, "default") && level < 2) level = 1;
-      else if (!strncasecmp(devname[1], rr, size))
+      if (devname[1])
       {
-         char *dptr = strstr(devname[1], ": ");
-         char *rrptr = strstr(rr, ": ");
-         if ((dptr-devname[1]) == (rrptr-rr)) level = 3;
-         else level = 2;
+         if (strlen(devname[1]) < size) size = strlen(devname[1]);
+
+         if (!strcasecmp(rr, "default") && level < 2) level = 1;
+         else if (!strncasecmp(devname[1], rr, size))
+         {
+            char *dptr = strstr(devname[1], ": ");
+            char *rrptr = strstr(rr, ": ");
+            if ((dptr-devname[1]) == (rrptr-rr)) level = 3;
+            else level = 2;
+         }
+         else {
+            xid = 0;
+         }
       }
-      else {
-         xid = 0;
+      else		/* no renderer specified or requested */
+      {
+#if 0
+         if (!strcasecmp(rr, "default")) level = 3;
+         else level = 1;
+#else
+         level = 1;
+#endif
       }
    }
-   else {                /* no renderer specified or requested */
+   else {
       level = 1;
    }
 
@@ -401,29 +417,32 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                level[0] = 0;
                output = xmlNodeCopy(xbid, "output");
-               if (output &&
-                   (_aaxDriverDetectConfigRenderer(output, devname,
+               if (output) {
+                   _aaxDriverDetectConfigRenderer(output, devname,
                                                    (char *)&level[0],
-                                                   (char *)&curlevel[0]) == 0))
-               {
-                  xmlFree(output);
-                  output = 0;
+                                                   (char *)&curlevel[0]);
                }
 
                if (output && (level[0] > curlevel[0]))
                {
                   unsigned int q, i, l, index = -1;
+                  char *ptr, *tmp;
                   char rr[255];
                   void *xsid;
-                  char *ptr;
 
                   curlevel[0] = level[0];
 
                   xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
                   ptr = config->backend.driver;
-                  l = strlen(config->backend.driver) + strlen(rr) + 5;
+
+                  tmp = strstr(ptr, " on ");
+                  if (tmp) q = tmp-ptr;
+                  else q = strlen(ptr);
+
+                  l = q + strlen(rr) + strlen(" on \0");
                   config->backend.driver = malloc(l);
-                  strcpy(config->backend.driver, ptr);
+                  strncpy(config->backend.driver, ptr, q);
+                  config->backend.driver[q] = 0;
                   strcat(config->backend.driver, " on ");
                   strcat(config->backend.driver, rr);
                   free(ptr);
@@ -473,18 +492,35 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                level[1] = 0;
                input = xmlNodeCopy(xbid, "input");
-               if (input &&
-                   (_aaxDriverDetectConfigRenderer(input, devname,
+               if (input) {
+                   _aaxDriverDetectConfigRenderer(input, devname,
                                                    (char *)&level[1],
-                                                   (char *)&curlevel[1]) == 0))
-               {
-                  xmlFree(input);
-                  input = 0;
+                                                   (char *)&curlevel[1]);
                }
 
                if (input && (level[1] >= curlevel[1]))
                {
+                  unsigned int q, l;
+                  char *ptr, *tmp;
+                  char rr[255];
+
                   curlevel[1] = level[1];
+
+                  xmlNodeCopyString(input, "renderer", (char*)&rr, 255);
+                  ptr = config->backend.driver;
+
+                  tmp = strstr(ptr, " on ");
+                  if (tmp) q = tmp-ptr;
+                  else q = strlen(ptr);
+
+                  l = q + strlen(rr) + strlen(" on \0");
+                  config->backend.driver = malloc(l);
+                  strncpy(config->backend.driver, ptr, q);
+                  config->backend.driver[q] = 0;
+                  strcat(config->backend.driver, " on ");
+                  strcat(config->backend.driver, rr);
+                  free(ptr);
+
                   xmlFree(config->backend.input);
                   config->backend.input = input;
                }

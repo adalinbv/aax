@@ -134,7 +134,7 @@ char *strdup(const char *);
 #endif
 
 static int
-_aaxSoftwareDriverDetect()
+_aaxSoftwareDriverDetect(int mode)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 

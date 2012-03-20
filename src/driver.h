@@ -57,7 +57,7 @@
 
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);
 
-typedef int _aaxDriverDetect();
+typedef int _aaxDriverDetect(int mode);
 typedef char *_aaxDriverGetDevices(const void*, int mode);
 typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
 

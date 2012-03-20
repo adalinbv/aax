@@ -135,7 +135,7 @@ char *_oss_default_name = DEFAULT_DEVNAME;
 char *_default_mixer = DEFAULT_MIXER;
 
 static int
-_aaxOSSDriverDetect()
+_aaxOSSDriverDetect(int mode)
 {
    static int rv = AAX_FALSE;
 

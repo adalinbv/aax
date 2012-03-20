@@ -128,7 +128,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
 };
 
 static int
-_aaxNoneDriverDetect()
+_aaxNoneDriverDetect(int mode)
 {
    return AAX_TRUE;
 }

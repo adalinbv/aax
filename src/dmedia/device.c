@@ -195,7 +195,7 @@ static int oserror(void);
 
 
 static int
-_aaxDMediaDriverDetect()
+_aaxDMediaDriverDetect(int mode)
 {
    static int rv = AAX_FALSE;
    void *audio = NULL;
@@ -253,8 +253,7 @@ _aaxDMediaDriverDetect()
          DM_TIE_FUNCTION(dmedia, dmDVIAudioDecode);
 
          error = _oalGetSymError(0);
-         if (!error)
-         {
+         if (!error) {
             rv = AAX_TRUE;
          }
        }
