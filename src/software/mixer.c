@@ -637,9 +637,11 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 }
 
 unsigned int
-_aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
+_aaxSoftwareMixerMixSensors(void *dest, void *frame)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
+   _aaxAudioFrame *fmixer = (_aaxAudioFrame *)frame;
+   _intBuffers *hs = fmixer->sensors;
    unsigned int i, num = 0;
    if (hs)
    {
@@ -662,16 +664,16 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                const _intBufferData* dptr_rb;
                _intBuffers *ringbuffers;
                _oalRingBuffer *src_rb;
-               _aaxAudioFrame *mixer;
+               _aaxAudioFrame *smixer;
                _sensor_t* sensor;
                void *rv;
                float dt;
 
                sensor = _intBufGetDataPtr(dptr_sensor);
-               mixer = sensor->mixer;
-               src_rb = mixer->ringbuffer;
-               dt = 1.0f / mixer->info->refresh_rate;
-               ringbuffers = mixer->ringbuffers;
+               smixer = sensor->mixer;
+               src_rb = smixer->ringbuffer;
+               dt = 1.0f / smixer->info->refresh_rate;
+               ringbuffers = smixer->ringbuffers;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt);
@@ -687,7 +689,7 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                    * This way pitch effects (< 1.0) can be processed safely.
                    */
                   _intBufAddData(ringbuffers, _AAX_RINGBUFFER, src_rb);
-                  mixer->ringbuffer = rv;
+                  smixer->ringbuffer = rv;
                }
 
                dptr_rb = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
@@ -699,7 +701,8 @@ _aaxSoftwareMixerMixSensors(void *dest, _intBuffers *hs)
                   do
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb,
-                                    mixer->props2d, NULL, 1.0f, 1.0f);
+                                    smixer->props2d, fmixer->props2d,
+                                    1.0f, 1.0f);
 
                      if (rv)	/* always streaming */
                      {
@@ -859,12 +862,12 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
    _oalRingBuffer *dest_rb = mixer->ringbuffer;
    int res;
 
-   /** postprocess registered (threaded) audio frames */
+   /** postprocess registered sensors and (threaded) audio frames */
+   if (mixer->sensors) {
+      _aaxSoftwareMixerMixSensors(dest_rb, mixer);
+   }
    if (mixer->frames) {
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
-   }
-   if (mixer->sensors) {
-      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors);
    }
    be->postprocess(be_handle, dest_rb, sensor);
 
