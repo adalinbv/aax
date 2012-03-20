@@ -637,14 +637,15 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 }
 
 unsigned int
-_aaxSoftwareMixerMixSensors(void *dest, void *frame)
+_aaxSoftwareMixerMixSensors(void *dest, const void *frame)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
    _aaxAudioFrame *fmixer = (_aaxAudioFrame *)frame;
-   _intBuffers *hs = fmixer->sensors;
    unsigned int i, num = 0;
-   if (hs)
+   if (fmixer && fmixer->sensors)
    {
+      _intBuffers *hs = fmixer->sensors;
+
       num = _intBufGetMaxNum(hs, _AAX_DEVICE);
       for (i=0; i<num; i++)
       {

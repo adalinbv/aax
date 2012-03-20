@@ -1198,6 +1198,11 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
    _oalRingBuffer *dest_rb = mixer->ringbuffer;
    // unsigned int rv;
 
+   /** process registered sensors */
+   if (mixer->sensors) {
+      _aaxSoftwareMixerMixSensors(dest_rb, mixer);
+   }
+
    /* postprocess registered (non threaded) audio frames */
    if (mixer->frames)
    {
@@ -1234,11 +1239,6 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
       }
       _intBufReleaseNum(hf, _AAX_FRAME);
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
-   }
-
-   /** process registered sensors */
-   if (mixer->sensors) {
-      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors);
    }
 
    be->postprocess(be_handle, dest_rb, sensor);

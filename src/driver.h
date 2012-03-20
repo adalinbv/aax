@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2012 by Erik Hofman.
+ * Copyright 2009-2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -142,7 +142,7 @@ int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
 void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
 unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
-unsigned int _aaxSoftwareMixerMixSensors(void*, void *);
+unsigned int _aaxSoftwareMixerMixSensors(void*, const void *);
 
 #endif /* !_AAX_DRIVER_H */
 
