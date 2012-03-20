@@ -49,7 +49,7 @@ getDriverBackend(int argc, char **argv, char **renderer)
             break;
          }
       }
-      while (be->detect() == 0);
+      while (be->detect(AAX_MODE_WRITE_STEREO) == 0);
       if (!dn) break;
    }
    while (strncasecmp(be->driver, dn, slen) != 0);
