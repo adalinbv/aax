@@ -27,16 +27,13 @@ int main(int argc, char **argv)
    int res;
 
    devname = getDeviceName(argc, argv);
-   if (!devname) {
-      devname = "AeonWave on File: /tmp/AeonWaveOut.wav";
-   }
-   printf("Playback: %s\n", devname);
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+   printf("Playback: %s\n", aaxDriverGetSetup(config, AAX_RENDERER_STRING));
    testForError(config, "No default audio device available.");
 
    devname = getCaptureName(argc, argv);
-   printf("Recording: %s\n", devname);
    record = aaxDriverOpenByName(devname, AAX_MODE_READ);
+   printf("Recording: %s\n", aaxDriverGetSetup(record, AAX_RENDERER_STRING));
    testForError(record, "Capture device is unavailable.");
 
    if (config && record)
