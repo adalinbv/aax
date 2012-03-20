@@ -408,6 +408,8 @@ AAX_API int AAX_APIENTRY aaxMixerSetSetup(aaxConfig, enum aaxSetupType, unsigned
 AAX_API int AAX_APIENTRY aaxMixerSetFilter(aaxConfig, aaxFilter);
 AAX_API int AAX_APIENTRY aaxMixerSetEffect(aaxConfig, aaxEffect);
 AAX_API int AAX_APIENTRY aaxMixerSetState(aaxConfig, enum aaxState);
+AAX_API int AAX_APIENTRY aaxMixerRegisterSensor(const aaxConfig, const aaxConfig);
+AAX_API int AAX_APIENTRY aaxMixerDeregisterSensor(const aaxConfig, const aaxConfig);
 AAX_API int AAX_APIENTRY aaxMixerRegisterEmitter(const aaxConfig, const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxMixerDeregisterEmitter(const aaxConfig, const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxMixerRegisterAudioFrame(const aaxConfig, const aaxFrame);
