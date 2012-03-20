@@ -244,21 +244,23 @@ static void _alsa_error_handler(const char *, int, const char *, int, const char
 const char* _alsa_type[2];
 const snd_pcm_stream_t _alsa_mode[2];
 const _alsasoft_formats_t _alsasoft_formats[];
-const char *_const_soft_default_name = DEFAULT_DEVNAME;
+const char *_const_soft_default_name[2];
 
-char *_soft_default_name = NULL;
+char *_soft_default_name[2] = { NULL, NULL };
 int _default_devnum = DEFAULT_DEVNUM;
 
 static int
-_aaxALSASoftDriverDetect()
+_aaxALSASoftDriverDetect(int mode)
 {
-   static int rv = AAX_FALSE;
-   void *audio = NULL;
+   int m = (mode > 0) ? 1 : 0;
+   static void *audio = NULL;
+   char *error = 0;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   if (_soft_default_name == NULL) {
-      _soft_default_name = (char*)_const_soft_default_name;
+   if (_soft_default_name[m] == NULL) {
+      _soft_default_name[m] = (char*)_const_soft_default_name[m];
    }
 
    if TEST_FOR_FALSE(rv) {
@@ -268,7 +270,6 @@ _aaxALSASoftDriverDetect()
    if (audio)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
-      char *error;
 
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, hwstr);
       _oalGetSymError(0);
@@ -350,11 +351,12 @@ _aaxALSASoftDriverDetect()
       }
 
       error = _oalGetSymError(0);
-      if (!error)
-      {
-         if (get_devices_avail(1) != 0) {
-            rv = AAX_TRUE;
-         }
+   }
+
+   if (!error)
+   {
+      if (get_devices_avail(mode) != 0) {
+         rv = AAX_TRUE;
       }
    }
 
@@ -406,7 +408,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
             else
             {
                free(s); /* 'default' */
-               handle->name = (char *)_soft_default_name;
+               handle->name = (char *)_soft_default_name[mode > 0 ? 1 : 0];
             }
          }
 
@@ -526,9 +528,11 @@ _aaxALSASoftDriverDisconnect(void *id)
 
    if (handle)
    {
+      int m = handle->mode;
+
       if (handle->name)
       {
-         if (handle->name != _soft_default_name) {
+         if (handle->name != _soft_default_name[handle->mode]) {
             free(handle->name);
          }
          handle->name = 0;
@@ -538,10 +542,10 @@ _aaxALSASoftDriverDisconnect(void *id)
       free(handle->scratch);
       free(handle);
 
-      if (_soft_default_name != _const_soft_default_name)
+      if (_soft_default_name[m] != _const_soft_default_name[m])
       {
-         free(_soft_default_name);
-         _soft_default_name = (char*)_const_soft_default_name;
+         free(_soft_default_name[m]);
+         _soft_default_name[m] = (char*)_const_soft_default_name[m];
          _default_devnum = DEFAULT_DEVNUM;
       }
 
@@ -863,8 +867,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
 
       TRUN( psnd_pcm_sw_params(hid, swparams),
             "unable to configure software" );
-
-      TRUN( psnd_pcm_prepare(hid), "failed preparation" );
    }
 
    if (swparams) free(swparams);
@@ -1146,8 +1148,10 @@ static char *
 _aaxALSASoftDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_soft_default_name;
+   char *ret = (char *)_soft_default_name[handle->mode];
 
+printf("handle: %x\n", handle);
+if (handle->name) printf("handle->name: %s\n", handle->name);
    if (handle && handle->name) {
       ret = handle->name;
    }
@@ -1336,6 +1340,7 @@ const _alsasoft_formats_t _alsasoft_formats[] =
    {0, 0}
 };
 
+const char* _const_soft_default_name[2] = { DEFAULT_DEVNAME, DEFAULT_DEVNAME };
 const char* _alsa_type[2] = { "Input", "Output" };
 
 const snd_pcm_stream_t _alsa_mode[2] = {
@@ -1367,7 +1372,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
    static const char* dev_prefix[] = {
          "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
-   char *rv = (char*)_soft_default_name;
+   char *rv = (char*)_soft_default_name[m];
 
    if (devname && (tracks <= _AAX_MAX_SPEAKERS))
    {
