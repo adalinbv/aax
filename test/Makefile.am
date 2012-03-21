@@ -1,7 +1,8 @@
 if NDEBUG
 XML_LIB = -lzeroxml
 else
-XML_LIB = -lzeroxml-rmalloc
+XML_LIB = -lzeroxml
+#XML_LIB = -lzeroxml-rmalloc
 endif
 
 bin_PROGRAMS = aaxinfo
