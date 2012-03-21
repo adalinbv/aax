@@ -8,7 +8,8 @@ check_PROGRAMS = \
 if NDEBUG
 RMALLOC_LIB = -lzeroxml
 else
-RMALLOC_LIB = -lzeroxml-rmalloc
+XML_LIB = -lzeroxml
+#RMALLOC_LIB = -lzeroxml-rmalloc
 endif
 
 create_cannonwav_SOURCES = create_cannonwav.c
