@@ -187,14 +187,14 @@ char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
 
 vec4 _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
 {
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* front left speaker    */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* front right speaker   */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* rear left speaker     */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* rear right speaker    */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* front center speaker  */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* low frequency emitter */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* left side speaker     */
-   { 1.0f, 0.0f, 0.0f, 1.0f }      /* right side speaker    */
+   { 1.0f, 0.0f, 0.0f, 1.0f },     /* front left speaker    */
+   {-1.0f, 0.0f, 0.0f, 1.0f },     /* front right speaker   */
+   { 1.0f, 0.0f, 0.0f, 1.0f },     /* rear left speaker     */
+   {-1.0f, 0.0f, 0.0f, 1.0f },     /* rear right speaker    */
+   { 1.0f, 0.0f, 0.0f, 1.0f },     /* front center speaker  */
+   {-1.0f, 0.0f, 0.0f, 1.0f },     /* low frequency emitter */
+   { 1.0f, 0.0f, 0.0f, 1.0f },     /* left side speaker     */
+   {-1.0f, 0.0f, 0.0f, 1.0f }      /* right side speaker    */
 };
 
 vec4 _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
