@@ -497,7 +497,7 @@ aaxBufferGetData(const aaxBuffer buffer)
          return data;
       }
 
-      _oalRingBufferGetDataInterleaved(buf->ringbuffer, data);
+      _oalRingBufferGetDataInterleaved(buf->ringbuffer, ptr);
       *data = (void*)ptr;
 
       user_format = buf->format;
@@ -573,7 +573,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             ndata = (void**)_aax_calloc(&ptr, tracks, new_samples*new_bps);
             if (ndata)
             {
-               *ndata = (void*)ptr;
+               *ndata = (void*)ptr;	/* assign ptr to data sectgion */
 
                switch(native_fmt)
                {
