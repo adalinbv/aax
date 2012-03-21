@@ -528,11 +528,11 @@ _aaxALSASoftDriverDisconnect(void *id)
 
    if (handle)
    {
-      int m = handle->mode;
+      int m = (handle->mode > 0) ? 1 : 0;
 
       if (handle->name)
       {
-         if (handle->name != _soft_default_name[handle->mode]) {
+         if (handle->name != _soft_default_name[m]) {
             free(handle->name);
          }
          handle->name = 0;
@@ -1430,7 +1430,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                      }
                      break;
                   }
-                  else if ((tracks <= 2)
+                  else if ((tracks <= 4)
                             || (strncmp(name, dev_prefix[m ? tracks : 0],
                                     strlen(dev_prefix[m ? tracks : 0])) == 0))
                   {
@@ -1458,6 +1458,8 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                (description && !strcmp(devptr, description)))
                            {
                               int dlen = strlen(name)+1;
+                              dlen -= strlen("front:");
+                              dlen += dev_prefix[m ? tracks : 0];
                               if (vmix) dlen += strlen("plug:''");
                               rv = malloc(dlen);
                               if (rv)
