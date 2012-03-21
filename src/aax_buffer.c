@@ -364,7 +364,7 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
          }
          else
          {
-            float dt = rb->sample->no_samples/fs;
+            float dt = rb->sample->no_samples_avail/fs;
             float duration = floorf((fw*dt)+0.5f)/fw;
 
             no_samples = ceilf(duration*fs);
