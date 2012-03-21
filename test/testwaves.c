@@ -21,7 +21,7 @@
 #define	SAMPLE_FREQ		16000.0
 #define SAMPLE_FORMAT		AAX_PCM16S
 #define FILE_PATH		SRC_PATH"/stereo.wav"
-#define MAX_WAVES		AAX_MAX_WAVE+1
+#define MAX_WAVES		AAX_MAX_WAVE
 
 static struct {
    char* name;
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
       res = aaxEmitterSetState(emitter, AAX_PLAYING);
       testForState(res, "aaxEmitterStart");
 
-      printf("playing: %s\n", buf_info[buf].name);
+      printf("playing buffer #%i: %s\n", buf, buf_info[buf].name);
       do
       {
          dt += 5e-2;

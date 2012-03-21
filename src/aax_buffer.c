@@ -443,7 +443,7 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
                                       ratio, buf->info->frequency, dc, skip);
                } else rv = AAX_FALSE;
                break;
-             case AAX_BROWNIAN_NOISE:
+            case AAX_BROWNIAN_NOISE:
                if (buf->info) {
                   _bufferMixBrownianNoise(data, no_samples, bps, tracks,
                                          ratio, buf->info->frequency, dc, skip);
@@ -454,9 +454,11 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
             }
             bit <<= 1;
          }
+#if 0
 _aaxSoftwareDriverWriteFile("/tmp/wave.wav", AAX_OVERWRITE, *data, no_samples,
                             _oalRingBufferGetFrequency(rb) , tracks,
                             aaxBufferGetSetup(buffer, AAX_FORMAT));
+#endif
       }
       else
       {

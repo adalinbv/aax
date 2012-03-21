@@ -319,7 +319,7 @@ enum aaxWaveformType
    AAX_ENVELOPE_FOLLOW  = 0x0800,
    AAX_INVERSE_ENVELOPE_FOLLOW 	= AAX_INVERSE | AAX_ENVELOPE_FOLLOW,
 
-   AAX_MAX_WAVE		= 8
+   AAX_MAX_WAVE		= 9
 };
 
 enum aaxProcessingType
