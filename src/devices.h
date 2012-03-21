@@ -56,7 +56,7 @@ _aaxDriverBackend *_aaxGetDriverBackendByPos(const _intBuffers *, unsigned int);
 const char *_aaxGetDriverBackendName(const _aaxDriverBackend *);
 
 long _aaxDriverBackendSetConfigSettings(const _intBuffers *,char**, _aaxConfig *);
-void _aaxDriverBackendReadConfigSettings(void *, char**, _aaxConfig *, const char *);
+void _aaxDriverBackendReadConfigSettings(void *, char**, _aaxConfig *, const char *, int);
 void _aaxDriverBackendClearConfigSettings(_aaxConfig *);
 char _aaxGetDriverBackendExtensionSupport(const _aaxDriverBackend *, const char *);
 

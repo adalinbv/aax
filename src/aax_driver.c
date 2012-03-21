@@ -40,7 +40,7 @@
 
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
-static _aaxConfig* _aaxReadConfig(_handle_t*, const char*);
+static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int);
 static void _aaxContextSetupHRTF(void *, unsigned int);
 static void _aaxContextSetupSpeakers(void **, unsigned int);
 static void removeMixerByPos(void *, unsigned int);
@@ -281,7 +281,8 @@ aaxDriverOpen(aaxConfig config)
    _handle_t *handle = _open_handle(config);
    if (handle)
    {
-      _aaxConfig *cfg = _aaxReadConfig(handle, NULL);
+      enum aaxRenderMode mode = handle->info->mode;
+      _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode);
       const _aaxDriverBackend *be = handle->backend.ptr;
       void *xoid, *nid = 0;
 
@@ -295,7 +296,6 @@ aaxDriverOpen(aaxConfig config)
          if (be)
          {
             const char* name = handle->devname[1];
-            enum aaxRenderMode mode = handle->info->mode;
             handle->backend.handle = be->connect(nid, xoid, name, mode);
          }
          _aaxDriverBackendClearConfigSettings(cfg);
@@ -327,16 +327,17 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
          handle = _open_handle(config);
          if (handle)
          {
-            _aaxConfig *cfg = _aaxReadConfig(handle, name);
             const _aaxDriverBackend *be = handle->backend.ptr;
             void *xoid, *nid = 0;
+            _aaxConfig *cfg;
 
             if (mode == AAX_MODE_WRITE_STEREO) mode = handle->info->mode;
             else handle->info->mode = mode;
 
+            cfg = _aaxReadConfig(handle, name, mode);
             if (cfg)
             {
-               if (handle->info->mode == AAX_MODE_READ) {
+               if (mode == AAX_MODE_READ) {
                   xoid = cfg->backend.input;
                } else {
                   xoid = cfg->backend.output;
@@ -802,7 +803,7 @@ _open_handle(aaxConfig config)
 }
 
 _aaxConfig*
-_aaxReadConfig(_handle_t *handle, const char *devname)
+_aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 {
    _aaxConfig* config = calloc(1, sizeof(_aaxConfig));
 
@@ -825,10 +826,10 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
       xid = xmlOpen(SYSTEM_CONFIG_FILE);
       if (xid != NULL)
       {
-         
+         int m = (mode > 0) ? 1 : 0;        
          key = _aaxCheckKeyValidity(xid);
          _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
-                                             SYSTEM_CONFIG_FILE);
+                                             SYSTEM_CONFIG_FILE, m);
          xmlClose(xid);
       }
 
@@ -844,10 +845,11 @@ _aaxReadConfig(_handle_t *handle, const char *devname)
             xid = xmlOpen(path);
             if (xid)
             {
+               int m = (mode > 0) ? 1 : 0;
                int res = _aaxCheckKeyValidity(xid);
                if ((key == AAX_TRUE) && res) key = res;
                _aaxDriverBackendReadConfigSettings(xid, handle->devname,
-                                                   config, path);
+                                                   config, path, m);
                xmlClose(xid);
             }
             free(path);
