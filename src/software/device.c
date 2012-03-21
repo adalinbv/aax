@@ -127,7 +127,7 @@ static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
 static int _aaxSoftwareDriverUpdateHeader(_driver_t *);
 static int _aaxSoftwareDriverReadHeader(_driver_t *);
 
-uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
+static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
 const char *default_renderer = "File: /tmp/AWaveOutput.wav";
 #ifndef strdup
 char *strdup(const char *);
@@ -567,7 +567,7 @@ _aaxSoftwareDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 /*-------------------------------------------------------------------------- */
 
-uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
+static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
     0x46464952,                 /*  0. "RIFF"                                */
     0x00000024,                 /*  1. (file_length - 8)                     */

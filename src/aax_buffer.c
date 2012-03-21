@@ -30,7 +30,7 @@ static void _aaxMuLaw2Linear(int32_t*, uint8_t*, unsigned int);
 static void _aaxLinear2MuLaw(uint8_t*, int32_t*, unsigned int);
 static void _aaxLinear2IMA4(uint8_t*, int32_t*,unsigned int, unsigned,unsigned);
 
-unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX];
+static unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX];
 
 aaxBuffer
 aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
@@ -725,7 +725,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 
 /* -------------------------------------------------------------------------- */
 
-unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX] =
+static unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX] =
 {
   1,    /* 8-bit          */
   2,    /* 16-bit         */

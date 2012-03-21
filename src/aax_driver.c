@@ -47,8 +47,8 @@ static void removeMixerByPos(void *, unsigned int);
 static int _aaxCheckKeyValidity(void*);
 static int _aaxCheckKeyValidityStr(char*);
 
-const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
-const char* _aax_default_devname;
+static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
+static const char* _aax_default_devname;
 
 _intBuffers* _backends;
 time_t _tvnow = 0;
@@ -575,9 +575,8 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 /* -------------------------------------------------------------------------- */
 
 _intBuffers* _backends = NULL;
-const char* _aax_default_devname = "None";
-
-const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
+static const char* _aax_default_devname = "None";
+static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
 {
   { { 22050.0f, 1.0f, 1.0f }, NULL },
   { { 22050.0f, 1.0f, 1.0f }, NULL }

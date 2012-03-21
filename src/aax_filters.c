@@ -36,8 +36,8 @@ typedef float (*cvtfn_t)(float);
 
 static cvtfn_t get_cvtfn(enum aaxFilterType, int, int, char);
 
-const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
-const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX];
+static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
+static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX];
 
 aaxFilter
 aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
@@ -768,7 +768,7 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 
 /* -------------------------------------------------------------------------- */
 
-const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] = 
+static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] = 
 {
   { AAX_FILTER_NONE,		MAX_STEREO_FILTER },
   { AAX_EQUALIZER,		FREQUENCY_FILTER },
@@ -782,7 +782,7 @@ const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
 };
 
 /* see above for the proper sequence */
-const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
+static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
 {   /* min[4] */	  /* max[4] */
   {
     /* AAX_FILTER_NONE      */

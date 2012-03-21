@@ -244,7 +244,7 @@ static char _setup_channel(_alsa_hw_channel *, unsigned int, unsigned int, char)
 static void _alsa_error_handler(const char *, int, const char *, int, const char*,...);
 
 
-const snd_pcm_format_t _alsa_formats[];
+static const snd_pcm_format_t _alsa_formats[];
 const char *_hw_default_name = DEFAULT_NAME;
 
 static int
@@ -902,7 +902,7 @@ _aaxALSADriverPlayback(const void *id, void *dst, void *src, float pitch, float 
 
 /*-------------------------------------------------------------------------- */
 
-const snd_pcm_format_t _alsa_formats[] =
+static const snd_pcm_format_t _alsa_formats[] =
 {
    SND_PCM_FORMAT_UNKNOWN,
    SND_PCM_FORMAT_U8,

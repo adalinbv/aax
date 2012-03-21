@@ -241,10 +241,10 @@ static char *detect_devname(const char*, int, unsigned int, int, char);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 
 
-const char* _alsa_type[2];
-const snd_pcm_stream_t _alsa_mode[2];
-const _alsasoft_formats_t _alsasoft_formats[];
-const char *_const_soft_default_name[2];
+static const char* _alsa_type[2];
+static const snd_pcm_stream_t _alsa_mode[2];
+static const _alsasoft_formats_t _alsasoft_formats[];
+static const char *_const_soft_default_name[2];
 
 char *_soft_default_name[2] = { NULL, NULL };
 int _default_devnum = DEFAULT_DEVNUM;
@@ -1328,7 +1328,7 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 /*-------------------------------------------------------------------------- */
 
-const _alsasoft_formats_t _alsasoft_formats[] =
+static const _alsasoft_formats_t _alsasoft_formats[] =
 {
    {2, SND_PCM_FORMAT_S16_LE},
    {4, SND_PCM_FORMAT_S32_LE},
@@ -1338,12 +1338,17 @@ const _alsasoft_formats_t _alsasoft_formats[] =
    {0, 0}
 };
 
-const char* _const_soft_default_name[2] = { DEFAULT_DEVNAME, DEFAULT_DEVNAME };
-const char* _alsa_type[2] = { "Input", "Output" };
+static const char* _const_soft_default_name[2] = {
+   DEFAULT_DEVNAME, DEFAULT_DEVNAME
+};
 
-const snd_pcm_stream_t _alsa_mode[2] = {
-       SND_PCM_STREAM_CAPTURE, SND_PCM_STREAM_PLAYBACK
-   };
+static const char* _alsa_type[2] = {
+   "Input", "Output"
+};
+
+static const snd_pcm_stream_t _alsa_mode[2] = {
+   SND_PCM_STREAM_CAPTURE, SND_PCM_STREAM_PLAYBACK
+};
 
 static void
 _alsa_error_handler(const char *file, int line, const char *function, int err,

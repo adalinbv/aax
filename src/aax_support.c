@@ -22,8 +22,8 @@ typedef struct {
 
 static const char* __aaxErrorSetFunction(const char*);
 
-const ef_type _aax_filter_s[AAX_FILTER_MAX];
-const ef_type _aax_effect_s[AAX_EFFECT_MAX];
+static const ef_type _aax_filter_s[AAX_FILTER_MAX];
+static const ef_type _aax_effect_s[AAX_EFFECT_MAX];
 
 const char *_aax_id_s[_AAX_MAX_ID];
 const char* _aaxErrorStrings[];
@@ -246,7 +246,7 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
 
 /* -------------------------------------------------------------------------- */
 
-const ef_type _aax_filter_s[AAX_FILTER_MAX] =
+static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
 {
    { 0, "NONE" },
 #if ENABLE_LITE
@@ -270,7 +270,7 @@ const ef_type _aax_filter_s[AAX_FILTER_MAX] =
 #endif
 };
 
-const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
+static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
 {
    { 0, "NONE" },
    { 1, "AAX_PITCH_EFFECT" },
