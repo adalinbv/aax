@@ -14,6 +14,8 @@
 
 #include <aax.h>
 
+#define AAX_DEFINITIONS	1
+
 /*
  * Filter and Effect support
  *
