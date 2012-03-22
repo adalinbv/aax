@@ -299,12 +299,8 @@ _aaxDriverDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
       }
       else		/* no renderer specified or requested */
       {
-#if 0
-         if (!strcasecmp(rr, "default")) level = 3;
+         if (!strcasecmp(rr, "default")) level = 2;
          else level = 1;
-#else
-         level = 1;
-#endif
       }
    }
    else {
@@ -348,6 +344,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
          if (n < _AAX_MAX_SLAVES)
          {
+            char driver_name[255];
             unsigned int i, q;
             char curlevel;
             char *setup;
@@ -407,13 +404,14 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             curlevel = 0;
             xbid = xmlMarkId(xcid);
             be_num = xmlNodeGetNum(xbid, "backend");
+            snprintf((char*)driver_name, 255, "%s", config->backend.driver);
             for (be=0; be<be_num; be++)
             {
                char *input, *output;
                char level;
 
                xmlNodeGetPos(xcid, xbid, "backend", be);
-               if (xmlNodeCompareString(xbid, "name", config->backend.driver)) {
+               if (xmlNodeCompareString(xbid, "name", driver_name)) {
                   continue;
                }
 
