@@ -274,7 +274,7 @@ _aaxDriverDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
 {
    unsigned int size;
    char curlevel = *cl;
-   char level = *l;
+   char level = 0;
    char rr[255];
 
    *rr = '\0';
@@ -286,7 +286,7 @@ _aaxDriverDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
          if (strlen(devname[1]) < size) size = strlen(devname[1]);
 
          if (!strcasecmp(rr, "default") && level < 2) level = 1;
-         else if (!strncasecmp(devname[1], rr, size))
+         if (!strncasecmp(devname[1], rr, size))
          {
             char *dptr = strstr(devname[1], ": ");
             char *rrptr = strstr(rr, ": ");
@@ -296,16 +296,10 @@ _aaxDriverDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
          else {
             xid = 0;
          }
-      }
-      else		/* no renderer specified or requested */
-      {
-         if (!strcasecmp(rr, "default")) level = 2;
-         else level = 1;
-      }
-   }
-   else {
-      level = 1;
-   }
+      }			/* no renderer is requested and default is defined */
+      else if (!strcasecmp(rr, "default")) level = 3;
+   }			/* no renderer defined but default is requested */
+   else if (!devname[1] || !strcasecmp(devname[1], "default")) level = 2;
 
    *l = level;
    *cl = curlevel;
