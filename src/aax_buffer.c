@@ -157,7 +157,8 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
             _oalRingBufferSetLoopPoints(rb, setup, end);
             _oalRingBufferSetLooping(rb, (setup < end) ? AAX_TRUE : AAX_FALSE);
             rv = AAX_TRUE;
-         } else _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+         else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_LOOP_END:
          if (setup < _oalRingBufferGetNoSamples(rb))
@@ -167,7 +168,8 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
             _oalRingBufferSetLoopPoints(rb, start, setup);
             _oalRingBufferSetLooping(rb,(start < setup) ? AAX_TRUE : AAX_FALSE);
             rv = AAX_TRUE;
-         } else _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+         else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_BLOCK_ALIGNMENT:
          if (setup > 1)
@@ -183,6 +185,13 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
             buf->blocksize = setup;
             rv = AAX_TRUE;
          }
+         break;
+      case AAX_POSITION:
+         if (setup <= _oalRingBufferGetNoSamples(rb)) {
+            buf->pos = setup;
+            rv = AAX_TRUE;
+         }
+         else  _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -218,7 +227,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = _oalRingBufferGetTrackSize(rb);
          break;
       case AAX_NO_SAMPLES:
-         rv = _oalRingBufferGetNoSamples(rb);
+         rv = _oalRingBufferGetNoSamples(rb) - buf->pos;
          break;
       case AAX_LOOP_START:
          _oalRingBufferGetLoopPoints(rb, &rv, &tmp);
@@ -228,6 +237,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          break;
       case AAX_BLOCK_ALIGNMENT:
          rv = buf->blocksize;
+         break;
+      case AAX_POSITION:
+         rv = buf->pos;
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -482,17 +494,18 @@ aaxBufferGetData(const aaxBuffer buffer)
    void** data = NULL;
    if (buf)
    {
-      unsigned int tracks = _oalRingBufferGetNoTracks(buf->ringbuffer);
-      unsigned int no_samples = _oalRingBufferGetNoSamples(buf->ringbuffer);
-      unsigned int buf_samples = tracks*no_samples;
+      unsigned int buf_samples, no_samples, tracks;
       unsigned int native_fmt, rb_format;
       enum aaxFormat user_format;
       char *ptr, bps;
 
+      tracks = _oalRingBufferGetNoTracks(buf->ringbuffer);
+      no_samples = _oalRingBufferGetNoSamples(buf->ringbuffer) - buf->pos;
       bps = _oalRingBufferGetBytesPerSample(buf->ringbuffer);
+      buf_samples = tracks*no_samples;
 
       ptr = (char*)sizeof(void*);
-      data = (void**)_aax_malloc(&ptr, buf_samples*bps);
+      data = (void**)_aax_malloc(&ptr, no_samples*tracks*bps);
       if (data == NULL) 
       {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -500,7 +513,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       }
 
       _oalRingBufferGetDataInterleaved(buf->ringbuffer, ptr);
-      *data = (void*)ptr;
+      *data = (void*)(ptr + buf->pos*tracks*bps);
 
       user_format = buf->format;
       native_fmt = user_format & AAX_FORMAT_NATIVE;

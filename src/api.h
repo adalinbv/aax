@@ -175,6 +175,7 @@ typedef struct
 
    int mipmap;
    int blocksize;
+   unsigned int pos;
    enum aaxFormat format;
    _oalRingBuffer *ringbuffer;
    _aaxMixerInfo *info;
