@@ -621,7 +621,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
 		/*
 		 * The vibrato effect is not gradual like tremolo but is
 		 * adjusted every update and stays constant which requires
-		 * the fastest update rate when the LFO is fater than 1Hz.
+		 * the fastest update rate when the LFO is faster than 1Hz.
 		 */
                if ((lfo_val > 1.0f) && (src->update_rate < 4*lfo_val)) {
                   src->update_rate = 1;
