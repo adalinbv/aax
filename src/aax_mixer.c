@@ -97,6 +97,12 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
+         case AAX_UPDATERATE:
+            if ((setup > 5) && (setup < 200)) {
+               info->update_rate = (unsigned int)info->refresh_rate / setup;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
          case AAX_TRACKSIZE:
             {
                float fq = info->frequency;
