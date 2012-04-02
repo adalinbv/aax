@@ -1459,7 +1459,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            {
                               int dlen = strlen(name)+1;
                               dlen -= strlen("front:");
-                              dlen += dev_prefix[m ? tracks : 0];
+                              dlen += strlen(dev_prefix[m ? tracks : 0]);
                               if (vmix) dlen += strlen("plug:''");
                               rv = malloc(dlen);
                               if (rv)
