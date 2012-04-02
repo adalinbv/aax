@@ -250,7 +250,6 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
          be = _intBufGetDataPtr(dptr);
          if (!strcasecmp(devname[0], be->driver))
          {
-printf("A\n");
             config->backend.driver = _aax_strdup(be->driver);
             config->backend.input = 0;
             config->backend.output = 0;
@@ -512,7 +511,6 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                      else q = strlen(ptr);
 
                      l = q + strlen(rr) + strlen(" on \0");
-printf("C\n");
                      config->backend.driver = malloc(l);
                      snprintf(config->backend.driver, q, "%s", ptr);
                      strcat(config->backend.driver, " on ");
