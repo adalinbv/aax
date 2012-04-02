@@ -18,12 +18,12 @@
 
 #include <base/types.h>
 
-#if defined(HAVE_RESTRICT)
-#define RESTRICT restrict
+#if defined(HAVE_RESTRICT) || defined(restrict)
+# define RESTRICT restrict
 #elif defined(HAVE___RESTRICT)
-#define RESTRICT __restrict
+# define RESTRICT __restrict
 #else
-#define RESTRICT
+# define RESTRICT
 #endif
 
 
