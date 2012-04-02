@@ -12,17 +12,30 @@
 #ifndef _AAX_ARCH_SUPPORT
 #define _AAX_ARCH_SUPPORT 1
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <base/types.h>
 
-typedef void* (*_aax_memcpy_proc)(void*__restrict, const void*, size_t);
+#if defined(HAVE_RESTRICT)
+#define RESTRICT restrict
+#elif defined(HAVE___RESTRICT)
+#define RESTRICT __restrict
+#else
+#define RESTRICT
+#endif
+
+
+typedef void* (*_aax_memcpy_proc)(void*RESTRICT, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, unsigned int, unsigned int);
 typedef char* (*_aax_malloc_proc)(char**, unsigned int);
 
 typedef void (*_batch_cvt_proc)(void*, unsigned int);
-typedef void (*_batch_cvt_from_proc)(int32_t*__restrict, const void*__restrict, unsigned int);
-typedef void (*_batch_cvt_from_intl_proc)(int32_t**__restrict, const void*__restrict, unsigned int, unsigned int, unsigned int);
-typedef void (*_batch_cvt_to_proc)(void*__restrict, const int32_t*__restrict, unsigned int);
-typedef void (*_batch_cvt_to_intl_proc)(void*__restrict, const int32_t**__restrict, unsigned int, unsigned int, unsigned int);
+typedef void (*_batch_cvt_from_proc)(int32_t*RESTRICT, const void*RESTRICT, unsigned int);
+typedef void (*_batch_cvt_from_intl_proc)(int32_t**RESTRICT, const void*RESTRICT, unsigned int, unsigned int, unsigned int);
+typedef void (*_batch_cvt_to_proc)(void*RESTRICT, const int32_t*RESTRICT, unsigned int);
+typedef void (*_batch_cvt_to_intl_proc)(void*RESTRICT, const int32_t**RESTRICT, unsigned int, unsigned int, unsigned int);
 
 
 typedef void (*_batch_fmadd_proc)(int32_ptr, const int32_ptr, unsigned int, float, float);
@@ -34,7 +47,7 @@ extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
 extern _aax_memcpy_proc _aax_memcpy;
 extern _aax_memcpy_proc _batch_cvt24_24;
-extern char* _aax_strdup(const char*__restrict);
+extern char* _aax_strdup(const char*RESTRICT);
 
 extern _batch_mul_value_proc _batch_mul_value;
 extern _batch_fmadd_proc _batch_fmadd;
