@@ -4,23 +4,31 @@ AeonWave (2.2.0) stable; urgency=low
   * Added seamless transisition from tube-like soft-clipping to sharp-clipping
     and add an asymmetric clipping option. This is most noticeable for
     the distortion effect.
+  * Added support for registered sensors. Registering an aaxConfig handle
+    which is opened in AAX_MODE_READ mode eliminates the need for the
+    application to do buffer handling between the physical input device and
+    AeonWave. It also improves latency since reading the buffer and playback
+    it's contents is done in a single step.
+    Registered sensors are only guarenteed in stereo mode for this release.
   * Added support for subframes. Subframes are like regular audio-frames
     but they are registered at other audio-frames. Where audio-frames
     render in their own thread, subframes will render in their parents thread.
   - This removes any limit to the number of supported emitters as long as the
-    system can handle the load.
+    system can handle the load. The number of possible registered emitters,
+    sensors or subframes per audio frame is still 256 maximum.
   * Move the speaker setup from the global section to device specific section
-    in the configuration file.
+    in the configuration file. This allows for different setups for headphone
+    connections and (for example) 4 channel spatialised speaker setup.
   * Added support for a dedicated configuration file entry for every device.
   * Added the inverse of the modulation-waveform for filters and effects.
   * Added the option to modify the Q factor of frequency filters.
-  * Added filter and effect support for streaming audio.
-  * A complete overhaul of the recording code.
+  * A complete overhaul of the recording code and of the ALSA backend.
+  * Fixed filter and effect support for streaming audio.
   * Speed-up of filter and effect processing.
-  * Fix delay effects for audio-frames.
   * Added flanging effect.
+  * Dozens of small bug fixes.
 
- -- Erik Hofman <tech@adalin.org>  Tue 01 Feb 2012 10:55:00 +0100;
+ -- Erik Hofman <tech@adalin.org>  Mon 02 Apr 2012 10:22:05 +0200;
 
 
 AeonWave (2.1.2) stable; urgency=medium
@@ -47,7 +55,7 @@ AeonWave (2.0.0) stable; urgency=low
   * New simplified, robust and consistent API
   * New spatialised speaker setup
 
- -- Erik Hofman <tech@adalin.org>  Tue, 27 Aug 2011 14:08:00 +0100
+ -- Erik Hofman <tech@adalin.org>  Tue, 27 Aug 2011 14:08:00 +0200
 
 
 AeonWave (1.0.0) stable; urgency=low
