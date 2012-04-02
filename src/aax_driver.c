@@ -959,7 +959,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->info->refresh_rate = iv;
             handle->info->frequency = fq;
             handle->info->update_rate = iv/config->node[0].update;
-            handle->info->max_emitters =  _AAX_MAX_MIXER_REGISTERED_LT;
+            if (handle->info->max_emitters > _AAX_MAX_MIXER_REGISTERED_LT) {
+                handle->info->max_emitters =  _AAX_MAX_MIXER_REGISTERED_LT;
+            }
             handle->info->max_registered = _AAX_MAX_MIXER_REGISTERED_LT;
             _oalRingBufferSetNoSources(handle->info->max_emitters);
          }
