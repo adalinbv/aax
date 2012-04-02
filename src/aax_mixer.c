@@ -179,7 +179,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             rv = info->max_emitters/2;
             break;
          case AAX_AUDIO_FRAMES:
-            rv = VALID_HANDLE(handle) ? 256 : 0;
+            rv = VALID_HANDLE(handle) ? info->max_emitters : 0;
             break;
          case AAX_FREQUENCY:
             rv = info->frequency;
