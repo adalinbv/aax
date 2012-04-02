@@ -7,8 +7,8 @@ AC_INIT(include/aaxdefs.h)
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_HOST
 
-dnl Require at least automake 2.52
-AC_PREREQ(2.52)
+dnl Require at least automake 2.58
+AC_PREREQ(2.58)
 
 #
 # Making releases:
@@ -57,6 +57,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
+AC_C_RESTRICT
 
 dnl system dependent compiler flags
 OPTFLAGS="-Os -fPIC -fomit-frame-pointer -funroll-loops"
