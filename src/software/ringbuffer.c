@@ -27,7 +27,7 @@
 
 #define _DEBUG 0
 
-static int _oalGetSetMonoSources(unsigned int, int);
+static unsigned int _oalGetSetMonoSources(unsigned int, int);
 static void _oalRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
 
 int
@@ -1182,13 +1182,13 @@ float _2acos_rad2deg(float v) { return 2*acos(_rad2deg(v)); }
 float _cos_2(float v) { return cos(v/2); }
 float _2acos(float v) { return 2*acos(v); }
 
-static int
+static unsigned int
 _oalGetSetMonoSources(unsigned int max, int num)
 {
    static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
    static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
    unsigned int abs_num = abs(num);
-   int ret = _sources;
+   unsigned int ret = _sources;
 
    if (max)
    {
@@ -1200,11 +1200,11 @@ _oalGetSetMonoSources(unsigned int max, int num)
 
    if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
    {
-      int _src = _sources - num;
-      if ((_src > 0) && (_src < _max_sources))
+      unsigned int _src = _sources - num;
+      if ((_sources >= num) && (_src < _max_sources))
       {
          _sources = _src;
-         ret = abs(num);
+         ret = abs_num;
       }
    }
 
