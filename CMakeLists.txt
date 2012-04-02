@@ -86,6 +86,11 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}" include base "${CMAKE_BINARY_DIR}/include")
 
+CHECK_C_SOURCE_COMPILES("int *restrict foo;
+                         int main() {return 0;}" HAVE_RESTRICT)
+CHECK_C_SOURCE_COMPILES("int *__restrict foo;
+                         int main() {return 0;}" HAVE___RESTRICT)
+
 IF(CMAKE_SIZEOF_VOID_P MATCHES "8")
   SET(LIB_POSTFIX "64" CACHE STRING "suffix for 32/64 dir placement")
   MARK_AS_ADVANCED(LIB_POSTFIX)
