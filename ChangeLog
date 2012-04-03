@@ -7,21 +7,21 @@ AeonWave (2.2.0) stable; urgency=low
   * Added support for registered sensors. Registering an aaxConfig handle
     which is opened in AAX_MODE_READ mode eliminates the need for the
     application to do buffer handling between the physical input device and
-    AeonWave. It also improves latency since reading the buffer and playback
-    it's contents is done in a single step.
+    an emitter. It also improves latency since reading the buffer and
+    processing it's contents is done in a single step.
     Registered sensors are only guarenteed in stereo mode for this release.
   * Added support for subframes. Subframes are like regular audio-frames
     but they are registered at other audio-frames. Where audio-frames
     render in their own thread, subframes will render in their parents thread.
   - This removes any limit to the number of supported emitters as long as the
-    system can handle the load. The number of possible registered emitters,
-    sensors or subframes per audio frame is still 256 maximum.
+    system can handle the load. The maximum number of registered emitters,
+    sensors and subframes per audio frame is still 256.
   * Move the speaker setup from the global section to device specific section
     in the configuration file. This allows for different setups for headphone
     connections and (for example) 4 channel spatialised speaker setup.
   * Added support for a dedicated configuration file entry for every device.
   * Added the inverse of the modulation-waveform for filters and effects.
-  * Added the option to modify the Q factor of frequency filters.
+  * Added the option to modify the Q (resonance) factor of frequency filters.
   * A complete overhaul of the recording code and of the ALSA backend.
   * Fixed filter and effect support for streaming audio.
   * Speed-up of filter and effect processing.
