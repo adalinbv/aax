@@ -261,6 +261,8 @@ extern aaxMtx4f aaxIdentityMatrix;
 	__aaxFilterSetParam2((a),AAX_LINEAR,(b),DISTANCE,Emitter)
 #define aaxEmitterSetRolloffFactor(a,b)					\
 	__aaxFilterSetParam3((a),AAX_LINEAR,(b),DISTANCE,Emitter)
+#define aaxEmitterSetDistanceModel(a,b)					\
+	__aaxFilterSetState(a,b,DISTANCE,Emitter)
 #define aaxEmitterSetAudioCone(a,b,c,d)					\
 	__aaxFilterSet((a),AAX_RADIANS,(b),(c),(d),ANGULAR,Emitter)
 #define aaxEmitterSetFrequencyFilter(a,b,c,d)				\
