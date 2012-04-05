@@ -1007,8 +1007,7 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
             {
                _oalRingBuffer *rb = (_oalRingBuffer *)ptr[0];
                buf->ringbuffer = rb;
-               buf->format = rb->format;
-
+               buf->format = _oalRingBufferGetFormat(rb);
                buf->ref_counter = 1;
                buf->mipmap = AAX_FALSE;
                buf->id = BUFFER_ID;

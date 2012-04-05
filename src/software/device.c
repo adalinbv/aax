@@ -769,7 +769,7 @@ _aaxSoftwareDriverWriteFile(const char *file, enum aaxProcessingType type,
 
    memcpy(waveHeader, _aaxDefaultWaveHeader, WAVE_EXT_HEADER_SIZE*4);
 
-   bps = _oalRingBufferFormatsBPS[format];
+   bps = _oalRingBufferFormat[format].bits/8;
 
    floc = lseek(fd, 0L, SEEK_END);
    size = floc - WAVE_EXT_HEADER_SIZE*4;

@@ -24,12 +24,6 @@
 #include "api.h"
 #include "arch.h"
 
-static void _aaxALaw2Linear(int32_t*, uint8_t*, unsigned int);
-static void _aaxLinear2ALaw(uint8_t*, int32_t*, unsigned int);
-static void _aaxMuLaw2Linear(int32_t*, uint8_t*, unsigned int);
-static void _aaxLinear2MuLaw(uint8_t*, int32_t*, unsigned int);
-static void _aaxLinear2IMA4(uint8_t*, int32_t*,unsigned int, unsigned,unsigned);
-
 static unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX];
 
 aaxBuffer
@@ -58,8 +52,9 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
             buf->ref_counter = 1;
             buf->format = format;
             buf->id = BUFFER_ID;
+            buf->frequency = 0.0f;
 
-          /* initialize the ringbuffer in native format only */
+            /* initialize the ringbuffer in native format only */
             _oalRingBufferSetFormat(rb, buf->codecs, native_fmt);
             _oalRingBufferSetNoSamples(rb, samples);
             _oalRingBufferSetNoTracks(rb, channels);
@@ -113,7 +108,10 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
       case AAX_FREQUENCY:
          if ((setup > 1000) && (setup < 96000))
          {
-            _oalRingBufferSetFrequency(rb, (float)setup);
+            if (!buf->frequency) {
+               _oalRingBufferSetFrequency(rb, (float)setup);
+            }
+            buf->frequency = (float)setup;
             rv = AAX_TRUE;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -215,7 +213,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       switch(type)
       {
       case AAX_FREQUENCY:
-         rv = _oalRingBufferGetFrequency(rb);
+         rv = buf->frequency; // _oalRingBufferGetFrequency(rb);
          break;
       case AAX_TRACKS:
          rv = _oalRingBufferGetNoTracks(rb);
@@ -224,11 +222,17 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = _oalRingBufferGetFormat(rb);
          break;
       case AAX_TRACKSIZE:
-         rv = _oalRingBufferGetTrackSize(rb);
+      {
+         float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
+         rv = fact*_oalRingBufferGetTrackSize(rb);
          break;
+      }
       case AAX_NO_SAMPLES:
-         rv = _oalRingBufferGetNoSamples(rb) - buf->pos;
+      {
+         float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
+         rv = fact*(_oalRingBufferGetNoSamples(rb) - buf->pos);
          break;
+      }
       case AAX_LOOP_START:
          _oalRingBufferGetLoopPoints(rb, &rv, &tmp);
          break;
@@ -495,13 +499,19 @@ aaxBufferGetData(const aaxBuffer buffer)
    if (buf)
    {
       unsigned int buf_samples, no_samples, tracks;
-      unsigned int native_fmt, rb_format;
+      unsigned int native_fmt, rb_format, pos;
       enum aaxFormat user_format;
+      _oalRingBuffer *rb;
       char *ptr, bps;
+      float fact;
 
-      tracks = _oalRingBufferGetNoTracks(buf->ringbuffer);
-      no_samples = _oalRingBufferGetNoSamples(buf->ringbuffer) - buf->pos;
-      bps = _oalRingBufferGetBytesPerSample(buf->ringbuffer);
+      rb = buf->ringbuffer;
+      fact = buf->frequency / _oalRingBufferGetFrequency(rb);
+      pos = fact*buf->pos;
+
+      no_samples = fact*_oalRingBufferGetNoSamples(rb) - pos;
+      bps = _oalRingBufferGetBytesPerSample(rb);
+      tracks = _oalRingBufferGetNoTracks(rb);
       buf_samples = tracks*no_samples;
 
       ptr = (char*)sizeof(void*);
@@ -512,143 +522,52 @@ aaxBufferGetData(const aaxBuffer buffer)
          return data;
       }
 
-      _oalRingBufferGetDataInterleaved(buf->ringbuffer, ptr);
-      *data = (void*)(ptr + buf->pos*tracks*bps);
+      _oalRingBufferGetDataInterleaved(rb, ptr, no_samples, fact);
+      *data = (void*)(ptr + pos*tracks*bps);
 
       user_format = buf->format;
       native_fmt = user_format & AAX_FORMAT_NATIVE;
-      rb_format = _oalRingBufferGetFormat(buf->ringbuffer);
+      rb_format = _oalRingBufferGetFormat(rb);
       if (rb_format != native_fmt)
       {
-					/* first convert to signed 24-bit */
-         if (rb_format != AAX_PCM24S)
+         if (rb_format != AAX_PCM24S) 	/* first convert to signed 24-bit */
          {
-            void** ndata;
+            void **ndata;
+            char *ptr;
+
             ptr = (char*)sizeof(void*);
             ndata = (void**)_aax_malloc(&ptr, buf_samples*sizeof(int32_t));
             if (ndata)
             {
                *ndata = (void*)ptr;
+               bufConvertDataToPCM24S(*ndata, *data, buf_samples, rb_format);
+               free(data);
+               data = ndata;
+            }
+         } 
 
-               switch(rb_format)
-               {
-               case AAX_PCM8S:
-                  _batch_cvt24_8(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_IMA4_ADPCM:
-               case AAX_PCM16S:
-                  _batch_cvt24_16(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_PCM32S:
-                  _batch_cvt24_32(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_FLOAT:
-                 _batch_cvt24_ps(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_DOUBLE:
-                  _batch_cvt24_pd(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_MULAW:
-                  _aaxMuLaw2Linear(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_ALAW:
-                  _aaxALaw2Linear(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               default:
-                  break;
-               }
-               if (ndata != data) free(ndata);
-            } /* ndata */
-         } /* rb_format != AAX_PCM24S */
-
-					/* then convert to requested format */
-         if (native_fmt != AAX_PCM24S)
+         if (native_fmt != AAX_PCM24S)	/* then convert to requested format */
          {
             int new_bps = aaxGetBytesPerSample(native_fmt);
             int block_smp = BLOCKSIZE_TO_SMP(buf->blocksize);
-            int new_samples;
+            int new_samples = ((no_samples/block_smp)+1)*block_smp;
             void** ndata;
+            char *ptr;
 
             ptr = (char*)sizeof(void*);
-            new_samples = ((no_samples/block_smp)+1)*block_smp;
-            ndata = (void**)_aax_calloc(&ptr, tracks, new_samples*new_bps);
+            ndata = (void**)_aax_malloc(&ptr, tracks*new_samples*new_bps);
             if (ndata)
             {
-               *ndata = (void*)ptr;	/* assign ptr to data sectgion */
-
-               switch(native_fmt)
-               {
-               case AAX_PCM8S:
-                  _batch_cvt8_24(*ndata, *data, buf_samples);
-                  free(data); 
-                  data = ndata;
-                  break;
-               case AAX_PCM16S:
-                  _batch_cvt16_24(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_PCM32S:
-                  _batch_cvt32_24(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_FLOAT:
-                  _batch_cvtps_24(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_DOUBLE:
-                  _batch_cvtpd_24(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_MULAW:
-                  _aaxLinear2MuLaw(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_ALAW:
-                  _aaxLinear2ALaw(*ndata, *data, buf_samples);
-                  free(data);
-                  data = ndata;
-                  break;
-               case AAX_IMA4_ADPCM:
-               {
-                  unsigned t, blocksz = buf->blocksize;
-                  for (t=0; t<tracks; t++)
-                  {
-                     uint8_t *dst = (uint8_t *)*ndata + t*blocksz;
-                     int32_t *src = (int32_t *)*data + t;
-                     _aaxLinear2IMA4(dst, src, no_samples, block_smp, tracks);
-                  }
-                  free(data);
-                  data = ndata;
-                  break;
-               }
-               default:
-                  break;
-               }
-               if (ndata != data) free(ndata);
-            } /* ndata */
-         } /* native_fmt != AAX_PCM24S */
+                *ndata = (void*)ptr;
+                bufConvertDataFromPCM24S(*ndata, *data, tracks, buf_samples,
+                                        native_fmt, no_samples, buf->blocksize);
+               free(data);
+               data = ndata;
+            }
+         }
       } /* rb_format != native_fmt */
  
-				/* do we need to convert to user format? */
+			/* do we need to convert to non-native format? */
       if (user_format & ~AAX_FORMAT_NATIVE)
       {
 					/* do we need to change signedness? */
@@ -781,100 +700,5 @@ free_buffer(_buffer_t* buf)
       rv = AAX_TRUE;
    }
    return rv;
-}
-
-
-static void
-_aaxMuLaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
-{
-   do {
-      *ndata++ = _mulaw2linear_table[*data++] << 8;
-   } while (--i);
-}
-
-static void
-_aaxLinear2MuLaw(uint8_t* ndata, int32_t* data, unsigned int i)
-{
-   do {
-      *ndata++ = linear2mulaw(*data++ >> 8);
-   } while (--i);
-}
-
-static void
-_aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
-{
-   do {
-      *ndata++ = _alaw2linear_table[*data++] << 8;
-   } while (--i);
-}
-
-static void
-_aaxLinear2ALaw(uint8_t* ndata, int32_t* data, unsigned int i)
-{
-   do {
-      *ndata++ = linear2alaw(*data++ >> 8);
-   } while (--i);
-}
-
-static void
-_aaxLinear2IMABlock(uint8_t* ndata, int32_t* data, unsigned block_smp,
-                   int16_t* sample, uint8_t* index, short step)
-{
-   unsigned int i;
-   int16_t header;
-   uint8_t nibble;
-
-   header = *sample;
-   *ndata++ = header & 0xff;
-   *ndata++ = header >> 8;
-   *ndata++ = *index;
-   *ndata++ = 0;
-
-   for (i=0; i<block_smp; i += 2)
-   {
-      int16_t nsample;
-
-      nsample = *data >> 8;
-      linear2ima(sample, nsample, &nibble, index);
-      data += step;
-      *ndata = nibble;
-
-      nsample = *data >> 8;
-      linear2ima(sample, nsample, &nibble, index);
-      data += step;
-      *ndata++ |= nibble << 4;
-   }
-}
-
-/*
- * Incompatible with MS-IMA which specifies a different way of interleaving.
- */
-static void
-_aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned block_smp, unsigned tracks)
-{
-   unsigned int i, no_blocks, blocksize;
-   int16_t sample = 0;
-   uint8_t index = 0;
-
-   no_blocks = samples/block_smp;
-   blocksize = IMA4_SMP_TO_BLOCKSIZE(block_smp);
-
-   for(i=0; i<no_blocks; i++)
-   {
-      _aaxLinear2IMABlock(ndata, data, block_smp, &sample, &index, tracks);
-      ndata += blocksize*tracks;
-      data += block_smp*tracks;
-   }
-
-   if (no_blocks*block_smp < samples)
-   {
-      unsigned int rest = (no_blocks+1)*block_smp - samples;
-
-      samples = block_smp - rest;
-      _aaxLinear2IMABlock(ndata, data, samples, &sample, &index, tracks);
-
-      ndata += IMA4_SMP_TO_BLOCKSIZE(samples);
-      memset(ndata, 0, rest/2);
-   }
 }
 

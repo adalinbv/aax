@@ -25,11 +25,7 @@ extern const int8_t _linear2mulaw_table[256];
 
 extern const float _compress_tbl[2][2048];
 
-uint8_t linear2alaw(int16_t);
-uint8_t linear2mulaw(int16_t);
-int16_t ima2linear (uint8_t, int16_t *, uint8_t *);
-void    linear2ima(int16_t *, int16_t, uint8_t *, uint8_t *);
-void    _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
+void  _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
 
 void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 

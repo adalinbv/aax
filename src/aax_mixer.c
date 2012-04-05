@@ -971,7 +971,7 @@ _aaxMixerInit(_handle_t *handle)
    if (bufsz == 0)
    {
       float no_samples = freq / refrate;
-      bufsz = ch * no_samples * _oalRingBufferFormatsBPS[fmt];
+      bufsz = ch * no_samples * _oalRingBufferFormat[fmt].bits/8;
    }
 
    res = be->setup(handle->backend.handle, &bufsz, fmt, &ch, &freq);

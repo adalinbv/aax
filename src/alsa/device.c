@@ -1197,7 +1197,7 @@ _aaxALSADriverPlayback_rw(const void *hid, void *cid, void *src, float pitch, fl
 
    if (ch->bytes_sample == 4)
    {
-      ptr = _oalRingBufferGetDataInterleavedMalloc(rbs);
+      ptr = _oalRingBufferGetDataInterleavedMalloc(rbs, 1.0f);
       data = (int16_t *)ptr;
       data += no_tracks * offs * ch->bytes_sample/sizeof(int16_t);
    }

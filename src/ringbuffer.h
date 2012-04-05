@@ -221,7 +221,6 @@ enum
     P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr; } while (0);
 
 typedef float _convert_fn(float);
-typedef int16_t _oalRingBufferGetData(const void*, unsigned char, unsigned int);
 typedef float _oalRingBufferDistFunc(float, float, float, float, float, float);
 typedef float _oalRingBufferPitchShiftFunc(float, float, float);
 typedef float _oalRingBufferLFOGetFunc(void*, const void*, unsigned, unsigned int);
@@ -525,40 +524,44 @@ _oalRingBufferFillInterleaved(_oalRingBuffer*, const void*, unsigned, char);
  *
  * @param rb the ringbuffer which will hold the sound sample 
  * @param data a memory block large enough for the interleaved tracks.
+ * @param fact rersampling factor
  */
 void
-_oalRingBufferGetDataInterleaved(_oalRingBuffer*, void*);
+_oalRingBufferGetDataInterleaved(_oalRingBuffer*, void*, unsigned int, float);
 
 /**
  * Get the interleaved sound data.
  *
  * @param rb the ringbuffer which will hold the sound sample 
+ * @param fact rersampling factor
  *
  * returns a memory block containing the interleaved tracks.
  */
 
 void*
-_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer*);
+_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer*, float);
 
 /**
  * Get the non-interleaved sound data.
  *
  * @param rb the ringbuffer which will hold the sound sample
  * @param data a memory block large enough for the non-interleaved tracks.
+ * @param fact rersampling factor
  */
 void
-_oalRingBufferGetDataNonInterleaved(_oalRingBuffer*, void*);
+_oalRingBufferGetDataNonInterleaved(_oalRingBuffer*, void*, unsigned int, float);
 
 /**
  * Get the interleaved sound data.
  *
  * @param rb the ringbuffer which will hold the sound sample 
+ * @param fact rersampling factor
  *
  * returns a memory block containing the non-interleaved tracks.
  */
 
 void*
-_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*);
+_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*, float);
 
 /**
  * Clear the sound data of the ringbuffer
@@ -693,8 +696,13 @@ void _oalRingBufferCreateHistoryBuffer(void**, int32_t**, float, int);
 
 /* --------------------------------------------------------------------------*/
 
+typedef struct {
+   unsigned char bits;
+   enum aaxFormat format;
+} _oalFormat_t;
+
 extern _aaxDriverCompress _aaxProcessCompression;
-extern unsigned char _oalRingBufferFormatsBPS[AAX_FORMAT_MAX];
+extern _oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX];
 
 extern _aaxCodec* _oalRingBufferCodecs[];
 extern _aaxCodec* _oalRingBufferCodecs_w8s[];
@@ -740,6 +748,9 @@ void bufCompress(void*, unsigned int, unsigned int, float, float);
 void bufCompressElectronic(void*, unsigned int, unsigned int);
 void bufCompressDigital(void*, unsigned int, unsigned int);
 void bufCompressValve(void*, unsigned int, unsigned int);
+
+void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
+void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int, unsigned int);
 
 #endif /* !_AAX_RINGBUFFER_H*/
 

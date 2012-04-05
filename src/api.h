@@ -173,10 +173,13 @@ typedef struct
    unsigned int id;	/* always first */
    unsigned int ref_counter;
 
-   int mipmap;
    int blocksize;
    unsigned int pos;
    enum aaxFormat format;
+   float frequency;
+
+   char mipmap;
+
    _oalRingBuffer *ringbuffer;
    _aaxMixerInfo *info;
    _aaxCodec** codecs;

@@ -74,7 +74,7 @@ _oalRingBufferCreate(char dde)
          rbd->no_tracks = 1;
          rbd->frequency_hz = 44100.0f;
          rbd->codec = _oalRingBufferCodecs[format];
-         rbd->bytes_sample = _oalRingBufferFormatsBPS[format];
+         rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
          rbd->dde_samples = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
          rbd->scratch = NULL;
       }
@@ -359,10 +359,10 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
    {
    case AAX_IMA4_ADPCM:
       _oalRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
-      rb->format = AAX_PCM16S;
       break;
    case AAX_PCM32S:
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
+      
       break;
    case AAX_FLOAT:
       _batch_cvt24_ps_intl(tracks, data, 0, no_tracks, no_samples);
@@ -415,7 +415,7 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
 
 
 void
-_oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data)
+_oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int samples, float fact)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -425,20 +425,71 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data)
    if (data)
    {
       _oalRingBufferSample *rbd = rbd = rb->sample;
-      unsigned int no_tracks = rbd->no_tracks;
+      unsigned int t, no_tracks = rbd->no_tracks;
+      unsigned int no_samples = rbd->no_samples;
+      unsigned char bps = rbd->bytes_sample;
+      void **ptr, **track = rbd->track;
+
+      assert(samples >= (unsigned int)(fact*no_samples));
+
+      fact = 1.0f/fact;
+      ptr = track;
+      if (fact != 1.0f)
+      {
+         unsigned int size = samples*bps;
+         char *p;
+         
+         if (bps == sizeof(int32_t))
+         {
+            p = (char*)(no_tracks*sizeof(void*));
+            track = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
+            for (t=0; t<no_tracks; t++)
+            {
+               track[t] = p;
+               _aaxProcessResample(track[t], ptr[t], 0, samples, 0, fact);
+               p += size;
+            }
+         }
+         else
+         {
+            unsigned int scratch_size;
+            int32_t **scratch;
+            char *sptr;
+
+            scratch_size = 2*sizeof(int32_t*);
+            sptr = (char*)scratch_size;
+           
+            scratch_size += (no_samples+samples)*sizeof(int32_t);
+            scratch = (int32_t**)_aax_malloc(&sptr, scratch_size);
+            scratch[0] = (int32_t*)sptr;
+            scratch[1] = (int32_t*)(sptr + no_samples*sizeof(int32_t));
+
+            p = (char*)(no_tracks*sizeof(void*));
+            track = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
+            for (t=0; t<no_tracks; t++)
+            {
+               track[t] = p;
+               bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples,
+                                     rb->format);
+               _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
+               bufConvertDataFromPCM24S(track[t], scratch[1], 1, samples, 
+                                        rb->format, samples, 1);
+               p += size;
+            }
+            free(scratch);
+         }
+      }
 
       if (no_tracks == 1) {
-         _aax_memcpy(data, rbd->track[0], rbd->track_len_bytes);
+         _aax_memcpy(data, track[0], samples*bps);
       }
       else
       {
-         unsigned char bps = rbd->bytes_sample;
-         unsigned int t;
          for (t=0; t<no_tracks; t++)
          {
-            unsigned int i =  rbd->no_samples;
-            uint8_t *s = (uint8_t*)rbd->track[t];
+            uint8_t *s = (uint8_t*)track[t];
             uint8_t *d = (uint8_t *)data + t*bps;
+            unsigned int i =  samples;
             do
             {
                memcpy(d, s, bps);
@@ -448,12 +499,15 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data)
             while (--i);
          }
       }
+
+      if (ptr != track) free(track);
    }
 }
 
 void*
-_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb)
+_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, float fact)
 {
+   unsigned int samples;
    void *data;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -461,16 +515,17 @@ _oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb)
    assert(rb != 0);
    assert(rb->sample != 0);
   
-   data = malloc(rb->sample->no_tracks * rb->sample->track_len_bytes);
+   samples = fact*rb->sample->no_samples;
+   data = malloc(rb->sample->no_tracks * samples*rb->sample->bytes_sample);
    if (data) {
-      _oalRingBufferGetDataInterleaved(rb, data);
+      _oalRingBufferGetDataInterleaved(rb, data, samples, fact);
    }
 
    return data;
 }
 
 void
-_oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data)
+_oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int samples, float fact)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -480,21 +535,77 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data)
    if (data)
    {
       _oalRingBufferSample *rbd = rbd = rb->sample;
-      unsigned int no_tracks = rbd->no_tracks;
-      uint8_t *p = data;
-      unsigned int i;
+      unsigned int t, no_tracks = rbd->no_tracks;
+      unsigned int no_samples = rbd->no_samples;
+      unsigned char bps = rbd->bytes_sample;
+      void **ptr, **track = rbd->track;
+      char *p = data;
 
-      for (i=0; i<no_tracks; i++)
+      assert(samples >= (unsigned int)(fact*no_samples));
+
+      fact = 1.0f/fact;
+      ptr = track;
+      if (fact != 1.0f)
       {
-         _aax_memcpy(p, rbd->track[i], rbd->track_len_bytes);
+         unsigned int size = samples*bps;
+         char *p;
+
+         if (bps == sizeof(int32_t))
+         {
+            p = (char*)(no_tracks*sizeof(void*));
+            track = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
+            for (t=0; t<no_tracks; t++)
+            {
+               track[t] = p;
+               _aaxProcessResample(track[t], ptr[t], 0, samples, 0, fact);
+               p += size;
+            }
+         }
+         else
+         {
+            unsigned int scratch_size;
+            int32_t **scratch;
+            char *sptr;
+
+            scratch_size = 2*sizeof(int32_t*);
+            sptr = (char*)scratch_size;
+
+            scratch_size += (no_samples+samples)*sizeof(int32_t);
+            scratch = (int32_t**)_aax_malloc(&sptr, scratch_size);
+            scratch[0] = (int32_t*)sptr;
+            scratch[1] = (int32_t*)(sptr + no_samples*sizeof(int32_t));
+
+            p = (char*)(no_tracks*sizeof(void*));
+            track = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
+            for (t=0; t<no_tracks; t++)
+            {
+               track[t] = p;
+               bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples,
+                                     rb->format);
+               _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
+               bufConvertDataFromPCM24S(track[t], scratch[1], 1, samples,
+                                        rb->format, samples, 1);
+               p += size;
+            }
+            free(scratch);
+         }
+      }
+
+      p = data;
+      for (t=0; t<no_tracks; t++)
+      {
+         _aax_memcpy(p, rbd->track[t], rbd->track_len_bytes);
          p += rbd->track_len_bytes;
       }
+
+      if (ptr != track) free(track);
    }
 }
 
 void*
-_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb)
+_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, float fact)
 {
+   unsigned int samples;
    void *data;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -502,9 +613,10 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb)
    assert(rb != 0);
    assert(rb->sample != 0);
 
-   data = malloc(rb->sample->no_tracks * rb->sample->track_len_bytes);
+   samples = fact*rb->sample->no_samples;
+   data = malloc(rb->sample->no_tracks * samples*rb->sample->bytes_sample);
    if (data) {
-      _oalRingBufferGetDataNonInterleaved(rb, data);
+      _oalRingBufferGetDataNonInterleaved(rb, data, samples, fact);
    }
 
    return data;
@@ -814,7 +926,7 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
       }
       rb->format = format;
       rbd->codec = codecs[format];
-      rbd->bytes_sample = _oalRingBufferFormatsBPS[format];
+      rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
    }
 #ifndef NDEBUG
    else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
@@ -960,7 +1072,7 @@ _oalRingBufferGetFormat(const _oalRingBuffer* rb)
 {
    assert(rb != 0);
 
-   return rb->format;
+   return _oalRingBufferFormat[rb->format].format;
 }
 
 unsigned char
@@ -1156,17 +1268,17 @@ _oalRingBufferCreateHistoryBuffer(void **hptr, int32_t **history, float frequenc
 }
 /* -------------------------------------------------------------------------- */
 
-unsigned char  _oalRingBufferFormatsBPS[AAX_FORMAT_MAX] =
+_oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX] =
 {
-  1,    /* 8-bit  */
-  2,    /* 16-bit */
-  4,    /* 24-bit */
-  4,    /* 32-bit gets converted to 24-bit */
-  4,    /* floats get converted to 24-bit  */
-  4,    /* doubles get converted to 24-bit */
-  1,    /* mu-law  */
-  1,    /* a-law */
-  2     /* IMA4-ADPCM gets converted to 16-bit */
+  {  8, AAX_PCM8S },	/* 8-bit  */
+  { 16, AAX_PCM16S },	/* 16-bit */
+  { 32, AAX_PCM24S },	/* 24-bit */
+  { 32, AAX_PCM24S },	/* 32-bit gets converted to 24-bit */
+  { 32, AAX_PCM24S },	/* float gets converted to 24-bit  */
+  { 32, AAX_PCM24S },	/* double gets converted to 24-bit */
+  {  8, AAX_MULAW },	/* mu-law  */
+  {  8, AAX_ALAW },	/* a-law */
+  { 16, AAX_PCM16S }	/* IMA4-ADPCM gets converted to 16-bit */
 };
 
 
