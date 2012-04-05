@@ -1,7 +1,7 @@
 AeonWave (2.2.0) stable; urgency=low
   * Added an 8 band graphical equalizer for the final mixer stage.
   * Added an envelope following option for filters and effects (auto-wah).
-  * Added seamless transisition from tube-like soft-clipping to sharp-clipping
+  * Added seamless transition from tube-like soft-clipping to sharp-clipping
     and add an asymmetric clipping option. This is most noticeable for
     the distortion effect.
   * Added support for registered sensors. Registering an aaxConfig handle
@@ -9,7 +9,7 @@ AeonWave (2.2.0) stable; urgency=low
     application to do buffer handling between the physical input device and
     an emitter. It also improves latency since reading the buffer and
     processing it's contents is done in a single step.
-    Registered sensors are only guarenteed in stereo mode for this release.
+    Registered sensors are only guaranteed in stereo mode for this release.
   * Added support for subframes. Subframes are like regular audio-frames
     but they are registered at other audio-frames. Where audio-frames
     render in their own thread, subframes will render in their parents thread.
