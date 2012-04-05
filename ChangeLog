@@ -24,11 +24,12 @@ AeonWave (2.2.0) stable; urgency=low
   * Added the option to modify the Q (resonance) factor of frequency filters.
   * A complete overhaul of the recording code and of the ALSA backend.
   * Fixed filter and effect support for streaming audio.
+  * Added a resampling option for fetching buffer data.
   * Speed-up of filter and effect processing.
   * Added flanging effect.
   * Dozens of small bug fixes.
 
- -- Erik Hofman <tech@adalin.org>  Mon 02 Apr 2012 10:22:05 +0200;
+ -- Erik Hofman <tech@adalin.org>  Mon 05 Apr 2012 11:39:05 +0200;
 
 
 AeonWave (2.1.2) stable; urgency=medium

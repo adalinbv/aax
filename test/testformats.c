@@ -99,8 +99,10 @@ int main(int argc, char **argv)
 
          no_samples = aaxBufferGetSetup(buf, AAX_NO_SAMPLES);
          no_tracks = aaxBufferGetSetup(buf, AAX_TRACKS);
-         freq = aaxBufferGetSetup(buf, AAX_FREQUENCY);
+         freq = 0.6f*aaxBufferGetSetup(buf, AAX_FREQUENCY);
 
+         res = aaxBufferSetSetup(buf, AAX_FREQUENCY, freq);
+         no_samples = aaxBufferGetSetup(buf, AAX_NO_SAMPLES);
          for (q=0; q<MAX_LOOPS; q++)
          {
             fmt = 0;
