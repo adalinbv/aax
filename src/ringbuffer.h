@@ -659,9 +659,9 @@ char
 _oalRingBufferTestPlaying(const _oalRingBuffer*);
 
 void _oalRingBufferSetFrequency(_oalRingBuffer*, float);
-void _oalRingBufferSetDuration(_oalRingBuffer*, float);
-void _oalRingBufferSetTrackSize(_oalRingBuffer*, unsigned int);
-void _oalRingBufferSetNoSamples(_oalRingBuffer*, unsigned int);
+int _oalRingBufferSetDuration(_oalRingBuffer*, float);
+int _oalRingBufferSetTrackSize(_oalRingBuffer*, unsigned int);
+int _oalRingBufferSetNoSamples(_oalRingBuffer*, unsigned int);
 void _oalRingBufferSetBytesPerSample(_oalRingBuffer*, unsigned char);
 void _oalRingBufferSetNoTracks(_oalRingBuffer*, unsigned char);
 void _oalRingBufferSetFormat(_oalRingBuffer*, _aaxCodec**codecs, enum aaxFormat);

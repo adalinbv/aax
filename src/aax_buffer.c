@@ -144,8 +144,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          break;
       }
       case AAX_TRACKSIZE:
-         _oalRingBufferSetTrackSize(rb, setup);
-         rv = AAX_TRUE;
+         rv = _oalRingBufferSetTrackSize(rb, setup);
          break;
       case AAX_LOOP_START:
          if (setup < _oalRingBufferGetNoSamples(rb))
@@ -213,7 +212,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       switch(type)
       {
       case AAX_FREQUENCY:
-         rv = buf->frequency; // _oalRingBufferGetFrequency(rb);
+         rv = buf->frequency;
          break;
       case AAX_TRACKS:
          rv = _oalRingBufferGetNoTracks(rb);
@@ -222,17 +221,22 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = _oalRingBufferGetFormat(rb);
          break;
       case AAX_TRACKSIZE:
-      {
-         float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
-         rv = fact*_oalRingBufferGetTrackSize(rb);
+         if (buf->frequency)
+         {
+            float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
+            rv = _oalRingBufferGetNoSamples(rb) - buf->pos;
+            rv *= fact*_oalRingBufferGetBytesPerSample(rb);
+         }
+         else _aaxErrorSet(AAX_INVALID_STATE);
          break;
-      }
       case AAX_NO_SAMPLES:
-      {
-         float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
-         rv = fact*(_oalRingBufferGetNoSamples(rb) - buf->pos);
+          if (buf->frequency)
+         {
+            float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
+            rv = fact*(_oalRingBufferGetNoSamples(rb) - buf->pos);
+         }
+         else _aaxErrorSet(AAX_INVALID_STATE);
          break;
-      }
       case AAX_LOOP_START:
          _oalRingBufferGetLoopPoints(rb, &rv, &tmp);
          break;
@@ -496,7 +500,7 @@ aaxBufferGetData(const aaxBuffer buffer)
 {
    _buffer_t* buf = get_buffer(buffer);
    void** data = NULL;
-   if (buf)
+   if (buf && buf->frequency)
    {
       unsigned int buf_samples, no_samples, tracks;
       unsigned int native_fmt, rb_format, pos;
@@ -615,7 +619,9 @@ aaxBufferGetData(const aaxBuffer buffer)
          }
       }
    }
-   else {
+   else if (buf) {	/* buf->frequency is not set */
+      _aaxErrorSet(AAX_INVALID_STATE);
+   } else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
 

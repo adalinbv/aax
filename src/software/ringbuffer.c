@@ -807,10 +807,11 @@ _oalRingBufferSetFrequency(_oalRingBuffer *rb, float freq)
    rbd->dde_samples = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
 }
 
-void
+int
 _oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
 {
    _oalRingBufferSample *rbd;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -820,8 +821,9 @@ _oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
    rbd = rb->sample;
    if (rbd->track == NULL)
    {
-      rbd->no_samples_avail = no_samples;
+       rbd->no_samples_avail = no_samples;
       rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
+      rv = AAX_TRUE;
    }
    else if (no_samples <= rbd->no_samples_avail)
    {
@@ -832,11 +834,13 @@ _oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
        */
       rbd->no_samples = no_samples;
       rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
+      rv = AAX_TRUE;
    }
    else if (no_samples > rbd->no_samples_avail)
    {
       rbd->no_samples_avail = no_samples;
       _oalRingBufferInitTracks(rb);
+      rv = AAX_TRUE;
    }
 #ifndef NDEBUG
    else if (rbd->track == NULL) {
@@ -845,9 +849,11 @@ _oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
       printf("%s: Unknown error\n", __FUNCTION__);
    }
 #endif
+
+   return rv;
 }
 
-void
+int
 _oalRingBufferSetTrackSize(_oalRingBuffer *rb, unsigned int size)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -855,18 +861,20 @@ _oalRingBufferSetTrackSize(_oalRingBuffer *rb, unsigned int size)
    assert(rb != 0);
    assert(rb->sample != 0);
 
-   _oalRingBufferSetNoSamples(rb, size/rb->sample->bytes_sample);  
+   return _oalRingBufferSetNoSamples(rb, size/rb->sample->bytes_sample);  
 }
 
-void
+int
 _oalRingBufferSetDuration(_oalRingBuffer *rb, float duration)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   float freq;
 
    assert(rb != 0);
    assert(rb->sample != 0);
 
-   _oalRingBufferSetNoSamples(rb, rintf(duration * rb->sample->frequency_hz));
+   freq = rb->sample->frequency_hz;
+   return _oalRingBufferSetNoSamples(rb, rintf(duration * freq));
 }
 
 
