@@ -1568,22 +1568,31 @@ detect_devnum(const char *devname, int m)
 
                   if (!strncmp(name, "front:", strlen("front:")))
                   {
-                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *interface;
-
-                     if (!desc) continue;
-
-                     interface = strstr(desc, ", ");
-                     if (interface) *interface = 0;
-
-                     if (!strncmp(devname, desc, len))
+                     if (!strcmp(devname, "default"))
                      {
-                        free(desc);
                         free(name);
                         devnum = ctr;
                         break;
                      }
-                     ctr++;
+                     else
+                     {
+                        char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                        char *interface;
+
+                        if (!desc) continue;
+
+                        interface = strstr(desc, ", ");
+                        if (interface) *interface = 0;
+   
+                        if (!strncmp(devname, desc, len))
+                        {
+                           free(desc);
+                           free(name);
+                           devnum = ctr;
+                           break;
+                        }
+                        ctr++;
+                     }
                   }
                   free(name);
                }
