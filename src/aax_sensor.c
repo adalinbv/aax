@@ -387,35 +387,34 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       _aaxAudioFrame *submix = sensor->mixer;
       _oalRingBuffer *rb;
 
-      if (submix->ringbuffer) {
-         _oalRingBufferDelete(submix->ringbuffer);
-      }
-
-      submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
-      rb = submix->ringbuffer;
-      if (rb)
+      if (!submix->ringbuffer)
       {
-         _aaxMixerInfo* info = submix->info;
-         const _aaxDriverBackend *be;
-         float delay_sec;
+         submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+         rb = submix->ringbuffer;
+         if (rb)
+         {
+            _aaxMixerInfo* info = submix->info;
+            const _aaxDriverBackend *be;
+            float delay_sec;
 
-         be = _aaxGetDriverBackendLoopback();
-         delay_sec = 1.0f / info->refresh_rate;
+            be = _aaxGetDriverBackendLoopback();
+            delay_sec = 1.0f / info->refresh_rate;
 
-         _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetFrequency(rb, info->frequency);
-         _oalRingBufferSetNoTracks(rb, 2);
+            _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+            _oalRingBufferSetFrequency(rb, info->frequency);
+            _oalRingBufferSetNoTracks(rb, 2);
 
-         /* create a ringbuffer with a but of overrun space */
-         _oalRingBufferSetDuration(rb, delay_sec*1.0f);
-         _oalRingBufferInit(rb, AAX_TRUE);
+            /* create a ringbuffer with a but of overrun space */
+            _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+            _oalRingBufferInit(rb, AAX_TRUE);
 
-         /* 
-          * Now set the actual duration, this will not alter the allocated
-          * space since it is lower that the initial duration.
-          */
-         _oalRingBufferSetDuration(rb, delay_sec);
-         _oalRingBufferStart(rb);
+            /* 
+             * Now set the actual duration, this will not alter the allocated
+             * space since it is lower that the initial duration.
+             */
+            _oalRingBufferSetDuration(rb, delay_sec);
+            _oalRingBufferStart(rb);
+         }
       }
       _intBufReleaseData(dptr, _AAX_SENSOR);
    }
