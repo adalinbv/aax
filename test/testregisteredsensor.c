@@ -29,12 +29,12 @@ int main(int argc, char **argv)
    devname = getDeviceName(argc, argv);
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
    printf("Playback: %s\n", aaxDriverGetSetup(config, AAX_RENDERER_STRING));
-   testForError(config, "No default audio device available.");
+   testForError(config, "Audio output device  is not available.");
 
    devname = getCaptureName(argc, argv);
    record = aaxDriverOpenByName(devname, AAX_MODE_READ);
    printf("Recording: %s\n", aaxDriverGetSetup(record, AAX_RENDERER_STRING));
-   testForError(record, "Capture device is unavailable.");
+   testForError(record, "Audio capture device is not available.");
 
    if (config && record)
    {

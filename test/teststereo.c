@@ -32,7 +32,7 @@ int main(int argc, char **argv)
    if (num>256) num = 256;
 
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-   testForError(config, "No default audio device available.");
+   testForError(config, "Audio output device is not available.");
 
    do {
       aaxBuffer buffer = bufferFromFile(config, infile);
