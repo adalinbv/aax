@@ -218,6 +218,7 @@ _oalRingBufferReference(_oalRingBuffer *ringbuffer)
       rb->elapsed_sec = 0.0f;
       rb->curr_pos_sec = 0.0f;
       rb->curr_sample = 0;
+// TODO: Is this really what we want? Looks suspiceous to me
       rb->sample->scratch = NULL;
    }
 
@@ -625,9 +626,8 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, float fact)
 void
 _oalRingBufferClear(_oalRingBuffer *rb)
 {
-   _oalRingBufferReverbData *reverb;
    _oalRingBufferSample *rbd;
-   unsigned int i, size, fmt, dde;
+   unsigned int i;
 
    /* _AAX_LOG(LOG_DEBUG, __FUNCTION__); */
 
@@ -637,27 +637,26 @@ _oalRingBufferClear(_oalRingBuffer *rb)
    assert(rbd != 0);
    assert(rbd->track);
 
-   fmt = rb->format;
-   dde = rb->add_dde;
-
    for (i=0; i<rbd->no_tracks; i++) {
       memset((void *)rbd->track[i], 0, rbd->track_len_bytes);
    }
 
-   reverb = rb->reverb;
+// rb->sample = rbd;
+// rb->reverb = reverb;
 
-   size = sizeof(_oalRingBuffer);
-   memset(rb, 0, size);
-
-   rb->sample = rbd;
-   rb->reverb = reverb;
-   rb->playing = 0;
-   rb->stopped = 1;
-   rb->streaming = 0;
-   rb->format = fmt;
-   rb->add_dde = dde;
+   rb->elapsed_sec = 0.0f;
    rb->pitch_norm = 1.0f;
    rb->volume_norm = 1.0f;
+
+   rb->curr_pos_sec = 0.0f;
+   rb->curr_sample = 0;
+
+// rb->format = fmt;
+   rb->playing = 0;
+   rb->stopped = 1;
+   rb->looping = 0;
+   rb->streaming = 0;
+// rb->add_dde = dde;
 }
 
 _oalRingBuffer *
@@ -778,7 +777,7 @@ _oalRingBufferCopyDelyEffectsData(_oalRingBuffer *d, const _oalRingBuffer *s)
          tracks = drbd->no_tracks;
       }
 
-     bps = srbd->bytes_sample;
+      bps = srbd->bytes_sample;
       for (t=0; t<tracks; t++)
       {
          int32_t *sptr = srbd->track[t];

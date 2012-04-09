@@ -536,6 +536,8 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    dde = rbd->dde_samples * rbd->bytes_sample;
 
    scratch = (char**)rbd->scratch;
+   assert(scratch != 0);
+
    res = be->capture(handle, rbd->track, &nframes, scratch[0]-dde);
    if (TEST_FOR_TRUE(res) && nframes)
    {
