@@ -212,6 +212,7 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
             handle->backend.ptr = be;
             if (be) { /* be == NULL should never happen */
                handle->devname[0] = _aax_strdup(be->driver);
+               handle->devname[1] = "default";
             }
          }
 
