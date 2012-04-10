@@ -580,8 +580,18 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
    channels = *tracks;
    if (channels > handle->no_channels) {
       channels = handle->no_channels;
-   } else if (handle->no_channels > channels) {
-      channels = handle->no_channels;
+   }
+ 
+   if (handle->no_channels != channels)
+   {
+      int m = handle->mode;
+      handle->no_channels = channels;
+
+      handle->name = detect_devname(handle->name, handle->devnum,
+                                    handle->no_channels, m, handle->vmixer);
+
+      psnd_pcm_close(handle->id);
+      err = psnd_pcm_open(&handle->id, handle->name, _alsa_mode[m], SND_PCM_NONBLOCK);
    }
 
    hwparams = calloc(1, psnd_pcm_hw_params_sizeof());
