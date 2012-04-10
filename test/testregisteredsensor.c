@@ -51,6 +51,9 @@ int main(int argc, char **argv)
       testForState(res, "aaxMixerSeFrequency");
 #endif
 
+      res = aaxMixerSetSetup(config, AAX_TRACKS, channels);
+      testForState(res, "aaxMixerSetNoTracks");
+
       res = aaxMixerSetState(config, AAX_INITIALIZED);
       testForState(res, "aaxMixerInit");
 
