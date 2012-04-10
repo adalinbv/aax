@@ -111,6 +111,7 @@ _aaxDriverBackend _aaxALSASoftDriverBackend =
 typedef struct
 {
     char *name;
+    char *devname;
     int devnum;
 
     snd_pcm_t *id;
@@ -383,7 +384,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
       handle->sse_level = _aaxGetSSELevel();
-      handle->name = (char*)renderer;
+      handle->name = _aax_strdup((char*)renderer);
       handle->pause = 0;
       handle->use_mmap = 1;
       handle->interleaved = 0;
@@ -403,7 +404,7 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
          {
             s = xmlNodeGetString(xid, "renderer");
             if (s && strcmp(s, "default")) {
-               handle->name = s;
+               handle->name = _aax_strdup(s);
             }
             else
             {
@@ -499,8 +500,9 @@ _aaxALSASoftDriverConnect(const void *id, void *xid, const char *renderer, enum 
       handle->mode = m;
       handle->devnum = detect_devnum(handle->name, m);
 
-      handle->name = detect_devname(handle->name, handle->devnum, handle->no_channels, m, handle->vmixer);
-      err = psnd_pcm_open(&handle->id, handle->name, _alsa_mode[m], SND_PCM_NONBLOCK);
+      handle->devname = detect_devname(handle->name, handle->devnum,
+                                    handle->no_channels, m, handle->vmixer);
+      err = psnd_pcm_open(&handle->id, handle->devname, _alsa_mode[m], SND_PCM_NONBLOCK);
       if (err >= 0)
       {
          err = psnd_pcm_nonblock(handle->id, 1);
@@ -530,6 +532,13 @@ _aaxALSASoftDriverDisconnect(void *id)
    {
       int m = (handle->mode > 0) ? 1 : 0;
 
+      if (handle->devname)
+      {
+         if (handle->devname != _soft_default_name[m]) {
+            free(handle->devname);
+         }
+         handle->devname = 0;
+      }
       if (handle->name)
       {
          if (handle->name != _soft_default_name[m]) {
@@ -585,13 +594,18 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
    if (handle->no_channels != channels)
    {
       int m = handle->mode;
+
+      err = psnd_pcm_nonblock(handle->id, 0);
+      err = psnd_pcm_close(handle->id);
+
       handle->no_channels = channels;
-
-      handle->name = detect_devname(handle->name, handle->devnum,
+      handle->devnum = detect_devnum(handle->name, m);
+      handle->devname = detect_devname(handle->name, handle->devnum,
                                     handle->no_channels, m, handle->vmixer);
-
-      psnd_pcm_close(handle->id);
-      err = psnd_pcm_open(&handle->id, handle->name, _alsa_mode[m], SND_PCM_NONBLOCK);
+      err = psnd_pcm_open(&handle->id, handle->devname, _alsa_mode[m], SND_PCM_NONBLOCK);
+      if (err >= 0) {
+         err = psnd_pcm_nonblock(handle->id, 1);
+      }
    }
 
    hwparams = calloc(1, psnd_pcm_hw_params_sizeof());
@@ -1160,9 +1174,15 @@ _aaxALSASoftDriverGetName(const void *id, int playback)
    _driver_t *handle = (_driver_t *)id;
    char *ret = (char *)_soft_default_name[handle->mode];
 
-   if (handle && handle->name) {
-      ret = handle->name;
+   if (handle)
+   {
+      if (handle->name) {
+         ret = handle->name;
+      } else if (handle->devname) {
+         ret = handle->devname;
+      }
    }
+   
 
    return ret;
 }
