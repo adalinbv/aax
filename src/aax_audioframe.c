@@ -1240,6 +1240,7 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
    }
 
+   be->effects(be_handle, dest_rb, mixer->props2d);
    be->postprocess(be_handle, dest_rb, sensor);
 
    if TEST_FOR_TRUE(mixer->capturing)
@@ -1449,6 +1450,7 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
           _aaxAudioFrame *mixer, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer,
           const _aaxDriverBackend *be)
 {
+   void* be_handle = NULL;
    _oalRingBuffer2dProps sp2d;
    _oalRingBuffer3dProps sp3d;
    _oalRingBuffer2dProps fp2d;
@@ -1467,6 +1469,8 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
        memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4));
        memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
        _intBufReleaseData(dptr, _AAX_SENSOR);
+
+       be_handle = handle->backend.handle; 
    }
    memcpy(&fp3d, fmixer->props3d, sizeof(_oalRingBuffer3dProps));
    memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
@@ -1478,8 +1482,8 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
                                               &sp2d, &sp3d, &fp2d, &fp3d,
                                               mixer->emitters_2d,
                                               mixer->emitters_3d,
-                                              be, NULL);
+                                              be, be_handle);
 
    /** process registered audio-frames and sensors */
-   _aaxAudioFramePlayFrame(mixer, be, NULL, NULL);
+   _aaxAudioFramePlayFrame(mixer, be, NULL, be_handle);
 }

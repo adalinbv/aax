@@ -468,9 +468,11 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    }
    while (++stage < 2); /* process 3d positional and stereo emitters */
 
+#if 0
    if (num) {
       be->effects(be_handle, dest_rb, props2d);
    }
+#endif
 
    _PROP_MTX_CLEAR_CHANGED(props3d);
    _PROP_PITCH_CLEAR_CHANGED(props3d);
@@ -872,6 +874,7 @@ _aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void*
    if (mixer->frames) {
       _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
    }
+   be->effects(be_handle, dest_rb, mixer->props2d);
    be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */

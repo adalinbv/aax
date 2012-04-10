@@ -457,8 +457,12 @@ _aaxSensorCaptureStart(_handle_t *handle)
                assert(handle->thread.mutex != 0);
 
                handle->thread.started = AAX_TRUE;
+#if 0
                r = _aaxThreadStart(handle->thread.ptr,
                                    handle->backend.ptr->thread, handle);
+#else
+               r = _aaxThreadStart(handle->thread.ptr, _aaxSoftwareMixerThread, handle);
+#endif
                if (r == 0)
                {
                   int p = 0;
