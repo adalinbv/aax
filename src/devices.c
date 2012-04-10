@@ -510,7 +510,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                      if (tmp) q = tmp-ptr;
                      else q = strlen(ptr);
 
-                     l = q + strlen(rr) + strlen(" on \0");
+                     l = ++q + strlen(rr) + strlen(" on \0");
                      config->backend.driver = malloc(l);
                      snprintf(config->backend.driver, q, "%s", ptr);
                      strcat(config->backend.driver, " on ");
