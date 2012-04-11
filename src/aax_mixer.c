@@ -384,7 +384,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
-//    case AAX_FLANGING_EFFECT:
+      case AAX_FLANGING_EFFECT:
       case AAX_PITCH_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
