@@ -212,7 +212,11 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
          {
             cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, WRITEFN, param);
             effect->slot[slot]->param[param] = cvtfn(value);
-            rv = AAX_TRUE;
+            if TEST_FOR_TRUE(effect->state) {
+               rv = aaxEffectSetState(effect, effect->state);
+            } else {
+               rv = AAX_TRUE;
+            }
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);

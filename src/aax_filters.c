@@ -221,7 +221,11 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
          {
             cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, WRITEFN, param);
             filter->slot[slot]->param[param] = cvtfn(value);
-            rv = AAX_TRUE;
+            if TEST_FOR_TRUE(filter->state) {
+               rv = aaxFilterSetState(filter, filter->state);
+            } else {
+               rv = AAX_TRUE;
+            }
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
