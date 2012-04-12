@@ -2087,13 +2087,6 @@ _aaxALSASoftDriverThread(void* config)
       return NULL;
    }
 
-   /*
-    * We're actually abusing the Ringbuffer container a bit since
-    * the internal data format is interleaved instead of non-
-    * interleaved. This shouldn't cause any problems though since
-    * it won't be used internally but instead is just a container
-    * to move the data form that driver to the client application.
-    */
    dest_rb = _oalRingBufferCreate(AAX_TRUE);
    if (!dest_rb) {
       return NULL;
