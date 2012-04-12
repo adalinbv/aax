@@ -70,8 +70,8 @@ typedef int _aaxDriverState(const void*);
 typedef int _aaxDriverCallback(const void*, void*, void*, float, float);
 typedef int _aaxDriverCaptureCallback(const void*, void**, size_t*, void*);
 
-typedef int _aaxDriver2dMixerCB(const void*, void*, void*, void*, void*, float, float);
-typedef int _aaxDriver3dMixerCB(const void*, void*, void*, void*, void*, int);
+typedef int _aaxDriver2dMixerCB(const void*, void*, void*, void*, void*, float, float, unsigned char);
+typedef int _aaxDriver3dMixerCB(const void*, void*, void*, void*, void*, int, unsigned char);
 typedef void _aaxDriverPrepare3d(void*, void*, const void*, const void*, void*);
 typedef void _aaxDriverPostProcess(const void*, void*, const void*);
 typedef void _aaxDriverPrepare(const void*, void*, const void*);

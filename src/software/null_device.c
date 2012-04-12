@@ -175,7 +175,7 @@ _aaxNoneDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
 }
 
 static int
-_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n)
+_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
 {
    return AAX_FALSE;
 }
@@ -196,7 +196,7 @@ _aaxNoneDriverPostProcess(const void *id, void *s, const void *l)
 }
 
 static int
-_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume)
+_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr)
 {
    return AAX_FALSE;
 }

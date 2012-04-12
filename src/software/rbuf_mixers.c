@@ -38,7 +38,7 @@ _aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
  * DELAY_EFFECTS_TIME in samples for the mixer frequency)
  */
 int32_t **
-_aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples)
+_aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr)
 {
    _oalRingBufferSample *rbd, *rbs;
    float sfreq, sduration, src_pos_sec, new_src_pos_sec;
@@ -252,7 +252,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
                bufEffectsApply(dptr, scratch1, scratch0, dest_pos, dend,
-                               dno_samples, ddesamps, track,
+                               dno_samples, ddesamps, track, ctr,
                                freq_filter, delay_effect, distortion_effect);
             }
          }

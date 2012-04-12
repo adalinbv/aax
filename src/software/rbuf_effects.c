@@ -33,7 +33,7 @@ static void szxform(float *, float *, float *, float *, float *, float *,
 void
 bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
           unsigned int start, unsigned int end, unsigned int no_samples,
-          unsigned int ddesamps, unsigned int track,
+          unsigned int ddesamps, unsigned int track, unsigned char ctr,
           void *freq, void *delay, void *distort)
 {
    static const unsigned int bps = sizeof(int32_t);
@@ -54,7 +54,7 @@ bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
    /* Apply frequency filter first */
    if (freq)
    {
-      bufFilterFrequency(pdst, psrc, start, end, ds, track, freq);
+      bufFilterFrequency(pdst, psrc, start, end, ds, track, freq, ctr);
       BUFSWAP(pdst, psrc);
    }
 
@@ -353,7 +353,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 void
 bufFilterFrequency(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
-                   unsigned int track, void *data)
+                   unsigned int track, void *data, unsigned char ctr)
 {
    _oalRingBufferFreqFilterInfo *filter = data;
 
@@ -376,7 +376,7 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
       float hf = filter->hf_gain;
       float k = filter->k;
 
-      if (filter->lfo)
+      if (!ctr && filter->lfo)
       {
          float fc = filter->lfo->get(filter->lfo, s, track, dmax);
          float Q = filter->Q;

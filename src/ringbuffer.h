@@ -390,11 +390,11 @@ typedef struct
 typedef int
 _oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, 
-                        float, unsigned char);
+                        float, unsigned char, unsigned char);
 typedef int
 _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*,
-                        float, float);
+                        float, float, unsigned char);
 
 
 /**
@@ -712,7 +712,7 @@ extern _oalRingBufferDistFunc* _oalRingBufferALDistanceFunc[];
 extern _oalRingBufferPitchShiftFunc* _oalRingBufferDopplerFunc[];
 
 void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
-int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*);
+int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char);
 
 float _lin(float v);
 float _lin2log(float v);
@@ -734,8 +734,8 @@ float _oalRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
 float _oalRingBufferLFOGetEnvelopeFollow(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);
 
-void bufEffectsApply(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, void*, void*, void*);
-void bufFilterFrequency(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
+void bufEffectsApply(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, void*, void*, void*);
+void bufFilterFrequency(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned char);
 void bufEffectDistort(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
 void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned int);
 void bufEffectReflections(int32_t*, const int32_ptr, unsigned int, unsigned int, unsigned int, const void*);

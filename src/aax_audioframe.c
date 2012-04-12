@@ -704,7 +704,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             if (src->update_rate == 0) {
                src->update_rate = mixer->info->update_rate;
             }
-            src->update_ctr = 0;
+            src->update_ctr = src->update_rate;
 
             if (positional)
             {

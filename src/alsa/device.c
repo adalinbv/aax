@@ -741,7 +741,7 @@ _aaxALSADriverAvailable(const void *id)
 }
 
 static int
-_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n)
+_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
 {
    static _oalRingBuffer *hwbuf = 0;
    _driver_t *handle = (_driver_t *)id;
@@ -768,7 +768,7 @@ _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n)
             handle->sources_list[n] = pos;
          } else {
             /* TODO: last parameter should be emitter->track */
-            ret =_oalRingBufferMixMono16(d, s, p, m, gain, 0);
+            ret =_oalRingBufferMixMono16(d, s, p, m, gain, 0, ctr);
          }
       }
 
@@ -776,7 +776,7 @@ _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n)
       {
          _oalRingBufferClear(hwbuf);
          /* TODO: last parameter should be emitter->track */
-         ret = _oalRingBufferMixMono16(hwbuf, s, p, m, gain, 0);
+         ret = _oalRingBufferMixMono16(hwbuf, s, p, m, gain, 0, ctr);
          _alsa_playback_fn(id, handle->channel[pos], hwbuf, 1.0, 1.0);
          if (ret)
          {

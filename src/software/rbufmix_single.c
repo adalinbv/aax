@@ -89,7 +89,7 @@ int
 _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
                               _oalRingBuffer2dProps *p2d,
                               _oalRingBuffer2dProps *mix_p2d,
-                              float gain, unsigned char ch)
+                              float gain, unsigned char ch, unsigned char ctr)
 {
    unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
@@ -126,7 +126,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
    if (sptr == NULL) {
       return ret;
    }
@@ -230,7 +230,7 @@ int
 _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
                                 _oalRingBuffer2dProps *p2d,
                                 _oalRingBuffer2dProps *mix_p2d,
-                                float gain, unsigned char ch)
+                                float gain, unsigned char ch, unsigned char ctr)
 {
    unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
@@ -267,7 +267,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
    if (sptr == NULL) {
       return ret;
    }
@@ -407,7 +407,7 @@ int
 _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
                                _oalRingBuffer2dProps *p2d,
                                _oalRingBuffer2dProps *mix_p2d,
-                               float gain, unsigned char ch)
+                               float gain, unsigned char ch, unsigned char ctr)
 {
    unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
@@ -444,7 +444,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
    if (sptr == NULL) {
       return ret;
    }
@@ -536,7 +536,7 @@ int
 _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
                             _oalRingBuffer2dProps *p2d,
                             _oalRingBuffer2dProps *mix_p2d,
-                            float gain, unsigned char ch)
+                            float gain, unsigned char ch, unsigned char ctr)
 {
    unsigned int track, offs, dno_samples, ddesamps;
    _oalRingBufferLFOInfo *lfo;
@@ -575,7 +575,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    // make sure the returned buffer has at least ddesamps prior to sptr[track]
    rbd = dest->sample;
    offs = ddesamps = rbd->dde_samples;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
    if (sptr == NULL) {
       return ret;
    }
@@ -698,10 +698,6 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    info = (const _aaxMixerInfo*)mix_info;
    src = (_aaxEmitter *)source;
 
-   if (--src->update_ctr > 0) {
-      return;
-   }
-   src->update_ctr = src->update_rate;
    eprops3d = src->props3d;
    eprops2d = src->props2d;
 

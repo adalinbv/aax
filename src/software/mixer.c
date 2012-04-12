@@ -75,7 +75,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
          /* mix the buffer and the delay buffer */
          DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
          bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, no_samples,
-                         ddesamps, track, freq_filter, delay, distortion);
+                         ddesamps, track, 0, freq_filter, delay, distortion);
 
          /* copy the unmodified next effects buffer back */
          DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
@@ -132,10 +132,10 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
          _aax_memcpy(d3, d1, rbd->track_len_bytes);
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter);
+         bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter, 0);
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter);
+         bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
          _batch_fmadd(d1, d2, dmax, 1.0, 0.0);
       }
       else if (ptr && graphic)
@@ -147,17 +147,17 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int b = 6;
 
          filter = &eq->band[b--];
-         bufFilterFrequency(d3, d1,  0, dmax, 0, track, filter);
+         bufFilterFrequency(d3, d1,  0, dmax, 0, track, filter, 0);
          do
          {
             filter = &eq->band[b--];
-            bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter);
+            bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
 
             filter = &eq->band[b--];
-            bufFilterFrequency(d3, d2, 0, dmax, 0, track, filter);
+            bufFilterFrequency(d3, d2, 0, dmax, 0, track, filter, 0);
 
             filter = &eq->band[b--];
-            bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter);
+            bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter, 0);
          }
          while (b > 0);
       }
@@ -386,21 +386,30 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
                      }
                   }
 
+                  --src->update_ctr;
+                   
                   /* 3d mixing */
                   if (stage == 0)
                   {
                      assert(_IS_POSITIONAL(src));
-                     be->prepare3d(sp3d, fp3d, info, props2d, src);
+                     if (!src->update_ctr) {
+                        be->prepare3d(sp3d, fp3d, info, props2d, src);
+                     }
                      if (src->curr_pos_sec >= props2d->delay_sec) {
                         rv = be->mix3d(be_handle, dest_rb, src_rb, src->props2d,
-                                               props2d, emitter->track);
+                                               props2d, emitter->track,
+                                               src->update_ctr);
                      }
                   }
                   else
                   {
                      assert(!_IS_POSITIONAL(src));
                      rv = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
-                                           props2d, 1.0, 1.0);
+                                           props2d, 1.0, 1.0, src->update_ctr);
+                  }
+
+                  if (!src->update_ctr) {
+                     src->update_ctr = src->update_rate;
                   }
 
                   src->curr_pos_sec += dt;
@@ -607,7 +616,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                   do
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb, mixer->props2d,
-                                               NULL, 1.0f, 1.0f);
+                                               NULL, 1.0f, 1.0f, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
@@ -707,7 +716,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *frame)
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb,
                                     smixer->props2d, fmixer->props2d,
-                                    1.0f, 1.0f);
+                                    1.0f, 1.0f, 0);
 
                      if (rv)	/* always streaming */
                      {
