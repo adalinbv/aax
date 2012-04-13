@@ -330,34 +330,32 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
       if (effect)
       {
          const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         switch (effect->type)
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *mixer = sensor->mixer;
-            int type = effect->pos;
-            switch (effect->type)
+         case AAX_PITCH_EFFECT:
+         case AAX_DYNAMIC_PITCH_EFFECT:
+         case AAX_DISTORTION_EFFECT:
+         case AAX_PHASING_EFFECT:
+         case AAX_CHORUS_EFFECT:
+         case AAX_FLANGING_EFFECT:
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
             {
-            case AAX_PITCH_EFFECT:
-            case AAX_DYNAMIC_PITCH_EFFECT:
-            case AAX_DISTORTION_EFFECT:
-            case AAX_PHASING_EFFECT:
-            case AAX_CHORUS_EFFECT:
-            case AAX_FLANGING_EFFECT:
-            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame *mixer = sensor->mixer;
                _oalRingBuffer2dProps *p2d = mixer->props2d;
+               int type = effect->pos;
                _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
                _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
                _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
                rv = AAX_TRUE;
-               break;
             }
-            default:
-               _aaxErrorSet(AAX_INVALID_ENUM);
-            }
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+            break;
+         default:
+            _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
       else {
@@ -511,33 +509,35 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   _oalRingBuffer3dProps *mp3d, *sp3d;
                   _aaxAudioFrame *mixer, *submix;
                   _oalRingBuffer *rb;
-                  _sensor_t* sensor;
 
                   dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-                  sensor = _intBufGetDataPtr(dptr);
-                  mixer = sensor->mixer;
-                  submix = sframe_sensor->mixer;
-
-                  mp3d = mixer->props3d;
-                  sp3d = submix->props3d;
-
-                  submix->info->frequency = mixer->info->frequency;
-                  while (submix->info->frequency > 48000.0f) {
-                     submix->info->frequency /= 2.0f;
-                  }
-                  submix->info->refresh_rate = mixer->info->refresh_rate;
-                  submix->dist_delaying = mixer->dist_delaying;
-                  if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
-                     _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
-                  }
-
-                  if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
+                  if (dptr)
                   {
-                     _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-                     _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
-                     _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
+                     _sensor_t *sensor = _intBufGetDataPtr(dptr);
+                     mixer = sensor->mixer;
+                     submix = sframe_sensor->mixer;
+
+                     mp3d = mixer->props3d;
+                     sp3d = submix->props3d;
+
+                     submix->info->frequency = mixer->info->frequency;
+                     while (submix->info->frequency > 48000.0f) {
+                        submix->info->frequency /= 2.0f;
+                     }
+                     submix->info->refresh_rate = mixer->info->refresh_rate;
+                     submix->dist_delaying = mixer->dist_delaying;
+                     if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
+                        _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
+                     }
+
+                     if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
+                     {
+                        _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
+                        _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+                        _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
+                     }
+                     _intBufReleaseData(dptr, _AAX_SENSOR);
                   }
-                  _intBufReleaseData(dptr, _AAX_SENSOR);
 
                   sframe->handle = handle;
                   sframe->pos = pos;
@@ -605,6 +605,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
       if (sframe && sframe->pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         _intBufferData *dptr_sframe;
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
@@ -615,18 +616,17 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
 
-         dptr = _intBufGet(sframe->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         dptr_sframe = _intBufGet(sframe->sensors, _AAX_SENSOR, 0);
+         if (dptr_sframe)
          {
-            _sensor_t* sframe_sensor = _intBufGetDataPtr(dptr);
+            _sensor_t* sframe_sensor = _intBufGetDataPtr(dptr_sframe);
             sframe_sensor->mixer->refcount--;
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+            _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
 
             sframe->handle = NULL;
             sframe->pos = UINT_MAX;
             rv = AAX_TRUE;
          }
-         _intBufReleaseData(dptr, _AAX_SENSOR);
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -858,29 +858,31 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             {
                _oalRingBuffer3dProps *mp3d, *fp3d;
                _aaxAudioFrame *mixer, *submix;
-               _sensor_t* sensor;
 
                dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               sensor = _intBufGetDataPtr(dptr);
-               mixer = sensor->mixer;
-               submix = frame->submix;
-
-               mp3d = mixer->props3d;
-               fp3d = submix->props3d;
-
-               submix->dist_delaying = mixer->dist_delaying;
-               if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
-                  _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
-               }
-
-               if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
+               if (dptr)
                {
-                  _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-                  _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-                  _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
+                  _sensor_t *sensor = _intBufGetDataPtr(dptr);
+                  mixer = sensor->mixer;
+                  submix = frame->submix;
+
+                  mp3d = mixer->props3d;
+                  fp3d = submix->props3d;
+
+                  submix->dist_delaying = mixer->dist_delaying;
+                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
+                     _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
+                  }
+
+                  if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
+                  {
+                     _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+                     _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
+                     _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
+                  }
+                  _intBufReleaseData(dptr, _AAX_SENSOR);
+                  rv = AAX_TRUE;
                }
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-               rv = AAX_TRUE;
 
                submix->refcount++;
                submix->thread = AAX_TRUE;

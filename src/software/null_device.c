@@ -491,8 +491,11 @@ _aaxNoneDriverThread(void* config)
       if ((mixer->emitters_3d || mixer->emitters_2d) && _IS_PLAYING(handle))
       {
           dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         _aaxNoneDriverProcessFrame(mixer);
-         _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+          if (dptr_sensor)
+          {
+            _aaxNoneDriverProcessFrame(mixer);
+            _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+         }
       }
    }
    while (_aaxConditionWaitTimed(handle->thread.condition, handle->thread.mutex, &ts) == ETIMEDOUT);

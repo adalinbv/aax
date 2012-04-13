@@ -1464,12 +1464,15 @@ _aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
        /* copying prevents locking the listener the whole time */
        /* it's used for just one time-frame anyhow             */
        dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-       memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
-       memcpy(&sp2d.pos, smixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4));
-       memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4));
-       memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
-       _intBufReleaseData(dptr, _AAX_SENSOR);
+       if (dptr)
+       {
+          memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
+          memcpy(&sp2d.pos, smixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4));
+          memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4));
+          memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
+          _intBufReleaseData(dptr, _AAX_SENSOR);
 
+       }
        be_handle = handle->backend.handle; 
    }
    memcpy(&fp3d, fmixer->props3d, sizeof(_oalRingBuffer3dProps));
