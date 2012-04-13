@@ -1018,6 +1018,7 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
 #endif
 
    /* synchronise capture and playback for registered sensors */
+   avail = 0;
    res = psnd_pcm_delay(handle->id, &avail);
    if (res < 0)
    {
