@@ -31,8 +31,6 @@ void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int,
 
 void _aaxSoftwareDriverWriteFile(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
 
-int _aaxSoftwareMixerPlayFrame(void*, const void*, void*, void*);
-
 
 #endif
 

@@ -1199,7 +1199,7 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
 
    /** process registered sensors */
    if (mixer->sensors) {
-      _aaxSoftwareMixerMixSensors(dest_rb, mixer);
+      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors, mixer->props2d);
    }
 
    /* postprocess registered (non threaded) audio frames */

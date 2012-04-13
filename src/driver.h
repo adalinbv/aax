@@ -134,7 +134,7 @@ void _aaxNoneDriverProcessFrame(void*);
 
 unsigned int _aaxSoftwareMixerSignalFrames(void*);
 void* _aaxSoftwareMixerReadFrame(void*, const void*, void*, float*);
-int _aaxSoftwareMixerPlayFrame(void*, const void*, void*, void*);
+int _aaxSoftwareMixerPlayFrame(void**, const void*, const void*, const void*, void*, const void*, char, const void*, const void*, const void*);
 void _aaxSoftwareMixerProcessFrame(void*, void*, void*, void*, void*, void*, void*, void*, const void*, void*);
 
 void* _aaxSoftwareMixerThread(void*);
@@ -142,7 +142,7 @@ int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
 void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
 unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
-unsigned int _aaxSoftwareMixerMixSensors(void*, const void *);
+unsigned int _aaxSoftwareMixerMixSensors(void*, const void *, void*);
 
 #endif /* !_AAX_DRIVER_H */
 

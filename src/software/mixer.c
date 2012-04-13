@@ -650,14 +650,13 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 }
 
 unsigned int
-_aaxSoftwareMixerMixSensors(void *dest, const void *frame)
+_aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
-   _aaxAudioFrame *fmixer = (_aaxAudioFrame *)frame;
    unsigned int i, num = 0;
-   if (fmixer && fmixer->sensors)
+   if (sensors)
    {
-      _intBuffers *hs = fmixer->sensors;
+      _intBuffers *hs = (_intBuffers *)sensors;
 
       num = _intBufGetMaxNum(hs, _AAX_DEVICE);
       for (i=0; i<num; i++)
@@ -715,7 +714,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *frame)
                   do
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb,
-                                    smixer->props2d, fmixer->props2d,
+                                    smixer->props2d, props2d,
                                     1.0f, 1.0f, 0);
 
                      if (rv)	/* always streaming */
@@ -869,57 +868,35 @@ for (i=0; i<_oalRingBufferGetNoTracks(dest_rb); i++) {
 }
 
 int
-_aaxSoftwareMixerPlayFrame(void* frame, const void* backend, void* sensor, void* be_handle)
+_aaxSoftwareMixerPlayFrame(void** rb, const void* sensors, const void* ringbuffers, const void* frames, void* props2d, const void* props3d, char capturing, const void* sensor, const void* backend, const void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
-   _aaxAudioFrame* mixer = (_aaxAudioFrame*)frame;
-   _oalRingBuffer *dest_rb = mixer->ringbuffer;
+   _oalRingBuffer *dest_rb = (_oalRingBuffer *)*rb;
    int res;
 
    /** postprocess registered sensors and (threaded) audio frames */
-   if (mixer->sensors) {
-      _aaxSoftwareMixerMixSensors(dest_rb, mixer);
+   if (sensors) {
+      _aaxSoftwareMixerMixSensors(dest_rb, sensors, props2d);
    }
-   if (mixer->frames) {
-      _aaxSoftwareMixerMixFrames(dest_rb, mixer->frames);
+   if (frames)
+   {
+      _intBuffers *mixer_frames = (_intBuffers*)frames;
+      _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
    }
-   be->effects(be_handle, dest_rb, mixer->props2d);
+   be->effects(be_handle, dest_rb, props2d);
    be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
    res = be->play(be_handle, 0, dest_rb, 1.0, 1.0);
 
-   if TEST_FOR_TRUE(mixer->capturing)
+   if TEST_FOR_TRUE(capturing)
    {
-//    unsigned int nbuf;
-
+      _intBuffers *mixer_ringbuffers = (_intBuffers*)ringbuffers;
       _oalRingBufferForward(dest_rb);
-      _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, dest_rb);
-
-#if 0
-      nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-      if (nbuf == 1) {
-         dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
-      }
-      else
-      {
-         _intBuffers *ringbuffers = mixer->ringbuffers;
-         void **ptr;
-
-         _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-         ptr = _intBufShiftIndex(ringbuffers, _AAX_RINGBUFFER, 0, 1);
-         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-         assert(ptr != NULL);
-
-         dest_rb = (_oalRingBuffer *)ptr[0];
-         free(ptr);
-      }
-#else
-      _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
+      _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, dest_rb);
+      _intBufGetNumNoLock(mixer_ringbuffers, _AAX_RINGBUFFER);
       dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
-#endif
-      mixer->ringbuffer = dest_rb;
+      *rb = (void*)dest_rb;
    }
 
    _oalRingBufferClear(dest_rb);
@@ -999,8 +976,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                            mixer->emitters_2d,
                                            mixer->emitters_3d,
                                            be, be_handle);
-
-            res = _aaxSoftwareMixerPlayFrame(mixer, be, sensor, be_handle);
+ 
+            res = _aaxSoftwareMixerPlayFrame((void**)&mixer->ringbuffer,
+                                             mixer->sensors,
+                                             mixer->ringbuffers, mixer->frames,
+                                             &sp2d, &sp3d, mixer->capturing,
+                                             sensor, be, be_handle);
          }
       }
       else /* if (_IS_STANDBY(handle) */

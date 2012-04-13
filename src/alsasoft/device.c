@@ -2149,12 +2149,9 @@ _aaxALSASoftDriverThread(void* config)
       }
       _aaxMutexLock(handle->thread.mutex);
 
-#if 1
-      /* Ultimately this line should go */
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
-#endif
 
 #if 0
  printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
