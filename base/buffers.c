@@ -382,6 +382,17 @@ _intBufSetDataPtr(_intBufferData *data, void *user_data)
 }
 
 #ifndef _AL_NOTHREADS
+# ifndef NDEBUG
+void
+_intBufReleaseDataDebug(const _intBufferData *data, unsigned int id, char *file, int line)
+{
+   _BUF_LOG(LOG_BULK, id, "_intBufReleaseData");
+
+   assert(data != 0);
+
+   _aaxMutexUnLockDebug(data->mutex, file, line);
+}
+# else
 void
 _intBufReleaseData(const _intBufferData *data, unsigned int id)
 {
@@ -391,6 +402,7 @@ _intBufReleaseData(const _intBufferData *data, unsigned int id)
 
    _aaxMutexUnLock(data->mutex);
 }
+# endif
 #else
 # define _intBufReleaseData(a, b)
 #endif

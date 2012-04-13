@@ -194,8 +194,14 @@ _intBufRelease(const _intBuffers *, unsigned int, unsigned int);
  * @param object the object to unlock
  * @param id the id of the buffer this array should represent
  */
+#ifndef NDEBUG
+# define _intBufReleaseData(a, b)       _intBufReleaseDataDebug((a), (b), __FILE__, __LINE__)
+void
+_intBufReleaseDataDebug(const _intBufferData*, unsigned int, char*, int);
+#else
 void
 _intBufReleaseData(const _intBufferData *, unsigned int);
+#endif
 
 /**
  * Lock the buffer and return the number of allocated objects.
