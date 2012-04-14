@@ -125,6 +125,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+               _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
                _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
                _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
                rv = AAX_TRUE;
@@ -143,6 +144,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
                _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+               _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
                _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
                _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
                rv = AAX_TRUE;
@@ -221,6 +223,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+               _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
                _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
                _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
                rv = AAX_TRUE;

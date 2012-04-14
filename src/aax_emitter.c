@@ -472,6 +472,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+            _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
             _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
             rv = AAX_TRUE;
@@ -483,6 +484,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
             float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
             float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
             float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
+            float tmp = _FILTER_GET_SLOT(filter, 0, 3);
 
             if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
                _PROP_CONE_CLEAR_DEFINED(p3d);
@@ -492,6 +494,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
             _FILTER_SET(p3d, type, 0, inner_vec);
             _FILTER_SET(p3d, type, 1, outer_vec);
             _FILTER_SET(p3d, type, 2, outer_gain);
+            _FILTER_SET(p3d, type, 3, tmp)
             _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
             rv = AAX_TRUE;
@@ -610,6 +613,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
             _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
 
@@ -641,6 +645,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+            _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
             _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
             _EFFECT_SWAP_SLOT_DATA(p3d,  type, effect, 0);
             rv = AAX_TRUE;
