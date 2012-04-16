@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2012 by Erik Hofman.
+ * Copyright 2009-2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -39,8 +39,8 @@ _oalRingBufferMixMNFunc *_oalRingBufferMixMulti16 = _oalRingBufferMixMulti16Effe
  *
  * @dest single or multi track destination buffer
  * @src single or multi track source buffer
- * @p2d 2d emitter 2d properties
- * @mix_p2d mixter 2d properties
+ * @p2d 2d emitter/sensor 2d properties
+ * @mix_p2d mixer 2d properties
  */
 int
 _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *p2d, _oalRingBuffer2dProps *mix_p2d, float pitch, float gain, unsigned char ctr)

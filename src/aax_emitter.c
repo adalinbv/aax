@@ -494,7 +494,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
             _FILTER_SET(p3d, type, 0, inner_vec);
             _FILTER_SET(p3d, type, 1, outer_vec);
             _FILTER_SET(p3d, type, 2, outer_gain);
-            _FILTER_SET(p3d, type, 3, tmp)
+            _FILTER_SET(p3d, type, 3, tmp);
             _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
             rv = AAX_TRUE;

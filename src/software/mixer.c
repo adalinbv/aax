@@ -326,13 +326,12 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
 
    lfo = _EFFECT_GET_DATA(props2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
-      props2d->final.pitch_lfo =  lfo->get(lfo, NULL, 0, 0);
+      props2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
    }
    lfo = _FILTER_GET_DATA(props2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
       props2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
    }
-
 
    num = 0;
    stage = 0;
