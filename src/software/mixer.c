@@ -714,9 +714,8 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
 
                      do
                      {
-                        rv = be->mix2d(be_handle, dest_rb, src_rb,
-                                       smixer->props2d, props2d,
-                                       1.0f, 1.0f, 0);
+                        rv = be->mix2d(be_handle, dest_rb, src_rb, props2d,
+                                       smixer->props2d, 1.0f, 1.0f, 0);
 
                         if (rv)	/* always streaming */
                         {
