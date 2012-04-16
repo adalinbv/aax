@@ -210,7 +210,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 int
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -291,7 +291,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 const aaxFilter
 aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_handle(config);
    aaxFilter rv = AAX_FALSE;
    if (handle)
    {
@@ -326,7 +326,7 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 int
 aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_handle(config);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -376,7 +376,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 const aaxEffect
 aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_handle(config);
    aaxEffect rv = AAX_FALSE;
    if (handle)
    {
