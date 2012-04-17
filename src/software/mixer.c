@@ -554,7 +554,7 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
       float pitch = (float)frames/(float)nframes;
       _oalRingBuffer *nrb;
       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-      dest_rb->pitch_norm = pitch;
+      dest_rb->pitch_norm = 1.0f; // pitch;
 
       _oalRingBufferRewind(dest_rb);
       *rr *= pitch;
@@ -714,6 +714,14 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
 
                      do
                      {
+                        _oalRingBuffer2dProps *p2d;
+                        _oalRingBufferLFOInfo *lfo;
+
+                        p2d = (_oalRingBuffer2dProps*)props2d;
+                        lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+                        if (lfo) {
+                           p2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
+                        }
                         rv = be->mix2d(be_handle, dest_rb, src_rb,
                                        smixer->props2d, props2d,
                                        1.0f, 1.0f, 0);

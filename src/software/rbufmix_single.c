@@ -124,6 +124,9 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
+   /* compensate for capture differences */
+   pitch *= src->pitch_norm;
+
    /** Resample */
    offs = 0;
    sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
@@ -264,6 +267,9 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
+
+   /* compensate for capture differences */
+   pitch *= src->pitch_norm;
 
    /** Resample */
    offs = 0;
@@ -442,6 +448,9 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
+   /* compensate for capture differences */
+   pitch *= src->pitch_norm;
+
    /** Resample */
    offs = 0;
    sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
@@ -570,6 +579,9 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
+
+   /* compensate for capture differences */
+   pitch *= src->pitch_norm;
 
    /** Resample */
    // make sure the returned buffer has at least ddesamps prior to sptr[track]
