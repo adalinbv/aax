@@ -674,10 +674,10 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
             if (dptr_sensor)
             {
                const _intBufferData* dptr_rb;
-               _intBuffers *ringbuffers;
                _oalRingBuffer *src_rb;
                _aaxAudioFrame *smixer;
                _sensor_t* sensor;
+               _intBuffers *srbs;
                void *rv;
                float dt;
 
@@ -685,7 +685,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                smixer = sensor->mixer;
                src_rb = smixer->ringbuffer;
                dt = 1.0f / smixer->info->refresh_rate;
-               ringbuffers = smixer->ringbuffers;
+               srbs = smixer->ringbuffers;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt);
@@ -702,14 +702,14 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                       * first buffer from the queue when needed (below).
                       * This way pitch effects (< 1.0) can be processed safely.
                       */
-                     _intBufAddData(ringbuffers, _AAX_RINGBUFFER, src_rb);
+                     _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
                      smixer->ringbuffer = rv;
                   }
 
-                  dptr_rb = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
+                  dptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
                   if (dptr_rb)
                   {
-                     _oalRingBuffer *src_rb = _intBufGetDataPtr(dptr_rb);
+                     _oalRingBuffer *ssr_rb = _intBufGetDataPtr(dptr_rb);
                      unsigned int rv = 0;
 
                      do
@@ -722,23 +722,19 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                         if (lfo) {
                            p2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
                         }
-                        rv = be->mix2d(be_handle, dest_rb, src_rb,
-                                       smixer->props2d, props2d,
-                                       1.0f, 1.0f, 0);
+                        rv = be->mix2d(be_handle, dest_rb, ssr_rb,
+                                       smixer->props2d, props2d, 1.0f, 1.0f, 0);
+                        _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
 
                         if (rv)	/* always streaming */
                         {
                            unsigned int nbuf;
-                           void **ptr;
 
-                           _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
-
-                           nbuf=_intBufGetNumNoLock(ringbuffers,_AAX_RINGBUFFER);
+                           nbuf = _intBufGetNumNoLock(srbs, _AAX_RINGBUFFER);
                            if (nbuf)
                            {
-                              ptr = _intBufShiftIndex(ringbuffers,
-                                                      _AAX_RINGBUFFER, 0, 1);
-//                            _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+                              void **ptr;
+                              ptr = _intBufShiftIndex(srbs,_AAX_RINGBUFFER,0,1);
                               if (ptr)
                               {
                                  nbuf--;
@@ -749,8 +745,8 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
 
                            if (nbuf)
                            {
-                              dptr_rb=_intBufGet(ringbuffers,_AAX_RINGBUFFER,0);
-                              src_rb = _intBufGetDataPtr(dptr_rb);
+                              dptr_rb=_intBufGet(srbs,_AAX_RINGBUFFER,0);
+                              ssr_rb = _intBufGetDataPtr(dptr_rb);
                            }
                            else rv = 0;
                         }
