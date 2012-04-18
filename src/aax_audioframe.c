@@ -304,6 +304,9 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
             _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+            if (filter->type == AAX_DYNAMIC_GAIN_FILTER) {
+               p2d->final.gain_lfo = 1.0f;
+            }
             rv = AAX_TRUE;
             break;
          }
@@ -395,6 +398,9 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
             _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
             _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+            if (effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
+               p2d->final.pitch_lfo = 1.0f;
+            }
             rv = AAX_TRUE;
             break;
          }
