@@ -722,6 +722,10 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                         if (lfo) {
                            p2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
                         }
+                        lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+                        if (lfo && !lfo->envelope) {
+                           p2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
+                        }
                         rv = be->mix2d(be_handle, dest_rb, ssr_rb,
                                        smixer->props2d, props2d, 1.0f, 1.0f, 0);
                         _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
