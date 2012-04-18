@@ -1453,9 +1453,15 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                      if (rv)
                      {
                         *rv = 0;
-                        if (vmix) strcat(rv, "plug:'");
-                        strcat(rv, name);
-                        if (vmix) strcat(rv, "'");
+                        if (vmix)
+                        {
+                            strcat(rv, "plug:'");
+                            if (m) strcat(rv, "dmix");
+                            else strcat(rv, "dsnoop");
+                            strcat(rv, strchr(name, ':'));
+                            strcat(rv, "'");
+                        }
+                        else strcat(rv, name);
                      } else {
                         rv = _aax_strdup(name);
                      }
@@ -1490,26 +1496,34 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            {
                               int dlen = strlen(name)+1;
                               dlen -= strlen("front:");
-                              dlen += strlen(dev_prefix[m ? tracks : 0]);
-                              if (vmix) dlen += strlen("plug:''");
+                              if (vmix)
+                              {
+                                 dlen += strlen("plug:''");
+                                 if (m) len += strlen("dmix:");
+                                 else len += strlen("dsnoop:");
+                              }
+                              else dlen += strlen(dev_prefix[m ? tracks : 0]);
                               rv = malloc(dlen);
                               if (rv)
                               {
-                                 char *ptr;
+                                 char *ptr = strchr(name, ':');
 
                                  *rv = 0;
-                                 if (vmix) strcat(rv, "plug:'");
-
-                                 ptr = strchr(name, ':');
-                                 if (ptr)
+                                 if (vmix)
+                                 {
+                                    strcat(rv, "plug:'");
+                                    if (m) strcat(rv, "dmix");
+                                    else strcat(rv, "dsnoop");
+                                    strcat(rv, ptr);
+                                    strcat(rv, "'"); 
+                                 }
+                                 else if (ptr)
                                  {
                                     strcat(rv, dev_prefix[m ? tracks : 0]);
                                     strcat(rv, ptr+1);
                                  } else {
                                     strcat(rv, name);
                                  }
-
-                                 if (vmix) strcat(rv, "'");
                               } else {
                                  rv = _aax_strdup(name);
                               }
@@ -1519,25 +1533,33 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         else
                         {
                            int dlen = strlen(name)+1;
-                           if (vmix) dlen += strlen("plug:''");
+                           if (vmix)
+                           {
+                              dlen += strlen("plug:''");
+                              if (m) len += strlen("dmix:");
+                              else len += strlen("dsnoop:");
+                           }
                            rv = malloc(dlen);
                            if (rv)
                            {
-                              char *ptr;
+                              char *ptr = strchr(name, ':');
 
                               *rv = 0;
-                              if (vmix) strcat(rv, "plug:'");
-
-                              ptr = strchr(name, ':');
-                              if (ptr)
+                              if (vmix)
+                              {
+                                 strcat(rv, "plug:'");
+                                 if (m) strcat(rv, "dmix");
+                                 else strcat(rv, "dsnoop");
+                                 strcat(rv, ptr);
+                                 strcat(rv, "'");
+                              }
+                              else if (ptr)
                               {
                                  strcat(rv, dev_prefix[m ? tracks : 0]);
                                  strcat(rv, ptr+1);
                               } else {
                                  strcat(rv, name);
                               }
-
-                              if (vmix) strcat(rv, "'");
                            } else {
                               rv = _aax_strdup(name);
                            }
