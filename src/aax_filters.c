@@ -350,26 +350,32 @@ aaxFilterSetState(aaxFilter f, int state)
 
                if (flt)
                {
-                  float *cptr, fc, k, Q;
+                  float *cptr, fcl, fch, k, Q;
 
                   /* LF frequency setup */
                   flt = filter->slot[EQUALIZER_LF]->data;
-                  fc = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
+                  fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
                   cptr = flt->coeff;
                   k = 1.0f;
                   Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-                  iir_compute_coefs(fc, filter->info->frequency, cptr, &k, Q);
+                  iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q);
                   flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
                   flt->k = k;
 
                   /* HF frequency setup */
                   flt = filter->slot[EQUALIZER_HF]->data;
-                  fc = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
+                  fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
+                  if (fch < fcl) fch = fcl;
+                  if (fch < fcl) {
+                     float f = fch; fch = fcl; fcl = f;
+                  } else if (fabs(fch - fcl) < 200.0f) {
+                     fcl *= 0.9f; fch *= 1.1f;
+                  }
                   cptr = flt->coeff;
                   k = 1.0f;
                   Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-                  iir_compute_coefs(fc, filter->info->frequency, cptr, &k, Q);
+                  iir_compute_coefs(fch, filter->info->frequency, cptr, &k, Q);
                   flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
                   flt->k = k;
@@ -602,6 +608,17 @@ aaxFilterSetState(aaxFilter f, int state)
 
                      lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                      lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+                     if (lfo->max < lfo->min) 
+                     {
+                        float f = lfo->max;
+                        lfo->max = lfo->min;
+                        lfo->min = f;
+                     }
+                     else if (fabs(lfo->max - lfo->min) < 200.0f)
+                     { 
+                        lfo->min *= 0.9f;
+                        lfo->max *= 1.1f;
+                     }
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                      lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                      lfo->envelope = AAX_FALSE;
