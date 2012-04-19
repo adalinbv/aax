@@ -327,21 +327,21 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
       no_samples = dmax+ds-dmin;
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
+
       _aax_memcpy(dptr, sptr, no_samples*bps);
+      if (mix > 0.01f)
+      {
+         /* make dptr the wet signal */
+         if (fact > 0.01f) {
+            _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
+         }
 
-      if (fact > 0.01f) {
-         _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
-      }
+         if ((fact > 0.01f) || (asym > 0.01f)) {
+            bufCompress(dptr, 0, no_samples, clip, asym);
+         }
 
-      if ((fact > 0.01f) || (asym > 0.01f)) {
-         bufCompress(dptr, 0, no_samples, clip, asym);
-      }
-
-      if (mix < 0.99f) {
-         _batch_mul_value(dptr, bps, no_samples, mix);
-      }
-
-      if (mix > 0.01f) {
+         /* mix with the dry signal */
+         _batch_mul_value(dptr, bps, no_samples, mix/(1.0f+4.0f*pow(fact,0.3f)));
          _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
       }
    }

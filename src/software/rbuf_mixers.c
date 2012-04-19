@@ -308,6 +308,7 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax) {
 #define SHIFT		(31-BITS)
 #define START		((1<<SHIFT)-1)
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
+#if 1
 void
 bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
 {
@@ -352,9 +353,10 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
    while (--j);
 }
 
-#if 0
+#else
+/* arctan */
 void
-bufCompressArcTan(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
+bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
 {
    int32_t *ptr = (int32_t*)d;
    unsigned int j;
