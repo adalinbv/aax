@@ -303,6 +303,8 @@ aaxEffectSetState(aaxEffect e, int state)
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
+                        lfo->get = _oalRingBufferLFOGetFixedValue;
+                        break;
                      case AAX_TRIANGLE_WAVE:
                         lfo->get = _oalRingBufferLFOGetTriangle;
                         break;
@@ -539,6 +541,8 @@ aaxEffectSetState(aaxEffect e, int state)
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
+                        data->lfo.get = _oalRingBufferLFOGetFixedValue;
+                        break;
                      case AAX_TRIANGLE_WAVE:
                         data->lfo.get = _oalRingBufferLFOGetTriangle;
                         break;
