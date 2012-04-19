@@ -187,7 +187,8 @@ enum
 
 #define _FILTER_SWAP_SLOT_DATA(P, f, F, s)	 			\
     do { void* ptr = P->filter[f].data;					\
-    P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr; } while (0);
+    P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr; 	\
+    aaxFilterSetState(F, P->filter[f].state); } while (0);
 
 #define _EFFECT_GET_SLOT		_FILTER_GET_SLOT
 #define _EFFECT_GET_SLOT_STATE		_FILTER_GET_SLOT_STATE
@@ -218,7 +219,8 @@ enum
 
 #define _EFFECT_SWAP_SLOT_DATA(P, f, F, s)	 			\
     do { void* ptr = P->effect[f].data;					\
-    P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr; } while (0);
+    P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr; 	\
+    aaxEffectSetState(F, P->effect[f].state); } while (0);
 
 typedef float _convert_fn(float);
 typedef float _oalRingBufferDistFunc(float, float, float, float, float, float);
