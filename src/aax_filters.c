@@ -619,6 +619,8 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->min *= 0.9f;
                         lfo->max *= 1.1f;
                      }
+
+                     /* sweeprate */
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                      lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                      lfo->envelope = AAX_FALSE;
@@ -957,11 +959,16 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
 
             freq = (_oalRingBufferFreqFilterInfo *)p2d->filter[rv->pos].data;
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            /* reconstruct rv->slot[1] */
             if (freq && freq->lfo)
             {
                rv->slot[1]->param[AAX_RESONANCE] = freq->lfo->f;
-//             rv->slot[0]->param[AAX_CUTOFF_FREQUENCY] = freq->lfo->min;
                rv->slot[1]->param[AAX_CUTOFF_FREQUENCY] = freq->lfo->max;
+            }
+            else
+            {
+               int type = AAX_FREQUENCY_FILTER;
+               memcpy(rv->slot[1], &_flt_minmax_tbl[1][], size);
             }
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;
