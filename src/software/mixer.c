@@ -36,16 +36,19 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
    _oalRingBufferFreqFilterInfo* freq_filter;
    _oalRingBufferSample *rbd;
    int dist_state;
+   float gain;
 
    assert(rb != 0);
    assert(rb->sample != 0);
 
    rbd = rb->sample;
 
+   gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+
    delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-   if (delay || freq_filter || dist_state)
+   if ((gain > 1.01f || gain < 0.99f) || (delay || freq_filter || dist_state))
    {
       int32_t *scratch0 = rbd->scratch[SCRATCH_BUFFER0];
       int32_t *scratch1 = rbd->scratch[SCRATCH_BUFFER1];
@@ -83,6 +86,10 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
 
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
+
+         if (gain > 1.01f || gain < 0.99f) {
+            _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain);
+         }
       }
    }
 }
