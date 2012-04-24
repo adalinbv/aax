@@ -206,7 +206,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       int32_t *dptr = d + start;
 
       offs = effect->delay.sample_offs[track];
-      assert(offs <= ds);
+      assert(offs < ds);
 
       if (start) {
          noffs = effect->curr_noffs;

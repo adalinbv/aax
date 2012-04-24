@@ -1457,12 +1457,12 @@ _oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, 
 
       val = 0.0f;
       do {
-         val += div * fabs(*sptr++);
+         val += fabs(*sptr++);
       } while (--i);
-      val /= (float)end;
+      val = _MINMAX(val*div/(float)end, 0.0f, 1.0f);
 
       fact = lfo->step[track];
-      lfo->value[track] = _MINMAX(fact*(val - nval) + nval, 0.0f, 1.0f);
+      lfo->value[track] = _MAX(nval + fact*(val - nval), 0);
    }
    return lfo->convert(rv);
 }
