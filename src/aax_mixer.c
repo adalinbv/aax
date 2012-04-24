@@ -727,8 +727,8 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                _aaxAudioFrame *mixer = sensor->mixer;
 
                if (mixer->ringbuffer) {
-                  src->props2d->delay_sec
-                                  =_oalRingBufferGetDuration(mixer->ringbuffer);
+                  src->props2d->delay_sec =
+                                  _oalRingBufferGetDuration(mixer->ringbuffer);
                }
 
                if (positional)

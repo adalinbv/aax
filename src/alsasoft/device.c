@@ -1495,7 +1495,6 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                (description && !strcmp(devptr, description)))
                            {
                               int dlen = strlen(name)+1;
-                              dlen -= strlen("front:");
                               if (vmix)
                               {
                                  dlen += strlen("plug:''");
@@ -1533,7 +1532,6 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         else
                         {
                            int dlen = strlen(name)+1;
-                           dlen -= strlen("front:");
                            if (vmix)
                            {
                               dlen += strlen("plug:''");
