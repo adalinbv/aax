@@ -618,7 +618,6 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 
                   buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
                   src_rb = _intBufGetDataPtr(buf);
-
                   do
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb, mixer->props2d,
@@ -680,7 +679,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
             dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
-               const _intBufferData* dptr_rb;
+               const _intBufferData* sptr_rb;
                _oalRingBuffer *src_rb;
                _aaxAudioFrame *smixer;
                _sensor_t* sensor;
@@ -713,10 +712,10 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                      smixer->ringbuffer = rv;
                   }
 
-                  dptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
-                  if (dptr_rb)
+                  sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
+                  if (sptr_rb)
                   {
-                     _oalRingBuffer *ssr_rb = _intBufGetDataPtr(dptr_rb);
+                     _oalRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
                      unsigned int rv = 0;
 
                      do
@@ -735,7 +734,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                         }
                         rv = be->mix2d(be_handle, dest_rb, ssr_rb,
                                        smixer->props2d, props2d, 1.0f, 1.0f, 0);
-                        _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
+                        _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                         if (rv)	/* always streaming */
                         {
@@ -756,8 +755,10 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
 
                            if (nbuf)
                            {
-                              dptr_rb=_intBufGet(srbs,_AAX_RINGBUFFER,0);
-                              ssr_rb = _intBufGetDataPtr(dptr_rb);
+                              sptr_rb = _intBufGet(srbs,_AAX_RINGBUFFER,0);
+                              ssr_rb = _intBufGetDataPtr(sptr_rb);
+                              /* since rv == AAX_TRUE this will be unlocked 
+                                 after be->mix2d */
                            }
                            else rv = 0;
                         }

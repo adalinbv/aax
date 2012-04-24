@@ -489,8 +489,8 @@ aaxFilterSetState(aaxFilter f, int state)
                   float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
                   int t;
 
-                  lfo->min = 1.0f - depth;
-                  lfo->max = 1.0f;
+                  lfo->min = 0.0f;
+                  lfo->max = 2.0f * depth;
                   lfo->envelope = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
@@ -500,7 +500,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   {
                      lfo->step[t] = 2.0f*depth * lfo->f;
                      lfo->step[t] /= filter->info->refresh_rate;
-                     lfo->value[t] = 1.0f - depth;
+                     lfo->value[t] = 1.0f;
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_SAWTOOTH_WAVE:
@@ -968,7 +968,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
             else
             {
                int type = AAX_FREQUENCY_FILTER;
-               memcpy(rv->slot[1], &_flt_minmax_tbl[1][], size);
+               memcpy(rv->slot[1], &_flt_minmax_tbl[1][type], size);
             }
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;

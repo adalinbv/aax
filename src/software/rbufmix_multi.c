@@ -66,6 +66,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
       pitch *= mix_p2d->final.pitch_lfo;
    }
+
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
@@ -99,17 +100,22 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       ret = -1;
    }
 
+   max = 1.0f;
    if (mix_p2d)
    {
       gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
-      gain *= mix_p2d->final.gain_lfo;
+      max *= mix_p2d->final.gain_lfo;
    }
-   gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
 
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
-      gain *= lfo->get(lfo, NULL, 0, 0);
+      max *= lfo->get(lfo, NULL, 0, 0);
    }
+   if (max != 1.0f) {
+      gain *= 1.0f - max/2.0f;
+   }
+
+   gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;

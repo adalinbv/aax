@@ -152,7 +152,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   gain *= mix_p2d->final.gain_lfo;
+   max = mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
@@ -163,8 +163,11 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
          if (g > 1e-3) gain *= 1.0f/g;
       }
       else {
-         gain *= lfo->get(lfo, NULL, 0, 0);
+         max *= lfo->get(lfo, NULL, 0, 0);
       }
+   }
+   if (max != 1.0f) {
+      gain *= 1.0f - max/2.0f;
    }
 
    /** Automatic volume ramping to avoid clicking */
@@ -296,7 +299,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   gain *= mix_p2d->final.gain_lfo;
+   max = mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
@@ -307,8 +310,11 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          if (g > 1e-3) gain *= 1.0f/g;
       } 
       else {
-         gain *= lfo->get(lfo, NULL, 0, 0);
+         max *= lfo->get(lfo, NULL, 0, 0);
       }
+   }
+   if (max != 1.0f) {
+      gain *= 1.0f - max/2.0f;
    }
 
    /** Automatic volume ramping to avoid clicking */
@@ -476,7 +482,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   gain *= mix_p2d->final.gain_lfo;
+   max = mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
@@ -487,8 +493,11 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
          if (g > 1e-3) gain *= 1.0f/g;
       } 
       else {
-         gain *= lfo->get(lfo, NULL, 0, 0);
+         max *= lfo->get(lfo, NULL, 0, 0);
       }
+   }
+   if (max != 1.0f) {
+      gain *= 1.0f - max/2.0f;
    }
 
    /** Automatic volume ramping to avoid clicking */
@@ -610,7 +619,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
 
-   gain *= mix_p2d->final.gain_lfo;
+   max = mix_p2d->final.gain_lfo;
    gain *= p2d->final.gain;
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
@@ -621,8 +630,11 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
          if (g > 1e-3) gain *= 1.0f/g;
       } 
       else {
-         gain *= lfo->get(lfo, NULL, 0, 0);
+         max *= lfo->get(lfo, NULL, 0, 0);
       }
+   }
+   if (max != 1.0f) {
+      gain *= 1.0f - max/2.0f;
    }
 
    /** Automatic volume ramping to avoid clicking */
