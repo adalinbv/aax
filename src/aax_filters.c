@@ -352,9 +352,17 @@ aaxFilterSetState(aaxFilter f, int state)
                {
                   float *cptr, fcl, fch, k, Q;
 
+                  fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
+                  fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
+                  if (fabs(fch - fcl) < 200.0f) {
+                     fcl *= 0.9f; fch *= 1.1f;
+                  } else if (fch < fcl) {
+                     float f = fch; fch = fcl; fcl = f;
+                  }
+                  filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY] = fcl;
+
                   /* LF frequency setup */
                   flt = filter->slot[EQUALIZER_LF]->data;
-                  fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
                   cptr = flt->coeff;
                   k = 1.0f;
                   Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
@@ -365,13 +373,6 @@ aaxFilterSetState(aaxFilter f, int state)
 
                   /* HF frequency setup */
                   flt = filter->slot[EQUALIZER_HF]->data;
-                  fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
-                  if (fch < fcl) fch = fcl;
-                  if (fch < fcl) {
-                     float f = fch; fch = fcl; fcl = f;
-                  } else if (fabs(fch - fcl) < 200.0f) {
-                     fcl *= 0.9f; fch *= 1.1f;
-                  }
                   cptr = flt->coeff;
                   k = 1.0f;
                   Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
@@ -608,17 +609,18 @@ aaxFilterSetState(aaxFilter f, int state)
 
                      lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                      lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-                     if (lfo->max < lfo->min) 
+                     if (fabs(lfo->max - lfo->min) < 200.0f)
+                     { 
+                        lfo->min *= 0.9f;
+                        lfo->max *= 1.1f;
+                     }
+                     else if (lfo->max < lfo->min)
                      {
                         float f = lfo->max;
                         lfo->max = lfo->min;
                         lfo->min = f;
                      }
-                     else if (fabs(lfo->max - lfo->min) < 200.0f)
-                     { 
-                        lfo->min *= 0.9f;
-                        lfo->max *= 1.1f;
-                     }
+                     filter->slot[0]->param[AAX_CUTOFF_FREQUENCY] = lfo->min;
 
                      /* sweeprate */
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
