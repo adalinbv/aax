@@ -1533,12 +1533,14 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         else
                         {
                            int dlen = strlen(name)+1;
+                           dlen -= strlen("front:");
                            if (vmix)
                            {
                               dlen += strlen("plug:''");
                               if (m) len += strlen("dmix:");
                               else len += strlen("dsnoop:");
                            }
+                           else dlen += strlen(dev_prefix[m ? tracks : 0]);
                            rv = malloc(dlen);
                            if (rv)
                            {
