@@ -27,7 +27,7 @@ AeonWave (2.2.0) stable; urgency=low
   * Added a resampling option for fetching buffer data.
   * Speed-up of filter and effect processing.
   * Added flanging effect.
-  * Dozens of small bug fixes.
+  * Dozens of small fixes.
 
  -- Erik Hofman <tech@adalin.org>  Mon 05 Apr 2012 11:39:05 +0200;
 

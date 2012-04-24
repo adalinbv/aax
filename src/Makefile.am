@@ -3,8 +3,7 @@ SUBDIRS = software oss alsasoft alsa dmedia
 if NDEBUG
 RMALLOC_LIB = -lzeroxml
 else
-RMALLOC_LIB = -lzeroxml
-#RMALLOC_LIB = -lzeroxml-rmalloc
+RMALLOC_LIB = -lzeroxml-rmalloc
 endif
 
 lib_LTLIBRARIES = libaax.la
