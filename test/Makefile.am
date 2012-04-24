@@ -1,8 +1,7 @@
 if NDEBUG
 XML_LIB = -lzeroxml
 else
-XML_LIB = -lzeroxml
-#XML_LIB = -lzeroxml-rmalloc
+XML_LIB = -lzeroxml-rmalloc
 endif
 
 bin_PROGRAMS = aaxinfo
@@ -22,7 +21,8 @@ noinst_LTLIBRARIES = libtest.la libtest_internal.la
 
 libtest_la_SOURCES = wavfile.c driver.c
 libtest_la_LIBADD = \
-	$(top_builddir)/base/libbase.la
+	$(top_builddir)/base/libbase.la \
+	$(XML_LIB)
 
 libtest_internal_la_SOURCES = driver_internal.c
 libtest_internal_la_LIBADD = \

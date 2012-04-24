@@ -5,6 +5,8 @@
 #include <time.h>	/* nanosleep */
 #include <string.h>	/* strrchr */
 
+#include <base/logging.h>
+
 #include "driver.h"
 #include "copyright.h"
 

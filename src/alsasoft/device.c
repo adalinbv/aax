@@ -1251,12 +1251,12 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
                      len -= slen;
                      ptr += slen;
 
-                     if (desc != name) free(desc);
+                     if (desc != name) _aax_free(desc);
                   }
                }
-               free(name);
+               _aax_free(name);
             }
-            free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1340,12 +1340,12 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
                         ptr += slen;
                      }
                   }
-                  if (desc != name) free(desc);
+                  if (desc != name) _aax_free(desc);
                }
             }
-            free(name);
+            _aax_free(name);
          }
-         free(type);
+         _aax_free(type);
          ++lst;
       }
       while (*lst != NULL);
@@ -1566,12 +1566,12 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            break;
                         }
                      }
-                     if (desc != name) free(desc);
+                     if (desc != name) _aax_free(desc);
                   }
-                  free(name);
+                  _aax_free(name);
                }
             }
-            free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1614,7 +1614,7 @@ detect_devnum(const char *devname, int m)
                {
                   if (!strcmp(devname, name))
                   {
-                     free(name);
+                     _aax_free(name);
                      devnum = ctr;
                      break;
                   }
@@ -1623,7 +1623,7 @@ detect_devnum(const char *devname, int m)
                   {
                      if (!strcmp(devname, "default"))
                      {
-                        free(name);
+                        _aax_free(name);
                         devnum = ctr;
                         break;
                      }
@@ -1639,18 +1639,18 @@ detect_devnum(const char *devname, int m)
    
                         if (!strncmp(devname, desc, len))
                         {
-                           free(desc);
-                           free(name);
+                           _aax_free(desc);
+                           _aax_free(name);
                            devnum = ctr;
                            break;
                         }
                         ctr++;
                      }
                   }
-                  free(name);
+                  _aax_free(name);
                }
             }
-            free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1682,7 +1682,7 @@ get_devices_avail(int m)
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name && !strncmp(name, "front:", strlen("front:"))) rv++;
          }
-         free(type);
+         _aax_free(type);
          ++lst;
       }
       while (*lst != NULL);

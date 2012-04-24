@@ -35,7 +35,7 @@
 # include <stdlib.h>
 # include <string.h>
 # include <strings.h>
- #endif
+#endif
 
 #if HAVE_SYSLOG_H
 # include <syslog.h>
@@ -70,6 +70,8 @@
     PRINT_ROW(m1, 2, '\t'); PRINT_ROW(m2, 2, '\n'); \
     PRINT_ROW(m1, 3, '\t'); PRINT_ROW(m2, 3, '\n');
 
+
+extern void (*_aax_free)(void*);
 
 int _oal_getbool(const char*);
 void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level);
