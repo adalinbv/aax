@@ -10,6 +10,10 @@ int detect_nan_vec4(const float *);
 int detect_inf_vec3(const float *);
 int detect_zero_vec3(const float *);
 
+#if 0
+#define fast_abs(a)            ((a) > 0) ? (a) : -(a)
+float fast_abs(float);
+#endif
 float fast_sin(float);
 unsigned get_pow2(unsigned);
 unsigned log2i(unsigned);

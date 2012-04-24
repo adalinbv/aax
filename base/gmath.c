@@ -8,6 +8,14 @@
 
 #include "geometry.h"
 
+#if 0
+/* http://devmaster.net/forums/topic/4998-the-ultimate-fast-absolute-value/ */
+float fast_fabs(float x)
+{
+    int y = (int&)x & 0x7FFFFFFF;
+    return (float&)y;
+}
+#endif
 
 #if 1
 /* http://www.devmaster.net/forums/showthread.php?t=5784 */
