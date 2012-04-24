@@ -281,7 +281,7 @@ aaxEffectSetState(aaxEffect e, int state)
 
                   for(t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
-                     lfo->step[t] = 2.0f*depth * lfo->f;
+                     lfo->step[t] = -2.0f*depth * lfo->f;
                      lfo->step[t] /= effect->info->refresh_rate;
                      lfo->value[t] = 1.0f;
                      switch (state & ~AAX_INVERSE)
