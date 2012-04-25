@@ -310,8 +310,8 @@ aaxFilterSetState(aaxFilter f, int state)
                      gain_lf = filter->slot[s]->param[--b];
 
                      /* gain_hf can never get below 0.001f */
-                     gain = gain_lf/gain_hf;
-                     flt->hf_gain = 1.0f;
+                     gain = gain_lf - gain_hf;
+                     flt->hf_gain = 0.0f;
                      flt->lf_gain = gain;
 
                      if (b == 0)
@@ -828,7 +828,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
     /* AAX_FREQUENCY_FILTER */
     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
     /* AAX_GRAPHIC_EQUALIZER */
-    { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,      2.0f,  2.0f,     2.0f } },
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,  2.0f,     2.0f } },
   },
   {
      /* AAX_FILTER_NONE      */
@@ -848,7 +848,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
      /* AAX_FREQUENCY_FILTER */
      { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  10.0f } },
      /* AAX_GRAPHIC_EQUALIZER */
-     { {  0.1f,  0.1f, 0.1f, 0.1f }, {    2.0f,      2.0f,     2.0f,   2.0f } }
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } }
   },
   {
      /* AAX_FILTER_NONE      */

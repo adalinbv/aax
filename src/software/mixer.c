@@ -154,17 +154,30 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int b = 6;
 
          filter = &eq->band[b--];
-         bufFilterFrequency(d3, d1,  0, dmax, 0, track, filter, 0);
+         _aax_memcpy(d3, d1, rbd->track_len_bytes);
+         bufFilterFrequency(d1, d3,  0, dmax, 0, track, filter, 0);
          do
          {
             filter = &eq->band[b--];
-            bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+            if (filter->lf_gain || filter->hf_gain)
+            {
+               bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+               _batch_fmadd(d1, d2, rbd->no_samples, 1.0f, 0.0f);
+            }
 
             filter = &eq->band[b--];
-            bufFilterFrequency(d3, d2, 0, dmax, 0, track, filter, 0);
+            if (filter->lf_gain || filter->hf_gain) 
+            {
+               bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+               _batch_fmadd(d1, d2, rbd->no_samples, 1.0f, 0.0f);
+            }
 
             filter = &eq->band[b--];
-            bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter, 0);
+            if (filter->lf_gain || filter->hf_gain) 
+            {
+               bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+               _batch_fmadd(d1, d2, rbd->no_samples, 1.0f, 0.0f);
+            }
          }
          while (b > 0);
       }
