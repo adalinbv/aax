@@ -90,7 +90,6 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
             flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
             flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
             flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
-            flt->slot[0]->data = NULL;     flt->slot[1]->data = NULL;
             break;
          case AAX_EQUALIZER:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
