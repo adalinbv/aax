@@ -1059,6 +1059,7 @@ get_frame(aaxFrame f)
             _intBuffers *hf;
 
             hf = mixer->frames;
+
             dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->pos);
             frame = _intBufGetDataPtr(dptr_frame);
             _intBufReleaseData(dptr, _AAX_SENSOR);

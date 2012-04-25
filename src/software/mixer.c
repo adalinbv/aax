@@ -519,7 +519,7 @@ _aaxSoftwareMixerSignalFrames(void *frames)
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
       {
-         _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
+         _intBufferData *dptr = _intBufGetNoLock(hf, _AAX_FRAME, i);
          if (dptr)
          {
             _frame_t* frame = _intBufGetDataPtr(dptr);
@@ -533,7 +533,7 @@ _aaxSoftwareMixerSignalFrames(void *frames)
                   _aaxConditionSignal(frame->thread.condition);
                }
             }
-            _intBufReleaseData(dptr, _AAX_FRAME);
+//          _intBufReleaseData(dptr, _AAX_FRAME);
          }
       }
       _intBufReleaseNum(hf, _AAX_FRAME);
@@ -594,6 +594,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 {
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
    unsigned int i, num = 0;
+
    if (hs)
    {
       num = _intBufGetMaxNum(hs, _AAX_DEVICE);
@@ -609,6 +610,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 
             be = config->backend.ptr;
             be_handle = config->backend.handle;
+
             dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
