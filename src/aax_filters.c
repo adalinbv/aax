@@ -84,8 +84,15 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
          size = sizeof(_oalRingBufferFilterInfo);
          switch (type)
          {
-         case AAX_EQUALIZER:
          case AAX_GRAPHIC_EQUALIZER:
+            flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            flt->slot[0]->param[0] = 1.0f; flt->slot[1]->param[0] = 1.0f;
+            flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
+            flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
+            flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
+            flt->slot[0]->data = NULL;     flt->slot[1]->data = NULL;
+            break;
+         case AAX_EQUALIZER:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             _aaxSetDefaultFilter2d(flt->slot[1], flt->pos);
             /* break not needed */
@@ -944,8 +951,15 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
          size = sizeof(_oalRingBufferFilterInfo);
          switch (type)
          {
-         case AAX_EQUALIZER:
          case AAX_GRAPHIC_EQUALIZER:
+            rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            rv->slot[0]->param[0] = 1.0f; rv->slot[1]->param[0] = 1.0f;
+            rv->slot[0]->param[1] = 1.0f; rv->slot[1]->param[1] = 1.0f;
+            rv->slot[0]->param[2] = 1.0f; rv->slot[1]->param[2] = 1.0f;
+            rv->slot[0]->param[3] = 1.0f; rv->slot[1]->param[3] = 1.0f;
+            rv->slot[0]->data = NULL;     rv->slot[1]->data = NULL;
+            break;
+         case AAX_EQUALIZER:
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             memcpy(rv->slot[1], &p2d->filter[rv->pos], size);
             rv->slot[1]->data = NULL;
