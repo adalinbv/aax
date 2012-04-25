@@ -277,6 +277,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          switch (filter->type)
          {
 #if 0
+         case AAX_GRAPHIC_EQUALIZER:
          case AAX_EQUALIZER:
          {
             _oalRingBuffer2dProps *p2d = handle->submix->props2d;
