@@ -623,7 +623,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-#if 0
+#if 1
       /* for testing purposes */
       if (err >= 0)
       {
@@ -668,7 +668,6 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
          handle->use_mmap = (err == 1);
 #endif
       }
-printf("mode: %i, mmap: %i, inbterleaved: %i\n", handle->mode, handle->use_mmap, handle->interleaved);
 
       /* test for supported sample formats*/
       bps = 0;
