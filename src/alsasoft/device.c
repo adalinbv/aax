@@ -668,6 +668,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
          handle->use_mmap = (err == 1);
 #endif
       }
+printf("mode: %i, mmap: %i, inbterleaved: %i\n", handle->mode, handle->use_mmap, handle->interleaved);
 
       /* test for supported sample formats*/
       bps = 0;
@@ -1046,7 +1047,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
 #endif
 
       offs = 0;
-      chunk = 0;
+      chunk = 5;
       size = fetch;
       rv = AAX_TRUE;
       do
@@ -1162,7 +1163,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
          size -= res;
          offs += res;
       }
-      while((size > 0) && (++chunk < 5));
+      while((size > 0) && --chunk);
       *req_frames = offs;
    }
    else rv = AAX_TRUE;
@@ -1734,7 +1735,7 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs, t, hw_bps;
+   unsigned int no_tracks, offs, t, hw_bps, chunk;
    _oalRingBufferSample *rbsd;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
@@ -1788,7 +1789,8 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
    if (avail < no_frames) avail = 0;
    else avail = no_frames;
 
-   while(avail > 0)
+   chunk = 5;
+   while ((avail > 0) && --chunk)
    {
       const snd_pcm_channel_area_t *areas;
       snd_pcm_uframes_t frames = avail;
@@ -1833,7 +1835,7 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs;
+   unsigned int no_tracks, offs, chunk;
    _oalRingBufferSample *rbsd;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
@@ -1884,7 +1886,8 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
    if (avail < no_frames) avail = 0;
    else avail = no_frames;
 
-   while(avail > 0)
+   chunk = 5;
+   while ((avail > 0) && --chunk)
    {
       const snd_pcm_channel_area_t *area;
       snd_pcm_uframes_t frames = avail;
@@ -1928,7 +1931,8 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_samples, no_tracks, offs, t, hw_bps;
+   unsigned int no_samples, no_tracks, chunk;
+   unsigned int offs, t, hw_bps;
    _oalRingBufferSample *rbsd;
    char **data;
    int err;
@@ -1991,7 +1995,8 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
       handle->cvt_to(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
    }
 
-   while (no_samples > 0)
+   chunk = 5;
+   while ((no_samples > 0) && --chunk)
    {
       do {
          err = psnd_pcm_writen(handle->id, (void**)data, no_samples);
@@ -2023,10 +2028,11 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
    unsigned int no_samples, no_tracks, offs, hw_bps;
-   unsigned int outbuf_size;
+   unsigned int outbuf_size, chunk;
    _oalRingBufferSample *rbsd;
    char *data;
    int err;
+    
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2060,6 +2066,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
    data = (char*)handle->data;
    handle->cvt_to_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
 
+   chunk = 5;
    do
    {
       int try = 0;
@@ -2088,7 +2095,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
       data += err * no_tracks;
       no_samples -= err;
    }
-   while (no_samples);
+   while ((no_samples > 0) && --chunk);
 
    return 0;
 }
