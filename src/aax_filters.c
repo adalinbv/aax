@@ -729,6 +729,17 @@ aaxFilterSetState(aaxFilter f, int state)
    return rv;
 }
 
+int
+aaxFilterGetState(aaxFilter f)
+{
+   _filter_t* filter = get_filter(f);
+   int rv = AAX_FALSE;
+   if (filter) {
+      rv = filter->state;
+   }
+   return rv;
+}
+
 float
 aaxFilterGetParam(const aaxFilter f, int param, int ptype)
 {

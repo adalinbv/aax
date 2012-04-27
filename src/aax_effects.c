@@ -601,6 +601,18 @@ aaxEffectSetState(aaxEffect e, int state)
    return rv;
 }
 
+int
+aaxEffectGetState(aaxEffect e)
+{
+   _filter_t* effect = get_effect(e);
+   int rv = AAX_FALSE;
+   if (effect) {
+      rv = effect->state;
+   }
+   return rv;
+}
+
+
 float
 aaxEffectGetParam(const aaxEffect e, int param, int ptype)
 {
