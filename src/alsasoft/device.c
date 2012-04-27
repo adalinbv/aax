@@ -1037,15 +1037,16 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    {
       unsigned int offs, fetch = frames;
       snd_pcm_uframes_t size;
-      int error, try = 0;
+      int error, chunk, try = 0;
 
       error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
       fetch += error;
 #if 0
-printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold);
+printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
 #endif
 
       offs = 0;
+      chunk = 0;
       size = fetch;
       rv = AAX_TRUE;
       do
@@ -1161,7 +1162,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
          size -= res;
          offs += res;
       }
-      while(size > 0);
+      while((size > 0) && (++chunk < 5));
       *req_frames = offs;
    }
    else rv = AAX_TRUE;
