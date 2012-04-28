@@ -815,6 +815,8 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
             snprintf(str,255,"  input renderer: '%s'", handle->name);
          }
          _AAX_SYSLOG(str);
+         snprintf(str,255, "  devname: '%s'", handle->devname);
+         _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
          _AAX_SYSLOG(str);
          snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*bufsize);
@@ -1005,7 +1007,7 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
          }
       }
       else if (state == SND_PCM_STATE_XRUN) {
-         _AAX_SYSLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
+//       _AAX_SYSLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
          xrun_recovery(handle->id, -EPIPE);
       }
    }
@@ -1036,8 +1038,8 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
    if (frames && (avail > 2*threshold-32))
    {
       unsigned int offs, fetch = frames;
-      snd_pcm_uframes_t size;
       int error, chunk, try = 0;
+      snd_pcm_uframes_t size;
 
       error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
       fetch += error;
@@ -1046,7 +1048,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
 #endif
 
       offs = 0;
-      chunk = 5;
+      chunk = 10;
       size = fetch;
       rv = AAX_TRUE;
       do
@@ -1155,7 +1157,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                rv = AAX_FALSE;
                break;
             }
-            _AAX_SYSLOG("alsa; warning: pcm read error");
+//          _AAX_SYSLOG("alsa; warning: pcm read error");
             continue;
          }
 
@@ -1163,6 +1165,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
          offs += res;
       }
       while((size > 0) && --chunk);
+      if (!chunk) _AAX_SYSLOG("alsa; too many capture tries\n");
       *req_frames = offs;
    }
    else rv = AAX_TRUE;
@@ -1788,8 +1791,8 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
    if (avail < no_frames) avail = 0;
    else avail = no_frames;
 
-   chunk = 5;
-   while ((avail > 0) && --chunk)
+   chunk = 10;
+   do
    {
       const snd_pcm_channel_area_t *areas;
       snd_pcm_uframes_t frames = avail;
@@ -1824,6 +1827,8 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
       offs += res;
       avail -= res;
    }
+   while ((avail > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -1885,8 +1890,8 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
    if (avail < no_frames) avail = 0;
    else avail = no_frames;
 
-   chunk = 5;
-   while ((avail > 0) && --chunk)
+   chunk = 10;
+   do
    {
       const snd_pcm_channel_area_t *area;
       snd_pcm_uframes_t frames = avail;
@@ -1920,6 +1925,8 @@ _aaxALSASoftDriverPlayback_mmap_il(const void *id, void *dst, void *src, float p
       offs += res;
       avail -= res;
    }
+   while ((avail > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -1994,8 +2001,8 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
       handle->cvt_to(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
    }
 
-   chunk = 5;
-   while ((no_samples > 0) && --chunk)
+   chunk = 10;
+   do
    {
       do {
          err = psnd_pcm_writen(handle->id, (void**)data, no_samples);
@@ -2015,6 +2022,8 @@ _aaxALSASoftDriverPlayback_rw_ni(const void *id, void *dst, void *src, float pit
       }
       no_samples -= err;
    }
+   while ((no_samples > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -2065,7 +2074,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
    data = (char*)handle->data;
    handle->cvt_to_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
 
-   chunk = 5;
+   chunk = 10;
    do
    {
       int try = 0;
@@ -2087,7 +2096,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
             _AAX_SYSLOG("alsa; unable to recover from pcm write error");
             break;
          }
-         _AAX_SYSLOG("alsa; warning: pcm write error");
+//       _AAX_SYSLOG("alsa; warning: pcm write error");
          continue;
       }
 
@@ -2095,6 +2104,7 @@ _aaxALSASoftDriverPlayback_rw_il(const void *id, void *dst, void *src, float pit
       no_samples -= err;
    }
    while ((no_samples > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
    return 0;
 }
