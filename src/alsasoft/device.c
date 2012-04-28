@@ -623,7 +623,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-#if 1
+#if 0
       /* for testing purposes */
       if (err >= 0)
       {
@@ -2169,16 +2169,14 @@ _aaxALSASoftDriverThread(void* config)
       int err;
 
       _aaxMutexUnLock(handle->thread.mutex);
-
-//    if (!_IS_STANDBY(handle) && be->is_available(be_handle))
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
 				/* timeout is in ms */
          if ((err = psnd_pcm_wait(be_handle->id, stdby_time)) < 0)
          {
             _AAX_SYSLOG("alsa; snd_pcm_wait polling error");
-            _aaxMutexLock(handle->thread.mutex);
-            break;
+//          _aaxMutexLock(handle->thread.mutex);
+//          continue;
          }
       }
       else
