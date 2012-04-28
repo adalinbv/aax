@@ -1043,11 +1043,12 @@ _aaxALSASoftDriverCapture(const void *id, void **data, size_t *req_frames, void 
 
       error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
       fetch += error;
+      offs = frames - fetch;
+
 #if 0
 printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
 #endif
 
-      offs = 0;
       chunk = 10;
       size = fetch;
       rv = AAX_TRUE;
@@ -1067,7 +1068,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
             snd_pcm_uframes_t mmap_offs = 0;
 
             psnd_pcm_avail_update(handle->id);
-            res =psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &no_frames);
+            res=psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &no_frames);
             if (res < 0)
             {
                if ((res = xrun_recovery(handle->id, res)) < 0)
@@ -1092,7 +1093,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                {
                   char *p = (char *)area->addr; 
                   p += (area->first + area->step*mmap_offs) >> 3;
-                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, no_frames);
+                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, res);
                }
             }
             else
@@ -1117,12 +1118,12 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
             if (handle->interleaved)
             {
                do {
-                  res = psnd_pcm_readi(handle->id, scratch, fetch);
+                  res = psnd_pcm_readi(handle->id, scratch, size);
                }
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  handle->cvt_from_intl((int32_t**)data, scratch, offs, 2 ,res);
+                  handle->cvt_from_intl((int32_t**)data, scratch, offs, 2, res);
                }
             }
             else
@@ -1132,7 +1133,7 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                s[0] = scratch;
                s[1] = (void*)((char*)s[0] + fetch*frame_size);
                do {
-                  res = psnd_pcm_readn(handle->id, s, fetch);
+                  res = psnd_pcm_readn(handle->id, s, size);
                } while (res == -EAGAIN);
 
                if (res > 0)
