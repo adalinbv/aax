@@ -548,7 +548,9 @@ _aaxALSASoftDriverDisconnect(void *id)
          handle->name = 0;
       }
 
-      psnd_pcm_close(handle->id);
+      if (handle->id) {
+         psnd_pcm_close(handle->id);
+      }
       free(handle->scratch);
       handle->scratch = 0;
       handle->id = 0;
@@ -774,11 +776,11 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
          handle->no_periods = periods;
       }
 
-      /* Set buffer size (in frames). The resing latency is given by */
-      /* latency = size * periods / (rate * tracks * bps))     */
+      /* Set buffer size (in frames). The resulting latency is given by */
+      /* latency = size * periods / (rate * tracks * bps))              */
       if (bufsize && (*bufsize > 0))
       {
-         size = *bufsize / (channels*bps);
+         size = *bufsize * handle->no_periods / (channels*bps);
          if (!handle->mode) size *= period_fact;
       } else {
          size = rate/25;
