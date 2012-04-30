@@ -85,7 +85,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_REFRESHRATE:
-            if ((setup > 5) && (setup < 200))
+            if (((setup <= _AAX_MAX_MIXER_REFRESH_RATE)
+                         && (handle->valid & HANDLE_ID))
+                || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
                float fq = info->frequency;
                float iv = (float)setup;
@@ -98,8 +100,12 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_UPDATERATE:
-            if ((setup > 5) && (setup < 200)) {
+            if (((setup <= _AAX_MAX_MIXER_REFRESH_RATE)
+                         && (handle->valid & HANDLE_ID))
+                || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
+            {
                info->update_rate = (unsigned int)info->refresh_rate / setup;
+               rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
