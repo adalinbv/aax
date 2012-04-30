@@ -566,22 +566,23 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    dde = rbd->dde_samples * rbd->bytes_sample;
 
    scratch = (char**)rbd->scratch;
-   assert(scratch != 0);
-
-   res = be->capture(handle, rbd->track, &nframes, scratch[0]-dde);
-   if (TEST_FOR_TRUE(res) && nframes)
+   if (scratch)
    {
-      float pitch = (float)frames/(float)nframes;
-      _oalRingBuffer *nrb;
-      nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-      dest_rb->pitch_norm = 1.0f; // pitch;
+      res = be->capture(handle, rbd->track, &nframes, scratch[0]-dde);
+      if (TEST_FOR_TRUE(res) && nframes)
+      {
+         float pitch = (float)frames/(float)nframes;
+         _oalRingBuffer *nrb;
+         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+         dest_rb->pitch_norm = 1.0f; // pitch;
 
-      _oalRingBufferRewind(dest_rb);
-      *rr *= pitch;
-      rv = nrb;
-   }
-   else {
-      _oalRingBufferClear(dest_rb);
+         _oalRingBufferRewind(dest_rb);
+         *rr *= pitch;
+         rv = nrb;
+      }
+      else {
+         _oalRingBufferClear(dest_rb);
+      }
    }
 
    return rv;
@@ -885,7 +886,12 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
                }
             }
-            _intBufReleaseData(dptr, _AAX_FRAME);
+
+            /*
+             * dptr could be zero if it was removed while waiting for a new
+             * buffer
+             */
+            if (dptr) _intBufReleaseData(dptr, _AAX_FRAME);
          }
 #if 0
 for (i=0; i<_oalRingBufferGetNoTracks(dest_rb); i++) {
@@ -1016,7 +1022,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
  
                res = _aaxSoftwareMixerPlayFrame((void**)&mixer->ringbuffer,
                                                 mixer->sensors,
-                                                mixer->ringbuffers, mixer->frames,
+                                                mixer->ringbuffers,
+                                                mixer->frames,
                                                 &sp2d, &sp3d, mixer->capturing,
                                                 sensor, be, be_handle);
             }
