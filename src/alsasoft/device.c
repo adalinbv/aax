@@ -45,8 +45,9 @@
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_IFNUM		0
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
+#define DEFAULT_DEVNAME_OLD	"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
                                      ","AAX_MKSTR(DEFAULT_IFNUM)
+#define DEFAULT_DEVNAME		"default"
 #define DEFAULT_RENDERER	"ALSA"
 
 static _aaxDriverDetect _aaxALSASoftDriverDetect;
@@ -1223,18 +1224,7 @@ _aaxALSASoftDriverGetDevices(const void *id, int mode)
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && !(!strncmp(name, "null", strlen("null"))
-                         || !strncmp(name, "surround", strlen("surround"))
-                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
-                         || !strncmp(name, "side:", strlen("side:"))
-                         || !strncmp(name, "rear:", strlen("rear:"))
-                         || !strncmp(name, "dmix:", strlen("dmix:"))
-                         || !strncmp(name, "dsnoop:", strlen("dsnoop:"))
-                         || !strncmp(name, "plughw:", strlen("plughw:"))
-                         || !strncmp(name, "hw:", strlen("hw:"))
-                         || !strncmp(name, "default:", strlen("default:"))
-                         || !strncmp(name, "pulse:", strlen("pulse:"))
-                         || !strncmp(name, "iec958:", strlen("iec958:"))))
+               if (name && !strncmp(name, "front:", strlen("front:")))
                {
                   snd_pcm_t *id;
                   if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
@@ -1296,19 +1286,15 @@ _aaxALSASoftDriverGetInterfaces(const void *id, const char *devname, int mode)
          if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && strncmp(name, "null", strlen("null")) &&
-                        strncmp(name, "dmix:", strlen("dmix:")) && 
-                        strncmp(name, "dsnoop:", strlen("dsnoop:")) &&
-                        strncmp(name, "plughw:", strlen("plughw:")) &&
-                        strncmp(name, "hw:", strlen("hw:")) &&
-                        strncmp(name, "default:", strlen("default:")) &&
-                        strncmp(name, "pulse:", strlen("pulse:")) &&
-                        strncmp(name, "surround", strlen("surround")))
+            if (name && (!strncmp(name, "front:", strlen("front:")) ||
+                         !strncmp(name, "center_lfe:", strlen("center_lfe:")) ||
+                         !strncmp(name, "rear:", strlen("rear:")) ||
+                         !strncmp(name, "side:", strlen("side:")) ||
+                         !strncmp(name, "iec958:", strlen("iec958:"))))
             {
-               if ((m || (strncmp(name, "center_lfe:", strlen("center_lfe:"))
-                          && strncmp(name, "rear:", strlen("rear"))
-                          && strncmp(name, "side:", strlen("side")))))
-                  {
+               if (m || (!strncmp(name, "front:", strlen("front:")) ||
+                         !strncmp(name, "iec958:", strlen("iec958:"))))
+               {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
                   char *interface;
 
@@ -1436,37 +1422,30 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && !(!strncmp(name, "null", strlen("null"))
-                         || !strncmp(name, "surround", strlen("surround"))
-                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
-                         || !strncmp(name, "side:", strlen("side:"))
-                         || !strncmp(name, "rear:", strlen("rear:"))
-                         || !strncmp(name, "dmix:", strlen("dmix:"))
-                         || !strncmp(name, "dsnoop:", strlen("dsnoop:"))
-                         || !strncmp(name, "plughw:", strlen("plughw:"))
-                         || !strncmp(name, "hw:", strlen("hw:"))
-                         || !strncmp(name, "default:", strlen("default:"))
-                         || !strncmp(name, "pulse:", strlen("pulse:"))
-                         || !strncmp(name, "iec958:", strlen("iec958:"))))
-
+               if (name && !strncmp(name, "front:", strlen("front:")))
                {
                   if (!strcmp(devname, name))
                   {
                      int dlen = strlen(name)+1;
-                     if (vmix) dlen += strlen("plug:''");
+                     if (vmix)
+                     {
+                         dlen -= strlen("front:");
+                         dlen += strlen("plug:''");
+                         if (m) dlen += strlen("dmix:");
+                         else dlen += strlen("dsnoop:");
+                     }
                      rv = malloc(dlen);
                      if (rv)
                      {
-                        *rv = 0;
                         if (vmix)
                         {
-                            strcat(rv, "plug:'");
-                            if (m) strcat(rv, "dmix");
-                            else strcat(rv, "dsnoop");
-                            strcat(rv, strchr(name, ':'));
-                            strcat(rv, "'");
+                            char *ptr =  name+strlen("front:");
+                            snprintf(rv, dlen, "plug:'%s%s'",
+                                         m ? "dmix:" : "dsnoop:", ptr);
                         }
-                        else strcat(rv, name);
+                        else {
+                            snprintf(rv, dlen, "%s", name);
+                        }
                      } else {
                         rv = _aax_strdup(name);
                      }
@@ -1499,34 +1478,29 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            if (!strcmp(devptr, interface) ||
                                (description && !strcmp(devptr, description)))
                            {
-                              int dlen = strlen(name)+1;
+                              int dlen = strlen(name)-strlen("front:")+1;
                               if (vmix)
                               {
                                  dlen += strlen("plug:''");
-                                 if (m) len += strlen("dmix:");
-                                 else len += strlen("dsnoop:");
+                                 if (m) dlen += strlen("dmix:");
+                                 else dlen += strlen("dsnoop:");
                               }
                               else dlen += strlen(dev_prefix[m ? tracks : 0]);
                               rv = malloc(dlen);
                               if (rv)
                               {
-                                 char *ptr = strchr(name, ':');
-
-                                 *rv = 0;
+                                 char *ptr = name+strlen("front:");
                                  if (vmix)
                                  {
-                                    strcat(rv, "plug:'");
-                                    if (m) strcat(rv, "dmix");
-                                    else strcat(rv, "dsnoop");
-                                    strcat(rv, ptr);
-                                    strcat(rv, "'"); 
+                                    snprintf(rv, dlen, "plug:'%s%s'",
+                                                 m ? "dmix:" : "dsnoop:", ptr);
                                  }
                                  else if (ptr)
                                  {
-                                    strcat(rv, dev_prefix[m ? tracks : 0]);
-                                    strcat(rv, ptr+1);
+                                    snprintf(rv, dlen, "%s%s",
+                                               dev_prefix[m ? tracks : 0], ptr);
                                  } else {
-                                    strcat(rv, name);
+                                    snprintf(rv, dlen, "%s", name);
                                  }
                               } else {
                                  rv = _aax_strdup(name);
@@ -1536,34 +1510,30 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         }
                         else
                         {
-                           int dlen = strlen(name)+1;
+                           int dlen = strlen(name)-strlen("front:")+1;
                            if (vmix)
                            {
                               dlen += strlen("plug:''");
-                              if (m) len += strlen("dmix:");
-                              else len += strlen("dsnoop:");
+                              if (m) dlen += strlen("dmix:");
+                              else dlen += strlen("dsnoop:");
                            }
                            else dlen += strlen(dev_prefix[m ? tracks : 0]);
                            rv = malloc(dlen);
                            if (rv)
                            {
-                              char *ptr = strchr(name, ':');
+                              char *ptr = name+strlen("front:");
 
-                              *rv = 0;
                               if (vmix)
                               {
-                                 strcat(rv, "plug:'");
-                                 if (m) strcat(rv, "dmix");
-                                 else strcat(rv, "dsnoop");
-                                 strcat(rv, ptr);
-                                 strcat(rv, "'");
+                                 snprintf(rv, dlen, "plug:'%s%s'",
+                                                 m ? "dmix:" : "dsnoop:", ptr);
                               }
                               else if (ptr)
                               {
-                                 strcat(rv, dev_prefix[m ? tracks : 0]);
-                                 strcat(rv, ptr+1);
+                                    snprintf(rv, dlen, "%s%s",
+                                               dev_prefix[m ? tracks : 0], ptr);
                               } else {
-                                 strcat(rv, name);
+                                 snprintf(rv, dlen, "%s", name);
                               }
                            } else {
                               rv = _aax_strdup(name);
