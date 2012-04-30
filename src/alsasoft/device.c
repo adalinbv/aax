@@ -550,7 +550,10 @@ _aaxALSASoftDriverDisconnect(void *id)
 
       psnd_pcm_close(handle->id);
       free(handle->scratch);
+      handle->scratch = 0;
+      handle->id = 0;
       free(handle);
+      handle = 0;
 
       if (_soft_default_name[m] != _const_soft_default_name[m])
       {
@@ -1106,10 +1109,12 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
 
                if (res > 0)
                {
-                  char *s;
-                  s = (char *)area[0].addr + mmap_offs*handle->bytes_sample;
+                  unsigned char *s;
+                  s = (((unsigned char *)area[0].addr) + (area[0].first/8));
+                  s += mmap_offs*handle->bytes_sample;
                   handle->cvt_from(data[0]+offs, s, res);
-                  s = (char *)area[1].addr + mmap_offs*handle->bytes_sample;
+                  s = (((unsigned char *)area[1].addr) + (area[1].first/8));
+                  s += mmap_offs*handle->bytes_sample;
                   handle->cvt_from(data[1]+offs, s, res);
                }
             }
