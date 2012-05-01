@@ -414,7 +414,9 @@ aaxDriverClose(aaxConfig config)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
 
-      aaxMixerSetState(config, AAX_STOPPED);
+      if (aaxMixerGetState(config) != AAX_STOPPED) {
+         aaxMixerSetState(config, AAX_STOPPED);
+      }
       if (be && handle->backend.handle) {
          be->disconnect(handle->backend.handle);
       }

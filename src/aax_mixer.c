@@ -470,6 +470,26 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
    return rv;
 }
 
+enum aaxState
+aaxMixerGetState(aaxConfig config)
+{
+   enum aaxState rv = AAX_INITIALIZED;
+   _handle_t* handle;
+
+   handle = get_valid_handle(config);
+   if (handle)
+   {
+      if (_IS_PLAYING(handle)) rv = AAX_PLAYING;
+      else if (_IS_PROCESSED(handle)) rv = AAX_STOPPED;
+      else if (_IS_STANDBY(handle)) rv = AAX_STANDBY;
+      else if (_IS_PAUSED(handle)) rv = AAX_SUSPENDED;
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   return rv;
+}
+
 int
 aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {

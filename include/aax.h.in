@@ -35,7 +35,7 @@ extern "C" {
 #define AAX_MAJOR_VERSION	@AAX_MAJOR_VERSION@
 #define AAX_MINOR_VERSION	@AAX_MINOR_VERSION@
 #define AAX_MICRO_VERSION	@AAX_MICRO_VERSION@
-#define AAX_PATCH_LEVEL		120421
+#define AAX_PATCH_LEVEL		120501
 
 #define AAX_FALSE		0
 #define AAX_TRUE		1
@@ -417,6 +417,7 @@ AAX_API int AAX_APIENTRY aaxMixerRegisterAudioFrame(const aaxConfig, const aaxFr
 AAX_API int AAX_APIENTRY aaxMixerDeregisterAudioFrame(const aaxConfig, const aaxFrame);
 
 AAX_API unsigned int aaxMixerGetSetup(const aaxConfig, enum aaxSetupType);
+AAX_API enum aaxState AAX_APIENTRY aaxMixerGetState(aaxConfig);
 AAX_API const aaxFilter AAX_APIENTRY aaxMixerGetFilter(const aaxConfig, enum aaxFilterType);
 AAX_API const aaxEffect AAX_APIENTRY aaxMixerGetEffect(const aaxConfig, enum aaxEffectType);
 
