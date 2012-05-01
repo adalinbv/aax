@@ -780,7 +780,7 @@ _aaxALSASoftDriverSetup(const void *id, size_t *bufsize, int fmt,
       /* latency = size * periods / (rate * tracks * bps))              */
       if (bufsize && (*bufsize > 0))
       {
-         size = *bufsize * handle->no_periods / (channels*bps);
+         size = *bufsize/periods;
          if (!handle->mode) size *= period_fact;
       } else {
          size = rate/25;
