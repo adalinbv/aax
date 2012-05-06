@@ -59,24 +59,31 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_C_RESTRICT
 
+#dnl check the size of size_t to detect 32-bit or 64-bit systems
+AC_CHECK_SIZEOF([size_t])
+
 dnl system dependent compiler flags
 OPTFLAGS="-Os -fPIC -fomit-frame-pointer -funroll-loops"
 case "${host}" in
 i?86-*-*-*)
-  CFLAGS="$CFLAGS -shared -march=i586"
+  CFLAGS="$CFLAGS -shared"
   LDFLAGS="$LDFLAGS -lpthread"
-  case "$CC" in
-  *opencc*)
-    CFLAGS="$CFLAGS -ipa"
-    SSEFLAGS="$OPTFLAGS -march=pentium3m -msse"
-    SSE2FLAGS="$OPTFLAGS -march=pentium-m -msse2"
-    ;;
-  *gcc*)
-    CFLAGS="$CFLAGS -Wl,--hash-style=both"
-    SSEFLAGS="$OPTFLAGS"
-    SSE2FLAGS="$OPTFLAGS"
-    ;;
-  esac
+
+  if test "$ac_cv_sizeof_size_t" = 4 ; then 
+    CFLAGS="$CFLAGS -march=i586"
+    case "$CC" in
+    *opencc*)
+      CFLAGS="$CFLAGS -ipa"
+      SSEFLAGS="$OPTFLAGS -march=pentium3m -msse"
+      SSE2FLAGS="$OPTFLAGS -march=pentium-m -msse2"
+      ;;
+    *gcc*)
+      CFLAGS="$CFLAGS -Wl,--hash-style=both"
+      SSEFLAGS="$OPTFLAGS"
+      SSE2FLAGS="$OPTFLAGS"
+      ;;
+    esac
+  fi
   ;;
 arm-*-eabi)
   NEONFLAGS="$OPTFLAGS -static -fno-short-enums"
