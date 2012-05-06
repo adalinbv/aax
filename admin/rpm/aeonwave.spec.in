@@ -1,7 +1,7 @@
 #
 # spec file for package libaax2 (Version @PACKAGE_VERSION@)
 #
-# Copyright (c) 2011 Adalin B.V.
+# Copyright (c) 2005-2012 Adalin B.V.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
@@ -166,6 +166,36 @@ ldconfig
 %{_includedir}/aax*.h
 
 %changelog -n aax
+* Tue May 01 2012 - tech@adalin.org
+- Added an 8 band graphical equalizer for the final mixer stage.
+- Added an envelope following option for filters and effects (auto-wah).
+- Added seamless transition from tube-like soft-clipping to sharp-clipping
+  and add an asymmetric clipping option. This is most noticeable for
+  the distortion effect.
+- Added support for registered sensors. Registering an aaxConfig handle
+  which is opened in AAX_MODE_READ mode eliminates the need for the
+  application to do buffer handling between the physical input device and
+  an emitter. It also improves latency since reading the buffer and
+  processing it's contents is done in a single step.
+  Registered sensors are only guaranteed in stereo mode for this release.
+- Added support for subframes. Subframes are like regular audio-frames
+  but they are registered at other audio-frames. Where audio-frames
+  render in their own thread, subframes will render in their parents thread.
+- This removes any limit to the number of supported emitters as long as the
+  system can handle the load. The maximum number of registered emitters,
+  sensors and subframes per audio frame is still 256.
+- Move the speaker setup from the global section to device specific section
+  in the configuration file. This allows for different setups for headphone
+  connections and (for example) 4 channel spatialised speaker setup.
+- Added support for a dedicated configuration file entry for every device.
+- Added the inverse of the modulation-waveform for filters and effects.
+- Added the option to modify the Q (resonance) factor of frequency filters.
+- A complete overhaul of the recording code and of the ALSA backend.
+- Fixed filter and effect support for streaming audio.
+- Added a resampling option for fetching buffer data.
+- Speed-up of filter and effect processing.
+- Added flanging effect.
+- Dozens of small fixes.
 * Fri Nov 11 2011 - tech@adalin.org
 - Fix a possible deadlock situation
 * Mon Oct 10 2011 - tech@adalin.org

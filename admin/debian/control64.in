@@ -1,15 +1,16 @@
 Package: libaax2
-Version: @AAX_VERSION@
 Section: sound
 Priority: optional
+Maintainer: Adalin BV <tech@adalin.org>
+Version: @AAX_VERSION@
+Homepage: http://www.adalin.com
+Installed-Size: 310
 Architecture: amd64
-Pre-Depends: debconf (>= 0.2.17)
+Multi-Arch: same
+Pre-Depends: debconf (>= 0.2.17), multiarch-support
 Depends: libc6 (>= 2.1)
 Recommends: alsa-base | oss4-base
-Installed-Size: 336
 Provides: aeonwave
-Homepage: http://www.adalin.com
-Maintainer: Adalin BV <tech@adalin.org>
 Description: Stereo and 4D Audio eXtensions library
  A hardware accelerated, high speed and versatile stereo and 4D audio mixing
  library that can handle almost any audio mixing demands; from studio effect

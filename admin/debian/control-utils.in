@@ -1,0 +1,14 @@
+Package: aax-utils
+Version: @AAX_VERSION@
+Section: sound
+Priority: optional
+Architecture: i386
+Depends: libc6 (>= 2.1)
+Replaces: libaax2 (<= 2.1)
+Installed-Size: 20
+Provides: aeonwave-utils
+Homepage: http://www.adalin.com
+Maintainer: Adalin BV <tech@adalin.org>
+Description: Support utilities for the AeonWave Audio eXtensions library
+ aaxinfo is a utility to show the capabilities of the AeonWave library in your
+ particular situation.

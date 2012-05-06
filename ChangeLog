@@ -29,14 +29,14 @@ AeonWave (2.2.0) stable; urgency=low
   * Added flanging effect.
   * Dozens of small fixes.
 
- -- Erik Hofman <tech@adalin.org>  Mon 05 Apr 2012 11:39:05 +0200;
+ -- Erik Hofman <tech@adalin.org>  Tue, 01 May 2012 10:31:05 +0200
 
 
 AeonWave (2.1.2) stable; urgency=medium
   * Fix some possible type conversion problems
   * Fix a possible dead-lock situation
 
- -- Erik Hofman <tech@adalin.org>  Fri 11 Nov 2011 15:33:00 +0100
+ -- Erik Hofman <tech@adalin.org>  Fri, 11 Nov 2011 15:33:00 +0100
 
 
 AeonWave (2.1.0) stable; urgency=low
