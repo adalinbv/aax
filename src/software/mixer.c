@@ -546,8 +546,9 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
-   unsigned int nframes, frames, dde;
+   unsigned int frames, dde;
    _oalRingBufferSample *rbd;
+   size_t nframes;
    char **scratch;
    void *rv = rb;
    int res;
