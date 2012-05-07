@@ -35,7 +35,7 @@
 /* CPU*/
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
 char* _aax_malloc_align16(char**, unsigned int);
-void _batch_cvt24_24_cpu(void*__restrict, const void*, size_t);
+void _batch_cvt24_24_cpu(void*__restrict, const void*, unsigned int);
 
 void _batch_mul_value_cpu(void*, unsigned, unsigned int, float);
 void _batch_fmadd_cpu(int32_ptr, const int32_ptr, unsigned int, float, float);

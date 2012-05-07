@@ -287,16 +287,18 @@ _batch_cvt16_24_sse2(void*__restrict dst, const int32_t*__restrict src, unsigned
 #if 1
    unsigned int i = (num/4)*4;
    unsigned int j = num-i;
-   do {
-      *d = *s >> 8;
-      *(d+1) = *(s+1) >> 8;
-      *(d+2) = *(s+2) >> 8;
-      *(d+3) = *(s+3) >> 8;
-      i -= 4;
-      d += 4;
-      s += 4;
+   if (i) {
+      do {
+         *d = *s >> 8;
+         *(d+1) = *(s+1) >> 8;
+         *(d+2) = *(s+2) >> 8;
+         *(d+3) = *(s+3) >> 8;
+         i -= 4;
+         d += 4;
+         s += 4;
+      }
+      while (i);
    }
-   while (i);
    if (j)
    {
       do {

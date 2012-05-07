@@ -68,14 +68,14 @@ enum {
 #define htuA			0x68747541
 #define itne			0x69746e65
 
-#ifdef __i386__
+#if defined(__i386__)
 static char check_cpuid_ecx(unsigned int);
 static char check_cpuid_edx(unsigned int);
 static char check_extcpuid_ecx(unsigned int);
 #else
-# define check_cpuid_ecx(a)     0
-# define check_cpuid_edx(a)     0
-# define check_extcpuid_ecx(a)  0
+# define check_cpuid_ecx(a)
+# define check_cpuid_edx(a)
+# define check_extcpuid_ecx(a)
 #endif
 
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
@@ -127,7 +127,7 @@ _batch_cvt_to_intl_proc _batch_cvtps_intl_24 = _batch_cvtps_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_cpu;
 
 _batch_mul_value_proc _batch_mul_value = _batch_mul_value_cpu;
-_batch_fmadd_proc _batch_fmadd; //  = _batch_fmadd_cpu;
+_batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
 _batch_resample_proc _aaxBufResampleCubic = _aaxBufResampleCubic_cpu;
 _batch_resample_proc _aaxBufResampleLinear = _aaxBufResampleLinear_cpu;
@@ -161,38 +161,51 @@ _aaxDetectNeon()
 char
 _aaxDetectMMX()
 {
+# ifdef __x86_64__
+   static char res = 1;
+#else
    static char res = (char)-1;
    if (res == (char)-1) {
       res = check_cpuid_edx(CPUID_FEAT_EDX_MMX);
    }
+#endif
    return res;
 }
 
 char
 _aaxDetectSSE()
 {
+# ifdef __x86_64__
+   static char res = 1;
+#else
    static char res = (char)-1;
-   if (res == (char)-1)
-   {
+   if (res == (char)-1) {
       res = check_cpuid_edx(CPUID_FEAT_EDX_SSE);
    }
+#endif
    return res;
 }
 
 char
 _aaxDetectSSE2()
 {
+# ifdef __x86_64__
+   static char res = 1;
+#else
    static char res = (char)-1;
-   if (res == (char)-1)
-   {
+   if (res == (char)-1) {
       res = check_cpuid_edx(CPUID_FEAT_EDX_SSE2);
    }
+#endif
    return res;
 }
 
 char
 _aaxDetectSSE3()
 {
+# ifdef __x86_64__
+   static char res = 1;
+#else
    static char res = (char)-1;
    if (res == (char)-1)
    {
@@ -201,12 +214,16 @@ _aaxDetectSSE3()
          res = check_cpuid_ecx(CPUID_FEAT_ECX_SSSE3);
       }
    }
+#endif
    return res;
 }
 
 char
 _aaxDetectSSE4()
 {
+# ifdef __x86_64__
+   static char res = 1;
+#else
    static char res = (char)-1;
    if (res == (char)-1)
    {
@@ -217,6 +234,7 @@ _aaxDetectSSE4()
          res = check_extcpuid_ecx( CPUID_FEAT_ECX_SSE4a);
       }
    }
+#endif
    return res;
 }
 
@@ -307,7 +325,7 @@ _aaxGetSIMDSupportString()
    else
    {
       level = _aaxGetSSELevel();
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
       if (level >= AAX_SSE)
       {
          vec4Add = _vec4Add_sse;
@@ -354,30 +372,23 @@ _aaxGetSIMDSupportString()
            "xchgl\t%%ebx, %1\n\t"			\
            : "=a" (a), "=r" (b), "=c" (c), "=d" (d)	\
            : "0" (level))
-#elif defined(__i386__)
+#elif defined(__i386__) || defined(__x86_64__)
 # define __cpuid(level, a, b, c, d)			\
-  asm volatile ("cpuid\n\t"					\
+  asm volatile ("cpuid\n\t"				\
            : "=a" (a), "=b" (b), "=c" (c), "=d" (d)	\
            : "0" (level))
 #else
 #  define __cpuid(level, a, b, c, d)
 #endif
 
+#if defined(__i386__)
 static char
 detect_cpuid()
 {
-   char res = -1;
+   static char res = -1;
 
-#ifndef i386
-   /* non i386 cpu's do not support CPUID */
-   res = 0;
-
-#else
-   /* AMD64 always supports CPUID */
-# ifdef __x86_64__
-   res = 1;
-# else
-   if (res == -1) {
+   if (res == -1)
+   {
       int reg1, reg2;
 
      asm volatile
@@ -390,12 +401,9 @@ detect_cpuid()
          res = 0;
       }
    }
-# endif
-#endif
    return res;
 }
 
-#ifdef __i386__
 static unsigned int _eax = 0, _ebx = 0;
 static unsigned int _ecx = -1, _edx = -1;
 
@@ -434,7 +442,7 @@ check_extcpuid_ecx(unsigned int type)
    }
    return (ecx & type) ? 3 : 0;
 }
-#endif /* __i386__ */
+#endif /* __i386__ || __x86_64__ */
 
 char *
 _aax_malloc_align16(char **start, unsigned int size)
