@@ -203,7 +203,6 @@ AC_CONFIG_FILES([ \
 	admin/debian/control-dev \
 	admin/debian/control-utils \
 	admin/debian/control64 \
-	admin/debian/control64-dev \
 	admin/debian/control64-utils
 ])
 AC_OUTPUT
