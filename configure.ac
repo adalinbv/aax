@@ -67,8 +67,6 @@ OPTFLAGS="-Os -fPIC -fomit-frame-pointer -funroll-loops"
 case "${host}" in
 i?86-*-*-*)
   CFLAGS="$CFLAGS -shared"
-  LDFLAGS="$LDFLAGS -lpthread"
-
   if test "$ac_cv_sizeof_size_t" = 4 ; then 
     CFLAGS="$CFLAGS -march=i586"
     case "$CC" in
@@ -134,13 +132,14 @@ fi
 
 dnl Thread related checks
 AC_CHECK_HEADER(pthread.h,
-  AC_SEARCH_LIBS([pthread_attr_setschedparam], [pthread c_r], [
+  AC_SEARCH_LIBS([pthread_create], [pthread c_r], [
     AC_DEFINE([HAVE_PTHREAD_H], 1, [Define to 1 if you have the <pthread.h> header file.])
    ]))
 
 if test "x$ac_cv_header_pthread_h" = "xyes"; then
   CFLAGS="$CFLAGS -D_REENTRANT"
-#  if test "x$ac_cv_search_pthread_cancel" = "x-lc_r"; then
+  LDFLAGS="$LDFLAGS -lpthread"
+#  if test "x$ac_cv_search_pthread_create" = "x-lc_r"; then
 #    CFLAGS="-pthread $CFLAGS"
 #  fi
 fi
@@ -203,6 +202,8 @@ AC_CONFIG_FILES([ \
 	admin/debian/control \
 	admin/debian/control-dev \
 	admin/debian/control-utils \
-	admin/debian/control64
+	admin/debian/control64 \
+	admin/debian/control64-dev \
+	admin/debian/control64-utils
 ])
 AC_OUTPUT

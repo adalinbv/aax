@@ -1,5 +1,5 @@
 Package: libaax2
-Section: sound
+Section: libs
 Priority: optional
 Maintainer: Adalin BV <tech@adalin.org>
 Version: @AAX_VERSION@
@@ -36,3 +36,4 @@ Description: Stereo and 4D Audio eXtensions library
  For audio buffers the library supports 9 native audio formats and a total
  of 29 different formats (inclusing signed/unsigned and big/little-endian).
  Buffers can be converted from and to any of the supported formats.
+

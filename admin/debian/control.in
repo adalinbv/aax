@@ -1,5 +1,5 @@
 Package: libaax2
-Section: sound
+Section: libs
 Priority: optional
 Maintainer: Adalin BV <tech@adalin.org>
 Version: @AAX_VERSION@
