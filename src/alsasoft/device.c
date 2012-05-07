@@ -1720,7 +1720,6 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   int err;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -1734,7 +1733,6 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
-   hw_bps = handle->bytes_sample;
 
    state = psnd_pcm_state(handle->id);
    if (state != SND_PCM_STATE_RUNNING)
@@ -1772,12 +1770,13 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
    chunk = 10;
    do
    {
-      const snd_pcm_channel_area_t *areas;
+      const snd_pcm_channel_area_t *area;
       snd_pcm_uframes_t frames = avail;
-      snd_pcm_uframes_t offset;
+      snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
+      int err;
 
-      err = psnd_pcm_mmap_begin(handle->id, &areas, &offset, &frames);
+      err = psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &frames);
       if (err < 0)
       {
          if ((err = xrun_recovery(handle->id, err)) < 0)
@@ -1791,11 +1790,13 @@ _aaxALSASoftDriverPlayback_mmap_ni(const void *id, void *dst, void *src, float p
 
       for (t=0; t<no_tracks; t++)
       {
-         char *p = (char *)areas[t].addr + offset*hw_bps;
+         unsigned char *p;
+         p = (((unsigned char *)area[t].addr) + (area[t].first/8));
+         p += mmap_offs*handle->bytes_sample;
          handle->cvt_to(p, (const int32_t *)rbsd->track[t]+offs, frames);
       }
 
-      res = psnd_pcm_mmap_commit(handle->id, offset, frames);
+      res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
       if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
          if (xrun_recovery(handle->id, res >= 0 ? -EPIPE : res) < 0) {
