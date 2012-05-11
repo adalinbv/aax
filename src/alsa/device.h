@@ -9,8 +9,8 @@
  * permission of Adalin B.V.
  */
 
-#ifndef _AL_ALSA_DRIVER_H
-#define _AL_ALSA_DRIVER_H 1
+#ifndef _ALSASOFT_DRIVER_H
+#define _ALSASOFT_DRIVER_H 1
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -20,5 +20,5 @@
 
 extern _aaxDriverBackend _aaxALSADriverBackend;
 
-#endif /* !_AL_ALSA_DRIVER_H */
+#endif /* !_ALSASOFT_DRIVER_H */
 
