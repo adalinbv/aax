@@ -1,4 +1,4 @@
-SUBDIRS = software oss alsa dmedia
+SUBDIRS = software oss alsa dmedia mmdevapi
 
 if NDEBUG
 RMALLOC_LIB = -lzeroxml

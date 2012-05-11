@@ -192,6 +192,7 @@ AC_CONFIG_FILES([ \
 	src/Makefile \
 	src/alsa/Makefile \
 	src/dmedia/Makefile \
+	src/mmdevapi/Makefile \
 	src/oss/Makefile \
 	src/software/Makefile \
 	base/Makefile \

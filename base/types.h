@@ -55,7 +55,6 @@ typedef int size_t;
 # endif
 #endif
 
-
 typedef int32_t*__restrict      int32_ptr ALIGN16;
 typedef int32_t**__restrict     int32_ptrptr ALIGN16;
 typedef float*__restrict        float32_ptr ALIGN16;
