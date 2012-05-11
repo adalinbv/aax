@@ -120,7 +120,8 @@ esac
 
 
 %post
-ldconfig
+umask 007
+/sbin/ldconfig > /dev/null 2>&1
 
 
 %postun
@@ -150,20 +151,26 @@ if [ x$INSTALLER = "xroot" ]; then
   fi
 fi
 rm -f $CONFIGFILE;
-ldconfig
+
+umask 007
+/sbin/ldconfig > /dev/null 2>&1
 
 
 %files
 %defattr(-,root,root)
-
+%{_bindir}/
+%{_bindir}/aaxinfo
+%{_libdir}/
+%{_libdir}/libaax.so
+%{_libdir}/libaax.so.2
+%{_libdir}/libaax.so.2.2.0
+%{_includedir}/
+%{_includedir}/aax.h
+%{_includedir}/aaxdefs.h
 %dir %{_defaultdocdir}/%{name}/
 %doc %{_defaultdocdir}/%{name}/copyright
 %doc %{_defaultdocdir}/%{name}/changelog.gz
-%doc %{_defaultdocdir}/%{name}/examples/*
-
-%{_bindir}/aaxinfo
-%{_libdir}/libaax.so*
-%{_includedir}/aax*.h
+%doc %{_defaultdocdir}/%{name}/examples/aaxconfig.xml
 
 %changelog -n aax
 * Tue May 01 2012 - tech@adalin.org

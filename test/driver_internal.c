@@ -7,7 +7,6 @@
 
 #include <oss/device.h>
 #include <alsa/device.h>
-#include <alsasoft/device.h>
 #include <dmedia/device.h>
 #include <software/device.h>
 
@@ -19,7 +18,6 @@ static const _aaxDriverBackend *_backends[] =
    &_aaxLoopbackDriverBackend,
    &_aaxSoftwareDriverBackend,
    &_aaxOSSDriverBackend,
-   &_aaxALSASoftDriverBackend,
    &_aaxALSADriverBackend,
    &_aaxDMediaDriverBackend
 };

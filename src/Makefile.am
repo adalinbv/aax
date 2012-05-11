@@ -1,4 +1,4 @@
-SUBDIRS = software oss alsasoft alsa dmedia
+SUBDIRS = software oss alsa dmedia
 
 if NDEBUG
 RMALLOC_LIB = -lzeroxml
@@ -37,7 +37,6 @@ libaax_la_LIBADD = \
 	$(top_builddir)/base/libbase.la \
         $(top_builddir)/src/software/libsoftwaredriver.la \
 	$(top_builddir)/src/oss/libossdriver.la \
-	$(top_builddir)/src/alsasoft/libalsasoftdriver.la \
 	$(top_builddir)/src/alsa/libalsadriver.la \
         $(top_builddir)/src/dmedia/libdmediadriver.la \
 	$(RMALLOC_LIB)

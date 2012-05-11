@@ -191,7 +191,6 @@ AC_CONFIG_FILES([ \
 	include/aax.h \
 	src/Makefile \
 	src/alsa/Makefile \
-	src/alsasoft/Makefile \
 	src/dmedia/Makefile \
 	src/oss/Makefile \
 	src/software/Makefile \

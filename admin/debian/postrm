@@ -34,6 +34,6 @@ if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
   rm -f $CONFIGFILE;
 fi
 
-if [ "$1" = "remove" -o "$1" = "purge" ]; then
+if [ "$1" = "remove" ]; then
   ldconfig
 fi

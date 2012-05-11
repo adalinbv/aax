@@ -27,7 +27,6 @@ libtest_la_LIBADD = \
 libtest_internal_la_SOURCES = driver_internal.c
 libtest_internal_la_LIBADD = \
 	$(top_builddir)/src/software/libsoftwaredriver.la \
-	$(top_builddir)/src/alsasoft/libalsasoftdriver.la \
 	$(top_builddir)/src/dmedia/libdmediadriver.la \
 	$(top_builddir)/src/alsa/libalsadriver.la \
 	$(top_builddir)/src/oss/libossdriver.la
