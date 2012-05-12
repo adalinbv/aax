@@ -49,21 +49,45 @@ typedef enum  {
   EDataFlow_enum_count 
 } EDataFlow;
 
+typedef enum  {
+  eConsole,
+  eMultimedia,
+  eCommunications,
+  ERole_enum_count 
+} ERole;
+
+typedef enum _AUDCLNT_SHAREMODE {
+  AUDCLNT_SHAREMODE_SHARED,
+  AUDCLNT_SHAREMODE_EXCLUSIVE 
+} AUDCLNT_SHAREMODE;
+
 
 typedef VOID  IMMDevice;
 typedef VOID  IAudioClient;
 typedef VOID  IAudioRenderClient;
 typedef VOID  IMMDeviceEnumerator;
 
+
 EXTERN_C CLSID CLSID_MMDeviceEnumerator;
 EXTERN_C IID IID_IMMDeviceEnumerator;
 EXTERN_C IID IID_IAudioClient;
 EXTERN_C IID IID_IAudioRenderClient;
 
-
 typedef HRESULT (*CoCreateInstance_proc)(REFCLSID, LPUNKNOWN, DWORD, REFIID, LPVOID*);
-typedef HRESULT (*IMMDeviceEnumerator_Release)(IMMDeviceEnumerator*);
+typedef HRESULT (*IMMDeviceEnumerator_Release_proc)(IMMDeviceEnumerator*);
+typedef HRESULT (*IMMDeviceEnumerator_GetDefaultEndPoint_proc)(EDataFlow, ERole, IMMDevice**);
+typedef HRESULT (*IMMDeviceActivate_proc)(REFIID, DWORD, PROPVARIANT*, void**);
 
+typedef HRESULT (*IAudioClient_Start_proc)(void);
+typedef HRESULT (*IAudioClient_Stop_proc)(void);
+typedef HRESULT (*IAudioClient_GetService_proc)(REFIID, void**);
+typedef HRESULT (*IAudioClient_Initialize_proc)(AUDCLNT_SHAREMODE, DWORD, REFERENCE_TIME, REFERENCE_TIME, const WAVEFORMATEX, LPCGUID);
+typedef HRESULT (*IAudioClient_GetMixFormat_proc)(WAVEFORMATEX**);
+typedef HRESULT (*IAudioClient_GetBufefrSize_proc)(UINT32*);
+typedef HRESULT (*IAudioClient_GetCurrentPadding_proc)(UINT32*);
+
+typedef HRESULT (*IAudioRenderClient_GetBuffer_proc)(UINT32, BYTE**);
+typedef HRESULT (*IAudioRenderClient_ReleaseBuffer_proc)(UINT32, DWORD);
 
 #endif /* __MMDEVAPI_AUDIO_H */
 

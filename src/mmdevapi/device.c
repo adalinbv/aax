@@ -26,14 +26,17 @@
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
+#include <base/dlsym.h>
 #include <base/logging.h>
 #include <base/types.h>
 
 #include "audio.h"
 #include "device.h"
 
+#define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		"default"
+#define MMDEV_ID_STRING		"MM Device API"
 
 static _aaxDriverDetect _aaxMMDEVAPIDriverDetect;
 static _aaxDriverGetDevices _aaxMMDEVAPIDriverGetDevices;
@@ -49,7 +52,9 @@ static _aaxDriverGetName _aaxMMDEVAPIDriverGetName;
 static _aaxDriverState _aaxMMDEVAPIDriverIsAvailable;
 static _aaxDriverState _aaxMMDEVAPIDriverAvailable;
 
-char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
+static char _mmdev_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
+static char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
+
 _aaxDriverBackend _aaxMMDEVAPIDriverBackend =
 {
    1.0,
@@ -118,6 +123,9 @@ typedef struct
 } _driver_t;
 
 
+DECL_FUNCTION(CoCreateInstance);
+DECL_FUNCTION(IMMDeviceEnumerator_Release);
+
 static IAudioClient* detect_audioclient(const char *);
 
 
@@ -127,19 +135,47 @@ char *_mmdev_default_name = DEFAULT_DEVNAME;
 static int
 _aaxMMDEVAPIDriverDetect(int mode)
 {
-   IMMDeviceEnumerator *pEnumerator;
    static int rv = AAX_FALSE;
-   HRESULT hr;
+   void *audio = NULL;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-     
-   hr = pCoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_INPROC_SERVER,
-                         &IID_IMMDeviceEnumerator, (void**)&pEnumerator);
-   if (!FAILED(hr))
+
+   if TEST_FOR_FALSE(rv) {
+     audio = _oalIsLibraryPresent("libaudio.so");
+   }
+
+   if (audio)
    {
-      pIMMDeviceEnumerator_Release(pEnumerator);
-      pEnumerator = NULL;
-      rv = AAX_TRUE;
+      const char *hwstr = _aaxGetSIMDSupportString();
+
+      snprintf(_mmdev_id_str, MAX_ID_STRLEN, "%s %s %s",
+               DEFAULT_RENDERER, MMDEV_ID_STRING, hwstr);
+
+      _oalGetSymError(0);
+
+      TIE_FUNCTION(CoCreateInstance);
+      if (pCoCreateInstance)
+      {
+         TIE_FUNCTION(IMMDeviceEnumerator_Release);
+
+         if (!_oalGetSymError(0)) {
+            rv = AAX_TRUE;
+         }
+      }
+#if 0
+      IMMDeviceEnumerator *pEnumerator;
+      HRESULT hr;
+     
+      hr = pCoCreateInstance(&CLSID_MMDeviceEnumerator, NULL,
+                             CLSCTX_INPROC_SERVER, &IID_IMMDeviceEnumerator,
+                             (void**)&pEnumerator);
+      if (!FAILED(hr))
+      {
+         pIMMDeviceEnumerator_Release(pEnumerator);
+         pEnumerator = NULL;
+         rv = AAX_TRUE;
+      }
+#endif
    }
 
    return rv;
@@ -331,10 +367,10 @@ _aaxMMDEVAPIDriverSetup(const void *id, size_t *bufsize, int fmt,
 
 
 
-
+   err = 0;
    if (err >= 0)
    {
-      handle->format = format;
+      handle->format = fmt; // format;
       handle->no_tracks = channels;
       handle->frequency_hz = (float)freq;
       handle->buffer_size = bufsz;

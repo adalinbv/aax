@@ -1,135 +1,474 @@
-/* source: http://www.jbox.dk/sanos/source/include/win32.h.html */
-/* Additions from: http://www.vbaccelerator.com/home/VB/Type_Libraries/IShellFolder/IShellFolder_Type_Library_Source_Code_zip_Wintypes_odl.asp */
-
-/*
-Win32 definitions
-
-Copyright (C) 2002 Michael Ringgaard. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright 
-   notice, this list of conditions and the following disclaimer.  
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.  
-3. Neither the name of the project nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
-SUCH DAMAGE.
-*/ 
-
 #ifndef WIN32_H
 #define WIN32_H
 
 #include <base/types.h>
 
-#define STDAPICALLTYPE			__stdcall
-#define DllExport			__declspec( dllexport )
-#define WINAPI				DllExport STDAPICALLTYPE
+#define STDAPICALLTYPE		__stdcall
+#define DllExport		__declspec( dllexport )
+#define WINAPI			DllExport STDAPICALLTYPE
 
-#define CONST				const
+#define CONST			const
 
 typedef uint32_t  HRESULT;
-#define FAILED(hr)             		(hr & 0x80000000)
+#define FAILED(hr)		(hr & 0x80000000)
 
-#define EXTERN_C                	extern
-#define STDAPICALLTYPE          	__stdcall
-#define STDAPI                  	EXTERN_C HRESULT STDAPICALLTYPE
+#define EXTERN_C		extern
+#define STDAPICALLTYPE		__stdcall
+#define STDAPI			EXTERN_C HRESULT STDAPICALLTYPE
 
-#define ERROR_FILE_NOT_FOUND		2L
-#define ERROR_NO_MORE_FILES		18L
+#define ERROR_FILE_NOT_FOUND	2L
+#define ERROR_NO_MORE_FILES	18L
 
-#define MAX_PATH			260
-#define INVALID_HANDLE_VALUE		((HANDLE) -1)
-#define INVALID_FILE_SIZE		((DWORD)0xFFFFFFFF)
+#define MAX_PATH		260
+#define INVALID_HANDLE_VALUE	((HANDLE) -1)
+#define INVALID_FILE_SIZE	((DWORD)0xFFFFFFFF)
 
-#define WAIT_TIMEOUT			0x00000102L
-#define WAIT_FAILED			0xFFFFFFFFL
+#define WAIT_TIMEOUT		0x00000102L
+#define WAIT_FAILED		0xFFFFFFFFL
 
-#define FD_SETSIZE			64
+#define FD_SETSIZE		64
 
-typedef void*  HANDLE;
-typedef HANDLE*  PHANDLE;
-typedef HANDLE*  LPHANDLE;
+typedef void* HANDLE;
+typedef HANDLE* PHANDLE;
+typedef HANDLE* LPHANDLE;
 
 typedef void  VOID;
-typedef void*  PVOID;
-typedef const void*  LPCVOID;
+typedef void* PVOID;
+typedef const void* LPCVOID;
 
 typedef char TCHAR;
 typedef char CHAR;
+typedef short SHORT;
 typedef unsigned short WCHAR;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
-typedef unsigned int UINT;
-typedef unsigned long ULONG;
 typedef int INT;
 typedef long LONG;
 typedef int64_t LONGLONG;
+typedef uint64_t ULONGLONG;
+
+typedef unsigned char UCHAR;
+typedef unsigned short USHORT;
+typedef unsigned int UINT;
+typedef unsigned long ULONG;
+typedef uint32_t UINT32;
 
 typedef int BOOL;
 typedef unsigned int SIZE_T;
 
-typedef char *LPSTR;
-typedef char *LPTSTR;
-typedef const char *LPCTSTR;
-typedef const char *LPCSTR;
+typedef float FLOAT;
+typedef double DOUBLE;
 
-typedef unsigned short *LPWSTR;
-typedef const unsigned short *LPCWSTR;
+typedef WCHAR OLECHAR;
+typedef OLECHAR* BSTR;
+typedef BSTR* LPBSTR;
 
-typedef BYTE *LPBYTE;
-typedef LONG *LPLONG;
-typedef LONG *PLONG;
-typedef INT *LPINT;
-typedef DWORD *LPDWORD;
-typedef DWORD *PDWORD;
-typedef BOOL *LPBOOL;
-typedef void *LPVOID;
+typedef char* LPSTR;
+typedef char* LPTSTR;
+typedef const char* LPCTSTR;
+typedef const char* LPCSTR;
+
+typedef unsigned short* LPWSTR;
+typedef const unsigned short* LPCWSTR;
+
+typedef unsigned short VARTYPE;
+typedef short VARIANT_BOOL;
+typedef VARIANT_BOOL _VARIANT_BOOL;
+typedef LONG SCODE;
+
+typedef double DATE;
+
+typedef BYTE* PBYTE;
+typedef BYTE* LPBYTE;
+typedef LONG* LPLONG;
+typedef LONG* PLONG;
+typedef INT* LPINT;
+typedef DWORD* LPDWORD;
+typedef DWORD* PDWORD;
+typedef BOOL* LPBOOL;
+typedef void* LPVOID;
 // typedef hmodule_t HMODULE;
-typedef void *FARPROC;
+typedef void* FARPROC;
 typedef int LCID;
 typedef int HKEY;
-typedef HKEY *PHKEY;
+typedef HKEY* PHKEY;
 typedef int REGSAM;
 typedef int HWND;
 typedef int MMRESULT;
 typedef int TOKEN_INFORMATION_CLASS;
 
-typedef void *LPCRITICAL_SECTION;
-typedef void *LPSECURITY_ATTRIBUTES;
-typedef void *LPSTARTUPINFO;
-typedef void *LPPROCESS_INFORMATION;
-typedef void *LPTIME_ZONE_INFORMATION;
-typedef void *PINPUT_RECORD;
-typedef void *PHANDLER_ROUTINE;
-typedef void *LPWSAOVERLAPPED;
-typedef void *LPWSAOVERLAPPED_COMPLETION_ROUTINE;
-typedef void *PSID;
-typedef void *PSID_IDENTIFIER_AUTHORITY;
-typedef void *PACL;
-typedef void *PSECURITY_DESCRIPTOR;
-typedef void *LPSERVICE_TABLE_ENTRY;
-typedef void *LPSERVICE_STATUS;
-typedef void *HCRYPTPROV;
-typedef void *LPOVERLAPPED;
+typedef void* LPCRITICAL_SECTION;
+typedef void* LPSECURITY_ATTRIBUTES;
+typedef void* LPSTARTUPINFO;
+typedef void* LPPROCESS_INFORMATION;
+typedef void* LPTIME_ZONE_INFORMATION;
+typedef void* PINPUT_RECORD;
+typedef void* PHANDLER_ROUTINE;
+typedef void* LPWSAOVERLAPPED;
+typedef void* LPWSAOVERLAPPED_COMPLETION_ROUTINE;
+typedef void* PSID;
+typedef void* PSID_IDENTIFIER_AUTHORITY;
+typedef void* PACL;
+typedef void* PSECURITY_DESCRIPTOR;
+typedef void* LPSERVICE_TABLE_ENTRY;
+typedef void* LPSERVICE_STATUS;
+typedef void* HCRYPTPROV;
+typedef void* LPOVERLAPPED;
 
+typedef LONGLONG REFERENCE_TIME;
 typedef int SERVICE_STATUS_HANDLE;
+
+typedef struct GUID     // 16 bytes
+{
+    DWORD   Data1;
+    WORD    Data2;
+    WORD    Data3;
+    BYTE    Data4[8];   // chars are one-based
+} GUID;
+
+typedef GUID* REFGUID;
+typedef GUID  IID;
+typedef GUID* REFIID;
+typedef GUID  CLSID;
+typedef GUID* REFCLSID;
+typedef GUID  UUID;
+typedef const GUID* LPCGUID;
+
+#ifdef INITGUID
+# define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+        const GUID DECLSPEC_SELECTANY name = \
+    { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
+#else
+# define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+    EXTERN_C const GUID name
+#endif
+
+
+typedef struct WAVEFORMATEX {
+    WORD wFormatTag;
+    WORD nChannels;
+    DWORD nSamplesPerSec;
+    DWORD nAvgBytesPerSec;
+    WORD nBlockAlign;
+    WORD wBitsPerSample;
+    WORD cbSize;
+} WAVEFORMATEX;
+
+typedef union _ULARGE_INTEGER {
+  struct {
+    DWORD LowPart;
+    DWORD HighPart;
+  };
+  struct {
+    DWORD LowPart;
+    DWORD HighPart;
+  } u;
+  ULONGLONG QuadPart;
+} ULARGE_INTEGER, *PULARGE_INTEGER;
+
+typedef union _LARGE_INTEGER {
+  struct {
+    DWORD LowPart;
+    LONG  HighPart;
+  };
+  struct {
+    DWORD LowPart;
+    LONG  HighPart;
+  } u;
+  LONGLONG QuadPart;
+} LARGE_INTEGER, *PLARGE_INTEGER;
+
+typedef struct _FILETIME
+{
+  DWORD dwLowDateTime;
+  DWORD dwHighDateTime;
+} FILETIME, *PFILETIME, *LPFILETIME;
+
+typedef struct _SYSTEMTIME
+{
+  WORD wYear;
+  WORD wMonth;
+  WORD wDayOfWeek;
+  WORD wDay;
+  WORD wHour;
+  WORD wMinute;
+  WORD wSecond;
+  WORD wMilliseconds;
+} SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
+
+typedef struct tagCLIPDATA {
+    ULONG cbSize;
+    long ulClipFmt;
+    PBYTE pClipData;
+} CLIPDATA;
+
+#define TYPEDEF_CA(type, name) \
+    typedef struct tag ## name {\
+        ULONG cElems;\
+        type *pElems;\
+        } name
+
+#ifdef __GNUC__
+#ifndef NONAMELESSUNION
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95) 
+#define _ANONYMOUS_UNION __extension__
+#define _ANONYMOUS_STRUCT __extension__
+#else
+#if defined(__cplusplus)
+#define _ANONYMOUS_UNION __extension__
+#endif
+#endif /* __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95) */
+#endif /* NONAMELESSUNION */
+#endif /* __GNUC__ */
+#ifndef _ANONYMOUS_STRUCT
+#define _STRUCT_NAME(x) x
+#else
+#define _STRUCT_NAME(x)
+#endif
+typedef union tagCY {
+    _ANONYMOUS_STRUCT struct {
+        unsigned long Lo;
+        long Hi;
+    }_STRUCT_NAME(s);
+    LONGLONG int64;
+} CY;
+
+typedef struct  tagDEC {
+    USHORT             wReserved;
+    BYTE               scale;
+    BYTE               sign;
+    ULONG              Hi32;
+    ULONGLONG          Lo64;
+} DECIMAL;
+
+typedef struct  tagBSTRBLOB {
+    ULONG cbSize;
+    PBYTE pData;
+} BSTRBLOB;
+
+typedef struct _BLOB {
+    ULONG    cbSize;
+    BYTE    *pBlobData;
+} BLOB,*PBLOB,*LPBLOB;
+
+typedef struct tagCABOOL {
+    ULONG cElems;
+    VARIANT_BOOL *pElems;
+} CABOOL;
+
+typedef struct tagCAC {
+    ULONG cElems;
+    CHAR *pElems;
+} CAC;
+
+typedef struct tagCACY {
+    ULONG cElems;
+    CY *pElems;
+} CACY;
+
+typedef struct tagCAUB {
+    ULONG cElems;
+    UCHAR *pElems;
+} CAUB;
+
+typedef struct tagCAI {
+    ULONG cElems;
+    SHORT *pElems;
+} CAI;
+
+typedef struct tagCAUI {
+    ULONG cElems;
+    USHORT *pElems;
+} CAUI;
+
+typedef struct tagCAL {
+    ULONG cElems;
+    LONG *pElems;
+} CAL;
+
+typedef struct tagCAUL {
+    ULONG cElems;
+    ULONG *pElems;
+} CAUL;
+
+typedef struct tagCAH {
+    ULONG cElems;
+    LARGE_INTEGER *pElems;
+} CAH;
+
+typedef struct tagCAUH {
+    ULONG cElems;
+    ULARGE_INTEGER *pElems;
+} CAUH;
+
+typedef struct tagCAFLT {
+    ULONG cElems;
+    FLOAT *pElems;
+} CAFLT;
+
+typedef struct tagCADBL {
+    ULONG cElems;
+    DOUBLE *pElems;
+} CADBL;
+
+typedef struct tagCASCODE {
+    ULONG cElems;
+    SCODE *pElems;
+} CASCODE;
+
+typedef struct tagCADATE {
+    ULONG cElems;
+    DATE *pElems;
+} CADATE;
+
+typedef struct tagCAFILETIME {
+    ULONG cElems;
+    FILETIME *pElems;
+} CAFILETIME;
+
+typedef struct tagCACLIPDATA {
+    ULONG cElems;
+    CLIPDATA *pElems;
+} CACLIPDATA;
+
+typedef struct tagCACLSID {
+    ULONG cElems;
+    CLSID *pElems;
+} CACLSID;
+
+typedef struct tagCABSTR {
+    ULONG cElems;
+    BSTR *pElems;
+} CABSTR;
+
+typedef struct tagCABSTRBLOB {
+    ULONG cElems;
+    BSTRBLOB *pElems;
+} CABSTRBLOB;
+
+typedef struct tagCALPSTR {
+    ULONG cElems;
+    LPSTR *pElems;
+} CALPSTR;
+
+typedef struct tagCALPWSTR {
+    ULONG cElems;
+    LPWSTR *pElems;
+} CALPWSTR;
+
+#ifdef __cplusplus
+typedef struct tagVersionedStream {
+    GUID guidVersion;
+    IStream *pStream;
+} VERSIONEDSTREAM;
+#endif
+
+typedef struct tagVersionedStream *LPVERSIONEDSTREAM;
+
+struct PROPVARIANT;
+typedef struct tagCAPROPVARIANT {
+    ULONG cElems;
+    struct PROPVARIANT *pElems;
+} CAPROPVARIANT;
+
+typedef struct tagSAFEARRAYBOUND {
+  ULONG cElements;
+  LONG  lLbound;
+} SAFEARRAYBOUND, *LPSAFEARRAYBOUND;
+
+typedef struct tagSAFEARRAY {
+  USHORT         cDims;
+  USHORT         fFeatures;
+  ULONG          cbElements;
+  ULONG          cLocks;
+  PVOID          pvData;
+  SAFEARRAYBOUND rgsabound[1];
+} SAFEARRAY, *LPSAFEARRAY;
+
+typedef struct PROPVARIANT {
+  VARTYPE vt;
+  WORD    wReserved1;
+  WORD    wReserved2;
+  WORD    wReserved3;
+  union {
+    CHAR              cVal;
+    UCHAR             bVal;
+    SHORT             iVal;
+    USHORT            uiVal;
+    LONG              lVal;
+    ULONG             ulVal;
+    INT               intVal;
+    UINT              uintVal;
+    LARGE_INTEGER     hVal;
+    ULARGE_INTEGER    uhVal;
+    FLOAT             fltVal;
+    DOUBLE            dblVal;
+    VARIANT_BOOL      boolVal;
+    SCODE             scode;
+    CY                cyVal;
+    DATE              date;
+    FILETIME          filetime;
+    CLSID             *puuid;
+    CLIPDATA          *pclipdata;
+    BSTR              bstrVal;
+    BSTRBLOB          bstrblobVal;
+    BLOB              blob;
+    LPSTR             pszVal;
+    LPWSTR            pwszVal;
+#ifdef __cplusplus
+    IUnknown          *punkVal;
+    IDispatch         *pdispVal;
+    IStream           *pStream;
+    IStorage          *pStorage;
+#endif
+    LPVERSIONEDSTREAM pVersionedStream;
+    LPSAFEARRAY       parray;
+    CAC               cac;
+    CAUB              caub;
+    CAI               cai;
+    CAUI              caui;
+    CAL               cal;
+    CAUL              caul;
+    CAH               cah;
+    CAUH              cauh;
+    CAFLT             caflt;
+    CADBL             cadbl;
+    CABOOL            cabool;
+    CASCODE           cascode;
+    CACY              cacy;
+    CADATE            cadate;    CAFILETIME        cafiletime;
+    CACLSID           cauuid;
+    CACLIPDATA        caclipdata;
+    CABSTR            cabstr;
+    CABSTRBLOB        cabstrblob;
+    CALPSTR           calpstr;
+    CALPWSTR          calpwstr;
+    CAPROPVARIANT     capropvar;
+    CHAR              *pcVal;
+    UCHAR             *pbVal;
+    SHORT             *piVal;
+    USHORT            *puiVal;
+    LONG              *plVal;
+    ULONG             *pulVal;
+    INT               *pintVal;
+    UINT              *puintVal;
+    FLOAT             *pfltVal;
+    DOUBLE            *pdblVal;
+    VARIANT_BOOL      *pboolVal;
+    DECIMAL           *pdecVal;
+    SCODE             *pscode;
+    CY                *pcyVal;
+    DATE              *pdate;
+    BSTR              *pbstrVal;
+#ifdef __cplusplus
+    IUnknown          **ppunkVal;
+    IDispatch         **ppdispVal;
+#endif
+    LPSAFEARRAY       *pparray;
+    struct PROPVARIANT  *pvarVal;
+  };
+} PROPVARIANT;
 
 // typedef VOID (__stdcall *LPHANDLER_FUNCTION)(DWORD fdwControl);
 
@@ -296,34 +635,6 @@ typedef struct _NESTED_FRAME
   EXCEPTION_FRAME *prev;
 } NESTED_FRAME;
 
-typedef union _LARGE_INTEGER 
-{ 
-  struct 
-  {
-    DWORD LowPart; 
-    LONG  HighPart; 
-  };
-  LONGLONG QuadPart;
-} LARGE_INTEGER, *PLARGE_INTEGER; 
-
-typedef struct _FILETIME 
-{ 
-  DWORD dwLowDateTime;
-  DWORD dwHighDateTime;
-} FILETIME, *PFILETIME, *LPFILETIME; 
-
-typedef struct _SYSTEMTIME 
-{ 
-  WORD wYear; 
-  WORD wMonth; 
-  WORD wDayOfWeek; 
-  WORD wDay; 
-  WORD wHour; 
-  WORD wMinute; 
-  WORD wSecond; 
-  WORD wMilliseconds; 
-} SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
-
 typedef struct _SYSTEM_INFO 
 { 
   union 
@@ -463,32 +774,6 @@ typedef struct _KEY_EVENT_RECORD
   DWORD dwControlKeyState; 
 } KEY_EVENT_RECORD; 
 
-
-/* additions */
-
-typedef struct GUID     // 16 bytes
-{          
-    DWORD   Data1;
-    WORD    Data2;
-    WORD    Data3;
-    BYTE    Data4[8];   // chars are one-based
-} GUID;
-typedef   GUID      *REFGUID;
-
-typedef GUID  IID;
-typedef GUID  *REFIID;
-typedef GUID  CLSID;
-typedef GUID  *REFCLSID;
-typedef GUID  UUID;
-
-#ifdef INITGUID
-# define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-        const GUID DECLSPEC_SELECTANY name = \
-    { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
-#else
-# define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-    EXTERN_C const GUID name
-#endif
 
 #endif
 
