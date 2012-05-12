@@ -38,24 +38,24 @@
 #define DEFAULT_DEVNAME		"default"
 #define MMDEV_ID_STRING		"MM Device API"
 
-static _aaxDriverDetect _aaxMMDEVAPIDriverDetect;
-static _aaxDriverGetDevices _aaxMMDEVAPIDriverGetDevices;
-static _aaxDriverGetInterfaces _aaxMMDEVAPIDriverGetInterfaces;
-static _aaxDriverConnect _aaxMMDEVAPIDriverConnect;
-static _aaxDriverDisconnect _aaxMMDEVAPIDriverDisconnect;
-static _aaxDriverSetup _aaxMMDEVAPIDriverSetup;
-static _aaxDriverState _aaxMMDEVAPIDriverPause;
-static _aaxDriverState _aaxMMDEVAPIDriverResume;
-static _aaxDriverCaptureCallback _aaxMMDEVAPIDriverCapture;
-static _aaxDriverCallback _aaxMMDEVAPIDriverPlayback;
-static _aaxDriverGetName _aaxMMDEVAPIDriverGetName;
-static _aaxDriverState _aaxMMDEVAPIDriverIsAvailable;
-static _aaxDriverState _aaxMMDEVAPIDriverAvailable;
+static _aaxDriverDetect _aaxMMDevDriverDetect;
+static _aaxDriverGetDevices _aaxMMDevDriverGetDevices;
+static _aaxDriverGetInterfaces _aaxMMDevDriverGetInterfaces;
+static _aaxDriverConnect _aaxMMDevDriverConnect;
+static _aaxDriverDisconnect _aaxMMDevDriverDisconnect;
+static _aaxDriverSetup _aaxMMDevDriverSetup;
+static _aaxDriverState _aaxMMDevDriverPause;
+static _aaxDriverState _aaxMMDevDriverResume;
+static _aaxDriverCaptureCallback _aaxMMDevDriverCapture;
+static _aaxDriverCallback _aaxMMDevDriverPlayback;
+static _aaxDriverGetName _aaxMMDevDriverGetName;
+static _aaxDriverState _aaxMMDevDriverIsAvailable;
+static _aaxDriverState _aaxMMDevDriverAvailable;
 
 static char _mmdev_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 static char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
 
-_aaxDriverBackend _aaxMMDEVAPIDriverBackend =
+const _aaxDriverBackend _aaxMMDevDriverBackend =
 {
    1.0,
    AAX_PCM16S,
@@ -69,20 +69,20 @@ _aaxDriverBackend _aaxMMDEVAPIDriverBackend =
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
-   (_aaxDriverDetect *)&_aaxMMDEVAPIDriverDetect,
-   (_aaxDriverGetDevices *)&_aaxMMDEVAPIDriverGetDevices,
-   (_aaxDriverGetInterfaces *)&_aaxMMDEVAPIDriverGetInterfaces,
+   (_aaxDriverDetect *)&_aaxMMDevDriverDetect,
+   (_aaxDriverGetDevices *)&_aaxMMDevDriverGetDevices,
+   (_aaxDriverGetInterfaces *)&_aaxMMDevDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxMMDEVAPIDriverGetName,
+   (_aaxDriverGetName *)&_aaxMMDevDriverGetName,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
-   (_aaxDriverConnect *)&_aaxMMDEVAPIDriverConnect,
-   (_aaxDriverDisconnect *)&_aaxMMDEVAPIDriverDisconnect,
-   (_aaxDriverSetup *)&_aaxMMDEVAPIDriverSetup,
-   (_aaxDriverState *)&_aaxMMDEVAPIDriverPause,
-   (_aaxDriverState *)&_aaxMMDEVAPIDriverResume,
-   (_aaxDriverCaptureCallback *)&_aaxMMDEVAPIDriverCapture,
-   (_aaxDriverCallback *)&_aaxMMDEVAPIDriverPlayback,
+   (_aaxDriverConnect *)&_aaxMMDevDriverConnect,
+   (_aaxDriverDisconnect *)&_aaxMMDevDriverDisconnect,
+   (_aaxDriverSetup *)&_aaxMMDevDriverSetup,
+   (_aaxDriverState *)&_aaxMMDevDriverPause,
+   (_aaxDriverState *)&_aaxMMDevDriverResume,
+   (_aaxDriverCaptureCallback *)&_aaxMMDevDriverCapture,
+   (_aaxDriverCallback *)&_aaxMMDevDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
@@ -90,9 +90,9 @@ _aaxDriverBackend _aaxMMDEVAPIDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)*_aaxMMDEVAPIDriverAvailable,
-   (_aaxDriverState *)*_aaxMMDEVAPIDriverAvailable,
-   (_aaxDriverState *)*_aaxMMDEVAPIDriverIsAvailable
+   (_aaxDriverState *)*_aaxMMDevDriverAvailable,
+   (_aaxDriverState *)*_aaxMMDevDriverAvailable,
+   (_aaxDriverState *)*_aaxMMDevDriverIsAvailable
 };
 
 typedef struct
@@ -144,7 +144,7 @@ char *_mmdev_default_name = DEFAULT_DEVNAME;
 
 
 static int
-_aaxMMDEVAPIDriverDetect(int mode)
+_aaxMMDevDriverDetect(int mode)
 {
    static int rv = AAX_FALSE;
    void *audio = NULL;
@@ -206,7 +206,7 @@ _aaxMMDEVAPIDriverDetect(int mode)
 }
 
 static void *
-_aaxMMDEVAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -220,8 +220,8 @@ _aaxMMDEVAPIDriverConnect(const void *id, void *xid, const char *renderer, enum 
       if (!handle) return 0;
 
       handle->sse_level = _aaxGetSSELevel();
-      handle->frequency_hz = _aaxMMDEVAPIDriverBackend.rate;
-      handle->no_tracks = _aaxMMDEVAPIDriverBackend.tracks;
+      handle->frequency_hz = _aaxMMDevDriverBackend.rate;
+      handle->no_tracks = _aaxMMDevDriverBackend.tracks;
 
       if (xid)
       {
@@ -311,7 +311,7 @@ printf("channels: %i\n", handle->no_tracks);
 }
 
 static int
-_aaxMMDEVAPIDriverDisconnect(void *id)
+_aaxMMDevDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -334,7 +334,7 @@ _aaxMMDEVAPIDriverDisconnect(void *id)
 }
 
 static int
-_aaxMMDEVAPIDriverSetup(const void *id, size_t *bufsize, int fmt,
+_aaxMMDevDriverSetup(const void *id, size_t *bufsize, int fmt,
                    unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -405,7 +405,7 @@ _aaxMMDEVAPIDriverSetup(const void *id, size_t *bufsize, int fmt,
 }
 
 static int
-_aaxMMDEVAPIDriverPause(const void *id)
+_aaxMMDevDriverPause(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -418,7 +418,7 @@ _aaxMMDEVAPIDriverPause(const void *id)
 }
 
 static int
-_aaxMMDEVAPIDriverResume(const void *id)
+_aaxMMDevDriverResume(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -430,13 +430,13 @@ _aaxMMDEVAPIDriverResume(const void *id)
 }
 
 static int
-_aaxMMDEVAPIDriverAvailable(const void *id)
+_aaxMMDevDriverAvailable(const void *id)
 {
    return AAX_TRUE;
 }
 
 static int
-_aaxMMDEVAPIDriverIsAvailable(const void *id)
+_aaxMMDevDriverIsAvailable(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -450,7 +450,7 @@ _aaxMMDEVAPIDriverIsAvailable(const void *id)
 }
 
 static int
-_aaxMMDEVAPIDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
+_aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
 // _driver_t *handle = (_driver_t *)id;
 
@@ -464,7 +464,7 @@ _aaxMMDEVAPIDriverCapture(const void *id, void **data, size_t *frames, void *scr
 }
 
 static int
-_aaxMMDEVAPIDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
 {
 // outbuf_size = info.fragstotal*info.fragsize - outbuf_size;
 // return (info.bytes-outbuf_size)/(no_tracks*no_samples);
@@ -472,7 +472,7 @@ _aaxMMDEVAPIDriverPlayback(const void *id, void *d, void *s, float pitch, float 
 }
 
 static char *
-_aaxMMDEVAPIDriverGetName(const void *id, int playback)
+_aaxMMDevDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = (char *)_mmdev_default_name;
@@ -484,7 +484,7 @@ _aaxMMDEVAPIDriverGetName(const void *id, int playback)
 }
 
 static char *
-_aaxMMDEVAPIDriverGetDevices(const void *id, int mode)
+_aaxMMDevDriverGetDevices(const void *id, int mode)
 {
    static char names[2][256] = { "\0\0", "\0\0" };
 
@@ -492,7 +492,7 @@ _aaxMMDEVAPIDriverGetDevices(const void *id, int mode)
 }
 
 static char *
-_aaxMMDEVAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    static const char *rd[2] = {
     "\0\0",

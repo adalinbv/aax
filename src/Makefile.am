@@ -38,6 +38,7 @@ libaax_la_LIBADD = \
         $(top_builddir)/src/software/libsoftwaredriver.la \
 	$(top_builddir)/src/oss/libossdriver.la \
 	$(top_builddir)/src/alsa/libalsadriver.la \
+	$(top_builddir)/src/mmdevapi/libmmdevapidriver.la \
         $(top_builddir)/src/dmedia/libdmediadriver.la \
 	$(RMALLOC_LIB)
 

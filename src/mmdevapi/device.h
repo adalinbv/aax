@@ -18,8 +18,7 @@
 
 #include <driver.h>
 
-extern const _aaxCodec *_aaxMMDEVAPICodecs[];
-extern _aaxDriverBackend _aaxMMDEVAPIDriverBackend;
+extern const _aaxDriverBackend _aaxMMDevDriverBackend;
 
 #endif /* !_AL_MMDEVAPI_DRIVER_H */
 

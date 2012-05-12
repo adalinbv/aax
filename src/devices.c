@@ -27,6 +27,7 @@
 #include <base/logging.h>
 #include <software/device.h>
 #include <dmedia/device.h>
+#include <mmdevapi/device.h>
 #include <alsa/device.h>
 #include <oss/device.h>
 
@@ -564,6 +565,7 @@ _intBufferData _aaxBackends[_AAX_MAX_BACKENDS] =
    {0, 1, (void *)&_aaxLoopbackDriverBackend},
    {0, 1, (void *)&_aaxOSSDriverBackend},
    {0, 1, (void *)&_aaxALSADriverBackend},
+   {0, 1, (void *)&_aaxMMDevDriverBackend},
    {0, 1, (void *)&_aaxDMediaDriverBackend}
 };
 
@@ -574,8 +576,8 @@ void *_aaxBackendsPtr[_AAX_MAX_BACKENDS] =
    (void *)&_aaxBackends[2],
    (void *)&_aaxBackends[3],
    (void *)&_aaxBackends[4],
-   (void *)&_aaxBackends[5]
-// (void *)&_aaxBackends[6]
+   (void *)&_aaxBackends[5],
+   (void *)&_aaxBackends[6]
 };
 
 _intBuffers _aaxIntDriverBackends =
