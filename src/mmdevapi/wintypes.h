@@ -10,7 +10,8 @@
 #define CONST			const
 
 typedef uint32_t  HRESULT;
-#define FAILED(hr)		(hr & 0x80000000)
+#define SUCCEEDED(hr)		((hr & 0x80000000) == 0)
+#define FAILED(hr)		((hr & 0x80000000) != 0)
 
 #define EXTERN_C		extern
 #define STDAPICALLTYPE		__stdcall
@@ -27,6 +28,9 @@ typedef uint32_t  HRESULT;
 #define WAIT_FAILED		0xFFFFFFFFL
 
 #define FD_SETSIZE		64
+
+
+#define STGM_READ		0x00000000L
 
 typedef void* HANDLE;
 typedef HANDLE* PHANDLE;
@@ -469,6 +473,14 @@ typedef struct PROPVARIANT {
     struct PROPVARIANT  *pvarVal;
   };
 } PROPVARIANT;
+
+typedef struct {
+    GUID  fmtid;
+    DWORD pid;
+} PROPERTYKEY;
+
+#define CP_ACP				0 
+#define REFPROPERTYKEY			const PROPERTYKEY * __MIDL_CONST
 
 // typedef VOID (__stdcall *LPHANDLER_FUNCTION)(DWORD fdwControl);
 

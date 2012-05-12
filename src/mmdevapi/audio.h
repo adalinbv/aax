@@ -67,27 +67,33 @@ typedef VOID  IAudioClient;
 typedef VOID  IAudioRenderClient;
 typedef VOID  IMMDeviceEnumerator;
 
-
-EXTERN_C CLSID CLSID_MMDeviceEnumerator;
-EXTERN_C IID IID_IMMDeviceEnumerator;
-EXTERN_C IID IID_IAudioClient;
-EXTERN_C IID IID_IAudioRenderClient;
-
 typedef HRESULT (*CoCreateInstance_proc)(REFCLSID, LPUNKNOWN, DWORD, REFIID, LPVOID*);
-typedef HRESULT (*IMMDeviceEnumerator_Release_proc)(IMMDeviceEnumerator*);
+typedef HRESULT (*IMMDeviceEnumerator_Release_proc)(void*);
 typedef HRESULT (*IMMDeviceEnumerator_GetDefaultEndPoint_proc)(EDataFlow, ERole, IMMDevice**);
-typedef HRESULT (*IMMDeviceActivate_proc)(REFIID, DWORD, PROPVARIANT*, void**);
+typedef HRESULT (*IMMDeviceEnumerator_GetDevice_proc)(void**, LPCWSTR, IMMDevice**);
 
-typedef HRESULT (*IAudioClient_Start_proc)(void);
-typedef HRESULT (*IAudioClient_Stop_proc)(void);
-typedef HRESULT (*IAudioClient_GetService_proc)(REFIID, void**);
-typedef HRESULT (*IAudioClient_Initialize_proc)(AUDCLNT_SHAREMODE, DWORD, REFERENCE_TIME, REFERENCE_TIME, const WAVEFORMATEX, LPCGUID);
-typedef HRESULT (*IAudioClient_GetMixFormat_proc)(WAVEFORMATEX**);
-typedef HRESULT (*IAudioClient_GetBufefrSize_proc)(UINT32*);
-typedef HRESULT (*IAudioClient_GetCurrentPadding_proc)(UINT32*);
+typedef HRESULT (*IMMDevice_Activate_proc)(void*, REFIID, DWORD, PROPVARIANT*, void**);
+typedef HRESULT (*IMMDevice_OpenPropertyStore_proc)(void*, DWORD, void**);
 
-typedef HRESULT (*IAudioRenderClient_GetBuffer_proc)(UINT32, BYTE**);
-typedef HRESULT (*IAudioRenderClient_ReleaseBuffer_proc)(UINT32, DWORD);
+typedef HRESULT (*IAudioClient_Start_proc)(void*);
+typedef HRESULT (*IAudioClient_Stop_proc)(void*);
+typedef HRESULT (*IAudioClient_GetService_proc)(void*, REFIID, void**);
+typedef HRESULT (*IAudioClient_Initialize_proc)(void*, AUDCLNT_SHAREMODE, DWORD, REFERENCE_TIME, REFERENCE_TIME, const WAVEFORMATEX, LPCGUID);
+typedef HRESULT (*IAudioClient_GetMixFormat_proc)(void*, WAVEFORMATEX**);
+typedef HRESULT (*IAudioClient_GetBufefrSize_proc)(void*, UINT32*);
+typedef HRESULT (*IAudioClient_GetCurrentPadding_proc)(void*, UINT32*);
+
+typedef HRESULT (*IAudioRenderClient_GetBuffer_proc)(void*, UINT32, BYTE**);
+typedef HRESULT (*IAudioRenderClient_ReleaseBuffer_proc)(void*, UINT32, DWORD);
+
+typedef HRESULT (*PropVariantInit_proc)(void*);
+typedef HRESULT (*PropVariantClear_proc)(void*);
+
+typedef HRESULT (*IPropertyStore_GetValue_proc)(void*, REFPROPERTYKEY, void*);
+typedef HRESULT (*IPropertyStore_Release_proc)(void*);
+
+
+typedef int (*WideCharToMultiByte_proc)(UINT, DWORD, LPCWSTR, int, LPSTR, int, LPCSTR, LPBOOL);
 
 #endif /* __MMDEVAPI_AUDIO_H */
 
