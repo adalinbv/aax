@@ -203,7 +203,7 @@ _aaxDMediaDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    if TEST_FOR_FALSE(rv) {
-     audio = _oalIsLibraryPresent("libaudio.so");
+     audio = _oalIsLibraryPresent("audio", 0);
    }
 
    if (audio)
@@ -243,7 +243,7 @@ _aaxDMediaDriverDetect(int mode)
       error = _oalGetSymError(0);
       if (!error)
       {
-         void *dmedia = _oalIsLibraryPresent("libdmedia.so");
+         void *dmedia = _oalIsLibraryPresent("dmedia", 0);
          if (dmedia)
          {
             DM_TIE_FUNCTION(dmedia, dmGetError);

@@ -25,7 +25,7 @@
 #define TIE_FUNCTION(f)		p##f = (f##_proc)_oalGetProcAddress(audio, #f)
 
 char *_oalGetSymError(char *error);
-void *_oalIsLibraryPresent(const char *name);
+void *_oalIsLibraryPresent(const char *name, const char *version);
 void *_oalGetProcAddress(void *handle, const char *func);
 void *_oalGetGlobalProcAddress(const char *func);
 

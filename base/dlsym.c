@@ -23,6 +23,8 @@
 #endif
 
 #include <assert.h>
+#include <stdlib.h>	/* for atoi */
+#include <stdio.h>	/* for snprintf */
 
 char *_oalGetSymError(const char *err)
 {
@@ -35,7 +37,7 @@ char *_oalGetSymError(const char *err)
 #if defined( __APPLE__ )
 #include <CoreFoundation/CoreFoundation.h>
 
-void *_oalIsLibraryPresent(const char *name)
+void *_oalIsLibraryPresent(const char *name, const char *version)
 {
    return 0;
 }
@@ -80,10 +82,14 @@ void* _oalGetGlobalProcAddress(const char *func)
 #include <windows.h>
 
 void *
-_oalIsLibraryPresent(const char *name)
+_oalIsLibraryPresent(const char *name, const char *version)
 {
+   char libname[255];
    HINSTANCE handle;
-   handle = LoadLibrary(TEXT(name));
+
+   snprintf(libname, 255, "%s.dll", name);
+   handle = LoadLibrary(TEXT(libname));
+
    return handle;
 }
 
@@ -108,10 +114,18 @@ void *_oalGetGlobalProcAddress(const char *func)
 #include <dlfcn.h>
 
 void *
-_oalIsLibraryPresent(const char *name)
+_oalIsLibraryPresent(const char *name, const char *version)
 {
+   char libname[255];
+
    _oalGetSymError(dlerror());
-   return dlopen(name, RTLD_LAZY);
+
+   if (version && atoi(version) != 0) {
+      snprintf(libname, 255, "lib%s.so.%s", name, version);
+   } else {
+      snprintf(libname, 255, "lib%s.so", name);
+   }
+   return dlopen(libname, RTLD_LAZY);
 }
 
 void *

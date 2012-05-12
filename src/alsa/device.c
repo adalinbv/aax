@@ -266,7 +266,7 @@ _aaxALSADriverDetect(int mode)
    }
 
    if TEST_FOR_FALSE(rv) {
-      audio = _oalIsLibraryPresent("libasound.so.2");
+      audio = _oalIsLibraryPresent("asound", "2");
    }
 
    if (audio)

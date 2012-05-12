@@ -125,6 +125,17 @@ typedef struct
 
 DECL_FUNCTION(CoCreateInstance);
 DECL_FUNCTION(IMMDeviceEnumerator_Release);
+DECL_FUNCTION(IMMDeviceEnumerator_GetDefaultEndPoint);
+DECL_FUNCTION(IMMDeviceActivate);
+DECL_FUNCTION(IAudioClient_Start);
+DECL_FUNCTION(IAudioClient_Stop);
+DECL_FUNCTION(IAudioClient_GetService);
+DECL_FUNCTION(IAudioClient_Initialize);
+DECL_FUNCTION(IAudioClient_GetMixFormat);
+DECL_FUNCTION(IAudioClient_GetBufefrSize);
+DECL_FUNCTION(IAudioClient_GetCurrentPadding);
+DECL_FUNCTION(IAudioRenderClient_GetBuffer);
+DECL_FUNCTION(IAudioRenderClient_ReleaseBuffer);
 
 static IAudioClient* detect_audioclient(const char *);
 
@@ -141,12 +152,13 @@ _aaxMMDEVAPIDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    if TEST_FOR_FALSE(rv) {
-     audio = _oalIsLibraryPresent("libaudio.so");
+     audio = _oalIsLibraryPresent("mmdevapi", 0);
    }
 
    if (audio)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
+      char *error;
 
       snprintf(_mmdev_id_str, MAX_ID_STRLEN, "%s %s %s",
                DEFAULT_RENDERER, MMDEV_ID_STRING, hwstr);
@@ -157,8 +169,20 @@ _aaxMMDEVAPIDriverDetect(int mode)
       if (pCoCreateInstance)
       {
          TIE_FUNCTION(IMMDeviceEnumerator_Release);
+         TIE_FUNCTION(IMMDeviceEnumerator_GetDefaultEndPoint);
+         TIE_FUNCTION(IMMDeviceActivate);
+         TIE_FUNCTION(IAudioClient_Start);
+         TIE_FUNCTION(IAudioClient_Stop);
+         TIE_FUNCTION(IAudioClient_GetService);
+         TIE_FUNCTION(IAudioClient_Initialize);
+         TIE_FUNCTION(IAudioClient_GetMixFormat);
+         TIE_FUNCTION(IAudioClient_GetBufefrSize);
+         TIE_FUNCTION(IAudioClient_GetCurrentPadding);
+         TIE_FUNCTION(IAudioRenderClient_GetBuffer);
+         TIE_FUNCTION(IAudioRenderClient_ReleaseBuffer);
 
-         if (!_oalGetSymError(0)) {
+         error = _oalGetSymError(0);
+         if (!error) {
             rv = AAX_TRUE;
          }
       }
