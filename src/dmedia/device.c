@@ -208,56 +208,56 @@ _aaxDMediaDriverDetect(int mode)
 
    if (audio)
    {
-     const char *hwstr = _aaxGetSIMDSupportString();
-     char *error;
+      const char *hwstr = _aaxGetSIMDSupportString();
+      char *error;
 
-     snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s",
-              DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr);
+      snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s",
+               DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr);
 
-     _oalGetSymError(0);
+      _oalGetSymError(0);
 
-     TIE_FUNCTION(alSetParams);
-     if (palSetParams)
-     {
-       TIE_FUNCTION(alGetResourceByName);
-       TIE_FUNCTION(alSetConfig);
-       TIE_FUNCTION(alSetDevice);
-       TIE_FUNCTION(alOpenPort);
-       TIE_FUNCTION(alSetWidth);
-       TIE_FUNCTION(alSetSampFmt);
-       TIE_FUNCTION(alSetQueueSize);
-       TIE_FUNCTION(alSetChannels);
-       TIE_FUNCTION(alNewConfig);
-       TIE_FUNCTION(alFreeConfig);
-       TIE_FUNCTION(alClosePort);
-       TIE_FUNCTION(alGetParams);
-       TIE_FUNCTION(alGetFrameTime);
-       TIE_FUNCTION(alGetFrameNumber);
-       TIE_FUNCTION(alDiscardFrames);
-       TIE_FUNCTION(alGetParamInfo);
-       TIE_FUNCTION(alWriteFrames);
-       TIE_FUNCTION(alReadFrames);
-       TIE_FUNCTION(alGetErrorString);
-     }
+      TIE_FUNCTION(alSetParams);
+      if (palSetParams)
+      {
+         TIE_FUNCTION(alGetResourceByName);
+         TIE_FUNCTION(alSetConfig);
+         TIE_FUNCTION(alSetDevice);
+         TIE_FUNCTION(alOpenPort);
+         TIE_FUNCTION(alSetWidth);
+         TIE_FUNCTION(alSetSampFmt);
+         TIE_FUNCTION(alSetQueueSize);
+         TIE_FUNCTION(alSetChannels);
+         TIE_FUNCTION(alNewConfig);
+         TIE_FUNCTION(alFreeConfig);
+         TIE_FUNCTION(alClosePort);
+         TIE_FUNCTION(alGetParams);
+         TIE_FUNCTION(alGetFrameTime);
+         TIE_FUNCTION(alGetFrameNumber);
+         TIE_FUNCTION(alDiscardFrames);
+         TIE_FUNCTION(alGetParamInfo);
+         TIE_FUNCTION(alWriteFrames);
+         TIE_FUNCTION(alReadFrames);
+         TIE_FUNCTION(alGetErrorString);
+      }
 
-     error = _oalGetSymError(0);
-     if (!error)
-     {
-       void *dmedia = _oalIsLibraryPresent("libdmedia.so");
-       if (dmedia)
-       {
-         DM_TIE_FUNCTION(dmedia, dmGetError);
-         DM_TIE_FUNCTION(dmedia, dmG711AlawDecode);
-         DM_TIE_FUNCTION(dmedia, dmG711MulawDecode);
-         DM_TIE_FUNCTION(dmedia, dmDVIAudioDecoderCreate);
-         DM_TIE_FUNCTION(dmedia, dmDVIAudioDecode);
+      error = _oalGetSymError(0);
+      if (!error)
+      {
+         void *dmedia = _oalIsLibraryPresent("libdmedia.so");
+         if (dmedia)
+         {
+            DM_TIE_FUNCTION(dmedia, dmGetError);
+            DM_TIE_FUNCTION(dmedia, dmG711AlawDecode);
+            DM_TIE_FUNCTION(dmedia, dmG711MulawDecode);
+            DM_TIE_FUNCTION(dmedia, dmDVIAudioDecoderCreate);
+            DM_TIE_FUNCTION(dmedia, dmDVIAudioDecode);
 
-         error = _oalGetSymError(0);
-         if (!error) {
-            rv = AAX_TRUE;
+            error = _oalGetSymError(0);
+            if (!error) {
+               rv = AAX_TRUE;
+            }
          }
-       }
-     }
+      }
    }
 
    return rv;
