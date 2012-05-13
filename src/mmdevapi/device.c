@@ -28,8 +28,7 @@
 #include "audio.h"
 #include "device.h"
 
-#define REFTIMES_PER_SEC	10000000
-#define REFTIMES_PER_MILLISEC	
+#define NO_PERIODS		2
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		"default"
@@ -94,7 +93,6 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
 
 typedef struct
 {
-// char* name;
    WCHAR *devname;
 
    IMMDeviceEnumerator *pEnumerator;
@@ -105,6 +103,8 @@ typedef struct
 
    WAVEFORMATEX *format;
    EDataFlow mode;
+
+   unsigned int no_frames;
    int exclusive;
    char sse_level;
 
@@ -346,6 +346,11 @@ _aaxMMDevDriverDisconnect(void *id)
 
    if (handle)
    {
+      HRESULT hr = pIAudioClient_Stop(handle->pAudioClient);
+      if (FAILED(hr)) {
+         _AAX_SYSLOG("mmdev; unable to stop the audio client");
+      }
+
       if (handle->pEnumerator != NULL)
       {
          pIMMDeviceEnumerator_Release(handle->pEnumerator);
@@ -384,7 +389,7 @@ _aaxMMDevDriverDisconnect(void *id)
 }
 
 static int
-_aaxMMDevDriverSetup(const void *id, size_t *bufsize, int fmt,
+_aaxMMDevDriverSetup(const void *id, size_t *frames, int fmt,
                    unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -396,8 +401,8 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    assert(handle);
 
-   if (*bufsize) {
-      bufsz = *bufsize;
+   if (*frames) {
+      bufsz = *frames;
    }
    
    if (handle->format->nChannels > *tracks) {
@@ -435,8 +440,8 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    handle->format->nSamplesPerSec = freq;
    handle->format->nChannels = channels;
-   handle->format->cbSize = bufsz;
-   if (bufsize) *bufsize = bufsz;
+   handle->no_frames = bufsz;
+   if (frames) *frames = bufsz;
 
 
    /*
@@ -469,11 +474,12 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int fmt,
    {
       UINT32 bufFrameCnt;
 
+      /* get the actual buffer size */
       hr = pIAudioClient_GetBufferSize(handle->pAudioClient, &bufFrameCnt);
       if (SUCCEEDED(hr))
       {
-         handle->format->cbSize = bufFrameCnt;
-         *bufsize = bufFrameCnt;
+         handle->no_frames = bufFrameCnt;
+         *frames = bufFrameCnt;
 
          hr = pIAudioClient_GetService(handle->pAudioClient,
                                        pIID_IAudioRenderClient,
@@ -546,14 +552,83 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
    return AAX_FALSE;
 }
 
+
 static int
 _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
 {
-   // TODO:
+   static char first_call = 1;
+   _oalRingBuffer *rb = (_oalRingBuffer *)s;
+   _driver_t *handle = (_driver_t *)id;
+   unsigned int no_tracks, no_samples;
+   unsigned int offs, outbuf_size;
+   _oalRingBufferSample *rbd;
+   UINT32 frames_avail;
+   UINT32 frames = 0;
+   HRESULT hr;
+   BYTE *data;
+   int res;
 
-// outbuf_size = info.fragstotal*info.fragsize - outbuf_size;
-// return (info.bytes-outbuf_size)/(no_tracks*no_samples);
-   return 0;
+   assert(rb);
+   assert(rb->sample);
+   assert(id != 0);
+
+   rbd = rb->sample;
+   offs = _oalRingBufferGetOffsetSamples(rb);
+   no_tracks = _oalRingBufferGetNoTracks(rb);
+   no_samples = _oalRingBufferGetNoSamples(rb) - offs;
+
+   outbuf_size = no_tracks * no_samples*sizeof(int16_t);
+   if (handle->ptr == 0)
+   {
+      char *p = 0;
+      handle->ptr = (int16_t *)_aax_malloc(&p, outbuf_size);
+      handle->scratch = (int16_t*)p;
+#ifndef NDEBUG
+      handle->buf_len = outbuf_size;
+#endif
+   }
+   data = (BYTE *)handle->scratch;
+   assert(outbuf_size <= handle->buf_len);
+
+   hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &frames_avail);
+   if (SUCCEEDED(hr))
+   {
+      frames = handle->no_frames - frames_avail;
+      if (frames > no_samples) frames = no_samples;
+
+      hr = pIAudioRenderClient_GetBuffer(handle->pRenderClient, frames, &data);
+      if (SUCCEEDED(hr))
+      {
+         _batch_cvt16_intl_24(data, (const int32_t**)rbd->track,
+                              offs, no_tracks, frames);
+
+         if (is_bigendian()) {
+            _batch_endianswap16((uint16_t*)data, no_tracks*frames);
+         }
+
+         hr=pIAudioRenderClient_ReleaseBuffer(handle->pRenderClient, frames, 0);
+      }
+
+      if (SUCCEEDED(hr))
+      {
+         if (first_call)
+         {
+            first_call = 0;
+            hr = pIAudioClient_Start(handle->pAudioClient);
+            if (FAILED(hr)) {
+               _AAX_SYSLOG("mmdev; unable to start the audio client");
+            }
+         }
+      }
+      else {
+         _AAX_SYSLOG("mmdev; failed to get buffer space");
+      }
+   }
+   else {
+      _AAX_SYSLOG("mmdev; unable to detect free space");
+   }
+
+   return frames - outbuf_size;
 }
 
 static char *
