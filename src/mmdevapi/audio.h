@@ -66,6 +66,8 @@ typedef VOID  IMMDevice;
 typedef VOID  IAudioClient;
 typedef VOID  IAudioRenderClient;
 typedef VOID  IMMDeviceEnumerator;
+typedef VOID  IMMDeviceCollection;
+typedef VOID  IPropertyStore;
 
 typedef HRESULT (*CoCreateInstance_proc)(REFCLSID, LPUNKNOWN, DWORD, REFIID, LPVOID*);
 typedef HRESULT (*CoTaskMemFree_proc)(LPVOID);
@@ -73,9 +75,16 @@ typedef HRESULT (*CoTaskMemFree_proc)(LPVOID);
 typedef HRESULT (*IMMDeviceEnumerator_Release_proc)(void*);
 typedef HRESULT (*IMMDeviceEnumerator_GetDefaultEndPoint_proc)(EDataFlow, ERole, IMMDevice**);
 typedef HRESULT (*IMMDeviceEnumerator_GetDevice_proc)(void**, LPCWSTR, IMMDevice**);
+typedef HRESULT (*IMMDeviceEnumerator_EnumAudioEndpoints_proc)(void*, EDataFlow, DWORD, void**);
 
+typedef HRESULT (*IMMDeviceCollection_GetCount_proc)(void*, UINT*);
+typedef HRESULT (*IMMDeviceCollection_Release_proc)(void*);
+typedef HRESULT (*IMMDeviceCollection_Item_proc)(void*, UINT, void**);
+
+typedef HRESULT (*IMMDevice_OpenPropertyStore_proc)(void*, DWORD, void**);
 typedef HRESULT (*IMMDevice_Activate_proc)(void*, REFIID, DWORD, PROPVARIANT*, void**);
 typedef HRESULT (*IMMDevice_Release_proc)(void*);
+typedef HRESULT (*IMMDevice_GetId_proc)(void*, LPWSTR*);
 
 typedef HRESULT (*IAudioClient_Start_proc)(void*);
 typedef HRESULT (*IAudioClient_Stop_proc)(void*);
@@ -93,12 +102,12 @@ typedef HRESULT (*IAudioRenderClient_Release_proc)(void*);
 typedef HRESULT (*PropVariantInit_proc)(void*);
 typedef HRESULT (*PropVariantClear_proc)(void*);
 
-typedef HRESULT (*IMMDevice_OpenPropertyStore_proc)(void*, DWORD, void**);
 typedef HRESULT (*IPropertyStore_GetValue_proc)(void*, REFPROPERTYKEY, void*);
 typedef HRESULT (*IPropertyStore_Release_proc)(void*);
 
 
 typedef int (*WideCharToMultiByte_proc)(UINT, DWORD, LPCWSTR, int, LPSTR, int, LPCSTR, LPBOOL);
+typedef int (*MultiByteToWideChar_proc)(UINT, DWORD, LPCSTR, int, LPCWSTR, int);
 
 #endif /* __MMDEVAPI_AUDIO_H */
 

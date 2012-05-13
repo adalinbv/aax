@@ -480,6 +480,7 @@ typedef struct {
 } PROPERTYKEY;
 
 #define CP_ACP				0 
+#define DEVICE_STATE_ACTIVE		0x00000001
 #define REFPROPERTYKEY			const PROPERTYKEY * __MIDL_CONST
 
 // typedef VOID (__stdcall *LPHANDLER_FUNCTION)(DWORD fdwControl);
