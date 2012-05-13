@@ -583,19 +583,18 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
    }
 
    ioctl(handle->fd, SNDCTL_DSP_GETOSPACE, &info);
-   assert(outbuf_size <= info.fragsize);
-
-   res = write(handle->fd, data, outbuf_size);
-// printf("#frags: %i, #frags total: %i, fragsize: %i, bytes: %i, outbuf_size: %i\n", info.fragments, info.fragstotal, info.fragsize, info.bytes, outbuf_size);
-
-   if (res == -1)
+   if (outbuf_size <= info.fragsize)
    {
-      char errstr[1024];
-      snprintf(errstr, 1024, "oss: %s", strerror(errno));
-      _AAX_SYSLOG(errstr);
-   }
-   else if (res != outbuf_size) {
-      _AAX_SYSLOG("oss: warning: pcm write error");
+      res = write(handle->fd, data, outbuf_size);
+      if (res == -1)
+      {
+         char errstr[1024];
+         snprintf(errstr, 1024, "oss: %s", strerror(errno));
+         _AAX_SYSLOG(errstr);
+      }
+      else if (res != outbuf_size) {
+         _AAX_SYSLOG("oss: warning: pcm write error");
+      }
    }
 
    /* return the number of samples offset to the expected value */
