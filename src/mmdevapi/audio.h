@@ -61,10 +61,17 @@ typedef enum _AUDCLNT_SHAREMODE {
   AUDCLNT_SHAREMODE_EXCLUSIVE 
 } AUDCLNT_SHAREMODE;
 
+enum _AUDCLNT_BUFFERFLAGS {
+  AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY = 0x1,
+  AUDCLNT_BUFFERFLAGS_SILENT = 0x2,
+  AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR = 0x4
+} AUDCLNT_BUFFERFLAGS;
+
 
 typedef VOID  IMMDevice;
 typedef VOID  IAudioClient;
 typedef VOID  IAudioRenderClient;
+typedef VOID  IAudioCaptureClient;
 typedef VOID  IMMDeviceEnumerator;
 typedef VOID  IMMDeviceCollection;
 typedef VOID  IPropertyStore;
@@ -94,6 +101,10 @@ typedef HRESULT (*IAudioClient_GetMixFormat_proc)(void*, WAVEFORMATEX**);
 typedef HRESULT (*IAudioClient_GetBufferSize_proc)(void*, UINT32*);
 typedef HRESULT (*IAudioClient_GetCurrentPadding_proc)(void*, UINT32*);
 typedef HRESULT (*IAudioClient_Release_proc)(void*);
+
+typedef HRESULT (*ICaptureClient_GetBuffer_proc)(void*, BYTE**, UINT32*, DWORD*, UINT64*, UINT64*);
+typedef HRESULT (*ICaptureClient_ReleaseBuffer_proc)(void*, UINT32);
+typedef HRESULT (*ICaptureClient_GetNextPacketSize_proc)(void*, UINT32*);
 
 typedef HRESULT (*IAudioRenderClient_GetBuffer_proc)(void*, UINT32, BYTE**);
 typedef HRESULT (*IAudioRenderClient_ReleaseBuffer_proc)(void*, UINT32, DWORD);

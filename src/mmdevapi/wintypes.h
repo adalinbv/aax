@@ -56,7 +56,10 @@ typedef unsigned char UCHAR;
 typedef unsigned short USHORT;
 typedef unsigned int UINT;
 typedef unsigned long ULONG;
+typedef int32_t INT32;
 typedef uint32_t UINT32;
+typedef int64_t INT64;
+typedef uint64_t UINT64;
 
 typedef int BOOL;
 typedef unsigned int SIZE_T;

@@ -99,7 +99,11 @@ typedef struct
    IMMDevice *pDevice;
 
    IAudioClient *pAudioClient;
-   IAudioRenderClient *pRenderClient;
+   union
+   {
+      IAudioRenderClient *pRender;
+      IAudioCaptureClient *pCapture;
+   } client;
 
    WAVEFORMATEX *format;
    EDataFlow mode;
@@ -154,9 +158,13 @@ DECL_FUNCTION(IAudioRenderClient_Release);
 DECL_FUNCTION(IMMDevice_OpenPropertyStore);
 DECL_FUNCTION(IPropertyStore_GetValue);
 DECL_FUNCTION(IPropertyStore_Release);
+DECL_FUNCTION(ICaptureClient_GetBuffer);
+DECL_FUNCTION(ICaptureClient_ReleaseBuffer);
+DECL_FUNCTION(ICaptureClient_GetNextPacketSize);
 
-static WCHAR* convert_devname(const char*);
-static char *detect_devname(IMMDevice *);
+static char* detect_devname(IMMDevice*);
+static char* wcharToChar(const WCHAR*);
+static WCHAR* charToWChar(const char*);
 
 
 static int
@@ -220,6 +228,9 @@ _aaxMMDevDriverDetect(int mode)
          TIE_FUNCTION(IMMDevice_OpenPropertyStore);
          TIE_FUNCTION(IPropertyStore_GetValue);
          TIE_FUNCTION(IPropertyStore_Release);
+         TIE_FUNCTION(ICaptureClient_GetBuffer);
+         TIE_FUNCTION(ICaptureClient_ReleaseBuffer);
+         TIE_FUNCTION(ICaptureClient_GetNextPacketSize);
 
          error = _oalGetSymError(0);
          if (!error) {
@@ -257,7 +268,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          if (!handle->devname)
          {
             s = xmlNodeGetString(xid, "renderer");
-            if (s) handle->devname = convert_devname(s);
+            if (s) handle->devname = charToWChar(s);
          }
 
          i = xmlNodeGetInt(xid, "frequency-hz");
@@ -328,7 +339,7 @@ printf("channels: %i\n", handle->no_tracks);
       if (SUCCEEDED(hr))
       {
          if (renderer) {
-            handle->devname = convert_devname(renderer);
+            handle->devname = charToWChar(renderer);
          }
 
          if (!handle->devname) {
@@ -380,10 +391,10 @@ _aaxMMDevDriverDisconnect(void *id)
          pIAudioClient_Release(handle->pAudioClient);
          handle->pAudioClient = NULL;
       }
-      if (handle->pRenderClient != NULL) 
+      if (handle->client.pRender != NULL) 
       {
-         pIAudioRenderClient_Release(handle->pRenderClient);
-         handle->pRenderClient = NULL;
+         pIAudioRenderClient_Release(handle->client.pRender);
+         handle->client.pRender = NULL;
       }
 
       pCoTaskMemFree(handle->format);
@@ -497,7 +508,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int fmt,
 
          hr = pIAudioClient_GetService(handle->pAudioClient,
                                        pIID_IAudioRenderClient,
-                                       (void**)&handle->pRenderClient);
+                                       (void**)&handle->client.pRender);
       }
    }
 
@@ -554,14 +565,65 @@ _aaxMMDevDriverIsAvailable(const void *id)
 static int
 _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
-// _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = (_driver_t *)id;
 
-   // TODO:
-// if (handle->mode != O_RDONLY || (frames == 0) || (data == 0))
-//    return AAX_FALSE;
+   if ((frames == 0) || (data == 0)) // handle->mode != O_RDONLY
+      return AAX_FALSE;
 
    if (*frames == 0)
       return AAX_TRUE;
+
+   *frames = 0;
+   if (data)
+   {
+      UINT32 packet_sz;
+      HRESULT hr;
+
+      hr = pICaptureClient_GetNextPacketSize(handle->pAudioClient, &packet_sz);
+      if (SUCCEEDED(hr))
+      {
+         UINT32 frames_avail;
+         BYTE* buf;
+         DWORD fl;
+
+         while (packet_sz != 0)
+         {
+            hr = pICaptureClient_GetBuffer(handle->client.pCapture, &buf,
+                                                &frames_avail, &fl, NULL, NULL);
+            if (SUCCEEDED(hr))
+            {
+               if ((fl & AUDCLNT_BUFFERFLAGS_SILENT) != 0) {
+                  _batch_cvt24_16_intl((int32_t**)data, buf, 0,2, frames_avail);
+               }
+               *frames += frames_avail;
+
+               hr = pICaptureClient_ReleaseBuffer(handle->client.pCapture,
+                                                       frames_avail);
+               if (SUCCEEDED(hr))
+               {
+                  hr=pICaptureClient_GetNextPacketSize(handle->client.pCapture,
+                                                       &packet_sz);
+                  if (FAILED(hr))
+                  {
+                     _AAX_SYSLOG("mmdev; unable to retrieve packet size");
+                     packet_sz = 0;
+                  }
+               }
+               else {
+                  _AAX_SYSLOG("mmdev; unable to release buffer");
+               }
+            }
+            else {
+               _AAX_SYSLOG("mmdev; failed to get next buffer");
+            }
+         }
+      }
+      else {
+         _AAX_SYSLOG("mmdev; unable to retrieve packet size");
+      }
+
+      return AAX_TRUE;
+   }
 
    return AAX_FALSE;
 }
@@ -580,6 +642,8 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
    UINT32 frames = 0;
    HRESULT hr;
    BYTE *data;
+
+   if ((frames == 0) || (data == 0)) // handle->mode != O_RDONLY
 
    assert(rb);
    assert(rb->sample);
@@ -609,7 +673,7 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
       frames = handle->no_frames - frames_avail;
       if (frames > no_samples) frames = no_samples;
 
-      hr = pIAudioRenderClient_GetBuffer(handle->pRenderClient, frames, &data);
+      hr = pIAudioRenderClient_GetBuffer(handle->client.pRender, frames, &data);
       if (SUCCEEDED(hr))
       {
          _batch_cvt16_intl_24(data, (const int32_t**)rbd->track,
@@ -619,7 +683,7 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
             _batch_endianswap16((uint16_t*)data, no_tracks*frames);
          }
 
-         hr=pIAudioRenderClient_ReleaseBuffer(handle->pRenderClient, frames, 0);
+         hr=pIAudioRenderClient_ReleaseBuffer(handle->client.pRender, frames,0);
       }
 
       if (SUCCEEDED(hr))
@@ -675,9 +739,12 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
       IMMDevice *device = NULL;
       LPWSTR wstr = NULL;
       UINT i, count;
-      int m;
+      int m, len;
+      char *ptr;
 
+      len = 255;
       m = mode > 0 ? 1 : 0;
+      ptr = (char *)&names[m];
       hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
                                                    DEVICE_STATE_ACTIVE,
                                                    &collection);
@@ -687,6 +754,7 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
       for(i=0; SUCCEEDED(hr) && (i<count); i++)
       {
          PROPVARIANT name;
+         char *devname;
 
          hr = pIMMDeviceCollection_Item(collection, i, &device);
          if (FAILED(hr)) break;
@@ -701,10 +769,18 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
          hr = pIPropertyStore_GetValue(props, pPKEY_Device_FriendlyName, &name);
          if (FAILED(hr)) break;
 
-         // TODO: add to names[mode];
-#if 0
-         printf("Device: %d: '%S' (%S)\n", i, name.pwszVal, wstr);
-#endif
+         devname = wcharToChar(name.pwszVal);
+         if (devname)
+         {
+            int slen;
+
+            snprintf(ptr, len, "%s", devname);
+            free(devname);
+
+            slen = strlen(ptr)+1;
+            len -= slen;
+            ptr += slen;
+         }
 
          pCoTaskMemFree(wstr);
          wstr = NULL;
@@ -760,16 +836,8 @@ detect_devname(IMMDevice *device)
 
       pPropVariantInit(&name);
       hr = pIPropertyStore_GetValue(props, pDEVPKEY_Device_FriendlyName, &name);
-      if (SUCCEEDED(hr))
-      {
-         int len = pWideCharToMultiByte(CP_ACP, 0, name.pwszVal, -1,
-                                        NULL, 0, NULL, NULL);
-         if (len > 0)
-         {
-            rv = calloc(1, len);
-            pWideCharToMultiByte(CP_ACP, 0, name.pwszVal, -1, rv, len,
-                                 NULL, NULL);
-         }
+      if (SUCCEEDED(hr)) {
+         rv = wcharToChar(name.pwszVal);
       }
       pPropVariantClear(&name);
       pIPropertyStore_Release(props);
@@ -778,19 +846,33 @@ detect_devname(IMMDevice *device)
    return rv;
 }
 
+static char*
+wcharToChar(const WCHAR* str)
+{
+   char *rv = NULL;
+   int len;
+
+   len = pWideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+   if (len > 0)
+   {
+      rv = calloc(1, len);
+      pWideCharToMultiByte(CP_ACP, 0, str, -1, rv, len, NULL, NULL);
+   }
+   return rv;
+}
+
 static WCHAR*
-convert_devname(const char* devname)
+charToWChar(const char* str)
 {
    WCHAR *rv = NULL;
    int len;
 
-   len = pMultiByteToWideChar(CP_ACP, 0, devname, -1, NULL, 0);
+   len = pMultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
    if (len > 0)
    {
-      rv = calloc(len, sizeof(WCHAR));
-      pMultiByteToWideChar(CP_ACP, 0, devname, -1, rv, len);
+      rv = calloc(sizeof(WCHAR), len);
+      pMultiByteToWideChar(CP_ACP, 0, str, -1, rv, len);
    }
-
    return rv;
 }
 
