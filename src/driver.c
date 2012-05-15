@@ -8,7 +8,6 @@
 #include <base/logging.h>
 
 #include "driver.h"
-#include "copyright.h"
 
 enum
 {
@@ -105,7 +104,7 @@ printCopyright(int argc, char **argv)
 {
    char *ret = getCommandLineOption(argc, argv, "-c");
    if (ret) {
-      printf("%s\n", ___COPYING);
+      printf("%s\n", aaxGetCopyrightString());
    }
    return ret ? -1 : 0;
 }
