@@ -10,7 +10,7 @@ INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
 INCLUDE (CheckIncludeFiles)
 
-PROJECT(aax C)
+PROJECT(aax-utils C)
 
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
 
@@ -67,9 +67,6 @@ INCLUDE (CPack)
 # We have some custom .cmake scripts not in the official distribution.
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
-# Required libraries
-FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
-
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}" base "${CMAKE_BINARY_DIR}/include")
 
@@ -94,6 +91,13 @@ SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
     "Flags used by the compiler during debug builds."
     FORCE)
 
+
+# Required libraries
+FIND_PACKAGE(AAX REQUIRED)
+if(NOT AAX_FOUND)
+  message(STATUS "ERROR: required AAX library is not installed, aborting.")
+  return()
+endif(NOT AAX_FOUND)
 
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
