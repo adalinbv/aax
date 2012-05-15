@@ -1,4 +1,4 @@
-SUBDIRS = include base src test utils
+SUBDIRS = include base src
 
 EXTRA_DIST = \
 	admin/RPM/aeonwave.spec.in \

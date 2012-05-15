@@ -196,13 +196,9 @@ AC_CONFIG_FILES([ \
 	src/oss/Makefile \
 	src/software/Makefile \
 	base/Makefile \
-	test/Makefile \
-	utils/Makefile \
 	admin/rpm/aeonwave.spec
 	admin/debian/control \
 	admin/debian/control-dev \
-	admin/debian/control-utils \
-	admin/debian/control64 \
-	admin/debian/control64-utils
+	admin/debian/control64
 ])
 AC_OUTPUT
