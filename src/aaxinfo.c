@@ -23,6 +23,7 @@
 #include <rmalloc.h>
 #endif
 #include <aaxdefs.h>
+#include "wavfile.h"
 #include "driver.h"
 
 static const char *_filter_s[AAX_FILTER_MAX] =
@@ -59,8 +60,9 @@ int main(int argc, char **argv)
    char *devname;
    int mode;
 
-   if (printCopyright(argc, argv))
+   if (printCopyright(argc, argv) || playAudioTune(argc, argv)) {
       return 0;
+   }
 
    printf("Run %s -copyright to read the copyright information.\n", argv[0]);
 

@@ -114,7 +114,7 @@ SET(BASE_OBJS
      base/types.c
 )
 
-ADD_SUBDIRECTORY(src utils)
+ADD_SUBDIRECTORY(src)
 
 #-----------------------------------------------------------------------------
 ### uninstall target
