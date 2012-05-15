@@ -1,0 +1,9 @@
+AeonWave-Config is a graphical configuration utility for AeonWave to manage the
+personal AeonWave configuration file. It is possible to select the default
+output device, the output frequency and the number of output channels for
+every supported backend.
+
+To build AeonWave-utils type the following;
+
+mkdir build; cd build; cmake ..
+make install
