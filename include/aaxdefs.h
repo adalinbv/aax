@@ -101,7 +101,7 @@
 #define __aaxEffectGet(a,b,c,d,e,EFF,GRP)				\
 	__intGetAll(a,b,c,d,e,Effect,AAX_##EFF##_EFFECT,GRP)
 
-extern aaxMtx4f aaxIdentityMatrix;
+AAX_API aaxMtx4f aaxIdentityMatrix;
 
 /*
  * Driver
