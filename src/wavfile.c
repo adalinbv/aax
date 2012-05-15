@@ -11,6 +11,7 @@
 
 #include "driver.h"
 #include "wavfile.h"
+#include "audio_tune.h"
 
 #define PRINT_DEBUG_MSG         0
 #define PRINT_INFO_MSG		1
@@ -58,7 +59,7 @@ static const uint32_t _defaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 
 
 static char __big_endian = 0;
-static void bufferComvertMSIMA_IMA4(void*, unsigned, unsigned int, unsigned*);
+static void bufferConvertMSIMA_IMA4(void*, unsigned, unsigned int, unsigned*);
 
 /**
  * Load a canonical WAVE file into memory and return a pointer to the buffer.
@@ -246,9 +247,10 @@ bufferFromFile(aaxConfig config, const char *infile)
    if (data && format != AAX_FORMAT_NONE)
    {
       buffer = aaxBufferCreate(config, no_samples, channels, format);
+
       if (format == AAX_IMA4_ADPCM)
       {
-         bufferComvertMSIMA_IMA4(data, channels, no_samples, &block);
+         bufferConvertMSIMA_IMA4(data, channels, no_samples, &block);
 
          res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, block);
          testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
@@ -264,6 +266,160 @@ bufferFromFile(aaxConfig config, const char *infile)
 
    return buffer;
 }
+
+
+/**
+ * process a canonical WAVE file in memory and return a pointer to the buffer.
+ *
+ * @param a pointer to the wave file buffer
+ * @ve file param no_samples the returned number of samples per audio track
+ * @param freq the returned sample frequency of the audio tracks
+ * @param bits_sample the returned number of bits per sample
+ * @param no_tracks the returned number of audio tracks in the buffer
+ */
+void*
+dataLoad(const unsigned char *data, unsigned int *no_samples,
+#if !_OPENAL_SUPPORT
+         unsigned *block,
+#endif
+         int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
+{
+   static const unsigned int _t = 1;
+   unsigned int buflen, blocksz;
+   char *ptr = (char*)data;
+   int i;
+
+#if !_OPENAL_SUPPORT
+   *block = 1;
+#endif
+
+   __big_endian = (*(char *)&_t == 0);
+
+   memcpy(&_oalSoftwareWaveHeader, ptr, WAVE_EXT_HEADER_SIZE*4);
+   if (__big_endian)
+   {
+      for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
+         _oalSoftwareWaveHeader[i] = BSWAP32(_oalSoftwareWaveHeader[i]);
+      }
+   }
+
+   *freq = _oalSoftwareWaveHeader[6];
+   *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
+   *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
+   *bits_sample = _oalSoftwareWaveHeader[8] >> 16;
+   blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
+#if !_OPENAL_SUPPORT
+   *block = blocksz;
+#endif
+
+   /* search for the data chunk */
+   ptr += 32L;
+   do
+   {
+      if (*ptr++ == 'd' && *ptr++ == 'a' && *ptr++ == 't' && *ptr++ == 'a')
+      {
+         memcpy(&buflen, ptr, 4);
+         ptr += 4;
+         break;
+      }
+   }
+   while (1);
+   *no_samples = (buflen * 8) / (*no_tracks * *bits_sample);
+
+   return ptr;
+}
+
+
+aaxBuffer
+bufferFromData(aaxConfig config, const unsigned char *indata)
+{
+   aaxBuffer buffer = NULL;
+   unsigned int fmt, no_samples;
+   enum aaxFormat format;
+   char bps, channels;
+   unsigned block = 1;
+   int res, freq;
+   void *data;
+
+   data = dataLoad(indata, &no_samples,
+#if !_OPENAL_SUPPORT
+                   &block,
+#endif
+                   &freq, &bps, &channels, &fmt);
+   format = getFormatFromFileFormat(fmt, bps);
+   if (data && format != AAX_FORMAT_NONE)
+   {
+      void *ptr = data;
+
+      buffer = aaxBufferCreate(config, no_samples, channels, format);
+
+      if (format == AAX_IMA4_ADPCM)
+      {
+         unsigned int size = channels*no_samples*bps/8;
+
+         ptr = malloc(size);
+         memcpy(ptr, data, size);
+         bufferConvertMSIMA_IMA4(ptr, channels, no_samples, &block);
+
+         res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, block);
+         testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
+      }
+
+      res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
+      testForState(res, "aaxBufferSetSetup(AAX_FREQUENCY)");
+
+      res = aaxBufferSetData(buffer, ptr);
+      testForState(res, "aaxBufferSetData");
+ 
+      if (ptr != data) free(ptr);
+   }
+
+   return buffer;
+}
+
+int
+playAudioTune(int argc, char **argv)
+{
+   char *ret = getCommandLineOption(argc, argv, "-p");
+   if (ret)
+   {
+      char *devname = getDeviceName(argc, argv);
+      aaxEmitter emitter;
+      aaxConfig config;
+      aaxBuffer buffer;
+      float dt = 0.0f;
+      int state;
+
+      config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+      aaxMixerSetState(config, AAX_INITIALIZED);
+      aaxMixerSetState(config, AAX_PLAYING);
+
+      buffer = bufferFromData(config, ___sounds_tune_wav);
+
+      emitter = aaxEmitterCreate();
+      aaxEmitterAddBuffer(emitter, buffer);
+      aaxMixerRegisterEmitter(config, emitter);
+      aaxEmitterSetState(emitter, AAX_PLAYING);
+
+      do
+      {
+         nanoSleep(5e7);
+         dt += 5e7*1e-9;
+         state = aaxEmitterGetState(emitter);
+      }
+      while (state == AAX_PLAYING);
+
+      aaxMixerDeregisterEmitter(config, emitter);
+      aaxMixerSetState(config, AAX_STOPPED);
+      aaxEmitterDestroy(emitter);
+      aaxBufferDestroy(buffer);
+
+      aaxDriverClose(config);
+      aaxDriverDestroy(config);
+   }
+   return ret ? -1 : 0;
+}
+
 
 /**
  * Convert asound buffer from separated multichannel to interleaved format.
@@ -342,7 +498,7 @@ getFormatFromFileFormat(unsigned int format, int  bps)
 }
 
 void
-bufferComvertMSIMA_IMA4(void *data, unsigned channels, unsigned int no_samples, unsigned *blocksz)
+bufferConvertMSIMA_IMA4(void *data, unsigned channels, unsigned int no_samples, unsigned *blocksz)
 {
    unsigned int blocksize = *blocksz;
    int32_t* buf;
