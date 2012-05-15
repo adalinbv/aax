@@ -28,11 +28,12 @@
 #include <assert.h>
 
 #include <api.h>
-#include <arch_simd.h>
 #include <objects.h>
 #include <ringbuffer.h>
 #include <base/geometry.h>
 #include <base/logging.h>
+
+#include "arch_simd.h"
 
 
 /* Forward declartations */

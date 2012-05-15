@@ -11,6 +11,7 @@ INCLUDE(CheckIncludeFile)
 INCLUDE (CheckIncludeFiles)
 
 PROJECT(aax C)
+SET(PACKAGE "AeonWave")
 
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
@@ -40,7 +41,7 @@ STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AAX_
 SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
 SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
 SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
-SET(CPACK_PACKAGE_NAME "AeonWave")
+SET(CPACK_PACKAGE_NAME ${PACKAGE})
 SET(CPACK_PACKAGE_CONTACT "tech@adalin.org")
 SET(CPACK_PACKAGE_VENDOR "tech@adalin.org")
 SET(CPACK_PACKAGE_DESCRIPTION "A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library")
@@ -83,12 +84,12 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 #FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
 
 # Add definitions, compiler switches, etc.
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}" include base "${CMAKE_BINARY_DIR}/include")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}" include base "${CMAKE_BINARY_DIR}/include")
 
-CHECK_C_SOURCE_COMPILES("int *restrict foo;
-                         int main() {return 0;}" HAVE_RESTRICT)
-CHECK_C_SOURCE_COMPILES("int *__restrict foo;
-                         int main() {return 0;}" HAVE___RESTRICT)
+#CHECK_C_SOURCE_COMPILES("int *restrict foo;
+#                         int main() {return 0;}" HAVE_RESTRICT)
+#CHECK_C_SOURCE_COMPILES("int *__restrict foo;
+#                         int main() {return 0;}" HAVE___RESTRICT)
 
 IF(CMAKE_SIZEOF_VOID_P MATCHES "8")
   SET(LIB_POSTFIX "64" CACHE STRING "suffix for 32/64 dir placement")
@@ -138,6 +139,10 @@ IF(HAVE_DLFCN_H)
 ENDIF()
 
 CONFIGURE_FILE(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/aax.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/aax.h")
+
+CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
@@ -178,9 +183,8 @@ SET( AEONWAVE_OBJS
      src/devices.c
      src/objects.c
      src/alsa/device.c
-     src/alsasoft/device.c
-     src/dmedia/codecs.c
      src/dmedia/device.c
+     src/mmdevapi/device.c
      src/oss/device.c
      src/software/arch.c
      src/software/arch_cpu.c
@@ -220,10 +224,9 @@ INSTALL(TARGETS ${LIBAEONWAVE}
         LIBRARY DESTINATION "lib${LIB_POSTFIX}"
         ARCHIVE DESTINATION "lib${LIB_POSTFIX}"
 )
-INSTALL(FILES include/AL/al.h
-              include/AL/alc.h
-              include/AL/alext.h
-        DESTINATION include/AL
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/aax.h
+              include/aaxdefs.h
+        DESTINATION include
 )
 
 #-----------------------------------------------------------------------------

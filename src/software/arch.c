@@ -367,14 +367,14 @@ _aaxGetSIMDSupportString()
 #if defined(__i386__) && defined(__PIC__)
 /* %ebx may be the PIC register.  */
 # define __cpuid(level, a, b, c, d)			\
-  asm volatile ("xchgl\t%%ebx, %1\n\t"			\
+  __asm volatile ("xchgl\t%%ebx, %1\n\t"			\
            "cpuid\n\t"					\
            "xchgl\t%%ebx, %1\n\t"			\
            : "=a" (a), "=r" (b), "=c" (c), "=d" (d)	\
            : "0" (level))
 #elif defined(__i386__) || defined(__x86_64__)
 # define __cpuid(level, a, b, c, d)			\
-  asm volatile ("cpuid\n\t"				\
+  __asm volatile ("cpuid\n\t"				\
            : "=a" (a), "=b" (b), "=c" (c), "=d" (d)	\
            : "0" (level))
 #else
@@ -391,7 +391,7 @@ detect_cpuid()
    {
       int reg1, reg2;
 
-     asm volatile
+     __asm volatile
          ("pushfl; pushfl; popl %0; movl %0,%1; xorl %2,%0;"
           "pushl %0; popfl; pushfl; popl %0; popfl"
           : "=&r" (reg1), "=&r" (reg2)
