@@ -368,6 +368,7 @@ typedef float aaxMtx4f[4][4];
 AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion();
 AAX_API unsigned AAX_APIENTRY aaxGetMinorVersion();
 AAX_API unsigned int AAX_APIENTRY aaxGetPatchLevel();
+AAX_API const char* AAX_APIENTRY aaxGetCopyrightString();
 AAX_API const char* AAX_APIENTRY aaxGetVersionString(aaxConfig);
 
 AAX_API enum aaxErrorType AAX_APIENTRY aaxGetErrorNo();

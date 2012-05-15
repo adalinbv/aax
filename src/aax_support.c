@@ -13,7 +13,9 @@
 
 #include <aax.h>
 #include <software/audio.h>
+
 #include "api.h"
+#include "copyright.h"
 
 typedef struct {
    char supported;
@@ -44,6 +46,12 @@ unsigned int
 aaxGetPatchLevel()
 {
    return AAX_PATCH_LEVEL;
+}
+
+const char*
+aaxGetCopyrightString()
+{
+   return ___COPYING;
 }
 
 const char*
