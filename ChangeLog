@@ -1,3 +1,6 @@
+eonWave (2.2.1) stable; urgency=low
+  * Added a Windows (XP or later) backend.
+
 AeonWave (2.2.0) stable; urgency=low
   * Added an 8 band graphical equalizer for the final mixer stage.
   * Added an envelope following option for filters and effects (auto-wah).

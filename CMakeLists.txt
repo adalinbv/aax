@@ -13,7 +13,6 @@ INCLUDE (CheckIncludeFiles)
 PROJECT(aax C)
 
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
-OPTION(UTILS  "Build and install utility programs" ON)
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
 
 IF(WIN32)
@@ -226,10 +225,6 @@ INSTALL(FILES include/AL/al.h
               include/AL/alext.h
         DESTINATION include/AL
 )
-
-IF(UTILS)
-  ADD_SUBDIRECTORY(test)
-ENDIF()
 
 #-----------------------------------------------------------------------------
 ### uninstall target
