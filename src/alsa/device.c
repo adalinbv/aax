@@ -1715,7 +1715,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *dst, void *src, float pitch
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs, t, hw_bps, chunk;
+   unsigned int no_tracks, offs, t, chunk;
    _oalRingBufferSample *rbsd;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;

@@ -48,7 +48,9 @@
 #define DMEDIA_ID_STRING	"Unknown"
 #endif
 
-#define _DEBUG			0
+#ifndef _DEBUG
+# define _DEBUG			0
+#endif
 #define MAX_ID_STRLEN		32
 
 #define DEFAULT_OUTPUT_RATE	48000

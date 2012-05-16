@@ -22,7 +22,9 @@
 #include "config.h"
 #endif
 
-#define _DEBUG		0
+#ifndef _DEBUG
+# define _DEBUG		0
+#endif
 
 #include <math.h>
 #include <assert.h>

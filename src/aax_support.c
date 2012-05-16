@@ -51,7 +51,7 @@ aaxGetPatchLevel()
 const char*
 aaxGetCopyrightString()
 {
-   return ___COPYING;
+   return (const char*)___COPYING;
 }
 
 const char*

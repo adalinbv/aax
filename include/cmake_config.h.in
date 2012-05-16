@@ -1,5 +1,10 @@
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* versioning */
+#cmakedefine AAX_MAJOR_VERSION @AAX_MAJOR_VERSION@
+#cmakedefine AAX_MINOR_VERSION @AAX_MINOR_VERSION@
+#cmakedefine AAX_MICRO_VERSION @AAX_MICRO_VERSION@
+
 /* Define this to enable nano debug messages. */
 #undef DEBUG
 
@@ -180,3 +185,5 @@
 /* Define if we have the __restrict keyword */
 #cmakedefine HAVE___RESTRICT
 
+/* set the size of size_t */
+#cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@

@@ -1110,9 +1110,10 @@ _aaxCheckKeyValidityStr(char *keystr)
    int rv = 0;
    if (keystr && (strlen(keystr) == 26))
    {
+      union { uint64_t ll; uint32_t i[2]; } tmp;
       int base = strlen(keystr)+1;   /* 27 */
       char *nptr, *eptr;
-      uint64_t key, tmp;
+      uint64_t key;
 
       nptr = keystr;
       eptr = strchr(nptr, '-');
@@ -1120,11 +1121,11 @@ _aaxCheckKeyValidityStr(char *keystr)
 
       nptr = eptr+1;
       eptr = strchr(nptr, '-');
-      tmp = strtoll(nptr, &eptr, base);
+      tmp.ll = strtoll(nptr, &eptr, base);
       if (is_bigendian()) {
-         key += *((uint32_t*)(&tmp)+1);
+         key += tmp.i[1]; // *((uint32_t*)(&tmp.ll)+1);
       } else {
-         key += *(uint32_t*)(&tmp);
+         key += tmp.i[0]; // *((uint32_t*)&tmp.ll);
       }
 #if 0
 // printf("tmp: %llx\n", tmp);
@@ -1135,7 +1136,7 @@ _aaxCheckKeyValidityStr(char *keystr)
       eptr = nptr+strlen(nptr);
       key -= strtoll(nptr, &eptr, base);
       if (((key^HANDLE_ID) % 29723) == (7*strlen(keystr)-5)) {	/* 177 */
-         rv = tmp & 0xFFFFFFFF;
+         rv = tmp.ll & 0xFFFFFFFF;
       }
    }
    return rv;

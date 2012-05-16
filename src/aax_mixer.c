@@ -570,51 +570,53 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 
                      if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
                      {
-                        _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-                        _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+                        _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT,
+                                                 AAX_SOUND_VELOCITY);
+                        _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT,
+                                                 AAX_DOPPLER_FACTOR);
                         _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
                      }
                      _intBufReleaseData(dptr, _AAX_SENSOR);
+
+                     sframe->handle = handle;
+                     sframe->pos = pos;
+                     submix->refcount++;
+                     submix->thread = AAX_TRUE;
+
+                     if (!submix->ringbuffer) {
+                        submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+                     }
+
+                     rb = submix->ringbuffer;
+                     if (rb)
+                     {
+                        _aaxMixerInfo* info = submix->info;
+                        const _aaxDriverBackend *be;
+                        float delay_sec;
+
+                        be = _aaxGetDriverBackendLoopback();
+                        delay_sec = 1.0f / info->refresh_rate;
+
+                        _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+                        _oalRingBufferSetFrequency(rb, info->frequency);
+                        _oalRingBufferSetNoTracks(rb, 2);
+
+                        /* create a ringbuffer with a but of overrun space */
+                        _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+                        _oalRingBufferInit(rb, AAX_TRUE);
+
+                        /* 
+                         * Now set the actual duration, this will not alter the
+                         * allocated space since it is lower that the initial
+                         * duration.
+                         */
+                        _oalRingBufferSetDuration(rb, delay_sec);
+                        _oalRingBufferStart(rb);
+                     }
+
+                     _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
+                     rv = AAX_TRUE;
                   }
-
-                  sframe->handle = handle;
-                  sframe->pos = pos;
-                  submix->refcount++;
-                  submix->thread = AAX_TRUE;
-
-                  if (!submix->ringbuffer) {
-		       submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
-                  }
-
-                  rb = submix->ringbuffer;
-                  if (rb)
-                  {
-                     _aaxMixerInfo* info = submix->info;
-                     const _aaxDriverBackend *be;
-                     float delay_sec;
-
-                     be = _aaxGetDriverBackendLoopback();
-                     delay_sec = 1.0f / info->refresh_rate;
-
-                     _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-                     _oalRingBufferSetFrequency(rb, info->frequency);
-                     _oalRingBufferSetNoTracks(rb, 2);
-
-                     /* create a ringbuffer with a but of overrun space */
-                     _oalRingBufferSetDuration(rb, delay_sec*1.0f);
-                     _oalRingBufferInit(rb, AAX_TRUE);
-
-                     /* 
-                      * Now set the actual duration, this will not alter the
-                      * allocated space since it is lower that the initial
-                      * duration.
-                      */
-                     _oalRingBufferSetDuration(rb, delay_sec);
-                     _oalRingBufferStart(rb);
-                  }
-
-                  _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
-                  rv = AAX_TRUE;
                }
             }
             else {
@@ -920,12 +922,12 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   }
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                   rv = AAX_TRUE;
-               }
 
-               submix->refcount++;
-               submix->thread = AAX_TRUE;
-               frame->handle = handle;
-               frame->pos = pos;
+                  submix->refcount++;
+                  submix->thread = AAX_TRUE;
+                  frame->handle = handle;
+                  frame->pos = pos;
+               }
             }
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

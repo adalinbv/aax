@@ -27,17 +27,22 @@ IF(NOT LIBTYPE)
     SET(LIBTYPE SHARED)
 ENDIF(NOT LIBTYPE)
 
+#  read 'description` file into a variable
+file(STRINGS description descriptionFile)
+STRING(REGEX REPLACE ";" " " descriptionFile "${descriptionFile}")
+
 # read 'version' file into a variable (stripping any newlines or spaces)
 file(READ version versionFile)
 STRING(STRIP ${versionFile} AAX_VERSION)
 SET(VERSION AAX_VERSION)
 
-#  read 'description` file into a variable
-file(STRINGS description descriptionFile)
-STRING(REGEX REPLACE ";" " " descriptionFile "${descriptionFile}")
-
 # split version string into components, note CMAKE_MATCH_0 is the entire regexp match
 STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AAX_VERSION})
+
+SET(AAX_MAJOR_VERSION ${CMAKE_MATCH_1})
+SET(AAX_MINOR_VERSION ${CMAKE_MATCH_2})
+SET(AAX_MICRO_VERSION ${CMAKE_MATCH_3})
+
 SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
 SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
 SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
@@ -52,8 +57,10 @@ SET(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/README")
 # DEBIAN
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+  SET(SIZEOF_SIZE_T 8)
 ELSE ()
   SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386")
+  SET(SIZEOF_SIZE_T 4)
 ENDIF ()
 SET(CPACK_DEBIAN_PACKAGE_SECTION "sound")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1)")
@@ -123,8 +130,7 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
-    ADD_DEFINITIONS(-Wall)
-    SET(C_FLAGS "${C_FLAGS} -march=i386 -Werror=format-security" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -march=i586 -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
@@ -141,6 +147,13 @@ ELSE(MSVC)
         FORCE)
 ENDIF(MSVC)
 
+# Required libraries
+FIND_PACKAGE(XML REQUIRED)
+IF(NOT XML_FOUND)
+  MESSAGE(STATUS "ERROR: required XML library is not installed, aborting.")
+  return()
+ENDIF(NOT XML_FOUND)
+
 # Check for the dlopen API (for alGetProcAddress)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
@@ -154,12 +167,28 @@ CHECK_INCLUDE_FILE(dlfcn.h HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE(libio.h HAVE_LIBIO_H)
 CHECK_INCLUDE_FILE(time.h HAVE_TIME_H)
 CHECK_INCLUDE_FILE(math.h HAVE_MATH_H)
+
+IF(HAVE_PTHREAD_H)
+  CHECK_LIBRARY_EXISTS(pthread pthread_create "" HAVE_LIBPTHREAD)
+  IF(HAVE_LIBPTHREAD)
+    ADD_DEFINITIONS(-D_REENTRANT -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=199309L)
+    SET(EXTRA_LIBS pthread ${EXTRA_LIBS})
+  ENDIF(HAVE_LIBPTHREAD)
+ENDIF(HAVE_PTHREAD_H)
+
+IF(HAVE_MATH_H)
+  CHECK_LIBRARY_EXISTS(m floorf "" HAVE_LIBM)
+  IF(HAVE_LIBM)
+    SET(EXTRA_LIBS m ${EXTRA_LIBS})
+  ENDIF(HAVE_LIBM)
+ENDIF(HAVE_MATH_H)
+
 IF(HAVE_DLFCN_H)
   CHECK_LIBRARY_EXISTS(dl dlopen "" HAVE_LIBDL)
   IF(HAVE_LIBDL)
     SET(EXTRA_LIBS dl ${EXTRA_LIBS})
-  ENDIF()
-ENDIF()
+  ENDIF(HAVE_LIBDL)
+ENDIF(HAVE_DLFCN_H)
 
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/aax.h.in"
@@ -239,7 +268,7 @@ IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES PREFIX "")
 ENDIF()
 
-TARGET_LINK_LIBRARIES(${LIBAEONWAVE} ${EXTRA_LIBS} ${AAX_LIBRARY})
+TARGET_LINK_LIBRARIES(${LIBAEONWAVE} ${EXTRA_LIBS} ${XML_LIBRARY} ${AAX_LIBRARY})
 
 # Add an install target here
 INSTALL(TARGETS ${LIBAEONWAVE}

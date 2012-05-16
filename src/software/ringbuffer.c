@@ -25,7 +25,9 @@
 
 #include "audio.h"
 
-#define _DEBUG 0
+#ifndef _DEBUG
+# define _DEBUG		0
+#endif
 
 static unsigned int _oalGetSetMonoSources(unsigned int, int);
 static void _oalRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
