@@ -342,7 +342,11 @@ typedef struct
    int state;
 } _oalRingBufferFilterInfo;
 
+#ifdef _MSC_VER
+typedef ALIGN16 struct
+#else
 typedef struct
+#endif
 {
    /* modelview matrix and velocity */
    mtx4 matrix;
@@ -354,9 +358,17 @@ typedef struct
    _oalRingBufferFilterInfo filter[MAX_3D_FILTER];
    _oalRingBufferFilterInfo effect[MAX_3D_EFFECT];
 
+#ifdef _MSC_VER
+} _oalRingBuffer3dProps;
+#else
 } _oalRingBuffer3dProps ALIGN16;
+#endif
 
+#ifdef _MSC_VER
+typedef ALIGN16 struct
+#else
 typedef struct
+#endif
 {
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
@@ -386,7 +398,11 @@ typedef struct
       float gain;
    } final;
 
+#ifdef _MSC_VER
+} _oalRingBuffer2dProps;
+#else
 } _oalRingBuffer2dProps ALIGN16;
+#endif
 
 
 typedef int

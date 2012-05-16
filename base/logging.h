@@ -34,7 +34,9 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include <strings.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
 #endif
 
 #if HAVE_SYSLOG_H

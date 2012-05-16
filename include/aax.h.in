@@ -17,7 +17,7 @@ extern "C" {
 
 #if defined _WIN32 || defined __CYGWIN__
 # define AAX_APIENTRY __cdecl
-# define AAX_API __attribute__((dllexport))
+# define AAX_API __declspec(dllexport)
 #else
 # define AAX_APIENTRY
 # if __GNUC__ >= 4

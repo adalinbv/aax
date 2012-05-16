@@ -24,8 +24,8 @@ fast_sin(float x)
 {
    float y;
 
-   x = fmod(x+GMATH_PI, GMATH_2PI) - GMATH_PI;
-   y = DIV4_GMATH_PI*x + DIV4_GMATH_PI2*x*fabs(x);
+   x = fmodf(x+GMATH_PI, GMATH_2PI) - GMATH_PI;
+   y = DIV4_GMATH_PI*x + DIV4_GMATH_PI2*x*fabsf(x);
 
    return y;
 }

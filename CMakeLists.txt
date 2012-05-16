@@ -99,33 +99,56 @@ IF(NOT DEFINED LIB_POSTFIX)
   SET(LIB_POSTFIX "")
 ENDIF()
 
-ADD_DEFINITIONS(-Wall -DHAVE_CONFIG_H=1)
+ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
 IF(WERROR)
   ADD_DEFINITIONS(-Werror)
 ENDIF()
 
-SET(C_FLAGS "${C_FLAGS} -march=i386 -Wall -Werror=format-security" CACHE STRING
-    "Flags used by al build types."
-    FORCE)
-SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
-    "Flags used by the compiler during Release with Debug Info builds."
-    FORCE)
-SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -DNDEBUG" CACHE STRING
-    "Flags used by the compiler during release minsize builds."
-    FORCE)
-SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG"
-    CACHE STRING "Flags used by the compiler during release builds"
-    FORCE)
-SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
-    "Flags used by the compiler during debug builds."
-    FORCE)
+IF(MSVC)
+    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG /LD")
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -DNDEBUG /LD")
+    SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG /LD")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG /LD")
+    ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+    ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
+
+    OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" OFF)
+    IF(FORCE_STATIC_VCRT)
+        FOREACH(flag_var
+                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+            IF(${flag_var} MATCHES "/MD")
+                STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+            ENDIF()
+        ENDFOREACH(flag_var)
+    ENDIF()
+ELSE(MSVC)
+    ADD_DEFINITIONS(-Wall)
+    SET(C_FLAGS "${C_FLAGS} -march=i386 -Werror=format-security" CACHE STRING
+        "Flags used by al build types."
+        FORCE)
+    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
+        "Flags used by the compiler during Release with Debug Info builds."
+        FORCE)
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -DNDEBUG" CACHE STRING
+        "Flags used by the compiler during release minsize builds."
+        FORCE)
+    SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG"
+        CACHE STRING "Flags used by the compiler during release builds"
+        FORCE)
+    SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
+        "Flags used by the compiler during debug builds."
+        FORCE)
+ENDIF(MSVC)
 
 # Check for the dlopen API (for alGetProcAddress)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
 CHECK_INCLUDE_FILE(assert.h HAVE_ASSERT_H)
 CHECK_INCLUDE_FILE(syslog.h HAVE_SYSLOG_H)
+CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILE(strings.h HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE(values.h HAVE_VALUES_H)
 CHECK_INCLUDE_FILE(dlfcn.h HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE(libio.h HAVE_LIBIO_H)
@@ -146,10 +169,10 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
-SET(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -Os -fPIC -fomit-frame-pointer -funroll-loops"
-   )
 IF(CMAKE_COMPILER_IS_GNUCC)
+  SET(CMAKE_C_FLAGS
+    "${CMAKE_C_FLAGS} -Os -fPIC -fomit-frame-pointer -funroll-loops"
+  )
   SET(CMAKE_C_FLAGS
       "${CMAKE_C_FLAGS} -shared -march=i586 -std=c99 -Wl,--hash-style=both -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=199309L -fvisibility=hidden"
      )

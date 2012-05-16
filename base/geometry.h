@@ -43,9 +43,15 @@
 typedef float vec3[3];
 typedef float mtx3[3][3];
 
+#ifdef _MSC_VER
+typedef float vec4[4];
+typedef int32_t ivec4[4];
+typedef float mtx4[4][4];
+#else
 typedef float vec4[4] ALIGN16;
 typedef int32_t ivec4[4] ALIGN16;
 typedef float mtx4[4][4] ALIGN16;
+#endif
 
 extern mtx4 aaxIdentityMatrix;
 

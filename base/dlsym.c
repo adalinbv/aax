@@ -26,6 +26,11 @@
 #include <stdlib.h>	/* for atoi */
 #include <stdio.h>	/* for snprintf */
 
+#if _MSC_VER
+# define snprintf _snprintf
+#endif
+
+
 char *_oalGetSymError(const char *err)
 {
    static char *error = 0;
@@ -96,8 +101,6 @@ _oalIsLibraryPresent(const char *name, const char *version)
 void *
 _oalGetProcAddress(void *handle, const char *func)
 {
-   func_t* fptr;
-
    assert(handle);
    assert(func);
 

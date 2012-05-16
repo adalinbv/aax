@@ -81,7 +81,11 @@ enum
    HRTF_OFFSET
 };
 
+#ifdef _MSC_VER
+typedef ALIGN16 struct
+#else
 typedef struct
+#endif
 {
    vec4 hrtf[2];
    vec4 speaker[_AAX_MAX_SPEAKERS];
@@ -98,8 +102,11 @@ typedef struct
    unsigned int max_registered;		/* per (sub)mixer */
 
    uint8_t update_rate;	/* how many frames get processed before an update */
-
+#ifdef _MSC_VER
+} _aaxMixerInfo;
+# else
 } _aaxMixerInfo ALIGN16;
+#endif
 
 typedef struct
 {
