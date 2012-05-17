@@ -360,17 +360,17 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
    if (buf && EBF_VALID(buf))
    {
       float phase = (ratio < 0.0f) ? GMATH_PI : 0.0f;
-      ratio = fabs(ratio);
+      ratio = fabsf(ratio);
       if (type <= AAX_LAST_WAVEFORM && ptype < AAX_PROCESSING_MAX)
       {
          _oalRingBuffer* rb = buf->ringbuffer;
          unsigned int no_samples, tracks, i, bit = 1;
-         float f, fs, fw, skip;
-         unsigned char bps;
+         unsigned char bps, skip;
+         float f, fs, fw;
          void** data;
 
          fw = FNMINMAX(rate, 1.0f, 22050.0f);
-         skip = 1.0f + 99.0f*_MINMAX(rate, 0.0f, 1.0f);
+         skip = (unsigned char)(1.0f + 99.0f*_MINMAX(rate, 0.0f, 1.0f));
 
          fs = _oalRingBufferGetFrequency(rb);
          bps = _oalRingBufferGetBytesPerSample(rb);

@@ -16,9 +16,6 @@
 #ifdef HAVE_LIBIO_H
 #include <libio.h>              /* for NULL */
 #endif
-#ifdef HAVE_VALUES_H
-#include <values.h>             /* for MAXFLOAT */
-#endif
 #include <math.h>		/* for fabs */
 #include <string.h>		/* for calloc */
 #include <assert.h>

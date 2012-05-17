@@ -13,19 +13,13 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_VALUES_H
-#include <values.h>             /* for MAXFLOAT */
-#endif
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
 #include <assert.h>
 #include <math.h>		/* for INFINITY */
 #include <errno.h>		/* for ETIMEDOUT */
-#include <sys/time.h>		/* for struct timeval */
 
 #include <base/threads.h>
 #include <base/gmath.h>
+#include <base/types.h>		/* for msecSleep */
 
 #include "api.h"
 
@@ -265,13 +259,11 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
-      static struct timespec sleept = {0, 1000};
       const _intBufferData* dptr;
       float sleep, duration = 0.0f;
       unsigned int nbuf;
 
       sleep = 1.0 / (handle->info->refresh_rate * 10.0);
-      sleept.tv_nsec = sleep * 1e9f;
       do
       {
          nbuf = 0;
@@ -286,7 +278,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          }
          if (!nbuf)
          {
-            int err = nanosleep(&sleept, 0);
+            int err = msecSleep(sleep*1000);
             if (err < 0) break;
          }
       }
@@ -468,10 +460,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
                   int p = 0;
                   do
                   {
-                     static const struct timespec sleept = {0, 100000};
-
-                     nanosleep(&sleept, 0);
-
+                     msecSleep(100);
                      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                      if (dptr)
                      {

@@ -22,7 +22,46 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_TIME_H
+# include <time.h>             /* for nanosleep */
+#endif
+#if HAVE_SYS_TIME_H
+# include <sys/time.h>         /* for struct timeval */
+#endif
+
 #include "types.h"
+
+
+#ifdef _WIN32
+/*
+   Implementation as per:
+   The Open Group Base Specifications, Issue 6
+   IEEE Std 1003.1, 2004 Edition
+
+   The timezone pointer arg is ignored.  Errors are ignored.
+*/
+int gettimeofday(struct timeval* p, void* tz /* IGNORED */)
+{
+   union {
+      long long ns100; /*time since 1 Jan 1601 in 100ns units */
+      FILETIME ft;
+   } now;
+
+   GetSystemTimeAsFileTime( &(now.ft) );
+   p->tv_usec=(long)((now.ns100 / 10LL) % 1000000LL );
+   p->tv_sec= (long)((now.ns100-(116444736000000000LL))/10000000LL);
+   return 0;
+}
+
+#else
+int msecSleep(unsigned int tms)
+{
+   static struct timespec s;
+   s.tv_sec = (tms/1000);
+   s.tv_nsec = (tms-s.tv_sec*1000);
+   return nanosleep(&s, 0);
+}
+#endif
 
 #if 0
 uint32_t _mem_size(void *p)

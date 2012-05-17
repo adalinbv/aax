@@ -13,10 +13,12 @@
 #include "config.h"
 #endif
 
-#include <math.h>
 #include <assert.h>
 
 #include <aax.h>
+
+#include <base/types.h>		/* for rintf */
+#include <base/gmath.h>
 
 #include "api.h"
 
@@ -360,7 +362,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                   fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
                   fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
-                  if (fabs(fch - fcl) < 200.0f) {
+                  if (fabsf(fch - fcl) < 200.0f) {
                      fcl *= 0.9f; fch *= 1.1f;
                   } else if (fch < fcl) {
                      float f = fch; fch = fcl; fcl = f;
@@ -436,7 +438,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      }
 
                      nextval = filter->slot[i]->param[AAX_LEVEL1];
-                     if (nextval == 0.0f) nextval = -1e-2;
+                     if (nextval == 0.0f) nextval = -1e-2f;
                      env->step[2*i] = (nextval - value)/max_pos;
                      env->max_pos[2*i] = max_pos;
 
@@ -458,7 +460,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                      value = nextval;
                      nextval = filter->slot[i+1]->param[AAX_LEVEL0];
-                     if (nextval == 0.0f) nextval = -1e-2;
+                     if (nextval == 0.0f) nextval = -1e-2f;
                      env->step[2*i+1] = (nextval - value)/max_pos;
                      env->max_pos[2*i+1] = max_pos;
                   }
@@ -615,7 +617,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                      lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                      lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-                     if (fabs(lfo->max - lfo->min) < 200.0f)
+                     if (fabsf(lfo->max - lfo->min) < 200.0f)
                      { 
                         lfo->min *= 0.9f;
                         lfo->max *= 1.1f;

@@ -159,7 +159,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
       dend = rbd->no_samples;
       dno_samples = rintf(dduration*dfreq);
       if (src_pos_sec >= 0) {
-         dest_pos = rint(dest_pos_sec * dfreq);
+         dest_pos = rintf(dest_pos_sec * dfreq);
       } else {						/* distance delay */
          dest_pos = rintf((dest_pos_sec + src_pos_sec)*dfreq);
       }

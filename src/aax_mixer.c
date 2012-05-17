@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <math.h>		/* for ceif */
 
-#include <sys/time.h> 
 #include <signal.h>
 #ifdef SOLARIS /* needed with at least Solaris 8 */
 # include <siginfo.h>
@@ -32,6 +31,7 @@
 
 #include <base/gmath.h>
 #include <base/threads.h>
+#include <base/types.h>		/* for msecSleep */
 
 #include "api.h"
 
@@ -1076,11 +1076,9 @@ _aaxMixerStart(_handle_t *handle)
          int p = 0;
          do
          {
-            static const struct timespec sleept = {0, 100000};
             _intBufferData *dptr_sensor;
 
-            nanosleep(&sleept, 0);
-
+            msecSleep(100);
             dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {

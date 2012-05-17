@@ -13,16 +13,13 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
-#include <sys/time.h>		/* for struct timeval */
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 #include <math.h>
 #include <aax.h>
 
 #include <base/threads.h>
+#include <base/types.h>		/* for msecSleep */
 #include "api.h"
 #include "arch.h"
 #include "driver.h"
@@ -962,17 +959,14 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
-      static struct timespec sleept = {0, 1000};
       float sleep, duration = 0.0f;
       _aaxAudioFrame* mixer;
       int nbuf;
 
-      sleep = 1.0f / (handle->submix->info->refresh_rate * 10.0f);
-      sleept.tv_nsec = sleep * 1e9f;
-
       mixer = handle->submix;
       put_frame(frame);
 
+      sleep = 1.0f / (handle->submix->info->refresh_rate * 10.0f);
       do
       {
          nbuf = 0;
@@ -981,7 +975,7 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
          nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
          if (!nbuf)
          {
-            int err = nanosleep(&sleept, 0);
+            int err = msecSleep(sleep*1000);
             if (err < 0) break;
          }
       }
@@ -1141,8 +1135,7 @@ _aaxAudioFrameStart(_frame_t *frame)
          int p = 0;
          do
          {
-            static const struct timespec sleept = {0, 100000};
-            nanosleep(&sleept, 0);
+            msecSleep(100);
             r = (frame->submix->ringbuffer != 0);
             if (p++ > 5000) break;
          }

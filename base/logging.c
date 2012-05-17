@@ -28,13 +28,10 @@
 # include <strings.h>	/* for strcasecmp */
 #endif
 
-#if _MSC_VER
-# define strncasecmp _strnicmp
-#endif
-
 void (*_aax_free)(void*) = free;
 
 #include "logging.h"
+#include "types.h"
 
 void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level)
 {

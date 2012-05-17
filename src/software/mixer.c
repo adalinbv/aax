@@ -16,12 +16,12 @@
 #include <math.h>		/* for floor, and rint */
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
-#include <sys/time.h>		/* for struct timeval */
 
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
 #include <base/threads.h>
+#include <base/types.h>		/* for msecSleep */
 
 #include "device.h"
 #include "audio.h"
@@ -821,20 +821,19 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 //          }
 //          else
             {
-               static struct timespec sleept = {0, 1000};
-               float sleep = 0.1f / mixer->info->refresh_rate;
+               float sleep;
                int p = 0;
 
                /*
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 */
-               sleept.tv_nsec = sleep * 1e9f;
                ringbuffers = mixer->ringbuffers;
+               sleep = 0.1f / mixer->info->refresh_rate;
                while ((mixer->capturing == 1) && (p++ < 500))
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
-                  nanosleep(&sleept, 0);
+                  msecSleep(sleep*1000);
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;

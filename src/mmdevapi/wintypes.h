@@ -27,8 +27,6 @@ typedef uint32_t  HRESULT;
 #define WAIT_TIMEOUT		0x00000102L
 #define WAIT_FAILED		0xFFFFFFFFL
 
-#define FD_SETSIZE		64
-
 
 #define STGM_READ		0x00000000L
 

@@ -26,9 +26,7 @@
 #include <stdlib.h>	/* for atoi */
 #include <stdio.h>	/* for snprintf */
 
-#if _MSC_VER
-# define snprintf _snprintf
-#endif
+#include "types.h"
 
 
 char *_oalGetSymError(const char *err)

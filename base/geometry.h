@@ -40,6 +40,7 @@
 #define GMATH_RAD_TO_DEG	 57.29577951308232286465f
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
+
 typedef float vec3[3];
 typedef float mtx3[3][3];
 

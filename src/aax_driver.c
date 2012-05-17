@@ -16,12 +16,11 @@
 #ifdef HAVE_LIBIO_H
 #include <libio.h>		/* for NULL */
 #endif
-#ifdef HAVE_VALUES_H
-#include <values.h>		/* for MAXFLOAT */
-#endif
 #include <math.h>		/* for INFINITY */
 #include <string.h>		/* for calloc */
-#include <strings.h>		/* for strcasecmp */
+#if HAVE_STRINGS_H
+# include <strings.h>		/* for strcasecmp */
+#endif
 #include <stdlib.h>		/* for getenv */
 #include <assert.h>
 
@@ -1053,21 +1052,21 @@ _aaxContextSetupHRTF(void *xid, unsigned int n)
 {
    if (xid)
    {
-      float f = xmlNodeGetDouble(xid, "gain");
+      float f = (float)xmlNodeGetDouble(xid, "gain");
       _aaxContextDefaultHead[HRTF_FACTOR][GAIN] = f;
 
       /* need to adjust for a range of 0.0 .. +1.0 where 0.5 is the center */
-      f = xmlNodeGetDouble(xid, "side-delay-sec");
+      f = (float)xmlNodeGetDouble(xid, "side-delay-sec");
       _aaxContextDefaultHead[HRTF_FACTOR][DIR_RIGHT] = -f*2.0f;
       _aaxContextDefaultHead[HRTF_OFFSET][DIR_RIGHT] = f;
 
-      f = xmlNodeGetDouble(xid, "forward-delay-sec");
+      f = (float)xmlNodeGetDouble(xid, "forward-delay-sec");
       _aaxContextDefaultHead[HRTF_FACTOR][DIR_BACK] = f;
 
-      f = xmlNodeGetDouble(xid, "up-delay-sec");
+      f = (float)xmlNodeGetDouble(xid, "up-delay-sec");
       _aaxContextDefaultHead[HRTF_FACTOR][DIR_UPWD] = -f;
 
-      f += xmlNodeGetDouble(xid, "up-offset-sec");
+      f += (float)xmlNodeGetDouble(xid, "up-offset-sec");
       _aaxContextDefaultHead[HRTF_OFFSET][DIR_UPWD] = f;
    }
 }
@@ -1091,12 +1090,12 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
          if (channel >= n) channel = n-1;
          _aaxContextDefaultRouter[i] = channel;
 
-         f = xmlNodeGetDouble(xsid, "volume-norm");
+         f = (float)xmlNodeGetDouble(xsid, "volume-norm");
          _aaxContextDefaultSpeakers[channel][GAIN] = f;
 
-         v[0] = -xmlNodeGetDouble(xsid, "pos-x");
-         v[1] = -xmlNodeGetDouble(xsid, "pos-y");
-         v[2] = xmlNodeGetDouble(xsid, "pos-z");
+         v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
+         v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
+         v[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          /* vec3Normalize(_aaxContextDefaultSpeakers[channel], v); */
          vec3Copy(_aaxContextDefaultSpeakers[channel], v);
       }

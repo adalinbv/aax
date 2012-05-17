@@ -13,6 +13,7 @@
 FIND_PATH(XML_INCLUDE_DIR xml.h
   HINTS
   $ENV{XMLDIR}
+  $ENV{XMLDIR}/include
   PATH_SUFFIXES include
   PATHS
   ~/Library/Frameworks
@@ -26,6 +27,7 @@ FIND_LIBRARY(XML_LIBRARY
   NAMES XML zeroxml
   HINTS
   $ENV{XMLDIR}
+  $ENV{XMLDIR}/lib
   PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
   PATHS
   ~/Library/Frameworks

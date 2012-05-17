@@ -13,11 +13,12 @@
 #include "config.h"
 #endif
 
-#include <math.h>
 #include <assert.h>
 
 #include <aax.h>
 
+#include <base/types.h>		/*  for rintf */
+#include <base/gmath.h>
 #include "arch.h"
 #include "api.h"
 
@@ -383,7 +384,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      }
 
                      nextval = effect->slot[i]->param[AAX_LEVEL1];
-                     if (nextval == 0.0f) nextval = -1e-2;
+                     if (nextval == 0.0f) nextval = -1e-2f;
                      env->step[2*i] = (nextval - value)/max_pos;
                      env->max_pos[2*i] = max_pos;
 
@@ -405,7 +406,7 @@ aaxEffectSetState(aaxEffect e, int state)
 
                      value = nextval;
                      nextval = effect->slot[i+1]->param[AAX_LEVEL0];
-                     if (nextval == 0.0f) nextval = -1e-2;
+                     if (nextval == 0.0f) nextval = -1e-2f;
                      env->step[2*i+1] = (nextval - value)/max_pos;
                      env->max_pos[2*i+1] = max_pos;
                   }
@@ -461,7 +462,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
                      step = data->lfo.step[t];
-                     sign = step ? (step/fabs(step)) : 1.0f;
+                     sign = step ? (step/fabsf(step)) : 1.0f;
                      data->lfo.step[t] = sign * effect->info->refresh_rate;
                      data->lfo.step[t] *= 0.5f * data->lfo.f;
                   }

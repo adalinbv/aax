@@ -16,13 +16,9 @@
 #if HAVE_ASSERT_H
 #include <assert.h>
 #endif
-#if HAVE_TIME_H
-#include <time.h>
-#endif
 #include <stdio.h>
 #include <errno.h>
 #include <strings.h>
-#include <stdlib.h>	/* nanosleep */
 #define _GNU_SOURCE
 #include <stdarg.h>	/* va_start */
 
@@ -2157,11 +2153,8 @@ _aaxALSADriverThread(void* config)
 //          continue;
          }
       }
-      else
-      {
-         static struct timespec sleept = {0, 1000};
-         sleept.tv_nsec = (long)(delay_sec*1e9);
-         nanosleep(&sleept, 0);
+      else {
+         msecSleep(delay_sec*1000);
       }
       _aaxMutexLock(handle->thread.mutex);
 

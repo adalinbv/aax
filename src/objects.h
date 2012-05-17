@@ -125,7 +125,7 @@ typedef struct
    _intBuffers *ringbuffers;		/* for loopback capture */
 
    float curr_pos_sec;
-   int no_registered;
+   unsigned int no_registered;
    unsigned char refcount;
    unsigned char capturing;
    unsigned char dist_delaying;

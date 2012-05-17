@@ -38,7 +38,6 @@
 #if HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
 #elif HAVE_STDINT_H
@@ -85,6 +84,37 @@ uint32_t _bswap32(uint32_t x);
 uint32_t _bswap32h(uint32_t x);
 uint32_t _bswap32w(uint32_t x);
 uint64_t _bswap64(uint64_t x);
+
+#if _MSC_VER
+# include <Windows.h>
+
+# define strtoll _strtoi64
+# define snprintf _snprintf
+# define strcasecmp _stricmp
+# define strncasecmp _strnicmp
+# define rintf(v) (int)(v+0.5f)
+# define msecSleep(tms) SleepEx((DWORD)tms, FALSE)
+
+struct timespec
+{
+  time_t tv_sec; /* seconds */
+  long tv_nsec;  /* nanoseconds */
+};
+
+struct timezone
+{
+  int tz_minuteswest; /* of Greenwich */
+  int tz_dsttime;     /* type of dst correction to apply */
+};
+int gettimeofday(struct timeval*, void*);
+
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>		/* for gettimeofday */
+# endif
+int msecSleep(unsigned int);
+#endif
+
 
 #endif /* !__OAL_TYPES_H */
 
