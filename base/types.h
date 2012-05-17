@@ -57,10 +57,10 @@ typedef int size_t;
 #endif
 
 #ifdef _MSC_VER
-typedef ALIGN16 int32_t*__restrict   int32_ptr;
-typedef ALIGN16 int32_t**__restrict  int32_ptrptr;
-typedef ALIGN16 float*__restrict     float32_ptr;
-typedef ALIGN16 double*__restrict     double64_ptr;
+typedef int32_t*__restrict   int32_ptr;
+typedef int32_t**__restrict  int32_ptrptr;
+typedef float*__restrict     float32_ptr;
+typedef double*__restrict     double64_ptr;
 #else
 typedef int32_t*__restrict      int32_ptr ALIGN16;
 typedef int32_t**__restrict     int32_ptrptr ALIGN16;

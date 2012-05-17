@@ -9,7 +9,9 @@
  * permission of Adalin B.V.
  */
 
-#include <strings.h>	/* strcasecmp */
+#if HAVES_TRINGS_H
+# include <strings.h>	/* strcasecmp */
+#endif
 
 #include <aax.h>
 #include <software/audio.h>

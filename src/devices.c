@@ -15,7 +15,9 @@
 
 #include <assert.h>
 #include <stdlib.h>	/* malloc */
-#include <strings.h>	/* strncasecmp, strstr */
+#if HAVE_STRINGS_H
+# include <strings.h>	/* strncasecmp, strstr */
+#endif
 #include <time.h>	/* time */
 
 #include <xml.h>

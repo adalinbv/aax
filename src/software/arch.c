@@ -14,7 +14,9 @@
 #endif
 
 #include <stdlib.h>	/* getenv, malloc */
-#include <strings.h>	/* strcasecmp */
+#if HAVE_STRINGS_H
+# include <strings.h>	/* strcasecmp */
+#endif
 #if HAVE_CPU_FEATURES_H
 #include <machine/cpu-features.h>
 #endif
@@ -68,14 +70,14 @@ enum {
 #define htuA			0x68747541
 #define itne			0x69746e65
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(_MSC_VER)
 static char check_cpuid_ecx(unsigned int);
 static char check_cpuid_edx(unsigned int);
 static char check_extcpuid_ecx(unsigned int);
 #else
-# define check_cpuid_ecx(a)
-# define check_cpuid_edx(a)
-# define check_extcpuid_ecx(a)
+# define check_cpuid_ecx(a)	0
+# define check_cpuid_edx(a)	0
+# define check_extcpuid_ecx(a)	0
 #endif
 
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;

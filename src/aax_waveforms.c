@@ -33,7 +33,7 @@ static float _rand_sample(float *s, float g)
 static float _sin_sample(float *s, float g)
 {
    *s = fmodf(*s, GMATH_2PI);
-   return floor(fast_sin(*s) * g);
+   return floorf(fast_sin(*s) * g);
 }
 
 #if 0
@@ -195,7 +195,7 @@ _mix_fn _get_mixfn(char bps, float *gain)
 {
    int ringmodulate = (*gain < 0.0f) ? 1 : 0;
 
-   *gain = fabs(*gain);
+   *gain = fabsf(*gain);
    if (bps == 1) {
       return  ringmodulate ? _mul_8bps : _mix_8bps;
    } else if (bps == 2) {
@@ -221,8 +221,8 @@ __bufferPinkNoiseFilter(int32_t *data, unsigned int no_samples, float fs)
       float k = 1.0f;
       float Q = 1.0f;
 
-      v1 = pow(1.003f, q);
-      v2 = pow(0.93f, q);
+      v1 = powf(1.003f, q);
+      v2 = powf(0.93f, q);
       fc = expf((float)(q-1)*f)*100.0f;
       hist[0] = 0.0f; hist[1] = 0.0f;
       iir_compute_coefs(fc, fs, cptr, &k, Q);
@@ -241,7 +241,7 @@ _bufferMixWhiteNoise(void** data, unsigned int no_samples, char bps, int tracks,
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      unsigned int track;
+      int track;
       long ltime;
       int stime;
 
@@ -316,7 +316,7 @@ _bufferMixBrownianNoise(void** data, unsigned int no_samples, char bps, int trac
    int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
    if (data && scratch)
    {
-      unsigned int track;
+      int track;
       long ltime;
       int stime;
 
@@ -388,7 +388,7 @@ _bufferMixImpulse(void** data, float freq, char bps, unsigned int no_samples, in
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      unsigned int track;
+      int track;
       for(track=0; track<tracks; track++)
       {
          unsigned int j = NO_IMPULSE_HARMONICS;
@@ -413,7 +413,7 @@ _bufferMixSineWave(void** data, float freq, char bps, unsigned int no_samples, i
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      unsigned int track;
+      int track;
       float dt;
 
       dt = GMATH_2PI/freq;
@@ -431,7 +431,7 @@ _bufferMixSawtooth(void** data, float freq, char bps, unsigned int no_samples, i
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      unsigned int track;
+      int track;
       for(track=0; track<tracks; track++)
       {
          unsigned int j = NO_SAWTOOTH_HARMONICS;
@@ -456,7 +456,7 @@ _bufferMixSquareWave(void** data, float freq, char bps, unsigned int no_samples,
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      unsigned int track;
+      int track;
       for(track=0; track<tracks; track++)
       {
          unsigned int j = NO_SAWTOOTH_HARMONICS;
@@ -481,7 +481,7 @@ _bufferMixTriangleWave(void** data, float freq, char bps, unsigned int no_sample
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      unsigned int track;
+      int track;
       float m = -1;
       gain *= 0.6f;
       for(track=0; track<tracks; track++)

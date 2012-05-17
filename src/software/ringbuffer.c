@@ -14,7 +14,9 @@
 #endif
 
 #include <assert.h>
-#include <strings.h>
+#if HAVE_STRINGS_H
+# include <strings.h>
+#endif
 #include <math.h>
 
 #include <api.h>
@@ -868,8 +870,9 @@ _oalRingBufferSetTrackSize(_oalRingBuffer *rb, unsigned int size)
 int
 _oalRingBufferSetDuration(_oalRingBuffer *rb, float duration)
 {
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
    float freq;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(rb != 0);
    assert(rb->sample != 0);

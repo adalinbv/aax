@@ -263,7 +263,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
       float sleep, duration = 0.0f;
       unsigned int nbuf;
 
-      sleep = 1.0 / (handle->info->refresh_rate * 10.0);
+      sleep = 1.0f / (handle->info->refresh_rate * 10.0f);
       do
       {
          nbuf = 0;

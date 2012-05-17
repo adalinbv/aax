@@ -11,10 +11,10 @@
 
 #include <math.h>		/* for floor, and rint */
 #include <errno.h>		/* for ETIMEDOUT */
-#include <sys/time.h>		/* for struct timeval */
 
 #include <aax.h>
 #include <base/threads.h>
+#include <base/types.h>
 
 #include <api.h>
 
@@ -136,8 +136,9 @@ _aaxNoneDriverDetect(int mode)
 static void *
 _aaxNoneDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
-   if (mode == AAX_MODE_READ) return NULL;
    const char *hwstr = _aaxGetSIMDSupportString();
+
+   if (mode == AAX_MODE_READ) return NULL;
 
    snprintf(_null_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
 

@@ -711,8 +711,8 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
 void
 _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* fprops3d, const void* mix_info, const _oalRingBuffer2dProps* sprops2d, void* source)
 {
-   const _oalRingBufferPitchShiftFunc* dopplerfn;
-   const _oalRingBufferDistFunc* distfn;
+   _oalRingBufferPitchShiftFunc* dopplerfn;
+   _oalRingBufferDistFunc* distfn;
    _oalRingBuffer2dProps *eprops2d;
    _oalRingBuffer3dProps *eprops3d;
    const _aaxMixerInfo* info;
@@ -728,8 +728,8 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    eprops3d = src->props3d;
    eprops2d = src->props2d;
 
-   distfn = (const _oalRingBufferDistFunc*)_FILTER_GET_DATA(eprops3d, DISTANCE_FILTER);
-   dopplerfn = (const _oalRingBufferPitchShiftFunc*)_EFFECT_GET_DATA(eprops3d, VELOCITY_EFFECT);
+   distfn = _FILTER_GET_DATA(eprops3d, DISTANCE_FILTER);
+   dopplerfn = _EFFECT_GET_DATA(eprops3d, VELOCITY_EFFECT);
    assert(dopplerfn);
    assert(distfn);
 

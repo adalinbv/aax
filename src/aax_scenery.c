@@ -137,7 +137,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
                if (_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR) < 0)
                {
                   float rf;
-                  rf = -1.0*_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR);
+                  rf = -1.0f*_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR);
                   _FILTER_SET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR, rf);
                   mixer->dist_delaying = AAX_TRUE;
                }
