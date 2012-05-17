@@ -56,17 +56,26 @@ typedef int size_t;
 # endif
 #endif
 
-#ifdef _MSC_VER
-typedef int32_t*__restrict   int32_ptr;
-typedef int32_t**__restrict  int32_ptrptr;
-typedef float*__restrict     float32_ptr;
-typedef double*__restrict     double64_ptr;
+#if defined(HAVE_RESTRICT) || defined(restrict)
+# define RESTRICT restrict
+#elif defined(HAVE___RESTRICT) || defined(__restrict)
+# define RESTRICT __restrict
 #else
-typedef int32_t*__restrict      int32_ptr ALIGN16;
-typedef int32_t**__restrict     int32_ptrptr ALIGN16;
-typedef float*__restrict        float32_ptr ALIGN16;
-typedef double*__restrict       double64_ptr ALIGN16;
+# define RESTRICT
 #endif
+
+typedef char*RESTRICT		char_ptr;
+typedef const char*RESTRICT	const_char_ptr;
+typedef void*RESTRICT		void_ptr;
+typedef const void*RESTRICT	const_void_ptr;
+typedef int32_t*RESTRICT	int32_ptr;
+typedef const int32_t*RESTRICT	const_int32_ptr;
+typedef int32_t**RESTRICT	int32_ptrptr;
+typedef const int32_t**RESTRICT	const_int32_ptrptr;
+typedef float*RESTRICT		float32_ptr;
+typedef const float*RESTRICT	const_float32_ptr;
+typedef double*RESTRICT		double64_ptr;
+typedef const double*RESTRICT	const_double64_ptr;
 
 #include "gmath.h"	/* for is_nan */
 

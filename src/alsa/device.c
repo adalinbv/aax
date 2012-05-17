@@ -18,7 +18,9 @@
 #endif
 #include <stdio.h>
 #include <errno.h>
-#include <strings.h>
+#if HAVE_STRINGS_H
+# include <strings.h>
+#endif
 #define _GNU_SOURCE
 #include <stdarg.h>	/* va_start */
 

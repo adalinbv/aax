@@ -177,7 +177,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          }
 #endif
          if (!ddesamps) {
-            ddesamps = ceilf(CUBIC_SAMPS/fact);
+            ddesamps = (unsigned int)ceilf(CUBIC_SAMPS/fact);
          }
       }
 
@@ -195,12 +195,12 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          float ftmp, smu;
 
          ftmp = src_pos_sec * sfreq;
-         smin = floorf(ftmp);
+         smin = (unsigned int)floorf(ftmp);
          smu = ftmp - smin;
 
          src_pos = src->curr_sample;
-         cdesamps = floorf(ddesamps*fact);
-         cno_samples = ceilf(dno_samples*fact);
+         cdesamps = (unsigned int)floorf(ddesamps*fact);
+         cno_samples = (unsigned int)ceilf(dno_samples*fact);
          if ((cno_samples > sno_samples) && !src_loops)
          {
             cno_samples = sno_samples;
@@ -258,7 +258,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          }
       }
 
-      src->curr_sample = floorf(new_src_pos_sec * sfreq);
+      src->curr_sample = (unsigned int)floorf(new_src_pos_sec * sfreq);
       src->curr_pos_sec = new_src_pos_sec;
    }
 
@@ -317,7 +317,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
    float imix, mix;
    unsigned int j;
 
-   mix = _MINMAX(clip, 0.0, 1.0);
+   mix = _MINMAX(clip, 0.0f, 1.0f);
    imix = (1.0f - mix);
    j = dmax-dmin;
    asym *= 4096.0f;
@@ -330,7 +330,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       int32_t samp;
 
       samp = *ptr;
-      asamp = abs(samp+asym);
+      asamp = abs(samp+asym);	/* TODO: test the result without asym */
 
       pos = 1+(asamp >> SHIFT);
       sdf = asamp*df;
@@ -339,8 +339,8 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       assert(sdf <= 1.0f);
 
       rise = _MINMAX(osamp*df-sdf, 0.0f, 1.0f);
-      pos = _MINMAX(pos+asym*rise, 0, ((1<<BITS)-1));
-      osamp = asamp;
+      pos = (unsigned int)_MINMAX(pos+asym*rise, 0, ((1<<BITS)-1));
+      osamp = (float)asamp;
 
       fact1 = (1.0f-sdf)*_compress_tbl[0][pos-1];
       fact1 += sdf*_compress_tbl[0][pos];
@@ -348,7 +348,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       fact2 = (1.0f-sdf)*_compress_tbl[1][pos-1];
       fact2 += sdf*_compress_tbl[1][pos];
 
-      *ptr++ = (imix*fact1 + mix*fact2)*samp;
+      *ptr++ = (int32_t)((imix*fact1 + mix*fact2)*samp);
    }
    while (--j);
 }

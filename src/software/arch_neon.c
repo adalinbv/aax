@@ -197,7 +197,7 @@ _mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2)
 }
 
 void
-_batch_fmadd_neon(int32_ptr d, const int32_ptr src, unsigned int num, float f, float fstep)
+_batch_fmadd_neon(int32_ptr d, const_int32_ptr src, unsigned int num, float f, float fstep)
 {
 #if 0
    unsigned int i = (num/4)*4;
@@ -293,7 +293,7 @@ _batch_fmadd_neon(int32_ptr d, const int32_ptr src, unsigned int num, float f, f
 }
 
 void
-_batch_cvt24_16_neon(int32_t*__restrict d, const void*__restrict src, unsigned int num)
+_batch_cvt24_16_neon(void_ptr d, const_void_ptr src, unsigned int num)
 {
    // int32x4_t  vshlq_n_s32(int32x4_t a, __constrange(0,31) int b);
    int32x4_t *sptr = (int32x4_t*)src;
@@ -365,7 +365,7 @@ _batch_cvt24_16_neon(int32_t*__restrict d, const void*__restrict src, unsigned i
 }
 
 void
-_batch_cvt16_24_neon(void*__restrict dst, const int32_t*__restrict s, unsigned int num)
+_batch_cvt16_24_neon(void_ptr dst, const_void_ptr s, unsigned int num)
 {
    // int32x4_t  vshrq_n_s32(int32x4_t a, __constrange(1,32) int b);
    int32x4_t *sptr = (int32x4_t*)s;
@@ -438,7 +438,7 @@ _batch_cvt16_24_neon(void*__restrict dst, const int32_t*__restrict s, unsigned i
 }
 
 void
-_batch_cvt16_intl_24_neon(void*__restrict dst, const int32_t**__restrict src,
+_batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
                                 unsigned int offset, unsigned int tracks,
                                 unsigned int num)
 {
@@ -545,7 +545,7 @@ _batch_cvt16_intl_24_neon(void*__restrict dst, const int32_t**__restrict src,
         smp -=  mpf[0]; h0 = smp - mpf[1];    \
         smp = h0 + mpf[2]; smp += mpf[3]
 void
-_batch_freqfilter_neon(int32_ptr d, const int32_ptr src, unsigned int num,
+_batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
                   float *hist, float lfgain, float hfgain, float k,
                   const float *cptr)
 {
@@ -670,7 +670,7 @@ _batch_freqfilter_neon(int32_ptr d, const int32_ptr src, unsigned int num,
 }
 
 void
-_aaxBufResampleSkip_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
    int32_t *dptr = d;
@@ -707,7 +707,7 @@ _aaxBufResampleSkip_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, unsi
 }
 
 void
-_aaxBufResampleNearest_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
    int32_t *dptr = d;
@@ -738,7 +738,7 @@ _aaxBufResampleNearest_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, u
 }
 
 void
-_aaxBufResampleLinear_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
    int32_t *dptr = d;
@@ -774,7 +774,7 @@ _aaxBufResampleLinear_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, un
 }
 
 void
-_aaxBufResampleCubic_neon(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    const int32_t *sptr = s;

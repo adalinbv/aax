@@ -390,10 +390,11 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
          for (j=1; j<3; j++) /* skip left-right delays */
          {
-            int diff = p2d->hrtf[track][j];
+            int diff = (int)p2d->hrtf[track][j];
             float vstart, vstep;
 
-            assert(diff <= rbd->dde_samples);
+            assert(diff < (int)rbd->dde_samples);
+            assert(diff > -(int)dno_samples);
 
             vstart = vol_start * hrtf_volume[j];
             vstep = 0.0f; // volume_step * hrtf_volume[j];
@@ -692,10 +693,11 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       // volume_step = (vol_end - vol_start) / dno_samples;
       for (j=0; j<3; j++)
       {
-         int diff = p2d->hrtf[track][j];
+         int diff = (int)p2d->hrtf[track][j];
          float vstart, vstep;
 
-         assert(diff <= ddesamps);
+         assert(diff < (int)ddesamps);
+         assert(diff > -(int)dno_samples);
  
          vstart = vol_start * hrtf_volume[j];
          vstep = 0.0f; // volume_step * hrtf_volume[j];

@@ -383,26 +383,22 @@ _aaxGetSIMDSupportString()
 
 #if defined(__i386__) && defined(__PIC__)
 /* %ebx may be the PIC register.  */
-# define __cpuid(regs, level)				\
-  ASM ("xchgl\t%%ebx, %1\n\t"				\
+# define __cpuid(level, a, b, c, d)			\
+  ASM ("xchgl\t%%ebx, %1\n\t"			\
            "cpuid\n\t"					\
            "xchgl\t%%ebx, %1\n\t"			\
-           : "=a" (regs[0]), "=r" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
+           : "=a" (a), "=r" (b), "=c" (c), "=d" (d)	\
            : "0" (level))
 #elif defined(__i386__) || defined(__x86_64__)
-
-# ifndef _MSC_VER
-#  define __cpuid(regs, level)				\
-      ASM ("cpuid\n\t"					\
-           : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
+# define __cpuid(level, a, b, c, d)			\
+  ASM ("cpuid\n\t"				\
+           : "=a" (a), "=b" (b), "=c" (c), "=d" (d)	\
            : "0" (level))
-# endif
 #else
-#  define __cpuid(regs, level)
+#  define __cpuid(level, a, b, c, d)
 #endif
 
 #if defined(__i386__)
-# ifndef _MSC_VER
 static char
 detect_cpuid()
 {
@@ -423,53 +419,44 @@ detect_cpuid()
    }
    return res;
 }
-#else
-#define detect_cpuid()	1
-#endif
 
-enum {
-  EAX=0, EBX, ECX, EDX
-};
-static int regs[4] = {0,0,-1,-1};
+static unsigned int _eax = 0, _ebx = 0;
+static unsigned int _ecx = -1, _edx = -1;
 
 static char
 check_cpuid_ecx(unsigned int type)
 {
-   if (regs[ECX] == -1)
-   {
-      regs[ECX] = 0;
+   if (_ecx == (unsigned int)-1) {
+      _ecx = 0;
       if (detect_cpuid()) {
-         __cpuid(regs, CPUID_GETFEATURES);
+         __cpuid(CPUID_GETFEATURES, _eax, _ebx, _ecx, _edx);
       }
    }
-   return  (regs[ECX] & type) ? 1 : 0;
+   return  (_ecx & type) ? 1 : 0;
 }
 
 static char
 check_cpuid_edx(unsigned int type)
 {
-   if (regs[EDX] == -1) {
-      regs[EDX] = 0;
+   if (_edx == (unsigned int)-1) {
+      _edx = 0;
       if (detect_cpuid()) {
-         __cpuid(regs, CPUID_GETFEATURES);
+         __cpuid(CPUID_GETFEATURES, _eax, _ebx, _ecx, _edx);
       }
    }
-   return (regs[EDX] & type) ? 1 : 0;
+   return (_edx & type) ? 1 : 0;
 }
 
 static char
 check_extcpuid_ecx(unsigned int type)
 {
-   int _regs[4];
-
-   regs[ECX] = 0;
-   __cpuid(_regs, CPUID_GETEXTFEATURES);
-   if (regs[EAX] >= 0x80000001 && _regs[EBX] == htuA &&
-       _regs[ECX] == DMAc && _regs[EDX] == itne)
+   unsigned int eax, ebx, ecx = 0, edx;
+   __cpuid(CPUID_GETEXTFEATURES, eax, ebx, ecx, edx);
+   if (_eax >= 0x80000001 && ebx == htuA && ecx == DMAc && edx == itne)
    {
-      __cpuid(_regs, 0x80000001);
+      __cpuid(0x80000001, eax, ebx, ecx, edx);
    }
-   return (_regs[ECX] & type) ? 3 : 0;
+   return (ecx & type) ? 3 : 0;
 }
 #endif /* __i386__ || __x86_64__ */
 

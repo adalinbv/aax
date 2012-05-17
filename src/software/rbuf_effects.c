@@ -31,7 +31,7 @@ static void szxform(float *, float *, float *, float *, float *, float *,
  */
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 void
-bufEffectsApply(int32_ptr dst, int32_ptr src, int32_ptr scratch,
+bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
           unsigned int start, unsigned int end, unsigned int no_samples,
           unsigned int ddesamps, unsigned int track, unsigned char ctr,
           void *freq, void *delay, void *distort)
@@ -213,7 +213,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       }
       else
       {
-         noffs = effect->lfo.get(&effect->lfo, s, track, end);
+         noffs = (unsigned int)effect->lfo.get(&effect->lfo, s, track, end);
          effect->delay.sample_offs[track] = noffs;
          effect->curr_noffs = noffs;
       }
@@ -331,6 +331,8 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       _aax_memcpy(dptr, sptr, no_samples*bps);
       if (mix > 0.01f)
       {
+         float mix_factor;
+
          /* make dptr the wet signal */
          if (fact > 0.01f) {
             _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
@@ -341,7 +343,8 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
          }
 
          /* mix with the dry signal */
-         _batch_mul_value(dptr, bps, no_samples, mix/(1.0f+4.0f*pow(fact,0.3f)));
+         mix_factor = mix/(1.0f+4.0f*powf(fact,0.3f));
+         _batch_mul_value(dptr, bps, no_samples, mix_factor);
          _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
       }
    }

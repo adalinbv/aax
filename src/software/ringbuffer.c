@@ -60,6 +60,7 @@ _oalRingBufferCreate(char dde)
       rbd = (_oalRingBufferSample *)calloc(1, sizeof(_oalRingBufferSample));
       if (rbd)
       {
+         float ddesamps;
          int format;
          /*
           * fill in the defaults
@@ -79,7 +80,9 @@ _oalRingBufferCreate(char dde)
          rbd->frequency_hz = 44100.0f;
          rbd->codec = _oalRingBufferCodecs[format];
          rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
-         rbd->dde_samples = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
+
+         ddesamps = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
+         rbd->dde_samples = (unsigned int)ddesamps;
          rbd->scratch = NULL;
       }
       else
@@ -520,7 +523,7 @@ _oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, float fact)
    assert(rb != 0);
    assert(rb->sample != 0);
   
-   samples = fact*rb->sample->no_samples;
+   samples = (unsigned int)(fact*rb->sample->no_samples);
    data = malloc(rb->sample->no_tracks * samples*rb->sample->bytes_sample);
    if (data) {
       _oalRingBufferGetDataInterleaved(rb, data, samples, fact);
@@ -618,7 +621,7 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, float fact)
    assert(rb != 0);
    assert(rb->sample != 0);
 
-   samples = fact*rb->sample->no_samples;
+   samples = (unsigned int)(fact*rb->sample->no_samples);
    data = malloc(rb->sample->no_tracks * samples*rb->sample->bytes_sample);
    if (data) {
       _oalRingBufferGetDataNonInterleaved(rb, data, samples, fact);
@@ -796,6 +799,7 @@ void
 _oalRingBufferSetFrequency(_oalRingBuffer *rb, float freq)
 {
    _oalRingBufferSample *rbd;
+   float ddesamps;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -807,7 +811,9 @@ _oalRingBufferSetFrequency(_oalRingBuffer *rb, float freq)
    rbd->loop_start_sec *= (rbd->frequency_hz / freq);
    rbd->loop_end_sec *= (rbd->frequency_hz / freq);
    rbd->frequency_hz = freq;
-   rbd->dde_samples = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
+
+   ddesamps = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
+   rbd->dde_samples = (unsigned int)ddesamps;
 }
 
 int
@@ -1102,8 +1108,8 @@ _oalRingBufferGetLoopPoints(const _oalRingBuffer *rb, unsigned int*s, unsigned i
    if (s && e)
    {
       _oalRingBufferSample *rbd = rb->sample;
-      *s = rbd->loop_start_sec*rbd->frequency_hz;
-      *e = rbd->loop_end_sec*rbd->frequency_hz;
+      *s = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);
+      *e = (unsigned int)(rbd->loop_end_sec * rbd->frequency_hz);
    }
 }
 
@@ -1185,8 +1191,8 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
          for (j=0; j<num; j++)
          {
             reverb->loopback[0].sample_offs[j] = (int)(loopback * fs);
-            reverb->loopback[1].sample_offs[j] = (int)(loopback * fs)*0.79f;
-            reverb->loopback[2].sample_offs[j] = (int)(loopback * fs)*0.677f;
+            reverb->loopback[1].sample_offs[j] = (int)(loopback * fs*0.79f);
+            reverb->loopback[2].sample_offs[j] = (int)(loopback * fs*0.677f);
          }
       }
       rb->reverb = reverb;
@@ -1251,11 +1257,12 @@ _oalRingBufferPutSource() {
 void
 _oalRingBufferCreateHistoryBuffer(void **hptr, int32_t **history, float frequency, int tracks)
 {
-   unsigned int i, bps, size;
+   unsigned int bps, size;
    char *ptr, *p;
+   int i;
 
    bps = sizeof(int32_t);
-   size = ceilf(DELAY_EFFECTS_TIME * frequency);
+   size = (unsigned int)ceilf(DELAY_EFFECTS_TIME * frequency);
    size *= bps;
 #if BYTE_ALIGN
    if (size & 0xF)
@@ -1325,7 +1332,7 @@ _oalGetSetMonoSources(unsigned int max, int num)
    if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
    {
       unsigned int _src = _sources - num;
-      if ((_sources >= num) && (_src < _max_sources))
+      if ((_sources >= (unsigned int)num) && (_src < _max_sources))
       {
          _sources = _src;
          ret = abs_num;
@@ -1462,7 +1469,7 @@ _oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, 
 
       val = 0.0f;
       do {
-         val += fabs(*sptr++);
+         val += fabsf(*sptr++);
       } while (--i);
       val = _MINMAX(val*div/(float)end, 0.0f, 1.0f);
 
@@ -1503,13 +1510,14 @@ _oalRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
    unsigned int i, blocks, block_smp;
    int16_t *d[_AAX_MAX_SPEAKERS];
    uint8_t *s = (uint8_t *)src;
+   int t;
 
    if (tracks > _AAX_MAX_SPEAKERS)
       return;
 
    /* copy buffer pointers */
-   for(i=0; i<tracks; i++) {
-      d[i] = (int16_t*)dst[i];
+   for(t=0; t<tracks; t++) {
+      d[t] = (int16_t*)dst[t];
    }
 
    block_smp = BLOCKSIZE_TO_SMP(blocksize);
@@ -1517,7 +1525,6 @@ _oalRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
    i = blocks-1;
    do
    {
-      int t;
       for (t=0; t<tracks; t++)
       {
          _sw_bufcpy_ima_adpcm(d[t], s, 1, block_smp);

@@ -462,15 +462,15 @@ _aaxNoneDriverThread(void* config)
          fdt = floorf(dt);
 
          gettimeofday(&now, 0);
-         ts.tv_sec = now.tv_sec + fdt;
+         ts.tv_sec = (time_t)(now.tv_sec + fdt);
 
          dt -= fdt;
          dt += now.tv_usec*1e-6f;
-         ts.tv_nsec = dt*1e9f;
+         ts.tv_nsec = (long)(dt*1e9f);
          if (ts.tv_nsec >= 1e9f)
          {
             ts.tv_sec++;
-            ts.tv_nsec -= 1e9f;
+            ts.tv_nsec -= 1000000000;
          }
       }
       else
@@ -479,10 +479,10 @@ _aaxNoneDriverThread(void* config)
          if (dt >= 1.0f)
          {
             float fdt = floorf(dt);
-            ts.tv_sec += fdt;
+            ts.tv_sec += (time_t)fdt;
             dt -= fdt;
          }
-         ts.tv_nsec = dt*1e9f;
+         ts.tv_nsec = (long)(dt*1e9f);
       }
 
       if TEST_FOR_FALSE(handle->thread.started) {
