@@ -18,7 +18,7 @@
 
 #include <driver.h>
 
-extern const _aaxCodec *_aaxOSSCodecs[];
+extern _aaxCodec *_aaxOSSCodecs[];
 extern _aaxDriverBackend _aaxOSSDriverBackend;
 
 #endif /* !_AL_OSS_DRIVER_H */

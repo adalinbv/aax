@@ -186,7 +186,7 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
                break;
             }
             case AAX_MICROSECONDS:
-               rv = sensor->mixer->curr_pos_sec*1e6f;
+               rv = (unsigned long)(sensor->mixer->curr_pos_sec*1e6f);
                break;
             default:
                _aaxErrorSet(AAX_INVALID_ENUM);

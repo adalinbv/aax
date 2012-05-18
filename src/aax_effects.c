@@ -521,7 +521,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         if (data->lfo.value[t] == 0) {
                            data->lfo.value[t] = data->lfo.min;
                         }
-                        data->delay.sample_offs[t] = data->lfo.value[t];
+                        data->delay.sample_offs[t] = (unsigned int)data->lfo.value[t];
                         switch (state & ~AAX_INVERSE)
                         {
                         case AAX_SAWTOOTH_WAVE:
@@ -571,7 +571,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                      {
                         data->lfo.value[t] = data->lfo.min;
-                        data->delay.sample_offs[t] = data->lfo.value[t];
+                        data->delay.sample_offs[t] = (unsigned int)data->lfo.value[t];
                      }
                      data->lfo.get = _oalRingBufferLFOGetFixedValue;
                   }

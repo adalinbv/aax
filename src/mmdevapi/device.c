@@ -162,7 +162,7 @@ DECL_FUNCTION(ICaptureClient_GetBuffer);
 DECL_FUNCTION(ICaptureClient_ReleaseBuffer);
 DECL_FUNCTION(ICaptureClient_GetNextPacketSize);
 
-static char* detect_devname(IMMDevice*);
+static char* detect_devname(const WCHAR*);
 static char* wcharToChar(const WCHAR*);
 static WCHAR* charToWChar(const char*);
 
@@ -344,7 +344,7 @@ printf("channels: %i\n", handle->no_tracks);
 
          if (!handle->devname) {
             hr = pIMMDeviceEnumerator_GetDefaultEndPoint(_mode[m], eMultimedia,
-                                                         &handle->pDevice);
+                                                         &(handle->pDevice));
          } else {
              hr = pIMMDeviceEnumerator_GetDevice(handle->pEnumerator,
                                                  handle->devname,
@@ -353,7 +353,7 @@ printf("channels: %i\n", handle->no_tracks);
 
          hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
                                   CLSCTX_INPROC_SERVER, NULL,
-                                  handle->pAudioClient);
+                                  &handle->pAudioClient);
 
          hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &handle->format);
       }
@@ -643,7 +643,7 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
    HRESULT hr;
    BYTE *data;
 
-   if ((frames == 0) || (data == 0)) // handle->mode != O_RDONLY
+   if ((frames == 0) || (d == 0)) // handle->mode != O_RDONLY
 
    assert(rb);
    assert(rb->sample);
@@ -823,7 +823,7 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
 /* -------------------------------------------------------------------------- */
 
 char *
-detect_devname(IMMDevice *device)
+detect_devname(const WCHAR *device)
 {
    char *rv = NULL;
    void *props;

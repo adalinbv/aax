@@ -464,10 +464,10 @@ _add_buffers(_instrument_t* inst, void *xbid)
                 free(s);
             }
 
-            f = xmlNodeGetDouble(xwid, "frequency_factor");
+            f = (float)xmlNodeGetDouble(xwid, "frequency_factor");
             waveform[i].frequency_factor = f ? f : 1.0f;
 
-            f = xmlNodeGetDouble(xwid, "gain-ratio");
+            f = (float)xmlNodeGetDouble(xwid, "gain-ratio");
             waveform[i].gain_ratio = f ? f : 0.5f;
         }
     }
@@ -475,17 +475,18 @@ _add_buffers(_instrument_t* inst, void *xbid)
     for (j=inst->sound_min; j<inst->sound_max; j += inst->sound_step)
     {
         enum aaxFormat format = AAX_PCM16S;
+        unsigned int n;
         aaxBuffer buf;
         float freq;
-        int k,n;
+        int k;
 
          /*
           * using (j+inst->sound_step-1) makes the last note of the lot
           * have a pitch of 1.0f and every other note in the lot a pitch
           * below 1.0f which has better interpolation than pitch > 1.0f.
           */
-        freq = _note_to_frequency(j+inst->sound_step-1);
-        buf = aaxBufferCreate(inst->handle, 0.25*freq, 1, format);
+        freq = _note_to_frequency((float)(j+inst->sound_step-1));
+        buf = aaxBufferCreate(inst->handle, (unsigned int)(0.25f*freq), 1, format);
         for (i=0; i<num; i++)
         {
             float rate = waveform[i].frequency_factor;
@@ -497,7 +498,7 @@ _add_buffers(_instrument_t* inst, void *xbid)
         k = j - inst->sound_min;
         for (n=0; n<inst->sound_step; n++)
         {
-           float f = _note_to_frequency(j+n);
+           float f = _note_to_frequency((float)(j+n));
            inst->sound[k+n]->pitch = f/freq;
            inst->sound[k+n]->buffer = buf;
         }
@@ -555,10 +556,10 @@ _add_filters(_instrument_t* inst, void *xbid)
                     {
                         int n = xmlAttributeGetInt(xsid, "n");
                         float p[4];
-                        p[0] = xmlNodeGetDouble(xsid, "p1");
-                        p[1] = xmlNodeGetDouble(xsid, "p2");
-                        p[2] = xmlNodeGetDouble(xsid, "p3");
-                        p[3] = xmlNodeGetDouble(xsid, "p4");
+                        p[0] = (float)xmlNodeGetDouble(xsid, "p1");
+                        p[1] = (float)xmlNodeGetDouble(xsid, "p2");
+                        p[2] = (float)xmlNodeGetDouble(xsid, "p3");
+                        p[3] = (float)xmlNodeGetDouble(xsid, "p4");
                         if (!n) n = slot;
                         aaxFilterSetSlotParams(filter, n, AAX_LINEAR, p);
                     }
@@ -610,10 +611,10 @@ _add_effects(_instrument_t* inst, void *xbid)
                     {
                         int n = xmlAttributeGetInt(xsid, "n");
                         float p[4];
-                        p[0] = xmlNodeGetDouble(xsid, "p1");
-                        p[1] = xmlNodeGetDouble(xsid, "p2");
-                        p[2] = xmlNodeGetDouble(xsid, "p3");
-                        p[3] = xmlNodeGetDouble(xsid, "p4");
+                        p[0] = (float)xmlNodeGetDouble(xsid, "p1");
+                        p[1] = (float)xmlNodeGetDouble(xsid, "p2");
+                        p[2] = (float)xmlNodeGetDouble(xsid, "p3");
+                        p[3] = (float)xmlNodeGetDouble(xsid, "p4");
                         if (!n) n = slot;
                         aaxEffectSetSlotParams(effect, n, AAX_LINEAR, p);
                     }

@@ -39,6 +39,7 @@
 
 /* Define to 1 if you have the `ioctl' function. */
 #undef HAVE_IOCTL
+#cmakedefine HAVE_IOCTL_H @HAVE_IOCTL_H@
 
 /* Define to 1 if you have the `isnan' function. */
 #undef HAVE_ISNAN

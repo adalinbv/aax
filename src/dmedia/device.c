@@ -20,7 +20,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
-#include <strings.h>	/* strcasecmp */
+#if HAVE_STRINGS_H
+# include <strings.h>	/* strcasecmp */
+#endif
 
 #include <aax.h>
 #include <xml.h>
@@ -296,6 +298,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
 
       if (xid)
       {
+         float f;
          char *s;
          int i;
 
@@ -305,20 +308,20 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             if (s && strcmp(s, "default")) handle->port[0].name = s;
          }
 
-         i = xmlNodeGetInt(xid, "frequency-hz");
-         if (i)
+         f = (float)xmlNodeGetDouble(xid, "frequency-hz");
+         if (f)
          {
-            if (i < _AAX_MIN_MIXER_FREQUENCY)
+            if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
                _AAX_SYSLOG("dmedia; frequency too small.");
-               i = _AAX_MIN_MIXER_FREQUENCY;
+               f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
-            else if (i > _AAX_MAX_MIXER_FREQUENCY)
+            else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
                _AAX_SYSLOG("dmedia; frequency too large.");
-               i = _AAX_MAX_MIXER_FREQUENCY;
+               f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
-            handle->port[0].frequency_hz = i;
+            handle->port[0].frequency_hz = f;
          }
 
          if (mode != AAX_MODE_READ)
@@ -587,10 +590,8 @@ _aaxDMediaDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tr
       if (bufsize && (*bufsize > 0)) {
          queuesize = *bufsize;
       }
-      else
-      {
-         queuesize = handle->port[0].frequency_hz * handle->port[0].no_channels;
-         queuesize /= 10;
+      else {
+         queuesize = (unsigned int)(handle->port[0].frequency_hz * handle->port[0].no_channels/10.0f);
       }
 
       palSetQueueSize(handle->port[0].config, queuesize);
@@ -664,7 +665,7 @@ _aaxDMediaDriverResume(const void *id)
    }
 
    params.param = __rate[handle->mode];
-   params.value.i = handle->port[0].frequency_hz;
+   params.value.i = (int)handle->port[0].frequency_hz;
    for (i=0; i < handle->noPorts; i++) {
       palSetParams(handle->port[i].device, &params, 1);
    }
@@ -917,7 +918,9 @@ sync_ports(const void *_handle)
 
       for (i = 0; i < handle->noPorts; i++) {
          buf_delta_msc = msc[i] - handle->port[i].offset;
-         if (abs(buf_delta_msc - max_delta_msc) > MAX_DELTA ) {
+         if (abs((unsigned int)buf_delta_msc - (unsigned int)max_delta_msc)
+                 > MAX_DELTA )
+         {
             palDiscardFrames(handle->port[i].port,
                         (int)(max_delta_msc-buf_delta_msc));
             corrected++;

@@ -151,7 +151,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          {
             unsigned int start, end;
             _oalRingBufferGetLoopPoints(rb, &start, &end);
-            _oalRingBufferSetLoopPoints(rb, setup, end);
+            _oalRingBufferSetLoopPoints(rb, (float)setup, (float)end);
             _oalRingBufferSetLooping(rb, (setup < end) ? AAX_TRUE : AAX_FALSE);
             rv = AAX_TRUE;
          }
@@ -162,7 +162,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          {
             unsigned int start, end;
             _oalRingBufferGetLoopPoints(rb, &start, &end);
-            _oalRingBufferSetLoopPoints(rb, start, setup);
+            _oalRingBufferSetLoopPoints(rb, (float)start, (float)setup);
             _oalRingBufferSetLooping(rb,(start < setup) ? AAX_TRUE : AAX_FALSE);
             rv = AAX_TRUE;
          }
@@ -212,7 +212,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       switch(type)
       {
       case AAX_FREQUENCY:
-         rv = buf->frequency;
+         rv = (unsigned int)buf->frequency;
          break;
       case AAX_TRACKS:
          rv = _oalRingBufferGetNoTracks(rb);
@@ -225,7 +225,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          {
             float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
             rv = _oalRingBufferGetNoSamples(rb) - buf->pos;
-            rv *= fact*_oalRingBufferGetBytesPerSample(rb);
+            rv *= (unsigned int)(fact*_oalRingBufferGetBytesPerSample(rb));
          }
          else _aaxErrorSet(AAX_INVALID_STATE);
          break;
@@ -233,7 +233,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
           if (buf->frequency)
          {
             float fact = buf->frequency / _oalRingBufferGetFrequency(rb);
-            rv = fact*(_oalRingBufferGetNoSamples(rb) - buf->pos);
+            rv = (unsigned int)(fact*(_oalRingBufferGetNoSamples(rb)-buf->pos));
          }
          else _aaxErrorSet(AAX_INVALID_STATE);
          break;
@@ -387,7 +387,7 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
             float dt = rb->sample->no_samples_avail/fs;
             float duration = floorf((fw*dt)+0.5f)/fw;
 
-            no_samples = ceilf(duration*fs);
+            no_samples = (unsigned int)ceilf(duration*fs);
             _oalRingBufferSetNoSamples(rb, no_samples);
             _oalRingBufferInit(rb, AAX_FALSE);
         }
@@ -511,9 +511,9 @@ aaxBufferGetData(const aaxBuffer buffer)
 
       rb = buf->ringbuffer;
       fact = buf->frequency / _oalRingBufferGetFrequency(rb);
-      pos = fact*buf->pos;
+      pos = (unsigned int)(fact*buf->pos);
 
-      no_samples = fact*_oalRingBufferGetNoSamples(rb) - pos;
+      no_samples = (unsigned int)(fact*_oalRingBufferGetNoSamples(rb) - pos);
       bps = _oalRingBufferGetBytesPerSample(rb);
       tracks = _oalRingBufferGetNoTracks(rb);
       buf_samples = tracks*no_samples;

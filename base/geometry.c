@@ -330,10 +330,10 @@ _ivec4Devide(ivec4 v, float s)
 {
    if (s)
    {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-      v[3] /= s;
+      v[0] = (int32_t)(v[0]/s);
+      v[1] = (int32_t)(v[1]/s);
+      v[2] = (int32_t)(v[2]/s);
+      v[3] = (int32_t)(v[3]/s);
    }
 }
 

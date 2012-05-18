@@ -96,7 +96,6 @@ uint64_t _bswap64(uint64_t x);
 
 #if _MSC_VER
 # include <Windows.h>
-
 # define strtoll _strtoi64
 # define snprintf _snprintf
 # define strcasecmp _stricmp
@@ -116,6 +115,12 @@ struct timezone
   int tz_dsttime;     /* type of dst correction to apply */
 };
 int gettimeofday(struct timeval*, void*);
+
+# if SIZEOF_SIZE_T == 4
+typedef INT32	ssize_t;
+#else
+typedef INT64	ssize_t;
+#endif
 
 #else
 # if HAVE_SYS_TIME_H

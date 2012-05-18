@@ -212,7 +212,7 @@ _aaxDriverBackend *
 _aaxGetDriverBackendByPos(const _intBuffers *bs, unsigned int pos)
 {
    _aaxDriverBackend *be = 0;
-   int num;
+   unsigned int num;
 
    assert(bs != 0);
 
@@ -236,7 +236,7 @@ long
 _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxConfig *config)
 {
    _intBuffers *dbe = (_intBuffers *)&_aaxIntDriverBackends;
-   long rv = time(NULL);
+   time_t rv = time(NULL);
    _aaxDriverBackend *be;
    unsigned int i, num;
 
@@ -320,7 +320,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       void *xoid;
       float v;
 
-      v = xmlNodeGetDouble(xcid, "version");
+      v = (float)xmlNodeGetDouble(xcid, "version");
       if ((v < AAX_MIN_CONFIG_VERSION) || (v > AAX_MAX_CONFIG_VERSION))
       {
          xmlFree(xcid);
@@ -377,13 +377,13 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
             config->node[n].hrtf = xmlNodeCopy(xoid, "head");
 
-            f = xmlNodeGetDouble(xoid, "frequency-hz");
+            f = (float)xmlNodeGetDouble(xoid, "frequency-hz");
             if (f) config->node[n].frequency = f;
 
-            f = xmlNodeGetDouble(xoid, "interval-hz");
+            f = (float)xmlNodeGetDouble(xoid, "interval-hz");
             if (f) config->node[n].interval = f;
 
-            f = xmlNodeGetDouble(xoid, "update-hz");
+            f = (float)xmlNodeGetDouble(xoid, "update-hz");
             if (f) config->node[n].update = f;
 
             i = xmlNodeGetInt(xoid, "max-emitters");

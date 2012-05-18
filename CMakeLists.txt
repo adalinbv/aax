@@ -89,6 +89,11 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 # Required libraries
 #FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
+FIND_PACKAGE(XML REQUIRED)
+IF(NOT XML_FOUND)
+  MESSAGE(STATUS "ERROR: required XML library is not installed, aborting.")
+  return()
+ENDIF(NOT XML_FOUND)
 
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}" include base "${CMAKE_BINARY_DIR}/include" "${XML_INCLUDE_DIR}")
@@ -147,13 +152,6 @@ ELSE(MSVC)
         FORCE)
 ENDIF(MSVC)
 
-# Required libraries
-FIND_PACKAGE(XML REQUIRED)
-IF(NOT XML_FOUND)
-  MESSAGE(STATUS "ERROR: required XML library is not installed, aborting.")
-  return()
-ENDIF(NOT XML_FOUND)
-
 # Check for the dlopen API (for alGetProcAddress)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
@@ -167,6 +165,7 @@ CHECK_INCLUDE_FILE(dlfcn.h HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE(libio.h HAVE_LIBIO_H)
 CHECK_INCLUDE_FILE(time.h HAVE_TIME_H)
 CHECK_INCLUDE_FILE(sys/time.h HAVE_SYS_TIME_H)
+CHECK_INCLUDE_FILE(sys/ioctl.h HAVE_IOCTL_H)
 CHECK_INCLUDE_FILE(math.h HAVE_MATH_H)
 
 IF(HAVE_PTHREAD_H)

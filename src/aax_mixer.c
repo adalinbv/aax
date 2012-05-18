@@ -188,13 +188,14 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             rv = VALID_HANDLE(handle) ? info->max_emitters : 0;
             break;
          case AAX_FREQUENCY:
-            rv = info->frequency;
+            rv = (unsigned int)info->frequency;
             break;
          case AAX_REFRESHRATE:
-            rv = info->refresh_rate;
+            rv = (unsigned int)info->refresh_rate;
             break;     
          case AAX_TRACKSIZE:
-            rv = info->frequency*sizeof(int32_t)/info->refresh_rate;
+// TODO: is sizeof(int32_t) correct?
+            rv = (unsigned int)(info->frequency*sizeof(int32_t)/info->refresh_rate);
             break;
          case AAX_TRACKS:
             rv = info->no_tracks;
@@ -1013,7 +1014,7 @@ _aaxMixerInit(_handle_t *handle)
    if (bufsz == 0)
    {
       float no_samples = freq / refrate;
-      bufsz = ch * no_samples * _oalRingBufferFormat[fmt].bits/8;
+      bufsz = (size_t)(no_samples * ch*(_oalRingBufferFormat[fmt].bits/8));
    }
 
    res = be->setup(handle->backend.handle, &bufsz, fmt, &ch, &freq);

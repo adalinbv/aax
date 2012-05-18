@@ -1126,7 +1126,7 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
             }
             break;
          case AAX_MICROSECONDS:
-            rv = src->curr_pos_sec * 1e6f;
+            rv = (unsigned long)(src->curr_pos_sec * 1e6f);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);

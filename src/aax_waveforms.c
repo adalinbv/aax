@@ -62,7 +62,7 @@ void _mul_8bps(void* data, unsigned int samples, float dt, float phase, unsigned
       samp = fn(&s, mul);
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
-      *ptr = RINGMODULATE(*ptr, fact*samp, mul, max);
+      *ptr = (int8_t)RINGMODULATE(*ptr, fact*samp, mul, max);
       s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
@@ -86,7 +86,7 @@ void _mix_8bps(void* data, unsigned int samples, float dt, float phase, unsigned
       samp = fn(&s, mul);
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
-      *ptr = MIX(*ptr, fact*samp, max);
+      *ptr = (int8_t)MIX(*ptr, fact*samp, max);
       s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
@@ -110,7 +110,7 @@ void _mul_16bps(void* data, unsigned int samples, float dt, float phase, unsigne
       samp = fn(&s, mul);
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
-      *ptr = RINGMODULATE(*ptr, fact*samp, mul, max);
+      *ptr = (int16_t)RINGMODULATE(*ptr, fact*samp, mul, max);
       s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
@@ -134,7 +134,7 @@ void _mix_16bps(void* data, unsigned int samples, float dt, float phase, unsigne
       samp = fn(&s, mul);
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
-      *ptr = MIX(*ptr, fact * samp, max);
+      *ptr = (int16_t)MIX(*ptr, fact * samp, max);
       s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
@@ -158,7 +158,7 @@ void _mul_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
       samp = fn(&s, mul);
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
-      *ptr = RINGMODULATE(*ptr, fact*samp, mul, max);
+      *ptr = (int32_t)RINGMODULATE(*ptr, fact*samp, mul, max);
       s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
@@ -182,7 +182,7 @@ void _mix_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
       samp = fn(&s, mul);
       fact = ((0.5f + 0.5f*fast_sin(s)) <= dc) ? 1.0f : 0.0f;
 
-      *ptr = MIX(*ptr, fact*samp, max);
+      *ptr = (int32_t)MIX(*ptr, fact*samp, max);
       s = fmodf(s+dt, GMATH_2PI);
 
       ptr += (int)rnd_skip;
@@ -241,9 +241,8 @@ _bufferMixWhiteNoise(void** data, unsigned int no_samples, char bps, int tracks,
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      int track;
-      long ltime;
-      int stime;
+      int track, stime;
+      time_t ltime;
 
       ltime = time(NULL);
       stime = (unsigned) ltime/2;
@@ -262,9 +261,8 @@ _bufferMixPinkNoise(void** data, unsigned int no_samples, char bps, int tracks, 
    int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
    if (data && scratch)
    {
-      unsigned int track;
-      long ltime;
-      int stime;
+      int track, stime;
+      time_t ltime;
 
       ltime = time(NULL);
       stime = (unsigned) ltime/2;
@@ -316,9 +314,8 @@ _bufferMixBrownianNoise(void** data, unsigned int no_samples, char bps, int trac
    int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
    if (data && scratch)
    {
-      int track;
-      long ltime;
-      int stime;
+      int track, stime;
+      time_t ltime;
 
       ltime = time(NULL);
       stime = (unsigned) ltime/2;

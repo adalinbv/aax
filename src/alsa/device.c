@@ -116,8 +116,8 @@ typedef struct
     snd_pcm_t *id;
 
     float latency;
-    float frequency_hz;
     float pitch;       /* difference between requested freq and returned freq */
+    float frequency_hz;
 
     unsigned int no_channels;
     unsigned int no_periods;
@@ -241,10 +241,12 @@ static char *detect_devname(const char*, int, unsigned int, int, char);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 
 
+#define MAX_FORMATS		6
+
 static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
-static const _alsa_formats_t _alsa_formats[];
 static const char *_const_soft_default_name[2];
+static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
 
 char *_soft_default_name[2] = { NULL, NULL };
 int _default_devnum = DEFAULT_DEVNUM;
@@ -389,13 +391,14 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       handle->interleaved = 0;
       handle->hw_channels = 2;
 
-      handle->frequency_hz = _aaxALSADriverBackend.rate;
+      handle->frequency_hz = (float)_aaxALSADriverBackend.rate;
       handle->no_channels = _aaxALSADriverBackend.tracks;
       handle->bytes_sample = 2;
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
       if (xid)
       {
+         float f;
          char *s;
          int i;
 
@@ -416,20 +419,20 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             handle->vmixer = AAX_TRUE;
          }
 
-         i = xmlNodeGetDouble(xid, "frequency-hz");
-         if (i)
+         f = (float)xmlNodeGetDouble(xid, "frequency-hz");
+         if (f)
          {
-            if (i < _AAX_MIN_MIXER_FREQUENCY)
+            if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
                _AAX_SYSLOG("alsa; frequency too small.");
-               i = _AAX_MIN_MIXER_FREQUENCY;
+               f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
-            else if (i > _AAX_MAX_MIXER_FREQUENCY)
+            else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
                _AAX_SYSLOG("alsa; frequency too large.");
-               i = _AAX_MAX_MIXER_FREQUENCY;
+               f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
-            handle->frequency_hz = i;
+            handle->frequency_hz = f;
          }
 
          if (mode != AAX_MODE_READ && mode != AAX_MODE_WRITE_HRTF)
@@ -582,13 +585,14 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_hw_params_t *hwparams;
    snd_pcm_sw_params_t *swparams;
-   unsigned int rate = *speed;
-   unsigned int channels;
+   unsigned int channels, rate;
    int err = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(handle != 0);
+
+   rate = (unsigned int)*speed;
 
    channels = *tracks;
    if (channels > handle->no_channels) {
@@ -761,7 +765,7 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
       if (channels > handle->no_channels) handle->no_channels = channels;
       *tracks = channels;
 
-      handle->pitch = rate;
+      handle->pitch = (float)rate;
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
 
             "unsupported sample rate" );
@@ -799,10 +803,9 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
       if (val1 && val2)
       {
          handle->frequency_hz = (float)val1/(float)val2;
-         rate = (unsigned)handle->frequency_hz;
+         rate = (unsigned int)handle->frequency_hz;
       }
-      handle->frequency_hz = rate;
-      *speed = rate;
+      *speed = handle->frequency_hz = (float)rate;
 
       handle->latency = (float)size*(float)periods;
       handle->latency /= (float)rate*(float)*tracks*(float)bps;
@@ -1112,10 +1115,10 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
                   unsigned char *s;
                   s = (((unsigned char *)area[0].addr) + (area[0].first/8));
                   s += mmap_offs*handle->bytes_sample;
-                  handle->cvt_from(data[0]+offs, s, res);
+                  handle->cvt_from((int32_t*)data[0]+offs, s, res);
                   s = (((unsigned char *)area[1].addr) + (area[1].first/8));
                   s += mmap_offs*handle->bytes_sample;
-                  handle->cvt_from(data[1]+offs, s, res);
+                  handle->cvt_from((int32_t*)data[1]+offs, s, res);
                }
             }
          }
@@ -1144,8 +1147,8 @@ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fe
 
                if (res > 0)
                {
-                  handle->cvt_from(data[0]+offs, s[0], res);
-                  handle->cvt_from(data[1]+offs, s[1], res);
+                  handle->cvt_from((int32_t*)data[0]+offs, s[0], res);
+                  handle->cvt_from((int32_t*)data[1]+offs, s[1], res);
                }
             }
          }
@@ -1235,14 +1238,14 @@ _aaxALSADriverGetDevices(const void *id, int mode)
                   if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *interface;
+                     char *iface;
                      int slen;
 
                      psnd_pcm_close(id);
                      if (!desc) desc = name;
 
-                     interface = strstr(desc, ", ");
-                     if (interface) *interface = 0;
+                     iface = strstr(desc, ", ");
+                     if (iface) *iface = 0;
 
                      snprintf(ptr, len, "%s", desc);
                      slen = strlen(ptr)+1;	/* skip the trailing 0 */
@@ -1301,13 +1304,13 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                          !strncmp(name, "iec958:", strlen("iec958:"))))
                {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *interface;
+                  char *iface;
 
                   if (!desc) desc = name;
-                  interface = strstr(desc, ", ");
+                  iface = strstr(desc, ", ");
 
-                  if (interface) *interface = 0;
-                  if (interface && !strcmp(devname, desc))
+                  if (iface) *iface = 0;
+                  if (iface && !strcmp(devname, desc))
                   {
                      snd_pcm_t *id;
                      if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
@@ -1317,17 +1320,17 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                         psnd_pcm_close(id);
                         if (m || strncmp(name, "front:", strlen("front:")))
                         {
-                           if (interface != desc) {
-                              interface = strchr(interface+2, '\n')+1;
+                           if (iface != desc) {
+                              iface = strchr(iface+2, '\n')+1;
                            }
-                           snprintf(ptr, len, "%s", interface);
+                           snprintf(ptr, len, "%s", iface);
                         }
                         else
                         {
-                           if (interface != desc) interface += 2;
-                           snprintf(ptr, len, "%s", interface);
-                           interface = strchr(ptr, '\n');
-                           if (interface) *interface = 0;
+                           if (iface != desc) iface += 2;
+                           snprintf(ptr, len, "%s", iface);
+                           iface = strchr(ptr, '\n');
+                           if (iface) *iface = 0;
                         }
                         slen = strlen(ptr)+1; /* skip the trailing 0 */
                         if (slen > (len-1)) break;
@@ -1355,7 +1358,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 
 /*-------------------------------------------------------------------------- */
 
-static const _alsa_formats_t _alsa_formats[] =
+static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
 {
    {2, SND_PCM_FORMAT_S16_LE},
    {4, SND_PCM_FORMAT_S32_LE},
@@ -1461,17 +1464,17 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                     strlen(dev_prefix[m ? tracks : 0])) == 0))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *interface, *description = 0;
+                     char *iface, *description = 0;
 
                      if (!desc) desc = name;
 
-                     interface = strstr(desc, ", ");
-                     if (interface)
+                     iface = strstr(desc, ", ");
+                     if (iface)
                      {
-                        *interface++ = 0;
-                        description = strchr(++interface, '\n');
+                        *iface++ = 0;
+                        description = strchr(++iface, '\n');
                         if (description) *description++ = 0;
-                        else description = interface;
+                        else description = iface;
                      }
 
                      if (!strncmp(devname, desc, len))
@@ -1480,7 +1483,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         if (devptr)
                         {
                            devptr += 2;
-                           if (!strcmp(devptr, interface) ||
+                           if (!strcmp(devptr, iface) ||
                                (description && !strcmp(devptr, description)))
                            {
                               int dlen = strlen(name)-strlen("front:")+1;
@@ -1610,12 +1613,12 @@ detect_devnum(const char *devname, int m)
                      else
                      {
                         char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                        char *interface;
+                        char *iface;
 
                         if (!desc) continue;
 
-                        interface = strstr(desc, ", ");
-                        if (interface) *interface = 0;
+                        iface = strstr(desc, ", ");
+                        if (iface) *iface = 0;
    
                         if (!strncmp(devname, desc, len))
                         {
@@ -2109,7 +2112,7 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 1.0/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

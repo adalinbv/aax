@@ -18,12 +18,23 @@
 #endif
 #include <stdio.h>
 #include <sys/stat.h>
-#include <sys/ioctl.h>
+#if HAVE_IOCTL
+# include <sys/ioctl.h>
+#endif
 #include <fcntl.h>
-#include <unistd.h>
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <errno.h>
 #include <assert.h>
-#include <strings.h>
+#if HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
+#ifdef _MSC_VER
+#include <io.h>
+#define ioctl(a,b,c)	(((*c) = 0) == 1) ? -1 : 0
+#endif
 
 #include <aax.h>
 #include <xml.h>
@@ -163,11 +174,12 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
       if (!handle) return 0;
 
       handle->sse_level = _aaxGetSSELevel();
-      handle->frequency_hz = _aaxOSSDriverBackend.rate;
+      handle->frequency_hz = (float)_aaxOSSDriverBackend.rate;
       handle->no_tracks = _aaxOSSDriverBackend.tracks;
 
       if (xid)
       {
+         float f;
          char *s;
          int i;
 
@@ -177,20 +189,20 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
             if (s) handle->devnum = detect_devnum(s);
          }
 
-         i = xmlNodeGetInt(xid, "frequency-hz");
-         if (i)
+         f = (float)xmlNodeGetDouble(xid, "frequency-hz");
+         if (f)
          {
-            if (i < _AAX_MIN_MIXER_FREQUENCY)
+            if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
                _AAX_SYSLOG("oss; frequency too small.");
-               i = _AAX_MIN_MIXER_FREQUENCY;
+               f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
-            else if (i > _AAX_MAX_MIXER_FREQUENCY)
+            else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
                _AAX_SYSLOG("oss; frequency too large.");
-               i = _AAX_MAX_MIXER_FREQUENCY;
+               f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
-            handle->frequency_hz = i;
+            handle->frequency_hz = f;
          }
 
          if (mode != AAX_MODE_READ)
@@ -583,7 +595,7 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
    }
 
    ioctl(handle->fd, SNDCTL_DSP_GETOSPACE, &info);
-   if (outbuf_size <= info.fragsize)
+   if (outbuf_size <= (unsigned int)info.fragsize)
    {
       res = write(handle->fd, data, outbuf_size);
       if (res == -1)

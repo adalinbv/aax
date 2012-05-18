@@ -330,7 +330,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       int32_t samp;
 
       samp = *ptr;
-      asamp = abs(samp+asym);	/* TODO: test the result without asym */
+      asamp = abs(samp); // fabsf(samp+asym);
 
       pos = 1+(asamp >> SHIFT);
       sdf = asamp*df;

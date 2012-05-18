@@ -1,6 +1,14 @@
 #ifndef WIN32_H
 #define WIN32_H
 
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#ifdef _MSC_VER
+#include <Windows.h>
+
+#else
 #include <base/types.h>
 
 #define STDAPICALLTYPE		__stdcall
@@ -60,7 +68,11 @@ typedef int64_t INT64;
 typedef uint64_t UINT64;
 
 typedef int BOOL;
-typedef unsigned int SIZE_T;
+#if SIZEOF_SIZE_T == 4
+typedef UINT32 SIZE_T;
+#else
+typedef UINT64	SIZE_T;
+#endif
 
 typedef float FLOAT;
 typedef double DOUBLE;
@@ -787,7 +799,7 @@ typedef struct _KEY_EVENT_RECORD
   } uChar; 
   DWORD dwControlKeyState; 
 } KEY_EVENT_RECORD; 
-
+#endif /* _MSC_VER */
 
 #endif
 

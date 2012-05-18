@@ -18,9 +18,12 @@
 
 #include "wintypes.h"
 
-#ifndef LPUNKNOWN
+#ifdef _MSC_VER
+#include <Mmdeviceapi.h>
+#include <Audioclient.h>
+
+#else
 typedef void* LPUNKNOWN;
-#endif
 
 typedef enum tagCLSCTX {
   CLSCTX_INPROC_SERVER		= 0x1,
@@ -75,13 +78,14 @@ typedef VOID  IAudioCaptureClient;
 typedef VOID  IMMDeviceEnumerator;
 typedef VOID  IMMDeviceCollection;
 typedef VOID  IPropertyStore;
+#endif
 
 typedef HRESULT (*CoCreateInstance_proc)(REFCLSID, LPUNKNOWN, DWORD, REFIID, LPVOID*);
 typedef HRESULT (*CoTaskMemFree_proc)(LPVOID);
 
 typedef HRESULT (*IMMDeviceEnumerator_Release_proc)(void*);
 typedef HRESULT (*IMMDeviceEnumerator_GetDefaultEndPoint_proc)(EDataFlow, ERole, IMMDevice**);
-typedef HRESULT (*IMMDeviceEnumerator_GetDevice_proc)(void**, LPCWSTR, IMMDevice**);
+typedef HRESULT (*IMMDeviceEnumerator_GetDevice_proc)(void*, LPCWSTR, IMMDevice**);
 typedef HRESULT (*IMMDeviceEnumerator_EnumAudioEndpoints_proc)(void*, EDataFlow, DWORD, void**);
 
 typedef HRESULT (*IMMDeviceCollection_GetCount_proc)(void*, UINT*);
