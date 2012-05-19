@@ -256,8 +256,8 @@ _aaxALSADriverDetect(int mode)
 {
    int m = (mode > 0) ? 1 : 0;
    static void *audio = NULL;
+   static int rv = AAX_FALSE;
    char *error = 0;
-   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 

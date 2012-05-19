@@ -9,6 +9,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
 INCLUDE (CheckIncludeFiles)
+INCLUDE(CheckFunctionExists)
 
 PROJECT(aax C)
 SET(PACKAGE "AeonWave")
@@ -135,7 +136,7 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
-    SET(C_FLAGS "${C_FLAGS} -march=i586 -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -Os -march=i586 -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
@@ -153,6 +154,7 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 # Check for the dlopen API (for alGetProcAddress)
+CHECK_FUNCTION_EXISTS(strdup HAVE_STRDUP)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
 CHECK_INCLUDE_FILE(assert.h HAVE_ASSERT_H)
@@ -167,6 +169,7 @@ CHECK_INCLUDE_FILE(time.h HAVE_TIME_H)
 CHECK_INCLUDE_FILE(sys/time.h HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILE(sys/ioctl.h HAVE_IOCTL_H)
 CHECK_INCLUDE_FILE(math.h HAVE_MATH_H)
+CHECK_INCLUDE_FILE(io.h HAVE_IO_H)
 
 IF(HAVE_PTHREAD_H)
   CHECK_LIBRARY_EXISTS(pthread pthread_create "" HAVE_LIBPTHREAD)
@@ -197,15 +200,6 @@ CONFIGURE_FILE(
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
-
-IF(CMAKE_COMPILER_IS_GNUCC)
-  SET(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -Os -fPIC -fomit-frame-pointer -funroll-loops"
-  )
-  SET(CMAKE_C_FLAGS
-      "${CMAKE_C_FLAGS} -shared -march=i586 -std=c99 -Wl,--hash-style=both -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=199309L -fvisibility=hidden"
-     )
-ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 SET(BASE_OBJS
      base/buffers.c

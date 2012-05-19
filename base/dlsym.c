@@ -87,11 +87,17 @@ void* _oalGetGlobalProcAddress(const char *func)
 void *
 _oalIsLibraryPresent(const char *name, const char *version)
 {
-   char libname[255];
    HINSTANCE handle;
 
-   snprintf(libname, 255, "%s.dll", name);
-   handle = LoadLibrary(TEXT(libname));
+   if (name)
+   {
+      char libname[255];
+      snprintf(libname, 255, "%s", name); /* windows will add .dll */
+      handle = LoadLibrary(TEXT(libname));
+   }
+   else {
+      handle = GetModuleHandle(name);
+   }
 
    return handle;
 }
@@ -117,16 +123,21 @@ void *_oalGetGlobalProcAddress(const char *func)
 void *
 _oalIsLibraryPresent(const char *name, const char *version)
 {
+   const char *lib = name;
    char libname[255];
 
    _oalGetSymError(dlerror());
 
-   if (version && atoi(version) != 0) {
-      snprintf(libname, 255, "lib%s.so.%s", name, version);
-   } else {
-      snprintf(libname, 255, "lib%s.so", name);
+   if (name)
+   {
+      if (version && atoi(version) != 0) {
+         snprintf(libname, 255, "lib%s.so.%s", name, version);
+      } else {
+         snprintf(libname, 255, "lib%s.so", name);
+      }
+      lib = libname;
    }
-   return dlopen(libname, RTLD_LAZY);
+   return dlopen(lib, RTLD_LAZY);
 }
 
 void *

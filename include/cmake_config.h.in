@@ -37,12 +37,20 @@
 #undef HAVE_INTTYPES_H
 #cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
 
-/* Define to 1 if you have the `ioctl' function. */
-#undef HAVE_IOCTL
+/* Define to 1 if you have the `ioctl.h> header file. */
+#undef HAVE_IOCTL_H
 #cmakedefine HAVE_IOCTL_H @HAVE_IOCTL_H@
+
+/* Define to 1 if you have the <io.h> header file. */
+#undef HAVE_IO_H
+#cmakedefine HAVE_IO_H @HAVE_IO_H@
 
 /* Define to 1 if you have the `isnan' function. */
 #undef HAVE_ISNAN
+
+/* Define to 1 if you have the `strdup' function. */
+#undef HAVE_STRDUP
+#cmakedefine HAVE_STRDUP @HAVE_STRDUP@
 
 /* Define to 1 if you have the <libio.h> header file. */
 #undef HAVE_LIBIO_H

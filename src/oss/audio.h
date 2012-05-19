@@ -115,5 +115,7 @@ typedef struct oss_card_info
 
 #define SNDCTL_SYSINFO		0x84e05801
 
+typedef int (*ioctl_proc)(int, int, void*);
+
 #endif /* __OSS_AUDIO_H */
 

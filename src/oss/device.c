@@ -18,8 +18,13 @@
 #endif
 #include <stdio.h>
 #include <sys/stat.h>
+#if 0
 #if HAVE_IOCTL
 # include <sys/ioctl.h>
+#endif
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
 #endif
 #include <fcntl.h>
 #if HAVE_UNISTD_H
@@ -29,11 +34,6 @@
 #include <assert.h>
 #if HAVE_STRINGS_H
 # include <strings.h>
-#endif
-
-#ifdef _MSC_VER
-#include <io.h>
-#define ioctl(a,b,c)	(((*c) = 0) == 1) ? -1 : 0
 #endif
 
 #include <aax.h>
@@ -46,6 +46,7 @@
 #include <ringbuffer.h>
 #include <base/types.h>
 #include <base/logging.h>
+#include <base/dlsym.h>
 
 #include "audio.h"
 #include "device.h"
@@ -137,6 +138,8 @@ typedef struct
 
 } _driver_t;
 
+DECL_FUNCTION(ioctl);
+
 static int get_oss_version();
 static char *detect_devname(int, unsigned int, char);
 static int detect_devnum(const char *);
@@ -148,11 +151,19 @@ char *_default_mixer = DEFAULT_MIXER;
 static int
 _aaxOSSDriverDetect(int mode)
 {
+   static void *audio = NULL;
    static int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
      
-   if (TEST_FOR_FALSE(rv) && (get_oss_version() > 0)) {
+   if (TEST_FOR_FALSE(rv)) {
+      audio = _oalIsLibraryPresent(NULL, 0);
+      if (audio) {
+         TIE_FUNCTION(ioctl);
+      }
+   }
+
+   if (audio && (get_oss_version() > 0)) {
       rv = AAX_TRUE;
    }
 
@@ -369,7 +380,7 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
    if (handle->oss_version >= OSS_VERSION_4)
    {
       int enable = 0;
-      err = ioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+      err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
    }
 
    frag = log2i(bufsz);
@@ -379,19 +390,19 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
    }
 
    frag |= NO_FRAGMENTS << 16;
-   err = ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
+   err = pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
 
-   err = ioctl(fd, SNDCTL_DSP_SETFMT, &format);
+   err = pioctl(fd, SNDCTL_DSP_SETFMT, &format);
    if (err >= 0) {
-      err = ioctl(fd, SNDCTL_DSP_CHANNELS, &channels);
+      err = pioctl(fd, SNDCTL_DSP_CHANNELS, &channels);
    }
    if (err >= 0) {
-      err = ioctl(fd, SNDCTL_DSP_SPEED, &freq);
+      err = pioctl(fd, SNDCTL_DSP_SPEED, &freq);
    }
    if ((err >= 0) && (handle->mode == O_WRONLY))
    {
       audio_buf_info info;
-      err = ioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
+      err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
       if (err >= 0) {
          bufsz = info.fragsize;
       }
@@ -439,24 +450,24 @@ _aaxOSSDriverResume(const void *id)
          if (handle->oss_version >= OSS_VERSION_4)
          {
             int enable = 0;
-            err = ioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+            err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
          }
 
          frag = log2i(handle->buffer_size);
          frag |= NO_FRAGMENTS << 16;
-         ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
+         pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
 
          param = handle->format;
-         err = ioctl(fd, SNDCTL_DSP_SETFMT, &param);
+         err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
          if (err >= 0)
          {
             param = handle->no_tracks;
-            err = ioctl(fd, SNDCTL_DSP_CHANNELS, &param);
+            err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
          }
          if (err >= 0)
          {
             param = (unsigned int)handle->frequency_hz;
-            err = ioctl(fd, SNDCTL_DSP_SPEED, &param);
+            err = pioctl(fd, SNDCTL_DSP_SPEED, &param);
          }
          if (err >= 0) {
             rv = AAX_TRUE;
@@ -486,7 +497,7 @@ _aaxOSSDriverIsAvailable(const void *id)
          int err;
 
          ainfo.dev = handle->devnum;
-         err = ioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+         err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
          if (err >= 0 && ainfo.enabled) {
            rv = AAX_TRUE;
          }
@@ -551,7 +562,7 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
    assert(rb->sample);
    assert(id != 0);
 
-   if (ioctl (handle->fd, SNDCTL_DSP_GETERROR, &err) >= 0)
+   if (pioctl (handle->fd, SNDCTL_DSP_GETERROR, &err) >= 0)
    {
       if (err.play_underruns > 0)
       {
@@ -594,7 +605,7 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
    }
 
-   ioctl(handle->fd, SNDCTL_DSP_GETOSPACE, &info);
+   pioctl(handle->fd, SNDCTL_DSP_GETOSPACE, &info);
    if (outbuf_size <= (unsigned int)info.fragsize)
    {
       res = write(handle->fd, data, outbuf_size);
@@ -650,7 +661,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
       if (version >= OSS_VERSION_4)
       {
          oss_sysinfo info;
-         err = ioctl(fd, SNDCTL_SYSINFO, &info);
+         err = pioctl(fd, SNDCTL_SYSINFO, &info);
 
          if (err >= 0)
          {
@@ -665,7 +676,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
                int slen;
 
                cinfo.card = i;
-               if ( (err = ioctl (fd, SNDCTL_CARDINFO, &cinfo)) < 0) {
+               if ( (err = pioctl (fd, SNDCTL_CARDINFO, &cinfo)) < 0) {
                   break;
                }
 
@@ -719,7 +730,7 @@ get_oss_version()
       }
       if (fd >= 0)
       {
-         int err = ioctl(fd, OSS_GETVERSION, &version);
+         int err = pioctl(fd, OSS_GETVERSION, &version);
          if (err < 0) version = -1;
          close(fd);
          fd = -1;
@@ -782,7 +793,7 @@ detect_devnum(const char *devname)
          if (version >= OSS_VERSION_4)
          {
             oss_sysinfo info;
-            err = ioctl(fd, SNDCTL_SYSINFO, &info);
+            err = pioctl(fd, SNDCTL_SYSINFO, &info);
 
             if (err >= 0)
             {
@@ -793,12 +804,12 @@ detect_devnum(const char *devname)
                   oss_card_info cinfo;
 
                   cinfo.card = i;
-                  if ( (err = ioctl (fd, SNDCTL_CARDINFO, &cinfo)) < 0) {
+                  if ( (err = pioctl (fd, SNDCTL_CARDINFO, &cinfo)) < 0) {
                      break;
                   }
 
                   memset(&ainfo, 0, sizeof(oss_audioinfo));
-                  err = ioctl(fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+                  err = pioctl(fd, SNDCTL_AUDIOINFO_EX, &ainfo);
 #if 0
                   printf("ainfo.busy: %i\n", ainfo.busy);
                   printf("ainfo.enabled: %i\n", ainfo.enabled);

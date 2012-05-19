@@ -116,6 +116,7 @@ struct timezone
 };
 int gettimeofday(struct timeval*, void*);
 
+typedef long	off_t;
 # if SIZEOF_SIZE_T == 4
 typedef INT32	ssize_t;
 #else

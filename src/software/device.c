@@ -13,13 +13,19 @@
 #include "config.h"
 #endif
 
-#include <strings.h>		/* strncasecmp */
+#if HAVE_STRINGS_H
+# include <strings.h>		/* strncasecmp */
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 #include <errno.h>		/* for ETIMEDOUT, errno */
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
 
 #include <xml.h>
 
+#include <base/types.h>
 #include <api.h>
 #include <arch.h>
 
@@ -129,7 +135,7 @@ static int _aaxSoftwareDriverReadHeader(_driver_t *);
 
 static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
 const char *default_renderer = "File: /tmp/AWaveOutput.wav";
-#ifndef strdup
+#ifndef HAVE_STRDUP
 char *strdup(const char *);
 #endif
 
@@ -217,23 +223,23 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
 
             if (xid)
             {
+               float f;
                int i;
 
-               i = xmlNodeGetInt(xid, "frequency-hz");
-               if (i) handle->frequency_hz = i;
-               if (i)
+               f = (float)xmlNodeGetDouble(xid, "frequency-hz");
+               if (f)
                {
-                  if (i < _AAX_MIN_MIXER_FREQUENCY)
+                  if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
                   {
                      _AAX_SYSLOG("waveout; frequency too small.");
-                     i = _AAX_MIN_MIXER_FREQUENCY;
+                     f = (float)_AAX_MIN_MIXER_FREQUENCY;
                   }
-                  else if (i > _AAX_MAX_MIXER_FREQUENCY)
+                  else if (f > _AAX_MAX_MIXER_FREQUENCY)
                   {
                      _AAX_SYSLOG("waveout; frequency too large.");
-                     i = _AAX_MAX_MIXER_FREQUENCY;
+                     f = (float)_AAX_MAX_MIXER_FREQUENCY;
                   }
-                  handle->frequency_hz = i;
+                  handle->frequency_hz = f;
                }
 
                i = xmlNodeGetInt(xid, "channels");
@@ -668,7 +674,7 @@ _aaxSoftwareDriverUpdateHeader(_driver_t *handle)
       s = (handle->no_channels << 16) | fmt;	/* PCM */
       handle->info.header[5] = s;
 
-      s = handle->frequency_hz;
+      s = (uint32_t)handle->frequency_hz;
       handle->info.header[6] = s;
 
       s *= handle->no_channels * handle->bytes_sample;
