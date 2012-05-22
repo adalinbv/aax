@@ -162,7 +162,7 @@ DECL_FUNCTION(ICaptureClient_GetBuffer);
 DECL_FUNCTION(ICaptureClient_ReleaseBuffer);
 DECL_FUNCTION(ICaptureClient_GetNextPacketSize);
 
-static char* detect_devname(const WCHAR*);
+static char* detect_devname(WCHAR*);
 static char* wcharToChar(const WCHAR*);
 static WCHAR* charToWChar(const char*);
 
@@ -823,7 +823,7 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
 /* -------------------------------------------------------------------------- */
 
 char *
-detect_devname(const WCHAR *device)
+detect_devname(WCHAR *device)
 {
    char *rv = NULL;
    void *props;

@@ -7,30 +7,27 @@
 #ifndef NDEBUG
 # include <stdio.h>
 #endif
+#if HAVE_ASSERT_H
+# include <assert.h>
+#endif
+#if HAVE_TIME_H
+# include <time.h>
+#endif
+#if HAVE_MATH_H
+# include <math.h>
+#endif
 
 #include "threads.h"
 #include "logging.h"
 
+static char __threads_enabled = 0;
+
 #if HAVE_PTHREAD_H
-
-# if HAVE_ASSERT_H
-#  include <assert.h>
-# endif
-# if HAVE_TIME_H
-#  include <time.h>
-# endif
-#if HAVE_MATH_H
-# include <math.h>
-#endif
-#include <errno.h>
+#include <errno.h>					/* --- UNIX --- */
 #include <string.h>	/* for memcpy */
-
 
 #define	USE_REALTIME	1
 #define _TH_SYSLOG(a) __oal_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
-
-
-static char __threads_enabled = 0;
 
 void *
 _aaxThreadCreate()
@@ -123,7 +120,7 @@ _aaxThreadJoin(void *t)
 
 #ifdef NDEBUG
 void *
-_aaxMutexCreate(void *mutex)
+_aaxMutexCreateRelease(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
@@ -206,7 +203,7 @@ _aaxMutexDestroy(void *mutex)
 
 #ifdef NDEBUG
 int
-_aaxMutexLock(void *mutex)
+_aaxMutexLockRelease(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
@@ -285,7 +282,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 
 #ifdef NDEBUG
 int
-_aaxMutexUnLock(void *mutex)
+_aaxMutexUnLockRelease(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
@@ -390,12 +387,271 @@ _aaxConditionSignal(void *c)
 
    assert(condition);
 
-#if 0
-   return pthread_cond_broadcast(condition);
-#else
    return pthread_cond_signal(condition);
-#endif
 }
 
+#elif defined( WIN32 )	/* HAVE_PTHREAD_H */
+							/* --- WINDOWS --- */
+#include <base/types.h>
+
+/* http://www.slideshare.net/abufayez/pthreads-vs-win32-threads */
+/* http://www.ibm.com/developerworks/linux/library/l-ipc2lin3/index.html */
+
+void *
+_aaxThreadCreate()
+{
+   void *ret  = calloc(1, sizeof(_aaxThread));
+
+   return ret;
+}
+
+void
+_aaxThreadDestroy(void *t)
+{
+   _aaxThread *thread = t;
+
+   assert(t);
+
+   if (thread->handle)
+   {
+      CloseHandle(thread->handle);
+      thread->handle = 0;
+   }
+   free(t);
+   t = 0;
+}
+
+static DWORD WINAPI
+_callback_handler(LPVOID t)
+{ 
+   _aaxThread *thread = t;
+   thread->callback_fn(thread->callback_data);
+   return 0;
+}
+
+int
+_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
+{
+   _aaxThread *thread = t;
+   thread->callback_fn = handler;
+   thread->callback_data = arg;
+   thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
+#if 0
+   // SetPriotityClass();
+   // SetThreadPriority();
 #endif
+   return thread->handle ? -1 : 0;
+}
+
+int
+_aaxThreadJoin(void *t)
+{
+   _aaxThread *thread = t;
+   int ret;
+
+   assert(t);
+
+   __threads_enabled = 0;
+   ret = WaitForSingleObject(thread->handle, INFINITE);
+
+   return ret;
+}
+
+#ifndef NDEBUG
+void *
+_aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+
+   if (!m)
+   {
+      m = calloc(1, sizeof(_aaxMutex));
+      if (m) {
+         m->mutex = CreateMutex(NULL, FALSE, NULL);
+      }
+   }
+
+   return m;
+}
+#else
+void *
+_aaxMutexCreateRelease(void *mutex)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+
+   if (!m)
+   {
+      m = calloc(1, sizeof(_aaxMutex));
+      if (m) {
+         m->mutex = CreateMutex(NULL, FALSE, NULL);
+      }
+   }
+
+   return m;
+}
+#endif
+
+void
+_aaxMutexDestroy(void *mutex)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+
+   if (m)
+   {
+      CloseHandle(m->mutex);
+      free(m);
+   }
+
+   m = 0;
+}
+
+#ifndef NDEBUG
+int
+_aaxMutexLockDebug(void *mutex, char *file, int line)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (__threads_enabled && m)
+   {
+      if (!m->mutex) {
+         m->mutex = CreateMutex(NULL, FALSE, NULL);
+      }
+
+      if (m->mutex) {
+         r = WaitForSingleObject(m->mutex, INFINITE);
+      }
+   }
+   return r;
+}
+
+int
+_aaxMutexUnLockDebug(void *mutex, char *file, int line)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (__threads_enabled && m)
+   {
+      ReleaseMutex(m->mutex);
+      r = 1;
+   }
+   return r;
+}
+#else
+int
+_aaxMutexLockRelease(void *mutex)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (__threads_enabled && m)
+   {
+      if (!m->mutex) {
+         m->mutex = CreateMutex(NULL, FALSE, NULL);
+      }
+
+      if (m->mutex) {
+         r = WaitForSingleObject(m->mutex, INFINITE);
+      }
+   }
+   return r;
+}
+
+int
+_aaxMutexUnLockRelease(void *mutex)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (__threads_enabled && m)
+   {
+      ReleaseMutex(m->mutex);
+      r = 1;
+   }
+   return r;
+}
+#endif
+
+void *
+_aaxConditionCreate()
+{
+   void *p = CreateEvent(NULL, TRUE, FALSE, NULL);
+   return p;
+}
+
+void
+_aaxConditionDestroy(void *c)
+{
+   assert(c);
+
+   CloseHandle(c);
+   c = 0;
+}
+
+int
+_aaxConditionWait(void *c, void *mutex)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   _aaxCondition *condition = c;
+   DWORD rcode;
+   int r = 0;
+
+   assert(condition);
+   assert(mutex);
+   
+// TODO: mutex mangling
+   rcode = WaitForSingleObject(m, INFINITE);
+   switch (rcode)
+   {
+   case WAIT_OBJECT_0:
+      r = 1;
+      break;
+   case WAIT_TIMEOUT:
+      r = -1;
+      break;
+   }
+
+   return r;
+}
+
+int
+_aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   _aaxCondition *condition = c;
+   DWORD rcode, timeout;
+   int r = 0;
+
+   assert(condition);
+   assert(mutex);
+   assert(ts);
+
+// TODO: mutex mangling
+   timeout = (DWORD)((ts->tv_sec*1000L)+(ts->tv_nsec/1000000L));
+   rcode = WaitForSingleObject(m, timeout);
+   switch (rcode)
+   {
+   case WAIT_OBJECT_0:
+      r = 1;
+      break;
+   case WAIT_TIMEOUT:
+      r = -1;
+      break;
+   }
+   return r;
+}
+
+int
+_aaxConditionSignal(void *c)
+{
+   assert(c);
+// TODO: mutex mangling ?
+   return SetEvent(c);
+}
+
+
+#else
+# error "threads not implemented for this platform"
+#endif /* HAVE_PTHREAD_H */
 

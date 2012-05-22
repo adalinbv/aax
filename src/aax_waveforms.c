@@ -45,7 +45,7 @@ static float _powsin_sample(float *s, float g)
 #endif
 
 #define MIX(a,b,c)		_MINMAX((a)+(b),-(c), (c))
-#define RINGMODULATE(a,b,c,d)	(c)*(((float)(a)/(d))*((b)/(c)))
+#define RINGMODULATE(a,b,c,d)	((c)*(((float)(a)/(d))*((b)/(c))))
 
 void _mul_8bps(void* data, unsigned int samples, float dt, float phase, unsigned char skip, float gain, float dc, _calc_sample fn)
 {

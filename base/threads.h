@@ -16,8 +16,7 @@ extern "C" {
 #endif
 
 #if HAVE_PTHREAD_H
-
-# include <pthread.h>
+# include <pthread.h>			/* UNIX */
 
  typedef pthread_t	_aaxThread;
  typedef pthread_cond_t	_aaxCondition;
@@ -30,6 +29,23 @@ extern "C" {
    const char *name;
    const char *function;
 # endif
+ } _aaxMutex;
+
+#elif defined( WIN32 )
+# include <Windows.h>			/* WINDOWS */
+
+ typedef struct _aaxThread 
+ {
+   HANDLE handle;
+   void *(*callback_fn)(void*);
+   void *callback_data;
+ } _aaxThread;
+
+ typedef HANDLE _aaxCondition;
+
+ typedef struct _aaxMutex
+ {
+   HANDLE mutex;
  } _aaxMutex;
 
 #endif
@@ -50,9 +66,12 @@ void *_aaxMutexCreateDebug(void *, const char *, const char *);
 int _aaxMutexLockDebug(void *, char *, int);
 int _aaxMutexUnLockDebug(void *, char *, int);
 #else
-void *_aaxMutexCreate(void *);
-int _aaxMutexLock(void *);
-int _aaxMutexUnLock(void *);
+#define _aaxMutexCreate(a) _aaxMutexCreateRelease(a, __FILE__, __FUNCTION__);
+#define _aaxMutexLock(a) _aaxMutexLockRelease(a, __FILE__, __LINE__)
+#define _aaxMutexUnLock(a) _aaxMutexUnLockRelease(a, __FILE__, __LINE__)
+void *_aaxMutexCreateRelease(void *);
+int _aaxMutexLockRelease(void *);
+int _aaxMutexUnLockRelease(void *);
 #endif
 void _aaxMutexDestroy(void *);
 
