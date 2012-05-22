@@ -13,6 +13,10 @@
 #ifndef _ALSA_AUDIO_H
 #define _ALSA_AUDIO_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define PLAYBACK_PERIODS	2
 #define CAPTURE_PERIODS		4
 
@@ -321,6 +325,9 @@ typedef void snd_output_t;
 typedef int (*snd_pcm_dump_proc)(snd_pcm_t *, snd_output_t *);
 typedef int (*snd_output_stdio_attach_proc)(snd_output_t **, FILE*, int);
 
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* _ALSA_AUDIO_H */
 

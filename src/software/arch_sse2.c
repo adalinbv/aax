@@ -22,6 +22,8 @@
 #  pragma GCC target ("arch=pentium-m")
 # endif
 # pragma GCC target ("sse2","fpmath=sse")
+#else
+# define __SSE2__
 #endif
 
 #include "arch_simd.h"
@@ -56,7 +58,7 @@ _ivec4Add_sse2(ivec4 d, ivec4 v)
    
    xmm1 = _mm_load_si128(dptr);
    xmm2 = _mm_load_si128(sptr);
-   _mm_store_si128(dptr, xmm1 + xmm2);
+   _mm_store_si128(dptr, _mm_add_epi32(xmm1, xmm2));
 }
 
 void
@@ -68,7 +70,7 @@ _ivec4Sub_sse2(ivec4 d, ivec4 v)
 
    xmm1 = _mm_load_si128(dptr);
    xmm2 = _mm_load_si128(sptr);
-   _mm_store_si128(dptr, xmm1 - xmm2);
+   _mm_store_si128(dptr, _mm_sub_epi32(xmm1, xmm2));
 }
 
 void
@@ -81,7 +83,7 @@ _ivec4Devide_sse2(ivec4 d, float s)
 
       xmm1 = _mm_cvtepi32_ps(_mm_load_si128(dptr));
       xmm2 = _mm_set1_ps(s);
-      _mm_store_si128(dptr, _mm_cvtps_epi32(xmm1 / xmm2));
+      _mm_store_si128(dptr, _mm_cvtps_epi32(_mm_div_ps(xmm1, xmm2)));
    }
 }
 
@@ -91,11 +93,11 @@ _ivec4Mulivec4_sse2(ivec4 d, const ivec4 v1, const ivec4 v2)
    const __m128i *sptr1 = (__m128i *)v1;
    const __m128i *sptr2 = (__m128i *)v2;
    __m128i *dptr = (__m128i *)d;
-   __m128i xmm1, xmm2;
+   __m128 xmm1, xmm2;
 
-   xmm1 = _mm_load_si128(sptr1);
-   xmm2 = _mm_load_si128(sptr2);
-   _mm_store_si128(dptr, xmm1 * xmm2);
+   xmm1 = _mm_cvtepi32_ps(_mm_load_si128(sptr1));
+   xmm2 = _mm_cvtepi32_ps(_mm_load_si128(sptr2));
+   _mm_store_si128(dptr, _mm_cvtps_epi32(_mm_mul_ps(xmm1, xmm2)));
 }
 
 void
@@ -140,7 +142,7 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
       i = num;				/* improperly aligned,            */
       do				/* let the compiler figure it out */
       {
-         *d++ += *s++ * v;
+         *d++ += (int32_t)((float)*s++ * v);
          v += vstep;
       }
       while (--i);
@@ -156,7 +158,7 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
       i = (0x10 - dtmp)/sizeof(int32_t);
       num -= i;
       do {
-         *d++ += *s++ * v;
+         *d++ += (int32_t)((float)*s++ * v);
          v += vstep;
       } while(--i);
       dptr = (__m128i *)d;
@@ -206,7 +208,7 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
       s = (int32_t *)sptr;
       vstep /= step;
       do {
-         *d++ += *s++ * v;
+         *d++ += (int32_t)((float)*s++ * v);
          v += vstep;
       } while(--i);
    }
@@ -395,7 +397,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    if (tracks != 2)
    {
       // _batch_cvt24_intl_16_cpu(d, src, offset, tracks, num);
-      int t;
+      unsigned int t;
       for (t=0; t<tracks; t++)
       {
          int32_t *sptr = (int32_t *)src[t] + offset;
@@ -536,7 +538,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
          h1 = h0;
          h0 = nsmp;
 
-         *d++ = smp*lfgain + (*s-smp)*hfgain;
+         *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
          s++;
       }
       while (--i);
@@ -633,7 +635,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
          h1 = h0;
          h0 = nsmp;
 
-         *d++ = smp*lfgain + (*s-smp)*hfgain;
+         *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
          s++;
       }
       while (--i);
@@ -816,10 +818,10 @@ _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    {
       int step;
 
-      *dptr++ = samp + (dsamp * smu);
+      *dptr++ = samp + (int32_t)(dsamp * smu);
 
       smu += freq_factor;
-      step = floorf(smu);
+      step = (int)floorf(smu);
 
       smu -= step;
       sptr += step-1;
@@ -889,7 +891,7 @@ _aaxBufResampleLinear_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    i = dmax-dmin;
    do
    {
-      *dptr++ = samp + (dsamp * smu);
+      *dptr++ = samp + (int32_t)(dsamp * smu);
 
       smu += freq_factor;
       if (smu >= 1.0)
@@ -901,6 +903,7 @@ _aaxBufResampleLinear_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    }
    while (--i);
 }
+
 
 void
 _aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
@@ -919,10 +922,10 @@ _aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
    sptr += sdesamps;
    dptr += dmin;
 
-   y0 = *sptr++;
-   y1 = *sptr++;
-   y2 = *sptr++;
-   y3 = *sptr++;
+   y0 = (float)*sptr++;
+   y1 = (float)*sptr++;
+   y2 = (float)*sptr++;
+   y3 = (float)*sptr++;
 
    a0 = y3 - y2 - y0 + y1;
    a1 = y0 - y1 - a0;
@@ -945,7 +948,7 @@ _aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
          y0 = y1;
          y1 = y2;
          y2 = y3;
-         y3 = *sptr++;
+         y3 = (float)*sptr++;
          a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
          a1 = y0 - y1 - a0;
          a2 = y2 - y0;

@@ -12,6 +12,10 @@
 #ifndef __OSS_AUDIO_H
 #define __OSS_AUDIO_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -116,6 +120,10 @@ typedef struct oss_card_info
 #define SNDCTL_SYSINFO		0x84e05801
 
 typedef int (*ioctl_proc)(int, int, void*);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* __OSS_AUDIO_H */
 

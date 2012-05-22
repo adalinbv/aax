@@ -12,6 +12,10 @@
 #ifndef _AAX_RINGBUFFER_H
 #define _AAX_RINGBUFFER_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <aax.h>
 #include <base/geometry.h>
 #include <base/types.h>
@@ -769,6 +773,10 @@ void bufCompressValve(void*, unsigned int, unsigned int);
 
 void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int, unsigned int);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_RINGBUFFER_H*/
 

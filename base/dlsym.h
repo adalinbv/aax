@@ -21,6 +21,10 @@
 #ifndef _OAL_DLSYM_H
 #define _OAL_DLSYM_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define DECL_VARIABLE(v)	void* p##v = 0
 #define TIE_VARIABLE(v)		p##v = _oalGetProcAddress(audio, #v)
 
@@ -31,6 +35,11 @@ char *_oalGetSymError(char *error);
 void *_oalIsLibraryPresent(const char *name, const char *version);
 void *_oalGetProcAddress(void *handle, const char *func);
 void *_oalGetGlobalProcAddress(const char *func);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
+
 
 #endif /* !_OAL_DLSYM_H */
 

@@ -12,6 +12,10 @@
 #ifndef _ALSASOFT_DRIVER_H
 #define _ALSASOFT_DRIVER_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -19,6 +23,10 @@
 #include <driver.h>
 
 extern _aaxDriverBackend _aaxALSADriverBackend;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_ALSASOFT_DRIVER_H */
 

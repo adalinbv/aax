@@ -20,6 +20,8 @@
 #  pragma GCC target ("arch=pentium3m")
 # endif
 # pragma GCC target ("sse","fpmath=sse")
+#else
+# define __SSE__
 #endif
 
 #include "arch_simd.h"
@@ -42,7 +44,7 @@ _vec4Add_sse(vec4 d, const vec4 v)
    
    xmm1 = _mm_load_ps(d); 
    xmm2 = _mm_load_ps(v); 
-   xmm1 += xmm2;
+   xmm1 = _mm_add_ps(xmm1, xmm2);
    _mm_store_ps(d, xmm1);
 }
 
@@ -53,7 +55,7 @@ _vec4Sub_sse(vec4 d, const vec4 v)
 
    xmm1 = _mm_load_ps(d);
    xmm2 = _mm_load_ps(v);
-   xmm1 -= xmm2;
+   xmm1 = _mm_sub_ps(xmm1, xmm2);
    _mm_store_ps(d, xmm1);
 }
 

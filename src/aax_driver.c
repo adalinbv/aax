@@ -53,7 +53,7 @@ _intBuffers* _backends;
 time_t _tvnow = 0;
 
 
-const char*
+AAX_API const char* AAX_APIENTRY
 aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
 {
    _handle_t *handle = get_handle(config);
@@ -93,7 +93,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
    return (const char*)rv;
 }
 
-unsigned
+AAX_API unsigned AAX_APIENTRY
 aaxDriverGetCount(enum aaxRenderMode mode)
 {
    unsigned rv = 0;
@@ -118,7 +118,7 @@ aaxDriverGetCount(enum aaxRenderMode mode)
    return rv;
 }
 
-aaxConfig
+AAX_API aaxConfig AAX_APIENTRY
 aaxDriverGetByPos(unsigned pos_req, enum aaxRenderMode mode)
 {
    _handle_t *handle = NULL;
@@ -173,7 +173,7 @@ aaxDriverGetByPos(unsigned pos_req, enum aaxRenderMode mode)
    return (aaxConfig)handle;
 }
 
-aaxConfig
+AAX_API aaxConfig AAX_APIENTRY
 aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
 {
    _handle_t *handle = NULL;
@@ -238,7 +238,7 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
    return handle;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
 {
    _handle_t *handle = get_handle(config);
@@ -268,14 +268,14 @@ aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
    return rv;
 }
 
-aaxConfig
+AAX_API aaxConfig AAX_APIENTRY
 aaxDriverOpenDefault(enum aaxRenderMode mode)
 {
    aaxConfig config = aaxDriverGetByName(NULL, mode);
    return aaxDriverOpen(config);
 }
 
-aaxConfig
+AAX_API aaxConfig AAX_APIENTRY
 aaxDriverOpen(aaxConfig config)
 {
    _handle_t *handle = _open_handle(config);
@@ -315,7 +315,7 @@ aaxDriverOpen(aaxConfig config)
    return (aaxConfig)handle;
 }
 
-aaxConfig
+AAX_API aaxConfig AAX_APIENTRY
 aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
 {
    _handle_t *handle = NULL;
@@ -372,7 +372,7 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
    return (aaxConfig)handle;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
@@ -403,7 +403,7 @@ aaxDriverDestroy(aaxConfig config)
    return rv;
 };
 
-int
+AAX_API int AAX_APIENTRY
 aaxDriverClose(aaxConfig config)
 {
    _handle_t *handle = get_valid_handle(config);
@@ -427,7 +427,7 @@ aaxDriverClose(aaxConfig config)
    return rv;
 }
 
-unsigned
+AAX_API unsigned AAX_APIENTRY
 aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
 {
    unsigned int num = 0;
@@ -459,7 +459,7 @@ aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
    return num;
 }
 
-const char*
+AAX_API const char* AAX_APIENTRY
 aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRenderMode mode)
 {
    char *ptr = NULL;
@@ -498,7 +498,7 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
    return ptr;
 }
 
-unsigned
+AAX_API unsigned AAX_APIENTRY
 aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aaxRenderMode mode)
 {
    unsigned int num = 0;
@@ -534,7 +534,7 @@ aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aax
    return num;
 }
 
-const char*
+AAX_API const char* AAX_APIENTRY
 aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsigned pos, enum aaxRenderMode mode)
 {
    char *ptr = NULL;

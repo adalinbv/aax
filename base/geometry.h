@@ -25,6 +25,10 @@
 #ifndef _GEOMETRY_H
 #define _GEOMETRY_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include "types.h"
 
 #define GMATH_4PI		 12.56637061435917246399f
@@ -114,6 +118,10 @@ extern ivec4Copy_proc ivec4Copy;
 extern ivec4Devide_proc ivec4Devide;
 extern ivec4Mulivec4_proc ivec4Mulivec4;
 extern ivec4Sub_proc ivec4Sub;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_GEOMETRY_H */
 

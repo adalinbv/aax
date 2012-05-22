@@ -12,6 +12,10 @@
 #ifndef _AAX_SSE_H
 #define _AAX_SSE_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <string.h>
 #include <assert.h>
 
@@ -146,6 +150,10 @@ void _aaxBufResampleSkip_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned
 void _batch_cvt24_16_neon(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_neon(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_SSE_H */
 

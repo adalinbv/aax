@@ -12,6 +12,10 @@
 #ifndef __MMDEVAPI_AUDIO_H
 #define __MMDEVAPI_AUDIO_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -123,6 +127,10 @@ typedef HRESULT (*IPropertyStore_Release_proc)(void*);
 
 typedef int (*WideCharToMultiByte_proc)(UINT, DWORD, LPCWSTR, int, LPSTR, int, LPCSTR, LPBOOL);
 typedef int (*MultiByteToWideChar_proc)(UINT, DWORD, LPCSTR, int, LPCWSTR, int);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* __MMDEVAPI_AUDIO_H */
 

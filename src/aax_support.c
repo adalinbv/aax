@@ -32,31 +32,31 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX];
 const char *_aax_id_s[_AAX_MAX_ID];
 const char* _aaxErrorStrings[];
 
-unsigned
+AAX_API unsigned AAX_APIENTRY
 aaxGetMajorVersion()
 {
    return AAX_MAJOR_VERSION;
 }
 
-unsigned
+AAX_API unsigned AAX_APIENTRY
 aaxGetMinorVersion()
 {
    return AAX_MINOR_VERSION;
 }
 
-unsigned int
+AAX_API unsigned int AAX_APIENTRY
 aaxGetPatchLevel()
 {
    return AAX_PATCH_LEVEL;
 }
 
-const char*
+AAX_API const char* AAX_APIENTRY
 aaxGetCopyrightString()
 {
    return (const char*)___COPYING;
 }
 
-const char*
+AAX_API const char* AAX_APIENTRY
 aaxGetVersionString(aaxConfig cfg)
 {
    _handle_t *handle = (_handle_t*)cfg;
@@ -70,7 +70,7 @@ aaxGetVersionString(aaxConfig cfg)
    return _version;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxIsFilterSupported(aaxConfig cfg, const char *filter)
 {
    _handle_t* handle = (_handle_t*)cfg;
@@ -102,7 +102,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxIsEffectSupported(aaxConfig cfg, const char *effect)
 {
    _handle_t* handle = (_handle_t*)cfg;
@@ -134,13 +134,13 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
    return rv;
 }
 
-enum aaxErrorType
+AAX_API enum aaxErrorType AAX_APIENTRY
 aaxGetErrorNo()
 {
    return __aaxErrorSet(AAX_ERROR_NONE, NULL);
 }
 
-const char*
+AAX_API const char* AAX_APIENTRY
 aaxGetErrorString(enum aaxErrorType err)
 {
    static char str[255];
@@ -169,7 +169,7 @@ aaxGetErrorString(enum aaxErrorType err)
    return str;
 }
 
-unsigned
+AAX_API unsigned AAX_APIENTRY
 aaxGetBytesPerSample(enum aaxFormat format)
 {
    unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
@@ -201,7 +201,7 @@ aaxGetBytesPerSample(enum aaxFormat format)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxIsValid(const void* handle, enum aaxHandleType type)
 {
    int rv = AAX_FALSE;

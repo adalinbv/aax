@@ -2,6 +2,11 @@
 #ifndef __THREADS_H
 #define __THREADS_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -57,6 +62,10 @@ void _aaxConditionDestroy(void *);
 int _aaxConditionWait(void *, void *);
 int _aaxConditionWaitTimed(void *, void *, struct timespec *);
 int _aaxConditionSignal(void *);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !__THREADS_H */
 

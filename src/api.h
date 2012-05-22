@@ -12,6 +12,10 @@
 #ifndef AAX_API_H
 #define AAX_API_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <aax.h>
 
 #include <driver.h>
@@ -295,6 +299,10 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 # include <string.h>
 # define _AAX_LOG(a, c)
 # define _AAX_SYSLOG(c) __oal_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
+#endif
+
+#if defined(__cplusplus)
+}  /* extern "C" */
 #endif
 
 #endif

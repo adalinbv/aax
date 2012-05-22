@@ -21,9 +21,25 @@
 #ifndef _AL_BUFFERS_H
 #define _AL_BUFFERS_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#if defined _WIN32 || defined __CYGWIN__
+# ifdef _EXPORTING
+#  define API __declspec(dllexport)
+# else
+#  define API __declspec(dllimport)
+# endif
+#else
+# define API
+#endif
+
 
 
 #include <limits.h>		/* for UINT_MAX */
@@ -437,6 +453,11 @@ _intBufGetDataPtr(const _intBufferData *);
  */
 void *
 _intBufSetDataPtr(_intBufferData *, void*);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
+
 
 #endif /* !_AL_BUFFERS_H */
 

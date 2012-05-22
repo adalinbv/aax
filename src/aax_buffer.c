@@ -26,7 +26,7 @@
 
 static unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX];
 
-aaxBuffer
+AAX_API aaxBuffer AAX_APIENTRY
 aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
                                    enum aaxFormat format)
 {
@@ -95,7 +95,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
 {
    _buffer_t* buf = get_buffer(buffer);
@@ -200,7 +200,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
    return rv;
 }
 
-unsigned int
+AAX_API unsigned int AAX_APIENTRY
 aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
 {
    _buffer_t* buf = get_buffer(buffer);
@@ -259,7 +259,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* buf = get_buffer(buffer);
@@ -352,7 +352,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type, float ratio, enum aaxProcessingType ptype)
 {
    _buffer_t* buf = get_buffer(buffer);
@@ -495,7 +495,7 @@ _aaxSoftwareDriverWriteFile("/tmp/wave.wav", AAX_OVERWRITE, *data, no_samples,
    return rv;
 }
 
-void**
+AAX_API void** AAX_APIENTRY
 aaxBufferGetData(const aaxBuffer buffer)
 {
    _buffer_t* buf = get_buffer(buffer);
@@ -628,7 +628,7 @@ aaxBufferGetData(const aaxBuffer buffer)
    return data;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxBufferDestroy(aaxBuffer buffer)
 {
    _buffer_t* buf = get_buffer(buffer);
@@ -642,7 +642,7 @@ aaxBufferDestroy(aaxBuffer buffer)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType type)
 {
    int rv = AAX_FALSE;

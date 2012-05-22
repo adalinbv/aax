@@ -40,7 +40,7 @@ static int _aaxMixerStart(_handle_t*);
 static int _aaxMixerStop(_handle_t*);
 static int _aaxMixerSignal(_handle_t*);
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
 {
    int rv = AAX_FALSE;
@@ -148,7 +148,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
    return rv;
 }
 
-unsigned int
+AAX_API unsigned int AAX_APIENTRY
 aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 {
    unsigned int rv = AAX_FALSE;
@@ -214,7 +214,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config);
@@ -298,7 +298,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
    return rv;
 }
 
-const aaxFilter
+AAX_API const aaxFilter AAX_APIENTRY
 aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 {
    _handle_t* handle = get_handle(config);
@@ -334,7 +334,7 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 }
 
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 {
    _handle_t* handle = get_handle(config);
@@ -387,7 +387,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
    return rv;
 }
 
-const aaxEffect
+AAX_API const aaxEffect AAX_APIENTRY
 aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
 {
    _handle_t* handle = get_handle(config);
@@ -423,7 +423,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerSetState(aaxConfig config, enum aaxState state)
 {
    int rv = AAX_FALSE;
@@ -471,7 +471,7 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
    return rv;
 }
 
-enum aaxState
+AAX_API enum aaxState AAX_APIENTRY
 aaxMixerGetState(aaxConfig config)
 {
    enum aaxState rv = AAX_INITIALIZED;
@@ -491,7 +491,7 @@ aaxMixerGetState(aaxConfig config)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config);
@@ -635,7 +635,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config);
@@ -680,7 +680,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 }
 
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
    _handle_t* handle = get_write_handle(config);
@@ -797,7 +797,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
    _handle_t* handle = get_write_handle(config);
@@ -850,7 +850,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config);
@@ -955,7 +955,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config);

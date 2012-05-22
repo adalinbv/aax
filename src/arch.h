@@ -12,6 +12,10 @@
 #ifndef _AAX_ARCH_SUPPORT
 #define _AAX_ARCH_SUPPORT 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -99,6 +103,10 @@ char _aaxDetectSSE3();
 char _aaxGetSSELevel();
 unsigned int _aaxGetNoCores();
 const char* _aaxGetSIMDSupportString();
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_ARCH_SUPPORT */
 

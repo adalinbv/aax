@@ -21,6 +21,10 @@
 #ifndef __OAL_TYPES_H
 #define __OAL_TYPES_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -130,6 +134,9 @@ typedef INT64	ssize_t;
 int msecSleep(unsigned int);
 #endif
 
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !__OAL_TYPES_H */
 

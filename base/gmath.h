@@ -1,6 +1,10 @@
 #ifndef __OAL_MATH_H
 #define __OAL_MATH_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_VALUES_H
 # include <values.h>	/* for MAXFLOAT */
 #endif
@@ -31,6 +35,10 @@ float fast_abs(float);
 float fast_sin(float);
 unsigned get_pow2(unsigned);
 unsigned log2i(unsigned);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !__OAL_MATH_H */
 

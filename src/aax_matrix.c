@@ -16,7 +16,7 @@
 
 #include "api.h"
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
 {
    int rv = AAX_FALSE;
@@ -31,7 +31,7 @@ aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
 {
    int rv = AAX_FALSE;
@@ -69,7 +69,7 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
 {
    int rv = AAX_FALSE;
@@ -113,7 +113,7 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
 {
    int rv = AAX_FALSE;
@@ -141,7 +141,7 @@ aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixInverse(aaxMtx4f mtx)
 {
    int rv = AAX_FALSE;
@@ -166,7 +166,7 @@ aaxMatrixInverse(aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
 {
    int rv = AAX_FALSE;
@@ -206,7 +206,7 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
                                                           const aaxVec3f up)
 {
@@ -252,7 +252,7 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
 {
    int rv = AAX_FALSE;

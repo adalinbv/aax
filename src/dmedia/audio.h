@@ -12,6 +12,10 @@
 #ifndef _DMEDIA_AUDIO_H
 #define _DMEDIA_AUDIO_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -121,6 +125,10 @@ dmDVIAudioDecoderCreate_proc dmDVIAudioDecoderCreate;
 dmG711MulawDecode_proc dmG711MulawDecode;
 dmG711AlawDecode_proc dmG711AlawDecode;
 dmGetError_proc dmGetError;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* _DMEDIA_AUDIO_H */
 

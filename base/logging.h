@@ -21,6 +21,10 @@
 #ifndef __OAL_LOGGING_H
 #define __OAL_LOGGING_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 # include "config.h"
 #endif
@@ -101,6 +105,10 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
 #else /* USE_LOGGING */
 # define __OAL_LOG(a, b, c, d)
 # define __THD_LOG(str, m)
+#endif
+
+#if defined(__cplusplus)
+}  /* extern "C" */
 #endif
 
 #endif /* !__OAL_LOGGING_H */

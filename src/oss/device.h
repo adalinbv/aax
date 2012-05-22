@@ -12,6 +12,10 @@
 #ifndef _AL_OSS_DRIVER_H
 #define _AL_OSS_DRIVER_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -20,6 +24,10 @@
 
 extern _aaxCodec *_aaxOSSCodecs[];
 extern _aaxDriverBackend _aaxOSSDriverBackend;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AL_OSS_DRIVER_H */
 

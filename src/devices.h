@@ -12,6 +12,10 @@
 #ifndef _AAX_DEVICES_H
 #define _AAX_DEVICES_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <base/buffers.h>
 
 #include "driver.h"
@@ -59,6 +63,10 @@ long _aaxDriverBackendSetConfigSettings(const _intBuffers *,char**, _aaxConfig *
 void _aaxDriverBackendReadConfigSettings(void *, char**, _aaxConfig *, const char *, int);
 void _aaxDriverBackendClearConfigSettings(_aaxConfig *);
 char _aaxGetDriverBackendExtensionSupport(const _aaxDriverBackend *, const char *);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_DEVICES_H */
 

@@ -32,7 +32,7 @@
 static void removeEmitterBufferByPos(void *, unsigned int);
 
 
-aaxEmitter
+AAX_API aaxEmitter AAX_APIENTRY
 aaxEmitterCreate()
 {
    aaxEmitter rv = NULL;
@@ -108,7 +108,7 @@ aaxEmitterCreate()
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterDestroy(aaxEmitter emitter)
 {
    _emitter_t *handle = get_emitter(emitter);
@@ -154,7 +154,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -204,7 +204,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterRemoveBuffer(aaxEmitter emitter)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -268,7 +268,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
    return rv;
 }
 
-const aaxBuffer
+AAX_API const aaxBuffer AAX_APIENTRY
 aaxEmitterGetBufferByPos(const aaxEmitter emitter, unsigned int pos, int copy)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -299,7 +299,7 @@ aaxEmitterGetBufferByPos(const aaxEmitter emitter, unsigned int pos, int copy)
    return rv;
 }
 
-unsigned int
+AAX_API unsigned int AAX_APIENTRY
 aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -336,7 +336,7 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -432,7 +432,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -512,7 +512,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
    return rv;
 }
 
-const aaxFilter
+AAX_API const aaxFilter AAX_APIENTRY
 aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -545,7 +545,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -663,7 +663,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
    return rv;
 }
 
-const aaxEffect
+AAX_API const aaxEffect AAX_APIENTRY
 aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -696,7 +696,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -762,7 +762,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
 {
    _emitter_t *handle = get_emitter(emitter);
@@ -793,7 +793,7 @@ aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -817,7 +817,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
 {
    _emitter_t *handle = get_emitter(emitter);
@@ -841,7 +841,7 @@ aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -929,7 +929,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -991,7 +991,7 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -1039,7 +1039,7 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -1063,7 +1063,7 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxEmitterGetState(const aaxEmitter emitter)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -1089,7 +1089,7 @@ aaxEmitterGetState(const aaxEmitter emitter)
    return ret;
 }
 
-unsigned long
+AAX_API unsigned long AAX_APIENTRY
 aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -1144,7 +1144,7 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
    return rv;
 }
 
-float
+AAX_API float AAX_APIENTRY
 aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 {
    _emitter_t* handle = get_emitter(emitter);

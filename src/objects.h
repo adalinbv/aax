@@ -12,6 +12,10 @@
 #ifndef _AAX_OBJECT_H
 #define _AAX_OBJECT_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <base/geometry.h>
 
 #include <ringbuffer.h>
@@ -184,6 +188,10 @@ void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *, unsigned int);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_OBJECT_H */
 

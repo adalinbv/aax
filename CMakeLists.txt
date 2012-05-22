@@ -20,6 +20,8 @@ OPTION(WERROR "Treat compile warnings as errors"   OFF)
 IF(WIN32)
     SET(LIBAEONWAVE AAX32)
     ADD_DEFINITIONS("-D_WIN32")
+    ADD_DEFINITIONS("-DAAX_BUILD_LIBRARY=1")
+    SET(LINK_OPTIONS "/NODEFAULTLIB:msvcrtd.lib")
 ELSE(WIN32)
     SET(LIBAEONWAVE aax)
 ENDIF(WIN32)
@@ -128,12 +130,26 @@ IF(WERROR)
 ENDIF()
 
 IF(MSVC)
+    SET_PROPERTY(SOURCE src/software/arch_sse.c
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse2.c
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE2"
+    )
+
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG /LD")
     SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -DNDEBUG /LD")
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG /LD")
     SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG /LD")
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
+
+    SET_PROPERTY(SOURCE src/software/arch_sse.c
+                 PROPERTY COMPILE_FLAGS /arch:SSE
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse2.c
+                 PROPERTY  /arch:SSE2
+    )
 
     OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" OFF)
     IF(FORCE_STATIC_VCRT)
@@ -211,7 +227,9 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
-SET(BASE_OBJS
+#ADD_SUBDIRECTORY(base src)
+
+SET( AEONWAVE_OBJS
      base/buffers.c
      base/dlsym.c
      base/geometry.c
@@ -220,9 +238,6 @@ SET(BASE_OBJS
      base/memory.c
      base/threads.c
      base/types.c
-   )
-
-SET( AEONWAVE_OBJS
      src/aax_audioframe.c
      src/aax_buffer.c
      src/aax_driver.c
@@ -259,24 +274,27 @@ SET( AEONWAVE_OBJS
      src/software/rbufmix_single.c
      src/software/ringbuffer.c
    )
-#ADD_SUBDIRECTORY(base src)
 
 # Build a library
 SET(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-ADD_LIBRARY(${LIBAEONWAVE} ${LIBTYPE} ${AEONWAVE_OBJS} ${BASE_OBJS})
+ADD_LIBRARY(${LIBAEONWAVE} ${LIBTYPE} ${AEONWAVE_OBJS})
 SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES DEFINE_SYMBOL AL_BUILD_LIBRARY
-                                       COMPILE_FLAGS -DAL_ALEXT_PROTOTYPES
                                        VERSION ${LIB_VERSION}
                                        SOVERSION ${CPACK_PACKAGE_VERSION_MAJOR})
 IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES PREFIX "")
 ENDIF()
 
-TARGET_LINK_LIBRARIES(${LIBAEONWAVE} ${EXTRA_LIBS} ${XML_LIBRARY} ${AAX_LIBRARY})
+TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
+    ${EXTRA_LIBS}
+    ${BASE_LIBRARY}
+    ${XML_LIBRARY}
+)
 
 # Add an install target here
 INSTALL(TARGETS ${LIBAEONWAVE}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/aax.h
               include/aaxdefs.h

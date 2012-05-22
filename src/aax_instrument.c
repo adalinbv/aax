@@ -25,7 +25,7 @@
 static int _get_bank_num(const char*);
 static int _get_inst_num(const char*);
 
-aaxInstrument
+AAX_API aaxInstrument AAX_APIENTRY
 aaxInstrumentCeate(aaxConfig config)
 {
     _instrument_t* inst = calloc(1, sizeof(_instrument_t));
@@ -45,7 +45,7 @@ aaxInstrumentCeate(aaxConfig config)
     return (aaxInstrument)inst;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentDestroy(aaxInstrument instrument)
 {
     _instrument_t* inst = get_instrument(instrument);
@@ -123,7 +123,7 @@ AAX_APIENTRY aaxInstrumentGetSetup(aaxInstrument instrument, enum aaxSetupType t
 }
 
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentLoad(aaxInstrument instrument, const char* path, unsigned int bank, unsigned int num)
 {
     _instrument_t* inst = get_instrument(instrument);
@@ -134,7 +134,7 @@ aaxInstrumentLoad(aaxInstrument instrument, const char* path, unsigned int bank,
     return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentLoadByName(aaxInstrument instrument, const char* path, const char* name)
 {
    unsigned int bank = _get_bank_num(name);
@@ -142,7 +142,7 @@ aaxInstrumentLoadByName(aaxInstrument instrument, const char* path, const char* 
    return aaxInstrumentLoad(instrument, path, bank, inst_num);
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentRegister(aaxInstrument instrument)
 {
     _instrument_t* inst = get_valid_instrument(instrument);
@@ -154,7 +154,7 @@ aaxInstrumentRegister(aaxInstrument instrument)
     return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentDeregister(aaxInstrument instrument)
 {
     _instrument_t* inst = get_valid_instrument(instrument);
@@ -166,7 +166,7 @@ aaxInstrumentDeregister(aaxInstrument instrument)
     return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentSetParam(aaxInstrument instrument,
                       enum aaxInstrumentParameter param, float value)
 {
@@ -191,7 +191,7 @@ aaxInstrumentSetParam(aaxInstrument instrument,
     return rv;
 }
 
-float
+AAX_API float AAX_APIENTRY
 aaxInstrumentGetParam(aaxInstrument instrument,
                       enum aaxInstrumentParameter param)
 {
@@ -215,7 +215,7 @@ aaxInstrumentGetParam(aaxInstrument instrument,
 }
 
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentNoteOn(aaxInstrument instrument, unsigned int note)
 {
     _instrument_t* inst = get_instrument(instrument);
@@ -227,7 +227,7 @@ aaxInstrumentNoteOn(aaxInstrument instrument, unsigned int note)
     return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentNoteOff(aaxInstrument instrument, unsigned int note)
 {
     _instrument_t* inst = get_instrument(instrument);
@@ -239,7 +239,7 @@ aaxInstrumentNoteOff(aaxInstrument instrument, unsigned int note)
     return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxInstrumentNoteSetParam(aaxInstrument instrument, unsigned int note_no,
                          enum aaxInstrumentParameter param, float value)
 {
@@ -281,7 +281,7 @@ aaxInstrumentNoteSetParam(aaxInstrument instrument, unsigned int note_no,
     return rv;
 }
 
-float
+AAX_API float AAX_APIENTRY
 aaxInstrumentNoteGetParam(aaxInstrument instrument, unsigned int note_no,
                          enum aaxInstrumentParameter param)
 {

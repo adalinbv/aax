@@ -1,6 +1,10 @@
 #ifndef WIN32_H
 #define WIN32_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -800,6 +804,10 @@ typedef struct _KEY_EVENT_RECORD
   DWORD dwControlKeyState; 
 } KEY_EVENT_RECORD; 
 #endif /* _MSC_VER */
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif
 

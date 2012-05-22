@@ -12,6 +12,10 @@
 #ifndef _AAX_DRIVER_H
 #define _AAX_DRIVER_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -143,6 +147,10 @@ void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
 void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
 unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
 unsigned int _aaxSoftwareMixerMixSensors(void*, const void *, void*);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_DRIVER_H */
 

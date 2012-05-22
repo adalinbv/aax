@@ -27,7 +27,7 @@ static int _aaxSensorCreateRingBuffer(_handle_t *);
 static int _aaxSensorCaptureStart(_handle_t *);
 static int _aaxSensorCaptureStop(_handle_t *);
 
-int
+AAX_API int AAX_APIENTRY
 aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
 {
    int rv = AAX_FALSE;
@@ -59,7 +59,7 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
 {
    int rv = AAX_FALSE;
@@ -89,7 +89,7 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
 {
    int rv = AAX_FALSE;
@@ -119,7 +119,7 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
 {
    int rv = AAX_FALSE;
@@ -149,7 +149,7 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
    return rv;
 }
 
-unsigned long
+AAX_API unsigned long AAX_APIENTRY
 aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
 {
    _handle_t *handle = get_handle(config);
@@ -202,7 +202,7 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
    return rv;
 }
 
-aaxBuffer
+AAX_API aaxBuffer AAX_APIENTRY
 aaxSensorGetBuffer(const aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
@@ -252,7 +252,7 @@ aaxSensorGetBuffer(const aaxConfig config)
    return buffer;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxSensorWaitForBuffer(aaxConfig config, float timeout)
 {
    _handle_t *handle = get_handle(config);
@@ -293,7 +293,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxSensorSetState(aaxConfig config, enum aaxState state)
 {
    _handle_t *handle = get_valid_handle(config);

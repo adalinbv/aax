@@ -12,7 +12,7 @@
 #include "api.h"
 
 #if 0
-int
+AAX_API int AAX_APIENTRY
 aaxScenerySetDiffuseFactor(aaxConfig config, float diffuse_factor)
 {
    _handle_t *handle = get_handle(config);
@@ -41,7 +41,7 @@ aaxScenerySetDiffuseFactor(aaxConfig config, float diffuse_factor)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxScenerySetDimension(aaxConfig config, aaxVec3f dimension)
 {
    _handle_t *handle = get_handle(config);
@@ -70,7 +70,7 @@ aaxScenerySetDimension(aaxConfig config, aaxVec3f dimension)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxScenerySetPosition(aaxConfig config, aaxVec3f pos)
 {
    _handle_t *handle = get_handle(config);
@@ -100,7 +100,7 @@ aaxScenerySetPosition(aaxConfig config, aaxVec3f pos)
 }
 #endif
 
-int
+AAX_API int AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config);
@@ -166,7 +166,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
    return rv;
 }
 
-const aaxFilter
+AAX_API const aaxFilter AAX_APIENTRY
 aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
 {
    _handle_t* handle = get_handle(config);
@@ -198,7 +198,7 @@ aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxScenerySetEffect(aaxConfig config, aaxEffect e)
 {
    _handle_t* handle = get_handle(config);
@@ -245,7 +245,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
    return rv;
 }
 
-const aaxEffect
+AAX_API const aaxEffect AAX_APIENTRY
 aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t* handle = get_handle(config);

@@ -12,6 +12,10 @@
 #ifndef _AL_DMEDIA_DRIVER_H
 #define _AL_DMEDIA_DRIVER_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -19,6 +23,10 @@
 #include <driver.h>
 
 extern const _aaxDriverBackend _aaxDMediaDriverBackend;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AL_DMEDIA_DRIVER_H */
 

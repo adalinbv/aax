@@ -12,6 +12,10 @@
 #ifndef AUDIO_H
 #define AUDIO_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <base/types.h>
 #include <driver.h>		/* float */
 
@@ -31,6 +35,9 @@ void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int,
 
 void _aaxSoftwareDriverWriteFile(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
 
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif
 

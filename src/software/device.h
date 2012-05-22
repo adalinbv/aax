@@ -12,6 +12,10 @@
 #ifndef _AL_SOFTWARE_DRIVER_H
 #define _AL_SOFTWARE_DRIVER_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <driver.h>
 
 extern const _aaxDriverBackend _aaxNoneDriverBackend;
@@ -19,6 +23,10 @@ extern const _aaxDriverBackend _aaxLoopbackDriverBackend;
 extern _aaxDriverBackend _aaxSoftwareDriverBackend;
 extern const _intBuffers _aaxSoftwareDriverExtensionString;
 extern const _intBuffers _aaxSoftwareDriverEnumValues;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AL_SOFTWARE_DRIVER_H */
 

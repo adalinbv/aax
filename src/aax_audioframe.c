@@ -28,7 +28,7 @@ static int _aaxAudioFrameStart(_frame_t*);
 static int _aaxAudioFrameSignal(_frame_t*);
 static void* _aaxAudioFrameThread(void*);
 
-aaxFrame
+AAX_API aaxFrame AAX_APIENTRY
 aaxAudioFrameCreate(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
@@ -113,7 +113,7 @@ aaxAudioFrameCreate(aaxConfig config)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameDestroy(aaxFrame frame)
 {
    _frame_t* handle = get_frame(frame);
@@ -159,7 +159,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
 {
    _frame_t *handle = get_frame(frame);
@@ -191,7 +191,7 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4f mtx)
 {
    _frame_t *handle = get_frame(frame);
@@ -214,7 +214,7 @@ aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4f mtx)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
 {
    _frame_t *handle = get_frame(frame);
@@ -237,7 +237,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
 {
    _frame_t *handle = get_frame(frame);
@@ -260,7 +260,7 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 {
    _frame_t *handle = get_frame(frame);
@@ -336,7 +336,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
    return rv;
 }
 
-const aaxFilter
+AAX_API const aaxFilter AAX_APIENTRY
 aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
 {
    _frame_t *handle = get_frame(frame);
@@ -368,7 +368,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
 {
    _frame_t *handle = get_frame(frame);
@@ -417,7 +417,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
    return rv;
 }
 
-const aaxEffect
+AAX_API const aaxEffect AAX_APIENTRY
 aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
 {
    _frame_t *handle = get_frame(frame);
@@ -449,7 +449,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 {
    _frame_t *handle = get_frame(frame);
@@ -487,7 +487,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
 {
    _frame_t* handle = get_frame(frame);
@@ -616,7 +616,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
 {
    _frame_t* handle = get_frame(frame);
@@ -656,7 +656,7 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
 }
 
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
    _frame_t* handle = get_frame(frame);
@@ -752,7 +752,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
    _frame_t* handle = get_frame(frame);
@@ -793,7 +793,7 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
    _frame_t* handle = get_frame(frame);
@@ -881,7 +881,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
    _frame_t* handle = get_frame(frame);
@@ -911,7 +911,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
 {
    _frame_t* handle = get_frame(frame);
@@ -952,7 +952,7 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
    return rv;
 }
 
-int
+AAX_API int AAX_APIENTRY
 aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
 {
    _frame_t* handle = get_frame(frame);
@@ -990,7 +990,7 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    return rv;
 }
 
-aaxBuffer
+AAX_API aaxBuffer AAX_APIENTRY
 aaxAudioFrameGetBuffer(const aaxFrame frame)
 {
    _frame_t* handle = get_frame(frame);
