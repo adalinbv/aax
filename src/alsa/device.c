@@ -353,12 +353,11 @@ _aaxALSADriverDetect(int mode)
       }
 
       error = _oalGetSymError(0);
-   }
-
-   if (!error)
-   {
-      if (get_devices_avail(mode) != 0) {
-         rv = AAX_TRUE;
+      if (!error)
+      {
+         if (get_devices_avail(mode) != 0) {
+            rv = AAX_TRUE;
+         }
       }
    }
 

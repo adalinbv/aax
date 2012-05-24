@@ -98,6 +98,7 @@ _oalIsLibraryPresent(const char *name, const char *version)
    else {
       handle = GetModuleHandle(name);
    }
+   if (!handle) _oalGetSymError("Library not found.");
 
    return handle;
 }
@@ -105,10 +106,15 @@ _oalIsLibraryPresent(const char *name, const char *version)
 void *
 _oalGetProcAddress(void *handle, const char *func)
 {
+   void *rv = NULL;
+
    assert(handle);
    assert(func);
 
-   return (void *)GetProcAddress(handle, func);
+   rv = (void *)GetProcAddress(handle, func);
+   if (!rv) _oalGetSymError("Function not available");
+
+   return rv;
 }
 
 /* TODO */
