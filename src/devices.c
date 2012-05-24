@@ -71,7 +71,7 @@ _aaxGetDriverBackends()
 
          be = _intBufGetDataPtr(dptr);
          assert(be->detect);
-#if 1
+#if 0
          printf("Backend #%i: '%s'\n", i, be->driver);
 #endif
          if (be->detect(AAX_MODE_WRITE_STEREO))
