@@ -1,6 +1,4 @@
 /* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
-
-         
  * vi:set ts=8:
  *
  * This file is in the Public Domain and comes with no warranty.
@@ -12,7 +10,6 @@
 #endif
 
 #include <stdio.h>
-#include <unistd.h>
 #include <math.h>
 
 #include <aaxdefs.h>

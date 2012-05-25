@@ -1,25 +1,26 @@
+/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
+ * vi:set ts=8:
+ *
+ * This file is in the Public Domain and comes with no warranty.
+ * Erik Hofman <erik@ehofman.com>
+ *
+ */
+
+#if HAVE_CONFIG_H
+# include "config.h"
+#endif
 
 #include <stdio.h>
-#include <strings.h>
 #include <stdlib.h>
-#include <time.h>	/* nanosleep */
 #include <string.h>	/* strrchr */
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <base/logging.h>
 
 #include "driver.h"
 
-
-enum
-{
-   NULL_DEVICE=0,
-   SOFTWARE_DEVICE,
-   OSS_DEVICE,
-   ALSASOFT_DEVICE,
-   ALSA_DEVICE,
-   DMEDIA_DEVICE,
-   MAX_DEVICES
-};
 
 char *
 getDeviceName(int argc, char **argv)
@@ -87,7 +88,7 @@ getPitch(int argc, char **argv)
 {
    float num = 1.0;
    char *ret = getCommandLineOption(argc, argv, "-p");
-   if (ret) num = atof(ret);
+   if (ret) num = (float)atof(ret);
    return num;
 }
 
@@ -96,7 +97,7 @@ getGain(int argc, char **argv)
 {
    float num = 1.0;
    char *ret = getCommandLineOption(argc, argv, "-g");
-   if (ret) num = atof(ret);
+   if (ret) num = (float)atof(ret);
    return num;
 }
 
@@ -182,14 +183,16 @@ getCommandLineOption(int argc, char **argv, char *option)
    return rv;
 }
 
-void nanoSleep(unsigned long st)
+#ifndef _WIN32
+# include <time.h>
+int msecSleep(unsigned int tms)
 {
-   struct timespec sleept;
-
-   sleept.tv_sec = 0;
-   sleept.tv_nsec = st;
-   nanosleep(&sleept, 0);
+   static struct timespec s;
+   s.tv_sec = (tms/1000);
+   s.tv_nsec = (tms-s.tv_sec*1000);
+   return nanosleep(&s, 0);
 }
+#endif
 
 char *strDup(const char *s)
 {

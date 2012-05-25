@@ -10,7 +10,7 @@
 #endif
 
 #include <stdio.h>
-#include <unistd.h>
+
 #include <aaxdefs.h>
 
 #include "base/types.h"

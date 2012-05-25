@@ -1,10 +1,22 @@
+/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
+ * vi:set ts=8:
+ *
+ * This file is in the Public Domain and comes with no warranty.
+ * Erik Hofman <erik@ehofman.com>
+ *
+ */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#ifdef _WIN32
+# include <io.h>
+#endif
 #include <fcntl.h>
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 
 #include <aax.h>
 #include <base/types.h>
@@ -184,7 +196,7 @@ fileLoad(const char *file, unsigned int *no_samples,
       printf("Samples per block:\t%i\n", blocksz);
       printf("No. samples:\t\t%i\n", *no_samples);
 
-      duration = buflen * 8;
+      duration = (float)(buflen * 8);
       duration /= (*freq * *no_tracks * *bits_sample);
       printf("Duration:\t\t%5.3f sec.\n", duration);
    } while (0);
@@ -404,7 +416,7 @@ playAudioTune(int argc, char **argv)
       do
       {
          nanoSleep(5e7);
-         dt += 5e7*1e-9;
+         dt += 5e7f*1e-9f;
          state = aaxEmitterGetState(emitter);
       }
       while (state == AAX_PLAYING);
@@ -517,7 +529,7 @@ bufferConvertMSIMA_IMA4(void *data, unsigned channels, unsigned int no_samples, 
 
       for (b=0; b<blocks; b++)
       {
-         int t, i;
+         unsigned int t, i;
 
          /* block shuffle */
          memcpy(buf, dptr, blocksize);

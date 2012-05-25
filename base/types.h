@@ -25,13 +25,13 @@
 # include <config.h>
 #endif
 
-#if HAVE_SYS_TYPES_H
+#ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
 
-#if HAVE_INTTYPES_H
+#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#elif HAVE_STDINT_H
+#elif defined(HAVE_STDINT_H)
 #include <stdint.h>
 #else
 # ifdef _MSC_VER
@@ -48,6 +48,43 @@ typedef int size_t;
 #endif
 
 #define _MIN(a,b)	(((a)<(b)) ? (a) : (b))
+
+#if _MSC_VER
+# include <Windows.h>
+# define strtoll _strtoi64
+# define snprintf _snprintf
+# define strcasecmp _stricmp
+# define strncasecmp _strnicmp
+# define rintf(v) (int)(v+0.5f)
+# define msecSleep(tms) SleepEx((DWORD)tms, FALSE)
+
+struct timespec
+{
+  time_t tv_sec; /* seconds */
+  long tv_nsec;  /* nanoseconds */
+};
+
+struct timezone
+{
+  int tz_minuteswest; /* of Greenwich */
+  int tz_dsttime;     /* type of dst correction to apply */
+};
+int gettimeofday(struct timeval*, void*);
+
+typedef long    off_t;
+# if SIZEOF_SIZE_T == 4
+typedef INT32   ssize_t;
+#else
+typedef INT64   ssize_t;
+#endif
+
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>         /* for gettimeofday */
+# endif
+int msecSleep(unsigned int);
+#endif
+
 
 #endif /* !__OAL_TYPES_H */
 

@@ -18,14 +18,14 @@
  *  along with OpenAL-AeonWave.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __OAL_LOGGING_H
-#define __OAL_LOGGING_H 1
+#ifndef __AAX_LOGGING_H
+#define __AAX_LOGGING_H 1
 
 #if HAVE_CONFIG_H
 # include "config.h"
 #endif
 
-#ifdef USE_RMALLOC
+#if defined(HAVE_RMALLOC_H) && defined(USE_RMALLOC)
 # define USE_LOGGING	1
 # include <stdio.h>
 # include <rmalloc.h>
@@ -34,10 +34,12 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include <strings.h>
- #endif
+# ifdef HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+#endif
 
-#if HAVE_SYSLOG_H
+#ifdef HAVE_SYSLOG_H
 # include <syslog.h>
 #else
 # define LOG_EMERG	0	/* system is unusable */
@@ -75,14 +77,14 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
 
 #if USE_LOGGING
 
-# define __OAL_LOG(a, b, c, d, e) __oal_log((a), (b), (c), (d), (e))
+# define __AAX_LOG(a, b, c, d, e) __oal_log((a), (b), (c), (d), (e))
 
 # define LOG_PREFIX_FL	"%s at %i\n\t\t\t\t\t"
 # define __THD_LOG_FL(str, m, n, f, l)                             \
    do {                                                            \
       char s[100];                                                 \
       snprintf(s, 99, LOG_PREFIX_FL""str":  %s (%x)", f, l, n, (unsigned int)m); \
-      __OAL_LOG(LOG_INFO, 0, s);                                   \
+      __AAX_LOG(LOG_INFO, 0, s);                                   \
    } while(0);
 
 # define LOG_PREFIX     "\t\t\t\t\t\t"
@@ -90,13 +92,13 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
    do {                                           \
       char s[100];                                \
       snprintf(s, 99, LOG_PREFIX""str":  %x", (unsigned int)m); \
-      __OAL_LOG(LOG_INFO, 0, s);                  \
+      __AAX_LOG(LOG_INFO, 0, s);                  \
    } while(0);
 
 #else /* USE_LOGGING */
-# define __OAL_LOG(a, b, c, d)
+# define __AAX_LOG(a, b, c, d)
 # define __THD_LOG(str, m)
 #endif
 
-#endif /* !__OAL_LOGGING_H */
+#endif /* !__AAX_LOGGING_H */
 
