@@ -252,7 +252,7 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
          be = _intBufGetDataPtr(dptr);
          if (!strcasecmp(devname[0], be->driver))
          {
-            config->backend.driver = _aax_strdup(be->driver);
+            config->backend.driver = strdup(be->driver);
             config->backend.input = 0;
             config->backend.output = 0;
          }
