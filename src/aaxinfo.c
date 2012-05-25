@@ -20,7 +20,9 @@
 
 #include <stdio.h>
 #ifndef NDEBUG
-#include <rmalloc.h>
+# ifdef HAVE_RMALLOC_H
+#  include <rmalloc.h>
+# endif
 #endif
 #include <aaxdefs.h>
 #include "wavfile.h"

@@ -23,7 +23,7 @@
 #endif
 
 #include <assert.h>
-#if HAVE_SYSLOG_H
+#ifdef HAVE_SYSLOG_H
 # include <strings.h>	/* for strcasecmp */
 #endif
 
@@ -36,7 +36,7 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
 
    assert(id >= 0);
 
-#if HAVE_SYSLOG_H
+#ifdef HAVE_SYSLOG_H
    if (!been_here)
    {
       been_here = 1;
@@ -62,7 +62,7 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
    }
 #endif
 
-#if HAVE_SYSLOG_H
+#ifdef HAVE_SYSLOG_H
    if (enabled && level == LOG_SYSLOG) {
       syslog(level, "%s", s);
    }
