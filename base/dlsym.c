@@ -106,13 +106,20 @@ _oalIsLibraryPresent(const char *name, const char *version)
 void *
 _oalGetProcAddress(void *handle, const char *func)
 {
+   static LPTSTR Error = 0;
    void *rv = NULL;
 
    assert(handle);
    assert(func);
 
    rv = (void *)GetProcAddress(handle, func);
-   if (!rv) _oalGetSymError("Function not available");
+   if (!rv)
+   {
+      DWORD err = GetLastError();
+      FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                    NULL, err, 0, (LPTSTR)&Error, 0, NULL);
+      _oalGetSymError(Error);
+   }
 
    return rv;
 }
