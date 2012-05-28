@@ -159,6 +159,7 @@ AC_C_CONST
 AC_C_INLINE
 
 AC_CHECK_FUNCS([snprintf strcasestr memmove memset])
+AC_CHECK_FUNCS([strdup])
 AC_CHECK_FUNCS([stat])
 AC_CHECK_FUNCS([nanosleep])
 AC_CHECK_FUNCS([ioctl])

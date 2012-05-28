@@ -1,6 +1,6 @@
 * Sun May 20 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low
-  * Added a Windows (XP or later) backend.
+  * Added a Windows (Vista or later) backend.
 
  -- Erik Hofman <tech@adalin.org>  Sun, 20 May 2012 10:15:00 +0200
 

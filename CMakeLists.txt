@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 SET(cmake_verbose_makefile TRUE)
 
+SET(CMAKE_MAKEFILE_DEPENDS
+    "CMakeModules/Symlink.cmake"
+)
+
 IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
@@ -301,6 +305,18 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/aax.h
               include/aaxdefs.h
         DESTINATION include
 )
+
+IF (UNIX AND NOT WIN32)
+    macro(install_symlink _dest _source)
+      install(CODE "
+             include(\"${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/Symlink.cmake\")
+             InstallSymlink(\"${_dest}\" \"\$ENV{DESTDIR}${_source}\")")
+    endmacro(install_symlink)
+
+    install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}.so.${CPACK_PACKAGE_VERSION_MAJOR} ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}.so.${CPACK_PACKAGE_VERSION_MAJOR})
+    install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}.so ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}.so)
+ENDIF(UNIX AND NOT WIN32)
+
 
 #-----------------------------------------------------------------------------
 ### uninstall target
