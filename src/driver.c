@@ -16,6 +16,7 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <sys/time.h>
 
 #include <base/logging.h>
 
