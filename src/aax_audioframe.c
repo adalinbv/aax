@@ -14,8 +14,10 @@
 #endif
 
 #include <errno.h>		/* for ETIMEDOUT */
+#include <sys/time.h>		/* for struct time */
 #include <assert.h>
 #include <math.h>
+
 #include <aax.h>
 
 #include <base/threads.h>

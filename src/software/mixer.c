@@ -16,6 +16,7 @@
 #include <math.h>		/* for floor, and rint */
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
+#include <sys/time.h>		/* for struct time */
 
 #include <api.h>
 #include <arch.h>

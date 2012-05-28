@@ -9,8 +9,13 @@
  * permission of Adalin B.V.
  */
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <math.h>		/* for floor, and rint */
 #include <errno.h>		/* for ETIMEDOUT */
+#include <sys/time.h>		/* for struct time */
 
 #include <aax.h>
 #include <base/threads.h>
