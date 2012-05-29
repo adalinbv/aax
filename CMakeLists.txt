@@ -183,6 +183,7 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 # Check for the dlopen API (for alGetProcAddress)
+CHECK_INCLUDE_FILE(windows.h HAVE_WINDOWS_H -D_WIN32_WINNT=0x0501)
 CHECK_FUNCTION_EXISTS(strdup HAVE_STRDUP)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
@@ -258,7 +259,6 @@ SET( AEONWAVE_OBJS
      src/objects.c
      src/alsa/device.c
      src/dmedia/device.c
-     src/mmdevapi/device.c
      src/oss/device.c
      src/software/arch.c
      src/software/arch_cpu.c
@@ -277,6 +277,12 @@ SET( AEONWAVE_OBJS
      src/software/rbufmix_single.c
      src/software/ringbuffer.c
    )
+
+IF(HAVE_WINDOWS_H)
+  SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
+     src/mmdevapi/device.c
+  )
+ENDIF(HAVE_WINDOWS_H)
 
 # Build a library
 SET(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")

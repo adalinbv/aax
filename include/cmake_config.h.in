@@ -41,6 +41,10 @@
 #undef HAVE_IOCTL_H
 #cmakedefine HAVE_IOCTL_H @HAVE_IOCTL_H@
 
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+#cmakedefine HAVE_WINDOWS_H @HAVE_WINDOWS_H@
+
 /* Define to 1 if you have the <io.h> header file. */
 #undef HAVE_IO_H
 #cmakedefine HAVE_IO_H @HAVE_IO_H@

@@ -29,9 +29,11 @@
 #include <base/logging.h>
 #include <software/device.h>
 #include <dmedia/device.h>
-#include <mmdevapi/device.h>
 #include <alsa/device.h>
 #include <oss/device.h>
+#ifdef HAVE_WINDOWS_H
+# include <mmdevapi/device.h>
+#endif
 
 char is_bigendian()
 {
@@ -70,16 +72,19 @@ _aaxGetDriverBackends()
          assert (dptr);
 
          be = _intBufGetDataPtr(dptr);
-         assert(be->detect);
-#if 0
-         printf("Backend #%i: '%s'\n", i, be->driver);
-#endif
-         if (be->detect(AAX_MODE_WRITE_STEREO))
+         if (be)
          {
-            unsigned int r;
+            assert(be->detect);
+#if 0
+            printf("Backend #%i: '%s'\n", i, be->driver);
+#endif
+            if (be->detect(AAX_MODE_WRITE_STEREO))
+            {
+               unsigned int r;
 
-            r = _intBufAddReference(backends, _AAX_BACKEND, dbe, i);
-            if (r == UINT_MAX) break;
+               r = _intBufAddReference(backends, _AAX_BACKEND, dbe, i);
+               if (r == UINT_MAX) break;
+            }
          }
       }
    }
@@ -173,11 +178,13 @@ _aaxGetDriverBackendLoopback()
 
       dptr = _intBufGetNoLock(dbe, _AAX_BACKEND, i);
       found_be = _intBufGetDataPtr(dptr);
-
-      if (!strcasecmp(found_be->driver, name))
+      if (found_be)
       {
-         be = found_be;
-         break;
+         if (!strcasecmp(found_be->driver, name))
+         {
+            be = found_be;
+            break;
+         }
       }
    }
 
@@ -250,19 +257,30 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
          _intBufferData *dptr;
          dptr = _intBufGetNoLock(dbe, _AAX_BACKEND, i);
          be = _intBufGetDataPtr(dptr);
-         if (!strcasecmp(devname[0], be->driver))
+         if (be)
          {
-            config->backend.driver = strdup(be->driver);
-            config->backend.input = 0;
-            config->backend.output = 0;
+            if (!strcasecmp(devname[0], be->driver))
+            {
+               config->backend.driver = strdup(be->driver);
+               config->backend.input = 0;
+               config->backend.output = 0;
+            }
          }
       }
 
       be = _aaxGetDriverBackendDefault(bs);
-      config->no_nodes = 1;
-      config->node[0].devname = _aax_strdup(be->driver);
+      if (be)
+      {
+         config->node[0].devname = _aax_strdup(be->driver);
+         config->node[0].frequency = (float)be->rate;
+      }
+      else
+      {
+         config->node[0].devname = _aax_strdup("unknown");
+         config->node[0].frequency = 44100;
+      }
       config->node[0].setup = _aax_strdup("stereo");
-      config->node[0].frequency = (float)be->rate;
+      config->no_nodes = 1;
       config->node[0].interval = 66;
       config->node[0].update = 20;
       config->node[0].hrtf = 0;
@@ -568,7 +586,11 @@ _intBufferData _aaxBackends[_AAX_MAX_BACKENDS] =
    {0, 1, (void *)&_aaxLoopbackDriverBackend},
    {0, 1, (void *)&_aaxOSSDriverBackend},
    {0, 1, (void *)&_aaxALSADriverBackend},
+#ifdef HAVE_WINDOWS_H
    {0, 1, (void *)&_aaxMMDevDriverBackend},
+#else
+   {0, 1, NULL},
+#endif
    {0, 1, (void *)&_aaxDMediaDriverBackend}
 };
 

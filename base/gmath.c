@@ -101,7 +101,7 @@ detect_nan_vec3(const float *vec)
 int
 detect_nan_vec4(const float *vec)
 {
-   return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]  || is_nan(vec[3]));
+   return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2] || is_nan(vec[3]));
 }
 
 int
