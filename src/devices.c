@@ -268,7 +268,8 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
       config->node[0].hrtf = 0;
       config->node[0].no_speakers = 2;
    }
-   return rv; 
+
+   return (long)rv; 
 }
 
 static char*
