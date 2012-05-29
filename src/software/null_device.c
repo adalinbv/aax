@@ -15,7 +15,9 @@
 
 #include <math.h>		/* for floor, and rint */
 #include <errno.h>		/* for ETIMEDOUT */
-#include <sys/time.h>		/* for struct time */
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>		/* for struct time */
+#endif
 
 #include <aax.h>
 #include <base/threads.h>
