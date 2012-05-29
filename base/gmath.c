@@ -88,7 +88,7 @@ is_nan(float x)
    return isnan(x);
 #else
    volatile float temp = x;
-   return temp != x;
+   return (temp != x) ? 1 : 0;
 #endif
 }
 
