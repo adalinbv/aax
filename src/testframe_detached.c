@@ -208,14 +208,14 @@ int main(int argc, char **argv)
                }
             }
 
-            dt += 5e5*1e-9;
+            dt += 5e5f*1e-9f;
             if (dt >= 5e7*1e-9)
             {
                /*
                 * stream the pre-generated buffers at a slower rate
                 */
                ang = (float)deg[MIXER] / 180.0f * GMATH_PI;
-               FramePos[0] = 10000.0 +r * sinf(ang);
+               FramePos[0] = 10000.0f +r * sinf(ang);
                FramePos[2] = -r * cosf(ang);
 #if 1
 # if 0
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
                testForState(res, "aaxAudioFrameSetMatrix");
 
                deg[MIXER] += 3;
-               dt -= 5e7*1e-9;
+               dt -= 5e7f*1e-9f;
             }
 
             if (play) state = aaxEmitterGetState(emitter[MIXER]);

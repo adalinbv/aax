@@ -114,7 +114,7 @@ int main(int argc, char **argv)
          /* phasing effect */
          printf("source phasing..\n");
          effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
-         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.0, 0.0, 0.095);
+         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,0.8f,0.0f,0.0f,0.095f);
          effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
          res = aaxEmitterSetEffect(emitter, effect);
          res = aaxEffectDestroy(effect);
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
          do
          {
             nanoSleep(5e7);
-            dt += 5e7*1e-9;
+            dt += 5e7f*1e-9f;
 #if 1
             q++;
             if (q > 10)

@@ -41,9 +41,10 @@ int main(int argc, char **argv)
          float freq, dt = 0.0f;
          int q, state;
 
-         freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-         res = aaxBufferSetLoopPoints(buffer, LOOP_START_SEC*freq,
-                                           LOOP_END_SEC*freq);
+         freq = (float)aaxBufferGetSetup(buffer, AAX_FREQUENCY);
+         res = aaxBufferSetLoopPoints(buffer,
+                                      (unsigned int)(LOOP_START_SEC*freq),
+                                      (unsigned int)(LOOP_END_SEC*freq));
          testForState(res, "aaxBufferSetLoopPoints");
 
          /** emitter */
@@ -74,7 +75,7 @@ int main(int argc, char **argv)
          do
          {
             nanoSleep(5e7);
-            dt += 5e7*1e-9;
+            dt += 5e7f*1e-9f;
 
             if (dt > (LOOP_START_SEC+3*LOOP_END_SEC))
             {

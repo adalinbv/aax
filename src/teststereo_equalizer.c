@@ -67,10 +67,10 @@ int main(int argc, char **argv)
          f = aaxFilterCreate(config, AAX_EQUALIZER);
          testForError(f, "aaxFilterCreate");
 
-         f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0, 1.0, 0.1, 0.0);
+         f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0f, 1.0f, 0.1f, 0.0f);
          testForError(f, "aaxFilterSetSlot/0");
 
-         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0, 0.1, 0.5, 0.0);
+         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0f, 0.1f, 0.5f, 0.0f);
          testForError(f, "aaxFilterSetSlot/1");
 
          f = aaxFilterSetState(f, AAX_TRUE);
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
          q = 0;
          do
          {            nanoSleep(5e7);
-            dt += 5e7*1e-9;
+            dt += 5e7f*1e-9f;
 #if 1
             q++;
             if (q > 10)
@@ -151,10 +151,10 @@ int main(int argc, char **argv)
          f = aaxFilterCreate(record, AAX_EQUALIZER);
          testForError(f, "aaxFilterCreate");
 
-         f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0, 1.0, 0.1, 0.0);
+         f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0f, 1.0f, 0.1f, 0.0f);
          testForError(f, "aaxFilterSetSlot/0");
 
-         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0, 0.1, 0.5, 0.0);
+         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0f, 0.1f, 0.5f, 0.0f);
          testForError(f, "aaxFilterSetSlot/1");
 
          f = aaxFilterSetState(f, AAX_TRUE);
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
          do
          {
             nanoSleep(5e7);
-            dt += 5e7*1e-9;
+            dt += 5e7f*1e-9f;
 #if 1
             q++;
             if (q > 10)
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
          do
          {
             nanoSleep(5e7);
-            dt += 5e7*1e-9;
+            dt += 5e7f*1e-9f;
 #if 1
             q++;
             if (q > 10)

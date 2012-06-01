@@ -72,10 +72,10 @@ int main(int argc, char **argv)
          f = aaxFilterCreate(config, AAX_GRAPHIC_EQUALIZER);
          testForError(f, "aaxFilterCreate");
 
-         f = aaxFilterSetSlot(f, 0, AAX_LINEAR, 0.5, 1.5, 1.5, 0.8);
+         f = aaxFilterSetSlot(f, 0, AAX_LINEAR, 0.5f, 1.5f, 1.5f, 0.8f);
          testForError(f, "aaxFilterSetSlot/0");
 
-         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 1.0, 1.0, 1.2, 1.0);
+         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 1.0f, 1.0f, 1.2f, 1.0f);
          testForError(f, "aaxFilterSetSlot/1");
 
          f = aaxFilterSetState(f, AAX_TRUE);
@@ -93,8 +93,9 @@ int main(int argc, char **argv)
 
          q = 0;
          do
-         {            nanoSleep(5e7);
-            dt += 5e7*1e-9;
+         {
+            nanoSleep(5e7);
+            dt += 5e7f*1e-9f;
 #if 1
             q++;
             if (q > 10)

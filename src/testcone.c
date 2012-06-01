@@ -92,8 +92,8 @@ int main(int argc, char **argv)
          res = aaxEmitterSetPitch(emitter, pitch);
          testForState(res, "aaxEmitterSetPitch");
 
-         res = aaxEmitterSetAudioCone(emitter, 160.0*GMATH_DEG_TO_RAD,
-                                               200.0*GMATH_DEG_TO_RAD, 0.0);
+         res = aaxEmitterSetAudioCone(emitter, 160.0f*GMATH_DEG_TO_RAD,
+                                               200.0f*GMATH_DEG_TO_RAD, 0.0f);
          testForState(res, "aaxEmitterSetAudioCone");
 
          res = aaxMixerRegisterEmitter(config, emitter);

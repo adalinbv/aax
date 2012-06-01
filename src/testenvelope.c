@@ -17,7 +17,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAMPLE_FREQUENCY	16000.0f
+#define SAMPLE_FREQUENCY	16000
 
 int main(int argc, char **argv)
 {
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
       float pitch;
 
       /** buffer */
-      buffer = aaxBufferCreate(config, 1.1*SAMPLE_FREQUENCY, 1, AAX_PCM16S);
+      buffer = aaxBufferCreate(config, (unsigned int)(1.1f*SAMPLE_FREQUENCY), 1, AAX_PCM16S);
       testForError(buffer, "Unable to create a new buffer\n");
 
       res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
@@ -69,9 +69,9 @@ int main(int argc, char **argv)
       filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
       testForError(filter, "aaxFilterCreate");
 
-      filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.07, 10.0, 0.01);
+      filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.07f, 10.0f, 0.01f);
       testForError(filter, "aaxFilterSetSlot 0");
-      filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.7, AAX_FPINFINITE, 0.7, 1.0);
+      filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.7f, AAX_FPINFINITE, 0.7f, 1.0f);
       testForError(filter, "aaxFilterSetSlot 1");
 
       filter = aaxFilterSetState(filter, AAX_TRUE);
@@ -87,9 +87,9 @@ int main(int argc, char **argv)
       effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
       testForError(effect, "aaxEffectCreate");
 
-      effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.2, 4.0, 0.2);
+      effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0f, 0.2f, 4.0f, 0.2f);
       testForError(effect, "aaxEffectSetSlot 0");
-      effect  = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 0.5, 0.2, 1.0, 0.0);
+      effect  = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 0.5f, 0.2f, 1.0f, 0.0f);
       testForError(effect, "aaxEffectSetSlot 1");
 
       effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
       filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
       testForError(effect, "aaxEffectCreate");
 
-      filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.9, 1.0, 0.0);
+      filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.9f, 1.0f, 0.0f);
       testForError(effect, "aaxEffectSetSlot");
 
       filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
       effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
       testForError(effect, "aaxEffectCreate");
 
-      effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0, 4.0, 0.4, 0.0);
+      effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0, 4.0f, 0.4f, 0.0);
       testForError(effect, "aaxEffectSetSlot");
 
       effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
       do
       {
          nanoSleep(5e7);
-         dt += 5e7*1e-9;
+         dt += 5e7f*1e-9f;
 
          q++;
 #if 1

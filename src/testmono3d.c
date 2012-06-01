@@ -19,7 +19,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define RADIUS			10
+#define RADIUS			10.0f
 #define FILE_PATH               SRC_PATH"/tictac.wav"
 
 aaxVec3f EmitterPos = { 10000.0, -1000.0, 0.0 };
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
          num = getNumSources(argc, argv);
 
          /* Set sources to located in a circle around the listener */
-         anglestep = (2 * 3.1416) / (float)num;
+         anglestep = (2 * GMATH_PI) / (float)num;
          printf("Starting %i emitters\n", num);
          i = 0;
          do
@@ -93,9 +93,9 @@ int main(int argc, char **argv)
             res = aaxEmitterAddBuffer(emitter[i], buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
-            pos[1] = EmitterPos[1] + mul*cos(anglestep * i) * RADIUS;
-            pos[0] = EmitterPos[0] + mul*cos(anglestep * i) * RADIUS;
-            pos[2] = EmitterPos[2] + sin(anglestep * i) * RADIUS;
+            pos[1] = EmitterPos[1] + mul*cosf(anglestep * i) * RADIUS;
+            pos[0] = EmitterPos[0] + mul*cosf(anglestep * i) * RADIUS;
+            pos[2] = EmitterPos[2] + sinf(anglestep * i) * RADIUS;
             aaxMatrixSetDirection(mtx, pos, EmitterDir);
             res = aaxEmitterSetMatrix(emitter[i], mtx);
             testForState(res, "aaxEmitterSetIdentityMatrix");
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
 #if 1
             ang = (float)deg / 180.0f * GMATH_PI;
-            EmitterPos[0] = 10000.0 + RADIUS * sinf(ang);
+            EmitterPos[0] = 10000.0f + RADIUS * sinf(ang);
             EmitterPos[2] = -RADIUS * cosf(ang);
 //          EmitterPos[1] = -1000.0 -RADIUS * cosf(ang);
 #if 1
