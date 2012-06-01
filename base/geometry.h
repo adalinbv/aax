@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+#include <aax.h>
+
 #include "types.h"
 
 #define GMATH_4PI		 12.56637061435917246399f
@@ -58,7 +60,7 @@ typedef int32_t ivec4[4] ALIGN16;
 typedef float mtx4[4][4] ALIGN16;
 #endif
 
-extern mtx4 aaxIdentityMatrix;
+AAX_API extern aaxMtx4f aaxIdentityMatrix;
 
 typedef void (*vec3Copy_proc)(vec3 d, const vec3 v);
 typedef void (*vec3Add_proc)(vec3 d, vec3 v);

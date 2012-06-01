@@ -101,7 +101,16 @@
 #define __aaxEffectGet(a,b,c,d,e,EFF,GRP)				\
 	__intGetAll(a,b,c,d,e,Effect,AAX_##EFF##_EFFECT,GRP)
 
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 AAX_API aaxMtx4f aaxIdentityMatrix;
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 /*
  * Driver
@@ -139,6 +148,7 @@ AAX_API aaxMtx4f aaxIdentityMatrix;
 #define aaxMixerSetStereoSources(a)					\
 	aaxMixerSetSetup(NULL,AAX_STEREO_EMITTERS,(a))
 #define aaxMixerSetup(a,b,c,d,e)					\
+        (!e) ? AAX_FALSE : \
 	aaxMixerSetSetup((a),AAX_FREQUENCY,(b))?			\
 	(aaxMixerSetSetup((a),AAX_TRACKS,(c))?				\
 	 (aaxMixerSetSetup((a),AAX_FORMAT,(d))?				\
@@ -204,7 +214,7 @@ AAX_API aaxMtx4f aaxIdentityMatrix;
 	aaxBufferSetSetup((a),AAX_LOOP_START,(b))?			\
 	aaxBufferSetSetup((a),AAX_LOOP_END,(c)):AAX_FALSE
 #define aaxBufferSetWaveform(a,b,c)					\
-	aaxBufferProcessWaveform(a,b,c,1.0,AAX_OVERWRITE)
+	aaxBufferProcessWaveform(a,b,c,1.0f,AAX_OVERWRITE)
 #define aaxBufferAddWaveform(a,b,c,d)					\
 	aaxBufferProcessWaveform(a,b,c,d,AAX_ADD)
 #define aaxBufferMixWaveform(a,b,c,d)					\

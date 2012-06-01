@@ -420,8 +420,25 @@ printf("channels: %i\n", handle->no_tracks);
             hr = pIAudioClient_GetMixFormat(handle->pAudioClient,
                                             &handle->format);
 
-            handle->format->nSamplesPerSec = fmt.nSamplesPerSec;
+#if 0
+printf("\nDevice specific settings:\n");
+printf("\twFormatTag: %i\n",  handle->format->wFormatTag);
+printf("\tnSamplesPerSec: %i\n", handle->format->nSamplesPerSec);
+printf("\tnChannels: %i\n",  handle->format->nChannels);
+printf("\twBitsPerSample: %i\n", handle->format->wBitsPerSample);
+printf("\tnBlockAlign: %i\n", handle->format->nBlockAlign);
+printf("\tnAvgBytesPerSec: %i\n", handle->format->nAvgBytesPerSec);
+printf("\tcbSize: %i\n", handle->format->cbSize);
+#endif
+
+//          handle->format->nSamplesPerSec = fmt.nSamplesPerSec;
             handle->format->nChannels = fmt.nChannels;
+#if 0
+printf("\nAdjusting for XNL settings:\n");
+printf("\tnSamplesPerSec: %i\n", handle->format->nSamplesPerSec);
+printf("\tnChannels: %i\n",  handle->format->nChannels);
+#endif
+
          }
       }
    }
@@ -515,7 +532,6 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int fmt,
       snprintf((char *)&str, 255, "mmdev; Unable to output to %i speakers in "
                 "this setup (2 is the maximum)", *tracks);
       _AAX_SYSLOG(str);
-printf("A\n");
       return AAX_FALSE;
    }
 
@@ -530,17 +546,25 @@ printf("A\n");
    case AAX_PCM16S:
       handle->format->wBitsPerSample = 16;
       break;
+   case  AAX_PCM32S:
+      handle->format->wBitsPerSample = 32;
+      break;
    default:
       _AAX_SYSLOG("mmdev; unsupported audio format.");
-printf("B\n");
       return AAX_FALSE;
    }
+
+   handle->format->cbSize = 0;
    handle->format->wFormatTag = WAVE_FORMAT_PCM;
-   handle->format->nSamplesPerSec = freq;
+// handle->format->wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+// handle->format->cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+// handle->format->nSamplesPerSec = freq;
+   *speed = (float)handle->format->nSamplesPerSec;
+
    handle->format->nChannels = channels;
    handle->format->nBlockAlign = (channels * handle->format->wBitsPerSample)/8;
-   handle->format->nAvgBytesPerSec = freq * handle->format->nBlockAlign;
-   handle->format->cbSize = 0;
+   handle->format->nAvgBytesPerSec = handle->format->nSamplesPerSec *
+                                     handle->format->nBlockAlign;
 
    handle->no_frames = bufsz;
    if (frames) *frames = bufsz;
@@ -574,20 +598,21 @@ printf("B\n");
    if (hr == 0x800401f0)
    {
       hr = pCoInitialize(NULL);
-      hr = pIAudioClient_Initialize(handle->pAudioClient, AUDCLNT_SHAREMODE_SHARED,
-                                 0, hnsBufferDuration, hnsPeriodicity,
-                                 handle->format, NULL);
+      hr = pIAudioClient_Initialize(handle->pAudioClient,
+                                    AUDCLNT_SHAREMODE_SHARED,
+                                    0, hnsBufferDuration, hnsPeriodicity,
+                                    handle->format, NULL);
    }
 #if 0
-printf("IAudioClient_Initialize: %x (E_INVALIDARG = %x)\n", hr, E_INVALIDARG);
-printf("format:\n");
-printf("wFormatTag: %i\n",  handle->format->wFormatTag);
-printf("nSamplesPerSec: %i\n", handle->format->nSamplesPerSec);
-printf("nChannels: %i\n",  handle->format->nChannels);
-printf("wBitsPerSample: %i\n", handle->format->wBitsPerSample);
-printf("nBlockAlign: %i\n", handle->format->nBlockAlign);
-printf("nAvgBytesPerSec: %i\n", handle->format->nAvgBytesPerSec);
-printf("cbSize: %i\n", handle->format->cbSize);
+printf("\nIAudioClient_Initialize:\n");
+printf("\tformat:\n");
+printf("\twFormatTag: %i\n",  handle->format->wFormatTag);
+printf("\tnSamplesPerSec: %i\n", handle->format->nSamplesPerSec);
+printf("\tnChannels: %i\n",  handle->format->nChannels);
+printf("\twBitsPerSample: %i\n", handle->format->wBitsPerSample);
+printf("\tnBlockAlign: %i\n", handle->format->nBlockAlign);
+printf("\tnAvgBytesPerSec: %i\n", handle->format->nAvgBytesPerSec);
+printf("\tcbSize: %i\n", handle->format->cbSize);
 #endif
    if (SUCCEEDED(hr))
    {
@@ -739,6 +764,7 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
    BYTE *data;
 
    if ((frames == 0) || (d == 0)) // handle->mode != O_RDONLY
+      return 0;
 
    assert(rb);
    assert(rb->sample);

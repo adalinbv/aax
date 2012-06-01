@@ -435,12 +435,14 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    _aaxThread *thread = t;
    thread->callback_fn = handler;
    thread->callback_data = arg;
+printf("_aaxThreadStart\n");
    thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
 #if 0
    // SetPriotityClass();
    // SetThreadPriority();
 #endif
-   return thread->handle ? -1 : 0;
+printf("thread->handle: %x\n", thread->handle);
+   return thread->handle ? 0: -1;
 }
 
 int
@@ -600,6 +602,7 @@ _aaxConditionWait(void *c, void *mutex)
    assert(condition);
    assert(mutex);
    
+printf("_aaxConditionWait\n");
 // TODO: mutex mangling
    rcode = WaitForSingleObject(m, INFINITE);
    switch (rcode)
@@ -611,6 +614,7 @@ _aaxConditionWait(void *c, void *mutex)
       r = -1;
       break;
    }
+printf("return from _aaxConditionWait: %i\n", r);
 
    return r;
 }
@@ -619,6 +623,7 @@ int
 _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
+   struct timeval now;
    _aaxCondition *condition = c;
    DWORD rcode, timeout;
    int r = 0;
@@ -627,8 +632,11 @@ _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
    assert(mutex);
    assert(ts);
 
+printf("_aaxConditionWaitTimed\n");
 // TODO: mutex mangling
-   timeout = (DWORD)((ts->tv_sec*1000L)+(ts->tv_nsec/1000000L));
+   gettimeofday(&now, 0);
+   timeout = (DWORD)((now.tv_sec - ts->tv_sec)*1000L);
+   timeout += (DWORD)((now.tv_usec*1000 - ts->tv_nsec)/1000000L);
    rcode = WaitForSingleObject(m, timeout);
    switch (rcode)
    {
@@ -639,6 +647,7 @@ _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
       r = -1;
       break;
    }
+printf("return from _aaxConditionWaitTimed: %i\n", r);
    return r;
 }
 

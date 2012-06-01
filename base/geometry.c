@@ -399,7 +399,7 @@ mtx4Rotate(mtx4 mtx, float angle_rad, float x, float y, float z)
 
 /* -------------------------------------------------------------------------- */
 
-mtx4 aaxIdentityMatrix = {
+AAX_API aaxMtx4f aaxIdentityMatrix = {
   { 1.0f, 0.0f, 0.0f, 0.0f },
   { 0.0f, 1.0f, 0.0f, 0.0f },
   { 0.0f, 0.0f, 1.0f, 0.0f },

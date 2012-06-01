@@ -756,7 +756,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
 
-               if (mixer->ringbuffer) {
+               if (_oalRingBufferIsValid(mixer->ringbuffer)) {
                   src->props2d->delay_sec =
                                   _oalRingBufferGetDuration(mixer->ringbuffer);
                }
@@ -1061,15 +1061,19 @@ _aaxMixerStart(_handle_t *handle)
    {
       int r;
 
+printf("A\n");
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);
 
+printf("B\n");
       handle->thread.condition = _aaxConditionCreate();
       assert(handle->thread.condition != 0);
 
+printf("C\n");
       handle->thread.mutex = _aaxMutexCreate(0);
       assert(handle->thread.mutex != 0);
 
+printf("D\n");
       handle->thread.started = AAX_TRUE;
       r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread, handle);
       if (r == 0)
@@ -1079,7 +1083,9 @@ _aaxMixerStart(_handle_t *handle)
          {
             _intBufferData *dptr_sensor;
 
+printf("E\n");
             msecSleep(100);
+printf("F\n");
             dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
