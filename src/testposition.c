@@ -18,7 +18,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAMPLE_FREQUENCY	16000.0f
+#define SAMPLE_FREQUENCY	16000
 
 aaxVec3f EmitterPos = { 0.0f, 0.0f, -1.0f };
 aaxVec3f EmitterDir = { 0.0f, 0.0f,  1.0f };
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
    testForError(config, "No default audio device available.");
 
-   buffer = aaxBufferCreate(config, 1.1*SAMPLE_FREQUENCY, 1, AAX_PCM16S);
+   buffer = aaxBufferCreate(config, (unsigned int)(1.1f*SAMPLE_FREQUENCY), 1, AAX_PCM16S);
    testForError(buffer, "Unable to generate buffer\n");
 
    res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
    filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
    testForError(filter, "aaxFilterCreate");
 
-   filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 2.8, 0.4, 0.0);
+   filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 2.8f, 0.4f, 0.0f);
    testForError(filter, "aaxFilterSetSlot");
 
    filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
    filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
    testForError(filter, "aaxFilterCreate");
 
-   filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.9, 0.5, 0.0);
+   filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.9f, 0.5f, 0.0f);
    testForError(filter, "aaxFilterSetSlot");
 
    filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
@@ -156,13 +156,13 @@ int main(int argc, char **argv)
          printf("translate the sensor 5 meters backwards\n");
          printf("the emitter is now 5 meters the left and 5 meters in front\n");
          res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
-         res = aaxMatrixTranslate(mtx, 0.0, 0.0, - 5.0);
+         res = aaxMatrixTranslate(mtx, 0.0f, 0.0f, -5.0f);
          break;
       case 2:
          printf("Rotate the sensor 90 degrees counter clockwise\n");
          res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
-         res = aaxMatrixTranslate(mtx, 0.0, 0.0, -5.0);
-         res = aaxMatrixRotate(mtx, -90.0*GMATH_DEG_TO_RAD, 0.0, 1.0, 0.0);
+         res = aaxMatrixTranslate(mtx, 0.0f, 0.0f, -5.0f);
+         res = aaxMatrixRotate(mtx, -90.0f*GMATH_DEG_TO_RAD, 0.0f, 1.0f, 0.0f);
          break;
       default:
          break;

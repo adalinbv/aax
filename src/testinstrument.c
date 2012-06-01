@@ -18,7 +18,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAMPLE_FREQUENCY	16000.0f
+#define SAMPLE_FREQUENCY	16000
 
 int main(int argc, char **argv)
 {
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
    testForError(config, "No default audio device available.");
 
-   buffer = aaxBufferCreate(config, 0.3*SAMPLE_FREQUENCY, 1, AAX_PCM16S);
+   buffer = aaxBufferCreate(config, (unsigned int)(0.3f*SAMPLE_FREQUENCY), 1, AAX_PCM16S);
    testForError(buffer, "Unable to generate buffer\n");
 
    res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
@@ -65,9 +65,9 @@ int main(int argc, char **argv)
    filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
    testForError(filter, "aaxFilterCreate");
 
-   filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.05, 1.0, 0.05);
+   filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.05f, 1.0f, 0.05f);
    testForError(filter, "aaxFilterSetSlot 0");
-   filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.9, 1.0, 0.8, 0.2);
+   filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.9f, 1.0f, 0.8f, 0.2f);
    testForError(filter, "aaxFilterSetSlot 1");
 #if 0
    filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR, 0.0, 0.0, 0.0, 0.0);
@@ -89,9 +89,9 @@ int main(int argc, char **argv)
    effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
    testForError(effect, "aaxFilterCreate");
 
-   effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.995, 0.05, 1.05, 0.08);
+   effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.995f, 0.05f, 1.05f, 0.08f);
    testForError(effect, "aaxFilterSetSlot 0");
-   effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 1.0, 0.1, 0.99, 0.0);
+   effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 1.0f, 0.1f, 0.99f, 0.0f);
    testForError(filter, "aaxFilterSetSlot 1");
 #if 0
    effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR, 1.05, 0.0, 1.0, 0.0);
@@ -186,9 +186,9 @@ int main(int argc, char **argv)
 
       if (i == 10) 
       {
-          res = aaxEmitterStop(emitter);
+         res = aaxEmitterStop(emitter);
          res = aaxEmitterRewind(emitter);
-         res = aaxEmitterSetPitch(emitter, 0.87);
+         res = aaxEmitterSetPitch(emitter, 0.87f);
          res = aaxEmitterStart(emitter);
       }
    }

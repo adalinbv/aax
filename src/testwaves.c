@@ -17,7 +17,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define	SAMPLE_FREQ		16000.0
+#define	SAMPLE_FREQ		16000
 #define SAMPLE_FORMAT		AAX_PCM16S
 #define FILE_PATH		SRC_PATH"/stereo.wav"
 #define MAX_WAVES		AAX_MAX_WAVE
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
       float rate = buf_info[i].rate;
       int type = buf_info[i].type;
 
-      buffer[i] = aaxBufferCreate(config, 1.1*SAMPLE_FREQ, 1, SAMPLE_FORMAT);
+      buffer[i] = aaxBufferCreate(config, (unsigned int)(1.1f*SAMPLE_FREQ), 1, SAMPLE_FORMAT);
       testForError(buffer, "Unable to generate buffer\n");
 
       res = aaxBufferSetFrequency(buffer[i], SAMPLE_FREQ);
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
       printf("playing buffer #%i: %s\n", buf, buf_info[buf].name);
       do
       {
-         dt += 5e-2;
+         dt += 5e-2f;
          nanoSleep(5e7);
          state = aaxEmitterGetState(emitter);
       }

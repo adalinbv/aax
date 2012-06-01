@@ -35,7 +35,7 @@ int main(int argc, char **argv)
       aaxBuffer buffer = bufferFromFile(config, infile);
       if (buffer)
       {
-         const unsigned int NUM_BUFFERS = 8;
+         const int NUM_BUFFERS = 8;
          aaxEmitter emitter;
          float pitch;
          int i, num;

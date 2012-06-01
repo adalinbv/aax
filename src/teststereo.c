@@ -74,7 +74,7 @@ int main(int argc, char **argv)
          do
          {
             nanoSleep(5e7);
-            dt += 5e7*1e-9;
+            dt += 5e7f*1e-9f;
 #if 1
             q++;
             if (q > 10)

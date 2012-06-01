@@ -43,7 +43,7 @@ int main(int argc, char **argv)
       channels = 2;
 
       printf("Capturing %5.1f seconds of audio\n", RECORD_TIME_SEC);
-      res = aaxMixerSetSetup(record, AAX_FREQUENCY, freq);
+      res = aaxMixerSetSetup(record, AAX_FREQUENCY, (unsigned int)freq);
       testForState(res, "aaxMixerSeFrequency");
  
       res = aaxMixerSetSetup(record, AAX_TRACKS, channels);
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
          testForState(res, "aaxSensorWaitForBuffer");
 
          ul = aaxSensorGetOffset(record, AAX_MICROSECONDS);
-         f = (float)ul * 1e-6;
+         f = (float)ul * 1e-6f;
 #if 1
          printf("Record buffer position: %5.2f sec\r", f);
 #endif

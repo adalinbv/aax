@@ -41,7 +41,7 @@ int main(int argc, char **argv)
       aaxBuffer buffer = bufferFromFile(config, infile);
       if (buffer)
       {
-         const unsigned int NUM_BUFFERS = 32;
+         const int NUM_BUFFERS = 32;
          aaxEmitter emitter;
          aaxEffect effect;
          aaxFilter filter;
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
          /* flanging effect */
          printf("source flanging.. (envelope following)\n");
          effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-         effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7, 1.0, 0.2, 0.0);
+         effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7f, 1.0f, 0.2f, 0.0f);
          effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
          res = aaxEmitterSetEffect(emitter, effect);
          res = aaxEffectDestroy(effect);
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
          /* flanging effect */
          printf("source chorus.. (envelope following)\n");
          effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
-         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.8, 1.0, 0.0);
+         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0f, 0.8f, 1.0f, 0.0f);
          effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
          res = aaxEmitterSetEffect(emitter, effect);
          res = aaxEffectDestroy(effect);
@@ -156,10 +156,8 @@ int main(int argc, char **argv)
             /* flanging effect */
             printf("source flanging..\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-//          effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88, 0.08, 1.0, 0.0);
-//          effect = aaxEffectSetState(effect, AAX_TRUE);
-effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.9, 0.9, 0.8, 0.0);
-effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.88f, 0.08f, 1.0f, 0.0f);
+            effect = aaxEffectSetState(effect, AAX_TRUE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
@@ -173,7 +171,7 @@ effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
             /* phasing effect */
             printf("source phasing..\n");
             effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0, 0.08, 1.0, 0.0);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0f, 0.08f, 1.0f, 0.0f);
 
             effect = aaxEffectSetState(effect, AAX_TRUE);
             testForError(effect, "aaxEffectCreate");

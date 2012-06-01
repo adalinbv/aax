@@ -14,6 +14,7 @@
 
 #include <aaxdefs.h>
 
+#include "base/geometry.h"
 #include "base/types.h"
 #include "driver.h"
 #include "wavfile.h"
@@ -143,7 +144,7 @@ int main(int argc, char **argv)
 
                /** emitter */
                /* Set sources to located in a circle around the listener */
-               anglestep = (2 * 3.1416) / (float)(FRAMES*SUBFRAMES*num);
+               anglestep = (2 * GMATH_PI) / (float)(FRAMES*SUBFRAMES*num);
                printf("Starting %i emitters\n", num);
                i = 0;
                do
@@ -158,9 +159,9 @@ int main(int argc, char **argv)
                   res = aaxEmitterAddBuffer(emitter[p], buffer);
                   testForState(res, "aaxEmitterAddBuffer");
 
-                  pos[1] = EmitterPos[1] + cos(anglestep * p) * RADIUS;
-                  pos[0] = EmitterPos[0] + mul*cos(anglestep * p) * RADIUS;
-                  pos[2] = EmitterPos[2] + sin(anglestep * p) * RADIUS;
+                  pos[1] = EmitterPos[1] + cosf(anglestep * p) * RADIUS;
+                  pos[0] = EmitterPos[0] + mul*cosf(anglestep * p) * RADIUS;
+                  pos[2] = EmitterPos[2] + sinf(anglestep * p) * RADIUS;
                   aaxMatrixSetDirection(mtx, pos, EmitterDir);
                   res = aaxEmitterSetMatrix(emitter[p], mtx);
                   testForState(res, "aaxEmitterSetIdentityMatrix");

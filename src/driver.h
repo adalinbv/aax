@@ -39,7 +39,7 @@ void testForState(int, const char *);
 void testForALCError(void *);
 void testForALError();
 
-#define nanoSleep(a)	msecSleep(a/1000)
+#define nanoSleep(a)	msecSleep((long)a/1000000)
 
 #endif
 

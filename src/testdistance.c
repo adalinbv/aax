@@ -23,7 +23,7 @@
 #define INITIAL_DIST		300.0f
 #define SPEED			15.0f
 #define TIME			20.0f
-#define STEP			(((2*INITIAL_DIST)/fabs(SPEED))/TIME)
+#define STEP			(((2*INITIAL_DIST)/fabsf(SPEED))/TIME)
 #define DELAY			fabs((STEP/TIME)*1e9)
 #define FILE_PATH               SRC_PATH"/wasp.wav"
 
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
          testForState(res, "aaxScenerySetDistanceModel");
 
          /** dopller settings */
-         res = aaxScenerySetSoundVelocity(config, 333.0);
+         res = aaxScenerySetSoundVelocity(config, 333.0f);
          testForState(res, "aaxScenerySetSoundVelocity");
 
          /** sensor settings */
