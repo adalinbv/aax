@@ -120,48 +120,6 @@ typedef struct
 
 const char* _mmdev_default_name = DEFAULT_DEVNAME;
 
-#if 0
-DECL_VARIABLE(IID_IAudioClient);
-DECL_VARIABLE(IID_IAudioRenderClient);
-DECL_VARIABLE(CLSID_MMDeviceEnumerator);
-DECL_VARIABLE(IID_IMMDeviceEnumerator);
-// DECL_VARIABLE(PKEY_Device_FriendlyName);
-DECL_VARIABLE(DEVPKEY_Device_FriendlyName);
-
-DECL_FUNCTION(PropVariantInit);
-DECL_FUNCTION(PropVariantClear);
-DECL_FUNCTION(WideCharToMultiByte);
-DECL_FUNCTION(MultiByteToWideChar);
-DECL_FUNCTION(CoCreateInstance);
-DECL_FUNCTION(CoTaskMemFree);
-DECL_FUNCTION(IMMDeviceEnumerator_Release);
-DECL_FUNCTION(IMMDeviceEnumerator_GetDevice);
-DECL_FUNCTION(IMMDeviceEnumerator_GetDefaultAudioEndpoint);
-DECL_FUNCTION(IMMDeviceEnumerator_EnumAudioEndpoints);
-DECL_FUNCTION(IMMDeviceCollection_GetCount);
-DECL_FUNCTION(IMMDeviceCollection_Release);
-DECL_FUNCTION(IMMDeviceCollection_Item);
-DECL_FUNCTION(IMMDevice_Activate);
-DECL_FUNCTION(IMMDevice_Release);
-DECL_FUNCTION(IMMDevice_GetId);
-DECL_FUNCTION(IAudioClient_Start);
-DECL_FUNCTION(IAudioClient_Stop);
-DECL_FUNCTION(IAudioClient_GetService);
-DECL_FUNCTION(IAudioClient_Initialize);
-DECL_FUNCTION(IAudioClient_GetMixFormat);
-DECL_FUNCTION(IAudioClient_GetBufferSize);
-DECL_FUNCTION(IAudioClient_GetCurrentPadding);
-DECL_FUNCTION(IAudioClient_Release);
-DECL_FUNCTION(IAudioRenderClient_GetBuffer);
-DECL_FUNCTION(IAudioRenderClient_ReleaseBuffer);
-DECL_FUNCTION(IAudioRenderClient_Release);
-DECL_FUNCTION(IMMDevice_OpenPropertyStore);
-DECL_FUNCTION(IPropertyStore_GetValue);
-DECL_FUNCTION(IPropertyStore_Release);
-DECL_FUNCTION(IAudioCaptureClient_GetBuffer);
-DECL_FUNCTION(IAudioCaptureClient_ReleaseBuffer);
-DECL_FUNCTION(IAudioCaptureClient_GetNextPacketSize);
-#else
 # define pCLSID_MMDeviceEnumerator &CLSID_MMDeviceEnumerator
 # define pIID_IMMDeviceEnumerator &IID_IMMDeviceEnumerator
 # define pIID_IAudioRenderClient &IID_IAudioRenderClient
@@ -173,7 +131,7 @@ DECL_FUNCTION(IAudioCaptureClient_GetNextPacketSize);
 # define pPropVariantClear PropVariantClear
 # define pWideCharToMultiByte WideCharToMultiByte
 # define pMultiByteToWideChar MultiByteToWideChar
-# define pCoInitialize CoInitialize
+# define pCoInitializeEx CoInitializeEx
 # define pCoUninitialize CoUninitialize
 # define pCoCreateInstance CoCreateInstance
 # define pCoTaskMemFree CoTaskMemFree
@@ -204,7 +162,6 @@ DECL_FUNCTION(IAudioCaptureClient_GetNextPacketSize);
 # define pIAudioCaptureClient_GetBuffer IAudioCaptureClient_GetBuffer
 # define pIAudioCaptureClient_ReleaseBuffer IAudioCaptureClient_ReleaseBuffer
 # define pIAudioCaptureClient_GetNextPacketSize IAudioCaptureClient_GetNextPacketSize
-#endif
 
 static LPWSTR name_to_id(const WCHAR*, char);
 static char* detect_devname(IMMDevice*);
@@ -229,61 +186,7 @@ _aaxMMDevDriverDetect(int mode)
 
       snprintf(_mmdev_default_renderer, MAX_ID_STRLEN, "%s %s",
                DEFAULT_RENDERER, hwstr);
-
-#if 0
-      _oalGetSymError(0);
-
-      TIE_FUNCTION(CoCreateInstance);
-      if (pCoCreateInstance)
-      {
-         TIE_FUNCTION(CoTaskMemFree);
-         TIE_VARIABLE(IID_IAudioClient);
-         TIE_VARIABLE(IID_IAudioRenderClient);CKENDS
-         TIE_VARIABLE(CLSID_MMDeviceEnumerator);
-         TIE_VARIABLE(IID_IMMDeviceEnumerator);
-//          TIE_VARIABLE(PKEY_Device_FriendlyName);
-         TIE_VARIABLE(DEVPKEY_Device_FriendlyName);
-
-         TIE_FUNCTION(PropVariantInit);
-         TIE_FUNCTION(PropVariantClear);
-         TIE_FUNCTION(WideCharToMultiByte);
-         TIE_FUNCTION(MultiByteToWideChar);
-         TIE_FUNCTION(IMMDeviceEnumerator_Release);
-         TIE_FUNCTION(IMMDeviceEnumerator_GetDevice);
-         TIE_FUNCTION(IMMDeviceEnumerator_GetDefaultAudioEndpoint);
-         TIE_FUNCTION(IMMDeviceEnumerator_EnumAudioEndpoints);
-         TIE_FUNCTION(IMMDeviceCollection_GetCount);
-         TIE_FUNCTION(IMMDeviceCollection_Release);
-         TIE_FUNCTION(IMMDeviceCollection_Item);
-         TIE_FUNCTION(IMMDevice_Activate);
-         TIE_FUNCTION(IMMDevice_Release);
-         TIE_FUNCTION(IMMDevice_GetId);
-         TIE_FUNCTION(IAudioClient_Start);
-         TIE_FUNCTION(IAudioClient_Stop);
-         TIE_FUNCTION(IAudioClient_GetService);
-         TIE_FUNCTION(IAudioClient_Initialize);
-         TIE_FUNCTION(IAudioClient_GetMixFormat);
-         TIE_FUNCTION(IAudioClient_GetBufferSize);
-         TIE_FUNCTION(IAudioClient_GetCurrentPadding);
-         TIE_FUNCTION(IAudioClient_Release);
-         TIE_FUNCTION(IAudioRenderClient_GetBuffer);
-         TIE_FUNCTION(IAudioRenderClient_ReleaseBuffer);
-         TIE_FUNCTION(IAudioRenderClient_Release);
-         TIE_FUNCTION(IMMDevice_OpenPropertyStore);
-         TIE_FUNCTION(IPropertyStore_GetValue);
-         TIE_FUNCTION(IPropertyStore_Release);
-         TIE_FUNCTION(IAudioCaptureClient_GetBuffer);
-         TIE_FUNCTION(IAudioCaptureClient_ReleaseBuffer);
-         TIE_FUNCTION(IAudioCaptureClient_GetNextPacketSize);
-
-         error = _oalGetSymError(0);
-         if (!error) {
-            rv = AAX_TRUE;
-         }
-      }
-#else
       rv = AAX_TRUE;
-#endif
    }
 
    return rv;
@@ -389,7 +292,7 @@ printf("channels: %i\n", handle->no_tracks);
       m = (mode > 0) ? 1 : 0;
       handle->mode = _mode[m];
 
-      hr = pCoInitialize(NULL);
+      pCoInitialize(NULL, 0);
       if (SUCCEEDED(hr))
       {
          hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
@@ -592,17 +495,10 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int fmt,
     */
    hnsPeriodicity = 0;
 
+   pCoInitializeEx(NULL, 0);	/* returns S_FALSE if already initialized */
    hr = pIAudioClient_Initialize(handle->pAudioClient, AUDCLNT_SHAREMODE_SHARED,
                                  0, hnsBufferDuration, hnsPeriodicity,
                                  handle->format, NULL);
-   if (hr == 0x800401f0)
-   {
-      hr = pCoInitialize(NULL);
-      hr = pIAudioClient_Initialize(handle->pAudioClient,
-                                    AUDCLNT_SHAREMODE_SHARED,
-                                    0, hnsBufferDuration, hnsPeriodicity,
-                                    handle->format, NULL);
-   }
 #if 0
 printf("\nIAudioClient_Initialize:\n");
 printf("\tformat:\n");
@@ -630,6 +526,7 @@ printf("\tcbSize: %i\n", handle->format->cbSize);
                                        (void**)&handle->client.pRender);
       }
    }
+   pCoUninitialize();
 
    return (SUCCEEDED(hr)) ? AAX_TRUE : AAX_FALSE;
 }
@@ -849,7 +746,7 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
    IMMDeviceEnumerator *enumerator = NULL;
    HRESULT hr;
 
-   hr = pCoInitialize(NULL);
+   pCoInitializeEx(NULL, 0);
    hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
                           CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
                           (void**)&enumerator);
@@ -920,12 +817,12 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
       return (char *)&names[mode];
 
 Exit:
-      pCoUninitialize();
       pCoTaskMemFree(wstr);
       if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
       if (collection) pIMMDeviceCollection_Release(collection);
       if (device) pIMMDevice_Release(device);
       if (props) pIPropertyStore_Release(props);
+      pCoUninitialize();
    }
 
    return (char *)&names[mode];
@@ -1011,7 +908,7 @@ name_to_id(const WCHAR* dname, char m)
    LPWSTR rv = 0;
    HRESULT hr;
 
-   hr = pCoInitialize(NULL);
+   pCoInitialize(NULL, 0);
    hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
                           CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
                           (void**)&enumerator);
@@ -1060,7 +957,6 @@ name_to_id(const WCHAR* dname, char m)
       }
       pIMMDeviceEnumerator_Release(enumerator);
       pIMMDeviceCollection_Release(collection);
-      pCoUninitialize();
    }
    pCoUninitialize();
 

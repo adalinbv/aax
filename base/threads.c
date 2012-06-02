@@ -16,14 +16,15 @@
 #if HAVE_MATH_H
 # include <math.h>
 #endif
+#include <errno.h>
 
 #include "threads.h"
 #include "logging.h"
 
+#define DEBUG_TIMEOUT		3
 static char __threads_enabled = 0;
 
 #if HAVE_PTHREAD_H
-#include <errno.h>					/* --- UNIX --- */
 #include <string.h>	/* for memcpy */
 
 #define	USE_REALTIME	1
@@ -120,7 +121,7 @@ _aaxThreadJoin(void *t)
 
 #ifdef NDEBUG
 void *
-_aaxMutexCreateRelease(void *mutex)
+_aaxMutexCreate(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
@@ -203,7 +204,7 @@ _aaxMutexDestroy(void *mutex)
 
 #ifdef NDEBUG
 int
-_aaxMutexLockRelease(void *mutex)
+_aaxMutexLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
@@ -251,7 +252,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          }
 #endif
 
-         to.tv_sec = time(NULL) + 2;
+         to.tv_sec = time(NULL) + DEBUG_TIMEOUT;
          to.tv_nsec = 0;
          r = pthread_mutex_timedlock(&m->mutex, &to);
          // r = pthread_mutex_lock(&m->mutex);
@@ -282,7 +283,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 
 #ifdef NDEBUG
 int
-_aaxMutexUnLockRelease(void *mutex)
+_aaxMutexUnLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
@@ -433,16 +434,21 @@ int
 _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
 {
    _aaxThread *thread = t;
+   int rv = -1;
+
    thread->callback_fn = handler;
    thread->callback_data = arg;
-printf("_aaxThreadStart\n");
    thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
+   if (thread->handle != INVALID_HANDLE_VALUE)
+   {
+      __threads_enabled = 1;
+     rv = 0;
+   }
 #if 0
    // SetPriotityClass();
    // SetThreadPriority();
 #endif
-printf("thread->handle: %x\n", thread->handle);
-   return thread->handle ? 0: -1;
+   return rv;
 }
 
 int
@@ -477,7 +483,7 @@ _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
 }
 #else
 void *
-_aaxMutexCreateRelease(void *mutex)
+_aaxMutexCreate(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
@@ -521,7 +527,20 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       }
 
       if (m->mutex) {
-         r = WaitForSingleObject(m->mutex, INFINITE);
+         r = WaitForSingleObject(m->mutex, DEBUG_TIMEOUT);
+         switch (r)
+         {
+         case WAIT_OBJECT_0:
+            break;
+         case WAIT_TIMEOUT:
+            printf("mutex timed out in %s line %i\n", file, line);
+            r = ETIMEDOUT;
+            break;
+         case WAIT_ABANDONED:
+         case WAIT_FAILED:
+         default:
+            printf("mutex lock error %i in %s line %i\n", r, file, line);
+         }
       }
    }
    return r;
@@ -531,18 +550,18 @@ int
 _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-   int r = 0;
+   int r = EINVAL;
 
    if (__threads_enabled && m)
    {
       ReleaseMutex(m->mutex);
-      r = 1;
+      r = 0;
    }
    return r;
 }
 #else
 int
-_aaxMutexLockRelease(void *mutex)
+_aaxMutexLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
@@ -555,21 +574,34 @@ _aaxMutexLockRelease(void *mutex)
 
       if (m->mutex) {
          r = WaitForSingleObject(m->mutex, INFINITE);
+         switch (r)
+         {
+         case WAIT_OBJECT_0:
+            break;
+         case WAIT_TIMEOUT:
+            printf("mutex timed out in %s line %i\n", file, line);
+            r = TIMEDOUT;
+            break;
+         case WAIT_ABANDONED:
+         case WAIT_FAILED:
+         dwfault:
+            printf("mutex lock error %i in %s line %i\n", r, file, line);
+         }
       }
    }
    return r;
 }
 
 int
-_aaxMutexUnLockRelease(void *mutex)
+_aaxMutexUnLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
    if (__threads_enabled && m)
    {
-      ReleaseMutex(m->mutex);
-      r = 1;
+      r = ReleaseMutex(m->mutex);
+      r = ~r;
    }
    return r;
 }
@@ -578,7 +610,7 @@ _aaxMutexUnLockRelease(void *mutex)
 void *
 _aaxConditionCreate()
 {
-   void *p = CreateEvent(NULL, TRUE, FALSE, NULL);
+   void *p = CreateEvent(NULL, FALSE, FALSE, NULL);
    return p;
 }
 
@@ -602,19 +634,22 @@ _aaxConditionWait(void *c, void *mutex)
    assert(condition);
    assert(mutex);
    
-printf("_aaxConditionWait\n");
-// TODO: mutex mangling
-   rcode = WaitForSingleObject(m, INFINITE);
+   _aaxMutexUnLock(m);
+   rcode = WaitForSingleObject(m->mutex, INFINITE);
+   _aaxMutexLock(m);
+
    switch (rcode)
    {
-   case WAIT_OBJECT_0:
-      r = 1;
+   case WAIT_OBJECT_0:	/* condiiton is signalled */
+      r = 0;
       break;
-   case WAIT_TIMEOUT:
-      r = -1;
+   case WAIT_TIMEOUT:	/* time-out ocurred */
+      r = ETIMEDOUT;
+      break;
+   default:
+      r = EINVAL;
       break;
    }
-printf("return from _aaxConditionWait: %i\n", r);
 
    return r;
 }
@@ -623,31 +658,41 @@ int
 _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-   struct timeval now;
    _aaxCondition *condition = c;
-   DWORD rcode, timeout;
+   DWORD rcode, tnow_ms, treq_ms;
+   struct timeval now;
    int r = 0;
 
    assert(condition);
    assert(mutex);
    assert(ts);
 
-printf("_aaxConditionWaitTimed\n");
-// TODO: mutex mangling
+   treq_ms = 1000*(DWORD)ts->tv_sec + ts->tv_nsec/1000000;
+
    gettimeofday(&now, 0);
-   timeout = (DWORD)((now.tv_sec - ts->tv_sec)*1000L);
-   timeout += (DWORD)((now.tv_usec*1000 - ts->tv_nsec)/1000000L);
-   rcode = WaitForSingleObject(m, timeout);
-   switch (rcode)
+   tnow_ms = 1000*now.tv_sec + now.tv_usec/1000;
+
+   if (treq_ms > tnow_ms)
    {
-   case WAIT_OBJECT_0:
-      r = 1;
-      break;
-   case WAIT_TIMEOUT:
-      r = -1;
-      break;
+      _aaxMutexUnLock(m);
+      rcode = WaitForSingleObject(c, treq_ms - tnow_ms);
+      _aaxMutexLock(m);
+
+      switch (rcode)
+      {
+      case WAIT_OBJECT_0:	/* condiiton is signalled */
+         r = 0;
+         break;
+      case WAIT_TIMEOUT:	/* time-out ocurred */
+         r = ETIMEDOUT;
+         break;
+      default:
+          r = EINVAL;
+         break;
+      }
+   } else {		/* timeout */
+      r = ETIMEDOUT;
    }
-printf("return from _aaxConditionWaitTimed: %i\n", r);
    return r;
 }
 

@@ -66,12 +66,9 @@ void *_aaxMutexCreateDebug(void *, const char *, const char *);
 int _aaxMutexLockDebug(void *, char *, int);
 int _aaxMutexUnLockDebug(void *, char *, int);
 #else
-#define _aaxMutexCreate(a) _aaxMutexCreateRelease(a, __FILE__, __FUNCTION__);
-#define _aaxMutexLock(a) _aaxMutexLockRelease(a, __FILE__, __LINE__)
-#define _aaxMutexUnLock(a) _aaxMutexUnLockRelease(a, __FILE__, __LINE__)
-void *_aaxMutexCreateRelease(void *);
-int _aaxMutexLockRelease(void *);
-int _aaxMutexUnLockRelease(void *);
+void *_aaxMutexCreate(void *);
+int _aaxMutexLock(void *);
+int _aaxMutexUnLock(void *);
 #endif
 void _aaxMutexDestroy(void *);
 
