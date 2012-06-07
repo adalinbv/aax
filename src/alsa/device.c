@@ -46,6 +46,7 @@
 #define DEFAULT_DEVNAME_OLD	"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
                                      ","AAX_MKSTR(DEFAULT_IFNUM)
 #define DEFAULT_DEVNAME		"default"
+#define DEFAULT_HWDEVNAME	"hw:0,0"
 #define DEFAULT_RENDERER	"ALSA"
 
 static _aaxDriverDetect _aaxALSADriverDetect;
@@ -54,10 +55,7 @@ static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
 static _aaxDriverConnect _aaxALSADriverConnect;
 static _aaxDriverDisconnect _aaxALSADriverDisconnect;
 static _aaxDriverSetup _aaxALSADriverSetup;
-static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
-static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
-static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
-static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
+static _aaxDriverCallback _aaxALSADriverPlayback;
 static _aaxDriverState _aaxALSADriverPause;
 static _aaxDriverState _aaxALSADriverResume;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
@@ -68,7 +66,7 @@ static _aaxDriverState _aaxALSADriverAvailable;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 _aaxDriverBackend _aaxALSADriverBackend =
-{
+{		/* Must be static between multiple instances! */
    1.0,
    AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
@@ -94,7 +92,7 @@ _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverState *)&_aaxALSADriverPause,
    (_aaxDriverState *)&_aaxALSADriverResume,
    (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
-   (_aaxDriverCallback *)&_aaxALSADriverPlayback_mmap_ni,
+   (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
@@ -113,6 +111,7 @@ typedef struct
     char *devname;
     int devnum;
 
+    _aaxDriverCallback *play;
     snd_pcm_t *id;
 
     float latency;
@@ -239,6 +238,10 @@ static unsigned int get_devices_avail(int);
 static int detect_devnum(const char *, int);
 static char *detect_devname(const char*, int, unsigned int, int, char);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
+static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
+static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
+static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
+static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
@@ -383,6 +386,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
+      handle->play = _aaxALSADriverPlayback_rw_il;
       handle->sse_level = _aaxGetSSELevel();
       handle->name = _aax_strdup((char*)renderer);
       handle->pause = 0;
@@ -846,21 +850,14 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
       handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
       handle->can_pause &= psnd_pcm_hw_params_can_resume(hwparams);
 
-      if (handle->use_mmap && !handle->interleaved)
-      {
-         _aaxALSADriverBackend.play = _aaxALSADriverPlayback_mmap_ni;
-      }
-      else if (handle->use_mmap && handle->interleaved)
-      {
-         _aaxALSADriverBackend.play = _aaxALSADriverPlayback_mmap_il;
-      }
-      else if (!handle->use_mmap && !handle->interleaved)
-      {
-         _aaxALSADriverBackend.play = _aaxALSADriverPlayback_rw_ni;
-      }
-      else
-      {
-         _aaxALSADriverBackend.play = _aaxALSADriverPlayback_rw_il;
+      if (handle->use_mmap && !handle->interleaved) {
+         handle->play = _aaxALSADriverPlayback_mmap_ni;
+      } else if (handle->use_mmap && handle->interleaved) {
+         handle->play = _aaxALSADriverPlayback_mmap_il;
+      } else if (!handle->use_mmap && !handle->interleaved) {
+         handle->play = _aaxALSADriverPlayback_rw_ni;
+      } else {
+         handle->play = _aaxALSADriverPlayback_rw_il;
       }
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
       if (err == -EBUSY) {
@@ -2009,6 +2006,13 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *dst, void *src, float pitch, 
 
 
 static int
+_aaxALSADriverPlayback(const void *id, void *dst, void *src, float pitch, float volume)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle->play(id, dst, src, pitch, volume);
+}
+
+static int
 _aaxALSADriverPlayback_rw_il(const void *id, void *dst, void *src, float pitch, float volume
 )
 {
@@ -2140,7 +2144,7 @@ _aaxALSADriverThread(void* config)
    state = AAX_SUSPENDED;
 
    _aaxMutexLock(handle->thread.mutex);
-   stdby_time = 2*(int)(delay_sec*1e3);
+   stdby_time = 2*(int)(delay_sec*1000);
    while TEST_FOR_TRUE(handle->thread.started)
    {
       _driver_t *be_handle = (_driver_t *)handle->backend.handle;
