@@ -59,7 +59,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
 
    pthread_attr_init(&attr);
 #if USE_REALTIME
-   sched_param.sched_priority = sched_get_priority_max(SCHED_RR);
+   sched_param.sched_priority = sched_get_priority_min(SCHED_RR);
 #else
    sched_param.sched_priority = 0;
 #endif
@@ -444,10 +444,11 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
       __threads_enabled = 1;
      rv = 0;
    }
-#if 0
-   // SetPriotityClass();
-   // SetThreadPriority();
+
+#if USE_REALTIME
+   SetThreadPriority(thread->handle, THREAD_PRIORITY_TIME_CRITICAL);
 #endif
+
    return rv;
 }
 
@@ -455,12 +456,27 @@ int
 _aaxThreadJoin(void *t)
 {
    _aaxThread *thread = t;
-   int ret;
+   int ret = 0;
+   DWORD r;
 
    assert(t);
 
    __threads_enabled = 0;
-   ret = WaitForSingleObject(thread->handle, INFINITE);
+   r = WaitForSingleObject(thread->handle, INFINITE);
+   switch (r)
+   {
+   case WAIT_OBJECT_0:
+      break;
+   case WAIT_TIMEOUT:
+      r = ETIMEDOUT;
+      break;
+   case WAIT_ABANDONED:
+      ret = EINVAL;
+      break;
+   case WAIT_FAILED:
+   default:
+      ret = ESRCH;
+   }
 
    return ret;
 }
