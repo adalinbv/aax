@@ -184,7 +184,11 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
 
       if (s && (*s == '~'))
       {
+#if defined(WIN32)
+         char *home = getenv("HOMEPATH");
+#else
          char *home = getenv("HOME");
+#endif
          if (home)
          {
             int hlen = strlen(home);
