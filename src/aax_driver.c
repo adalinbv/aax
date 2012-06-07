@@ -835,7 +835,11 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
       }
 
       /* read the user configurstion file */
+#if defined(WIN32)
+      ptr = getenv("HOMEPATH");
+#else
       ptr = getenv("HOME");
+#endif
       if (ptr)
       {
          char *path = malloc(strlen(ptr) + strlen(USER_CONFIG_FILE)+1);
@@ -980,6 +984,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 
             handle->valid = AAX_TRUE;
          }
+printf("handle->info->refresh_rate: %f\n", handle->info->refresh_rate);
 
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
