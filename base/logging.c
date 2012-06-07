@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2005-2011 by Erik Hofman.
- *a Copyright (C) 2007-2011 by Adalin B.V.
+ * Copyright (C) 2007-2011 by Adalin B.V.
  *
  * This file is part of OpenAL-AeonWave.
  *
@@ -26,6 +26,13 @@
 #include <assert.h>
 #if HAVE_SYSLOG_H
 # include <strings.h>	/* for strcasecmp */
+#endif
+#if WIN32
+	/* See: http://support.microsoft.com/kb/815661 */
+# include <tchar.h>
+# include <stdafx.h>
+# using <system.dll>
+# using <mscorlib.dll>
 #endif
 
 void (*_aax_free)(void*) = free;
