@@ -984,7 +984,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 
             handle->valid = AAX_TRUE;
          }
-printf("handle->info->refresh_rate: %f\n", handle->info->refresh_rate);
 
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
