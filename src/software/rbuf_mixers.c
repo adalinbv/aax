@@ -49,10 +49,6 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   if (pitch_norm < 0.01f) {
-      return NULL;
-   }
-
    rbs = src->sample;
    rbd = dest->sample;
    track_ptr = (int32_t**)rbd->scratch;
@@ -60,6 +56,18 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
    assert(rbd->bytes_sample == 4);
    assert(rbs->no_tracks >= 1);
    assert(rbd->no_tracks >= 1);
+
+   if (pitch_norm < 0.01f)
+   {
+      src->curr_pos_sec += rbd->duration_sec;
+      if (src->curr_pos_sec > rbs->duration_sec)
+      {
+         src->curr_pos_sec = rbs->duration_sec;
+         src->playing = 0;
+         src->stopped = 1;
+      }
+      return NULL;
+   }
 
    src_pos_sec = src->curr_pos_sec;
    src_loops = (src->looping && !src->streaming);
