@@ -173,8 +173,7 @@ aaxFilterDestroy(aaxFilter f)
 AAX_API aaxFilter AAX_APIENTRY
 aaxFilterSetSlot(aaxFilter f, unsigned slot, int ptype, float p1, float p2, float p3, float p4)
 {
-   aaxVec4f v;
-   v[0] = p1, v[1] = p2; v[2] = p3, v[3] = p4;
+   aaxVec4f v = { p1, p2, p3, p4 };
    return aaxFilterSetSlotParams(f, slot, ptype, v);
 }
 
