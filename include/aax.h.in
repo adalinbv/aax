@@ -46,23 +46,12 @@ extern "C" {
 
 #ifdef _MSC_VER
 # include <float.h>
-// # pragma warning( push )
 # pragma warning( disable : 4056 )
 # define AAX_FPINFINITE		(FLT_MAX+FLT_MAX)
 # define AAX_FPNONE		(AAX_FPINFINITE-AAX_FPINFINITE)
-// # pragma warning( pop ) 
 #else
-# include <math.h>
-# ifdef FP_NAN
-#  define AAX_FPNONE		FP_NAN
-# else
-#  define AAX_FPNONE		(0.0f/0.0f)
-#endif
-# ifdef FP_INFINITE
-#  define AAX_FPINFINITE	FP_INFINITE
-# else
-#  define AAX_FPINFINITE	(1.0f/0.0f)
-#endif
+# define AAX_FPNONE		(0.0f/0.0f)
+# define AAX_FPINFINITE		(1.0f/0.0f)
 #endif
 #define AAX_INVERSE		0x10000000
 
