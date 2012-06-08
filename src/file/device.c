@@ -733,10 +733,10 @@ _aaxFileDriverUpdateHeader(_driver_t *handle)
  * @param format audio format
  */
 void
-_aaxFileDriverWriteFile(const char *file, enum aaxProcessingType type,
-                            void *buffer, unsigned int no_samples,
-                            unsigned int freq, char no_tracks,
-                            enum aaxFormat format)
+_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
+                          void *buffer, unsigned int no_samples,
+                          unsigned int freq, char no_tracks,
+                          enum aaxFormat format)
 {
    uint32_t waveHeader[WAVE_EXT_HEADER_SIZE];
    unsigned int size;
