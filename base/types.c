@@ -54,11 +54,11 @@ int gettimeofday(struct timeval* p, void* tz /* IGNORED */)
 }
 
 #else
-int msecSleep(unsigned int tms)
+int msecSleep(unsigned int dt_ms)
 {
    static struct timespec s;
-   s.tv_sec = (tms/1000);
-   s.tv_nsec = (tms-s.tv_sec*1000);
+   s.tv_sec = (dt_ms/1000);
+   s.tv_nsec = (dt_ms-s.tv_sec*1000)*1000000;
    return nanosleep(&s, 0);
 }
 #endif
