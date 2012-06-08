@@ -475,7 +475,7 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
             bit <<= 1;
          }
 #if 0
-_aaxSoftwareDriverWriteFile("/tmp/wave.wav", AAX_OVERWRITE, *data, no_samples,
+_aaxFileDriverWrite("/tmp/wave.wav", AAX_OVERWRITE, *data, no_samples,
                             _oalRingBufferGetFrequency(rb) , tracks,
                             aaxBufferGetSetup(buffer, AAX_FORMAT));
 #endif
@@ -654,8 +654,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       char no_tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
       void **data = aaxBufferGetData(buffer);
 
-      _aaxSoftwareDriverWriteFile(file, type, *data,
-                                  no_samples, freq, no_tracks, format);
+      _aaxFileDriverWrite(file, type, *data, no_samples,freq,no_tracks,format);
       free(data);
 
       rv = AAX_TRUE;

@@ -127,11 +127,11 @@ typedef struct
 
 /* ---  software device helper functions --- */
 
-extern _aaxDriverPostProcess _aaxSoftwareDriverPostProcess;
-extern _aaxDriverPrepare _aaxSoftwareDriverApplyEffects;
-extern _aaxDriver3dMixerCB _aaxSoftwareDriver3dMixer;
-extern _aaxDriver2dMixerCB _aaxSoftwareDriverStereoMixer;
-extern _aaxDriverPrepare3d _aaxSoftwareDriver3dPrepare;
+extern _aaxDriverPostProcess _aaxFileDriverPostProcess;
+extern _aaxDriverPrepare _aaxFileDriverApplyEffects;
+extern _aaxDriver2dMixerCB _aaxFileDriverStereoMixer;
+extern _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
+extern _aaxDriverPrepare3d _aaxFileDriver3dPrepare;
 extern _aaxDriverThread _aaxSoftwareMixerThread;
 
 void _aaxNoneDriverProcessFrame(void*);

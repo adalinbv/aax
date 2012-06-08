@@ -84,9 +84,9 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxMMDevDriverCapture,
    (_aaxDriverCallback *)&_aaxMMDevDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
+   (_aaxDriver2dMixerCB *)&_aaxSoftwareStereoMixer,
+   (_aaxDriver3dMixerCB *)&_aaxSoftware3dMixer,
+   (_aaxDriverPrepare3d *)&_aaxSoftware3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 

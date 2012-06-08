@@ -33,7 +33,7 @@ void  _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
 
 void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
-void _aaxSoftwareDriverWriteFile(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
+void _aaxFileDriverWrite(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

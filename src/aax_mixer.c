@@ -1030,14 +1030,20 @@ _aaxMixerInit(_handle_t *handle)
          /* don't alter the refresh rate when registered */
          if (!handle->handle)
          {
+#if 0
+            float iv = freq*ch*(_oalRingBufferFormat[fmt].bits/8);
+            info->refresh_rate = iv/bufsz;
+            
+#else
             float iv = info->refresh_rate;
             iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
             info->refresh_rate = iv;
+#endif
          }
 #if 0
          else
          {
-            float no_samples = bufsz / (ch *_oalRingBufferFormatsBPS[fmt]);
+            float no_samples = (float)bufsz / (ch*(_oalRingBufferFormat[fmt].bits/8));
             info->refresh_rate = freq / no_samples;
          }
 #endif

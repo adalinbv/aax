@@ -40,20 +40,20 @@
 # define O_BINARY	0
 #endif
 
-static _aaxDriverDetect _aaxSoftwareDriverDetect;
-static _aaxDriverGetDevices _aaxSoftwareDriverGetDevices;
-static _aaxDriverGetInterfaces _aaxSoftwareDriverGetInterfaces;
-static _aaxDriverConnect _aaxSoftwareDriverConnect;
-static _aaxDriverDisconnect _aaxSoftwareDriverDisconnect;
-static _aaxDriverSetup _aaxSoftwareDriverSetup;
-static _aaxDriverState _aaxSoftwareDriverAvailable;
-static _aaxDriverState _aaxSoftwareDriverNotAvailable;
-static _aaxDriverCallback _aaxSoftwareDriverPlayback;
-static _aaxDriverCaptureCallback _aaxSoftwareDriverCapture;
-static _aaxDriverGetName _aaxSoftwareDriverGetName;
+static _aaxDriverDetect _aaxFileDriverDetect;
+static _aaxDriverGetDevices _aaxFileDriverGetDevices;
+static _aaxDriverGetInterfaces _aaxFileDriverGetInterfaces;
+static _aaxDriverConnect _aaxFileDriverConnect;
+static _aaxDriverDisconnect _aaxFileDriverDisconnect;
+static _aaxDriverSetup _aaxFileDriverSetup;
+static _aaxDriverState _aaxFileDriverAvailable;
+static _aaxDriverState _aaxFileDriverNotAvailable;
+static _aaxDriverCallback _aaxFileDriverPlayback;
+static _aaxDriverCaptureCallback _aaxFileDriverCapture;
+static _aaxDriverGetName _aaxFileDriverGetName;
 
 char _wave_default_renderer[100] = DEFAULT_RENDERER;
-_aaxDriverBackend _aaxSoftwareDriverBackend =
+const _aaxDriverBackend _aaxFileDriverBackend =
 {
    1.0,
    AAX_PCM16S,
@@ -67,30 +67,30 @@ _aaxDriverBackend _aaxSoftwareDriverBackend =
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
-   (_aaxDriverDetect *)&_aaxSoftwareDriverDetect,
-   (_aaxDriverGetDevices *)&_aaxSoftwareDriverGetDevices,
-   (_aaxDriverGetInterfaces *)&_aaxSoftwareDriverGetInterfaces,
+   (_aaxDriverDetect *)&_aaxFileDriverDetect,
+   (_aaxDriverGetDevices *)&_aaxFileDriverGetDevices,
+   (_aaxDriverGetInterfaces *)&_aaxFileDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxSoftwareDriverGetName,
+   (_aaxDriverGetName *)&_aaxFileDriverGetName,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
-   (_aaxDriverConnect *)&_aaxSoftwareDriverConnect,
-   (_aaxDriverDisconnect *)&_aaxSoftwareDriverDisconnect,
-   (_aaxDriverSetup *)&_aaxSoftwareDriverSetup,
-   (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
-   (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
-   (_aaxDriverCaptureCallback *)&_aaxSoftwareDriverCapture,
-   (_aaxDriverCallback *)&_aaxSoftwareDriverPlayback,
+   (_aaxDriverConnect *)&_aaxFileDriverConnect,
+   (_aaxDriverDisconnect *)&_aaxFileDriverDisconnect,
+   (_aaxDriverSetup *)&_aaxFileDriverSetup,
+   (_aaxDriverState *)&_aaxFileDriverAvailable,
+   (_aaxDriverState *)&_aaxFileDriverAvailable,
+   (_aaxDriverCaptureCallback *)&_aaxFileDriverCapture,
+   (_aaxDriverCallback *)&_aaxFileDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
+   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxSoftwareDriverAvailable,
-   (_aaxDriverState *)&_aaxSoftwareDriverNotAvailable,
-   (_aaxDriverState *)&_aaxSoftwareDriverAvailable
+   (_aaxDriverState *)&_aaxFileDriverAvailable,
+   (_aaxDriverState *)&_aaxFileDriverNotAvailable,
+   (_aaxDriverState *)&_aaxFileDriverAvailable
 };
 
 typedef struct {
@@ -130,8 +130,8 @@ typedef struct
 } _driver_t;
 
 static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
-static int _aaxSoftwareDriverUpdateHeader(_driver_t *);
-static int _aaxSoftwareDriverReadHeader(_driver_t *);
+static int _aaxFileDriverUpdateHeader(_driver_t *);
+static int _aaxFileDriverReadHeader(_driver_t *);
 
 static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
 const char *default_renderer = "File: /tmp/AWaveOutput.wav";
@@ -140,7 +140,7 @@ char *strdup(const char *);
 #endif
 
 static int
-_aaxSoftwareDriverDetect(int mode)
+_aaxFileDriverDetect(int mode)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -148,7 +148,7 @@ _aaxSoftwareDriverDetect(int mode)
 }
 
 static void *
-_aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
+_aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
 {
    const int _mode[] = {O_WRONLY|O_CREAT|O_TRUNC|O_BINARY, O_RDONLY|O_BINARY};
    _driver_t *handle = (_driver_t *)id;
@@ -287,7 +287,7 @@ _aaxSoftwareDriverConnect(const void *id, void *xid, const char *device, enum aa
 }
 
 static int
-_aaxSoftwareDriverDisconnect(void *id)
+_aaxFileDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
@@ -299,7 +299,7 @@ _aaxSoftwareDriverDisconnect(void *id)
          free(handle->name);
       }
       if (!handle->capture) {
-         ret = _aaxSoftwareDriverUpdateHeader(handle);
+         ret = _aaxFileDriverUpdateHeader(handle);
       }
       close(handle->fd);
       free(handle);
@@ -309,7 +309,7 @@ _aaxSoftwareDriverDisconnect(void *id)
 }
 
 static int
-_aaxSoftwareDriverSetup(const void *id, size_t *bufsize, int fmt,
+_aaxFileDriverSetup(const void *id, size_t *bufsize, int fmt,
                         unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -350,7 +350,7 @@ _aaxSoftwareDriverSetup(const void *id, size_t *bufsize, int fmt,
          }
       }
 
-      _aaxSoftwareDriverUpdateHeader(handle);
+      _aaxFileDriverUpdateHeader(handle);
       rv = write(handle->fd, handle->info.header, WAVE_HEADER_SIZE*4);
    }
    else
@@ -359,26 +359,26 @@ _aaxSoftwareDriverSetup(const void *id, size_t *bufsize, int fmt,
        * read the file information and set the file-pointer to
        * the start of the data section
        */
-      rv = _aaxSoftwareDriverReadHeader(handle);
+      rv = _aaxFileDriverReadHeader(handle);
    }
 
    return (rv != -1) ? AAX_TRUE : AAX_FALSE;
 }
 
 static int
-_aaxSoftwareDriverAvailable(const void *id)
+_aaxFileDriverAvailable(const void *id)
 {
    return AAX_TRUE;
 }
 
 static int
-_aaxSoftwareDriverNotAvailable(const void *id)
+_aaxFileDriverNotAvailable(const void *id)
 {  
    return AAX_FALSE; 
 }
 
 static int
-_aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
@@ -449,7 +449,7 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
    handle->update_dt += _oalRingBufferGetDuration(rb);
    if (handle->update_dt >= 1.0f)
    {
-      _aaxSoftwareDriverUpdateHeader(handle);
+      _aaxFileDriverUpdateHeader(handle);
       handle->update_dt -= 1.0f;
    }
 
@@ -457,7 +457,7 @@ _aaxSoftwareDriverPlayback(const void *id, void *d, void *s, float pitch, float 
 }
 
 static int
-_aaxSoftwareDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
+_aaxFileDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t buflen, frame_size;
@@ -498,7 +498,7 @@ _aaxSoftwareDriverCapture(const void *id, void **data, size_t *frames, void *scr
 }
 
 int
-_aaxSoftwareDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+_aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
 {
    float gain;
    int ret;
@@ -507,14 +507,14 @@ _aaxSoftwareDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
    assert(d);
    assert(p);
 
-   gain = _aaxSoftwareDriverBackend.gain;
+   gain = _aaxFileDriverBackend.gain;
    ret = _oalRingBufferMixMono16(d, s, p, m, gain, n, ctr);
 
    return ret;
 }
 
 void
-_aaxSoftwareDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void* p2d, void* src)
+_aaxFileDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void* p2d, void* src)
 {
    assert(sp3d);
    assert(info);
@@ -525,21 +525,21 @@ _aaxSoftwareDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void
 }
 
 int
-_aaxSoftwareDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr)
+_aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr)
 {
    int ret;
 
    assert(s);
    assert(d);
 
-   volume *= _aaxSoftwareDriverBackend.gain;
+   volume *= _aaxFileDriverBackend.gain;
    ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr);
 
    return ret;
 }
 
 char *
-_aaxSoftwareDriverGetName(const void *id, int playback)
+_aaxFileDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = "default";
@@ -556,7 +556,7 @@ _aaxSoftwareDriverGetName(const void *id, int playback)
 }
 
 char *
-_aaxSoftwareDriverGetDevices(const void *id, int mode)
+_aaxFileDriverGetDevices(const void *id, int mode)
 {
    static const char *rd[2] = {
     "File\0\0",
@@ -566,7 +566,7 @@ _aaxSoftwareDriverGetDevices(const void *id, int mode)
 }
 
 static char *
-_aaxSoftwareDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    static const char *rd[2] = {
     "/tmp/"AAX_NAME_STR"In.wav\0\0",
@@ -601,7 +601,7 @@ static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 };
 
 int
-_aaxSoftwareDriverReadHeader(_driver_t *handle)
+_aaxFileDriverReadHeader(_driver_t *handle)
 {
    uint32_t header[WAVE_EXT_HEADER_SIZE];
    size_t buflen;
@@ -661,7 +661,7 @@ _aaxSoftwareDriverReadHeader(_driver_t *handle)
 }
 
 static int
-_aaxSoftwareDriverUpdateHeader(_driver_t *handle)
+_aaxFileDriverUpdateHeader(_driver_t *handle)
 {
    int res = 0;
 
@@ -733,7 +733,7 @@ _aaxSoftwareDriverUpdateHeader(_driver_t *handle)
  * @param format audio format
  */
 void
-_aaxSoftwareDriverWriteFile(const char *file, enum aaxProcessingType type,
+_aaxFileDriverWriteFile(const char *file, enum aaxProcessingType type,
                             void *buffer, unsigned int no_samples,
                             unsigned int freq, char no_tracks,
                             enum aaxFormat format)

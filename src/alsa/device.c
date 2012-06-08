@@ -65,8 +65,8 @@ static _aaxDriverState _aaxALSADriverIsAvailable;
 static _aaxDriverState _aaxALSADriverAvailable;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
-_aaxDriverBackend _aaxALSADriverBackend =
-{		/* Must be static between multiple instances! */
+const _aaxDriverBackend _aaxALSADriverBackend =
+{
    1.0,
    AAX_PCM16S,
    DEFAULT_OUTPUT_RATE,
@@ -94,9 +94,9 @@ _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
    (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
+   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 

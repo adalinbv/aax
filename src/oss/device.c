@@ -74,7 +74,7 @@ static _aaxDriverState _aaxOSSDriverIsAvailable;
 static _aaxDriverState _aaxOSSDriverAvailable;
 
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
-_aaxDriverBackend _aaxOSSDriverBackend =
+const _aaxDriverBackend _aaxOSSDriverBackend =
 {
    1.0,
    AAX_PCM16S,
@@ -103,9 +103,9 @@ _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxOSSDriverCapture,
    (_aaxDriverCallback *)&_aaxOSSDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
+   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 

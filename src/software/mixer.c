@@ -26,7 +26,6 @@
 #include <base/threads.h>
 #include <base/types.h>		/* for msecSleep */
 
-#include "device.h"
 #include "audio.h"
 
 

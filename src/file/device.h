@@ -20,9 +20,9 @@ extern "C" {
 
 extern const _aaxDriverBackend _aaxNoneDriverBackend;
 extern const _aaxDriverBackend _aaxLoopbackDriverBackend;
-extern _aaxDriverBackend _aaxSoftwareDriverBackend;
-extern const _intBuffers _aaxSoftwareDriverExtensionString;
-extern const _intBuffers _aaxSoftwareDriverEnumValues;
+extern const _aaxDriverBackend _aaxFileDriverBackend;
+extern const _intBuffers _aaxFileDriverExtensionString;
+extern const _intBuffers _aaxFileDriverEnumValues;
 
 #if defined(__cplusplus)
 }  /* extern "C" */

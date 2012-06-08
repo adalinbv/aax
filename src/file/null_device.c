@@ -24,9 +24,7 @@
 #include <base/types.h>
 
 #include <api.h>
-
-#include "arch.h"
-#include "audio.h"
+#include <arch.h>
 
 #define NONE_RENDERER		"None"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
@@ -123,9 +121,9 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
    (_aaxDriverCaptureCallback *)&_aaxLoopbackDriverCapture,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
+   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 

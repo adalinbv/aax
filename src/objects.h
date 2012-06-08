@@ -26,7 +26,7 @@ extern "C" {
    int16_t q, *data = malloc((bufsz)*2); \
    for(q=0; q<(bufsz); q++) *((dptr)+q) *= 0.5; \
    _batch_cvt16_24(data, (dptr), (bufsz)); \
-   _aaxSoftwareDriverWriteFile("/tmp/resample.wav", AAX_OVERWRITE, data, (bufsz), 48000, 1, AAX_PCM16S); \
+   _aaxFileDriverWrite("/tmp/resample.wav", AAX_OVERWRITE, data, (bufsz), 48000, 1, AAX_PCM16S); \
    free(data); \
    exit(-1); \
  } while (0);

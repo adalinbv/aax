@@ -22,7 +22,7 @@ extern "C" {
 
 #include <driver.h>
 
-extern _aaxDriverBackend _aaxALSADriverBackend;
+extern const _aaxDriverBackend _aaxALSADriverBackend;
 
 #if defined(__cplusplus)
 }  /* extern "C" */

@@ -27,12 +27,12 @@
 #include <devices.h>
 #include <ringbuffer.h>
 #include <base/logging.h>
-#include <software/device.h>
+#include <file/device.h>
 #include <dmedia/device.h>
 #include <alsa/device.h>
 #include <oss/device.h>
 #ifdef HAVE_WINDOWS_H
-# include <mmdevapi/device.h>
+# include <windows/mmdevice.h>
 #endif
 
 char is_bigendian()
@@ -582,7 +582,7 @@ _aaxDriverBackendClearConfigSettings(_aaxConfig *config)
 _intBufferData _aaxBackends[_AAX_MAX_BACKENDS] =
 {
    {0, 1, (void *)&_aaxNoneDriverBackend},
-   {0, 1, (void *)&_aaxSoftwareDriverBackend},
+   {0, 1, (void *)&_aaxFileDriverBackend},
    {0, 1, (void *)&_aaxLoopbackDriverBackend},
    {0, 1, (void *)&_aaxOSSDriverBackend},
    {0, 1, (void *)&_aaxALSADriverBackend},

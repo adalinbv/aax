@@ -254,20 +254,19 @@ SET( AEONWAVE_OBJS
      src/aax_scenery.c
      src/aax_sensor.c
      src/aax_support.c
-     src/aax_waveforms.c
      src/devices.c
      src/objects.c
      src/alsa/device.c
      src/dmedia/device.c
      src/oss/device.c
+     src/file/device.c
+     src/file/null_device.c
      src/software/arch.c
      src/software/arch_cpu.c
      src/software/arch_neon.c
      src/software/arch_sse2.c
      src/software/arch_sse.c
-     src/software/device.c
      src/software/mixer.c
-     src/software/null_device.c
      src/software/rbuf_codecs.c
      src/software/rbuf_codec_tables.c
      src/software/rbuf_effects.c
@@ -275,12 +274,13 @@ SET( AEONWAVE_OBJS
      src/software/rbuf_mixer_tables.c
      src/software/rbufmix_multi.c
      src/software/rbufmix_single.c
+     src/software/waveforms.c
      src/software/ringbuffer.c
    )
 
 IF(HAVE_WINDOWS_H)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
-     src/mmdevapi/device.c
+     src/windows/mmdevice.c
   )
 ENDIF(HAVE_WINDOWS_H)
 

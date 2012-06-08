@@ -22,8 +22,7 @@ extern "C" {
 
 #include <driver.h>
 
-extern _aaxCodec *_aaxOSSCodecs[];
-extern _aaxDriverBackend _aaxOSSDriverBackend;
+extern const _aaxDriverBackend _aaxOSSDriverBackend;
 
 #if defined(__cplusplus)
 }  /* extern "C" */
