@@ -154,6 +154,7 @@ const char* _mmdev_default_name = DEFAULT_DEVNAME;
 # define pIMMDeviceCollection_Release IMMDeviceCollection_Release
 # define pIMMDeviceCollection_Item IMMDeviceCollection_Item
 # define pIMMDevice_Activate IMMDevice_Activate
+# define pIMMDevice_GetState IMMDevice_GetState
 # define pIMMDevice_Release IMMDevice_Release
 # define pIMMDevice_GetId IMMDevice_GetId
 # define pIAudioClient_Start IAudioClient_Start
@@ -222,7 +223,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
       handle = (_driver_t *)calloc(1, sizeof(_driver_t));
       if (!handle) return 0;
 
-      handle->initializing = 1;
+      handle->initializing = 0;
       handle->paused = AAX_FALSE;
       handle->exclusive = AAX_TRUE;
       handle->sse_level = _aaxGetSSELevel();
@@ -664,12 +665,18 @@ _aaxMMDevDriverAvailable(const void *id)
 static int
 _aaxMMDevDriverIsAvailable(const void *id)
 {
-   _driver_t *handle = (_driver_t *)id;
+    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
 
-   if (handle)
+   if (handle && handle->pDevice)
    {
-      rv = AAX_TRUE;
+      DWORD state;
+      HRESULT hr;
+
+      hr = pIMMDevice_GetState(handle->pDevice, &state);
+      if (SUCCEEDED(hr)) {
+         rv = (state == DEVICE_STATE_ACTIVE) ? AAX_TRUE : AAX_FALSE;
+      }
    }
 
    return rv;
@@ -1234,12 +1241,31 @@ _aaxMMDevDriverThread(void* config)
 
 
    _aaxMutexLock(handle->thread.mutex);
-   while TEST_FOR_TRUE(handle->thread.started)
+   do
    {
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+
+      if (state != handle->state)
+      {
+         if (_IS_PAUSED(handle) ||
+             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+            be->pause(handle->backend.handle);
+         }
+         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
+            be->resume(handle->backend.handle);
+         }
+         state = handle->state;
+      }
+
+      /* do all the mixing */
+      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+
       _aaxMutexUnLock(handle->thread.mutex);
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
-				/* timeout is in miliseconds */
+                                /* timeout is in miliseconds */
          DWORD r = WaitForSingleObjectEx(be_handle->Event, stdby_time, FALSE);
          switch (r)
          {
@@ -1261,26 +1287,8 @@ _aaxMMDevDriverThread(void* config)
          msecSleep(delay_sec*1000);
       }
       _aaxMutexLock(handle->thread.mutex);
-
-      if TEST_FOR_FALSE(handle->thread.started) {
-         break;
-      }
-
-      if (state != handle->state)
-      {
-         if (_IS_PAUSED(handle) ||
-             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
-            be->pause(handle->backend.handle);
-         }
-         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
-            be->resume(handle->backend.handle);
-         }
-         state = handle->state;
-      }
-
-      /* do all the mixing */
-      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
    }
+   while TEST_FOR_TRUE(handle->thread.started);
    _aaxMutexUnLock(handle->thread.mutex);
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
