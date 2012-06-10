@@ -30,9 +30,10 @@
 #if WIN32
 	/* See: http://support.microsoft.com/kb/815661 */
 # include <tchar.h>
-# include <stdafx.h>
-# using <system.dll>
-# using <mscorlib.dll>
+# if defined(__cplusplus)
+#  using <system.dll>
+#  using <mscorlib.dll>
+# endif
 #endif
 
 void (*_aax_free)(void*) = free;
