@@ -242,6 +242,9 @@ SET( AEONWAVE_OBJS
      base/memory.c
      base/threads.c
      base/types.c
+     src/api.c
+     src/devices.c
+     src/objects.c
      src/aax_audioframe.c
      src/aax_buffer.c
      src/aax_driver.c
@@ -254,8 +257,6 @@ SET( AEONWAVE_OBJS
      src/aax_scenery.c
      src/aax_sensor.c
      src/aax_support.c
-     src/devices.c
-     src/objects.c
      src/alsa/device.c
      src/dmedia/device.c
      src/oss/device.c
