@@ -70,7 +70,7 @@ static _aaxDriverState _aaxOSSDriverResume;
 static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
 static _aaxDriverCallback _aaxOSSDriverPlayback;
 static _aaxDriverGetName _aaxOSSDriverGetName;
-static _aaxDriverState _aaxOSSDriverIsAvailable;
+static _aaxDriverState _aaxOSSDriverIsReachable;
 static _aaxDriverState _aaxOSSDriverAvailable;
 
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
@@ -111,7 +111,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 
    (_aaxDriverState *)*_aaxOSSDriverAvailable,
    (_aaxDriverState *)*_aaxOSSDriverAvailable,
-   (_aaxDriverState *)*_aaxOSSDriverIsAvailable
+   (_aaxDriverState *)*_aaxOSSDriverIsReachable
 };
 
 typedef struct
@@ -484,7 +484,7 @@ _aaxOSSDriverAvailable(const void *id)
 }
 
 static int
-_aaxOSSDriverIsAvailable(const void *id)
+_aaxOSSDriverIsReachable(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;

@@ -61,7 +61,7 @@ static _aaxDriverState _aaxALSADriverResume;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverThread _aaxALSADriverThread;
-static _aaxDriverState _aaxALSADriverIsAvailable;
+static _aaxDriverState _aaxALSADriverIsReachable;
 static _aaxDriverState _aaxALSADriverAvailable;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
@@ -102,7 +102,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
 
    (_aaxDriverState *)&_aaxALSADriverAvailable,
    (_aaxDriverState *)&_aaxALSADriverAvailable,
-   (_aaxDriverState *)&_aaxALSADriverIsAvailable
+   (_aaxDriverState *)&_aaxALSADriverIsReachable
 };
 
 typedef struct
@@ -962,7 +962,7 @@ _aaxALSADriverAvailable(const void *id)
 }
 
 static int
-_aaxALSADriverIsAvailable(const void *id)
+_aaxALSADriverIsReachable(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;

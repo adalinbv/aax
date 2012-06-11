@@ -46,7 +46,7 @@ static _aaxDriverCaptureCallback _aaxMMDevDriverCapture;
 static _aaxDriverCallback _aaxMMDevDriverPlayback;
 static _aaxDriverGetName _aaxMMDevDriverGetName;
 static _aaxDriverThread _aaxMMDevDriverThread;
-static _aaxDriverState _aaxMMDevDriverIsAvailable;
+static _aaxDriverState _aaxMMDevDriverIsReachable;
 static _aaxDriverState _aaxMMDevDriverAvailable;
 
 static char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
@@ -93,7 +93,7 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
 
    (_aaxDriverState *)*_aaxMMDevDriverAvailable,
    (_aaxDriverState *)*_aaxMMDevDriverAvailable,
-   (_aaxDriverState *)*_aaxMMDevDriverIsAvailable
+   (_aaxDriverState *)*_aaxMMDevDriverIsReachable
 };
 
 typedef struct
@@ -297,9 +297,12 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
             }
          }
 
+         // TODO: fix non exclusive mode
+#if 0
          if (xmlNodeGetBool(xid, "virtual-mixer")) {
             handle->exclusive = AAX_FALSE;
          }
+#endif
       }
    }
 
@@ -501,7 +504,6 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
    fmt.cbSize = 0;
  
    hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode, &fmt, &wfx);
-#if 0
    if (FAILED(hr) && !handle->exclusive)
    {
       WAVEFORMATEX *wfmt = &fmt;
@@ -511,9 +513,11 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
          wfx = wfmt;
       }
    }
-#endif
+
    if (FAILED(hr))
    {
+      // TODO: fix non exclusive mode
+#if 0
       if (handle->exclusive)
       {
          _AAX_SYSLOG("mmdev; failed in exclusive mode, trying shared");
@@ -528,6 +532,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
             _AAX_SYSLOG("mmdev; unable to get a proper format");
          }
       }
+#endif
       if (FAILED(hr)) {
          return AAX_FALSE;
       }
@@ -644,6 +649,23 @@ _aaxMMDevDriverResume(const void *id)
    int rv = AAX_FALSE;
    if (handle)
    {
+#if USE_EVENT_THREAD
+      if (handle->initializing == 1)
+      {
+         handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
+         if (handle->Event)
+         {
+            HRESULT hr = IAudioClient_SetEventHandle(handle->pAudioClient,
+                                                     handle->Event);
+            if (SUCCEEDED(hr)) {
+               handle->initializing--;
+            }
+         } else {
+            _AAX_SYSLOG("mmdev; unable to set up the event handler");
+         }
+      }
+#endif
+
       if (!handle->initializing)
       {
          HRESULT hr = pIAudioClient_Start(handle->pAudioClient);
@@ -663,7 +685,7 @@ _aaxMMDevDriverAvailable(const void *id)
 }
 
 static int
-_aaxMMDevDriverIsAvailable(const void *id)
+_aaxMMDevDriverIsReachable(const void *id)
 {
     _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -686,6 +708,7 @@ static int
 _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    if ((frames == 0) || (data == 0))
       return AAX_FALSE;
@@ -696,57 +719,63 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
    *frames = 0;
    if (data)
    {
-      UINT32 packet_sz;
+      UINT32 packet_sz = *frames;
       HRESULT hr;
 
-      hr = pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
-                                                  &packet_sz);
-      if (SUCCEEDED(hr))
+      if (handle->initializing)
       {
-         UINT32 padding = 0;
-         BYTE* buf;
-         DWORD fl;
-
-         while (packet_sz != 0)
-         {
-            hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
-                                                &padding, &fl, NULL, NULL);
-            if (SUCCEEDED(hr))
-            {
-               if ((fl & AUDCLNT_BUFFERFLAGS_SILENT) != 0) {
-                  _batch_cvt24_16_intl((int32_t**)data, buf, 0,2, padding);
-               }
-               *frames += padding;
-
-               hr = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
-                                                       padding);
-               if (SUCCEEDED(hr))
-               {
-                  hr=pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
-                                                       &packet_sz);
-                  if (FAILED(hr))
-                  {
-                     _AAX_SYSLOG("mmdev; unable to retrieve packet size");
-                     packet_sz = 0;
-                  }
-               }
-               else {
-                  _AAX_SYSLOG("mmdev; unable to release buffer");
-               }
-            }
-            else {
-               _AAX_SYSLOG("mmdev; failed to get next buffer");
+         if (handle->initializing == 1) {
+            hr = pIAudioClient_Start(handle->pAudioClient);
+            if (FAILED(hr)) {
+               handle->initializing++;
             }
          }
-      }
-      else {
-         _AAX_SYSLOG("mmdev; unable to retrieve packet size");
+         handle->initializing--;
       }
 
-      return AAX_TRUE;
+      if (!handle->exclusive)
+      {
+         hr = pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
+                                                     &packet_sz);
+         if (FAILED(hr)) {
+             packet_sz = 0;
+         }
+      }
+
+      if (packet_sz)
+      {
+         UINT32 avail = 0;
+         DWORD flags;
+         BYTE* buf;
+
+         do
+         {
+            hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
+                                                &avail, &flags, NULL, NULL);
+            if (SUCCEEDED(hr))
+            {
+               if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0) {
+                  _batch_cvt24_16_intl((int32_t**)data, buf, 0, 2, avail);
+               }
+               pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,avail);
+               packet_sz -= avail;
+               *frames += avail;
+            }
+            else {
+               break;
+            }
+         }
+         while (packet_sz);
+
+         if (packet_sz) {
+            _AAX_SYSLOG("mmdev; failed to get next packet");
+         } else {
+            rv = AAX_TRUE;
+         }
+      }
    }
 
-   return AAX_FALSE;
+   return rv;
 }
 
 

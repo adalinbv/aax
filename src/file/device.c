@@ -184,11 +184,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 
       if (s && (*s == '~'))
       {
-#if defined(WIN32)
-         char *home = getenv("HOMEPATH");
-#else
-         char *home = getenv("HOME");
-#endif
+         char *home = userHomeDir();
          if (home)
          {
             int hlen = strlen(home);
