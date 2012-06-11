@@ -12,6 +12,10 @@
 #ifndef AAXDEFS_H
 #define AAXDEFS_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <aax.h>
 
 #define AAX_DEFINITIONS	1
@@ -102,15 +106,7 @@
 	__intGetAll(a,b,c,d,e,Effect,AAX_##EFF##_EFFECT,GRP)
 
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 AAX_API aaxMtx4f aaxIdentityMatrix;
-
-#if defined(__cplusplus)
-}  /* extern "C" */
-#endif
 
 /*
  * Driver
@@ -391,5 +387,9 @@ AAX_API aaxMtx4f aaxIdentityMatrix;
 #define aaxInstrumentSetKeyPitchBend(a, b, c)				\
 	aaxInstrumentKeySetParam((a), (b), AAX_KEY_PITCHBEND, (c))
 
+#endif
+
+#if defined(__cplusplus)
+}  /* extern "C" */
 #endif
 
