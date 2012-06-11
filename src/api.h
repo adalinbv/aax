@@ -301,6 +301,11 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 # define _AAX_SYSLOG(c) __oal_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
 #endif
 
+/* --- Config Files --- */
+const char* userHomeDir();
+char* gloabalConfigFile();
+char* userConfigFile();
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

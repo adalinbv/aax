@@ -21,7 +21,6 @@
 #if HAVE_STRINGS_H
 # include <strings.h>		/* for strcasecmp */
 #endif
-#include <stdlib.h>		/* for getenv */
 #include <assert.h>
 
 #include <xml.h>
@@ -33,9 +32,6 @@
 
 #include "api.h"
 #include "devices.h"
-
-#define USER_CONFIG_FILE	"/.aaxconfig.xml"
-#define SYSTEM_CONFIG_FILE	"/etc/aax/config.xml"
 
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
@@ -812,7 +808,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
    {
       _intBufferData *dptr;
       long tract_now;
-      char *ptr, *name;
+      char *path, *name;
       void *xid, *be;
       float fq, iv;
       int key;
@@ -824,45 +820,42 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
       if (!_tvnow) _tvnow = tract_now;
 
       /* read the system wide configuration file */
-      xid = xmlOpen(SYSTEM_CONFIG_FILE);
-      if (xid != NULL)
+      path = gloabalConfigFile();
+      if (path)
       {
-         int m = (mode > 0) ? 1 : 0;        
-         key = _aaxCheckKeyValidity(xid);
-         _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
-                                             SYSTEM_CONFIG_FILE, m);
-         xmlClose(xid);
+         xid = xmlOpen(path);
+         if (xid != NULL)
+         {
+            int m = (mode > 0) ? 1 : 0;        
+            key = _aaxCheckKeyValidity(xid);
+            _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
+                                                path, m);
+            xmlClose(xid);
+         }
+         free(path);
       }
 
       /* read the user configurstion file */
-#if defined(WIN32)
-      ptr = getenv("HOMEPATH");
-#else
-      ptr = getenv("HOME");
-#endif
-      if (ptr)
+      path = userConfigFile();
+      if (path)
       {
-         char *path = malloc(strlen(ptr) + strlen(USER_CONFIG_FILE)+1);
-         if (path)
+         xid = xmlOpen(path);
+         if (xid)
          {
-            strcpy(path, ptr);
-            strcat(path, USER_CONFIG_FILE);
-            xid = xmlOpen(path);
-            if (xid)
-            {
-               int m = (mode > 0) ? 1 : 0;
-               int res = _aaxCheckKeyValidity(xid);
-               if ((key == AAX_TRUE) && res) key = res;
-               _aaxDriverBackendReadConfigSettings(xid, handle->devname,
-                                                   config, path, m);
-               xmlClose(xid);
-            }
-            free(path);
+            int m = (mode > 0) ? 1 : 0;
+            int res = _aaxCheckKeyValidity(xid);
+            if ((key == AAX_TRUE) && res) key = res;
+            _aaxDriverBackendReadConfigSettings(xid, handle->devname,
+                                                config, path, m);
+            xmlClose(xid);
          }
+         free(path);
       }
 
       if (key)
       {
+         char *ptr;
+
          name = handle->devname[0];
          if (name == _aax_default_devname)
          {

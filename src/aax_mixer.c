@@ -1027,26 +1027,22 @@ _aaxMixerInit(_handle_t *handle)
          info->no_tracks = ch;
          info->frequency = freq;
 
-         /* don't alter the refresh rate when registered */
+         /* only alter the refresh rate when not registered */
          if (!handle->handle)
          {
-#if 0
-            float iv = freq*ch*(_oalRingBufferFormat[fmt].bits/8);
-            info->refresh_rate = iv/bufsz;
-            
-#else
-            float iv = info->refresh_rate;
-            iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
-            info->refresh_rate = iv;
-#endif
+            if (freq != info->frequency)
+            {
+               float iv = info->refresh_rate;
+               iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
+               info->refresh_rate = iv;
+            }
+            else /* bufsz might be altered */
+            {
+               float no_samples = (float)bufsz;
+               no_samples /= (float)(ch*(_oalRingBufferFormat[fmt].bits/8));
+               info->refresh_rate = freq / no_samples;
+            }
          }
-#if 0
-         else
-         {
-            float no_samples = (float)bufsz / (ch*(_oalRingBufferFormat[fmt].bits/8));
-            info->refresh_rate = freq / no_samples;
-         }
-#endif
       }
       else {
          __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");

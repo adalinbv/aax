@@ -148,6 +148,7 @@ void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
 unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
 unsigned int _aaxSoftwareMixerMixSensors(void*, const void *, void*);
 
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
