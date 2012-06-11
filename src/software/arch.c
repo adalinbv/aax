@@ -40,10 +40,13 @@ enum {
     CPUID_FEAT_ECX_SSE3         = 1 << 0, 
     CPUID_FEAT_ECX_SSE4a        = 1 << 6,
     CPUID_FEAT_ECX_SSSE3        = 1 << 9,  
+    CPUID_FEAT_ECX_FMA3		= 1 << 12,
     CPUID_FEAT_ECX_CX16         = 1 << 13, 
+    CPUID_FEAT_ECX_FMA4		= 1 << 16,
     CPUID_FEAT_ECX_SSE4_1       = 1 << 19, 
     CPUID_FEAT_ECX_SSE4_2       = 1 << 20, 
     CPUID_FEAT_ECX_POPCNT       = 1 << 23, 
+    CPUID_FEAT_ECX_AVX		= 1 << 28,
  
     CPUID_FEAT_EDX_CX8          = 1 << 8,  
     CPUID_FEAT_EDX_CMOV         = 1 << 15, 
@@ -61,10 +64,11 @@ enum {
     AAX_SSE,
     AAX_SSE2,
     AAX_SSE3,
-    AAX_SSE4
+    AAX_SSE4,
+    AAX_AVX
 };
 
-#define MAX_SSE_LEVEL		9
+#define MAX_SSE_LEVEL	10	
 #define SSE_LEVEL_SSE4		5
 #define DMAc			0x444d4163 
 #define htuA			0x68747541
@@ -246,10 +250,20 @@ _aaxDetectSSE4()
       if (res) {
          res += check_cpuid_ecx(CPUID_FEAT_ECX_SSE4_2);
       } else {
-         res = check_extcpuid_ecx( CPUID_FEAT_ECX_SSE4a);
+         res = check_extcpuid_ecx(CPUID_FEAT_ECX_SSE4a);
       }
    }
 #endif
+   return res;
+}
+
+char
+_aaxDetectAVX()
+{
+   static char res = (char)-1;
+   if (res == (char)-1) {
+      res = check_cpuid_ecx(CPUID_FEAT_ECX_AVX);
+   }
    return res;
 }
 
@@ -287,6 +301,9 @@ _aaxGetSSELevel()
             sse_level = MAX_SSE_LEVEL-1;
          }
 #endif
+         if (_aaxDetectAVX()) {
+            sse_level = AAX_AVX;
+         }
       }
    }
 
@@ -306,6 +323,7 @@ _aaxGetSIMDSupportString()
       "MMX/SSE4.1",
       "MMX/SSE4.2",
       "MMX/SSE4a",
+      "SSE/AVX",
       "NEON"
    };
    int level = 0;
@@ -372,6 +390,17 @@ _aaxGetSIMDSupportString()
          _aaxBufResampleLinear = _aaxBufResampleLinear_sse2;
          _aaxBufResampleCubic = _aaxBufResampleCubic_sse2;
       }
+
+# if SIZEOF_SIZE_T == 8
+      if (level >= AAX_AVX)
+      {
+         if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+            _batch_fmadd = _batch_fma3_avx;
+         } else if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+            _batch_fmadd = _batch_fma4_avx;
+         }
+      }
+# endif
 #endif
    }
 

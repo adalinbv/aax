@@ -33,6 +33,10 @@ extern "C" {
 #include <pmmintrin.h>
 #endif
 
+#ifdef __AVX__
+#include <immintrin.h>
+#endif
+
 #include "base/types.h"
 #include "base/geometry.h"
 
@@ -125,6 +129,10 @@ void _batch_cvt24_ps_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_pd_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
+
+/* AVX */
+void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
+void _batch_fma4_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
 
 
 /* NEON */

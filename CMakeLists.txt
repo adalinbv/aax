@@ -279,6 +279,12 @@ SET( AEONWAVE_OBJS
      src/software/ringbuffer.c
    )
 
+IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
+     src/software/arch_avx.c
+  )
+ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+
 IF(HAVE_WINDOWS_H)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
      src/windows/mmdevice.c

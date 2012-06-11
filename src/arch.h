@@ -46,6 +46,8 @@ extern char* _aax_strdup(const_char_ptr);
 
 extern _batch_mul_value_proc _batch_mul_value;
 extern _batch_fmadd_proc _batch_fmadd;
+extern _batch_fmadd_proc _batch_fma3;
+extern _batch_fmadd_proc _batch_fma4;
 extern _batch_freqfilter_proc _batch_freqfilter;
 extern _batch_resample_proc _aaxBufResampleCubic;
 extern _batch_resample_proc _aaxBufResampleLinear;
@@ -100,6 +102,8 @@ char _aaxDetectMMX();
 char _aaxDetectSSE();
 char _aaxDetectSSE2();
 char _aaxDetectSSE3();
+char _aaxDetectSSE4();
+char _aaxDetectAVX();
 char _aaxGetSSELevel();
 unsigned int _aaxGetNoCores();
 const char* _aaxGetSIMDSupportString();
