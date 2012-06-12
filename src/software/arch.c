@@ -301,9 +301,13 @@ _aaxGetSSELevel()
             sse_level = MAX_SSE_LEVEL-1;
          }
 #endif
+
+	// TODO: untested!
+#if 0
          if (_aaxDetectAVX()) {
             sse_level = AAX_AVX;
          }
+#endif
       }
    }
 
