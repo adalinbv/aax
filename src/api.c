@@ -22,16 +22,21 @@
 #define CONFIG_FILE             "config.xml"
 
 #if defined(WIN32)
-# define AAX_DIR		"\\aax\\"
 # define SYSTEM_DIR		getenv("PROGRAMFILES")
-# define USER_DRIVE		getenv("HOMEDRIVE")
-# define USER_DIR               getenv("HOMEPATH")
-# define USER_AAX_DIR		AAX_DIR
-#else
-#define AAX_DIR			"/aax/"
+# define AAX_DIR		"\\aax\\"
+
+# define LOCALAPP_DIR		getenv("LOCALAPPDATA")
+# define USER_AAX_DIR		"\\adalin\\aax\\"
+
+# define USER_DIR		getenv("USERPROFILE")
+
+#else	/* !WIN32 */
 # define SYSTEM_DIR		"/etc"
+# define AAX_DIR		"/aax/"
+
+# define LOCALAPP_DIR		getenv("HOME")
 # define USER_AAX_DIR		"/.aax/"
-# define USER_DRIVE		""
+
 # define USER_DIR		getenv("HOME")
 #endif
 
@@ -77,33 +82,29 @@ moveOldCfgFile()
 const char*
 userHomeDir()
 {
-   static char rv[256] = "\0";
-   if (*rv == 0) {
-      snprintf(rv, 255, "%s%s", USER_DRIVE, USER_DIR);
-   }
-   return (const char*)rv;
+   return USER_DIR;
 }
 
 char*
 userConfigFile()
 {
-   const char *home_path = userHomeDir();
+   const char *app_path = LOCALAPP_DIR;
    char *rv = NULL;
 
    moveOldCfgFile();
 
-   if (home_path)
+   if (app_path)
    {
       int len;
 
-      len = strlen(home_path);
+      len = strlen(app_path);
       len += strlen(USER_AAX_DIR);
       len += strlen(CONFIG_FILE);
       len++;
 
       rv = malloc(len);
       if (rv) {
-         snprintf(rv, len, "%s%s%s", home_path, USER_AAX_DIR, CONFIG_FILE);
+         snprintf(rv, len, "%s%s%s", app_path, USER_AAX_DIR, CONFIG_FILE);
       }
    }
 
