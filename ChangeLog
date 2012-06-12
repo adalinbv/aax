@@ -1,11 +1,9 @@
-* Tue Jun 07 2012 - tech@adalin.org
+* Tue Jun 12 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low
-  * Added a Windows (Vista or later) backend.
+  * Added native support for Windows (Vista or later)
   * Fix the default ALSA device for when PulseAudio isn't active.
-  * Fix playback problems when more than one backends of the smae type are used 
-    simultaneously.
 
- -- Erik Hofman <tech@adalin.org>  Sun, 07 Jun 2012 10:15:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Tue, 12 Jun 2012 14:53:00 +0200
 
 * Tue May 01 2012 - tech@adalin.org
 - AeonWave (2.2.0) stable; urgency=low

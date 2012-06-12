@@ -303,7 +303,7 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 
 /* --- Config Files --- */
 const char* userHomeDir();
-char* gloabalConfigFile();
+char* systemConfigFile();
 char* userConfigFile();
 
 #if defined(__cplusplus)

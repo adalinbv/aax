@@ -820,7 +820,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
       if (!_tvnow) _tvnow = tract_now;
 
       /* read the system wide configuration file */
-      path = gloabalConfigFile();
+      path = systemConfigFile();
       if (path)
       {
          xid = xmlOpen(path);

@@ -184,7 +184,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 
       if (s && (*s == '~'))
       {
-         char *home = userHomeDir();
+         const char *home = userHomeDir();
          if (home)
          {
             int hlen = strlen(home);

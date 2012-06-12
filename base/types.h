@@ -100,6 +100,7 @@ uint64_t _bswap64(uint64_t x);
 
 #if _MSC_VER
 # include <Windows.h>
+# include <stdio.h>
 # define strtoll _strtoi64
 # define snprintf _snprintf
 # define strcasecmp _stricmp

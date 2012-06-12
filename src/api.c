@@ -16,17 +16,22 @@
 #include <string.h>
 #include <stdlib.h>		/* for getenv */
 
+#include <base/types.h>
 
-#define AAX_DIR                 "/aax/"
+
 #define CONFIG_FILE             "config.xml"
 
 #if defined(WIN32)
+# define AAX_DIR		"\\aax\\"
 # define SYSTEM_DIR		getenv("PROGRAMFILES")
+# define USER_DRIVE		getenv("HOMEDRIVE")
 # define USER_DIR               getenv("HOMEPATH")
 # define USER_AAX_DIR		AAX_DIR
 #else
+#define AAX_DIR			"/aax/"
 # define SYSTEM_DIR		"/etc"
 # define USER_AAX_DIR		"/.aax/"
+# define USER_DRIVE		""
 # define USER_DIR		getenv("HOME")
 #endif
 
@@ -69,10 +74,20 @@ moveOldCfgFile()
 # define moveOldCfgFile()
 #endif
 
+const char*
+userHomeDir()
+{
+   static char rv[256] = "\0";
+   if (*rv == 0) {
+      snprintf(rv, 255, "%s%s", USER_DRIVE, USER_DIR);
+   }
+   return (const char*)rv;
+}
+
 char*
 userConfigFile()
 {
-   char *home_path = USER_DIR;
+   const char *home_path = userHomeDir();
    char *rv = NULL;
 
    moveOldCfgFile();
@@ -96,7 +111,7 @@ userConfigFile()
 }
 
 char*
-gloabalConfigFile()
+systemConfigFile()
 {
    char *global_path = SYSTEM_DIR;
    char *rv = NULL;
@@ -117,11 +132,5 @@ gloabalConfigFile()
    }
 
    return rv;
-}
-
-const char*
-userHomeDir()
-{
-   return USER_DIR;
 }
 

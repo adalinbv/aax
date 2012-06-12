@@ -116,8 +116,9 @@ _oalGetProcAddress(void *handle, const char *func)
    {
       static LPTSTR Error[255];
       DWORD err = GetLastError();
-      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, Error, 255, NULL);
-      _oalGetSymError(Error);
+      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, (LPTSTR)Error,
+                    255, NULL);
+      _oalGetSymError((const char*)Error);
    }
 
    return rv;
