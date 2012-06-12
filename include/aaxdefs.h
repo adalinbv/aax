@@ -149,7 +149,7 @@ AAX_API aaxMtx4f aaxIdentityMatrix;
 	(aaxMixerSetSetup((a),AAX_TRACKS,(c))?				\
 	 (aaxMixerSetSetup((a),AAX_FORMAT,(d))?				\
 	  (aaxMixerSetSetup((a),AAX_REFRESHRATE,			\
-		((b)*((float)((c)*aaxGetBytesPerSample(d)))/(float)(e)))? \
+	(unsigned int)((b)*((float)((c)*aaxGetBytesPerSample(d)))/(float)(e)))?\
 	   (aaxMixerSetState((a),AAX_INITIALIZED)):AAX_FALSE		\
           ):AAX_FALSE							\
 	 ):AAX_FALSE							\
