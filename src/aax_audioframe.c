@@ -20,7 +20,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #include <base/threads.h>
 #include <base/types.h>		/* for msecSleep */

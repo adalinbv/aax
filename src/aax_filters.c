@@ -15,7 +15,7 @@
 
 #include <assert.h>
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>

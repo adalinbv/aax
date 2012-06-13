@@ -47,7 +47,7 @@ extern "C" {
 #define _AAX_MAX_SPEAKERS		8
 
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <base/types.h>
 #include <base/buffers.h>
 

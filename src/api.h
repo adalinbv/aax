@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #include <driver.h>
 #include <objects.h>

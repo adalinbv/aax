@@ -19,7 +19,8 @@
 # include <sys/time.h>		/* for struct time */
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
+
 #include <base/threads.h>
 #include <base/types.h>
 

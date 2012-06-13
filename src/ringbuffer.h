@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <base/geometry.h>
 #include <base/types.h>
 

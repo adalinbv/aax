@@ -24,7 +24,7 @@
 # include <strings.h>	/* strcasecmp */
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <xml.h>
 
 #include <api.h>

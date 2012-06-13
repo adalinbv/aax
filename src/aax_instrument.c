@@ -14,7 +14,7 @@
 #include <stdlib.h>     /* for malloc */
 #include <math.h>	/* for powf */
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <xml.h>
 
 #include <base/types.h>

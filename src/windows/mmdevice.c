@@ -15,7 +15,7 @@
 
 #include <assert.h>
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <xml.h>
 
 #include <api.h>

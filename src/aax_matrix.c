@@ -9,7 +9,7 @@
  * permission of Adalin B.V.
  */
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #include <base/gmath.h>
 #include <base/geometry.h>
