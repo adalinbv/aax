@@ -348,21 +348,21 @@ TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
 
 # Add an install target here
 INSTALL(TARGETS ${LIBAEONWAVE}
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         COMPONENT libraries
 )
 INSTALL(FILES 
-        include/aax.h
-        include/aaxdefs.h
-        DESTINATION include
-        COMPONENT headers
-)
-
-INSTALL(FILES 
         ${CMAKE_CURRENT_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
         DESTINATION include/aax
+        COMPONENT headers
+)
+INSTALL(FILES 
+        include/aax.h
+        include/aaxdefs.h
+        DESTINATION include
         COMPONENT headers
 )
 
