@@ -8,4 +8,4 @@
  * permission of Adalin B.V.
  */
 
-#include <aax/defines.h>
+#include <aax/aax.h>
