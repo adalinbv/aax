@@ -39,7 +39,12 @@ void testForState(int, const char *);
 void testForALCError(void *);
 void testForALError();
 
-#define nanoSleep(a)	msecSleep((long)a/1000000)
+#ifdef _WIN32
+# define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
+#else
+int msecSleep(unsigned long);
+#endif
+#define nanoSleep(a)	msecSleep((unsigned long)a/1000000)
 
 #endif
 
