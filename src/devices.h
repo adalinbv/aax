@@ -50,12 +50,12 @@ extern _intBuffers _aaxIntDriverBackends;
 
 char is_bigendian();
 _intBuffers *_aaxGetDriverBackends();
-_aaxDriverBackend *_aaxGetDriverBackendLoopback();
+_aaxDriverBackend *_aaxGetDriverBackendLoopback(unsigned int *);
 void *_aaxRemoveDriverBackends(_intBuffers **);
 
-_aaxDriverBackend *_aaxGetDriverBackendDefault(const _intBuffers *);
-_aaxDriverBackend *_aaxGetDriverBackendDefaultCapture(const _intBuffers *);
-_aaxDriverBackend *_aaxGetDriverBackendByName(const _intBuffers *, const char *);
+_aaxDriverBackend *_aaxGetDriverBackendDefault(const _intBuffers *, unsigned int *);
+_aaxDriverBackend *_aaxGetDriverBackendDefaultCapture(const _intBuffers *, unsigned int *);
+_aaxDriverBackend *_aaxGetDriverBackendByName(const _intBuffers *, const char *, unsigned int *);
 _aaxDriverBackend *_aaxGetDriverBackendByPos(const _intBuffers *, unsigned int);
 const char *_aaxGetDriverBackendName(const _aaxDriverBackend *);
 

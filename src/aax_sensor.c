@@ -387,9 +387,10 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          {
             _aaxMixerInfo* info = submix->info;
             const _aaxDriverBackend *be;
+            unsigned int pos;
             float delay_sec;
 
-            be = _aaxGetDriverBackendLoopback();
+            be = _aaxGetDriverBackendLoopback(&pos);
             delay_sec = 1.0f / info->refresh_rate;
 
             _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);

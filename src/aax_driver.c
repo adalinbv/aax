@@ -192,16 +192,18 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
                handle->devname[1] = ptr+4;	/* 4 = strlen(" on ") */
             }
             handle->backend.ptr = _aaxGetDriverBackendByName(handle->backends,
-                                                            handle->devname[0]);
+                                                            handle->devname[0],
+                                                            &handle->pos);
          }
          else /* name == NULL */
          {
             const _aaxDriverBackend *be;
 
             if (mode == AAX_MODE_READ) {
-               be = _aaxGetDriverBackendDefaultCapture(handle->backends);
+               be = _aaxGetDriverBackendDefaultCapture(handle->backends,
+                                                       &handle->pos);
             } else {
-               be = _aaxGetDriverBackendDefault(handle->backends);
+               be = _aaxGetDriverBackendDefault(handle->backends, &handle->pos);
             }
 
             handle->backend.ptr = be;
@@ -469,12 +471,18 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
 
+         if (handle->pos != pos)
+         {
+            free(be_handle);
+            be_handle = NULL;
+            handle->pos = pos;
+         }
+
          if (!be_handle)
          {
             be_handle = be->new_handle(mode);
             handle->backend.handle = be_handle;
          }
-
          ptr = be->get_devices(be_handle, mode);
          if (pos)
          {
@@ -881,7 +889,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             }
          }
 
-         be = _aaxGetDriverBackendByName(handle->backends, name);
+         be = _aaxGetDriverBackendByName(handle->backends, name, &handle->pos);
          if (be || (handle->devname[0] != _aax_default_devname)) {
             handle->backend.ptr = be;
          }

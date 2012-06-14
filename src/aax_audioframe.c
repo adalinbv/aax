@@ -578,9 +578,10 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   {
                      _aaxMixerInfo* info = submix->info;
                      const _aaxDriverBackend *be;
+                     unsigned int pos;
                      float delay_sec;
 
-                     be = _aaxGetDriverBackendLoopback();
+                     be = _aaxGetDriverBackendLoopback(&pos);
                      delay_sec = 1.0f / info->refresh_rate;
 
                      _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
@@ -1300,6 +1301,7 @@ _aaxAudioFrameThread(void* config)
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
    _handle_t* handle;
+   unsigned int pos;
    struct timespec ts;
    float delay_sec;
    float elapsed;
@@ -1320,7 +1322,7 @@ _aaxAudioFrameThread(void* config)
    smixer = frame->submix;
    delay_sec = 1.0f / smixer->info->refresh_rate;
 
-   be = _aaxGetDriverBackendLoopback();		/* be = handle->backend.ptr */
+   be = _aaxGetDriverBackendLoopback(&pos);	/* be = handle->backend.ptr */
    if (be)
    {
       _aaxMixerInfo* info = smixer->info;

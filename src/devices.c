@@ -100,7 +100,7 @@ _aaxRemoveDriverBackends(_intBuffers **be)
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendByName(const _intBuffers *bs, const char *name)
+_aaxGetDriverBackendByName(const _intBuffers *bs, const char *name, unsigned int *pos)
 {
    _aaxDriverBackend *be = 0;
 
@@ -124,22 +124,28 @@ _aaxGetDriverBackendByName(const _intBuffers *bs, const char *name)
             res = strcasecmp(b->driver, name);
             if (!res)
             {
+               *pos = i;
                be = (_aaxDriverBackend *)b;
                break;
             }
          }
       }
 
-      if (i == num) be = 0;
+      if (i == num)
+      {
+         be = 0;
+         *pos = UINT_MAX;
+      }
    }
-   else
-      be = _aaxGetDriverBackendDefault(bs);
+   else {
+      be = _aaxGetDriverBackendDefault(bs, pos);
+   }
 
    return be;
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendDefault(const _intBuffers *bs)
+_aaxGetDriverBackendDefault(const _intBuffers *bs, unsigned int *pos)
 {
    _aaxDriverBackend *be = 0;
    int i;
@@ -153,7 +159,9 @@ _aaxGetDriverBackendDefault(const _intBuffers *bs)
 
       dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
       be = _intBufGetDataPtr(dptr);
-      if (be->detect(AAX_MODE_WRITE_STEREO) && be->support_playback(NULL)) {
+      if (be->detect(AAX_MODE_WRITE_STEREO) && be->support_playback(NULL))
+      {
+         *pos = i;
          break;
       }
    }
@@ -163,7 +171,7 @@ _aaxGetDriverBackendDefault(const _intBuffers *bs)
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendLoopback()
+_aaxGetDriverBackendLoopback(unsigned int *pos)
 {
    const _intBuffers *dbe = &_aaxIntDriverBackends;
    const char *name = "AeonWave Loopback";
@@ -182,6 +190,7 @@ _aaxGetDriverBackendLoopback()
       {
          if (!strcasecmp(found_be->driver, name))
          {
+            *pos = i;
             be = found_be;
             break;
          }
@@ -192,7 +201,7 @@ _aaxGetDriverBackendLoopback()
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendDefaultCapture(const _intBuffers *bs)
+_aaxGetDriverBackendDefaultCapture(const _intBuffers *bs, unsigned int *pos)
 {
    _aaxDriverBackend *be = 0;
    int i;
@@ -206,7 +215,9 @@ _aaxGetDriverBackendDefaultCapture(const _intBuffers *bs)
 
       dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
       be = _intBufGetDataPtr(dptr);
-      if (be->detect(AAX_MODE_READ) && be->support_recording(NULL)) {
+      if (be->detect(AAX_MODE_READ) && be->support_recording(NULL))
+      {
+         *pos = i;
          break;
       }
    }
@@ -250,6 +261,8 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
    memset(config, 0, sizeof(_aaxConfig));
    if (dbe)
    {
+      unsigned int pos;
+
       num = _intBufGetNumNoLock(dbe, _AAX_BACKEND);
       config->no_backends = num;
       for (i=0; i<num; i++)
@@ -268,7 +281,7 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
          }
       }
 
-      be = _aaxGetDriverBackendDefault(bs);
+      be = _aaxGetDriverBackendDefault(bs, &pos);
       if (be)
       {
          config->node[0].devname = _aax_strdup(be->driver);
