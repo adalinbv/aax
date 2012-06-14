@@ -355,7 +355,7 @@ SET(ARCH_DIR lib)
 IF(WIN32)
   SET(LIB_DIR bin)	# In case this becomes a shared library
 ELSE(WIN32)
-  SET(LIB_DIR lib)
+  SET(LIB_DIR ${CMAKE_INSTALL_LIBDIR})
 ENDIF(WIN32)
 
 INSTALL(TARGETS ${LIBAEONWAVE}
