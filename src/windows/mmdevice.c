@@ -35,6 +35,7 @@
 #define USE_EVENT_THREAD	1
 
 static _aaxDriverDetect _aaxMMDevDriverDetect;
+static _aaxDriverNewHandle _aaxMMDevDriverNewHandle;
 static _aaxDriverGetDevices _aaxMMDevDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxMMDevDriverGetInterfaces;
 static _aaxDriverConnect _aaxMMDevDriverConnect;
@@ -68,6 +69,7 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxMMDevDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxMMDevDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxMMDevDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxMMDevDriverGetInterfaces,
 
@@ -213,6 +215,33 @@ _aaxMMDevDriverDetect(int mode)
 }
 
 static void *
+_aaxMMDevDriverNewHandle(enum aaxRenderMode mode)
+{
+   _driver_t *handle = NULL;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(mode < AAX_MODE_WRITE_MAX);
+
+   if (!handle)
+   {
+      int m = (mode > 0) ? 1 : 0;
+
+      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
+      if (!handle) return 0;
+
+      handle->Mode = _mode[m];
+      handle->initializing = 0;
+      handle->paused = AAX_FALSE;
+      handle->exclusive = AAX_TRUE;
+      handle->sse_level = _aaxGetSSELevel();
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+   }
+
+   return handle;
+}
+
+static void *
 _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -222,15 +251,12 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
-   if (!handle)
-   {
-      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
-      if (!handle) return 0;
+   if (!handle) {
+      handle = _aaxMMDevDriverNewHandle(mode);
+   }
 
-      handle->initializing = 0;
-      handle->paused = AAX_FALSE;
-      handle->exclusive = AAX_TRUE;
-      handle->sse_level = _aaxGetSSELevel();
+   if (handle)
+   {
       fmt.nSamplesPerSec = _aaxMMDevDriverBackend.rate;
       fmt.nChannels = _aaxMMDevDriverBackend.tracks;
       fmt.wFormatTag = WAVE_FORMAT_PCM;
@@ -317,8 +343,6 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
       int m;
 
       m = (mode > 0) ? 1 : 0;
-      handle->Mode = _mode[m];
-
       pCoInitializeEx(NULL, 0);
       hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
                              CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
@@ -354,8 +378,6 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
                   handle->pFormat = wfmt;
                }
             }
-
-            handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
          }
 
          if (FAILED(hr))
