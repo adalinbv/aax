@@ -125,6 +125,7 @@ typedef struct
    char exclusive;
    char sse_level;
 
+   char *ifname[2];
    _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
@@ -379,7 +380,6 @@ _aaxMMDevDriverDisconnect(void *id)
    {
       HRESULT hr;
 
-
       CloseHandle(handle->Event);
 
       hr = pIAudioClient_Stop(handle->pAudioClient);
@@ -410,6 +410,8 @@ _aaxMMDevDriverDisconnect(void *id)
 
       pCoTaskMemFree(handle->pFormat);
 
+      free(handle->ifname[0]);
+      free(handle->ifname[1]);
       if (handle->devname)
       {
          free(handle->devname);
@@ -986,102 +988,110 @@ Exit:
 static char *
 _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
-   static const char* names[2][256] = { "\0\0", "\0\0" };
-   IMMDeviceEnumerator *enumerator = NULL;
-   HRESULT hr;
+   _driver_t *handle = (_driver_t *)id;
+   int m = (mode > 0) ? 1 : 0;
+   char *rv = 0;
 
-   pCoInitializeEx(NULL, 0);
-   hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
-                          CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
-                          (void**)&enumerator);
-   if (SUCCEEDED(hr))
+   if (handle && !rv)
    {
-      IMMDeviceCollection *collection = NULL;
-      IPropertyStore *props = NULL;
-      IMMDevice *device = NULL;
-      LPWSTR wstr = NULL;
-      UINT i, count;
-      int m, len;
-      char *ptr;
+      IMMDeviceEnumerator *enumerator = NULL;
+      char name[1024] = "\0\0";
+      int len = 1024;
+      HRESULT hr;
 
-      len = 255;
-      m = mode > 0 ? 1 : 0;
-      ptr = (char *)&names[m];
-      hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
-                                                   DEVICE_STATE_ACTIVE,
-                                                   &collection);
-      if (FAILED(hr)) goto Exit;
-
-      hr = pIMMDeviceCollection_GetCount(collection, &count);
-      for(i=0; SUCCEEDED(hr) && (i<count); i++)
+      pCoInitializeEx(NULL, 0);
+      hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
+                             CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
+                             (void**)&enumerator);
+      if (SUCCEEDED(hr))
       {
-         PROPVARIANT name;
-         char *device_name;
+         IMMDeviceCollection *collection = NULL;
+         IPropertyStore *props = NULL;
+         IMMDevice *device = NULL;
+         LPWSTR wstr = NULL;
+         UINT i, count;
+         char *ptr;
 
-         hr = pIMMDeviceCollection_Item(collection, i, &device);
-         if (FAILED(hr)) break;
+         ptr = name;
+         hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
+                                                      DEVICE_STATE_ACTIVE,
+                                                      &collection);
+         if (FAILED(hr)) goto Exit;
 
-         hr = pIMMDevice_GetId(device, &wstr);
-         if (FAILED(hr)) break;
+         hr = pIMMDeviceCollection_GetCount(collection, &count);
+         for(i=0; SUCCEEDED(hr) && (i<count); i++)
+         {
+            PROPVARIANT name;
+            char *device_name;
 
-         hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
-         if (FAILED(hr)) break;
+            hr = pIMMDeviceCollection_Item(collection, i, &device);
+            if (FAILED(hr)) break;
 
-         pPropVariantInit(&name);
-         hr = pIPropertyStore_GetValue(props,
+            hr = pIMMDevice_GetId(device, &wstr);
+            if (FAILED(hr)) break;
+
+            hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
+            if (FAILED(hr)) break;
+
+            pPropVariantInit(&name);
+            hr = pIPropertyStore_GetValue(props,
                          (const PROPERTYKEY*)pPKEY_DeviceInterface_FriendlyName,
                                &name);
-         if (FAILED(hr)) break;
+            if (FAILED(hr)) break;
 
-         device_name = wcharToChar(name.pwszVal);
-         if (device_name && !strcasecmp(device_name, devname))
-         {
-            PROPVARIANT iface;
+            device_name = wcharToChar(name.pwszVal);
+            if (device_name && !strcasecmp(device_name, devname))
+            {
+               PROPVARIANT iface;
 
-            hr = pIPropertyStore_GetValue(props,
+               hr = pIPropertyStore_GetValue(props,
                                     (const PROPERTYKEY*)pPKEY_Device_DeviceDesc,
                                     &iface);
-            if (SUCCEEDED(hr))
-            {
-               char *if_name = wcharToChar(iface.pwszVal);
-               if (if_name)
+               if (SUCCEEDED(hr))
                {
-                  int slen;
+                  char *if_name = wcharToChar(iface.pwszVal);
+                  if (if_name)
+                  {
+                     int slen;
 
-                  snprintf(ptr, len, "%s", if_name);
-                  free(if_name);
+                     snprintf(ptr, len, "%s", if_name);
+                     free(if_name);
 
-                  slen = strlen(ptr)+1;
-                  len -= slen;
-                  ptr += slen;
+                     slen = strlen(ptr)+1;
+                     len -= slen;
+                     ptr += slen;
+                  }
+                  pPropVariantClear(&iface);
                }
-               pPropVariantClear(&iface);
             }
+
+            pCoTaskMemFree(wstr);
+            wstr = NULL;
+
+            pPropVariantClear(&name);
+            pIPropertyStore_Release(props);
+            pIMMDevice_Release(device);
          }
+         pIMMDeviceEnumerator_Release(enumerator);
+         pIMMDeviceCollection_Release(collection);
+         pCoUninitialize();
 
-         pCoTaskMemFree(wstr);
-         wstr = NULL;
+         *ptr++ = 0;
+         rv = handle->ifname[m] = malloc(ptr-name);
+         memcpy(handle->ifname[m], name, ptr-name);
 
-         pPropVariantClear(&name);
-         pIPropertyStore_Release(props);
-         pIMMDevice_Release(device);
-      }
-      pIMMDeviceEnumerator_Release(enumerator);
-      pIMMDeviceCollection_Release(collection);
-      pCoUninitialize();
-
-      return (char *)&names[mode];
-
+         return rv;
 Exit:
-      pCoTaskMemFree(wstr);
-      if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
-      if (collection) pIMMDeviceCollection_Release(collection);
-      if (device) pIMMDevice_Release(device);
-      if (props) pIPropertyStore_Release(props);
-      pCoUninitialize();
+         pCoTaskMemFree(wstr);
+         if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
+         if (collection) pIMMDeviceCollection_Release(collection);
+         if (device) pIMMDevice_Release(device);
+         if (props) pIPropertyStore_Release(props);
+         pCoUninitialize();
+      }
    }
 
-   return (char *)names[mode];
+   return rv;
 }
 
 

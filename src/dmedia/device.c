@@ -60,6 +60,7 @@
 #define DEFAULT_RENDERER	"DMedia"
 
 static _aaxDriverDetect _aaxDMediaDriverDetect;
+static _aaxDriverNewHandle _aaxDMediaDriverNewHandle;
 static _aaxDriverGetDevices _aaxDMediaDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxDMediaDriverGetInterfaces;
 static _aaxDriverConnect _aaxDMediaDriverConnect;
@@ -89,6 +90,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxDMediaDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxDMediaDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxDMediaDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxDMediaDriverGetInterfaces,
 
@@ -182,6 +184,7 @@ DECL_FUNCTION(dmG711MulawDecode);
 DECL_FUNCTION(dmDVIAudioDecoderCreate);
 DECL_FUNCTION(dmDVIAudioDecode);
 
+static char *__mode[2] = { "r", "w" };
 const char *_dmedia_default_name = DEFAULT_DEVNAME;
 
 static int detect_devnum(const char *);
@@ -271,13 +274,9 @@ _aaxDMediaDriverDetect(int mode)
 }
 
 static void *
-_aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxDMediaDriverNewHandle(enum aaxRenderMode mode)
 {
-   static char *__mode[2] = { "r", "w" };
-   _driver_t *handle = (_driver_t *)id;
-   ALpv params[2];
-   unsigned int i;
-   int res;
+   _driver_t *handle = NULL;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -295,9 +294,33 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
       handle->port[0].frequency_hz = 44100;
       handle->port[0].bytes_sample = 2;
       handle->port[0].no_channels = 2;
-      if (renderer) handle->port[0].name = (char *)renderer;
-      else handle->port[0].name = (char *)_dmedia_default_name;
       handle->mode = (mode > 0) ? 1 : 0;
+   }
+
+   return handle;
+}
+
+static void *
+_aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+{
+   _driver_t *handle = (_driver_t *)id;
+   ALpv params[2];
+   unsigned int i;
+   int res;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(mode < AAX_MODE_WRITE_MAX);
+
+   if (!handle) {
+      handle = _aaxDMediaDriverNewHandle(mode);
+   }
+
+   if (handle)
+   {
+      if (renderer) {
+         handle->port[0].name = (char *)renderer;
+      }
 
       if (xid)
       {
@@ -356,10 +379,6 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             }
             handle->port[0].bytes_sample = i/8;
          }
-      }
-
-      if (renderer) {
-         handle->port[0].name = (char *)renderer;
       }
    }
 

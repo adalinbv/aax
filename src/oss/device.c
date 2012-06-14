@@ -60,6 +60,7 @@
 #define OSS_VERSION_4		0x040002
 
 static _aaxDriverDetect _aaxOSSDriverDetect;
+static _aaxDriverNewHandle _aaxOSSDriverNewHandle;
 static _aaxDriverGetDevices _aaxOSSDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxOSSDriverGetInterfaces;
 static _aaxDriverConnect _aaxOSSDriverConnect;
@@ -90,6 +91,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxOSSDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxOSSDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxOSSDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxOSSDriverGetInterfaces,
 
@@ -147,9 +149,10 @@ static int get_oss_version();
 static char *detect_devname(int, unsigned int, char);
 static int detect_devnum(const char *);
 
-int _oss_default_devnum = DEFAULT_DEVNUM;
-char *_oss_default_name = DEFAULT_DEVNAME;
-char *_default_mixer = DEFAULT_MIXER;
+static const int _mode[] = { O_RDONLY, O_WRONLY };
+static int _oss_default_devnum = DEFAULT_DEVNUM;
+static char *_oss_default_name = DEFAULT_DEVNAME;
+static char *_default_mixer = DEFAULT_MIXER;
 
 static int
 _aaxOSSDriverDetect(int mode)
@@ -174,6 +177,34 @@ _aaxOSSDriverDetect(int mode)
 }
 
 static void *
+_aaxOSSDriverNewHandle(enum aaxRenderMode mode)
+{
+   _driver_t *handle = NULL;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(mode < AAX_MODE_WRITE_MAX);
+
+   if (!handle)
+   {
+      int m = (mode > 0) ? 1 : 0;
+
+      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
+      if (!handle) return 0;
+
+      handle->sse_level = _aaxGetSSELevel();
+      handle->frequency_hz = (float)_aaxOSSDriverBackend.rate;
+      handle->no_tracks = _aaxOSSDriverBackend.tracks;
+      handle->mode = _mode[m];
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+      handle->exclusive = O_EXCL;
+   }
+
+   return handle;
+}
+
+
+static void *
 _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -182,15 +213,12 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
-   if (!handle)
+   if (!handle) {
+      handle = _aaxOSSDriverNewHandle(mode);
+   }
+
+   if (handle)
    {
-      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
-      if (!handle) return 0;
-
-      handle->sse_level = _aaxGetSSELevel();
-      handle->frequency_hz = (float)_aaxOSSDriverBackend.rate;
-      handle->no_tracks = _aaxOSSDriverBackend.tracks;
-
       if (xid)
       {
          float f;
@@ -248,14 +276,12 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
             }
          }
 
-         handle->exclusive = O_EXCL;
          if (xmlNodeGetBool(xid, "virtual-mixer")) {
             handle->exclusive = 0;
          }
       }
 
-      if (renderer)
-      {
+      if (renderer) {
          handle->devnum = detect_devnum(renderer);
       }
 #if 0
@@ -268,11 +294,8 @@ printf("device number: %i\n", handle->devnum);
 
    if (handle)
    {
-      const int _mode[] = { O_RDONLY, O_WRONLY };
-      int fd, m;
+      int fd, m = handle->mode;
 
-      m = (mode > 0) ? 1 : 0;
-      handle->mode = _mode[m];
       handle->name = detect_devname(handle->devnum, handle->no_tracks, m);
       fd = open(handle->name, handle->mode|handle->exclusive);
       if (fd)
@@ -292,8 +315,6 @@ printf("device number: %i\n", handle->devnum);
 
          if (version > 0) handle->oss_version = version;
          handle->fd = fd;
-
-         handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
       }
       else
       {
@@ -721,10 +742,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
 static char *
 _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
-   static const char *rd[2] = {
-    "\0\0",
-    "\0\0"
-   };
+   static const char *rd[2] = { "\0\0", "\0\0" };
    return (char *)rd[mode];
 
 }

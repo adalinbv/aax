@@ -41,6 +41,7 @@
 #endif
 
 static _aaxDriverDetect _aaxFileDriverDetect;
+static _aaxDriverNewHandle _aaxFileDriverNewHandle;
 static _aaxDriverGetDevices _aaxFileDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxFileDriverGetInterfaces;
 static _aaxDriverConnect _aaxFileDriverConnect;
@@ -69,6 +70,7 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxFileDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxFileDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxFileDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxFileDriverGetInterfaces,
 
@@ -136,6 +138,10 @@ static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
 static int _aaxFileDriverUpdateHeader(_driver_t *);
 static int _aaxFileDriverReadHeader(_driver_t *);
 
+static const int _mode[] = {
+   O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
+   O_RDONLY|O_BINARY
+};
 static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
 const char *default_renderer = "File: /tmp/AWaveOutput.wav";
 #ifndef HAVE_STRDUP
@@ -151,9 +157,25 @@ _aaxFileDriverDetect(int mode)
 }
 
 static void *
+_aaxFileDriverNewHandle(enum aaxRenderMode mode)
+{
+   _driver_t *handle = NULL;
+
+   if (!handle)
+   {
+      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
+      handle->capture = (mode > 0) ? 0 : 1;
+      handle->mode = _mode[handle->capture];
+      handle->sse_level = _aaxGetSSELevel();
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+   }
+
+   return handle;
+}
+
+static void *
 _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
 {
-   const int _mode[] = {O_WRONLY|O_CREAT|O_TRUNC|O_BINARY, O_RDONLY|O_BINARY};
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;
 
@@ -206,14 +228,11 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       }
 
       if (!handle) {
-         handle = (_driver_t *)calloc(1, sizeof(_driver_t));
+         handle = _aaxFileDriverNewHandle(mode);
       }
 
       if (handle)
       {
-         handle->capture = (mode > 0) ? 0 : 1;
-         handle->mode = _mode[handle->capture];
-
          if (s) {
             handle->fd = open(s, handle->mode, 0644);
          }
@@ -222,8 +241,6 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
          {
             const char *hwstr = _aaxGetSIMDSupportString();
             snprintf(_wave_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
-            handle->sse_level = _aaxGetSSELevel();
-
             if (xid)
             {
                float f;
@@ -273,7 +290,6 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
                }
             }
 
-            handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
             handle->name = s;
          }
       }

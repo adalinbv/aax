@@ -33,6 +33,7 @@
 #define DEFAULT_OUTPUT_RATE	44100
 
 static _aaxDriverDetect _aaxNoneDriverDetect;
+static _aaxDriverNewHandle _aaxNoneDriverNewHandle;
 static _aaxDriverGetDevices _aaxNoneDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxNoneDriverGetInterfaces;
 static _aaxDriverConnect _aaxNoneDriverConnect;
@@ -66,6 +67,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxNoneDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
@@ -114,6 +116,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxNoneDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
@@ -142,6 +145,12 @@ static int
 _aaxNoneDriverDetect(int mode)
 {
    return AAX_TRUE;
+}
+
+static void *
+_aaxNoneDriverNewHandle(enum aaxRenderMode mode)
+{
+   return NULL;
 }
 
 static void *
@@ -198,10 +207,6 @@ _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
    _driver_t *handle = (_driver_t *)id;
    float gain;
    int ret;
-
-   assert(s);
-   assert(d);
-   assert(p);
 
    gain = _aaxLoopbackDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);

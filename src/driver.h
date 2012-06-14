@@ -62,6 +62,7 @@ extern "C" {
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);
 
 typedef int _aaxDriverDetect(int mode);
+typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
 typedef char *_aaxDriverGetDevices(const void*, int mode);
 typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
 
@@ -99,6 +100,7 @@ typedef struct
     _aaxCodec **codecs;
 
     _aaxDriverDetect *detect;
+    _aaxDriverNewHandle *new_handle;
     _aaxDriverGetDevices *get_devices;
     _aaxDriverGetInterfaces * get_interfaces;
  

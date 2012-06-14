@@ -67,7 +67,7 @@ _oalRingBufferMix1NFunc *__renderer[AAX_MODE_WRITE_MAX] =
 _oalRingBufferMix1NFunc*
 _oalRingBufferMixMonoGetRenderer(enum aaxRenderMode mode)
 {
-    assert(mode != 0 && mode < AAX_MODE_WRITE_MAX);
+    assert(mode >= 0 && mode < AAX_MODE_WRITE_MAX);
    return __renderer[mode];
 }
 

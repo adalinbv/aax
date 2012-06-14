@@ -50,6 +50,7 @@
 #define DEFAULT_RENDERER	"ALSA"
 
 static _aaxDriverDetect _aaxALSADriverDetect;
+static _aaxDriverNewHandle _aaxALSADriverNewHandle;
 static _aaxDriverGetDevices _aaxALSADriverGetDevices;
 static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
 static _aaxDriverConnect _aaxALSADriverConnect;
@@ -81,6 +82,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxALSADriverDetect,
+   (_aaxDriverNewHandle *)&_aaxALSADriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxALSADriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
 
@@ -146,6 +148,7 @@ typedef struct
     void **scratch;
     char **data;
 
+    char *ifname[2];
     _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
@@ -371,9 +374,9 @@ _aaxALSADriverDetect(int mode)
 }
 
 static void *
-_aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxALSADriverNewHandle(enum aaxRenderMode mode)
 {
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = NULL;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -381,17 +384,13 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
    if (!handle)
    {
-      const char *hwstr = _aaxGetSIMDSupportString();
+      int m = (mode > 0) ? 1 : 0;
 
       handle = (_driver_t *)calloc(1, sizeof(_driver_t));
       if (!handle) return 0;
 
-      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
-                             DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
-
       handle->play = _aaxALSADriverPlayback_rw_il;
       handle->sse_level = _aaxGetSSELevel();
-      handle->name = _aax_strdup((char*)renderer);
       handle->pause = 0;
       handle->use_mmap = 1;
       handle->interleaved = 0;
@@ -401,6 +400,34 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       handle->no_channels = _aaxALSADriverBackend.tracks;
       handle->bytes_sample = 2;
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
+
+      handle->mode = m;
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+   }
+
+   return handle;
+}
+
+static void *
+_aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+{
+   _driver_t *handle = (_driver_t *)id;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(mode < AAX_MODE_WRITE_MAX);
+
+   if (!handle) {
+      handle = _aaxALSADriverNewHandle(mode);
+   }
+
+   if (handle)
+   {
+      const char *hwstr = _aaxGetSIMDSupportString();
+      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
+                             DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
+
+      handle->name = _aax_strdup((char*)renderer);
 
       if (xid)
       {
@@ -505,9 +532,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       psnd_lib_error_set_handler(_alsa_error_handler);
 
       m = (mode > 0) ? 1 : 0;
-      handle->mode = m;
       handle->devnum = detect_devnum(handle->name, m);
-      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
 
       handle->devname = detect_devname(handle->name, handle->devnum,
                                     handle->no_channels, m, handle->vmixer);
@@ -539,6 +564,8 @@ _aaxALSADriverDisconnect(void *id)
    {
       int m = (handle->mode > 0) ? 1 : 0;
 
+      free(handle->ifname[0]);
+      free(handle->ifname[1]);
       if (handle->devname)
       {
          if (handle->devname != _soft_default_name[m]) {
@@ -1290,85 +1317,94 @@ _aaxALSADriverGetDevices(const void *id, int mode)
 static char *
 _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 {
-   static char names[2][1024] = { "\0\0", "\0\0" };
+   _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
-   void **hints;
-   int res;
+   char *rv = handle->ifname[m];
 
-   res = psnd_device_name_hint(-1, "pcm", &hints);
-   if (!res && hints)
+   if (!rv)
    {
-      void **lst = hints;
+      char name[1024] = "\0\0";
       int len = 1024;
-      char *ptr;
+      void **hints;
+      int res;
 
-      ptr = (char *)&names[m];
-      do
+      res = psnd_device_name_hint(-1, "pcm", &hints);
+      if (!res && hints)
       {
-         char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _alsa_type[m])))
+         void **lst = hints;
+         char *ptr;
+
+         ptr = (char *)&name;
+         do
          {
-            char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && (!strncmp(name, "front:", strlen("front:")) ||
-                         !strncmp(name, "center_lfe:", strlen("center_lfe:")) ||
-                         !strncmp(name, "rear:", strlen("rear:")) ||
-                         !strncmp(name, "side:", strlen("side:")) ||
-                         !strncmp(name, "iec958:", strlen("iec958:"))))
+            char *type = psnd_device_name_get_hint(*lst, "IOID");
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
-               if (m || (!strncmp(name, "front:", strlen("front:")) ||
-                         !strncmp(name, "iec958:", strlen("iec958:"))))
+               char *name = psnd_device_name_get_hint(*lst, "NAME");
+               if (name && (!strncmp(name, "front:", strlen("front:"))
+                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                         || !strncmp(name, "rear:", strlen("rear:"))
+                         || !strncmp(name, "side:", strlen("side:"))
+                         || !strncmp(name, "iec958:", strlen("iec958:"))))
                {
-                  char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *iface;
-
-                  if (!desc) desc = name;
-                  iface = strstr(desc, ", ");
-
-                  if (iface) *iface = 0;
-                  if (iface && !strcmp(devname, desc))
+                  if (m || (!strncmp(name, "front:", strlen("front:")) ||
+                            !strncmp(name, "iec958:", strlen("iec958:"))))
                   {
-                     snd_pcm_t *id;
-                     if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
+                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                     char *iface;
+
+                     if (!desc) desc = name;
+                     iface = strstr(desc, ", ");
+
+                     if (iface) *iface = 0;
+                     if (iface && !strcmp(devname, desc))
                      {
-                        int slen;
-
-                        psnd_pcm_close(id);
-                        if (m || strncmp(name, "front:", strlen("front:")))
+                        snd_pcm_t *id;
+                        if (!psnd_pcm_open(&id, name, _alsa_mode[m],
+                                           SND_PCM_NONBLOCK))
                         {
-                           if (iface != desc) {
-                              iface = strchr(iface+2, '\n')+1;
+                           int slen;
+
+                           psnd_pcm_close(id);
+                           if (m || strncmp(name, "front:", strlen("front:")))
+                           {
+                              if (iface != desc) {
+                                 iface = strchr(iface+2, '\n')+1;
+                              }
+                              snprintf(ptr, len, "%s", iface);
                            }
-                           snprintf(ptr, len, "%s", iface);
-                        }
-                        else
-                        {
-                           if (iface != desc) iface += 2;
-                           snprintf(ptr, len, "%s", iface);
-                           iface = strchr(ptr, '\n');
-                           if (iface) *iface = 0;
-                        }
-                        slen = strlen(ptr)+1; /* skip the trailing 0 */
-                        if (slen > (len-1)) break;
+                           else
+                           {
+                              if (iface != desc) iface += 2;
+                              snprintf(ptr, len, "%s", iface);
+                              iface = strchr(ptr, '\n');
+                              if (iface) *iface = 0;
+                           }
+                           slen = strlen(ptr)+1; /* skip the trailing 0 */
+                           if (slen > (len-1)) break;
 
-                        len -= slen;
-                        ptr += slen;
+                           len -= slen;
+                           ptr += slen;
+                        }
                      }
+                     if (desc != name) _aax_free(desc);
                   }
-                  if (desc != name) _aax_free(desc);
                }
+               _aax_free(name);
             }
-            _aax_free(name);
+            _aax_free(type);
+            ++lst;
          }
-         _aax_free(type);
-         ++lst;
+         while (*lst != NULL);
+         *ptr++ = 0;
+
+         rv = handle->ifname[m] = malloc(ptr-name);
+         memcpy(handle->ifname[m], name, ptr-name);
       }
-      while (*lst != NULL);
-      *ptr = 0;
+      res = psnd_device_name_free_hint(hints);
    }
 
-   res = psnd_device_name_free_hint(hints);
-
-   return (char *)&names[m];
+   return rv;
 }
 
 /*-------------------------------------------------------------------------- */

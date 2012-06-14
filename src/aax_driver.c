@@ -469,6 +469,12 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
 
+         if (!be_handle)
+         {
+            be_handle = be->new_handle(mode);
+            handle->backend.handle = be_handle;
+         }
+
          ptr = be->get_devices(be_handle, mode);
          if (pos)
          {
@@ -543,7 +549,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
          const _aaxDriverBackend *be = handle->backend.ptr;
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
-
+ 
          ptr = be->get_interfaces(be_handle, devname, mode);
          if (pos && ptr && *ptr != '\0')
          {
