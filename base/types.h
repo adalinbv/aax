@@ -56,7 +56,6 @@ typedef int size_t;
 # define strcasecmp _stricmp
 # define strncasecmp _strnicmp
 # define rintf(v) (int)(v+0.5f)
-# define msecSleep(tms) SleepEx((DWORD)tms, FALSE)
 
 struct timespec
 {
@@ -77,12 +76,6 @@ typedef INT32   ssize_t;
 #else
 typedef INT64   ssize_t;
 #endif
-
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>         /* for gettimeofday */
-# endif
-int msecSleep(unsigned int);
 #endif
 
 
