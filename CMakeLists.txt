@@ -135,7 +135,7 @@ SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
 SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
    "All of the tools you'll ever need to develop software")
 
-SET(CPACK_COMPONENTS_ALL applications libraries headers)
+SET(CPACK_COMPONENTS_ALL applications runtime devel)
 
 # NSIS only (for now?)
 SET(CPACK_ALL_INSTALL_TYPES Runtime Developer)
@@ -297,8 +297,10 @@ SET( AEONWAVE_OBJS
      src/alsa/device.c
      src/dmedia/device.c
      src/oss/device.c
-     src/file/device.c
      src/file/null_device.c
+     src/file/device.c
+     src/file/filetype.c
+     src/file/wavext.c
      src/software/arch.c
      src/software/arch_cpu.c
      src/software/arch_neon.c
@@ -347,23 +349,31 @@ TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
 )
 
 # Add an install target here
+SET(BIN_DIR bin)
+SET(INCLUDE_DIR include)
+SET(ARCH_DIR lib)
+IF(WIN32)
+  SET(LIB_DIR bin)	# In case this becomes a shared library
+ELSE(WIN32)
+  SET(LIB_DIR lib)
+ENDIF(WIN32)
+
 INSTALL(TARGETS ${LIBAEONWAVE}
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        COMPONENT libraries
+        RUNTIME DESTINATION "${BIN_DIR}" COMPONENT runtime
+        LIBRARY DESTINATION "${LIB_DIR}" COMPONENT devel
+        ARCHIVE DESTINATION "${ARCH_DIR}" COMPONENT devel
 )
 INSTALL(FILES 
         ${CMAKE_CURRENT_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
         DESTINATION include/aax
-        COMPONENT headers
+        COMPONENT devel
 )
 INSTALL(FILES 
         include/aax.h
         include/aaxdefs.h
         DESTINATION include
-        COMPONENT headers
+        COMPONENT devel
 )
 
 IF (UNIX AND NOT WIN32)
