@@ -48,6 +48,7 @@ static _aaxDriverGetName _aaxMMDevDriverGetName;
 static _aaxDriverThread _aaxMMDevDriverThread;
 static _aaxDriverState _aaxMMDevDriverIsReachable;
 static _aaxDriverState _aaxMMDevDriverAvailable;
+static _aaxDriver3dMixerCB _aaxMMDevDriver3dMixer;
 
 static char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
 static const EDataFlow _mode[] = { eCapture, eRender };
@@ -86,7 +87,7 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
    (_aaxDriverCallback *)&_aaxMMDevDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxMMDevDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -123,6 +124,8 @@ typedef struct
    char initializing;
    char exclusive;
    char sse_level;
+
+   _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -350,6 +353,8 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
                   handle->pFormat = wfmt;
                }
             }
+
+            handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
          }
 
          if (FAILED(hr))
@@ -361,8 +366,6 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          }
       }
    }
-
-   _oalRingBufferMixMonoSetRenderer(mode);
 
    return (void *)handle;
 }
@@ -703,6 +706,24 @@ _aaxMMDevDriverIsReachable(const void *id)
 
    return rv;
 }
+
+int
+_aaxMMDevDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   assert(s);
+   assert(d);
+   assert(p);
+
+   gain = _aaxMMDevDriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+
+   return ret;
+}
+
 
 static int
 _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratch)

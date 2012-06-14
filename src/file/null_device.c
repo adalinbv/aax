@@ -92,6 +92,11 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 
 
 static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
+static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
+
+typedef struct {
+   _oalRingBufferMix1NFunc *mix_mono3d;
+} _driver_t;
 
 char _null_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
@@ -123,7 +128,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxLoopbackDriverCapture,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
    (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxLoopbackDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -185,6 +190,23 @@ static int
 _aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
 {
    return AAX_FALSE;
+}
+
+int
+_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   assert(s);
+   assert(d);
+   assert(p);
+
+   gain = _aaxLoopbackDriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+
+   return ret;
 }
 
 static void

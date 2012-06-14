@@ -130,7 +130,6 @@ typedef struct
 extern _aaxDriverPostProcess _aaxFileDriverPostProcess;
 extern _aaxDriverPrepare _aaxFileDriverApplyEffects;
 extern _aaxDriver2dMixerCB _aaxFileDriverStereoMixer;
-extern _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
 extern _aaxDriverPrepare3d _aaxFileDriver3dPrepare;
 extern _aaxDriverThread _aaxSoftwareMixerThread;
 

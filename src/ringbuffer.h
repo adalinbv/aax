@@ -673,6 +673,11 @@ extern _oalRingBufferMixMNFunc* _oalRingBufferMixMulti16;
  */
 extern _oalRingBufferMix1NFunc* _oalRingBufferMixMono16;
 
+/**
+ * Return the matching _oalRingBufferMixMono16 function for a particular mode
+ */
+extern _oalRingBufferMix1NFunc* _oalRingBufferMixMonoGetRenderer(enum aaxRenderMode);
+
 
 void
 _oalRingBufferPrepare3d(_oalRingBuffer3dProps*, _oalRingBuffer3dProps*, const void*, const _oalRingBuffer2dProps*, void*);
@@ -764,7 +769,7 @@ void bufEffectReflections(int32_t*, const int32_ptr, unsigned int, unsigned int,
 void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 
 void iir_compute_coefs(float, float, float*, float*, float);
-void _oalRingBufferMixMonoSetRenderer(enum aaxRenderMode);
+_oalRingBufferMix1NFunc* _oalRingBufferMixMonoSetGenderer(enum aaxRenderMode);
 
 void bufCompress(void*, unsigned int, unsigned int, float, float);
 void bufCompressElectronic(void*, unsigned int, unsigned int);
@@ -773,6 +778,7 @@ void bufCompressValve(void*, unsigned int, unsigned int);
 
 void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int, unsigned int);
+
 
 #if defined(__cplusplus)
 }  /* extern "C" */

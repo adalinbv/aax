@@ -63,6 +63,7 @@ static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverThread _aaxALSADriverThread;
 static _aaxDriverState _aaxALSADriverIsReachable;
 static _aaxDriverState _aaxALSADriverAvailable;
+static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxALSADriverBackend =
@@ -95,7 +96,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxALSADriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -144,6 +145,8 @@ typedef struct
 
     void **scratch;
     char **data;
+
+    _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -504,6 +507,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       m = (mode > 0) ? 1 : 0;
       handle->mode = m;
       handle->devnum = detect_devnum(handle->name, m);
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
 
       handle->devname = detect_devname(handle->name, handle->devnum,
                                     handle->no_channels, m, handle->vmixer);
@@ -520,8 +524,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          handle = 0;
       }
    }
-
-   _oalRingBufferMixMonoSetRenderer(mode);
 
    return handle;
 }
@@ -974,6 +976,23 @@ _aaxALSADriverIsReachable(const void *id)
    }
 
    return rv;
+}
+
+int
+_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   assert(s);
+   assert(d);
+   assert(p);
+
+   gain = _aaxALSADriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+
+   return ret;
 }
 
 static int

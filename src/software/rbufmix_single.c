@@ -55,7 +55,7 @@ static _oalRingBufferDistFunc _oalRingBufferALDistLinClamped;
 static _oalRingBufferDistFunc _oalRingBufferALDistExp;
 static _oalRingBufferDistFunc _oalRingBufferALDistExpClamped;
 
-static _oalRingBufferMix1NFunc *__renderer[AAX_MODE_WRITE_MAX] =
+_oalRingBufferMix1NFunc *__renderer[AAX_MODE_WRITE_MAX] =
 {
    0,					/* capture  */
    _oalRingBufferMixMono16Stereo,	/* stereo   */
@@ -64,16 +64,11 @@ static _oalRingBufferMix1NFunc *__renderer[AAX_MODE_WRITE_MAX] =
    _oalRingBufferMixMono16HRTF		/* hrtf     */
 };
 
-_oalRingBufferMix1NFunc *_oalRingBufferMixMono16 =_oalRingBufferMixMono16Stereo;
-
-void
-_oalRingBufferMixMonoSetRenderer(enum aaxRenderMode mode)
+_oalRingBufferMix1NFunc*
+_oalRingBufferMixMonoGetRenderer(enum aaxRenderMode mode)
 {
-   if (mode)
-   {
-      assert(mode < AAX_MODE_WRITE_MAX);
-      _oalRingBufferMixMono16 = __renderer[mode];
-   }
+    assert(mode != 0 && mode < AAX_MODE_WRITE_MAX);
+   return __renderer[mode];
 }
 
 /**

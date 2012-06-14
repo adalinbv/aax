@@ -72,6 +72,7 @@ static _aaxDriverCallback _aaxOSSDriverPlayback;
 static _aaxDriverGetName _aaxOSSDriverGetName;
 static _aaxDriverState _aaxOSSDriverIsReachable;
 static _aaxDriverState _aaxOSSDriverAvailable;
+static _aaxDriver3dMixerCB _aaxOSSDriver3dMixer;
 
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
@@ -104,7 +105,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverCallback *)&_aaxOSSDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxOSSDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -135,6 +136,8 @@ typedef struct
 #ifndef NDEBUG
    unsigned int buf_len;
 #endif
+
+   _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -289,6 +292,8 @@ printf("device number: %i\n", handle->devnum);
 
          if (version > 0) handle->oss_version = version;
          handle->fd = fd;
+
+         handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
       }
       else
       {
@@ -296,8 +301,6 @@ printf("device number: %i\n", handle->devnum);
          handle = NULL;
       }
    }
-
-   _oalRingBufferMixMonoSetRenderer(mode);
 
    return (void *)handle;
 }
@@ -508,6 +511,23 @@ _aaxOSSDriverIsReachable(const void *id)
    }
 
    return rv;
+}
+
+int
+_aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   assert(s);
+   assert(d);
+   assert(p);
+
+   gain = _aaxOSSDriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+
+   return ret;
 }
 
 static int

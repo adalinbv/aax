@@ -51,6 +51,7 @@ static _aaxDriverState _aaxFileDriverNotAvailable;
 static _aaxDriverCallback _aaxFileDriverPlayback;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
 static _aaxDriverGetName _aaxFileDriverGetName;
+static _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
 
 char _wave_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
@@ -126,6 +127,8 @@ typedef struct
       uint32_t header[WAVE_EXT_HEADER_SIZE];	/* playback */
       _file_info_t file;			/* record   */
    } info;
+
+   _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -270,7 +273,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
                }
             }
 
-            _oalRingBufferMixMonoSetRenderer(mode);
+            handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
             handle->name = s;
          }
       }
@@ -496,6 +499,7 @@ _aaxFileDriverCapture(const void *id, void **data, size_t *frames, void *scratch
 int
 _aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
 {
+   _driver_t *handle = (_driver_t *)id;
    float gain;
    int ret;
 
@@ -504,7 +508,7 @@ _aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
    assert(p);
 
    gain = _aaxFileDriverBackend.gain;
-   ret = _oalRingBufferMixMono16(d, s, p, m, gain, n, ctr);
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
 
    return ret;
 }

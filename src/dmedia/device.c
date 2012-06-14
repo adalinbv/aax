@@ -71,6 +71,7 @@ static _aaxDriverCaptureCallback _aaxDMediaDriverCapture;
 static _aaxDriverCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
 static _aaxDriverState _aaxDMediaDriverAvailable;
+static _aaxDriver3dMixerCB _aaxDMediaDriver3dMixer;
 
 char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
@@ -103,7 +104,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverCallback *)&_aaxDMediaDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxDMediaDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -147,6 +148,8 @@ typedef struct
 #ifndef NDEBUG
    unsigned int buf_len;
 #endif
+
+   _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -448,7 +451,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          }
       }
 
-      _oalRingBufferMixMonoSetRenderer(mode);
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
    }
    
    return (void *)handle;
@@ -678,6 +681,24 @@ _aaxDMediaDriverAvailable(const void *id)
 {
    return AAX_TRUE;
 }
+
+int
+_aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   assert(s);
+   assert(d);
+   assert(p);
+
+   gain = _aaxDMediaDriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+
+   return ret;
+}
+
 
 static int
 _aaxDMediaDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
