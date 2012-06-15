@@ -159,11 +159,9 @@ _aaxFileDriverDetect(int mode)
 static void *
 _aaxFileDriverNewHandle(enum aaxRenderMode mode)
 {
-   _driver_t *handle = NULL;
-
-   if (!handle)
+   _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
+   if (handle)
    {
-      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
       handle->capture = (mode > 0) ? 0 : 1;
       handle->mode = _mode[handle->capture];
       handle->sse_level = _aaxGetSSELevel();

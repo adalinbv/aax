@@ -276,20 +276,19 @@ _aaxDMediaDriverDetect(int mode)
 static void *
 _aaxDMediaDriverNewHandle(enum aaxRenderMode mode)
 {
-   _driver_t *handle = NULL;
+   _driver_t *handle;
+   size_t size;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
-   if (!handle)
+   size = sizeof(_driver_t) + MAX_PORTS*sizeof(_port_t);
+   handle = (_driver_t *)calloc(1, size);
+   if (handle)
    {
-      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
-      if (!handle) return 0;
-
       handle->noPorts = 1;
-      handle->port = (_port_t *)calloc(MAX_PORTS, sizeof(_port_t));
-
+      handle->port = (_port_t *)((char*)handle + sizeof(_driver_t));
       handle->port[0]._no_channels_avail = 2;
       handle->port[0].frequency_hz = 44100;
       handle->port[0].bytes_sample = 2;

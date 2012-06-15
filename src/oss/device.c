@@ -179,23 +179,18 @@ _aaxOSSDriverDetect(int mode)
 static void *
 _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
 {
-   _driver_t *handle = NULL;
+   _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
-   if (!handle)
+   if (handle)
    {
-      int m = (mode > 0) ? 1 : 0;
-
-      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
-      if (!handle) return 0;
-
       handle->sse_level = _aaxGetSSELevel();
       handle->frequency_hz = (float)_aaxOSSDriverBackend.rate;
       handle->no_tracks = _aaxOSSDriverBackend.tracks;
-      handle->mode = _mode[m];
+      handle->mode = _mode[(mode > 0) ? 1 : 0];
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
       handle->exclusive = O_EXCL;
    }

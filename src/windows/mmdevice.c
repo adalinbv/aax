@@ -217,20 +217,15 @@ _aaxMMDevDriverDetect(int mode)
 static void *
 _aaxMMDevDriverNewHandle(enum aaxRenderMode mode)
 {
-   _driver_t *handle = NULL;
+   _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
-   if (!handle)
+   if (handle)
    {
-      int m = (mode > 0) ? 1 : 0;
-
-      handle = (_driver_t *)calloc(1, sizeof(_driver_t));
-      if (!handle) return 0;
-
-      handle->Mode = _mode[m];
+      handle->Mode = _mode[(mode > 0) ? 1 : 0];
       handle->initializing = 0;
       handle->paused = AAX_FALSE;
       handle->exclusive = AAX_TRUE;
