@@ -473,9 +473,9 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
 
          if (handle->pos != pos)
          {
-            free(be_handle);
-            be_handle = NULL;
             handle->pos = pos;
+            be->disconnect(be_handle);
+            be_handle = NULL;
          }
 
          if (!be_handle)
