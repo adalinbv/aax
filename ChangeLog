@@ -1,9 +1,14 @@
-* Tue Jun 12 2012 - tech@adalin.org
+* Tue Jun 16 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low
   * Added native support for Windows (Vista or later)
   * Fix the default ALSA device for when PulseAudio isn't active.
+  * Fix a problem where multiple open backends in the same application could
+    not have different rendering types (HRTF/Stereo/Spatial/Surround)
+  * Added the infrastructure to detect and handle different audio file formats
+    (only supports WAV files right now).
+  * Added support for file 'capturing' sensors
 
- -- Erik Hofman <tech@adalin.org>  Tue, 12 Jun 2012 14:53:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Sat, 16 Jun 2012 14:33:00 +0200
 
 * Tue May 01 2012 - tech@adalin.org
 - AeonWave (2.2.0) stable; urgency=low
