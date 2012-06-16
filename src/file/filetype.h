@@ -20,24 +20,47 @@ extern "C" {
 #include "config.h"
 #endif
 
-typedef void* (_connect_fn)(const char*, int);
-typedef int (_disconnect_fn)(void*);
-typedef int (_update_fn)(void*, void*);
-typedef char* (_get_extension_fn)(void);
+typedef int (_detect_fn)(int);
+typedef void* (_new_hanle_fn)(int, int, int, int, int);
+typedef int (_open_fn)(void*, const char*);
+typedef int (_close_fn)(void*);
+typedef int (_update_fn)(void*, void*, unsigned int);
+
+typedef char* (_default_fname_fn)(int);
+typedef int (_extension_fn)(char*);
+typedef unsigned int (_get_param_fn)(void *);
 
 typedef struct
 {
-   _connect_fn *connect;
-   _disconnect_fn *disconnect;
+   void *id;
+   _detect_fn *detect;
+   _new_hanle_fn *setup;
+
+   _open_fn *open;
+   _close_fn *close;
    _update_fn *update;
-   _get_extension_fn *get_extension;
+
+   _extension_fn *supported;
+   _default_fname_fn *interfaces;
+
+   _get_param_fn *get_frame_size;
+   
+
 
 } _aaxFileHandle;
 
 
-typedef _aaxFileHandle* (_detect_fn)(void);
+typedef _aaxFileHandle* (_aaxExtensionDetect)(void);
 
-_detect_fn _aaxDetectWavFile;
+extern _aaxExtensionDetect* _aaxFileTypes[];
+
+_aaxExtensionDetect _aaxDetectWavFile;
+#if 0
+_aaxExtensionDetect _aaxDetectAiffFile;
+_aaxExtensionDetect _aaxDetectFLACFile;
+_aaxExtensionDetect _aaxDetectMP3File;
+_aaxExtensionDetect _aaxDetectVorbisFile;
+#endif
 
 
 #if defined(__cplusplus)

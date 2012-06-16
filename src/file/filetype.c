@@ -15,13 +15,14 @@
 
 #include "filetype.h"
 
-static _detect_fn* _aaxFileTypes[] =
+_aaxExtensionDetect* _aaxFileTypes[] =
 {
    _aaxDetectWavFile,
 /* _aaxDetectAiffFile, */
 /* _aaxDetectFLACFile, */
 /* _aaxDetectMP3File,  */
 /* _aaxDetectVorbisFile, */
-   0
+
+   0		/* Must be last */
 };
 

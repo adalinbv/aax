@@ -30,12 +30,12 @@
 #include <arch.h>
 
 #include "device.h"
+#include "filetype.h"
 
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
 #define WAVE_EXT_HEADER_SIZE	17
-
 #ifndef O_BINARY
 # define O_BINARY	0
 #endif
@@ -48,13 +48,12 @@ static _aaxDriverConnect _aaxFileDriverConnect;
 static _aaxDriverDisconnect _aaxFileDriverDisconnect;
 static _aaxDriverSetup _aaxFileDriverSetup;
 static _aaxDriverState _aaxFileDriverAvailable;
-static _aaxDriverState _aaxFileDriverNotAvailable;
 static _aaxDriverCallback _aaxFileDriverPlayback;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
 static _aaxDriverGetName _aaxFileDriverGetName;
 static _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
 
-char _wave_default_renderer[100] = DEFAULT_RENDERER;
+char _file_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
 {
    1.0,
@@ -65,7 +64,7 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_wave_default_renderer,
+   (char *)&_file_default_renderer,
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
@@ -92,31 +91,19 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)&_aaxFileDriverAvailable,
-   (_aaxDriverState *)&_aaxFileDriverNotAvailable,
+   (_aaxDriverState *)&_aaxFileDriverAvailable,
    (_aaxDriverState *)&_aaxFileDriverAvailable
 };
-
-typedef struct {
-   unsigned bps;
-   unsigned blocksize;
-   int frequency;
-   int no_tracks;
-   unsigned int no_samples;
-   enum aaxFormat format;
-   size_t size_bytes;
-} _file_info_t;
 
 typedef struct
 {
    int fd;
    int mode;
    char *name;
+
    float frequency_hz;
-   float update_dt;
-   uint32_t size_bytes;
    uint16_t no_channels;
    uint8_t bytes_sample;
-   unsigned char capture;
    char sse_level;
 
    int16_t *ptr, *scratch;
@@ -124,25 +111,11 @@ typedef struct
    unsigned int buf_len;
 #endif
 
-   union
-   {
-      uint32_t header[WAVE_EXT_HEADER_SIZE];	/* playback */
-      _file_info_t file;			/* record   */
-   } info;
-
+   _aaxFileHandle* file;
    _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
-static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
-static int _aaxFileDriverUpdateHeader(_driver_t *);
-static int _aaxFileDriverReadHeader(_driver_t *);
-
-static const int _mode[] = {
-   O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
-   O_RDONLY|O_BINARY
-};
-static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE];
 const char *default_renderer = "File: /tmp/AWaveOutput.wav";
 #ifndef HAVE_STRDUP
 char *strdup(const char *);
@@ -151,9 +124,28 @@ char *strdup(const char *);
 static int
 _aaxFileDriverDetect(int mode)
 {
+   _aaxExtensionDetect* ftype;
+   int i, rv = AAX_FALSE;
+
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   return AAX_TRUE;
+   i = 0;
+   do
+   {
+      if ((ftype = _aaxFileTypes[i++]) != NULL)
+      {
+         _aaxFileHandle* type = ftype();
+         if (type)
+         {
+            rv = type->detect(mode);
+            free(type);
+         }
+         if (rv) break;
+      }
+   }
+   while (ftype);
+
+   return rv;
 }
 
 static void *
@@ -162,10 +154,24 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
    if (handle)
    {
-      handle->capture = (mode > 0) ? 0 : 1;
-      handle->mode = _mode[handle->capture];
+      _aaxExtensionDetect *ftype = _aaxFileTypes[0];
+
+      handle->mode = mode;
       handle->sse_level = _aaxGetSSELevel();
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+      if (ftype)
+      {
+         _aaxFileHandle* type = ftype();
+         if (type && type->detect(mode)) {
+            handle->file = type;
+         }
+         else
+         {
+            free(type);
+            free(handle);
+            handle = NULL;
+         }
+      }
    }
 
    return handle;
@@ -176,6 +182,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 {
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;
+   char *s = NULL;
 
    if (!renderer) {
       renderer = (char*)default_renderer;
@@ -183,8 +190,6 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 
    if (xid || renderer)
    {
-      char *s = NULL;
-
       if (renderer)
       {
 
@@ -224,75 +229,100 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             }
          }
       }
+   }
 
-      if (!handle) {
-         handle = _aaxFileDriverNewHandle(mode);
-      }
+   if (!handle) {
+      handle = _aaxFileDriverNewHandle(mode);
+   }
 
-      if (handle)
+   if (handle)
+   {
+      if (s)
       {
-         if (s) {
-            handle->fd = open(s, handle->mode, 0644);
-         }
-
-         if (handle->fd >= 0)
+         char *ext = strrchr(s, '.');
+         if (ext)
          {
-            const char *hwstr = _aaxGetSIMDSupportString();
-            snprintf(_wave_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
-            if (xid)
+            _aaxExtensionDetect* ftype;
+            int i = 0;
+
+            ext++;
+            do
             {
-               float f;
-               int i;
-
-               f = (float)xmlNodeGetDouble(xid, "frequency-hz");
-               if (f)
+               if ((ftype = _aaxFileTypes[i++]) != NULL)
                {
-                  if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
+                  _aaxFileHandle* type = ftype();
+                  if (type && type->detect(mode) && type->supported(ext))
                   {
-                     _AAX_SYSLOG("waveout; frequency too small.");
-                     f = (float)_AAX_MIN_MIXER_FREQUENCY;
+                     handle->file = type;
+                     break;
                   }
-                  else if (f > _AAX_MAX_MIXER_FREQUENCY)
-                  {
-                     _AAX_SYSLOG("waveout; frequency too large.");
-                     f = (float)_AAX_MAX_MIXER_FREQUENCY;
-                  }
-                  handle->frequency_hz = f;
-               }
-
-               i = xmlNodeGetInt(xid, "channels");
-               if (i)
-               {
-                  if (i < 1)
-                  {
-                     _AAX_SYSLOG("waveout; no. tracks too small.");
-                     i = 1;
-                  }
-                  else if (i > _AAX_MAX_SPEAKERS)
-                  {
-                     _AAX_SYSLOG("waveout; no. tracks too great.");
-                     i = _AAX_MAX_SPEAKERS;
-                  }
-                  handle->no_channels = i;
-               }
-
-               i = xmlNodeGetInt(xid, "bits-per-sample");
-               if (i)
-               {
-                  if (i != 16)
-                  {
-                     _AAX_SYSLOG("waveout; unsopported bits-per-sample");
-                     i = 16;
-                  }
-                  handle->bytes_sample = i/8;
+                  free(type);
                }
             }
-
-            handle->name = s;
+            while (ftype);
          }
       }
-      else {
-         handle = NULL;
+
+      if (handle->file)
+      {
+         handle->name = s;
+
+         s = (char*)_aaxGetSIMDSupportString();
+         snprintf(_file_default_renderer, 99, "%s %s", DEFAULT_RENDERER, s);
+
+         if (xid)
+         {
+            float f;
+            int i;
+
+            f = (float)xmlNodeGetDouble(xid, "frequency-hz");
+            if (f)
+            {
+               if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
+               {
+                  _AAX_SYSLOG("file; frequency too small.");
+                  f = (float)_AAX_MIN_MIXER_FREQUENCY;
+               }
+               else if (f > _AAX_MAX_MIXER_FREQUENCY)
+               {
+                  _AAX_SYSLOG("file; frequency too large.");
+                  f = (float)_AAX_MAX_MIXER_FREQUENCY;
+               }
+               handle->frequency_hz = f;
+            }
+
+            i = xmlNodeGetInt(xid, "channels");
+            if (i)
+            {
+               if (i < 1)
+               {
+                  _AAX_SYSLOG("file; no. tracks too small.");
+                  i = 1;
+               }
+               else if (i > _AAX_MAX_SPEAKERS)
+               {
+                  _AAX_SYSLOG("file; no. tracks too great.");
+                  i = _AAX_MAX_SPEAKERS;
+               }
+               handle->no_channels = i;
+            }
+
+            i = xmlNodeGetInt(xid, "bits-per-sample");
+            if (i)
+            {
+               if (i != 16)
+               {
+                  _AAX_SYSLOG("file; unsopported bits-per-sample");
+                  i = 16;
+               }
+               handle->bytes_sample = i/8;
+            }
+         }
+      }
+      else
+      {
+         free(handle);
+         handle = 0;
       }
    }
 
@@ -311,10 +341,8 @@ _aaxFileDriverDisconnect(void *id)
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
-      if (!handle->capture) {
-         ret = _aaxFileDriverUpdateHeader(handle);
-      }
-      close(handle->fd);
+      handle->file->close(handle->file->id);
+      free(handle->file);
       free(handle);
    }
 
@@ -326,14 +354,15 @@ _aaxFileDriverSetup(const void *id, size_t *bufsize, int fmt,
                         unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv;
+   int rv = AAX_FALSE;
 
    assert(handle);
 
    handle->frequency_hz = *speed;
-   handle->size_bytes = 0;
 
-   if (!handle->no_channels) handle->no_channels = *tracks;
+   if (!handle->no_channels) {
+      handle->no_channels = *tracks;
+   }
 
    switch(fmt)
    {
@@ -347,47 +376,25 @@ _aaxFileDriverSetup(const void *id, size_t *bufsize, int fmt,
       return AAX_FALSE;
    }
 
-   if (handle->fd < 0) {
-      handle->fd = open(handle->name, handle->mode, 0644);
-   }
-   if (handle->fd < 0) return AAX_FALSE;
-
-   if (!handle->capture)
+   if (!handle->file->id)
    {
-      memcpy(handle->info.header,_aaxDefaultWaveHeader, 4*WAVE_EXT_HEADER_SIZE);
-      if (is_bigendian())
-      {
-         int i;
-         for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
-            handle->info.header[i] = _bswap32(handle->info.header[i]);
-         }
-      }
-
-      _aaxFileDriverUpdateHeader(handle);
-      rv = write(handle->fd, handle->info.header, WAVE_HEADER_SIZE*4);
+      int mode = handle->mode;
+      handle->file->id = handle->file->setup(mode, *speed, *tracks, fmt, 1);
    }
-   else
+ 
+   if (handle->file->id)
    {
-      /*
-       * read the file information and set the file-pointer to
-       * the start of the data section
-       */
-      rv = _aaxFileDriverReadHeader(handle);
+      int res = handle->file->open(handle->file->id, handle->name);
+      rv = (res > 0) ? AAX_TRUE : AAX_FALSE;
    }
 
-   return (rv != -1) ? AAX_TRUE : AAX_FALSE;
+   return rv;
 }
 
 static int
 _aaxFileDriverAvailable(const void *id)
 {
    return AAX_TRUE;
-}
-
-static int
-_aaxFileDriverNotAvailable(const void *id)
-{  
-   return AAX_FALSE; 
 }
 
 static int
@@ -426,21 +433,6 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
    data = handle->scratch;
    assert(outbuf_size <= handle->buf_len);
 
-#if 0
-{
-   unsigned int t;
-   for (t=0; t<no_tracks; t++)
-   {
-      int32_t *ptr = rbd->track[t] + offs;
-      unsigned int j;
-      j = no_samples-offs;
-      do {
-// if (*ptr > 0x007fffff || -(*ptr) > 0x007ffff) printf("! ptr; %08X (%08X)\n", *ptr, -(*ptr));
-         ptr++;
-      } while (--j);
-   }
-}
-#endif
    _batch_cvt16_intl_24(data, (const int32_t**)rbd->track,
                         offs, no_tracks, no_samples);
 
@@ -448,32 +440,15 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
    }
 
-   res = write(handle->fd, data, outbuf_size);
-   if (res == -1)
-   {
-      _AAX_SYSLOG(strerror(errno));
-      return 0;
-   }
-   handle->size_bytes += res;
+   res = handle->file->update(handle->file->id, data, no_samples);
 
-   /*
-    * Update the file header once every second
-    */
-   handle->update_dt += _oalRingBufferGetDuration(rb);
-   if (handle->update_dt >= 1.0f)
-   {
-      _aaxFileDriverUpdateHeader(handle);
-      handle->update_dt -= 1.0f;
-   }
-
-   return 0;
+   return res-res; // (res - no_samples);
 }
 
 static int
 _aaxFileDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t buflen, frame_size;
 
    if (handle->mode != O_RDONLY || (frames == 0) || (data == 0))
       return AAX_FALSE;
@@ -481,19 +456,15 @@ _aaxFileDriverCapture(const void *id, void **data, size_t *frames, void *scratch
    if (*frames == 0)
       return AAX_TRUE;
 
-   frame_size = handle->info.file.bps * handle->info.file.no_tracks;
-   buflen = *frames * frame_size;
    *frames = 0;
    if (data)
    {
+      unsigned int frame_size;
       int res;
 
-      res = read(handle->fd, scratch, buflen);
-      if (res == -1)
-      {
-         _AAX_SYSLOG(strerror(errno));
-         return AAX_FALSE;
-      }
+      res = handle->file->update(handle->file->id, scratch, *frames);
+
+      frame_size = handle->file->get_frame_size(handle->file->id);
       *frames = res / frame_size;
 
       if (is_bigendian()) {
@@ -572,21 +543,21 @@ _aaxFileDriverGetName(const void *id, int playback)
 char *
 _aaxFileDriverGetDevices(const void *id, int mode)
 {
-   static const char *rd[2] = {
-    "File\0\0",
-    "File\0\0"
-   };
+   static const char *rd[2] = { "File\0\0", "File\0\0" };
    return (char *)rd[mode];
 }
 
 static char *
 _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
-   static const char *rd[2] = {
-    "/tmp/"AAX_NAME_STR"In.wav\0\0",
-    "~/"AAX_NAME_STR"Out.wav\0/tmp/"AAX_NAME_STR"Out.wav\0\0"
-   };
-   return (char *)rd[mode];
+   _driver_t *handle = (_driver_t *)id;
+   char *rv = NULL;
+
+   if (handle && handle->file && handle->file->detect(mode)) {
+      rv = handle->file->interfaces(mode);
+   }
+
+   return rv;
 }
 
 /*-------------------------------------------------------------------------- */
@@ -613,129 +584,6 @@ static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
     0x61746164,                 /* 15. "data"                                */
     0
 };
-
-int
-_aaxFileDriverReadHeader(_driver_t *handle)
-{
-   uint32_t header[WAVE_EXT_HEADER_SIZE];
-   size_t buflen;
-   char buf[4];
-   int i, res;
-
-// lseek(handle->fd, 0L, SEEK_SET);
-   res = read(handle->fd, &header, WAVE_EXT_HEADER_SIZE*4);
-   if (res <= 0) return -1;
-
-   if (is_bigendian())
-   {
-      for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
-         header[i] = _bswap32(header[i]);
-      }
-   }
-
-   handle->info.file.frequency = header[6];
-   handle->info.file.no_tracks = header[5] >> 16;
-   handle->info.file.bps = header[8] >> 16;
-   handle->info.file.blocksize = header[8] & 0xFFFF;
-
-   res = header[5] & 0xFFFF;
-   i = handle->info.file.bps;
-   handle->info.file.format = getFormatFromFileFormat(res, i);
-
-   /* search for the data chunk */
-   buflen = 0;
-   if (lseek(handle->fd, 32L, SEEK_SET) > 0)
-   {
-      do
-      {
-         res = read(handle->fd, buf, 1);
-         if ((res > 0) && buf[0] == 'd')
-         {
-            res = read(handle->fd, buf+1, 3);
-            if ((res > 0) && 
-                (buf[0] == 'd' && buf[1] == 'a' &&
-                 buf[2] == 't' && buf[3] == 'a'))
-            {
-               res = read(handle->fd, &buflen, 4); /* chunk size */
-               if (is_bigendian()) buflen = _bswap32(buflen);
-               break;
-            }
-         }
-      }
-      while (1);
-      handle->info.file.no_samples = (buflen * 8)
-                                      / (handle->info.file.no_tracks
-                                         * handle->info.file.bps);
-   }
-   else {
-      res = -1;
-   }
-
-   return res;
-}
-
-static int
-_aaxFileDriverUpdateHeader(_driver_t *handle)
-{
-   int res = 0;
-
-   if (handle->size_bytes != 0)
-   {
-      unsigned int fmt, size = handle->size_bytes;
-      uint32_t s;
-      off_t floc;
-
-      s =  WAVE_HEADER_SIZE*4 - 8 + size;
-      handle->info.header[1] = s;
-
-      fmt = handle->info.header[5] & 0xFFF;
-      s = (handle->no_channels << 16) | fmt;	/* PCM */
-      handle->info.header[5] = s;
-
-      s = (uint32_t)handle->frequency_hz;
-      handle->info.header[6] = s;
-
-      s *= handle->no_channels * handle->bytes_sample;
-      handle->info.header[7] = s;
-
-      s = size;
-      handle->info.header[10] = s;
-
-      if (is_bigendian())
-      {
-         handle->info.header[1] = _bswap32(handle->info.header[1]);
-         handle->info.header[5] = _bswap32(handle->info.header[5]);
-         handle->info.header[6] = _bswap32(handle->info.header[6]);
-         handle->info.header[7] = _bswap32(handle->info.header[7]);
-         handle->info.header[10] = _bswap32(handle->info.header[10]);
-      }
-
-      floc = lseek(handle->fd, 0L, SEEK_CUR);
-      lseek(handle->fd, 0L, SEEK_SET);
-      res = write(handle->fd, handle->info.header, WAVE_HEADER_SIZE*4);
-      lseek(handle->fd, floc, SEEK_SET);
-      if (res == -1) {
-         _AAX_SYSLOG(strerror(errno));
-      }
-
-#if 0
-// printf("Write:\n");
-// printf(" 0: %08x\n", handle->info.header[0]);
-// printf(" 1: %08x\n", handle->info.header[1]);
-// printf(" 2: %08x\n", handle->info.header[2]);
-// printf(" 3: %08x\n", handle->info.header[3]);
-// printf(" 4: %08x\n", handle->info.header[4]);
-// printf(" 5: %08x\n", handle->info.header[5]);
-// printf(" 6: %08x\n", handle->info.header[6]);
-// printf(" 7: %08x\n", handle->info.header[7]);
-// printf(" 8: %08x\n", handle->info.header[8]);
-// printf(" 9: %08x\n", handle->info.header[9]);
-// printf("10: %08x\n", handle->info.header[10]);
-#endif
-   }
-
-   return res;
-}
 
 /**
  * Write a canonical WAVE file from memory to a file.
@@ -844,6 +692,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    close(fd);
 }
 
+#if 0
 enum aaxFormat
 getFormatFromFileFormat(unsigned int format, int  bps)
 {
@@ -873,3 +722,4 @@ getFormatFromFileFormat(unsigned int format, int  bps)
    }
    return rv;
 }
+#endif

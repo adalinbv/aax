@@ -17,6 +17,10 @@
 #include <string.h>		/* for strdup */
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
+#include <errno.h>
+#if HAVE_STRINGS_H
+# include <strings.h>
+#endif
 #if HAVE_UNISTD_H
 # include <unistd.h>
 #endif
@@ -29,21 +33,31 @@
 
 #include "filetype.h"
 
-static _connect_fn _aaxWavFileOpen;
-static _disconnect_fn _aaxWavFileClose;
+static _detect_fn _aaxWavFileDetect;
+
+static _new_hanle_fn _aaxWavFileSetup;
+static _open_fn _aaxWavFileOpen;
+static _close_fn _aaxWavFileClose;
 static _update_fn _aaxWavFileReadWrite;
-static _get_extension_fn _aaxWavFileExtension;
+static _default_fname_fn _aaxWavFileInterfaces;
+static _extension_fn _aaxWavFileExtension;
+static _get_param_fn _aaxWavFileGetFrameSize;
+
 
 _aaxFileHandle*
 _aaxDetectWavFile()
 {
-   _aaxFileHandle* rv = malloc(sizeof(_aaxFileHandle));
+   _aaxFileHandle* rv = calloc(1, sizeof(_aaxFileHandle));
    if (rv)
    {
-      rv->connect = (_connect_fn*)&_aaxWavFileOpen;
-      rv->disconnect = (_disconnect_fn*)&_aaxWavFileClose;
+      rv->detect = (_detect_fn*)&_aaxWavFileDetect;
+      rv->setup = (_new_hanle_fn*)&_aaxWavFileSetup;
+      rv->open = (_open_fn*)&_aaxWavFileOpen;
+      rv->close = (_close_fn*)&_aaxWavFileClose;
       rv->update = (_update_fn*)&_aaxWavFileReadWrite;
-      rv->get_extension = (_get_extension_fn*)&_aaxWavFileExtension;
+      rv->supported = (_extension_fn*)&_aaxWavFileExtension;
+      rv->interfaces = (_default_fname_fn*)&_aaxWavFileInterfaces;
+      rv->get_frame_size = (_get_param_fn*)&_aaxWavFileGetFrameSize;
    }
    return rv;
 }
@@ -89,11 +103,13 @@ typedef struct
 
    int frequency;
    int no_tracks;
+   int frame_size;
    unsigned int no_frames;
    unsigned bits_sample;
    unsigned blocksize;
    enum aaxFormat format;
    size_t size_bytes;
+   float update_dt;
 
    uint32_t header[WAVE_EXT_HEADER_SIZE]; 
 
@@ -107,27 +123,24 @@ char *strdup(const char *);
 #endif
 
 
-static void*
-_aaxWavFileOpen(const char* fname, int mode)
+static int
+_aaxWavFileDetect(int mode) {
+   return AAX_TRUE;
+}
+
+static int
+_aaxWavFileOpen(void *id, const char* fname)
 {
-   _driver_t *handle = malloc(sizeof(_driver_t));
+   _driver_t *handle = (_driver_t *)id;
+   int res = AAX_FALSE;
 
-   if (handle)
+   if (handle && fname)
    {
-      static const int _mode[] = {
-         O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
-         O_RDONLY|O_BINARY
-      };
-      int res = 0;
-
-      handle->size_bytes = 0;
-      handle->capture = (mode > 0) ? 0 : 1;
       handle->name = strdup(fname);
-      handle->mode = _mode[handle->capture];
       handle->fd = open(handle->name, handle->mode, 0644);
       if (handle->fd >= 0)
       {
-         if (mode)
+         if (!handle->capture)
          {
             memcpy(handle->header, _aaxDefaultWaveHeader,
                    4*WAVE_EXT_HEADER_SIZE);
@@ -150,19 +163,9 @@ _aaxWavFileOpen(const char* fname, int mode)
             res = _aaxFileDriverReadHeader(handle);
          }
       }
-
-      if ((handle->fd < 0) || (res < 0))
-      {
-         free(handle->name);
-         if (handle->fd) {
-            close(handle->fd);
-         }
-         free(handle);
-         handle = 0;
-      }
    }
 
-   return handle;
+   return res;
 }
 
 static int
@@ -184,16 +187,67 @@ _aaxWavFileClose(void *id)
    return ret;
 }
 
+static void*
+_aaxWavFileSetup(int mode, int freq, int tracks, int format, int blocksz)
+{
+   _driver_t *handle = NULL;
+   int bits_sample = 0;
+
+   switch(format)
+   {
+   case AAX_PCM8S:
+      bits_sample = 8;
+      break;
+   case AAX_PCM16S:
+      bits_sample = 16;
+      break;
+   default:
+      break;
+   }
+
+   if (bits_sample)
+   {
+      handle = calloc(1, sizeof(_driver_t));
+      if (handle)
+      {
+         static const int _mode[] = {
+            O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
+            O_RDONLY|O_BINARY
+         };
+         handle->size_bytes = 0;
+         handle->capture = (mode > 0) ? 0 : 1;
+         handle->mode = _mode[handle->capture];
+         handle->bits_sample = bits_sample;
+         handle->blocksize = blocksz;
+         handle->frequency = freq;
+         handle->no_tracks = tracks;
+         handle->format = format;
+         handle->frame_size = (handle->bits_sample * handle->no_tracks)/8;
+      }
+   }
+
+   return (void*)handle;
+}
+
 static int
-_aaxWavFileReadWrite(void *id, void *data)
+_aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
-   int frame_size = (handle->bits_sample * handle->no_tracks)/8;
-   size_t buflen = handle->no_frames * frame_size;
+   size_t buflen = no_frames * handle->frame_size;
    int rv = AAX_FALSE;
 
-   if (handle->mode) {
+   if (!handle->capture)
+   {
       rv = write(handle->fd, data, buflen);
+      if (rv >= 0)
+      {
+         handle->update_dt += (float)no_frames/(float)handle->frequency;
+         if (handle->update_dt >= 1.0f)
+         {
+            _aaxFileDriverUpdateHeader(handle);
+            handle->update_dt -= 1.0f;
+         }
+      }
    } else {
       rv = read(handle->fd, data, buflen);
    }
@@ -205,11 +259,27 @@ _aaxWavFileReadWrite(void *id, void *data)
    return (rv > 0) ? rv : AAX_FALSE;
 }
 
-static char* 
-_aaxWavFileExtension() {
-   return "wav";
+static int
+_aaxWavFileExtension(char *ext) {
+   return !strcasecmp(ext, "wav");
 }
 
+static char*
+_aaxWavFileInterfaces(int mode)
+{
+   static const char *rd[2] = {
+    "/tmp/"AAX_NAME_STR"In.wav\0\0",
+    "~/"AAX_NAME_STR"Out.wav\0/tmp/"AAX_NAME_STR"Out.wav\0\0"
+   };
+   return (char *)rd[mode];
+}
+
+static unsigned int
+_aaxWavFileGetFrameSize(void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle->frame_size;
+}
 
 int
 _aaxFileDriverReadHeader(_driver_t *handle)
