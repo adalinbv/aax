@@ -660,7 +660,7 @@ _aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volum
    /* zero would be spot on                                     */
    outbuf_size = info.fragstotal*info.fragsize - outbuf_size;
 
-   return (info.bytes-outbuf_size)/(no_tracks*sizeof(int16_t)); // no_samples
+   return 0; // (info.bytes-outbuf_size)/(no_tracks*sizeof(int16_t));
 }
 
 static char *
