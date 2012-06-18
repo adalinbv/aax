@@ -43,9 +43,11 @@ typedef struct
    _extension_fn *supported;
    _default_fname_fn *interfaces;
 
+   _get_param_fn *get_format;
+   _get_param_fn *get_no_tracks;
+   _get_param_fn *get_frequency;
    _get_param_fn *get_frame_size;
-   
-
+   _get_param_fn *get_block_size;
 
 } _aaxFileHandle;
 

@@ -1021,12 +1021,14 @@ _aaxMixerInit(_handle_t *handle)
    res = be->setup(handle->backend.handle, &bufsz, fmt, &ch, &freq);
    if TEST_FOR_TRUE(res)
    {
+printf("old freq: %f, ch: %i\n", freq, ch);
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
       {
          handle->valid |= AAX_TRUE;
          info->pitch = info->frequency/freq;
          info->no_tracks = ch;
          info->frequency = freq;
+printf("new freq: %f, ch: %i\n", freq, ch);
 
          /* only alter the refresh rate when not registered */
          if (!handle->handle)
