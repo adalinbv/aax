@@ -180,18 +180,23 @@ _batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int of
 void
 _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   unsigned int t;
-   for (t=0; t<tracks; t++)
+   if (tracks > 1)
    {
-      int32_t *s = (int32_t *)sptr + t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
+      unsigned int t;
+      for (t=0; t<tracks; t++)
+      {
+         int32_t *s = (int32_t *)sptr + t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
 
-      do {
-         *d++ = *s;
-         s += tracks;
+         do {
+            *d++ = *s;
+            s += tracks;
+         }
+         while (--i);
       }
-      while (--i);
+   } else if (tracks) {
+      _aax_memcpy(*dptr+offset, sptr, num*sizeof(int32_t));
    }
 }
 
