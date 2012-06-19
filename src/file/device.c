@@ -107,7 +107,7 @@ typedef struct
    uint8_t bytes_sample;
    char sse_level;
 
-   int16_t *ptr, *scratch;
+   char *ptr, *scratch;
 #ifndef NDEBUG
    unsigned int buf_len;
 #endif
@@ -351,7 +351,7 @@ _aaxFileDriverDisconnect(void *id)
 }
 
 static int
-_aaxFileDriverSetup(const void *id, size_t *bufsize, int fmt,
+_aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                         unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -359,41 +359,27 @@ _aaxFileDriverSetup(const void *id, size_t *bufsize, int fmt,
 
    assert(handle);
 
-   handle->format = fmt;
+   handle->format = *fmt;
+   handle->bytes_sample = aaxGetBytesPerSample(*fmt);
    handle->frequency_hz = *speed;
 
-   if (!handle->no_channels) {
-      handle->no_channels = *tracks;
-   }
 
-   switch(fmt)
-   {
-   case AAX_PCM8S:
-      handle->bytes_sample = 1;
-      break;
-   case AAX_PCM16S:
-      handle->bytes_sample = 2;
-      break;
-   default:
-      return AAX_FALSE;
-   }
-
-   if (!handle->file->id)
-   {
-      int mode = handle->mode;
-      handle->file->id = handle->file->setup(mode, *speed, *tracks, fmt, 1);
-   }
- 
+   handle->file->id=handle->file->setup(handle->mode, *speed, *tracks, *fmt, 1);
    if (handle->file->id)
    {
       int res = handle->file->open(handle->file->id, handle->name);
       if (res)
       {
-         *speed = handle->file->get_frequency(handle->file->id);
-         *tracks = handle->file->get_no_tracks(handle->file->id);
-         handle->format = handle->file->get_format(handle->file->id);
-         handle->format &= ~AAX_FORMAT_LE;
-         handle->no_channels = *tracks;
+         handle->frequency_hz = handle->file->get_frequency(handle->file->id);
+         handle->no_channels = handle->file->get_no_tracks(handle->file->id);
+         if (!handle->mode) { /* file data is always converted to PCM24S */
+            handle->format = AAX_PCM24S;
+         }
+
+         *fmt = handle->format;
+         *speed = handle->frequency_hz;
+         *tracks = handle->no_channels;
+
          rv = AAX_TRUE;
       }
    }
@@ -430,17 +416,17 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
    no_tracks = handle->no_channels;
    assert(no_tracks == handle->no_channels);
 
-   outbuf_size = no_tracks * no_samples*sizeof(int16_t);
+   outbuf_size = no_tracks * no_samples*sizeof(int16_t); //handle->bytes_sample;
    if (handle->ptr == 0)
    {
       char *p = 0;
-      handle->ptr = (int16_t *)_aax_malloc(&p, outbuf_size);
-      handle->scratch = (int16_t*)p;
+      handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
+      handle->scratch = (char *)p;
 #ifndef NDEBUG
       handle->buf_len = outbuf_size;
 #endif
    }
-   data = handle->scratch;
+   data = (int16_t *)handle->scratch;
    assert(outbuf_size <= handle->buf_len);
 
    /* TODO:
@@ -455,117 +441,98 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
 
    res = handle->file->update(handle->file->id, data, no_samples);
 
-   return 0; // (res - no_samples);
+   return res-res; // (res - no_samples);
 }
 
 static int
 _aaxFileDriverCapture(const void *id, void **tracks, size_t *frames, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
+   int file_framesz, file_bps, file_fmt;
+   int bytes, bufsz;
 
-   if (handle->mode != O_RDONLY || (frames == 0) || (tracks == 0))
+   if ((frames == 0) || (tracks == 0)) {
       return AAX_FALSE;
+   }
 
-   if (*frames == 0)
-      return AAX_TRUE;
-
-// Note: if this is required move it to the particular backend,
-//       the file backend definitely can't handle this.
-// *frames = 0;
-   if (tracks)
-   {
-      int res;
-
-      res = handle->file->update(handle->file->id, scratch, *frames);
-      if (res)
-      {
-         int file_no_tracks = handle->file->get_no_tracks(handle->file->id);
-         int file_framesz = handle->file->get_frame_size(handle->file->id);
-         int file_freq =  handle->file->get_frequency(handle->file->id);
-         int file_fmt = handle->file->get_format(handle->file->id);
-         int file_bps = aaxGetBytesPerSample(file_fmt);
-         unsigned file_no_samples = res / file_bps;
-         unsigned no_samples = res / file_framesz;
-         void *data = scratch;
-         float fact;
-
-         *frames = no_samples;
-         file_fmt &= ~AAX_FORMAT_LE;
-         fact = (float)file_freq / (float)handle->frequency_hz;
-
-					/* first convert to native endianness */
-         if (is_bigendian())	/* WAV is little endian */
-         {
-            switch (file_fmt)
-            {
-            case AAX_PCM16S:
-               _batch_endianswap16(data, file_no_samples);
-               break;
-            case AAX_PCM24S:
-            case AAX_PCM32S:
-            case AAX_FLOAT:
-               _batch_endianswap32(data, file_no_samples);
-               break;
-            case AAX_DOUBLE:
-               _batch_endianswap64(data, file_no_samples);
-               break;
-            default:
-               break;
-            }
-         }
-					/* then convert to proper signedness */
-         if (file_fmt == AAX_PCM8U)
-         {
-            _batch_cvt8u_8s(data, file_no_samples);
-            file_fmt = AAX_PCM8S;
-         }
-						/* convert to signed 24-bit */
-         if (file_fmt != AAX_PCM24S)
-         {
-            void *ndata = (void*)malloc(file_no_samples*sizeof(int32_t));
-            if (ndata)
-            {
-               bufConvertDataToPCM24S(ndata, data, file_no_samples, file_fmt);
-               if (data != scratch) free(data);
-               data = ndata;
-            }
-         }
-
-         if (file_no_tracks > 1)
-         {
-            unsigned int size = handle->no_channels*no_samples*sizeof(int32_t);
-            int32_t **ndata;
-            char *ptr;
- 
-            ptr = (char*)(handle->no_channels*sizeof(int32_t*));
-            ndata = (int32_t**)_aax_malloc(&ptr, size);
-            if (ndata)
-            {
-               int t;
-               for (t=0; t<handle->no_channels; t++)
-               {
-                  ndata[t] = (int32_t*)ptr;
-                  ptr += no_samples*sizeof(int32_t);
-               }
-               _batch_cvt24_24_intl(ndata, data, 0, file_no_tracks, no_samples);
-               for (t=0; t<handle->no_channels; t++) {
-                  _aaxProcessResample(tracks[t], ndata[t],0,no_samples,0,fact);
-               }
-               free(ndata);
-            }
-         }
-         else
-         {
-            int t;
-            for (t=0; t<handle->no_channels; t++) {
-               _aaxProcessResample(tracks[t], data, 0, no_samples, 0, fact);
-            }
-         }
-      }
+   if (*frames == 0) {
       return AAX_TRUE;
    }
 
-   return AAX_FALSE;
+   file_framesz = handle->file->get_frame_size(handle->file->id);
+   file_fmt = handle->file->get_format(handle->file->id);
+   file_bps = aaxGetBytesPerSample(file_fmt);
+
+   bytes = handle->file->update(handle->file->id, scratch, *frames);
+
+   bufsz = *frames * file_framesz;		/* clear the remaining buffer */
+   if (bytes != bufsz) {
+      memset((char*)scratch+bytes, 0, bufsz-bytes);
+      bytes = bufsz;
+   }
+
+   if (bytes)
+   {
+      int file_no_tracks = handle->file->get_no_tracks(handle->file->id);
+      unsigned int file_no_frames = bytes / file_bps;
+      unsigned int no_frames = bytes / file_framesz;
+      void *data = scratch;
+
+      if (handle->ptr == 0)
+      {
+         unsigned int outbuf_size;
+         char *p = 0;
+
+         outbuf_size = handle->no_channels * no_frames*sizeof(int32_t);
+         handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
+         handle->scratch = (char *)p;
+#ifndef NDEBUG
+         handle->buf_len = outbuf_size;
+#endif
+      }
+
+      if (no_frames != *frames) {
+         memset(data+file_no_frames, 0, *frames*file_framesz-bytes);
+      }
+      no_frames = *frames;
+					/* first convert to native endianness */
+      if (is_bigendian())	/* WAV is little endian */
+      {
+         switch (file_fmt)
+         {
+         case AAX_PCM16S:
+            _batch_endianswap16(data, file_no_frames);
+            break;
+         case AAX_PCM24S:
+         case AAX_PCM32S:
+         case AAX_FLOAT:
+            _batch_endianswap32(data, file_no_frames);
+            break;
+         case AAX_DOUBLE:
+            _batch_endianswap64(data, file_no_frames);
+            break;
+         default:
+            break;
+         }
+      }
+					/* then convert to proper signedness */
+      if (file_fmt == AAX_PCM8U)
+      {
+         _batch_cvt8u_8s(data, file_no_frames);
+         file_fmt = AAX_PCM8S;
+      }
+					/* then convert to signed 24-bit */
+      if (file_fmt != AAX_PCM24S)
+      {
+         char *ndata = handle->scratch;
+         bufConvertDataToPCM24S(ndata, data, file_no_frames, file_fmt);
+         data = ndata;
+      }
+					/* last resample and de-interleave */
+     _batch_cvt24_24_intl((int32_t**)tracks, data, 0, file_no_tracks, no_frames);
+   }
+
+   return AAX_TRUE;
 }
 
 int
@@ -779,34 +746,3 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    close(fd);
 }
 
-#if 0
-enum aaxFormat
-getFormatFromFileFormat(unsigned int format, int  bps)
-{
-   enum aaxFormat rv = AAX_FORMAT_NONE;
-   switch (format)
-   {
-   case 1:
-      if (bps == 8) rv = AAX_PCM8U;
-      else if (bps == 16) rv = AAX_PCM16S_LE;
-      else if (bps == 32) rv = AAX_PCM32S_LE;
-      break;
-   case 3:
-      if (bps == 32) rv = AAX_FLOAT_LE;
-      else if (bps == 64) rv = AAX_DOUBLE_LE;
-      break;
-   case 6:
-      rv = AAX_ALAW;
-      break;
-   case 7:
-      rv = AAX_MULAW;
-      break;
-   case 17:
-      rv = AAX_IMA4_ADPCM;
-      break;
-   default:
-      break;
-   }
-   return rv;
-}
-#endif

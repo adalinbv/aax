@@ -82,6 +82,16 @@ _aaxDetectWavFile()
 # define O_BINARY               0
 #endif
 
+enum wavFormat
+{
+   UNSUPPORTED = 0,
+   PCM_WAVE = 1,
+   FLOAT_WAVE = 3,
+   ALAW_WAVE = 6,
+   MULAW_WAVE = 7,
+   IMA4_ADPCM_WAVE = 17
+};
+
 static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
     0x46464952,                 /*  0. "RIFF"                                */
@@ -450,24 +460,29 @@ static enum aaxFormat
 getFormatFromFileFormat(unsigned int format, int  bits_sample)
 {
    enum aaxFormat rv = AAX_FORMAT_NONE;
+   int big_endian = is_bigendian();
    switch (format)
    {
-   case 1:
+   case PCM_WAVE:
       if (bits_sample == 8) rv = AAX_PCM8U;
-      else if (bits_sample == 16) rv = AAX_PCM16S_LE;
-      else if (bits_sample == 32) rv = AAX_PCM32S_LE;
+      else if (bits_sample == 16 && big_endian) rv = AAX_PCM16S_LE;
+      else if (bits_sample == 16) rv = AAX_PCM16S;
+      else if (bits_sample == 32 && big_endian) rv = AAX_PCM32S_LE;
+      else if (bits_sample == 32) rv = AAX_PCM32S;
       break;
-   case 3:
-      if (bits_sample == 32) rv = AAX_FLOAT_LE;
-      else if (bits_sample == 64) rv = AAX_DOUBLE_LE;
+   case FLOAT_WAVE:
+      if (bits_sample == 32 && big_endian) rv = AAX_FLOAT_LE;
+      else if (bits_sample == 32) rv = AAX_FLOAT;
+      else if (bits_sample == 64 && big_endian) rv = AAX_DOUBLE_LE;
+      else if (bits_sample == 64) rv = AAX_DOUBLE;
       break;
-   case 6:
+   case ALAW_WAVE:
       rv = AAX_ALAW;
       break;
-   case 7:
+   case MULAW_WAVE:
       rv = AAX_MULAW;
       break;
-   case 17:
+   case IMA4_ADPCM_WAVE:
       rv = AAX_IMA4_ADPCM;
       break;
    default:
@@ -476,30 +491,38 @@ getFormatFromFileFormat(unsigned int format, int  bits_sample)
    return rv;
 }
 
-
 static unsigned int
 getFileFormatFromFormat(enum aaxFormat format)
 {
-   unsigned int rv = 1;
+   int big_endian = is_bigendian();
+   unsigned int rv = UNSUPPORTED;
    switch (format)
    {
    case AAX_PCM8U:
    case AAX_PCM16S_LE:
    case AAX_PCM32S_LE:
-      return 1;			/* PCM */
+      rv = PCM_WAVE;
+      break;
+   case AAX_PCM16S:
+   case AAX_PCM32S:
+      if (!big_endian) rv = PCM_WAVE;
       break;
    case AAX_FLOAT_LE:
    case AAX_DOUBLE_LE:
-      return 3;			/* IEEE float */
+      rv = FLOAT_WAVE;
+      break;
+   case AAX_FLOAT:
+   case AAX_DOUBLE:
+      if (!big_endian) rv = FLOAT_WAVE;
       break;
    case AAX_ALAW:
-      rv = 6;			/* 8-bit ITU-T G.711 A-law */
+      rv = ALAW_WAVE;
       break;
    case AAX_MULAW:
-      rv = 7;			/* 8-bit ITU-T G.711 µ-law */
+      rv = MULAW_WAVE;
       break;
    case AAX_IMA4_ADPCM:
-      rv = 17;			/* Intel DVI ADPCM (IMA ADPCM) */
+      rv = IMA4_ADPCM_WAVE;
       break;
    default:
       break;
