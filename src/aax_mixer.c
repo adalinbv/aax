@@ -1005,46 +1005,27 @@ _aaxMixerInit(_handle_t *handle)
    const _aaxDriverBackend *be = handle->backend.ptr;
    _aaxMixerInfo* info = handle->info;
    float refrate = info->refresh_rate;
-   enum aaxFormat fmt = info->format;			/* playback format */
    unsigned ch = info->no_tracks;
    float freq = info->frequency;
-   size_t bufsz = 0;
+   size_t frames = freq / refrate;
+   int fmt = info->format;
 
    assert(be != 0);
 
-   if (bufsz == 0)
-   {
-      float no_samples = freq / refrate;
-      bufsz = (size_t)(no_samples * ch*(_oalRingBufferFormat[fmt].bits/8));
-   }
-
-   res = be->setup(handle->backend.handle, &bufsz, fmt, &ch, &freq);
+   res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq);
    if TEST_FOR_TRUE(res)
    {
-printf("old freq: %f, ch: %i\n", freq, ch);
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
       {
          handle->valid |= AAX_TRUE;
          info->pitch = info->frequency/freq;
-         info->no_tracks = ch;
          info->frequency = freq;
-printf("new freq: %f, ch: %i\n", freq, ch);
+         info->no_tracks = ch;
+         info->format = fmt;
 
          /* only alter the refresh rate when not registered */
-         if (!handle->handle)
-         {
-            if (freq != info->frequency)
-            {
-               float iv = info->refresh_rate;
-               iv = freq / (float)get_pow2((unsigned int)ceilf(freq / iv));
-               info->refresh_rate = iv;
-            }
-            else /* bufsz might be altered */
-            {
-               float no_samples = (float)bufsz;
-               no_samples /= (float)(ch*(_oalRingBufferFormat[fmt].bits/8));
-               info->refresh_rate = freq / no_samples;
-            }
+         if (!handle->handle) {
+            info->refresh_rate = freq / frames;
          }
       }
       else {

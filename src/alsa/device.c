@@ -606,7 +606,7 @@ _aaxALSADriverDisconnect(void *id)
 #endif
 
 static int
-_aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
+_aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                         unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -807,9 +807,9 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
 
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = size * periods / (rate * tracks * bps))              */
-      if (bufsize && (*bufsize > 0))
+      if (frames && (*frames > 0))
       {
-         size = *bufsize/periods;
+         size = *frames*channels*bps;
          if (!handle->mode) size *= period_fact;
       } else {
          size = rate/25;
@@ -820,7 +820,7 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
             "unvalid buffer size" );
       size /= periods;
-      *bufsize = size*channels*bps;
+      *frames = size/(channels*bps);
 
       if (!handle->mode) size /= period_fact;
       handle->period_size = size;
@@ -853,7 +853,7 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
          _AAX_SYSLOG(str);
-         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*bufsize);
+         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*frames*channels*bps);
          _AAX_SYSLOG(str);
          snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
          _AAX_SYSLOG(str);
@@ -866,7 +866,7 @@ _aaxALSADriverSetup(const void *id, size_t *bufsize, int fmt,
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
          _AAX_SYSLOG(str);
 #if 0
-// printf("\tformat: %X", fmt);
+// printf("\tformat: %X", *fmt);
 #endif
       } while (0);
 

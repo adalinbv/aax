@@ -172,7 +172,7 @@ _aaxNoneDriverDisconnect(void *id)
 }
 
 static int
-_aaxNoneDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tracks, float *speed)
+_aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tracks, float *speed)
 {
    return AAX_TRUE;
 }

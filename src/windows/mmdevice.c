@@ -446,14 +446,14 @@ _aaxMMDevDriverDisconnect(void *id)
 }
 
 static int
-_aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
+_aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
                    unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
    unsigned int channels, freq;
-   int bps, frames = 2048;
+   int bps, no_samples = 1024;
    WAVEFORMATEX *wfx, fmt;
    AUDCLNT_SHAREMODE mode;
    int frame_sz;
@@ -463,6 +463,10 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
    assert(handle);
 
    freq = (unsigned int)*speed;
+
+   if (frames && *frames) {
+      no_samples = *frames;
+   }
 
    channels = *tracks;
    if (channels > handle->pFormat->nChannels) {
@@ -477,26 +481,8 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
       return AAX_FALSE;
    }
 
-   switch(format)
-   {
-   case AAX_PCM8S:
-      bps = 1;
-      break;
-   case AAX_PCM16S:
-      bps = 2;
-      break;
-   case  AAX_PCM32S:
-      bps = 4;
-      break;
-   default:
-      _AAX_SYSLOG("mmdev; unsupported audio format.");
-      return AAX_FALSE;
-   }
+   bps = aaxGetBytesPerSample(*format);
    frame_sz = channels * bps;
-
-   if (*bufsize) {
-      frames = *bufsize/frame_sz;
-   }
 
    /*
     * For shared mode set wfx to point to a valid, non-NULL pointer variable.
@@ -592,7 +578,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
     */
    stream = 0;
    freq = (unsigned int)handle->pFormat->nSamplesPerSec;
-   hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*frames/freq);
+   hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*no_samples/freq);
    if (handle->exclusive)
    {
 #if USE_EVENT_THREAD
@@ -623,7 +609,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *bufsize, int format,
       hr = pIAudioClient_GetBufferSize(handle->pAudioClient, &bufFrameCnt);
       if (SUCCEEDED(hr))
       {
-         if (bufsize) *bufsize = bufFrameCnt*frame_sz;
+         if (frames) *frames = bufFrameCnt;
 
          hr = pIAudioClient_GetService(handle->pAudioClient,
                                        pIID_IAudioRenderClient,

@@ -531,7 +531,7 @@ _aaxDMediaDriverDisconnect(void *id)
 }
 
 static int
-_aaxDMediaDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tracks, float *speed)
+_aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, data_format;
@@ -547,20 +547,19 @@ _aaxDMediaDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tr
    if (handle->port[0]._no_channels_avail >= channels)
       handle->noPorts = 1;
 
-   switch(fmt)
+   switch(*fmt)
    {
    case AAX_PCM8S:
       data_format = AL_SAMPLE_8;
-      handle->port[0].bytes_sample = 1;
       break;
    case AAX_PCM16S:
       data_format = AL_SAMPLE_16;
-      handle->port[0].bytes_sample = 2;
       break;
    default:
       _AAX_SYSLOG("dmedia: Unsopported playback format\n");
       return AAX_FALSE;
    }
+   handle->port[0].bytes_sample = aaxGetBytesPerSample(*fmt);
 
    /*
     * Change the playback sample rate
@@ -608,8 +607,8 @@ _aaxDMediaDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tr
       result = palSetChannels(handle->port[0].config,
                         handle->port[0].no_channels);
 
-      if (bufsize && (*bufsize > 0)) {
-         queuesize = *bufsize;
+      if (frames && (*frames > 0)) {
+         queuesize = *frames * channels * handle->port[0].bytes_sample;
       }
       else {
          queuesize = (unsigned int)(handle->port[0].frequency_hz * handle->port[0].no_channels/10.0f);
@@ -617,7 +616,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *bufsize, int fmt, unsigned int *tr
 
       palSetQueueSize(handle->port[0].config, queuesize);
 
-      if (bufsize) *bufsize = queuesize;
+      if (frames) *frames = queuesize/(channels*handle->port[0].bytes_sample);
    }
 
    palSetSampFmt(handle->port[0].config, AL_SAMPFMT_TWOSCOMP);

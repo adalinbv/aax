@@ -346,16 +346,17 @@ _aaxOSSDriverDisconnect(void *id)
 }
 
 static int
-_aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
+_aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
                    unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, format, freq;
-   int frag, bufsz = 4096;
+   int frag, no_samples = 1024;
+   audio_buf_info info;
    int fd, err;
 
-   if (*bufsize) {
-      bufsz = *bufsize;
+   if (*frames) {
+      no_samples = *frames;
    }
 
    assert(handle);
@@ -363,8 +364,6 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
    if (handle->no_tracks > *tracks) {
       handle->no_tracks = *tracks;
    }
-   bufsz *= handle->no_tracks;
-   bufsz /= *tracks;
    *tracks = handle->no_tracks;
 
    if (*tracks > 2)
@@ -380,20 +379,19 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
    freq = (unsigned int)*speed;
    channels = *tracks; // handle->no_tracks;
 
-   switch(fmt)
+   switch(*fmt)
    {
    case AAX_PCM8S:	
       format = AFMT_S8;
-      handle->bytes_sample = 1;
       break;
    case AAX_PCM16S:
       format = AFMT_S16_LE;
-      handle->bytes_sample = 2;
       break;
    default:
       _AAX_SYSLOG("oss; unsupported audio format.");
       return AAX_FALSE;
    }
+   handle->bytes_sample = aaxGetBytesPerSample(*fmt);
 
    /* disable sample conversion */
    if (handle->oss_version >= OSS_VERSION_4)
@@ -402,7 +400,7 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
       err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
    }
 
-   frag = log2i(bufsz);
+   frag = log2i(no_samples*channels*handle->bytes_sample);
 // frag = log2i(channels*freq); // 1 second buffer
    if (frag < 4) {
       frag = 4;
@@ -418,21 +416,16 @@ _aaxOSSDriverSetup(const void *id, size_t *bufsize, int fmt,
    if (err >= 0) {
       err = pioctl(fd, SNDCTL_DSP_SPEED, &freq);
    }
-   if ((err >= 0) && (handle->mode == O_WRONLY))
-   {
-      audio_buf_info info;
+   if ((err >= 0) && (handle->mode == O_WRONLY)) {
       err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
-      if (err >= 0) {
-         bufsz = info.fragsize;
-      }
    }
    if (err >= 0)
    {
       handle->format = format;
       handle->no_tracks = channels;
       handle->frequency_hz = (float)freq;
-      handle->buffer_size = bufsz;
-      if (bufsize) *bufsize = bufsz;
+      handle->buffer_size = info.fragsize;
+      if (frames) *frames = info.fragsize/(channels*handle->bytes_sample);
    }
 
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
