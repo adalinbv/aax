@@ -555,7 +555,7 @@ _batch_cvt16u_16s_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ -= (int16_t)32767;
+      *p++ -= (int16_t)32768;
    } while (--i);
 }
 
@@ -566,7 +566,7 @@ _batch_cvt16s_16u_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ += (uint16_t)32767;
+      *p++ += (uint16_t)32768;
    } while (--i);
 }
 
@@ -577,7 +577,7 @@ _batch_cvt24u_24s_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ -= (int32_t)8388607;
+      *p++ -= (int32_t)8388608;
    } while (--i);
 }
 
@@ -588,7 +588,7 @@ _batch_cvt24s_24u_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ += (uint32_t)8388607;
+      *p++ += (uint32_t)8388608;
    } while (--i);
 }
 
@@ -599,7 +599,7 @@ _batch_cvt32u_32s_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ -= (int32_t)2147483647;
+      *p++ -= (int32_t)2147483648;
    } while (--i);
 }
 
@@ -610,7 +610,7 @@ _batch_cvt32s_32u_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ += (uint32_t)2147483647;
+      *p++ += (uint32_t)2147483648;
    } while (--i);
 }
 
