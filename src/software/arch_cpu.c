@@ -533,7 +533,7 @@ _batch_cvt8u_8s_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ -= (int8_t)127;
+      *p++ -= 128;
    } while (--i);
 }
 
@@ -544,7 +544,7 @@ _batch_cvt8s_8u_cpu(void *data, unsigned int no_samples)
    unsigned int i = no_samples;
 
    do {
-      *p++ += (uint8_t)127;
+      *p++ += 128;
    } while (--i);
 }
 
