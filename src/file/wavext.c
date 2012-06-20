@@ -117,14 +117,14 @@ static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 
 typedef struct
 {
+   char *name;
+
    int fd;
    int mode;
    int capturing;
-   char *name;
 
    int frequency;
    int no_tracks;
-   int frame_size;
    unsigned int no_frames;
    unsigned bits_sample;
    unsigned blocksize;
@@ -244,7 +244,6 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format, int blocksz)
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
-         handle->frame_size = (handle->bits_sample * handle->no_tracks)/8;
       }
    }
 
@@ -255,7 +254,7 @@ static int
 _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t buflen = no_frames * handle->frame_size;
+   size_t buflen = no_frames * (handle->bits_sample * handle->no_tracks)/8;
    int rv = AAX_FALSE;
 
    if (!handle->capturing)
@@ -323,7 +322,7 @@ static unsigned int
 _aaxWavFileGetFrameSize(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle->frame_size;
+   return (handle->bits_sample * handle->no_tracks)/8;
 }
 
 static unsigned int
@@ -341,7 +340,7 @@ _aaxFileDriverReadHeader(_driver_t *handle)
    char buf[4];
    int i, res;
 
-// lseek(handle->fd, 0L, SEEK_SET);
+   lseek(handle->fd, 0L, SEEK_SET);
    res = read(handle->fd, &header, WAVE_EXT_HEADER_SIZE*4);
    if (res <= 0) return -1;
 
