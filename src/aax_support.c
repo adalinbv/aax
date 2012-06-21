@@ -201,6 +201,38 @@ aaxGetBytesPerSample(enum aaxFormat format)
    return rv;
 }
 
+AAX_API unsigned AAX_APIENTRY
+aaxGetBitsPerSample(enum aaxFormat format)
+{
+   unsigned rv = 0;
+
+   switch (format)
+   {
+   case AAX_PCM8S:
+   case AAX_MULAW:
+   case AAX_ALAW:
+      rv = 8;
+      break;
+   case AAX_PCM16S:
+      rv = 16;
+      break;
+   case AAX_PCM24S:
+   case AAX_PCM32S:
+   case AAX_FLOAT:
+      rv = 32;
+      break;
+   case AAX_DOUBLE:
+      rv = 64;
+      break;
+   case AAX_IMA4_ADPCM:
+      rv = 4;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
 AAX_API int AAX_APIENTRY
 aaxIsValid(const void* handle, enum aaxHandleType type)
 {

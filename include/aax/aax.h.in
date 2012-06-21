@@ -387,6 +387,7 @@ AAX_API enum aaxErrorType AAX_APIENTRY aaxGetErrorNo();
 AAX_API const char* AAX_APIENTRY aaxGetErrorString(enum aaxErrorType);
 
 AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
+AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
 AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
 AAX_API int AAX_APIENTRY aaxIsFilterSupported(aaxConfig, const char*);
