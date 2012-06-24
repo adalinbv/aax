@@ -267,12 +267,12 @@ static int
 _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
 {
    _handle_t *handle = (_handle_t *)id;
-   size_t buflen = (handle->no_tracks * no_frames * handle->bits_sample)/8;
+   size_t bufsize = (handle->no_tracks * no_frames * handle->bits_sample)/8;
    int rv = AAX_FALSE;
 
    if (!handle->capturing)
    {
-      rv = write(handle->fd, data, buflen);
+      rv = write(handle->fd, data, bufsize);
       if (rv > 0)
       {
          handle->io.write.update_dt += (float)no_frames/handle->frequency;
@@ -289,7 +289,7 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
       if (handle->format == AAX_IMA4_ADPCM) {
          rv = _aaxWavFileReadIMA4(handle, data, no_frames);
       } else {
-         rv = read(handle->fd, data, buflen);
+         rv = read(handle->fd, data, bufsize);
       }
    }
 
@@ -348,7 +348,7 @@ _aaxFileDriverReadHeader(_handle_t *handle)
 {
    uint32_t header[WAVE_EXT_HEADER_SIZE];
    int i, res, fmt;
-   size_t buflen;
+   size_t bufsize;
    char buf[4];
 
    lseek(handle->fd, 0L, SEEK_SET);
@@ -377,7 +377,7 @@ _aaxFileDriverReadHeader(_handle_t *handle)
 #endif
 
    /* search for the data chunk */
-   buflen = 0;
+   bufsize = 0;
    if (lseek(handle->fd, 32L, SEEK_SET) > 0)
    {
       do
@@ -390,14 +390,14 @@ _aaxFileDriverReadHeader(_handle_t *handle)
                 (buf[0] == 'd' && buf[1] == 'a' &&
                  buf[2] == 't' && buf[3] == 'a'))
             {
-               res = read(handle->fd, &buflen, 4); /* chunk size */
-               if (is_bigendian()) buflen = _bswap32(buflen);
+               res = read(handle->fd, &bufsize, 4); /* chunk size */
+               if (is_bigendian()) bufsize = _bswap32(bufsize);
                break;
             }
          }
       }
       while (1);
-//    handle->no_frames = (buflen*8)/(handle->no_tracks*handle->bits_sample);
+//    handle->no_frames = (bufsize*8)/(handle->no_tracks*handle->bits_sample);
    }
    else {
       res = -1;
@@ -549,80 +549,88 @@ getFileFormatFromFormat(enum aaxFormat format)
 }
 
 static int16_t*
-_aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int len, unsigned int offs_smp)
+_aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int no_samples, unsigned int offs)
 {
    _handle_t *handle = (_handle_t*)id;
+   int32_t *src = handle->io.read.blockbuf;
+   unsigned t, tracks = handle->no_tracks;
    int16_t *d = dst;
 
-   if (len)
+   if (!no_samples) return dst;
+
+   for (t=0; t<tracks; t++)
    {
-      unsigned t, tracks = handle->no_tracks;
-      int32_t *src = handle->io.read.blockbuf;
+      int16_t predictor = handle->io.read.predictor[t];
+      uint8_t index = handle->io.read.index[t];
+      unsigned int offs_smp = offs;
+      unsigned int l, ctr = 4;
+      uint8_t *sptr;
+      int32_t *s;
 
-      for (t=0; t<tracks; t++)
+      d = dst+t;
+      s = src+t;
+      l = no_samples;
+
+      if (!offs_smp)
       {
-         int16_t predictor = handle->io.read.predictor[t];
-         uint8_t index = handle->io.read.index[t];
-         unsigned int l, ctr = 4;
-         uint8_t *sptr;
-         int32_t *s;
+         sptr = (uint8_t*)s;			/* read the block header */
+         predictor = *sptr++;
+         predictor |= *sptr++ << 8;
+         index = *sptr;
 
-         s = src+t;
-         if (!offs_smp)
-         {
+         s += tracks;				/* skip the header      */
+         sptr = (uint8_t*)s;
+      }
+      else
+      {
+         unsigned int chunks = offs_smp/8;	/* 8 samples per chunk  */
+
+         s += tracks;				/* skip the header      */
+         s += tracks*chunks;			/* skip the data chunks */
+         sptr = (uint8_t*)s;
+
+         offs_smp -= chunks*8;			/* add remaining offset */
+         sptr += offs_smp/2;			/* two samples per byte */
+
+         offs_smp -= (offs_smp/2)*2;		/* skip two-sample chunks   */
+         if (offs_smp)				/* offset was an odd number */
+         {					/* probably never happens   */
+            uint8_t nibble = *sptr++;
+            *d = ima2linear(nibble >> 4, &predictor, &index);
+            d += tracks;
+            s += tracks;
             sptr = (uint8_t*)s;
-            predictor = *sptr++;
-            predictor |= *sptr++ << 8;
-            index = *sptr;
+            --l;
+         }
+      }
 
+      while(l >= 2)			/* decode the (rest of the) blocks  */
+      {
+         uint8_t nibble = *sptr++;
+         *d = ima2linear(nibble & 0xF, &predictor, &index);
+         d += tracks;
+         *d = ima2linear(nibble >> 4, &predictor, &index);
+         d += tracks;
+         if (--ctr == 0)
+         {
+            ctr = 4;
             s += tracks;
             sptr = (uint8_t*)s;
          }
-         else
-         {
-            unsigned int chunks = offs_smp/8;	/* 8 samples per chunk */
-            offs_smp -= chunks*8;
-
-            s += tracks*(1+chunks);		/* add 1 to skip the header */
-            sptr = (uint8_t*)s + offs_smp/2;	/* 2 samples per byte */
-            offs_smp -= (offs_smp/2)*2;
-         }
-
-         d = dst+t;
-         if (offs_smp)				/* offset was an odd number */
-         {
-            uint8_t nibble = *sptr++;
-            *d = ima2linear(nibble >> 4, &predictor, &index);
-            d += tracks;
-         }
-
-         l = len - offs_smp;
-         while(l >= 2)			/* decode the (rest of the) block */
-         {
-            uint8_t nibble = *sptr++;
-            *d = ima2linear(nibble & 0xF, &predictor, &index);
-            d += tracks;
-            *d = ima2linear(nibble >> 4, &predictor, &index);
-            d += tracks;
-            if (--ctr == 0)
-            {
-               ctr = 4;
-               s += tracks;
-               sptr = (uint8_t*)s;
-            }
-            l -= 2;
-         }
-
-         if (l)				/* no. samples was an odd number */
-         {
-            uint8_t nibble = *sptr++;
-            *d = ima2linear(nibble >> 4, &predictor, &index);
-            d += tracks;
-         }
-         handle->io.read.predictor[t] = predictor;
-         handle->io.read.index[t] = index;
+         l -= 2;
       }
+
+      if (l)				/* no. samples was an odd number */
+      {					/* which probably never happens  */
+         uint8_t nibble = *sptr;
+         *d = ima2linear(nibble & 0xF, &predictor, &index);
+         d += tracks;
+      }
+
+      handle->io.read.predictor[t] = predictor;
+      handle->io.read.index[t] = index;
    }
+
    return d;
 }
 
@@ -638,20 +646,18 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
 
    if (no_samples)
    {
-      unsigned int buflen, block_smp, offs_smp;
+      unsigned int bufsize, block_smp, offs_smp;
       unsigned blocksize;
       int tracks, res;
-      void *src;
 
       blocksize = handle->blocksize;
       block_smp = BLOCKSIZE_TO_SMP(blocksize);
 
       tracks = handle->no_tracks;
-      buflen = tracks*blocksize;
+      bufsize = tracks*blocksize;
       if (handle->io.read.blockbuf == 0) {
-         handle->io.read.blockbuf = malloc(buflen);
+         handle->io.read.blockbuf = malloc(bufsize);
       }
-      src = handle->io.read.blockbuf;
 
       offs_smp = handle->io.read.blockstart_smp;
       if (offs_smp)	/* there is data from a previous run to process */
@@ -677,7 +683,7 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
          no_samples -= blocks*block_smp;
          while (blocks--)
          {
-            res = read(handle->fd, src, buflen);
+            res = read(handle->fd, handle->io.read.blockbuf, bufsize);
             if (res > 0)
             {
                dst = _aaxWavFileMSIMADecode(handle, dst, block_smp, 0);
@@ -694,7 +700,7 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
          handle->io.read.blockstart_smp = no_samples;
          if (no_samples)		/* one more block is required */
          {
-            res = read(handle->fd, src, buflen);
+            res = read(handle->fd, handle->io.read.blockbuf, bufsize);
             if (res > 0)
             {
                _aaxWavFileMSIMADecode(handle, dst, no_samples, 0);
