@@ -172,11 +172,6 @@ _aaxProcessCodec(int32_t* d, void *s, _aaxCodec *codecfn, unsigned int src_pos,
 
 /* -------------------------------------------------------------------------- */
 
-static uint8_t linear2alaw(int16_t);
-static uint8_t linear2mulaw(int16_t);
-static int16_t ima2linear (uint8_t, int16_t *, uint8_t *);
-static void    linear2ima(int16_t *, int16_t, uint8_t *, uint8_t *);
-
 static void
 _sw_bufcpy_8s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
@@ -282,7 +277,7 @@ _sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, unsigned in
 /* single sample convert */
 #define _BIAS		0x80
 #define _CLIP		32635
-static uint8_t
+uint8_t
 linear2mulaw(int16_t sample)
 {
    int sign, exponent, mantissa;
@@ -305,7 +300,7 @@ linear2mulaw(int16_t sample)
 }
 
 /* single sample convert */
-static uint8_t
+uint8_t
 linear2alaw(int16_t sample)
 {
      int sign, exponent, mantissa;
@@ -334,7 +329,7 @@ linear2alaw(int16_t sample)
 }
 
 /* single sample convert */
-static int16_t
+int16_t
 ima2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
 {
   int32_t predictor;
@@ -368,7 +363,7 @@ ima2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
 
 
 /* single sample convert */
-static void
+void
 linear2ima(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
 {
    int16_t diff, ndiff, mask, step;
