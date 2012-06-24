@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 typedef int (_detect_fn)(int);
-typedef void* (_new_hanle_fn)(int, int, int, int, int);
+typedef void* (_new_hanle_fn)(int, int, int, int);
 typedef int (_open_fn)(void*, const char*);
 typedef int (_close_fn)(void*);
 typedef int (_update_fn)(void*, void*, unsigned int);
@@ -46,8 +46,7 @@ typedef struct
    _get_param_fn *get_format;
    _get_param_fn *get_no_tracks;
    _get_param_fn *get_frequency;
-   _get_param_fn *get_frame_size;
-   _get_param_fn *get_block_size;
+   _get_param_fn *get_bits_per_sample;
 
 } _aaxFileHandle;
 
