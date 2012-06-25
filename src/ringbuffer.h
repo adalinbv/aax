@@ -777,7 +777,7 @@ void bufCompressDigital(void*, unsigned int, unsigned int);
 void bufCompressValve(void*, unsigned int, unsigned int);
 
 void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
-void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int, unsigned int);
+void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 
 
 #if defined(__cplusplus)
