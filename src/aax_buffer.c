@@ -563,8 +563,8 @@ aaxBufferGetData(const aaxBuffer buffer)
             if (ndata)
             {
                 *ndata = (void*)ptr;
-                bufConvertDataFromPCM24S(*ndata, *data, tracks, buf_samples,
-                                        native_fmt, no_samples, buf->blocksize);
+                bufConvertDataFromPCM24S(*ndata, *data, tracks, no_samples,
+                                        native_fmt, buf->blocksize);
                free(data);
                data = ndata;
             }

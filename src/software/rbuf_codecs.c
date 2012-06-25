@@ -537,10 +537,11 @@ _aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned bl
 }
 
 void
-bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned int samples, enum aaxFormat format, unsigned int no_samples, unsigned int blocksize)
+bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned int no_samples, enum aaxFormat format, unsigned int blocksize)
 {
    if (ndata)
    {
+      unsigned int samples = tracks*no_samples;
       switch(format)
       {
       case AAX_PCM8S:
@@ -554,7 +555,7 @@ bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned 
          break;
       case AAX_FLOAT:
          _batch_cvtps_24(ndata, data, samples);
-      break;
+         break;
       case AAX_DOUBLE:
          _batch_cvtpd_24(ndata, data, samples);
          break;
