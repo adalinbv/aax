@@ -29,6 +29,10 @@ extern "C" {
 # include <config.h>
 #endif
 
+#ifndef O_BINARY
+# define O_BINARY               0
+#endif
+
 #ifdef _MSC_VER
 # define ALIGN16        __declspec(align(16))
 #elif defined(__GNUC__)
