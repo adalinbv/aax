@@ -78,6 +78,8 @@ _aaxDetectWavFile()
 #define DEFAULT_OUTPUT_RATE     22050
 #define WAVE_HEADER_SIZE        11
 #define WAVE_EXT_HEADER_SIZE    17
+#define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
+
 
 enum wavFormat
 {
@@ -102,12 +104,12 @@ static const uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
     0x0001f400,                 /*  7. (sample_rate*channels*bits_sample/8)  */
     0x00100004,                 /*  8. (channels*bits_sample/8)              *
                                  *     & 16 bits per sample                  */
-/* used for both the extensible data section and data section */
+	/* used for both the extensible data section and data section */
     0x61746164,                 /*  9. "data"                                */
     0,                          /* 10. length of the data block              *
                                  *     (sampels*channels*bits_sample/8)      */
-    0,0,
-/* data section starts here in case of the extensible format */
+    0, 0,
+	/* data section starts here in case of the extensible format */
     0x61746164,                 /* 15. "data"                                */
     0
 };
@@ -121,10 +123,10 @@ typedef struct
    int capturing;
 
    int frequency;
-   int no_tracks;
-   unsigned bits_sample;
-   unsigned blocksize;
    enum aaxFormat format;
+   uint16_t blocksize;
+   uint8_t no_tracks;
+   uint8_t bits_sample;
 
    union
    {
@@ -133,6 +135,7 @@ typedef struct
          uint32_t *header;
          size_t size_bytes;
          float update_dt;
+         int16_t format;
       } write;
 
       struct 
@@ -246,7 +249,6 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
             O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
             O_RDONLY|O_BINARY
          };
-         handle->io.write.size_bytes = 0;
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->mode = _mode[handle->capturing];
          handle->bits_sample = bits_sample;
@@ -254,6 +256,9 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
+         if (!handle->capturing) {
+            handle->io.write.format = getFileFormatFromFormat(format);
+         }
       }
    }
 
@@ -271,7 +276,7 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
    {
       rv = write(handle->fd, data, bufsize);
       if (rv > 0)
-      {
+      {				/* update the file header once a second */
          handle->io.write.update_dt += (float)no_frames/handle->frequency;
          if (handle->io.write.update_dt >= 1.0f)
          {
@@ -344,9 +349,10 @@ int
 _aaxFileDriverReadHeader(_handle_t *handle)
 {
    uint32_t header[WAVE_EXT_HEADER_SIZE];
-   int i, res, fmt;
    size_t bufsize;
    char buf[4];
+   int fmt;
+   int res;
 
    lseek(handle->fd, 0L, SEEK_SET);
    res = read(handle->fd, &header, WAVE_EXT_HEADER_SIZE*4);
@@ -354,6 +360,7 @@ _aaxFileDriverReadHeader(_handle_t *handle)
 
    if (is_bigendian())
    {
+      int i;
       for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
          header[i] = _bswap32(header[i]);
       }
@@ -365,18 +372,16 @@ _aaxFileDriverReadHeader(_handle_t *handle)
    handle->blocksize = header[8] & 0xFFFF;
 
    fmt = header[5] & 0xFFFF;
-   i = handle->bits_sample;
-   handle->format = getFormatFromFileFormat(fmt, i);
-#if 0
-   if (handle->format == AAX_IMA4_ADPCM) {
+   handle->format = getFormatFromFileFormat(fmt, handle->bits_sample);
+   if (handle->format == AAX_FORMAT_NONE) {
       return -1;
    }
-#endif
 
    /* search for the data chunk */
    bufsize = 0;
    if (lseek(handle->fd, 32L, SEEK_SET) > 0)
    {
+      unsigned int i = 4096;
       do
       {
          res = read(handle->fd, buf, 1);
@@ -393,8 +398,8 @@ _aaxFileDriverReadHeader(_handle_t *handle)
             }
          }
       }
-      while (1);
-//    handle->no_frames = (bufsize*8)/(handle->no_tracks*handle->bits_sample);
+      while ((res > 0) && --i);
+      if (!i) res = -1;
    }
    else {
       res = -1;
@@ -410,16 +415,14 @@ _aaxFileDriverUpdateHeader(_handle_t *handle)
 
    if (handle->io.write.size_bytes != 0)
    {
-      unsigned int fmt, size = handle->io.write.size_bytes;
+      unsigned int size = handle->io.write.size_bytes;
       uint32_t s;
       off_t floc;
 
       s =  WAVE_HEADER_SIZE*4 - 8 + size;
       handle->io.write.header[1] = s;
 
-//    fmt = handle->io.write.header[5] & 0xFFF;
-      fmt = getFileFormatFromFormat(handle->format);
-      s = (handle->no_tracks << 16) | fmt;	/* PCM */
+      s = (handle->no_tracks << 16) | handle->io.write.format;
       handle->io.write.header[5] = s;
 
       s = (uint32_t)handle->frequency;
@@ -647,11 +650,11 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
       unsigned blocksize;
       int tracks, res;
 
-      blocksize = handle->blocksize;
-      block_smp = BLOCKSIZE_TO_SMP(blocksize);
-
       tracks = handle->no_tracks;
-      bufsize = tracks*blocksize;
+      blocksize = handle->blocksize;
+      block_smp = MSBLOCKSIZE_TO_SMP(blocksize, tracks);
+
+      bufsize = blocksize;
       if (handle->io.read.blockbuf == 0) {
          handle->io.read.blockbuf = malloc(bufsize);
       }
