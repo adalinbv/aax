@@ -78,9 +78,6 @@ _aaxDetectWavFile()
 #define DEFAULT_OUTPUT_RATE     22050
 #define WAVE_HEADER_SIZE        11
 #define WAVE_EXT_HEADER_SIZE    17
-#ifndef O_BINARY
-# define O_BINARY               0
-#endif
 
 enum wavFormat
 {
