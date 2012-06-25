@@ -481,7 +481,7 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
                                      rb->format);
                _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
                bufConvertDataFromPCM24S(track[t], scratch[1], 1, samples, 
-                                        rb->format, samples, 1);
+                                        rb->format, 1);
                p += size;
             }
             free(scratch);
@@ -592,7 +592,7 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int
                                      rb->format);
                _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
                bufConvertDataFromPCM24S(track[t], scratch[1], 1, samples,
-                                        rb->format, samples, 1);
+                                        rb->format, 1);
                p += size;
             }
             free(scratch);

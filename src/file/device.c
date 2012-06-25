@@ -372,9 +372,6 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       {
          handle->frequency_hz = handle->file->get_frequency(handle->file->id);
          handle->no_channels = handle->file->get_no_tracks(handle->file->id);
-         if (!handle->mode) { /* file data is always converted to PCM24S */
-            handle->format = AAX_PCM24S;
-         }
 
          *fmt = handle->format;
          *speed = handle->frequency_hz;
@@ -406,7 +403,7 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
    _oalRingBufferSample *rbd;
-   int16_t *data;
+   char *data, *ndata;
    int res;
 
    assert(rb);
@@ -421,7 +418,7 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
    no_tracks = handle->no_channels;
    assert(no_tracks == handle->no_channels);
 
-   outbuf_size = no_tracks * no_samples*sizeof(int16_t); //handle->bits_sample;
+   outbuf_size = no_tracks * no_samples*(sizeof(int32_t)+handle->bits_sample);
    if (handle->ptr == 0)
    {
       char *p = 0;
@@ -431,18 +428,48 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
       handle->buf_len = outbuf_size;
 #endif
    }
-   data = (int16_t *)handle->scratch;
+   data = (char *)handle->scratch;
+   ndata = data + no_tracks*no_samples*sizeof(int32_t);
    assert(outbuf_size <= handle->buf_len);
 
-   /* TODO:
-    * different file formats: 8, 16, 32 bit, floats, adpcm, ulaw, etc
-    */
+#if 0
    _batch_cvt16_intl_24(data, (const int32_t**)rbd->track,
                         offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
-      _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
+      _batch_endianswap16((char*)data, no_tracks*no_samples);
    }
+#else
+   _batch_cvt24_intl_24(data, (const int32_t**)rbd->track,
+                        offs, no_tracks, no_samples);
+
+   bufConvertDataFromPCM24S(ndata, data, no_tracks, no_samples,
+                            handle->format, 1); // blocksize);
+   data = ndata;
+
+   if (handle->format == AAX_PCM8U) {
+      _batch_cvt8u_8s(data, no_samples*no_tracks);
+   }
+   else if (is_bigendian())
+   {
+      switch (handle->format)
+      {  
+      case AAX_PCM16S:
+         _batch_endianswap16(data, no_samples*no_tracks);
+         break;
+      case AAX_PCM24S:
+      case AAX_PCM32S:
+      case AAX_FLOAT:
+         _batch_endianswap32(data, no_samples*no_tracks);
+         break;
+      case AAX_DOUBLE:
+         _batch_endianswap64(data, no_samples*no_tracks);
+         break;
+      default:
+         break;
+      }
+   }
+#endif
 
    res = handle->file->update(handle->file->id, data, no_samples);
 
@@ -487,9 +514,14 @@ _aaxFileDriverCapture(const void *id, void **tracks, size_t *frames, void *scrat
       if (!bytes) return AAX_TRUE;
 
       file_no_samples = bytes*8/file_bits;		/* still interleaved */
-					/* first convert to native endianness */
-      if (is_bigendian())	/* WAV is little endian */
+					/* then convert to proper signedness */
+      if (file_fmt == AAX_PCM8U)
       {
+         _batch_cvt8u_8s(data, file_no_samples);
+         file_fmt = AAX_PCM8S;
+      }
+      else if (is_bigendian())	/* WAV is little endian */
+      {				/* convert to native endianness */
          switch (file_fmt)
          {
          case AAX_PCM16S:
@@ -506,12 +538,6 @@ _aaxFileDriverCapture(const void *id, void **tracks, size_t *frames, void *scrat
          default:
             break;
          }
-      }
-					/* then convert to proper signedness */
-      if (file_fmt == AAX_PCM8U)
-      {
-         _batch_cvt8u_8s(data, file_no_samples);
-         file_fmt = AAX_PCM8S;
       }
 					/* then convert to signed 24-bit */
       if (file_fmt != AAX_PCM24S)
