@@ -13,6 +13,7 @@
 #include "config.h"
 #endif
 
+#include <string.h>		/* strlen */
 #if HAVE_STRINGS_H
 # include <strings.h>		/* strncasecmp */
 #endif
@@ -121,6 +122,8 @@ const char *default_renderer = "File: /tmp/AWaveOutput.wav";
 #ifndef HAVE_STRDUP
 char *strdup(const char *);
 #endif
+
+static unsigned int ifslen(char *);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -635,8 +638,45 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
 
-   if (handle && handle->file && handle->file->detect(mode)) {
-      rv = handle->file->interfaces(mode);
+   if (handle)
+   {
+      _aaxExtensionDetect* ftype;
+      char interfaces[2048];
+      char *ptr = interfaces;
+      int i = 0;
+      do
+      {
+         if ((ftype = _aaxFileTypes[i++]) != NULL)
+         {
+            _aaxFileHandle* type = ftype();
+            if (type)
+            {
+               if (type->detect(mode))
+               {
+                  char *start = type->interfaces(mode);
+                  if (start)
+                  {
+                     unsigned int len = ifslen(start);
+                     if (len)
+                     {
+                        memcpy(ptr, type->interfaces(mode), len);
+                        ptr += len;
+                     }
+                  }
+               }
+               free(type);
+            }
+         }
+      }
+      while (ftype);
+      
+      if (ptr != interfaces)
+      {
+         rv = calloc(1, ptr-interfaces+1);
+         if (rv) {
+            memcpy(rv, interfaces, ptr-interfaces);
+         }
+      }
    }
 
    return rv;
@@ -666,6 +706,23 @@ static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
     0x61746164,                 /* 15. "data"                                */
     0
 };
+
+static unsigned int
+ifslen(char *m1)
+{
+   char *ptr = m1;
+   if (m1)
+   {
+      do
+      {
+         unsigned int len = strlen(ptr);
+         ptr += len+1;
+      }
+      while (*(++ptr) != '\0');
+      --ptr;
+   };
+   return ptr-m1;
+}
 
 /**
  * Write a canonical WAVE file from memory to a file.

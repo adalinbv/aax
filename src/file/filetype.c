@@ -18,9 +18,9 @@
 _aaxExtensionDetect* _aaxFileTypes[] =
 {
    _aaxDetectWavFile,
+   _aaxDetectMP3File,
 /* _aaxDetectAiffFile, */
 /* _aaxDetectFLACFile, */
-/* _aaxDetectMP3File,  */
 /* _aaxDetectVorbisFile, */
 
    0		/* Must be last */
