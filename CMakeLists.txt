@@ -20,6 +20,7 @@ SET(PACKAGE "AeonWave")
 
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
+OPTION(RMALLOC "Enable memory debugging functions" OFF)
 
 IF(WIN32)
     ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
@@ -168,6 +169,10 @@ IF(WERROR)
   ADD_DEFINITIONS(-Werror)
 ENDIF()
 
+IF(RMALLOC)
+  SET(USE_RMALLOC 1)
+ENDIF(RMALLOC)
+
 IF(MSVC)
     SET_PROPERTY(SOURCE src/software/arch_sse.c
                  PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE"
@@ -301,6 +306,7 @@ SET( AEONWAVE_OBJS
      src/file/device.c
      src/file/filetype.c
      src/file/wavext.c
+     src/file/mp3ext.c
      src/software/arch.c
      src/software/arch_cpu.c
      src/software/arch_neon.c
