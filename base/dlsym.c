@@ -143,7 +143,7 @@ _oalIsLibraryPresent(const char *name, const char *version)
 
    if (name)
    {
-      if (version && atoi(version) != 0) {
+      if (version) { //  && atoi(version) != 0) {
          snprintf(libname, 255, "lib%s.so.%s", name, version);
       } else {
          snprintf(libname, 255, "lib%s.so", name);
