@@ -137,6 +137,7 @@ const char* _mmdev_default_name = DEFAULT_DEVNAME;
 # define pCLSID_MMDeviceEnumerator &CLSID_MMDeviceEnumerator
 # define pIID_IMMDeviceEnumerator &IID_IMMDeviceEnumerator
 # define pIID_IAudioRenderClient &IID_IAudioRenderClient
+# define pIID_IAudioCaptureClient &IID_IAudioCaptureClient
 # define pIID_IAudioClient &IID_IAudioClient
 # define pPKEY_Device_DeviceDesc &PKEY_Device_DeviceDesc
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
@@ -176,6 +177,7 @@ const char* _mmdev_default_name = DEFAULT_DEVNAME;
 # define pIAudioClient_IsFormatSupported IAudioClient_IsFormatSupported
 # define pIAudioRenderClient_GetBuffer IAudioRenderClient_GetBuffer
 # define pIAudioRenderClient_ReleaseBuffer IAudioRenderClient_ReleaseBuffer
+# define pIAudioCaptureClient_Release IAudioCaptureClient_Release
 # define pIAudioRenderClient_Release IAudioRenderClient_Release
 # define pIMMDevice_OpenPropertyStore IMMDevice_OpenPropertyStore
 # define pIPropertyStore_GetValue IPropertyStore_GetValue
@@ -419,10 +421,21 @@ _aaxMMDevDriverDisconnect(void *id)
          pIAudioClient_Release(handle->pAudioClient);
          handle->pAudioClient = NULL;
       }
-      if (handle->uType.pRender != NULL) 
+      if (handle->Mode == eRender)
       {
-         pIAudioRenderClient_Release(handle->uType.pRender);
-         handle->uType.pRender = NULL;
+         if (handle->uType.pRender != NULL) 
+         {
+            pIAudioRenderClient_Release(handle->uType.pRender);
+            handle->uType.pRender = NULL;
+         }
+      }
+      else
+      {
+         if (handle->uType.pCapture != NULL)
+         {
+            pIAudioCaptureClient_Release(handle->uType.pCapture);
+            handle->uType.pCapture = NULL;
+         }
       }
 
       pCoTaskMemFree(handle->pFormat);
@@ -611,9 +624,16 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       {
          if (frames) *frames = bufFrameCnt;
 
-         hr = pIAudioClient_GetService(handle->pAudioClient,
-                                       pIID_IAudioRenderClient,
-                                       (void**)&handle->uType.pRender);
+         if (handle->Mode == eRender) {
+            hr = pIAudioClient_GetService(handle->pAudioClient,
+                                          pIID_IAudioRenderClient,
+                                          (void**)&handle->uType.pRender);
+         } else {
+            hr = pIAudioClient_GetService(handle->pAudioClient,
+                                          pIID_IAudioCaptureClient,
+                                          (void**)&handle->uType.pCapture);
+         }
+
          if (FAILED(hr)) {
             _AAX_SYSLOG("mmdev; faild to get audio servcie");
          }
@@ -736,13 +756,14 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
 
-   if ((frames == 0) || (data == 0))
+   if ((frames == 0) || (data == 0)) {
       return AAX_FALSE;
+   }
 
-   if (*frames == 0)
+   if (*frames == 0) {
       return AAX_TRUE;
+   } 
 
-   *frames = 0;
    if (data)
    {
       UINT32 packet_sz = *frames;
@@ -774,24 +795,23 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
          DWORD flags;
          BYTE* buf;
 
-         do
+         while (packet_sz)
          {
             hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
                                                 &avail, &flags, NULL, NULL);
-            if (SUCCEEDED(hr))
+            if (FAILED(hr) || !avail)
             {
-               if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0) {
-                  _batch_cvt24_16_intl((int32_t**)data, buf, 0, 2, avail);
-               }
-               pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,avail);
-               packet_sz -= avail;
-               *frames += avail;
-            }
-            else {
+               *frames = 0;
                break;
             }
+
+            if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0) {
+               _batch_cvt24_16_intl((int32_t**)data, buf, 0, 2, avail);
+            }
+            pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,avail);
+            packet_sz -= avail;
+            *frames += avail;
          }
-         while (packet_sz);
 
          if (packet_sz) {
             _AAX_SYSLOG("mmdev; failed to get next packet");
@@ -799,6 +819,12 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
             rv = AAX_TRUE;
          }
       }
+      else {
+         *frames = 0;
+      }
+   }
+   else {
+     *frames = 0;
    }
 
    return rv;
