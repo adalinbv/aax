@@ -260,14 +260,14 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    if (handle)
    {
       const _intBufferData* dptr;
-      float sleep, duration = 0.0f;
+      float sleep_ms, duration = 0.0f;
       unsigned int nbuf;
 
-      sleep = 1.0f / (handle->info->refresh_rate * 10.0f);
+      sleep_ms = _MAX(100.0f / handle->info->refresh_rate, 1.0f);
       do
       {
          nbuf = 0;
-         duration += sleep;
+         duration += sleep_ms*0.001f;
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
@@ -278,7 +278,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          }
          if (!nbuf)
          {
-            int err = msecSleep(sleep*1000);
+            int err = msecSleep(sleep_ms);
             if (err < 0) break;
          }
       }

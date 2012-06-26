@@ -964,23 +964,23 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
-      float sleep, duration = 0.0f;
+      float sleep_ms, duration = 0.0f;
       _aaxAudioFrame* mixer;
       int nbuf;
 
       mixer = handle->submix;
       put_frame(frame);
 
-      sleep = 1.0f / (handle->submix->info->refresh_rate * 10.0f);
-      do
+     sleep_ms = _MAX(100.0f / handle->submix->info->refresh_rate, 1.0f);
+     do
       {
          nbuf = 0;
-         duration += sleep;
+         duration += sleep_ms*0.001f;
 
          nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
          if (!nbuf)
          {
-            int err = msecSleep(sleep*1000);
+            int err = msecSleep(sleep_ms);
             if (err < 0) break;
          }
       }

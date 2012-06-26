@@ -101,7 +101,7 @@ typedef struct
    int mode;
    char *name;
 
-   float frequency_hz;
+   float frequency;
    enum aaxFormat format;
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -289,7 +289,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
                   _AAX_SYSLOG("file; frequency too large.");
                   f = (float)_AAX_MAX_MIXER_FREQUENCY;
                }
-               handle->frequency_hz = f;
+               handle->frequency = f;
             }
 
             i = xmlNodeGetInt(xid, "channels");
@@ -355,26 +355,28 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                         unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
+   int freq = (int)*speed;
    int rv = AAX_FALSE;
 
    assert(handle);
 
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
-   handle->frequency_hz = *speed;
+   handle->frequency = *speed;
 
 
-   handle->file->id = handle->file->setup(handle->mode, *speed, *tracks, *fmt);
+   handle->file->id = handle->file->setup(handle->mode, freq, *tracks, *fmt);
    if (handle->file->id)
    {
       int res = handle->file->open(handle->file->id, handle->name);
       if (res)
       {
-         handle->frequency_hz = handle->file->get_frequency(handle->file->id);
+         int freq = handle->file->get_frequency(handle->file->id);
+         handle->frequency = (float)freq;
          handle->no_channels = handle->file->get_no_tracks(handle->file->id);
 
          *fmt = handle->format;
-         *speed = handle->frequency_hz;
+         *speed = handle->frequency;
          *tracks = handle->no_channels;
 
          rv = AAX_TRUE;
