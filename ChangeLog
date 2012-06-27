@@ -1,18 +1,19 @@
 * Tue Jun 16 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low
   * Added native support for Windows (Vista or later).
+  * A complete overhaul of the File backend;
+    - added file capturing support and support for different output formats.
+    - added the infrastructure to detect and handle different audio file-formats
+      (only supports WAV files right now).
   * Fix the default ALSA device for when PulseAudio isn't active.
   * Fix a problem where multiple open backends in the same application could
     not have different rendering types (HRTF/Stereo/Spatial/Surround).
-  * Added the infrastructure to detect and handle different audio file formats
-    (only supports WAV files right now).
-  * Added file 'capturing' support.
   * Moved the include files aax.h to aax/aax.h and aaxdefs.h to aax/defines.h
     and provide stubs that automatically include the correct header file.
   * Moved the configuration file from ~/.aaxconfig.xml to ~/.aax/config.xml
-  * Added code that automatically moves the old configuration file to the new
-    location if it does not yet exist.
-  * Made the aaxDriverGetInterface functions more reliable by storing interdace
+    and added code that automatically moves the old configuration file to the
+    new location if it doesn't yet exist.
+  * Made the aaxDriverGetInterface functions more reliable by storing interface
     description for every opened device (as a bonus this also causes less
     kernel audio device detection calls).
 

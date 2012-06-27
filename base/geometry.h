@@ -50,16 +50,9 @@ extern "C" {
 typedef float vec3[3];
 typedef float mtx3[3][3];
 
-
-#ifdef _MSC_VER
-typedef ALIGN16 int32_t ivec4_t[4];
-typedef ALIGN16 float vec4_t[4];
-typedef ALIGN16 float mtx4_t[4][4];
-#else
-typedef int32_t ivec4_t[4] ALIGN16;
-typedef float vec4_t[4] ALIGN16;
-typedef float mtx4_t[4][4] ALIGN16;
-#endif
+typedef ALIGN16 int32_t ivec4_t[4] ALIGN16C;
+typedef ALIGN16 float vec4_t[4] ALIGN16C;
+typedef ALIGN16 float mtx4_t[4][4] ALIGN16C;
 typedef int32_t ivec4[4];
 typedef float vec4[4];
 typedef float mtx4[4][4];
