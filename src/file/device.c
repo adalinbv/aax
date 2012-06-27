@@ -33,6 +33,7 @@
 #include "device.h"
 #include "filetype.h"
 
+#define BACKEND_NAME		"Audio Files"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
@@ -119,7 +120,7 @@ typedef struct
 
 } _driver_t;
 
-const char *default_renderer = "File: /tmp/AWaveOutput.wav";
+const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
 #ifndef HAVE_STRDUP
 char *strdup(const char *);
 #endif
@@ -195,10 +196,10 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
    {
       if (renderer)
       {
-
-         if (!strncasecmp(renderer, "File:", 5))
+         unsigned int devlen = strlen(BACKEND_NAME":");
+         if (!strncasecmp(renderer, BACKEND_NAME":", devlen))
          {
-            renderer += 5;
+            renderer += devlen;
             while (*renderer == ' ' && *renderer != '\0') renderer++;
          }
 
@@ -616,9 +617,9 @@ _aaxFileDriverGetName(const void *id, int playback)
 
    if (handle)
    {
-      if (!handle->name)
+      if (!handle->name) {
          handle->name = strdup("default");
-
+      }
       ret = handle->name;
    }
 
@@ -628,7 +629,7 @@ _aaxFileDriverGetName(const void *id, int playback)
 char *
 _aaxFileDriverGetDevices(const void *id, int mode)
 {
-   static const char *rd[2] = { "Audio Files\0\0", "Audio Files\0\0" };
+   static const char *rd[2] = { BACKEND_NAME"\0\0", BACKEND_NAME"\0\0" };
    return (char *)rd[mode];
 }
 
@@ -756,7 +757,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       fmt = 0x7;
       break;
    default:
-      _AAX_SYSLOG("File: unsupported format");
+      _AAX_SYSLOG("file; unsupported format");
       return;
    }
 
