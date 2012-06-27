@@ -168,7 +168,7 @@ static int
 _aaxWavFileOpen(void *id, const char* fname)
 {
    _handle_t *handle = (_handle_t *)id;
-   int res = AAX_FALSE;
+   int res = -1;
 
    if (handle && fname)
    {
