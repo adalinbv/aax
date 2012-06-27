@@ -91,8 +91,8 @@ typedef ALIGN16 struct
 typedef struct
 #endif
 {
-   vec4 hrtf[2];
-   vec4 speaker[_AAX_MAX_SPEAKERS];
+   vec4_t hrtf[2];
+   vec4_t speaker[_AAX_MAX_SPEAKERS];
 
    char router[_AAX_MAX_SPEAKERS];
    unsigned no_tracks;
@@ -170,9 +170,9 @@ typedef struct
 } _aaxEmitter;
 
 
-extern vec4 _aaxContextDefaultHead[2];
-extern vec4 _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS];
-extern vec4 _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS];
+extern vec4_t _aaxContextDefaultHead[2];
+extern vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS];
+extern vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS];
 extern char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS];
 extern const _aaxMixerInfo _aaxDefaultMixerInfo;
 

@@ -353,8 +353,8 @@ typedef struct
 #endif
 {
    /* modelview matrix and velocity */
-   mtx4 matrix;
-   vec4 velocity;
+   mtx4_t matrix;
+   vec4_t velocity;
 
    int state;
 
@@ -377,15 +377,15 @@ typedef struct
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
       /* pos[2] position; -1.0 front, 0.0 center, 1.0 back  */
-   vec4 pos[_AAX_MAX_SPEAKERS];
+   vec4_t pos[_AAX_MAX_SPEAKERS];
 
       /* head[0] side delay sec    */
       /* head[1] up delay sec      */
       /* head[2] forward delay sec */
       /* head[3] up offset sec     */
-   vec4 head;
-   vec4 hrtf[2];
-   vec4 hrtf_prev[2];
+   vec4_t head;
+   vec4_t hrtf[2];
+   vec4_t hrtf_prev[2];
 
    /* stereo filters */
    _oalRingBufferFilterInfo filter[MAX_STEREO_FILTER];

@@ -32,15 +32,15 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    assert (p2d);
 
    /* normalized  directions */
-   size = _AAX_MAX_SPEAKERS*sizeof(vec4);
+   size = _AAX_MAX_SPEAKERS*sizeof(vec4_t);
    memset(p2d->pos, 0, size);
 
    /* heade setup, unused for emitters */
-   size = sizeof(vec4);
+   size = sizeof(vec4_t);
    memset(p2d->head, 0, size);
 
    /* hrtf sample offsets */
-   size = 2*sizeof(vec4);
+   size = 2*sizeof(vec4_t);
    memset(p2d->hrtf, 0, size);
    memset(p2d->hrtf_prev, 0, size);
 
@@ -73,7 +73,7 @@ _aaxSetDefault3dProps(_oalRingBuffer3dProps *p3d)
    mtx4Copy(p3d->matrix, aaxIdentityMatrix);
 
    /* velocity     */
-   size = sizeof(vec4);
+   size = sizeof(vec4_t);
    memset(p3d->velocity, 0, size);
 
    /* status */
@@ -185,7 +185,7 @@ _aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *effect, unsigned int type)
 char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
  { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-vec4 _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
+vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
 {
    { 1.0f, 0.0f, 0.0f, 1.0f },     /* front left speaker    */
    {-1.0f, 0.0f, 0.0f, 1.0f },     /* front right speaker   */
@@ -197,7 +197,7 @@ vec4 _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
    {-1.0f, 0.0f, 0.0f, 1.0f }      /* right side speaker    */
 };
 
-vec4 _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
+vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell */
    { 1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
@@ -212,7 +212,7 @@ vec4 _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
    { 0.0f, 0.0f, 0.0f, 0.0f }
 };
 
-vec4 _aaxContextDefaultHead[2] = 
+vec4_t _aaxContextDefaultHead[2] = 
 {
    { 0.00064f, 0.000090f, 0.00024f, 1.000f },	/* head delay factors */
    { 0.00000f, 0.000100f, 0.00000f, 1.000f }	/* head delay offsets */

@@ -31,8 +31,8 @@ typedef struct {
   int pos;
 } _eff_cvt_tbl_t;
 typedef struct {
-   vec4 min;
-   vec4 max;
+   vec4_t min;
+   vec4_t max;
 } _eff_minmax_tbl_t;
 typedef float (*cvtfn_t)(float);
 

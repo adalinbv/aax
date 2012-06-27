@@ -790,10 +790,10 @@ _open_handle(aaxConfig config)
                      memcpy(&info->router, &_aaxContextDefaultRouter, size);
 
                      info->no_tracks = 2;
-                     size = _AAX_MAX_SPEAKERS * sizeof(vec4);
+                     size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
                      _aax_memcpy(&info->speaker,&_aaxContextDefaultSpeakers, size);
 
-                     size = 2*sizeof(vec4);
+                     size = 2*sizeof(vec4_t);
                      _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
 
                      _PROP_PITCH_SET_CHANGED(mixer->props3d);
@@ -999,7 +999,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             _aaxMixerInfo* info = sensor->mixer->info;
             unsigned int size;
 
-            size = _AAX_MAX_SPEAKERS * sizeof(vec4);
+            size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
             if (handle->info->mode == AAX_MODE_WRITE_HRTF)
             {
                handle->info->no_tracks = 2;

@@ -733,8 +733,8 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    if (_PROP_MTX_HAS_CHANGED(eprops3d) || _PROP_MTX_HAS_CHANGED(sprops3d) ||
        (fprops3d && _PROP_MTX_HAS_CHANGED(fprops3d)))
    {
-      mtx4 mtx;
-      vec4 epos;
+      mtx4_t mtx;
+      vec4_t epos;
       float esv, ssv, ss;
       float dist, gain;
 
@@ -743,7 +743,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
 
       if (fprops3d) /* frame */
       {
-         mtx4 fmatrix;
+         mtx4_t fmatrix;
 
 //       _PROP_PITCH_CLEAR_CHANGED(fprops3d);
 
@@ -797,7 +797,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       if (dist > 1.0f)
       {
          float ve, vs, de, df;
-         vec4 sv, ev;
+         vec4_t sv, ev;
 
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
@@ -805,7 +805,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          vec4Matrix4(sv, sprops3d->velocity, sprops3d->matrix);
          if (fprops3d)
          {
-            vec4 fv;
+            vec4_t fv;
             vec4Copy(fv, fprops3d->velocity);
             vec4Add(fv, eprops3d->velocity);
             vec4Matrix4(ev, fv, sprops3d->matrix);

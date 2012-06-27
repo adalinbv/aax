@@ -1010,8 +1010,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                /* it's used for just one time-frame anyhow                  */
                memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
                memcpy(&sp2d.pos, handle->info->speaker,
-                                  _AAX_MAX_SPEAKERS*sizeof(vec4));
-               memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4));
+                                  _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+               memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
                memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 

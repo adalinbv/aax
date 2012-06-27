@@ -44,7 +44,7 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
          {
             if (!is_nan(dz))
             {
-               mtx4 m;
+               mtx4_t m;
 
                mtx4Copy(m, mtx);
                mtx4Translate(m, dx, dy, dz);
@@ -84,7 +84,7 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
             {
                if (!is_nan(z))
                {
-                  mtx4 m;
+                  mtx4_t m;
 
                   mtx4Copy(m, mtx);
                   mtx4Rotate(m, angle_rad, x, y, z);
@@ -123,7 +123,7 @@ aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
       if (mtx2 && !detect_nan_vec4(mtx2[0]) && !detect_nan_vec4(mtx2[1]) &&
                   !detect_nan_vec4(mtx2[2]) && !detect_nan_vec4(mtx2[3]))
       {
-         mtx4 m1, m2, m3;
+         mtx4_t m1, m2, m3;
 
          mtx4Copy(m1, mtx1);
          mtx4Copy(m2, mtx2);
@@ -150,7 +150,7 @@ aaxMatrixInverse(aaxMtx4f mtx)
       if (!detect_nan_vec4(mtx[0]) && !detect_nan_vec4(mtx[1]) &&
           !detect_nan_vec4(mtx[2]) && !detect_nan_vec4(mtx[3]))
       {
-         mtx4 m1, m2;
+         mtx4_t m1, m2;
          mtx4Copy(m1, mtx);
          mtx4InverseSimple(m2, m1);
          mtx4Copy(mtx, m2);
@@ -184,7 +184,7 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
             vec3CrossProduct(side, fwd, upwd);
             vec3CrossProduct(upwd, side, fwd);
 
-            vec4Negate(back, fwd);
+            vec3Negate(back, fwd);
             mtx4Copy(mtx, aaxIdentityMatrix);
             vec3Normalize(mtx[0], side);
             vec3Normalize(mtx[1], upwd);
@@ -226,7 +226,7 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
                vec3CrossProduct(side, fwd, upwd);
                vec3CrossProduct(upwd, side, fwd);
 
-               vec4Negate(back, fwd);
+               vec3Negate(back, fwd);
                mtx4Copy(mtx, aaxIdentityMatrix);
                vec3Normalize(mtx[0], side);
                vec3Normalize(mtx[1], upwd);

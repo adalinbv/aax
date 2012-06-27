@@ -366,7 +366,7 @@ mtx4Rotate(mtx4 mtx, float angle_rad, float x, float y, float z)
       float t = 1.00f - c;
       float s = sinf(angle_rad);
       vec3 axis, tmp;
-      mtx4 m, o;
+      mtx4_t m, o;
 
       tmp[0] = x;
       tmp[1] = y;
