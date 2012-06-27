@@ -311,8 +311,8 @@ static char*
 _aaxWavFileInterfaces(int mode)
 {
    static const char *rd[2] = {
-    "/tmp/"AAX_NAME_STR"In.wav\0\0",
-    "~/"AAX_NAME_STR"Out.wav\0/tmp/"AAX_NAME_STR"Out.wav\0\0"
+    "*.wav\0",
+    "*.wav\0"
    };
    return (char *)rd[mode];
 }

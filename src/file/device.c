@@ -115,6 +115,7 @@ typedef struct
 
    _aaxFileHandle* file;
    _oalRingBufferMix1NFunc *mix_mono3d;
+   char *interfaces;
 
 } _driver_t;
 
@@ -122,8 +123,6 @@ const char *default_renderer = "File: /tmp/AWaveOutput.wav";
 #ifndef HAVE_STRDUP
 char *strdup(const char *);
 #endif
-
-static unsigned int ifslen(char *);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -347,6 +346,7 @@ _aaxFileDriverDisconnect(void *id)
       }
       handle->file->close(handle->file->id);
       free(handle->file);
+      free(handle->interfaces);
       free(handle);
    }
 
@@ -628,7 +628,7 @@ _aaxFileDriverGetName(const void *id, int playback)
 char *
 _aaxFileDriverGetDevices(const void *id, int mode)
 {
-   static const char *rd[2] = { "File\0\0", "File\0\0" };
+   static const char *rd[2] = { "Audio Files\0\0", "Audio Files\0\0" };
    return (char *)rd[mode];
 }
 
@@ -638,12 +638,17 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
 
-   if (handle)
+   if (handle && !handle->interfaces)
    {
       _aaxExtensionDetect* ftype;
       char interfaces[2048];
-      char *ptr = interfaces;
+      unsigned int buflen;
+      char *ptr;
       int i = 0;
+
+      ptr = interfaces;
+      buflen = 2048;
+
       do
       {
          if ((ftype = _aaxFileTypes[i++]) != NULL)
@@ -653,15 +658,13 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
             {
                if (type->detect(mode))
                {
-                  char *start = type->interfaces(mode);
-                  if (start)
+                  char *ifs = type->interfaces(mode);
+                  unsigned int len = strlen(ifs);
+                  if (ifs && len)
                   {
-                     unsigned int len = ifslen(start);
-                     if (len)
-                     {
-                        memcpy(ptr, type->interfaces(mode), len);
-                        ptr += len;
-                     }
+                     snprintf(ptr, buflen, "%s ", ifs);
+                     buflen -= len+1;
+                     ptr += len+1;
                   }
                }
                free(type);
@@ -669,14 +672,20 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
          }
       }
       while (ftype);
+      *(ptr-1) = '\0';
       
       if (ptr != interfaces)
       {
          rv = calloc(1, ptr-interfaces+1);
-         if (rv) {
+         if (rv)
+         {
             memcpy(rv, interfaces, ptr-interfaces);
+            handle->interfaces = rv;
          }
       }
+   }
+   else if (handle) {
+      rv = handle->interfaces;
    }
 
    return rv;
@@ -706,23 +715,6 @@ static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
     0x61746164,                 /* 15. "data"                                */
     0
 };
-
-static unsigned int
-ifslen(char *m1)
-{
-   char *ptr = m1;
-   if (m1)
-   {
-      do
-      {
-         unsigned int len = strlen(ptr);
-         ptr += len+1;
-      }
-      while (*(++ptr) != '\0');
-      --ptr;
-   };
-   return ptr-m1;
-}
 
 /**
  * Write a canonical WAVE file from memory to a file.

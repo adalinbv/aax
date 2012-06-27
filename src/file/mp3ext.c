@@ -185,8 +185,8 @@ static char*
 _aaxMPG123FileInterfaces(int mode)
 {
    static const char *rd[2] = {
-    "/tmp/"AAX_NAME_STR"In.mp3\0\0",
-    "\0\0"
+    "*.mp3\0",
+    "\0"
    };
    return (char *)rd[mode];
 }
