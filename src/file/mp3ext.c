@@ -42,20 +42,20 @@ DECL_FUNCTION(mpg123_getparam);
 DECL_FUNCTION(mpg123_feature);
 DECL_FUNCTION(mpg123_getformat);
 
-static _detect_fn _aaxMPG123FileDetect;
+static _detect_fn _aaxMP3FileDetect;
 
 static _new_hanle_fn _aaxMPG123FileSetup;
 static _open_fn _aaxMPG123FileOpen;
 static _close_fn _aaxMPG123FileClose;
 static _update_fn _aaxMPG123FileReadWrite;
 
-static _default_fname_fn _aaxMPG123FileInterfaces;
-static _extension_fn _aaxMPG123FileExtension;
+static _default_fname_fn _aaxMP3FileInterfaces;
+static _extension_fn _aaxMP3FileExtension;
 
-static _get_param_fn _aaxMPG123FileGetFormat;
-static _get_param_fn _aaxMPG123FileGetNoTracks;
-static _get_param_fn _aaxMPG123FileGetFrequency;
-static _get_param_fn _aaxMPG123FileGetBitsPerSample;
+static _get_param_fn _aaxMP3FileGetFormat;
+static _get_param_fn _aaxMP3FileGetNoTracks;
+static _get_param_fn _aaxMP3FileGetFrequency;
+static _get_param_fn _aaxMP3FileGetBitsPerSample;
 
 _aaxFileHandle*
 _aaxDetectMP3File()
@@ -65,19 +65,19 @@ _aaxDetectMP3File()
    rv = calloc(1, sizeof(_aaxFileHandle));
    if (rv)
    {
-      rv->detect = (_detect_fn*)&_aaxMPG123FileDetect;
+      rv->detect = (_detect_fn*)&_aaxMP3FileDetect;
       rv->setup = (_new_hanle_fn*)&_aaxMPG123FileSetup;
       rv->open = (_open_fn*)&_aaxMPG123FileOpen;
       rv->close = (_close_fn*)&_aaxMPG123FileClose;
       rv->update = (_update_fn*)&_aaxMPG123FileReadWrite;
 
-      rv->supported = (_extension_fn*)&_aaxMPG123FileExtension;
-      rv->interfaces = (_default_fname_fn*)&_aaxMPG123FileInterfaces;
+      rv->supported = (_extension_fn*)&_aaxMP3FileExtension;
+      rv->interfaces = (_default_fname_fn*)&_aaxMP3FileInterfaces;
 
-      rv->get_format = (_get_param_fn*)&_aaxMPG123FileGetFormat;
-      rv->get_no_tracks = (_get_param_fn*)&_aaxMPG123FileGetNoTracks;
-      rv->get_frequency = (_get_param_fn*)&_aaxMPG123FileGetFrequency;
-      rv->get_bits_per_sample = (_get_param_fn*)&_aaxMPG123FileGetBitsPerSample;
+      rv->get_format = (_get_param_fn*)&_aaxMP3FileGetFormat;
+      rv->get_no_tracks = (_get_param_fn*)&_aaxMP3FileGetNoTracks;
+      rv->get_frequency = (_get_param_fn*)&_aaxMP3FileGetFrequency;
+      rv->get_bits_per_sample = (_get_param_fn*)&_aaxMP3FileGetBitsPerSample;
    }
    return rv;
 }
@@ -104,7 +104,7 @@ typedef struct
 } _handle_t;
 
 static int
-_aaxMPG123FileDetect(int mode)
+_aaxMP3FileDetect(int mode)
 {
    static void *audio = NULL;
    int rv = AAX_FALSE;
@@ -177,43 +177,40 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
 }
 
 static int
-_aaxMPG123FileExtension(char *ext) {
+_aaxMP3FileExtension(char *ext) {
    return !strcasecmp(ext, "mp3");
 }
 
 static char*
-_aaxMPG123FileInterfaces(int mode)
+_aaxMP3FileInterfaces(int mode)
 {
-   static const char *rd[2] = {
-    "*.mp3\0",
-    "\0"
-   };
+   static const char *rd[2] = { "*.mp3\0", "\0" };
    return (char *)rd[mode];
 }
 
 static unsigned int
-_aaxMPG123FileGetFormat(void *id)
+_aaxMP3FileGetFormat(void *id)
 {
    _handle_t *handle = (_handle_t *)id;
    return handle->format;
 }
 
 static unsigned int
-_aaxMPG123FileGetNoTracks(void *id)
+_aaxMP3FileGetNoTracks(void *id)
 {
    _handle_t *handle = (_handle_t *)id;
    return handle->no_tracks;
 }
 
 static unsigned int
-_aaxMPG123FileGetFrequency(void *id)
+_aaxMP3FileGetFrequency(void *id)
 {
    _handle_t *handle = (_handle_t *)id;
    return handle->frequency;
 }
 
 static unsigned int
-_aaxMPG123FileGetBitsPerSample(void *id)
+_aaxMP3FileGetBitsPerSample(void *id)
 {
    _handle_t *handle = (_handle_t *)id;
    return handle->bits_sample;
