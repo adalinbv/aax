@@ -22,8 +22,6 @@ extern "C" {
 
 
 /** libmpg123 */
-typedef struct mpg123_handle_struct     mpg123_handle;
-
 enum    mpg123_parms {
   MPG123_VERBOSE = 0, MPG123_FLAGS,
   MPG123_ADD_FLAGS, MPG123_FORCE_RATE,
@@ -62,6 +60,28 @@ enum    mpg123_feature_set {
   MPG123_FEATURE_DECODE_LAYER3, MPG123_FEATURE_DECODE_ACCURATE,
   MPG123_FEATURE_DECODE_DOWNSAMPLE, MPG123_FEATURE_DECODE_NTOM,
   MPG123_FEATURE_PARSE_ICY, MPG123_FEATURE_TIMEOUT_READ
+};
+
+enum   mpg123_enc_enum {
+  MPG123_ENC_8 = 0x00f, MPG123_ENC_16 = 0x040,
+  MPG123_ENC_24 = 0x4000, MPG123_ENC_32 = 0x100,
+  MPG123_ENC_SIGNED = 0x080, MPG123_ENC_FLOAT = 0xe00,
+  MPG123_ENC_SIGNED_16 = (MPG123_ENC_16|MPG123_ENC_SIGNED|0x10),
+  MPG123_ENC_UNSIGNED_16 = (MPG123_ENC_16|0x20),
+  MPG123_ENC_UNSIGNED_8 = 0x01,
+  MPG123_ENC_SIGNED_8 = (MPG123_ENC_SIGNED|0x02),
+  MPG123_ENC_ULAW_8 = 0x04, MPG123_ENC_ALAW_8 = 0x08,
+  MPG123_ENC_SIGNED_32 = MPG123_ENC_32|MPG123_ENC_SIGNED|0x1000,
+  MPG123_ENC_UNSIGNED_32 = MPG123_ENC_32|0x2000,
+  MPG123_ENC_SIGNED_24 = MPG123_ENC_24|MPG123_ENC_SIGNED|0x1000,
+  MPG123_ENC_UNSIGNED_24 = MPG123_ENC_24|0x2000,
+  MPG123_ENC_FLOAT_32 = 0x200, MPG123_ENC_FLOAT_64 = 0x400,
+  MPG123_ENC_ANY
+};
+
+enum   mpg123_channelcount {
+  MPG123_MONO = 1,
+  MPG123_STEREO = 2
 };
 
 enum mpg123_errors
@@ -118,14 +138,17 @@ enum mpg123_errors
 
 typedef int (*mpg123_init_proc)(void);
 typedef void (*mpg123_exit_proc)(void);
-typedef mpg123_handle* (*mpg123_new_proc)(const char*, int*);
-typedef void (*mpg123_delete_proc)(mpg123_handle*);
-typedef int (*mpg123_open_feed_proc)(mpg123_handle*);
-typedef int (*mpg123_decode_proc)(mpg123_handle*,const unsigned char*, size_t, unsigned char*, size_t, size_t*);
-typedef int (*mpg123_param_proc)(mpg123_handle*, enum mpg123_parms, long, double);
-typedef int (*mpg123_getparam_proc)(mpg123_handle*, enum mpg123_parms, long*, double*);
+typedef void* (*mpg123_new_proc)(const char*, int*);
+typedef void (*mpg123_delete_proc)(void*);
+typedef int (*mpg123_open_fd_proc)(void*, int);
+typedef int (*mpg123_open_feed_proc)(void*);
+typedef int (*mpg123_read_proc)(void*, unsigned char*, size_t, size_t*);
+typedef int (*mpg123_decode_proc)(void*, const unsigned char*, size_t, unsigned char*, size_t, size_t*);
+typedef int (*mpg123_param_proc)(void*, enum mpg123_parms, long, double);
+typedef int (*mpg123_getparam_proc)(void*, enum mpg123_parms, long*, double*);
 typedef int (*mpg123_feature_proc)(const enum mpg123_feature_set);
-typedef int (*mpg123_getformat_proc)(mpg123_handle*, long*, int*, int*);
+typedef int (*mpg123_format_proc)(void*, long, int, int);
+typedef int (*mpg123_getformat_proc)(void*, long*, int*, int*);
 
 /* libmpg123 */
 
