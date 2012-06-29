@@ -32,6 +32,7 @@
 
 #include <ringbuffer.h>
 #include <base/dlsym.h>
+#include <arch.h>
 
 #include "filetype.h"
 #include "audio.h"
@@ -41,11 +42,7 @@ DECL_FUNCTION(mpg123_exit);
 DECL_FUNCTION(mpg123_new);
 DECL_FUNCTION(mpg123_open_fd);
 DECL_FUNCTION(mpg123_read);
-DECL_FUNCTION(mpg123_decode);
 DECL_FUNCTION(mpg123_delete);
-DECL_FUNCTION(mpg123_param);
-DECL_FUNCTION(mpg123_getparam);
-DECL_FUNCTION(mpg123_feature);
 DECL_FUNCTION(mpg123_format);
 DECL_FUNCTION(mpg123_getformat);
 
@@ -109,7 +106,7 @@ typedef struct
    uint8_t bits_sample;
 
    unsigned char *blockbuf;
-   unsigned int blockstart_smp;
+   unsigned int offset_samples;
 
 } _handle_t;
 
@@ -135,11 +132,7 @@ _aaxMP3FileDetect(int mode)
          TIE_FUNCTION(mpg123_new);
          TIE_FUNCTION(mpg123_open_fd);
          TIE_FUNCTION(mpg123_read);
-         TIE_FUNCTION(mpg123_decode);
          TIE_FUNCTION(mpg123_delete);
-         TIE_FUNCTION(mpg123_param);
-         TIE_FUNCTION(mpg123_getparam);
-         TIE_FUNCTION(mpg123_feature);
          TIE_FUNCTION(mpg123_format);
          TIE_FUNCTION(mpg123_getformat);
 
@@ -322,53 +315,63 @@ static int
 _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
 {
    _handle_t *handle = (_handle_t *)id;
-   int rv = AAX_FALSE;
+   int rv = 0;
 
    if (handle->capturing)
    {
+      int framesz_bits = handle->no_tracks*handle->bits_sample;
       unsigned char *ptr = (unsigned char*)data;
-      int framesz_bits;
 
       if (!handle->blockbuf) {
          handle->blockbuf = malloc(BLOCKSIZE);
       }
 
-      if (handle->blockstart_smp)	/* there is some old data available */
+      if (handle->offset_samples)	/* there is some old data available */
       {
-         unsigned int offset, samples_avail;
+         unsigned int max_samples = BLOCKSIZE*8/framesz_bits;
+         unsigned int offset = handle->offset_samples;
+         unsigned int samples, size;
 
-         framesz_bits = handle->no_tracks*handle->bits_sample;
-         samples_avail = BLOCKSIZE*8/framesz_bits - handle->blockstart_smp;
-         if (samples_avail > no_frames) {
-            samples_avail = no_frames;
+         samples = _MIN(max_samples - offset, no_frames);
+         no_frames -= samples;
+
+         handle->offset_samples += samples;
+         if (handle->offset_samples >= max_samples) {
+            handle->offset_samples = 0;
          }
-         no_frames -= samples_avail;
-         handle->blockstart_smp += samples_avail;
-         handle->blockstart_smp %= (BLOCKSIZE*8/framesz_bits);
 
-         framesz_bits = handle->no_tracks*handle->bits_sample;
-         offset = (handle->blockstart_smp*framesz_bits)/8;
-
-         rv = (samples_avail*framesz_bits)/8;
-         memcpy(ptr, handle->blockbuf+offset, rv);
-         ptr += rv;
+         size = (samples*framesz_bits)/8;
+         offset = (offset*framesz_bits)/8;
+         _aax_memcpy(ptr, handle->blockbuf+offset, size);
+         ptr += size;
+         rv = size;
       }
 
       while (no_frames)			/* need to decode new block(s) */
       {
-         size_t frames_read, size = 0;
+         size_t size = 0;
+         int ret;
 
-         pmpg123_read(handle->id, handle->blockbuf, BLOCKSIZE, &size);
-         framesz_bits = handle->no_tracks*handle->bits_sample;
-         frames_read = size*8/framesz_bits;
-         if (frames_read > no_frames) {
-            frames_read = no_frames;
+         ret = pmpg123_read(handle->id, handle->blockbuf, BLOCKSIZE, &size);
+         if (ret == MPG123_OK)
+         {
+            size_t frames = _MIN(size*8/framesz_bits, no_frames);
+            unsigned int offset = handle->offset_samples;
+
+            handle->offset_samples += frames;
+            no_frames -= frames;
+
+            size = (frames*framesz_bits)/8;
+            offset = (offset*framesz_bits)/8;
+            _aax_memcpy(ptr, handle->blockbuf+offset, size);
+            ptr += size;
+            rv += size;
          }
-         handle->blockstart_smp = frames_read;
-         no_frames -= frames_read;
-
-         rv = (frames_read*framesz_bits)/8;
-         memcpy(ptr, handle->blockbuf, rv);
+         else
+         {
+//          _AAX_SYSLOG("mp3; unable to read data");
+            rv = 0;
+         }
       }
    }
 
