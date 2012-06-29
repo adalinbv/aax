@@ -119,6 +119,9 @@ _aaxMP3FileDetect(int mode)
    if (!audio) {
       audio = _oalIsLibraryPresent("mpg123", "0");
    }
+   if (!audio) {
+      audio = _oalIsLibraryPresent("libmpg123-0", "0");
+   }
 
    if (audio)
    {
