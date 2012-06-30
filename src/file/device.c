@@ -383,6 +383,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       if (res)
       {
          int freq = handle->file->get_frequency(handle->file->id);
+
          handle->frequency = (float)freq;
          handle->no_channels = handle->file->get_no_tracks(handle->file->id);
 
