@@ -193,7 +193,7 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
             }
             handle->backend.ptr = _aaxGetDriverBackendByName(handle->backends,
                                                             handle->devname[0],
-                                                            &handle->pos);
+                                                            &handle->be_pos);
          }
          else /* name == NULL */
          {
@@ -201,9 +201,10 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
 
             if (mode == AAX_MODE_READ) {
                be = _aaxGetDriverBackendDefaultCapture(handle->backends,
-                                                       &handle->pos);
+                                                       &handle->be_pos);
             } else {
-               be = _aaxGetDriverBackendDefault(handle->backends, &handle->pos);
+               be = _aaxGetDriverBackendDefault(handle->backends,
+                                                &handle->be_pos);
             }
 
             handle->backend.ptr = be;
@@ -471,9 +472,9 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
 
-         if (handle->pos != pos)
+         if (handle->be_pos != pos)
          {
-            handle->pos = pos;
+            handle->be_pos = pos;
             be->disconnect(be_handle);
             be_handle = NULL;
          }
@@ -625,6 +626,7 @@ new_handle()
       handle->backends = get_backends();
 
       handle->pos = UINT_MAX;
+      handle->be_pos = UINT_MAX;
       _SET_PROCESSED(handle);
 
       info = (_aaxMixerInfo*)ptr2;
@@ -889,7 +891,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             }
          }
 
-         be = _aaxGetDriverBackendByName(handle->backends, name, &handle->pos);
+         be = _aaxGetDriverBackendByName(handle->backends, name,
+                                         &handle->be_pos);
          if (be || (handle->devname[0] != _aax_default_devname)) {
             handle->backend.ptr = be;
          }

@@ -78,9 +78,10 @@ typedef struct
 {
    unsigned int id;
 
+   int pos;
    int valid;
    int state;
-   unsigned int pos;
+   unsigned int be_pos;
    void* handle;		/* assigned when registered to a (sub)mixer */
 
    char *devname[2];
