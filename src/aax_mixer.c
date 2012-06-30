@@ -1019,6 +1019,7 @@ _aaxMixerInit(_handle_t *handle)
       {
          handle->valid |= AAX_TRUE;
          info->pitch = freq/info->frequency;
+printf("info->pitch : %f\n", info->pitch);
          info->frequency = freq;
          info->no_tracks = ch;
          info->format = fmt;

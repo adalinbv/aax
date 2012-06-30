@@ -728,7 +728,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                       * first buffer from the queue when needed (below).
                       * This way pitch effects (< 1.0) can be processed safely.
                       */
-                     src_rb->pitch_norm = config->info->pitch;
+                     _oalRingBufferSetFrequency(src_rb,config->info->frequency);
                      _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
                      smixer->ringbuffer = rv;
                   }
