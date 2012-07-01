@@ -21,6 +21,11 @@ INSTALL(TARGETS aaxinfo
           RUNTIME DESTINATION bin
        )
 
+CREATE_TEST(aaxplay)
+INSTALL(TARGETS aaxplay
+          RUNTIME DESTINATION bin
+       )
+
 CREATE_TEST(testcapture)
 CREATE_TEST(testcone)
 CREATE_TEST(testdistance)
@@ -45,3 +50,7 @@ CREATE_TEST(teststereo_grapheq)
 CREATE_TEST(teststream)
 CREATE_TEST(teststream_phasing)
 CREATE_TEST(testwaves)
+
+CREATE_TEST(testdistortion_frame)
+CREATE_TEST(testregisteredsensor)
+CREATE_TEST(testregisteredsensor_frame)

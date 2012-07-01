@@ -121,7 +121,6 @@ int main(int argc, char **argv)
    mode = AAX_MODE_WRITE_STEREO;
    devname = getDeviceName(argc, argv);
    cfg = aaxDriverGetByName(devname, mode);
-
    if (cfg)
    {
 #if 0
@@ -130,7 +129,6 @@ int main(int argc, char **argv)
 #endif
 
       cfg = aaxDriverOpen(cfg);
-
       x = aaxGetMajorVersion();
       y = aaxGetMinorVersion();
       s = (char *)aaxGetVersionString(cfg);
