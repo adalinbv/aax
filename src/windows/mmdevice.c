@@ -401,9 +401,12 @@ _aaxMMDevDriverDisconnect(void *id)
 
       CloseHandle(handle->Event);
 
-      hr = pIAudioClient_Stop(handle->pAudioClient);
-      if (FAILED(hr)) {
-         _AAX_SYSLOG("mmdev; unable to stop the audio uType");
+      if (handle->pAudioClient != NULL)
+      {
+         hr = pIAudioClient_Stop(handle->pAudioClient);
+         if (FAILED(hr)) {
+            _AAX_SYSLOG("mmdev; unable to stop the audio uType");
+         }
       }
 
       if (handle->pEnumerator != NULL)
@@ -1101,13 +1104,19 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
             pIPropertyStore_Release(props);
             pIMMDevice_Release(device);
          }
+
          pIMMDeviceEnumerator_Release(enumerator);
          pIMMDeviceCollection_Release(collection);
          pCoUninitialize();
 
-         *ptr++ = 0;
-         rv = handle->ifname[m] = malloc(ptr-name);
-         memcpy(handle->ifname[m], name, ptr-name);
+         if (ptr != name)
+         {
+            *ptr++ = '\0';
+            rv = handle->ifname[m] = malloc(ptr-name);
+            if (rv) {
+               memcpy(handle->ifname[m], name, ptr-name);
+            }
+         }
 
          return rv;
 Exit:

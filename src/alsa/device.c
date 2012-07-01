@@ -1329,7 +1329,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          void **lst = hints;
          char *ptr;
 
-         ptr = (char *)&name;
+         ptr = name;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
@@ -1391,10 +1391,15 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
             ++lst;
          }
          while (*lst != NULL);
-         *ptr++ = 0;
 
-         rv = handle->ifname[m] = malloc(ptr-name);
-         memcpy(handle->ifname[m], name, ptr-name);
+         if (ptr != name)
+         {
+            *ptr++ = '\0';
+            rv = handle->ifname[m] = malloc(ptr-name);
+            if (rv) {
+               memcpy(handle->ifname[m], name, ptr-name);
+            }
+         }
       }
       res = psnd_device_name_free_hint(hints);
    }

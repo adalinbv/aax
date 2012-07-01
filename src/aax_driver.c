@@ -484,6 +484,7 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
             be_handle = be->new_handle(mode);
             handle->backend.handle = be_handle;
          }
+
          ptr = be->get_devices(be_handle, mode);
          if (pos)
          {
@@ -530,7 +531,7 @@ aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aax
             ptr = strchr(ptr, '\0')+1;
             while(*ptr != '\0')
             {
-               ptr = strchr(ptr, '\0')+1 ;
+               ptr = strchr(ptr, '\0')+1;
                num++;
             }
          }

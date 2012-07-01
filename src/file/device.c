@@ -681,15 +681,14 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
          }
       }
       while (ftype);
-      *(ptr-1) = '\0';
       
       if (ptr != interfaces)
       {
-         rv = calloc(1, ptr-interfaces+1);
-         if (rv)
-         {
+         *(ptr-1) = '\0';
+         ptr++;
+         rv = handle->interfaces = malloc(ptr-interfaces);
+         if (rv) {
             memcpy(rv, interfaces, ptr-interfaces);
-            handle->interfaces = rv;
          }
       }
    }
