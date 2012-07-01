@@ -39,7 +39,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/param.h>
-#include <sys/soundcard.h>
+#include "soundcard.h"
 // #include <libdevinfo.h>
 
 #if !defined(TEXT_DOMAIN)       /* Should be defined by cc -D */
