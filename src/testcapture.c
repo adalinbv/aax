@@ -19,6 +19,7 @@
 
 #define REFRESH_RATE		  50.0f
 #define RECORD_TIME_SEC		  5.0f
+#define PLAYBACK_DEVICE		"AeonWave on File: /tmp/AeonWaveOut.wav"
 
 int main(int argc, char **argv)
 {
@@ -26,8 +27,12 @@ int main(int argc, char **argv)
    char *devname;
    int res;
 
-   devname = getDeviceName(argc, argv);
+   devname = getCaptureName(argc, argv);
+   if (!devname) {
+      devname = getDeviceName(argc, argv);
+   }
 
+   printf("Capture device: '%s'\n", devname);
    record = aaxDriverOpenByName(devname, AAX_MODE_READ);
    testForError(record, "Capture device is unavailable.");
 
@@ -97,8 +102,11 @@ int main(int argc, char **argv)
       res = aaxDriverDestroy(record);
 
 
-      devname = "AeonWave on File: /tmp/AeonWaveOut.wav";
-      printf("Play back the recorded audio buffers: %s\n", devname);
+      devname = getDeviceName(argc, argv);
+      if (!devname) {
+         devname = PLAYBACK_DEVICE;
+      }
+      printf("Playback device: '%s'\n", devname);
       config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
       testForError(config, "No default audio device available.");
 
