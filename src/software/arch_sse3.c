@@ -34,9 +34,7 @@ _vec4Matrix4_sse3(vec4 d, const vec4 vi, mtx4 m)
    __m128 vm1 = _mm_mul_ps(_mm_load_ps((const float*)(m+1)), v);
    __m128 vm2 = _mm_mul_ps(_mm_load_ps((const float*)(m+2)), v);
    __m128 vm3 = _mm_mul_ps(_mm_load_ps((const float*)(m+3)), v);
-   __m128 m01 = _mm_hadd_ps(vm0, vm1);
-   __m128 m23 = _mm_hadd_ps(vm2, vm3);
-   _mm_store_ps((float*)d, _mm_hadd_ps(m01, m23));
+   _mm_store_ps(d, _mm_hadd_ps(_mm_hadd_ps(vm0, vm1), _mm_hadd_ps(vm2, vm3)));
 }
 
 #endif /* SSE3 */
