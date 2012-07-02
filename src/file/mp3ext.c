@@ -323,18 +323,19 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
    if (handle->capturing)
    {
       int framesz_bits = handle->no_tracks*handle->bits_sample;
-      unsigned char *ptr = (unsigned char*)data;
-
 #if 1
       size_t blocksize = (no_frames*framesz_bits)/8;
       size_t size = 0;
       int ret;
 
-      ret = pmpg123_read(handle->id, data, blocksize, &rv);
+      ret = pmpg123_read(handle->id, data, blocksize, &size);
       if (ret != MPG123_OK) {
 //       _AAX_SYSLOG("mp3; unable to read data");
       }
+      rv = size;
 #else
+      unsigned char *ptr = (unsigned char*)data;
+
       if (!handle->blockbuf) {
          handle->blockbuf = malloc(BLOCKSIZE);
       }
