@@ -33,6 +33,10 @@ extern "C" {
 #include <pmmintrin.h>
 #endif
 
+#ifdef __SSE4__
+#include <smmintrin.h>
+#endif
+
 #ifdef __AVX__
 #include <immintrin.h>
 #endif
@@ -98,6 +102,7 @@ void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsign
 
 
 /* SSE*/
+void _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2);
 void _vec4Add_sse(vec4 d, const vec4 v);
 void _vec4Copy_sse(vec4 d, const vec4 v);
 void _vec4Devide_sse(vec4 d, float s);
@@ -129,6 +134,15 @@ void _batch_cvt24_ps_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_pd_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
+
+/* SSE3 */
+void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
+
+/* SSE4 */
+float _vec3Magnitude_sse4(const vec3);
+float _vec3MagnitudeSquared_sse4(const vec3);
+float _vec3DotProduct_sse4(const vec3, const vec3);
+float _vec3Normalize_sse4(vec3, const vec3);
 
 /* AVX */
 void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);

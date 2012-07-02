@@ -70,20 +70,20 @@ _vec3Mulvec3(vec3 r, const vec3 v1, const vec3 v2)
 
 
 float
-vec3Magnitude(const vec3 v)
+_vec3Magnitude(const vec3 v)
 {
    float val = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
    return sqrtf(val);
 }
 
 float
-vec3MagnitudeSquared(const vec3 v)
+_vec3MagnitudeSquared(const vec3 v)
 {
    return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
 float
-vec3DotProduct(const vec3 v1, const vec3 v2)
+_vec3DotProduct(const vec3 v1, const vec3 v2)
 {
    return  (v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]);
 }
@@ -97,7 +97,7 @@ vec3Inverse(vec3 v1, const vec3 v2)
 }
 
 void
-vec3CrossProduct(vec3 d, const vec3 v1, const vec3 v2)
+_vec3CrossProduct(vec3 d, const vec3 v1, const vec3 v2)
 {
    d[0] = v1[1]*v2[2] - v1[2]*v2[1];
    d[1] = v1[2]*v2[0] - v1[0]*v2[2];
@@ -105,7 +105,7 @@ vec3CrossProduct(vec3 d, const vec3 v1, const vec3 v2)
 }
 
 float
-vec3Normalize(vec3 d, const vec3 v)
+_vec3Normalize(vec3 d, const vec3 v)
 {
    float mag = vec3Magnitude(v);
    if (mag)
@@ -411,6 +411,12 @@ vec3Copy_proc vec3Copy = _vec3Copy;
 vec3Devide_proc vec3Devide = _vec3Devide;
 vec3Mulvec3_proc vec3Mulvec3 = _vec3Mulvec3;
 vec3Sub_proc vec3Sub = _vec3Sub;
+
+vec3Magnitude_proc vec3Magnitude = _vec3Magnitude;
+vec3MagnitudeSquared_proc vec3MagnitudeSquared = _vec3MagnitudeSquared;
+vec3DotProduct_proc vec3DotProduct = _vec3DotProduct;
+vec3Normalize_proc vec3Normalize = _vec3Normalize;
+vec3CrossProduct_proc vec3CrossProduct = _vec3CrossProduct;
 
 vec4Add_proc vec4Add = _vec4Add;
 vec4Copy_proc vec4Copy = _vec4Copy;

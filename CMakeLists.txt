@@ -180,6 +180,12 @@ IF(MSVC)
     SET_PROPERTY(SOURCE src/software/arch_sse2.c
                  PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE2"
     )
+    SET_PROPERTY(SOURCE src/software/arch_sse3.c
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE3"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse4.c
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE4"
+    )
 
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG /LD")
     SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -DNDEBUG /LD")
@@ -188,12 +194,12 @@ IF(MSVC)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
 
-    SET_PROPERTY(SOURCE src/software/arch_sse.c
-                 PROPERTY COMPILE_FLAGS /arch:SSE
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse2.c
-                 PROPERTY  /arch:SSE2
-    )
+#   SET_PROPERTY(SOURCE src/software/arch_sse.c
+#                PROPERTY COMPILE_FLAGS /arch:SSE
+#   )
+#   SET_PROPERTY(SOURCE src/software/arch_sse2.c
+#                PROPERTY  /arch:SSE2
+#   )
 
     OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" OFF)
     IF(FORCE_STATIC_VCRT)
@@ -310,8 +316,10 @@ SET( AEONWAVE_OBJS
      src/software/arch.c
      src/software/arch_cpu.c
      src/software/arch_neon.c
-     src/software/arch_sse2.c
      src/software/arch_sse.c
+     src/software/arch_sse2.c
+     src/software/arch_sse3.c
+     src/software/arch_sse4.c
      src/software/mixer.c
      src/software/rbuf_codecs.c
      src/software/rbuf_codec_tables.c

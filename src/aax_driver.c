@@ -1107,7 +1107,7 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
       {
          unsigned int channel;
          float f;
-         vec3 v;
+         vec3_t v;
 
          channel = xmlNodeGetInt(xsid, "channel");
          if (channel >= n) channel = n-1;

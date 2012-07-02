@@ -58,18 +58,21 @@ enum {
 
 enum {
     AAX_NO_SIMD = 0,
-    AAX_NEON,
 
-    AAX_MMX = AAX_NEON,
+    AAX_MMX,
     AAX_SSE,
     AAX_SSE2,
     AAX_SSE3,
-    AAX_SSE4,
-    AAX_AVX
+    AAX_SSSE3,
+    AAX_SSE4A,
+    AAX_SSE41,
+    AAX_SSE42,
+    AAX_AVX,
+
+    AAX_NEON
 };
 
 #define MAX_SSE_LEVEL	10	
-#define SSE_LEVEL_SSE4		5
 #define DMAc			0x444d4163 
 #define htuA			0x68747541
 #define itne			0x69746e65
@@ -230,7 +233,7 @@ _aaxDetectSSE3()
    {
       res = check_cpuid_ecx(CPUID_FEAT_ECX_SSE3);
       if (res) {
-         res = check_cpuid_ecx(CPUID_FEAT_ECX_SSSE3);
+         res += check_cpuid_ecx(CPUID_FEAT_ECX_SSSE3);
       }
    }
 #endif
@@ -241,17 +244,22 @@ char
 _aaxDetectSSE4()
 {
 # ifdef __x86_64__
-   static char res = 1;
+   static char res = CPUID_FEAT_ECX_SSE4_2;
 #else
-   static char res = (char)-1;
+   static char res = -1;
    if (res == (char)-1)
    {
-      res = check_cpuid_ecx(CPUID_FEAT_ECX_SSE4_1);
-      if (res) {
-         res += check_cpuid_ecx(CPUID_FEAT_ECX_SSE4_2);
-      } else {
-         res = check_extcpuid_ecx(CPUID_FEAT_ECX_SSE4a);
-      }
+      char ret;
+
+      res = 0;
+      ret = check_extcpuid_ecx(CPUID_FEAT_ECX_SSE4a);
+      if (ret) res = AAX_SSE4A;
+
+      ret = check_cpuid_ecx(CPUID_FEAT_ECX_SSE4_1);
+      if (ret) res = AAX_SSE41;
+
+      ret = check_cpuid_ecx(CPUID_FEAT_ECX_SSE4_2);
+      if (ret) res = AAX_SSE42;
    }
 #endif
    return res;
@@ -289,18 +297,17 @@ _aaxGetSSELevel()
          res = _aaxDetectMMX();
          res += _aaxDetectSSE();
          res += _aaxDetectSSE2();
-#if 0
          res += _aaxDetectSSE3();
-#endif
          sse_level = res;
+
 #if 0
          if ((res = _aaxDetectSSE4()) > 0) {
-            sse_level = SSE_LEVEL_SSE4 + res;
+            sse_level = res;
          }
+#endif
          if (sse_level >= MAX_SSE_LEVEL) {
             sse_level = MAX_SSE_LEVEL-1;
          }
-#endif
 
 	// TODO: untested!
 #if 0
@@ -324,9 +331,9 @@ _aaxGetSIMDSupportString()
       "MMX/SSE2",
       "MMX/SSE3",
       "MMX/SSSE3",
+      "MMX/SSE4a",
       "MMX/SSE4.1",
       "MMX/SSE4.2",
-      "MMX/SSE4a",
       "SSE/AVX",
       "NEON"
    };
@@ -367,6 +374,7 @@ _aaxGetSIMDSupportString()
 #if defined(__i386__) || defined(__x86_64__)
       if (level >= AAX_SSE)
       {
+         vec3CrossProduct = _vec3CrossProduct_sse;
          vec4Add = _vec4Add_sse;
          vec4Sub = _vec4Sub_sse;
          vec4Copy = _vec4Copy_sse;
@@ -394,6 +402,19 @@ _aaxGetSIMDSupportString()
          _aaxBufResampleLinear = _aaxBufResampleLinear_sse2;
          _aaxBufResampleCubic = _aaxBufResampleCubic_sse2;
       }
+      if (level >= AAX_SSE3)
+      {
+         vec4Matrix4 = _vec4Matrix4_sse3;
+      }
+#if 0
+      if (level >= AAX_SSE41)
+      {
+         vec3Magnitude = _vec3Magnitude_sse4;
+         vec3MagnitudeSquared = _vec3MagnitudeSquared_sse4;
+         vec3DotProduct = _vec3DotProduct_sse4;
+         vec3Normalize = _vec3Normalize_sse4;
+      }
+#endif
 
 # if SIZEOF_SIZE_T == 8
       if (level >= AAX_AVX)

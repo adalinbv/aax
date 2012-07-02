@@ -28,6 +28,33 @@
 
 #ifdef __SSE__
 
+#if 0
+/* Warning!! GPL3 code from: http://http://fastcpp.blogspot.nl */
+void 
+_vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
+{
+   __m128 a = _mm_set_ps(v1[0], v1[1], v1[2], 0);
+   __m128 b = _mm_set_ps(v2[0], v2[1], v2[2], 0);
+   __m128 c; 
+   vec4 r;
+
+   c = _mm_sub_ps( _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1)),
+                              _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 0, 2))),
+                   _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 0, 2)), 
+                              _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1))));
+   _mm_store_ps(r, c);
+   _aax_memcpy(d, r, 3*sizeof(float));
+}
+#else
+void 
+_vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
+{
+   d[0] = v1[1]*v2[2] - v1[2]*v2[1];
+   d[1] = v1[2]*v2[0] - v1[0]*v2[2];
+   d[2] = v1[0]*v2[1] - v1[1]*v2[0];
+}
+#endif
+
 void
 _vec4Copy_sse(vec4 d, const vec4 v)
 {

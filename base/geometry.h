@@ -47,6 +47,8 @@ extern "C" {
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
 
+typedef ALIGN16 float vec3_t[4] ALIGN16C;
+typedef ALIGN16 float mtx3_t[4][4] ALIGN16C;
 typedef float vec3[3];
 typedef float mtx3[3][3];
 
@@ -73,14 +75,22 @@ extern vec3Sub_proc vec3Sub;
 void vec3Negate(vec3 d, const vec3 v);
 
 void vec3Inverse(vec3 v1, const vec3 v2);
-float vec3Magnitude(const vec3 v);
-float vec3MagnitudeSquared(const vec3 v);
-float vec3DotProduct(const vec3 v1, const vec3 v2);
-void vec3CrossProduct(vec3 d, const vec3 v1, const vec3 v2);
-float vec3Normalize(vec3 d, const vec3 v);
 void vec3Matrix3(vec3 d, const vec3 v, mtx3 m);
 void mtx3Sub(mtx3 d, mtx3 m);
 void mtx3Copy(mtx3 d, mtx3 m);
+
+typedef float (*vec3Magnitude_proc)(const vec3 v);
+typedef float (*vec3MagnitudeSquared_proc)(const vec3 v);
+typedef float (*vec3DotProduct_proc)(const vec3 v1, const vec3 v2);
+typedef float (*vec3Normalize_proc)(vec3 d, const vec3 v);
+typedef void (*vec3CrossProduct_proc)(vec3 d, const vec3 v1, const vec3 v2);
+
+extern vec3Magnitude_proc vec3Magnitude;
+extern vec3MagnitudeSquared_proc vec3MagnitudeSquared;
+extern vec3DotProduct_proc vec3DotProduct;
+extern vec3Normalize_proc vec3Normalize;
+extern vec3CrossProduct_proc vec3CrossProduct;
+
 
 typedef void (*vec4Copy_proc)(vec4 d, const vec4 v);
 typedef void (*vec4Add_proc)(vec4 d, const vec4 v);
