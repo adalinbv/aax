@@ -26,42 +26,18 @@
 
 #ifdef __SSE3__
 
-#if 0
-/* Warning!! GPL3 code from:
- * http://fastcpp.blogspot.nl/2011/03/matrix-vector-multiplication-using-sse3.html
- */
 void
-_vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m)
+_vec4Matrix4_sse3(vec4 d, const vec4 vi, mtx4 m)
 {
-   __m128 x =  _mm_load_ps((const float*)v);
-   __m128 A0 = _mm_load_ps((const float*)(m+0));
-   __m128 A1 = _mm_load_ps((const float*)(m+1));
-   __m128 A2 = _mm_load_ps((const float*)(m+2));
-   __m128 A3 = _mm_load_ps((const float*)(m+3));
- 
-   __m128 m0 = _mm_mul_ps(A0, x);
-   __m128 m1 = _mm_mul_ps(A1, x);
-   __m128 m2 = _mm_mul_ps(A2, x);
-   __m128 m3 = _mm_mul_ps(A3, x);
- 
-   __m128 sum_01 = _mm_hadd_ps(m0, m1);
-   __m128 sum_23 = _mm_hadd_ps(m2, m3);
-   __m128 result = _mm_hadd_ps(sum_01, sum_23);
-  
-   _mm_store_ps((float*)d, result);
+   __m128 v = _mm_load_ps((const float*)vi);
+   __m128 vm0 = _mm_mul_ps(_mm_load_ps((const float*)(m+0)), v);
+   __m128 vm1 = _mm_mul_ps(_mm_load_ps((const float*)(m+1)), v);
+   __m128 vm2 = _mm_mul_ps(_mm_load_ps((const float*)(m+2)), v);
+   __m128 vm3 = _mm_mul_ps(_mm_load_ps((const float*)(m+3)), v);
+   __m128 m01 = _mm_hadd_ps(vm0, vm1);
+   __m128 m23 = _mm_hadd_ps(vm2, vm3);
+   _mm_store_ps((float*)d, _mm_hadd_ps(m01, m23));
 }
-#else
-void
-_vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m)
-{
-   float v0 = v[0], v1 = v[1], v2 = v[2], v3 = v[3];
-
-   d[0] = v0*m[0][0] + v1*m[0][1] + v2*m[0][2] + v3*m[0][3];
-   d[1] = v0*m[1][0] + v1*m[1][1] + v2*m[1][2] + v3*m[1][3];
-   d[2] = v0*m[2][0] + v1*m[2][1] + v2*m[2][2] + v3*m[2][3];
-   d[3] = v0*m[3][0] + v1*m[3][1] + v2*m[3][2] + v3*m[3][3];
-}
-#endif
 
 #endif /* SSE3 */
 
