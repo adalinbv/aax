@@ -379,35 +379,39 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       _aaxAudioFrame *submix = sensor->mixer;
       _oalRingBuffer *rb;
 
-      if (!submix->ringbuffer)
-      {
+      if (!submix->ringbuffer) {
          submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
-         rb = submix->ringbuffer;
-         if (rb)
-         {
-            _aaxMixerInfo* info = submix->info;
-            const _aaxDriverBackend *be;
-            unsigned int pos;
-            float delay_sec;
+      }
 
-            be = _aaxGetDriverBackendLoopback(&pos);
-            delay_sec = 1.0f / info->refresh_rate;
+      rb = submix->ringbuffer;
+      if (rb)
+      {
+         _aaxMixerInfo* info = submix->info;
+         const _aaxDriverBackend *be;
+         unsigned int pos;
+         float delay_sec;
 
-            _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-            _oalRingBufferSetFrequency(rb, info->frequency);
-            _oalRingBufferSetNoTracks(rb, 2);
+         be = _aaxGetDriverBackendLoopback(&pos);
+         delay_sec = 1.0f / info->refresh_rate;
 
-            /* create a ringbuffer with a but of overrun space */
-            _oalRingBufferSetDuration(rb, delay_sec*1.0f);
-            _oalRingBufferInit(rb, AAX_TRUE);
+         _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+         _oalRingBufferSetNoTracks(rb, info->no_tracks);
 
-            /* 
-             * Now set the actual duration, this will not alter the allocated
-             * space since it is lower that the initial duration.
-             */
-            _oalRingBufferSetDuration(rb, delay_sec);
-            _oalRingBufferStart(rb);
-         }
+         /* Do not alter the frequency at this time, it has been set by
+          * aaxMixerRegisterSensor and may have changed in the mean time
+         _oalRingBufferSetFrequency(rb, info->frequency);
+          */
+
+         /* create a ringbuffer with a but of overrun space */
+         _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+         _oalRingBufferInit(rb, AAX_TRUE);
+
+         /* 
+          * Now set the actual duration, this will not alter the allocated
+          * space since it is lower that the initial duration.
+          */
+         _oalRingBufferSetDuration(rb, delay_sec);
+         _oalRingBufferStart(rb);
       }
       _intBufReleaseData(dptr, _AAX_SENSOR);
    }

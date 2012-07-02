@@ -39,6 +39,9 @@ extern "C" {
 #elif defined(__GNUC__)
 # define ALIGN16
 # define ALIGN16C        __attribute__((aligned(16)))
+#elif defined(__APPLE__)
+# define ALIGN16
+# define ALIGN16C	__attribute__ ((aligned (16)))
 #else
 # define ALIGN16
 # define ALIGN16C

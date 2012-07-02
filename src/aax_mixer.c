@@ -601,11 +601,16 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 
                         _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
                         _oalRingBufferSetFrequency(rb, info->frequency);
-                        _oalRingBufferSetNoTracks(rb, 2);
+                        _oalRingBufferSetNoTracks(rb, info->no_tracks);
 
                         /* create a ringbuffer with a but of overrun space */
                         _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+
+                        /* Do not initialize the RinBuffer yet, this would
+                         * assign memory to rb->tracks before the final
+                         * ringbuffer setup is know 
                         _oalRingBufferInit(rb, AAX_TRUE);
+                         */
 
                         /* 
                          * Now set the actual duration, this will not alter the
