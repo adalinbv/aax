@@ -39,9 +39,7 @@ _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
    __m128 xmm3 = _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1));
    vec4 r;
 
-   xmm5 = _mm_mul_ps(xmm5, xmm0);
-   xmm4 = _mm_mul_ps(xmm4, xmm3);
-   _mm_store_ps(r, _mm_sub_ps(xmm5, xmm4));
+   _mm_store_ps(r, _mm_sub_ps(_mm_mul_ps(xmm5, xmm0), _mm_mul_ps(xmm4, xmm3)));
    _aax_memcpy(d, r, 3*sizeof(float));
 }
 
