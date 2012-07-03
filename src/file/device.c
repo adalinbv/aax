@@ -372,9 +372,13 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
+#if 0
    if (!handle->frequency) {
       handle->frequency = *speed;
    }
+#else
+   handle->frequency = *speed;
+#endif
    freq = handle->frequency;
 
    handle->file->id = handle->file->setup(handle->mode, freq, *tracks, *fmt);
