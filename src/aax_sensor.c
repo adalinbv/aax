@@ -399,8 +399,8 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
 
          /* Do not alter the frequency at this time, it has been set by
           * aaxMixerRegisterSensor and may have changed in the mean time
-         _oalRingBufferSetFrequency(rb, info->frequency);
-          */
+*/       _oalRingBufferSetFrequency(rb, info->frequency);
+/*        */
 
          /* create a ringbuffer with a but of overrun space */
          _oalRingBufferSetDuration(rb, delay_sec*1.0f);

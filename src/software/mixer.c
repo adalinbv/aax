@@ -548,10 +548,10 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
-   unsigned int frames, dde;
    _oalRingBufferSample *rbd;
+   unsigned int frames;
+   int32_t **scratch;
    size_t nframes;
-   char **scratch;
    void *rv = rb;
    int res;
 
@@ -566,18 +566,28 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
 
    rbd = dest_rb->sample;
-   dde = rbd->dde_samples * rbd->bytes_sample;
-
-   scratch = (char**)rbd->scratch;
+   scratch = (int32_t**)rbd->scratch;
    if (scratch)
    {
-      res = be->capture(handle, rbd->track, &nframes, scratch[0]-dde);
+      unsigned int ds = rbd->dde_samples;
+      unsigned int dde = ds * rbd->bytes_sample;
+      unsigned int t;
+
+#if 0
+      for (t=0; t<rbd->no_tracks; t++)
+      {
+         int32_t *ptr = rbd->track[t];
+         _aax_memcpy(ptr-ds, ptr+frames-ds, dde);
+      }
+#endif
+
+      res = be->capture(handle, rbd->track, &nframes, scratch[0]-ds);
       if (TEST_FOR_TRUE(res) && nframes)
       {
-         float pitch = (float)frames/(float)nframes;
+//       float pitch = (float)frames/(float)nframes;
          _oalRingBuffer *nrb;
 
-         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
          dest_rb->pitch_norm = 1.0f; // pitch;
 
          _oalRingBufferRewind(dest_rb);

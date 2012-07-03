@@ -366,15 +366,16 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                         unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
-   int freq = (int)*speed;
-   int rv = AAX_FALSE;
+   int freq, rv = AAX_FALSE;
 
    assert(handle);
 
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
-   handle->frequency = *speed;
-
+   if (!handle->frequency) {
+      handle->frequency = *speed;
+   }
+   freq = handle->frequency;
 
    handle->file->id = handle->file->setup(handle->mode, freq, *tracks, *fmt);
    if (handle->file->id)

@@ -794,7 +794,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       handle->pitch = (float)rate;
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
-
             "unsupported sample rate" );
       handle->pitch = rate/handle->pitch;
 

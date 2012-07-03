@@ -1023,7 +1023,7 @@ _aaxMixerInit(_handle_t *handle)
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
       {
          handle->valid |= AAX_TRUE;
-         info->pitch = freq/info->frequency;
+//       info->pitch = freq/info->frequency;
          info->frequency = freq;
          info->no_tracks = ch;
          info->format = fmt;
