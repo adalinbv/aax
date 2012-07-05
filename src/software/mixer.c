@@ -558,8 +558,8 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    /*
     * dest_rb is thread specific and does not need a lock
     * Note:
-    *  - samples are always captured in signed 16-bit PCM, stereo
-    *  - The ringbuffer is singed 24-bit PCM, stereo
+    *  - The ringbuffer is singed 24-bit PCM, stereo or mono
+    *  - capture functions should return the data in signed 24-bit
     */
    assert(dest_rb->sample);
 
@@ -570,27 +570,27 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
    if (scratch)
    {
       unsigned int ds = rbd->dde_samples;
-      unsigned int dde = ds * rbd->bytes_sample;
-      unsigned int t;
-
-#if 0
-      for (t=0; t<rbd->no_tracks; t++)
-      {
-         int32_t *ptr = rbd->track[t];
-         _aax_memcpy(ptr-ds, ptr+frames-ds, dde);
-      }
-#endif
+      unsigned int bps = rbd->bytes_sample;
 
       res = be->capture(handle, rbd->track, &nframes, scratch[0]-ds);
       if (TEST_FOR_TRUE(res) && nframes)
       {
 //       float pitch = (float)frames/(float)nframes;
+         unsigned int t, tracks;
          _oalRingBuffer *nrb;
 
-         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
-         dest_rb->pitch_norm = 1.0f; // pitch;
+         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+         //       dest_rb->pitch_norm = 1.0f; // pitch;
 
-         _oalRingBufferRewind(dest_rb);
+         tracks = rbd->no_tracks;
+         for (t=0; t<tracks; t++)
+         {
+            int32_t *ptr = nrb->sample->track[t];
+            int32_t *optr = rbd->track[t];
+            _aax_memcpy(ptr-ds, optr-ds+frames, ds*bps);
+         }
+
+//       _oalRingBufferRewind(dest_rb);
 //       *rr *= pitch;
          rv = nrb;
       }
