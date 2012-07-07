@@ -380,14 +380,14 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          for (j=1; j<3; j++) /* skip left-right delays */
          {
             int diff = (int)p2d->hrtf[track][j];
-            float vstart, vstep;
+            float v_start, v_step;
 
             assert(diff < (int)rbd->dde_samples);
             assert(diff > -(int)dno_samples);
 
-            vstart = vstart * hrtf_volume[j];
-            vstep = 0.0f; // vstep * hrtf_volume[j];
-            _batch_fmadd(dptr, ptr-diff, dno_samples, vstart, vstep);
+            v_start = vstart * hrtf_volume[j];
+            v_step = 0.0f; // vstep * hrtf_volume[j];
+            _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
          }
       }
       while (0);
@@ -677,16 +677,16 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       for (j=0; j<3; j++)
       {
          int diff = (int)p2d->hrtf[track][j];
-         float vstart, vstep;
+         float v_start, v_step;
 
          assert(diff < (int)ddesamps);
          assert(diff > -(int)dno_samples);
  
-         vstart = vstart * hrtf_volume[j];
-         vstep = 0.0f; // vstep * hrtf_volume[j];
+         v_start = vstart * hrtf_volume[j];
+         v_step = 0.0f; // vstep * hrtf_volume[j];
 
 //       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
-         _batch_fmadd(dptr, ptr-diff, dno_samples, vstart, vstep);
+         _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
       }
    }
 
