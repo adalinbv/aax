@@ -59,7 +59,7 @@ _vec3Normalize_sse4(vec3 d, const vec3 v3)
    _mm_store_ps(r, norm);
    _aax_memcpy(d, r, 3*sizeof(float));
  
-   return mag;
+   return _vec3Magnitude_sse4(v3);
 }
 
 #endif /* SSE4 */
