@@ -53,6 +53,12 @@ int gettimeofday(struct timeval* p, void* tz /* IGNORED */)
    return 0;
 }
 
+int msecSleep(unsigned int dt_ms)
+{
+   DWORD res = SleepEx((DWORD)dt_ms, 0);
+   return (res != 0) ? -1 : 0;
+}
+
 #else
 int msecSleep(unsigned int dt_ms)
 {
