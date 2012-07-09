@@ -29,10 +29,13 @@
 #include "audio.h"
 #include "mmdevice.h"
 
+#include <Strsafe.h>
+
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		NULL
-#define USE_EVENT_THREAD	1
+#define USE_EVENT_THREAD	0
+#define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
 
 static _aaxDriverDetect _aaxMMDevDriverDetect;
 static _aaxDriverNewHandle _aaxMMDevDriverNewHandle;
@@ -74,11 +77,7 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxMMDevDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxMMDevDriverGetName,
-#if USE_EVENT_THREAD
    (_aaxDriverThread *)&_aaxMMDevDriverThread,
-#else
-   (_aaxDriverThread *)&_aaxSoftwareMixerThread,
-#endif
 
    (_aaxDriverConnect *)&_aaxMMDevDriverConnect,
    (_aaxDriverDisconnect *)&_aaxMMDevDriverDisconnect,
@@ -116,7 +115,7 @@ typedef struct
       IAudioCaptureClient *pCapture;
    } uType;
 
-   WAVEFORMATEX *pFormat;
+   WAVEFORMATEXTENSIBLE Fmt;
    EDataFlow Mode;
 
    REFERENCE_TIME hnsPeriod;
@@ -125,6 +124,7 @@ typedef struct
    char paused;
    char initializing;
    char exclusive;
+   char event_driven;
    char sse_level;
 
    char *ifname[2];
@@ -191,6 +191,8 @@ static char* detect_devname(IMMDevice*);
 static char* wcharToChar(const WCHAR*);
 static WCHAR* charToWChar(const char*);
 static const char* aaxNametoMMDevciceName(const char*);
+static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*);
+static void displayError(LPTSTR);
 
 static int
 _aaxMMDevDriverDetect(int mode)
@@ -233,6 +235,9 @@ _aaxMMDevDriverNewHandle(enum aaxRenderMode mode)
       handle->exclusive = AAX_TRUE;
       handle->sse_level = _aaxGetSSELevel();
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+#if USE_EVENT_THREAD
+      handle->event_driven = 1;
+#endif
    }
 
    return handle;
@@ -242,7 +247,7 @@ static void *
 _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
-   WAVEFORMATEX fmt;
+   WAVEFORMATEXTENSIBLE fmt;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -254,11 +259,14 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
 
    if (handle)
    {
-      fmt.nSamplesPerSec = _aaxMMDevDriverBackend.rate;
-      fmt.nChannels = _aaxMMDevDriverBackend.tracks;
-      fmt.wFormatTag = WAVE_FORMAT_PCM;
-      fmt.wBitsPerSample = 16;
-      fmt.cbSize = 0;
+      fmt.Format.nSamplesPerSec = _aaxMMDevDriverBackend.rate;
+      fmt.Format.nChannels = _aaxMMDevDriverBackend.tracks;
+      fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+      fmt.Format.wBitsPerSample = 16;
+      fmt.Format.cbSize = CBSIZE;
+      fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
+      fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+      fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
 
       if (xid)
       {
@@ -292,7 +300,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
                _AAX_SYSLOG("mmdev; frequency too large.");
                i = _AAX_MAX_MIXER_FREQUENCY;
             }
-            fmt.nSamplesPerSec = i;
+            fmt.Format.nSamplesPerSec = i;
          }
 
          if (mode != AAX_MODE_READ)
@@ -310,7 +318,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
                   _AAX_SYSLOG("mmdev; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
-               fmt.nChannels = i;
+               fmt.Format.nChannels = i;
             }
          }
 
@@ -369,10 +377,10 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
                                      &handle->pAudioClient);
             if (SUCCEEDED(hr))
             {
-               WAVEFORMATEX *wfmt = &fmt;
+               WAVEFORMATEX *wfmt = (WAVEFORMATEX*)&fmt;
                hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
                if (SUCCEEDED(hr)) {
-                  handle->pFormat = wfmt;
+                  exToExtensible(&handle->Fmt, wfmt);
                }
             }
          }
@@ -441,8 +449,6 @@ _aaxMMDevDriverDisconnect(void *id)
          }
       }
 
-      pCoTaskMemFree(handle->pFormat);
-
       free(handle->ifname[0]);
       free(handle->ifname[1]);
       if (handle->devname)
@@ -470,8 +476,9 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
    REFERENCE_TIME hnsPeriodicity;
    unsigned int channels, freq;
    int bps, no_samples = 1024;
-   WAVEFORMATEX *wfx, fmt;
+   WAVEFORMATEXTENSIBLE fmt;
    AUDCLNT_SHAREMODE mode;
+   WAVEFORMATEX *wfx;
    int frame_sz;
    DWORD stream;
    HRESULT hr;
@@ -485,8 +492,8 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
    }
 
    channels = *tracks;
-   if (channels > handle->pFormat->nChannels) {
-      channels = handle->pFormat->nChannels;
+   if (channels > handle->Fmt.Format.nChannels) {
+      channels = handle->Fmt.Format.nChannels;
    }
    if (channels > 2) // TODO: for now
    {
@@ -515,74 +522,66 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
    }
    else
    {
-      wfx = handle->pFormat;
+      wfx = (WAVEFORMATEX*)&handle->Fmt;
       mode = AUDCLNT_SHAREMODE_SHARED;
    }
    
-   fmt.nSamplesPerSec = freq;
-   fmt.wFormatTag = WAVE_FORMAT_PCM;
-   fmt.wBitsPerSample = bps*8;
-   fmt.nChannels = channels;
-   fmt.nBlockAlign = frame_sz;
-   fmt.nAvgBytesPerSec = fmt.nSamplesPerSec * fmt.nBlockAlign;
-   fmt.cbSize = 0;
+   fmt.Format.nSamplesPerSec = freq;
+   fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+   fmt.Format.wBitsPerSample = bps*8;
+   fmt.Format.nChannels = channels;
+   fmt.Format.nBlockAlign = frame_sz;
+   fmt.Format.nAvgBytesPerSec=fmt.Format.nSamplesPerSec*fmt.Format.nBlockAlign;
+   fmt.Format.cbSize = CBSIZE;
+   fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
+   fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+   fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
  
-   hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode, &fmt, &wfx);
+   hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
+                                        &fmt.Format, &wfx);
    if (FAILED(hr) && !handle->exclusive)
    {
-      WAVEFORMATEX *wfmt = &fmt;
       _AAX_SYSLOG("mmdev; no device format found, trying mixer format");
-      hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
-      if (SUCCEEDED(hr)) {
-         wfx = wfmt;
-      }
+      hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
    }
 
    if (FAILED(hr))
    {
-      // TODO: fix non exclusive mode
-#if 0
       if (handle->exclusive)
       {
          _AAX_SYSLOG("mmdev; failed in exclusive mode, trying shared");
          handle->exclusive = AAX_FALSE;
 
-         wfx = handle->pFormat;
+         wfx = &handle->Fmt.Format;
          mode = AUDCLNT_SHAREMODE_SHARED;
 
-         hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,
-                                              mode, &fmt, &wfx);
+         hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
+                                              &fmt.Format, &wfx);
          if (FAILED(hr)) {
             _AAX_SYSLOG("mmdev; unable to get a proper format");
          }
       }
-#endif
       if (FAILED(hr)) {
          return AAX_FALSE;
       }
    }
 
-   if (handle->exclusive && wfx)
-   {
-      pCoTaskMemFree(handle->pFormat);
-      handle->pFormat = wfx;
+   if (handle->exclusive && wfx) {
+      exToExtensible(&handle->Fmt, wfx);
    }
    else if (!handle->exclusive || !wfx)
    {
-      if (!wfx) wfx = &fmt;
-      handle->pFormat->nSamplesPerSec = wfx->nSamplesPerSec;
-      handle->pFormat->wFormatTag = WAVE_FORMAT_PCM;
-      handle->pFormat->wBitsPerSample = wfx->wBitsPerSample;
-      handle->pFormat->nChannels = wfx->nChannels;
-      handle->pFormat->nBlockAlign = wfx->nBlockAlign;
-      handle->pFormat->nAvgBytesPerSec = wfx->nAvgBytesPerSec;
-      handle->pFormat->cbSize = 0;
+      if (!wfx) {
+         _aax_memcpy(&handle->Fmt, &fmt, sizeof(WAVEFORMATEXTENSIBLE));
+      } else {
+         exToExtensible(&handle->Fmt, wfx);
+      }
    }
    else {
       _AAX_SYSLOG("mmdev; uncaught format error");
    }
-   *speed = (float)handle->pFormat->nSamplesPerSec;
-   *tracks = handle->pFormat->nChannels;
+   *speed = (float)handle->Fmt.Format.nSamplesPerSec;
+   *tracks = handle->Fmt.Format.nChannels;
 
    /*
     * The buffer capacity as a time value. This parameter is of type
@@ -592,29 +591,39 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
     * with the endpoint device (in exclusive mode). If the call succeeds, the 
     * method allocates a buffer that is a least this large
     */
-   stream = 0;
-   freq = (unsigned int)handle->pFormat->nSamplesPerSec;
+   freq = (unsigned int)handle->Fmt.Format.nSamplesPerSec;
    hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*no_samples/freq);
-   if (handle->exclusive)
-   {
-#if USE_EVENT_THREAD
+
+   if (handle->event_driven) {
       stream = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
-#endif
+   }
+   else {
+      stream = 0;
+   }
+
+   if (handle->exclusive) {
       hnsPeriodicity = hnsBufferDuration;
    }
    else
    {
-      stream =  AUDCLNT_STREAMFLAGS_RATEADJUST;
-#if USE_EVENT_THREAD
-      stream |= AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
-#endif
+      stream |=  AUDCLNT_STREAMFLAGS_RATEADJUST;
       hnsPeriodicity = 0;
    }
 
    pCoInitializeEx(NULL, 0);
    hr = pIAudioClient_Initialize(handle->pAudioClient, mode, stream,
                                  hnsBufferDuration, hnsPeriodicity,
-                                 handle->pFormat, NULL);
+                                 &handle->Fmt.Format, NULL);
+   /*
+    * Some drivers don't support the event callback method and return
+    * E_INVALIDARG for IAudioClient_Initialize.
+    * In these cases it is necessary to switch to timer driven.
+    *
+    * If you do get E_INVALIDARG from Initialize(), it is important to
+    * remember that you MUST create a new instance of IAudioClient before
+    * trying to Initialize() again or you will have unpredictable results.
+    */
+
    if (SUCCEEDED(hr))
    {
       REFERENCE_TIME latency;
@@ -638,7 +647,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
          }
 
          if (FAILED(hr)) {
-            _AAX_SYSLOG("mmdev; faild to get audio servcie");
+            _AAX_SYSLOG("mmdev; faild to get audio service");
          }
       }
       else {
@@ -680,8 +689,7 @@ _aaxMMDevDriverResume(const void *id)
    int rv = AAX_FALSE;
    if (handle)
    {
-#if USE_EVENT_THREAD
-      if (handle->initializing == 1)
+      if (handle->event_driven && handle->initializing == 1)
       {
          handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
          if (handle->Event)
@@ -695,7 +703,6 @@ _aaxMMDevDriverResume(const void *id)
             _AAX_SYSLOG("mmdev; unable to set up the event handler");
          }
       }
-#endif
 
       if (!handle->initializing)
       {
@@ -887,10 +894,10 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
       hr = pIAudioRenderClient_GetBuffer(handle->uType.pRender, frames, &data);
       if (SUCCEEDED(hr))
       {
-         if (handle->pFormat->wBitsPerSample == 16) {
+         if (handle->Fmt.Format.wBitsPerSample == 16) {
             _batch_cvt16_intl_24(data, (const int32_t**)rbd->track, offs,
                                  no_tracks, frames);
-         } else if (handle->pFormat->wBitsPerSample == 32) {
+         } else if (handle->Fmt.Format.wBitsPerSample == 32) {
             _batch_cvt32_intl_24(data, (const int32_t**)rbd->track, offs,
                                  no_tracks, frames);
          } else {
@@ -1135,6 +1142,35 @@ Exit:
 
 /* -------------------------------------------------------------------------- */
 
+static void
+displayError(LPTSTR lpszFunction) 
+{ 
+   LPVOID lpMsgBuf;
+   LPVOID lpDisplayBuf;
+   DWORD dw = GetLastError(); 
+
+   FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+   lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+        (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR)); 
+   StringCchPrintf((LPTSTR)lpDisplayBuf, 
+        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+        TEXT("%s failed with error %d: %s"), 
+        lpszFunction, dw, lpMsgBuf); 
+   MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+
+   LocalFree(lpMsgBuf);
+   LocalFree(lpDisplayBuf);
+}
+
 const char *
 aaxNametoMMDevciceName(const char *devname)
 {
@@ -1323,20 +1359,21 @@ _aaxMMDevDriverThread(void* config)
    }
 
    nsamps = 0;
-   stdby_time = 2*(int)(delay_sec*1000);
+   stdby_time = (int)(delay_sec*1000);
    be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
    be_handle = (_driver_t *)handle->backend.handle;
-#if USE_EVENT_THREAD
    be_handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
-   if (be_handle->Event) {
+   if (be_handle->Event && be_handle->event_driven) {
       IAudioClient_SetEventHandle(be_handle->pAudioClient, be_handle->Event);
-   } else {
+   } else if (!be_handle->Event) {
       _AAX_SYSLOG("mmdev; unable to set up the event handler");
    }
-#endif
 
+   if (be_handle->event_driven) {
+      stdby_time *= 2;
+   }
 
    _aaxMutexLock(handle->thread.mutex);
    do
@@ -1370,7 +1407,7 @@ _aaxMMDevDriverThread(void* config)
          case WAIT_OBJECT_0:
             break;
          case WAIT_TIMEOUT:
-            if (!be_handle->initializing) {
+            if (be_handle->event_driven && !be_handle->initializing) {
                _AAX_SYSLOG("mmdev; snd_pcm_wait polling error");
             }
             break;
@@ -1382,7 +1419,7 @@ _aaxMMDevDriverThread(void* config)
          }
       }
       else {
-         msecSleep(delay_sec*1000);
+         msecSleep(stdby_time);
       }
       _aaxMutexLock(handle->thread.mutex);
    }
@@ -1397,3 +1434,59 @@ _aaxMMDevDriverThread(void* config)
    }
    return handle;
 }
+
+static int
+exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in)
+{
+   int rv = AAX_TRUE;
+
+   assert(in);
+
+   memset(out, 0, sizeof(WAVEFORMATEXTENSIBLE));
+   if (in->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
+        *out = *(const WAVEFORMATEXTENSIBLE*)in;
+   }
+   else if(in->wFormatTag == WAVE_FORMAT_PCM)
+   {
+      out->Format = *in;
+      if (in->nChannels > 2 || in->wBitsPerSample > 16)
+      {
+         out->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+         out->Format.cbSize = CBSIZE;
+
+         out->Samples.wValidBitsPerSample = in->wBitsPerSample;
+         out->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+      }
+   }
+   else if (in->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
+      _AAX_SYSLOG("mmdev; usupported format requested: float");
+      rv = AAX_FALSE;
+   }
+
+   if (rv == AAX_TRUE)
+   {
+      out->dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+      switch (in->nChannels)
+      {
+      case 1:
+         out->dwChannelMask = SPEAKER_FRONT_CENTER;
+         break;
+      case 8:
+         out->dwChannelMask |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
+      case 6:
+         out->dwChannelMask |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
+      case 4:
+         out->dwChannelMask |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
+      case 2:
+         break;
+      default:
+      _AAX_SYSLOG("mmdev; usupported no. tracks requested");
+         rv = AAX_FALSE;
+         break;
+      }
+   }
+
+   return rv;
+}
+
+
