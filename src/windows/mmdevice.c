@@ -34,8 +34,14 @@
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		NULL
-#define USE_EVENT_THREAD	0
+#define USE_EVENT_THREAD	1
+#define EXCLUSIVE_MODE		1
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
+
+#if 1
+#undef _AAX_SYSLOG
+#define _AAX_SYSLOG(a)	displayError(TEXT(a))
+#endif
 
 static _aaxDriverDetect _aaxMMDevDriverDetect;
 static _aaxDriverNewHandle _aaxMMDevDriverNewHandle;
@@ -232,7 +238,9 @@ _aaxMMDevDriverNewHandle(enum aaxRenderMode mode)
       handle->Mode = _mode[(mode > 0) ? 1 : 0];
       handle->initializing = 0;
       handle->paused = AAX_FALSE;
+#if EXCLUSIVE_MODE
       handle->exclusive = AAX_TRUE;
+#endif
       handle->sse_level = _aaxGetSSELevel();
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
 #if USE_EVENT_THREAD
@@ -522,7 +530,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
    }
    else
    {
-      wfx = (WAVEFORMATEX*)&handle->Fmt;
+      wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
       mode = AUDCLNT_SHAREMODE_SHARED;
    }
    
@@ -872,24 +880,31 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
       handle->initializing--;
    }
 
-   if (!handle->exclusive)
+   if (!handle->exclusive && !handle->event_driven)
    {
-      hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
-      if (SUCCEEDED(hr))
+      do
       {
-         if (no_samples > padding) {
-            frames = no_samples - padding;
+         hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
+         if (SUCCEEDED(hr))
+         {
+            if (no_samples > padding) {
+               frames = no_samples - padding;
+            } else {
+               frames = 0;
+            }
          } else {
-            frames = no_samples;
+            frames = 0;
          }
-      } else {
-         frames = 0;
+         if (frames >= no_samples) break;
+         msecSleep(1);
       }
-   } else {
+      while (frames < no_samples);
+   }
+   else {
       frames = no_samples;
    }
 
-   if ((frames == no_samples) && (no_samples != padding))
+   if (!handle->initializing && (frames >= no_samples))
    {
       hr = pIAudioRenderClient_GetBuffer(handle->uType.pRender, frames, &data);
       if (SUCCEEDED(hr))
@@ -1313,57 +1328,73 @@ void *
 _aaxMMDevDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
+   LARGE_INTEGER li1 = {0}, li2 = {0};
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
-   unsigned int nsamps;
+   int64_t tfreq, ticks;
+   unsigned int bufsz;
    float delay_sec;
    int stdby_time;
-   char state;
+   int state;
+   int tracks;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
       return NULL;
    }
 
+   be = handle->backend.ptr;
+   delay_sec = 1.0f/handle->info->refresh_rate;
+
+   tracks = 2;
+   mixer = NULL;
    dest_rb = _oalRingBufferCreate(AAX_TRUE);
+   if (dest_rb)
+   {
+      dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr_sensor)
+      {
+         _aaxMixerInfo* info;
+         _sensor_t* sensor;
+
+         sensor = _intBufGetDataPtr(dptr_sensor);
+         mixer = sensor->mixer;
+         info = mixer->info;
+
+         tracks = info->no_tracks;
+         _oalRingBufferSetNoTracks(dest_rb, tracks);
+         _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
+         _oalRingBufferSetFrequency(dest_rb, info->frequency);
+         _oalRingBufferSetDuration(dest_rb, delay_sec);
+         _oalRingBufferInit(dest_rb, AAX_TRUE);
+         _oalRingBufferStart(dest_rb);
+
+         mixer->ringbuffer = dest_rb;
+         _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+      }
+   }
+
+   dest_rb = mixer->ringbuffer;
    if (!dest_rb) {
       return NULL;
    }
 
-   delay_sec = 1.0f/handle->info->refresh_rate;
+   /* get real duration, it might have been altered for better performance */
+   bufsz = _oalRingBufferGetNoSamples(dest_rb);
+   delay_sec = _oalRingBufferGetDuration(dest_rb);
 
-   be = handle->backend.ptr;
-   dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-   if (dptr_sensor)
-   {
-      _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
-      mixer = sensor->mixer;
-
-      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-      _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
-      _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
-      _oalRingBufferSetDuration(dest_rb, delay_sec);
-      _oalRingBufferInit(dest_rb, AAX_TRUE);
-      _oalRingBufferStart(dest_rb);
-
-      mixer->ringbuffer = dest_rb;
-      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+   be_handle = (_driver_t *)handle->backend.handle;
+   if (be_handle->event_driven) {
+      stdby_time = 2*(int)(delay_sec*1000);
+   } else {
+      stdby_time =2*(int)(delay_sec*1000);
    }
-   else
-   {
-      _oalRingBufferDelete(dest_rb);
-      return NULL;
-   }
-
-   nsamps = 0;
-   stdby_time = (int)(delay_sec*1000);
    be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
-   be_handle = (_driver_t *)handle->backend.handle;
    be_handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
    if (be_handle->Event && be_handle->event_driven) {
       IAudioClient_SetEventHandle(be_handle->pAudioClient, be_handle->Event);
@@ -1371,21 +1402,24 @@ _aaxMMDevDriverThread(void* config)
       _AAX_SYSLOG("mmdev; unable to set up the event handler");
    }
 
-   if (be_handle->event_driven) {
-      stdby_time *= 2;
-   }
-
+   QueryPerformanceFrequency(&li1);
+   tfreq = li1.QuadPart;
+   
    _aaxMutexLock(handle->thread.mutex);
    do
    {
+      static int res = 0;
+      float time_fact = 1.0f -(float)res/(float)bufsz;
+      DWORD timeout, hr;
+
+      QueryPerformanceCounter(&li1);
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
 
       if (state != handle->state)
       {
-         if (_IS_PAUSED(handle) ||
-             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+         if (_IS_PAUSED(handle) || (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
             be->pause(handle->backend.handle);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
@@ -1395,31 +1429,30 @@ _aaxMMDevDriverThread(void* config)
       }
 
       /* do all the mixing */
-      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      QueryPerformanceCounter(&li2);
+      ticks = li2.QuadPart-li1.QuadPart;
+
+      ticks *= 1000;
+      ticks /= tfreq;
+      timeout = _MAX(stdby_time-(int)ticks, 1);
 
       _aaxMutexUnLock(handle->thread.mutex);
-      if (_IS_PLAYING(handle) && be->is_available(be_handle))
+      hr = WaitForSingleObject(be_handle->Event, timeout);
+      switch (hr)
       {
-                                /* timeout is in miliseconds */
-         DWORD r = WaitForSingleObjectEx(be_handle->Event, stdby_time, FALSE);
-         switch (r)
-         {
-         case WAIT_OBJECT_0:
-            break;
-         case WAIT_TIMEOUT:
-            if (be_handle->event_driven && !be_handle->initializing) {
-               _AAX_SYSLOG("mmdev; snd_pcm_wait polling error");
-            }
-            break;
-         case WAIT_ABANDONED:
-         case WAIT_FAILED:
-         default:
-            _AAX_SYSLOG("mmdev; snd_pcm_wait polling failed");
-            break;
+      case WAIT_OBJECT_0:
+         break;
+      case WAIT_TIMEOUT:
+         if (be_handle->event_driven && !be_handle->initializing) {
+            _AAX_SYSLOG("mmdev; event timeout");
          }
-      }
-      else {
-         msecSleep(stdby_time);
+         break;
+      case WAIT_ABANDONED:
+      case WAIT_FAILED:
+      default:
+         _AAX_SYSLOG("mmdev; wait for even failed");
+         break;
       }
       _aaxMutexLock(handle->thread.mutex);
    }
