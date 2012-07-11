@@ -34,11 +34,12 @@
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		NULL
+#define NO_PERIODS		2
 #define USE_EVENT_THREAD	1
 #define EXCLUSIVE_MODE		1
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
 
-#if 1
+#if 0
 #undef _AAX_SYSLOG
 #define _AAX_SYSLOG(a)	displayError(TEXT(a))
 #endif
@@ -135,6 +136,8 @@ typedef struct
 
    char *ifname[2];
    _oalRingBufferMix1NFunc *mix_mono3d;
+
+   _batch_cvt_to_intl_proc cvt_to_intl;
 
 } _driver_t;
 
@@ -238,13 +241,13 @@ _aaxMMDevDriverNewHandle(enum aaxRenderMode mode)
       handle->Mode = _mode[(mode > 0) ? 1 : 0];
       handle->initializing = 0;
       handle->paused = AAX_FALSE;
+      handle->sse_level = _aaxGetSSELevel();
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
 #if EXCLUSIVE_MODE
       handle->exclusive = AAX_TRUE;
 #endif
-      handle->sse_level = _aaxGetSSELevel();
-      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
 #if USE_EVENT_THREAD
-      handle->event_driven = 1;
+      handle->event_driven = AAX_TRUE;
 #endif
    }
 
@@ -272,6 +275,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
       fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
       fmt.Format.wBitsPerSample = 16;
       fmt.Format.cbSize = CBSIZE;
+
       fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
       fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
       fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
@@ -415,7 +419,9 @@ _aaxMMDevDriverDisconnect(void *id)
    {
       HRESULT hr;
 
-      CloseHandle(handle->Event);
+      if (handle->Event) {
+         CloseHandle(handle->Event);
+      }
 
       if (handle->pAudioClient != NULL)
       {
@@ -480,23 +486,23 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
                    unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
+   int channels, bps, samples = 1024;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
-   unsigned int channels, freq;
-   int bps, no_samples = 1024;
    WAVEFORMATEXTENSIBLE fmt;
    AUDCLNT_SHAREMODE mode;
    WAVEFORMATEX *wfx;
-   int frame_sz;
    DWORD stream;
+   int frame_sz;
    HRESULT hr;
+   float f;
 
    assert(handle);
 
-   freq = (unsigned int)*speed;
+   f = (float)*speed;
 
    if (frames && *frames) {
-      no_samples = *frames;
+      samples = *frames;
    }
 
    channels = *tracks;
@@ -515,134 +521,259 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
    bps = aaxGetBytesPerSample(*format);
    frame_sz = channels * bps;
 
-   /*
-    * For shared mode set wfx to point to a valid, non-NULL pointer variable.
-    * For exclusive mode, set wfx to NULL. The method allocates the storage for
-    * the structure. The caller is responsible for freeing the storage, when it
-    * is no longer needed, by calling the CoTaskMemFree function. If the
-    * IsFormatSupported call fails and wfx is non-NULL, the method sets *wfx
-    * to NULL.
-    */
-   if (handle->exclusive)
+   pCoInitializeEx(NULL, 0);
+   do
    {
-      wfx = NULL;
-      mode = AUDCLNT_SHAREMODE_EXCLUSIVE;
-   }
-   else
-   {
-      wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
-      mode = AUDCLNT_SHAREMODE_SHARED;
-   }
-   
-   fmt.Format.nSamplesPerSec = freq;
-   fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-   fmt.Format.wBitsPerSample = bps*8;
-   fmt.Format.nChannels = channels;
-   fmt.Format.nBlockAlign = frame_sz;
-   fmt.Format.nAvgBytesPerSec=fmt.Format.nSamplesPerSec*fmt.Format.nBlockAlign;
-   fmt.Format.cbSize = CBSIZE;
-   fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
-   fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-   fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
- 
-   hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
-                                        &fmt.Format, &wfx);
-   if (FAILED(hr) && !handle->exclusive)
-   {
-      _AAX_SYSLOG("mmdev; no device format found, trying mixer format");
-      hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
-   }
-
-   if (FAILED(hr))
-   {
+      /*
+       * For shared mode set wfx to point to a valid, non-NULL pointer variable.
+       * For exclusive mode, set wfx to NULL. The method allocates the storage
+       * for the structure. The caller is responsible for freeing the storage,
+       * when it is no longer needed, by calling the CoTaskMemFree function. If
+       * the IsFormatSupported call fails and wfx is non-NULL, the method sets
+       * *wfx to NULL.
+       */
       if (handle->exclusive)
       {
-         _AAX_SYSLOG("mmdev; failed in exclusive mode, trying shared");
-         handle->exclusive = AAX_FALSE;
-
-         wfx = &handle->Fmt.Format;
+         wfx = NULL;
+         mode = AUDCLNT_SHAREMODE_EXCLUSIVE;
+      }
+      else
+      {
+         wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
          mode = AUDCLNT_SHAREMODE_SHARED;
+      }
+   
+      fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+      fmt.Format.nSamplesPerSec = (unsigned int)f;
+      fmt.Format.nChannels = channels;
+      fmt.Format.wBitsPerSample = bps*8;
+      fmt.Format.nBlockAlign = frame_sz;
+      fmt.Format.nAvgBytesPerSec = fmt.Format.nSamplesPerSec
+                                   * fmt.Format.nBlockAlign;
+      fmt.Format.cbSize = CBSIZE;
 
-         hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
-                                              &fmt.Format, &wfx);
+      fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
+      fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+      fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+ 
+      hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
+                                           &fmt.Format, &wfx);
+      if (FAILED(hr) && !handle->exclusive)
+      {
+         _AAX_SYSLOG("mmdev; no device format found, trying mixer format");
+         hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
+      }
+
+      if (FAILED(hr))
+      {
+         if (handle->exclusive)
+         {
+            _AAX_SYSLOG("mmdev; failed in exclusive mode, trying shared");
+            handle->exclusive = AAX_FALSE;
+
+            wfx = &handle->Fmt.Format;
+            mode = AUDCLNT_SHAREMODE_SHARED;
+
+            hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
+                                                 &fmt.Format, &wfx);
+            if (FAILED(hr)) {
+               _AAX_SYSLOG("mmdev; unable to get a proper format");
+            }
+         }
          if (FAILED(hr)) {
-            _AAX_SYSLOG("mmdev; unable to get a proper format");
+            return AAX_FALSE;
          }
       }
-      if (FAILED(hr)) {
-         return AAX_FALSE;
-      }
-   }
 
-   if (handle->exclusive && wfx) {
-      exToExtensible(&handle->Fmt, wfx);
-   }
-   else if (!handle->exclusive || !wfx)
-   {
-      if (!wfx) {
-         _aax_memcpy(&handle->Fmt, &fmt, sizeof(WAVEFORMATEXTENSIBLE));
-      } else {
+      if (handle->exclusive && wfx) {
          exToExtensible(&handle->Fmt, wfx);
       }
-   }
-   else {
-      _AAX_SYSLOG("mmdev; uncaught format error");
-   }
-   *speed = (float)handle->Fmt.Format.nSamplesPerSec;
-   *tracks = handle->Fmt.Format.nChannels;
+      else if (!handle->exclusive || !wfx)
+      {
+         if (!wfx) {
+            _aax_memcpy(&handle->Fmt, &fmt, sizeof(WAVEFORMATEXTENSIBLE));
+         } else {
+            exToExtensible(&handle->Fmt, wfx);
+         }
+      }
+      else {
+         _AAX_SYSLOG("mmdev; uncaught format error");
+      }
+      *speed = (float)handle->Fmt.Format.nSamplesPerSec;
+      *tracks = handle->Fmt.Format.nChannels;
 
-   /*
-    * The buffer capacity as a time value. This parameter is of type
-    * REFERENCE_TIME and is expressed in 100-nanosecond units. This parameter
-    * contains the buffer size that the caller requests for the buffer that the
-    * audio application will share with the audio engine (in shared mode) or 
-    * with the endpoint device (in exclusive mode). If the call succeeds, the 
-    * method allocates a buffer that is a least this large
-    */
-   freq = (unsigned int)handle->Fmt.Format.nSamplesPerSec;
-   hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*no_samples/freq);
+      switch (handle->Fmt.Format.wBitsPerSample)
+      {
+      case 16:
+         handle->cvt_to_intl = _batch_cvt16_intl_24;
+         break;
+      case 32:
+         if (IsEqualGUID(&handle->Fmt.SubFormat,
+                         &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+         {
+            handle->cvt_to_intl = _batch_cvtps_intl_24;
+         } else if (handle->Fmt.Samples.wValidBitsPerSample == 24) {
+            handle->cvt_to_intl = _batch_cvt24_intl_24;
+         } else {
+            handle->cvt_to_intl = _batch_cvt32_intl_24;
+         }
+         break;
+      case 24:
+         handle->cvt_to_intl = _batch_cvt24_3intl_24;
+         break;
+      case 8:
+         handle->cvt_to_intl = _batch_cvt8_intl_24;
+         break;
+      default:
+         _AAX_SYSLOG("mmdev; error: hardware format mismatch!\n");
+         break;
+      }
+#if 0
+printf("Format:\n");
+printf("- frequency: %i\n", handle->Fmt.Format.nSamplesPerSec);
+printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
+printf("- no. channels: %i\n", handle->Fmt.Format.nChannels);
+printf("- block size: %i\n", handle->Fmt.Format.nBlockAlign);
+printf("- cb size: %i\n",  handle->Fmt.Format.cbSize);
+printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
+printf("- speaker mask: %x\n", handle->Fmt.dwChannelMask);
+printf("- subformat: float: %x - pcm: %x\n",
+         IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
+         IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_PCM));
+printf("*frames: %i, samples: %i\n", *frames, samples);
+#endif
 
-   if (handle->event_driven) {
-      stream = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
-   }
-   else {
-      stream = 0;
-   }
+      /*
+       * The buffer capacity as a time value. This parameter is of type
+       * REFERENCE_TIME and is expressed in 100-nanosecond units. This parameter
+       * contains the buffer size that the caller requests for the buffer that
+       * the audio application will share with the audio engine (in shared mode)
+       * or with the endpoint device (in exclusive mode). If the call succeeds,
+       * the method allocates a buffer that is a least this large.
+       *
+       * For a shared-mode stream that uses event-driven buffering, the caller
+       * must set both hnsPeriodicity and hnsBufferDuration to 0. The Initialize
+       * method determines how large a buffer to allocate based on the
+       * scheduling period of the audio engine.
+       */
+      f = (float)handle->Fmt.Format.nSamplesPerSec;
+      hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*samples/f);
 
-   if (handle->exclusive) {
+      /* special case for 44100kHz and 22050kHz to prevent buffer underruns */
+      if ((f > 44000.0f && f < 45000.0f) || (f > 22000.0f && f < 23000.0f)) {
+         hnsBufferDuration = (hnsBufferDuration*3/2);
+      }
       hnsPeriodicity = hnsBufferDuration;
-   }
-   else
-   {
-      stream |=  AUDCLNT_STREAMFLAGS_RATEADJUST;
-      hnsPeriodicity = 0;
-   }
+      if (handle->event_driven)
+      {
+         if (handle->exclusive)
+         {
+            stream = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
+         }
+         else /* shared mode */
+         {
+            stream = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
+            stream |= AUDCLNT_STREAMFLAGS_RATEADJUST;
+            hnsBufferDuration = 0;
+            hnsPeriodicity = 0;
+         }
+      }
+      else /* timer driver */
+      {
+         if (handle->exclusive) 
+         {
+             hnsBufferDuration *= NO_PERIODS;
+             stream = 0;
+         } 
+         else /* shared mode */
+         {
+            hnsPeriodicity = 0;
+            hnsBufferDuration *= NO_PERIODS;
+            stream = AUDCLNT_STREAMFLAGS_RATEADJUST;
+         }
+      }
 
-   pCoInitializeEx(NULL, 0);
-   hr = pIAudioClient_Initialize(handle->pAudioClient, mode, stream,
-                                 hnsBufferDuration, hnsPeriodicity,
-                                 &handle->Fmt.Format, NULL);
-   /*
-    * Some drivers don't support the event callback method and return
-    * E_INVALIDARG for IAudioClient_Initialize.
-    * In these cases it is necessary to switch to timer driven.
-    *
-    * If you do get E_INVALIDARG from Initialize(), it is important to
-    * remember that you MUST create a new instance of IAudioClient before
-    * trying to Initialize() again or you will have unpredictable results.
-    */
+      hr = pIAudioClient_Initialize(handle->pAudioClient, mode, stream,
+                                    hnsBufferDuration, hnsPeriodicity,
+                                    &handle->Fmt.Format, NULL);
+      /*
+       * Some drivers don't support the event callback method and return
+       * E_INVALIDARG for IAudioClient_Initialize.
+       * In these cases it is necessary to switch to timer driven.
+       *
+       * If you do get E_INVALIDARG from Initialize(), it is important to
+       * remember that you MUST create a new instance of IAudioClient before
+       * trying to Initialize() again or you will have unpredictable results.
+       */
+      if (hr == E_INVALIDARG)
+      {
+         int m = (mode > 0) ? 1 : 0;
+         DWORD res;
+
+         if (!handle->event_driven) break;
+
+         handle->event_driven = AAX_FALSE;
+         pIAudioClient_Release(handle->pAudioClient);
+         handle->pAudioClient = NULL;
+         res = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
+                                     CLSCTX_INPROC_SERVER, NULL,
+                                     &handle->pAudioClient);
+         if (SUCCEEDED(res))
+         {
+            WAVEFORMATEX *wfmt = (WAVEFORMATEX*)&fmt;
+            res = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
+            if (SUCCEEDED(res)) {
+               exToExtensible(&handle->Fmt, wfmt);
+            }
+         }
+         else break;
+      }
+   }
+   while (FAILED(hr));
 
    if (SUCCEEDED(hr))
    {
+      REFERENCE_TIME default_period = 0;
+      REFERENCE_TIME min_period = 0;
       REFERENCE_TIME latency;
       UINT32 bufFrameCnt;
+      UINT32 minFrameCnt;
       BYTE *d = NULL;
+
+      hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, &min_period,
+                                                               &default_period);
+      if (SUCCEEDED(hr))
+      {
+         minFrameCnt = (UINT32)((min_period * *speed + 10000000-1) / 10000000);
+         if (minFrameCnt < *frames) {
+            minFrameCnt *= (*frames+minFrameCnt/2)/minFrameCnt;
+         }
+      }
+      else {
+         _AAX_SYSLOG("mmdev; unable to get period size");
+      }
 
       /* get the actual buffer size */
       hr = pIAudioClient_GetBufferSize(handle->pAudioClient, &bufFrameCnt);
       if (SUCCEEDED(hr))
       {
-         if (frames) *frames = bufFrameCnt;
+         int periods = bufFrameCnt / minFrameCnt;
+         if (periods <= 1)
+         {
+            _AAX_SYSLOG("mmdev; too small no. periods returned");
+            minFrameCnt = bufFrameCnt/2;
+         }
+         if (handle->event_driven)
+         {
+            if (handle->exclusive) {
+               minFrameCnt = bufFrameCnt;
+               periods = 1;
+            }
+         }
+         
+         if (frames) {
+            *frames = minFrameCnt;
+         }
 
          if (handle->Mode == eRender) {
             hr = pIAudioClient_GetService(handle->pAudioClient,
@@ -659,7 +790,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
          }
       }
       else {
-         _AAX_SYSLOG("mmdev; unable to het device buffer size");
+         _AAX_SYSLOG("mmdev; unable to set device buffer size");
       }
 
       hr = pIAudioClient_GetStreamLatency(handle->pAudioClient, &latency);
@@ -882,46 +1013,31 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
 
    if (!handle->exclusive && !handle->event_driven)
    {
-      do
+      hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
+      if (SUCCEEDED(hr))
       {
-         hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
-         if (SUCCEEDED(hr))
-         {
-            if (no_samples > padding) {
-               frames = no_samples - padding;
-            } else {
-               frames = 0;
-            }
+         if (no_samples > padding) {
+            frames = no_samples - padding;
          } else {
             frames = 0;
          }
-         if (frames >= no_samples) break;
-         msecSleep(1);
+      } else {
+         frames = 0;
       }
-      while (frames < no_samples);
    }
    else {
       frames = no_samples;
    }
 
-   if (!handle->initializing && (frames >= no_samples))
+   if (!handle->initializing && frames)
    {
       hr = pIAudioRenderClient_GetBuffer(handle->uType.pRender, frames, &data);
       if (SUCCEEDED(hr))
       {
-         if (handle->Fmt.Format.wBitsPerSample == 16) {
-            _batch_cvt16_intl_24(data, (const int32_t**)rbd->track, offs,
-                                 no_tracks, frames);
-         } else if (handle->Fmt.Format.wBitsPerSample == 32) {
-            _batch_cvt32_intl_24(data, (const int32_t**)rbd->track, offs,
-                                 no_tracks, frames);
-         } else {
-            _batch_cvt8_intl_24(data, (const int32_t**)rbd->track, offs,
-                                no_tracks, frames);
-         }
+         handle->cvt_to_intl(data, rbd->track, offs, no_tracks, frames);
 
          if (is_bigendian()) {
-            _batch_endianswap16((uint16_t*)data, no_tracks*frames);
+            _batch_endianswap16((uint16_t*)data+offs, no_tracks*frames);
          }
 
          hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
@@ -1328,18 +1444,15 @@ void *
 _aaxMMDevDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-   LARGE_INTEGER li1 = {0}, li2 = {0};
+   int stdby_time, state, tracks;
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
-   int64_t tfreq, ticks;
    unsigned int bufsz;
    float delay_sec;
-   int stdby_time;
-   int state;
-   int tracks;
+   DWORD hr;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
@@ -1387,32 +1500,39 @@ _aaxMMDevDriverThread(void* config)
    delay_sec = _oalRingBufferGetDuration(dest_rb);
 
    be_handle = (_driver_t *)handle->backend.handle;
-   if (be_handle->event_driven) {
-      stdby_time = 2*(int)(delay_sec*1000);
-   } else {
-      stdby_time =2*(int)(delay_sec*1000);
-   }
    be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
-   be_handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
-   if (be_handle->Event && be_handle->event_driven) {
-      IAudioClient_SetEventHandle(be_handle->pAudioClient, be_handle->Event);
-   } else if (!be_handle->Event) {
+   stdby_time = 2*(int)(delay_sec*1000);
+   if (be_handle->event_driven)
+   {
+      be_handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
+      if (be_handle->Event) {
+         hr = IAudioClient_SetEventHandle(be_handle->pAudioClient,
+                                          be_handle->Event);
+      }
+   }
+   else				/* timer driven, creat a periodic timer */
+   {
+      be_handle->Event = CreateWaitableTimer(NULL, FALSE, NULL);
+      if (be_handle->Event)
+      {
+         LARGE_INTEGER liDueTime;
+         LONG lPeriod;
+
+         lPeriod = (LONG)(delay_sec*1000);
+         liDueTime.QuadPart = -(lPeriod*10000);
+         hr = SetWaitableTimer(be_handle->Event, &liDueTime, lPeriod,
+                               NULL, NULL, FALSE);
+      }
+   }
+   if (!be_handle->Event || FAILED(hr)) {
       _AAX_SYSLOG("mmdev; unable to set up the event handler");
    }
 
-   QueryPerformanceFrequency(&li1);
-   tfreq = li1.QuadPart;
-   
    _aaxMutexLock(handle->thread.mutex);
    do
    {
-      static int res = 0;
-      float time_fact = 1.0f -(float)res/(float)bufsz;
-      DWORD timeout, hr;
-
-      QueryPerformanceCounter(&li1);
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -1429,22 +1549,16 @@ _aaxMMDevDriverThread(void* config)
       }
 
       /* do all the mixing */
-      res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
-      QueryPerformanceCounter(&li2);
-      ticks = li2.QuadPart-li1.QuadPart;
-
-      ticks *= 1000;
-      ticks /= tfreq;
-      timeout = _MAX(stdby_time-(int)ticks, 1);
+      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
 
       _aaxMutexUnLock(handle->thread.mutex);
-      hr = WaitForSingleObject(be_handle->Event, timeout);
+      hr = WaitForSingleObject(be_handle->Event, stdby_time);
       switch (hr)
       {
       case WAIT_OBJECT_0:
          break;
       case WAIT_TIMEOUT:
-         if (be_handle->event_driven && !be_handle->initializing) {
+         if (!be_handle->initializing) {
             _AAX_SYSLOG("mmdev; event timeout");
          }
          break;
@@ -1458,6 +1572,10 @@ _aaxMMDevDriverThread(void* config)
    }
    while TEST_FOR_TRUE(handle->thread.started);
    _aaxMutexUnLock(handle->thread.mutex);
+
+   if (!be_handle->event_driven) {
+      CancelWaitableTimer(be_handle->Event);
+   }
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
@@ -1475,48 +1593,50 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in)
 
    assert(in);
 
-   memset(out, 0, sizeof(WAVEFORMATEXTENSIBLE));
    if (in->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
-        *out = *(const WAVEFORMATEXTENSIBLE*)in;
+      _aax_memcpy(out, in, sizeof(WAVEFORMATEXTENSIBLE));
    }
-   else if(in->wFormatTag == WAVE_FORMAT_PCM)
+   else if (in->wFormatTag == WAVE_FORMAT_PCM ||
+            in->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
    {
-      out->Format = *in;
+      _aax_memcpy(&out->Format, in, sizeof(WAVEFORMATEX));
       if (in->nChannels > 2 || in->wBitsPerSample > 16)
       {
          out->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
          out->Format.cbSize = CBSIZE;
 
          out->Samples.wValidBitsPerSample = in->wBitsPerSample;
-         out->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
-      }
-   }
-   else if (in->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
-      _AAX_SYSLOG("mmdev; usupported format requested: float");
-      rv = AAX_FALSE;
-   }
 
-   if (rv == AAX_TRUE)
-   {
-      out->dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-      switch (in->nChannels)
-      {
-      case 1:
-         out->dwChannelMask = SPEAKER_FRONT_CENTER;
-         break;
-      case 8:
-         out->dwChannelMask |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
-      case 6:
-         out->dwChannelMask |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
-      case 4:
-         out->dwChannelMask |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
-      case 2:
-         break;
-      default:
-      _AAX_SYSLOG("mmdev; usupported no. tracks requested");
-         rv = AAX_FALSE;
-         break;
+         if (in->wFormatTag == WAVE_FORMAT_PCM) {
+            out->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+         } else {
+            out->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+         }
+
+         out->dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+         switch (in->nChannels)
+         {
+         case 1:
+            out->dwChannelMask = SPEAKER_FRONT_CENTER;
+            rv = AAX_TRUE;
+            break;
+         case 8:
+            out->dwChannelMask |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
+         case 6:
+            out->dwChannelMask |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
+         case 4:
+            out->dwChannelMask |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
+         case 2:
+            rv = AAX_TRUE;
+            break;
+         default:
+            _AAX_SYSLOG("mmdev; usupported no. tracks requested");
+            break;
+         }
       }
+   }
+   else {
+      _AAX_SYSLOG("mmdev; usupported format requested");
    }
 
    return rv;
