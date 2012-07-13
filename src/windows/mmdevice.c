@@ -1029,17 +1029,29 @@ _aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float vol
       frames = no_samples;
    }
 
-   if (!handle->initializing && frames)
+   if (!handle->initializing && frames >= no_samples)
    {
       hr = pIAudioRenderClient_GetBuffer(handle->uType.pRender, frames, &data);
       if (SUCCEEDED(hr))
       {
          handle->cvt_to_intl(data, rbd->track, offs, no_tracks, frames);
-
-         if (is_bigendian()) {
-            _batch_endianswap16((uint16_t*)data+offs, no_tracks*frames);
+         if (is_bigendian())		/* should never happen anyhow */
+         {
+            switch (handle->Fmt.Format.wBitsPerSample)
+            {
+            case 16:
+               _batch_endianswap16((uint16_t*)data+offs, no_tracks*frames);
+               break;
+            case 32:
+               _batch_endianswap32((uint32_t*)data+offs, no_tracks*frames);
+               break;
+            case 64:
+               _batch_endianswap64((uint64_t*)data+offs, no_tracks*frames);
+               break;
+            default:
+               break;
+            }
          }
-
          hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
                                              frames, 0);
          if (FAILED(hr)) {
