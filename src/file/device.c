@@ -496,7 +496,7 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
 }
 
 static int
-_aaxFileDriverCapture(const void *id, void **tracks, size_t *frames, void *scratch)
+_aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -574,7 +574,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, size_t *frames, void *scrat
          memset((int32_t*)data+samples, 0, bufsize);
       }
 					/* last resample and de-interleave */
-     _batch_cvt24_24_intl((int32_t**)tracks, data, 0, file_no_tracks, no_frames);
+     _batch_cvt24_24_intl((int32_t**)tracks, data, offs, file_no_tracks, no_frames);
    }
 
    return AAX_TRUE;

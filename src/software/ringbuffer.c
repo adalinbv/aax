@@ -115,7 +115,7 @@ _oalRingBufferInitTracks(_oalRingBuffer *rb)
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
       dde_bytes = TEST_FOR_TRUE(rb->add_dde) ? (rbd->dde_samples * bps) : 0;
-      tracksize = dde_bytes + no_samples * bps;
+      tracksize = dde_bytes + (no_samples + 0xF) * bps;
 
       /*
        * Create one buffer that can hold the data for all channels.
@@ -830,7 +830,7 @@ _oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
    rbd = rb->sample;
    if (rbd->track == NULL)
    {
-       rbd->no_samples_avail = no_samples;
+      rbd->no_samples_avail = no_samples;
       rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
       rv = AAX_TRUE;
    }

@@ -540,7 +540,7 @@ _aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, 
 }
 
 static int
-_aaxOSSDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
+_aaxOSSDriverCapture(const void *id, void **data, int off, size_t *frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t buflen, frame_size;

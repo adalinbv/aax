@@ -264,7 +264,7 @@ _aaxNoneDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static int
-_aaxLoopbackDriverCapture(const void *id, void **data, size_t *size, void *scratch)
+_aaxLoopbackDriverCapture(const void *id, void **data, int offs, size_t *size, void *scratch, size_t scratchlen)
 {
 #if 0
    _driver_t *handle = (_driver_t *)id;

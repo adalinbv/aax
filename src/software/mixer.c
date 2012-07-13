@@ -544,14 +544,12 @@ _aaxSoftwareMixerSignalFrames(void *frames)
 }
 
 void*
-_aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *rr)
+_aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *dt, float pos_sec)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
    _oalRingBufferSample *rbd;
-   unsigned int frames;
    int32_t **scratch;
-   size_t nframes;
    void *rv = rb;
    int res;
 
@@ -563,24 +561,25 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
     */
    assert(dest_rb->sample);
 
-   nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
-
    rbd = dest_rb->sample;
    scratch = (int32_t**)rbd->scratch;
    if (scratch)
    {
-      unsigned int ds = rbd->dde_samples;
       unsigned int bps = rbd->bytes_sample;
+      unsigned int ds = rbd->dde_samples;
+      size_t frames, nframes;
 
-      res = be->capture(handle, rbd->track, &nframes, scratch[0]-ds);
+      nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
+      res = be->capture(handle, rbd->track, 0, &nframes,
+                                scratch[0]-ds, ds+frames);
       if (TEST_FOR_TRUE(res) && nframes)
       {
-//       float pitch = (float)frames/(float)nframes;
+         float pitch = (float)(nframes)/(float)(frames);
          unsigned int t, tracks;
          _oalRingBuffer *nrb;
 
+         dest_rb->pitch_norm = pitch;
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-         //       dest_rb->pitch_norm = 1.0f; // pitch;
 
          tracks = rbd->no_tracks;
          for (t=0; t<tracks; t++)
@@ -589,9 +588,6 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *r
             int32_t *optr = rbd->track[t];
             _aax_memcpy(ptr-ds, optr-ds+frames, ds*bps);
          }
-
-//       _oalRingBufferRewind(dest_rb);
-//       *rr *= pitch;
          rv = nrb;
       }
       else {
@@ -724,13 +720,12 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                srbs = smixer->ringbuffers;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
-               rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt);
+               rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt,
+                                               smixer->curr_pos_sec);
 
                dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)
                {
-                  _oalRingBufferRewind(src_rb);
-                  _oalRingBufferStart(src_rb);
                   if (rv != src_rb)
                   {
                      /**
@@ -742,6 +737,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                      _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
                      smixer->ringbuffer = rv;
                   }
+                  smixer->curr_pos_sec += dt;
 
                   sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
                   if (sptr_rb)
@@ -992,7 +988,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                void *rv, *rb = mixer->ringbuffer;
 
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-               rv = _aaxSoftwareMixerReadFrame(rb, be, be_handle, &dt);
+               rv = _aaxSoftwareMixerReadFrame(rb, be, be_handle, &dt,
+                                               mixer->curr_pos_sec);
 
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)

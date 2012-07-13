@@ -718,7 +718,7 @@ _aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int 
 
 
 static int
-_aaxDMediaDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
+_aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int nframes = *frames;

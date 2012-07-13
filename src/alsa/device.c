@@ -1017,7 +1017,7 @@ _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 }
 
 static int
-_aaxALSADriverCapture(const void *id, void **data, size_t *req_frames, void *scratch)
+_aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int frames, frame_size, tracks;
