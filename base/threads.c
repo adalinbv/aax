@@ -4,9 +4,7 @@
 #endif
 
 #include <stdlib.h>
-#ifndef NDEBUG
-# include <stdio.h>
-#endif
+#include <stdio.h>
 #if HAVE_ASSERT_H
 # include <assert.h>
 #endif
@@ -595,13 +593,13 @@ _aaxMutexLock(void *mutex)
          case WAIT_OBJECT_0:
             break;
          case WAIT_TIMEOUT:
-            printf("mutex timed out in %s line %i\n", file, line);
+            _TH_SYSLOG("mutex timed out");
             r = TIMEDOUT;
             break;
          case WAIT_ABANDONED:
          case WAIT_FAILED:
          dwfault:
-            printf("mutex lock error %i in %s line %i\n", r, file, line);
+            _TH_SYSLOG("mutex lock error");
          }
       }
    }
