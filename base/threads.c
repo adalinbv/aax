@@ -594,7 +594,7 @@ _aaxMutexLock(void *mutex)
             break;
          case WAIT_TIMEOUT:
             _TH_SYSLOG("mutex timed out");
-            r = TIMEDOUT;
+            r = ETIMEDOUT;
             break;
          case WAIT_ABANDONED:
          case WAIT_FAILED:
