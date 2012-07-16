@@ -63,7 +63,7 @@ int main(int argc, char **argv)
       testForState(res, "aaxSensorCaptureStart");
       do
       {
-         nanoSleep(7e7);
+         msecSleep(100);
          state = aaxMixerGetState(config);
       }
       while (state == AAX_PLAYING);
