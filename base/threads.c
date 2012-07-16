@@ -598,7 +598,7 @@ _aaxMutexLock(void *mutex)
             break;
          case WAIT_ABANDONED:
          case WAIT_FAILED:
-         dwfault:
+         default:
             _TH_SYSLOG("mutex lock error");
          }
       }
