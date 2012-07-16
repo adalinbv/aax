@@ -29,6 +29,8 @@
 #include "audio.h"
 
 
+#define CUBIC_TRESHOLD		0.25f
+
 _aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
 
 
@@ -222,7 +224,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             {
                void *sptr = rbs->track[track]-cdesamps;
                int32_t *dptr = track_ptr[track];
-               int o = (nbuf > 1) ? 0 : 1;
+	       int o = (fact < CUBIC_TRESHOLD) ? 1 : 0;
 
                sstart += cdesamps-CUBIC_SAMPS;
                sno_samples += cdesamps;
@@ -242,7 +244,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
             int32_t *scratch1 = track_ptr[SCRATCH_BUFFER1];
             void* distortion_effect = NULL;
-            int offs = (nbuf > 1) ? 0 : 1;
+            int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
             
             if ( dist_state) {
                 distortion_effect = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
@@ -290,7 +292,7 @@ _aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned 
 
    assert(fact > 0.0f);
 
-   if (fact < 0.25f) {
+   if (fact < CUBIC_TRESHOLD) {
       resamplefn = _aaxBufResampleCubic;
    }
    else if (fact < 1.0f) {
