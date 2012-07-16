@@ -552,7 +552,6 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *d
    _oalRingBufferSample *rbd;
    int32_t **scratch;
    void *rv = rb;
-   int res;
 
    /*
     * dest_rb is thread specific and does not need a lock
@@ -569,11 +568,12 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *d
       unsigned int bps = rbd->bytes_sample;
       unsigned int ds = rbd->dde_samples;
       size_t frames, nframes;
+      int res;
 
       nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
       res = be->capture(handle, rbd->track, 0, &nframes,
                                 scratch[0]-ds, ds+frames);
-      if (TEST_FOR_TRUE(res) && nframes)
+      if (res && nframes)
       {
          float pitch = (float)(nframes)/(float)(frames);
          unsigned int t, tracks;
@@ -590,6 +590,8 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *d
             _aax_memcpy(ptr-ds, optr-ds+frames, ds*bps);
          }
          rv = nrb;
+
+         if (res < 0) *dt = 0.0f;
       }
       else {
          _oalRingBufferClear(dest_rb);
@@ -723,6 +725,11 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
 
                rv = _aaxSoftwareMixerReadFrame(src_rb, be, be_handle, &dt,
                                                smixer->curr_pos_sec);
+               if (dt == 0.0f)
+               {
+                  _SET_STOPPED(config);
+                  _SET_PROCESSED(config); 
+               }
 
                dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)
@@ -991,6 +998,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                rv = _aaxSoftwareMixerReadFrame(rb, be, be_handle, &dt,
                                                mixer->curr_pos_sec);
+               if (dt == 0.0f)
+               {
+                  _SET_STOPPED(handle);
+                  _SET_PROCESSED(handle);
+               }
 
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)

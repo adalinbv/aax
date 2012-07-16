@@ -270,7 +270,7 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
 {
    _handle_t *handle = (_handle_t *)id;
    size_t bufsize = (handle->no_tracks * no_frames * handle->bits_sample)/8;
-   int rv = AAX_FALSE;
+   int rv = 0;
 
    if (!handle->capturing)
    {
@@ -295,8 +295,8 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
       }
    }
 
-   if (rv < 0) {
-      rv = AAX_FALSE;
+   if (rv <= 0) {
+      rv = -1;
    }
 
    return rv;

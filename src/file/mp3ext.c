@@ -329,10 +329,14 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
       int ret;
 
       ret = pmpg123_read(handle->id, data, blocksize, &size);
-      if (ret != MPG123_OK) {
-//       _AAX_SYSLOG("mp3; unable to read data");
+      if (ret == MPG123_OK) {
+         rv = size;
       }
-      rv = size;
+      else
+      {
+//       _AAX_SYSLOG("mp3; unable to read data");
+         rv = -1;
+      }
 #else
       unsigned char *ptr = (unsigned char*)data;
 
@@ -388,10 +392,6 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
          }
       }
 #endif
-   }
-
-   if (rv < 0) {
-      rv = AAX_FALSE;
    }
 
    return rv;

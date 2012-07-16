@@ -492,13 +492,14 @@ _aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
 
    res = handle->file->update(handle->file->id, data, no_samples);
 
-   return res-res; // (res - no_samples);
+   return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);
 }
 
 static int
 _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
+   int bytes = 0;
 
    if ((frames == 0) || (tracks == 0)) {
       return AAX_FALSE;
@@ -510,7 +511,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       int file_bits = handle->file->get_bits_per_sample(handle->file->id);
       int file_fmt = handle->file->get_format(handle->file->id);
       unsigned int no_frames, file_no_samples;
-      unsigned int bytes, bufsz;
+      unsigned int abytes, bufsz;
       void *data = scratch;
 
       no_frames = *frames;
@@ -532,7 +533,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       bytes = handle->file->update(handle->file->id, scratch, no_frames);
       if (!bytes) return AAX_TRUE;
 
-      file_no_samples = bytes*8/file_bits;		/* still interleaved */
+      abytes = abs(bytes);
+      file_no_samples = abytes*8/file_bits;		/* still interleaved */
 					/* then convert to proper signedness */
       if (file_fmt == AAX_PCM8U)
       {
@@ -566,10 +568,10 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
          data = ndata;
       }
 				/* clear the rest of the buffer if required */
-      if (bytes != bufsz)
+      if (abytes != bufsz)
       {
-         size_t bufsize = (bufsz-bytes)*32/file_bits;
-         unsigned int samples = bytes*8/file_bits;
+         size_t bufsize = (bufsz-abytes)*32/file_bits;
+         unsigned int samples = abytes*8/file_bits;
 
          memset((int32_t*)data+samples, 0, bufsize);
       }
@@ -577,7 +579,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
      _batch_cvt24_24_intl((int32_t**)tracks, data, offs, file_no_tracks, no_frames);
    }
 
-   return AAX_TRUE;
+   return bytes;
 }
 
 int
