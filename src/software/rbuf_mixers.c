@@ -212,7 +212,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          if ((cno_samples > sno_samples) && !src_loops)
          {
             cno_samples = sno_samples;
-            cdesamps = 0;
+            cdesamps = CUBIC_SAMPS;
          }
 
          if (!freq_filter && !delay_effect && !dist_state)
@@ -220,8 +220,11 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
             for (track=0; track<sno_tracks; track++)
             {
+               void *sptr = rbs->track[track]-cdesamps;
                int32_t *dptr = track_ptr[track];
-               void *sptr = rbs->track[track];
+
+               start += cdesamps;
+               sno_samples += cdesamps;
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,

@@ -175,24 +175,14 @@ _aaxProcessCodec(int32_t* d, void *s, _aaxCodec *codecfn, unsigned int src_pos,
 static void
 _sw_bufcpy_8s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
-   if (sbps == 1)
-   {
-      int32_t *d = (int32_t *)dst;
-      int8_t *s = (int8_t *)src;
-      unsigned int i=l;
-      do
-      {
-         *d++ = *s++ << 16;
-      }
-      while (--i);
-   }
+   assert(sbps == 1);
+   _batch_cvt24_8(dst, src, l);
 }
 
 static void
 _sw_bufcpy_16s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
    assert(sbps == 2);
-
    _batch_cvt24_16(dst, src, l);
 }
 
@@ -200,8 +190,7 @@ static void
 _sw_bufcpy_24s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
    assert (sbps == 4);
-
-   _aax_memcpy(dst, src, l*sizeof(int32_t));
+   _batch_cvt24_24(dst, src, l);
 }
 
 #if 0
@@ -209,7 +198,6 @@ static void
 _sw_bufcpy_32s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
    assert (sbps == 4);
-
    _batch_cvt24_32(dst, src, l);
 }
 #endif
