@@ -1000,7 +1000,7 @@ _aaxALSADriverIsReachable(const void *id)
 }
 
 int
-_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
    float gain;
@@ -1011,7 +1011,7 @@ _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
    assert(p);
 
    gain = _aaxALSADriverBackend.gain;
-   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
 }

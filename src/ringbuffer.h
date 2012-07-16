@@ -396,11 +396,11 @@ typedef ALIGN16 struct
 typedef int
 _oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, 
-                        float, unsigned char, unsigned char);
+                        float, unsigned char, unsigned char, unsigned int);
 typedef int
 _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*,
-                        float, float, unsigned char);
+                        float, float, unsigned char, unsigned int);
 
 
 /**
@@ -723,7 +723,7 @@ extern _oalRingBufferDistFunc* _oalRingBufferALDistanceFunc[];
 extern _oalRingBufferPitchShiftFunc* _oalRingBufferDopplerFunc[];
 
 void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
-int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char);
+int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 
 float _lin(float v);
 float _lin2log(float v);

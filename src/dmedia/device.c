@@ -700,7 +700,7 @@ _aaxDMediaDriverAvailable(const void *id)
 }
 
 int
-_aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+_aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
    float gain;
@@ -711,7 +711,7 @@ _aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int 
    assert(p);
 
    gain = _aaxDMediaDriverBackend.gain;
-   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
 }

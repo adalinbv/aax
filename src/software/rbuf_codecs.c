@@ -118,7 +118,7 @@ _aaxProcessCodec(int32_t* d, void *s, _aaxCodec *codecfn, unsigned int src_pos,
     * source buffer at the current source position
     */
    new_len = (dbuflen>(sno_samples-src_pos)) ? (sno_samples-src_pos) : dbuflen;
-   if (src_pos < sno_samples)
+   if (src_pos <= sno_samples)
    {
       sptr = (char *)s + src_pos*sbps;
       codecfn(dptr, sptr, sbps, new_len);
@@ -166,6 +166,7 @@ _aaxProcessCodec(int32_t* d, void *s, _aaxCodec *codecfn, unsigned int src_pos,
       }
    }
    else if (dbuflen) {
+printf("clear: %i\n", dbuflen);
       memset(dptr, 0, dbuflen*dbps);
    }
 }

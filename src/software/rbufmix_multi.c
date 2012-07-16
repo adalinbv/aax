@@ -43,7 +43,7 @@ _oalRingBufferMixMNFunc *_oalRingBufferMixMulti16 = _oalRingBufferMixMulti16Effe
  * @mix_p2d mixer 2d properties
  */
 int
-_oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *p2d, _oalRingBuffer2dProps *mix_p2d, float pitch, float gain, unsigned char ctr)
+_oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *p2d, _oalRingBuffer2dProps *mix_p2d, float pitch, float gain, unsigned char ctr, unsigned int n)
 {
    unsigned int offs, dno_samples, track;
    _oalRingBufferLFOInfo *lfo;
@@ -81,7 +81,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr);
+   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);
    if (sptr == NULL)
    {
       if (src->playing == 0 && src->stopped == 1) {

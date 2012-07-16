@@ -196,20 +196,20 @@ _aaxNoneDriverPlayback(const void *id, void *d, void *s, float pitch, float volu
 }
 
 static int
-_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    return AAX_FALSE;
 }
 
 int
-_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
    float gain;
    int ret;
 
    gain = _aaxLoopbackDriverBackend.gain;
-   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
 }
@@ -230,7 +230,7 @@ _aaxNoneDriverPostProcess(const void *id, void *s, const void *l)
 }
 
 static int
-_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr)
+_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
 {
    return AAX_FALSE;
 }

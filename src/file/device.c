@@ -581,7 +581,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
 }
 
 int
-_aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr)
+_aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
    float gain;
@@ -592,7 +592,7 @@ _aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
    assert(p);
 
    gain = _aaxFileDriverBackend.gain;
-   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr);
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
 }
@@ -609,7 +609,7 @@ _aaxFileDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void* p2
 }
 
 int
-_aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr)
+_aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
 {
    int ret;
 
@@ -617,7 +617,7 @@ _aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, fl
    assert(d);
 
    volume *= _aaxFileDriverBackend.gain;
-   ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr);
+   ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr, nbuf);
 
    return ret;
 }

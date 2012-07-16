@@ -419,14 +419,15 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
                      if (src->curr_pos_sec >= props2d->delay_sec) {
                         rv = be->mix3d(be_handle, dest_rb, src_rb, src->props2d,
                                                props2d, emitter->track,
-                                               src->update_ctr);
+                                               src->update_ctr, nbuf);
                      }
                   }
                   else
                   {
                      assert(!_IS_POSITIONAL(src));
                      rv = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
-                                           props2d, 1.0, 1.0, src->update_ctr);
+                                           props2d, 1.0, 1.0, src->update_ctr,
+                                           nbuf);
                   }
 
                   if (!src->update_ctr) {
@@ -647,7 +648,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                   do
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb, mixer->props2d,
-                                               NULL, 1.0f, 1.0f, 0);
+                                               NULL, 1.0f, 1.0f, 0, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
@@ -760,7 +761,7 @@ _aaxSoftwareMixerMixSensors(void *dest, const void *sensors, void *props2d)
                            p2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
                         }
                         rv = be->mix2d(be_handle, dest_rb, ssr_rb,
-                                       smixer->props2d, props2d, 1.0f, 1.0f, 0);
+                                    smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
                         _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                         if (rv)	/* always streaming */
