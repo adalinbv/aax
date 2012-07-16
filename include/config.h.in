@@ -1,8 +1,5 @@
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define this to enable nano debug messages. */
-#undef DEBUG
-
 /* Define this to enable lite version. */
 #undef ENABLE_LITE
 

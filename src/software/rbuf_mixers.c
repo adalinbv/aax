@@ -222,7 +222,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
             for (track=0; track<sno_tracks; track++)
             {
-               void *sptr = rbs->track[track]-cdesamps;
+               char *sptr = (char*)rbs->track[track]-cdesamps*sbps;
                int32_t *dptr = track_ptr[track];
 	       int o = (fact < CUBIC_TRESHOLD) ? 1 : 0;
 
@@ -252,7 +252,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
 
             for (track=0; track<sno_tracks; track++)
             {
-               void *sptr = rbs->track[track]-cdesamps;
+               char *sptr = (char*)rbs->track[track]-cdesamps*sbps;
                int32_t *dptr = track_ptr[track];
 
                sstart += cdesamps;

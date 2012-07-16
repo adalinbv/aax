@@ -393,6 +393,8 @@ _aaxConditionSignal(void *c)
 							/* --- WINDOWS --- */
 #include <base/types.h>
 
+#define _TH_SYSLOG(a)
+
 /* http://www.slideshare.net/abufayez/pthreads-vs-win32-threads */
 /* http://www.ibm.com/developerworks/linux/library/l-ipc2lin3/index.html */
 
