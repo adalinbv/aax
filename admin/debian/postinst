@@ -2,30 +2,34 @@
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
-if [ x$SUDO_USER != "x" ]; then
-  INSTALLER=$SUDO_USER;
-elif [ x$USER != "x" ]; then
-  INSTALLER=$USER;
+if [ "x$SUDO_USER" != "x" ]; then
+  INSTALLER="$SUDO_USER"
+elif [ "x$USER" != "x" ]; then
+  INSTALLER="$USER"
 else
-  INSTALLER=root;
+  INSTALLER="root"
 fi
 
-if [ x$INSTALLER = "x" ]; then
-  CONFIGFILE="$HOME/.aaxconfig.xml"
+if [ "x$INSTALLER" = "x" ]; then
+  CONFIGDIR="$HOME/.aax"
   INSTALLER=`stat -c %U $HOME`
   GROUP=`stat -c %G $HOME`
+elif [ "x$INSTALLER" = "xroot" ]; then
+  INSTALLER_HOME=`grep $INSTALLER /etc/passwd | cut -d ":" -f6`
+  GROUP=`stat -c %G $INSTALLER_HOME`
+  CONFIGDIR="/etc/aax"
 else
   INSTALLER_HOME=`grep $INSTALLER /etc/passwd | cut -d ":" -f6`
-  CONFIGFILE="$INSTALLER_HOME/.aaxconfig.xml"
+  CONFIGDIR="$INSTALLER_HOME/.aax"
   GROUP=`stat -c %G $INSTALLER_HOME`
 fi
+CONFIGFILE="$CONFIGDIR/config.xml"
 
-if [ x"$INSTALLER" = xroot ]; then
-  if [ ! -d /etc/aax ] ;then
-    mkdir /etc/aax;
-  fi
-  CONFIGFILE="/etc/aax/config.xml"
+if [ ! -d $CONFIGDIR ]; then
+  mkdir $CONFIGDIR
+  chown $INSTALLER:$GROUP $CONFIGDIR
 fi
+
 
 db_reset libaax2/copyright_accept
 db_reset libaax2/copyright

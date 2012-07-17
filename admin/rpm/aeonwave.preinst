@@ -16,22 +16,28 @@ case $? in
   0)
     USER="$SUDO_USER"
     if [ x"$USER" = x ]; then
-      CONFIGFILE="$HOME/.aaxconfig.xml"
+      OCONFIGFILE="$HOME/.aaxconfig.xml"
+      CONFIGDIR="$HOME/.aax"
       USER=`stat -c %U $HOME`
       GROUP=`stat -c %G $HOME`
+    elif [ x"$USER" = xroot ]; then
+      USER_HOME=`grep $USER /etc/passwd | cut -d ":" -f6`
+      GROUP=`stat -c %G $USER_HOME`
+      CONFIGDIR="/etc/aax"
     else
       USER_HOME=`grep $USER /etc/passwd | cut -d ":" -f6`
-      CONFIGFILE="$USER_HOME/.aaxconfig.xml"
+      OCONFIGFILE="$USER_HOME/.aaxconfig.xml"
+      CONFIGDIR="$USER_HOME/.aax"
       GROUP=`stat -c %G $USER_HOME`
     fi
+    CONFIGFILE="$CONFIGDIR/config.xml"
 
-    if [ x"$USER" = xroot ]; then
-      if [ ! -d /etc/aax ] ;then
+    if [ ! -d /etc/aax ] ;then
         mkdir /etc/aax;
-      fi      CONFIGFILE="/etc/aax/config.xml"
-    fi
+        chown $USER:$GROUP $CONFIGDIR
+      fi
 
-    if [ ! -f "$CONFIGFILE" ]; then
+    if [ ! -f "$CONFIGFILE" -a ! -f $OCONFIGFILE ]; then
 
       $DIALOG --title "Personal product-key" --nocancel --clear --cr-wrap \
           --inputbox "The product-key is a series of letters and digits separated by dashes, and was\nprovided when you purchased the software. Without a proper product-key the\nsoftware will function in the Lite mode which is with limited functionality.\nKeep this line empty if you did not yet pruchase the product key.\n\nPlease enter the personal product-key:" 16 60 2> $tempfile

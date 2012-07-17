@@ -12,12 +12,14 @@ else
 fi
 
 if [ x$INSTALLER = "x" ]; then
-  CONFIGFILE="$HOME/.aaxconfig.xml"
+  OCONFIGFILE="$HOME/.aaxconfig.xml"
+  CONFIGFILE="$HOME/.aax/config.xml"
   INSTALLER=`stat -c %U $HOME`
 # GROUP=`stat -c %G $HOME`
 else
   INSTALLER_HOME=`grep $INSTALLER /etc/passwd | cut -d ":" -f6`
-  CONFIGFILE="$INSTALLER_HOME/.aaxconfig.xml"
+  OCONFIGFILE="$INSTALLER_HOME/.aaxconfig.xml"
+  CONFIGFILE="$INSTALLER_HOME/.aax/config.xml"
 # GROUP=`stat -c %G $INSTALLER_HOME`
 fi
 
@@ -45,7 +47,7 @@ if [ x"$1" = xconfigure ]; then
         exit 1;
       fi
 
-      if [ ! -f "$CONFIGFILE" ]; then
+      if [ ! -f "$CONFIGFILE" -a ! -f "$OCONFIGFILE" ]; then
         # Ask questions.
         db_beginblock
         db_info libaax2/description
