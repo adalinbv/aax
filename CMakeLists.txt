@@ -16,6 +16,7 @@ INCLUDE(CheckIncludeFiles)
 INCLUDE(CheckFunctionExists)
 
 PROJECT(aax C)
+SET(PACKAGE_NAME "AeonWave")
 SET(PACKAGE "libaax2")
 
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
