@@ -13,15 +13,15 @@ fi
 
 if [ x$INSTALLER = "x" ]; then
   OCONFIGFILE="$HOME/.aaxconfig.xml"
-  CONFIGFILE="$HOME/.aax/config.xml"
-  INSTALLER=`stat -c %U $HOME`
-# GROUP=`stat -c %G $HOME`
+  CONFIGDIR="$HOME/.aax"
+elif [ "x$INSTALLER" = "xroot" ]; then
+  CONFIGDIR="/etc/aax"
 else
   INSTALLER_HOME=`grep $INSTALLER /etc/passwd | cut -d ":" -f6`
   OCONFIGFILE="$INSTALLER_HOME/.aaxconfig.xml"
-  CONFIGFILE="$INSTALLER_HOME/.aax/config.xml"
-# GROUP=`stat -c %G $INSTALLER_HOME`
+  CONFIGDIR="$INSTALLER_HOME/.aax"
 fi
+CONFIGFILE="$CONFIGDIR/config.xml"
 
 # arguments:
 # configure, reconfigure, upgrade, remove
@@ -47,7 +47,7 @@ if [ x"$1" = xconfigure ]; then
         exit 1;
       fi
 
-      if [ ! -f "$CONFIGFILE" -a ! -f "$OCONFIGFILE" ]; then
+      if [ ! -f "$CONFIGFILE" ] && [ ! -f "$OCONFIGFILE" ]; then
         # Ask questions.
         db_beginblock
         db_info libaax2/description
@@ -57,7 +57,7 @@ if [ x"$1" = xconfigure ]; then
     ;;
 
     3)
-      if [ ! -f "$CONFIGFILE" ]; then
+      if [ ! -f "$CONFIGFILE" ] && [ ! -f "$OCONFIGFILE" ]; then
         db_capb backup
         db_get libaax2/product_key
         len=`echo -n "$RET" | wc -m`

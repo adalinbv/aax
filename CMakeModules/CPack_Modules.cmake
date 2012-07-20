@@ -1,4 +1,7 @@
 
+
+# Note Windows DLL are specified by RUNTIME
+
 # Component support
 #SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
 SET(CPACK_COMPONENTS_ALL Libraries Headers)
@@ -17,7 +20,7 @@ SET(CPACK_COMPONENT_HEADERS_DESCRIPTION
    "Development header files and library components for use with the software")
 
 # Dependecies
-SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
+#SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
 SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
 
 # Component grouping
