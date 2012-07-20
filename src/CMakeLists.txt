@@ -18,13 +18,12 @@ ENDFUNCTION()
 
 CREATE_TEST(aaxinfo)
 INSTALL(TARGETS aaxinfo
-          RUNTIME DESTINATION bin
-       )
-
+        RUNTIME DESTINATION bin COMPONENT Libraries
+)
 CREATE_TEST(aaxplay)
 INSTALL(TARGETS aaxplay
-          RUNTIME DESTINATION bin
-       )
+        RUNTIME DESTINATION bin COMPONENT Libraries
+)
 
 CREATE_TEST(testcapture)
 CREATE_TEST(testcone)
