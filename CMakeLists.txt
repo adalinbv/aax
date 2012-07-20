@@ -88,7 +88,8 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A cross platform, hardware accelerated, v
 SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/COPYING")
 
 IF(WIN32)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+  SET(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${PACKAGE_NAME}")
   SET(CPACK_GENERATOR NSIS)
 
 ELSE(WIN32)
@@ -128,27 +129,42 @@ ELSE(WIN32)
     "^${PROJECT_SOURCE_DIR}/.git;\\\\.gitignore;Makefile.am;~$;${CPACK_SOURCE_IGNORE_FILES}")
 ENDIF(WIN32)
 
-SET(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Libraries")
+# Component support
+#SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+SET(CPACK_COMPONENTS_ALL Libraries Headers)
+
+# Display name
+SET(CPACK_COMPONENT_APPLICATIONS_HIDDEN ON)
+SET(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "AeonWave Applictaions")
+SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C/C++ Development Files")
+
+# Descriptions
+SET(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION
+   "Support applictaions to test the capabilities of AeonWave")
 SET(CPACK_COMPONENT_LIBRARIES_DESCRIPTION
    "AeonWave, A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library that can handle almost any audio mixing demands; from studio effect mixing to immersive simulation.")
-
-SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "Development Headers")
 SET(CPACK_COMPONENT_HEADERS_DESCRIPTION
-   "Development header files for use with AeonWave")
+   "Development header files and library components for use with AeonWave")
 
-SET(CPACK_COMPONENT_HEADERS_DEPENDS libraries)
-SET(CPACK_COMPONENT_LIBRARIES_GROUP "Development")
+# Dependecies
+SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
+SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
+
+# Component grouping
+SET(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
+SET(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
 SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
 
+SET(CPACK_COMPONENT_GROUP_RUNTIME_DESCRIPTION
+   "Software required to run the software")
+SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_EXPANDED ON)
 SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
-   "Development headers and libraries")
-
-SET(CPACK_COMPONENTS_ALL runtime devel)
+   "C/C++ Development headers and libraries")
 
 # NSIS only (for now?)
 SET(CPACK_ALL_INSTALL_TYPES Runtime Developer)
+SET(CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES Runtime Developer)
 SET(CPACK_COMPONENT_HEADERS_INSTALL_TYPES Developer)
-SET(CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES Developer Runtime)
 SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Runtime)
 
 INCLUDE (CPack)
@@ -381,31 +397,22 @@ TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
 )
 
 # Add an install target here
-SET(BIN_DIR bin)
-SET(INCLUDE_DIR include)
-SET(ARCH_DIR lib)
-IF(WIN32)
-  SET(LIB_DIR bin)	# In case this becomes a shared library
-ELSE(WIN32)
-  SET(LIB_DIR ${CMAKE_INSTALL_LIBDIR})
-ENDIF(WIN32)
-
 INSTALL(TARGETS ${LIBAEONWAVE}
-        RUNTIME DESTINATION "${BIN_DIR}" COMPONENT runtime
-        LIBRARY DESTINATION "${LIB_DIR}" COMPONENT devel
-        ARCHIVE DESTINATION "${ARCH_DIR}" COMPONENT devel
+        RUNTIME DESTINATION bin COMPONENT Libraries
+        LIBRARY DESTINATION lib COMPONENT Libraries
+        ARCHIVE DESTINATION lib COMPONENT Headers
 )
 INSTALL(FILES 
         ${CMAKE_CURRENT_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
         DESTINATION include/aax
-        COMPONENT headers
+        COMPONENT Headers
 )
 INSTALL(FILES 
         include/aax.h
         include/aaxdefs.h
         DESTINATION include
-        COMPONENT headers
+        COMPONENT Headers
 )
 
 IF (UNIX AND NOT WIN32)
