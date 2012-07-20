@@ -36,6 +36,9 @@ IF(NOT LIBTYPE)
     SET(LIBTYPE SHARED)
 ENDIF(NOT LIBTYPE)
 
+# We have some custom .cmake scripts not in the official distribution.
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+
 # read 'version' file into a variable (stripping any newlines or spaces)
 file(READ version versionFile)
 STRING(STRIP ${versionFile} AAX_VERSION)
@@ -130,47 +133,9 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 # Component support
-#SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
-SET(CPACK_COMPONENTS_ALL Libraries Headers)
-
-# Display name
-SET(CPACK_COMPONENT_APPLICATIONS_HIDDEN ON)
-SET(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "AeonWave Applictaions")
-SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C/C++ Development Files")
-
-# Descriptions
-SET(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION
-   "Support applictaions to test the capabilities of AeonWave")
-SET(CPACK_COMPONENT_LIBRARIES_DESCRIPTION
-   "AeonWave, A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library that can handle almost any audio mixing demands; from studio effect mixing to immersive simulation.")
-SET(CPACK_COMPONENT_HEADERS_DESCRIPTION
-   "Development header files and library components for use with AeonWave")
-
-# Dependecies
-SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
-SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
-
-# Component grouping
-SET(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
-SET(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
-SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
-
-SET(CPACK_COMPONENT_GROUP_RUNTIME_DESCRIPTION
-   "Software required to run the software")
-SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_EXPANDED ON)
-SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
-   "C/C++ Development headers and libraries")
-
-# NSIS only (for now?)
-SET(CPACK_ALL_INSTALL_TYPES Runtime Developer)
-SET(CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES Runtime Developer)
-SET(CPACK_COMPONENT_HEADERS_INSTALL_TYPES Developer)
-SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Runtime)
+INCLUDE(CPack_Modules)
 
 INCLUDE (CPack)
-
-# We have some custom .cmake scripts not in the official distribution.
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 # Required libraries
 FIND_PACKAGE(XML REQUIRED)
