@@ -13,7 +13,7 @@
 FIND_PATH(RMALLOC_INCLUDE_DIR rmalloc.h
   HINTS
   $ENV{XMLDIR}
-  $ENV{ProgramFiles}/zeroxml
+  $ENV{ProgramFiles}/ZeroXml
   PATH_SUFFIXES include
   PATHS
   ~/Library/Frameworks

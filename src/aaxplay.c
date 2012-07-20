@@ -64,7 +64,7 @@ int main(int argc, char **argv)
       do
       {
          msecSleep(100);
-         state = aaxMixerGetState(config);
+         state = aaxMixerGetState(record);
       }
       while (state == AAX_PLAYING);
 

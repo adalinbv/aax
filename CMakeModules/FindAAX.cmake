@@ -27,7 +27,8 @@ FIND_LIBRARY(AAX_LIBRARY
   NAMES AAX aax AAX32
   HINTS
   $ENV{AAXDIR}
-  $ENV{ProgramFiles}/aax
+  $ENV{ProgramFiles}/AAX
+  $ENV{ProgramFiles}/AeonWave
   PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
   PATHS
   ~/Library/Frameworks
