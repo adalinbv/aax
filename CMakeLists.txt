@@ -9,7 +9,6 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-
 INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckIncludeFiles)
@@ -36,25 +35,39 @@ IF(NOT LIBTYPE)
   SET(LIBTYPE SHARED)
 ENDIF(NOT LIBTYPE)
 
-# We have some custom .cmake scripts not in the official distribution.
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
-
-INCLUDE(CPack_Defaults)
-INCLUDE(CPack_Modules)
-
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET(SIZEOF_SIZE_T 8)
 ELSE ()
   SET(SIZEOF_SIZE_T 4)
 ENDIF ()
 
+# read 'version' file into a variable (stripping any newlines or spaces)
+FILE(READ version versionFile)
+STRING(STRIP ${versionFile} AAX_VERSION)
+SET(VERSION AAX_VERSION)
+
+# split version string into components, note CMAKE_MATCH_0 is the entire regexp match
+STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AAX_VERSION})
+
 SET(AAX_MAJOR_VERSION ${CMAKE_MATCH_1})
 SET(AAX_MINOR_VERSION ${CMAKE_MATCH_2})
 SET(AAX_MICRO_VERSION ${CMAKE_MATCH_3})
 
+SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
+SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
+SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library")
 
-IF (UNIX AND NOT WIN32)
+# We have some custom .cmake scripts not in the official distribution.
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+
+INCLUDE(CPack_Modules)
+INCLUDE(CPack_Defaults)
+
+IF (WIN32)
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
+
+ELSE(WIN32)
 
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
@@ -68,7 +81,10 @@ IF (UNIX AND NOT WIN32)
   SET(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
   SET(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/admin/rpm/aeonwave.postun")
   SET(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
-ENDIF(UNIX AND NOT WIN32)
+ENDIF(WIN32)
+
+# ZIP
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
 INCLUDE (CPack)
 

@@ -3,7 +3,8 @@
 # Note Windows DLL are specified by RUNTIME
 
 # Component support
-SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+#SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+SET(CPACK_COMPONENTS_ALL Libraries Headers)
 
 # Display name
 SET(CPACK_COMPONENT_APPLICATIONS_HIDDEN ON)
