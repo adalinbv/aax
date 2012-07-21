@@ -16,28 +16,47 @@ SET(PACKAGE "aaxutils")
 
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
 
-# We have some custom .cmake scripts not in the official distribution.
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
-
-INCLUDE(CPack_Defaults)
-INCLUDE(CPack_Modules)
-
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET(SIZEOF_SIZE_T 8)
 ELSE ()
   SET(SIZEOF_SIZE_T 4)
 ENDIF ()
 
+# read 'version' file into a variable (stripping any newlines or spaces)
+FILE(READ version versionFile)
+STRING(STRIP ${versionFile} AAXUTILS_VERSION)
+SET(VERSION AAXUTILS_VERSION)
+
+# split version string into components, note CMAKE_MATCH_0 is the entire regexp match
+STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AAXUTILS_VERSION})
+
+SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
+SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
+SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
+
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utilities for the AeonWave Audio eXtensions library")
 
-IF(UNIX AND NOT WIN32)
+# We have some custom .cmake scripts not in the official distribution.
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+
+INCLUDE(CPack_Modules)
+INCLUDE(CPack_Defaults)
+
+IF(WIN32)
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
+
+ELSE(WIN32)
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "utils")
   SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax2 (>= 2.2)")
 
   # RPM
   SET(CPACK_RPM_PACKAGE_GROUP "System/Console")
-ENDIF(UNIX AND NOT WIN32)
+ENDIF(WIN32)
+
+# ZIP
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAXUTILS_VERSION}" CACHE INTERNAL "tarball basename")
+
 
 INCLUDE (CPack)
 
