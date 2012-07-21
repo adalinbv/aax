@@ -33,14 +33,11 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utilities for the AeonWave Audio eXtensio
 IF(UNIX AND NOT WIN32)
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "utils")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1); libaax2 (>= 2.0)")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax2 (>= 2.2)")
 
   # RPM
   SET(CPACK_RPM_PACKAGE_GROUP "System/Console")
 ENDIF(UNIX AND NOT WIN32)
-
-# Component support
-INCLUDE(CPack_Modules)
 
 INCLUDE (CPack)
 
