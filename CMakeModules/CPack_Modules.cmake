@@ -3,10 +3,10 @@
 # Note Windows DLL are specified by RUNTIME
 
 # Component support
-SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+#SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+SET(CPACK_COMPONENTS_ALL Applications)
 
 # Display name
-SET(CPACK_COMPONENT_APPLICATIONS_HIDDEN ON)
 SET(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "Applictaions")
 SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C/C++ Development Files")
 
@@ -19,8 +19,8 @@ SET(CPACK_COMPONENT_HEADERS_DESCRIPTION
    "Development header files and library components for use with the software")
 
 # Dependecies
-SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
-SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
+#SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
+#SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
 
 # Component grouping
 SET(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
