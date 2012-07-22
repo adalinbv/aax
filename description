@@ -3,19 +3,19 @@ A cross platform, hardware accelerated, versatile stereo and 4D audio mixing lib
  versatile stereo and 4D audio mixing library that can handle almost any audio
  mixing demands: from studio effect mixing to immersive simulation.
  .
- AeonWave combines the demands for stereo mixing and immersive 3d audio
+ AeonWave combines the demands for stereo mixing and immersive 3D audio
  rendering (for simulation and gaming) in one library. In addition to
  registered sensors that adds support for both jack-in audio-capturing as well
  as file-input auto-streaming the software adds support for audio-frames.
- Audio-frames can be used as containers to move multiple inter-connected 3d
+ Audio-frames can be used as containers to move multiple inter-connected 3D
  sound emitters aroud the scene with just one function call. Audio-frames can
  also be used or for applying filters or effects to multiple (stereo) sources
  before they get mixed together.
  .
- Stereo filters include Tremolo, Volume Envelope and Frequency filtering
- 3D filters include angular and distance filtering
- Stereo effects include Vibrato, Pitch Envelope, Distortion, Chorus And Flanging
- 3D effects support consists of Velocity effect (Doppler)
+ Stereo filters include Tremolo, Volume Envelope and Frequency filtering.
+ 3D filters include angular and distance filtering.
+ Stereo effects include Vibrato, Pitch Envelope, Distortion, Chorus And Flanging.
+ 3D effects support consists of Velocity effect (Doppler).
  Either a three-band parametric equalizer or 8-band graphical equalizer can be
  assinged to the final mixing stage.
  .
@@ -25,7 +25,7 @@ A cross platform, hardware accelerated, versatile stereo and 4D audio mixing lib
  on-demand.
  .
  For audio buffers the library supports 9 native audio formats and a total of
- 29 different formats (inclusing signed/unsigned and big/little-endian)
+ 29 different formats (inclusing signed/unsigned and big/little-endian).
  Buffers can handle sample-rate conversion and can be converted from and to any
  of the supported formats.
 
