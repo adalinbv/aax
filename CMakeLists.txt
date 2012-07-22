@@ -114,16 +114,16 @@ ENDIF(RMALLOC)
 
 IF(MSVC)
     SET_PROPERTY(SOURCE src/software/arch_sse.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE"
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE /fp:fast -D__SSE__"
     )
     SET_PROPERTY(SOURCE src/software/arch_sse2.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE2"
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE2 /fp:fast -D__SSE2__"
     )
     SET_PROPERTY(SOURCE src/software/arch_sse3.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE3"
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE3 /fp:fast -D__SSE3__"
     )
     SET_PROPERTY(SOURCE src/software/arch_sse4.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE4"
+                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE4 /fp:fast -D__SSE4__"
     )
 
     # don't use a /O[012x] flag if you want custom optimizations
