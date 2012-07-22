@@ -34,7 +34,7 @@ SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
 SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
 SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utilities for the AeonWave Audio eXtensions library")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utilities to show the capabilities of AeonWave")
 
 # We have some custom .cmake scripts not in the official distribution.
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
