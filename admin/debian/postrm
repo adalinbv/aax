@@ -40,3 +40,4 @@ fi
 if [ "$1" = "remove" ]; then
   ldconfig
 fi
+

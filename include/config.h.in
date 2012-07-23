@@ -1,5 +1,8 @@
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define this to enable nano debug messages. */
+#undef DEBUG
+
 /* Define this to enable lite version. */
 #undef ENABLE_LITE
 
@@ -117,6 +120,9 @@
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
+
+/* Omit the assert warnings */
+#undef NDEBUG
 
 /* Name of package */
 #undef PACKAGE

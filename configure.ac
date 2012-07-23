@@ -189,7 +189,7 @@ AM_CONFIG_HEADER(include/config.h)
 AC_CONFIG_FILES([ \
 	Makefile \
 	include/Makefile \
-	include/aax.h \
+	include/aax/aax.h \
 	src/Makefile \
 	src/alsa/Makefile \
 	src/dmedia/Makefile \
