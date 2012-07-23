@@ -1,10 +1,10 @@
 Package: aax-utils
-Version: @AAX_VERSION@
+Version: @AAXUTILS_VERSION@
 Section: sound
 Priority: optional
 Architecture: i386
 Depends: libc6 (>= 2.1)
-Replaces: libaax2 (<= 2.1)
+Replaces: aax-utils (<= 2.1)
 Installed-Size: 20
 Provides: aeonwave-utils
 Homepage: http://www.adalin.com

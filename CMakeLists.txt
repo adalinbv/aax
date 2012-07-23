@@ -48,7 +48,7 @@ IF(WIN32)
 ELSE(WIN32)
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "utils")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax2 (>= 2.2)")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax2-runtime (>= 2.2)")
 
   # RPM
   SET(CPACK_RPM_PACKAGE_GROUP "System/Console")
@@ -81,7 +81,7 @@ IF(MSVC)
                  PROPERTY  /arch:SSE2
     )
 
-    OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" OFF)
+    OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" ON)
     IF(FORCE_STATIC_VCRT)
         FOREACH(flag_var
                 CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
@@ -138,6 +138,9 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
+CONFIGURE_FILE(
+    "${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/control-utils.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/admin/debian/control-utils")
 
 SET(BASE_OBJS
      base/logging.c
