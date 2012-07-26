@@ -46,11 +46,14 @@ IF(WIN32)
   SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
 
 ELSE(WIN32)
+  ADD_DEFINITIONS(-D_REENTRANT -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=199309L)
+
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "utils")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax2-runtime (>= 2.2)")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax2-bin (>= 2.2)")
 
   # RPM
+  SET(CPACK_RPM_PACKAGE_LICENSE "BSD")
   SET(CPACK_RPM_PACKAGE_GROUP "System/Console")
 ENDIF(WIN32)
 
@@ -92,7 +95,10 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
-    SET(C_FLAGS "${C_FLAGS} -Os -march=i586 -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops -fomit-frame-pointer" CACHE STRING
+    IF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+       SET(C_FLAGS "${C_FLAGS} -march=i586")
+    ENDIF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    SET(C_FLAGS "${C_FLAGS} -Os -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING

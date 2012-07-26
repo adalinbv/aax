@@ -1,10 +1,34 @@
-/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
- * vi:set ts=8:
+/*
+ * Copyright (C) 2008-2012 by Erik Hofman.
+ * Copyright (C) 2009-2012 by Adalin B.V.
+ * All rights reserved.
  *
- * This file is in the Public Domain and comes with no warranty.
- * Erik Hofman <erik@ehofman.com>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *        this list of conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Adalin B.V.
  */
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -23,144 +47,144 @@
 
 int main(int argc, char **argv)
 {
-   aaxConfig config, record;
-   char *devname;
-   int res;
+    aaxConfig config, record;
+    char *devname;
+    int res;
 
-   devname = getCaptureName(argc, argv);
-   if (!devname) {
-      devname = getDeviceName(argc, argv);
-   }
+    devname = getCaptureName(argc, argv);
+    if (!devname) {
+        devname = getDeviceName(argc, argv);
+    }
 
-   printf("Capture device: '%s'\n", devname);
-   record = aaxDriverOpenByName(devname, AAX_MODE_READ);
-   testForError(record, "Capture device is unavailable.");
+    printf("Capture device: '%s'\n", devname);
+    record = aaxDriverOpenByName(devname, AAX_MODE_READ);
+    testForError(record, "Capture device is unavailable.");
 
-   if (record)
-   {
-      enum aaxFormat format;
-      aaxEmitter emitter;
-      int channels;
-      float f, freq;
+    if (record)
+    {
+        enum aaxFormat format;
+        aaxEmitter emitter;
+        int channels;
+        float f, freq;
 
-      format = AAX_PCM16S;
-      freq = 44100.0;
-      channels = 2;
+        format = AAX_PCM16S;
+        freq = 44100.0;
+        channels = 2;
 
-      printf("Capturing %5.1f seconds of audio\n", RECORD_TIME_SEC);
-      res = aaxMixerSetSetup(record, AAX_FREQUENCY, (unsigned int)freq);
-      testForState(res, "aaxMixerSeFrequency");
+        printf("Capturing %5.1f seconds of audio\n", RECORD_TIME_SEC);
+        res = aaxMixerSetSetup(record, AAX_FREQUENCY, (unsigned int)freq);
+        testForState(res, "aaxMixerSeFrequency");
  
-      res = aaxMixerSetSetup(record, AAX_TRACKS, channels);
-      testForState(res, "aaxMixerSetNoTracks");
+        res = aaxMixerSetSetup(record, AAX_TRACKS, channels);
+        testForState(res, "aaxMixerSetNoTracks");
 
-      res = aaxMixerSetSetup(record, AAX_FORMAT, format);
-      testForState(res, "aaxMixerSetFormat");
+        res = aaxMixerSetSetup(record, AAX_FORMAT, format);
+        testForState(res, "aaxMixerSetFormat");
 
-      res = aaxMixerSetState(record, AAX_INITIALIZED);
-      testForState(res, "aaxMixerSetInitialize");
+        res = aaxMixerSetState(record, AAX_INITIALIZED);
+        testForState(res, "aaxMixerSetInitialize");
 
-      /** create the emitter */
-      emitter = aaxEmitterCreate();
-      testForError(emitter, "Unable to create a new emitter\n");
+        /** create the emitter */
+        emitter = aaxEmitterCreate();
+        testForError(emitter, "Unable to create a new emitter\n");
 
-      res = aaxSensorSetState(record, AAX_CAPTURING);
-      testForState(res, "aaxSensorCaptureStart");
-      do
-      {
-         aaxBuffer buffer;
-         unsigned long ul;
+        res = aaxSensorSetState(record, AAX_CAPTURING);
+        testForState(res, "aaxSensorCaptureStart");
+        do
+        {
+            aaxBuffer buffer;
+            unsigned long ul;
 
-         res = aaxSensorWaitForBuffer(record, 3.0);
-         testForState(res, "aaxSensorWaitForBuffer");
+            res = aaxSensorWaitForBuffer(record, 3.0);
+            testForState(res, "aaxSensorWaitForBuffer");
 
-         ul = aaxSensorGetOffset(record, AAX_MICROSECONDS);
-         f = (float)ul * 1e-6f;
+            ul = aaxSensorGetOffset(record, AAX_MICROSECONDS);
+            f = (float)ul * 1e-6f;
 #if 1
-         printf("Record buffer position: %5.2f sec\r", f);
+            printf("Record buffer position: %5.2f sec\r", f);
 #endif
 
-         buffer = aaxSensorGetBuffer(record);
-         testForError(buffer, "aaxSensorGetBuffer");
+            buffer = aaxSensorGetBuffer(record);
+            testForError(buffer, "aaxSensorGetBuffer");
 
-         res = aaxEmitterAddBuffer(emitter, buffer);
-         testForState(res, "aaxEmitterAddBuffer");
+            res = aaxEmitterAddBuffer(emitter, buffer);
+            testForState(res, "aaxEmitterAddBuffer");
 
-         res = aaxBufferDestroy(buffer);
-         testForState(res, "aaxBufferDestroy");
-      }
-      while (f < RECORD_TIME_SEC);
-      printf("\n");
+            res = aaxBufferDestroy(buffer);
+            testForState(res, "aaxBufferDestroy");
+        }
+        while (f < RECORD_TIME_SEC);
+        printf("\n");
 
-      res = aaxSensorSetState(record, AAX_STOPPED);
-      testForState(res, "aaxSensorCaptureStop");
-
-
-      /** playback */
-      res = aaxMixerSetState(record, AAX_STOPPED);
-      res = aaxDriverClose(record);
-      res = aaxDriverDestroy(record);
+        res = aaxSensorSetState(record, AAX_STOPPED);
+        testForState(res, "aaxSensorCaptureStop");
 
 
-      devname = getDeviceName(argc, argv);
-      if (!devname) {
-         devname = PLAYBACK_DEVICE;
-      }
-      printf("Playback device: '%s'\n", devname);
-      config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-      testForError(config, "No default audio device available.");
+        /** playback */
+        res = aaxMixerSetState(record, AAX_STOPPED);
+        res = aaxDriverClose(record);
+        res = aaxDriverDestroy(record);
 
-      /** mixer */
-      res = aaxMixerSetNoTracks(config, 2);
-      testForState(res, "aaxMixerSetNoTracks");
 
-      res = aaxMixerInit(config);
-      testForState(res, "aaxMixerInit");
+        devname = getDeviceName(argc, argv);
+        if (!devname) {
+            devname = PLAYBACK_DEVICE;
+        }
+        printf("Playback device: '%s'\n", devname);
+        config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+        testForError(config, "No default audio device available.");
 
-      res = aaxMixerRegisterEmitter(config, emitter);
-      testForState(res, "aaxMixerRegisterEmitter");
+        /** mixer */
+        res = aaxMixerSetNoTracks(config, 2);
+        testForState(res, "aaxMixerSetNoTracks");
 
-      res = aaxMixerSetState(config, AAX_PLAYING);
-      testForState(res, "aaxMixerStart");
+        res = aaxMixerInit(config);
+        testForState(res, "aaxMixerInit");
 
-      /** schedule the emitter for playback */
-      res = aaxEmitterSetState(emitter, AAX_PLAYING);
-      testForState(res, "aaxEmitterStart");
+        res = aaxMixerRegisterEmitter(config, emitter);
+        testForState(res, "aaxMixerRegisterEmitter");
 
-      do
-      {
-         unsigned long offs;
-         float off_s;
+        res = aaxMixerSetState(config, AAX_PLAYING);
+        testForState(res, "aaxMixerStart");
 
-         off_s = aaxEmitterGetOffsetSec(emitter);
-         offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
+        /** schedule the emitter for playback */
+        res = aaxEmitterSetState(emitter, AAX_PLAYING);
+        testForState(res, "aaxEmitterStart");
 
-         printf("buffer position: %5.2f (%li samples)\n", off_s, offs);
-         res = aaxEmitterGetState(emitter);
-         
-         nanoSleep(5e8);
-      }
-      while (res == AAX_PLAYING);
+        do
+        {
+            unsigned long offs;
+            float off_s;
 
-      res = aaxMixerDeregisterEmitter(config, emitter);
-      testForState(res, "aaxMixerDeregisterEmitter");
+            off_s = aaxEmitterGetOffsetSec(emitter);
+            offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
 
-      res = aaxMixerSetState(config, AAX_STOPPED);
-      testForState(res, "aaxMixerStop");
+            printf("buffer position: %5.2f (%li samples)\n", off_s, offs);
+            res = aaxEmitterGetState(emitter);
+            
+            nanoSleep(5e8);
+        }
+        while (res == AAX_PLAYING);
 
-      res = aaxEmitterDestroy(emitter);
-      testForState(res, "aaxEmitterDestroy");
+        res = aaxMixerDeregisterEmitter(config, emitter);
+        testForState(res, "aaxMixerDeregisterEmitter");
 
-      res = aaxDriverClose(config);
-      testForState(res, "aaxDriverClose");
+        res = aaxMixerSetState(config, AAX_STOPPED);
+        testForState(res, "aaxMixerStop");
 
-      res = aaxDriverDestroy(config);
-      testForState(res, "aaxDriverDestroy");
-   }
-   else {
-      printf("Unable to open capture device.\n");
-   }
+        res = aaxEmitterDestroy(emitter);
+        testForState(res, "aaxEmitterDestroy");
 
-   return 0;
+        res = aaxDriverClose(config);
+        testForState(res, "aaxDriverClose");
+
+        res = aaxDriverDestroy(config);
+        testForState(res, "aaxDriverDestroy");
+    }
+    else {
+        printf("Unable to open capture device.\n");
+    }
+
+    return 0;
 }
 
