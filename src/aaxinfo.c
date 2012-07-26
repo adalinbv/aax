@@ -38,6 +38,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #ifndef NDEBUG
 # ifdef HAVE_RMALLOC_H
 #  include <rmalloc.h>

@@ -34,6 +34,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <aax/aax.h>
 
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
     record = aaxDriverOpenByName(indevname, AAX_MODE_READ);
     if (!record)
     {
-        printf("File not found: %s\n");
+        printf("File not found: %s\n", infile);
         exit(-1);
     }
     printf("Playing: %s\n", infile);
