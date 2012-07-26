@@ -67,10 +67,10 @@ int main(int argc, char **argv)
 
             printf("\nPlayback stereo with 8-band graphic equalizer enabled.\n");
         /* cut-off frequencies */
-//        printf("67Hz | 150Hz | 340Hz | 763Hz | 1.7kHz | 3.9kHz | 8.7kHz\n\n");
+//        printf("67Hz | 150Hz | 340Hz | 763Hz | 1.7fkHz | 3.9fkHz | 8.7fkHz\n\n");
 
             /* sqrt(fc_low*fc_high) */
-            printf("44Hz | 100Hz | 220Hz | 500Hz | 1.1kHz | 2.5kHz | 5.7kHz | 13kHz\n\n");
+            printf("44Hz | 100Hz | 220Hz | 500Hz | 1.1fkHz | 2.5fkHz | 5.7fkHz | 13kHz\n\n");
             /** emitter */
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter");

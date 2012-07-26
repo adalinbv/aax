@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 #if 1
     res = aaxBufferRingmodulateWaveform(buffer, 500.0f, AAX_SINE_WAVE, 0.6f);
 #endif
-// res = aaxBufferAddWaveform(buffer, 0.0f, AAX_PINK_NOISE, 0.08);
+// res = aaxBufferAddWaveform(buffer, 0.0f, AAX_PINK_NOISE, 0.08f);
     testForState(res, "aaxBufferProcessWaveform");
 
     /** emitter */
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
     {
         static int i = 0;
 
-        msecSleep(9e8);	/* 2.0 seconds */
+        msecSleep(9e8);	/* 2.0f seconds */
 
         switch(i)
         {

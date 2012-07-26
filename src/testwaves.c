@@ -63,8 +63,8 @@ static struct {
   { "static white noise", 1.0f, AAX_WHITE_NOISE    }
 };
 
-aaxVec3f SourcePos = { 0.0,  0.0, -3.0 };
-aaxVec3f SourceDir = { 0.0,  0.0,  1.0 };
+aaxVec3f SourcePos = { 0.0f,  0.0f, -3.0f };
+aaxVec3f SourceDir = { 0.0f,  0.0f,  1.0f };
 
 int main(int argc, char **argv)
 {
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         res = aaxBufferSetFrequency(buffer[i], SAMPLE_FREQ);
         testForState(res, "aaxBufferSetFrequency");
 
-        res = aaxBufferProcessWaveform(buffer[i], rate, type, 1.0, AAX_OVERWRITE);
+        res = aaxBufferProcessWaveform(buffer[i], rate, type, 1.0f, AAX_OVERWRITE);
         testForState(res, "aaxBufferProcessWaveform");
     }
 
