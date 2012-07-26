@@ -38,6 +38,7 @@
 # include <io.h>
 #endif
 #include <fcntl.h>
+#include <string.h>
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
@@ -118,6 +119,7 @@ fileLoad(const char *file, unsigned int *no_samples,
     char buf[4];
     void *data;
     int i, fd;
+    int res;
 
 #if !_OPENAL_SUPPORT
     *block = 1;
@@ -128,7 +130,7 @@ fileLoad(const char *file, unsigned int *no_samples,
     fd = open(file, O_RDONLY);
     if (fd < 0) return 0;
 
-    read(fd, &_oalSoftwareWaveHeader, WAVE_EXT_HEADER_SIZE*4);
+    res = read(fd, &_oalSoftwareWaveHeader, WAVE_EXT_HEADER_SIZE*4);
     if (__big_endian)
     {
         for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
@@ -160,13 +162,14 @@ fileLoad(const char *file, unsigned int *no_samples,
     lseek(fd, 32L, SEEK_SET);
     do
     {
-        read(fd, buf, 1);
-        if (buf[0] == 'd')
+        res = read(fd, buf, 1);
+        if (res > 0 && buf[0] == 'd')
         {
-            read(fd, buf+1, 3);
-            if (buf[0] == 'd' && buf[1] == 'a' && buf[2] == 't' && buf[3] == 'a')
+            res = read(fd, buf+1, 3);
+            if (res > 0 && buf[0] == 'd' && buf[1] == 'a'
+                 && buf[2] == 't' && buf[3] == 'a')
             {
-                read(fd, &buflen, 4); /* chunk size */
+                res = read(fd, &buflen, 4); /* chunk size */
                 if (__big_endian) buflen = BSWAP32(buflen);
                 break;
             }
