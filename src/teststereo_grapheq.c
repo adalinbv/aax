@@ -1,10 +1,34 @@
-/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
- * vi:set ts=8:
+/*
+ * Copyright (C) 2008-2012 by Erik Hofman.
+ * Copyright (C) 2009-2012 by Adalin B.V.
+ * All rights reserved.
  *
- * This file is in the Public Domain and comes with no warranty.
- * Erik Hofman <erik@ehofman.com>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *        this list of conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Adalin B.V.
  */
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -21,108 +45,108 @@
 
 int main(int argc, char **argv)
 {
-   char *devname, *infile;
-   aaxBuffer buffer = 0;
-   aaxConfig config;
-   int res;
+    char *devname, *infile;
+    aaxBuffer buffer = 0;
+    aaxConfig config;
+    int res;
 
-   infile = getInputFile(argc, argv, FILE_PATH);
-   devname = getDeviceName(argc, argv);
+    infile = getInputFile(argc, argv, FILE_PATH);
+    devname = getDeviceName(argc, argv);
 
-   config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-   testForError(config, "No default audio device available.");
-   do {
-      buffer = bufferFromFile(config, infile);
-      if (buffer)
-      {
-         aaxEmitter emitter;
-         float dt = 0.0f;
-         int q, state;
-         float pitch;
-         aaxFilter f;
+    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+    testForError(config, "No default audio device available.");
+    do {
+        buffer = bufferFromFile(config, infile);
+        if (buffer)
+        {
+            aaxEmitter emitter;
+            float dt = 0.0f;
+            int q, state;
+            float pitch;
+            aaxFilter f;
 
-         printf("\nPlayback stereo with 8-band graphic equalizer enabled.\n");
+            printf("\nPlayback stereo with 8-band graphic equalizer enabled.\n");
         /* cut-off frequencies */
-//       printf("67Hz | 150Hz | 340Hz | 763Hz | 1.7kHz | 3.9kHz | 8.7kHz\n\n");
+//        printf("67Hz | 150Hz | 340Hz | 763Hz | 1.7kHz | 3.9kHz | 8.7kHz\n\n");
 
-         /* sqrt(fc_low*fc_high) */
-         printf("44Hz | 100Hz | 220Hz | 500Hz | 1.1kHz | 2.5kHz | 5.7kHz | 13kHz\n\n");
-         /** emitter */
-         emitter = aaxEmitterCreate();
-         testForError(emitter, "Unable to create a new emitter");
+            /* sqrt(fc_low*fc_high) */
+            printf("44Hz | 100Hz | 220Hz | 500Hz | 1.1kHz | 2.5kHz | 5.7kHz | 13kHz\n\n");
+            /** emitter */
+            emitter = aaxEmitterCreate();
+            testForError(emitter, "Unable to create a new emitter");
 
-         pitch = getPitch(argc, argv);
-         res = aaxEmitterSetPitch(emitter, pitch);
-         testForState(res, "aaxEmitterSetPitch");
+            pitch = getPitch(argc, argv);
+            res = aaxEmitterSetPitch(emitter, pitch);
+            testForState(res, "aaxEmitterSetPitch");
 
-         res = aaxEmitterAddBuffer(emitter, buffer);
-         testForState(res, "aaxEmitterAddBuffer");
+            res = aaxEmitterAddBuffer(emitter, buffer);
+            testForState(res, "aaxEmitterAddBuffer");
 
-         /** mixer */
-         res = aaxMixerInit(config);
-         testForState(res, "aaxMixerInit");
+            /** mixer */
+            res = aaxMixerInit(config);
+            testForState(res, "aaxMixerInit");
 
-         res = aaxMixerRegisterEmitter(config, emitter);
-         testForState(res, "aaxMixerRegisterEmitter");
+            res = aaxMixerRegisterEmitter(config, emitter);
+            testForState(res, "aaxMixerRegisterEmitter");
 
-         res = aaxMixerSetState(config, AAX_PLAYING);
-         testForState(res, "aaxMixerStart");
+            res = aaxMixerSetState(config, AAX_PLAYING);
+            testForState(res, "aaxMixerStart");
 
-         /* equalizer */
-         f = aaxFilterCreate(config, AAX_GRAPHIC_EQUALIZER);
-         testForError(f, "aaxFilterCreate");
+            /* equalizer */
+            f = aaxFilterCreate(config, AAX_GRAPHIC_EQUALIZER);
+            testForError(f, "aaxFilterCreate");
 
-         f = aaxFilterSetSlot(f, 0, AAX_LINEAR, 0.5f, 1.5f, 1.5f, 0.8f);
-         testForError(f, "aaxFilterSetSlot/0");
+            f = aaxFilterSetSlot(f, 0, AAX_LINEAR, 0.5f, 1.5f, 1.5f, 0.8f);
+            testForError(f, "aaxFilterSetSlot/0");
 
-         f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 1.0f, 1.0f, 1.2f, 1.0f);
-         testForError(f, "aaxFilterSetSlot/1");
+            f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 1.0f, 1.0f, 1.2f, 1.0f);
+            testForError(f, "aaxFilterSetSlot/1");
 
-         f = aaxFilterSetState(f, AAX_TRUE);
-         testForError(f, "aaxFilterSetState");
+            f = aaxFilterSetState(f, AAX_TRUE);
+            testForError(f, "aaxFilterSetState");
 
-         res = aaxMixerSetFilter(config, f);
-         testForState(res, "aaxMixerSetFilter");
+            res = aaxMixerSetFilter(config, f);
+            testForState(res, "aaxMixerSetFilter");
 
-         res = aaxFilterDestroy(f);
-         testForState(res, "aaxFilterDestroy");
+            res = aaxFilterDestroy(f);
+            testForState(res, "aaxFilterDestroy");
 
-         /** schedule the emitter for playback */
-         res = aaxEmitterSetState(emitter, AAX_PLAYING);
-         testForState(res, "aaxEmitterStart");
+            /** schedule the emitter for playback */
+            res = aaxEmitterSetState(emitter, AAX_PLAYING);
+            testForState(res, "aaxEmitterStart");
 
-         q = 0;
-         do
-         {
-            nanoSleep(5e7);
-            dt += 5e7f*1e-9f;
-#if 1
-            q++;
-            if (q > 10)
+            q = 0;
+            do
             {
-               unsigned long offs, offs_bytes;
-               float off_s;
-               q = 0;
+                nanoSleep(5e7);
+                dt += 5e7f*1e-9f;
+#if 1
+                q++;
+                if (q > 10)
+                {
+                    unsigned long offs, offs_bytes;
+                    float off_s;
+                    q = 0;
 
-               off_s = aaxEmitterGetOffsetSec(emitter);
-               offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
-               offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
-               printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
-            }
+                    off_s = aaxEmitterGetOffsetSec(emitter);
+                    offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
+                    offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
+                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
+                }
 #endif
-            state = aaxEmitterGetState(emitter);
-         }
-         while (state == AAX_PLAYING);
+                state = aaxEmitterGetState(emitter);
+            }
+            while (state == AAX_PLAYING);
 
-         res = aaxMixerDeregisterEmitter(config, emitter);
-         res = aaxMixerSetState(config, AAX_STOPPED);
-         res = aaxEmitterDestroy(emitter);
-      }
-   }
-   while (0);
+            res = aaxMixerDeregisterEmitter(config, emitter);
+            res = aaxMixerSetState(config, AAX_STOPPED);
+            res = aaxEmitterDestroy(emitter);
+        }
+    }
+    while (0);
 
-   res = aaxDriverClose(config);
-   res = aaxDriverDestroy(config);
+    res = aaxDriverClose(config);
+    res = aaxDriverDestroy(config);
 
-   return 0;
+    return 0;
 }

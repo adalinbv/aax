@@ -1,0 +1,18 @@
+
+This directory contains sound and audio fragments that are intended for testing
+purposes only. Some files might contain snippets of music or audio that are
+copyrighted by their respecitve copyright holders.
+
+DON'T USE ANY OF THESE FILES IN ANY OTHER WAY THAN FOR TESTING THIS
+SOFTWARE BECAUSE IT MIGHT INFRINGE SOMEONE ELSES COPYRIGHT.
+
+It would be great to have a set of copyright-free test sound files some day.
+The following files in particular might need to get replaced:
+  left_channel.wav
+  right_channel.wav
+  stereo-11025.wav
+  stereo-ima4.wav
+  stereo.mp3
+  stereo.wav
+  tune.wav
+

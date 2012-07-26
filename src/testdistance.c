@@ -1,10 +1,34 @@
-/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
- * vi:set ts=8:
+/*
+ * Copyright (C) 2008-2012 by Erik Hofman.
+ * Copyright (C) 2009-2012 by Adalin B.V.
+ * All rights reserved.
  *
- * This file is in the Public Domain and comes with no warranty.
- * Erik Hofman <erik@ehofman.com>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *        this list of conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Adalin B.V.
  */
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -25,11 +49,11 @@
 #define TIME			20.0f
 #define STEP			(((2*INITIAL_DIST)/fabsf(SPEED))/TIME)
 #define DELAY			fabs((STEP/TIME)*1e9)
-#define FILE_PATH               SRC_PATH"/wasp.wav"
+#define FILE_PATH                    SRC_PATH"/wasp.wav"
 
 aaxVec3f SourcePos = {  0.0f,    100.0f, -INITIAL_DIST };
-aaxVec3f SourceDir = {  1.0f,    0.0f,   0.0f };
-aaxVec3f SourceVel = {  0.0f,    0.0f,   SPEED };
+aaxVec3f SourceDir = {  1.0f,    0.0f,    0.0f };
+aaxVec3f SourceVel = {  0.0f,    0.0f,    SPEED };
 
 aaxVec3f ListenerPos = { 0.0f, 0.0f,  0.0f };
 aaxVec3f ListenerVel = { 0.0f, 0.0f,  0.0f };
@@ -38,129 +62,129 @@ aaxVec3f ListenerUp =  { 0.0f, 1.0f,  0.0f };
 
 int main(int argc, char **argv)
 {
-   char *devname, *infile;
-   enum aaxRenderMode mode;
-   aaxConfig config;
-   int res;
+    char *devname, *infile;
+    enum aaxRenderMode mode;
+    aaxConfig config;
+    int res;
 
-   infile = getInputFile(argc, argv, FILE_PATH);
-   devname = getDeviceName(argc, argv);
-   mode = getMode(argc, argv);
-   config = aaxDriverOpenByName(devname, mode);
-   testForError(config, "No default audio device available.");
+    infile = getInputFile(argc, argv, FILE_PATH);
+    devname = getDeviceName(argc, argv);
+    mode = getMode(argc, argv);
+    config = aaxDriverOpenByName(devname, mode);
+    testForError(config, "No default audio device available.");
 
-   if (config)
-   {
-      aaxBuffer buffer = bufferFromFile(config, infile);
-      if (buffer)
-      {
-         aaxEmitter emitter;
-         float dist;
-         aaxMtx4f mtx;
+    if (config)
+    {
+        aaxBuffer buffer = bufferFromFile(config, infile);
+        if (buffer)
+        {
+            aaxEmitter emitter;
+            float dist;
+            aaxMtx4f mtx;
 
-         /** mixer */
-         res = aaxMixerInit(config);
-         testForState(res, "aaxMixerInit");
+            /** mixer */
+            res = aaxMixerInit(config);
+            testForState(res, "aaxMixerInit");
 
-         res = aaxMixerSetState(config, AAX_PLAYING);
-         testForState(res, "aaxMixerStart");
+            res = aaxMixerSetState(config, AAX_PLAYING);
+            testForState(res, "aaxMixerStart");
 
-         /** scenery settings */
-         res=aaxScenerySetDistanceModel(config, AAX_EXPONENTIAL_DISTANCE_DELAY);
-         testForState(res, "aaxScenerySetDistanceModel");
+            /** scenery settings */
+            res=aaxScenerySetDistanceModel(config, AAX_EXPONENTIAL_DISTANCE_DELAY);
+            testForState(res, "aaxScenerySetDistanceModel");
 
-         /** dopller settings */
-         res = aaxScenerySetSoundVelocity(config, 333.0f);
-         testForState(res, "aaxScenerySetSoundVelocity");
+            /** dopller settings */
+            res = aaxScenerySetSoundVelocity(config, 333.0f);
+            testForState(res, "aaxScenerySetSoundVelocity");
 
-         /** sensor settings */
-         res=aaxMatrixSetOrientation(mtx, ListenerPos, ListenerAt, ListenerUp);
-         testForState(res, "aaxMatrixSetOrientation");
+            /** sensor settings */
+            res=aaxMatrixSetOrientation(mtx, ListenerPos, ListenerAt, ListenerUp);
+            testForState(res, "aaxMatrixSetOrientation");
 
-         res = aaxMatrixInverse(mtx);
-         res |= aaxSensorSetMatrix(config, mtx);
-         testForState(res, "aaxSensorSetMatrix");
+            res = aaxMatrixInverse(mtx);
+            res |= aaxSensorSetMatrix(config, mtx);
+            testForState(res, "aaxSensorSetMatrix");
 
-         res = aaxSensorSetVelocity(config, ListenerVel);
-         testForState(res, "aaxSensorSetVelocity");
+            res = aaxSensorSetVelocity(config, ListenerVel);
+            testForState(res, "aaxSensorSetVelocity");
 
-         /** emitter */
-         emitter = aaxEmitterCreate();
-         testForError(emitter, "Unable to create a new emitter\n");
+            /** emitter */
+            emitter = aaxEmitterCreate();
+            testForError(emitter, "Unable to create a new emitter\n");
 
-         res = aaxEmitterAddBuffer(emitter, buffer);
-         testForState(res, "aaxEmitterAddBuffer");
+            res = aaxEmitterAddBuffer(emitter, buffer);
+            testForState(res, "aaxEmitterAddBuffer");
 
-         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_RELATIVE);
-         testForState(res, "aaxEmitterSetMode");
+            res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_RELATIVE);
+            testForState(res, "aaxEmitterSetMode");
 
-         res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
-         testForState(res, "aaxEmitterSetLooping");
+            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
+            testForState(res, "aaxEmitterSetLooping");
 
-         res = aaxEmitterSetVelocity(emitter, SourceVel);
-         testForState(res, "aaxEmitterSetVelocity");
+            res = aaxEmitterSetVelocity(emitter, SourceVel);
+            testForState(res, "aaxEmitterSetVelocity");
 
-         res = aaxEmitterSetReferenceDistance(emitter, 50.0f);
-         testForState(res, "aaxEmitterSetReferenceDistance");
+            res = aaxEmitterSetReferenceDistance(emitter, 50.0f);
+            testForState(res, "aaxEmitterSetReferenceDistance");
 
-         res = aaxEmitterSetMaxDistance(emitter, 500.0f);
-         testForState(res, "aaxEmitterSetMaxDistance");
+            res = aaxEmitterSetMaxDistance(emitter, 500.0f);
+            testForState(res, "aaxEmitterSetMaxDistance");
 
-         res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
-         testForState(res, "aaxMatrixSetDirection");
-
-         res = aaxEmitterSetMatrix(emitter, mtx);
-         testForState(res, "aaxEmitterSetMatrix");
-
-         res = aaxMixerRegisterEmitter(config, emitter);
-         testForState(res, "aaxMixerRegisterEmitter");
-
-         /** schedule the emitter for playback */
-         printf("Engine start\n");
-         res = aaxEmitterSetState(emitter, AAX_PLAYING);
-         testForState(res, "aaxEmitterStart");
-
-         dist = INITIAL_DIST;
-         while(dist > -INITIAL_DIST)
-         {
-            nanoSleep(DELAY);
-
-            SourcePos[2] = -dist;
-            dist -= STEP;
-#if 1
-            printf("dist: %5.4f\tpos (% f, % f, % f)\n", dist,
-                     SourcePos[0], SourcePos[1], SourcePos[2]);
-#endif
             res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
             testForState(res, "aaxMatrixSetDirection");
 
             res = aaxEmitterSetMatrix(emitter, mtx);
             testForState(res, "aaxEmitterSetMatrix");
-         }
 
-         res = aaxEmitterSetState(emitter, AAX_STOPPED);
-         testForState(res, "aaxEmitterStop");
+            res = aaxMixerRegisterEmitter(config, emitter);
+            testForState(res, "aaxMixerRegisterEmitter");
 
-         res = aaxMixerDeregisterEmitter(config, emitter);
-         testForState(res, "aaxMixerDeregisterEmitter");
+            /** schedule the emitter for playback */
+            printf("Engine start\n");
+            res = aaxEmitterSetState(emitter, AAX_PLAYING);
+            testForState(res, "aaxEmitterStart");
 
-         res = aaxEmitterDestroy(emitter);
-         testForState(res, "aaxEmitterDestroy");
+            dist = INITIAL_DIST;
+            while(dist > -INITIAL_DIST)
+            {
+                nanoSleep(DELAY);
 
-         res = aaxBufferDestroy(buffer);
-         testForState(res, "aaxBufferDestroy");
+                SourcePos[2] = -dist;
+                dist -= STEP;
+#if 1
+                printf("dist: %5.4f\tpos (% f, % f, % f)\n", dist,
+                            SourcePos[0], SourcePos[1], SourcePos[2]);
+#endif
+                res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
+                testForState(res, "aaxMatrixSetDirection");
 
-         res = aaxMixerSetState(config, AAX_STOPPED);
-         testForState(res, "aaxMixerStop");
-      }
+                res = aaxEmitterSetMatrix(emitter, mtx);
+                testForState(res, "aaxEmitterSetMatrix");
+            }
 
-   }
+            res = aaxEmitterSetState(emitter, AAX_STOPPED);
+            testForState(res, "aaxEmitterStop");
 
-   res = aaxDriverClose(config);
-   testForState(res, "aaxDriverClose");
+            res = aaxMixerDeregisterEmitter(config, emitter);
+            testForState(res, "aaxMixerDeregisterEmitter");
 
-   res = aaxDriverDestroy(config);
-   testForState(res, "aaxDriverDestroy");
+            res = aaxEmitterDestroy(emitter);
+            testForState(res, "aaxEmitterDestroy");
 
-   return 0;
+            res = aaxBufferDestroy(buffer);
+            testForState(res, "aaxBufferDestroy");
+
+            res = aaxMixerSetState(config, AAX_STOPPED);
+            testForState(res, "aaxMixerStop");
+        }
+
+    }
+
+    res = aaxDriverClose(config);
+    testForState(res, "aaxDriverClose");
+
+    res = aaxDriverDestroy(config);
+    testForState(res, "aaxDriverDestroy");
+
+    return 0;
 }

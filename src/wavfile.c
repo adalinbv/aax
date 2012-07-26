@@ -1,10 +1,34 @@
-/* -*- mode: C; tab-width:8; c-basic-offset:8 -*-
- * vi:set ts=8:
+/*
+ * Copyright (C) 2008-2012 by Erik Hofman.
+ * Copyright (C) 2009-2012 by Adalin B.V.
+ * All rights reserved.
  *
- * This file is in the Public Domain and comes with no warranty.
- * Erik Hofman <erik@ehofman.com>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *        this list of conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Adalin B.V.
  */
+
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -25,44 +49,44 @@
 #include "wavfile.h"
 #include "audio_tune.h"
 
-#define PRINT_DEBUG_MSG         0
+#define PRINT_DEBUG_MSG            0
 #define PRINT_INFO_MSG		1
 
 #define WAVE_HEADER_SIZE        11
 #define WAVE_EXT_HEADER_SIZE	17
-#define DEFAULT_OUTPUT_RATE     32000
+#define DEFAULT_OUTPUT_RATE    32000
 #ifndef O_BINARY
-# define O_BINARY       0
+# define O_BINARY        0
 #endif
 
 static uint32_t _oalSoftwareWaveHeader[WAVE_EXT_HEADER_SIZE];
 static const uint32_t _defaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
-    0x46464952,                 /*  0. "RIFF"                                */
-    0x00000024,                 /*  1. (file_length - 8)                     */
-    0x45564157,                 /*  2. "WAVE"                                */
+    0x46464952,                    /*  0. "RIFF"                                        */
+    0x00000024,                    /*  1. (file_length - 8)                            */
+    0x45564157,                    /*  2. "WAVE"                                        */
 
-    0x20746d66,                 /*  3. "fmt "                                */
-    0x00000010,                 /*  4.                                       */
-    0x00010002,                 /*  5. PCM & stereo                          */
-    DEFAULT_OUTPUT_RATE,        /*  6.                                       */
-    0x0001f400,                 /*  7. (sample_rate*no_tracks*bits_sample/8) */
-    0x00040010,                 /*  8. (no_tracks*bits_sample/8)             *
-                                 *     & 16 bits per sample                  */
+    0x20746d66,                    /*  3. "fmt "                                        */
+    0x00000010,                    /*  4.                                                    */
+    0x00010002,                    /*  5. PCM & stereo                                */
+    DEFAULT_OUTPUT_RATE,        /*  6.                                                    */
+    0x0001f400,                    /*  7. (sample_rate*no_tracks*bits_sample/8) */
+    0x00040010,                    /*  8. (no_tracks*bits_sample/8)                *
+                                            *    & 16 bits per sample                        */
 /* used for both the extensible data section and data section */
-    0x61746164,                 /*  9. "data"                                */
-    0,                          /* 10. length of the data block              *
-                                 *     (no_samples*no_tracks*bits_sample/8)  */
+    0x61746164,                    /*  9. "data"                                        */
+    0,                                /* 10. length of the data block                *
+                                            *    (no_samples*no_tracks*bits_sample/8)  */
     0,0,
 /* data section starts here in case of the extensible format */
-    0x61746164,			/* 15. "data"                                */
-    0				/* 16. length of the data block              *
-                                 *     (no_samples*no_tracks*bits_sample/8)  */
+    0x61746164,			/* 15. "data"                                        */
+    0				/* 16. length of the data block                *
+                                            *    (no_samples*no_tracks*bits_sample/8)  */
 };
 
 #define DEBUG_PRINT(a) \
-   printf(" %2i: %08x \"%c%c%c%c\"\n", a, _oalSoftwareWaveHeader[a], \
-                                       p[4*a], p[4*a+1], p[4*a+2], p[4*a+3]);
+    printf(" %2i: %08x \"%c%c%c%c\"\n", a, _oalSoftwareWaveHeader[a], \
+                                                    p[4*a], p[4*a+1], p[4*a+2], p[4*a+3]);
 
 #define BSWAP16(x)	(x >> 8) | (x << 8)
 #define BSWAP32H(x)	((x >> 8) & 0x00FF00FFL) | ((x << 8) & 0xFF00FF00L)
@@ -85,198 +109,198 @@ static void bufferConvertMSIMA_IMA4(void*, unsigned, unsigned int, unsigned*);
 void *
 fileLoad(const char *file, unsigned int *no_samples, 
 #if !_OPENAL_SUPPORT
-         unsigned *block,
+            unsigned *block,
 #endif
-         int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
+            int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
 {
-   static const unsigned int _t = 1;
-   unsigned int buflen, blocksz;
-   char buf[4];
-   void *data;
-   int i, fd;
+    static const unsigned int _t = 1;
+    unsigned int buflen, blocksz;
+    char buf[4];
+    void *data;
+    int i, fd;
 
 #if !_OPENAL_SUPPORT
-   *block = 1;
+    *block = 1;
 #endif
 
-   __big_endian = (*(char *)&_t == 0);
+    __big_endian = (*(char *)&_t == 0);
 
-   fd = open(file, O_RDONLY);
-   if (fd < 0) return 0;
+    fd = open(file, O_RDONLY);
+    if (fd < 0) return 0;
 
-   read(fd, &_oalSoftwareWaveHeader, WAVE_EXT_HEADER_SIZE*4);
-   if (__big_endian)
-   {
-      for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
-         _oalSoftwareWaveHeader[i] = BSWAP32(_oalSoftwareWaveHeader[i]);
-      }
-   }
+    read(fd, &_oalSoftwareWaveHeader, WAVE_EXT_HEADER_SIZE*4);
+    if (__big_endian)
+    {
+        for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
+            _oalSoftwareWaveHeader[i] = BSWAP32(_oalSoftwareWaveHeader[i]);
+        }
+    }
 
 #if PRINT_DEBUG_MSG
-   do
-   {
-      char *p = (char *)&_oalSoftwareWaveHeader;
-      printf("Load:\n");
-      for (i=0; i<WAVE_EXT_HEADER_SIZE; i++)
-         DEBUG_PRINT(i);
-   }
-   while (0);
+    do
+    {
+        char *p = (char *)&_oalSoftwareWaveHeader;
+        printf("Load:\n");
+        for (i=0; i<WAVE_EXT_HEADER_SIZE; i++)
+            DEBUG_PRINT(i);
+    }
+    while (0);
 #endif
 
-   *freq = _oalSoftwareWaveHeader[6];
-   *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
-   *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
-   *bits_sample = _oalSoftwareWaveHeader[8] >> 16;
-   blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
+    *freq = _oalSoftwareWaveHeader[6];
+    *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
+    *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
+    *bits_sample = _oalSoftwareWaveHeader[8] >> 16;
+    blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
 #if !_OPENAL_SUPPORT
-   *block = blocksz;
+    *block = blocksz;
 #endif
 
-   /* search for the data chunk */
-   lseek(fd, 32L, SEEK_SET);
-   do
-   {
-      read(fd, buf, 1);
-      if (buf[0] == 'd')
-      {
-         read(fd, buf+1, 3);
-         if (buf[0] == 'd' && buf[1] == 'a' && buf[2] == 't' && buf[3] == 'a')
-         {
-            read(fd, &buflen, 4); /* chunk size */
-            if (__big_endian) buflen = BSWAP32(buflen);
-            break;
-         }
-      }
-   }
-   while (1);
-   *no_samples = (buflen * 8) / (*no_tracks * *bits_sample);
+    /* search for the data chunk */
+    lseek(fd, 32L, SEEK_SET);
+    do
+    {
+        read(fd, buf, 1);
+        if (buf[0] == 'd')
+        {
+            read(fd, buf+1, 3);
+            if (buf[0] == 'd' && buf[1] == 'a' && buf[2] == 't' && buf[3] == 'a')
+            {
+                read(fd, &buflen, 4); /* chunk size */
+                if (__big_endian) buflen = BSWAP32(buflen);
+                break;
+            }
+        }
+    }
+    while (1);
+    *no_samples = (buflen * 8) / (*no_tracks * *bits_sample);
 
 #if PRINT_INFO_MSG
-   do
-   {
-      float duration;
+    do
+    {
+        float duration;
 
-      printf("Audio file: %s\n", file);
-      if (buflen < 10240)
-         printf("Size:\t\t\t%i bytes\n", buflen);
-      else
-         printf("Size:\t\t\t%i kb (%u bytes)\n", buflen / 1024, buflen);
-      printf("Sample rate:\t\t%i kHz\n", *freq / 1000);
-      printf("No. tracks:\t\t%i\n", *no_tracks);
-      printf("Bits per sample:\t%i\n", *bits_sample);
+        printf("Audio file: %s\n", file);
+        if (buflen < 10240)
+            printf("Size:\t\t\t%i bytes\n", buflen);
+        else
+            printf("Size:\t\t\t%i kb (%u bytes)\n", buflen / 1024, buflen);
+        printf("Sample rate:\t\t%i kHz\n", *freq / 1000);
+        printf("No. tracks:\t\t%i\n", *no_tracks);
+        printf("Bits per sample:\t%i\n", *bits_sample);
 
-      printf("Data format:\t\t");
-      switch (*format)
-      {
-      case 1:
-         printf("PCM\n");
-         break;
-      case 2:
-         printf("Microsoft ADPCM\n");
-         break;
-      case 3:
-         printf("PCM Floating point\n");
-         break;
-      case 6:
-         printf("G.711 a-law\n");
-         break;
-      case 7:
-         printf("G.711 mulaw\n");
-         break;
-      case 17:
-         printf("IMA4 ADPCM\n");
-         break;
-      case 0xfffe:
-         printf("Extensible format (0x%X)\n", _oalSoftwareWaveHeader[11] >> 16);
-         break;
-      default:
-         printf("unknown (0x%X)\n", *format);
-      }
+        printf("Data format:\t\t");
+        switch (*format)
+        {
+        case 1:
+            printf("PCM\n");
+            break;
+        case 2:
+            printf("Microsoft ADPCM\n");
+            break;
+        case 3:
+            printf("PCM Floating point\n");
+            break;
+        case 6:
+            printf("G.711 a-law\n");
+            break;
+        case 7:
+            printf("G.711 mulaw\n");
+            break;
+        case 17:
+            printf("IMA4 ADPCM\n");
+            break;
+        case 0xfffe:
+            printf("Extensible format (0x%X)\n", _oalSoftwareWaveHeader[11] >> 16);
+            break;
+        default:
+            printf("unknown (0x%X)\n", *format);
+        }
 
-      printf("Samples per block:\t%i\n", blocksz);
-      printf("No. samples:\t\t%i\n", *no_samples);
+        printf("Samples per block:\t%i\n", blocksz);
+        printf("No. samples:\t\t%i\n", *no_samples);
 
-      duration = (float)(buflen * 8);
-      duration /= (*freq * *no_tracks * *bits_sample);
-      printf("Duration:\t\t%5.3f sec.\n", duration);
-   } while (0);
+        duration = (float)(buflen * 8);
+        duration /= (*freq * *no_tracks * *bits_sample);
+        printf("Duration:\t\t%5.3f sec.\n", duration);
+    } while (0);
 #endif
 
-   data = malloc(buflen);
-   if (data)
-   {
-      buflen = read(fd, data, buflen);
+    data = malloc(buflen);
+    if (data)
+    {
+        buflen = read(fd, data, buflen);
 
 #if _OPENAL_SUPPORT
-      /* OpenAL only, AeonWave does the conversion for us */
-      if (__big_endian && (*bits_sample > 8))
-      {
-         uint32_t i, *p = (uint32_t *)data;
+        /* OpenAL only, AeonWave does the conversion for us */
+        if (__big_endian && (*bits_sample > 8))
+        {
+            uint32_t i, *p = (uint32_t *)data;
 
-         if (*bits_sample == 16)
-         {
-            for(i=0; i < buflen/4; i++) {
-               p[i] = BSWAP32H(p[i]);
-            }
-            if ((buflen-(buflen/4)*4) > 0)
+            if (*bits_sample == 16)
             {
-               i++;
-               p[i] = BSWAP16(p[i]);
+                for(i=0; i < buflen/4; i++) {
+                    p[i] = BSWAP32H(p[i]);
+                }
+                if ((buflen-(buflen/4)*4) > 0)
+                {
+                    i++;
+                    p[i] = BSWAP16(p[i]);
+                }
             }
-         }
-         else if (*bits_sample == 32)
-         {
-            for(i=0; i < buflen/4; i++) {
-               p[i] = BSWAP32(p[i]);
+            else if (*bits_sample == 32)
+            {
+                for(i=0; i < buflen/4; i++) {
+                    p[i] = BSWAP32(p[i]);
+                }
             }
-         }
-      }
+        }
 #endif
-   }
-   close(fd);
+    }
+    close(fd);
 
-   return data;
+    return data;
 }
 
 
 aaxBuffer
 bufferFromFile(aaxConfig config, const char *infile)
 {
-   aaxBuffer buffer = NULL;
-   unsigned int fmt, no_samples;
-   enum aaxFormat format;
-   char bps, channels;
-   unsigned block = 1;
-   int res, freq;
-   void *data;
+    aaxBuffer buffer = NULL;
+    unsigned int fmt, no_samples;
+    enum aaxFormat format;
+    char bps, channels;
+    unsigned block = 1;
+    int res, freq;
+    void *data;
 
-   data = fileLoad(infile, &no_samples,
+    data = fileLoad(infile, &no_samples,
 #if !_OPENAL_SUPPORT
-                   &block,
+                        &block,
 #endif
-                   &freq, &bps, &channels, &fmt);
-   format = getFormatFromFileFormat(fmt, bps);
-   if (data && format != AAX_FORMAT_NONE)
-   {
-      buffer = aaxBufferCreate(config, no_samples, channels, format);
+                        &freq, &bps, &channels, &fmt);
+    format = getFormatFromFileFormat(fmt, bps);
+    if (data && format != AAX_FORMAT_NONE)
+    {
+        buffer = aaxBufferCreate(config, no_samples, channels, format);
 
-      if (format == AAX_IMA4_ADPCM)
-      {
-         bufferConvertMSIMA_IMA4(data, channels, no_samples, &block);
+        if (format == AAX_IMA4_ADPCM)
+        {
+            bufferConvertMSIMA_IMA4(data, channels, no_samples, &block);
 
-         res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, block);
-         testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
-      }
+            res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, block);
+            testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
+        }
 
-      res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
-      testForState(res, "aaxBufferSetSetup(AAX_FREQUENCY)");
+        res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
+        testForState(res, "aaxBufferSetSetup(AAX_FREQUENCY)");
 
-      res = aaxBufferSetData(buffer, data);
-      testForState(res, "aaxBufferSetData");
-   }
-   free(data);
+        res = aaxBufferSetData(buffer, data);
+        testForState(res, "aaxBufferSetData");
+    }
+    free(data);
 
-   return buffer;
+    return buffer;
 }
 
 
@@ -292,144 +316,144 @@ bufferFromFile(aaxConfig config, const char *infile)
 void*
 dataLoad(const unsigned char *data, unsigned int *no_samples,
 #if !_OPENAL_SUPPORT
-         unsigned *block,
+            unsigned *block,
 #endif
-         int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
+            int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
 {
-   static const unsigned int _t = 1;
-   unsigned int buflen, blocksz;
-   char *ptr = (char*)data;
-   int i;
+    static const unsigned int _t = 1;
+    unsigned int buflen, blocksz;
+    char *ptr = (char*)data;
+    int i;
 
 #if !_OPENAL_SUPPORT
-   *block = 1;
+    *block = 1;
 #endif
 
-   __big_endian = (*(char *)&_t == 0);
+    __big_endian = (*(char *)&_t == 0);
 
-   memcpy(&_oalSoftwareWaveHeader, ptr, WAVE_EXT_HEADER_SIZE*4);
-   if (__big_endian)
-   {
-      for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
-         _oalSoftwareWaveHeader[i] = BSWAP32(_oalSoftwareWaveHeader[i]);
-      }
-   }
+    memcpy(&_oalSoftwareWaveHeader, ptr, WAVE_EXT_HEADER_SIZE*4);
+    if (__big_endian)
+    {
+        for (i=0; i<WAVE_EXT_HEADER_SIZE; i++) {
+            _oalSoftwareWaveHeader[i] = BSWAP32(_oalSoftwareWaveHeader[i]);
+        }
+    }
 
-   *freq = _oalSoftwareWaveHeader[6];
-   *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
-   *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
-   *bits_sample = _oalSoftwareWaveHeader[8] >> 16;
-   blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
+    *freq = _oalSoftwareWaveHeader[6];
+    *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
+    *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
+    *bits_sample = _oalSoftwareWaveHeader[8] >> 16;
+    blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
 #if !_OPENAL_SUPPORT
-   *block = blocksz;
+    *block = blocksz;
 #endif
 
-   /* search for the data chunk */
-   ptr += 32L;
-   do
-   {
-      if (*ptr++ == 'd' && *ptr++ == 'a' && *ptr++ == 't' && *ptr++ == 'a')
-      {
-         memcpy(&buflen, ptr, 4);
-         ptr += 4;
-         break;
-      }
-   }
-   while (1);
-   *no_samples = (buflen * 8) / (*no_tracks * *bits_sample);
+    /* search for the data chunk */
+    ptr += 32L;
+    do
+    {
+        if (*ptr++ == 'd' && *ptr++ == 'a' && *ptr++ == 't' && *ptr++ == 'a')
+        {
+            memcpy(&buflen, ptr, 4);
+            ptr += 4;
+            break;
+        }
+    }
+    while (1);
+    *no_samples = (buflen * 8) / (*no_tracks * *bits_sample);
 
-   return ptr;
+    return ptr;
 }
 
 
 aaxBuffer
 bufferFromData(aaxConfig config, const unsigned char *indata)
 {
-   aaxBuffer buffer = NULL;
-   unsigned int fmt, no_samples;
-   enum aaxFormat format;
-   char bps, channels;
-   unsigned block = 1;
-   int res, freq;
-   void *data;
+    aaxBuffer buffer = NULL;
+    unsigned int fmt, no_samples;
+    enum aaxFormat format;
+    char bps, channels;
+    unsigned block = 1;
+    int res, freq;
+    void *data;
 
-   data = dataLoad(indata, &no_samples,
+    data = dataLoad(indata, &no_samples,
 #if !_OPENAL_SUPPORT
-                   &block,
+                        &block,
 #endif
-                   &freq, &bps, &channels, &fmt);
-   format = getFormatFromFileFormat(fmt, bps);
-   if (data && format != AAX_FORMAT_NONE)
-   {
-      void *ptr = data;
+                        &freq, &bps, &channels, &fmt);
+    format = getFormatFromFileFormat(fmt, bps);
+    if (data && format != AAX_FORMAT_NONE)
+    {
+        void *ptr = data;
 
-      buffer = aaxBufferCreate(config, no_samples, channels, format);
+        buffer = aaxBufferCreate(config, no_samples, channels, format);
 
-      if (format == AAX_IMA4_ADPCM)
-      {
-         unsigned int size = channels*no_samples*bps/8;
+        if (format == AAX_IMA4_ADPCM)
+        {
+            unsigned int size = channels*no_samples*bps/8;
 
-         ptr = malloc(size);
-         memcpy(ptr, data, size);
-         bufferConvertMSIMA_IMA4(ptr, channels, no_samples, &block);
+            ptr = malloc(size);
+            memcpy(ptr, data, size);
+            bufferConvertMSIMA_IMA4(ptr, channels, no_samples, &block);
 
-         res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, block);
-         testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
-      }
+            res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, block);
+            testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
+        }
 
-      res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
-      testForState(res, "aaxBufferSetSetup(AAX_FREQUENCY)");
+        res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
+        testForState(res, "aaxBufferSetSetup(AAX_FREQUENCY)");
 
-      res = aaxBufferSetData(buffer, ptr);
-      testForState(res, "aaxBufferSetData");
+        res = aaxBufferSetData(buffer, ptr);
+        testForState(res, "aaxBufferSetData");
  
-      if (ptr != data) free(ptr);
-   }
+        if (ptr != data) free(ptr);
+    }
 
-   return buffer;
+    return buffer;
 }
 
 int
 playAudioTune(int argc, char **argv)
 {
-   char *ret = getCommandLineOption(argc, argv, "-p");
-   if (ret)
-   {
-      char *devname = getDeviceName(argc, argv);
-      aaxEmitter emitter;
-      aaxConfig config;
-      aaxBuffer buffer;
-      float dt = 0.0f;
-      int state;
+    char *ret = getCommandLineOption(argc, argv, "-p");
+    if (ret)
+    {
+        char *devname = getDeviceName(argc, argv);
+        aaxEmitter emitter;
+        aaxConfig config;
+        aaxBuffer buffer;
+        float dt = 0.0f;
+        int state;
 
-      config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-      aaxMixerSetState(config, AAX_INITIALIZED);
-      aaxMixerSetState(config, AAX_PLAYING);
+        config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+        aaxMixerSetState(config, AAX_INITIALIZED);
+        aaxMixerSetState(config, AAX_PLAYING);
 
-      buffer = bufferFromData(config, ___sounds_tune_wav);
+        buffer = bufferFromData(config, ___sounds_tune_wav);
 
-      emitter = aaxEmitterCreate();
-      aaxEmitterAddBuffer(emitter, buffer);
-      aaxMixerRegisterEmitter(config, emitter);
-      aaxEmitterSetState(emitter, AAX_PLAYING);
+        emitter = aaxEmitterCreate();
+        aaxEmitterAddBuffer(emitter, buffer);
+        aaxMixerRegisterEmitter(config, emitter);
+        aaxEmitterSetState(emitter, AAX_PLAYING);
 
-      do
-      {
-         nanoSleep(5e7);
-         dt += 5e7f*1e-9f;
-         state = aaxEmitterGetState(emitter);
-      }
-      while (state == AAX_PLAYING);
+        do
+        {
+            nanoSleep(5e7);
+            dt += 5e7f*1e-9f;
+            state = aaxEmitterGetState(emitter);
+        }
+        while (state == AAX_PLAYING);
 
-      aaxMixerDeregisterEmitter(config, emitter);
-      aaxMixerSetState(config, AAX_STOPPED);
-      aaxEmitterDestroy(emitter);
-      aaxBufferDestroy(buffer);
+        aaxMixerDeregisterEmitter(config, emitter);
+        aaxMixerSetState(config, AAX_STOPPED);
+        aaxEmitterDestroy(emitter);
+        aaxBufferDestroy(buffer);
 
-      aaxDriverClose(config);
-      aaxDriverDestroy(config);
-   }
-   return ret ? -1 : 0;
+        aaxDriverClose(config);
+        aaxDriverDestroy(config);
+    }
+    return ret ? -1 : 0;
 }
 
 
@@ -443,108 +467,108 @@ playAudioTune(int argc, char **argv)
  */
 void *
 fileDataConvertToInterleaved(void *sbuf, char no_tracks, char bits_sample,
-                             unsigned int no_samples)
+                                    unsigned int no_samples)
 {
-   const unsigned int tracklen_bytes = no_samples*bits_sample;
-   void *dbuf;
-   
-   dbuf = malloc(no_tracks * tracklen_bytes);
-   if (dbuf && (no_tracks == 1))
-   {
-      memcpy(dbuf, sbuf, tracklen_bytes);
-   }
-   else if (dbuf)
-   {
-      unsigned int frame_size = no_tracks*bits_sample;
-      uint8_t *sptr, *dptr;
-      int t;
+    const unsigned int tracklen_bytes = no_samples*bits_sample;
+    void *dbuf;
+    
+    dbuf = malloc(no_tracks * tracklen_bytes);
+    if (dbuf && (no_tracks == 1))
+    {
+        memcpy(dbuf, sbuf, tracklen_bytes);
+    }
+    else if (dbuf)
+    {
+        unsigned int frame_size = no_tracks*bits_sample;
+        uint8_t *sptr, *dptr;
+        int t;
 
-      sptr = sbuf;
-      for (t=0; t<no_tracks; t++)
-      {
-         unsigned int i;
+        sptr = sbuf;
+        for (t=0; t<no_tracks; t++)
+        {
+            unsigned int i;
 
-         dptr = dbuf;
-         dptr += t*bits_sample;
+            dptr = dbuf;
+            dptr += t*bits_sample;
 
-         for (i=0; i<no_samples; i++)
-         {
-            memcpy(dptr, sptr, bits_sample);
-            sptr += bits_sample;
-            dptr += frame_size;
-         }
-      }
-   }
+            for (i=0; i<no_samples; i++)
+            {
+                memcpy(dptr, sptr, bits_sample);
+                sptr += bits_sample;
+                dptr += frame_size;
+            }
+        }
+    }
 
-   return dbuf;
+    return dbuf;
 }
 
 enum aaxFormat
 getFormatFromFileFormat(unsigned int format, int  bps)
 {
-   enum aaxFormat rv = AAX_FORMAT_NONE;
-   switch (format)
-   {
-   case 1:
-      if (bps == 8) rv = AAX_PCM8U;
-      else if (bps == 16) rv = AAX_PCM16S_LE;
-      else if (bps == 32) rv = AAX_PCM32S_LE;
-      break;
-   case 3:
-      if (bps == 32) rv = AAX_FLOAT_LE;
-      else if (bps == 64) rv = AAX_DOUBLE_LE;
-      break;
-   case 6:
-      rv = AAX_ALAW;
-      break;
-   case 7:
-      rv = AAX_MULAW;
-      break;
-   case 17:
-      rv = AAX_IMA4_ADPCM;
-      break;
-   default:
-      break;
-   }
-   return rv;
+    enum aaxFormat rv = AAX_FORMAT_NONE;
+    switch (format)
+    {
+    case 1:
+        if (bps == 8) rv = AAX_PCM8U;
+        else if (bps == 16) rv = AAX_PCM16S_LE;
+        else if (bps == 32) rv = AAX_PCM32S_LE;
+        break;
+    case 3:
+        if (bps == 32) rv = AAX_FLOAT_LE;
+        else if (bps == 64) rv = AAX_DOUBLE_LE;
+        break;
+    case 6:
+        rv = AAX_ALAW;
+        break;
+    case 7:
+        rv = AAX_MULAW;
+        break;
+    case 17:
+        rv = AAX_IMA4_ADPCM;
+        break;
+    default:
+        break;
+    }
+    return rv;
 }
 
 void
 bufferConvertMSIMA_IMA4(void *data, unsigned channels, unsigned int no_samples, unsigned *blocksz)
 {
-   unsigned int blocksize = *blocksz;
-   int32_t* buf;
+    unsigned int blocksize = *blocksz;
+    int32_t* buf;
 
-   if (channels < 2) return;
+    if (channels < 2) return;
 
-   buf = malloc(blocksize);
-   if (buf)
-   {
-      unsigned b, blocks, block_bytes, chunks;
-      int32_t* dptr = (int32_t*)data;
+    buf = malloc(blocksize);
+    if (buf)
+    {
+        unsigned b, blocks, block_bytes, chunks;
+        int32_t* dptr = (int32_t*)data;
 
-      blocks = no_samples/blocksize;
-      block_bytes = blocksize/channels;
-      chunks = block_bytes/sizeof(int32_t);
+        blocks = no_samples/blocksize;
+        block_bytes = blocksize/channels;
+        chunks = block_bytes/sizeof(int32_t);
 
-      for (b=0; b<blocks; b++)
-      {
-         unsigned int t, i;
+        for (b=0; b<blocks; b++)
+        {
+            unsigned int t, i;
 
-         /* block shuffle */
-         memcpy(buf, dptr, blocksize);
-         for (t=0; t<channels; t++)
-         {
-            int32_t* src = (int32_t*)buf + t;
-            for (i=0; i<chunks; i++)
+            /* block shuffle */
+            memcpy(buf, dptr, blocksize);
+            for (t=0; t<channels; t++)
             {
-               *dptr++ = *src;
-               src += channels;
+                int32_t* src = (int32_t*)buf + t;
+                for (i=0; i<chunks; i++)
+                {
+                    *dptr++ = *src;
+                    src += channels;
+                }
             }
-         }
-      }
-      free(buf);
-      *blocksz = block_bytes;
-   }
+        }
+        free(buf);
+        *blocksz = block_bytes;
+    }
 }
 
