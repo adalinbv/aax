@@ -82,11 +82,11 @@ ELSE(WIN32)
   SET(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
   SET(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/admin/rpm/aeonwave.postun")
   SET(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
+  SET(CPACK_RPM_PACKAGE_PROVIDES "libaax2")
 ENDIF(WIN32)
 
 # ZIP
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
-
 
 INCLUDE (CPack)
 
@@ -153,7 +153,10 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
-    SET(C_FLAGS "${C_FLAGS} -Os -march=i586 -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
+    IF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+      SET(C_FLAGS "${C_FLAGS} -march=i586")
+    ENDIF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    SET(C_FLAGS "${C_FLAGS} -Os -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
@@ -278,11 +281,11 @@ SET( AEONWAVE_OBJS
      src/software/ringbuffer.c
    )
 
-IF(SIZEOF_SIZE_T EQUAL 8)
-  SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
-     src/software/arch_avx.c
-  )
-ENDIF(SIZEOF_SIZE_T EQUAL 8)
+#IF(SIZEOF_SIZE_T EQUAL 8)
+#  SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
+#     src/software/arch_avx.c
+#  )
+#ENDIF(SIZEOF_SIZE_T EQUAL 8)
 
 IF(HAVE_WINDOWS_H)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}

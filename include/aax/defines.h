@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #define AAX_DEFINITIONS	1
 
