@@ -140,7 +140,7 @@ int main(int argc, char **argv)
         do
         {
             dt += 5e-2f;
-            nanoSleep(5e7);
+            msecSleep(50);
             state = aaxEmitterGetState(emitter);
         }
         while (dt < 1.0f); // state == AAX_PLAYING);
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
         do
         {
-            nanoSleep(5e7);
+            msecSleep(50);
             state = aaxEmitterGetState(emitter);
         }
         while (state == AAX_PLAYING);

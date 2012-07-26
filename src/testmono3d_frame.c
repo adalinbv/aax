@@ -211,18 +211,18 @@ int main(int argc, char **argv)
                         res = aaxEmitterSetState(emitter[p], AAX_PLAYING);
                         testForState(res, "aaxEmitterStart");
 
-                        nanoSleep(7e7);
+                        msecSleep(750);
                     }
                     while (++i < num);
 
-                    nanoSleep(5e7);
+                    msecSleep(50);
                 }
             }
 
             deg = 0;
             while(deg < 360)
             {
-                nanoSleep(5e7);
+                msecSleep(50);
                 deg += 1;
             }
 

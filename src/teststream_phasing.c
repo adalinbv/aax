@@ -45,7 +45,7 @@
 #define FILE_PATH                    SRC_PATH"/wasp.wav"
 #define _DELAY			120
 #define DELAY			\
-    deg = 0; while(deg < _DELAY) { nanoSleep(5e7); deg++; }
+    deg = 0; while(deg < _DELAY) { msecSleep(50); deg++; }
 
 int main(int argc, char **argv)
 {

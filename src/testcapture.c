@@ -162,7 +162,7 @@ int main(int argc, char **argv)
             printf("buffer position: %5.2f (%li samples)\n", off_s, offs);
             res = aaxEmitterGetState(emitter);
             
-            nanoSleep(5e8);
+            msecSleep(5e8);
         }
         while (res == AAX_PLAYING);
 

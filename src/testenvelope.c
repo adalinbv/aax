@@ -197,8 +197,8 @@ int main(int argc, char **argv)
         q = 0;
         do
         {
-            nanoSleep(5e7);
-            dt += 5e7f*1e-9f;
+            msecSleep(50);
+            dt += 0.05f;
 
             q++;
 #if 1
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
         res = aaxEmitterSetState(emitter, AAX_STOPPED);
         do
         {
-            nanoSleep(5e7);
+            msecSleep(50);
             state = aaxEmitterGetState(emitter);
         }
         while (state == AAX_PLAYING);

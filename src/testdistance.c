@@ -147,7 +147,7 @@ int main(int argc, char **argv)
             dist = INITIAL_DIST;
             while(dist > -INITIAL_DIST)
             {
-                nanoSleep(DELAY);
+                msecSleep(DELAY);
 
                 SourcePos[2] = -dist;
                 dist -= STEP;

@@ -130,7 +130,7 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 360)
             {
-                nanoSleep(5e7);
+                msecSleep(50);
 
                 ang = (float)deg / 180.0f * GMATH_PI;
                 SourceDir[0] = sinf(ang);

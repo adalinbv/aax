@@ -144,7 +144,7 @@ int main(int argc, char **argv)
                 res = aaxEmitterSetState(emitter[i], AAX_PLAYING);
                 testForState(res, "aaxEmitterStart");
 
-                nanoSleep(7e7);
+                msecSleep(750);
             }
             while (++i < num);
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
             {
                 float ang;
 
-                nanoSleep(5e7);
+                msecSleep(50);
 
 #if 1
                 ang = (float)deg / 180.0f * GMATH_PI;

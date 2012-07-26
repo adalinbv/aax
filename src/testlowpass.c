@@ -125,7 +125,7 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 2*360)
             {
-                nanoSleep(5e7);
+                msecSleep(50);
 
                 deg += 3;
                 if ((deg > DEG) && (deg < (DEG+4)))

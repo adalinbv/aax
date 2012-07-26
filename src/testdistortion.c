@@ -175,8 +175,8 @@ int main(int argc, char **argv)
             printf("playing distorted\n");
             do
             {
-                nanoSleep(5e7);
-                dt += 5e7f*1e-9f;
+                msecSleep(50);
+                dt += 0.05f;
 #if 1
                 q++;
                 if (q > 10)
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 
             do
             {
-                nanoSleep(5e7);
+                msecSleep(50);
                 state = aaxEmitterGetState(emitter);
             }
             while (state == AAX_PLAYING);

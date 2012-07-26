@@ -67,7 +67,9 @@ void testForALError();
 #else
 int msecSleep(unsigned long);
 #endif
+#if 0
 #define nanoSleep(a)	msecSleep((unsigned long)a/1000000)
+#endif
 
 #endif
 

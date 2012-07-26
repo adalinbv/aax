@@ -141,7 +141,7 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 360)
             {
-                nanoSleep(5e7);
+                msecSleep(50);
                 deg += 5;
             }
 
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 360)
             {
-                nanoSleep(5e7);
+                msecSleep(50);
                 deg += 5;
             }
 #endif
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 360)
             {
-                nanoSleep(5e7);
+                msecSleep(50);
                 deg += 5;
             }
 #endif
