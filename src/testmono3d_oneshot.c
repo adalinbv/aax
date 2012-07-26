@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 
             do
             {
-                nanoSleep(5e7);
+                msecSleep(50);
                 state = aaxEmitterGetState(emitter[0]);
             }
             while (state == AAX_PLAYING);
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
             printf("emitter stopped\n");
             state = 0;
             do {
-                nanoSleep(5e7);
+                msecSleep(50);
                 res = aaxEmitterGetState(emitter[0]);
             } while ((res != AAX_PROCESSED) && (state++ < 50));
 

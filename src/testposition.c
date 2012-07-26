@@ -164,7 +164,7 @@ int main(int argc, char **argv)
     {
         static int i = 0;
 
-        nanoSleep(9e8);	/* 2.0 seconds */
+        msecSleep(9e8);	/* 2.0 seconds */
 
         switch(i)
         {

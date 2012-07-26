@@ -106,7 +106,7 @@ int main(int argc, char **argv)
                     printf("playing buffer #%i\n", num);
                 }
 
-                nanoSleep(5e7);
+                msecSleep(50);
             }
 
             res = aaxBufferDestroy(buffer);

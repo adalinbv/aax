@@ -202,7 +202,7 @@ int main(int argc, char **argv)
                 static int play = 0;
                 aaxBuffer buf;
 
-                nanoSleep(5e5);
+                msecSleep(5e5);
 
                 if (deg[FRAME] < 360)
                 {
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
                 }
 
                 dt += 5e5f*1e-9f;
-                if (dt >= 5e7*1e-9)
+                if (dt >= 550*1e-9)
                 {
                     /*
                     * stream the pre-generated buffers at a slower rate
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
                     testForState(res, "aaxAudioFrameSetMatrix");
 
                     deg[MIXER] += 3;
-                    dt -= 5e7f*1e-9f;
+                    dt -= 0.05f;
                 }
 
                 if (play) state = aaxEmitterGetState(emitter[MIXER]);

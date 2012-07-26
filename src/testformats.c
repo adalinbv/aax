@@ -176,7 +176,7 @@ int main(int argc, char **argv)
                                                 : _format_s[fmt & AAX_FORMAT_NATIVE]);
                     do
                     {
-                        nanoSleep(5e7);
+                        msecSleep(50);
                         state = aaxEmitterGetNoBuffers(emitter, AAX_PROCESSED);
                     }
                     while (state == 0);

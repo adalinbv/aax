@@ -106,8 +106,8 @@ int main(int argc, char **argv)
         f = 0.0f;
         do
         {
-            nanoSleep(7e7);
-            f += 7e7*1e-9;
+            msecSleep(750);
+            f += 750*1e-9;
         }
         while (f < RECORD_TIME_SEC);
         printf("\n");

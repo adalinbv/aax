@@ -112,8 +112,8 @@ int main(int argc, char **argv)
 
             q = 0;
             do
-            {                nanoSleep(5e7);
-                dt += 5e7f*1e-9f;
+            {                msecSleep(50);
+                dt += 0.05f;
 #if 1
                 q++;
                 if (q > 10)
@@ -204,8 +204,8 @@ int main(int argc, char **argv)
             q = 0;
             do
             {
-                nanoSleep(5e7);
-                dt += 5e7f*1e-9f;
+                msecSleep(50);
+                dt += 0.05f;
 #if 1
                 q++;
                 if (q > 10)
@@ -269,8 +269,8 @@ int main(int argc, char **argv)
             dt = 0.0;
             do
             {
-                nanoSleep(5e7);
-                dt += 5e7f*1e-9f;
+                msecSleep(50);
+                dt += 0.05f;
 #if 1
                 q++;
                 if (q > 10)
