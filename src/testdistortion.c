@@ -87,17 +87,17 @@ int main(int argc, char **argv)
 # if 1
 	 /* straight frequency filter */
             printf("Add frequency filter at 150Hz\n");
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 200.0, 1.0, 0.5, 2.0);
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 200.0f, 1.0f, 0.5f, 2.0f);
             testForError(filter, "aaxFilterSetSlot");
             filter = aaxFilterSetState(filter, AAX_TRUE);
             testForError(filter, "aaxFilterSetState");
 # else
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("Add auto-wah\n");
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 100.0, 0.5, 1.0, 8.0);
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 100.0f, 0.5f, 1.0f, 8.0f);
             testForError(filter, "aaxFilterSetSlot 0");
 
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 550.0, 0.0, 0.0, 1.0);
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 550.0f, 0.0f, 0.0f, 1.0f);
             testForError(filter, "aaxFilterSetSlot 1");
             filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
             testForError(filter, "aaxFilterSetState");
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
             effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8, 0.0, 1.0, 0.5);
+            effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8f, 0.0f, 1.0f, 0.5f);
             testForError(effect, "aaxEffectSetSlot 0");
 
             effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
             testForError(filter, "aaxFilterCreate");
 
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.2, 2.0, 0.5);
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.2f, 2.0f, 0.5f);
             testForError(filter, "aaxFilterSetSlot");
 
             filter = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);

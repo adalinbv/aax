@@ -48,17 +48,17 @@
 #define RADIUS			15
 #define FILE_PATH                    SRC_PATH"/tictac.wav"
 
-aaxVec3f EmitterPos = { 0.0, 0.0, 0.0 };
-aaxVec3f EmitterDir = { 0.0, 0.0, 1.0 };
-aaxVec3f EmitterVel = { 0.0, 0.0, 0.0 };
+aaxVec3f EmitterPos = { 0.0f, 0.0f, 0.0f };
+aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
+aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
 
-aaxVec3f FramePos = { 0.0,  0.0,    0.0f };
+aaxVec3f FramePos = { 0.0f,  0.0f,    0.0f };
 aaxVec3f FrameAt = {  0.0f, 0.0f,  1.0f };
 aaxVec3f FrameUp = {  0.0f, 1.0f,  0.0f };
 aaxVec3f FrameVel = { 0.0f, 0.0f,  0.0f };
 
 
-aaxVec3f SensorPos = { 10000.0, -1000.0, 0.0 };
+aaxVec3f SensorPos = { 10000.0f, -1000.0f, 0.0f };
 aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp = {  0.0f, 1.0f, 0.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f, 0.0f };
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
                     do
                     {
                         unsigned int p = (j*SUBFRAMES+k)*num + i;
-                        static float mul = 1.0;
+                        static float mul = 1.0f;
                         aaxVec3f pos;
 
                         emitter[p] = aaxEmitterCreate();
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
                         aaxMatrixSetDirection(mtx, pos, EmitterDir);
                         res = aaxEmitterSetMatrix(emitter[p], mtx);
                         testForState(res, "aaxEmitterSetIdentityMatrix");
-                        mul *= -1.0;
+                        mul *= -1.0f;
 
                         res = aaxEmitterSetMode(emitter[p], AAX_POSITION, AAX_ABSOLUTE);
                         testForState(res, "aaxEmitterSetMode");

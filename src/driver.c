@@ -112,7 +112,7 @@ getNumSources(int argc, char **argv)
 float
 getPitch(int argc, char **argv)
 {
-    float num = 1.0;
+    float num = 1.0f;
     char *ret = getCommandLineOption(argc, argv, "-p");
     if (ret) num = (float)atof(ret);
     return num;
@@ -121,7 +121,7 @@ getPitch(int argc, char **argv)
 float
 getGain(int argc, char **argv)
 {
-    float num = 1.0;
+    float num = 1.0f;
     char *ret = getCommandLineOption(argc, argv, "-g");
     if (ret) num = (float)atof(ret);
     return num;

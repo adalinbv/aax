@@ -45,9 +45,9 @@
 
 #define FILE_PATH                    SRC_PATH"/wasp.wav"
 
-#define	FEMITTER	 400.0
-#define FSCENE		4000.0
-#define DEG	        (360.0/5)
+#define	FEMITTER	 400.0f
+#define FSCENE		4000.0f
+#define DEG	        (360.0f/5)
 
 int main(int argc, char **argv)
 {
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 #if 1
             /* frequency filter */
             fscene = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
-            fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0, 1.0, 1.0);
+            fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0f, 1.0f, 1.0f);
             fscene = aaxFilterSetState(fscene, AAX_FALSE);
             res = aaxScenerySetFilter(config, fscene);
             res = aaxFilterDestroy(fscene);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
             /* frequency filter */
 #if 1
             femitter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
-            femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0, 1.0, 0.0, 1.0);
+            femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0f, 1.0f, 0.0f, 1.0f);
             femitter = aaxFilterSetState(femitter, AAX_FALSE);
             res = aaxEmitterSetFilter(emitter, femitter);
             res = aaxFilterDestroy(femitter);

@@ -45,11 +45,11 @@
 
 #define FILE_PATH                    SRC_PATH"/tictac.wav"
 
-aaxVec3f SourcePos = { 0.0, 0.0, 10.0 };
-aaxVec3f SourceDir = { 0.0, 0.0, 1.0 };
-aaxVec3f SourceVel = { 0.0, 0.0, 0.0 };
+aaxVec3f SourcePos = { 0.0f, 0.0f, 10.0f };
+aaxVec3f SourceDir = { 0.0f, 0.0f, 1.0f };
+aaxVec3f SourceVel = { 0.0f, 0.0f, 0.0f };
 
-aaxVec3f ListenerPos = { 0.0,  0.0, 0.0 };
+aaxVec3f ListenerPos = { 0.0f,  0.0f, 0.0f };
 aaxVec3f ListenerAt = {  0.0f, 0.0f, -1.0f };
 aaxVec3f ListenerUp = {  0.0f, 1.0f, 0.0f };
 aaxVec3f ListenerVel = { 0.0f, 0.0f, 0.0f };

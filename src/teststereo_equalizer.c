@@ -266,7 +266,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterStart");
 
             printf("Starting streaming playback of the captured buffers.\n");
-            dt = 0.0;
+            dt = 0.0f;
             do
             {
                 msecSleep(50);

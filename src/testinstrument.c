@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.9f, 1.0f, 0.8f, 0.2f);
     testForError(filter, "aaxFilterSetSlot 1");
 #if 0
-    filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR, 0.0, 0.0, 0.0, 0.0);
+    filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR, 0.0f, 0.0f, 0.0f, 0.0f);
     testForError(filter, "aaxFilterSetSlot 2");
 #endif
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 1.0f, 0.1f, 0.99f, 0.0f);
     testForError(filter, "aaxFilterSetSlot 1");
 #if 0
-    effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR, 1.05, 0.0, 1.0, 0.0);
+    effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR, 1.05f, 0.0f, 1.0f, 0.0f);
     testForError(filter, "aaxFilterSetSlot 2");
 #endif
 
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 4.0, 0.1, 0.0);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 4.0f, 0.1f, 0.0f);
     testForError(filter, "aaxFilterSetSlot");
 
     filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     effect = aaxEffectCreate(config, AAX_VIBRATO_EFFECT);
     testForError(filter, "aaxEffectCreate");
 
-    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0, 4.0, 0.08, 0.0);
+    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 4.0f, 0.08f, 0.0f);
     testForError(filter, "aaxEffectSetSlot");
 
     effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0, 0.9, 0.2, 0.0);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.9f, 0.2f, 0.0f);
     testForError(filter, "aaxFilterSetSlot");
 
     filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);

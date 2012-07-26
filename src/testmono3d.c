@@ -46,11 +46,11 @@
 #define RADIUS			10.0f
 #define FILE_PATH                    SRC_PATH"/tictac.wav"
 
-aaxVec3f EmitterPos = { 10000.0, -1000.0, 0.0 };
-aaxVec3f EmitterDir = { 0.0, 0.0, 1.0 };
-aaxVec3f EmitterVel = { 0.0, 0.0, 0.0 };
+aaxVec3f EmitterPos = { 10000.0f, -1000.0f, 0.0f };
+aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
+aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
 
-aaxVec3f SensorPos = { 10000.0, -1000.0, 0.0 };
+aaxVec3f SensorPos = { 10000.0f, -1000.0f, 0.0f };
 aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp = {  0.0f, 1.0f, 0.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f, 0.0f };
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
             i = 0;
             do
             {
-                static float mul = 1.0;
+                static float mul = 1.0f;
                 aaxVec3f pos;
 
                 emitter[i] = aaxEmitterCreate();
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
                 aaxMatrixSetDirection(mtx, pos, EmitterDir);
                 res = aaxEmitterSetMatrix(emitter[i], mtx);
                 testForState(res, "aaxEmitterSetIdentityMatrix");
-                mul *= -1.0;
+                mul *= -1.0f;
 
                 res = aaxEmitterSetMode(emitter[i], AAX_POSITION, AAX_ABSOLUTE);
                 testForState(res, "aaxEmitterSetMode");
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
                 ang = (float)deg / 180.0f * GMATH_PI;
                 EmitterPos[0] = 10000.0f + RADIUS * sinf(ang);
                 EmitterPos[2] = -RADIUS * cosf(ang);
-//            EmitterPos[1] = -1000.0 -RADIUS * cosf(ang);
+//            EmitterPos[1] = -1000.0f -RADIUS * cosf(ang);
 #if 1
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);

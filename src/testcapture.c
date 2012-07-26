@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         float f, freq;
 
         format = AAX_PCM16S;
-        freq = 44100.0;
+        freq = 44100.0f;
         channels = 2;
 
         printf("Capturing %5.1f seconds of audio\n", RECORD_TIME_SEC);
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
             aaxBuffer buffer;
             unsigned long ul;
 
-            res = aaxSensorWaitForBuffer(record, 3.0);
+            res = aaxSensorWaitForBuffer(record, 3.0f);
             testForState(res, "aaxSensorWaitForBuffer");
 
             ul = aaxSensorGetOffset(record, AAX_MICROSECONDS);

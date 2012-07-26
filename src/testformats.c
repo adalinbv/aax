@@ -59,8 +59,8 @@ static const char* _format_s[] = {
     "AAX_PCM16S: signed, 16-bits per sample",
     "AAX_PCM24S: signed, 24-bits per sample, 32-bit encoded",
     "AAX_PCM32S: signed, 32-bits per sample",
-    "AAX_FLOAT:  32-bit floating point, -1.0 to 1.0",
-    "AAX_DOUBLE: 64-bit floating point, -1.0 to 1.0",
+    "AAX_FLOAT:  32-bit floating point, -1.0f to 1.0f",
+    "AAX_DOUBLE: 64-bit floating point, -1.0f to 1.0f",
     "AAX_MULAW",
     "AAX_ALAW",
     "AAX_IMA4_ADPCM"

@@ -44,8 +44,8 @@
 #include "wavfile.h"
 
 #define FILE_PATH                    SRC_PATH"/wasp.wav"
-#define FFRAME			400.0
-#define DEG			(360.0/2)
+#define FFRAME			400.0f
+#define DEG			(360.0f/2)
 
 aaxVec3f NullPos = { 0.0f, 0.0f, 0.0f };
 aaxVec3f NullDir = { 0.0f, 0.0f, 0.0f };
@@ -55,12 +55,12 @@ aaxVec3f EmitterPos = { 0.0f, 0.0f, -1.0f };
 aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
 aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
 
-aaxVec3f FramePos = { 10000.0, -1000.0, -10.0f };
+aaxVec3f FramePos = { 10000.0f, -1000.0f, -10.0f };
 aaxVec3f FrameAt = {  0.0f, 0.0f,  1.0f };
 aaxVec3f FrameUp = {  0.0f, 1.0f,  0.0f };
 aaxVec3f FrameVel = { 0.0f, 0.0f,  0.0f };
 
-aaxVec3f SensorPos = { 10000.0, -1000.0,  0.0f };
+aaxVec3f SensorPos = { 10000.0f, -1000.0f,  0.0f };
 aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp = {  0.0f, 1.0f,  0.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
@@ -194,11 +194,11 @@ int main(int argc, char **argv)
             printf("\nAudioFrame detached from the Mixer\n");
             printf("\n---------------------------------------------------\n\n");
             printf("Emiter moving around using audio frame buffers\n");
-            r = 10.0;
+            r = 10.0f;
             deg[MIXER] = deg[FRAME]  = 0;
             do
             {
-                static float dt = 0.0;
+                static float dt = 0.0f;
                 static int play = 0;
                 aaxBuffer buf;
 
