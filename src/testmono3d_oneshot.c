@@ -48,18 +48,18 @@ int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
-    float gain, pitch;
     int num, res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
     if (config)
     {
         aaxBuffer buffer = bufferFromFile(config, infile);
+        float gain, pitch;
+
         if (buffer)
         {
             aaxEmitter emitter[256];
@@ -72,7 +72,8 @@ int main(int argc, char **argv)
             gain = getGain(argc, argv);
             pitch = getPitch(argc, argv);
             num = getNumSources(argc, argv);
-            printf("Starting %i emitters. gain = %f, pitch = %f\n", num, gain, pitch);
+            printf("Starting %i emitters. gain = %f, pitch = %f\n",
+                    num, gain, pitch);
             i = 0;
             do
             {
@@ -124,10 +125,12 @@ int main(int argc, char **argv)
 
             printf("emitter stopped\n");
             state = 0;
-            do {
+            do
+            {
                 msecSleep(50);
                 res = aaxEmitterGetState(emitter[0]);
-            } while ((res != AAX_PROCESSED) && (state++ < 50));
+            }
+            while ((res != AAX_PROCESSED) && (state++ < 50));
 
             i = 0;
             do

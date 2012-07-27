@@ -42,27 +42,35 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH                    SRC_PATH"/wasp.wav"
-#define _DELAY			120
-#define DELAY			\
+#define ENABLE_EMITTER_EFFECTS		1
+#define ENABLE_MIXER_PHASING		1
+#define ENABLE_MIXER_CHORUS		1
+#define ENABLE_MIXER_FlANGING		1
+#define ENABLE_EMITTER_PHASING		1
+#define ENABLE_EMITTER_CHORUS		1
+#define ENABLE_EMITTER_FLANGING		1
+#define ENABLE_EMITTER_FREQFILTER	1
+#define FILE_PATH			SRC_PATH"/wasp.wav"
+#define _DELAY				120
+#define DELAY				\
     deg = 0; while(deg < _DELAY) { msecSleep(50); deg++; }
 
 int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
-    float pitch;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
     if (config)
     {
         aaxBuffer buffer = bufferFromFile(config, infile);
+        float pitch;
+
         if (buffer)
         {
             aaxEmitter emitter;
@@ -104,11 +112,12 @@ int main(int argc, char **argv)
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
             testForState(res, "aaxEmitterStart");
 
-# if 1
+# if ENABLE_EMITTER_FLANGING
             /* flanging effect */
             printf("source flanging.. (envelope following)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-            effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7f, 0.7f, 0.5f, 0.0f);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.7f, 0.7f, 0.5f, 0.0f);
             effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
@@ -123,7 +132,7 @@ int main(int argc, char **argv)
             testForError(effect, "aaxEffect Disable");
 # endif
 
-# if 1
+# if ENABLE_EMITTER_PHASING
             /* phasing effect */
             printf("source phasing.. (envelope following)\n");
             effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
@@ -140,8 +149,8 @@ int main(int argc, char **argv)
             printf("no effect\n");
 #endif
 
-# if 1
-            /* flanging effect */
+# if ENABLE_EMITTER_CHORUS
+            /* chorus effect */
             printf("source chorus.. (envelope following)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
@@ -155,11 +164,11 @@ int main(int argc, char **argv)
 # endif
 
 
-#if 1
+#if ENABLE_EMITTER_EFFECTS
             /* source effects */
             for (q=0; q<2; q++)
             {
-# if 1
+# if ENABLE_EMITTER_FREQFILTER
                 if (q == 1)
                 {
                     /* frequency filter; 4000Hz lowpass */
@@ -174,7 +183,7 @@ int main(int argc, char **argv)
                 }
 # endif
 
-# if 1
+# if ENABLE_EMITTER_FLANGING
                 /* flanging effect */
                 printf("source flanging.. (sine wave)\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
@@ -194,13 +203,12 @@ int main(int argc, char **argv)
 # endif
 
 
-# if 1
-
+# if ENABLE_EMITTER_PHASING
                 /* phasing effect */
                 printf("source phasing.. (triangle wave)\n");
                 effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              1.0f, 0.8f, 1.0f, 0.0f);
+                                                  1.0f, 0.8f, 1.0f, 0.0f);
                 effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
                 testForError(effect, "aaxEffectCreate");
                 res = aaxEmitterSetEffect(emitter, effect);
@@ -212,7 +220,7 @@ int main(int argc, char **argv)
             printf("no effect\n");
 #endif
 
-# if 1
+# if ENABLE_EMITTER_CHORUS
             /* chorus effect */
             printf("source chorus.. (sine wave)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
@@ -226,7 +234,7 @@ int main(int argc, char **argv)
             DELAY;
 # endif
 
-# if 1
+# if ENABLE_EMITTER_FLANGING
                 /* flanging effect */
                 printf("source flanging.. (triangle wave)\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
@@ -239,7 +247,6 @@ int main(int argc, char **argv)
 
                 DELAY;
 # endif
-
             }
 
             /* disable delay effects */
@@ -257,7 +264,7 @@ int main(int argc, char **argv)
             testForError(filter, "aaxFilterCreate");
 #endif
 
-#if 1
+#if ENABLE_MIXER_PHASING
             /* phasing effect */
             printf("mixer phasing.. (square wave)\n");
             effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
@@ -272,7 +279,7 @@ int main(int argc, char **argv)
             DELAY;
 #endif
 
-#if 1
+#if ENABLE_MIXER_CHORUS
             /* chorus effect */
             printf("mixer chorus.. (sawtooth wave)\n");
             effect = aaxEffectCreate(config, AAX_CHORUS_EFFECT);
@@ -287,7 +294,7 @@ int main(int argc, char **argv)
             DELAY;
 #endif
 
-#if 1
+#if ENABLE_MIXER_FlANGING
             /* flanging effect */
             printf("mixer flanging.. (sawtooth wave)\n");
             effect = aaxEffectCreate(config, AAX_FLANGING_EFFECT);
