@@ -44,7 +44,7 @@
 #  include <rmalloc.h>
 # endif
 #endif
-#include <aaxdefs.h>
+#include <aax/defines.h>
 #include "wavfile.h"
 #include "driver.h"
 
@@ -113,14 +113,15 @@ int main(int argc, char **argv)
 
                         r = aaxDriverGetDeviceNameByPos(cfg, y, mode);
 
-                        max_interface = aaxDriverGetInterfaceCount(cfg, r, mode);
+                        max_interface= aaxDriverGetInterfaceCount(cfg, r, mode);
                         if (max_interface)
                         {
                             for (z=0; z<max_interface; z++)
                             {
                                 const char *ifs;
 
-                                ifs = aaxDriverGetInterfaceNameByPos(cfg, r, z, mode);
+                                ifs = aaxDriverGetInterfaceNameByPos(cfg, r, z,
+                                                                     mode);
                                 printf(" '%s on %s: %s'\n", d, r, ifs);
                             }
                         }
@@ -143,11 +144,6 @@ int main(int argc, char **argv)
     cfg = aaxDriverGetByName(devname, mode);
     if (cfg)
     {
-#if 0
-        s = aaxDriverGetSetup(cfg, AAX_NAME_STRING);
-        printf("Default driver: %s\n", s);
-#endif
-
         cfg = aaxDriverOpen(cfg);
         x = aaxGetMajorVersion();
         y = aaxGetMinorVersion();
@@ -176,7 +172,7 @@ int main(int argc, char **argv)
 
             x = aaxMixerGetSetup(cfg, AAX_MONO_EMITTERS);
             y = aaxMixerGetSetup(cfg, AAX_STEREO_EMITTERS);
-            printf("Available mono emitters:    ");
+            printf("Available mono emitters:   ");
             if (x == UINT_MAX) printf("infinite\n");
             else printf("%3i\n", x);
             printf("Available stereo emitters: ");
@@ -195,7 +191,7 @@ int main(int argc, char **argv)
             if (aaxIsFilterSupported(cfg, _filter_s[i]))
             {
                 len += strlen(_filter_s[i])+1;	/* one for leading space */
-                    if (len >= 78)
+                if (len >= 78)
                 {
                     printf("\n ");
                     len = strlen(_filter_s[i])+1;
