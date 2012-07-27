@@ -41,19 +41,31 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define REFRESH_RATE		  50.0f
+#define REFRESH_RATE		   50.0f
 #define RECORD_TIME_SEC		60000.0f
+#define MIXER_FREQUENCY		48000
 
 int main(int argc, char **argv)
 {
     aaxConfig config, record;
+    int res, rv = 0;
     char *devname;
-    int res;
 
     devname = getDeviceName(argc, argv);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     printf("Playback: %s\n", aaxDriverGetSetup(config, AAX_RENDERER_STRING));
     testForError(config, "Audio output device  is not available.");
+
+    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    {
+        printf("Warning:\n");
+        printf("  %s requires a registered version of AeonWave\n", argv[0]);
+        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+        printf("obtain\n  a product-key.\n\n");
+        rv = -1;
+
+        goto finish;
+    }
 
     devname = getCaptureName(argc, argv);
     record = aaxDriverOpenByName(devname, AAX_MODE_READ);
@@ -64,16 +76,14 @@ int main(int argc, char **argv)
     {
         enum aaxFormat format;
         int channels;
-        float f;
+        float dt;
 
         format = AAX_PCM16S;
         channels = 2;
 
         /** mixer */
-#if 0
-        res = aaxMixerSetSetup(config, AAX_FREQUENCY, 64000);
+        res = aaxMixerSetSetup(config, AAX_FREQUENCY, MIXER_FREQUENCY);
         testForState(res, "aaxMixerSeFrequency");
-#endif
 
         res = aaxMixerSetSetup(config, AAX_TRACKS, channels);
         testForState(res, "aaxMixerSetNoTracks");
@@ -103,13 +113,13 @@ int main(int argc, char **argv)
         res = aaxSensorSetState(record, AAX_CAPTURING);
         testForState(res, "aaxSensorCaptureStart");
 
-        f = 0.0f;
+        dt = 0.0f;
         do
         {
-            msecSleep(750);
-            f += 750*1e-9;
+            msecSleep(500);
+            dt += 0.5f;
         }
-        while (f < RECORD_TIME_SEC);
+        while (dt < RECORD_TIME_SEC);
         printf("\n");
 
         res = aaxMixerSetState(config, AAX_STOPPED);
@@ -126,17 +136,18 @@ int main(int argc, char **argv)
 
         res = aaxDriverDestroy(record);
         testForState(res, "aaxDriverDestroy");
-
-        res = aaxDriverClose(config);
-        testForState(res, "aaxDriverClose");
-
-        res = aaxDriverDestroy(config);
-        testForState(res, "aaxDriverDestroy");
     }
     else {
         printf("Unable to open capture device.\n");
     }
 
-    return 0;
+finish:
+    res = aaxDriverClose(config);
+    testForState(res, "aaxDriverClose");
+
+    res = aaxDriverDestroy(config);
+    testForState(res, "aaxDriverDestroy");
+
+    return rv;
 }
 
