@@ -41,7 +41,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define BLOCKSIZE		36
+#define IMA4_BLOCKSIZE		36
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
 #define MAX_LOOPS		6
@@ -88,13 +88,13 @@ int main(int argc, char **argv)
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    do {
+    if (config)
+    {
         aaxBuffer buf = bufferFromFile(config, infile);
         if (buf)
         {
@@ -135,11 +135,19 @@ int main(int argc, char **argv)
                     int blocksz, nfmt = fmt + _mask_t[q];
                     aaxBuffer buffer;
                     void** data;
+
                     if (q)
                     {
-                        if (q>1 && fmt == 0) continue;
-                        if (fmt >= AAX_FLOAT && nfmt & AAX_FORMAT_UNSIGNED) break;
-                        if (fmt >= AAX_MULAW) break;
+                        if (q > 1 && fmt == 0) {
+                            continue;
+                        }
+
+                        if (fmt >= AAX_FLOAT && nfmt & AAX_FORMAT_UNSIGNED) {
+                            break;
+                        }
+                        if (fmt >= AAX_MULAW) {
+                            break;
+                        }
                     }
 
                     /** schedule the emitter for playback */
@@ -155,13 +163,13 @@ int main(int argc, char **argv)
                     data = aaxBufferGetData(buf);
                     testForError(data, "aaxBufferGetData");
 
-                    buffer = aaxBufferCreate(config, no_samples, no_tracks, nfmt);
+                    buffer=aaxBufferCreate(config, no_samples, no_tracks, nfmt);
                     testForError(buffer, "aaxBufferCreate");
 
                     res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
                     testForState(res, "aaxBufferSetSetup(AAX_FREQUENCY)");
 
-                    res = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, blocksz);
+                    res=aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, blocksz);
                     testForState(res, "aaxBufferSetSetup(AAX_BLOCK_ALIGNMENT)");
 
                     res = aaxBufferSetData(buffer, *data);
@@ -172,8 +180,8 @@ int main(int argc, char **argv)
                     testForState(res, "aaxEmitterAddBuffer");
 
                     printf("    %s\n", (nfmt & AAX_FORMAT_UNSIGNED)
-                                                ? _format_us[fmt & AAX_FORMAT_NATIVE]
-                                                : _format_s[fmt & AAX_FORMAT_NATIVE]);
+                                       ? _format_us[fmt & AAX_FORMAT_NATIVE]
+                                       : _format_s[fmt & AAX_FORMAT_NATIVE]);
                     do
                     {
                         msecSleep(50);
@@ -195,11 +203,9 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buf);
         }
     }
-    while (0);
 
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
-
 
     return 0;
 }

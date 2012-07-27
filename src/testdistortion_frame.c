@@ -41,19 +41,37 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH		SRC_PATH"/sine-440Hz.wav"
+#define ENABLE_EMITTER_FREQFILTER	0
+#define ENABLE_STATIC_FREQFILTER	0
+#define ENABLE_EMITTER_DISTORTION	1
+#define ENABLE_EMITTER_PHASING		1
+#define ENABLE_EMITTER_DYNAMIC_GAIN	0
+#define ENABLE_FRAME_CHORUS		0
+#define ENABLE_FRAME_DYNAMIC_PITCH	0
+#define ENABLE_FRAME_DYNAMIC_GAIN	0
+#define FILE_PATH			SRC_PATH"/sine-440Hz.wav"
 
 int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
-    int res;
+    int res, rv = 0;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
+
+    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    {
+        printf("Warning:\n");
+        printf("  %s requires a registered version of AeonWave\n", argv[0]);
+        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+        printf("obtain\n  a product-key.\n\n");
+        rv = -1;
+
+        goto finish;
+    }
 
     if (config)
     {
@@ -110,7 +128,7 @@ int main(int argc, char **argv)
             res = aaxAudioFrameRegisterEmitter(frame, emitter);
             testForState(res, "aaxAudioFrameRegisterEmitter");
 
-#if 1
+#if ENABLE_EMITTER_PHASING
             /* emitter phasing */
             printf("emitter phasing\n");
             effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
@@ -125,7 +143,6 @@ int main(int argc, char **argv)
             res = aaxEffectDestroy(effect);
             testForState(res, "aaxEffectDestroy");
 #endif
-
 
 #if 0
             /* for testing purpose only!!! */
@@ -145,11 +162,11 @@ int main(int argc, char **argv)
             testForState(res, "aaxEffectDestroy");
 #endif
 
-#if 1
+#if ENABLE_EMITTER_FREQFILTER
             /* audio-frame frequency filter */
             filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
             testForError(filter, "aaxFilterCreate");
-# if 0
+# if ENABLE_STATIC_FREQFILTER
 	 /* straight frequency filter */
             printf("frequency filter at 200Hz\n");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
@@ -177,7 +194,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxFilterDestroy");
 #endif
 
-#if 1
+#if ENABLE_EMITTER_DISTORTION
             /* audio-frame distortion effect */
             printf("audio-frame distortion\n");
             effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
@@ -195,7 +212,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEffectDestroy");
 #endif
 
-# if 0
+# if ENABLE_FRAME_CHORUS
             /* audio-frame delay effect */
             printf("audio-frame delay effect\n");
             effect = aaxAudioFrameGetEffect(frame, AAX_CHORUS_EFFECT);
@@ -207,7 +224,7 @@ int main(int argc, char **argv)
             testForError(effect, "aaxEffectCreate");
 #endif
 
-#if 0
+#if ENABLE_FRAME_DYNAMIC_PITCH
             /* dynamic pitch effect for the audio-frame*/
             effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
             testForError(filter, "aaxEffectCreate");
@@ -226,7 +243,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEffectDestroy");
 #endif
 
-#if 0
+#if ENABLE_FRAME_DYNAMIC_GAIN
             /* dynamic gain filter for audio-frame (compressor) */
             filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
             testForError(filter, "aaxFilterCreate");
@@ -251,9 +268,8 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs, offs_bytes;
                     float off_s;
@@ -262,9 +278,10 @@ int main(int argc, char **argv)
                     off_s = aaxEmitterGetOffsetSec(emitter);
                     offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
                     offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples/ %li bytes)\n", dt, off_s,
+                           offs, offs_bytes);
                 }
-#endif
                 state = aaxEmitterGetState(emitter);
             }
             while ((dt < 15.0f) && (state == AAX_PLAYING));
@@ -288,11 +305,10 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
         }
     }
-    while (0);
 
+finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 
-
-    return 0;
+    return rv;
 }

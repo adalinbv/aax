@@ -42,214 +42,231 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAMPLE_FREQUENCY	16000
+#define ENABLE_TIMED_GAIN_FILTER	1
+#define ENABLE_TIMED_PITCH_EFFECT	1
+#define ENABLE_EMITTER_DYNAMIC_GAIN	1
+#define ENABLE_EMITTER_DYNAMIC_PITCH	1
+#define ENABLE_MIXER_DYNAMIC_GAIN	1
+#define SAMPLE_FREQUENCY		22050
 
 int main(int argc, char **argv)
 {
-    aaxEmitter emitter;
-    aaxBuffer buffer;
     aaxConfig config;
-    aaxFilter filter;
-    aaxEffect effect;
-    char *devname;
     int state, res;
+    char *devname;
     float pitch;
+    int rv = 0;
 
-    devname = getDeviceName(argc, argv);
     pitch = getPitch(argc, argv);
-
-// aaxSynthCreateEmitterByName("/home/erik/.aaxsynth.xml", "piano");
-
+    devname = getDeviceName(argc, argv);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    buffer = aaxBufferCreate(config, (unsigned int)(0.3f*SAMPLE_FREQUENCY), 1, AAX_PCM16S);
-    testForError(buffer, "Unable to generate buffer\n");
+    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    {
+        printf("Warning:\n");
+        printf("  %s requires a registered version of AeonWave\n", argv[0]);
+        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+        printf("obtain\n  a product-key.\n\n");
+        rv = -1;
 
-    res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
-    testForState(res, "aaxBufferSetFrequency");
+        goto finish;
+    }
 
-    res = aaxBufferSetWaveform(buffer, 220.0f*pitch, AAX_SAWTOOTH_WAVE);
-    res = aaxBufferMixWaveform(buffer, 880.0f*pitch, AAX_SINE_WAVE, 0.2f);
-    testForState(res, "aaxBufferProcessWaveform");
+    if (config)
+    {
+        unsigned int no_samples;
+        aaxEmitter emitter;
+        aaxBuffer buffer;
+        aaxFilter filter;
+        aaxEffect effect;
 
-    /** emitter */
-    emitter = aaxEmitterCreate();
-    testForError(emitter, "Unable to create a new emitter\n");
+        no_samples = (unsigned int)(0.3f*SAMPLE_FREQUENCY);
+        buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
+        testForError(buffer, "Unable to generate buffer\n");
 
-    res = aaxEmitterAddBuffer(emitter, buffer);
-    testForState(res, "aaxEmitterAddBuffer");
+        res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
+        testForState(res, "aaxBufferSetFrequency");
 
-    res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
-    testForState(res, "aaxEmitterSetLooping");
+        res = aaxBufferSetWaveform(buffer, 220.0f*pitch, AAX_SAWTOOTH_WAVE);
+        res = aaxBufferMixWaveform(buffer, 880.0f*pitch, AAX_SINE_WAVE, 0.2f);
+        testForState(res, "aaxBufferProcessWaveform");
 
-    /* time filter for emitter */
-#if 1
+        /** emitter */
+        emitter = aaxEmitterCreate();
+        testForError(emitter, "Unable to create a new emitter\n");
+
+        res = aaxEmitterAddBuffer(emitter, buffer);
+        testForState(res, "aaxEmitterAddBuffer");
+
+        res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
+        testForState(res, "aaxEmitterSetLooping");
+
+#if ENABLE_TIMED_GAIN_FILTER
 	/* time filter for emitter */
-    filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
-    testForError(filter, "aaxFilterCreate");
+        filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
+        testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.0f, 0.05f, 1.0f, 0.05f);
-    testForError(filter, "aaxFilterSetSlot 0");
-    filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              0.9f, 1.0f, 0.8f, 0.2f);
-    testForError(filter, "aaxFilterSetSlot 1");
-#if 0
-    filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR,
-                                              0.0f, 0.0f, 0.0f, 0.0f);
-    testForError(filter, "aaxFilterSetSlot 2");
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                          0.0f, 0.05f, 1.0f, 0.05f);
+        testForError(filter, "aaxFilterSetSlot 0");
+        filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                          0.9f, 1.0f, 0.8f, 0.2f);
+        testForError(filter, "aaxFilterSetSlot 1");
+        filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR,
+                                          0.0f, 0.0f, 0.0f, 0.0f);
+        testForError(filter, "aaxFilterSetSlot 2");
+
+        filter = aaxFilterSetState(filter, AAX_TRUE);
+        testForError(filter, "aaxFilterSetState");
+
+        res = aaxEmitterSetFilter(emitter, filter);
+        testForState(res, "aaxEmitterSetFilter");
+
+        res = aaxFilterDestroy(filter);
+        testForState(res, "aaxFilterDestroy");
 #endif
 
-    filter = aaxFilterSetState(filter, AAX_TRUE);
-    testForError(filter, "aaxFilterSetState");
-
-    res = aaxEmitterSetFilter(emitter, filter);
-    testForState(res, "aaxEmitterSetFilter");
-
-    res = aaxFilterDestroy(filter);
-    testForState(res, "aaxFilterDestroy");
-#endif
-
-#if 1
+#if ENABLE_TIMED_PITCH_EFFECT
 	/* time effect for emitter */
-    effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
-    testForError(effect, "aaxFilterCreate");
+        effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
+        testForError(effect, "aaxFilterCreate");
 
-    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               0.995f, 0.05f, 1.05f, 0.08f);
-    testForError(effect, "aaxFilterSetSlot 0");
-    effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
+        testForError(effect, "aaxFilterSetSlot 0");
+        effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
                                               1.0f, 0.1f, 0.99f, 0.0f);
-    testForError(filter, "aaxFilterSetSlot 1");
+        testForError(filter, "aaxFilterSetSlot 1");
 #if 0
-    effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR,
-                                              1.05f, 0.0f, 1.0f, 0.0f);
-    testForError(filter, "aaxFilterSetSlot 2");
+        effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR,
+                                          1.05f, 0.0f, 1.0f, 0.0f);
+        testForError(filter, "aaxFilterSetSlot 2");
 #endif
 
-    effect = aaxEffectSetState(effect, AAX_TRUE);
-    testForError(filter, "aaxFilterSetState");
+        effect = aaxEffectSetState(effect, AAX_TRUE);
+        testForError(filter, "aaxFilterSetState");
 
-    res = aaxEmitterSetEffect(emitter, effect);
-    testForState(res, "aaxEmitterSetFilter");
+        res = aaxEmitterSetEffect(emitter, effect);
+        testForState(res, "aaxEmitterSetFilter");
 
-    res = aaxEffectDestroy(effect);
-    testForState(res, "aaxFilterDestroy");
+        res = aaxEffectDestroy(effect);
+        testForState(res, "aaxFilterDestroy");
 #endif
 
-#if 0
+#if ENABLE_EMITTER_DYNAMIC_GAIN
 	/* tremolo filter for emitter */
-    filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
-    testForError(filter, "aaxFilterCreate");
+        filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
+        testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               0.0f, 4.0f, 0.1f, 0.0f);
-    testForError(filter, "aaxFilterSetSlot");
+        testForError(filter, "aaxFilterSetSlot");
 
-    filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
-    testForError(filter, "aaxFilterSetState");
+        filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
+        testForError(filter, "aaxFilterSetState");
 
-    res = aaxEmitterSetFilter(emitter, filter);
-    testForState(res, "aaxEmitterSetFilter");
+        res = aaxEmitterSetFilter(emitter, filter);
+        testForState(res, "aaxEmitterSetFilter");
 
-    res = aaxFilterDestroy(filter);
-    testForState(res, "aaxFilterDestroy");
+        res = aaxFilterDestroy(filter);
+        testForState(res, "aaxFilterDestroy");
 #endif
 
-#if 0
+#if ENABLE_EMITTER_DYNAMIC_PITCH
 	/* vibrato effect for emitter */
-    effect = aaxEffectCreate(config, AAX_VIBRATO_EFFECT);
-    testForError(filter, "aaxEffectCreate");
+        effect = aaxEffectCreate(config, AAX_VIBRATO_EFFECT);
+        testForError(filter, "aaxEffectCreate");
 
-    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               0.0f, 4.0f, 0.08f, 0.0f);
-    testForError(filter, "aaxEffectSetSlot");
+        testForError(filter, "aaxEffectSetSlot");
 
-    effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
-    testForError(filter, "aaxEffectSetState");
+        effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
+        testForError(filter, "aaxEffectSetState");
 
-    res = aaxEmitterSetEffect(emitter, effect);
-    testForState(res, "aaxEmitterSetEffect");
+        res = aaxEmitterSetEffect(emitter, effect);
+        testForState(res, "aaxEmitterSetEffect");
 
-    res = aaxEffectDestroy(effect);
-    testForState(res, "aaxEffectDestroy");
+        res = aaxEffectDestroy(effect);
+        testForState(res, "aaxEffectDestroy");
 #endif
 
-    /** mixer */
-    res = aaxMixerInit(config);
-    testForState(res, "aaxMixerInit");
+        /** mixer */
+        res = aaxMixerInit(config);
+        testForState(res, "aaxMixerInit");
 
-    res = aaxMixerRegisterEmitter(config, emitter);
-    testForState(res, "aaxMixerRegisterEmitter");
+        res = aaxMixerRegisterEmitter(config, emitter);
+        testForState(res, "aaxMixerRegisterEmitter");
 
-    res = aaxMixerSetState(config, AAX_PLAYING);
-    testForState(res, "aaxMixerStart");
+        res = aaxMixerSetState(config, AAX_PLAYING);
+        testForState(res, "aaxMixerStart");
 
-    /* tremolo filter for mixer */
-#if 0
-    filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
-    testForError(filter, "aaxFilterCreate");
+#if ENABLE_MIXER_DYNAMIC_GAIN
+        /* tremolo filter for mixer */
+        filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
+        testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               0.0f, 0.9f, 0.2f, 0.0f);
-    testForError(filter, "aaxFilterSetSlot");
+        testForError(filter, "aaxFilterSetSlot");
 
-    filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
-    testForError(filter, "aaxFilterSetState");
+        filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
+        testForError(filter, "aaxFilterSetState");
 
-    res = aaxMixerSetFilter(config, filter);
-    testForState(res, "aaxMixerSetFilter");
+        res = aaxMixerSetFilter(config, filter);
+        testForState(res, "aaxMixerSetFilter");
 
-    res = aaxFilterDestroy(filter);
-    testForState(res, "aaxFilterDestroy");
+        res = aaxFilterDestroy(filter);
+        testForState(res, "aaxFilterDestroy");
 #endif
 
-    /** schedule the emitter for playback */
-    res = aaxEmitterSetState(emitter, AAX_PLAYING);
-    testForState(res, "aaxEmitterStart");
+        /** schedule the emitter for playback */
+        res = aaxEmitterSetState(emitter, AAX_PLAYING);
+        testForState(res, "aaxEmitterStart");
 
-    do
-    {
-        static int i = 0;
-
-        msecSleep(50);
-        if (++i == 50) break;
-        state = aaxEmitterGetState(emitter);
-
-        if (i == 10) 
+        do
         {
-            res = aaxEmitterStop(emitter);
-            res = aaxEmitterRewind(emitter);
-            res = aaxEmitterSetPitch(emitter, 0.87f);
-            res = aaxEmitterStart(emitter);
+            static int i = 0;
+
+            msecSleep(50);
+            if (++i == 50) break;
+            state = aaxEmitterGetState(emitter);
+
+            if (i == 10) 
+            {
+                res = aaxEmitterStop(emitter);
+                res = aaxEmitterRewind(emitter);
+                res = aaxEmitterSetPitch(emitter, 0.87f);
+                res = aaxEmitterStart(emitter);
+            }
         }
+        while (state == AAX_PLAYING);
+
+        res = aaxEmitterSetState(emitter, AAX_STOPPED);
+        do
+        {
+            msecSleep(50);
+            state = aaxEmitterGetState(emitter);
+        }
+        while (state == AAX_PLAYING);
+
+
+        res = aaxEmitterStop(emitter);
+        res = aaxEmitterRemoveBuffer(emitter);
+        testForState(res, "aaxEmitterRemoveBuffer");
+
+        res = aaxBufferDestroy(buffer);
+        testForState(res, "aaxBufferDestroy");
+
+        res = aaxMixerDeregisterEmitter(config, emitter);
+        res = aaxMixerSetState(config, AAX_STOPPED);
+        res = aaxEmitterDestroy(emitter);
     }
-    while (state == AAX_PLAYING);
 
-    res = aaxEmitterSetState(emitter, AAX_STOPPED);
-    do
-    {
-        msecSleep(50);
-        state = aaxEmitterGetState(emitter);
-    }
-    while (state == AAX_PLAYING);
-
-
-    res = aaxEmitterStop(emitter);
-    res = aaxEmitterRemoveBuffer(emitter);
-    testForState(res, "aaxEmitterRemoveBuffer");
-
-    res = aaxBufferDestroy(buffer);
-    testForState(res, "aaxBufferDestroy");
-
-    res = aaxMixerDeregisterEmitter(config, emitter);
-    res = aaxMixerSetState(config, AAX_STOPPED);
-    res = aaxEmitterDestroy(emitter);
-
+finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 
-
-    return 0;
+    return rv;
 }

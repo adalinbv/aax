@@ -51,13 +51,13 @@ int main(int argc, char **argv)
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    do {
+    if (config)
+    {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
@@ -67,8 +67,8 @@ int main(int argc, char **argv)
 
             freq = (float)aaxBufferGetSetup(buffer, AAX_FREQUENCY);
             res = aaxBufferSetLoopPoints(buffer,
-                                                (unsigned int)(LOOP_START_SEC*freq),
-                                                (unsigned int)(LOOP_END_SEC*freq));
+                                         (unsigned int)(LOOP_START_SEC*freq),
+                                         (unsigned int)(LOOP_END_SEC*freq));
             testForState(res, "aaxBufferSetLoopPoints");
 
             /** emitter */
@@ -107,9 +107,7 @@ int main(int argc, char **argv)
                     testForState(res, "aaxEmitterSetLooping");
                 }
 
-#if 1
-                q++;
-                if (q > 10)
+                if (++q > 10)
                 {
                     unsigned long offs;
                     float off_s;
@@ -117,10 +115,9 @@ int main(int argc, char **argv)
 
                     off_s = aaxEmitterGetOffsetSec(emitter);
                     offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
-
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples)\n", dt, off_s, offs);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples)\n", dt, off_s, offs);
                 }
-#endif
                 state = aaxEmitterGetState(emitter);
             }
             while (state == AAX_PLAYING);
@@ -131,11 +128,9 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
         }
     }
-    while(0);
 
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
-
 
     return 0;
 }

@@ -41,29 +41,44 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAMPLE_FREQUENCY	16000
+#define ENABLE_MIXER_DYNAMIC_GAIN	1
+#define ENABLE_MIXER_DYNAMIC_PITCHA	1
+#define SAMPLE_FREQUENCY		22050
 
 int main(int argc, char **argv)
 {
     aaxConfig config;
+    int res, rv = 0;
     char *devname;
-    int res;
 
     devname = getDeviceName(argc, argv);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    do {
+    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    {
+        printf("Warning:\n");
+        printf("  %s requires a registered version of AeonWave\n", argv[0]);
+        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+        printf("obtain\n  a product-key.\n\n");
+        rv = -1;
+
+        goto finish;
+    }
+
+    if (config)
+    {
+        unsigned int no_samples;
+        float pitch, dt = 0.0f;
         aaxEmitter emitter;
         aaxBuffer buffer;
         aaxEffect effect;
         aaxFilter filter;
         int q, state;
-        float dt = 0.0f;
-        float pitch;
 
         /** buffer */
-        buffer = aaxBufferCreate(config, (unsigned int)(1.1f*SAMPLE_FREQUENCY), 1, AAX_PCM16S);
+        no_samples = (unsigned int)(1.1f*SAMPLE_FREQUENCY);
+        buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
         testForError(buffer, "Unable to create a new buffer\n");
 
         res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
@@ -94,10 +109,10 @@ int main(int argc, char **argv)
         testForError(filter, "aaxFilterCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.0f, 0.07f, 10.0f, 0.01f);
+                                          0.0f, 0.07f, 10.0f, 0.01f);
         testForError(filter, "aaxFilterSetSlot 0");
         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              0.7f, AAX_FPINFINITE, 0.7f, 1.0f);
+                                          0.7f, AAX_FPINFINITE, 0.7f, 1.0f);
         testForError(filter, "aaxFilterSetSlot 1");
 
         filter = aaxFilterSetState(filter, AAX_TRUE);
@@ -114,10 +129,10 @@ int main(int argc, char **argv)
         testForError(effect, "aaxEffectCreate");
 
         effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              1.0f, 0.2f, 4.0f, 0.2f);
+                                           1.0f, 0.2f, 4.0f, 0.2f);
         testForError(effect, "aaxEffectSetSlot 0");
         effect  = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
-                                              0.5f, 0.2f, 1.0f, 0.0f);
+                                           0.5f, 0.2f, 1.0f, 0.0f);
         testForError(effect, "aaxEffectSetSlot 1");
 
         effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -134,7 +149,7 @@ int main(int argc, char **argv)
         testForError(filter, "aaxFilterCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.0f, 6.0f, 1.0f, 0.0f);
+                                          0.0f, 6.0f, 1.0f, 0.0f);
         testForError(filter, "aaxFilterSetSlot");
 
         filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -163,13 +178,13 @@ int main(int argc, char **argv)
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
         testForState(res, "aaxEmitterStart");
 
-#if 1
+#if ENABLE_MIXER_DYNAMIC_GAIN
         /* tremolo effect for mixer*/
         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
         testForError(effect, "aaxEffectCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.0f, 0.9f, 1.0f, 0.0f);
+                                          0.0f, 0.9f, 1.0f, 0.0f);
         testForError(effect, "aaxEffectSetSlot");
 
         filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -182,13 +197,13 @@ int main(int argc, char **argv)
         testForState(res, "aaxEffectDestroy");
 #endif
 
+#if ENABLE_MIXER_DYNAMIC_PITCH
         /* vibrato effect for emitter */
-#if 1
         effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
         testForError(effect, "aaxEffectCreate");
 
         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              0.0f, 4.0f, 0.4f, 0.0f);
+                                          0.0f, 4.0f, 0.4f, 0.0f);
         testForError(effect, "aaxEffectSetSlot");
 
         effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
@@ -207,9 +222,7 @@ int main(int argc, char **argv)
             msecSleep(50);
             dt += 0.05f;
 
-            q++;
-#if 1
-            if (q == 25) 
+            if (++q == 25) 
             {
                 printf("Enterning StandBy mode\n");
                 aaxMixerSetState(config, AAX_STANDBY);
@@ -219,7 +232,6 @@ int main(int argc, char **argv)
                 printf("Enterning Playback mode again\n");
                 aaxMixerSetState(config, AAX_PLAYING);
             }
-#endif
             state = aaxEmitterGetState(emitter);
         }
         while (state == AAX_PLAYING && dt < 3.33f);
@@ -237,11 +249,11 @@ int main(int argc, char **argv)
         res = aaxEmitterDestroy(emitter);
         res = aaxBufferDestroy(buffer);
 
-    } while(0);
+    }
 
+finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
-
 
     return 0;
 }
