@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aaxdefs.h>
+#include <aax/defines.h>
 
 #include <base/geometry.h>
 #include <base/types.h>

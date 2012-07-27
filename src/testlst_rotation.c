@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aaxdefs.h>
+#include <aax/defines.h>
 
 #include "base/types.h"
 #include "base/geometry.h"
