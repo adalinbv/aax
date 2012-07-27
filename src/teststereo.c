@@ -57,7 +57,8 @@ int main(int argc, char **argv)
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "Audio output device is not available.");
 
-    do {
+    if (config)
+    {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
@@ -99,9 +100,8 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs, offs_bytes;
                     float off_s;
@@ -110,9 +110,10 @@ int main(int argc, char **argv)
                     off_s = aaxEmitterGetOffsetSec(emitter[q]);
                     offs = aaxEmitterGetOffset(emitter[q], AAX_SAMPLES);
                     offs_bytes = aaxEmitterGetOffset(emitter[q], AAX_BYTES);
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples/ %li bytes)\n", dt, off_s,
+                           offs, offs_bytes);
                 }
-#endif
                 state = aaxEmitterGetState(emitter[0]);
             }
             while (state == AAX_PLAYING);
@@ -125,11 +126,9 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
         }
     }
-    while (0);
 
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
-
 
     return 0;
 }

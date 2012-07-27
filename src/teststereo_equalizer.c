@@ -50,20 +50,21 @@ int main(int argc, char **argv)
     aaxBuffer buffer = 0;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
-    do {
+
+    if (config)
+    {
         buffer = bufferFromFile(config, infile);
         if (buffer)
         {
             aaxEmitter emitter;
+            aaxFilter filter;
             float dt = 0.0f;
             int q, state;
             float pitch;
-            aaxFilter f;
 
             printf("\nPlayback stereo with equalizer enabled.\n");
             /** emitter */
@@ -88,24 +89,24 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /* equalizer */
-            f = aaxFilterCreate(config, AAX_EQUALIZER);
-            testForError(f, "aaxFilterCreate");
+            filter = aaxFilterCreate(config, AAX_EQUALIZER);
+            testForError(filter, "aaxFilterCreate");
 
-            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,
-                                               500.0f, 1.0f, 0.1f, 0.0f);
-            testForError(f, "aaxFilterSetSlot/0");
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              500.0f, 1.0f, 0.1f, 0.0f);
+            testForError(filter, "aaxFilterSetSlot/0");
 
-            f = aaxFilterSetSlot(f, 1, AAX_LINEAR,
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                               8000.0f, 0.1f, 0.5f, 0.0f);
-            testForError(f, "aaxFilterSetSlot/1");
+            testForError(filter, "aaxFilterSetSlot/1");
 
-            f = aaxFilterSetState(f, AAX_TRUE);
-            testForError(f, "aaxFilterSetState");
+            filter = aaxFilterSetState(filter, AAX_TRUE);
+            testForError(filter, "aaxFilterSetState");
 
-            res = aaxMixerSetFilter(config, f);
+            res = aaxMixerSetFilter(config, filter);
             testForState(res, "aaxMixerSetFilter");
 
-            res = aaxFilterDestroy(f);
+            res = aaxFilterDestroy(filter);
             testForState(res, "aaxFilterDestroy");
 
             /** schedule the emitter for playback */
@@ -114,11 +115,11 @@ int main(int argc, char **argv)
 
             q = 0;
             do
-            {                msecSleep(50);
+            {
+                msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs, offs_bytes;
                     float off_s;
@@ -127,9 +128,10 @@ int main(int argc, char **argv)
                     off_s = aaxEmitterGetOffsetSec(emitter);
                     offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
                     offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples/ %li bytes)\n", dt, off_s,
+                           offs, offs_bytes);
                 }
-#endif
                 state = aaxEmitterGetState(emitter);
             }
             while (state == AAX_PLAYING);
@@ -139,7 +141,6 @@ int main(int argc, char **argv)
             res = aaxEmitterDestroy(emitter);
         }
     }
-    while (0);
 
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
@@ -147,15 +148,19 @@ int main(int argc, char **argv)
     device = "AeonWave Loopback";
     record = aaxDriverOpenByName(device, AAX_MODE_WRITE_STEREO);
     testForError(record, "No default audio device available.");
-    do {
+
+    if (record)
+    {
         if (buffer)
         {
             aaxEmitter emitter, emitter2;
-            int q, state;
+            aaxFilter filter;
             float dt = 0.0f;
-            aaxFilter f;
+            int q, state;
 
-            printf("\nRecord using '%s' and playback the captured buffers.\n", device);
+            printf("\nRecord using '%s' and playback the captured buffers.\n",
+                    device);
+
             /** emitter */
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter\n");
@@ -174,24 +179,24 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerRegisterEmitter");
 
             /* equalizer */
-            f = aaxFilterCreate(record, AAX_EQUALIZER);
-            testForError(f, "aaxFilterCreate");
+            filter = aaxFilterCreate(record, AAX_EQUALIZER);
+            testForError(filter, "aaxFilterCreate");
 
-            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,
-                                               500.0f, 1.0f, 0.1f, 0.0f);
-            testForError(f, "aaxFilterSetSlot/0");
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              500.0f, 1.0f, 0.1f, 0.0f);
+            testForError(filter, "aaxFilterSetSlot/0");
 
-            f = aaxFilterSetSlot(f, 1, AAX_LINEAR,
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                               8000.0f, 0.1f, 0.5f, 0.0f);
-            testForError(f, "aaxFilterSetSlot/1");
+            testForError(filter, "aaxFilterSetSlot/1");
 
-            f = aaxFilterSetState(f, AAX_TRUE);
-            testForError(f, "aaxFilterSetState");
+            filter = aaxFilterSetState(filter, AAX_TRUE);
+            testForError(filter, "aaxFilterSetState");
 
-            res = aaxMixerSetFilter(record, f);
+            res = aaxMixerSetFilter(record, filter);
             testForState(res, "aaxMixerSetFilter");
 
-            res = aaxFilterDestroy(f);
+            res = aaxFilterDestroy(filter);
             testForState(res, "aaxFilterDestroy");
 
             /** schedule the emitter for playback */
@@ -210,9 +215,8 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs;
                     float off_s;
@@ -220,10 +224,9 @@ int main(int argc, char **argv)
 
                     off_s = aaxEmitterGetOffsetSec(emitter);
                     offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
-
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples)\n", dt, off_s, offs);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples)\n", dt, off_s, offs);
                 }
-#endif
                 state = aaxEmitterGetState(emitter);
             }
             while (state == AAX_PLAYING);
@@ -275,9 +278,8 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs;
                     float off_s;
@@ -285,10 +287,9 @@ int main(int argc, char **argv)
 
                     off_s = aaxEmitterGetOffsetSec(emitter2);
                     offs = aaxEmitterGetOffset(emitter2, AAX_SAMPLES);
-
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples)\n", dt, off_s, offs);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples)\n", dt, off_s, offs);
                 }
-#endif
                 state = aaxEmitterGetState(emitter2);
             }
             while (state == AAX_PLAYING);
@@ -300,8 +301,7 @@ int main(int argc, char **argv)
             res = aaxDriverClose(config);
             res = aaxDriverDestroy(config);
         }
-        while(0);
-    } while(0);
+    }
 
     return 0;
 }

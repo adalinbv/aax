@@ -47,24 +47,34 @@ int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
-    int res;
+    int res, rv = 0;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    do {
+    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    {
+        printf("Warning:\n");
+        printf("  %s requires a registered version of AeonWave\n", argv[0]);
+        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+        printf("obtain\n  a product-key.\n\n");
+        rv = -1;
+
+        goto finish;
+    }
+
+    if (config)
+    {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
+            float pitch, dt = 0.0f;
             aaxEmitter emitter;
+            aaxFilter filter;
             aaxFrame frame;
-            aaxFilter f;
-            float dt = 0.0f;
             int q, state;
-            float pitch;
 
             /** mixer */
             res = aaxMixerInit(config);
@@ -85,26 +95,26 @@ int main(int argc, char **argv)
             res = aaxMixerRegisterAudioFrame(config, frame);
             testForState(res, "aaxMixerRegisterAudioFrame");
 
-#if 0
-            /* equalizer */
-            f = aaxFilterCreate(config, AAX_EQUALIZER);
-            testForError(f, "aaxFilterCreate");
+#if ENABLE_FRAME_EQUALIZER
+            /* frame equalizer, not supported */
+            filter = aaxFilterCreate(config, AAX_EQUALIZER);
+            testForError(filter, "aaxFilterCreate");
 
-            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,
-                                               500.0f, 1.0f, 0.1f, 0.0f);
-            testForError(f, "aaxFilterSetSlot/0");
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              500.0f, 1.0f, 0.1f, 0.0f);
+            testForError(filter, "aaxFilterSetSlot/0");
 
-            f = aaxFilterSetSlot(f, 1, AAX_LINEAR,
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                               8000.0f, 0.1f, 0.5f, 0.0f);
-            testForError(f, "aaxFilterSetSlot/1");
+            testForError(filter, "aaxFilterSetSlot/1");
 
-            f = aaxFilterSetState(f, AAX_TRUE);
-            testForError(f, "aaxFilterSetState");
+            filter = aaxFilterSetState(filter, AAX_TRUE);
+            testForError(filter, "aaxFilterSetState");
 
-            res = aaxAudioFrameSetFilter(frame, f);
+            res = aaxAudioFrameSetFilter(frame, filter);
             testForState(res, "aaxAudioFrameSetFilter");
 
-            res = aaxFilterDestroy(f);
+            res = aaxFilterDestroy(filter);
             testForState(res, "aaxFilterDestroy");
 #endif
 
@@ -132,9 +142,8 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs, offs_bytes;
                     float off_s;
@@ -143,9 +152,10 @@ int main(int argc, char **argv)
                     off_s = aaxEmitterGetOffsetSec(emitter);
                     offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
                     offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples/ %li bytes)\n", dt, off_s,
+                           offs, offs_bytes);
                 }
-#endif
                 state = aaxEmitterGetState(emitter);
             }
             while (state == AAX_PLAYING);
@@ -159,11 +169,10 @@ int main(int argc, char **argv)
             res = aaxAudioFrameDestroy(frame);
         }
     }
-    while (0);
 
+finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 
-
-    return 0;
+    return rv;
 }
