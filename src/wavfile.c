@@ -50,44 +50,44 @@
 #include "wavfile.h"
 #include "audio_tune.h"
 
-#define PRINT_DEBUG_MSG            0
+#define PRINT_DEBUG_MSG		0
 #define PRINT_INFO_MSG		1
 
-#define WAVE_HEADER_SIZE        11
+#define WAVE_HEADER_SIZE	11
 #define WAVE_EXT_HEADER_SIZE	17
-#define DEFAULT_OUTPUT_RATE    32000
+#define DEFAULT_OUTPUT_RATE	32000
 #ifndef O_BINARY
-# define O_BINARY        0
+# define O_BINARY		0
 #endif
 
 static uint32_t _oalSoftwareWaveHeader[WAVE_EXT_HEADER_SIZE];
 static const uint32_t _defaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
-    0x46464952,                    /*  0. "RIFF"                                        */
-    0x00000024,                    /*  1. (file_length - 8)                            */
-    0x45564157,                    /*  2. "WAVE"                                        */
+    0x46464952,          /*  0. "RIFF"                                        */
+    0x00000024,          /*  1. (file_length - 8)                             */
+    0x45564157,          /*  2. "WAVE"                                        */
 
-    0x20746d66,                    /*  3. "fmt "                                        */
-    0x00000010,                    /*  4.                                                    */
-    0x00010002,                    /*  5. PCM & stereo                                */
-    DEFAULT_OUTPUT_RATE,        /*  6.                                                    */
-    0x0001f400,                    /*  7. (sample_rate*no_tracks*bits_sample/8) */
-    0x00040010,                    /*  8. (no_tracks*bits_sample/8)                *
-                                            *    & 16 bits per sample                        */
-/* used for both the extensible data section and data section */
-    0x61746164,                    /*  9. "data"                                        */
-    0,                                /* 10. length of the data block                *
-                                            *    (no_samples*no_tracks*bits_sample/8)  */
+    0x20746d66,          /*  3. "fmt "                                        */
+    0x00000010,          /*  4.                                               */
+    0x00010002,          /*  5. PCM & stereo                                  */
+    DEFAULT_OUTPUT_RATE, /*  6.                                               */
+    0x0001f400,          /*  7. (sample_rate*no_tracks*bits_sample/8)         */
+    0x00040010,          /*  8. (no_tracks*bits_sample/8)                     *
+                          *    & 16 bits per sample                           */
+/* used for both the extensible data section and data section                 */
+    0x61746164,          /*  9. "data"                                        */
+    0,                   /* 10. length of the data block                      *
+                          *    (no_samples*no_tracks*bits_sample/8)           */
     0,0,
-/* data section starts here in case of the extensible format */
-    0x61746164,			/* 15. "data"                                        */
-    0				/* 16. length of the data block                *
-                                            *    (no_samples*no_tracks*bits_sample/8)  */
+/* data section starts here in case of the extensible format                  */
+    0x61746164,	         /* 15. "data"                                        */
+    0                    /* 16. length of the data block                      *
+                         *    (no_samples*no_tracks*bits_sample/8)            */
 };
 
 #define DEBUG_PRINT(a) \
     printf(" %2i: %08x \"%c%c%c%c\"\n", a, _oalSoftwareWaveHeader[a], \
-                                                    p[4*a], p[4*a+1], p[4*a+2], p[4*a+3]);
+             p[4*a], p[4*a+1], p[4*a+2], p[4*a+3]);
 
 #define BSWAP16(x)	(x >> 8) | (x << 8)
 #define BSWAP32H(x)	((x >> 8) & 0x00FF00FFL) | ((x << 8) & 0xFF00FF00L)
@@ -110,9 +110,9 @@ static void bufferConvertMSIMA_IMA4(void*, unsigned, unsigned int, unsigned*);
 void *
 fileLoad(const char *file, unsigned int *no_samples, 
 #if !_OPENAL_SUPPORT
-            unsigned *block,
+         unsigned *block,
 #endif
-            int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
+         int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
 {
     static const unsigned int _t = 1;
     unsigned int buflen, blocksz;
@@ -214,7 +214,8 @@ fileLoad(const char *file, unsigned int *no_samples,
             printf("IMA4 ADPCM\n");
             break;
         case 0xfffe:
-            printf("Extensible format (0x%X)\n", _oalSoftwareWaveHeader[11] >> 16);
+            printf("Extensible format (0x%X)\n",
+                   _oalSoftwareWaveHeader[11] >> 16);
             break;
         default:
             printf("unknown (0x%X)\n", *format);
@@ -279,9 +280,9 @@ bufferFromFile(aaxConfig config, const char *infile)
 
     data = fileLoad(infile, &no_samples,
 #if !_OPENAL_SUPPORT
-                        &block,
+                    &block,
 #endif
-                        &freq, &bps, &channels, &fmt);
+                    &freq, &bps, &channels, &fmt);
     format = getFormatFromFileFormat(fmt, bps);
     if (data && format != AAX_FORMAT_NONE)
     {
@@ -319,9 +320,9 @@ bufferFromFile(aaxConfig config, const char *infile)
 void*
 dataLoad(const unsigned char *data, unsigned int *no_samples,
 #if !_OPENAL_SUPPORT
-            unsigned *block,
+         unsigned *block,
 #endif
-            int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
+         int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
 {
     static const unsigned int _t = 1;
     unsigned int buflen, blocksz;
@@ -382,9 +383,9 @@ bufferFromData(aaxConfig config, const unsigned char *indata)
 
     data = dataLoad(indata, &no_samples,
 #if !_OPENAL_SUPPORT
-                        &block,
+                    &block,
 #endif
-                        &freq, &bps, &channels, &fmt);
+                    &freq, &bps, &channels, &fmt);
     format = getFormatFromFileFormat(fmt, bps);
     if (data && format != AAX_FORMAT_NONE)
     {
@@ -470,14 +471,13 @@ playAudioTune(int argc, char **argv)
  */
 void *
 fileDataConvertToInterleaved(void *sbuf, char no_tracks, char bits_sample,
-                                    unsigned int no_samples)
+                             unsigned int no_samples)
 {
     const unsigned int tracklen_bytes = no_samples*bits_sample;
     void *dbuf;
     
     dbuf = malloc(no_tracks * tracklen_bytes);
-    if (dbuf && (no_tracks == 1))
-    {
+    if (dbuf && (no_tracks == 1)) {
         memcpy(dbuf, sbuf, tracklen_bytes);
     }
     else if (dbuf)
