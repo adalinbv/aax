@@ -60,9 +60,8 @@ int main(int argc, char **argv)
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
@@ -72,9 +71,9 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
+            aaxMtx4f mtx;
             int deg = 0;
             float ang;
-            aaxMtx4f mtx;
 
             /** mixer */
             res = aaxMixerInit(config);
@@ -84,7 +83,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** sensor settings */
-            res=aaxMatrixSetOrientation(mtx, ListenerPos, ListenerAt, ListenerUp);
+            res = aaxMatrixSetOrientation(mtx, ListenerPos,
+                                               ListenerAt, ListenerUp);
             testForState(res, "aaxMatrixSetOrientation");
 
             res = aaxMatrixInverse(mtx);
@@ -129,13 +129,11 @@ int main(int argc, char **argv)
                 ListenerAt[0] = sinf(ang);
                 ListenerAt[2] = -cosf(ang);
 
-#if 1
                 printf("deg: %03u\tdir (% f, % f, % f)\n", deg,
                             ListenerAt[0], ListenerAt[1], ListenerAt[2]);
-#endif
 
-                res = aaxMatrixSetOrientation(mtx, ListenerPos, ListenerAt,
-                                                                                ListenerUp);
+                res = aaxMatrixSetOrientation(mtx, ListenerPos,
+                                                   ListenerAt, ListenerUp);
                 testForState(res, "aaxMatrixSetOrientation");
 
                 res = aaxMatrixInverse(mtx);
