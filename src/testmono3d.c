@@ -44,16 +44,16 @@
 #include "wavfile.h"
 
 #define RADIUS			10.0f
-#define FILE_PATH                    SRC_PATH"/tictac.wav"
+#define FILE_PATH		SRC_PATH"/tictac.wav"
 
 aaxVec3f EmitterPos = { 10000.0f, -1000.0f, 0.0f };
-aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
-aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
+aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
+aaxVec3f EmitterVel = {     0.0f,     0.0f, 0.0f };
 
-aaxVec3f SensorPos = { 10000.0f, -1000.0f, 0.0f };
-aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
-aaxVec3f SensorUp = {  0.0f, 1.0f, 0.0f };
-aaxVec3f SensorVel = { 0.0f, 0.0f, 0.0f };
+aaxVec3f SensorPos = { 10000.0f, -1000.0f,  0.0f };
+aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
+aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
+aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };
 
 int main(int argc, char **argv)
 {
@@ -62,9 +62,9 @@ int main(int argc, char **argv)
     aaxConfig config;
     int num, res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
-    devname = getDeviceName(argc, argv);
     mode = getMode(argc, argv);
+    devname = getDeviceName(argc, argv);
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, mode);
     testForError(config, "No default audio device available.");
 
@@ -151,19 +151,17 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 360)
             {
-                float ang;
+                float ang = (float)deg / 180.0f * GMATH_PI;
 
                 msecSleep(50);
 
-#if 1
-                ang = (float)deg / 180.0f * GMATH_PI;
                 EmitterPos[0] = 10000.0f + RADIUS * sinf(ang);
                 EmitterPos[2] = -RADIUS * cosf(ang);
-//            EmitterPos[1] = -1000.0f -RADIUS * cosf(ang);
-#if 1
+                /* EmitterPos[1] = -1000.0f -RADIUS * cosf(ang); */
+
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);
-#endif
+
                 res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
                 testForState(res, "aaxMatrixSetDirection");
 
@@ -172,8 +170,8 @@ int main(int argc, char **argv)
                 {
                     res = aaxEmitterSetMatrix(emitter[i], mtx);
                     testForState(res, "aaxSensorSetMatrix");
-                } while (++i < num);
-#endif
+                }
+                while (++i < num);
 
                 deg += 1;
             }
@@ -189,7 +187,8 @@ int main(int argc, char **argv)
 
                 res = aaxEmitterDestroy(emitter[i]);
                 testForState(res, "aaxEmitterDestroy");
-        } while (++i < num);
+            }
+            while (++i < num);
 
             res = aaxBufferDestroy(buffer);
             testForState(res, "aaxBufferDestroy");
@@ -197,7 +196,6 @@ int main(int argc, char **argv)
             res = aaxMixerSetState(config, AAX_STOPPED);
             testForState(res, "aaxMixerStop");
         }
-
     }
 
     res = aaxDriverClose(config);
