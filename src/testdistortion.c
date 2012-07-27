@@ -41,7 +41,13 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH		SRC_PATH"/sine-440Hz.wav"
+
+#define ENABLE_EMITTER_FREQFILTER	1
+#define ENABLE_STATIC_FREQFILTER	1
+#define ENABLE_EMITTER_DISTORTION	1
+#define ENABLE_EMITTER_PHASING		1
+#define ENABLE_EMITTER_DYNAMIC_GAIN	0
+#define FILE_PATH			SRC_PATH"/sine-440Hz.wav"
 
 int main(int argc, char **argv)
 {
@@ -49,13 +55,13 @@ int main(int argc, char **argv)
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    do {
+    if (config)
+    {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
@@ -80,24 +86,29 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetMode");
 
+
+#if ENABLE_EMITTER_FREQFILTER
             /* frequency filter */
-#if 1
             filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
             testForError(filter, "aaxFilterCreate");
-# if 1
-	 /* straight frequency filter */
+
+# if ENABLE_STATIC_FREQFILTER
+            /* straight frequency filter */
             printf("Add frequency filter at 150Hz\n");
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 200.0f, 1.0f, 0.5f, 2.0f);
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              200.0f, 1.0f, 0.5f, 2.0f);
             testForError(filter, "aaxFilterSetSlot");
             filter = aaxFilterSetState(filter, AAX_TRUE);
             testForError(filter, "aaxFilterSetState");
 # else
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("Add auto-wah\n");
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 100.0f, 0.5f, 1.0f, 8.0f);
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              100.0f, 0.5f, 1.0f, 8.0f);
             testForError(filter, "aaxFilterSetSlot 0");
 
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 550.0f, 0.0f, 0.0f, 1.0f);
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                              550.0f, 0.0f, 0.0f, 1.0f);
             testForError(filter, "aaxFilterSetSlot 1");
             filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
             testForError(filter, "aaxFilterSetState");
@@ -109,12 +120,13 @@ int main(int argc, char **argv)
             testForState(res, "aaxFilterDestroy");
 #endif
 
+#if ENABLE_EMITTER_DISTORTION
             /* distortion effect for emitter */
-#if 1
             effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.8f, 0.0f, 1.0f, 0.5f);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.8f, 0.0f, 1.0f, 0.5f);
             testForError(effect, "aaxEffectSetSlot 0");
 
             effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -134,23 +146,25 @@ int main(int argc, char **argv)
             res = aaxMixerRegisterEmitter(config, emitter);
             testForState(res, "aaxMixerRegisterEmitter");
 
-# if 1
+# if ENABLE_EMITTER_PHASING
             /* phasing effect */
             printf("source phasing..\n");
             effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,0.8f,0.0f,0.0f,0.095f);
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.8f, 0.0f, 0.0f, 0.095f);
             effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
 #endif
 
-#if 0
+#if ENABLE_EMITTER_DYNAMIC_GAIN
             /* dynamic gain filter for emitter (compressor) */
             filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
             testForError(filter, "aaxFilterCreate");
 
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.2f, 2.0f, 0.5f);
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 0.2f, 2.0f, 0.5f);
             testForError(filter, "aaxFilterSetSlot");
 
             filter = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
@@ -162,7 +176,6 @@ int main(int argc, char **argv)
             res = aaxFilterDestroy(filter);
             testForState(res, "aaxFilterDestroy");
 #endif
-
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
@@ -177,9 +190,8 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
                 dt += 0.05f;
-#if 1
-                q++;
-                if (q > 10)
+
+                if (++q > 10)
                 {
                     unsigned long offs, offs_bytes;
                     float off_s;
@@ -188,9 +200,10 @@ int main(int argc, char **argv)
                     off_s = aaxEmitterGetOffsetSec(emitter);
                     offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
                     offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
-                    printf("playing time: %5.2f, buffer position: %5.2f (%li samples/ %li bytes)\n", dt, off_s, offs, offs_bytes);
+                    printf("playing time: %5.2f, buffer position: %5.2f "
+                           "(%li samples/ %li bytes)\n", dt, off_s,
+                           offs, offs_bytes);
                 }
-#endif
                 state = aaxEmitterGetState(emitter);
             }
             while ((dt < 15.0f) && (state == AAX_PLAYING));
@@ -211,7 +224,6 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
         }
     }
-    while (0);
 
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);

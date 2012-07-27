@@ -109,7 +109,8 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 2.8f, 0.4f, 0.0f);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 2.8f, 0.4f, 0.0f);
     testForError(filter, "aaxFilterSetSlot");
 
     filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -138,7 +139,8 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.9f, 0.5f, 0.0f);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 0.9f, 0.5f, 0.0f);
     testForError(filter, "aaxFilterSetSlot");
 
     filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
@@ -164,7 +166,7 @@ int main(int argc, char **argv)
     {
         static int i = 0;
 
-        msecSleep(9e8);	/* 2.0f seconds */
+        msecSleep(2000);	/* 2.0f seconds */
 
         switch(i)
         {

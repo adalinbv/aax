@@ -36,7 +36,7 @@
 # include "config.h"
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #ifdef NDEBUG
 # include <malloc.h>
@@ -66,9 +66,6 @@ void testForALError();
 # define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
 #else
 int msecSleep(unsigned long);
-#endif
-#if 0
-#define nanoSleep(a)	msecSleep((unsigned long)a/1000000)
 #endif
 
 #endif

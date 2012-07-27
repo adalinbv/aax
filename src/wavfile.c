@@ -43,7 +43,7 @@
 # include <unistd.h>
 #endif
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <base/types.h>
 
 #include "driver.h"

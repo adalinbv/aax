@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <aax/defines.h>
 
 #include "base/types.h"
@@ -81,7 +81,8 @@ int main(int argc, char **argv)
 #if 1
             /* frequency filter */
             fscene = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
-            fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR, FSCENE, 0.0f, 1.0f, 1.0f);
+            fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR,
+                                              FSCENE, 0.0f, 1.0f, 1.0f);
             fscene = aaxFilterSetState(fscene, AAX_FALSE);
             res = aaxScenerySetFilter(config, fscene);
             res = aaxFilterDestroy(fscene);
@@ -107,7 +108,8 @@ int main(int argc, char **argv)
             /* frequency filter */
 #if 1
             femitter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
-            femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 400.0f, 1.0f, 0.0f, 1.0f);
+            femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR,
+                                              400.0f, 1.0f, 0.0f, 1.0f);
             femitter = aaxFilterSetState(femitter, AAX_FALSE);
             res = aaxEmitterSetFilter(emitter, femitter);
             res = aaxFilterDestroy(femitter);
@@ -156,8 +158,10 @@ int main(int argc, char **argv)
                 {
                     printf("envelope following filtering (auto wah)\n");
                     femitter = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
-                    femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR, 300.0f, 0.4f, 1.0f, 12.0f);
-                    femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR, 600.0f, 0.0f, 0.0f, 0.2f);
+                    femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR,
+                                              300.0f, 0.4f, 1.0f, 12.0f);
+                    femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR,
+                                              600.0f, 0.0f, 0.0f, 0.2f);
                     femitter = aaxFilterSetState(femitter, AAX_ENVELOPE_FOLLOW);
                     res = aaxEmitterSetFilter(emitter, femitter);
                 }
