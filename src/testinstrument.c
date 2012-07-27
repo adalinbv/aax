@@ -89,12 +89,15 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.05f, 1.0f, 0.05f);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 0.05f, 1.0f, 0.05f);
     testForError(filter, "aaxFilterSetSlot 0");
-    filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.9f, 1.0f, 0.8f, 0.2f);
+    filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                              0.9f, 1.0f, 0.8f, 0.2f);
     testForError(filter, "aaxFilterSetSlot 1");
 #if 0
-    filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR, 0.0f, 0.0f, 0.0f, 0.0f);
+    filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR,
+                                              0.0f, 0.0f, 0.0f, 0.0f);
     testForError(filter, "aaxFilterSetSlot 2");
 #endif
 
@@ -113,12 +116,15 @@ int main(int argc, char **argv)
     effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
     testForError(effect, "aaxFilterCreate");
 
-    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.995f, 0.05f, 1.05f, 0.08f);
+    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.995f, 0.05f, 1.05f, 0.08f);
     testForError(effect, "aaxFilterSetSlot 0");
-    effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 1.0f, 0.1f, 0.99f, 0.0f);
+    effect = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
+                                              1.0f, 0.1f, 0.99f, 0.0f);
     testForError(filter, "aaxFilterSetSlot 1");
 #if 0
-    effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR, 1.05f, 0.0f, 1.0f, 0.0f);
+    effect = aaxEffectSetSlot(effect, 2, AAX_LINEAR,
+                                              1.05f, 0.0f, 1.0f, 0.0f);
     testForError(filter, "aaxFilterSetSlot 2");
 #endif
 
@@ -137,7 +143,8 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 4.0f, 0.1f, 0.0f);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 4.0f, 0.1f, 0.0f);
     testForError(filter, "aaxFilterSetSlot");
 
     filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
@@ -155,7 +162,8 @@ int main(int argc, char **argv)
     effect = aaxEffectCreate(config, AAX_VIBRATO_EFFECT);
     testForError(filter, "aaxEffectCreate");
 
-    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 4.0f, 0.08f, 0.0f);
+    effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.0f, 4.0f, 0.08f, 0.0f);
     testForError(filter, "aaxEffectSetSlot");
 
     effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
@@ -183,7 +191,8 @@ int main(int argc, char **argv)
     filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
     testForError(filter, "aaxFilterCreate");
 
-    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.9f, 0.2f, 0.0f);
+    filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 0.9f, 0.2f, 0.0f);
     testForError(filter, "aaxFilterSetSlot");
 
     filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);

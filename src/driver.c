@@ -55,12 +55,14 @@ getDeviceName(int argc, char **argv)
     int len = 255;
     char *s;
 
+    /* -d for device name */
     s = getCommandLineOption(argc, argv, "-d");
     if (s)
     {
         strncpy((char *)&devname, s, len);
         len -= strlen(s);
 
+        /* -r for a separate renderer */
         s = getCommandLineOption(argc, argv, "-r");
         if (s)
         {
@@ -82,6 +84,7 @@ getCaptureName(int argc, char **argv)
     int len = 255;
     char *s;
 
+   /* -c for a capture device */
     s = getCommandLineOption(argc, argv, "-c");
     if (s)
     {
@@ -96,6 +99,8 @@ char *
 getRenderer(int argc, char **argv)
 {
     char *renderer = 0;
+
+    /* -r for a separate renderer */
     renderer = getCommandLineOption(argc, argv, "-r");
     return renderer;
 }
@@ -104,7 +109,10 @@ int
 getNumSources(int argc, char **argv)
 {
     int num = 1;
-    char *ret = getCommandLineOption(argc, argv, "-n");
+    char *ret;
+
+    /* -n for the number of emitters */
+    ret = getCommandLineOption(argc, argv, "-n");
     if (ret) num = atoi(ret);
     return num;
 }
@@ -154,11 +162,8 @@ getMode(int argc, char **argv)
 char *
 getInputFile(int argc, char **argv, const char *filename)
 {
-    char *fn;
-
-    fn = getCommandLineOption(argc, argv, "-i");
+    char *fn = getCommandLineOption(argc, argv, "-i");
     if (!fn) fn = (char *)filename;
-
     return fn;
 }
 

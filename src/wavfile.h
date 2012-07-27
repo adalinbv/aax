@@ -32,7 +32,7 @@
 #ifndef __WAVEFILE_H
 #define __WAVEFILE_H
 
-#include <aax.h>
+#include <aax/aax.h>
 
 #define _OPENAL_SUPPORT		0
 

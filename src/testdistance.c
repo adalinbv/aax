@@ -36,7 +36,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax.h>
 #include <aax/defines.h>
 
 #include "base/types.h"
@@ -48,12 +47,12 @@
 #define SPEED			15.0f
 #define TIME			20.0f
 #define STEP			(((2*INITIAL_DIST)/fabsf(SPEED))/TIME)
-#define DELAY			fabs((STEP/TIME)*1e9)
-#define FILE_PATH                    SRC_PATH"/wasp.wav"
+#define DELAY			fabs((STEP/TIME)*1000)
+#define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3f SourcePos = {  0.0f,    100.0f, -INITIAL_DIST };
-aaxVec3f SourceDir = {  1.0f,    0.0f,    0.0f };
-aaxVec3f SourceVel = {  0.0f,    0.0f,    SPEED };
+aaxVec3f SourcePos = {  0.0f,  100.0f, -INITIAL_DIST };
+aaxVec3f SourceDir = {  1.0f,    0.0f,          0.0f };
+aaxVec3f SourceVel = {  0.0f,    0.0f,         SPEED };
 
 aaxVec3f ListenerPos = { 0.0f, 0.0f,  0.0f };
 aaxVec3f ListenerVel = { 0.0f, 0.0f,  0.0f };
@@ -62,14 +61,14 @@ aaxVec3f ListenerUp =  { 0.0f, 1.0f,  0.0f };
 
 int main(int argc, char **argv)
 {
-    char *devname, *infile;
     enum aaxRenderMode mode;
+    char *devname, *infile;
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
-    devname = getDeviceName(argc, argv);
     mode = getMode(argc, argv);
+    devname = getDeviceName(argc, argv);
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, mode);
     testForError(config, "No default audio device available.");
 
@@ -90,7 +89,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
-            res=aaxScenerySetDistanceModel(config, AAX_EXPONENTIAL_DISTANCE_DELAY);
+            res=aaxScenerySetDistanceModel(config,
+                                           AAX_EXPONENTIAL_DISTANCE_DELAY);
             testForState(res, "aaxScenerySetDistanceModel");
 
             /** dopller settings */
@@ -98,7 +98,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxScenerySetSoundVelocity");
 
             /** sensor settings */
-            res=aaxMatrixSetOrientation(mtx, ListenerPos, ListenerAt, ListenerUp);
+            res=aaxMatrixSetOrientation(mtx, ListenerPos,
+                                             ListenerAt, ListenerUp);
             testForState(res, "aaxMatrixSetOrientation");
 
             res = aaxMatrixInverse(mtx);
@@ -151,10 +152,10 @@ int main(int argc, char **argv)
 
                 SourcePos[2] = -dist;
                 dist -= STEP;
-#if 1
+
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n", dist,
                             SourcePos[0], SourcePos[1], SourcePos[2]);
-#endif
+
                 res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
                 testForState(res, "aaxMatrixSetDirection");
 
@@ -177,7 +178,6 @@ int main(int argc, char **argv)
             res = aaxMixerSetState(config, AAX_STOPPED);
             testForState(res, "aaxMixerStop");
         }
-
     }
 
     res = aaxDriverClose(config);

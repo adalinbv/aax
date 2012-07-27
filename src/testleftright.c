@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax.h>
+#include <aax/aax.h>
 #include <aax/defines.h>
 
 #include "base/types.h"

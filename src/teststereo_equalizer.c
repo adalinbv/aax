@@ -91,10 +91,12 @@ int main(int argc, char **argv)
             f = aaxFilterCreate(config, AAX_EQUALIZER);
             testForError(f, "aaxFilterCreate");
 
-            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0f, 1.0f, 0.1f, 0.0f);
+            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,
+                                               500.0f, 1.0f, 0.1f, 0.0f);
             testForError(f, "aaxFilterSetSlot/0");
 
-            f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0f, 0.1f, 0.5f, 0.0f);
+            f = aaxFilterSetSlot(f, 1, AAX_LINEAR,
+                                              8000.0f, 0.1f, 0.5f, 0.0f);
             testForError(f, "aaxFilterSetSlot/1");
 
             f = aaxFilterSetState(f, AAX_TRUE);
@@ -175,10 +177,12 @@ int main(int argc, char **argv)
             f = aaxFilterCreate(record, AAX_EQUALIZER);
             testForError(f, "aaxFilterCreate");
 
-            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,  500.0f, 1.0f, 0.1f, 0.0f);
+            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,
+                                               500.0f, 1.0f, 0.1f, 0.0f);
             testForError(f, "aaxFilterSetSlot/0");
 
-            f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 8000.0f, 0.1f, 0.5f, 0.0f);
+            f = aaxFilterSetSlot(f, 1, AAX_LINEAR,
+                                              8000.0f, 0.1f, 0.5f, 0.0f);
             testForError(f, "aaxFilterSetSlot/1");
 
             f = aaxFilterSetState(f, AAX_TRUE);

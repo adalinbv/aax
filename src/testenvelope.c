@@ -93,9 +93,11 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
         testForError(filter, "aaxFilterCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.07f, 10.0f, 0.01f);
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 0.07f, 10.0f, 0.01f);
         testForError(filter, "aaxFilterSetSlot 0");
-        filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 0.7f, AAX_FPINFINITE, 0.7f, 1.0f);
+        filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                              0.7f, AAX_FPINFINITE, 0.7f, 1.0f);
         testForError(filter, "aaxFilterSetSlot 1");
 
         filter = aaxFilterSetState(filter, AAX_TRUE);
@@ -111,9 +113,11 @@ int main(int argc, char **argv)
         effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
         testForError(effect, "aaxEffectCreate");
 
-        effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 1.0f, 0.2f, 4.0f, 0.2f);
+        effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              1.0f, 0.2f, 4.0f, 0.2f);
         testForError(effect, "aaxEffectSetSlot 0");
-        effect  = aaxEffectSetSlot(effect, 1, AAX_LINEAR, 0.5f, 0.2f, 1.0f, 0.0f);
+        effect  = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
+                                              0.5f, 0.2f, 1.0f, 0.0f);
         testForError(effect, "aaxEffectSetSlot 1");
 
         effect = aaxEffectSetState(effect, AAX_TRUE);
@@ -129,7 +133,8 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
         testForError(filter, "aaxFilterCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 6.0f, 1.0f, 0.0f);
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 6.0f, 1.0f, 0.0f);
         testForError(filter, "aaxFilterSetSlot");
 
         filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -163,7 +168,8 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
         testForError(effect, "aaxEffectCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 0.9f, 1.0f, 0.0f);
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              0.0f, 0.9f, 1.0f, 0.0f);
         testForError(effect, "aaxEffectSetSlot");
 
         filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -181,7 +187,8 @@ int main(int argc, char **argv)
         effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
         testForError(effect, "aaxEffectCreate");
 
-        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 4.0f, 0.4f, 0.0f);
+        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.0f, 4.0f, 0.4f, 0.0f);
         testForError(effect, "aaxEffectSetSlot");
 
         effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);

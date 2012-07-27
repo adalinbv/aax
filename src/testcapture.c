@@ -42,8 +42,8 @@
 #include "wavfile.h"
 
 #define REFRESH_RATE		  50.0f
-#define RECORD_TIME_SEC		  5.0f
-#define PLAYBACK_DEVICE		"AeonWave on File: /tmp/AeonWaveOut.wav"
+#define RECORD_TIME_SEC		   5.0f
+#define PLAYBACK_DEVICE		"AeonWave on Audio Files: /tmp/AeonWaveOut.wav"
 
 int main(int argc, char **argv)
 {
@@ -64,8 +64,8 @@ int main(int argc, char **argv)
     {
         enum aaxFormat format;
         aaxEmitter emitter;
+        float dt, freq;
         int channels;
-        float f, freq;
 
         format = AAX_PCM16S;
         freq = 44100.0f;
@@ -99,10 +99,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxSensorWaitForBuffer");
 
             ul = aaxSensorGetOffset(record, AAX_MICROSECONDS);
-            f = (float)ul * 1e-6f;
-#if 1
-            printf("Record buffer position: %5.2f sec\r", f);
-#endif
+            dt = (float)ul * 1e-6f;
+            printf("Record buffer position: %5.2f sec\r", dt);
 
             buffer = aaxSensorGetBuffer(record);
             testForError(buffer, "aaxSensorGetBuffer");
@@ -113,18 +111,16 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
             testForState(res, "aaxBufferDestroy");
         }
-        while (f < RECORD_TIME_SEC);
+        while (dt < RECORD_TIME_SEC);
         printf("\n");
 
         res = aaxSensorSetState(record, AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
 
-
         /** playback */
         res = aaxMixerSetState(record, AAX_STOPPED);
         res = aaxDriverClose(record);
         res = aaxDriverDestroy(record);
-
 
         devname = getDeviceName(argc, argv);
         if (!devname) {
@@ -162,7 +158,7 @@ int main(int argc, char **argv)
             printf("buffer position: %5.2f (%li samples)\n", off_s, offs);
             res = aaxEmitterGetState(emitter);
             
-            msecSleep(5e8);
+            msecSleep(500);
         }
         while (res == AAX_PLAYING);
 

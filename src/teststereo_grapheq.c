@@ -96,10 +96,12 @@ int main(int argc, char **argv)
             f = aaxFilterCreate(config, AAX_GRAPHIC_EQUALIZER);
             testForError(f, "aaxFilterCreate");
 
-            f = aaxFilterSetSlot(f, 0, AAX_LINEAR, 0.5f, 1.5f, 1.5f, 0.8f);
+            f = aaxFilterSetSlot(f, 0, AAX_LINEAR,
+                                              0.5f, 1.5f, 1.5f, 0.8f);
             testForError(f, "aaxFilterSetSlot/0");
 
-            f = aaxFilterSetSlot(f, 1, AAX_LINEAR, 1.0f, 1.0f, 1.2f, 1.0f);
+            f = aaxFilterSetSlot(f, 1, AAX_LINEAR,
+                                              1.0f, 1.0f, 1.2f, 1.0f);
             testForError(f, "aaxFilterSetSlot/1");
 
             f = aaxFilterSetState(f, AAX_TRUE);
