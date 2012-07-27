@@ -49,13 +49,13 @@ int main(int argc, char **argv)
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    do {
+    if (config)
+    {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterStart");
 
             num = 0;
-        printf("playing buffer #%i\n", num);
+            printf("playing buffer #%i\n", num);
             while (num < 10)
             {
                 if (aaxEmitterGetNoBuffers(emitter, AAX_PROCESSED) > 1)
@@ -115,11 +115,9 @@ int main(int argc, char **argv)
             res = aaxEmitterDestroy(emitter);
         }
     }
-    while(0);
 
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
-
 
     return 0;
 }
