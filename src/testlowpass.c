@@ -36,18 +36,18 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/aax.h>
 #include <aax/defines.h>
 
 #include "base/types.h"
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH                    SRC_PATH"/wasp.wav"
-
-#define	FEMITTER	 400.0f
-#define FSCENE		4000.0f
-#define DEG	        (360.0f/5)
+#define ENABLE_EMITTER_FREQFILTER	1
+#define ENABLE_SCENERY_FREQFILTER	1
+#define FILE_PATH			SRC_PATH"/wasp.wav"
+#define	FEMITTER			 400.0f
+#define FSCENE				4000.0f
+#define DEG				(360.0f/5)
 
 int main(int argc, char **argv)
 {
@@ -55,9 +55,8 @@ int main(int argc, char **argv)
     aaxConfig config;
     int res;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-
+    infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
@@ -66,8 +65,8 @@ int main(int argc, char **argv)
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            aaxEmitter emitter;
             aaxFilter fscene, femitter;
+            aaxEmitter emitter;
             float pitch;
             int deg = 0;
 
@@ -78,7 +77,7 @@ int main(int argc, char **argv)
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
-#if 1
+#if ENABLE_SCENERY_FREQFILTER
             /* frequency filter */
             fscene = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
             fscene = aaxFilterSetSlot(fscene, 0, AAX_LINEAR,
@@ -105,11 +104,11 @@ int main(int argc, char **argv)
             res = aaxEmitterSetPitch(emitter, pitch);
             testForState(res, "aaxEmitterSetPitch");
 
+#if ENABLE_EMITTER_FREQFILTER
             /* frequency filter */
-#if 1
             femitter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
             femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR,
-                                              400.0f, 1.0f, 0.0f, 1.0f);
+                                                  400.0f, 1.0f, 0.0f, 1.0f);
             femitter = aaxFilterSetState(femitter, AAX_FALSE);
             res = aaxEmitterSetFilter(emitter, femitter);
             res = aaxFilterDestroy(femitter);
@@ -143,7 +142,7 @@ int main(int argc, char **argv)
                     printf("add emitter lowpass at %3.1f Hz\n", FEMITTER);
                     printf("\tband stop filter between %3.1f Hz and %3.1f Hz\n",
                             FEMITTER, FSCENE);
-                    femitter = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
+                    femitter=aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
                     femitter = aaxFilterSetState(femitter, AAX_TRUE);
                     res = aaxEmitterSetFilter(emitter, femitter);
                 }
@@ -157,7 +156,7 @@ int main(int argc, char **argv)
                 else if ((deg > 4*DEG) && (deg < (4*DEG+4)))
                 {
                     printf("envelope following filtering (auto wah)\n");
-                    femitter = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
+                    femitter=aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
                     femitter = aaxFilterSetSlot(femitter, 0, AAX_LINEAR,
                                               300.0f, 0.4f, 1.0f, 12.0f);
                     femitter = aaxFilterSetSlot(femitter, 1, AAX_LINEAR,
