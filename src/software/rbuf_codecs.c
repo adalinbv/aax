@@ -166,7 +166,6 @@ _aaxProcessCodec(int32_t* d, void *s, _aaxCodec *codecfn, unsigned int src_pos,
       }
    }
    else if (dbuflen) {
-printf("clear: %i\n", dbuflen);
       memset(dptr, 0, dbuflen*dbps);
    }
 }
