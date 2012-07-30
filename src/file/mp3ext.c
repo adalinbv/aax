@@ -323,7 +323,6 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
    if (handle->capturing)
    {
       int framesz_bits = handle->no_tracks*handle->bits_sample;
-#if 1
       size_t blocksize = (no_frames*framesz_bits)/8;
       size_t size = 0;
       int ret;
@@ -337,61 +336,6 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
 //       _AAX_SYSLOG("mp3; unable to read data");
          rv = -1;
       }
-#else
-      unsigned char *ptr = (unsigned char*)data;
-
-      if (!handle->blockbuf) {
-         handle->blockbuf = malloc(BLOCKSIZE);
-      }
-
-      if (handle->offset_samples)	/* there is some old data available */
-      {
-         unsigned int max_samples = BLOCKSIZE*8/framesz_bits;
-         unsigned int offset = handle->offset_samples;
-         unsigned int samples, size;
-
-         samples = _MIN(max_samples - offset, no_frames);
-         no_frames -= samples;
-
-         handle->offset_samples += samples;
-         if (handle->offset_samples >= max_samples) {
-            handle->offset_samples = 0;
-         }
-
-         size = (samples*framesz_bits)/8;
-         offset = (offset*framesz_bits)/8;
-         _aax_memcpy(ptr, handle->blockbuf+offset, size);
-         ptr += size;
-         rv = size;
-      }
-
-      while (no_frames)			/* need to decode new block(s) */
-      {
-         size_t size = 0;
-         int ret;
-
-         ret = pmpg123_read(handle->id, handle->blockbuf, BLOCKSIZE, &size);
-         if (ret == MPG123_OK)
-         {
-            size_t frames = _MIN(size*8/framesz_bits, no_frames);
-            unsigned int offset = handle->offset_samples;
-
-            handle->offset_samples += frames;
-            no_frames -= frames;
-
-            size = (frames*framesz_bits)/8;
-            offset = (offset*framesz_bits)/8;
-            _aax_memcpy(ptr, handle->blockbuf+offset, size);
-            ptr += size;
-            rv += size;
-         }
-         else
-         {
-//          _AAX_SYSLOG("mp3; unable to read data");
-            rv = 0;
-         }
-      }
-#endif
    }
 
    return rv;
