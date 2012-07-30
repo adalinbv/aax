@@ -220,15 +220,16 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          if (!freq_filter && !delay_effect && !dist_state)
          {
             int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
+            int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
+
             for (track=0; track<sno_tracks; track++)
             {
                char *sptr = (char*)rbs->track[track];
                int32_t *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
-               sptr -= cdesamps*sbps;
-               sstart += cdesamps-CUBIC_SAMPS;
-               sno_samples += cdesamps;
+               sptr -= CUBIC_SAMPS*sbps;
+               sno_samples += CUBIC_SAMPS;
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
@@ -236,8 +237,9 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                                 sbps, src_loops);
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _aaxProcessResample(dptr-ddesamps, scratch0-cdesamps, dest_pos,
-                                   dest_pos+dno_samples+ddesamps, smu, fact);
+               _aaxProcessResample(dptr-ddesamps, scratch0-cdesamps-offs,
+                                   dest_pos, dest_pos+dno_samples+ddesamps,
+                                   smu, fact);
             }
          }
          else
@@ -257,10 +259,8 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                int32_t *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
-               /* TODO: seems faulty here .. */
-//             sptr -= cdesamps*sbps;
-//             sstart += cdesamps-CUBIC_SAMPS;
-//             sno_samples += cdesamps;
+               sptr -= CUBIC_SAMPS*sbps;
+               sno_samples += CUBIC_SAMPS;
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
