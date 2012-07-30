@@ -228,8 +228,11 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                int32_t *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
-               sptr -= CUBIC_SAMPS*sbps;
-               sno_samples += CUBIC_SAMPS;
+               if (!nbuf)
+               {
+                  sptr -= CUBIC_SAMPS*sbps;
+                  sno_samples += CUBIC_SAMPS;
+               }
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
@@ -259,8 +262,11 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                int32_t *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
-               sptr -= CUBIC_SAMPS*sbps;
-               sno_samples += CUBIC_SAMPS;
+               if (!nbuf)
+               {
+                  sptr -= CUBIC_SAMPS*sbps;
+                  sno_samples += CUBIC_SAMPS;
+               }
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
