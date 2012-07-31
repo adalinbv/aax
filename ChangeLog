@@ -1,4 +1,4 @@
-* Min Jul 30 2012 - tech@adalin.org
+* Mon Jul 30 2012 - tech@adalin.org
 - AeonWave (2.2.2) stable; urgency=medium
   * Fix a delay effects (phasing, chorus, flanging) problem that was introduced
     by the off-by-one fix for streaming audio with a low sample frequency.
