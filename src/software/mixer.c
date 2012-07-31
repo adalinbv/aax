@@ -590,12 +590,11 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *d
             _aax_memcpy(ptr-ds, optr-ds+frames, ds*bps);
          }
          rv = nrb;
-
-         if (res < 0) *dt = 0.0f;
       }
       else {
          _oalRingBufferClear(dest_rb);
       }
+      if (res <= 0) *dt = 0.0f;
    }
 
    return rv;

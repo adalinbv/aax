@@ -116,7 +116,7 @@ _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 void
 _batch_cvtps_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
 {
-   static const float mul = 1.0/(float)(1<<23);
+   static const float mul = 1.0f/(float)(1<<23);
    int32_t* s = (int32_t*)sptr;
    float* d = (float*)dst;
    unsigned int i = num;

@@ -534,7 +534,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
          unsigned int outbuf_size;
          char *p = 0;
 
-         outbuf_size = handle->no_channels * no_frames*sizeof(int32_t);
+         outbuf_size = handle->no_channels * no_frames * sizeof(int32_t);
          handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
          handle->scratch = (char *)p;
 #ifndef NDEBUG
@@ -543,7 +543,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       }
 						/* read the frames */
       bytes = handle->file->update(handle->file->id, scratch, no_frames);
-      if (!bytes) return AAX_TRUE;
+      if (bytes <= 0) return bytes;
 
       abytes = abs(bytes);
       file_no_samples = abytes*8/file_bits;		/* still interleaved */
@@ -588,7 +588,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
          memset((int32_t*)data+samples, 0, bufsize);
       }
 					/* last resample and de-interleave */
-     _batch_cvt24_24_intl((int32_t**)tracks, data, offs, file_no_tracks, no_frames);
+     _batch_cvt24_24_intl((int32_t**)tracks, data,
+                          offs, file_no_tracks, no_frames);
    }
 
    return bytes;
