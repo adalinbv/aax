@@ -1,4 +1,13 @@
-* Tue Jul 16 2012 - tech@adalin.org
+* Min Jul 30 2012 - tech@adalin.org
+- AeonWave (2.2.2) stable; urgency=medium
+  * Fix a delay effects (phasing, chorus, flanging) problem that was introduced
+    by the off-by-one fix for streaming audio with a low sample frequency.
+  * Fix IMA4 support for WAV file capturing and playback on non file backends.
+  * Fix an off-by-one problem for the loopback device.
+
+ -- Erik Hofman <tech@adalin.org>  Mon, 30 Jul 2012 12:31:00 +0200
+
+* Mon Jul 16 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low
   * Added native support for Windows (Vista or later).
   * A complete overhaul of the File backend;
