@@ -524,6 +524,8 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
    pCoInitializeEx(NULL, 0);
    do
    {
+      float pitch;
+
       /*
        * For shared mode set wfx to point to a valid, non-NULL pointer variable.
        * For exclusive mode, set wfx to NULL. The method allocates the storage
@@ -599,6 +601,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       else {
          _AAX_SYSLOG("mmdev; uncaught format error");
       }
+      pitch = handle->Fmt.Format.nSamplesPerSec / *speed;
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
 
@@ -656,6 +659,13 @@ printf("*frames: %i, samples: %i\n", *frames, samples);
        * method determines how large a buffer to allocate based on the
        * scheduling period of the audio engine.
        */
+      samples = ceilf(samples*pitch);
+      if (samples & 0xF)
+      {
+         samples |= 0xF;
+         samples++;
+      }
+      *frames = samples;
       f = (float)handle->Fmt.Format.nSamplesPerSec;
       hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*samples/f);
 
