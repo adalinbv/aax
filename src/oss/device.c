@@ -353,6 +353,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    unsigned int channels, format, freq;
    int frag, no_samples = 1024;
    audio_buf_info info;
+   float pitch;
    int fd, err;
 
    if (*frames) {
@@ -400,6 +401,17 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
       err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
    }
 
+   err = pioctl(fd, SNDCTL_DSP_SPEED, &freq);
+   pitch = freq / *speed;
+   *speed = freq;
+
+   no_samples = ceilf(no_samples*pitch);
+   if (no_samples & 0xF)
+   {
+      no_samples |= 0xF;
+      no_samples++;
+   }
+
    frag = log2i(no_samples*channels*handle->bytes_sample);
 // frag = log2i(channels*freq); // 1 second buffer
    if (frag < 4) {
@@ -412,9 +424,6 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    err = pioctl(fd, SNDCTL_DSP_SETFMT, &format);
    if (err >= 0) {
       err = pioctl(fd, SNDCTL_DSP_CHANNELS, &channels);
-   }
-   if (err >= 0) {
-      err = pioctl(fd, SNDCTL_DSP_SPEED, &freq);
    }
    if ((err >= 0) && (handle->mode == O_WRONLY)) {
       err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);

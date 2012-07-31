@@ -387,7 +387,11 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       int res = handle->file->open(handle->file->id, handle->name);
       if (res)
       {
-         int freq = handle->file->get_frequency(handle->file->id);
+         unsigned int no_frames = *frames;
+         float pitch;
+
+         freq = handle->file->get_frequency(handle->file->id);
+         pitch = freq / *speed;
 
          handle->frequency = (float)freq;
          handle->no_channels = handle->file->get_no_tracks(handle->file->id);
@@ -395,6 +399,14 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
          *fmt = handle->format;
          *speed = handle->frequency;
          *tracks = handle->no_channels;
+
+         no_frames = ceilf(no_frames * pitch);
+         if (no_frames & 0xF)
+         {
+            no_frames |= 0xF;
+            no_frames++;
+         }
+         *frames = no_frames;
 
          rv = AAX_TRUE;
       }

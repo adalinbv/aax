@@ -75,9 +75,9 @@ _aaxDetectWavFile()
 
 /* -------------------------------------------------------------------------- */
 
-#define DEFAULT_OUTPUT_RATE     22050
-#define WAVE_HEADER_SIZE        11
-#define WAVE_EXT_HEADER_SIZE    17
+#define WAVE_HEADER_SIZE        	11
+#define WAVE_EXT_HEADER_SIZE    	17
+#define DEFAULT_OUTPUT_RATE		22050
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 
 
@@ -286,7 +286,7 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
          handle->io.write.size_bytes += rv;
       }
    }
-   else
+   else		/* capturing */
    {
       if (handle->format == AAX_IMA4_ADPCM) {
          rv = _aaxWavFileReadIMA4(handle, data, no_frames);
@@ -592,7 +592,7 @@ _aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int no_samples, unsigned
          offs_smp -= chunks*8;			/* add remaining offset */
          sptr += offs_smp/2;			/* two samples per byte */
 
-         offs_smp -= (offs_smp/2)*2;		/* skip two-sample chunks   */
+         offs_smp -= (offs_smp/2)*2;		/* skip two-samples (bytes) */
          if (offs_smp)				/* offset was an odd number */
          {					/* probably never happens   */
             uint8_t nibble = *sptr++;
@@ -646,7 +646,7 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
 
    if (no_samples)
    {
-      unsigned int bufsize, block_smp, offs_smp;
+      unsigned int block_smp, offs_smp;
       unsigned blocksize;
       int tracks, res;
 
@@ -654,9 +654,8 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
       blocksize = handle->blocksize;
       block_smp = MSBLOCKSIZE_TO_SMP(blocksize, tracks);
 
-      bufsize = blocksize;
       if (handle->io.read.blockbuf == 0) {
-         handle->io.read.blockbuf = malloc(bufsize);
+         handle->io.read.blockbuf = malloc(blocksize);
       }
 
       offs_smp = handle->io.read.blockstart_smp;
@@ -672,7 +671,9 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
          rv += tracks*decode_smp/2;
 
          handle->io.read.blockstart_smp += decode_smp;
-         handle->io.read.blockstart_smp %= block_smp;
+         if (handle->io.read.blockstart_smp >= block_smp) {
+            handle->io.read.blockstart_smp = 0;
+         }
          no_samples -= decode_smp;
       }
 
@@ -683,7 +684,7 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
          no_samples -= blocks*block_smp;
          while (blocks--)
          {
-            res = read(handle->fd, handle->io.read.blockbuf, bufsize);
+            res = read(handle->fd, handle->io.read.blockbuf, blocksize);
             if (res > 0)
             {
                dst = _aaxWavFileMSIMADecode(handle, dst, block_smp, 0);
@@ -700,7 +701,7 @@ _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
          handle->io.read.blockstart_smp = no_samples;
          if (no_samples)		/* one more block is required */
          {
-            res = read(handle->fd, handle->io.read.blockbuf, bufsize);
+            res = read(handle->fd, handle->io.read.blockbuf, blocksize);
             if (res > 0)
             {
                _aaxWavFileMSIMADecode(handle, dst, no_samples, 0);

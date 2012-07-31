@@ -266,29 +266,6 @@ _aaxNoneDriverGetInterfaces(const void *id, const char *devname, int mode)
 static int
 _aaxLoopbackDriverCapture(const void *id, void **data, int offs, size_t *size, void *scratch, size_t scratchlen)
 {
-#if 0
-   _driver_t *handle = (_driver_t *)id;
-   size_t buflen;
-
-   if ((handle->mode != 0) || (size == 0) || (data == 0))
-      return AAX_FALSE;
-
-   buflen = *size;
-   if (buflen == 0)
-      return AAX_TRUE;
-
-   *size = 0;
-   if (data)
-   {
-      int res;
-
-      res = read(handle->fd, data, buflen);
-      if (res == -1) return AAX_FALSE;
-      *size = res;
-
-      return AAX_TRUE;
-   }
-#endif
    return AAX_FALSE;
 }
 

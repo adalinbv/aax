@@ -813,7 +813,16 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       } else {
          size = rate/25;
       }
-      if (size < 64) size = 64;
+
+      size /= channels;
+      size = ceilf(size*handle->pitch);
+      if (size & 0xF)
+      {
+         size |= 0xF;
+         size++;
+      }
+      if (size < 32) size = 32;
+      size *= channels;
 
       size *= periods;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
