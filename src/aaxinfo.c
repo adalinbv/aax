@@ -180,7 +180,7 @@ int main(int argc, char **argv)
             else printf("%3i\n", y);
             x = aaxMixerGetSetup(cfg, AAX_AUDIO_FRAMES);
             printf("Available audio-frames: ");
-            if (x == UINT_MAX) printf("    infinite\n");
+            if (x == UINT_MAX) printf("   infinite\n");
             else printf("%6i\n", x);
         }
 
