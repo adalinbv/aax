@@ -17,6 +17,7 @@
 #include <software/audio.h>
 
 #include "api.h"
+#include "arch.h"
 #include "copyright.h"
 
 typedef struct {
@@ -283,6 +284,18 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
+   return rv;
+}
+
+AAX_API unsigned AAX_APIENTRY
+aaxGetNoCores(aaxConfig cfg)
+{
+   unsigned rv = 1;
+
+   if (aaxIsValid(cfg, AAX_CONFIG_HD)) {
+      rv = _aaxGetNoCores();
+   }
+
    return rv;
 }
 

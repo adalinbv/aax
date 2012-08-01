@@ -17,6 +17,9 @@
 #if HAVE_STRINGS_H
 # include <strings.h>	/* strcasecmp */
 #endif
+#if HAVE_UNISTD_H
+# include <unistd.h>	/* for sysconf */
+#endif
 #if HAVE_CPU_FEATURES_H
 #include <machine/cpu-features.h>
 #endif
@@ -54,6 +57,7 @@ enum {
     CPUID_FEAT_EDX_FXSR         = 1 << 24, 
     CPUID_FEAT_EDX_SSE          = 1 << 25, 
     CPUID_FEAT_EDX_SSE2         = 1 << 26, 
+    CPUID_FEAT_EDX_HT           = 1 << 28
 };
 
 enum {
@@ -627,43 +631,67 @@ _aax_strdup(const_char_ptr s)
    return ret;
 }
 
-#if 0
 unsigned int
 _aaxGetNoCores()
 {
-   unsigned int rv = 1;
-#if defined(freebsd) || defined(bsdi) || defined(__darwin__) || defined(openbsd)
-   size_t len = sizeof(rv); 
+   unsigned int cores = 1;
+
+#if defined(__MACH__)
+   sysctlbyname("hw.physicalcpu", &cores, sizeof(cores), NULL, 0);
+
+#elif defined(freebsd) || defined(bsdi) || defined(__darwin__) || defined(openbsd)
+   size_t len = sizeof(cores); 
    int mib[4];
 
    mib[0] = CTL_HW;
    mib[1] = HW_AVAILCPU;
-   sysctl(mib, 2, &rv, &len, NULL, 0);
-   if(rv < 1) 
+   sysctl(mib, 2, &cores, &len, NULL, 0);
+   if(cores < 1) 
    {
       mib[1] = HW_NCPU;
-      sysctl(mib, 2, &rv, &len, NULL, 0);
-      if( rv < 1 ) {
-         rv = 1;
-      }
+      sysctl(mib, 2, &cores, &len, NULL, 0);
    }
 #elif defined(__linux__) || (__linux) || (defined (__SVR4) && defined (__sun))
    // also for AIX
-   rv = sysconf( _SC_NPROCESSORS_ONLN );
+   cores = sysconf( _SC_NPROCESSORS_ONLN );
 
 #elif defined(IRIX)
-   rv = sysconf( _SC_NPROC_ONLN );
+   cores = sysconf( _SC_NPROC_ONLN );
 
 #elif defined(HPUX)
-   rv = mpctl(MPC_GETNUMSPUS, NULL, NULL);
+   cores = mpctl(MPC_GETNUMSPUS, NULL, NULL);
 
 #elif defined( WIN32 )
    SYSTEM_INFO sysinfo;
 
    GetSystemInfo( &sysinfo );
-   rv = sysinfo.dwNumberOfProcessors;
+   cores = sysinfo.dwNumberOfProcessors;
 #endif
- 
-   return rv;
+
+#if defined(__i386__)
+   do
+   {
+      int hyper_threading = check_cpuid_edx(CPUID_FEAT_EDX_MMX);
+      char vendor_str[13];
+
+      __cpuid(regs, CPUID_GETVENDORSTRING);
+      memcpy(&vendor_str[0], &regs[EBX], sizeof(int));
+      memcpy(&vendor_str[4], &regs[EDX], sizeof(int));
+      memcpy(&vendor_str[8], &regs[ECX], sizeof(int));
+      vendor_str[12] = 0;
+
+      if (hyper_threading && !strncmp(vendor_str, "GenuineIntel", 12))
+      {
+         int logical;
+
+         __cpuid(regs, CPUID_GETFEATURES);
+         logical = (regs[EBX] >> 16) & 0x7;
+         cores /= logical;
+      }
+   }
+   while (0);
+#endif
+
+   return (cores > 0) ? cores : 1;
 }
-#endif
+
