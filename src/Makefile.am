@@ -1,4 +1,4 @@
-SUBDIRS = software oss alsa dmedia mmdevapi
+SUBDIRS = software file oss alsa dmedia
 
 if NDEBUG
 RMALLOC_LIB = -lzeroxml
@@ -29,16 +29,15 @@ libaax_la_SOURCES = \
 	aax_effects.c \
 	aax_matrix.c \
 	aax_support.c \
-	aax_waveforms.c \
 	aax_audioframe.c \
 	aax_instrument.c
 
 libaax_la_LIBADD = \
 	$(top_builddir)/base/libbase.la \
         $(top_builddir)/src/software/libsoftwaredriver.la \
+	$(top_builddir)/src/file/libfiledriver.la \
 	$(top_builddir)/src/oss/libossdriver.la \
 	$(top_builddir)/src/alsa/libalsadriver.la \
-	$(top_builddir)/src/mmdevapi/libmmdevapidriver.la \
         $(top_builddir)/src/dmedia/libdmediadriver.la \
 	$(RMALLOC_LIB)
 

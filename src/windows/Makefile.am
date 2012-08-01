@@ -1,6 +1,6 @@
-noinst_LTLIBRARIES = libmmdevapidriver.la
+noinst_LTLIBRARIES = libmmdevicedriver.la
 
-libmmdevapidriver_la_SOURCES = \
-	device.c
+libmmdevicedriver_la_SOURCES = \
+	mmdevice.c
 
 AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir) -I$(top_srcdir)/src
