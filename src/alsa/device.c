@@ -46,7 +46,7 @@
 #define DEFAULT_DEVNAME_OLD	"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
                                      ","AAX_MKSTR(DEFAULT_IFNUM)
 #define DEFAULT_DEVNAME		"default"
-#define DEFAULT_HWDEVNAME	"hw:0,0"
+#define DEFAULT_HWDEVNAME	"hw:0"
 #define DEFAULT_RENDERER	"ALSA"
 
 static _aaxDriverDetect _aaxALSADriverDetect;
@@ -1428,7 +1428,7 @@ static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
 };
 
 static const char* _const_soft_default_name[2] = {
-   DEFAULT_DEVNAME, DEFAULT_DEVNAME
+   DEFAULT_HWDEVNAME, DEFAULT_DEVNAME_OLD
 };
 
 static const char* _alsa_type[2] = {
