@@ -583,24 +583,35 @@ _aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int no_samples, unsigned
       }
       else
       {
-         unsigned int chunks = offs_smp/8;	/* 8 samples per chunk  */
+         /* 8 samples per chunk of 4 bytes (int32_t) */
+         unsigned int offs_chunks = offs_smp/8;
+         int offs_bytes;
 
          s += tracks;				/* skip the header      */
-         s += tracks*chunks;			/* skip the data chunks */
+         s += tracks*offs_chunks;		/* skip the data chunks */
          sptr = (uint8_t*)s;
 
-         offs_smp -= chunks*8;			/* add remaining offset */
-         sptr += offs_smp/2;			/* two samples per byte */
+         offs_smp -= offs_chunks*8;
+         offs_bytes = offs_smp/2;		/* two samples per byte */
 
-         offs_smp -= (offs_smp/2)*2;		/* skip two-samples (bytes) */
-         if (offs_smp)				/* offset was an odd number */
-         {					/* probably never happens   */
+         sptr += offs_bytes;			/* add remaining offset */
+         ctr -= offs_bytes;
+
+         offs_smp -= offs_bytes*2;		/* skip two-samples (bytes) */
+         offs_bytes = offs_smp/2;
+
+         sptr += offs_bytes;
+         if (offs_smp)				/* offset is an odd number */
+         {
             uint8_t nibble = *sptr++;
             *d = ima2linear(nibble >> 4, &predictor, &index);
             d += tracks;
-            s += tracks;
-            sptr = (uint8_t*)s;
-            --l;
+            if (--ctr == 0)
+             {
+                ctr = 4;
+                s += tracks;
+                sptr = (uint8_t*)s;
+             }
          }
       }
 
@@ -621,7 +632,7 @@ _aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int no_samples, unsigned
       }
 
       if (l)				/* no. samples was an odd number */
-      {					/* which probably never happens  */
+      {
          uint8_t nibble = *sptr;
          *d = ima2linear(nibble & 0xF, &predictor, &index);
          d += tracks;
