@@ -145,7 +145,7 @@ if test "x$ac_cv_header_pthread_h" = "xyes"; then
 fi
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([alloca.h math.h time.h termios.h assert.h syslog.h libio.h values.h sys/utsname.h])
+AC_CHECK_HEADERS([alloca.h math.h time.h termios.h assert.h syslog.h libio.h values.h sys/utsname.h sys/time.h])
 
 OLD_CFLAGS="$CFLAGS"
 OLD_CPPFLAGS="$CPPFLAGS"
@@ -191,9 +191,10 @@ AC_CONFIG_FILES([ \
 	include/Makefile \
 	include/aax/aax.h \
 	src/Makefile \
+	src/file/Makefile \
 	src/alsa/Makefile \
 	src/dmedia/Makefile \
-	src/mmdevapi/Makefile \
+	src/windows/Makefile \
 	src/oss/Makefile \
 	src/software/Makefile \
 	base/Makefile \
