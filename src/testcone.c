@@ -43,16 +43,16 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH		SRC_PATH"/tictac.wav"
+#define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3f SourcePos = { 0.0f, 0.0f, 10.0f };
-aaxVec3f SourceDir = { 0.0f, 0.0f,  1.0f };
-aaxVec3f SourceVel = { 0.0f, 0.0f,  0.0f };
+aaxVec3f EmitterPos = { 0.0f, 0.0f, 10.0f };
+aaxVec3f EmitterDir = { 0.0f, 0.0f,  1.0f };
+aaxVec3f EmitterVel = { 0.0f, 0.0f,  0.0f };
 
-aaxVec3f ListenerPos = { 0.0f, 0.0f,  0.0f };
-aaxVec3f ListenerAt = {  0.0f, 0.0f, -1.0f };
-aaxVec3f ListenerUp = {  0.0f, 1.0f,  0.0f };
-aaxVec3f ListenerVel = { 0.0f, 0.0f,  0.0f };
+aaxVec3f SensorPos = { 0.0f, 0.0f,  0.0f };
+aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
+aaxVec3f SensorUp = {  0.0f, 1.0f,  0.0f };
+aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
 
 int main(int argc, char **argv)
 {
@@ -85,8 +85,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** sensor settings */
-            res = aaxMatrixSetOrientation(mtx, ListenerPos,
-                                               ListenerAt, ListenerUp);
+            res = aaxMatrixSetOrientation(mtx, SensorPos,
+                                               SensorAt, SensorUp);
             testForState(res, "aaxSensorSetOrientation");
  
             res = aaxMatrixInverse(mtx);
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
             res = aaxSensorSetMatrix(config, mtx);
             testForState(res, "aaxSensorSetMatrix");
 
-            res = aaxSensorSetVelocity(config, ListenerVel);
+            res = aaxSensorSetVelocity(config, SensorVel);
             testForState(res, "aaxSensorSetVelocity");
 
             /** emitter */
@@ -134,15 +134,15 @@ int main(int argc, char **argv)
             {
                 msecSleep(50);
 
-                ang = (float)deg / 180.0f * GMATH_PI;
-                SourceDir[0] = sinf(ang);
-                SourceDir[2] = -cosf(ang);
-                /* SourceDir[2] = cosf(ang); */
+                ang = (float)deg * GMATH_DEG_TO_RAD;
+                EmitterDir[0] = sinf(ang);
+                EmitterDir[2] = -cosf(ang);
+                /* EmitterDir[2] = cosf(ang); */
 
                 printf("deg: %03u\tdir (% f, % f, % f)\n", deg,
-                            SourceDir[0], SourceDir[1], SourceDir[2]);
+                            EmitterDir[0], EmitterDir[1], EmitterDir[2]);
 
-                res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
+                res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
                 testForState(res, "aaxMatrixSetDirection");
 
                 res = aaxEmitterSetMatrix(emitter, mtx);

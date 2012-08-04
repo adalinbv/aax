@@ -50,14 +50,14 @@
 #define DELAY			fabs((STEP/TIME)*1000)
 #define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3f SourcePos = {  0.0f,  100.0f, -INITIAL_DIST };
-aaxVec3f SourceDir = {  1.0f,    0.0f,          0.0f };
-aaxVec3f SourceVel = {  0.0f,    0.0f,         SPEED };
+aaxVec3f EmitterPos = {  0.0f,  100.0f, -INITIAL_DIST };
+aaxVec3f EmitterDir = {  1.0f,    0.0f,          0.0f };
+aaxVec3f EmitterVel = {  0.0f,    0.0f,         SPEED };
 
-aaxVec3f ListenerPos = { 0.0f, 0.0f,  0.0f };
-aaxVec3f ListenerVel = { 0.0f, 0.0f,  0.0f };
-aaxVec3f ListenerAt =  { 0.0f, 0.0f, -1.0f };
-aaxVec3f ListenerUp =  { 0.0f, 1.0f,  0.0f };
+aaxVec3f SensorPos = { 0.0f, 0.0f,  0.0f };
+aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
+aaxVec3f SensorAt =  { 0.0f, 0.0f, -1.0f };
+aaxVec3f SensorUp =  { 0.0f, 1.0f,  0.0f };
 
 int main(int argc, char **argv)
 {
@@ -98,15 +98,15 @@ int main(int argc, char **argv)
             testForState(res, "aaxScenerySetSoundVelocity");
 
             /** sensor settings */
-            res=aaxMatrixSetOrientation(mtx, ListenerPos,
-                                             ListenerAt, ListenerUp);
+            res=aaxMatrixSetOrientation(mtx, SensorPos,
+                                             SensorAt, SensorUp);
             testForState(res, "aaxMatrixSetOrientation");
 
             res = aaxMatrixInverse(mtx);
             res |= aaxSensorSetMatrix(config, mtx);
             testForState(res, "aaxSensorSetMatrix");
 
-            res = aaxSensorSetVelocity(config, ListenerVel);
+            res = aaxSensorSetVelocity(config, SensorVel);
             testForState(res, "aaxSensorSetVelocity");
 
             /** emitter */
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetLooping");
 
-            res = aaxEmitterSetVelocity(emitter, SourceVel);
+            res = aaxEmitterSetVelocity(emitter, EmitterVel);
             testForState(res, "aaxEmitterSetVelocity");
 
             res = aaxEmitterSetReferenceDistance(emitter, 50.0f);
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMaxDistance(emitter, 500.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
 
-            res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
+            res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 
             res = aaxEmitterSetMatrix(emitter, mtx);
@@ -150,13 +150,13 @@ int main(int argc, char **argv)
             {
                 msecSleep(DELAY);
 
-                SourcePos[2] = -dist;
+                EmitterPos[2] = -dist;
                 dist -= STEP;
 
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n", dist,
-                            SourcePos[0], SourcePos[1], SourcePos[2]);
+                            EmitterPos[0], EmitterPos[1], EmitterPos[2]);
 
-                res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
+                res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
                 testForState(res, "aaxMatrixSetDirection");
 
                 res = aaxEmitterSetMatrix(emitter, mtx);

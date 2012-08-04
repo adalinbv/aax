@@ -44,9 +44,9 @@
 
 #define ENABLE_TIMED_GAIN_FILTER	1
 #define ENABLE_TIMED_PITCH_EFFECT	1
-#define ENABLE_EMITTER_DYNAMIC_GAIN	1
-#define ENABLE_EMITTER_DYNAMIC_PITCH	1
-#define ENABLE_MIXER_DYNAMIC_GAIN	1
+#define ENABLE_EMITTER_DYNAMIC_GAIN	0
+#define ENABLE_EMITTER_DYNAMIC_PITCH	0
+#define ENABLE_MIXER_DYNAMIC_GAIN	0
 #define SAMPLE_FREQUENCY		22050
 
 int main(int argc, char **argv)
@@ -80,6 +80,7 @@ int main(int argc, char **argv)
         aaxBuffer buffer;
         aaxFilter filter;
         aaxEffect effect;
+        int i;
 
         no_samples = (unsigned int)(0.3f*SAMPLE_FREQUENCY);
         buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
@@ -225,12 +226,11 @@ int main(int argc, char **argv)
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
         testForState(res, "aaxEmitterStart");
 
+        i = 0;
         do
         {
-            static int i = 0;
-
-            msecSleep(50);
-            if (++i == 50) break;
+            msecSleep(20);
+            if (i == 50) break;
             state = aaxEmitterGetState(emitter);
 
             if (i == 10) 
@@ -240,6 +240,7 @@ int main(int argc, char **argv)
                 res = aaxEmitterSetPitch(emitter, 0.87f);
                 res = aaxEmitterStart(emitter);
             }
+            i++;
         }
         while (state == AAX_PLAYING);
 

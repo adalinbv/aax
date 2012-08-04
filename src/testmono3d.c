@@ -100,9 +100,9 @@ int main(int argc, char **argv)
 
             /** emitter */
             pitch = getPitch(argc, argv);
-            num = getNumSources(argc, argv);
+            num = getNumEmitters(argc, argv);
 
-            /* Set sources to located in a circle around the listener */
+            /* Set emitters to located in a circle around the sensor */
             anglestep = (2 * GMATH_PI) / (float)num;
             printf("Starting %i emitters\n", num);
             i = 0;
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
             deg = 0;
             while(deg < 360)
             {
-                float ang = (float)deg / 180.0f * GMATH_PI;
+                float ang = (float)deg * GMATH_DEG_TO_RAD;
 
                 msecSleep(50);
 

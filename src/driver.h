@@ -49,7 +49,7 @@ char *getDeviceName(int, char **);
 char *getCaptureName(int, char **);
 char *getCommandLineOption(int, char **, char *);
 char *getInputFile(int, char **, const char *);
-int getNumSources(int, char **);
+int getNumEmitters(int, char **);
 float getPitch(int, char **);
 float getGain(int, char **);
 int getMode(int, char **);

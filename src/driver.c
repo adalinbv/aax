@@ -106,7 +106,7 @@ getRenderer(int argc, char **argv)
 }
 
 int
-getNumSources(int argc, char **argv)
+getNumEmitters(int argc, char **argv)
 {
     int num = 1;
     char *ret;
