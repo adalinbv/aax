@@ -466,7 +466,7 @@ playAudioTune(int argc, char **argv)
  *
  * @param in data input buffer
  * @param no_tracks the number of audio tracks in the buffer
- * @param bits_sample bytes per sample for the source buffer
+ * @param bits_sample bytes per sample for the emitter buffer
  * @param no_samples number of samples per audio track
  */
 void *

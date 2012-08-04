@@ -47,7 +47,7 @@
 #define ENABLE_EMITTER_DISTORTION	1
 #define ENABLE_EMITTER_PHASING		1
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
-#define FILE_PATH			SRC_PATH"/sine-440Hz.wav"
+#define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
 {
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 # if ENABLE_EMITTER_PHASING
             /* phasing effect */
-            printf("source phasing..\n");
+            printf("emitter phasing..\n");
             effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               0.8f, 0.0f, 0.0f, 0.095f);

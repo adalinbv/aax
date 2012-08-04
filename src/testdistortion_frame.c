@@ -49,7 +49,7 @@
 #define ENABLE_FRAME_CHORUS		0
 #define ENABLE_FRAME_DYNAMIC_PITCH	0
 #define ENABLE_FRAME_DYNAMIC_GAIN	0
-#define FILE_PATH			SRC_PATH"/sine-440Hz.wav"
+#define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
 {

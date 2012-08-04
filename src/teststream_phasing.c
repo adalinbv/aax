@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_EMITTER_FLANGING
             /* flanging effect */
-            printf("source flanging.. (envelope following)\n");
+            printf("emitter flanging.. (envelope following)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
             effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7f, 1.0f, 0.2f, 0.0f);
             effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_EMITTER_PHASING
             /* phasing effect */
-            printf("source phasing.. (inverse envelope following)\n");
+            printf("emitter phasing.. (inverse envelope following)\n");
             effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               1.0f, 8.0f, 1.0f, 0.0f);
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_EMITTER_CHORUS
             /* flanging effect */
-            printf("source chorus.. (envelope following)\n");
+            printf("emitter chorus.. (envelope following)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               1.0f, 0.8f, 1.0f, 0.0f);
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
                 if (i == 1)
                 {
                     /* frequency filter; 4000Hz lowpass */
-                    printf("source frequency filter at 4000 Hz lowpass\n");
+                    printf("emitter frequency filter at 4000 Hz lowpass\n");
                     filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
                     filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                                       400.0f, 1.0f, 0.0f, 0.0f);
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 
 # if ENABLE_EMITTER_FLANGING
                 /* flanging effect */
-                printf("source flanging..\n");
+                printf("emitter flanging..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   0.88f, 0.08f, 1.0f, 0.0f);
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
 
 # if ENABLE_EMITTER_PHASING
                 /* phasing effect */
-                printf("source phasing..\n");
+                printf("emitter phasing..\n");
                 effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   1.0f, 0.08f, 1.0f, 0.0f);
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 
 # if ENABLE_EMITTER_CHORUS
                 /* chorus effect */
-                printf("source chorus..\n");
+                printf("emitter chorus..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   1.0f, 0.08f, 1.0f, 0.0f);
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 
 # if ENABLE_EMITTER_FLANGING
                 /* flanging effect */
-                printf("source flanging..\n");
+                printf("emitter flanging..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   0.88f, 0.08f, 1.0f, 0.0f);
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_MIXER_PHASING
             /* phasing effect */
-            printf("listener phasing..\n");
+            printf("mixer phasing..\n");
             effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               1.0f, 0.08f, 1.0f, 0.0f);
@@ -278,7 +278,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_MIXER_CHORUS
             /* chorus effect */
-            printf("listener chorus..\n");
+            printf("mixer chorus..\n");
             effect = aaxEffectCreate(config, AAX_CHORUS_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               1.0f, 0.08f, 1.0f, 0.0f);
@@ -293,7 +293,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_MIXER_FlANGING
             /* flanging effect */
-            printf("listener flanging..\n");
+            printf("mixer flanging..\n");
             effect = aaxEffectCreate(config, AAX_FLANGING_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               0.88f, 0.08f, 1.0f, 0.0f);

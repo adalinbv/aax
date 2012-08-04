@@ -102,7 +102,7 @@ int main(int argc, char **argv)
             int i, j, deg = 0;
             aaxMtx4f mtx;
 
-            num = ((getNumSources(argc, argv)-1)/(FRAMES*SUBFRAMES))+1;
+            num = ((getNumEmitters(argc, argv)-1)/(FRAMES*SUBFRAMES))+1;
             emitter = calloc(num*SUBFRAMES*FRAMES, sizeof(aaxEmitter));
 
             /** mixer */
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
                     testForState(res, "aaxAudioFrameStart");
 
                     /** emitter */
-                    /* Set sources to located in a circle around the listener */
+                    /* Set emitters to located in a circle around the sensor */
                     anglestep = (2 * GMATH_PI) / (float)(FRAMES*SUBFRAMES*num);
                     printf("Starting %i emitters\n", num);
                     i = 0;

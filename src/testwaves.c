@@ -63,8 +63,8 @@ static struct {
   { "static white noise", 1.0f, AAX_WHITE_NOISE    }
 };
 
-aaxVec3f SourcePos = { 0.0f,  0.0f, -3.0f };
-aaxVec3f SourceDir = { 0.0f,  0.0f,  1.0f };
+aaxVec3f EmitterPos = { 0.0f,  0.0f, -3.0f };
+aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
 
 int main(int argc, char **argv)
 {
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
         testForState(res, "aaxEmitterSetMode");
 
-        res = aaxMatrixSetDirection(mtx, SourcePos, SourceDir);
+        res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
         testForState(res, "aaxMatrixSetDirection");
 
         res = aaxEmitterSetMatrix(emitter, mtx);

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
             gain = getGain(argc, argv);
             pitch = getPitch(argc, argv);
-            num = getNumSources(argc, argv);
+            num = getNumEmitters(argc, argv);
             printf("Starting %i emitters. gain = %f, pitch = %f\n",
                     num, gain, pitch);
             i = 0;

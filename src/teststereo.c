@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     infile = getInputFile(argc, argv, FILE_PATH);
     devname = getDeviceName(argc, argv);
-    num = getNumSources(argc, argv);
+    num = getNumEmitters(argc, argv);
     if (num>256) num = 256;
 
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
