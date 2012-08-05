@@ -49,7 +49,22 @@ int main(int argc, char **argv)
     aaxConfig config, record;
     char *devname, *infile;
     char indevname[4096];
-    int res;
+    int res, rv = 0;
+
+    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+    testForError(config, "Audio output device is not available.");
+
+    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    {
+        printf("Warning:\n");
+        printf("  %s requires a registered version of AeonWave\n", argv[0]);
+        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+        printf("obtain\n  a product-key.\n\n");
+        rv = -1;
+
+        goto finish;
+    }
+
 
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
@@ -61,9 +76,6 @@ int main(int argc, char **argv)
         exit(-1);
     }
     printf("Playing: %s\n", infile);
-
-    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-    testForError(config, "Audio output device is not available.");
 
     if (config && record)
     {
@@ -107,17 +119,18 @@ int main(int argc, char **argv)
 
         res = aaxDriverDestroy(record);
         testForState(res, "aaxDriverDestroy");
-
-        res = aaxDriverClose(config);
-        testForState(res, "aaxDriverClose");
-
-        res = aaxDriverDestroy(config);
-        testForState(res, "aaxDriverDestroy");
     }
     else {
         printf("Unable to open capture device.\n");
     }
 
-    return 0;
+finish:
+    res = aaxDriverClose(config);
+    testForState(res, "aaxDriverClose");
+
+    res = aaxDriverDestroy(config);
+    testForState(res, "aaxDriverDestroy");
+
+    return rv;
 }
 
