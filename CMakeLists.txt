@@ -18,7 +18,7 @@ PROJECT(aax C)
 SET(PACKAGE_NAME "AeonWave")
 SET(PACKAGE "libaax2")
 
-OPTION(LTO "Enabel linkt-time optimizations" ON)
+OPTION(LTO "Enabel linkt-time optimizations" OFF)
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
 OPTION(RMALLOC "Enable memory debugging functions" OFF)
@@ -26,7 +26,7 @@ OPTION(RMALLOC "Enable memory debugging functions" OFF)
 IF(WIN32)
   ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
   ADD_DEFINITIONS(-D_WIN32)
-  ADD_DEFINITIONS(/NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib)
+  ADD_DEFINITIONS(/NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd)
   SET(LIBAEONWAVE AAX32)
 ELSE(WIN32)
   SET(LIBAEONWAVE aax)
@@ -160,7 +160,7 @@ ELSE(MSVC)
     IF(LTO)
        SET(C_FLAGS "${C_FLAGS} -flto")
     ENDIF(LTO)
-    SET(C_FLAGS "${C_FLAGS} -Os -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -s -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
@@ -319,8 +319,12 @@ TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
 # Note Windows DLL are specified by RUNTIME
 INSTALL(TARGETS ${LIBAEONWAVE}
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Libraries
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT Libraries
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" NAMELINK_SKIP COMPONENT Libraries
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT Headers
+)
+INSTALL(TARGETS ${LIBAEONWAVE}
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" NAMELINK_ONLY
+        COMPONENT Headers
 )
 INSTALL(FILES 
         ${CMAKE_CURRENT_BINARY_DIR}/include/aax/aax.h

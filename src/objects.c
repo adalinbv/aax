@@ -200,11 +200,11 @@ vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
 vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
+   {-1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
    { 0.0f,-1.0f, 0.0f, 1.0f },     /* up-down               */
    { 0.0f, 0.0f, 1.0f, 1.0f },     /* back-front            */
    /* right headphone shell */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
+   { 1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
    { 0.0f,-1.0f, 0.0f, 1.0f },     /* up-down               */
    { 0.0f, 0.0f, 1.0f, 1.0f },     /* back-front            */
    /* unused */
