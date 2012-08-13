@@ -21,7 +21,6 @@
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif
-#define _GNU_SOURCE
 #include <stdarg.h>	/* va_start */
 
 #include <xml.h>

@@ -23,7 +23,7 @@
 static char __threads_enabled = 0;
 
 #if HAVE_PTHREAD_H
-#include <string.h>	/* for memcpy */
+# include <string.h>	/* for memcpy */
 
 #define	USE_REALTIME	1
 #define _TH_SYSLOG(a) __oal_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
@@ -34,6 +34,26 @@ _aaxThreadCreate()
    void *ret  = malloc(sizeof(_aaxThread));
 
    return ret;
+}
+
+/* http://www.linuxjournal.com/article/6799 */
+# include <sched.h>
+int
+_aaxThreadSetAffinity(void *t, int core)
+{
+#if defined(IRIX)
+   pthread_setrunon_np(core);
+
+#elif defined(CPU_ZERO) && defined(CPU_SET)
+   pthread_t *id = t;
+   cpu_set_t cpus;
+
+   CPU_ZERO(&cpus);
+   CPU_SET(core, &cpus);
+   return pthread_setaffinity_np(*id, sizeof(cpu_set_t), &cpus);
+#else
+# pragma waring implement me
+#endif
 }
 
 void
@@ -404,6 +424,17 @@ _aaxThreadCreate()
    void *ret  = calloc(1, sizeof(_aaxThread));
 
    return ret;
+}
+
+int
+_aaxThreadSetAffinity(void *t, int core) 
+{
+   DWORD mask = 1 << (DWORD)core;
+   _aaxThread *thread = t;
+   void *rv;
+
+   rv = SetThreadAffinityMask(thread->handle, &mask);
+   return rv ? 0 : EINVAL;
 }
 
 void

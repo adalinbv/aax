@@ -52,6 +52,7 @@ extern "C" {
 
 
 void *_aaxThreadCreate();
+int _aaxThreadSetAffinity(void *, int);
 void _aaxThreadDestroy(void *);
 int _aaxThreadStart(void *,  void *(*handler)(void*), void *);
 // int _aaxThreadCancel(void *);
