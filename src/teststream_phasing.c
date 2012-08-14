@@ -51,7 +51,7 @@
 #define ENABLE_MIXER_PHASING		1
 #define ENABLE_MIXER_CHORUS		1
 #define ENABLE_MIXER_FlANGING		1
-#define FILE_PATH			SRC_PATH"/wasp.wav"
+#define FILE_PATH			SRC_PATH"/tictac.wav"
 #define _DELAY				120
 #define DELAY				\
     deg = 0; while(deg < _DELAY) { msecSleep(50); deg++; }

@@ -41,8 +41,8 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define REFRESH_RATE		   50.0f
-#define RECORD_TIME_SEC		60000.0f
+#define REFRESH_RATE		50.0f
+#define RECORD_TIME_SEC		15.0f
 #define MIXER_FREQUENCY		48000
 
 int main(int argc, char **argv)
