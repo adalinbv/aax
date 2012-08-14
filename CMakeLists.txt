@@ -54,7 +54,7 @@ ELSE(WIN32)
 
   # RPM
   SET(CPACK_RPM_PACKAGE_LICENSE "BSD")
-  SET(CPACK_RPM_PACKAGE_GROUP "System/Console")
+  SET(CPACK_RPM_PACKAGE_GROUP "System/System/GUI/KDE")
 ENDIF(WIN32)
 
 # ZIP
@@ -76,13 +76,6 @@ IF(MSVC)
     SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG /LD")
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
-
-    SET_PROPERTY(SOURCE src/software/arch_sse.c
-                 PROPERTY COMPILE_FLAGS /arch:SSE
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse2.c
-                 PROPERTY  /arch:SSE2
-    )
 
     OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" ON)
     IF(FORCE_STATIC_VCRT)
@@ -143,10 +136,6 @@ CHECK_INCLUDE_FILE(sys/time.h HAVE_SYS_TIME_H)
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
-
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/control-utils.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/admin/debian/control-utils")
 
 SET(BASE_OBJS
      base/logging.c
