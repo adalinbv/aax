@@ -117,17 +117,17 @@ IF(RMALLOC)
 ENDIF(RMALLOC)
 
 IF(MSVC)
-    SET_PROPERTY(SOURCE src/software/arch_sse.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE /fp:fast -D__SSE__"
+    SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
-    SET_PROPERTY(SOURCE src/software/arch_sse2.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE2 /fp:fast -D__SSE2__"
+    SET_PROPERTY(SOURCE src/software/arch_sse2.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
     )
-    SET_PROPERTY(SOURCE src/software/arch_sse3.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE3 /fp:fast -D__SSE3__"
+    SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE3 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/arch_sse4.c
-                 PROPERTY C_FLAGS "${C_FLAGS} /arch:SSE4 /fp:fast -D__SSE4__"
+    SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE4 /fp:fast -D__SSE4__"
     )
 
     # don't use a /O[012x] flag if you want custom optimizations
@@ -155,25 +155,26 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
-    SET_PROPERTY(SOURCE src/software/arch_sse.c
-                 PROPERTY C_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse2.c
-                 PROPERTY C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse2 -march=pentium-m"
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse3.c
-                 PROPERTY C_FLAGS "${C_FLAGS} -msse3 -mfpmath=sse3 -arch=prescott"
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse4.c
-                 PROPERTY C_FLAGS "${C_FLAGS} -msse4 -mfpmath=sse4 -march=corei7"
-    )
-
     IF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")
     ENDIF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     IF(LTO)
        SET(C_FLAGS "${C_FLAGS} -flto")
     ENDIF(LTO)
+
+    SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND 
+                 PROPERTY COMPILE_FLAGS  "-msse -mfpmath=sse -march=pentium3m"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse2.c APPEND 
+                 PROPERTY COMPILE_FLAGS  "-msse2 -mfpmath=sse -march=pentium-m"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND 
+                 PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse -march=prescott"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND 
+                 PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse -march=corei7"
+    )
+
     SET(C_FLAGS "${C_FLAGS} -s -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
