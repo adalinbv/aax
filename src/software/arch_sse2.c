@@ -17,15 +17,6 @@
 
 #include <ringbuffer.h>
 
-#ifndef _MSC_VER
-# if SIZEOF_SIZE_T == 4
-#  pragma GCC target ("arch=pentium-m")
-# endif
-# pragma GCC target ("sse2","fpmath=sse")
-#else
-# define __SSE2__
-#endif
-
 #include "arch_simd.h"
 
 #ifdef __SSE2__

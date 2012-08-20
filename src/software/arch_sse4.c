@@ -13,15 +13,6 @@
 #include "config.h"
 #endif
 
-#ifndef _MSC_VER
-# if SIZEOF_SIZE_T == 4
-#  pragma GCC target ("arch=corei7")
-# endif
-# pragma GCC target ("sse4","sse4a", "fpmath=sse")
-#else
-# define __SSE4__
-#endif
-
 #include "arch_simd.h"
 
 #ifdef __SSE4__

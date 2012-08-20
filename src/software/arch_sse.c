@@ -15,15 +15,6 @@
 
 #include <api.h>
 
-#ifndef _MSC_VER
-# if SIZEOF_SIZE_T == 4
-#  pragma GCC target ("arch=pentium3m")
-# endif
-# pragma GCC target ("sse","fpmath=sse")
-#else
-# define __SSE__
-#endif
-
 #include "arch_simd.h"
 
 #ifdef __SSE__

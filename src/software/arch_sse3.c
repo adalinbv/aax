@@ -13,15 +13,6 @@
 #include "config.h"
 #endif
 
-#ifndef _MSC_VER
-# if SIZEOF_SIZE_T == 4
-#  pragma GCC target ("arch=prescott")
-# endif
-# pragma GCC target ("sse3","fpmath=sse")
-#else
-# define __SSE3__
-#endif
-
 #include "arch_simd.h"
 
 #ifdef __SSE3__

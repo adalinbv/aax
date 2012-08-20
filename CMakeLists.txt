@@ -155,6 +155,19 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
+    SET_PROPERTY(SOURCE src/software/arch_sse.c
+                 PROPERTY C_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse2.c
+                 PROPERTY C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse2 -march=pentium-m"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse3.c
+                 PROPERTY C_FLAGS "${C_FLAGS} -msse3 -mfpmath=sse3 -arch=prescott"
+    )
+    SET_PROPERTY(SOURCE src/software/arch_sse4.c
+                 PROPERTY C_FLAGS "${C_FLAGS} -msse4 -mfpmath=sse4 -march=corei7"
+    )
+
     IF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")
     ENDIF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
