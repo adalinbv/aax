@@ -254,8 +254,32 @@ aaxFilterSetState(aaxFilter f, int state)
    aaxFilter rv = NULL;
    if (filter)
    {
+      unsigned slot;
+
       filter->state = state;
       filter->slot[0]->state = state;
+
+      /*
+       * Make sure parameters are actually within their expected boundaries.
+       */
+      slot = 0;
+      while ((slot < _MAX_SLOTS) && filter->slot[slot])
+      {
+         int i, type = filter->type;
+         for(i=0; i<4; i++)
+         {
+            if (!is_nan(filter->slot[0]->param[i]))
+            {
+               float min = _flt_minmax_tbl[slot][type].min[i];
+               float max = _flt_minmax_tbl[slot][type].max[i];
+               cvtfn_t cvtfn = get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
+               filter->slot[slot]->param[i] =
+                            _MINMAX(cvtfn(filter->slot[0]->param[i]), min, max);
+            }
+         }
+         slot++;
+      }
+
       switch(filter->type)
       {
       case AAX_GRAPHIC_EQUALIZER:
