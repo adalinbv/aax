@@ -155,25 +155,27 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE(MSVC)
-    IF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-      SET(C_FLAGS "${C_FLAGS} -march=i586")
-    ENDIF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     IF(LTO)
        SET(C_FLAGS "${C_FLAGS} -flto")
     ENDIF(LTO)
 
-    SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND 
-                 PROPERTY COMPILE_FLAGS  "-msse -mfpmath=sse -march=pentium3m"
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse2.c APPEND 
-                 PROPERTY COMPILE_FLAGS  "-msse2 -mfpmath=sse -march=pentium-m"
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND 
-                 PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse -march=prescott"
-    )
-    SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND 
-                 PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse -march=corei7"
-    )
+    IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
+    ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      SET(C_FLAGS "${C_FLAGS} -march=i586")
+      SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND 
+                   PROPERTY COMPILE_FLAGS  "-msse -mfpmath=sse -march=pentium3m"
+      )
+      SET_PROPERTY(SOURCE src/software/arch_sse2.c APPEND 
+                   PROPERTY COMPILE_FLAGS  "-msse2 -mfpmath=sse -march=pentium-m"
+      )
+      SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND 
+                   PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse -march=prescott"
+      )
+      SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND 
+                   PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse -march=corei7"
+      )
+    ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
     SET(C_FLAGS "${C_FLAGS} -s -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
