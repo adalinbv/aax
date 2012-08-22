@@ -253,13 +253,13 @@ aaxEffectSetState(aaxEffect e, int state)
          int i, type = effect->type;
          for(i=0; i<4; i++)
          {
-            if (!is_nan(effect->slot[0]->param[i]))
+            if (!is_nan(effect->slot[slot]->param[i]))
             {
                float min = _eff_minmax_tbl[slot][type].min[i];
                float max = _eff_minmax_tbl[slot][type].max[i];
                cvtfn_t cvtfn = get_cvtfn(effect->type, AAX_LINEAR, WRITEFN, i);
                effect->slot[slot]->param[i] =
-                            _MINMAX(cvtfn(effect->slot[0]->param[i]), min, max);
+                         _MINMAX(cvtfn(effect->slot[slot]->param[i]), min, max);
             }
          }
          slot++;

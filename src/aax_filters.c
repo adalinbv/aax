@@ -268,13 +268,13 @@ aaxFilterSetState(aaxFilter f, int state)
          int i, type = filter->type;
          for(i=0; i<4; i++)
          {
-            if (!is_nan(filter->slot[0]->param[i]))
+            if (!is_nan(filter->slot[slot]->param[i]))
             {
                float min = _flt_minmax_tbl[slot][type].min[i];
                float max = _flt_minmax_tbl[slot][type].max[i];
                cvtfn_t cvtfn = get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
                filter->slot[slot]->param[i] =
-                            _MINMAX(cvtfn(filter->slot[0]->param[i]), min, max);
+                         _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
             }
          }
          slot++;
@@ -651,7 +651,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->max = lfo->min;
                         lfo->min = f;
                      }
-                     filter->slot[0]->param[AAX_CUTOFF_FREQUENCY] = lfo->min;
+//                   filter->slot[0]->param[AAX_CUTOFF_FREQUENCY] = lfo->min;
 
                      /* sweeprate */
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
