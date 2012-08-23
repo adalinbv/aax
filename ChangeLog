@@ -1,3 +1,12 @@
+* Tue Jul 21 2012 - tech@adalin.org
+- AeonWave (2.2.3) stable; urgency=high
+  * Fix a naming clash between ZeroXML and libxml2. The function names of the
+    library were inadvertently exposed.
+  * Sanitize the slot parameters for Filters and Effects when calling their
+    respective SetState function to prevent possible buffer overflows.
+
+ -- Erik Hofman <tech@adalin.org>  Tue, 21 Jul 2012 10:34:00 +0200
+
 * Tue Jul 31 2012 - tech@adalin.org
 - AeonWave (2.2.2) stable; urgency=medium
   * Fix a delay effects (phasing, chorus, flanging) problem that was introduced
@@ -6,7 +15,7 @@
   * Fix end-of-file problem that could cause a segmentation fault.
   * Fix an off-by-one problem for the loopback device.
 
- -- Erik Hofman <tech@adalin.org>  Mon, 31 Jul 2012 13:10:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Tue, 31 Jul 2012 13:10:00 +0200
 
 * Mon Jul 16 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low

@@ -26,7 +26,6 @@ OPTION(RMALLOC "Enable memory debugging functions" OFF)
 IF(WIN32)
   ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
   ADD_DEFINITIONS(-D_WIN32)
-  ADD_DEFINITIONS(/NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd)
   SET(LIBAEONWAVE AAX32)
 ELSE(WIN32)
   ADD_DEFINITIONS(-D_GNU_SOURCE=1)
@@ -117,6 +116,7 @@ IF(RMALLOC)
 ENDIF(RMALLOC)
 
 IF(MSVC)
+    SET(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
     SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
@@ -124,10 +124,10 @@ IF(MSVC)
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
     )
     SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND
-                 PROPERTY COMPILE_FLAGS  "/arch:SSE3 /fp:fast -D__SSE3__"
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
     SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND
-                 PROPERTY COMPILE_FLAGS  "/arch:SSE4 /fp:fast -D__SSE4__"
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
     )
 
     # don't use a /O[012x] flag if you want custom optimizations
@@ -136,10 +136,10 @@ IF(MSVC)
     # without inlining it's unusable, use custom optimizations again
     SET(MIN_OPTIMIZATIONS "/Ob1")
 
-    SET(CMAKE_C_FLAGS_DEBUG "/LDd /Zi /RTC1 /D_DEBUG ${MIN_OPTIMIZATIONS}")
-    SET(CMAKE_C_FLAGS_RELEASE "/LD /Zi /D NDEBUG ${SPEED_OPTIMIZATIONS}")
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/LD /Zi /DNDEBUG ${SPEED_OPTIMIZATIONS}")
-    SET(CMAKE_C_FLAGS_MINSIZEREL "/LD /DNDEBUG ${SIZE_OPTIMIZATIONS}")
+    SET(CMAKE_C_FLAGS_DEBUG "/LDd /MDd /Zi /RTC1 /D_DEBUG ${MIN_OPTIMIZATIONS}")
+    SET(CMAKE_C_FLAGS_RELEASE "/LD /MD /Zi /D NDEBUG ${SPEED_OPTIMIZATIONS}")
+    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/LD /MD /Zi /DNDEBUG ${SPEED_OPTIMIZATIONS}")
+    SET(CMAKE_C_FLAGS_MINSIZEREL "/LD /MD /DNDEBUG ${SIZE_OPTIMIZATIONS}")
 
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
@@ -161,6 +161,12 @@ ELSE(MSVC)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
+      SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND
+                   PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse"
+      )
+      SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND
+                   PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse"
+      )
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")
       SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND 
