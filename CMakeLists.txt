@@ -183,16 +183,16 @@ ELSE(MSVC)
       )
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-    SET(C_FLAGS "${C_FLAGS} -s -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
         "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -DNDEBUG" CACHE STRING
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -DNDEBUG" CACHE STRING
         "Flags used by the compiler during release minsize builds."
         FORCE)
-    SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG"
+    SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
         CACHE STRING "Flags used by the compiler during release builds"
         FORCE)
     SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
