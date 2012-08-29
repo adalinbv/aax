@@ -60,6 +60,7 @@ static _aaxDriverThread _aaxMMDevDriverThread;
 static _aaxDriverState _aaxMMDevDriverIsReachable;
 static _aaxDriverState _aaxMMDevDriverAvailable;
 static _aaxDriver3dMixerCB _aaxMMDevDriver3dMixer;
+static _aaxDriverParam _aaxMMDevDriverGetLatency;
 
 static char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
 static const EDataFlow _mode[] = { eCapture, eRender };
@@ -100,9 +101,11 @@ const _aaxDriverBackend _aaxMMDevDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)*_aaxMMDevDriverAvailable,
-   (_aaxDriverState *)*_aaxMMDevDriverAvailable,
-   (_aaxDriverState *)*_aaxMMDevDriverIsReachable
+   (_aaxDriverState *)&_aaxMMDevDriverAvailable,
+   (_aaxDriverState *)&_aaxMMDevDriverAvailable,
+   (_aaxDriverState *)&_aaxMMDevDriverIsReachable,
+
+   (_aaxDriverParam *)&_aaxMMDevDriverGetLatency
 };
 
 typedef struct
@@ -1088,6 +1091,14 @@ _aaxMMDevDriverGetName(const void *id, int playback)
 
    return ret;
 }
+
+static float
+_aaxMMDevDriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return rv = handle ? handle->hnsLatency*100e-9f : 0.0f;
+}
+
 
 static char *
 _aaxMMDevDriverGetDevices(const void *id, int mode)

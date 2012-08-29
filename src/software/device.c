@@ -51,6 +51,7 @@ static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
 static _aaxDriverPrepare _aaxNoneDriverPrepare;
 static _aaxDriverPostProcess _aaxNoneDriverPostProcess;
 static _aaxDriverThread _aaxNoneDriverThread;
+static _aaxDriverParam _aaxNoneDriverGetLatency;
 
 const _aaxDriverBackend _aaxNoneDriverBackend =
 {
@@ -89,14 +90,19 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 
    (_aaxDriverState *)_aaxNoneDriverAvailable,	/* supports playback */
    (_aaxDriverState *)_aaxNoneDriverNotAvailable, /* supports capture  */
-   (_aaxDriverState *)_aaxNoneDriverAvailable	/* is available      */
+   (_aaxDriverState *)_aaxNoneDriverAvailable,	/* is available      */
+
+   (_aaxDriverParam *)&_aaxNoneDriverGetLatency
 };
 
 
 static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
+static _aaxDriverSetup _aaxLoopbackDriverSetup;
+static _aaxDriverParam _aaxLoopbackDriverGetLatency;
 
 typedef struct {
+   float latency;
    _oalRingBufferMix1NFunc *mix_mono3d;
 } _driver_t;
 
@@ -125,7 +131,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
 
    (_aaxDriverConnect *)&_aaxNoneDriverConnect,
    (_aaxDriverDisconnect *)&_aaxNoneDriverDisconnect,
-   (_aaxDriverSetup *)&_aaxNoneDriverSetup,
+   (_aaxDriverSetup *)&_aaxLoopbackDriverSetup,
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
    (_aaxDriverCaptureCallback *)&_aaxLoopbackDriverCapture,
@@ -138,7 +144,9 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
 
    (_aaxDriverState *)_aaxNoneDriverAvailable,
    (_aaxDriverState *)_aaxNoneDriverNotAvailable,
-   (_aaxDriverState *)_aaxNoneDriverAvailable
+   (_aaxDriverState *)_aaxNoneDriverAvailable,
+
+   (_aaxDriverParam *)&_aaxLoopbackDriverGetLatency
 };
 
 static int
@@ -174,6 +182,18 @@ _aaxNoneDriverDisconnect(void *id)
 static int
 _aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tracks, float *speed)
 {
+   return AAX_TRUE;
+}
+
+static int
+_aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
+{
+   _driver_t *handle = (_driver_t *)id;
+   if (handle) {
+      handle->latency = (float)*frames / (float)*speed;
+   } else {
+      handle->latency = 0.0f;
+   }
    return AAX_TRUE;
 }
 
@@ -238,7 +258,20 @@ _aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, fl
 static char *
 _aaxNoneDriverGetName(const void *id, int playback)
 {
-   return "None Driver";
+   return "None";
+}
+
+static float
+_aaxNoneDriverGetLatency(const void *id)
+{
+   return 0.0f;
+}
+
+static float
+_aaxLoopbackDriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle ? handle->latency : 0.0f;
 }
 
 static char *

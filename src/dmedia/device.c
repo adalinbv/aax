@@ -73,6 +73,7 @@ static _aaxDriverCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
 static _aaxDriverState _aaxDMediaDriverAvailable;
 static _aaxDriver3dMixerCB _aaxDMediaDriver3dMixer;
+static _aaxDriverParam _aaxDMediaDriverGetLatency;
 
 char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
@@ -113,7 +114,9 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
 
    (_aaxDriverState *)&_aaxDMediaDriverAvailable,
    (_aaxDriverState *)&_aaxDMediaDriverAvailable,
-   (_aaxDriverState *)&_aaxDMediaDriverAvailable
+   (_aaxDriverState *)&_aaxDMediaDriverAvailable,
+
+   (_aaxDriverParam *)&_aaxDMediaDriverGetLatency
 };
 
 
@@ -131,8 +134,9 @@ typedef struct
    int device;
    unsigned int bytes_sample;
    unsigned int no_channels;
-   float frequency_hz;
    stamp_t offset;
+   float frequency_hz;
+   float latency;
 
    unsigned int _no_channels_init;
    unsigned int _no_channels_avail;
@@ -616,7 +620,13 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
 
       palSetQueueSize(handle->port[0].config, queuesize);
 
-      if (frames) *frames = queuesize/(channels*handle->port[0].bytes_sample);
+      handle->port[0].latency = 0.0f;
+      if (frames)
+      {
+         *frames = queuesize/(channels*handle->port[0].bytes_sample);
+         handle->port[0].latency = (float)*frames;
+         handle->port[0].latency /= (float)handle->port[0].frequency_hz;
+      }
    }
 
    palSetSampFmt(handle->port[0].config, AL_SAMPFMT_TWOSCOMP);
@@ -864,6 +874,13 @@ _aaxDMediaGetName(const void *id, int playback)
 
    return ret;
 #endif
+}
+
+static float
+_aaxDMediaDriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle ? handle->port[0].latency : 0.0f;
 }
 
 static char *

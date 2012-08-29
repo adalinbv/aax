@@ -64,6 +64,7 @@ static _aaxDriverThread _aaxALSADriverThread;
 static _aaxDriverState _aaxALSADriverIsReachable;
 static _aaxDriverState _aaxALSADriverAvailable;
 static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
+static _aaxDriverParam _aaxALSADriverGetLatency;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxALSADriverBackend =
@@ -104,7 +105,9 @@ const _aaxDriverBackend _aaxALSADriverBackend =
 
    (_aaxDriverState *)&_aaxALSADriverAvailable,
    (_aaxDriverState *)&_aaxALSADriverAvailable,
-   (_aaxDriverState *)&_aaxALSADriverIsReachable
+   (_aaxDriverState *)&_aaxALSADriverIsReachable,
+
+   (_aaxDriverParam *)&_aaxALSADriverGetLatency
 };
 
 typedef struct
@@ -1244,6 +1247,13 @@ _aaxALSADriverGetName(const void *id, int playback)
    
 
    return ret;
+}
+
+static float
+_aaxALSADriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle ? handle->latency : 0.0f;
 }
 
 static char *

@@ -74,6 +74,7 @@ static _aaxDriverGetName _aaxOSSDriverGetName;
 static _aaxDriverState _aaxOSSDriverIsReachable;
 static _aaxDriverState _aaxOSSDriverAvailable;
 static _aaxDriver3dMixerCB _aaxOSSDriver3dMixer;
+static _aaxDriverParam _aaxOSSDriverGetLatency;
 
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
@@ -114,7 +115,9 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 
    (_aaxDriverState *)*_aaxOSSDriverAvailable,
    (_aaxDriverState *)*_aaxOSSDriverAvailable,
-   (_aaxDriverState *)*_aaxOSSDriverIsReachable
+   (_aaxDriverState *)*_aaxOSSDriverIsReachable,
+
+   (_aaxDriverParam *)&_aaxOSSDriverGetLatency
 };
 
 typedef struct
@@ -123,6 +126,7 @@ typedef struct
    int devnum;
 
    int fd;
+   float latency;
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
@@ -430,11 +434,22 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    }
    if (err >= 0)
    {
+      int delay;
+
       handle->format = format;
       handle->no_tracks = channels;
       handle->frequency_hz = (float)freq;
       handle->buffer_size = info.fragsize;
       if (frames) *frames = info.fragsize/(channels*handle->bytes_sample);
+
+      handle->latency = 0.0f;
+      err = pioctl(fd, SNDCTL_DSP_GETODELAY, &delay);
+      if (err >= 0)
+      {
+         handle->latency = (float)delay;
+         handle->latency /= (float)(freq*channels*handle->bytes_sample);
+      }
+      
    }
 
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
@@ -675,6 +690,13 @@ _aaxOSSDriverGetName(const void *id, int playback)
       ret = handle->name;
 
    return ret;
+}
+
+static float
+_aaxOSSDriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle ? handle->latency : 0.0f;
 }
 
 static char *

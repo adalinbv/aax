@@ -71,6 +71,7 @@ typedef int _aaxDriverDisconnect(void*);
 typedef char *_aaxDriverGetName(const void*, int);
 typedef int _aaxDriverSetup(const void*, size_t*, int*, unsigned int*, float*);
 typedef int _aaxDriverState(const void*);
+typedef float _aaxDriverParam(const void*);
 
 typedef int _aaxDriverCallback(const void*, void*, void*, float, float);
 typedef int _aaxDriverCaptureCallback(const void*, void**, int, size_t*, void*, size_t);
@@ -123,6 +124,8 @@ typedef struct
     _aaxDriverState *support_playback;
     _aaxDriverState *support_recording;
     _aaxDriverState *is_available;
+
+    _aaxDriverParam *latency;
 
 } _aaxDriverBackend;
 

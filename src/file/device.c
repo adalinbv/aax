@@ -55,6 +55,7 @@ static _aaxDriverCallback _aaxFileDriverPlayback;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
 static _aaxDriverGetName _aaxFileDriverGetName;
 static _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
+static _aaxDriverParam _aaxFileDriverGetLatency;
 
 char _file_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
@@ -95,7 +96,9 @@ const _aaxDriverBackend _aaxFileDriverBackend =
 
    (_aaxDriverState *)&_aaxFileDriverAvailable,
    (_aaxDriverState *)&_aaxFileDriverAvailable,
-   (_aaxDriverState *)&_aaxFileDriverAvailable
+   (_aaxDriverState *)&_aaxFileDriverAvailable,
+
+   (_aaxDriverParam *)&_aaxFileDriverGetLatency
 };
 
 typedef struct
@@ -104,6 +107,7 @@ typedef struct
    int mode;
    char *name;
 
+   float latency;
    float frequency;
    enum aaxFormat format;
    uint8_t no_channels;
@@ -408,6 +412,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
          }
          *frames = no_frames;
 
+         handle->latency = (float)no_frames / (float)handle->frequency;; 
          rv = AAX_TRUE;
       }
       else
@@ -637,7 +642,7 @@ _aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, fl
    return ret;
 }
 
-char *
+static char *
 _aaxFileDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -654,7 +659,14 @@ _aaxFileDriverGetName(const void *id, int playback)
    return ret;
 }
 
-char *
+static float
+_aaxFileDriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle ? handle->latency : 0.0f;
+}
+
+static char *
 _aaxFileDriverGetDevices(const void *id, int mode)
 {
    static const char *rd[2] = { BACKEND_NAME"\0\0", BACKEND_NAME"\0\0" };
