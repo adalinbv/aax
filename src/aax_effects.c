@@ -307,9 +307,12 @@ aaxEffectSetState(aaxEffect e, int state)
                   {
                      lfo->step[t] = -2.0f*depth * lfo->f;
                      lfo->step[t] /= effect->info->refresh_rate;
-                     lfo->value[t] = 1.0f;
+                     lfo->value[t] = lfo->min;
                      switch (state & ~AAX_INVERSE)
                      {
+                     case AAX_CONSTANT_VALUE:
+                         lfo->value[t] = 1.0f;
+                         break;
                      case AAX_SAWTOOTH_WAVE:
                         lfo->step[t] *= 0.5f;
                         break;
