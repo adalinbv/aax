@@ -170,6 +170,16 @@ int main(int argc, char **argv)
             x = aaxMixerGetRefreshRate(cfg);
             printf("Mixer refresh rate: %u Hz\n", x);
 
+            x = aaxMixerGetSetup(cfg, AAX_UPDATERATE);
+            if (x) {
+                printf("Mixer update rate:  %u Hz\n", x);
+            }
+
+            x = aaxMixerGetSetup(cfg, AAX_LATENCY);
+            if (x) {
+               printf("Mixer latency: %7.2f ms\n", (float)x/1e6f);
+            }
+
             x = aaxMixerGetSetup(cfg, AAX_MONO_EMITTERS);
             y = aaxMixerGetSetup(cfg, AAX_STEREO_EMITTERS);
             printf("Available mono emitters:   ");
