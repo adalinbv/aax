@@ -192,7 +192,17 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             break;
          case AAX_REFRESHRATE:
             rv = (unsigned int)info->refresh_rate;
-            break;     
+            break;
+         case AAX_UPDATERATE:
+             rv = info->refresh_rate/handle->info->update_rate;
+             break;
+         case AAX_LATENCY:
+            if (handle->backend.driver)
+            {
+               const _aaxDriverBackend *be = handle->backend.ptr;
+               rv = (int)(be->latency(handle->backend.handle)*1e9);
+            }
+            break;
          case AAX_TRACKSIZE:
 // TODO: is sizeof(int32_t) correct?
             rv = (unsigned int)(info->frequency*sizeof(int32_t)/info->refresh_rate);

@@ -412,7 +412,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
          }
          *frames = no_frames;
 
-         handle->latency = (float)no_frames / (float)handle->frequency;; 
+         handle->latency = (float)no_frames / (float)handle->frequency;
          rv = AAX_TRUE;
       }
       else
