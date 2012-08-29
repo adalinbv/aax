@@ -1,11 +1,18 @@
-* Tue Jul 21 2012 - tech@adalin.org
+* Wed Aug 29 2012 - tech@adalin.org
+- AeonWave (2.2.4) stable; urgency=low
+ * Fix distortion behavior, it was overcompressing for high distortion factors.
+ * Expose the driver latency.
+
+ -- Erik Hofman <tech@adalin.org>  Tue, 29 Aug 2012 10:37:00 +0200
+
+* Tue Aug 21 2012 - tech@adalin.org
 - AeonWave (2.2.3) stable; urgency=high
   * Fix a naming clash between ZeroXML and libxml2. The function names of the
     library were inadvertently exposed.
   * Sanitize the slot parameters for Filters and Effects when calling their
     respective SetState function to prevent possible buffer overflows.
 
- -- Erik Hofman <tech@adalin.org>  Tue, 21 Jul 2012 10:34:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Tue, 21 Aug 2012 10:34:00 +0200
 
 * Tue Jul 31 2012 - tech@adalin.org
 - AeonWave (2.2.2) stable; urgency=medium
