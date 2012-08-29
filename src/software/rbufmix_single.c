@@ -205,6 +205,8 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
          vstep = (vend - vstart) / dno_samples;
 
          assert(dptr+dno_samples <= t+rbd->no_samples);
+         if (dptr+dno_samples > t+rbd->no_samples)
+             dno_samples = t+rbd->no_samples-dptr;
 
 //       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
          _batch_fmadd(dptr, ptr, dno_samples, vstart, vstep);
@@ -374,6 +376,8 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          vstep = (vend - vstart) / dno_samples;
 
          assert(dptr+dno_samples <= t+rbd->no_samples);
+         if (dptr+dno_samples > t+rbd->no_samples)
+             dno_samples = t+rbd->no_samples-dptr;
 
 //       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
          _batch_fmadd(dptr, ptr, dno_samples, vstart, vstep);
@@ -386,6 +390,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
             assert(diff < (int)rbd->dde_samples);
             assert(diff > -(int)dno_samples);
+            diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
 
             v_start = vstart * hrtf_volume[j];
             v_step = 0.0f; // vstep * hrtf_volume[j];
@@ -685,6 +690,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
 
          assert(diff < (int)ddesamps);
          assert(diff > -(int)dno_samples);
+         diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
  
          v_start = vstart * hrtf_volume[j];
          v_step = 0.0f; // vstep * hrtf_volume[j];
