@@ -121,7 +121,9 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
          if ((volume > 0.001f) || (volume < -0.001f))
          {
             unsigned int samples = delay[q].sample_offs[track];
+
             assert(samples < dmin);
+            if (samples >= dmin) samples = dmin-1;
 
             _batch_fmadd(dptr, sptr-samples, dmax-dmin, volume, 0.0f);
          }
@@ -166,6 +168,7 @@ bufEffectReverb(int32_t *s,
 
          --q;
          assert(samples < ds);
+         if (samples >= ds) samples = ds-1;
 
          _batch_fmadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
@@ -207,6 +210,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
       offs = effect->delay.sample_offs[track];
       assert(offs < ds);
+      if (offs >= ds) offs = ds-1;
 
       if (start) {
          noffs = effect->curr_noffs;
