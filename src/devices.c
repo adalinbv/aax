@@ -295,7 +295,7 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
       config->node[0].setup = _aax_strdup("stereo");
       config->no_nodes = 1;
       config->node[0].interval = 66;
-      config->node[0].update = 20;
+      config->node[0].update = 50;
       config->node[0].hrtf = 0;
       config->node[0].no_speakers = 2;
    }
