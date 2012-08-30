@@ -821,7 +821,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          bytes |= 0xF;
          bytes++;
       }
-      if (bytes < 32) bytes = 32;
+      if (bytes < 16) bytes = 16;
       no_frames = bytes/(channels*bps);
 
       /* Set buffer size (in frames). The resulting latency is given by */
