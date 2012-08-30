@@ -624,7 +624,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       if (frames)
       {
          *frames = queuesize/(channels*handle->port[0].bytes_sample);
-         handle->port[0].latency = (float)*frames;
+         handle->port[0].latency = 2.0f*(float)*frames;
          handle->port[0].latency /= (float)handle->port[0].frequency_hz;
       }
    }
