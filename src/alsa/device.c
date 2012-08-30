@@ -649,12 +649,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    swparams = calloc(1, psnd_pcm_sw_params_sizeof());
    if (hwparams && swparams)
    {
-      snd_pcm_t *hid = handle->id;
-      snd_pcm_format_t data_format;
-      snd_pcm_uframes_t no_frames;
       unsigned int bps = handle->bytes_sample;
       unsigned int periods = handle->no_periods;
       unsigned int val1, val2, period_fact;
+      snd_pcm_t *hid = handle->id;
+      snd_pcm_format_t data_format;
+      snd_pcm_uframes_t no_frames;
       unsigned int bytes;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
@@ -825,15 +825,15 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       no_frames = bytes/(channels*bps);
 
       /* Set buffer size (in frames). The resulting latency is given by */
-      /* latency = periodsize * periods / (rate * bytes_per_fram))      */
+      /* latency = periodsize * periods / (rate * bytes_per_frame))     */
       no_frames *= periods;
-      TRUN(psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
+      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
             "unvalid buffer size" );
       no_frames /= periods;
-
-      if (!handle->mode) no_frames = (no_frames*period_fact);
-      handle->period_frames = no_frames;
       *frames = no_frames;
+
+      if (!handle->mode) no_frames = (no_frames/period_fact);
+      handle->period_frames = no_frames;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -843,7 +843,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          rate = (unsigned int)handle->frequency_hz;
       }
       *speed = handle->frequency_hz = (float)rate;
-
       handle->latency = (float)no_frames*(float)periods/(float)rate;
 
       do
@@ -862,7 +861,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
          _AAX_SYSLOG(str);
-         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)no_frames*channels*bps);
+         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*frames*channels*bps);
          _AAX_SYSLOG(str);
          snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
          _AAX_SYSLOG(str);
@@ -921,7 +920,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 //       handle->period_frames = period_frames;
 
          TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
-                           (no_frames/period_frames)*period_frames),
+                                       (no_frames/period_frames)*period_frames),
                "improper interrupt treshold" );
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
                "wakeup treshold unsupported" );
