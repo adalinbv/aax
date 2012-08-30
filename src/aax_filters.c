@@ -355,8 +355,10 @@ aaxFilterSetState(aaxFilter f, int state)
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
-            else {
-               filter->slot[0]->data = NULL;
+            else
+            {
+               free(filter->slot[EQUALIZER_HF]->data);
+               filter->slot[EQUALIZER_HF]->data = NULL;
             }
          }
 #endif
@@ -414,8 +416,10 @@ aaxFilterSetState(aaxFilter f, int state)
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
-            else {
-               filter->slot[0]->data = NULL;
+            else
+            {
+               free(filter->slot[EQUALIZER_LF]->data);
+               filter->slot[EQUALIZER_LF]->data = NULL;
             }
          }
 #endif
@@ -490,7 +494,9 @@ aaxFilterSetState(aaxFilter f, int state)
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
-            else {
+            else
+            {
+               free(filter->slot[0]->data);
                filter->slot[0]->data = NULL;
             }
          }
@@ -581,6 +587,7 @@ aaxFilterSetState(aaxFilter f, int state)
                break;
             }
             case AAX_FALSE:
+               free(filter->slot[0]->data);
                filter->slot[0]->data = NULL;
                break;
             default:
@@ -712,6 +719,7 @@ aaxFilterSetState(aaxFilter f, int state)
             break;
          }
          case AAX_FALSE:
+            free(filter->slot[0]->data);
             filter->slot[0]->data = NULL;
             break;
          default:

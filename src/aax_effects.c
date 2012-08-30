@@ -359,6 +359,7 @@ aaxEffectSetState(aaxEffect e, int state)
                break;
             }
             case AAX_FALSE:
+               free(effect->slot[0]->data);
                effect->slot[0]->data = NULL;
                break;
             default:
@@ -439,7 +440,9 @@ aaxEffectSetState(aaxEffect e, int state)
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
-            else {
+            else
+            {
+               free(effect->slot[0]->data);
                effect->slot[0]->data = NULL;
             }
          }
@@ -606,8 +609,14 @@ aaxEffectSetState(aaxEffect e, int state)
                break;
             }
             case AAX_FALSE:
+            {
+               _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
+               if (data) data->lfo.envelope = AAX_FALSE;
+
+               free(effect->slot[0]->data);
                effect->slot[0]->data = NULL;
                break;
+            }
             default:
                _aaxErrorSet(AAX_INVALID_PARAMETER);
                break;
