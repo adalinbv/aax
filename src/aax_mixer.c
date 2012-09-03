@@ -89,12 +89,15 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
+               float update_hz = info->refresh_rate/info->update_rate;
                float fq = info->frequency;
                float iv = (float)setup;
                if (iv <= 5.0f) iv = 5.0f;
 
                iv = fq / (float)get_pow2((unsigned)ceilf(fq / iv));
                info->refresh_rate = iv;
+
+               info->update_rate = (uint8_t)rintf(iv/update_hz);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -104,7 +107,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
-               info->update_rate = (unsigned int)info->refresh_rate / setup;
+               info->update_rate = (uint8_t)rintf(info->refresh_rate/setup);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -363,6 +366,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
          case AAX_FLANGING_EFFECT:
+         case AAX_REVERB_EFFECT:
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)
             {
@@ -413,6 +417,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
       case AAX_PITCH_EFFECT:
+      case AAX_REVERB_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
@@ -574,6 +579,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                         submix->info->frequency /= 2.0f;
                      }
                      submix->info->refresh_rate = mixer->info->refresh_rate;
+                     submix->info->update_rate = mixer->info->update_rate;
                      submix->dist_delaying = mixer->dist_delaying;
                      if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
                         _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
