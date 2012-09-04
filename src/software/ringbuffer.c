@@ -1138,22 +1138,23 @@ _oalRingBufferTestPlaying(const _oalRingBuffer *rb)
 }
 
 void
-_oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float loopback, float lb_gain)
+_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float loopback, float lb_gain)
 {
+   _oalRingBufferReverbData **ptr = (_oalRingBufferReverbData**)data;
    _oalRingBufferReverbData *reverb;
 
-   assert(rb != 0);
+   assert(ptr != 0);
    assert(delay != 0);
    assert(gain != 0);
 
-   reverb = rb->reverb;
-   if (reverb == NULL) {
-      reverb = calloc(1, sizeof(_oalRingBufferReverbData));
+   if (*ptr == NULL) {
+      *ptr = calloc(1, sizeof(_oalRingBufferReverbData));
    }
 
+   reverb = *ptr;
    if (reverb)
    {
-      unsigned int j, num = _AAX_MAX_SPEAKERS;
+      unsigned int j, snum = _AAX_MAX_SPEAKERS;
 
       if (reverb->history_ptr == 0) {
          _oalRingBufferCreateHistoryBuffer(&reverb->history_ptr,
@@ -1170,7 +1171,7 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
          {
             if ((gain[i] > 0.001f) || (gain[i] < -0.001f))
             {
-               for (j=0; j<num; j++) {
+               for (j=0; j<snum; j++) {
                   reverb->delay[i].sample_offs[j] = (int)(delay[i] * fs);
                }
                reverb->delay[i].gain = gain[i];
@@ -1195,23 +1196,28 @@ _oalRingBufferDelaysAdd(_oalRingBuffer *rb, float fs, unsigned int tracks, const
             reverb->loopback[2].sample_offs[j] = (int)(loopback * fs*0.677f);
          }
       }
-      rb->reverb = reverb;
+      *data = reverb;
    }
 }
 
 void
-_oalRingBufferDelaysRemove(_oalRingBuffer *rb)
+_oalRingBufferDelaysRemove(void **data)
 {
-   assert(rb != 0);
-   if (rb->reverb)
+   _oalRingBufferReverbData *reverb;
+
+   assert(data != 0);
+
+   reverb = *data;
+   if (reverb)
    {
-      rb->reverb->no_delays = 0;
-      rb->reverb->no_loopbacks = 0;
-      rb->reverb->delay[0].gain = 1.0f;
-      free(rb->reverb->history_ptr);
+      reverb->no_delays = 0;
+      reverb->no_loopbacks = 0;
+      reverb->delay[0].gain = 1.0f;
+      free(reverb->history_ptr);
    }
 }
 
+#if 0
 void
 _oalRingBufferDelayRemoveNum(_oalRingBuffer *rb, unsigned int n)
 {
@@ -1229,6 +1235,7 @@ _oalRingBufferDelayRemoveNum(_oalRingBuffer *rb, unsigned int n)
       memcpy(&rb->reverb->delay[n], &rb->reverb->delay[n+1], size);
    }
 }
+#endif
 
 unsigned int
 _oalRingBufferGetNoSources()
@@ -1342,6 +1349,21 @@ _oalGetSetMonoSources(unsigned int max, int num)
    return ret;
 }
 
+/*
+ * Low Frequency Oscilator funtions
+ *
+ * Internally the oscillator always runs between 0.0f and 1.0f
+ * The functions return a value between lfo->min and lfo->max which are
+ * absolute values that may range beyond the internal limits.
+ *
+ * lfo->step is a user defined, time (refresh rate) compensated step value
+ * that assures the oscillator will run one cycle in the desired frequency.
+ *
+ * lfo->inv is an internal parameter that defines the counting direction.
+ *
+ * lfo->value is the current LFO output value in the used defined range
+ * (between lfo->min and lfo->max).
+ */
 float
 _oalRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsigned int end)
 {
@@ -1350,7 +1372,7 @@ _oalRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsi
    if (lfo)
    {
       rv = lfo->value[track];
-      rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
+      rv = lfo->inv ? lfo->max-rv : rv;
    }
    return lfo->convert(rv);
 }
@@ -1362,15 +1384,18 @@ _oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
    float rv = 1.0f;
    if (lfo)
    {
-      rv = lfo->value[track];
-      rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
+      float max = (lfo->max - lfo->min);
+      float step = lfo->step[track]*max;
 
-      lfo->value[track] += lfo->step[track];
-      if (((lfo->value[track] < lfo->min) && (lfo->step[track] < 0))
-          || ((lfo->value[track] > lfo->max) && (lfo->step[track] > 0))) 
+      rv = lfo->value[track];
+      rv = lfo->inv ? lfo->max-rv : rv;
+
+      lfo->value[track] += step;
+      if (((lfo->value[track] < lfo->min) && (step < 0))
+          || ((lfo->value[track] > lfo->max) && (step > 0))) 
       {
          lfo->step[track] *= -1.0f;
-         lfo->value[track] += lfo->step[track];
+         lfo->value[track] -= step;
       }
    }
    return lfo->convert(rv);
@@ -1381,9 +1406,8 @@ static float
 _fast_sin1(float x)
 {
    float y = fmodf(x+0.5f, 2.0f) - 1.0f;
-   return 0.5f + 2.0f*y - 2.0f*y*fabsf(y);
+   return 0.5f + 2.0f*(y - y*fabsf(y));
 }
-
 
 float
 _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned int end)
@@ -1393,18 +1417,20 @@ _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
    if (lfo)
    {
       float max = (lfo->max - lfo->min);
-      float v = (lfo->value[track] - lfo->min)/max;
+      float step = lfo->step[track]*max;
+      float v = lfo->value[track];
 
-      lfo->value[track] += lfo->step[track];
-      if (((lfo->value[track] < lfo->min) && (lfo->step[track] < 0))
-          || ((lfo->value[track] > lfo->max) && (lfo->step[track] > 0)))
+      lfo->value[track] += step;
+      if (((lfo->value[track] < lfo->min) && (step < 0))
+          || ((lfo->value[track] > lfo->max) && (step > 0)))
       {
          lfo->step[track] *= -1.0f;
-         lfo->value[track] += lfo->step[track];
+         lfo->value[track] -= step;
       }
 
+      v = (v - lfo->min)/max;
       rv = lfo->min + max*_fast_sin1(v);
-      rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
+      rv = lfo->inv ? lfo->max-rv : rv;
    }
    return lfo->convert(rv);
 }
@@ -1416,15 +1442,18 @@ _oalRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned
    float rv = 1.0f;
    if (lfo)
    {
-      rv = (lfo->step[track] >= 0.0f ) ? lfo->max : lfo->min;
-      rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
+      float max = (lfo->max - lfo->min);
+      float step = lfo->step[track]*max;
 
-      lfo->value[track] += lfo->step[track];
-      if (((lfo->value[track] < lfo->min) && (lfo->step[track] < 0))
-          || ((lfo->value[track] > lfo->max) && (lfo->step[track] > 0)))
+      rv = (step >= 0.0f ) ? lfo->max : lfo->min;
+      rv = lfo->inv ? lfo->max-rv : rv;
+
+      lfo->value[track] += step;
+      if (((lfo->value[track] < lfo->min) && (step < 0))
+          || ((lfo->value[track] > lfo->max) && (step > 0)))
       {
          lfo->step[track] *= -1.0f;
-         lfo->value[track] += lfo->step[track];
+         lfo->value[track] -= step;
       }
    }
    return lfo->convert(rv);
@@ -1438,14 +1467,17 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
    float rv = 1.0f;
    if (lfo)
    {
-      rv = lfo->value[track];
-      rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
+      float max = (lfo->max - lfo->min);
+      float step = lfo->step[track]*max;
 
-      lfo->value[track] += lfo->step[track];
+      rv = lfo->value[track];
+      rv = lfo->inv ? lfo->max-rv : rv;
+
+      lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
-         lfo->value[track] += (lfo->max - lfo->min);
+         lfo->value[track] += max;
       } else if (lfo->value[track] >= lfo->max) {
-         lfo->value[track] -= (lfo->max - lfo->min);
+         lfo->value[track] -= max;
       }
    }
    return lfo->convert(rv);

@@ -133,6 +133,12 @@ _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
       effect->param[AAX_CLIPPING_FACTOR] = 0.3f;
       effect->param[AAX_ASYMMETRY] = 0.7f;
       break;
+   case AAX_REVERB_EFFECT:
+      effect->param[AAX_DELAY_GAIN] = 0.7f;
+      effect->param[AAX_DELAY_TIME] = 0.27f;
+      effect->param[AAX_DECAY_GAIN] = 0.3f;
+      effect->param[AAX_DECAY_TIME] = 0.7f;
+      break;
    default:
       break;
    }

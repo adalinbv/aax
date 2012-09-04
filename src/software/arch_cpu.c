@@ -38,8 +38,7 @@ _batch_mul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
    {
       int8_t* d = (int8_t*)data;
       do {
-         *d = (int8_t)(*d * f);
-         ++d;
+         *d++ *= f;
       }
       while (--i);
       break;
@@ -48,8 +47,7 @@ _batch_mul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
    {
       int16_t* d = (int16_t*)data;
       do {
-         *d = (int16_t)(*d * f);
-         ++d;
+         *d++ *= f;
       }
       while (--i);
       break;
@@ -58,8 +56,7 @@ _batch_mul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
    {
       int32_t* d = (int32_t*)data;
       do {
-         *d = (int32_t)(*d * f);
-         ++d;
+         *d++ *= f;
       }
       while (--i);
       break;

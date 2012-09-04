@@ -1206,27 +1206,26 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _aaxAudioFrame* mixer = (_aaxAudioFrame*)frame;
    _oalRingBuffer *dest_rb = mixer->ringbuffer;
-   // unsigned int rv;
+   _oalRingBuffer2dProps sp2d;
+   _oalRingBuffer3dProps sp3d;
+
+   /* copying here prevents locking the listener the whole time */
+   /* it's used for just one time-frame anyhow                  */
+   memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
+   memcpy(&sp2d.pos, mixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+   memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4_t));
+   memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
 
    /** process registered sensors */
    if (mixer->sensors) {
-      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors, mixer->props2d);
+      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors, &sp2d);
    }
 
    /* postprocess registered (non threaded) audio frames */
    if (mixer->frames)
    {
-      _oalRingBuffer2dProps sp2d;
-      _oalRingBuffer3dProps sp3d;
       unsigned int i, num;
       _intBuffers *hf;
-
-      /* copying here prevents locking the listener the whole time */
-      /* it's used for just one time-frame anyhow                  */
-      memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
-      memcpy(&sp2d.pos, mixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-      memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4_t));
-      memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
 
       hf = mixer->frames;
       num = _intBufGetMaxNum(hf, _AAX_FRAME);

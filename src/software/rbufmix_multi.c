@@ -112,6 +112,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
       max *= lfo->get(lfo, NULL, 0, 0);
+printf("%x, max: %f\n", p2d, max);
    }
    if (max != 1.0f) {
       gain *= 1.0f - max/2.0f;

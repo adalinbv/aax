@@ -344,7 +344,8 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
    { 0, "AAX_CHORUS_EFFECT" },
    { 0, "AAX_FLANGING_EFFECT" },
 #endif
-   { 1, "AAX_VELOCITY_EFFECT" }
+   { 1, "AAX_VELOCITY_EFFECT" },
+   { 1, "AAX_REVERBY_EFFECT" }
 };
 
 const char *_aax_id_s[_AAX_MAX_ID] =

@@ -34,8 +34,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
 {
    _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
    _oalRingBuffer *rb = (_oalRingBuffer *)drb;
-   _oalRingBufferDelayEffectData* delay;
    _oalRingBufferFreqFilterInfo* freq_filter;
+   _oalRingBufferDelayEffectData* delay;
    _oalRingBufferSample *rbd;
    int dist_state;
    float gain;
@@ -101,6 +101,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 {
    _oalRingBuffer *rb = (_oalRingBuffer*)d;
    _sensor_t *sensor = (_sensor_t*)s;
+   _oalRingBufferReverbData *reverb;
    unsigned int track, tracks;
    _oalRingBufferSample *rbd;
    char parametric, graphic;
@@ -112,6 +113,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    rbd = rb->sample;
 
+   reverb = 0;
    parametric = graphic = 0;
    if (sensor)
    {
@@ -124,6 +126,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          p = 0;
          ptr = _aax_malloc(&p, 2*rbd->track_len_bytes);
       }
+
+      reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
    }
 
    /* set up this way because we always need to apply compression */
@@ -183,6 +187,13 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          }
          while (b > 0);
       }
+
+      if (reverb)
+      {
+         unsigned int ds = rbd->dde_samples;
+         bufEffectReverb(d1, 0, dmax, ds, track, reverb);
+      }
+
       _aaxProcessCompression(d1, 0, dmax);
    }
    free(ptr);

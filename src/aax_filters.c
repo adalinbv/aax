@@ -528,7 +528,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   int t;
 
                   lfo->min = 0.0f;
-                  lfo->max = 2.0f * depth;
+                  lfo->max = depth;
                   lfo->envelope = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
@@ -668,7 +668,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                      {
-                        float step = 2.0f*(lfo->max - lfo->min) * lfo->f;
+                        float step = 2.0f * lfo->f;
                         step /= filter->info->refresh_rate;
                         lfo->step[t] = step;
                         lfo->value[t] = lfo->max;

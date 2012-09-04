@@ -85,6 +85,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          case AAX_CHORUS_EFFECT:
          case AAX_FLANGING_EFFECT:
          case AAX_DISTORTION_EFFECT:
+         case AAX_REVERB_EFFECT:
             _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
             break;
          case AAX_TIMED_PITCH_EFFECT:
@@ -129,6 +130,14 @@ aaxEffectDestroy(aaxEffect f)
        */
       switch (effect->type)
       {
+      case AAX_REVERB_EFFECT:
+      {
+         _oalRingBufferReverbData* data = effect->slot[0]->data;
+         if (data) free(data->history_ptr);
+         free(effect->slot[0]->data);
+         effect->slot[0]->data = NULL;
+         break;
+      }
       case AAX_FLANGING_EFFECT:
       {
          _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
@@ -359,7 +368,7 @@ aaxEffectSetState(aaxEffect e, int state)
                break;
             }
             case AAX_FALSE:
-               free(effect->slot[0]->data);
+//             free(effect->slot[0]->data);
                effect->slot[0]->data = NULL;
                break;
             default:
@@ -442,7 +451,7 @@ aaxEffectSetState(aaxEffect e, int state)
             }
             else
             {
-               free(effect->slot[0]->data);
+//             free(effect->slot[0]->data);
                effect->slot[0]->data = NULL;
             }
          }
@@ -490,10 +499,12 @@ aaxEffectSetState(aaxEffect e, int state)
 
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
+                     // slowly work towards the new settings
                      step = data->lfo.step[t];
                      sign = step ? (step/fabsf(step)) : 1.0f;
-                     data->lfo.step[t] = sign * effect->info->refresh_rate;
-                     data->lfo.step[t] *= 0.5f * data->lfo.f;
+
+                     data->lfo.step[t] = sign * 2.0f * data->lfo.f;
+                     data->lfo.step[t] /= effect->info->refresh_rate;
                   }
                   data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
 
@@ -613,7 +624,7 @@ aaxEffectSetState(aaxEffect e, int state)
                _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
                if (data) data->lfo.envelope = AAX_FALSE;
 
-               free(effect->slot[0]->data);
+//             free(effect->slot[0]->data);
                effect->slot[0]->data = NULL;
                break;
             }
@@ -624,6 +635,52 @@ aaxEffectSetState(aaxEffect e, int state)
          }
 #endif
          break;
+      case AAX_REVERB_EFFECT:
+      {
+         switch (state & ~AAX_INVERSE)
+         {
+         case AAX_CONSTANT_VALUE:
+         {
+            unsigned int tracks = effect->info->no_tracks;
+            float fs = effect->info->frequency;
+            float f, g, di, dlb, dt;
+            float delay[5], gain[5];
+
+            di = effect->slot[0]->param[AAX_DELAY_TIME]*DELAY_EFFECTS_TIME;
+            dlb = effect->slot[0]->param[AAX_DECAY_TIME]*DELAY_EFFECTS_TIME;
+            if (dlb >= DELAY_EFFECTS_TIME*0.98f)
+               dlb = DELAY_EFFECTS_TIME*0.98f;
+            dt = dlb - di*1.07f;
+
+            delay[0] = 0;
+            delay[1] = di;
+            delay[2] = di + dt*0.391f;
+            delay[3] = di + dt*0.547f;
+            delay[4] = di + dt;
+
+            g = effect->slot[0]->param[AAX_DELAY_GAIN];
+            gain[0] = 1.0f;
+            gain[1] = g;
+            gain[2] = g*0.901f;
+            gain[3] = g*0.89f;
+            gain[4] = g*0.81f;
+
+            g = effect->slot[0]->param[AAX_DECAY_GAIN];
+            f = pow(0.001f/g, dt/dlb);
+            _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
+                                  delay, gain, 5, dlb, f);
+            break;
+         }
+         case AAX_FALSE:
+            _oalRingBufferDelaysRemove(&effect->slot[0]->data);
+            effect->slot[0]->data = NULL;
+            break;
+         default:
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+         }
+         break;
+      }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -730,7 +787,8 @@ static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
   { AAX_PHASING_EFFECT,		DELAY_EFFECT },
   { AAX_CHORUS_EFFECT,		DELAY_EFFECT },
   { AAX_FLANGING_EFFECT,	DELAY_EFFECT },
-  { AAX_VELOCITY_EFFECT,	VELOCITY_EFFECT }
+  { AAX_VELOCITY_EFFECT,	VELOCITY_EFFECT },
+  { AAX_REVERB_EFFECT,          REVERB_EFFECT }
 };
 
 static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
@@ -753,7 +811,9 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_FLANGING_EFFECT  */
     { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     1.0f } },
     /* AAX_VELOCITY_EFFECT  */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } }
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } },
+    /* AAX_REVERB_EFFECT     */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } }
   },
   {
     /* AAX_EFFECT_NONE      */
@@ -774,6 +834,8 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
     /* AAX_VELOCITY_EFFECT  */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_REVERB_EFFECT     */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } }
   },
   {
     /* AAX_EFFECT_NONE      */
@@ -794,6 +856,8 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
     /* AAX_VELOCITY_EFFECT  */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
+    /* AAX_REVERB_EFFECT     */
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } }
   }
 };
 

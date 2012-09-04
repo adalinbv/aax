@@ -340,7 +340,7 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax) {
 void
 bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
 {
-   static const float df = 1.0f/(float)(int32_t)0x7FFFFFFF;
+   static const float df = 1.0f/2147483648.0f; // (float)(int32_t)0x7FFFFFFF;
    int32_t *ptr = (int32_t*)d;
    float osamp = 0.0f;
    float imix, mix;
@@ -358,7 +358,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       int32_t samp;
 
       samp = *ptr;
-      asamp = fabsf(samp+asym); // abs(samp); // fabsf(samp+asym);
+      asamp = fabsf(samp+asym);
 
       pos = 1+(asamp >> SHIFT);
       sdf = asamp*df;
@@ -386,19 +386,17 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
 void
 bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
 {
+   static const float df = 1.0f/2147483648.0f;
    int32_t *ptr = (int32_t*)d;
    unsigned int j;
    float mix;
 
-   mix = 256.0f; //  * _MINMAX(clip, 0.0, 1.0);
+   mix = 256.0f; // * _MINMAX(clip, 0.0, 1.0);
    j = dmax-dmin;
    do
    {
-      static const float df = 1.0f/(float)0x7FFFFFFF;
-      float samp;
-
-      samp = atan(*ptr*df*mix)*GMATH_1_PI_2;
-      *ptr++ = samp*(float)0x7FFFFF;
+      float samp = atan(*ptr*df*mix)*GMATH_1_PI_2;
+      *ptr++ = samp*8388608;
    }
    while (--j);
 }

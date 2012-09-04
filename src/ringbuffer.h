@@ -90,6 +90,7 @@ enum
 
     /* stereo effects */
     PITCH_EFFECT = 0,
+    REVERB_EFFECT,
     DYNAMIC_PITCH_EFFECT,
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,
@@ -264,9 +265,11 @@ typedef struct
    int32_t* delay_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
 
-   unsigned int curr_noffs;
-   unsigned int curr_coffs;
-   unsigned int curr_step;
+   /* temporary storage, track specific. */
+   unsigned int curr_noffs[_AAX_MAX_SPEAKERS];
+   unsigned int curr_coffs[_AAX_MAX_SPEAKERS];
+   unsigned int curr_step[_AAX_MAX_SPEAKERS];
+
    char reverb;
 } _oalRingBufferDelayEffectData;
 
@@ -321,7 +324,7 @@ typedef struct			/* static information about the sample*/
 typedef struct		/* playback related information about the sample*/
 {
     _oalRingBufferSample* sample;
-    _oalRingBufferReverbData* reverb;
+//  _oalRingBufferReverbData* reverb;
 
     float elapsed_sec;
     float pitch_norm;
@@ -694,9 +697,9 @@ void _oalRingBufferGetLoopPoints(const _oalRingBuffer*, unsigned int*, unsigned 
 float _oalRingBufferGetOffsetSec(const _oalRingBuffer*);
 unsigned int _oalRingBufferGetOffsetSamples(const _oalRingBuffer*);
 
-void _oalRingBufferDelaysAdd(_oalRingBuffer*, float, unsigned int, const float*, const float*, unsigned int, float, float);
-void _oalRingBufferDelaysRemove(_oalRingBuffer*);
-void _oalRingBufferDelayRemoveNum(_oalRingBuffer*, unsigned int);
+void _oalRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float);
+void _oalRingBufferDelaysRemove(void**);
+// void _oalRingBufferDelayRemoveNum(_oalRingBuffer*, unsigned int);
 
 unsigned int _oalRingBufferGetSource();
 unsigned int _oalRingBufferPutSource();

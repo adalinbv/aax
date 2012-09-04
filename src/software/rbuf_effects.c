@@ -85,7 +85,6 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
       DBG_MEMCLR(1, dst-ds, ds+end, bps);
       _aax_memcpy(dst+start, src+start, no_samples*bps);
    }
-// bufCompress(dptr, start, end, 0.2f, 0.0f);
 }
 
 #if !ENABLE_LITE
@@ -157,7 +156,7 @@ bufEffectReverb(int32_t *s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
-      int32_t *sptr = s + dmin + ds;
+      int32_t *sptr = s + dmin;
       unsigned int q = snum;
 
       _aax_memcpy(s, reverb->reverb_history[track], ds*sizeof(int32_t));
@@ -166,13 +165,12 @@ bufEffectReverb(int32_t *s,
          unsigned int samples = reverb->loopback[q].sample_offs[track];
          float volume = -reverb->loopback[q].gain / (snum+1);
 
-         --q;
          assert(samples < ds);
          if (samples >= ds) samples = ds-1;
 
          _batch_fmadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
-      while (q);
+      while (--q);
       _aax_memcpy(reverb->reverb_history[track], s+dmin-1, ds*sizeof(int32_t));
    }
 }
@@ -213,13 +211,13 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       if (offs >= ds) offs = ds-1;
 
       if (start) {
-         noffs = effect->curr_noffs;
+         noffs = effect->curr_noffs[track];
       }
       else
       {
          noffs = (unsigned int)effect->lfo.get(&effect->lfo, s, track, end);
          effect->delay.sample_offs[track] = noffs;
-         effect->curr_noffs = noffs;
+         effect->curr_noffs[track] = noffs;
       }
 
       if (s == d)	/*  flanging */
@@ -233,8 +231,8 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
          if (start)
          {
-            step = effect->curr_step;
-            coffs = effect->curr_coffs;
+            step = effect->curr_step[track];
+            coffs = effect->curr_coffs[track];
          }
          else
          {
@@ -244,7 +242,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
                if (step < 2) step = end;
             }
          }
-         effect->curr_step = step;
+         effect->curr_step[track] = step;
 
          DBG_MEMCLR(1, s-ds, ds+start, bps);
          _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
@@ -276,7 +274,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
 //       DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
          _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
-         effect->curr_coffs = coffs;
+         effect->curr_coffs[track] = coffs;
       }
       else	/* chorus, phasing */
       {
@@ -338,18 +336,20 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
          float mix_factor;
 
          /* make dptr the wet signal */
-         if (fact > 0.01f) {
+         if (fact > 0.0013f) {
             _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
          }
 
          if ((fact > 0.01f) || (asym > 0.01f)) {
-            bufCompress(dptr, 0, no_samples, clip, asym);
+            bufCompress(dptr, 0, no_samples, clip, 4*asym);
          }
 
          /* mix with the dry signal */
          mix_factor = mix/(0.5f+powf(fact,0.25f));
          _batch_mul_value(dptr, bps, no_samples, mix_factor);
-         _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+         if (mix < 0.99f) {
+            _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+         }
       }
    }
    while(0);

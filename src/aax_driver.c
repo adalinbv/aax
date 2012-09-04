@@ -958,7 +958,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             } else {
                handle->info->update_rate = 1;
             }
-            if (handle->info->update_rate < 1) handle->info->update_rate = 1;
+            if (handle->info->update_rate < 1) {
+               handle->info->update_rate = 1;
+            }
 
             /* key is valid */
             handle->valid = HANDLE_ID;
@@ -985,7 +987,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             } else {
                handle->info->update_rate = 0;
             }
-            if (handle->info->update_rate < 1) handle->info->update_rate = 1;
+            if (handle->info->update_rate < 1) {
+               handle->info->update_rate = 1;
+            }
 
             if (handle->info->max_emitters > _AAX_MAX_MIXER_REGISTERED_LT) {
                 handle->info->max_emitters =  _AAX_MAX_MIXER_REGISTERED_LT;
