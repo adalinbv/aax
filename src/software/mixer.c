@@ -357,6 +357,9 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    props2d = fp2d ? (_oalRingBuffer2dProps*)fp2d : (_oalRingBuffer2dProps*)sp2d;
    props3d = fp3d ? (_oalRingBuffer3dProps*)fp2d : (_oalRingBuffer3dProps*)sp2d;
 
+#if 0
+   /** This causes double speed LFO for pitch and gain */
+
    lfo = _EFFECT_GET_DATA(props2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       props2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
@@ -365,6 +368,7 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    if (lfo && !lfo->envelope) {
       props2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
    }
+#endif
 
    num = 0;
    stage = 0;
@@ -890,7 +894,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                   tracks = _oalRingBufferGetNoTracks(dest_rb);
                   src_rb = _intBufGetDataPtr(buf);
 
-                  lfo = _FILTER_GET_DATA(mixer->props2d,DYNAMIC_GAIN_FILTER);
+                  lfo = _FILTER_GET_DATA(mixer->props2d, DYNAMIC_GAIN_FILTER);
                   for (track=0; track<tracks; track++)
                   {
                      int32_t *data = dest_rb->sample->track[track];
