@@ -1487,26 +1487,28 @@ float
 _oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, unsigned int end)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   static const float div = 1.0f / (float)0x000fffff;
    float rv = 1.0f;
    if (lfo && ptr && end)
    {
-      static const float div = 1.0f / (float)0x000fffff;
+      float max = (lfo->max - lfo->min);
+      float val = lfo->value[track];
       int32_t *sptr = (int32_t *)ptr;
       unsigned int i = end;
-      float nval, val, fact;
+      uint64_t tmp;
+      float fact;
 
-      nval = lfo->value[track];
-      rv = lfo->min + nval*(lfo->max - lfo->min);
-      rv = lfo->inv ? lfo->max+lfo->min-rv : rv;
-
-      val = 0.0f;
+      tmp = 0;
       do {
-         val += fabsf(*sptr++);
+         tmp += abs(*sptr++);
       } while (--i);
-      val = _MINMAX(val*div/(float)end, 0.0f, 1.0f);
 
-      fact = lfo->step[track];
-      lfo->value[track] = _MAX(nval + fact*(val - nval), 0);
+      tmp /= 3*end;
+      fact = lfo->step[track]*0.095f;
+      val = _MINMAX(tmp*div, 0.0f, 1.0f);
+
+      rv = powf(val, fact)*max;
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
    }
    return lfo->convert(rv);
 }

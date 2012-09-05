@@ -544,10 +544,6 @@ aaxFilterSetState(aaxFilter f, int state)
                      case AAX_SAWTOOTH_WAVE:
                         lfo->step[t] *= 0.5f;
                         break;
-                     case AAX_ENVELOPE_FOLLOW:
-                        lfo->value[t] /= lfo->max;
-                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-                        break;
                      default:
                         break;
                      }
@@ -676,10 +672,6 @@ aaxFilterSetState(aaxFilter f, int state)
                         {
                         case AAX_SAWTOOTH_WAVE:
                            lfo->step[t] *= 0.5f;
-                           break;
-                        case AAX_ENVELOPE_FOLLOW:
-                           lfo->value[t] /= lfo->max;
-                           lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                            break;
                         default:
                            break;

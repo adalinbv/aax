@@ -325,10 +325,6 @@ aaxEffectSetState(aaxEffect e, int state)
                      case AAX_SAWTOOTH_WAVE:
                         lfo->step[t] *= 0.5f;
                         break;
-                     case AAX_ENVELOPE_FOLLOW:
-                        lfo->value[t] /= lfo->max;
-                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-                        break;
                      default:
                         break;
                      }
@@ -570,8 +566,6 @@ aaxEffectSetState(aaxEffect e, int state)
                         case AAX_ENVELOPE_FOLLOW:
                         {
                            float fact=effect->slot[0]->param[AAX_LFO_FREQUENCY];
-                           data->lfo.value[t] /= data->lfo.max;
-                           data->lfo.step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
                            break;
                         }
                         default:
