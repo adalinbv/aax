@@ -141,8 +141,8 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
 
       if (lfo && lfo->envelope)
       {
-         g = lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
-         if (g > 1e-3) g = 1.0f/g;
+         g = 1.0f - lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
+         if (lfo->inv) g = 1.0f/g;
       }
 
       vstart = g*gain * svol * p2d->prev_gain[track];

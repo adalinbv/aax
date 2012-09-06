@@ -156,9 +156,8 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
       if (!lfo->envelope)
       {
          float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
-         if (g > 1e-3) gain *= 1.0f/g;
-      }
-      else {
+         if (lfo->inv) g = 1.0f/g;
+      } else {
          max *= lfo->get(lfo, NULL, 0, 0);
       }
    }
@@ -303,9 +302,8 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       if (!lfo->envelope) 
       {
          float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
-         if (g > 1e-3) gain *= 1.0f/g;
-      } 
-      else {
+         if (lfo->inv) g = 1.0f/g;
+      } else {
          max *= lfo->get(lfo, NULL, 0, 0);
       }
    }
@@ -488,9 +486,8 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       if (!lfo->envelope) 
       {
          float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
-         if (g > 1e-3) gain *= 1.0f/g;
-      } 
-      else {
+         if (lfo->inv) g = 1.0f/g;
+      } else {
          max *= lfo->get(lfo, NULL, 0, 0);
       }
    }
@@ -623,9 +620,8 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       if (!lfo->envelope) 
       {
          float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
-         if (g > 1e-3) gain *= 1.0f/g;
-      } 
-      else {
+         if (lfo->inv) g = 1.0f/g;
+      } else {
          max *= lfo->get(lfo, NULL, 0, 0);
       }
    }

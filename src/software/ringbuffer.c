@@ -1384,11 +1384,10 @@ _oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
    float rv = 1.0f;
    if (lfo)
    {
-      float max = (lfo->max - lfo->min);
-      float step = lfo->step[track]*max;
+      float step = lfo->step[track];
 
       rv = lfo->value[track];
-      rv = lfo->inv ? lfo->max-rv : rv;
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
       lfo->value[track] += step;
       if (((lfo->value[track] < lfo->min) && (step < 0))
@@ -1417,7 +1416,7 @@ _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
    if (lfo)
    {
       float max = (lfo->max - lfo->min);
-      float step = lfo->step[track]*max;
+      float step = lfo->step[track];
       float v = lfo->value[track];
 
       lfo->value[track] += step;
@@ -1427,10 +1426,10 @@ _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
       }
-
       v = (v - lfo->min)/max;
-      rv = lfo->min + max*_fast_sin1(v);
-      rv = lfo->inv ? lfo->max-rv : rv;
+
+      rv = max*_fast_sin1(v);
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
    }
    return lfo->convert(rv);
 }
@@ -1442,8 +1441,7 @@ _oalRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned
    float rv = 1.0f;
    if (lfo)
    {
-      float max = (lfo->max - lfo->min);
-      float step = lfo->step[track]*max;
+      float step = lfo->step[track];
 
       rv = (step >= 0.0f ) ? lfo->max : lfo->min;
       rv = lfo->inv ? lfo->max-rv : rv;
@@ -1468,10 +1466,10 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
    if (lfo)
    {
       float max = (lfo->max - lfo->min);
-      float step = lfo->step[track]*max;
+      float step = lfo->step[track];
 
       rv = lfo->value[track];
-      rv = lfo->inv ? lfo->max-rv : rv;
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
@@ -1491,24 +1489,31 @@ _oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, 
    float rv = 1.0f;
    if (lfo && ptr && end)
    {
-      float max = (lfo->max - lfo->min);
-      float val = lfo->value[track];
       int32_t *sptr = (int32_t *)ptr;
       unsigned int i = end;
+      float nval, fact;
       uint64_t tmp;
-      float fact;
-
+#if 0
+      float vala;
+      rv = lfo->value[track];
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+#endif
       tmp = 0;
       do {
          tmp += abs(*sptr++);
       } while (--i);
-
       tmp /= 3*end;
-      fact = lfo->step[track]*0.095f;
-      val = _MINMAX(tmp*div, 0.0f, 1.0f);
 
-      rv = powf(val, fact)*max;
+      fact = lfo->step[track]*0.1f;	/* max 10.0f scale back to 1.0f */
+      nval = _MINMAX(tmp*div, 0.0f, 1.0f);
+
+#if 0
+//    val = lfo->value[track];
+      lfo->value[track] = powf(nval, fact)*(lfo->max - lfo->min);
+#else
+      rv = powf(nval, fact)*(lfo->max - lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+#endif
    }
    return lfo->convert(rv);
 }
