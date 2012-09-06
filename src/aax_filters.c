@@ -537,6 +537,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
                      lfo->step[t] = 2.0f*depth * lfo->f;
+                     lfo->step[t] *= (lfo->max - lfo->min);
                      lfo->step[t] /= filter->info->refresh_rate;
                      lfo->value[t] = 1.0f;
                      switch (state & ~AAX_INVERSE)
@@ -544,6 +545,9 @@ aaxFilterSetState(aaxFilter f, int state)
                      case AAX_SAWTOOTH_WAVE:
                         lfo->step[t] *= 0.5f;
                         break;
+                     case AAX_ENVELOPE_FOLLOW:
+                         lfo->step[t] = depth * lfo->f;
+                         break;
                      default:
                         break;
                      }
@@ -664,14 +668,17 @@ aaxFilterSetState(aaxFilter f, int state)
 
                      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                      {
-                        float step = 2.0f * lfo->f;
-                        step /= filter->info->refresh_rate;
-                        lfo->step[t] = step;
+                        lfo->step[t] = 2.0f * lfo->f;
+                        lfo->step[t] *= (lfo->max - lfo->min);
+                        lfo->step[t] /= filter->info->refresh_rate;
                         lfo->value[t] = lfo->max;
                         switch (state & ~AAX_INVERSE)
                         {
                         case AAX_SAWTOOTH_WAVE:
                            lfo->step[t] *= 0.5f;
+                           break;
+                        case AAX_ENVELOPE_FOLLOW:
+                           lfo->step[t] = lfo->f;
                            break;
                         default:
                            break;

@@ -728,6 +728,7 @@ void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, u
 int32_t**_aaxProcessMixer(_oalRingBuffer*, _oalRingBuffer*,  _oalRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 
 float _lin(float v);
+float _square(float v);
 float _lin2log(float v);
 float _log2lin(float v);
 float _lin2db(float v);

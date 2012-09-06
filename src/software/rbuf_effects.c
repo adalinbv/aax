@@ -303,7 +303,9 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data)
 {
-   float *distort = data;
+   _oalRingBufferFilterInfo *dist_effect = (_oalRingBufferFilterInfo*)data;
+   _oalRingBufferLFOInfo* lfo = dist_effect->data;
+   float *params = dist_effect->param;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -321,14 +323,18 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
       int32_t *dptr = d - ds + dmin;
       float clip, asym, fact, mix;
       unsigned int no_samples;
-
-      fact = distort[AAX_DISTORTION_FACTOR];
-      clip = distort[AAX_CLIPPING_FACTOR];
-      mix  = distort[AAX_MIX_FACTOR];
-      asym = distort[AAX_ASYMMETRY];
+      float lfo_fact = 1.0;
 
       no_samples = dmax+ds-dmin;
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
+
+      if (lfo) {
+         lfo_fact = lfo->get(lfo, sptr, track, no_samples);
+      }
+      fact = params[AAX_DISTORTION_FACTOR]*lfo_fact;
+      clip = params[AAX_CLIPPING_FACTOR];
+      mix  = params[AAX_MIX_FACTOR]*lfo_fact;
+      asym = params[AAX_ASYMMETRY];
 
       _aax_memcpy(dptr, sptr, no_samples*bps);
       if (mix > 0.01f)

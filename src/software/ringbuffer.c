@@ -1309,6 +1309,7 @@ _oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX] =
 
 
 float _lin(float v) { return v; }
+float _square(float v) { return v*v; }
 float _lin2log(float v) { return log10f(v); }
 float _log2lin(float v) { return powf(10.0f,v); }
 float _lin2db(float v) { return 20.0f*log10f(v); }

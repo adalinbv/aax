@@ -253,7 +253,7 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
             int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
             
             if ( dist_state) {
-                distortion_effect = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
+                distortion_effect = &p2d->effect[DISTORTION_EFFECT];
             }
 
             for (track=0; track<sno_tracks; track++)
@@ -361,10 +361,7 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       asamp = fabsf(samp+asym);
 
       pos = 1+(asamp >> SHIFT);
-      sdf = asamp*df;
-
-      assert(sdf >= 0.0f);
-      assert(sdf <= 1.0f);
+      sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
       rise = _MINMAX(osamp*df-sdf, 0.0f, 1.0f);
       pos = (unsigned int)_MINMAX(pos+asym*rise, 0, ((1<<BITS)-1));
