@@ -90,7 +90,7 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
 #if !ENABLE_LITE
 void
 bufEffectReflections(int32_t* d, const int32_ptr s,
-                        unsigned int dmin, unsigned int dmax,
+                        unsigned int dmin, unsigned int dmax, unsigned int ds,
                         unsigned int track, const void *data)
 {
    const _oalRingBufferReverbData *reverb = data;
@@ -110,25 +110,24 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
       const _oalRingBufferDelayInfo *delay = reverb->delay;
       const int32_ptr sptr = s + dmin;
       int32_t *dptr = d + dmin;
-      unsigned int q = snum;
+      unsigned int q = snum-1;
 
       do
       {
          float volume = delay[q].gain / snum;
-
-         --q;
          if ((volume > 0.001f) || (volume < -0.001f))
          {
             unsigned int samples = delay[q].sample_offs[track];
 
-            assert(samples < dmin);
-            if (samples >= dmin) samples = dmin-1;
+            assert(samples < ds);
+            if (samples >= ds) samples = dmin-1;
 
             _batch_fmadd(dptr, sptr-samples, dmax-dmin, volume, 0.0f);
          }
       }
-      while (q);
+      while (--q);
    }
+#if 0
    else
    {
       float volume = reverb->delay[0].gain;
@@ -136,6 +135,7 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
          _batch_fmadd(d+dmin, s+dmin, dmax-dmin, volume, 0.0f);
       }
    }
+#endif
 }
 
 void
@@ -156,10 +156,11 @@ bufEffectReverb(int32_t *s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
+      unsigned int bytes = ds*sizeof(int32_t);
       int32_t *sptr = s + dmin;
-      unsigned int q = snum;
+      unsigned int q = snum-1;
 
-      _aax_memcpy(s, reverb->reverb_history[track], ds*sizeof(int32_t));
+      _aax_memcpy(s-bytes, reverb->reverb_history[track], bytes);
       do
       {
          unsigned int samples = reverb->loopback[q].sample_offs[track];
@@ -171,7 +172,7 @@ bufEffectReverb(int32_t *s,
          _batch_fmadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
       while (--q);
-      _aax_memcpy(reverb->reverb_history[track], s+dmin-1, ds*sizeof(int32_t));
+      _aax_memcpy(reverb->reverb_history[track], s+dmin-bytes-1, bytes);
    }
 }
 

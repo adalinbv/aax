@@ -1,6 +1,8 @@
 * Wed Aug 29 2012 - tech@adalin.org
 - AeonWave (2.2.4) stable; urgency=low
  * Fix distortion behavior, it was overcompressing for high distortion factors.
+ * Add an enevlope following option for the distortion effect.
+ * Fix filters and effects for registered sensors.
  * Expose the driver latency.
 
  -- Erik Hofman <tech@adalin.org>  Tue, 29 Aug 2012 10:37:00 +0200

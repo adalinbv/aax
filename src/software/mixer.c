@@ -117,17 +117,17 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    parametric = graphic = 0;
    if (sensor)
    {
+      reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
       parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
       graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
 
-      if (parametric || graphic)
+      if (parametric || graphic || reverb)
       {
          p = 0;
          ptr = _aax_malloc(&p, 2*rbd->track_len_bytes);
+         // TODO: create only once
       }
-
-      reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
    }
 
    /* set up this way because we always need to apply compression */
@@ -191,7 +191,11 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       if (reverb)
       {
          unsigned int ds = rbd->dde_samples;
-         bufEffectReverb(d1, 0, dmax, ds, track, reverb);
+         int32_t *d2 = (int32_t *)p;
+         int32_t *d3 = d2 + dmax;
+         bufEffectReflections(d3, d1, 0, dmax, ds, track, reverb);
+         bufEffectReverb(d3, 0, dmax, ds, track, reverb);
+         _aax_memcpy(d1, d3, rbd->track_len_bytes);
       }
 
       _aaxProcessCompression(d1, 0, dmax);

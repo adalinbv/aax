@@ -379,7 +379,6 @@ aaxEffectSetState(aaxEffect e, int state)
                      {
                      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
                         lfo->get = _oalRingBufferLFOGetFixedValue;
-printf("AAX_CONSTANT_VALUE\n");
                         break;
                      case AAX_TRIANGLE_WAVE:
                         lfo->get = _oalRingBufferLFOGetTriangle;
@@ -396,7 +395,6 @@ printf("AAX_CONSTANT_VALUE\n");
                      case AAX_ENVELOPE_FOLLOW:
                          lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
                          lfo->envelope = AAX_TRUE;
-printf("AAX_ENVELOPE_FOLLOW\n");
                         break;
                      default:
                         break;
@@ -674,16 +672,18 @@ printf("AAX_ENVELOPE_FOLLOW\n");
          {
          case AAX_CONSTANT_VALUE:
          {
+            /* i = initial, lb = loopback */
+            static const float max_delay = DELAY_EFFECTS_TIME*0.98f;
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
-            float f, g, di, dlb, dt;
+            float lb_gain, g, di, dlb, dt;
             float delay[5], gain[5];
 
-            di = effect->slot[0]->param[AAX_DELAY_TIME]*DELAY_EFFECTS_TIME;
-            dlb = effect->slot[0]->param[AAX_DECAY_TIME]*DELAY_EFFECTS_TIME;
-            if (dlb >= DELAY_EFFECTS_TIME*0.98f)
-               dlb = DELAY_EFFECTS_TIME*0.98f;
-            dt = dlb - di*1.07f;
+            di=effect->slot[0]->param[AAX_DELAY_DEPTH]*max_delay;
+            dlb=effect->slot[0]->param[AAX_DECAY_DEPTH]*max_delay;
+
+            /* initial delay in seconds */
+            dt = _MINMAX(dlb - di*1.07f, 0.001f, max_delay-di);
 
             delay[0] = 0;
             delay[1] = di;
@@ -691,6 +691,7 @@ printf("AAX_ENVELOPE_FOLLOW\n");
             delay[3] = di + dt*0.547f;
             delay[4] = di + dt;
 
+            /* initial gains */
             g = effect->slot[0]->param[AAX_DELAY_GAIN];
             gain[0] = 1.0f;
             gain[1] = g;
@@ -698,10 +699,11 @@ printf("AAX_ENVELOPE_FOLLOW\n");
             gain[3] = g*0.89f;
             gain[4] = g*0.81f;
 
-            g = effect->slot[0]->param[AAX_DECAY_GAIN];
-            f = pow(0.001f/g, dt/dlb);
+            /* calculate initial and loopback samples */
+            g = effect->slot[0]->param[AAX_DECAY_LEVEL];
+            lb_gain = pow(0.001f/g, dt/dlb);
             _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
-                                  delay, gain, 5, dlb, f);
+                                    delay, gain, 5, dlb, lb_gain);
             break;
          }
          case AAX_FALSE:
@@ -824,6 +826,7 @@ static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
   { AAX_REVERB_EFFECT,          REVERB_EFFECT }
 };
 
+
 static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
 {    /* min[4] */		   /* max[4] */
   {
@@ -846,7 +849,7 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_VELOCITY_EFFECT  */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } },
     /* AAX_REVERB_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } }
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     1.0f,     1.0f, 1.0f,     1.0f } }
   },
   {
     /* AAX_EFFECT_NONE      */
