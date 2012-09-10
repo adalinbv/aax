@@ -144,6 +144,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          unsigned int ds = rbd->dde_samples;
          int32_t *d2 = (int32_t *)p;
 
+         /* level out previous filters and effects */
+         _aaxProcessCompression(d1, 0, dmax);
+
          /* copy src to dest and use dest as source for bufEffectReflections */
          /* this way there is no need to define a direct path in the table   */
          _aax_memcpy(d2, d1-ds, rbd->track_len_bytes+ds*rbd->bytes_sample);

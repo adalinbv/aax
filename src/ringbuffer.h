@@ -26,7 +26,7 @@ extern "C" {
 #define BYTE_ALIGN		1
 
 #define _AAX_MAX_DELAYS		8
-#define _AAX_MAX_LOOPBACKS	3
+#define _AAX_MAX_LOOPBACKS	8
 #define _AAX_MAX_FILTERS	2
 #define _MAX_ENVELOPE_STAGES	6
 #define _AAX_MAX_EQBANDS	8
