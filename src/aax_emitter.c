@@ -596,7 +596,8 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
                   float frequency = effect->info->frequency;
                   _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                     data->delay_history,
-                                                    frequency, tracks);
+                                                    frequency, tracks,
+                                                    DELAY_EFFECTS_TIME);
                }
             }
             rv = AAX_TRUE;

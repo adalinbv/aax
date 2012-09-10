@@ -571,7 +571,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   submix->thread = AAX_TRUE;
 
                   if (!submix->ringbuffer) {
-                     submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+                     submix->ringbuffer = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
                   }
 
                   rb = submix->ringbuffer;
@@ -1313,7 +1313,7 @@ _aaxAudioFrameThread(void* config)
    }
    handle = frame->handle;
 
-   dest_rb = _oalRingBufferCreate(AAX_TRUE);
+   dest_rb = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
    if (!dest_rb) {
       return NULL;
    }

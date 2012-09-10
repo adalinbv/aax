@@ -380,7 +380,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       _oalRingBuffer *rb;
 
       if (!submix->ringbuffer) {
-         submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+         submix->ringbuffer = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
       }
 
       rb = submix->ringbuffer;

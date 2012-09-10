@@ -38,7 +38,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
       _buffer_t* buf = calloc(1, sizeof(_buffer_t));
       if (buf)
       {
-         _oalRingBuffer *rb = _oalRingBufferCreate(AAX_FALSE);
+         _oalRingBuffer *rb = _oalRingBufferCreate(0.0f);
          if (rb)
          {
             _handle_t* handle = (_handle_t*)config;

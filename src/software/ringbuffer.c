@@ -46,7 +46,7 @@ _oalRingBufferIsValid(_oalRingBuffer *rb)
 
 
 _oalRingBuffer *
-_oalRingBufferCreate(char dde)
+_oalRingBufferCreate(float dde)
 {
    _oalRingBuffer *rb;
 
@@ -71,7 +71,7 @@ _oalRingBufferCreate(char dde)
          rb->playing = 0;
          rb->stopped = 1;
          rb->streaming = 0;
-         rb->add_dde = dde;
+         rb->dde_sec = dde;
          rb->pitch_norm = 1.0f;
          rb->format = AAX_PCM16S;
 
@@ -81,7 +81,7 @@ _oalRingBufferCreate(char dde)
          rbd->codec = _oalRingBufferCodecs[format];
          rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
 
-         ddesamps = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
+         ddesamps = ceilf(dde * rbd->frequency_hz);
          rbd->dde_samples = (unsigned int)ddesamps;
          rbd->scratch = NULL;
       }
@@ -114,7 +114,7 @@ _oalRingBufferInitTracks(_oalRingBuffer *rb)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rb->add_dde) ? (rbd->dde_samples * bps) : 0;
+      dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples * bps) : 0;
       tracksize = dde_bytes + (no_samples + 0xF) * bps;
 
       /*
@@ -177,7 +177,7 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rb->add_dde) ? (rbd->dde_samples*bps) : 0;
+      dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples*bps) : 0;
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
@@ -241,7 +241,7 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
 
    assert(ringbuffer != 0);
 
-   rb = _oalRingBufferCreate(ringbuffer->add_dde);
+   rb = _oalRingBufferCreate(ringbuffer->dde_sec);
    if (rb)
    {
       _oalRingBufferSample *rbsd, *rbdd;
@@ -663,7 +663,7 @@ _oalRingBufferClear(_oalRingBuffer *rb)
    rb->stopped = 1;
    rb->looping = 0;
    rb->streaming = 0;
-// rb->add_dde = dde;
+// rb->dde_sec = dde;
 }
 
 _oalRingBuffer *
@@ -812,7 +812,7 @@ _oalRingBufferSetFrequency(_oalRingBuffer *rb, float freq)
    rbd->loop_end_sec *= (rbd->frequency_hz / freq);
    rbd->frequency_hz = freq;
 
-   ddesamps = ceilf(DELAY_EFFECTS_TIME * rbd->frequency_hz);
+   ddesamps = ceilf(rb->dde_sec * rbd->frequency_hz);
    rbd->dde_samples = (unsigned int)ddesamps;
 }
 
@@ -1138,7 +1138,7 @@ _oalRingBufferTestPlaying(const _oalRingBuffer *rb)
 }
 
 void
-_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float loopback, float lb_gain)
+_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float lb, float lb_gain)
 {
    _oalRingBufferReverbData **ptr = (_oalRingBufferReverbData**)data;
    _oalRingBufferReverbData *reverb;
@@ -1159,7 +1159,7 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       if (reverb->history_ptr == 0) {
          _oalRingBufferCreateHistoryBuffer(&reverb->history_ptr,
                                            reverb->reverb_history,
-                                           fs, tracks);
+                                           fs, tracks, 0.6f);
       }
 
       if (num < _AAX_MAX_DELAYS)
@@ -1182,18 +1182,21 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          }
       }
 
-      if ((num > 0) && (loopback != 0) && (lb_gain != 0))
+      if ((num > 0) && (lb != 0) && (lb_gain != 0))
       {
-         reverb->no_loopbacks = 3;
-         reverb->loopback[0].gain = lb_gain;
-         reverb->loopback[1].gain = lb_gain*0.873f;
-         reverb->loopback[2].gain = lb_gain*0.70317f;
+         num = 3;
+         lb_gain *= 0.45f;
+         reverb->loopback[2].gain = lb_gain*0.987f;
+         reverb->loopback[1].gain = lb_gain*0.893f;
+         reverb->loopback[0].gain = lb_gain*0.70317f;
 
+         lb *= fs;
+         reverb->no_loopbacks = num;
          for (j=0; j<num; j++)
          {
-            reverb->loopback[0].sample_offs[j] = (int)(loopback * fs);
-            reverb->loopback[1].sample_offs[j] = (int)(loopback * fs*0.79f);
-            reverb->loopback[2].sample_offs[j] = (int)(loopback * fs*0.677f);
+            reverb->loopback[1].sample_offs[j] = (int)lb;
+            reverb->loopback[0].sample_offs[j] = (int)(lb*0.79f);
+            reverb->loopback[2].sample_offs[j] = (int)(lb*0.677f);
          }
       }
       *data = reverb;
@@ -1262,14 +1265,14 @@ _oalRingBufferPutSource() {
 }
 
 void
-_oalRingBufferCreateHistoryBuffer(void **hptr, int32_t **history, float frequency, int tracks)
+_oalRingBufferCreateHistoryBuffer(void **hptr, int32_t **history, float frequency, int tracks, float dde)
 {
    unsigned int bps, size;
    char *ptr, *p;
    int i;
 
    bps = sizeof(int32_t);
-   size = (unsigned int)ceilf(DELAY_EFFECTS_TIME * frequency);
+   size = (unsigned int)ceilf(dde * frequency);
    size *= bps;
 #if BYTE_ALIGN
    if (size & 0xF)

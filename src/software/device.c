@@ -466,7 +466,7 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   dest_rb = _oalRingBufferCreate(AAX_TRUE);
+   dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
    if (!dest_rb) {
       return NULL;
    }

@@ -33,6 +33,7 @@ extern "C" {
 #define _MAX_SLOTS		3
 #define CUBIC_SAMPS		4
 #define DELAY_EFFECTS_TIME	0.070f
+#define REVERB_EFFECTS_TIME	0.6f
 #if 0
 #define NO_DELAY_EFFECTS_TIME
 #undef DELAY_EFFECTS_TIME
@@ -329,6 +330,7 @@ typedef struct		/* playback related information about the sample*/
     float pitch_norm;
     float volume_norm;
 
+    float dde_sec;
     float curr_pos_sec;
     unsigned int curr_sample;
 
@@ -337,7 +339,6 @@ typedef struct		/* playback related information about the sample*/
     char stopped;
     char looping;
     char streaming;
-    char add_dde;
 
 } _oalRingBuffer;
 
@@ -415,7 +416,7 @@ _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
  * returns the new ringbuffer or NULL if an error occured.
  */
 _oalRingBuffer*
-_oalRingBufferCreate(char);
+_oalRingBufferCreate(float);
 
 /**
  * Test is a ringbuffer is ready for use or not
@@ -705,7 +706,7 @@ unsigned int _oalRingBufferPutSource();
 unsigned int _oalRingBufferGetNoSources();
 unsigned int _oalRingBufferSetNoSources(unsigned int);
 
-void _oalRingBufferCreateHistoryBuffer(void**, int32_t**, float, int);
+void _oalRingBufferCreateHistoryBuffer(void**, int32_t**, float, int, float);
 
 /* --------------------------------------------------------------------------*/
 

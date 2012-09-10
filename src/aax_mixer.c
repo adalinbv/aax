@@ -601,7 +601,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      submix->thread = AAX_TRUE;
 
                      if (!submix->ringbuffer) {
-                        submix->ringbuffer = _oalRingBufferCreate(AAX_TRUE);
+                        submix->ringbuffer = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
                      }
 
                      rb = submix->ringbuffer;

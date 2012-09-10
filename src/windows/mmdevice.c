@@ -1497,7 +1497,7 @@ _aaxMMDevDriverThread(void* config)
 
    tracks = 2;
    mixer = NULL;
-   dest_rb = _oalRingBufferCreate(AAX_TRUE);
+   dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
    if (dest_rb)
    {
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

@@ -1,5 +1,6 @@
 * Wed Aug 29 2012 - tech@adalin.org
 - AeonWave (2.2.4) stable; urgency=low
+ * Add support for the Reverb effect, final mixer only.
  * Fix distortion behavior, it was overcompressing for high distortion factors.
  * Add an enevlope following option for the distortion effect.
  * Fix filters and effects for registered sensors.

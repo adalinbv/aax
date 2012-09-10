@@ -94,7 +94,7 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
                         unsigned int track, const void *data)
 {
    const _oalRingBufferReverbData *reverb = data;
-   unsigned int snum;
+   int snum;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -104,20 +104,19 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
    assert(track < _AAX_MAX_SPEAKERS);
 
    /* reverb (1st order reflections) */
-   snum = reverb->no_delays;
-   if (snum > 1)
+   snum = reverb->no_delays-1;
+   if (snum > 0)
    {
-      const _oalRingBufferDelayInfo *delay = reverb->delay;
       const int32_ptr sptr = s + dmin;
       int32_t *dptr = d + dmin;
-      unsigned int q = snum-1;
+      unsigned int q = snum;
 
       do
       {
-         float volume = delay[q].gain / snum;
+         float volume = reverb->delay[q].gain / snum;
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            unsigned int samples = delay[q].sample_offs[track];
+            unsigned int samples = reverb->delay[q].sample_offs[track];
 
             assert(samples < ds);
             if (samples >= ds) samples = dmin-1;
@@ -127,15 +126,6 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
       }
       while (--q);
    }
-#if 0
-   else
-   {
-      float volume = reverb->delay[0].gain;
-      if ((volume >= 0.001f) || (volume <= -0.001f)) {
-         _batch_fmadd(d+dmin, s+dmin, dmax-dmin, volume, 0.0f);
-      }
-   }
-#endif
 }
 
 void
@@ -144,7 +134,7 @@ bufEffectReverb(int32_t *s,
                    unsigned int track, const void *data)
 {
    const _oalRingBufferReverbData *reverb = data;
-   unsigned int snum;
+   int snum;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -153,18 +143,18 @@ bufEffectReverb(int32_t *s,
    assert(track < _AAX_MAX_SPEAKERS);
 
    /* loopback for reverb (2nd order reflections) */
-   snum = reverb->no_loopbacks;
+   snum = reverb->no_loopbacks-1;
    if (snum > 0)
    {
       unsigned int bytes = ds*sizeof(int32_t);
       int32_t *sptr = s + dmin;
-      unsigned int q = snum-1;
+      unsigned int q = snum;
 
-      _aax_memcpy(s-bytes, reverb->reverb_history[track], bytes);
+      _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
       do
       {
          unsigned int samples = reverb->loopback[q].sample_offs[track];
-         float volume = -reverb->loopback[q].gain / (snum+1);
+         float volume = reverb->loopback[q].gain / snum;
 
          assert(samples < ds);
          if (samples >= ds) samples = ds-1;
@@ -172,7 +162,7 @@ bufEffectReverb(int32_t *s,
          _batch_fmadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
       while (--q);
-      _aax_memcpy(reverb->reverb_history[track], s+dmin-bytes-1, bytes);
+      _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
 }
 

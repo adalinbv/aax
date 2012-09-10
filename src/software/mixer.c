@@ -124,8 +124,10 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
       if (parametric || graphic || reverb)
       {
+         unsigned int size = 2*rbd->track_len_bytes;
+         if (reverb) size += rbd->dde_samples*rbd->bytes_sample;
          p = 0;
-         ptr = _aax_malloc(&p, 2*rbd->track_len_bytes);
+         ptr = _aax_malloc(&p, size);
          // TODO: create only once
       }
    }
@@ -136,6 +138,18 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    {
       int32_t *d1 = (int32_t *)rbd->track[track];
       unsigned int dmax = rbd->no_samples;
+
+      if (ptr && reverb)
+      {
+         unsigned int ds = rbd->dde_samples;
+         int32_t *d2 = (int32_t *)p;
+
+         /* copy src to dest and use dest as source for bufEffectReflections */
+         /* this way there is no need to define a direct path in the table   */
+         _aax_memcpy(d2, d1-ds, rbd->track_len_bytes+ds*rbd->bytes_sample);
+         bufEffectReflections(d1, d2+ds, 0, dmax, ds, track, reverb);
+         bufEffectReverb(d1, 0, dmax, ds, track, reverb);
+      }
 
       if (ptr && parametric)
       {
@@ -153,12 +167,13 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       }
       else if (ptr && graphic)
       {
-         _oalRingBufferEqualizerInfo *eq=_FILTER_GET_DATA(sensor, EQUALIZER_HF);
          _oalRingBufferFreqFilterInfo* filter;
+         _oalRingBufferEqualizerInfo *eq;
          int32_t *d2 = (int32_t *)p;
          int32_t *d3 = d2 + dmax;
          int b = 6;
 
+         eq=_FILTER_GET_DATA(sensor, EQUALIZER_HF);
          filter = &eq->band[b--];
          _aax_memcpy(d3, d1, rbd->track_len_bytes);
          bufFilterFrequency(d1, d3,  0, dmax, 0, track, filter, 0);
@@ -186,16 +201,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
             }
          }
          while (b > 0);
-      }
-
-      if (reverb)
-      {
-         unsigned int ds = rbd->dde_samples;
-         int32_t *d2 = (int32_t *)p;
-         int32_t *d3 = d2 + dmax;
-         bufEffectReflections(d3, d1, 0, dmax, ds, track, reverb);
-         bufEffectReverb(d3, 0, dmax, ds, track, reverb);
-         _aax_memcpy(d1, d3, rbd->track_len_bytes);
       }
 
       _aaxProcessCompression(d1, 0, dmax);
@@ -229,7 +234,7 @@ _aaxSoftwareMixerThread(void* config)
 
    tracks = 2;
    mixer = NULL;
-   dest_rb = _oalRingBufferCreate(AAX_TRUE);
+   dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
    if (dest_rb)
    {
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
