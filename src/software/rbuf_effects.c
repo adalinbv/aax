@@ -104,14 +104,14 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
    assert(track < _AAX_MAX_SPEAKERS);
 
    /* reverb (1st order reflections) */
-   snum = reverb->no_delays-1;
+   snum = reverb->no_delays;
    if (snum > 0)
    {
       const int32_ptr sptr = s + dmin;
       int32_t *dptr = d + dmin;
-      unsigned int q = snum;
+      unsigned int q;
 
-      do
+      for(q=0; q<snum; q++)
       {
          float volume = reverb->delay[q].gain / snum;
          if ((volume > 0.001f) || (volume < -0.001f))
@@ -124,7 +124,6 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
             _batch_fmadd(dptr, sptr-samples, dmax-dmin, volume, 0.0f);
          }
       }
-      while (--q);
    }
 }
 
@@ -143,15 +142,15 @@ bufEffectReverb(int32_t *s,
    assert(track < _AAX_MAX_SPEAKERS);
 
    /* loopback for reverb (2nd order reflections) */
-   snum = reverb->no_loopbacks-1;
+   snum = reverb->no_loopbacks;
    if (snum > 0)
    {
       unsigned int bytes = ds*sizeof(int32_t);
       int32_t *sptr = s + dmin;
-      unsigned int q = snum;
+      unsigned int q;
 
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
-      do
+      for(q=0; q<snum; q++)
       {
          unsigned int samples = reverb->loopback[q].sample_offs[track];
          float volume = reverb->loopback[q].gain / snum;
@@ -161,7 +160,6 @@ bufEffectReverb(int32_t *s,
 
          _batch_fmadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
-      while (--q);
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
 }

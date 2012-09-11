@@ -679,21 +679,21 @@ aaxEffectSetState(aaxEffect e, int state)
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
             float delays[8], gains[8];
-            float di, dim, gi, dlb, glb;
+            float di, gi, dlb, glb;
             int num;
 
             di = 0.01f+effect->slot[0]->param[AAX_DELAY_DEPTH]*max_delay;
-            gi = effect->slot[0]->param[AAX_DELAY_GAIN];
+            gi = effect->slot[0]->param[AAX_DELAY_GAIN]*0.245f;
             assert(di < DELAY_EFFECTS_TIME);
 
             /* initial delay in seconds (should be between 10ms en 70 ms)   */
             /* initial gains, defnining a direct path is not necessary      */
             /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)         */
-            num = 5;
+            num = 6;
             gains[0] = gi*0.7615f;
             gains[1] = gi*0.9084f;
             gains[2] = gi*0.8735f;
-            gains[3] = gi*0.9554f;
+            gains[3] = gi*0.9454f;
             gains[4] = gi*0.8997f;
             gains[5] = gi*0.8346f;
 
@@ -705,7 +705,9 @@ aaxEffectSetState(aaxEffect e, int state)
             delays[4] = di*0.000133702f;
             delays[5] = di*0.000895718f;
 
-            dlb = 0.01f+effect->slot[0]->param[AAX_DECAY_DEPTH]*(REVERB_EFFECTS_TIME-0.01f);
+            dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
+            dlb *= (REVERB_EFFECTS_TIME-0.01f);
+            dlb += 0.01f;
             glb = effect->slot[0]->param[AAX_DECAY_LEVEL];
             assert(dlb < REVERB_EFFECTS_TIME);
             
