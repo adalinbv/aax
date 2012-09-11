@@ -675,7 +675,7 @@ aaxEffectSetState(aaxEffect e, int state)
          {
             /* i = initial, lb = loopback */
             /* max 60ms reverb, longer sounds like echo */
-            static const float max_delay = 0.04f;
+            static const float max_delay = DELAY_EFFECTS_TIME;
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
             float delays[8], gains[8];
@@ -684,7 +684,7 @@ aaxEffectSetState(aaxEffect e, int state)
 
             di = 0.01f+effect->slot[0]->param[AAX_DELAY_DEPTH]*max_delay;
             gi = effect->slot[0]->param[AAX_DELAY_GAIN]*0.245f;
-            assert(di < DELAY_EFFECTS_TIME);
+            assert(di < REVERB_EFFECTS_TIME);
 
             /* initial delay in seconds (should be between 10ms en 70 ms)   */
             /* initial gains, defnining a direct path is not necessary      */
@@ -698,12 +698,12 @@ aaxEffectSetState(aaxEffect e, int state)
             gains[5] = gi*0.8346f;
 
             di *=9.60325386f; // *0.5f;            // 1.0f/0.104131372f
-            delays[0] = di*0.024201864f;
-            delays[1] = di*0.072531605f;
-            delays[2] = di*0.018292164f;
-            delays[3] = di*0.104131372f;
-            delays[4] = di*0.000133702f;
-            delays[5] = di*0.000895718f;
+            delays[0] = di;
+            delays[1] = di*0.8137353f;
+            delays[2] = di*0.6566667f;
+            delays[4] = di*0.4987782f;
+            delays[3] = di*0.3733333f;
+            delays[1] = di*0.1568725f;
 
             dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
             dlb *= (REVERB_EFFECTS_TIME-0.01f);
