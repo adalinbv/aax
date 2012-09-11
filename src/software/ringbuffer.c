@@ -1185,8 +1185,8 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       if ((num > 0) && (lb != 0) && (lb_gain != 0))
       {
          num = 5;
-         reverb->loopback[0].gain = lb_gain*0.77015f;
-         reverb->loopback[1].gain = lb_gain*0.98075f;
+         reverb->loopback[0].gain = lb_gain*0.87015f;
+         reverb->loopback[1].gain = lb_gain*0.99075f;
          reverb->loopback[2].gain = lb_gain*0.81917f;
          reverb->loopback[3].gain = lb_gain*0.72317f;
          reverb->loopback[4].gain = lb_gain*0.80317f;
