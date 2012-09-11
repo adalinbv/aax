@@ -686,13 +686,12 @@ aaxEffectSetState(aaxEffect e, int state)
             /* initial gains, defnining a direct path is not necessary      */
             /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)         */
             num = 6;
-            gi = effect->slot[0]->param[AAX_DELAY_GAIN]*0.2f;
-            gains[0] = gi*0.7615f;
-            gains[1] = gi*0.9084f;
-            gains[2] = gi*0.8735f;
-            gains[3] = gi*0.9454f;
-            gains[4] = gi*0.8997f;
-            gains[5] = gi*0.8346f;
+            gains[0] = gi*0.07615f;
+            gains[1] = gi*0.09084f;
+            gains[2] = gi*0.08735f;
+            gains[3] = gi*0.09454f;
+            gains[4] = gi*0.08997f;
+            gains[5] = gi*0.08346f;
 
             di = (max_depth-0.01f)*effect->slot[0]->param[AAX_DELAY_DEPTH];
             di = _MINMAX(0.01f+di, 0.0f, max_depth);
@@ -708,12 +707,14 @@ aaxEffectSetState(aaxEffect e, int state)
             dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
             dlb *= (REVERB_EFFECTS_TIME-0.01f);
             dlb += 0.01f;
-            glb = effect->slot[0]->param[AAX_DECAY_LEVEL];
             assert(dlb < REVERB_EFFECTS_TIME);
+
+            gi = 1.0f-effect->slot[0]->param[AAX_DELAY_GAIN]*0.5f;
+            glb = effect->slot[0]->param[AAX_DECAY_LEVEL];
             
             /* calculate initial and loopback samples                       */
             _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
-                                    delays, gains, num, dlb, glb);
+                                    delays, gains, num, gi, dlb, glb);
             break;
          }
          case AAX_FALSE:

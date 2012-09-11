@@ -1138,7 +1138,7 @@ _oalRingBufferTestPlaying(const _oalRingBuffer *rb)
 }
 
 void
-_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float lb, float lb_gain)
+_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float i_gain, float lb, float lb_gain)
 {
    _oalRingBufferReverbData **ptr = (_oalRingBufferReverbData**)data;
    _oalRingBufferReverbData *reverb;
@@ -1166,6 +1166,7 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       {
          unsigned int i;
 
+         reverb->gain = i_gain;
          reverb->no_delays = num;
          for (i=0; i<num; i++)
          {

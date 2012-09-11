@@ -276,6 +276,7 @@ typedef struct
 typedef struct
 {
    /* reverb*/
+   float gain;
    unsigned int no_delays;
    _oalRingBufferDelayInfo delay[_AAX_MAX_DELAYS];
 
@@ -697,7 +698,7 @@ void _oalRingBufferGetLoopPoints(const _oalRingBuffer*, unsigned int*, unsigned 
 float _oalRingBufferGetOffsetSec(const _oalRingBuffer*);
 unsigned int _oalRingBufferGetOffsetSamples(const _oalRingBuffer*);
 
-void _oalRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float);
+void _oalRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
 void _oalRingBufferDelaysRemove(void**);
 // void _oalRingBufferDelayRemoveNum(_oalRingBuffer*, unsigned int);
 
