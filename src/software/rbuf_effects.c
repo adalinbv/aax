@@ -113,7 +113,7 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
 
       for(q=0; q<snum; q++)
       {
-         float volume = reverb->delay[q].gain / snum;
+         float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
             unsigned int samples = reverb->delay[q].sample_offs[track];
@@ -153,7 +153,7 @@ bufEffectReverb(int32_t *s,
       for(q=0; q<snum; q++)
       {
          unsigned int samples = reverb->loopback[q].sample_offs[track];
-         float volume = reverb->loopback[q].gain / snum;
+         float volume = reverb->loopback[q].gain / (snum+1);
 
          assert(samples < ds);
          if (samples >= ds) samples = ds-1;

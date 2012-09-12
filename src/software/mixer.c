@@ -146,18 +146,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
          /* level out previous filters and effects */
          _aaxProcessCompression(d1, 0, dmax);
+         memcpy(d2, d1, rbd->track_len_bytes);
 
-         /* copy src to dest and use dest as source for bufEffectReflections */
-         /* this way there is no need to define a direct path in the table   */
-         _aax_memcpy(d2, d1-ds, rbd->track_len_bytes+ds*rbd->bytes_sample);
-         if (reverb->gain < 0.98f || reverb->gain > 1.02f) {
-            _batch_mul_value(d2, sizeof(int32_t), dmax+ds, reverb->gain);
-         }
-         bufEffectReflections(d1, d2+ds, 0, dmax, ds, track, reverb);
+         bufEffectReflections(d2, d1, 0, dmax, ds, track, reverb);
+         _aax_memcpy(d1, d2, rbd->track_len_bytes);
+
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
-         if (reverb->gain < 0.98f || reverb->gain > 1.02f) {
-            _batch_mul_value(d1, sizeof(int32_t), dmax, 1.0f/reverb->gain);
-         }
       }
 
       if (ptr && parametric)

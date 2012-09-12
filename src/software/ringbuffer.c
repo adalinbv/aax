@@ -1185,22 +1185,27 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
 
       if ((num > 0) && (lb != 0) && (lb_gain != 0))
       {
-         num = 5;
-         reverb->loopback[0].gain = lb_gain*0.87015f;
-         reverb->loopback[1].gain = lb_gain*0.99075f;
-         reverb->loopback[2].gain = lb_gain*0.81917f;
+         num = 7;
+         reverb->loopback[0].gain = lb_gain*0.97015f;
+         reverb->loopback[1].gain = lb_gain*0.87075f;
+         reverb->loopback[2].gain = lb_gain*0.91917f;
          reverb->loopback[3].gain = lb_gain*0.72317f;
-         reverb->loopback[4].gain = lb_gain*0.80317f;
+         reverb->loopback[4].gain = lb_gain*0.90317f;
+         reverb->loopback[5].gain = lb_gain*0.73317f;
+         reverb->loopback[6].gain = lb_gain*0.88317f;
+
 
          lb *= fs;
          reverb->no_loopbacks = num;
          for (j=0; j<num; j++)
          {
             reverb->loopback[0].sample_offs[j] = (int)lb;
-            reverb->loopback[2].sample_offs[j] = (int)(lb*0.8515017f);
-            reverb->loopback[4].sample_offs[j] = (int)(lb*0.5662917f);
-            reverb->loopback[3].sample_offs[j] = (int)(lb*0.4350117f);
-            reverb->loopback[1].sample_offs[j] = (int)(lb*0.1783717f);
+            reverb->loopback[1].sample_offs[j] = (int)(lb*0.4901861f);
+            reverb->loopback[2].sample_offs[j] = (int)(lb*0.3333333f);
+            reverb->loopback[3].sample_offs[j] = (int)(lb*0.2001743f);
+            reverb->loopback[4].sample_offs[j] = (int)(lb*0.1428571f);
+            reverb->loopback[5].sample_offs[j] = (int)(lb*0.0909091f);
+            reverb->loopback[6].sample_offs[j] = (int)(lb*0.0769231f);
          }
       }
       *data = reverb;
