@@ -152,6 +152,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          _aax_memcpy(d1, d2, rbd->track_len_bytes);
 
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
+         if (fabs(reverb->gain-1.0f) > 0.075f) {
+            _batch_mul_value(d1, sizeof(int32_t), dmax, reverb->gain);
+         }
       }
 
       if (ptr && parametric)
