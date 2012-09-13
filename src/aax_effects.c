@@ -675,7 +675,7 @@ aaxEffectSetState(aaxEffect e, int state)
          {
             /* i = initial, lb = loopback */
             /* max 100ms reverb, longer sounds like echo */
-            static const float max_depth = DELAY_EFFECTS_TIME;
+            static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.1f);
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
             float delays[8], gains[8];
@@ -686,25 +686,26 @@ aaxEffectSetState(aaxEffect e, int state)
             /* initial gains, defnining a direct path is not necessary      */
             /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)         */
             num = 7;
-            gi = 0.01f+effect->slot[0]->param[AAX_DELAY_GAIN]*0.3f;
+            gi = 0.001f+effect->slot[0]->param[AAX_DELAY_GAIN]*0.3f;
             gains[0] = gi*0.9884f;
-            gains[1] = gi*0.8535f;
-            gains[2] = gi*0.9454f;
+            gains[1] = gi*0.7535f;
+            gains[2] = gi*0.8454f;
             gains[3] = gi*0.8997f;
-            gains[4] = gi*0.8346f;
-            gains[5] = gi*0.8718f;
-            gains[6] = gi*0.7946f;
+            gains[4] = gi*0.6346f;
+            gains[5] = gi*0.7718f;
+            gains[6] = gi*0.6946f;
 
-            di = 0.05f*(1.0f-effect->slot[0]->param[AAX_DELAY_DEPTH]*0.9f);
-            dip = 0.01f+_MINMAX(0.1f-di, 0.01f, 0.1f);
-            assert(di < REVERB_EFFECTS_TIME);
+            di = 0.005f+0.045f*effect->slot[0]->param[AAX_DELAY_DEPTH];
+            dip = (max_depth-di)*effect->slot[0]->param[AAX_DELAY_DEPTH];
+            dip = _MINMAX(dip, 0.01f, max_depth-0.05f);
+            assert(dip+di*0.9876543f <= REVERB_EFFECTS_TIME);
 
-            delays[0] = dip + di;
+            delays[0] = dip + di*0.9876543f;
             delays[1] = dip + di*0.5019726f;
-            delays[2] = dip + di*0.3333333f;
-            delays[3] = dip + di*0.1992736f;
-            delays[4] = dip + di*0.1428571f;
-            delays[5] = dip + di*0.0909091f;
+            delays[3] = dip + di*0.3333333f;
+            delays[2] = dip + di*0.1992736f;
+            delays[5] = dip + di*0.1428571f;
+            delays[4] = dip + di*0.0909091f;
             delays[6] = dip + di*0.0769231f;
 
             dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
@@ -716,7 +717,7 @@ aaxEffectSetState(aaxEffect e, int state)
             
             /* calculate initial and loopback samples                       */
             _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
-                                    delays, gains, num, gi, dlb, glb);
+                                    delays, gains, num, 1.5f, dlb, glb);
             break;
          }
          case AAX_FALSE:

@@ -1199,13 +1199,13 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          reverb->no_loopbacks = num;
          for (j=0; j<num; j++)
          {
-            reverb->loopback[0].sample_offs[j] = (int)lb;
-            reverb->loopback[1].sample_offs[j] = (int)(lb*0.4901861f);
-            reverb->loopback[2].sample_offs[j] = (int)(lb*0.3333333f);
-            reverb->loopback[3].sample_offs[j] = (int)(lb*0.2001743f);
-            reverb->loopback[4].sample_offs[j] = (int)(lb*0.1428571f);
-            reverb->loopback[5].sample_offs[j] = (int)(lb*0.0909091f);
-            reverb->loopback[6].sample_offs[j] = (int)(lb*0.0769231f);
+            reverb->loopback[0].sample_offs[j] = lb*0.9876543f;
+            reverb->loopback[1].sample_offs[j] = lb*0.4901861f;
+            reverb->loopback[2].sample_offs[j] = lb*0.3333333f;
+            reverb->loopback[3].sample_offs[j] = lb*0.2001743f;
+            reverb->loopback[4].sample_offs[j] = lb*0.1428571f;
+            reverb->loopback[5].sample_offs[j] = lb*0.0909091f;
+            reverb->loopback[6].sample_offs[j] = lb*0.0769231f;
          }
       }
       *data = reverb;
