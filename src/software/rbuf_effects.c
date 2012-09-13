@@ -111,17 +111,18 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
       int32_t *dptr = d + dmin;
       unsigned int q;
 
+      dmax -= dmin;
       for(q=0; q<snum; q++)
       {
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            unsigned int samples = reverb->delay[q].sample_offs[track];
+            unsigned int offs = reverb->delay[q].sample_offs[track];
 
-            assert(samples < ds);
-            if (samples >= ds) samples = dmin-1;
+            assert(offs < ds);
+//          if (samples >= ds) samples = ds-1;
 
-            _batch_fmadd(dptr, sptr-samples, dmax-dmin, volume, 0.0f);
+            _batch_fmadd(dptr, sptr-offs, dmax, volume, 0.0f);
          }
       }
    }

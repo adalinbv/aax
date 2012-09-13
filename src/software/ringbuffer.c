@@ -1183,17 +1183,17 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          }
       }
 
+      // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       if ((num > 0) && (lb != 0) && (lb_gain != 0))
       {
-         num = 7;
-         reverb->loopback[0].gain = lb_gain*0.97015f;
+         num = 5;
+         reverb->loopback[0].gain = lb_gain*0.95015f;	// conrete/brick = 0.95
          reverb->loopback[1].gain = lb_gain*0.87075f;
          reverb->loopback[2].gain = lb_gain*0.91917f;
-         reverb->loopback[3].gain = lb_gain*0.72317f;
-         reverb->loopback[4].gain = lb_gain*0.90317f;
+         reverb->loopback[3].gain = lb_gain*0.72317f;	// carpet     = 0.853
+         reverb->loopback[4].gain = lb_gain*0.80317f;
          reverb->loopback[5].gain = lb_gain*0.73317f;
          reverb->loopback[6].gain = lb_gain*0.88317f;
-
 
          lb *= fs;
          reverb->no_loopbacks = num;

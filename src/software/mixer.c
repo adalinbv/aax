@@ -150,9 +150,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
          bufEffectReflections(d2, d1, 0, dmax, ds, track, reverb);
          _aax_memcpy(d1, d2, rbd->track_len_bytes);
-
+//       _batch_mul_value(d1, sizeof(int32_t), dmax, 1.0f/reverb->gain);
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
-         _batch_mul_value(d1, sizeof(int32_t), dmax, reverb->gain);
+//       _batch_mul_value(d1, sizeof(int32_t), dmax, reverb->gain);
       }
 
       if (ptr && parametric)

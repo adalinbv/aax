@@ -33,7 +33,7 @@ extern "C" {
 #define _MAX_SLOTS		3
 #define CUBIC_SAMPS		4
 #define DELAY_EFFECTS_TIME	0.070f
-#define REVERB_EFFECTS_TIME	0.500f
+#define REVERB_EFFECTS_TIME	0.600f
 #if 0
 #define NO_DELAY_EFFECTS_TIME
 #undef DELAY_EFFECTS_TIME
