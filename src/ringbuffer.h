@@ -33,7 +33,7 @@ extern "C" {
 #define _MAX_SLOTS		3
 #define CUBIC_SAMPS		4
 #define DELAY_EFFECTS_TIME	0.070f
-#define REVERB_EFFECTS_TIME	0.600f
+#define REVERB_EFFECTS_TIME	0.700f
 #if 0
 #define NO_DELAY_EFFECTS_TIME
 #undef DELAY_EFFECTS_TIME
@@ -259,6 +259,19 @@ typedef struct
 
 typedef struct
 {
+   float coeff[4];
+   float Q, k, fs, lf_gain, hf_gain;
+   float freqfilter_history[_AAX_MAX_SPEAKERS][2];
+   _oalRingBufferLFOInfo *lfo;
+} _oalRingBufferFreqFilterInfo;
+
+typedef struct
+{
+   _oalRingBufferFreqFilterInfo band[_AAX_MAX_EQBANDS];
+} _oalRingBufferEqualizerInfo;
+
+typedef struct
+{
    _oalRingBufferLFOInfo lfo;
    _oalRingBufferDelayInfo delay;
 
@@ -284,20 +297,10 @@ typedef struct
     _oalRingBufferDelayInfo loopback[_AAX_MAX_LOOPBACKS];
     int32_t* reverb_history[_AAX_MAX_SPEAKERS];
     void* history_ptr;
+
+    _oalRingBufferFreqFilterInfo *freq_filter;
+
 } _oalRingBufferReverbData;
-
-typedef struct
-{
-   float coeff[4];
-   float Q, k, fs, lf_gain, hf_gain;
-   float freqfilter_history[_AAX_MAX_SPEAKERS][2];
-   _oalRingBufferLFOInfo *lfo;
-} _oalRingBufferFreqFilterInfo;
-
-typedef struct
-{
-   _oalRingBufferFreqFilterInfo band[_AAX_MAX_EQBANDS];
-} _oalRingBufferEqualizerInfo;
 
 typedef struct			/* static information about the sample*/
 {
@@ -325,7 +328,6 @@ typedef struct			/* static information about the sample*/
 typedef struct		/* playback related information about the sample*/
 {
     _oalRingBufferSample* sample;
-//  _oalRingBufferReverbData* reverb;
 
     float elapsed_sec;
     float pitch_norm;
@@ -707,7 +709,6 @@ unsigned int _oalRingBufferPutSource();
 unsigned int _oalRingBufferGetNoSources();
 unsigned int _oalRingBufferSetNoSources(unsigned int);
 
-void _oalRingBufferCreateHistoryBuffer(void**, int32_t**, float, int, float);
 
 /* --------------------------------------------------------------------------*/
 
@@ -754,7 +755,7 @@ void bufEffectsApply(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsign
 void bufFilterFrequency(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned char);
 void bufEffectDistort(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
 void bufEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned int);
-void bufEffectReflections(int32_t*, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
+void bufEffectReflections(int32_t*, const int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 
 void iir_compute_coefs(float, float, float*, float*, float);

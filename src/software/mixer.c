@@ -142,17 +142,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       if (ptr && reverb)
       {
          unsigned int ds = rbd->dde_samples;
-         int32_t *d2 = (int32_t *)p;
+         int32_t *sbuf = (int32_t *)p + ds;
+         int32_t *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
          _aaxProcessCompression(d1, 0, dmax);
-         memcpy(d2, d1, rbd->track_len_bytes);
-
-         bufEffectReflections(d2, d1, 0, dmax, ds, track, reverb);
-         _aax_memcpy(d1, d2, rbd->track_len_bytes);
-//       _batch_mul_value(d1, sizeof(int32_t), dmax, 1.0f/reverb->gain);
+         bufEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
+         _batch_mul_value(d1, sizeof(int32_t), dmax, reverb->gain);
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
-//       _batch_mul_value(d1, sizeof(int32_t), dmax, reverb->gain);
       }
 
       if (ptr && parametric)
@@ -361,7 +358,7 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
    _oalRingBuffer3dProps *props3d;
    _oalRingBuffer2dProps *props2d;
-// _oalRingBufferLFOInfo *lfo;
+   _oalRingBufferLFOInfo *lfo;
    unsigned int num, stage;
    _intBuffers *he;
    float dt;
@@ -371,12 +368,14 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    props3d = fp3d ? (_oalRingBuffer3dProps*)fp2d : (_oalRingBuffer3dProps*)sp2d;
 
 #if 0
-   /** This causes double speed LFO for pitch and gain */
-
+   /** This causes double speed LFO for pitch */
    lfo = _EFFECT_GET_DATA(props2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       props2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
    }
+#endif
+#if 0
+   /** This causes double speed LFO for gain */
    lfo = _FILTER_GET_DATA(props2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
       props2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);

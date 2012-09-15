@@ -687,7 +687,7 @@ aaxEffectSetState(aaxEffect e, int state)
             /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)         */
            //http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
             num = 3;
-            gi = 0.001f+effect->slot[0]->param[AAX_DELAY_GAIN]*0.33f;
+            gi = 0.031f;
             gains[0] = gi*0.9484f;	// conrete/brick = 0.95
             gains[1] = gi*0.8935f;	// wood floor    = 0.90
             gains[2] = gi*0.8254f;	// carpet        = 0.853
@@ -696,15 +696,9 @@ aaxEffectSetState(aaxEffect e, int state)
             gains[5] = gi*0.7718f;
             gains[6] = gi*0.7946f;
 
-#if 1
             di = 0.005f+0.045f*effect->slot[0]->param[AAX_DELAY_DEPTH];
             dip = (max_depth-di)*effect->slot[0]->param[AAX_DELAY_DEPTH];
             dip = _MINMAX(dip, 0.01f, max_depth-0.05f);
-#else
-            di = effect->slot[0]->param[AAX_DELAY_DEPTH];
-            di *= (max_depth-0.01f);
-            dip = 0.01f;
-#endif
             assert(dip+di*0.9876543f <= REVERB_EFFECTS_TIME);
 
             delays[0] = dip + di*0.9876543f;
@@ -715,16 +709,42 @@ aaxEffectSetState(aaxEffect e, int state)
             delays[5] = dip + di*0.0909091f;
             delays[3] = dip + di*0.0769231f;
 
-            dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
-            dlb *= (REVERB_EFFECTS_TIME-0.01f);
-            dlb += 0.01f;
-            assert(dlb < REVERB_EFFECTS_TIME);
-
-            glb = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
-            
             /* calculate initial and loopback samples                       */
+            dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
+            glb = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
             _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
-                                    delays, gains, num, 2.5f, dlb, glb);
+                                    delays, gains, num, 1.25f, dlb, glb);
+
+            if (effect->slot[0]->param[AAX_DELAY_GAIN] < 1.0f)
+            {
+               _oalRingBufferReverbData *reverb = effect->slot[0]->data;
+               _oalRingBufferFreqFilterInfo *flt = reverb->freq_filter;
+               if (!flt) {
+                  flt = calloc(1, sizeof(_oalRingBufferFreqFilterInfo));
+               }
+
+               reverb->freq_filter = flt;
+               if (flt)
+               {
+                  float *cptr = flt->coeff;
+                  float fc, k, Q;
+
+                  k = 1.0f;
+                  Q = 1.0f;
+                  fc = powf(10.0f, effect->slot[0]->param[AAX_DELAY_GAIN])-1.0f;
+                  fc *= 1256.0f;
+                  fc += 100.0f;
+                  iir_compute_coefs(fc, fs, cptr, &k, Q);
+
+                  flt->hf_gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+                  flt->lf_gain = 0.5f;
+                  flt->lfo = 0;
+                  flt->fs = fs;
+                  flt->Q = Q;
+                  flt->k = k;
+               }
+            }
+
             break;
          }
          case AAX_FALSE:

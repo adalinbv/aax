@@ -33,6 +33,7 @@
 
 static unsigned int _oalGetSetMonoSources(unsigned int, int);
 static void _oalRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
+static void _oalRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 
 int
 _oalRingBufferIsValid(_oalRingBuffer *rb)
@@ -1159,7 +1160,7 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       if (reverb->history_ptr == 0) {
          _oalRingBufferCreateHistoryBuffer(&reverb->history_ptr,
                                            reverb->reverb_history,
-                                           fs, tracks, 0.6f);
+                                           fs, tracks, REVERB_EFFECTS_TIME);
       }
 
       if (num < _AAX_MAX_DELAYS)
@@ -1186,6 +1187,9 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       if ((num > 0) && (lb != 0) && (lb_gain != 0))
       {
+         static const float max_depth = REVERB_EFFECTS_TIME*0.6877777f;
+         float dlb, dlbp;
+
          num = 5;
          reverb->loopback[0].gain = lb_gain*0.95015f;	// conrete/brick = 0.95
          reverb->loopback[1].gain = lb_gain*0.87075f;
@@ -1195,17 +1199,23 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          reverb->loopback[5].gain = lb_gain*0.73317f;
          reverb->loopback[6].gain = lb_gain*0.88317f;
 
-         lb *= fs;
+         dlb = 0.01f+lb*max_depth;
+         dlbp = (REVERB_EFFECTS_TIME-dlb)*lb;
+         dlbp = _MINMAX(dlbp, 0.01f, REVERB_EFFECTS_TIME-0.01f);
+//       dlbp = 0;
+
+         dlb *= fs;
+         dlbp *= fs;
          reverb->no_loopbacks = num;
          for (j=0; j<num; j++)
          {
-            reverb->loopback[0].sample_offs[j] = lb*0.9876543f;
-            reverb->loopback[1].sample_offs[j] = lb*0.4901861f;
-            reverb->loopback[2].sample_offs[j] = lb*0.3333333f;
-            reverb->loopback[3].sample_offs[j] = lb*0.2001743f;
-            reverb->loopback[4].sample_offs[j] = lb*0.1428571f;
-            reverb->loopback[5].sample_offs[j] = lb*0.0909091f;
-            reverb->loopback[6].sample_offs[j] = lb*0.0769231f;
+            reverb->loopback[0].sample_offs[j] = dlbp + dlb*0.9876543f;
+            reverb->loopback[1].sample_offs[j] = dlbp + dlb*0.4901861f;
+            reverb->loopback[2].sample_offs[j] = dlbp + dlb*0.3333333f;
+            reverb->loopback[3].sample_offs[j] = dlbp + dlb*0.2001743f;
+            reverb->loopback[4].sample_offs[j] = dlbp + dlb*0.1428571f;
+            reverb->loopback[5].sample_offs[j] = dlbp + dlb*0.0909091f;
+            reverb->loopback[6].sample_offs[j] = dlbp + dlb*0.0769231f;
          }
       }
       *data = reverb;
@@ -1226,6 +1236,9 @@ _oalRingBufferDelaysRemove(void **data)
       reverb->no_loopbacks = 0;
       reverb->delay[0].gain = 1.0f;
       free(reverb->history_ptr);
+      free(reverb->freq_filter);
+      reverb->freq_filter = 0;
+      reverb->history_ptr = 0;
    }
 }
 
@@ -1273,8 +1286,8 @@ _oalRingBufferPutSource() {
    return _oalGetSetMonoSources(0, -1);
 }
 
-void
-_oalRingBufferCreateHistoryBuffer(void **hptr, int32_t **history, float frequency, int tracks, float dde)
+static void
+_oalRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
 {
    unsigned int bps, size;
    char *ptr, *p;

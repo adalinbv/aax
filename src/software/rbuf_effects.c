@@ -89,7 +89,7 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
 
 #if !ENABLE_LITE
 void
-bufEffectReflections(int32_t* d, const int32_ptr s,
+bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
                         unsigned int dmin, unsigned int dmax, unsigned int ds,
                         unsigned int track, const void *data)
 {
@@ -99,7 +99,8 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(s != 0);
-   assert(d != 0);
+   assert(sbuf != 0);
+   assert(sbuf2 != 0);
    assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
 
@@ -107,11 +108,13 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
    snum = reverb->no_delays;
    if (snum > 0)
    {
+      _oalRingBufferFreqFilterInfo* filter = reverb->freq_filter;
+      int32_t *scratch = sbuf + dmin;
       const int32_ptr sptr = s + dmin;
-      int32_t *dptr = d + dmin;
       unsigned int q;
 
       dmax -= dmin;
+      _aax_memcpy(scratch, sptr, dmax*sizeof(int32_t));
       for(q=0; q<snum; q++)
       {
          float volume = reverb->delay[q].gain / (snum+1);
@@ -122,9 +125,12 @@ bufEffectReflections(int32_t* d, const int32_ptr s,
             assert(offs < ds);
 //          if (samples >= ds) samples = ds-1;
 
-            _batch_fmadd(dptr, sptr-offs, dmax, volume, 0.0f);
+            _batch_fmadd(scratch, sptr-offs, dmax, volume, 0.0f);
          }
       }
+
+      bufFilterFrequency(sbuf2, scratch, 0, dmax, 0, track, filter, 0);
+      _batch_fmadd(sptr, sbuf2, dmax, 0.75f, 0.0f);
    }
 }
 
