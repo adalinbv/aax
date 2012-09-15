@@ -770,6 +770,8 @@ void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 
 
+void _oalRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

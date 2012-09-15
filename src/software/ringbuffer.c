@@ -33,7 +33,6 @@
 
 static unsigned int _oalGetSetMonoSources(unsigned int, int);
 static void _oalRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
-static void _oalRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 
 int
 _oalRingBufferIsValid(_oalRingBuffer *rb)
@@ -1286,7 +1285,7 @@ _oalRingBufferPutSource() {
    return _oalGetSetMonoSources(0, -1);
 }
 
-static void
+void
 _oalRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
 {
    unsigned int bps, size;
