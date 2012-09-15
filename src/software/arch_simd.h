@@ -137,6 +137,7 @@ void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, unsigned int, unsig
 
 /* SSE3 */
 void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
+void _batch_mul_value_sse3(void*, unsigned, unsigned int, float);
 
 /* SSE4 */
 float _vec3Magnitude_sse4(const vec3);

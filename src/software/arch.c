@@ -409,6 +409,7 @@ _aaxGetSIMDSupportString()
       if (level >= AAX_SSE3)
       {
          vec4Matrix4 = _vec4Matrix4_sse3;
+         _batch_mul_value = _batch_mul_value_sse3;
       }
 #if 0
       if (level >= AAX_SSE41)

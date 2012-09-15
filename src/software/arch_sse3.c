@@ -28,5 +28,43 @@ _vec4Matrix4_sse3(vec4 d, const vec4 vi, mtx4 m)
    _mm_store_ps(d, _mm_hadd_ps(_mm_hadd_ps(vm0, vm1), _mm_hadd_ps(vm2, vm3)));
 }
 
+void
+_batch_mul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
+{
+   unsigned int i = num;
+   switch (bps)
+   {
+   case 1:
+   {
+      int8_t* d = (int8_t*)data;
+      do {
+         *d++ *= f;
+      }
+      while (--i);
+      break;
+   }
+   case 2:
+   {
+      int16_t* d = (int16_t*)data;
+      do {
+         *d++ *= f;
+      }
+      while (--i);
+      break;
+   }
+   case 4:
+   {
+      int32_t* d = (int32_t*)data;
+      do {
+         *d++ *= f;
+      }
+      while (--i);
+      break;
+   }
+   default:
+      break;
+   }
+}
+
 #endif /* SSE3 */
 
