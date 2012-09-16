@@ -687,7 +687,7 @@ aaxEffectSetState(aaxEffect e, int state)
             /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)         */
            //http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
             num = 3;
-            gi = 0.031f;
+            gi = 0.50f;
             gains[0] = gi*0.9484f;	// conrete/brick = 0.95
             gains[1] = gi*0.8935f;	// wood floor    = 0.90
             gains[2] = gi*0.8254f;	// carpet        = 0.853
@@ -726,18 +726,30 @@ aaxEffectSetState(aaxEffect e, int state)
                reverb->freq_filter = flt;
                if (flt)
                {
+                  float dfact = effect->slot[0]->param[AAX_DELAY_GAIN];
                   float *cptr = flt->coeff;
                   float fc, k, Q;
 
+                  /* set up a cut-off frequency between 100Hz and 15000Hz
+                   * the lower the cut-off frequency, the more the low
+                   * frequencies get exaggerated.
+                   *
+                   * low: 100Hz/1.75*gain .. 15000Hz/1.0*gain
+                   * high: 100Hz/0.0*gain .. 15000Hz/0.33*gain
+                   *
+                   * Q is set to 0.6 to dampen the frequency response too much
+                   * to provide a bit smoother frequency response around the
+                   * cut-off frequency.
+                   */
                   k = 1.0f;
-                  Q = 1.0f;
-                  fc = powf(10.0f, effect->slot[0]->param[AAX_DELAY_GAIN])-1.0f;
-                  fc *= 1256.0f;
+                  Q = 0.6f;
+                  fc = expf(dfact)-1.0f;
+                  fc *= (15000.0f-100.0f)/(expf(1.0f)-1.0f);
                   fc += 100.0f;
                   iir_compute_coefs(fc, fs, cptr, &k, Q);
 
-                  flt->hf_gain = effect->slot[0]->param[AAX_DELAY_GAIN];
-                  flt->lf_gain = 0.5f;
+                  flt->lf_gain = 1.75f-0.75f*dfact;
+                  flt->hf_gain = 0.33f*dfact;
                   flt->lfo = 0;
                   flt->fs = fs;
                   flt->Q = Q;

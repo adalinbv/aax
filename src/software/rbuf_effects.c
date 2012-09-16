@@ -130,7 +130,7 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
       }
 
       bufFilterFrequency(sbuf2, scratch, 0, dmax, 0, track, filter, 0);
-      _batch_fmadd(sptr, sbuf2, dmax, 0.75f, 0.0f);
+      _batch_fmadd(sptr, sbuf2, dmax, 0.5f, 0.0f);
    }
 }
 

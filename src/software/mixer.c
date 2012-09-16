@@ -148,7 +148,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          /* level out previous filters and effects */
          _aaxProcessCompression(d1, 0, dmax);
          bufEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
-         _batch_mul_value(d1, sizeof(int32_t), dmax, reverb->gain);
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
       }
 
