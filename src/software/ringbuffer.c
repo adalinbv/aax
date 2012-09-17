@@ -1507,7 +1507,7 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
 }
 
 float
-_oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, unsigned int end)
+_oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsigned int end)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    static const float div = 1.0f / (float)0x000fffff;
@@ -1515,30 +1515,23 @@ _oalRingBufferLFOGetEnvelopeFollow(void* data, const void *ptr, unsigned track, 
    if (lfo && ptr && end)
    {
       int32_t *sptr = (int32_t *)ptr;
+      float lvl, nlvl, fact;
       unsigned int i = end;
-      float nval, fact;
       uint64_t tmp;
-#if 0
-      float vala;
-      rv = lfo->value[track];
+
+      nlvl = lfo->value[track];
+      rv = nlvl*(lfo->max - lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-#endif
+
       tmp = 0;
       do {
          tmp += abs(*sptr++);
       } while (--i);
-      tmp /= 3*end;
+      tmp /= end;
+      lvl = _MINMAX(tmp*div, 0.0f, 1.0f);
 
-      fact = lfo->step[track]*0.1f;	/* max 10.0f scale back to 1.0f */
-      nval = _MINMAX(tmp*div, 0.0f, 1.0f);
-
-#if 0
-//    val = lfo->value[track];
-      lfo->value[track] = powf(nval, fact)*(lfo->max - lfo->min);
-#else
-      rv = powf(nval, fact)*(lfo->max - lfo->min);
-      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-#endif
+      fact = lfo->step[track];
+      lfo->value[track] = _MINMAX(fact*(lvl - nlvl) + nlvl, 0.0f, 1.0f);
    }
    return lfo->convert(rv);
 }

@@ -748,7 +748,9 @@ float _oalRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetTriangle(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetSawtooth(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
-float _oalRingBufferLFOGetEnvelopeFollow(void*, const void*, unsigned, unsigned int);
+float _oalRingBufferLFOGetGainFollow(void*, const void*, unsigned, unsigned int);
+float _oalRingBufferLFOGetPitchFollow(void*, const void*, unsigned, unsigned int);
+
 float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);
 
 void bufEffectsApply(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, void*, void*, void*);

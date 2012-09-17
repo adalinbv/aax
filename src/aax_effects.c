@@ -305,7 +305,7 @@ aaxEffectSetState(aaxEffect e, int state)
                for(t=0; t<_AAX_MAX_SPEAKERS; t++) {
                   lfo->step[t] = lfo->f;
                }
-               lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+               lfo->get = _oalRingBufferLFOGetGainFollow;
                lfo->envelope = AAX_TRUE;
             }
             break;
@@ -366,7 +366,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                        lfo->step[t] = depth * lfo->f;
+                        lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
                         break;
                      default:
                         break;
@@ -393,7 +393,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         lfo->get = _oalRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                         lfo->get = _oalRingBufferLFOGetGainFollow;
                          lfo->envelope = AAX_TRUE;
                         break;
                      default:
@@ -604,7 +604,8 @@ aaxEffectSetState(aaxEffect e, int state)
                            data->lfo.step[t] *= 0.5f;
                            break;
                         case AAX_ENVELOPE_FOLLOW:
-                           data->lfo.step[t] = sign * data->lfo.f;
+                           data->lfo.step[t] = sign*atan(data->lfo.f*0.1f);
+                           data->lfo.step[t] /= atan(100.0f);
                            break;
                         default:
                            break;
@@ -629,7 +630,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         data->lfo.get = _oalRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         data->lfo.get = _oalRingBufferLFOGetEnvelopeFollow;
+                         data->lfo.get = _oalRingBufferLFOGetGainFollow;
                          data->lfo.envelope = AAX_TRUE;
                         break;
                      default:

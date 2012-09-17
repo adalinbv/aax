@@ -528,7 +528,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   int t;
 
                   lfo->min = 0.0f;
-                  lfo->max = depth;
+                  lfo->max = _MAX(depth, 0.01f);
                   lfo->envelope = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
@@ -546,7 +546,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         lfo->step[t] = depth * lfo->f;
+                         lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
                          break;
                      default:
                         break;
@@ -573,7 +573,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->get = _oalRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                        lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                        lfo->get = _oalRingBufferLFOGetGainFollow;
                         lfo->envelope = AAX_TRUE;
                         break;
                      default:
@@ -678,7 +678,7 @@ aaxFilterSetState(aaxFilter f, int state)
                            lfo->step[t] *= 0.5f;
                            break;
                         case AAX_ENVELOPE_FOLLOW:
-                           lfo->step[t] = lfo->f;
+                           lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
                            break;
                         default:
                            break;
@@ -702,7 +702,7 @@ aaxFilterSetState(aaxFilter f, int state)
                            lfo->get = _oalRingBufferLFOGetSawtooth;
                            break;
                         case AAX_ENVELOPE_FOLLOW:
-                           lfo->get = _oalRingBufferLFOGetEnvelopeFollow;
+                           lfo->get = _oalRingBufferLFOGetGainFollow;
                            lfo->envelope = AAX_TRUE;
                            break;
                         default:
