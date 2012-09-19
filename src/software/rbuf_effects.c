@@ -347,7 +347,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
          }
 
          /* mix with the dry signal */
-         mix_factor = mix/(0.5f+powf(fact,0.25f));
+         mix_factor = mix/(0.5f+powf(fact, 0.25f));
          _batch_mul_value(dptr, bps, no_samples, mix_factor);
          if (mix < 0.99f) {
             _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);

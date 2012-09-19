@@ -525,14 +525,19 @@ aaxFilterSetState(aaxFilter f, int state)
                if (lfo)
                {
                   float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
+                  float offs = 0.0f;
                   int t;
 
-                  lfo->min = 0.0f;
-                  lfo->max = _MAX(depth, 0.01f);
+                  if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW) {
+                     offs = 0.49f*filter->slot[0]->param[AAX_LFO_OFFSET];
+                  }
+
+                  lfo->min = offs;
+                  lfo->max = depth;
                   lfo->envelope = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->convert = _lin;
+                  lfo->convert = _linear;
 
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
@@ -574,6 +579,8 @@ aaxFilterSetState(aaxFilter f, int state)
                         break;
                      case AAX_ENVELOPE_FOLLOW:
                         lfo->get = _oalRingBufferLFOGetGainFollow;
+                        lfo->convert = _compress;
+                        lfo->max *= 10.0f;
                         lfo->envelope = AAX_TRUE;
                         break;
                      default:
@@ -664,7 +671,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                      lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                      lfo->envelope = AAX_FALSE;
-                     lfo->convert = _lin; // _log2lin;
+                     lfo->convert = _linear; // _log2lin;
 
                      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
                      {
@@ -867,7 +874,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
     /* AAX_VOLUME_FILTER    */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    10.0f,     1.0f, 10.0f,     0.0f } },
     /* AAX_DYNAMIC_GAIN_FILTER   */
-    { {  0.0f, 0.01f, 0.0f, 0.0f }, {     0.0f,   100.0f,  1.0f,     1.0f } },
+    { {  0.0f, 0.01f, 0.0f, 0.0f }, {     0.0f,    50.0f,  1.0f,     1.0f } },
     /* AAX_TIMED_GAIN_FILTER */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
     /* AAX_ANGULAR_FILTER   */

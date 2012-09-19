@@ -301,7 +301,7 @@ aaxEffectSetState(aaxEffect e, int state)
                lfo->max = 1.0f;
                lfo->f = 10.0f;
                lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-               lfo->convert = _lin;
+               lfo->convert = _linear;
                for(t=0; t<_AAX_MAX_SPEAKERS; t++) {
                   lfo->step[t] = lfo->f;
                }
@@ -349,7 +349,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                   lfo->envelope = AAX_FALSE;
-                  lfo->convert = _lin;
+                  lfo->convert = _linear;
 
                   for(t=0; t<_AAX_MAX_SPEAKERS; t++)
                   {
@@ -575,7 +575,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      break;
                   }
 
-                  data->lfo.convert = _lin;
+                  data->lfo.convert = _linear;
                   data->lfo.max = data->lfo.min + depth;
                   data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
                   data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];

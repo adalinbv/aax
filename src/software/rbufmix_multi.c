@@ -79,10 +79,6 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
-#if 0
-pitch = 0.5f;
-printf("pitch: %f\n", pitch);
-#endif
    /** Resample */
    offs = 0;
    sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);

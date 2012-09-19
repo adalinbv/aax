@@ -227,7 +227,7 @@ enum
     P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr; 	\
     if (!s) aaxEffectSetState(F, P->effect[f].state); } while (0);
 
-typedef float _convert_fn(float);
+typedef float _convert_fn(float, float);
 typedef float _oalRingBufferDistFunc(float, float, float, float, float, float);
 typedef float _oalRingBufferPitchShiftFunc(float, float, float);
 typedef float _oalRingBufferLFOGetFunc(void*, const void*, unsigned, unsigned int);
@@ -742,6 +742,9 @@ float _cos_deg2rad_2(float v);
 float _2acos_rad2deg(float v);
 float _cos_2(float v);
 float _2acos(float v);
+
+float _linear(float v, float f);
+float _compress(float v, float f);
 
 float _oalRingBufferLFOGetSine(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);

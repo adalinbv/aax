@@ -357,7 +357,7 @@ _aaxSoftwareMixerProcessFrame(void* rb, void* info, void *sp2d, void *sp3d, void
    _oalRingBuffer *dest_rb = (_oalRingBuffer*)rb;
    _oalRingBuffer3dProps *props3d;
    _oalRingBuffer2dProps *props2d;
-   _oalRingBufferLFOInfo *lfo;
+// _oalRingBufferLFOInfo *lfo;
    unsigned int num, stage;
    _intBuffers *he;
    float dt;
