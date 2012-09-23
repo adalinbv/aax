@@ -230,10 +230,11 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                /* needed for automatic file streaming with registered sensors */
                if (!nbuf)
                {
-                  sptr -= CUBIC_SAMPS*sbps;
-                  sno_samples += CUBIC_SAMPS;
+                  sptr -= (int)(CUBIC_SAMPS/fact)*sbps;
+                  sno_samples += CUBIC_SAMPS/fact;
                }
 
+printf("pitch: %f, fact: %f\n", pitch_norm, fact);
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,

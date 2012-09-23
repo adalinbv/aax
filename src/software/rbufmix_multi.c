@@ -61,16 +61,17 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    assert(dest->sample != 0);
 
    /** Pitch */
-   if (mix_p2d)
-   {
-      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-      pitch *= mix_p2d->final.pitch_lfo;
-   }
-
    pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
+   }
+
+   if (mix_p2d)
+   {
+      float lfo = mix_p2d->final.pitch_lfo-0.5f;
+      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
+      pitch = 1.0f+((pitch-1.0f)*lfo);
    }
 
    env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
