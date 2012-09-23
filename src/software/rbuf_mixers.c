@@ -234,7 +234,6 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
                   sno_samples += CUBIC_SAMPS/fact;
                }
 
-printf("pitch: %f, fact: %f\n", pitch_norm, fact);
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
                _aaxProcessCodec(scratch0, sptr, rbs->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
