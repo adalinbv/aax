@@ -752,6 +752,7 @@ float _oalRingBufferLFOGetTriangle(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetSawtooth(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
 float _oalRingBufferLFOGetGainFollow(void*, const void*, unsigned, unsigned int);
+float _oalRingBufferLFOGetCompressor(void*, const void*, unsigned, unsigned int);
 float _oalRingBufferLFOGetPitchFollow(void*, const void*, unsigned, unsigned int);
 
 float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);

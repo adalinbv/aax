@@ -297,9 +297,9 @@ aaxEffectSetState(aaxEffect e, int state)
             {
                int t;
 
-               lfo->min = 0.1f;
-               lfo->max = 1.0f;
-               lfo->f = 10.0f;
+               lfo->min = 0.01f;
+               lfo->max = 0.99f;
+               lfo->f = 5.0f;
                lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                lfo->convert = _linear;
                for(t=0; t<_AAX_MAX_SPEAKERS; t++) {
@@ -530,8 +530,12 @@ aaxEffectSetState(aaxEffect e, int state)
                   float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
                   float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
                   unsigned int tracks = effect->info->no_tracks;
-                  float fs = effect->info->frequency;
                   float sign, range, step;
+                  float fs = 48000.0f;
+
+                  if (effect->info) {
+                     fs = effect->info->frequency;
+                  }
 
                   if ((offset + depth) > 1.0f) {
                      depth = 1.0f - offset;
@@ -678,10 +682,14 @@ aaxEffectSetState(aaxEffect e, int state)
             /* max 100ms reverb, longer sounds like echo */
             static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
             unsigned int tracks = effect->info->no_tracks;
-            float fs = effect->info->frequency;
             float delays[8], gains[8];
             float di, gi, dip, dlb, glb;
+            float fs = 48000.0f;
             int num;
+
+            if (effect->info) {
+               fs = effect->info->frequency;
+            }
 
             /* initial delay in seconds (should be between 10ms en 70 ms)   */
             /* initial gains, defnining a direct path is not necessary      */

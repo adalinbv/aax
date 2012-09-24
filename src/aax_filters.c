@@ -546,6 +546,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      lfo->step[t] *= (lfo->max - lfo->min);
                      lfo->step[t] /= filter->info->refresh_rate;
                      lfo->value[t] = 1.0f;
+
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_SAWTOOTH_WAVE:
@@ -579,7 +580,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->get = _oalRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                        lfo->get = _oalRingBufferLFOGetGainFollow;
+                        lfo->get = _oalRingBufferLFOGetCompressor;
                         lfo->convert = _compress;
                         lfo->envelope = AAX_TRUE;
                         lfo->stereo_lnk = AAX_TRUE;
@@ -628,16 +629,16 @@ aaxFilterSetState(aaxFilter f, int state)
                float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                float Q = filter->slot[0]->param[AAX_RESONANCE];
                float *cptr = flt->coeff;
-               float frequency = 48000.0f; 
+               float fs = 48000.0f; 
                float k = 1.0f;
 
                if (filter->info) {
-                  frequency = filter->info->frequency;
+                  fs = filter->info->frequency;
                }
-               iir_compute_coefs(fc, frequency, cptr, &k, Q);
+               iir_compute_coefs(fc, fs, cptr, &k, Q);
                flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
                flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
-               flt->fs = frequency;
+               flt->fs = fs;
                flt->Q = Q;
                flt->k = k;
 
@@ -667,7 +668,6 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->max = lfo->min;
                         lfo->min = f;
                      }
-//                   filter->slot[0]->param[AAX_CUTOFF_FREQUENCY] = lfo->min;
 
                      /* sweeprate */
                      lfo->f = filter->slot[1]->param[AAX_RESONANCE];
@@ -712,6 +712,7 @@ aaxFilterSetState(aaxFilter f, int state)
                            break;
                         case AAX_ENVELOPE_FOLLOW:
                            lfo->get = _oalRingBufferLFOGetGainFollow;
+//                         lfo->convert = _compress;
                            lfo->envelope = AAX_TRUE;
                            break;
                         default:
@@ -904,7 +905,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
      /* AAX_DISTANCE_FILTER  */
      { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
      /* AAX_FREQUENCY_FILTER */
-     { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  10.0f } },
+     { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  50.0f } },
      /* AAX_GRAPHIC_EQUALIZER */
      { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } }
   },
