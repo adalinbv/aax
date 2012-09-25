@@ -1,12 +1,14 @@
-* Wed Aug 29 2012 - tech@adalin.org
-- AeonWave (2.2.4) stable; urgency=low
- * Add support for the Reverb effect, final mixer only.
+* Sat Sep 22 2012 - tech@adalin.org
+- AeonWave (2.3.0) stable; urgency=low
+ * Add support for a Reverb effect which applies tot only to the final mixer.
+ * Make the dynamic-gain envelope-following mode a proper audio-compressor and
+   expander. The offset property defines the threshold level.
  * Fix distortion behavior, it was overcompressing for high distortion factors.
  * Add an enevlope following option for the distortion effect.
  * Fix filters and effects for registered sensors.
  * Expose the driver latency.
 
- -- Erik Hofman <tech@adalin.org>  Tue, 29 Aug 2012 10:37:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Sat, 22 Sep 2012 09:35:00 +0200
 
 * Tue Aug 21 2012 - tech@adalin.org
 - AeonWave (2.2.3) stable; urgency=high

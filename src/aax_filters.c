@@ -528,12 +528,14 @@ aaxFilterSetState(aaxFilter f, int state)
                   int t;
 
                   depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
-                  if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW) {
+                  if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
+                  {
                      offs = 0.49f*filter->slot[0]->param[AAX_LFO_OFFSET];
+                     depth *= 0.5f;
                   }
 
                   lfo->min = offs;
-                  lfo->max = depth;
+                  lfo->max = 2.0f * depth;
                   lfo->envelope = AAX_FALSE;
                   lfo->stereo_lnk = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
@@ -687,7 +689,9 @@ aaxFilterSetState(aaxFilter f, int state)
                            lfo->step[t] *= 0.5f;
                            break;
                         case AAX_ENVELOPE_FOLLOW:
-                           lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
+//                         lfo->value[t] /= lfo->max;
+                           lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
+//                         lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
                            break;
                         default:
                            break;
@@ -712,7 +716,6 @@ aaxFilterSetState(aaxFilter f, int state)
                            break;
                         case AAX_ENVELOPE_FOLLOW:
                            lfo->get = _oalRingBufferLFOGetGainFollow;
-//                         lfo->convert = _compress;
                            lfo->envelope = AAX_TRUE;
                            break;
                         default:

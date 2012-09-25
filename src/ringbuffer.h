@@ -44,6 +44,7 @@ extern "C" {
 #define DEFAULT_IMA4_BLOCKSIZE		36
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
 #define BLOCKSIZE_TO_SMP(a)		((a) > 1) ? (((a)-4)*2) : 1
+#define ENVELOPE_FOLLOW_STEP_CVT(a)	_MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0, 1.0f)
 #ifndef NDEBUG
 # define DBG_MEMCLR(a, b, c, d)		if (a) memset((b), 0, (c)*(d))
 # define WRITE(a, b, dptr, ds, no_samples) \

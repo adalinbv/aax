@@ -302,16 +302,20 @@ aaxEffectSetState(aaxEffect e, int state)
                lfo->f = 5.0f;
                lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                lfo->convert = _linear;
-               for(t=0; t<_AAX_MAX_SPEAKERS; t++) {
-                  lfo->step[t] = lfo->f;
+
+               for(t=0; t<_AAX_MAX_SPEAKERS; t++)
+               {
+                  lfo->value[t] = 0.0f;
+                  lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                }
+
                lfo->get = _oalRingBufferLFOGetGainFollow;
                lfo->envelope = AAX_TRUE;
             }
             break;
          }
          case AAX_FALSE:
-//          free(effect->slot[0]->data);
+            free(effect->slot[0]->data);
             effect->slot[0]->data = NULL;
             break;
          default:
@@ -366,7 +370,8 @@ aaxEffectSetState(aaxEffect e, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                        lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
+                        lfo->value[t] /= lfo->max;
+                        lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                         break;
                      default:
                         break;
@@ -602,15 +607,19 @@ aaxEffectSetState(aaxEffect e, int state)
                            data->lfo.value[t] = data->lfo.min;
                         }
                         data->delay.sample_offs[t] = data->lfo.value[t];
+
                         switch (state & ~AAX_INVERSE)
                         {
                         case AAX_SAWTOOTH_WAVE:
                            data->lfo.step[t] *= 0.5f;
                            break;
                         case AAX_ENVELOPE_FOLLOW:
-                           data->lfo.step[t] = sign*atan(data->lfo.f*0.1f);
-                           data->lfo.step[t] /= atan(100.0f);
+                        {
+                           float fact = data->lfo.f;
+                           data->lfo.value[t] /= data->lfo.max;
+                           data->lfo.step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
                            break;
+                        }
                         default:
                            break;
                         }
