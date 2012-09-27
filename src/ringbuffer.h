@@ -284,7 +284,7 @@ typedef struct
    unsigned int curr_coffs[_AAX_MAX_SPEAKERS];
    unsigned int curr_step[_AAX_MAX_SPEAKERS];
 
-   char reverb;
+   char loopback;
 } _oalRingBufferDelayEffectData;
 
 typedef struct

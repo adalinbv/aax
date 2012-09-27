@@ -42,7 +42,7 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
    int32_t *psrc = src;
    int32_t *pdst = dst;
 
-   if (effect && !effect->reverb && effect->history_ptr)	/* streaming */
+   if (effect && !effect->loopback && effect->history_ptr)	/* streaming */
    {
       DBG_MEMCLR(1, src-ds, ds+start, bps);
       _aax_memcpy(src+start-ds, effect->delay_history[track], ds*bps);
@@ -68,13 +68,15 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
    if (delay)
    {
       /* Apply delay effects */
-      if (effect->reverb) {		/*    flanging     */
-         bufEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds, delay, track);
+      if (effect->loopback) {		/*    flanging     */
+         bufEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds,
+                        delay, track);
       }
       else				/* phasing, chorus */
       {
          _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
-         bufEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds, delay, track);
+         bufEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds,
+                        delay, track);
          BUFSWAP(pdst, psrc);
       }
    }
@@ -287,8 +289,10 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          }
 
          DBG_MEMCLR(1, scratch-ds, ds+end, bps);
+printf("offs: %i, noffs: %i, doffs: %i, fact: %f\n", offs, noffs, doffs, fact);
          resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
-         _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+//       _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+memcpy(dptr, scratch-ds, no_samples*sizeof(int32_t));
       }
    }
    while (0);

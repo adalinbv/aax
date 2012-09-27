@@ -297,9 +297,9 @@ aaxEffectSetState(aaxEffect e, int state)
             {
                int t;
 
-               lfo->min = 0.01f;
+               lfo->min = 0.15f;
                lfo->max = 0.99f;
-               lfo->f = 5.0f;
+               lfo->f = 0.33f;
                lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                lfo->convert = _linear;
 
@@ -552,7 +552,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      range = (10e-3f - 50e-6f);		// 50us .. 10ms
                      depth *= range * fs;		// convert to samples
                      data->lfo.min = (range * offset + 50e-6f)*fs;
-                     data->reverb = AAX_FALSE;
+                     data->loopback = AAX_FALSE;
                      if (data->history_ptr)
                      {
                         free(data->history_ptr);
@@ -563,7 +563,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      range = (60e-3f - 10e-3f);		// 10ms .. 60ms
                      depth *= range * fs;		// convert to samples
                      data->lfo.min = (range * offset + 10e-3f)*fs;
-                     data->reverb = AAX_FALSE;
+                     data->loopback = AAX_FALSE;
                      if (data->history_ptr)
                      {
                         free(data->history_ptr);
@@ -574,7 +574,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      range = (60e-3f - 10e-3f);		// 10ms .. 60ms
                      depth *= range * fs;		// convert to samples
                      data->lfo.min = (range * offset + 10e-3f)*fs;
-                     data->reverb = AAX_TRUE;
+                     data->loopback = AAX_TRUE;
                      _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                        data->delay_history,
                                                        fs, tracks,

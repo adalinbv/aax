@@ -601,19 +601,24 @@ _aaxSoftwareMixerReadFrame(void *rb, const void* backend, void *handle, float *d
                                 scratch[0]-ds, ds+frames);
       if (res && nframes)
       {
-         float pitch = (float)(nframes)/(float)(frames);
+//       float pitch = (float)(nframes)/(float)(frames);
          unsigned int t, tracks;
          _oalRingBuffer *nrb;
 
-         dest_rb->pitch_norm = pitch;
+//       dest_rb->pitch_norm = pitch;
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
 
+         ds -= frames-nframes;
+#if 1
+printf("ds: %i\n", ds);
+#endif
+// TODO: properly handle dde buffer from old to new ringbuffer
          tracks = rbd->no_tracks;
          for (t=0; t<tracks; t++)
          {
             int32_t *ptr = nrb->sample->track[t];
             int32_t *optr = rbd->track[t];
-            _aax_memcpy(ptr-ds, optr-ds+frames, ds*bps);
+            _aax_memcpy(ptr-ds, optr-ds+nframes, ds*bps);
          }
          rv = nrb;
       }
