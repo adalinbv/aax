@@ -879,11 +879,11 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          if (sframe->handle) put_frame(sframe);
          _aaxErrorSet(AAX_INVALID_STATE);
       }
-      put_frame(handle);
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
+   put_frame(handle);
    return rv;
 }
 
@@ -900,10 +900,11 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          _intBuffers *hf = handle->submix->frames;
 
          _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
-         handle->submix->no_registered--;
          frame->submix->refcount--;
          frame->handle = NULL;
          frame->pos = UINT_MAX;
+
+         handle->submix->no_registered--;
          rv = AAX_TRUE;
       }
       else {
@@ -914,6 +915,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
+   put_frame(handle);
    return rv;
 }
 
@@ -1052,7 +1054,7 @@ get_frame(aaxFrame f)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
-         {
+         {			/* frame is registered at the final mixer */
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
             _intBufferData *dptr_frame;
@@ -1066,7 +1068,7 @@ get_frame(aaxFrame f)
          }
       }
       else if (handle && handle->id == AUDIOFRAME_ID)
-      {
+      {				/* subframe is registered at another frame */
          _frame_t *handle = (_frame_t*)frame->handle;
          _intBufferData *dptr_frame;
          _intBuffers *hf;
