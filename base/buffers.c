@@ -698,8 +698,9 @@ int_intBufRemove(_intBuffers *buffer, unsigned int id, unsigned int n,
          buffer->data[n] = 0;
 
          buffer->num_allocated--;
-         if (n < buffer->first_free)
+         if (n < buffer->first_free) {
             buffer->first_free = n;
+         }
 #ifndef _AL_NOTHREADS
          _aaxMutexUnLock(buffer->mutex);
 #endif
@@ -712,8 +713,9 @@ int_intBufRemove(_intBuffers *buffer, unsigned int id, unsigned int n,
          tmp = 0;
       }
 #ifndef _AL_NOTHREADS
-      else if (locked)
+      else if (locked) {
          _aaxMutexUnLock(tmp->mutex);
+      }
 #endif
    }
    
