@@ -380,7 +380,8 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
                _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
                _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
                _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-               if (effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
+               if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT)
+               {
                   p2d->final.pitch_lfo = 1.0f;
                }
                _intBufReleaseData(dptr, _AAX_SENSOR);

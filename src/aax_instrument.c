@@ -1,6 +1,6 @@
 /*
- * Copyright 2011 by Erik Hofman.
- * Copyright 2011 by Adalin B.V.
+ * Copyright 2012 by Erik Hofman.
+ * Copyright 2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -22,6 +22,7 @@
 
 #define SYNTHCONFIG_PATH		"/home/erik/.aaxsynth.xml"
 
+#if 0
 static int _get_bank_num(const char*);
 static int _get_inst_num(const char*);
 
@@ -731,3 +732,4 @@ _get_bank_num(const char* name)
 
     return rv;
 }
+#endif

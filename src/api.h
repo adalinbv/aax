@@ -122,6 +122,7 @@ typedef struct
 _frame_t* get_frame(aaxFrame);
 void put_frame(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
+void* _aaxAudioFrameThread(void*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
 
 /* --- Instrument --- */
