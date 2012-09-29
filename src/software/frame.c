@@ -44,9 +44,9 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
    memcpy(&sp2d.hrtf, mixer->info->hrtf, 2*sizeof(vec4_t));
    memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
 
-   /** process registered sensors */
-   if (mixer->sensors) {
-      _aaxSoftwareMixerMixSensors(dest_rb, mixer->sensors, &sp2d);
+   /** process registered devices */
+   if (mixer->devices) {
+      _aaxSoftwareMixerMixSensors(dest_rb, mixer->devices, &sp2d);
    }
 
    /* postprocess registered (non threaded) audio frames */
@@ -77,8 +77,8 @@ _aaxAudioFramePlayFrame(void* frame, const void* backend, void* sensor, void* be
             _aaxAudioFramePlayFrame(mixer, be, NULL, be_handle);
 #else
             /** process registered audio-frames and sensors */
-            if (fmixer->sensors) {
-               _aaxSoftwareMixerMixSensors(dest_rb, fmixer->sensors, fmixer->props2d);
+            if (fmixer->devices) {
+               _aaxSoftwareMixerMixSensors(dest_rb, fmixer->devices, fmixer->props2d);
             }
             be->effects(be_handle, dest_rb, fmixer->props2d);
 #endif

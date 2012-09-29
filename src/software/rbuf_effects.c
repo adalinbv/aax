@@ -289,10 +289,8 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          }
 
          DBG_MEMCLR(1, scratch-ds, ds+end, bps);
-printf("offs: %i, noffs: %i, doffs: %i, fact: %f\n", offs, noffs, doffs, fact);
          resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
-//       _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
-memcpy(dptr, scratch-ds, no_samples*sizeof(int32_t));
+         _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
       }
    }
    while (0);

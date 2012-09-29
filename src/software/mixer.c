@@ -806,7 +806,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                               be, be_handle);
  
                res = _aaxSoftwareMixerPlayFrame((void**)&mixer->ringbuffer,
-                                                mixer->sensors,
+                                                mixer->devices,
                                                 mixer->ringbuffers,
                                                 mixer->frames,
                                                 &sp2d, &sp3d, mixer->capturing,

@@ -503,16 +503,16 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
          if (config->pos == UINT_MAX)
          {
             _aaxAudioFrame* mixer = handle->submix;
-            _intBuffers *hs = mixer->sensors;
+            _intBuffers *hs = mixer->devices;
             unsigned int pos = UINT_MAX;
 
             if (hs == NULL)
             {
                unsigned int res;
 
-               res = _intBufCreate(&mixer->sensors, _AAX_DEVICE);
+               res = _intBufCreate(&mixer->devices, _AAX_DEVICE);
                if (res != UINT_MAX) {
-                  hs = mixer->sensors;
+                  hs = mixer->devices;
                }
             }
 
@@ -631,7 +631,7 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
       _handle_t* config = get_handle(sensor);
       if (config && config->pos != UINT_MAX)
       {
-         _intBuffers *hs = handle->submix->sensors;
+         _intBuffers *hs = handle->submix->devices;
          _intBufferData *dptr;
 
          _intBufRemove(hs, _AAX_DEVICE, config->pos, AAX_FALSE);

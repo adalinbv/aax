@@ -527,14 +527,14 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
-               _intBuffers *hs = mixer->sensors;
+               _intBuffers *hs = mixer->devices;
 
                if (hs == NULL)
                {
                   unsigned int res;
-                  res = _intBufCreate(&mixer->sensors, _AAX_DEVICE);
+                  res = _intBufCreate(&mixer->devices, _AAX_DEVICE);
                   if (res != UINT_MAX) {
-                     hs = mixer->sensors;
+                     hs = mixer->devices;
                   }
                }
 
@@ -674,7 +674,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
-            _intBuffers *hs = mixer->sensors;
+            _intBuffers *hs = mixer->devices;
             _intBufRemove(hs, _AAX_DEVICE, sframe->pos, AAX_FALSE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
