@@ -288,7 +288,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 #ifdef __GNUC__
          mtx = m->mutex.__data.__count;
          if (mtx != 1) {
-            printf("lock mutex != 1 (%i) in %s line %i, for: %s int %s\n", mtx, file, line, m->name, m->function);
+            printf("lock mutex != 1 (%i) in %s line %i, for: %s in %s\n", mtx, file, line, m->name, m->function);
             r = -mtx;
             abort();
          }
