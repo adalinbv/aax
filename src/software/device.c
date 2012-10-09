@@ -210,7 +210,7 @@ _aaxNoneDriverNotAvailable(const void *id)
 }
 
 static int
-_aaxNoneDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxNoneDriverPlayback(const void *id, void *s, float pitch, float volume)
 {
    return 0;
 }
@@ -478,7 +478,7 @@ _aaxNoneDriverThread(void* config)
    {
       sensor = _intBufGetDataPtr(dptr_sensor);
       mixer = sensor->mixer;
-      mixer->ringbuffer = dest_rb;
+      handle->ringbuffer = dest_rb;
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
    }
    else

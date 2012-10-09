@@ -5,6 +5,8 @@
    expander. The offset property defines the threshold level.
  * Fix distortion behavior, it was overcompressing for high distortion factors.
  * Add an enevlope following option for the distortion effect.
+ * Reorganize code to remove some dupplicate code, most code is now shared
+   between the mixer and audio-(sub)frames.
  * Allow sensors to be registered at subframes.
  * Fix filters and effects for registered sensors.
  * Expose the driver latency.

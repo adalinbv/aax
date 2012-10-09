@@ -787,14 +787,16 @@ _open_handle(aaxConfig config)
                      sensor->mixer->thread = -1;
                      num = _oalRingBufferGetNoSources();
                      sensor->mixer->info->max_emitters = num;
-                     sensor->mixer->info->max_registered = _AAX_MAX_MIXER_REGISTERED;
+                     num = _AAX_MAX_MIXER_REGISTERED;
+                     sensor->mixer->info->max_registered = num;
 
                      size = _AAX_MAX_SPEAKERS;
                      memcpy(&info->router, &_aaxContextDefaultRouter, size);
 
                      info->no_tracks = 2;
                      size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
-                     _aax_memcpy(&info->speaker,&_aaxContextDefaultSpeakers, size);
+                     _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakers,
+                                 size);
 
                      size = 2*sizeof(vec4_t);
                      _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
@@ -1215,13 +1217,18 @@ removeMixerByPos(void *config, unsigned int pos)
       free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
       free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
       free(mixer->props3d_ptr);
-      /* mixer->ringbuffer gets removed bij the mixer thread */
+
+      /* ringbuffer gets removed by the thread */
       /* _oalRingBufferDelete(mixer->ringbuffer); */
       _intBufErase(&mixer->frames, _AAX_FRAME, 0, 0);
+      _intBufErase(&mixer->devices, _AAX_DEVICE, 0, 0);
       _intBufErase(&mixer->emitters_2d, _AAX_EMITTER, 0, 0);
       _intBufErase(&mixer->emitters_3d, _AAX_EMITTER, 0, 0);
+#if 0
+// TODO: fix lock mutex != 1 (2) in buffers.c line 696,
       _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER,
-                   _aaxRemoveRingBufferByPos, sensor->mixer);
+                   _aaxRemoveRingBufferByPos, mixer);
+#endif
       free(sensor);
    }
 }

@@ -599,7 +599,7 @@ _aaxOSSDriverCapture(const void *id, void **data, int off, size_t *frames, void 
 }
 
 static int
-_aaxOSSDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxOSSDriverPlayback(const void *id, void *s, float pitch, float volume)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;

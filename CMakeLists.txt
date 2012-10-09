@@ -299,6 +299,7 @@ SET( AEONWAVE_OBJS
      src/software/mixer.c
      src/software/frame.c
      src/software/sensor.c
+     src/software/emitter.c
      src/software/rbuf_codecs.c
      src/software/rbuf_codec_tables.c
      src/software/rbuf_effects.c

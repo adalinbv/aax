@@ -697,6 +697,7 @@ free_buffer(_buffer_t* buf)
       if (--buf->ref_counter == 0)
       {
          _oalRingBufferDelete(buf->ringbuffer);
+         buf->ringbuffer = NULL;
 
          /* safeguard against using already destroyed handles */
          buf->id = 0xdeadbeef;

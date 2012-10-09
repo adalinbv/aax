@@ -601,11 +601,13 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      submix->refcount++;
                      submix->thread = AAX_TRUE;
 
-                     if (!submix->ringbuffer) {
-                        submix->ringbuffer = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
+                     rb = submix->ringbuffer;
+                     if (!rb)
+                     {
+                        rb = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
+                        submix->ringbuffer = rb;
                      }
 
-                     rb = submix->ringbuffer;
                      if (rb)
                      {
                         _aaxMixerInfo* info = submix->info;
@@ -779,9 +781,9 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
 
-               if (_oalRingBufferIsValid(mixer->ringbuffer)) {
+               if (_oalRingBufferIsValid(handle->ringbuffer)) {
                   src->props2d->delay_sec =
-                                  _oalRingBufferGetDuration(mixer->ringbuffer);
+                                  _oalRingBufferGetDuration(handle->ringbuffer);
                }
 
                if (positional)
@@ -1091,8 +1093,8 @@ _aaxMixerStart(_handle_t *handle)
             dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
-               r = (sensor->mixer->ringbuffer != 0);
+//             _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
+               r = (handle->ringbuffer != 0);
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
 

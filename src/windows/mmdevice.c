@@ -994,7 +994,7 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
 
 
 static int
-_aaxMMDevDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxMMDevDriverPlayback(const void *id, void *s, float pitch, float volume)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
@@ -1503,6 +1503,7 @@ _aaxMMDevDriverThread(void* config)
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr_sensor)
       {
+         _oalRingBuffer *nrb;
          _aaxMixerInfo* info;
          _sensor_t* sensor;
 
@@ -1518,12 +1519,14 @@ _aaxMMDevDriverThread(void* config)
          _oalRingBufferInit(dest_rb, AAX_TRUE);
          _oalRingBufferStart(dest_rb);
 
-         mixer->ringbuffer = dest_rb;
+         handle->ringbuffer = dest_rb;
+         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+         _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, nrb);
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
       }
    }
 
-   dest_rb = mixer->ringbuffer;
+   dest_rb = handle->ringbuffer;
    if (!dest_rb) {
       return NULL;
    }
@@ -1613,8 +1616,8 @@ _aaxMMDevDriverThread(void* config)
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
-      _oalRingBufferStop(mixer->ringbuffer);
-      _oalRingBufferDelete(mixer->ringbuffer);
+      _oalRingBufferStop(handle->ringbuffer);
+      _oalRingBufferDelete(handle->ringbuffer);
    }
    return handle;
 }

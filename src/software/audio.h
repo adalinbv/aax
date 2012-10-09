@@ -40,9 +40,6 @@ void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int,
 
 void _aaxFileDriverWrite(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
 
-
-void *_aaxSoftwareMixerReadFrame(void*, const void*, void*, float*, float);
-
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

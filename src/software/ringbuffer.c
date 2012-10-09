@@ -266,8 +266,10 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
       add_scratchbuf = (copy && rbsd->scratch) ? AAX_TRUE : AAX_FALSE;
       _oalRingBufferInit(rb, add_scratchbuf);
       _oalRingBufferSetNoSamples(rb, rbsd->no_samples);
-      if (copy) {
-         _oalRingBufferFillNonInterleaved(rb, rbsd->track, 1, ringbuffer->looping);
+      if (copy)
+      {
+         char loop = ringbuffer->looping;
+         _oalRingBufferFillNonInterleaved(rb, rbsd->track, 1, loop);
       }
       else
       {
@@ -674,7 +676,7 @@ _oalRingBufferDelete(_oalRingBuffer *rb)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(rb != 0);
-   assert(rb->sample != 0);
+// assert(rb->sample != 0);
 
    rbd = rb->sample;
    if (rbd && rbd->ref_counter > 0)

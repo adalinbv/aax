@@ -432,7 +432,7 @@ _aaxFileDriverAvailable(const void *id)
 }
 
 static int
-_aaxFileDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxFileDriverPlayback(const void *id, void *s, float pitch, float volume)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;

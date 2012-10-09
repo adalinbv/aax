@@ -1778,7 +1778,7 @@ _xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
 
 
 static int
-_aaxALSADriverPlayback_mmap_ni(const void *id, void *dst, void *src, float pitch, float volume)
+_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -1881,7 +1881,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *dst, void *src, float pitch
 
 
 static int
-_aaxALSADriverPlayback_mmap_il(const void *id, void *dst, void *src, float pitch, float volume)
+_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -1979,7 +1979,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *dst, void *src, float pitch
 
 
 static int
-_aaxALSADriverPlayback_rw_ni(const void *id, void *dst, void *src, float pitch, float volume)
+_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -2076,14 +2076,14 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *dst, void *src, float pitch, 
 
 
 static int
-_aaxALSADriverPlayback(const void *id, void *dst, void *src, float pitch, float volume)
+_aaxALSADriverPlayback(const void *id, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle->play(id, dst, src, pitch, volume);
+   return handle->play(id, src, pitch, volume);
 }
 
 static int
-_aaxALSADriverPlayback_rw_il(const void *id, void *dst, void *src, float pitch, float volume
+_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float volume
 )
 {
    _driver_t *handle = (_driver_t *)id;
@@ -2094,7 +2094,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *dst, void *src, float pitch, 
    char *data;
    int err;
     
-
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(handle != 0);
@@ -2180,11 +2179,6 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
-   dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
-   if (!dest_rb) {
-      return NULL;
-   }
-
    delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
@@ -2192,21 +2186,31 @@ _aaxALSADriverThread(void* config)
    if (dptr_sensor)
    {
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
+      _oalRingBuffer *nrb;
+
       mixer = sensor->mixer;
 
-      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-      _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
-      _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
-      _oalRingBufferSetDuration(dest_rb, delay_sec);
-      _oalRingBufferInit(dest_rb, AAX_TRUE);
-      _oalRingBufferStart(dest_rb);
+      dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
+      if (dest_rb)
+      {
+         _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
+         _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
+         _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
+         _oalRingBufferSetDuration(dest_rb, delay_sec);
+         _oalRingBufferInit(dest_rb, AAX_TRUE);
+         _oalRingBufferStart(dest_rb);
 
-      mixer->ringbuffer = dest_rb;
+         handle->ringbuffer = dest_rb;
+//       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+//       _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, nrb);
+      }
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
+      if (!dest_rb) {
+         return NULL;
+      }
    }
-   else
-   {
-      _oalRingBufferDelete(dest_rb);
+   else {
       return NULL;
    }
 
@@ -2264,8 +2268,9 @@ _aaxALSADriverThread(void* config)
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
-      _oalRingBufferStop(mixer->ringbuffer);
-      _oalRingBufferDelete(mixer->ringbuffer);
+      _oalRingBufferStop(handle->ringbuffer);
+      _oalRingBufferDelete(handle->ringbuffer);
+      handle->ringbuffer = NULL;
    }
    return handle;
 }

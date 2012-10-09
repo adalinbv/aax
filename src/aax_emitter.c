@@ -234,6 +234,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
 
                      free_buffer(embuf->buffer);
                      _oalRingBufferDelete(embuf->ringbuffer);
+                     embuf->ringbuffer = NULL;
                      embuf->id = 0xdeadbeef;
                      free(embuf);
                   }
@@ -1276,6 +1277,7 @@ removeEmitterBufferByPos(void *source, unsigned int pos)
    {
       free_buffer(embuf->buffer);
       _oalRingBufferDelete(embuf->ringbuffer);
+      embuf->ringbuffer = NULL;
       embuf->id = 0xdeadbeef;
       free(embuf);
       embuf = NULL;

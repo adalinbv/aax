@@ -73,7 +73,7 @@ typedef int _aaxDriverSetup(const void*, size_t*, int*, unsigned int*, float*);
 typedef int _aaxDriverState(const void*);
 typedef float _aaxDriverParam(const void*);
 
-typedef int _aaxDriverCallback(const void*, void*, void*, float, float);
+typedef int _aaxDriverCallback(const void*, void*, float, float);
 typedef int _aaxDriverCaptureCallback(const void*, void**, int, size_t*, void*, size_t);
 
 typedef int _aaxDriver2dMixerCB(const void*, void*, void*, void*, void*, float, float, unsigned char, unsigned int);
@@ -142,14 +142,12 @@ void _aaxNoneDriverProcessFrame(void*);
 
 unsigned int _aaxSoftwareMixerSignalFrames(void*);
 int _aaxSoftwareMixerPlayFrame(void**, const void*, const void*, const void*, void*, const void*, char, const void*, const void*, const void*);
-void _aaxSoftwareMixerProcessFrame(void*, void*, void*, void*, void*, void*, void*, void*, const void*, void*);
 
 void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
 void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
 unsigned int _aaxSoftwareMixerMixFrames(void*, _intBuffers*);
-unsigned int _aaxSoftwareMixerMixSensors(void*, const void *, void*);
 
 
 #if defined(__cplusplus)

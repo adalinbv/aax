@@ -362,6 +362,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
 
 /* -------------------------------------------------------------------------- */
 
+/* capturing only */
 int
 _aaxSensorCreateRingBuffer(_handle_t *handle)
 {
@@ -419,6 +420,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
    return rv;
 }
 
+/* capturing only */
 int
 _aaxSensorCaptureStart(_handle_t *handle)
 {

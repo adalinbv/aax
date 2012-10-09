@@ -509,6 +509,11 @@ _intBufPopData(_intBuffers *buffer, unsigned int id)
 
    if (buffer->num_allocated > 0)
    {
+if (buffer->data[0] == 0)
+{
+printf("buffer->first_free: %i\n", buffer->first_free);
+printf("buffer->num_allocated: %i\n", buffer->num_allocated);
+}
       assert(buffer->data[0] != 0);
       assert(buffer->data[0]->reference_ctr > 0);
 

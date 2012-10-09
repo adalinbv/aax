@@ -51,6 +51,11 @@ typedef struct
 
 } _sensor_t;
 
+void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,
+                        _oalRingBuffer2dProps*);
+void *_aaxSensorCapture(_oalRingBuffer*, const _aaxDriverBackend*, void*,
+                        float*, float);
+
 /* --- Driver --- */
 /* Note: several validation mechanisms rely on this value.
  *       be sure before changing.
@@ -91,6 +96,9 @@ typedef struct
    struct backend_t backend;
    struct threat_t thread;
 
+   /* destination ringbuffer */
+   _oalRingBuffer *ringbuffer;
+ 
    /* parametric equalizer **/
    _oalRingBufferFilterInfo filter[EQUALIZER_MAX];
 
@@ -114,6 +122,7 @@ typedef struct
    void* handle;	/* assigned when registered to a (sub)mixer */
 
    _aaxAudioFrame *submix;
+   _oalRingBuffer *ringbuffer;
 
    struct threat_t thread;
 
@@ -123,7 +132,16 @@ _frame_t* get_frame(aaxFrame);
 void put_frame(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
+
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
+
+char _aaxAudioFrameProcess(_oalRingBuffer*, _aaxAudioFrame*,
+                           _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
+                           _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
+                           _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
+                           const _aaxDriverBackend*, void*);
+void _aaxAudioFrameMix(_oalRingBuffer*, _aaxAudioFrame*, _oalRingBuffer2dProps*,
+                       const _aaxDriverBackend*, void*);
 
 /* --- Instrument --- */
 #define INSTRUMENT_ID	0x0EB9A645
@@ -236,6 +254,13 @@ _emitter_t* get_emitter_unregistered(aaxEmitter);
 void put_emitter(aaxEmitter);
 int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);
+
+char _aaxEmittersProcess(_oalRingBuffer*, _aaxMixerInfo*,
+                         _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
+                         _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
+                         _intBuffers*, _intBuffers*,
+                         const _aaxDriverBackend*, void*);
+
 
 /* -- Filters and Effects -- */
 

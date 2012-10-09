@@ -749,7 +749,7 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
 }
 
 static int
-_aaxDMediaDriverPlayback(const void *id, void *d, void *s, float pitch, float volume)
+_aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float volume)
 {
 #if MAX_PORTS > 1
    static int check_ = CHECK_FRAMES;
