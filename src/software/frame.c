@@ -25,317 +25,10 @@
 
 #include "audio.h"
 
-void*
-_aaxAudioFrameProcessThreadedFrame(_handle_t* handle, _frame_t *frame,
-          _aaxAudioFrame *mixer, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer,
-          const _aaxDriverBackend *be)
-{
-   void *be_handle = NULL;
-   _oalRingBuffer2dProps sp2d;
-   _oalRingBuffer3dProps sp3d;
-   _oalRingBuffer2dProps fp2d;
-   _oalRingBuffer3dProps fp3d;
-   _intBufferData *dptr;
-   void *rb;
-
-   assert(handle);
-   assert(mixer);
-   assert(smixer);
-   assert(fmixer);
-
-   be_handle = handle->backend.handle;
-
-   /* copying prevents locking the listener the whole time */
-   /* it's used for just one time-frame anyhow             */
-   dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-   if (dptr)
-   {
-      memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
-      memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
-      memcpy(&sp2d.pos, smixer->info->speaker,_AAX_MAX_SPEAKERS*sizeof(vec4_t));
-      memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4_t));
-      _intBufReleaseData(dptr, _AAX_SENSOR);
-   }
-
-   memcpy(&fp3d, fmixer->props3d, sizeof(_oalRingBuffer3dProps));
-   memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
-
-#if 1
-   rb = frame->ringbuffer;
-   /* clear the buffer for use by the subframe */
-   _oalRingBufferClear(rb);
-   _oalRingBufferStart(rb);
-
-   _aaxAudioFrameProcess(rb, mixer, &sp2d, &sp3d, NULL, NULL,
-                                    &fp2d, &fp3d, be, be_handle);
-
-   if TEST_FOR_TRUE(fmixer->capturing)
-   {
-      char dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
-      _intBuffers *ringbuffers = fmixer->ringbuffers;
-      unsigned int nbuf;
-
-      nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-      if (nbuf == 0)
-      {
-         _oalRingBuffer *nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-         _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
-         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-         rb = nrb;
-      }
-      else
-      {
-         _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-         _oalRingBuffer *nrb = _intBufSetDataPtr(buf, rb);
-
-         /* switch ringbuffers */
-         _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-         if (dde) {
-            _oalRingBufferCopyDelyEffectsData(nrb, rb);
-         }
-         rb = nrb;
-      }
-      fmixer->capturing++;
-   }
-   return rb;
-#else
-   /** process threaded frames */
-   rb = frame->ringbuffer;
-   _aaxEmittersProcess(rb, mixer->info, sp2d, sp3d, &fp2d, &fp3d,
-                                 mixer->emitters_2d, mixer->emitters_3d,
-                                 be, be_handle);
-
-   /** process registered audio-frames and sensors */
-   memcpy(&sp3dl, mixer->props3d, sizeof(_oalRingBuffer3dProps));
-   memcpy(&sp2dl, mixer->props2d, sizeof(_oalRingBuffer2dProps));
-   memcpy(&sp2dl.pos, mixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-   memcpy(&sp2dl.hrtf, mixer->info->hrtf, 2*sizeof(vec4_t));
-   rb = _aaxAudioFramePlayFrame(rb, mixer, &sp2dl, &sp3dl, be, be_handle);
-   frame->ringbuffer = rb;
-#endif
-}
-
-char
-_aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
-                      _oalRingBuffer2dProps *sp2d, _oalRingBuffer3dProps *sp3d,
-                      _oalRingBuffer2dProps *pp2d, _oalRingBuffer3dProps *pp3d,
-                      _oalRingBuffer2dProps *fp2d, _oalRingBuffer3dProps *fp3d,
-                      const _aaxDriverBackend *be, void *be_handle)
-{
-   char process;
-
-   /** process possible registered emitters */
-   process = _aaxEmittersProcess(dest_rb, fmixer->info, sp2d, sp3d, pp2d, pp3d,
-                                 fmixer->emitters_2d, fmixer->emitters_3d,
-                                 be, be_handle);
-
-   /** process registered devices */
-   if (fmixer->devices)
-   {
-      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d);
-      process = AAX_TRUE;
-   }
-
-   /** process registered sub-frames */
-   if (fmixer->frames)
-   {
-      _oalRingBuffer *frame_rb = fmixer->ringbuffer;
-
-      /*
-       * Make sure there's a ringbuffer when at least one subframe is
-       * registered. All subframes use this ringbuffer for rendering.
-       */
-      if (!frame_rb)
-      {
-         frame_rb = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
-         if (frame_rb)
-         {
-            _aaxMixerInfo* info = fmixer->info;
-
-            _oalRingBufferSetNoTracks(frame_rb, info->no_tracks);
-            _oalRingBufferSetFormat(frame_rb, be->codecs, AAX_PCM24S);
-            _oalRingBufferSetFrequency(frame_rb, info->frequency);
-            _oalRingBufferSetDuration(frame_rb, 1.0f / info->refresh_rate);
-            _oalRingBufferInit(frame_rb, AAX_TRUE);
-            fmixer->ringbuffer = frame_rb;
-         }
-      }
-
-      /* process registered (non threaded) sub-frames */
-      if (frame_rb)
-      {
-         _intBuffers *hf = fmixer->frames;
-         _oalRingBuffer2dProps sfp2d;
-         _oalRingBuffer3dProps sfp3d;
-         unsigned int i, max, cnt;
-
-         max = _intBufGetMaxNum(hf, _AAX_FRAME);
-         cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);
-         for (i=0; i<max; i++)
-         {
-            _aaxAudioFrame *sfmixer;
-            _frame_t* subframe;
-            char res = 0;
-
-            /* clear the buffer for use by the subframe */
-            _oalRingBufferClear(frame_rb);
-            _oalRingBufferStart(frame_rb);
-
-            /* process the subframe */
-            _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
-            if (!dptr) break;
-
-            /* copy to prevent locking while walking the tree */
-            subframe = _intBufGetDataPtr(dptr);
-            sfmixer = subframe->submix;
-            memcpy(&sfp3d, sfmixer->props3d, sizeof(_oalRingBuffer3dProps));
-            memcpy(&sfp2d, sfmixer->props2d, sizeof(_oalRingBuffer2dProps));
-            _intBufReleaseData(dptr, _AAX_FRAME);
-
-            /*
-             * frames render in the ringbuffer of their parent and mix with
-             * dest_rb, this could potentialy save a lot of ringbuffers
-             */
-            res = _aaxAudioFrameProcess(frame_rb, sfmixer, sp2d, sp3d,
-                                       fp2d, fp3d, &sfp2d, &sfp3d,
-                                       be, be_handle);
-            /* if the subframe actually did render something, mix the data */
-            if (res)
-            {
-#if 0
-//             _oalRingBufferLFOInfo *lfo;
-               unsigned char track, tracks;
-               unsigned int dno_samples;
-
-               dno_samples = _oalRingBufferGetNoSamples(dest_rb);
-               tracks = _oalRingBufferGetNoTracks(dest_rb);
-
- //            lfo = _FILTER_GET_DATA(sfp2d, DYNAMIC_GAIN_FILTER);
-               for (track=0; track<tracks; track++)
-               {
-                  int32_t *dptr = dest_rb->sample->track[track];
-                  int32_t *sptr = frame_rb->sample->track[track];
-                  float g = 1.0f, gstep = 0.0f;
-
-//                if (lfo && lfo->envelope) {
-//                   g = lfo->get(lfo, sptr, track, dno_samples);
-//                }
-                  _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
-               }
-
-#else
-               /* should always be true for sub-frames */
-               if (1) // TEST_FOR_TRUE(sfmixer->capturing)
-               {
-                  char dde = (_EFFECT_GET2D_DATA(sfmixer,DELAY_EFFECT) != NULL);
-                  _intBuffers *ringbuffers = sfmixer->ringbuffers;
-                  unsigned int nbuf;
-
-                  nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-                  if (nbuf == 0)
-                  {
-                     _oalRingBuffer *nrb;
-
-                     /* add the ringbuffer to the buffer queue */
-                     nrb = _oalRingBufferDuplicate(frame_rb, AAX_TRUE, dde);
-                     _intBufAddData(ringbuffers, _AAX_RINGBUFFER, frame_rb);
-                     _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-                     fmixer->ringbuffer = frame_rb = nrb;
-                  }
-                  else
-                  {
-                     _intBufferData *buf;
-
-                     /* swap ringbuffers */
-                     buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-                     if (buf)
-                     {
-                        _oalRingBuffer *nrb;
-
-                        nrb = _intBufSetDataPtr(buf, frame_rb);
-                        _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-                        _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-                        if (dde) {
-                           _oalRingBufferCopyDelyEffectsData(nrb, frame_rb);
-                        }
-                        fmixer->ringbuffer = frame_rb = nrb;
-                     }
-                  }
-                  sfmixer->capturing++;
-               }
-
-               /* finally mix the data with dest_rb */
-               _aaxAudioFrameMix(dest_rb, sfmixer, &sfp2d, be, be_handle);
-#endif
-
-               process = AAX_TRUE;
-      
-               if (--cnt == 0) break;
-            }
-         }
-         _intBufReleaseNum(hf, _AAX_FRAME);
-      }
-   }
-
-   if (process)
-   {
-      be->effects(be_handle, dest_rb, fp2d);
-      be->postprocess(be_handle, dest_rb, NULL);
-   }
-
-   return process;
-}
-
-void
-_aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
-                  _oalRingBuffer2dProps *fp2d,
-                  const _aaxDriverBackend *be, void *be_handle)
-{
-   _intBuffers *ringbuffers = fmixer->ringbuffers;
-   _intBufferData *buf;
-
-   _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-   buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-   if (buf)
-   {
-      _oalRingBufferLFOInfo *lfo;
-      unsigned char track, tracks;
-      unsigned int dno_samples;
-      _oalRingBuffer *src_rb;
-
-      dno_samples = _oalRingBufferGetNoSamples(dest_rb);
-      tracks = _oalRingBufferGetNoTracks(dest_rb);
-      src_rb = _intBufGetDataPtr(buf);
-
-      lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
-      for (track=0; track<tracks; track++)
-      {
-         int32_t *dptr = dest_rb->sample->track[track];
-         int32_t *sptr = src_rb->sample->track[track];
-         float g = 1.0f, gstep = 0.0f;
-
-         if (lfo && lfo->envelope) {
-            g = lfo->get(lfo, sptr, track, dno_samples);
-         }
-         _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
-         fmixer->capturing = 1;
-      }
-
-      /*
-       * push the ringbuffer to the back of the stack so it can
-       * be used without the need to delete this one now and 
-       * create a new ringbuffer later on.
-       */
-      _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-      _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-   }
-}
+static void*
+_aaxAudioFrameProcessThreadedFrame(_handle_t*, _frame_t*, _aaxAudioFrame*,
+                                   _aaxAudioFrame*, _aaxAudioFrame*,
+                                   const _aaxDriverBackend*);
 
 void*
 _aaxAudioFrameThread(void* config)
@@ -384,7 +77,6 @@ _aaxAudioFrameThread(void* config)
       _oalRingBufferSetDuration(dest_rb, delay_sec);
       _oalRingBufferInit(dest_rb, AAX_TRUE);
       _oalRingBufferStart(dest_rb);
-
       frame->ringbuffer = dest_rb;
 //    nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
 //    _intBufAddData(smixer->ringbuffers, _AAX_RINGBUFFER, nrb);
@@ -476,14 +168,8 @@ _aaxAudioFrameThread(void* config)
          {
             if (_IS_PLAYING(frame) && be->is_available(NULL))
             {
-#if 1
                _aaxAudioFrameProcessThreadedFrame(handle, frame, mixer,
                                                   smixer, fmixer, be);
-#else
-               _oalRingBufferClear(frame->ringbuffer);
-               _oalRingBufferStart(frame->ringbuffer);
-               _aaxAudioFrameProcessFrame(handle,frame,mixer,smixer,fmixer,be);
-#endif
             }
             else { /* if (_IS_STANDBY(frame)) */
                _aaxNoneDriverProcessFrame(mixer);
@@ -515,146 +201,283 @@ _aaxAudioFrameThread(void* config)
    return frame;
 }
 
-
-
-// = OLD CODE  =================================================================
-
-void *
-_aaxAudioFramePlayFrame(_oalRingBuffer *dest_rb, _aaxAudioFrame* fmixer, _oalRingBuffer2dProps *sp2d, _oalRingBuffer3dProps *sp3d, const _aaxDriverBackend* be, void *be_handle)
+void
+_aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
+                  _oalRingBuffer2dProps *fp2d,
+                  const _aaxDriverBackend *be, void *be_handle)
 {
-   void *rb = dest_rb;
-#if 0
-   _aaxAudioFrameProcess(dest_rb, fmixer, sp2d, sp3d, NULL, NULL,
-                         fmixer->props2d, fmixer->props3d, be, be_handle);
-#else
-   /** process registered devices */
-   if (fmixer->devices) {
-      _aaxSensorsProcess(dest_rb, fmixer->devices, sp2d);
-   }
+   _intBuffers *ringbuffers = fmixer->ringbuffers;
+   _intBufferData *buf;
 
-   /* postprocess registered (non threaded) audio frames */
-   if (fmixer->frames)
+   _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+   buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
+   if (buf)
    {
-      unsigned int i, num;
-      _intBuffers *hf;
+      _oalRingBufferLFOInfo *lfo;
+      unsigned char track, tracks;
+      unsigned int dno_samples;
+      _oalRingBuffer *src_rb;
 
-      hf = fmixer->frames;
-      num = _intBufGetMaxNum(hf, _AAX_FRAME);
-      for (i=0; i<num; i++)
+      dno_samples = _oalRingBufferGetNoSamples(dest_rb);
+      tracks = _oalRingBufferGetNoTracks(dest_rb);
+      src_rb = _intBufGetDataPtr(buf);
+
+      lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
+      for (track=0; track<tracks; track++)
       {
-         _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
-         if (dptr)
-         {
-            _frame_t* subframe = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *nfmixer = subframe->submix;
+         int32_t *dptr = dest_rb->sample->track[track];
+         int32_t *sptr = src_rb->sample->track[track];
+         float g = 1.0f, gstep = 0.0f;
 
-            _intBufReleaseData(dptr, _AAX_FRAME);
-            _aaxEmittersProcess(dest_rb, fmixer->info, sp2d, sp3d,
-                                          nfmixer->props2d, nfmixer->props3d,
-                                          nfmixer->emitters_2d,
-                                          nfmixer->emitters_3d,
-                                          be, NULL);
-
-            dest_rb = _aaxAudioFramePlayFrame(dest_rb, nfmixer,
-                                            nfmixer->props2d,  nfmixer->props3d,
-                                            be, be_handle);
+         if (lfo && lfo->envelope) {
+            g = lfo->get(lfo, sptr, track, dno_samples);
          }
+         _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
+         fmixer->capturing = 1;
       }
-      _intBufReleaseNum(hf, _AAX_FRAME);
-      _aaxSoftwareMixerMixFrames(dest_rb, fmixer->frames);
+
+      /*
+       * push the ringbuffer to the back of the stack so it can
+       * be used without the need to delete this one now and 
+       * create a new ringbuffer later on.
+       */
+      _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+      _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
+      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
    }
+}
 
-   be->effects(be_handle, dest_rb, sp2d);
-   be->postprocess(be_handle, dest_rb, NULL);
-#endif
+/* -------------------------------------------------------------------------- */
 
+static void *
+_aaxAudioFrameSwapBuffers(void *rb, _aaxAudioFrame *fmixer)
+{
    if TEST_FOR_TRUE(fmixer->capturing)
    {
       char dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
       _intBuffers *ringbuffers = fmixer->ringbuffers;
-      unsigned int nbuf; 
- 
+      unsigned int nbuf;
+
       nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
       if (nbuf == 0)
       {
-         _oalRingBuffer *nrb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE, dde);
-         _intBufAddData(ringbuffers, _AAX_RINGBUFFER, dest_rb);
+         _oalRingBuffer *nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
+         _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
          _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-         dest_rb = nrb;
+         rb = nrb;
       }
       else
       {
-         _intBufferData *buf;
-         _oalRingBuffer *nrb;
-
-         buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+         _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+         _oalRingBuffer *nrb = _intBufSetDataPtr(buf, rb);
 
          /* switch ringbuffers */
-         nrb = _intBufSetDataPtr(buf, dest_rb);
          _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
          _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
          if (dde) {
-            _oalRingBufferCopyDelyEffectsData(nrb, dest_rb);
+            _oalRingBufferCopyDelyEffectsData(nrb, rb);
          }
-         dest_rb = nrb;
+         rb = nrb;
       }
       fmixer->capturing++;
-      rb = dest_rb;
    }
    return rb;
 }
 
-void
-_aaxAudioFrameProcessFrame(_handle_t* handle, _frame_t *frame,
+static char
+_aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
+                      _oalRingBuffer2dProps *sp2d, _oalRingBuffer3dProps *sp3d,
+                      _oalRingBuffer2dProps *pp2d, _oalRingBuffer3dProps *pp3d,
+                      _oalRingBuffer2dProps *fp2d, _oalRingBuffer3dProps *fp3d,
+                      const _aaxDriverBackend *be, void *be_handle)
+{
+   char process;
+
+   /** process possible registered emitters */
+   process = _aaxEmittersProcess(dest_rb, fmixer->info, sp2d, sp3d, pp2d, pp3d,
+                                 fmixer->emitters_2d, fmixer->emitters_3d,
+                                 be, be_handle);
+
+   /** process registered devices */
+   if (fmixer->devices)
+   {
+      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d);
+      process = AAX_TRUE;
+   }
+
+   /** process registered sub-frames */
+   if (fmixer->frames)
+   {
+      _oalRingBuffer *frame_rb = fmixer->ringbuffer;
+
+      /*
+       * Make sure there's a ringbuffer when at least one subframe is
+       * registered. All subframes use this ringbuffer for rendering.
+       */
+      if (!frame_rb)
+      {
+         frame_rb = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
+         if (frame_rb)
+         {
+            _aaxMixerInfo* info = fmixer->info;
+
+            _oalRingBufferSetNoTracks(frame_rb, info->no_tracks);
+            _oalRingBufferSetFormat(frame_rb, be->codecs, AAX_PCM24S);
+            _oalRingBufferSetFrequency(frame_rb, info->frequency);
+            _oalRingBufferSetDuration(frame_rb, 1.0f / info->refresh_rate);
+            _oalRingBufferInit(frame_rb, AAX_TRUE);
+            fmixer->ringbuffer = frame_rb;
+         }
+      }
+
+      /* process registered (non threaded) sub-frames */
+      if (frame_rb)
+      {
+         _intBuffers *hf = fmixer->frames;
+         _oalRingBuffer2dProps sfp2d;
+         _oalRingBuffer3dProps sfp3d;
+         unsigned int i, max, cnt;
+
+         max = _intBufGetMaxNum(hf, _AAX_FRAME);
+         cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);
+         for (i=0; i<max; i++)
+         {
+            _aaxAudioFrame *sfmixer;
+            _frame_t* subframe;
+            char res = 0;
+
+            /* clear the buffer for use by the subframe */
+            _oalRingBufferClear(frame_rb);
+            _oalRingBufferStart(frame_rb);
+
+            /* process the subframe */
+            _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
+            if (!dptr) break;
+
+            /* copy to prevent locking while walking the tree */
+            subframe = _intBufGetDataPtr(dptr);
+            sfmixer = subframe->submix;
+            memcpy(&sfp3d, sfmixer->props3d, sizeof(_oalRingBuffer3dProps));
+            memcpy(&sfp2d, sfmixer->props2d, sizeof(_oalRingBuffer2dProps));
+            _intBufReleaseData(dptr, _AAX_FRAME);
+
+            /*
+             * frames render in the ringbuffer of their parent and mix with
+             * dest_rb, this could potentialy save a lot of ringbuffers
+             */
+            res = _aaxAudioFrameProcess(frame_rb, sfmixer, sp2d, sp3d,
+                                       fp2d, fp3d, &sfp2d, &sfp3d,
+                                       be, be_handle);
+            /* if the subframe actually did render something, mix the data */
+            if (res)
+            {
+               /* should always be true for sub-frames */
+               if (1) // TEST_FOR_TRUE(sfmixer->capturing)
+               {
+                  char dde = (_EFFECT_GET2D_DATA(sfmixer,DELAY_EFFECT) != NULL);
+                  _intBuffers *ringbuffers = sfmixer->ringbuffers;
+                  unsigned int nbuf;
+
+                  nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+                  if (nbuf == 0)
+                  {
+                     _oalRingBuffer *nrb;
+
+                     /* add the ringbuffer to the buffer queue */
+                     nrb = _oalRingBufferDuplicate(frame_rb, AAX_TRUE, dde);
+                     _intBufAddData(ringbuffers, _AAX_RINGBUFFER, frame_rb);
+                     _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+                     fmixer->ringbuffer = frame_rb = nrb;
+                  }
+                  else
+                  {
+                     _intBufferData *buf;
+
+                     /* swap ringbuffers */
+                     buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+                     if (buf)
+                     {
+                        _oalRingBuffer *nrb;
+
+                        nrb = _intBufSetDataPtr(buf, frame_rb);
+                        _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
+                        _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
+                        if (dde) {
+                           _oalRingBufferCopyDelyEffectsData(nrb, frame_rb);
+                        }
+                        fmixer->ringbuffer = frame_rb = nrb;
+                     }
+                  }
+                  sfmixer->capturing++;
+               }
+
+               /* finally mix the data with dest_rb */
+               _aaxAudioFrameMix(dest_rb, sfmixer, &sfp2d, be, be_handle);
+
+               process = AAX_TRUE;
+      
+               if (--cnt == 0) break;
+            }
+         }
+         _intBufReleaseNum(hf, _AAX_FRAME);
+      }
+   }
+
+   if (process)
+   {
+      be->effects(be_handle, dest_rb, fp2d);
+      be->postprocess(be_handle, dest_rb, NULL);
+   }
+
+   return process;
+}
+
+static void*
+_aaxAudioFrameProcessThreadedFrame(_handle_t* handle, _frame_t *frame,
           _aaxAudioFrame *mixer, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer,
           const _aaxDriverBackend *be)
 {
-   void *rb, *be_handle = NULL;
-   _oalRingBuffer2dProps *sp2d = NULL;
-   _oalRingBuffer3dProps *sp3d = NULL;
-   _oalRingBuffer2dProps sp2dl;
-   _oalRingBuffer3dProps sp3dl;
+   void *be_handle = NULL;
+   _oalRingBuffer2dProps sp2d;
+   _oalRingBuffer3dProps sp3d;
    _oalRingBuffer2dProps fp2d;
    _oalRingBuffer3dProps fp3d;
+   _intBufferData *dptr;
+   void *rb;
 
-   if (handle) /* frame is registered */
+   assert(handle);
+   assert(mixer);
+   assert(smixer);
+   assert(fmixer);
+
+   be_handle = handle->backend.handle;
+
+   /* copying prevents locking the listener the whole time */
+   /* it's used for just one time-frame anyhow             */
+   dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr)
    {
-      _handle_t* handle = frame->handle;
-      _intBufferData *dptr;
-
-       /* copying prevents locking the listener the whole time */
-       /* it's used for just one time-frame anyhow             */
-       dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-       if (dptr)
-       {
-          sp2d = &sp2dl;
-          sp3d = &sp3dl;
-          memcpy(sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
-          memcpy(sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
-          memcpy(sp2d->pos, smixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-          memcpy(sp2d->hrtf, smixer->info->hrtf, 2*sizeof(vec4_t));
-          _intBufReleaseData(dptr, _AAX_SENSOR);
-
-       }
-       be_handle = handle->backend.handle; 
+      memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
+      memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
+      memcpy(&sp2d.pos, smixer->info->speaker,_AAX_MAX_SPEAKERS*sizeof(vec4_t));
+      memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4_t));
+      _intBufReleaseData(dptr, _AAX_SENSOR);
    }
+
    memcpy(&fp3d, fmixer->props3d, sizeof(_oalRingBuffer3dProps));
    memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
-   memcpy(&fp2d.pos, fmixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-   memcpy(&fp2d.hrtf, fmixer->info->hrtf, 2*sizeof(vec4_t));
 
-   /** process threaded frames */
+   /* clear the buffer for use by the subframe */
    rb = frame->ringbuffer;
-   _aaxEmittersProcess(rb, mixer->info, sp2d, sp3d, &fp2d, &fp3d,
-                                 mixer->emitters_2d, mixer->emitters_3d,
-                                 be, be_handle);
+   _oalRingBufferClear(rb);
+   _oalRingBufferStart(rb);
 
-   /** process registered audio-frames and sensors */
-   memcpy(&sp3dl, mixer->props3d, sizeof(_oalRingBuffer3dProps));
-   memcpy(&sp2dl, mixer->props2d, sizeof(_oalRingBuffer2dProps));
-   memcpy(&sp2dl.pos, mixer->info->speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-   memcpy(&sp2dl.hrtf, mixer->info->hrtf, 2*sizeof(vec4_t));
-   rb = _aaxAudioFramePlayFrame(rb, mixer, &sp2dl, &sp3dl, be, be_handle);
-   frame->ringbuffer = rb;
+   _aaxAudioFrameProcess(rb, mixer, &sp2d, &sp3d, NULL, NULL,
+                                    &fp2d, &fp3d, be, be_handle);
+   return _aaxAudioFrameSwapBuffers(rb, fmixer);
 }
+

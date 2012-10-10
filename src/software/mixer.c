@@ -461,7 +461,6 @@ _aaxSoftwareMixerPlayFrame(void** rb, const void* sensors, const void* ringbuffe
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)*rb;
    int res;
 
-   /** postprocess registered sensors and (threaded) audio frames */
    if (sensors) {
       _aaxSensorsProcess(dest_rb, sensors, props2d);
    }
@@ -548,7 +547,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
-//             _oalRingBuffer *dest_rb = (_oalRingBuffer *)dest;
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
 
@@ -568,28 +566,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
-#if 0
-               _aaxAudioFrameProcess(dest_rb, mixer, &sp2d, &sp3d, NULL, NULL,
-                                     &sp2d, &sp3d, be, be_handle);
-
-               /** play back all mixed audio */
-               res = be->play(be_handle, dest_rb, 1.0, 1.0);
-               if TEST_FOR_TRUE(mixer->capturing)
-               {
-                  _oalRingBufferForward(dest_rb);
-                  _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, dest_rb);
-                  _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-                  dest_rb=_oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
-                  handle->ringbuffer = dest_rb;
-               }
-
-#else
                /* main mixer */
-               _aaxEmittersProcess(dest, handle->info,
-                                              &sp2d, &sp3d, NULL, NULL,
-                                              mixer->emitters_2d,
-                                              mixer->emitters_3d,
-                                              be, be_handle);
+               _aaxEmittersProcess(dest, handle->info, &sp2d, &sp3d, NULL, NULL,
+                                         mixer->emitters_2d, mixer->emitters_3d,
+                                         be, be_handle);
  
                res = _aaxSoftwareMixerPlayFrame((void**)&handle->ringbuffer,
                                                 mixer->devices,
@@ -597,7 +577,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                                 mixer->frames,
                                                 &sp2d, &sp3d, mixer->capturing,
                                                 sensor, be, be_handle);
-#endif
             }
          }
       }
