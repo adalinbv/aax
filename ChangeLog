@@ -4,11 +4,11 @@
  * Make the dynamic-gain envelope-following mode a proper audio-compressor and
    expander. The offset property defines the threshold level.
  * Fix distortion behavior, it was overcompressing for high distortion factors.
- * Add an enevlope following option for the distortion effect.
- * Reorganize code to remove some dupplicate code, most code is now shared
-   between the mixer and audio-(sub)frames.
- * Allow sensors to be registered at subframes.
+ * Add an envelope following option for the distortion effect.
+ * Remove some dupplicate code, most code is now shared between the mixer and
+   audio-(sub)frames which should lead to fewer case specific problems.
  * Fix filters and effects for registered sensors.
+ * Allow sensors to be registered at subframes.
  * Expose the driver latency.
 
  -- Erik Hofman <tech@adalin.org>  Sat, 22 Sep 2012 09:35:00 +0200
