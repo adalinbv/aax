@@ -1755,13 +1755,22 @@ _xrun_recovery(snd_pcm_t *handle, int err)
    if (res != 0) {
       _AAX_SYSLOG("alsa; Unable to recover from xrun situation");
    }
-   else if ((err == -EPIPE) &&
-            (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE))
+   else if (err == -EPIPE)
    {
-      /* capturing requirs an explicit call to snd_pcm_start */
-      res = psnd_pcm_start(handle);
-      if (res != 0) {
-         _AAX_SYSLOG("alsa; unable to restart input stream");
+      if (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE)
+      {
+         /* capturing requirs an explicit call to snd_pcm_start */
+         res = psnd_pcm_start(handle);
+         if (res != 0) {
+            _AAX_SYSLOG("alsa; unable to restart input stream");
+         }
+      }
+      else
+      {
+         res = psnd_pcm_prepare(handle);
+         if (res != 0) {
+            _AAX_SYSLOG("alsa; unable to restart output stream");
+         }
       }
    }
    return res;
