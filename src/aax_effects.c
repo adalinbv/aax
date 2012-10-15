@@ -906,7 +906,7 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_PITCH_EFFECT     */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {    1.99f,    1.99f, 0.0f,     0.0f } },
     /* AAX_DYNAMIC_PITCH_EFFECT   */
-    { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     0.0f } },
+    { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    50.0f, 1.0f,     0.0f } },
     /* AAX_TIMED_PITCH_EFFECT */
     { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
     /* AAX_DISTORTION_EFFECT */
@@ -1039,6 +1039,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
          case AAX_CHORUS_EFFECT:
          case AAX_FLANGING_EFFECT:
          case AAX_DISTORTION_EFFECT:
+         case AAX_REVERB_EFFECT:
             memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
             rv->slot[0]->data = NULL;
             break;
