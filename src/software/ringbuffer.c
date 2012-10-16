@@ -1495,7 +1495,7 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
    float rv = 1.0f;
    if (lfo)
    {
-//    float max = (lfo->max - lfo->min);
+      float max = (lfo->max - lfo->min);
       float step = lfo->step[track];
 
       rv = lfo->convert(lfo->value[track], 1.0f);
@@ -1503,9 +1503,9 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
-         lfo->value[track] += lfo->max;
+         lfo->value[track] += max;
       } else if (lfo->value[track] >= lfo->max) {
-         lfo->value[track] -= lfo->max;
+         lfo->value[track] -= max;
       }
    }
    return rv;
