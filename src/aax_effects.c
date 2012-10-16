@@ -733,7 +733,7 @@ aaxEffectSetState(aaxEffect e, int state)
             _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
                                     delays, gains, num, 1.25f, dlb, glb);
 
-            if (effect->slot[0]->param[AAX_DELAY_GAIN] < 1.0f)
+            do
             {
                _oalRingBufferReverbData *reverb = effect->slot[0]->data;
                _oalRingBufferFreqFilterInfo *flt = reverb->freq_filter;
@@ -744,9 +744,8 @@ aaxEffectSetState(aaxEffect e, int state)
                reverb->freq_filter = flt;
                if (flt)
                {
-                  float dfact = effect->slot[0]->param[AAX_DELAY_GAIN];
                   float *cptr = flt->coeff;
-                  float fc, k, Q;
+                  float dfact, fc, k, Q;
 
                   /* set up a cut-off frequency between 100Hz and 15000Hz
                    * the lower the cut-off frequency, the more the low
@@ -761,11 +760,10 @@ aaxEffectSetState(aaxEffect e, int state)
                    */
                   k = 1.0f;
                   Q = 0.6f;
-                  fc = expf(dfact)-1.0f;
-                  fc *= (15000.0f-100.0f)/(expf(1.0f)-1.0f);
-                  fc += 100.0f;
+                  fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                   iir_compute_coefs(fc, fs, cptr, &k, Q);
 
+                  dfact = powf(fc*0.00005f, 0.2f);
                   flt->lf_gain = 1.75f-0.75f*dfact;
                   flt->hf_gain = 0.33f*dfact;
                   flt->lfo = 0;
@@ -774,6 +772,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   flt->k = k;
                }
             }
+            while(0);
 
             break;
          }
@@ -920,7 +919,7 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_VELOCITY_EFFECT  */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } },
     /* AAX_REVERB_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     1.0f,     1.0f, 1.0f,     1.0f } }
+    { {50.0f, 0.0f,  0.0f, 0.0f }, { 22000.0f,     1.0f, 1.0f,     1.0f } }
   },
   {
     /* AAX_EFFECT_NONE      */

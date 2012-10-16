@@ -134,7 +134,7 @@ _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
       effect->param[AAX_ASYMMETRY] = 0.7f;
       break;
    case AAX_REVERB_EFFECT:
-      effect->param[AAX_DELAY_GAIN] = 0.7f;
+      effect->param[AAX_CUTOFF_FREQUENCY] = 10000.0f;
       effect->param[AAX_DELAY_DEPTH] = 0.27f;
       effect->param[AAX_DECAY_LEVEL] = 0.3f;
       effect->param[AAX_DECAY_DEPTH] = 0.7f;
