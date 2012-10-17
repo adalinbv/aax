@@ -29,6 +29,12 @@
 #include "audio.h"
 
 
+/*
+ * Note: The NDEBUG tests in this file may fail for registered sensors but will
+ *       work in release mode
+ */
+#define NDEBUG 1
+
 #define CUBIC_TRESHOLD		0.25f
 
 _aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
@@ -74,6 +80,11 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
    src_pos_sec = src->curr_pos_sec;
    src_loops = (src->looping && !src->streaming);
 #ifndef NDEBUG
+   /*
+    * Note: This may happen for a registered sensor but it will work in
+    *       non debugging mode.
+    * TODO: Fix this behaviour
+    */
    if ((src_pos_sec > rbs->duration_sec) && !src_loops)
    {
       _AAX_SYSLOG("Sound should have stopped playing by now.");
@@ -118,6 +129,11 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
          float dt = (sduration - src_pos_sec)/pitch_norm;
 
 #ifndef NDEBUG
+         /*
+          * Note: This may happen for a registered sensor but it will work in
+          *       non debugging mode.
+          * TODO: Fix this behaviour
+          */
          if (dt < (1.1f/dfreq) )
          {
             _AAX_SYSLOG("Remaining duration of the buffer is too small.");
