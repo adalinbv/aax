@@ -603,8 +603,11 @@ aaxEffectSetState(aaxEffect e, int state)
                         data->lfo.step[t] *= (data->lfo.max - data->lfo.min);
                         data->lfo.step[t] /= effect->info->refresh_rate;
 
-                        if (data->lfo.value[t] == 0) {
+                        if ((data->lfo.value[t] == 0)
+                            || (data->lfo.value[t] < data->lfo.min)) {
                            data->lfo.value[t] = data->lfo.min;
+                        } else if (data->lfo.value[t] > data->lfo.max) {
+                           data->lfo.value[t] = data->lfo.max;
                         }
                         data->delay.sample_offs[t] = data->lfo.value[t];
 

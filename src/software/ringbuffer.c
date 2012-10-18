@@ -879,6 +879,7 @@ int
 _oalRingBufferSetDuration(_oalRingBuffer *rb, float duration)
 {
    float freq;
+   int rv;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -886,7 +887,10 @@ _oalRingBufferSetDuration(_oalRingBuffer *rb, float duration)
    assert(rb->sample != 0);
 
    freq = rb->sample->frequency_hz;
-   return _oalRingBufferSetNoSamples(rb, rintf(duration * freq));
+   rv = _oalRingBufferSetNoSamples(rb, rintf(duration * freq));
+   rb->sample->duration_sec = duration;
+
+   return rv;
 }
 
 
@@ -1417,7 +1421,7 @@ _oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
       float step = lfo->step[track];
 
       rv = lfo->convert(lfo->value[track], 1.0f);
-      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+      rv = lfo->inv ? lfo->max-(rv-lfo->min) : rv;
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -1499,7 +1503,7 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
       float step = lfo->step[track];
 
       rv = lfo->convert(lfo->value[track], 1.0f);
-      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+      rv = lfo->inv ? lfo->max-(rv-lfo->min) : rv;
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
