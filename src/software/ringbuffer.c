@@ -1562,8 +1562,11 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
    {
       float olvl = lfo->value[0];
 
-      /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      /* In stereo-link mode the left track (0) provides the data        */
+      /* If the left track nears 0.0f also calculate the orher trakcs    */
+      /* just to make sure those aren't still producing sound and hence  */
+      /* are amplified to extreme values.                                */
+      if ((track == 0) || (olvl < 0.15f) || (lfo->stereo_lnk == AAX_FALSE))
       {
          int32_t *sptr = (int32_t *)ptr;
          unsigned int i = end;
