@@ -7,6 +7,7 @@
  * Add an envelope following option for the distortion effect.
  * Remove some dupplicate code, most code is now shared between the mixer and
    audio-(sub)frames which should lead to fewer case specific problems.
+ * Fix LFO situations where changing the LFO values could become out of bounds.
  * Fix filters and effects for registered sensors.
  * Allow sensors to be registered at subframes.
  * Expose the driver latency.
