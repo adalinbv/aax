@@ -77,6 +77,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                    * This way pitch effects (< 1.0) can be processed safely.
                    */
                   _oalRingBufferSetFrequency(src_rb, config->info->frequency);
+                  _oalRingBufferStart(src_rb);
                   _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
                   smixer->ringbuffer = rv;
                }
@@ -103,7 +104,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                         p2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
                      }
                      rv = be->mix2d(be_handle, dest_rb, ssr_rb,
-                                 smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
+                                    smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
                      _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
