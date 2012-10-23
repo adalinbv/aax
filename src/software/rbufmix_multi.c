@@ -69,16 +69,21 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
 
    if (mix_p2d)
    {
-      float lfo = mix_p2d->final.pitch_lfo-0.5f;
+      float lfo = 1.5f-mix_p2d->final.pitch_lfo;
+      float opitch = pitch-0.5f;
       pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
-      pitch = 1.0f+((pitch-1.0f)*lfo);
+      pitch = lfo*opitch + (1.0f-lfo)*0.5f + 0.5f;
+
+      /* pitch (factor) moves around 1.0. But 1.0/0.5 equals to 2.0 */
+      /* instead to 1.5, so we have to correct for that             */
+//    if (pitch > 1.1f) pitch *= 1.3333333f;
    }
 
    env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
    pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
 
    max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
-   pitch = _MINMAX(pitch, 0.0f, max);
+   pitch = _MINMAX(pitch, 0.01f, max);
 
    /** Resample */
    offs = 0;
