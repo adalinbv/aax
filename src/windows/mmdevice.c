@@ -635,18 +635,18 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
          break;
       }
 #if 0
-printf("Format:\n");
-printf("- frequency: %i\n", handle->Fmt.Format.nSamplesPerSec);
-printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
-printf("- no. channels: %i\n", handle->Fmt.Format.nChannels);
-printf("- block size: %i\n", handle->Fmt.Format.nBlockAlign);
-printf("- cb size: %i\n",  handle->Fmt.Format.cbSize);
-printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
-printf("- speaker mask: %x\n", handle->Fmt.dwChannelMask);
-printf("- subformat: float: %x - pcm: %x\n",
-         IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
-         IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_PCM));
-printf("*frames: %i, samples: %i\n", *frames, samples);
+ printf("Format:\n");
+ printf("- frequency: %i\n", handle->Fmt.Format.nSamplesPerSec);
+ printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
+ printf("- no. channels: %i\n", handle->Fmt.Format.nChannels);
+ printf("- block size: %i\n", handle->Fmt.Format.nBlockAlign);
+ printf("- cb size: %i\n",  handle->Fmt.Format.cbSize);
+ printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
+ printf("- speaker mask: %x\n", handle->Fmt.dwChannelMask);
+ printf("- subformat: float: %x - pcm: %x\n",
+          IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
+          IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_PCM));
+ printf("*frames: %i, samples: %i\n", *frames, samples);
 #endif
 
       /*

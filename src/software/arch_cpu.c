@@ -809,9 +809,9 @@ _aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmi
    while (--i);
 
 #if 0
-printf("dptr: %x, d+dmax: %x, dptr-d: %i (%x)\n", d, dptr+dmax, d-dptr, samp);
-for (i=0; i<dmax; i++)
-   if (d[i] != 0x333300) printf("->d[%i] = %x\n", i, d[i]);
+ printf("dptr: %x, d+dmax: %x, dptr-d: %i (%x)\n", d, dptr+dmax, d-dptr, samp);
+ for (i=0; i<dmax; i++)
+    if (d[i] != 0x333300) printf("->d[%i] = %x\n", i, d[i]);
 #endif
 }
 

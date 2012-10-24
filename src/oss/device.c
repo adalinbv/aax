@@ -284,9 +284,9 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
          handle->devnum = detect_devnum(renderer);
       }
 #if 0
-printf("frequency-hz: %f\n", handle->frequency_hz);
-printf("channels: %i\n", handle->no_tracks);
-printf("device number: %i\n", handle->devnum);
+ printf("frequency-hz: %f\n", handle->frequency_hz);
+ printf("channels: %i\n", handle->no_tracks);
+ printf("device number: %i\n", handle->devnum);
 #endif
    }
 

@@ -1098,7 +1098,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       offs = frames - fetch;
 
 #if 0
-printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
+ printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
 #endif
 
       chunk = 10;
