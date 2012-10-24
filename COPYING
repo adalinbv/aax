@@ -36,7 +36,7 @@ No Rental. Customer may not rent or lease the SOFTWARE to someone else.
 
 This LICENSE will automatically terminate if Customer fails to comply with any of the terms and conditions hereof. In such event, Customer must destroy all copies of the PRODUCT-KEY and all copies of the SOFTWARE and all of its component parts.
 
-Defensive Suspension. If Customer commences or participates in any legal proceeding against ADALIN, then ADALIN may, in its sole discretion, suspend or terminate all license grants and any other rights provided under this LICENSE during the pendency of such legal proceedings.
+Defensive Suspension. If Customer commences or participates in any legal proceeding against ADALIN, then ADALIN may, in its sole discretion, suspend or terminate all license grants and any other rights provided under this LICENSE.
 
 4. COPYRIGHT
 
@@ -46,13 +46,17 @@ All title and copyrights in and to the SOFTWARE (including but not limited to al
 
 This LICENSE shall be deemed to have been made in, and shall be construed pursuant to, the laws of the The Netherlands. The United Nations Convention on Contracts for the International Sale of Goods is specifically disclaimed.
 
-6. DISCLAIMER OF WARRANTIES AND LIMITATION ON LIABILITY
+6. SOFTWARE PATENTS
 
-6.1 No Warranties. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS" AND ADALIN DISCLAIMS ALL WARRANTIES, EITHERWHETHER EXPRESS OR, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND, FITNESS FOR A PARTICULAR PURPOSE. , TITLE, AND NON-INFRINGEMENT. Without limiting the foregoing, you are solely responsible for determining and verifying that the SOFTWARE that you obtain and install is the appropriate version for your operating system, and computer hardware.
+Customer agrees not to pursue any Software Patent infringement proceeding against ADALIN. In the event Customer does commences or participates in any legal proceeding against ADALIN for Software Patent infringement Customer specifically agrees to indemnify ADALIN against all costs and liabilities arising out of all claims which result from, or involve an allegation of, any breach of this clause.
 
-6.2 No Liability for Consequential Damages. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL ADALIN BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, DAMAGES FOR LOSS OF BUSINESS PROFITS, LOSS OF DATA, BUSINESS INTERRUPTION, LOSS OF BUSINESS INFORMATION, OR ANY OTHER PECUNIARY LOSS) ARISING OUT OF THE USE OF OR INABILITY TO USE THE SOFTWARE, EVEN IF ADALIN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+7. DISCLAIMER OF WARRANTIES AND LIMITATION ON LIABILITY
 
-7. MISCELLANEOUS
+7.1 No Warranties. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS" AND ADALIN DISCLAIMS ALL WARRANTIES, EITHERWHETHER EXPRESS OR, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND, FITNESS FOR A PARTICULAR PURPOSE. , TITLE, AND NON-INFRINGEMENT. Without limiting the foregoing, you are solely responsible for determining and verifying that the SOFTWARE that you obtain and install is the appropriate version for your operating system, and computer hardware.
+
+7.2 No Liability for Consequential Damages. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL ADALIN BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, DAMAGES FOR LOSS OF BUSINESS PROFITS, LOSS OF DATA, BUSINESS INTERRUPTION, LOSS OF BUSINESS INFORMATION, OR ANY OTHER PECUNIARY LOSS) ARISING OUT OF THE USE OF OR INABILITY TO USE THE SOFTWARE, EVEN IF ADALIN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+8. MISCELLANEOUS
 
 If any provision of this LICENSE is inconsistent with, or cannot be fully enforced under, the law, such provision will be construed as limited to the extent necessary to be consistent with and fully enforceable under the law. This LICENSE is the final, complete and exclusive agreement between the parties relating to the subject matter hereof, and supersedes all prior or contemporaneous understandings and agreements relating to such subject matter, whether oral or written. This LICENSE may only be modified in writing signed by an authorized officer of ADALIN.  Customer agrees that it will not ship, transfer or export the SOFTWARE into any country, or use the SOFTWARE in any manner, prohibited by any export laws, restrictions or regulations.
 
