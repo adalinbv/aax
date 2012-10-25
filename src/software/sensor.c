@@ -78,6 +78,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                    */
                   _oalRingBufferSetFrequency(src_rb, config->info->frequency);
                   _oalRingBufferStart(src_rb);
+                  _oalRingBufferRewind(src_rb);
+
                   _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
                   smixer->ringbuffer = rv;
                }

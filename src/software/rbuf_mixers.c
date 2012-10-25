@@ -95,6 +95,13 @@ _aaxProcessMixer(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProp
    /* source */
    sfreq = rbs->frequency_hz;
    sduration = rbs->duration_sec;
+   if (src_pos_sec >= sduration)
+   {
+      src->curr_pos_sec = rbs->duration_sec;
+      src->playing = 0;
+      src->stopped = 1;
+      return NULL;
+   }
 
    /* destination */
    dfreq = rbd->frequency_hz;
