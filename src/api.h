@@ -25,7 +25,9 @@ extern "C" {
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
 #define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
-#define EBF_VALID(a)		(a->info != NULL)
+
+#define INFO_ID			0xFEDCBA98
+#define EBF_VALID(a)		(a->info && a->info->id == INFO_ID)
 
 
 /* --- Error support -- */
@@ -62,7 +64,7 @@ void *_aaxSensorCapture(_oalRingBuffer*, const _aaxDriverBackend*, void*,
  */
 #define HANDLE_ID	0xFF2701E0
 
-#define VALID_HANDLE(handle)	((handle->valid & ~AAX_TRUE) == HANDLE_ID)
+#define VALID_HANDLE(handle)	(handle && (handle->valid & ~AAX_TRUE) == HANDLE_ID)
 
 struct backend_t
 {

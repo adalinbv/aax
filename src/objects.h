@@ -103,6 +103,8 @@ typedef ALIGN16 struct
 
    uint8_t update_rate;	/* how many frames get processed before an update */
 
+   unsigned int id;
+
 } _aaxMixerInfo ALIGN16C;
 
 typedef struct

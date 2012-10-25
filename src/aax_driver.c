@@ -379,6 +379,8 @@ aaxDriverDestroy(aaxConfig config)
    if (handle)
    {
       assert(handle->backends != NULL);
+
+      handle->info->id = 0xdeadbeef;
       _intBufErase(&handle->sensors, _AAX_SENSOR, removeMixerByPos, handle);
 
       if (handle->devname[0] != _aax_default_devname)

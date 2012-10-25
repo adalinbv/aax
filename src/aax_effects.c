@@ -246,7 +246,16 @@ aaxEffectSetState(aaxEffect e, int state)
 {
    _filter_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
-   if (effect)
+
+   if (!effect) {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   else if (!EBF_VALID(effect))
+   {
+      _aaxErrorSet(AAX_INVALID_STATE);
+      effect->info = NULL;
+   }
+   else
    {
       unsigned slot;
 
@@ -793,11 +802,6 @@ aaxEffectSetState(aaxEffect e, int state)
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
       rv = effect;
-   }
-   else if (!effect) {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   } else { /* !effect->info */
-      _aaxErrorSet(AAX_INVALID_STATE);
    }
    return rv;
 }

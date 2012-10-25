@@ -23,6 +23,7 @@
 #include <math.h>		/* for MAXFLOAT */
 
 #include "objects.h"
+#include "api.h"
 
 void
 _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
@@ -254,6 +255,8 @@ const _aaxMixerInfo _aaxDefaultMixerInfo =
   AAX_MODE_WRITE_STEREO,	/* render mode */
   _AAX_MAX_MIXER_REGISTERED,	/* max emitters */
 
-  0				/* update counter */
+  0,				/* update counter */
+  0,
+  INFO_ID
 };
 

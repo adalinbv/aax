@@ -252,7 +252,16 @@ aaxFilterSetState(aaxFilter f, int state)
 {
    _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
-   if (filter)
+
+   if (!filter) {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   else if (!EBF_VALID(filter))
+   {
+      _aaxErrorSet(AAX_INVALID_STATE);
+      filter->info = NULL;
+   }
+   else
    {
       unsigned slot;
 
@@ -765,11 +774,6 @@ aaxFilterSetState(aaxFilter f, int state)
          _aaxErrorSet(AAX_INVALID_STATE);
       }
       rv = filter;
-   }
-   else if (!filter) {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   } else { /* !filter->info */
-      _aaxErrorSet(AAX_INVALID_STATE);
    }
    return rv;
 }
