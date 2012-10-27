@@ -346,6 +346,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          for (i=0; i<max; i++)
          {
             _aaxAudioFrame *sfmixer;
+            _intBufferData *dptr;
             _frame_t* subframe;
             char res = 0;
 
@@ -354,7 +355,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             _oalRingBufferStart(frame_rb);
 
             /* process the subframe */
-            _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
+            dptr = _intBufGet(hf, _AAX_FRAME, i);
             if (!dptr) break;
 
             /* copy to prevent locking while walking the tree */
