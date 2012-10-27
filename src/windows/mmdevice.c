@@ -156,6 +156,7 @@ const char* _mmdev_default_name = DEFAULT_DEVNAME;
 # define pPKEY_DeviceInterface_FriendlyName &PKEY_DeviceInterface_FriendlyName
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
 # define pDEVPKEY_Device_FriendlyName &DEVPKEY_Device_FriendlyName
+# define pIAudioClient_SetEventHandle IAudioClient_SetEventHandle
 
 # define pPropVariantInit PropVariantInit
 # define pPropVariantClear PropVariantClear
@@ -711,7 +712,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
                                     &handle->Fmt.Format, NULL);
       /*
        * Some drivers don't support the event callback method and return
-       * E_INVALIDARG for IAudioClient_Initialize.
+       * E_INVALIDARG for pIAudioClient_Initialize.
        * In these cases it is necessary to switch to timer driven.
        *
        * If you do get E_INVALIDARG from Initialize(), it is important to
@@ -846,7 +847,7 @@ _aaxMMDevDriverResume(const void *id)
          handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
          if (handle->Event)
          {
-            HRESULT hr = IAudioClient_SetEventHandle(handle->pAudioClient,
+            HRESULT hr = pIAudioClient_SetEventHandle(handle->pAudioClient,
                                                      handle->Event);
             if (SUCCEEDED(hr)) {
                handle->initializing--;
@@ -1096,7 +1097,7 @@ static float
 _aaxMMDevDriverGetLatency(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   return rv = handle ? handle->hnsLatency*100e-9f : 0.0f;
+   return handle ? handle->hnsLatency*100e-9f : 0.0f;
 }
 
 
@@ -1607,11 +1608,12 @@ _aaxMMDevDriverThread(void* config)
       _aaxMutexLock(handle->thread.mutex);
    }
    while TEST_FOR_TRUE(handle->thread.started);
-   _aaxMutexUnLock(handle->thread.mutex);
 
+   pIAudioClient_Stop(be_handle->pAudioClient);
    if (!be_handle->event_driven) {
       CancelWaitableTimer(be_handle->Event);
    }
+   _aaxMutexUnLock(handle->thread.mutex);
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
