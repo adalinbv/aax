@@ -429,11 +429,10 @@ _aaxThreadCreate()
 int
 _aaxThreadSetAffinity(void *t, int core) 
 {
-   DWORD mask = 1 << (DWORD)core;
    _aaxThread *thread = t;
-   void *rv;
+   DWORD_PTR rv;
 
-   rv = SetThreadAffinityMask(thread->handle, &mask);
+   rv = SetThreadAffinityMask(thread->handle, 1<<core);
    return rv ? 0 : EINVAL;
 }
 

@@ -748,7 +748,7 @@ int_intBufClear(_intBuffers *buffer, unsigned int id,
       unsigned int n, num;
 
       num = buffer->max_allocations;
-      if (cb_free)
+      if (cb_free != NULL)
       {
          for (n=0; n<num; n++)
             cb_free(data, n);
