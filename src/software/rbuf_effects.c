@@ -113,7 +113,7 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
       _oalRingBufferFreqFilterInfo* filter = reverb->freq_filter;
       int32_t *scratch = sbuf + dmin;
       const int32_ptr sptr = s + dmin;
-      unsigned int q;
+      int q;
 
       dmax -= dmin;
       _aax_memcpy(scratch, sptr, dmax*sizeof(int32_t));
@@ -156,7 +156,7 @@ bufEffectReverb(int32_t *s,
    {
       unsigned int bytes = ds*sizeof(int32_t);
       int32_t *sptr = s + dmin;
-      unsigned int q;
+      int q;
 
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
       for(q=0; q<snum; q++)

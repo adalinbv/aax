@@ -1214,13 +1214,13 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          reverb->no_loopbacks = num;
          for (j=0; j<num; j++)
          {
-            reverb->loopback[0].sample_offs[j] = dlbp + dlb*0.9876543f;
-            reverb->loopback[1].sample_offs[j] = dlbp + dlb*0.4901861f;
-            reverb->loopback[2].sample_offs[j] = dlbp + dlb*0.3333333f;
-            reverb->loopback[3].sample_offs[j] = dlbp + dlb*0.2001743f;
-            reverb->loopback[4].sample_offs[j] = dlbp + dlb*0.1428571f;
-            reverb->loopback[5].sample_offs[j] = dlbp + dlb*0.0909091f;
-            reverb->loopback[6].sample_offs[j] = dlbp + dlb*0.0769231f;
+            reverb->loopback[0].sample_offs[j] = (dlbp + dlb*0.9876543f);
+            reverb->loopback[1].sample_offs[j] = (dlbp + dlb*0.4901861f);
+            reverb->loopback[2].sample_offs[j] = (dlbp + dlb*0.3333333f);
+            reverb->loopback[3].sample_offs[j] = (dlbp + dlb*0.2001743f);
+            reverb->loopback[4].sample_offs[j] = (dlbp + dlb*0.1428571f);
+            reverb->loopback[5].sample_offs[j] = (dlbp + dlb*0.0909091f);
+            reverb->loopback[6].sample_offs[j] = (dlbp + dlb*0.0769231f);
          }
       }
       *data = reverb;
@@ -1352,7 +1352,7 @@ float _cos_2(float v) { return cosf(v/2); }
 float _2acos(float v) { return 2*acosf(v); }
 
 float _linear(float v, float f) { return v*f; }
-float _compress(float v, float f) { return pow(f, 1.0f-v); }
+float _compress(float v, float f) { return powf(f, 1.0f-v); }
 
 static unsigned int
 _oalGetSetMonoSources(unsigned int max, int num)

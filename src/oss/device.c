@@ -407,9 +407,9 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 
    err = pioctl(fd, SNDCTL_DSP_SPEED, &freq);
    pitch = freq / *speed;
-   *speed = freq;
+   *speed = (float)freq;
 
-   no_samples = ceilf(no_samples*pitch);
+   no_samples = (unsigned int)ceilf(no_samples*pitch);
    if (no_samples & 0xF)
    {
       no_samples |= 0xF;

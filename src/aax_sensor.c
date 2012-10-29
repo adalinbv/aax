@@ -259,11 +259,13 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
+      float refrate = handle->info->refresh_rate;
       const _intBufferData* dptr;
-      float sleep_ms, duration = 0.0f;
+      float duration = 0.0f;
+      unsigned int sleep_ms;
       unsigned int nbuf;
 
-      sleep_ms = _MAX(100.0f / handle->info->refresh_rate, 1.0f);
+      sleep_ms = (unsigned int)_MAX(100.0f/refrate, 1.0f);
       do
       {
          nbuf = 0;

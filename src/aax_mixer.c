@@ -197,7 +197,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             rv = (unsigned int)info->refresh_rate;
             break;
          case AAX_UPDATERATE:
-             rv = info->refresh_rate/handle->info->update_rate;
+             rv = (unsigned int)(info->refresh_rate/handle->info->update_rate);
              break;
          case AAX_LATENCY:
             if (handle->backend.driver)
@@ -1031,11 +1031,12 @@ _aaxMixerInit(_handle_t *handle)
    float refrate = info->refresh_rate;
    unsigned ch = info->no_tracks;
    float freq = info->frequency;
-   size_t frames = freq / refrate;
    int fmt = info->format;
+   size_t frames;
 
    assert(be != 0);
 
+   frames = (size_t)(freq/refrate);
    res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq);
    if TEST_FOR_TRUE(res)
    {

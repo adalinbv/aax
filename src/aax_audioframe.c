@@ -980,14 +980,15 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
-      float sleep_ms, duration = 0.0f;
+      float duration = 0.0f, refrate = handle->submix->info->refresh_rate;
+      unsigned int sleep_ms;
       _aaxAudioFrame* mixer;
       int nbuf;
 
       mixer = handle->submix;
       put_frame(frame);
 
-     sleep_ms = _MAX(100.0f / handle->submix->info->refresh_rate, 1.0f);
+     sleep_ms = (unsigned int)_MAX(100.0f/refrate, 1.0f);
      do
       {
          nbuf = 0;

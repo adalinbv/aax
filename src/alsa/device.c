@@ -815,7 +815,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          no_frames = rate/25;
       }
 
-      bytes = ceilf(no_frames*channels*bps*handle->pitch);
+      bytes = (unsigned int)ceilf(no_frames*channels*bps*handle->pitch);
       if (bytes & 0xF)
       {
          bytes |= 0xF;
@@ -1089,13 +1089,13 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    threshold = handle->period_frames;
    if (frames && (avail > 2*threshold-32))
    {
-      unsigned int offs, fetch = frames;
+      unsigned int fetch = frames;
       int error, chunk, try = 0;
       snd_pcm_uframes_t size;
 
       error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
       fetch += error;
-      offs = frames - fetch;
+      offs += frames - fetch;
 
 #if 0
  printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
@@ -2195,7 +2195,7 @@ _aaxALSADriverThread(void* config)
    if (dptr_sensor)
    {
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
-      _oalRingBuffer *nrb;
+//    _oalRingBuffer *nrb;
 
       mixer = sensor->mixer;
 
@@ -2245,7 +2245,7 @@ _aaxALSADriverThread(void* config)
          }
       }
       else {
-         msecSleep(delay_sec*1000);
+         msecSleep((unsigned int)(delay_sec*1000));
       }
       _aaxMutexLock(handle->thread.mutex);
 

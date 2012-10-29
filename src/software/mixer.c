@@ -234,7 +234,7 @@ _aaxSoftwareMixerThread(void* config)
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr_sensor)
       {
-         _oalRingBuffer *nrb;
+//       _oalRingBuffer *nrb;
          _aaxMixerInfo* info;
          _sensor_t* sensor;
 
@@ -412,13 +412,14 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 //          }
 //          else
             {
-               float sleep_ms;
+               float refrate = mixer->info->refresh_rate;
+               unsigned int sleep_ms;
                int p = 0;
 
                /*
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 */
-               sleep_ms = _MAX(100.0f / mixer->info->refresh_rate, 1.0f);
+               sleep_ms = (unsigned int)_MAX(100.0f/refrate, 1.0f);
                while ((mixer->capturing == 1) && (p++ < 500))
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);

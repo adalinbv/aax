@@ -31,6 +31,8 @@
 
 #include <Strsafe.h>
 
+#pragma warning(disable : 4995)
+
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		NULL
@@ -663,7 +665,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
        * method determines how large a buffer to allocate based on the
        * scheduling period of the audio engine.
        */
-      samples = ceilf(samples*pitch);
+      samples = (int)ceilf(samples*pitch);
       if (samples & 0xF)
       {
          samples |= 0xF;
@@ -914,22 +916,22 @@ _aaxMMDevDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n
 
 
 static int
-_aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratch)
+_aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
 
-   if ((frames == 0) || (data == 0)) {
+   if ((req_frames == 0) || (data == 0)) {
       return AAX_FALSE;
    }
 
-   if (*frames == 0) {
+   if (*req_frames == 0) {
       return AAX_TRUE;
    } 
 
    if (data)
    {
-      UINT32 packet_sz = *frames;
+      UINT32 packet_sz = *req_frames;
       HRESULT hr;
 
       if (handle->initializing)
@@ -964,7 +966,7 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
                                                 &avail, &flags, NULL, NULL);
             if (FAILED(hr) || !avail)
             {
-               *frames = 0;
+               *req_frames = 0;
                break;
             }
 
@@ -973,7 +975,7 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
             }
             pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,avail);
             packet_sz -= avail;
-            *frames += avail;
+            *req_frames += avail;
          }
 
          if (packet_sz) {
@@ -983,11 +985,11 @@ _aaxMMDevDriverCapture(const void *id, void **data, size_t *frames, void *scratc
          }
       }
       else {
-         *frames = 0;
+         *req_frames = 0;
       }
    }
    else {
-     *frames = 0;
+     *req_frames = 0;
    }
 
    return rv;
@@ -1104,7 +1106,7 @@ _aaxMMDevDriverGetLatency(const void *id)
 static char *
 _aaxMMDevDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][256] = { "\0\0", "\0\0" };
+   static char names[2][1024] = { "\0\0", "\0\0" };
    IMMDeviceEnumerator *enumerator = NULL;
    HRESULT hr;
 
@@ -1122,7 +1124,7 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
       int m, len;
       char *ptr;
 
-      len = 255;
+      len = 1023;
       m = mode > 0 ? 1 : 0;
       ptr = (char *)&names[m];
       hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
@@ -1576,7 +1578,9 @@ _aaxMMDevDriverThread(void* config)
 
       if (state != handle->state)
       {
-         if (_IS_PAUSED(handle) || (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+         if (_IS_PAUSED(handle)
+             || (!_IS_PLAYING(handle) && _IS_STANDBY(handle)))
+         {
             be->pause(handle->backend.handle);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
@@ -1585,11 +1589,17 @@ _aaxMMDevDriverThread(void* config)
          state = handle->state;
       }
 
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+
       /* do all the mixing */
       _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
 
       _aaxMutexUnLock(handle->thread.mutex);
       hr = WaitForSingleObject(be_handle->Event, stdby_time);
+      _aaxMutexLock(handle->thread.mutex);
+
       switch (hr)
       {
       case WAIT_OBJECT_0:
@@ -1605,7 +1615,6 @@ _aaxMMDevDriverThread(void* config)
          _AAX_SYSLOG("mmdev; wait for even failed");
          break;
       }
-      _aaxMutexLock(handle->thread.mutex);
    }
    while TEST_FOR_TRUE(handle->thread.started);
 

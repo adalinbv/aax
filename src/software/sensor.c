@@ -187,7 +187,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          for (t=0; t<tracks; t++)
          {
             int32_t *ptr = nrb->sample->track[t];
-            int32_t *optr = rbd->track[t];
+            int32_t *optr  = rbd->track[t];
             _aax_memcpy(ptr-ds, optr-ds+nframes, ds*bps);
          }
          rv = nrb;

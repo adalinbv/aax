@@ -564,7 +564,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
+                         lfo->step[t] = atanf(lfo->f*0.1f)/atanf(100.0f);
                          break;
                      default:
                         break;
