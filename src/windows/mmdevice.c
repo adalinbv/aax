@@ -1286,9 +1286,9 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
          if (ptr != name)
          {
             *ptr++ = '\0';
-            rv = handle->ifname[m] = malloc(ptr-name);
+            rv = handle->ifname[m] = malloc(ptr-name+1);
             if (rv) {
-               memcpy(handle->ifname[m], name, ptr-name);
+               memcpy(handle->ifname[m], name, ptr-name+1);
             }
          }
 
@@ -1387,13 +1387,15 @@ static char*
 wcharToChar(const WCHAR* wstr)
 {
    char *rv = NULL;
-   int len;
+   int alen, wlen;
 
-   len = pWideCharToMultiByte(CP_ACP, 0, wstr, -1, NULL, 0, NULL, NULL);
-   if (len > 0)
+   wlen = lstrlenW(wstr);
+   alen = pWideCharToMultiByte(CP_ACP, 0, wstr, wlen, 0, 0, NULL, NULL);
+   if (alen > 0)
    {
-      rv = calloc(1, len+1);
-      pWideCharToMultiByte(CP_ACP, 0, wstr, -1, rv, len, NULL, NULL);
+      rv = (char *)malloc(alen+1);
+      pWideCharToMultiByte(CP_ACP, 0, wstr, wlen, rv, alen, NULL, NULL);
+      rv[alen] = 0;
    }
    return rv;
 }
@@ -1402,13 +1404,15 @@ static WCHAR*
 charToWChar(const char* str)
 {
    WCHAR *rv = NULL;
-   int len;
+   int alen, wlen;
 
-   len = pMultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
-   if (len > 0)
+   alen = lstrlenA(str);
+   wlen = pMultiByteToWideChar(CP_ACP, 0, str, alen, NULL, 0);
+   if (wlen > 0)
    {
-      rv = calloc(sizeof(WCHAR), len+1);
-      pMultiByteToWideChar(CP_ACP, 0, str, -1, rv, len);
+      rv = (WCHAR *)malloc(sizeof(WCHAR)*(wlen+1));
+      pMultiByteToWideChar(CP_ACP, 0, str, alen, rv, wlen);
+      rv[wlen] = 0;
    }
    return rv;
 }
