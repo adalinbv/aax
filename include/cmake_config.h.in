@@ -181,6 +181,7 @@
 
 /* use rmalloc */
 #undef USE_RMALLOC
+#cmakedefine USE_RMALLOC @USE_RMALLOC@
 
 /* Version number of package */
 #undef VERSION
