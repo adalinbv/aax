@@ -52,6 +52,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    int32_t **sptr;
    void *env;
    int ret = 0;
+   float g;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -135,21 +136,32 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    }
 
    /** Mix */
+   g = 1.0f;
    rbd = dest->sample;
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   if (lfo && lfo->envelope)
+   {
+      g = 0.0f;
+      for (track=0; track<rbd->no_tracks; track++)
+      {
+         _oalRingBufferSample *rbs = src->sample;
+         unsigned int rbs_track = track % rbs->no_tracks;
+         float gain;
+
+         gain = 1.0f - lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
+         if (lfo->inv) g = 1.0f/gain;
+         g += gain;
+      }
+      g /= rbd->no_tracks;
+   }
+
    for (track=0; track<rbd->no_tracks; track++)
    {
       _oalRingBufferSample *rbs = src->sample;
       unsigned int rbs_track = track % rbs->no_tracks;
       unsigned int rbd_track = track % rbd->no_tracks;
       int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;
-      float vstart, vend, vstep, g = 1.0f;
-
-      if (lfo && lfo->envelope)
-      {
-         g = 1.0f - lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
-         if (lfo->inv) g = 1.0f/g;
-      }
+      float vstart, vend, vstep;
 
       vstart = g*gain * svol * p2d->prev_gain[track];
       vend = g*gain * evol * gain;
