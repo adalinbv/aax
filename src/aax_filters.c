@@ -544,7 +544,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   }
 
                   lfo->min = offs;
-                  lfo->max = 2.0f * depth;
+                  lfo->max = offs + depth;
                   lfo->envelope = AAX_FALSE;
                   lfo->stereo_lnk = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
@@ -571,7 +571,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      }
                   }
 
-                  if (depth > 0.01f)
+                  if (depth > 0.001f)
                   {
                      switch (state & ~AAX_INVERSE)
                      {
