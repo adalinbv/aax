@@ -573,19 +573,21 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       }
 
       if (m->mutex) {
-         r = WaitForSingleObject(m->mutex, DEBUG_TIMEOUT);
+         r = WaitForSingleObject(m->mutex, DEBUG_TIMEOUT*1000);
          switch (r)
          {
          case WAIT_OBJECT_0:
             break;
          case WAIT_TIMEOUT:
             printf("mutex timed out in %s line %i\n", file, line);
+            abort();
             r = ETIMEDOUT;
             break;
          case WAIT_ABANDONED:
          case WAIT_FAILED:
          default:
             printf("mutex lock error %i in %s line %i\n", r, file, line);
+            abort();
          }
       }
    }
