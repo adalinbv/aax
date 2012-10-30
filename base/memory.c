@@ -1,416 +1,180 @@
-/********************************************************************
- ** File:     memcpy.c
- **
- ** Copyright (C) 2005 Daniel Vik
- ** 
- ** This software is provided 'as-is', without any express or implied
- ** warranty. In no event will the authors be held liable for any
- ** damages arising from the use of this software.
- ** Permission is granted to anyone to use this software for any
- ** purpose, including commercial applications, and to alter it and
- ** redistribute it freely, subject to the following restrictions:
- ** 
- ** 1. The origin of this software must not be misrepresented; you
- **    must not claim that you wrote the original software. If you
- **    use this software in a product, an acknowledgment in the
- **    use this software in a product, an acknowledgment in the
- **    product documentation would be appreciated but is not
- **    required.
- ** 
- ** 2. Altered source versions must be plainly marked as such, and
- **    must not be misrepresented as being the original software.
- ** 
- ** 3. This notice may not be removed or altered from any source
- **    distribution.
- ** 
- ** 
- ** Description: Implementation of the standard library function memcpy.
- **             This implementation of memcpy() is ANSI-C89 compatible.
- **
- **             The following configuration options can be set:
- **
- **           LITTLE_ENDIAN   - Uses processor with little endian
- **                             addressing. Default is big endian.
- **
- **           PRE_INC_PTRS    - Use pre increment of pointers.
- **                             Default is post increment of
- **                             pointers.
- **
- **           INDEXED_COPY    - Copying data using array indexing.
- **                             Using this option, disables the
- **                             PRE_INC_PTRS option.
- **
- **
- ** Best Settings:
- **
- ** Intel x86:  LITTLE_ENDIAN and INDEXED_COPY
- **
- *******************************************************************/
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
+#include "memory.h"
 
-/********************************************************************
- ** Configuration definitions.
- *******************************************************************/
+#define NTID		0x5adda2d9
 
-#define LITTLE_ENDIAN
-#define INDEXED_COPY
+static void *
+_nt_memptr(const void *ptr, off_t offs, size_t n)
+{
+    _nt_info *info = (_nt_info *)ptr;
 
-
-
-/********************************************************************
- ** Includes for size_t definition
- *******************************************************************/
-
-#include <stddef.h>
-
-
-
-/********************************************************************
- ** Typedefs
- *******************************************************************/
-
-typedef unsigned char  u8;
-typedef unsigned short u16;
-typedef unsigned long  u32;
-
-
-
-/********************************************************************
- ** Remove definitions when INDEXED_COPY is defined.
- *******************************************************************/
-
-#if defined (INDEXED_COPY)
-#if defined (PRE_INC_PTRS)
-#undef PRE_INC_PTRS
-#endif /*PRE_INC_PTRS*/
-#endif /*INDEXED_COPY*/
-
-
-
-/********************************************************************
- ** Definitions for pre and post increment of pointers.
- *******************************************************************/
-
-#if defined (PRE_INC_PTRS)
-
-#define INC_VAL(x) *++(x)
-#define START_VAL(x) (x)--
-#define CAST_32_TO_8(p, o)       (u8 *)((u32)p + o + 4)
-#define WHILE_DEST_BREAK         3
-#define PRE_LOOP_ADJUST        - 3
-#define PRE_SWITCH_ADJUST      + 1
-
-#else /*PRE_INC_PTRS*/
-
-#define START_VAL(x)
-#define INC_VAL(x) *(x)++
-#define CAST_32_TO_8(p, o)       (u8 *)((u32)p + o)
-#define WHILE_DEST_BREAK         0
-#define PRE_LOOP_ADJUST
-#define PRE_SWITCH_ADJUST
-
-#endif /*PRE_INC_PTRS*/
-
-
-
-/********************************************************************
- ** Definitions for endians
- *******************************************************************/
-
-#if defined (LITTLE_ENDIAN)
-
-#define SHL >>
-#define SHR <<
-
-#else /*LITTLE_ENDIAN*/
-
-#define SHL <<
-#define SHR >>
-
-#endif /*LITTLE_ENDIAN*/
-
-
-
-/********************************************************************
- ** Macros for copying 32 bit words of  different alignment.
- ** Uses incremening pointers.
- *******************************************************************/
-
-#define CP32_INCR() {                       \
-    INC_VAL(dst32) = INC_VAL(src32);        \
+    assert(offs >= 0);
+    assert(info != NULL);
+    assert(info->id == NTID);
+    assert(info->start+(offs+n) < info->end);
+   
+    return info->start+offs;
 }
 
-#define CP32_INCR_SH(shl, shr) {            \
-    dstWord   = srcWord SHL shl;            \
-    srcWord   = INC_VAL(src32);             \
-    dstWord  |= srcWord SHR shr;            \
-    INC_VAL(dst32) = dstWord;               \
+static void *
+_nt_alloc(size_t size, char clear, char *caller)
+{
+    _nt_info *info = NULL;
+    size_t alloc_sz;
+
+    alloc_sz = size + sizeof(_nt_info);
+    alloc_sz += NT_UNDERFLOWLEN + NT_OVERFLOWLEN;
+
+    info = malloc(alloc_sz);
+    if (info)
+    {
+        char *bptr;
+
+        info->id = NTID;
+        info->alloc_fn = caller;
+        info->start = _nt_memptr(info, 0, 0);
+        info->end = _nt_memptr(info, size, 0);
+
+        bptr = (char *)info + sizeof(_nt_info);
+        memset(bptr, 0x55, NT_UNDERFLOWLEN);
+        if (clear) {
+            memset(info->start, 0, size);
+        }
+        memset(info->end, 0x55, NT_OVERFLOWLEN);
+    }
+
+    return info;
 }
 
-
-
-/********************************************************************
- ** Macros for copying 32 bit words of  different alignment.
- ** Uses array indexes.
- *******************************************************************/
-
-#define CP32_INDEX(idx) {                   \
-    dst32[idx] = src32[idx];                \
+void
+nt_free(void *ptr, const char *fname, unsigned int line)
+{
+    if (ptr)
+    {
+        _nt_info *info = (_nt_info *)ptr;
+        if (info->id == NTID)
+        {
+            info->id = 0xdeadbeef;
+            free(info);
+        }
+        else
+        {
+            fprintf(stderr, "MEMORY: bad memory id\n");
+            assert(info->id == NTID);
+        }
+    }
 }
-
-#define CP32_INDEX_SH(x, shl, shr) {        \
-    dstWord   = srcWord SHL shl;            \
-    srcWord   = src32[x];                   \
-    dstWord  |= srcWord SHR shr;            \
-    dst32[x] = dstWord;                     \
-}
-
-
-
-/********************************************************************
- ** Macros for copying 32 bit words of different alignment.
- ** Uses incremening pointers or array indexes depending on
- ** configuration.
- *******************************************************************/
-
-#if defined (INDEXED_COPY)
-
-#define CP32(idx)               CP32_INDEX(idx)
-#define CP32_SH(idx, shl, shr)  CP32_INDEX_SH(idx, shl, shr)
-
-#define INC_INDEX(p, o)         ((p) += (o))
-
-#else /*INDEXED_COPY*/
-
-#define CP32(idx)               CP32_INCR()
-#define CP32_SH(idx, shl, shr)  CP32_INCR_SH(shl, shr)
-
-#define INC_INDEX(p, o)
-
-#endif /*INDEXED_COPY*/
-
-
-
-/********************************************************************
- **
- ** void *memcpy(void *dest, const void *src, size_t count)
- **
- ** Args:     dest    - pointer to destination buffer
- **           src     - pointer to source buffer
- **           count   - number of bytes to copy
- **
- ** Return:   A pointer to destination buffer
- **
- ** Purpose:  Copies count bytes from src to dest. No overlap check
- **           is performed.
- **
- *******************************************************************/
 
 void *
-fast_memcpy(void *dest, const void *src, size_t count) {
-    u8 *dst8 = (u8 *)dest;
-    u8 *src8 = (u8 *)src;
-
-    if (count < 8) {
-        if (count >= 4 && ((((u32)src8 | (u32)dst8)) & 3) == 0) {
-            *((u32 *)dst8) = *((u32 *)src8);
-            dst8  += 4;
-            src8  += 4;
-            count -= 4;
-        }
-
-        START_VAL(dst8);
-        START_VAL(src8);
-
-        while (count--) {
-            INC_VAL(dst8) = INC_VAL(src8);
-        }
-
-        return dest;
-    }
-
-    START_VAL(dst8);
-    START_VAL(src8);
-
-    while (((u32)dst8 & 3L) != WHILE_DEST_BREAK) {
-        INC_VAL(dst8) = INC_VAL(src8);
-        count--;
-    }
-
-    switch ((((u32)src8) PRE_SWITCH_ADJUST) & 3L) {
-    default:
-        {
-            u32 *dst32 = (u32 *)(((u32)dst8) PRE_LOOP_ADJUST);
-            u32 *src32 = (u32 *)(((u32)src8) PRE_LOOP_ADJUST);
-            u32 length = count / 4;
-
-            while (length & 7) {
-                CP32_INCR();
-                length--;
-            }
-
-            length /= 8;
-
-            while (length--) {
-                CP32(0);
-                CP32(1);
-                CP32(2);
-                CP32(3);
-                CP32(4);
-                CP32(5);
-                CP32(6);
-                CP32(7);
-
-                INC_INDEX(dst32, 8);
-                INC_INDEX(src32, 8);
-            }
-
-            src8 = CAST_32_TO_8(src32, 0);
-            dst8 = CAST_32_TO_8(dst32, 0);
-
-            if (count & 2) {
-                *dst8++ = *src8++;
-                *dst8++ = *src8++;
-            }
-
-            if (count & 1) {
-                *dst8 = *src8;
-            }
-
-            return dest;
-        }
-
-    case 1:
-        {
-            u32 *dst32  = (u32 *)((((u32)dst8) PRE_LOOP_ADJUST) & ~3L);
-            u32 *src32  = (u32 *)((((u32)src8) PRE_LOOP_ADJUST) & ~3L);
-            u32 length  = count / 4;
-            u32 srcWord = INC_VAL(src32);
-            u32 dstWord;
-
-            while (length & 7) {
-                CP32_INCR_SH(8, 24);
-                length--;
-            }
-
-            length /= 8;
-
-            while (length--) {
-                CP32_SH(0, 8, 24);
-                CP32_SH(1, 8, 24);
-                CP32_SH(2, 8, 24);
-                CP32_SH(3, 8, 24);
-                CP32_SH(4, 8, 24);
-                CP32_SH(5, 8, 24);
-                CP32_SH(6, 8, 24);
-                CP32_SH(7, 8, 24);
-
-                INC_INDEX(dst32, 8);
-                INC_INDEX(src32, 8);
-            }
-
-            src8 = CAST_32_TO_8(src32, -3);
-            dst8 = CAST_32_TO_8(dst32, 0);
-
-            if (count & 2) {
-                *dst8++ = *src8++;
-                *dst8++ = *src8++;
-            }
-
-            if (count & 1) {
-                *dst8 = *src8;
-            }
-
-            return dest;
-        }
-
-    case 2:
-        {
-            u32 *dst32  = (u32 *)((((u32)dst8) PRE_LOOP_ADJUST) & ~3L);
-            u32 *src32  = (u32 *)((((u32)src8) PRE_LOOP_ADJUST) & ~3L);
-            u32 length  = count / 4;
-            u32 srcWord = INC_VAL(src32);
-            u32 dstWord;
-
-            while (length & 7) {
-                CP32_INCR_SH(16, 16);
-                length--;
-            }
-
-            length /= 8;
-
-            while (length--) {
-                CP32_SH(0, 16, 16);
-                CP32_SH(1, 16, 16);
-                CP32_SH(2, 16, 16);
-                CP32_SH(3, 16, 16);
-                CP32_SH(4, 16, 16);
-                CP32_SH(5, 16, 16);
-                CP32_SH(6, 16, 16);
-                CP32_SH(7, 16, 16);
-
-                INC_INDEX(dst32, 8);
-                INC_INDEX(src32, 8);
-            }
-
-            src8 = CAST_32_TO_8(src32, -2);
-            dst8 = CAST_32_TO_8(dst32, 0);
-
-            if (count & 2) {
-                *dst8++ = *src8++;
-                *dst8++ = *src8++;
-            }
-
-            if (count & 1) {
-                *dst8 = *src8;
-            }
-
-            return dest;
-        }
-
-    case 3:
-        {
-            u32 *dst32  = (u32 *)((((u32)dst8) PRE_LOOP_ADJUST) & ~3L);
-            u32 *src32  = (u32 *)((((u32)src8) PRE_LOOP_ADJUST) & ~3L);
-            u32 length  = count / 4;
-            u32 srcWord = INC_VAL(src32);
-            u32 dstWord;
-
-            while (length & 7) {
-                CP32_INCR_SH(24, 8);
-                length--;
-            }
-
-            length /= 8;
-
-            while (length--) {
-                CP32_SH(0, 24, 8);
-                CP32_SH(1, 24, 8);
-                CP32_SH(2, 24, 8);
-                CP32_SH(3, 24, 8);
-                CP32_SH(4, 24, 8);
-                CP32_SH(5, 24, 8);
-                CP32_SH(6, 24, 8);
-                CP32_SH(7, 24, 8);
-
-                INC_INDEX(dst32, 8);
-                INC_INDEX(src32, 8);
-            }
-
-            src8 = CAST_32_TO_8(src32, -1);
-            dst8 = CAST_32_TO_8(dst32, 0);
-
-            if (count & 2) {
-                *dst8++ = *src8++;
-                *dst8++ = *src8++;
-            }
-
-            if (count & 1) {
-                *dst8 = *src8;
-            }
-
-            return dest;
-        }
-    }
+nt_malloc(size_t size, const char *fname, unsigned int line)
+{
+    return _nt_alloc(size, 0, NULL);
 }
+
+void *
+nt_calloc(size_t nmemb, size_t size, const char *fname, unsigned int line)
+{
+    return _nt_alloc(nmemb*size, 1, NULL);
+}
+
+void *
+nt_realloc(void *ptr, size_t size, const char *fname, unsigned int line)
+{
+    return 0;
+}
+
+void *
+nt_memcpy(void *dest, off_t o1, const void *src, off_t o2, size_t n, const char *fname, unsigned int line)
+{
+    void *rv = NULL;
+    if (memcpy(_nt_memptr(dest, o1, n), _nt_memptr(src, o2, n), n) != NULL) {
+        rv = dest;
+    }
+    return rv;
+}
+
+void *
+nt_memset(void *s, off_t o, int c, size_t n, const char *fname, unsigned int line)
+{
+    void *rv = NULL;
+    if (memset(_nt_memptr(s, o, n), c, n) != NULL) {
+        rv  = s;
+    }
+    return rv;
+}
+
+int
+nt_memcmp(const void *s1, off_t o1, const void *s2, off_t o2, size_t n, const char *fname, unsigned int line)
+{
+    return memcmp(_nt_memptr(s1, o1, n), _nt_memptr(s2, o2, n), n);
+}
+
+char *
+nt_strdup(const char *s, off_t o, const char *fname, unsigned int line)
+{
+    char *rv = NULL;
+    if (s)
+    {
+        size_t slen = strlen(_nt_memptr(s, o, 0));
+        rv = nt_strndup(s, o, slen, fname, line);
+    }
+    return rv;
+}
+
+char *
+nt_strndup(const char *s, off_t o, size_t n, const char *fname, unsigned int line)
+{
+    char *rv = NULL;
+    if (s && n)
+    {
+        rv = nt_malloc(n, fname, line);
+        if (rv)
+        {
+            if (nt_memcpy(rv, 0, s, o, n, fname, line) == NULL)
+            {
+                nt_free(rv, fname, line);
+                rv = NULL;
+            }
+        }
+    }
+    return rv;
+}
+
+char *
+nt_strcpy(char *dest, off_t o1,  const char *src, off_t o2, const char *fname, unsigned int line)
+{
+    char *rv = NULL;
+    if (strcpy(_nt_memptr(dest, o1, 0), _nt_memptr(src, o2, 0)) != NULL) {
+        rv = dest;
+    }
+    return rv;
+}
+
+char *
+nt_strncpy(char *dest, off_t o1, const char *src, off_t o2, size_t n, const char *fname, unsigned int line)
+{
+    char *rv = NULL;
+    if (strncpy(_nt_memptr(dest, o1, 0), _nt_memptr(src, o2, 0), n) != NULL) {
+        rv = dest;
+    }
+    return rv;
+}
+
+int
+nt_strcmp(const char *s1, off_t o1, const char *s2, off_t o2, const char *fname, unsigned int line)
+{
+    return strcmp(_nt_memptr(s1, o1, 0), _nt_memptr(s2, o2, 0));
+}
+
+int
+nt_strncmp(const char *s1, off_t o1, const char *s2, off_t o2, size_t n, const char *fname, unsigned int line)
+{
+    return strncmp(_nt_memptr(s1, o1, n), _nt_memptr(s2, o2, n), n);
+}
+
+
