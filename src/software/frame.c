@@ -219,21 +219,33 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       unsigned char track, tracks;
       unsigned int dno_samples;
       _oalRingBuffer *src_rb;
+      float g = 1.0f;
 
       dno_samples = _oalRingBufferGetNoSamples(dest_rb);
       tracks = _oalRingBufferGetNoTracks(dest_rb);
       src_rb = _intBufGetDataPtr(buf);
 
       lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
+      if (lfo && lfo->envelope)
+      {
+          g = 0.0f;
+          for (track=0; track<tracks; track++)
+          {
+              int32_t *sptr = src_rb->sample->track[track];
+              float gain =  lfo->get(lfo, sptr, track, dno_samples);
+
+              if (lfo->inv) gain = 1.0f/g;
+              g += gain;
+          }
+          g /= tracks;
+      }
+
       for (track=0; track<tracks; track++)
       {
          int32_t *dptr = dest_rb->sample->track[track];
          int32_t *sptr = src_rb->sample->track[track];
-         float g = 1.0f, gstep = 0.0f;
+         float gstep = 0.0f;
 
-         if (lfo && lfo->envelope) {
-            g = lfo->get(lfo, sptr, track, dno_samples);
-         }
          _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
          fmixer->capturing = 1;
       }
