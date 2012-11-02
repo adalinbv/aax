@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include <stdio.h>		/* for off_t */
+#include <sys/types.h>		/* for off_t */
 
 #define NT_OVERFLOWLEN		2048
 #define NT_UNDERFLOWLEN		NT_OVERFLOWLEN
