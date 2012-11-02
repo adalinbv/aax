@@ -26,7 +26,7 @@
 #include "audio.h"
 
 static void*
-_aaxAudioFrameProcessThreadedFrame(_handle_t*, _frame_t*, _aaxAudioFrame*,
+_aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
                                    _aaxAudioFrame*, _aaxAudioFrame*,
                                    const _aaxDriverBackend*);
 
@@ -168,8 +168,8 @@ _aaxAudioFrameThread(void* config)
          {
             if (_IS_PLAYING(frame) && be->is_available(NULL))
             {
-               _aaxAudioFrameProcessThreadedFrame(handle, frame, mixer,
-                                                  smixer, fmixer, be);
+               _aaxAudioFrameProcessThreadedFrame(handle, frame->ringbuffer,
+                                                  mixer, smixer, fmixer, be);
             }
             else { /* if (_IS_STANDBY(frame)) */
                _aaxNoneDriverProcessFrame(mixer);
@@ -202,11 +202,11 @@ _aaxAudioFrameThread(void* config)
 }
 
 void
-_aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
+_aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *sfmixer,
                   _oalRingBuffer2dProps *fp2d,
                   const _aaxDriverBackend *be, void *be_handle)
 {
-   _intBuffers *ringbuffers = fmixer->ringbuffers;
+   _intBuffers *ringbuffers = sfmixer->ringbuffers;
    _intBufferData *buf;
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
@@ -247,7 +247,7 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          float gstep = 0.0f;
 
          _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
-         fmixer->capturing = 1;
+         sfmixer->capturing = 1;
       }
 
       /*
@@ -403,6 +403,8 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                      nrb = _oalRingBufferDuplicate(frame_rb, AAX_TRUE, dde);
                      _intBufAddData(ringbuffers, _AAX_RINGBUFFER, frame_rb);
                      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
+                     /* Note: working on the ringbuffer of the parent frame */
                      fmixer->ringbuffer = frame_rb = nrb;
                   }
                   else
@@ -422,6 +424,8 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                         if (dde) {
                            _oalRingBufferCopyDelyEffectsData(nrb, frame_rb);
                         }
+
+                        /* Note: working on the buffer of the parent frame */
                         fmixer->ringbuffer = frame_rb = nrb;
                      }
                   }
@@ -450,7 +454,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 }
 
 static void*
-_aaxAudioFrameProcessThreadedFrame(_handle_t* handle, _frame_t *frame,
+_aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
           _aaxAudioFrame *mixer, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer,
           const _aaxDriverBackend *be)
 {
@@ -460,12 +464,11 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, _frame_t *frame,
    _oalRingBuffer2dProps fp2d;
    _oalRingBuffer3dProps fp3d;
    _intBufferData *dptr;
-   void *rb;
 
    assert(handle);
-   assert(mixer);
-   assert(smixer);
-   assert(fmixer);
+   assert(mixer); /* equals to fmixer for registered frames: always for now */
+   assert(smixer); /* sensor mixer */
+   assert(fmixer); /* frame submixer */
 
    be_handle = handle->backend.handle;
 
@@ -485,12 +488,14 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, _frame_t *frame,
    memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
 
    /* clear the buffer for use by the subframe */
-   rb = frame->ringbuffer;
-   _oalRingBufferClear(rb);
-   _oalRingBufferStart(rb);
+   _oalRingBufferClear(frame_rb);
+   _oalRingBufferStart(frame_rb);
 
-   _aaxAudioFrameProcess(rb, mixer, &sp2d, &sp3d, NULL, NULL,
+// NOTE: does do the pup/push thing on mixer->ringbuffers,
+//       lust like _aaxAudioFrameSwapBuffers
+// TODO: Fix this
+   _aaxAudioFrameProcess(frame_rb, mixer, &sp2d, &sp3d, NULL, NULL,
                                     &fp2d, &fp3d, be, be_handle);
-   return _aaxAudioFrameSwapBuffers(rb, fmixer);
+   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer);
 }
 
