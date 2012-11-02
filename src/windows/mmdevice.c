@@ -143,6 +143,7 @@ typedef struct
    _oalRingBufferMix1NFunc *mix_mono3d;
 
    _batch_cvt_to_intl_proc cvt_to_intl;
+   _batch_cvt_proc cvt_endian;
 
 } _driver_t;
 
@@ -614,9 +615,11 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       switch (handle->Fmt.Format.wBitsPerSample)
       {
       case 16:
+         handle->cvt_endian = _batch_endianswap16;
          handle->cvt_to_intl = _batch_cvt16_intl_24;
          break;
       case 32:
+         handle->cvt_endian = _batch_endianswap32;
          if (IsEqualGUID(&handle->Fmt.SubFormat,
                          &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
          {
@@ -628,6 +631,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
          }
          break;
       case 24:
+         handle->cvt_endian = _batch_endianswap32;
          handle->cvt_to_intl = _batch_cvt24_3intl_24;
          break;
       case 8:
@@ -934,15 +938,13 @@ _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames
       UINT32 packet_sz = *req_frames;
       HRESULT hr;
 
-      if (handle->initializing)
+      if (handle->initializing == 1)
       {
-         if (handle->initializing == 1) {
-            hr = pIAudioClient_Start(handle->pAudioClient);
-            if (FAILED(hr)) {
-               handle->initializing++;
-            }
+         hr = pIAudioClient_Start(handle->pAudioClient);
+         if (SUCCEEDED(hr)) {
+            handle->initializing--;
          }
-         handle->initializing--;
+         else return 0;
       }
 
       if (!handle->exclusive)
@@ -960,6 +962,7 @@ _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames
          DWORD flags;
          BYTE* buf;
 
+         *req_frames = 0;
          while (packet_sz)
          {
             hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
@@ -997,87 +1000,83 @@ _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames
 
 
 static int
-_aaxMMDevDriverPlayback(const void *id, void *s, float pitch, float volume)
+_aaxMMDevDriverPlayback(const void *id, void *src, float pitch, float volume)
 {
-   _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   unsigned int offs, no_tracks, no_samples;
-   UINT32 padding = 0, frames = 0; 
-   _oalRingBufferSample *rbd;
-   BYTE *data = NULL;
-   HRESULT hr;
+   _oalRingBuffer *rbs = (_oalRingBuffer *)src;
+   unsigned int no_frames, no_tracks, offs, chunk;
+   _oalRingBufferSample *rbsd;
+   HRESULT err;
 
-   assert(rb);
-   assert(rb->sample);
-   assert(id != 0);
+   assert(handle != 0);
+   if (handle->paused) return 0;
 
-   rbd = rb->sample;
-   offs = _oalRingBufferGetOffsetSamples(rb);
-   no_tracks = _oalRingBufferGetNoTracks(rb);
-   no_samples = _oalRingBufferGetNoSamples(rb) - offs;
+   assert(rbs != 0);
+   assert(rbs->sample != 0);
 
-   if (handle->initializing)
+   rbsd = rbs->sample;
+   offs = _oalRingBufferGetOffsetSamples(rbs);
+   no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
+   no_tracks = _oalRingBufferGetNoTracks(rbs);
+
+   if (handle->initializing == 1)
    {
-      if (handle->initializing == 1) {
-         hr = pIAudioClient_Start(handle->pAudioClient);
-         if (FAILED(hr)) {
-            handle->initializing++;
-         }
+      err = pIAudioClient_Start(handle->pAudioClient);
+      if (SUCCEEDED(err)) {
+         handle->initializing--;
       }
-      handle->initializing--;
+      else return 0;
    }
 
-   if (!handle->exclusive && !handle->event_driven)
+   chunk = 10;
+   do
    {
-      hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
-      if (SUCCEEDED(hr))
+      unsigned int frames = no_frames;
+      if (!handle->exclusive && !handle->event_driven)
       {
-         if (no_samples > padding) {
-            frames = no_samples - padding;
-         } else {
-            frames = 0;
-         }
-      } else {
+         UINT32 padding;
+
          frames = 0;
+         err = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
+         if (SUCCEEDED(err) && (padding < no_frames)) {
+            frames = no_frames - padding;
+         }
       }
-   }
-   else {
-      frames = no_samples;
-   }
 
-   if (!handle->initializing && frames >= no_samples)
-   {
-      hr = pIAudioRenderClient_GetBuffer(handle->uType.pRender, frames, &data);
-      if (SUCCEEDED(hr))
+      assert(handle->initializing == 0);
+      assert(frames <= no_frames);
+if (frames != no_frames)
+printf("chunk: %i, frames: %i, no_frames: %i\n", chunk, frames, no_frames);
+      if (1) // frames >= no_frames)
       {
-         handle->cvt_to_intl(data, rbd->track, offs, no_tracks, frames);
-         if (is_bigendian())		/* should never happen anyhow */
+         IAudioRenderClient *pRender = handle->uType.pRender;
+         const int32_t **sbuf = (const int32_t**)rbsd->track;
+         char *data = NULL;
+
+         err = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
+         if (SUCCEEDED(err))
          {
-            switch (handle->Fmt.Format.wBitsPerSample)
+            handle->cvt_to_intl(data, sbuf, offs, no_tracks, frames);
+            if (is_bigendian())		/* should never happen anyhow */
             {
-            case 16:
-               _batch_endianswap16((uint16_t*)data+offs, no_tracks*frames);
-               break;
-            case 32:
-               _batch_endianswap32((uint32_t*)data+offs, no_tracks*frames);
-               break;
-            case 64:
-               _batch_endianswap64((uint64_t*)data+offs, no_tracks*frames);
-               break;
-            default:
-               break;
+                unsigned int doffs = offs*handle->Fmt.Format.wBitsPerSample/8;
+                handle->cvt_endian(data+doffs, no_tracks*frames);
+            }
+            err = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
+                                                frames, 0);
+            if (FAILED(err)) {
+               _AAX_SYSLOG("mmdev; failed to release the buffer");
             }
          }
-         hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
-                                             frames, 0);
-         if (FAILED(hr)) {
-            _AAX_SYSLOG("mmdev; failed to release the buffer");
+         else {
+            _AAX_SYSLOG("mmdev; failed to get the buffer");
          }
       }
-      else {
-         _AAX_SYSLOG("mmdev; failed to get the buffer");
-      }
+
+      no_frames -= frames;
    }
+   while ((no_frames > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -1153,6 +1152,7 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
                                &name);
          if (FAILED(hr)) break;
 
+// TODO: write directly into the buffer pointed to by ptr
          devname = wcharToChar(name.pwszVal);
          if (devname)
          {
@@ -1246,6 +1246,7 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
             if (FAILED(hr)) break;
 
             device_name = wcharToChar(name.pwszVal);
+printf("%i: '%s'\n", i, device_name);
             if (device_name && !strcasecmp(device_name, devname))
             {
                PROPVARIANT iface;
@@ -1490,7 +1491,7 @@ _aaxMMDevDriverThread(void* config)
    _oalRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
-   unsigned int bufsz;
+// unsigned int bufsz;
    float delay_sec;
    DWORD hr;
 
@@ -1499,54 +1500,50 @@ _aaxMMDevDriverThread(void* config)
       return NULL;
    }
 
-   be = handle->backend.ptr;
    delay_sec = 1.0f/handle->info->refresh_rate;
 
    tracks = 2;
-   mixer = NULL;
-   dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
-   if (dest_rb)
+   be = handle->backend.ptr;
+   dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
    {
-      dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-      if (dptr_sensor)
+      _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
+
+      mixer = sensor->mixer;
+      dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
+      if (dest_rb)
       {
-         _oalRingBuffer *nrb;
-         _aaxMixerInfo* info;
-         _sensor_t* sensor;
-
-         sensor = _intBufGetDataPtr(dptr_sensor);
-         mixer = sensor->mixer;
-         info = mixer->info;
-
-         tracks = info->no_tracks;
-         _oalRingBufferSetNoTracks(dest_rb, tracks);
          _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetFrequency(dest_rb, info->frequency);
+         _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
+         _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
          _oalRingBufferSetDuration(dest_rb, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
          _oalRingBufferStart(dest_rb);
 
          handle->ringbuffer = dest_rb;
-         nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-         _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, nrb);
-         _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+         tracks = mixer->info->no_tracks;
+      }
+      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
+      if (!dest_rb) {
+         return NULL;
       }
    }
-
-   dest_rb = handle->ringbuffer;
-   if (!dest_rb) {
+   else {
       return NULL;
    }
 
-   /* get real duration, it might have been altered for better performance */
-   bufsz = _oalRingBufferGetNoSamples(dest_rb);
-   delay_sec = _oalRingBufferGetDuration(dest_rb);
-
-   be_handle = (_driver_t *)handle->backend.handle;
    be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
+   /* get real duration, it might have been altered for better performance */
+// bufsz = _oalRingBufferGetNoSamples(dest_rb);
+// delay_sec = _oalRingBufferGetDuration(dest_rb);
+
+   _aaxMutexLock(handle->thread.mutex);
    stdby_time = 2*(int)(delay_sec*1000);
+
+   be_handle = (_driver_t *)handle->backend.handle;
    if (be_handle->event_driven)
    {
       be_handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -1569,13 +1566,18 @@ _aaxMMDevDriverThread(void* config)
                                NULL, NULL, FALSE);
       }
    }
-   if (!be_handle->Event || FAILED(hr)) {
+   if (!be_handle->Event || FAILED(hr))
+   {
+      _aaxMutexUnLock(handle->thread.mutex);
       _AAX_SYSLOG("mmdev; unable to set up the event handler");
    }
 
-   _aaxMutexLock(handle->thread.mutex);
-   do
+   while TEST_FOR_TRUE(handle->thread.started)
    {
+      _aaxMutexUnLock(handle->thread.mutex);
+      hr = WaitForSingleObject(be_handle->Event, stdby_time);
+      _aaxMutexLock(handle->thread.mutex);
+
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -1593,16 +1595,8 @@ _aaxMMDevDriverThread(void* config)
          state = handle->state;
       }
 
-      if TEST_FOR_FALSE(handle->thread.started) {
-         break;
-      }
-
       /* do all the mixing */
       _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
-
-      _aaxMutexUnLock(handle->thread.mutex);
-      hr = WaitForSingleObject(be_handle->Event, stdby_time);
-      _aaxMutexLock(handle->thread.mutex);
 
       switch (hr)
       {
@@ -1620,9 +1614,8 @@ _aaxMMDevDriverThread(void* config)
          break;
       }
    }
-   while TEST_FOR_TRUE(handle->thread.started);
 
-   pIAudioClient_Stop(be_handle->pAudioClient);
+// pIAudioClient_Stop(be_handle->pAudioClient);
    if (!be_handle->event_driven) {
       CancelWaitableTimer(be_handle->Event);
    }
