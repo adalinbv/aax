@@ -251,12 +251,16 @@ _aaxMPG123FileOpen(void *id, const char* fname)
                               MPG123_ENC_SIGNED_16);
                pmpg123_getformat(handle->id, &rate, &channels, &enc);
 
-               handle->frequency = rate;
-               handle->no_tracks = channels;
-               handle->format = getFormatFromFileFormat(enc);
-               handle->bits_sample = aaxGetBitsPerSample(handle->format);
+               if (1000 <= rate && rate <= 19200 &&
+                   1 <= channels && channels <= _AAX_MAX_SPEAKERS)
+               {
+                  handle->frequency = rate;
+                  handle->no_tracks = channels;
+                  handle->format = getFormatFromFileFormat(enc);
+                  handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
-               res = AAX_TRUE;
+                  res = AAX_TRUE;
+               }
             }
          }
          else {
