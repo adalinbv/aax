@@ -1137,45 +1137,51 @@ _aaxAudioFrameStart(_frame_t *frame)
    assert(frame);
 
 // if (frame->handle && TEST_FOR_FALSEframe->thread.started))
-   if ( (_IS_INITIAL(frame) || _IS_PROCESSED(frame)) && (frame->submix->thread) )
+   if (_IS_INITIAL(frame) || _IS_PROCESSED(frame))
    {
-      int r;
-
-      frame->thread.ptr = _aaxThreadCreate();
-      assert(frame->thread.ptr != 0);
-
-      frame->thread.condition = _aaxConditionCreate();
-      assert(frame->thread.condition != 0);
-
-      frame->thread.mutex = _aaxMutexCreate(0);
-      assert(frame->thread.mutex != 0);
-
-      frame->thread.started = AAX_TRUE;
-      r = _aaxThreadStart(frame->thread.ptr, _aaxAudioFrameThread, frame);
-      if (r == 0)
+      if  (frame->submix->thread)
       {
-         int p = 0;
-         do
-         {
-            msecSleep(100);
-            r = (frame->ringbuffer != 0);
-            if (p++ > 5000) break;
-         }
-         while (r == 0);
+         int r;
 
+         frame->thread.ptr = _aaxThreadCreate();
+         assert(frame->thread.ptr != 0);
+
+         frame->thread.condition = _aaxConditionCreate();
+         assert(frame->thread.condition != 0);
+
+         frame->thread.mutex = _aaxMutexCreate(0);
+         assert(frame->thread.mutex != 0);
+
+         frame->thread.started = AAX_TRUE;
+         r = _aaxThreadStart(frame->thread.ptr, _aaxAudioFrameThread, frame);
          if (r == 0)
          {
-            _aaxErrorSet(AAX_TIMEOUT);
-            frame->thread.started = AAX_FALSE;
+            int p = 0;
+            do
+            {
+               msecSleep(100);
+               r = (frame->ringbuffer != 0);
+               if (p++ > 5000) break;
+            }
+            while (r == 0);
+
+            if (r == 0)
+            {
+               _aaxErrorSet(AAX_TIMEOUT);
+               frame->thread.started = AAX_FALSE;
+            }
+            else
+            {
+               frame->submix->capturing = AAX_TRUE; // REGISTERED_FRAME;
+               rv = AAX_TRUE;
+            }
+         }   
+         else {
+            _aaxErrorSet(AAX_INVALID_STATE);
          }
-         else
-         {
-            frame->submix->capturing = AAX_TRUE; // REGISTERED_FRAME;
-            rv = AAX_TRUE;
-         }
-      }   
+      }
       else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+         frame->submix->capturing = AAX_TRUE;
       }
    }
    else if (_IS_STANDBY(frame) || !frame->submix->thread) {

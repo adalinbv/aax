@@ -387,50 +387,8 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             /* if the subframe actually did render something, mix the data */
             if (res)
             {
-               /* should always be true for sub-frames */
-               if (1) // TEST_FOR_TRUE(sfmixer->capturing)
-               {
-                  char dde = (_EFFECT_GET2D_DATA(sfmixer,DELAY_EFFECT) != NULL);
-                  _intBuffers *ringbuffers = sfmixer->ringbuffers;
-                  unsigned int nbuf;
-
-                  nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-                  if (nbuf == 0)
-                  {
-                     _oalRingBuffer *nrb;
-
-                     /* add the ringbuffer to the buffer queue */
-                     nrb = _oalRingBufferDuplicate(frame_rb, AAX_TRUE, dde);
-                     _intBufAddData(ringbuffers, _AAX_RINGBUFFER, frame_rb);
-                     _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-                     /* Note: working on the ringbuffer of the parent frame */
-                     fmixer->ringbuffer = frame_rb = nrb;
-                  }
-                  else
-                  {
-                     _intBufferData *buf;
-
-                     /* swap ringbuffers */
-                     buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-                     if (buf)
-                     {
-                        _oalRingBuffer *nrb;
-
-                        nrb = _intBufSetDataPtr(buf, frame_rb);
-                        _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-                        _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-                        if (dde) {
-                           _oalRingBufferCopyDelyEffectsData(nrb, frame_rb);
-                        }
-
-                        /* Note: working on the buffer of the parent frame */
-                        fmixer->ringbuffer = frame_rb = nrb;
-                     }
-                  }
-                  sfmixer->capturing++;
-               }
+               frame_rb = _aaxAudioFrameSwapBuffers(frame_rb, sfmixer);
+               fmixer->ringbuffer = frame_rb;
 
                /* finally mix the data with dest_rb */
                _aaxAudioFrameMix(dest_rb, sfmixer, &sfp2d, be, be_handle);
