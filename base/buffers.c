@@ -515,8 +515,10 @@ _intBufPopData(_intBuffers *buffer, unsigned int id)
       if (buffer->first_free > 0) buffer->first_free--;
       buffer->num_allocated--;
 
+      _aaxMutexLock(buffer->data[0]->mutex);
       retval = buffer->data[0];
       buffer->data[0] = NULL;
+      _aaxMutexUnLock(retval->mutex);
 
       if (buffer->num_allocated > 0)
       {
