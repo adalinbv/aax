@@ -55,8 +55,8 @@ extern "C" {
 
 
 # define COBJMACROS 1
+# include <Audioclient.h>
 # include <mmdeviceapi.h>
-# include <audioclient.h>
 # include <Objbase.h>
 
 #else
