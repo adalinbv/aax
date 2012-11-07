@@ -275,6 +275,7 @@ _intBufReplace(_intBuffers *buffer, unsigned int id, unsigned int n,
    assert(n < buffer->max_allocations);
    assert(buffer->data[n] != 0);
    assert(buffer->data[n]->ptr != 0);
+   assert(data != 0);
 
 #ifndef _AL_NOTHREADS
    _aaxMutexLock(buffer->mutex);
@@ -316,6 +317,7 @@ _intBufGetDebug(const _intBuffers *buffer, unsigned int id, unsigned int n, char
    assert(buffer->id == id);
    assert(n < buffer->max_allocations);
    assert(buffer->data != 0);
+// assert(buffer->data[n] != 0);
 
 #ifndef _AL_NOTHREADS
    if (buffer->data[n] != 0)
@@ -338,6 +340,7 @@ _intBufGetNoLock(const _intBuffers *buffer, unsigned int id, unsigned int n)
    assert(buffer->id == id);
    assert(n < buffer->max_allocations);
    assert(buffer->data != 0);
+// assert(buffer->data[n] != 0);
 
    return buffer->data[n];
 }
@@ -373,6 +376,9 @@ void *
 _intBufSetDataPtr(_intBufferData *data, void *user_data)
 {
    void *ret = NULL;
+
+   assert(user_data != 0);
+
    if (data)
    {
       ret = (void*)data->ptr;
@@ -499,8 +505,53 @@ _intBufReleaseNum(const _intBuffers *buffer, unsigned int id)
 # define _intBufReleaseNum(a, b)
 #endif
 
+#ifdef BUFFER_DEBUG
 _intBufferData *
-_intBufPopData(_intBuffers *buffer, unsigned int id)
+__intBufPopData(_intBuffers *buffer, unsigned int id, char *file, int line)
+{
+   _intBufferData *retval = NULL;
+
+   assert(buffer != 0);
+   assert(buffer->id == id);
+
+   if (buffer->num_allocated > 0)
+   {
+      if (buffer->data[0] == 0) {
+         PRINT("buffer->data[0] == 0 in file '%s' at line %i\n", file, line);
+      }
+      assert(buffer->data[0] != 0);
+      assert(buffer->data[0]->reference_ctr > 0);
+
+      _aaxMutexLock(buffer->data[0]->mutex);
+      retval = buffer->data[0];
+      buffer->data[0] = NULL;
+      _aaxMutexUnLock(retval->mutex);
+
+      buffer->num_allocated--;
+      if (buffer->num_allocated > 0)
+      {
+         unsigned int max = buffer->max_allocations - 1;
+
+         /*
+          * Shift the remaining buffers from src to dst and decrease the
+          * num_allocated counter accordingly.
+          */
+         memmove(buffer->data, buffer->data+1, max*sizeof(void*));
+         buffer->data[max] = NULL;
+      }
+
+      if (buffer->first_free > 0) {
+         buffer->first_free--;
+      }
+   }
+
+   return retval;
+}
+
+#endif
+
+_intBufferData *
+int_intBufPopData(_intBuffers *buffer, unsigned int id)
 {
    _intBufferData *retval = NULL;
 
@@ -512,14 +563,12 @@ _intBufPopData(_intBuffers *buffer, unsigned int id)
       assert(buffer->data[0] != 0);
       assert(buffer->data[0]->reference_ctr > 0);
 
-      if (buffer->first_free > 0) buffer->first_free--;
-      buffer->num_allocated--;
-
       _aaxMutexLock(buffer->data[0]->mutex);
       retval = buffer->data[0];
       buffer->data[0] = NULL;
       _aaxMutexUnLock(retval->mutex);
 
+      buffer->num_allocated--;
       if (buffer->num_allocated > 0)
       {
          unsigned int max = buffer->max_allocations - 1;
@@ -532,6 +581,10 @@ _intBufPopData(_intBuffers *buffer, unsigned int id)
          buffer->data[max] = NULL;
 
          if (buffer->first_free > 0) buffer->first_free--;
+      }
+
+      if (buffer->first_free > 0) {
+         buffer->first_free--;
       }
    }
 
@@ -599,8 +652,14 @@ _intBufShiftIndex(_intBuffers *buffer, unsigned int id, unsigned int dst,
             assert(buffer->data[i] != 0);
             assert(buffer->data[i]->reference_ctr > 0);
 
+#ifndef _AL_NOTHREADS
+            _aaxMutexLock(buffer->data[i]->mutex);
+#endif
             tmp = buffer->data[i];
-            tmp->reference_ctr--;
+            buffer->data[i] = NULL;
+#ifndef _AL_NOTHREADS
+            _aaxMutexUnLock(tmp->mutex);
+#endif
             retval[i] = (void*)tmp->ptr;
 
             /*
@@ -608,9 +667,9 @@ _intBufShiftIndex(_intBuffers *buffer, unsigned int id, unsigned int dst,
              * by another buffer. So just detach it and let the last referer
              * take care of it.
              */
+            tmp->reference_ctr--;
             if (tmp->reference_ctr == 0)
             {
-               buffer->data[i] = 0;
 #ifndef _AL_NOTHREADS
                _aaxMutexDestroy(tmp->mutex);
 #endif
@@ -679,26 +738,33 @@ int_intBufRemove(_intBuffers *buffer, unsigned int id, unsigned int n,
    assert(buffer->id == id);
    assert(n < buffer->max_allocations);
    assert(buffer->data != 0);
+   assert(buffer->data[n] != 0);
 
    if (buffer->data[n] != 0)
    {
       assert(buffer->data[n]->reference_ctr > 0);
 
       tmp = buffer->data[n];
-      tmp->reference_ctr--;
 
       /*
        * If the counter doesn't equal to zero this buffer was referenced
        * by another buffer. So just detach it and let the last referer
        * take care of it.
        */
+      tmp->reference_ctr--;
       if (tmp->reference_ctr == 0)
       {
+         buffer->data[n] = NULL;
+#ifndef _AL_NOTHREADS
+         _aaxMutexDestroy(tmp->mutex);
+#endif
+         retval = (void*)tmp->ptr;
+         free(tmp);
+         tmp = 0;
+
 #ifndef _AL_NOTHREADS
          _aaxMutexLock(buffer->mutex);
 #endif 
-         buffer->data[n] = 0;
-
          buffer->num_allocated--;
          if (n < buffer->first_free) {
             buffer->first_free = n;
@@ -706,13 +772,6 @@ int_intBufRemove(_intBuffers *buffer, unsigned int id, unsigned int n,
 #ifndef _AL_NOTHREADS
          _aaxMutexUnLock(buffer->mutex);
 #endif
-
-         retval = (void*)tmp->ptr;
-#ifndef _AL_NOTHREADS
-         _aaxMutexDestroy(tmp->mutex);
-#endif
-         free(tmp);
-         tmp = 0;
       }
 #ifndef _AL_NOTHREADS
       else if (locked) {

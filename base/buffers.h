@@ -338,6 +338,8 @@ int_intBufRemove(_intBuffers *, unsigned int, unsigned int, char);
  * Remove some buffers from the array and shift the remaining buffers 
  * (src-dst) positions forward.
  *
+ * The function takes care of locking the individual entries.
+ *
  * Not only is this a rather heavy operation but it also messes with the
  * buffer index array so positional refferences get mixed up. Use only when
  * the buffer acts as a stack array where just the first entry from the array
@@ -373,8 +375,15 @@ _intBufShiftIndex(_intBuffers *, unsigned int, unsigned int, unsigned int);
  * @param id the id of the buffer this array should represent
  * @return te user data from the first object in the array
  */
+#ifdef BUFFER_DEBUG
+# define _intBufPopData(a, b)  __intBufPopData(a, b, __FILE__, __LINE__)
 _intBufferData *
-_intBufPopData(_intBuffers *, unsigned int);
+__intBufPopData(_intBuffers*, unsigned int, char*, int);
+#else
+# define _intBufPopData(a, b)  int_intBufPopData(a, b)
+#endif
+_intBufferData *
+int_intBufPopData(_intBuffers *, unsigned int);
 
 
 /**
