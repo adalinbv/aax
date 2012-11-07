@@ -214,43 +214,36 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
       _aaxEmitter *src = handle->source;
       if (!_IS_PLAYING(src) || src->pos > 0)
       {
-         _intBufferData *dptr;
          unsigned int num;
 
          num = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
          if (num > 0)
          {
-            dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
-            if (dptr)
+            void **ptr;
+            ptr = _intBufShiftIndex(src->buffers, _AAX_EMITTER_BUFFER, 0, 1);
+            if (ptr)
             {
-               void **ptr;
-               ptr = _intBufShiftIndex(src->buffers, _AAX_EMITTER_BUFFER, 0, 1);
-               if (ptr)
+               _embuffer_t *embuf = ptr[0];
+               if (embuf)
                {
-                  _embuffer_t *embuf = ptr[0];
-                  if (embuf)
-                  {
-                     assert(embuf->id == EMBUFFER_ID);
+                  assert(embuf->id == EMBUFFER_ID);
 
-                     free_buffer(embuf->buffer);
-                     _oalRingBufferDelete(embuf->ringbuffer);
-                     embuf->ringbuffer = NULL;
-                     embuf->id = 0xdeadbeef;
-                     free(embuf);
-                  }
-                  free(ptr);
-                  ptr = NULL;
+                  free_buffer(embuf->buffer);
+                  _oalRingBufferDelete(embuf->ringbuffer);
+                  embuf->ringbuffer = NULL;
+                  embuf->id = 0xdeadbeef;
+                  free(embuf);
+               }
+               free(ptr);
+               ptr = NULL;
 
-                  if (src->pos > 0) {
-                     src->pos--;
-                  }
-                  rv = AAX_TRUE;
+               if (src->pos > 0) {
+                  src->pos--;
                }
-               else
-               {
-                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-                  _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
-               }
+               rv = AAX_TRUE;
+            }
+            else {
+               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
          }
          else {
