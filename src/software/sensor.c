@@ -258,7 +258,6 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                         void **ptr;
 
                         ptr =_intBufShiftIndex(ringbuffers,_AAX_RINGBUFFER,0,1);
-                       
                         if (ptr)
                         {
                            _oalRingBufferDelete(ptr[0]);

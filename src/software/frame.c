@@ -270,30 +270,31 @@ _aaxAudioFrameSwapBuffers(void *rb, _aaxAudioFrame *fmixer)
    {
       char dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
       _intBuffers *ringbuffers = fmixer->ringbuffers;
+      _oalRingBuffer *nrb;
       unsigned int nbuf;
 
       nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
       if (nbuf == 0)
       {
-         _oalRingBuffer *nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
+         nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
          _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
-         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-         rb = nrb;
       }
       else
-      {
+      {	 /* switch ringbuffers */
          _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-         _oalRingBuffer *nrb = _intBufSetDataPtr(buf, rb);
 
-         /* switch ringbuffers */
+         nrb = _intBufSetDataPtr(buf, rb);
          _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-         _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
          if (dde) {
             _oalRingBufferCopyDelyEffectsData(nrb, rb);
          }
-         rb = nrb;
       }
+
+      rb = nrb;
+      assert(rb != NULL);
+      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
       fmixer->capturing++;
    }
    return rb;
