@@ -106,23 +106,6 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    return ret;
 }
 
-#if 0
-/* not supported by Android's bionic and not used either */
-int
-_aaxThreadCancel(void *t)
-{
-   _aaxThread *thread = t;
-   int ret;
-
-   assert(t);
-
-   __threads_enabled = 0;
-   ret = pthread_cancel(*thread);
-
-   return ret;
-}
-#endif
-
 int
 _aaxThreadJoin(void *t)
 {
