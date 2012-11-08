@@ -45,8 +45,8 @@
 #if 1
 # undef _AAX_SYSLOG
 # ifndef NDEBUG
-#  define _AAX_SYSLOGx(a)      displayError(TEXT(a))
-#  define _AAX_SYSLOG(a)       printf("%s\n", (a))
+#  define _AAX_SYSLOGx(a)	displayError(TEXT(a))
+#  define _AAX_SYSLOG(a)	printf("%s\n", (a))
 # else
 #  define _AAX_SYSLOG(a)
 # endif
@@ -148,7 +148,6 @@ typedef struct
 
    char *ifname[2];
    _oalRingBufferMix1NFunc *mix_mono3d;
-   enum aaxRenderMode setup;
 
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_proc cvt_endian;
@@ -215,10 +214,7 @@ static char* detect_devname(IMMDevice*);
 static char* wcharToChar(const WCHAR*);
 static WCHAR* charToWChar(const char*);
 static const char* aaxNametoMMDevciceName(const char*);
-static DWORD getChannelMask(WORD, enum aaxRenderMode);
-static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
-static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
-static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
+static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*);
 static void displayError(LPTSTR);
 
 static int
@@ -291,8 +287,6 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
 
    if (handle)
    {
-      handle->setup = mode;
-
       fmt.Format.nSamplesPerSec = _aaxMMDevDriverBackend.rate;
       fmt.Format.nChannels = _aaxMMDevDriverBackend.tracks;
       fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
@@ -300,8 +294,29 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
       fmt.Format.cbSize = CBSIZE;
 
       fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
-      fmt.dwChannelMask = getChannelMask(fmt.Format.nChannels, mode);
+//    fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
       fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+      switch(fmt.Format.nChannels)
+      {
+         case 1:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_MONO;
+            break;
+         case 2:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
+            break;
+         case 4:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_QUAD;
+            break;
+         case 6:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_5POINT1;
+            break;
+         case 8:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_7POINT1;
+            break;
+         default:
+            fmt.dwChannelMask = 0;
+            break;
+      }
 
       if (xid)
       {
@@ -427,7 +442,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
                WAVEFORMATEX *wfmt = (WAVEFORMATEX*)&fmt;
                hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
                if (hr == S_OK) {
-                  exToExtensible(&handle->Fmt, wfmt, handle->setup);
+                  exToExtensible(&handle->Fmt, wfmt);
                }
             }
          }
@@ -599,8 +614,29 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       fmt.Format.cbSize = CBSIZE;
 
       fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
-      fmt.dwChannelMask = getChannelMask(fmt.Format.nChannels,handle->setup);
+//    fmt.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
       fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+      switch(fmt.Format.nChannels)
+      {
+         case 1:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_MONO;
+            break;
+         case 2:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
+            break;
+         case 4:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_QUAD;
+            break;
+         case 6:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_5POINT1;
+            break;
+         case 8:
+            fmt.dwChannelMask = KSAUDIO_SPEAKER_7POINT1;
+            break;
+         default:
+            fmt.dwChannelMask = 0;
+            break;
+      }
  
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,
                                            mode, &fmt.Format,
@@ -633,15 +669,14 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
 
 
       if (handle->exclusive && wfx) {
-         exToExtensible(&handle->Fmt, wfx, handle->setup);
+         exToExtensible(&handle->Fmt, wfx);
       }
       else if (!handle->exclusive || !wfx)
       {
-         if (wfx) {
-            exToExtensible(&handle->Fmt, wfx, handle->setup);
-         }
-         else {
-            copyFmtExtensible(&handle->Fmt, &fmt);
+         if (!wfx) {
+            _aax_memcpy(&handle->Fmt, &fmt, sizeof(WAVEFORMATEXTENSIBLE));
+         } else {
+            exToExtensible(&handle->Fmt, wfx);
          }
       }
       else {
@@ -773,7 +808,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
             WAVEFORMATEX *wfmt = (WAVEFORMATEX*)&fmt;
             res = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
             if (res == S_OK) {
-               exToExtensible(&handle->Fmt, wfmt, handle->setup);
+               exToExtensible(&handle->Fmt, wfmt);
             }
          }
          else break;
@@ -848,9 +883,10 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       if (hr == S_OK) {
          handle->hnsLatency = latency;
       }
+
 #if 0
  printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
- printf("- event driven: %i, exclusive: %i\n", handle->event_driven, handle->ex
+ printf("- event driven: %i, exclusive: %i\n", handle->event_driven, handle->exclusive);
  printf("- frequency: %i\n", handle->Fmt.Format.nSamplesPerSec);
  printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
  printf("- no. channels: %i\n", handle->Fmt.Format.nChannels);
@@ -859,10 +895,10 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
  printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
  printf("- speaker mask: %x\n", handle->Fmt.dwChannelMask);
  printf("- subformat: float: %x - pcm: %x\n",
-          IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
+          IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
           IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_PCM));
  printf("- latency: %f ms\n", handle->hnsLatency/10000.0f);
- printf("- periods: shared: %f ms, exclusive: %f ms\n", shared_period/10000.0f,
+ printf("- periods: shared: %f ms, exclusive: %f ms\n", shared_period/10000.0f, exclusive_period/10000.0f);
  printf("- minFrameCount: %i, bufFrameCnt : %i\n", minFrameCnt, bufFrameCnt);
  printf("*frames: %i, samples: %i\n", *frames, samples);
 #endif
@@ -1299,7 +1335,7 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
          IMMDeviceCollection *collection = NULL;
          IPropertyStore *props = NULL;
          IMMDevice *device = NULL;
-//       LPWSTR pwszID = NULL;
+         LPWSTR wstr = NULL;
          UINT i, count;
          char *ptr;
 
@@ -1310,30 +1346,28 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
          if (hr != S_OK) goto Exit;
 
          hr = pIMMDeviceCollection_GetCount(collection, &count);
-         if (hr != S_OK) goto Exit;
-
-         for (i=0; i<count; i++)
+         for(i=0; (hr == S_OK) && (i<count); i++)
          {
             PROPVARIANT name;
             char *device_name;
 
             hr = pIMMDeviceCollection_Item(collection, i, &device);
-            if (hr != S_OK) continue;
+            if (hr != S_OK) break;
 
-//          hr = pIMMDevice_GetId(device, &pwszID);
-//          if (hr != S_OK) continue;
+            hr = pIMMDevice_GetId(device, &wstr);
+            if (hr != S_OK) break;
 
             hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
-            if (hr != S_OK) continue;
+            if (hr != S_OK) break;
 
             pPropVariantInit(&name);
             hr = pIPropertyStore_GetValue(props,
                          (const PROPERTYKEY*)pPKEY_DeviceInterface_FriendlyName,
                                &name);
-            if (FAILED(hr)) continue;
+            if (!SUCCEEDED(hr)) break;
 
             device_name = wcharToChar(name.pwszVal);
-            if (device_name && !strcasecmp(device_name, devname)) /* found */
+            if (device_name && !strcasecmp(device_name, devname))
             {
                PROPVARIANT iface;
 
@@ -1357,10 +1391,9 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
                   pPropVariantClear(&iface);
                }
             }
-            free(device_name);
 
-//          pCoTaskMemFree(pwszID);
-//          pwszID = NULL;
+            pCoTaskMemFree(wstr);
+            wstr = NULL;
 
             pPropVariantClear(&name);
             pIPropertyStore_Release(props);
@@ -1384,7 +1417,7 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
 
          return rv;
 Exit:
-//       pCoTaskMemFree(wstr);
+         pCoTaskMemFree(wstr);
          if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
          if (collection) pIMMDeviceCollection_Release(collection);
          if (device) pIMMDevice_Release(device);
@@ -1729,108 +1762,59 @@ _aaxMMDevDriverThread(void* config)
 }
 
 static int
-copyFmtEx(WAVEFORMATEX *out, WAVEFORMATEX *in)
-{
-   assert(in != 0);
-   assert(out != 0);
-
-#if 1
-   out->wFormatTag = in->wFormatTag;
-   out->nChannels = in->nChannels;
-   out->nSamplesPerSec = in->nSamplesPerSec;
-   out->nAvgBytesPerSec = in->nAvgBytesPerSec;
-   out->nBlockAlign = in->nBlockAlign;
-   out->wBitsPerSample = in->wBitsPerSample;
-   out->cbSize = in->cbSize;
-#else
-   memcpy(out, in, sizeof(WAVEFORMATEX));
-#endif
-
-   return AAX_TRUE;
-}
-
-static int
-copyFmtExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEXTENSIBLE *in)
-{
-   assert(in != 0);
-   assert(out != 0);
-
-#if 1
-   copyFmtEx(&out->Format, &in->Format);
-
-   out->Samples.wValidBitsPerSample = in->Samples.wValidBitsPerSample;
-   out->dwChannelMask = in->dwChannelMask;
-   out->SubFormat = in->SubFormat;
-#else
-    memcpy(out, in, sizeof(WAVEFORMATEXTENSIBLE));
-#endif
-
-   return AAX_TRUE;
-}
-
-static int
-exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode setup)
+exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in)
 {
    int rv = AAX_TRUE;
 
    assert(in);
 
    if (in->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
-      copyFmtExtensible(out, (WAVEFORMATEXTENSIBLE*)in);
+      _aax_memcpy(out, in, sizeof(WAVEFORMATEXTENSIBLE));
    }
    else if (in->wFormatTag == WAVE_FORMAT_PCM ||
             in->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
    {
-      copyFmtEx(&out->Format, in);
+      _aax_memcpy(&out->Format, in, sizeof(WAVEFORMATEX));
       if (in->nChannels > 2 || in->wBitsPerSample > 16)
       {
-         /* correct for extensible format */
          out->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
          out->Format.cbSize = CBSIZE;
 
-         /* all formats match */
          out->Samples.wValidBitsPerSample = in->wBitsPerSample;
 
-         out->dwChannelMask = getChannelMask(in->nChannels, setup);
          if (in->wFormatTag == WAVE_FORMAT_PCM) {
             out->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
          } else {
             out->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
          }
+
+         out->dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+         switch (in->nChannels)
+         {
+         case 1:
+            out->dwChannelMask = SPEAKER_FRONT_CENTER;
+            rv = AAX_TRUE;
+            break;
+         case 8:
+            out->dwChannelMask |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
+         case 6:
+            out->dwChannelMask |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
+         case 4:
+            out->dwChannelMask |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
+         case 2:
+            rv = AAX_TRUE;
+            break;
+         default:
+            _AAX_SYSLOG("mmdev; usupported no. tracks requested");
+            break;
+         }
       }
    }
-   else
-   {
+   else {
       _AAX_SYSLOG("mmdev; usupported format requested");
-      rv = AAX_FALSE;
    }
 
    return rv;
 }
 
-static DWORD
-getChannelMask(WORD nChannels, enum aaxRenderMode mode)
-{
-   DWORD rv = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-
-   /* for now without mode */
-   switch (nChannels)
-   {
-   case 1:
-      rv = SPEAKER_FRONT_CENTER;
-      break;
-   case 8:
-      rv |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
-   case 6:
-      rv |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
-   case 4:
-      rv |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
-   case 2:
-      break;
-   default:
-      _AAX_SYSLOG("mmdev; usupported no. tracks requested");
-      break;
-   }
-   return rv;
-}
 
