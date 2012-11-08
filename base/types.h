@@ -112,10 +112,12 @@ uint64_t _bswap64(uint64_t x);
 # include <Windows.h>
 # include <stdio.h>
 # define strtoll _strtoi64
-# define snprintf _snprintf
+# define snprintf _aax_snprintf
 # define strcasecmp _stricmp
 # define strncasecmp _strnicmp
 # define rintf(v) (int)(v+0.5f)
+
+int _aax_snprintf(char *str,size_t size,const char *fmt,...);
 
 struct timespec
 {

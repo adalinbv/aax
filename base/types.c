@@ -33,6 +33,20 @@
 
 
 #ifdef _WIN32
+
+int _aax_snprintf(char *str,size_t size,const char *fmt,...)
+{
+   int ret;
+   va_list ap;
+    
+   va_start(ap,fmt);
+   ret = vsnprintf(str,size,fmt,ap);
+   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   str[size-1] = '\0';      
+   va_end(ap);   
+   return ret;   
+}
+
 /*
    Implementation as per:
    The Open Group Base Specifications, Issue 6
