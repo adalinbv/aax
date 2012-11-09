@@ -158,7 +158,7 @@ _intBufAddData(_intBuffers *buffer, unsigned int id, const void *data)
          
          tmp += buffer->num_allocated;
          size = num - buffer->num_allocated;
-         memset(tmp, 0, size * sizeof(_intBufferData*));
+         memset(tmp, 0, size*sizeof(_intBufferData*));
 
          buffer->max_allocations = num;
       }
@@ -233,7 +233,7 @@ _intBufAddReference(_intBuffers *buffer, unsigned int id,
 
          tmp += buffer->num_allocated;
          size = num - buffer->num_allocated;
-         memset(tmp, 0, size * sizeof(_intBufferData*));
+         memset(tmp, 0, size*sizeof(_intBufferData*));
 
          buffer->max_allocations = num;
       }
@@ -514,10 +514,18 @@ __intBufPopData(_intBuffers *buffer, unsigned int id, char *file, int line)
    assert(buffer != 0);
    assert(buffer->id == id);
 
-   if (buffer->num_allocated > 0)
+   if (buffer->num_allocated)
    {
-      if (buffer->data[0] == 0) {
-         PRINT("buffer->data[0] == 0 in file '%s' at line %i\n", file, line);
+      unsigned int i;
+
+      if (buffer->data[0] == 0)
+      {
+         buffer->num_allocated = 0;
+         printf("buffer->data[0] == 0 in file '%s' at line %i\n", file, line);
+         for(i=0; i<buffer->max_allocations; i++)
+            printf("%x ", buffer->data[i]);
+         printf("\n");
+         return NULL;
       }
       assert(buffer->data[0] != 0);
       assert(buffer->data[0]->reference_ctr > 0);
@@ -527,16 +535,21 @@ __intBufPopData(_intBuffers *buffer, unsigned int id, char *file, int line)
       buffer->data[0] = NULL;
       _aaxMutexUnLock(retval->mutex);
 
-      buffer->num_allocated--;
-      if (buffer->num_allocated > 0)
+      if (--buffer->num_allocated > 0)
       {
-         unsigned int max = buffer->max_allocations - 1;
+         unsigned int i, max = buffer->max_allocations - 1;
 
          /*
           * Shift the remaining buffers from src to dst and decrease the
           * num_allocated counter accordingly.
           */
+#if 1
          memmove(buffer->data, buffer->data+1, max*sizeof(void*));
+#else
+         for (i=0; i<max; i++) {
+            buffer->data[i] = buffer->data[i+1];
+         }
+#endif
          buffer->data[max] = NULL;
       }
 
@@ -560,6 +573,12 @@ int_intBufPopData(_intBuffers *buffer, unsigned int id)
 
    if (buffer->num_allocated > 0)
    {
+      if (buffer->data[0] == 0)
+      {
+         buffer->num_allocated = 0;
+         return NULL;
+      }
+
       assert(buffer->data[0] != 0);
       assert(buffer->data[0]->reference_ctr > 0);
 
@@ -568,19 +587,22 @@ int_intBufPopData(_intBuffers *buffer, unsigned int id)
       buffer->data[0] = NULL;
       _aaxMutexUnLock(retval->mutex);
 
-      buffer->num_allocated--;
-      if (buffer->num_allocated > 0)
+      if (--buffer->num_allocated > 0)
       {
-         unsigned int max = buffer->max_allocations - 1;
+         unsigned int i, max = buffer->max_allocations - 1;
 
          /*
           * Shift the remaining buffers from src to dst and decrease the
           * num_allocated counter accordingly.
           */
+#if 1
          memmove(buffer->data, buffer->data+1, max*sizeof(void*));
+#else
+         for (i=0; i<max; i++) {
+            buffer->data[i] = buffer->data[+1];
+         }
+#endif
          buffer->data[max] = NULL;
-
-         if (buffer->first_free > 0) buffer->first_free--;
       }
 
       if (buffer->first_free > 0) {
@@ -640,9 +662,10 @@ _intBufShiftIndex(_intBuffers *buffer, unsigned int id, unsigned int dst,
    assert(buffer->data);
    assert(dst < src);
 
-   if (buffer->num_allocated >= (src-dst)) 
+   num = (src-dst);
+   if (buffer->num_allocated >= num) 
    {
-      retval = (void **)calloc((src-dst), sizeof(void *));
+      retval = (void **)calloc(num, sizeof(void *));
       if (retval)
       {
          for (i=dst; i<src; i++)
@@ -678,11 +701,8 @@ _intBufShiftIndex(_intBuffers *buffer, unsigned int id, unsigned int dst,
             }
          }
 
-         num = src - dst;
-         if (buffer->num_allocated == num) {
-            buffer->first_free = 0;
-         }
-         else
+         buffer->num_allocated -= num;
+         if (buffer->num_allocated)
          {
             unsigned int max = buffer->max_allocations;
 
@@ -690,7 +710,13 @@ _intBufShiftIndex(_intBuffers *buffer, unsigned int id, unsigned int dst,
              * Shift the remaining buffers from src to dst and decrease the
              * num_allocated counter accordingly.
              */
+#if 1
             memmove(buffer->data+dst, buffer->data+src,(max-src)*sizeof(void*));
+#else
+            for (i=dst; i<src; i++) {
+               buffer->data[i] = buffer->data[i+1];
+            }
+#endif
             memset(buffer->data+(max-num), '\0', num*sizeof(void*));
 
             if (buffer->first_free >= src) {
@@ -706,7 +732,11 @@ _intBufShiftIndex(_intBuffers *buffer, unsigned int id, unsigned int dst,
                buffer->first_free = i;
             }
          }
-         buffer->num_allocated -= num;
+         else
+         {
+            memset(buffer->data+dst, '\0', num*sizeof(void*));
+            buffer->first_free = 0;
+         }
       }
    }
 
@@ -738,7 +768,7 @@ int_intBufRemove(_intBuffers *buffer, unsigned int id, unsigned int n,
    assert(buffer->id == id);
    assert(n < buffer->max_allocations);
    assert(buffer->data != 0);
-   assert(buffer->data[n] != 0);
+// assert(buffer->data[n] != 0);
 
    if (buffer->data[n] != 0)
    {
