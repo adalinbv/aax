@@ -181,6 +181,8 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          _oalRingBuffer *nrb;
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+         assert(nrb != 0);
+
          ds -= frames-nframes;
 
          tracks = rbd->no_tracks;

@@ -283,11 +283,19 @@ _aaxAudioFrameSwapBuffers(void *rb, _aaxAudioFrame *fmixer)
       {	 /* switch ringbuffers */
          _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
 
-         nrb = _intBufSetDataPtr(buf, rb);
-         _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
+         if (buf)
+         {
+            nrb = _intBufSetDataPtr(buf, rb);
+            _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
 
-         if (dde) {
-            _oalRingBufferCopyDelyEffectsData(nrb, rb);
+            if (dde) {
+               _oalRingBufferCopyDelyEffectsData(nrb, rb);
+            }
+         }
+         else
+         {
+            nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
+            _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
          }
       }
 
@@ -451,7 +459,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _oalRingBufferStart(frame_rb);
 
 // NOTE: does do the pup/push thing on mixer->ringbuffers,
-//       lust like _aaxAudioFrameSwapBuffers
+//       just like _aaxAudioFrameSwapBuffers
 // TODO: Fix this
    _aaxAudioFrameProcess(frame_rb, mixer, &sp2d, &sp3d, NULL, NULL,
                                     &fp2d, &fp3d, be, be_handle);
