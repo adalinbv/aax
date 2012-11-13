@@ -523,7 +523,7 @@ __intBufPopData(_intBuffers *buffer, unsigned int id, char *file, int line)
          buffer->num_allocated = 0;
          printf("buffer->data[0] == 0 in file '%s' at line %i\n", file, line);
          for(i=0; i<buffer->max_allocations; i++)
-            printf("%x ", buffer->data[i]);
+            printf("%x ", (unsigned int)buffer->data[i]);
          printf("\n");
          return NULL;
       }
@@ -537,7 +537,7 @@ __intBufPopData(_intBuffers *buffer, unsigned int id, char *file, int line)
 
       if (--buffer->num_allocated > 0)
       {
-         unsigned int i, max = buffer->max_allocations - 1;
+         unsigned int max = buffer->max_allocations - 1;
 
          /*
           * Shift the remaining buffers from src to dst and decrease the
@@ -546,6 +546,8 @@ __intBufPopData(_intBuffers *buffer, unsigned int id, char *file, int line)
 #if 1
          memmove(buffer->data, buffer->data+1, max*sizeof(void*));
 #else
+         unsigned int i;
+
          for (i=0; i<max; i++) {
             buffer->data[i] = buffer->data[i+1];
          }
@@ -589,7 +591,7 @@ int_intBufPopData(_intBuffers *buffer, unsigned int id)
 
       if (--buffer->num_allocated > 0)
       {
-         unsigned int i, max = buffer->max_allocations - 1;
+         unsigned int max = buffer->max_allocations - 1;
 
          /*
           * Shift the remaining buffers from src to dst and decrease the
@@ -598,6 +600,8 @@ int_intBufPopData(_intBuffers *buffer, unsigned int id)
 #if 1
          memmove(buffer->data, buffer->data+1, max*sizeof(void*));
 #else
+         unsigned int i;
+
          for (i=0; i<max; i++) {
             buffer->data[i] = buffer->data[+1];
          }
