@@ -202,11 +202,10 @@ _aaxAudioFrameThread(void* config)
 }
 
 void
-_aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *sfmixer,
-                  _oalRingBuffer2dProps *fp2d,
+_aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
+                  unsigned char *capturing, _oalRingBuffer2dProps *fp2d,
                   const _aaxDriverBackend *be, void *be_handle)
 {
-   _intBuffers *ringbuffers = sfmixer->ringbuffers;
    _intBufferData *buf;
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
@@ -247,7 +246,7 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *sfmixer,
          float gstep = 0.0f;
 
          _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
-         sfmixer->capturing = 1;
+         *capturing = 1;
       }
 
       /*
@@ -264,12 +263,10 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _aaxAudioFrame *sfmixer,
 /* -------------------------------------------------------------------------- */
 
 static void *
-_aaxAudioFrameSwapBuffers(void *rb, _aaxAudioFrame *fmixer)
+_aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, unsigned char *capturing, char dde)
 {
-   if TEST_FOR_TRUE(fmixer->capturing)
+   if (capturing && TEST_FOR_TRUE(*capturing))
    {
-      char dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
-      _intBuffers *ringbuffers = fmixer->ringbuffers;
       _oalRingBuffer *nrb;
       unsigned int nbuf;
 
@@ -303,7 +300,7 @@ _aaxAudioFrameSwapBuffers(void *rb, _aaxAudioFrame *fmixer)
       assert(rb != NULL);
       _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 
-      fmixer->capturing++;
+      *capturing = *capturing + 1;
    }
    return rb;
 }
@@ -396,11 +393,15 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             /* if the subframe actually did render something, mix the data */
             if (res)
             {
-               frame_rb = _aaxAudioFrameSwapBuffers(frame_rb, sfmixer);
+               char dde = (_EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) != NULL);
+               frame_rb = _aaxAudioFrameSwapBuffers(frame_rb,
+                                                    sfmixer->frame_ringbuffers,
+                                                    &sfmixer->capturing, dde);
                fmixer->ringbuffer = frame_rb;
 
                /* finally mix the data with dest_rb */
-               _aaxAudioFrameMix(dest_rb, sfmixer, &sfp2d, be, be_handle);
+               _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
+                                 &sfmixer->capturing, &sfp2d, be, be_handle);
 
                process = AAX_TRUE;
       
@@ -431,6 +432,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _oalRingBuffer2dProps fp2d;
    _oalRingBuffer3dProps fp3d;
    _intBufferData *dptr;
+   char dde;
 
    assert(handle);
    assert(mixer); /* equals to fmixer for registered frames: always for now */
@@ -458,11 +460,11 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _oalRingBufferClear(frame_rb);
    _oalRingBufferStart(frame_rb);
 
-// NOTE: does do the pup/push thing on mixer->ringbuffers,
-//       just like _aaxAudioFrameSwapBuffers
-// TODO: Fix this
    _aaxAudioFrameProcess(frame_rb, mixer, &sp2d, &sp3d, NULL, NULL,
                                     &fp2d, &fp3d, be, be_handle);
-   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer);
+
+   dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
+   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->ringbuffers,
+                                              &fmixer->capturing, dde);
 }
 

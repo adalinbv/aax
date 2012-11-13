@@ -101,6 +101,9 @@ aaxAudioFrameCreate(aaxConfig config)
             res = _intBufCreate(&submix->ringbuffers, _AAX_RINGBUFFER);
          }
          if (res != UINT_MAX) {
+            res = _intBufCreate(&submix->frame_ringbuffers, _AAX_RINGBUFFER);
+         }
+         if (res != UINT_MAX) {
             rv = (aaxFrame)frame;
          } else {
             free(ptr1);
@@ -146,6 +149,8 @@ aaxAudioFrameDestroy(aaxFrame frame)
          _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, 0, 0);
          _intBufErase(&fmixer->ringbuffers, _AAX_RINGBUFFER,
                       _aaxRemoveRingBufferByPos, fmixer);
+         _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
+                      _aaxRemoveFrameRingBufferByPos, fmixer);
 
          /* safeguard against using already destroyed handles */
          handle->id = 0xdeadbeef;

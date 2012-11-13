@@ -440,7 +440,8 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                 void *be_handle = handle->backend.handle;
                 _oalRingBuffer2dProps *p2d = mixer->props2d;
 
-                _aaxAudioFrameMix(dest_rb, mixer, p2d, be, be_handle);
+                _aaxAudioFrameMix(dest_rb, mixer->ringbuffers,
+                                  &mixer->capturing, p2d, be, be_handle);
             }
 
             /*

@@ -121,6 +121,7 @@ typedef struct
    _intBuffers *devices;	/* registered input devices		*/
 
    _oalRingBuffer* ringbuffer;
+   _intBuffers *frame_ringbuffers;	/* for audio frame rendering */
    _intBuffers *ringbuffers;		/* for loopback capture */
 
    float curr_pos_sec;
@@ -174,6 +175,7 @@ extern const _aaxMixerInfo _aaxDefaultMixerInfo;
 void _aaxListenerCreate(void *);
 void _aaxRemoveSourceByPos(void *, unsigned int);
 void _aaxRemoveRingBufferByPos(void *, unsigned int);
+void _aaxRemoveFrameRingBufferByPos(void *, unsigned int);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
 void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);

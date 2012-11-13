@@ -136,7 +136,7 @@ int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
 
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
-void _aaxAudioFrameMix(_oalRingBuffer*, _aaxAudioFrame*, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
+void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, unsigned char*, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
 
 /* --- Instrument --- */
 #define INSTRUMENT_ID	0x0EB9A645

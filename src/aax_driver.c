@@ -1200,6 +1200,18 @@ _aaxRemoveRingBufferByPos(void *frame, unsigned int pos)
    }
 }
 
+void
+_aaxRemoveFrameRingBufferByPos(void *frame, unsigned int pos)
+{
+   _aaxAudioFrame* mixer = (_aaxAudioFrame*)frame;
+   _oalRingBuffer *rb;
+
+   rb =_intBufRemove(mixer->frame_ringbuffers, _AAX_RINGBUFFER, pos, AAX_FALSE);
+   if (rb) {
+      _oalRingBufferDelete(rb);
+   }
+}
+
 static void
 removeMixerByPos(void *config, unsigned int pos)
 {
