@@ -395,6 +395,10 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
          k = 1.0f;
          iir_compute_coefs(fc, filter->fs, cptr, &k, Q);
          filter->k = k;
+#if 0
+         memset(filter->freqfilter_history, 0, 
+                2*_AAX_MAX_SPEAKERS*sizeof(float));
+#endif
       }
 
       _batch_freqfilter(dptr, sptr, dmax+ds-dmin, hist, lf, hf, k, cptr);

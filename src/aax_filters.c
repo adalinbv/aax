@@ -653,6 +653,11 @@ aaxFilterSetState(aaxFilter f, int state)
                flt->Q = Q;
                flt->k = k;
 
+#if 0
+               memset(flt->freqfilter_history, 0,
+                      2*_AAX_MAX_SPEAKERS*sizeof(float));
+#endif
+
                if ((state & ~AAX_INVERSE) != AAX_TRUE && EBF_VALID(filter)
                    && filter->slot[1])
                {
