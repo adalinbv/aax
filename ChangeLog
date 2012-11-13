@@ -10,6 +10,7 @@
  * Fix LFO situations where changing the LFO values could become out of bounds.
  * Fix filters and effects for registered sensors.
  * Allow sensors to be registered at subframes.
+ * Overhaul of the Windows backend.
  * Expose the driver latency.
 
  -- Erik Hofman <tech@adalin.org>  Sat, 22 Sep 2012 09:35:00 +0200
