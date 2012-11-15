@@ -44,6 +44,7 @@ static int _aaxCheckKeyValidityStr(char*);
 
 static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
 static const char* _aax_default_devname;
+static char* _default_renderer = "default";
 
 _intBuffers* _backends;
 time_t _tvnow = 0;
@@ -210,7 +211,7 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
             handle->backend.ptr = be;
             if (be) { /* be == NULL should never happen */
                handle->devname[0] = _aax_strdup(be->driver);
-               handle->devname[1] = "default";
+               handle->devname[1] = _default_renderer;
             }
          }
 
@@ -295,7 +296,15 @@ aaxDriverOpen(aaxConfig config)
          if (be)
          {
             const char* name = handle->devname[1];
+            char *renderer;
+
             handle->backend.handle = be->connect(nid, xoid, name, mode);
+
+            if (handle->backend.driver != _default_renderer) {
+               free(handle->backend.driver);
+            }
+            renderer = be->name(handle->backend.handle, mode);
+            handle->backend.driver = renderer ? renderer : _default_renderer;
          }
          _aaxDriverBackendClearConfigSettings(cfg);
       }
@@ -344,7 +353,15 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
                if (be)
                {
                   const char* name = handle->devname[1];
+                  char *renderer;
+
                   handle->backend.handle = be->connect(nid, xoid, name, mode);
+
+                  if (handle->backend.driver != _default_renderer) {
+                     free(handle->backend.driver);
+                  }
+                  renderer = be->name(handle->backend.handle, mode);
+                  handle->backend.driver=renderer? renderer : _default_renderer;
                }
                _aaxDriverBackendClearConfigSettings(cfg);
             }
@@ -389,7 +406,9 @@ aaxDriverDestroy(aaxConfig config)
          handle->devname[0] = (char *)_aax_default_devname;
       }
 
-      free(handle->backend.driver);
+      if (handle->backend.driver != _default_renderer) {
+         free(handle->backend.driver);
+      }
 
       /* safeguard against using already destroyed handles */
       handle->id = 0xdeadbeef;
@@ -483,8 +502,16 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
 
          if (!be_handle)
          {
+            char *renderer;
+
             be_handle = be->new_handle(mode);
             handle->backend.handle = be_handle;
+
+            if (handle->backend.driver != _default_renderer) {
+               free(handle->backend.driver);
+            }
+            renderer = be->name(handle->backend.handle, mode);
+            handle->backend.driver = renderer ? renderer : _default_renderer;
          }
 
          ptr = be->get_devices(be_handle, mode);

@@ -684,10 +684,10 @@ static char *
 _aaxOSSDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_oss_default_name;
+   char *ret = NULL;
 
    if (handle && handle->name)
-      ret = handle->name;
+      ret = _aax_strdup(handle->name);
 
    return ret;
 }

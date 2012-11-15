@@ -849,7 +849,7 @@ static char *
 _aaxDMediaGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_dmedia_default_name;
+   char *ret = NULL;
 
 #if 0
    ALpv pvs;
@@ -869,7 +869,7 @@ _aaxDMediaGetName(const void *id, int playback)
 
    /* TODO: distinguish between playback and record */
    if (handle && handle->port[0].name) {
-      ret = handle->port[0].name;
+      ret = _aax_strdup(handle->port[0].name);
    }
 
    return ret;

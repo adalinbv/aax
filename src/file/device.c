@@ -646,7 +646,7 @@ static char *
 _aaxFileDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = "default";
+   char *ret = NULL;
 
    if (handle)
    {

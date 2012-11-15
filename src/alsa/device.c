@@ -256,10 +256,10 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
-static const char *_const_soft_default_name[2];
+static const char *_const_alsa_default_name[2];
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
 
-char *_soft_default_name[2] = { NULL, NULL };
+char *_alsa_default_name[2] = { NULL, NULL };
 int _default_devnum = DEFAULT_DEVNUM;
 
 static int
@@ -272,8 +272,8 @@ _aaxALSADriverDetect(int mode)
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   if (_soft_default_name[m] == NULL) {
-      _soft_default_name[m] = (char*)_const_soft_default_name[m];
+   if (_alsa_default_name[m] == NULL) {
+      _alsa_default_name[m] = (char*)_const_alsa_default_name[m];
    }
 
    if TEST_FOR_FALSE(rv) {
@@ -441,7 +441,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             else
             {
                free(s); /* 'default' */
-               handle->name = (char *)_soft_default_name[mode > 0 ? 1 : 0];
+               handle->name = (char *)_alsa_default_name[mode > 0 ? 1 : 0];
             }
          }
 
@@ -565,14 +565,14 @@ _aaxALSADriverDisconnect(void *id)
       free(handle->ifname[1]);
       if (handle->devname)
       {
-         if (handle->devname != _soft_default_name[m]) {
+         if (handle->devname != _alsa_default_name[m]) {
             free(handle->devname);
          }
          handle->devname = 0;
       }
       if (handle->name)
       {
-         if (handle->name != _soft_default_name[m]) {
+         if (handle->name != _alsa_default_name[m]) {
             free(handle->name);
          }
          handle->name = 0;
@@ -587,10 +587,10 @@ _aaxALSADriverDisconnect(void *id)
       free(handle);
       handle = 0;
 
-      if (_soft_default_name[m] != _const_soft_default_name[m])
+      if (_alsa_default_name[m] != _const_alsa_default_name[m])
       {
-         free(_soft_default_name[m]);
-         _soft_default_name[m] = (char*)_const_soft_default_name[m];
+         free(_alsa_default_name[m]);
+         _alsa_default_name[m] = (char*)_const_alsa_default_name[m];
          _default_devnum = DEFAULT_DEVNUM;
       }
 
@@ -1232,17 +1232,16 @@ static char *
 _aaxALSADriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_soft_default_name[handle->mode];
+   char *ret = _aax_strdup((char *)_alsa_default_name[handle->mode]);
 
    if (handle)
    {
       if (handle->name) {
-         ret = handle->name;
+         ret = _aax_strdup(handle->name);
       } else if (handle->devname) {
-         ret = handle->devname;
+         ret = _aax_strdup(handle->devname);
       }
    }
-   
 
    return ret;
 }
@@ -1434,7 +1433,7 @@ static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
    {0, 0}
 };
 
-static const char* _const_soft_default_name[2] = {
+static const char* _const_alsa_default_name[2] = {
    DEFAULT_HWDEVNAME, DEFAULT_DEVNAME_OLD
 };
 
@@ -1471,7 +1470,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
    static const char* dev_prefix[] = {
          "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
-   char *rv = (char*)_soft_default_name[m];
+   char *rv = (char*)_alsa_default_name[m];
 
    if (devname && (tracks <= _AAX_MAX_SPEAKERS))
    {

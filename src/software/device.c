@@ -258,7 +258,7 @@ _aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, fl
 static char *
 _aaxNoneDriverGetName(const void *id, int playback)
 {
-   return "None";
+   return NULL;
 }
 
 static float
