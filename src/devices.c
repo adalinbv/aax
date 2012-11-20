@@ -600,7 +600,7 @@ _intBufferData _aaxBackends[_AAX_MAX_BACKENDS] =
    {0, 1, (void *)&_aaxOSSDriverBackend},
    {0, 1, (void *)&_aaxALSADriverBackend},
 #ifdef HAVE_WINDOWS_H
-   {0, 1, (void *)&_aaxMMDevDriverBackend},
+   {0, 1, (void *)&_aaxWASAPIDriverBackend},
 #else
    {0, 1, NULL},
 #endif
