@@ -163,6 +163,7 @@ ELSE(MSVC)
        SET(C_FLAGS "${C_FLAGS} -fPIC")
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${PROJECT_SOURCE_DIR}/src/windows/mingw")
+        ADD_DEFINITIONS(-U__STRICT_ANSI__)
     ENDIF(NOT MINGW)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -328,7 +329,7 @@ SET( AEONWAVE_OBJS
 
 IF(HAVE_WINDOWS_H)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
-     src/windows/mmdevice.c
+     src/windows/wasapi.c
   )
 ENDIF(HAVE_WINDOWS_H)
 

@@ -132,12 +132,10 @@ uint64_t _bswap64(uint64_t x);
 #  define ETIMEDOUT WSAETIMEDOUT
 # endif
 
-#undef __STRICT_ANSI__
-
 # define rintf(v) (int)(v+0.5f)
-# define strtoll _strtoi64
 # define snprintf _aax_snprintf
 # ifndef __GNUC__
+#  define strtoll _strtoi64
 #  define strcasecmp _stricmp
 #  define strncasecmp _strnicmp
 # endif

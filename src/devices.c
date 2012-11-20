@@ -32,7 +32,7 @@
 #include <alsa/device.h>
 #include <oss/device.h>
 #ifdef HAVE_WINDOWS_H
-# include <windows/mmdevice.h>
+# include <windows/wasapi.h>
 #endif
 
 char is_bigendian()

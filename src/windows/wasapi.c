@@ -27,7 +27,7 @@
 #include <base/threads.h>
 
 #include "audio.h"
-#include "mmdevice.h"
+#include "wasapi.h"
 
 
 #ifdef _MSC_VER
@@ -1238,7 +1238,7 @@ _aaxMMDevDriverPlayback(const void *id, void *src, float pitch, float volume)
       }
    }
 
-   chunk = 3;
+   chunk = 1;
    do
    {
       unsigned int frames = handle->buffer_frames;
@@ -1897,7 +1897,6 @@ _aaxMMDevDriverThread(void* config)
    SetThreadAffinityMask(GetCurrentThread(), threadMask);
 
    tfreq = (float)timerFreq.QuadPart;
-printf("Timer Frequency: %f\n", tfreq);
 #endif
 
    /* playback loop */
@@ -1922,9 +1921,8 @@ printf("Timer Frequency: %f\n", tfreq);
       SetThreadAffinityMask(GetCurrentThread(), threadMask);
 
       elapsed_sec = (timerCount.QuadPart-timerPrevCount.QuadPart)/tfreq;
-printf("elapsed: %f (%f)\n", elapsed_sec, delay_sec);
 #endif
-      if (elapsed_sec < delay_sec)
+      if (1) // elapsed_sec < delay_sec)
       {
          hr = WaitForSingleObject(be_handle->Event, stdby_time);
          switch (hr)

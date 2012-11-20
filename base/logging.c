@@ -23,6 +23,7 @@
 #endif
 
 #include <stdlib.h>	/* for strtol */
+#include <string.h>	/* for strncasecmp */
 #include <assert.h>
 #if HAVE_SYSLOG_H
 # include <strings.h>	/* for strcasecmp */
