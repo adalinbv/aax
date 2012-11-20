@@ -29,28 +29,30 @@
 #include "audio.h"
 #include "mmdevice.h"
 
-#include <Strsafe.h>
 
-/* disable the warning about _snprintf being depreciated */
-#pragma warning(disable : 4995)
+#ifdef _MSC_VER
+	/* disable the warning about _snprintf being depreciated */
+# pragma warning(disable : 4995)
+#endif
 
+#define USER_MM_TIMER		0
+#define USE_EVENT_THREAD	1
+#define EXCLUSIVE_MODE		1
+#define NO_PERIODS		3
+#define USE_CAPTURE_BUFFER	0
+#define USE_GETID		AAX_FALSE
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"MMDevice"
 #define DEFAULT_DEVNAME		NULL
-#define NO_PERIODS		3
-#define USE_EVENT_THREAD	1
-#define EXCLUSIVE_MODE		1
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
 
-#if 1
 # undef _AAX_SYSLOG
 # ifndef NDEBUG
-#  define _AAX_SYSLOGx(a)      displayError(TEXT(a))
-#  define _AAX_SYSLOG(a)       printf("%s\n", (a))
+#  define _AAX_SYSLOGx(a)	displayError(TEXT(a))
+#  define _AAX_SYSLOG(a)	printf("%s\n", (a))
 # else
-#  define _AAX_SYSLOG(a)
+#  define _AAX_SYSLOG(a)	printf("%s\n", (a))
 # endif
-#endif
 
 static _aaxDriverDetect _aaxMMDevDriverDetect;
 static _aaxDriverNewHandle _aaxMMDevDriverNewHandle;
@@ -138,6 +140,7 @@ typedef struct
 
    REFERENCE_TIME hnsPeriod;
    REFERENCE_TIME hnsLatency;
+   UINT32 buffer_frames;
 
    char paused;
    char initializing;
@@ -154,20 +157,26 @@ typedef struct
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
 
+   char *scratch;
+   size_t scratch_offset;		/* in samples */
+
 } _driver_t;
 
 const char* _mmdev_default_name = DEFAULT_DEVNAME;
 
-# define pCLSID_MMDeviceEnumerator &CLSID_MMDeviceEnumerator
-# define pIID_IMMDeviceEnumerator &IID_IMMDeviceEnumerator
-# define pIID_IAudioRenderClient &IID_IAudioRenderClient
-# define pIID_IAudioCaptureClient &IID_IAudioCaptureClient
-# define pIID_IAudioClient &IID_IAudioClient
+# define pCLSID_MMDeviceEnumerator &aax_CLSID_MMDeviceEnumerator
+# define pIID_IMMDeviceEnumerator &aax_IID_IMMDeviceEnumerator
+# define pIID_IAudioRenderClient &aax_IID_IAudioRenderClient
+# define pIID_IAudioCaptureClient &aax_IID_IAudioCaptureClient
+# define pIID_IAudioClient &aax_IID_IAudioClient
 # define pPKEY_Device_DeviceDesc &PKEY_Device_DeviceDesc
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
 # define pPKEY_DeviceInterface_FriendlyName &PKEY_DeviceInterface_FriendlyName
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
-# define pDEVPKEY_Device_FriendlyName &DEVPKEY_Device_FriendlyName
+# define pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT &aax_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+# define pKSDATAFORMAT_SUBTYPE_ADPCM &aax_KSDATAFORMAT_SUBTYPE_ADPCM
+# define pKSDATAFORMAT_SUBTYPE_PCM &aax_KSDATAFORMAT_SUBTYPE_PCM
+
 # define pIAudioClient_SetEventHandle IAudioClient_SetEventHandle
 
 # define pPropVariantInit PropVariantInit
@@ -211,16 +220,20 @@ const char* _mmdev_default_name = DEFAULT_DEVNAME;
 # define pIAudioCaptureClient_ReleaseBuffer IAudioCaptureClient_ReleaseBuffer
 # define pIAudioCaptureClient_GetNextPacketSize IAudioCaptureClient_GetNextPacketSize
 
-static LPWSTR name_to_id(const WCHAR*, char);
+
+static LPWSTR name_to_id(const WCHAR*, unsigned char);
 static char* detect_devname(IMMDevice*);
 static char* wcharToChar(char*, int*, const WCHAR*);
 static WCHAR* charToWChar(const char*);
 static const char* aaxNametoMMDevciceName(const char*);
+static char* aaxMMDevciceNameToName(char *);
 static DWORD getChannelMask(WORD, enum aaxRenderMode);
 static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
 static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
 static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
+#if 0
 static void displayError(LPTSTR);
+#endif
 
 static int
 _aaxMMDevDriverDetect(int mode)
@@ -266,7 +279,7 @@ _aaxMMDevDriverNewHandle(enum aaxRenderMode mode)
       handle->exclusive = AAX_TRUE;
 #endif
 #if USE_EVENT_THREAD
-      /* don't use event threads for capturing */
+      /* event threads are not supported for capturing prior to Win7 SP1 */
       if (handle->Mode == eRender) {
          handle->event_driven = AAX_TRUE;
       }
@@ -302,7 +315,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
 
       fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
       fmt.dwChannelMask = getChannelMask(fmt.Format.nChannels, mode);
-      fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+      fmt.SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
 
       if (xid)
       {
@@ -422,7 +435,7 @@ _aaxMMDevDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          {
             hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
                                      CLSCTX_INPROC_SERVER, NULL,
-                                     &handle->pAudioClient);
+                                     (void**)&handle->pAudioClient);
             if (hr == S_OK)
             {
                WAVEFORMATEX *wfmt = (WAVEFORMATEX*)&fmt;
@@ -515,6 +528,8 @@ _aaxMMDevDriverDisconnect(void *id)
       if (handle->co_init) {
          pCoUninitialize();
       }
+
+      free(handle->scratch);
       free(handle);
  
       return AAX_TRUE;
@@ -527,12 +542,13 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
                    unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
-   int channels, bps, samples = 1024;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
+   unsigned int samples = 1024;
    WAVEFORMATEXTENSIBLE fmt;
    AUDCLNT_SHAREMODE mode;
    int co_init, frame_sz;
+    int channels, bps;
    WAVEFORMATEX *wfx;
    DWORD stream;
    HRESULT hr;
@@ -601,14 +617,18 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
 
       fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
       fmt.dwChannelMask = getChannelMask(fmt.Format.nChannels,handle->setup);
-      fmt.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+      fmt.SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
  
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,
                                            mode, &fmt.Format,
                                            handle->exclusive ? NULL : &wfx);
       if (hr != S_OK)
       {
-         if (handle->exclusive)
+         /*
+          * eCapture mode must always be exclusive to prevent buffer
+          * underflows in registered-sensor mode
+          */
+         if ((handle->exclusive) && (handle->Mode == eRender))
          {
             _AAX_SYSLOG("mmdev; failed in exclusive mode, trying shared");
             handle->exclusive = AAX_FALSE;
@@ -617,6 +637,11 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
             mode = AUDCLNT_SHAREMODE_SHARED;
             hr = pIAudioClient_IsFormatSupported(handle->pAudioClient, mode,
                                                  &fmt.Format, &wfx);
+         }
+         else
+         {
+            _AAX_SYSLOG("mmdev; unable to get a proper format");
+            return AAX_FALSE;
          }
 
          if (hr != S_OK) 
@@ -664,7 +689,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       case 32:
          handle->cvt_endian = _batch_endianswap32;
          if (IsEqualGUID(&handle->Fmt.SubFormat,
-                         &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+                         pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
          {
             handle->cvt_to_intl = _batch_cvtps_intl_24;
             handle->cvt_from_intl = _batch_cvt24_ps_intl;
@@ -713,7 +738,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
          samples |= 0xF;
          samples++;
       }
-      *frames = samples;
+
       freq = (float)handle->Fmt.Format.nSamplesPerSec;
       hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*samples/freq);
 
@@ -741,13 +766,19 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
       {
          if (handle->exclusive) 
          {
-             hnsBufferDuration *= NO_PERIODS;
+// TODO: Not for registered sensors
+             if (handle->Mode == eRender) {
+                hnsBufferDuration *= NO_PERIODS;
+             }
              stream = 0;
          } 
          else /* shared mode */
          {
             hnsPeriodicity = 0;
-            hnsBufferDuration *= NO_PERIODS;
+// TODO: Not for registered sensors
+            if (handle->Mode == eRender) {
+               hnsBufferDuration *= NO_PERIODS;
+            }
             stream = AUDCLNT_STREAMFLAGS_RATEADJUST;
          }
       }
@@ -767,7 +798,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
        */
       if (hr == E_INVALIDARG)
       {
-         int m = (mode > 0) ? 1 : 0;
+//       int m = (mode > 0) ? 1 : 0;
          DWORD res;
 
          if (!handle->event_driven) break;
@@ -777,7 +808,7 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
          handle->pAudioClient = NULL;
          res = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
                                      CLSCTX_INPROC_SERVER, NULL,
-                                     &handle->pAudioClient);
+                                     (void**)&handle->pAudioClient);
          if (res == S_OK)
          {
             WAVEFORMATEX *wfmt = (WAVEFORMATEX*)&fmt;
@@ -793,20 +824,30 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
 
    if (hr == S_OK)
    {
-      REFERENCE_TIME exclusive_period = 0;
-      REFERENCE_TIME shared_period = 0;
+      REFERENCE_TIME minPeriod = 0;
+      REFERENCE_TIME defPeriod = 0;
       REFERENCE_TIME latency;
       UINT32 bufFrameCnt;
       UINT32 minFrameCnt;
-      BYTE *d = NULL;
-
-      hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, &shared_period,
-                                                             &exclusive_period);
+//    BYTE *d = NULL;
+ 
+      /*
+       * defPeriod is the default scheduling period for a shared-mode stream
+       * minPeriod is the minimum scheduling period for an exclusive-mode stream
+       * Note: shared-mode stream periods are fixed!
+       */
+      hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, &defPeriod,
+                                                               &minPeriod);
+      minFrameCnt = 1;
       if (hr == S_OK)
       {
-         minFrameCnt = (UINT32)((shared_period * freq + 10000000-1) / 10000000);
-         if (minFrameCnt < *frames) {
-            minFrameCnt *= (*frames+minFrameCnt/2)/minFrameCnt;
+         if (handle->exclusive) {
+            minFrameCnt = samples;
+         } else {
+            minFrameCnt = (UINT32)((defPeriod * freq + 10000000-1) / 10000000);
+         }
+         if ((minFrameCnt < samples) && (handle->exclusive))  {
+            minFrameCnt *= (samples+minFrameCnt/2)/minFrameCnt;
          }
       }
       else {
@@ -831,10 +872,10 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
                periods = 1;
             }
          }
-         
-         if (frames) {
-            *frames = minFrameCnt;
-         }
+
+         *frames = minFrameCnt;
+         handle->buffer_frames = bufFrameCnt;
+         handle->scratch_offset = bufFrameCnt;
 
          if (handle->Mode == eRender) {
             hr = pIAudioClient_GetService(handle->pAudioClient,
@@ -869,10 +910,10 @@ _aaxMMDevDriverSetup(const void *id, size_t *frames, int *format,
  printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
  printf("- speaker mask: %x\n", handle->Fmt.dwChannelMask);
  printf("- subformat: float: %x - pcm: %x\n",
-          IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
-          IsEqualGUID(&handle->Fmt.SubFormat, &KSDATAFORMAT_SUBTYPE_PCM));
+          IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
+          IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
  printf("- latency: %f ms\n", handle->hnsLatency/10000.0f);
- printf("- periods: shared: %f ms, exclusive: %f ms\n", shared_period/10000.0f, exclusive_period/10000.0f);
+ printf("- periods: shared: %f ms, exclusive: %f ms\n", defPeriod/10000.0f, minPeriod/10000.0f);
  printf("- minFrameCount: %i, bufFrameCnt : %i\n", minFrameCnt, bufFrameCnt);
  printf("*frames: %i, samples: %i\n", *frames, samples);
 #endif
@@ -910,19 +951,21 @@ _aaxMMDevDriverResume(const void *id)
    int rv = AAX_FALSE;
    if (handle)
    {
-      if (handle->initializing == AAX_TRUE)
+      if (handle->paused == AAX_TRUE)
       {
          HRESULT hr = pIAudioClient_Start(handle->pAudioClient);
          if (hr == S_OK)
          {
-            handle->initializing = AAX_FALSE;
+            if (handle->initializing == AAX_TRUE) {
+               handle->initializing = AAX_FALSE;
+            }
             rv = AAX_TRUE;
          }
          else {
             _AAX_SYSLOG("mmdev; failed to resume playback\n");
          }
       } else {
-         rv = ok;
+         rv = AAX_TRUE;
       }
       handle->paused = AAX_FALSE;
    }
@@ -977,8 +1020,7 @@ static int
 _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
-   int32_t **ptr = (int32_t **)data;
-   size_t no_frames;
+   size_t no_frames, frame_sz;
    int rv = AAX_FALSE;
 
    if ((req_frames == 0) || (data == 0)) {
@@ -990,7 +1032,15 @@ _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames
       return AAX_TRUE;
    } 
 
-   if (ptr)
+   frame_sz = handle->Fmt.Format.nBlockAlign;
+   if (!handle->scratch) {
+      handle->scratch = malloc(handle->buffer_frames*frame_sz);
+   }
+   if (!handle->scratch) {
+      return AAX_FALSE;
+   }
+
+   if (data)
    {
       UINT32 frames_avail;
       BYTE* buf = NULL;
@@ -1012,10 +1062,33 @@ _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames
 
       assert(handle->initializing == 0);
 
+      *req_frames = 0;
+#if USE_CAPTURE_BUFFER
+      /* is there still data in the buffer from a previous run? */
+      if (handle->scratch_offset < handle->buffer_frames)
+      {
+         size_t avail, scratch_offs = handle->scratch_offset;
+         char *p = handle->scratch;
+
+         avail = _MIN(handle->buffer_frames-scratch_offs, no_frames);
+
+         p += scratch_offs*frame_sz;
+         handle->cvt_from_intl((int32_t**)data, p, offs, 2, avail);
+
+         handle->scratch_offset += avail;
+         no_frames -= avail;
+         offs += avail;
+         *req_frames += avail;
+      }
+#endif
       while (no_frames)
       {
          UINT32 packet_sz = no_frames;
 
+         /*
+          * Use this method only with shared-mode streams. It does not work
+          * with exclusive-mode streams.
+          */
          if (!handle->exclusive)
          {
             hr = pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
@@ -1027,51 +1100,94 @@ _aaxMMDevDriverCapture(const void *id, void **data, int offs, size_t *req_frames
 
          if (packet_sz)
          {
+            /*
+             * During each GetBuffer call, the caller must either obtain the
+             * entire packet or none of it.
+             */
             hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
                                              &frames_avail, &flags, NULL, NULL);
             if (SUCCEEDED(hr))
             {
                if (hr == S_OK)
                {
-                  unsigned int avail = _MIN(frames_avail, no_frames);
-                  int no_tracks = 2;
+                  size_t scratch_offs = handle->scratch_offset;
+                  unsigned int avail = frames_avail;
+                  char *p = handle->scratch;
 
                   assert(avail > 0);
-                  assert(avail <= no_frames);
+                  assert(avail <= handle->buffer_frames);
 
                   if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
                   {
+                     assert(handle->buffer_frames >= avail);
+
+#if USE_CAPTURE_BUFFER
+                     scratch_offs = (handle->buffer_frames - avail);
+                     p += scratch_offs*frame_sz;
+
+                     memcpy(p, buf, avail*frame_sz);
+#if 0
                      if (is_bigendian()) {
-                        handle->cvt_endian(buf, no_tracks*avail);
+                        handle->cvt_endian(handle->scratch + scratch_offs,
+                                           2*avail);
                      }
-                     handle->cvt_from_intl(ptr, buf, offs, no_tracks, avail);
+#endif
+#else
+                     if (avail > no_frames) {
+                        avail = no_frames;
+                     }
+                     handle->cvt_from_intl((int32_t**)data, buf, offs, 2, avail);
+#endif
                   }
-                  offs += avail;
+                  else
+                  {
+                     scratch_offs = 0;
+                     memset(p, 0, handle->buffer_frames*frame_sz);
+                  }
+                  handle->scratch_offset = scratch_offs;
+
+#if USE_CAPTURE_BUFFER
+                  if (avail > no_frames) {
+                     avail = no_frames;
+                  }
+                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, avail);
+#endif
+
+                  handle->scratch_offset += avail;
                   no_frames -= avail;
+                  offs += avail;
+                  *req_frames += avail;
                }
                else
                {
-                  no_frames = 0;
+                  *req_frames = 0;
                   _AAX_SYSLOG("mmdev; no data available");
+                  break;
                }
 
                hr = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
                                                        frames_avail);
-               if (FAILED(hr)) {
+
+               if (FAILED(hr))
+               {
                   _AAX_SYSLOG("mmdev; error releasing the buffer");
                   break;
                }
             }
             else
             {
+               *req_frames = 0;
                _AAX_SYSLOG("mmdev; failed to get buffer data");
                break;
             }
          }
-         else break;
-      }
+         else 
+         {
+            *req_frames = 0;
+            break;
+         }
+      } /* while (no_frames) */
 
-      *req_frames -= no_frames;
       if (no_frames) {
          _AAX_SYSLOG("mmdev; failed to get next packet");
       } else {
@@ -1091,8 +1207,9 @@ _aaxMMDevDriverPlayback(const void *id, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_frames, no_tracks, offs, chunk;
+   unsigned int no_tracks, offs, chunk;
    _oalRingBufferSample *rbsd;
+   size_t no_frames;
    HRESULT err;
 
    assert(handle != 0);
@@ -1105,6 +1222,8 @@ _aaxMMDevDriverPlayback(const void *id, void *src, float pitch, float volume)
    offs = _oalRingBufferGetOffsetSamples(rbs);
    no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
    no_tracks = _oalRingBufferGetNoTracks(rbs);
+
+   assert(_oalRingBufferGetNoSamples(rbs) >= offs);
 
    if (handle->initializing == AAX_TRUE)
    {
@@ -1119,39 +1238,53 @@ _aaxMMDevDriverPlayback(const void *id, void *src, float pitch, float volume)
       }
    }
 
-   chunk = 10;
+   chunk = 3;
    do
    {
-      unsigned int frames = no_frames;
-      if (!handle->exclusive && !handle->event_driven)
+      unsigned int frames = handle->buffer_frames;
+
+      /*
+       * For an exclusive-mode rendering or capture stream that was initialized
+       * with the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag, the client typically
+       * has no use for the padding value reported by GetCurrentPadding. 
+       * Instead, the client accesses an entire buffer during each processing
+       * pass. 
+       */
+      if ((handle->exclusive && handle->event_driven) == AAX_FALSE)
       {
          UINT32 padding;
 
          frames = 0;
          err = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
          if ((err == S_OK) && (padding < no_frames)) {
-            frames = no_frames - padding;
+            frames = _MIN(handle->buffer_frames - padding, no_frames);
          }
       }
 
       assert(handle->initializing == 0);
       assert(frames <= no_frames);
+
       if (frames >= no_frames)
       {
          IAudioRenderClient *pRender = handle->uType.pRender;
          const int32_t **sbuf = (const int32_t**)rbsd->track;
-         char *data = NULL;
+         BYTE *data = NULL;
 
          err = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
          if (err == S_OK)
          {
-            handle->cvt_to_intl(data, sbuf, offs, no_tracks, frames);
+            handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
+#if 0
             if (is_bigendian())         /* should never happen anyhow */
             {
                 unsigned int doffs;
                 doffs = no_tracks*offs*handle->Fmt.Format.wBitsPerSample/8;
-                handle->cvt_endian(data+doffs, no_tracks*frames);
+                handle->cvt_endian(data+doffs, no_tracks*no_frames);
             }
+#endif
+            assert(no_frames >= frames);
+            no_frames -= frames;
+
             err = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
                                                 frames, 0);
             if (err != S_OK) {
@@ -1162,11 +1295,9 @@ _aaxMMDevDriverPlayback(const void *id, void *src, float pitch, float volume)
             _AAX_SYSLOG("mmdev; failed to get the buffer");
          }
       }
-
-      no_frames -= frames;
    }
    while ((no_frames > 0) && --chunk);
-   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
+   if (!chunk) _AAX_SYSLOG("mmdev; too many playback tries\n");
 
    return 0;
 }
@@ -1175,10 +1306,10 @@ static char *
 _aaxMMDevDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = (char *)_mmdev_default_name;
+   char *ret = NULL;
 
    if (handle && handle->pDevice) {
-      ret = detect_devname(handle->pDevice);
+      ret = aaxMMDevciceNameToName(detect_devname(handle->pDevice));
    }
 
    return ret;
@@ -1213,7 +1344,9 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
       IMMDeviceCollection *collection = NULL;
       IPropertyStore *props = NULL;
       IMMDevice *device = NULL;
-//    LPWSTR pwszID = NULL;
+#if USE_GETID
+      LPWSTR pwszID = NULL;
+#endif
       UINT i, count;
       int m, len;
       char *ptr;
@@ -1238,8 +1371,10 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
          hr = pIMMDeviceCollection_Item(collection, i, &device);
          if (hr != S_OK) goto Next;
 
-//       hr = pIMMDevice_GetId(device, &pwszID);
-//       if (hr != S_OK) goto Next;
+#if USE_GETID
+         hr = pIMMDevice_GetId(device, &pwszID);
+         if (hr != S_OK) goto Next;
+#endif
 
          hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
          if (hr != S_OK) goto Next;
@@ -1261,8 +1396,10 @@ _aaxMMDevDriverGetDevices(const void *id, int mode)
          }
 
 Next:
-//       pCoTaskMemFree(pwszID);
-//       pwszID = NULL;
+#if USE_GETID
+         pCoTaskMemFree(pwszID);
+         pwszID = NULL;
+#endif
 
          pPropVariantClear(&name);
          pIPropertyStore_Release(props);
@@ -1277,7 +1414,9 @@ Next:
       return (char *)&names[mode];
 
 Exit:
-//    pCoTaskMemFree(pwszID);
+#if USE_GETID
+      pCoTaskMemFree(pwszID);
+#endif
       if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
       if (collection) pIMMDeviceCollection_Release(collection);
       if (device) pIMMDevice_Release(device);
@@ -1316,7 +1455,9 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
          IMMDeviceCollection *collection = NULL;
          IPropertyStore *props = NULL;
          IMMDevice *device = NULL;
-//       LPWSTR pwszID = NULL;
+#if USE_GETID
+         LPWSTR pwszID = NULL;
+#endif
          UINT i, count;
          char *ptr;
 
@@ -1337,8 +1478,10 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
             hr = pIMMDeviceCollection_Item(collection, i, &device);
             if (hr != S_OK) goto Next;
 
-//          hr = pIMMDevice_GetId(device, &pwszID);
-//          if (hr != S_OK) goto Next;
+#if USE_GETID
+            hr = pIMMDevice_GetId(device, &pwszID);
+            if (hr != S_OK) goto Next;
+#endif
 
             hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
             if (hr != S_OK) goto Next;
@@ -1374,8 +1517,10 @@ _aaxMMDevDriverGetInterfaces(const void *id, const char *devname, int mode)
             free(device_name);
 
 Next:
-//          pCoTaskMemFree(pwszID);
-//          pwszID = NULL;
+#if USE_GETID
+            pCoTaskMemFree(pwszID);
+            pwszID = NULL;
+#endif
 
             pPropVariantClear(&name);
             pIPropertyStore_Release(props);
@@ -1404,7 +1549,9 @@ Next:
 
          return rv;
 Exit:
-//       pCoTaskMemFree(pwszID);
+#if USE_GETID
+         pCoTaskMemFree(pwszID);
+#endif
          if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
          if (collection) pIMMDeviceCollection_Release(collection);
          if (device) pIMMDevice_Release(device);
@@ -1419,6 +1566,7 @@ Exit:
 
 /* -------------------------------------------------------------------------- */
 
+#if 0
 static void
 displayError(LPTSTR lpszFunction) 
 { 
@@ -1447,26 +1595,55 @@ displayError(LPTSTR lpszFunction)
    LocalFree(lpMsgBuf);
    LocalFree(lpDisplayBuf);
 }
+#endif
 
-const char *
+static const char *
 aaxNametoMMDevciceName(const char *devname)
 {
-   static char name[256];
-   *name = 0;
+   static char rv[1024] ;
 
    if (devname)
    {
-      char *ptr, dev[256];
+      char *ptr, dev[1024];
 
-      snprintf(dev, 256, "%s", devname);
+      snprintf(dev, 1024, "%s", devname);
       ptr =  strstr(dev, ": ");
       if (ptr)
       {
          *ptr++ = 0;
-         snprintf(name, 256, "%s (%s)", ++ptr, dev);
+         snprintf(rv, 1024, "%s (%s)", ++ptr, dev);
       }
    }
-   return (const char*)&name;
+   return (const char*)&rv;
+}
+
+static char*
+aaxMMDevciceNameToName(char *devname)
+{
+   char *rv = devname;
+
+   if (rv)
+   {
+      char *ptr, dev[1024];
+
+      snprintf(dev, 1024, "%s", devname);
+      ptr =  strstr(dev, " (");
+      if (ptr && (strlen(ptr) > 3))
+      {
+         unsigned int len;
+
+         *ptr = 0;
+         ptr += 2;
+
+         len = strlen(ptr);
+         *(ptr+len-1) = 0;
+
+         len = strlen(devname);
+         snprintf(devname, len, "%s: %s", ptr, dev);
+      }
+   }
+
+   return rv;
 }
 
 char *
@@ -1539,7 +1716,7 @@ charToWChar(const char* str)
 }
 
 static LPWSTR
-name_to_id(const WCHAR* dname, char m)
+name_to_id(const WCHAR* dname, unsigned char m)
 {
    IMMDeviceCollection *collection = NULL;
    IMMDeviceEnumerator *enumerator = NULL;
@@ -1618,13 +1795,19 @@ void *
 _aaxMMDevDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-   int stdby_time, state, tracks;
+#if USER_MM_TIMER
+   DWORD timerCount;
+#else
+   LARGE_INTEGER timerFreq, timerCount;
+#endif
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
+   float delay_sec, tfreq;
+   int stdby_time, state;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
-   float delay_sec;
+   DWORD_PTR threadMask;
    DWORD hr;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
@@ -1634,7 +1817,6 @@ _aaxMMDevDriverThread(void* config)
 
    delay_sec = 1.0f/handle->info->refresh_rate;
 
-   tracks = 2;
    be = handle->backend.ptr;
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
@@ -1653,7 +1835,6 @@ _aaxMMDevDriverThread(void* config)
          _oalRingBufferStart(dest_rb);
 
          handle->ringbuffer = dest_rb;
-         tracks = mixer->info->no_tracks;
       }
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
@@ -1672,8 +1853,9 @@ _aaxMMDevDriverThread(void* config)
    delay_sec = _oalRingBufferGetDuration(dest_rb);
 
    _aaxMutexLock(handle->thread.mutex);
-   stdby_time = 2*(int)(delay_sec*1000);
+   stdby_time = 10*(int)(delay_sec*1000);
 
+   hr = S_OK;
    be_handle = (_driver_t *)handle->backend.handle;
    if (be_handle->event_driven)
    {
@@ -1703,11 +1885,68 @@ _aaxMMDevDriverThread(void* config)
       _AAX_SYSLOG("mmdev; unable to set up the event handler");
    }
 
+#if USER_MM_TIMER
+   timeBeginPeriod(1);     /* use 1 ms timer precision */
+   timerCount = timeGetTime();
+#else
+   if (!QueryPerformanceFrequency(&timerFreq)) {
+      _AAX_SYSLOG("mmdev; highres timer not available");
+   }
+   threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
+   QueryPerformanceCounter(&timerCount);
+   SetThreadAffinityMask(GetCurrentThread(), threadMask);
+
+   tfreq = (float)timerFreq.QuadPart;
+printf("Timer Frequency: %f\n", tfreq);
+#endif
+
+   /* playback loop */
+   hr = S_OK;
    while ((hr == S_OK) && TEST_FOR_TRUE(handle->thread.started))
    {
+#if USER_MM_TIMER
+      DWORD timerPrevCount = timerCount;
+#else
+      LARGE_INTEGER timerPrevCount = timerCount;
+#endif
+      float elapsed_sec;
+
       _aaxMutexUnLock(handle->thread.mutex);
-      hr = WaitForSingleObject(be_handle->Event, stdby_time);
-      _aaxMutexLock(handle->thread.mutex);
+
+#if USER_MM_TIMER
+      timerCount = timeGetTime();
+      elapsed_sec = (timerCount-timerPrevCount)*1e-3f;
+#else
+      threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
+      QueryPerformanceCounter(&timerCount);
+      SetThreadAffinityMask(GetCurrentThread(), threadMask);
+
+      elapsed_sec = (timerCount.QuadPart-timerPrevCount.QuadPart)/tfreq;
+printf("elapsed: %f (%f)\n", elapsed_sec, delay_sec);
+#endif
+      if (elapsed_sec < delay_sec)
+      {
+         hr = WaitForSingleObject(be_handle->Event, stdby_time);
+         switch (hr)
+         {
+         case WAIT_OBJECT_0:	/* event was triggered */
+            break;
+         case WAIT_TIMEOUT:	/* wait timed out      */
+            if (be_handle->initializing == AAX_FALSE) {
+               _AAX_SYSLOG("mmdev; event timeout");
+            }
+            break;
+         case WAIT_ABANDONED:
+         case WAIT_FAILED:
+         default:
+            _AAX_SYSLOG("mmdev; wait for even failed");
+            break;
+         }
+      }
+      else {
+         _AAX_SYSLOG("mmdev; processing > refresh time");
+      }
+      hr = S_OK;
 
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
@@ -1727,24 +1966,8 @@ _aaxMMDevDriverThread(void* config)
       }
 
       /* do all the mixing */
+      _aaxMutexLock(handle->thread.mutex);
       _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
-
-      switch (hr)
-      {
-      case WAIT_OBJECT_0:
-         break;
-      case WAIT_TIMEOUT:
-         if (be_handle->initializing == AAX_FALSE) {
-            _AAX_SYSLOG("mmdev; event timeout");
-         }
-         break;
-      case WAIT_ABANDONED:
-      case WAIT_FAILED:
-      default:
-         _AAX_SYSLOG("mmdev; wait for even failed");
-         break;
-      }
-      hr = S_OK;
    }
 
 // pIAudioClient_Stop(be_handle->pAudioClient);
@@ -1768,7 +1991,9 @@ copyFmtEx(WAVEFORMATEX *out, WAVEFORMATEX *in)
    assert(in != 0);
    assert(out != 0);
 
-#if 0
+#if 1
+   memcpy(out, in, sizeof(WAVEFORMATEX));
+#else
    out->wFormatTag = in->wFormatTag;
    out->nChannels = in->nChannels;
    out->nSamplesPerSec = in->nSamplesPerSec;
@@ -1776,8 +2001,6 @@ copyFmtEx(WAVEFORMATEX *out, WAVEFORMATEX *in)
    out->nBlockAlign = in->nBlockAlign;
    out->wBitsPerSample = in->wBitsPerSample;
    out->cbSize = in->cbSize;
-#else
-   memcpy(out, in, sizeof(WAVEFORMATEX));
 #endif
 
    return AAX_TRUE;
@@ -1789,14 +2012,14 @@ copyFmtExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEXTENSIBLE *in)
    assert(in != 0);
    assert(out != 0);
 
-#if 0
+#if 1
+   memcpy(out, in, sizeof(WAVEFORMATEXTENSIBLE));
+#else
    copyFmtEx(&out->Format, &in->Format);
 
    out->Samples.wValidBitsPerSample = in->Samples.wValidBitsPerSample;
    out->dwChannelMask = in->dwChannelMask;
    out->SubFormat = in->SubFormat;
-#else
-    memcpy(out, in, sizeof(WAVEFORMATEXTENSIBLE));
 #endif
 
    return AAX_TRUE;
@@ -1827,9 +2050,9 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
 
          out->dwChannelMask = getChannelMask(in->nChannels, setup);
          if (in->wFormatTag == WAVE_FORMAT_PCM) {
-            out->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+            out->SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
          } else {
-            out->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+            out->SubFormat = aax_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
          }
       }
    }
