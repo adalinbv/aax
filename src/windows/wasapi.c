@@ -75,7 +75,7 @@ static _aaxDriverParam __aaxWASAPIDriverGetLatency;
 static char _mmdev_default_renderer[100] = DEFAULT_RENDERER;
 static const EDataFlow _mode[] = { eCapture, eRender };
 
-const _aaxDriverBackend __aaxWASAPIDriverBackend =
+const _aaxDriverBackend _aaxWASAPIDriverBackend =
 {
    1.0,
    AAX_PCM16S,
@@ -307,8 +307,8 @@ __aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum a
    {
       handle->setup = mode;
 
-      fmt.Format.nSamplesPerSec = __aaxWASAPIDriverBackend.rate;
-      fmt.Format.nChannels = __aaxWASAPIDriverBackend.tracks;
+      fmt.Format.nSamplesPerSec = _aaxWASAPIDriverBackend.rate;
+      fmt.Format.nChannels = _aaxWASAPIDriverBackend.tracks;
       fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
       fmt.Format.wBitsPerSample = 16;
       fmt.Format.cbSize = CBSIZE;
@@ -1009,7 +1009,7 @@ __aaxWASAPIDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int
    assert(d);
    assert(p);
 
-   gain = __aaxWASAPIDriverBackend.gain;
+   gain = _aaxWASAPIDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
