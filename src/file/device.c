@@ -126,9 +126,6 @@ typedef struct
 } _driver_t;
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
-#ifndef HAVE_STRDUP
-char *strdup(const char *);
-#endif
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -218,7 +215,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             s = (char *)default_renderer;
          }
          else {
-            s = strdup(renderer);
+            s = _aax_strdup(renderer);
          }
       }
       else if (xid) {
@@ -651,7 +648,7 @@ _aaxFileDriverGetName(const void *id, int playback)
    if (handle)
    {
       if (!handle->name) {
-         handle->name = strdup("default");
+         handle->name = _aax_strdup("default");
       }
       ret = handle->name;
    }

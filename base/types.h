@@ -108,14 +108,39 @@ uint32_t _bswap32h(uint32_t x);
 uint32_t _bswap32w(uint32_t x);
 uint64_t _bswap64(uint64_t x);
 
-#if _MSC_VER
+#ifdef _WIN32
+# ifndef WIN32
+#  define WIN32
+# endif
+#endif
+
+#if defined( WIN32 )
+# undef __STRICT_ANSI__
 # include <Windows.h>
 # include <stdio.h>
+# include <string.h>
+# include <errno.h>
+
+# ifdef HAVE_TIME_H
+#  include <time.h>             /* for nanosleep */
+# endif
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>         /* for struct timeval */
+# endif
+
+# ifndef ETIMEDOUT
+#  define ETIMEDOUT WSAETIMEDOUT
+# endif
+
+#undef __STRICT_ANSI__
+
+# define rintf(v) (int)(v+0.5f)
 # define strtoll _strtoi64
 # define snprintf _aax_snprintf
-# define strcasecmp _stricmp
-# define strncasecmp _strnicmp
-# define rintf(v) (int)(v+0.5f)
+# ifndef __GNUC__
+#  define strcasecmp _stricmp
+#  define strncasecmp _strnicmp
+# endif
 
 int _aax_snprintf(char *str,size_t size,const char *fmt,...);
 
@@ -125,11 +150,13 @@ struct timespec
   long tv_nsec;  /* nanoseconds */
 };
 
+#if 0
 struct timezone
 {
   int tz_minuteswest; /* of Greenwich */
   int tz_dsttime;     /* type of dst correction to apply */
 };
+#endif
 int gettimeofday(struct timeval*, void*);
 
 typedef long	off_t;

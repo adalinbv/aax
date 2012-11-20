@@ -45,9 +45,21 @@
 #undef HAVE_WINDOWS_H
 #cmakedefine HAVE_WINDOWS_H @HAVE_WINDOWS_H@
 
+/* Define to 1 if you have the <guiddef.h> header file. */
+#undef HAVE_GUIDDEF_H
+#cmakedefine HAVE_GUIDDEF_H @HAVE_GUIDDEF_H@
+
+/* Define to 1 if you have the <initguid.h> header file. */
+#undef HAVE_INITGUID_H
+#cmakedefine HAVE_INITGUID_H @HAVE_INITGUID_H@
+
+/* Define to 1 if you have the <mmdeviceapi.h> header file. */
+#undef HAVE_MMDEVICEAPI_H
+#cmakedefine HAVE_MMDEVICEAPI_H @HAVE_MMDEVICEAPI_H@
+
 /* Define to 1 if you have the <io.h> header file. */
 #undef HAVE_IO_H
-#cmakedefine HAVE_IO_H @HAVE_IO_H@
+#cmakedefine HAVE_IO_H @HAVE_IO_H
 
 /* Define to 1 if you have the `isnan' function. */
 #undef HAVE_ISNAN

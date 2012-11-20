@@ -11,6 +11,8 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include "types.h"
+
 #if HAVE_TIME_H
 #include <time.h>
 #endif

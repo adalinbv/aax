@@ -19,6 +19,7 @@
 
 #ifdef __SSE__
 
+
 void 
 _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
 {

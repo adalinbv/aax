@@ -159,6 +159,12 @@ ELSE(MSVC)
        SET(C_FLAGS "${C_FLAGS} -flto")
     ENDIF(LTO)
 
+    IF(NOT MINGW)
+       SET(C_FLAGS "${C_FLAGS} -fPIC")
+    ELSE(NOT MINGW)
+       INCLUDE_DIRECTORIES ("${PROJECT_SOURCE_DIR}/src/windows/mingw")
+    ENDIF(NOT MINGW)
+
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
       SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND
@@ -183,7 +189,7 @@ ELSE(MSVC)
       )
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -fPIC -funroll-loops -fomit-frame-pointer" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
@@ -219,6 +225,9 @@ CHECK_INCLUDE_FILE(sys/time.h HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILE(sys/ioctl.h HAVE_IOCTL_H)
 CHECK_INCLUDE_FILE(math.h HAVE_MATH_H)
 CHECK_INCLUDE_FILE(io.h HAVE_IO_H)
+CHECK_INCLUDE_FILE(guiddef.h HAVE_GUIDDEF_H)
+CHECK_INCLUDE_FILE(initguid.h HAVE_INITGUID_H)
+CHECK_INCLUDE_FILE(mmdeviceapi.h HAVE_MMDEVICEAPI_H)
 
 IF(HAVE_PTHREAD_H)
   CHECK_LIBRARY_EXISTS(pthread pthread_create "" HAVE_LIBPTHREAD)

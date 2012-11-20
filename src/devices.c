@@ -274,7 +274,7 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
          {
             if (!strcasecmp(devname[0], be->driver))
             {
-               config->backend.driver = strdup(be->driver);
+               config->backend.driver = _aax_strdup(be->driver);
                config->backend.input = 0;
                config->backend.output = 0;
             }
@@ -383,7 +383,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             if (dev)
             {
                free(config->node[n].devname);
-               config->node[n].devname = strdup(dev);
+               config->node[n].devname = _aax_strdup(dev);
                xmlFree(dev);
             }
 
@@ -403,7 +403,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             if (setup)
             {
                free(config->node[n].setup);
-               config->node[n].setup = strdup(setup);
+               config->node[n].setup = _aax_strdup(setup);
                xmlFree(setup);
             }
 
@@ -493,7 +493,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                      if (ptr)
                      {
                         free(config->node[0].setup);
-                        config->node[0].setup = strdup(ptr);
+                        config->node[0].setup = _aax_strdup(ptr);
                         xmlFree(ptr);
                      }
 

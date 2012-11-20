@@ -19,13 +19,13 @@
 #include "threads.h"
 #include "logging.h"
 
+#define USE_REALTIME		1
 #define DEBUG_TIMEOUT		3
 static char __threads_enabled = 0;
 
 #if HAVE_PTHREAD_H
 # include <string.h>	/* for memcpy */
 
-#define	USE_REALTIME	1
 #define _TH_SYSLOG(a) __oal_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
 
 void *
@@ -658,7 +658,7 @@ int
 _aaxConditionWait(void *c, void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-   _aaxCondition *condition = c;
+// _aaxCondition *condition = c;
    DWORD rcode;
    int r = 0;
 
@@ -689,7 +689,7 @@ int
 _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-   _aaxCondition *condition = c;
+// _aaxCondition *condition = c;
    DWORD rcode, tnow_ms, treq_ms;
    struct timeval now;
    int r = 0;

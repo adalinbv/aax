@@ -499,7 +499,7 @@ _aaxNoneDriverThread(void* config)
          struct timeval now;
          float fdt;
 
-         elapsed += 60.0f;               /* resync the time every 60 seconds */
+         elapsed += 10.0f;               /* resync the time every 10 seconds */
 
          dt = delay;
          fdt = floorf(dt);

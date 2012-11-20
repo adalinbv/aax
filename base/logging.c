@@ -43,12 +43,12 @@ void (*_aax_free)(void*) = free;
 
 void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level)
 {
-   static char been_here = 0;
+#if HAVE_SYSLOG_H
    static char enabled = 0;
+   static char been_here = 0;
 
    assert(id >= 0);
 
-#if HAVE_SYSLOG_H
    if (!been_here)
    {
       been_here = 1;
@@ -72,9 +72,7 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
       been_here = 0;
       return;
    }
-#endif
 
-#if HAVE_SYSLOG_H
    if (enabled && level == LOG_SYSLOG) {
       syslog(level, "%s", s);
    }

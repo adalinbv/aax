@@ -32,7 +32,7 @@
 #include "types.h"
 
 
-#ifdef _WIN32
+#ifdef WIN32
 
 int _aax_snprintf(char *str,size_t size,const char *fmt,...)
 {

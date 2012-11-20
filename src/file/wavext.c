@@ -14,7 +14,6 @@
 #endif
 
 #include <stdlib.h>		/* for malloc */
-#include <string.h>		/* for strdup */
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
 #include <errno.h>
@@ -32,6 +31,7 @@
 #include <software/audio.h>
 #include <ringbuffer.h>
 #include <devices.h>
+#include <arch.h>
 
 #include "filetype.h"
 
@@ -154,9 +154,6 @@ static int _aaxFileDriverUpdateHeader(_handle_t *);
 static unsigned int getFileFormatFromFormat(enum aaxFormat);
 static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
 static int _aaxWavFileReadIMA4(void*, int16_t *, unsigned int);
-#ifndef HAVE_STRDUP
-char *strdup(const char *);
-#endif
 
 
 static int
@@ -175,7 +172,7 @@ _aaxWavFileOpen(void *id, const char* fname)
       handle->fd = open(fname, handle->mode, 0644);
       if (handle->fd >= 0)
       {
-         handle->name = strdup(fname);
+         handle->name = _aax_strdup(fname);
          if (!handle->capturing)
          {
             unsigned int size = 4*WAVE_EXT_HEADER_SIZE;
