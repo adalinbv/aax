@@ -2233,6 +2233,7 @@ _aaxALSADriverThread(void* config)
       int err;
 
       _aaxMutexUnLock(handle->thread.mutex);
+
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
 				/* timeout is in ms */
@@ -2246,16 +2247,12 @@ _aaxALSADriverThread(void* config)
       else {
          msecSleep((unsigned int)(delay_sec*1000));
       }
-      _aaxMutexLock(handle->thread.mutex);
 
+      _aaxMutexLock(handle->thread.mutex);
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
 
-#if 0
- printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
- printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
-#endif
       if (state != handle->state)
       {
          if (_IS_PAUSED(handle) ||
@@ -2268,8 +2265,14 @@ _aaxALSADriverThread(void* config)
          state = handle->state;
       }
 
-      /* do all the mixing */
-      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
+         _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      }
+
+#if 0
+ printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
+ printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
+#endif
    }
    _aaxMutexUnLock(handle->thread.mutex);
 
