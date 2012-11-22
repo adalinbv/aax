@@ -1232,7 +1232,7 @@ static char *
 _aaxALSADriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = _aax_strdup((char *)_alsa_default_name[handle->mode]);
+   char *ret = NULL;
 
    if (handle)
    {
