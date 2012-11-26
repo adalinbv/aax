@@ -9,8 +9,8 @@
    audio-(sub)frames which should lead to fewer case specific problems.
  * Fix LFO situations where changing the LFO values could become out of bounds.
  * Fix filters and effects for registered sensors.
+ * Overhaul of the Windows backend en threads code.
  * Allow sensors to be registered at subframes.
- * Overhaul of the Windows backend.
  * Expose the driver latency.
 
  -- Erik Hofman <tech@adalin.org>  Sat, 22 Sep 2012 09:35:00 +0200
