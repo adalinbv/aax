@@ -35,10 +35,10 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define USE_EVENT_THREAD	0
+#define USE_TIMING		0
+#define USE_EVENT_THREAD	1
 #define EXCLUSIVE_MODE		1
-#define NO_PERIODS		2
-#define USE_CAPTURE_BUFFER	0
+#define NO_PERIODS		4
 #define USE_GETID		AAX_FALSE
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"WASAPI"
@@ -158,9 +158,6 @@ typedef struct
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
 
-   char *scratch;
-   size_t scratch_offset;		/* in samples */
-
 } _driver_t;
 
 const char* _wasapi_default_name = DEFAULT_DEVNAME;
@@ -227,7 +224,7 @@ static char* detect_devname(IMMDevice*);
 static char* wcharToChar(char*, int*, const WCHAR*);
 static WCHAR* charToWChar(const char*);
 static const char* aaxNametoMMDevciceName(const char*);
-static char* _aaxWASAPIciceNameToName(char *);
+static char* _aaxMMDeviceNameToName(char *);
 static DWORD getChannelMask(WORD, enum aaxRenderMode);
 static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
 static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
@@ -532,7 +529,6 @@ _aaxWASAPIDriverDisconnect(void *id)
          pCoUninitialize();
       }
 
-      free(handle->scratch);
       free(handle);
  
       return AAX_TRUE;
@@ -756,16 +752,18 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       }
       else /* timer driver */
       {
-         hnsPeriodicity = (hnsBufferDuration/10000)*10000;
+         if (handle->Mode == eRender) {
+            hnsPeriodicity = (hnsBufferDuration/10000)*10000;
+         }
          hnsBufferDuration = hnsPeriodicity*NO_PERIODS;
          if (!handle->exclusive) /* shared mode */
          {
             hnsPeriodicity = 0;
          }
-         else
-         {
-            hnsBufferDuration = (hnsBufferDuration*3)/2;
-         }
+      }
+ 
+      if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
+         hnsBufferDuration = (hnsBufferDuration*3)/2;
       }
       hr = pIAudioClient_Initialize(handle->pAudioClient, mode, stream,
                                     hnsBufferDuration, hnsPeriodicity,
@@ -842,21 +840,9 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             _AAX_SYSLOG("wasapi; too small no. periods returned");
             periodFrameCnt = bufferFrameCnt;
          }
-#if 0
-// should be automatic, otherwise update the initialization code
-         if (handle->event_driven)
-         {
-            if (handle->exclusive)
-            {
-               periodFrameCnt = bufferFrameCnt;
-               periods = 1;
-            }
-         }
-#endif
 
          *frames = periodFrameCnt;
          handle->buffer_frames = bufferFrameCnt;
-         handle->scratch_offset = bufferFrameCnt;
 
          if (handle->Mode == eRender) {
             hr = pIAudioClient_GetService(handle->pAudioClient,
@@ -880,16 +866,16 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       if (hr == S_OK) {
          handle->hnsLatency = latency;
       }
-#if 1
+#if 0
  printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
  printf("- event driven: %i, exclusive: %i\n", handle->event_driven, handle->exclusive);
- printf("- frequency: %i\n", handle->Fmt.Format.nSamplesPerSec);
+ printf("- frequency: %i\n", (int)handle->Fmt.Format.nSamplesPerSec);
  printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
  printf("- no. channels: %i\n", handle->Fmt.Format.nChannels);
  printf("- block size: %i\n", handle->Fmt.Format.nBlockAlign);
  printf("- cb size: %i\n",  handle->Fmt.Format.cbSize);
  printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
- printf("- speaker mask: %x\n", handle->Fmt.dwChannelMask);
+ printf("- speaker mask: %x\n", (int)handle->Fmt.dwChannelMask);
  printf("- subformat: float: %x - pcm: %x\n",
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
@@ -1000,7 +986,7 @@ static int
 _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t no_frames, frame_sz;
+   UINT32 no_frames, packet_sz;
    int rv = AAX_FALSE;
 
    if ((req_frames == 0) || (data == 0)) {
@@ -1011,16 +997,6 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
    if (no_frames == 0) {
       return AAX_TRUE;
    } 
-
-   frame_sz = handle->Fmt.Format.nBlockAlign;
-#if USE_CAPTURE_BUFFER
-   if (!handle->scratch) {
-      handle->scratch = malloc(handle->buffer_frames*frame_sz);
-   }
-   if (!handle->scratch) {
-      return AAX_FALSE;
-   }
-#endif
 
    if (data)
    {
@@ -1044,137 +1020,85 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       assert(handle->initializing == 0);
 
-      *req_frames = 0;
-#if USE_CAPTURE_BUFFER
-      /* is there still data in the buffer from a previous run? */
-      if (handle->scratch_offset < handle->buffer_frames)
+      /*
+       * Use this method only with shared-mode streams. It does not work
+       * with exclusive-mode streams.
+       */
+      packet_sz = no_frames;
+      if (!handle->exclusive)
       {
-         size_t avail, scratch_offs = handle->scratch_offset;
-         char *p = handle->scratch;
-
-         avail = _MIN(handle->buffer_frames-scratch_offs, no_frames);
-
-         p += scratch_offs*frame_sz;
-         handle->cvt_from_intl((int32_t**)data, p, offs, 2, avail);
-
-         handle->scratch_offset += avail;
-         no_frames -= avail;
-         offs += avail;
-         *req_frames += avail;
-      }
-#endif
-//    while (no_frames)
-      do
-      {
-         UINT32 packet_sz = no_frames;
-
-         /*
-          * Use this method only with shared-mode streams. It does not work
-          * with exclusive-mode streams.
-          */
-         if (!handle->exclusive)
-         {
-            hr = pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
-                                                        &packet_sz);
-            if (hr != S_OK) {
-                packet_sz = 0;
-            }
+         hr = pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
+                                                     &packet_sz);
+         if (hr != S_OK) {
+             packet_sz = 0;
          }
-
-         if (packet_sz >= no_frames)
+      }
+ 
+      *req_frames = 0;
+      if (packet_sz) //  >= no_frames)
+      {
+         /*
+          * During each GetBuffer call, the caller must either obtain the
+          * entire packet or none of it.
+          *
+          * return values:
+          * S_OK:
+          *   The call succeeded and *pNumFramesToRead is nonzero,
+          *   indicating that a packet is ready to be read.
+          * AUDCLNT_S_BUFFER_EMPTY:
+          *   The call succeeded and *pNumFramesToRead is 0, indicating
+          *   that no capture data is available to be read.
+          */
+         hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
+                                          &frames_avail, &flags, NULL, NULL);
+         if (SUCCEEDED(hr))
          {
-            /*
-             * During each GetBuffer call, the caller must either obtain the
-             * entire packet or none of it.
-             */
-            hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
-                                             &frames_avail, &flags, NULL, NULL);
-            if (SUCCEEDED(hr))
+            if (hr == S_OK)			/* there is data available */
             {
-               if (hr == S_OK)
+               unsigned int avail = frames_avail;
+
+               assert(avail > 0);
+               assert(avail <= handle->buffer_frames);
+
+               if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
                {
-                  unsigned int avail = frames_avail;
-#if USE_CAPTURE_BUFFER
-                  size_t scratch_offs = handle->scratch_offset;
-                  char *p = handle->scratch;
-#endif
-
-                  assert(avail > 0);
-                  assert(avail <= handle->buffer_frames);
-
-                  if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
-                  {
-                     assert(handle->buffer_frames >= avail);
-
-#if USE_CAPTURE_BUFFER
-                     scratch_offs = (handle->buffer_frames - avail);
-                     p += scratch_offs*frame_sz;
-
-                     memcpy(p, buf, avail*frame_sz);
-                     if (is_bigendian()) {
-                        handle->cvt_endian(handle->scratch + scratch_offs,
-                                           2*avail);
-                     }
-#else
-                     if (avail > no_frames) {
-                        avail = no_frames;
-                     }
-                     handle->cvt_from_intl((int32_t**)data, buf, offs, 2, avail);
-#endif
-                  }
-#if USE_CAPTURE_BUFFER
-                  else
-                  {
-                     scratch_offs = 0;
-                     memset(p, 0, handle->buffer_frames*frame_sz);
-                  }
-                  handle->scratch_offset = scratch_offs;
+                  assert(handle->buffer_frames >= avail);
 
                   if (avail > no_frames) {
                      avail = no_frames;
                   }
-                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, avail);
-#endif
-
-                  handle->scratch_offset += avail;
-                  no_frames -= avail;
-                  offs += avail;
-                  *req_frames += avail;
+                  handle->cvt_from_intl((int32_t**)data, buf, offs, 2, avail);
                }
-               else
-               {
-                  *req_frames = 0;
-                  _AAX_SYSLOG("wasapi; no data available");
-                  break;
-               }
-
-               hr = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
-                                                       frames_avail);
-
-               if (FAILED(hr))
-               {
-                  _AAX_SYSLOG("wasapi; error releasing the buffer");
-                  break;
-               }
+               no_frames -= avail;
+               offs += avail;
+               *req_frames += avail;
             }
             else
             {
                *req_frames = 0;
-               _AAX_SYSLOG("wasapi; failed to get buffer data");
-               break;
+               _AAX_SYSLOG("wasapi; no data available");
+            }
+
+            hr = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
+                                                    frames_avail);
+
+            if (FAILED(hr)) {
+               _AAX_SYSLOG("wasapi; error releasing the buffer");
             }
          }
-         else 
+         else if (!SUCCEEDED(hr))
          {
-printf("packet_sz: %i (req) no_frames: %i\n", packet_sz, no_frames);
             *req_frames = 0;
-            break;
+            _AAX_SYSLOG("wasapi; failed to get buffer data");
          }
-      } /* while (no_frames) */
-      while(0);
+      }
+      else  {
+         *req_frames = 0;
+      }
 
       if (no_frames) {
-         _AAX_SYSLOG("wasapi; failed to get next packet");
+//       _AAX_SYSLOG("wasapi; failed to get next packet");
+         _AAX_SYSLOG_VAR("wasapi; no_frames > 0 (%i)\n", no_frames);
       } else {
          rv = AAX_TRUE;
       }
@@ -1192,7 +1116,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs, chunk;
+   unsigned int no_tracks, offs;
    _oalRingBufferSample *rbsd;
    size_t no_frames;
    HRESULT err;
@@ -1223,7 +1147,6 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
       }
    }
 
-   chunk = 1;
    do
    {
       unsigned int frames = handle->buffer_frames;
@@ -1293,7 +1216,7 @@ _aaxWASAPIDriverGetName(const void *id, int playback)
    char *ret = NULL;
 
    if (handle && handle->pDevice) {
-      ret = _aaxWASAPIciceNameToName(detect_devname(handle->pDevice));
+      ret = _aaxMMDeviceNameToName(detect_devname(handle->pDevice));
    }
 
    return ret;
@@ -1602,7 +1525,7 @@ aaxNametoMMDevciceName(const char *devname)
 }
 
 static char*
-_aaxWASAPIciceNameToName(char *devname)
+_aaxMMDeviceNameToName(char *devname)
 {
    char *rv = devname;
 
@@ -1859,12 +1782,11 @@ _aaxWASAPIDriverThread(void* config)
                                NULL, NULL, FALSE);
       }
    }
-   if (!be_handle->Event || FAILED(hr))
-   {
-      _aaxMutexUnLock(handle->thread.mutex);
+   if (!be_handle->Event || FAILED(hr)) {
       _AAX_SYSLOG("wasapi; unable to set up the event handler");
    }
 
+#if USE_TIMING
    if (!QueryPerformanceFrequency(&timerFreq)) {
       _AAX_SYSLOG("wasapi; highres timer not available");
    }
@@ -1875,23 +1797,26 @@ _aaxWASAPIDriverThread(void* config)
 
    timerOverhead.QuadPart -= timerCount.QuadPart;
    tfreq = (float)timerFreq.QuadPart;
+#endif
 
    /* playback loop */
-   hr = S_OK;
    while ((hr == S_OK) && TEST_FOR_TRUE(handle->thread.started))
    {
+#if USE_TIMING
       LARGE_INTEGER timerPrevCount;
       float elapsed_sec;
+#endif
 
       _aaxMutexUnLock(handle->thread.mutex);
 
+#if USE_TIMING
       threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
       timerPrevCount.QuadPart = timerCount.QuadPart - timerOverhead.QuadPart;
       QueryPerformanceCounter(&timerCount);
       SetThreadAffinityMask(GetCurrentThread(), threadMask);
 
       elapsed_sec = (timerCount.QuadPart-timerPrevCount.QuadPart)/tfreq;
-printf("elapsed: %f ms\n", elapsed_sec*1000.0f);
+#endif
 
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
