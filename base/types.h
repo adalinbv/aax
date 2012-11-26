@@ -142,6 +142,9 @@ uint64_t _bswap64(uint64_t x);
 
 int _aax_snprintf(char *str,size_t size,const char *fmt,...);
 
+#define CLOCK_REALTIME                  0
+#define CLOCK_MONOTONIC                 1
+
 struct timespec
 {
   time_t tv_sec; /* seconds */
@@ -156,6 +159,7 @@ struct timezone
 };
 #endif
 int gettimeofday(struct timeval*, void*);
+int clock_gettime(int, struct timespec*); 
 
 typedef long	off_t;
 # if SIZEOF_SIZE_T == 4

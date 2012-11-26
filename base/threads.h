@@ -47,7 +47,12 @@ extern "C" {
 
  typedef struct _aaxMutex
  {
+#ifndef NDEBUG
    HANDLE mutex;
+#else
+   CRITICAL_SECTION mutex;
+   char ready;
+#endif
  } _aaxMutex;
 
 #endif

@@ -18,6 +18,7 @@
 
 #include "threads.h"
 #include "logging.h"
+#include "types.h"
 
 #define USE_REALTIME		1
 #define DEBUG_TIMEOUT		3
@@ -494,34 +495,41 @@ _aaxThreadJoin(void *t)
    return ret;
 }
 
+/*
+ * In debugging mode we use real mutexes with a timeout value.
+ * In release mode use critical sections which could be way faster
+ *    for single process applications.
+ */
 #ifndef NDEBUG
 void *
 _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
-   if (!m)
-   {
+   if (!m) {
       m = calloc(1, sizeof(_aaxMutex));
-      if (m) {
-         m->mutex = CreateMutex(NULL, FALSE, NULL);
-      }
+   }
+
+   if (m && !m->mutex) {
+      m->mutex = CreateMutex(NULL, FALSE, NULL);
    }
 
    return m;
 }
-#else
+#else /* !NDEBUG */
 void *
 _aaxMutexCreate(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
-   if (!m)
-   {
+   if (!m) {
       m = calloc(1, sizeof(_aaxMutex));
-      if (m) {
-         m->mutex = CreateMutex(NULL, FALSE, NULL);
-      }
+   }
+
+   if (m && !m->ready)
+   {
+      InitializeCriticalSection(&m->mutex);
+      m->ready = 1;
    }
 
    return m;
@@ -535,7 +543,12 @@ _aaxMutexDestroy(void *mutex)
 
    if (m)
    {
+#ifndef NDEBUG
       CloseHandle(m->mutex);
+#else
+      DeleteCriticalSection(&m->mutex);
+      m->ready = 0;
+#endif
       free(m);
    }
 
@@ -552,7 +565,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    if (__threads_enabled && m)
    {
       if (!m->mutex) {
-         m->mutex = CreateMutex(NULL, FALSE, NULL);
+         m = _aaxMutexCreate(m);
       }
 
       if (m->mutex) {
@@ -590,7 +603,7 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
    }
    return r;
 }
-#else
+#else	/* !NDEBUG */
 int
 _aaxMutexLock(void *mutex)
 {
@@ -599,25 +612,12 @@ _aaxMutexLock(void *mutex)
 
    if (__threads_enabled && m)
    {
-      if (!m->mutex) {
-         m->mutex = CreateMutex(NULL, FALSE, NULL);
+      if (!m->ready) {
+         m = _aaxMutexCreate(m);
       }
 
-      if (m->mutex) {
-         r = WaitForSingleObject(m->mutex, INFINITE);
-         switch (r)
-         {
-         case WAIT_OBJECT_0:
-            break;
-         case WAIT_TIMEOUT:
-            _TH_SYSLOG("mutex timed out");
-            r = ETIMEDOUT;
-            break;
-         case WAIT_ABANDONED:
-         case WAIT_FAILED:
-         default:
-            _TH_SYSLOG("mutex lock error");
-         }
+      if (m->ready) {
+         EnterCriticalSection(&m->mutex);
       }
    }
    return r;
@@ -629,10 +629,8 @@ _aaxMutexUnLock(void *mutex)
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m)
-   {
-      r = ReleaseMutex(m->mutex);
-      r = ~r;
+   if (__threads_enabled && m) {
+      LeaveCriticalSection(&m->mutex);
    }
    return r;
 }
@@ -654,22 +652,26 @@ _aaxConditionDestroy(void *c)
    c = 0;
 }
 
+
+/*
+ * See:
+ * http://www.codeproject.com/Articles/18371/Fast-critical-sections-with-timeout
+ */
 int
 _aaxConditionWait(void *c, void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-// _aaxCondition *condition = c;
-   DWORD rcode;
+   DWORD hr;
    int r = 0;
 
    assert(condition);
    assert(mutex);
    
    _aaxMutexUnLock(m);
-   rcode = WaitForSingleObject(m->mutex, INFINITE);
+   hr = WaitForSingleObject(c, INFINITE);
    _aaxMutexLock(m);
 
-   switch (rcode)
+   switch (hr)
    {
    case WAIT_OBJECT_0:	/* condiiton is signalled */
       r = 0;
@@ -689,27 +691,28 @@ int
 _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-// _aaxCondition *condition = c;
-   DWORD rcode, tnow_ms, treq_ms;
-   struct timeval now;
-   int r = 0;
+   struct timeval now_tv;
+   DWORD hr;
+   double dt;
+   int r=0;
 
    assert(condition);
    assert(mutex);
    assert(ts);
 
-   treq_ms = 1000*(DWORD)ts->tv_sec + ts->tv_nsec/1000000;
+   /* some time in the future (hopefuly) */
+   dt = (1000.0*ts->tv_sec + ts->tv_nsec/1000000.0);
 
-   gettimeofday(&now, 0);
-   tnow_ms = 1000*now.tv_sec + now.tv_usec/1000;
+   gettimeofday(&now_tv, 0);
+   dt -= (1000.0*now_tv.tv_sec + now_tv.tv_usec/1000.0);
 
-   if (treq_ms > tnow_ms)
+   if (dt > 0.0)
    {
       _aaxMutexUnLock(m);
-      rcode = WaitForSingleObject(c, treq_ms - tnow_ms);
+      hr = WaitForSingleObject(c, (DWORD)rint(dt));
       _aaxMutexLock(m);
 
-      switch (rcode)
+      switch (hr)
       {
       case WAIT_OBJECT_0:	/* condiiton is signalled */
          r = 0;
