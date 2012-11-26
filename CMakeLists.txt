@@ -9,12 +9,12 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckIncludeFiles)
+INCLUDE(CheckLibraryExists)
 INCLUDE(CheckFunctionExists)
 
-PROJECT(aax C)
+PROJECT(AeonWave C)
 SET(PACKAGE_NAME "AeonWave")
 SET(PACKAGE "libaax2")
 
@@ -106,6 +106,12 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src"
     ${CMAKE_BINARY_DIR}/include
 )
 
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
 ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
 IF(WERROR)
   ADD_DEFINITIONS(-Werror)
@@ -164,6 +170,16 @@ ELSE(MSVC)
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${PROJECT_SOURCE_DIR}/src/windows/mingw")
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
+       SET(C_FLAGS "${C_FLAGS} -static-libgcc")
+       FOREACH(flag_var
+                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+            IF(${flag_var} MATCHES "-mthreads")
+                STRING(REGEX REPLACE "-mthreads" "" ${flag_var} "${${flag_var}}")
+            ENDIF()
+        ENDFOREACH(flag_var)
     ENDIF(NOT MINGW)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)

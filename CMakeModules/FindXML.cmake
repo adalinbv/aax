@@ -25,7 +25,7 @@ FIND_PATH(XML_INCLUDE_DIR xml.h
 
 IF(RMALLOC)
   FIND_LIBRARY(XML_LIBRARY 
-    NAMES XML-rmalloc zeroxml-rmalloc ZeroXML32-rmalloc
+    NAMES XML-rmalloc zeroxml-rmalloc ZeroXML32-rmalloc libZeroXML32-rmalloc
     HINTS
     $ENV{XMLDIR}
     $ENV{ProgramFiles}/zeroxml
@@ -39,7 +39,7 @@ IF(RMALLOC)
   )
 ELSE(RMALLOC)
   FIND_LIBRARY(XML_LIBRARY 
-    NAMES XML zeroxml ZeroXML32
+    NAMES XML zeroxml ZeroXML32 libZeroXML32
     HINTS
     $ENV{XMLDIR}
     $ENV{ProgramFiles}/zeroxml

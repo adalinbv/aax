@@ -1,8 +1,4 @@
 
-# Default to release build type
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE "Release" CACHE INTERNAL "Release type")
-ENDIF(NOT CMAKE_BUILD_TYPE)
 
 # Set default libdir
 IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
