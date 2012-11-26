@@ -40,9 +40,8 @@ _aaxAudioFrameThread(void* config)
    _handle_t* handle;
    unsigned int pos;
    struct timespec ts;
-   float delay_sec;
+   float dt, delay_sec;
    float elapsed;
-   float dt = 0.0f;
    int res = 0;
 
    if (!frame || !frame->submix->info->no_tracks) {
@@ -117,10 +116,12 @@ _aaxAudioFrameThread(void* config)
    dest_rb = frame->ringbuffer;
    delay_sec = _oalRingBufferGetDuration(dest_rb);
 
+   dt = 0.0f;
    elapsed = 0.0f;
    _aaxMutexLock(frame->thread.mutex);
    do
    {
+#if 1
       float delay = delay_sec;                  /* twice as slow when standby */
 
 //    if (_IS_STANDBY(frame)) delay *= 2;
@@ -138,13 +139,9 @@ _aaxAudioFrameThread(void* config)
          ts.tv_sec = now.tv_sec + (time_t)fdt;
 
          dt -= fdt;
-         dt += now.tv_usec*1e-6f;
-         ts.tv_nsec = (long)(dt*1e9f);
-         if (ts.tv_nsec >= 1000000000)
-         {
-            ts.tv_sec++;
-            ts.tv_nsec -= 1000000000;
-         }
+         dt *= 1000000.0f;	/* to usec */
+         dt += now.tv_usec;
+         ts.tv_nsec = (long)rintf(dt*1000.0f);
       }
       else
       {
@@ -155,8 +152,16 @@ _aaxAudioFrameThread(void* config)
             ts.tv_sec += (time_t)fdt;
             dt -= fdt;
          }
-         ts.tv_nsec = (long)(dt*1e9f);
+         ts.tv_nsec = (long)rintf(dt*1e9f);
       }
+      if (ts.tv_nsec >= 1000000000L)
+      {
+         ts.tv_sec++;
+         ts.tv_nsec -= 1000000000L;
+      }
+#else
+      clock_gettime(CLOCK_REALTIME, &ts);
+#endif
 
       if TEST_FOR_FALSE(frame->thread.started) {
          break;

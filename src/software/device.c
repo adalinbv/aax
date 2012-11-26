@@ -491,6 +491,7 @@ _aaxNoneDriverThread(void* config)
    _aaxMutexLock(handle->thread.mutex);
    do
    {
+#if 1
       float delay = delay_sec;
 
       elapsed -= delay;
@@ -527,6 +528,9 @@ _aaxNoneDriverThread(void* config)
          }
          ts.tv_nsec = (long)(dt*1e9f);
       }
+#else
+      clock_gettime(CLOCK_REALTIME, &ts);
+#endif
 
       if TEST_FOR_FALSE(handle->thread.started) {
          break;

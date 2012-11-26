@@ -275,6 +275,7 @@ _aaxSoftwareMixerThread(void* config)
    {
       static int res = 0;
       float time_fact = 1.0f -(float)res/(float)bufsz;
+#if 1
       float delay = delay_sec*time_fact;
 
       /* once per second when standby */
@@ -314,6 +315,9 @@ _aaxSoftwareMixerThread(void* config)
          }
          ts.tv_nsec = (long)(dt*1e9f);
       }
+#else
+      clock_gettime(CLOCK_REALTIME, &ts);
+#endif
 
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
@@ -371,7 +375,7 @@ _aaxSoftwareMixerSignalFrames(void *frames)
             {
                unsigned int nbuf;
                nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-               if (!nbuf) {
+               if (nbuf < 2) {
                   _aaxConditionSignal(frame->thread.condition);
                }
             }
