@@ -417,18 +417,16 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 //          else
             {
                float refrate = mixer->info->refresh_rate;
-               unsigned int sleep_ms;
                int p = 0;
 
                /*
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 */
-               sleep_ms = (unsigned int)_MAX(100.0f/refrate, 1.0f);
-               while ((mixer->capturing == 1) && (p++ < 500))
+               while ((mixer->capturing == 1) && (p++ < 5000))
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
-                  msecSleep(sleep_ms);
+                  msecSleep(0);	 /* special case, see Sleep(0) for windows */
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;

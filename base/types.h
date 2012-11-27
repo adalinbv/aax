@@ -174,6 +174,8 @@ typedef INT64	ssize_t;
 # endif
 #endif
 int msecSleep(unsigned int);
+int setTimerResolution(unsigned int);
+int resetTimerResolution(unsigned int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

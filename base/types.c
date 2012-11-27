@@ -28,6 +28,7 @@
 #if HAVE_SYS_TIME_H
 # include <sys/time.h>         /* for struct timeval */
 #endif
+#include <errno.h>
 
 #include "types.h"
 
@@ -86,13 +87,48 @@ int msecSleep(unsigned int dt_ms)
    return (res != 0) ? -1 : 0;
 }
 
+int setTimerResolution(unsigned int dt_ms)
+{
+   return timeBeginPeriod(dt_ms);
+}
+
+int resetTimerResolution(unsigned int dt_ms)
+{
+   return timeEndPeriod(dt_ms);
+}
+
 #else
+
+/*
+ * dt_ms == 0 is a special case which make the time-slice available for other
+ * waiting processes
+ */
 int msecSleep(unsigned int dt_ms)
 {
    static struct timespec s;
-   s.tv_sec = (dt_ms/1000);
-   s.tv_nsec = (dt_ms-s.tv_sec*1000)*1000000;
-   return nanosleep(&s, 0);
+   if (dt_ms > 0)
+   {
+      s.tv_sec = (dt_ms/1000);
+      s.tv_nsec = (dt_ms % 1000)*1000000L;
+      while(nanosleep(&s,&s)==-1 && errno == EINTR)
+         continue;
+   }
+   else
+   {
+      s.tv_sec = 0;
+      s.tv_nsec = 500000L;
+      return nanosleep(&s, 0);
+   }
+   return 0;
+}
+
+int setTimerResolution(unsigned int dt_ms)
+{
+   return 0;
+}
+
+int resetTimerResolution(unsigned int dt_ms) {
+   return 0;
 }
 #endif
 

@@ -100,6 +100,7 @@ typedef struct
 
    /* destination ringbuffer */
    _oalRingBuffer *ringbuffer;
+   float dt_ms;
  
    /* parametric equalizer **/
    _oalRingBufferFilterInfo filter[EQUALIZER_MAX];

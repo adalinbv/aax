@@ -24,6 +24,7 @@ OPTION(WERROR "Treat compile warnings as errors"   OFF)
 OPTION(RMALLOC "Enable memory debugging functions" OFF)
 
 IF(WIN32)
+  SET(EXTRA_LIBS Winmm ${EXTRA_LIBS})
   ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
   ADD_DEFINITIONS(-D_WIN32)
   SET(LIBAEONWAVE AAX32)

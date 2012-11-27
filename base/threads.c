@@ -460,6 +460,13 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    }
 
 #if USE_REALTIME
+   // REALTIME_PRIORITY_CLASS or HIGH_PRIORITY_CLASS
+   // Process that has the highest possible priority. The threads of the
+   // process preempt the threads of all other processes, including operating
+   // system processes performing important tasks. For example, a real-time
+   // process that executes for more than a very brief interval can cause disk
+   // caches not to flush or cause the mouse to be unresponsive.
+   SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
    SetThreadPriority(thread->handle, THREAD_PRIORITY_TIME_CRITICAL);
 #endif
 
