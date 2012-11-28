@@ -900,6 +900,15 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          free(path);
       }
 
+      /*
+       * must be after reading aax's own configuration file to be abke to
+       * invalidate the key for other products
+       */
+      name = getenv("XAA23YEKVBNILADA");
+      if (name) {
+         key = _aaxCheckKeyValidityStr(name);
+      }
+
       if (key)
       {
          char *ptr;
@@ -1195,6 +1204,9 @@ _aaxCheckKeyValidityStr(char *keystr)
       if (((key^HANDLE_ID) % 29723) == (7*strlen(keystr)-5)) {	/* 177 */
          rv = tmp.ll & 0xFFFFFFFF;
       }
+   }
+   else {
+      rv = 0xdeadbeef;
    }
    return rv;
 }
