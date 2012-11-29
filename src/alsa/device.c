@@ -815,7 +815,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          no_frames = rate/25;
       }
 
-      bytes = (unsigned int)ceilf(no_frames*channels*bps*handle->pitch);
+      bytes = (unsigned int)ceilf(no_frames*channels*bps*handle->pitch/periods);
       if (bytes & 0xF)
       {
          bytes |= 0xF;
@@ -829,8 +829,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       no_frames *= periods;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
             "unvalid buffer size" );
-      no_frames /= periods;
       *frames = no_frames;
+      no_frames /= periods;
 
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
