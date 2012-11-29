@@ -741,7 +741,6 @@ int
 _aaxConditionSignal(void *c)
 {
    assert(c);
-// TODO: mutex mangling ?
    return SetEvent(c);
 }
 
