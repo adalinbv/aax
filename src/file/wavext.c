@@ -17,6 +17,7 @@
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
 #include <errno.h>
+#include <string.h>		/* memcpy */
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif

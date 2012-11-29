@@ -424,9 +424,9 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 //          else
             {
 #if USE_CONDITION
-               if (mixer->frame_ready)
-               {				// REGISTERED_FRAME;
-                  float dt = 200000000.0f/mixer->info->refresh_rate;
+               if (mixer->frame_ready)		// REGISTERED_FRAME;
+               {  // wait max. for half a refresh time
+                  float dt = 500000000.0f/mixer->info->refresh_rate;
                   struct timeval tv;
                   struct timespec ts;
                   int rv;
