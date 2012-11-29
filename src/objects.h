@@ -125,12 +125,13 @@ typedef struct
    _intBuffers *ringbuffers;		/* for loopback capture */
 
    float curr_pos_sec;
+   unsigned char dist_delaying;
    unsigned int no_registered;
    unsigned char refcount;
-   unsigned char capturing;
-   unsigned char dist_delaying;
 
+   unsigned char capturing;
    signed char thread;
+   void *frame_ready;		/* condition for when te frame is reeady */
  
 } _aaxAudioFrame;
 

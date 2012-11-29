@@ -383,6 +383,9 @@ _aaxSoftwareMixerSignalFrames(void *frames)
          }
       }
       _intBufReleaseNum(hf, _AAX_FRAME);
+
+      /* give the remainder of the threads time slice to other threads */
+      msecSleep(0);
    }
    return num;
 }
@@ -396,6 +399,10 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
    unsigned int i, num = 0;
    if (hf)
    {
+#if USE_CONDITION
+      void *mutex = _aaxMutexCreate(NULL);
+#endif
+
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
       {
@@ -416,6 +423,30 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 //          }
 //          else
             {
+#if USE_CONDITION
+               if (mixer->frame_ready)
+               {				// REGISTERED_FRAME;
+                  float dt = 200000000.0f/mixer->info->refresh_rate;
+                  struct timeval tv;
+                  struct timespec ts;
+                  int rv;
+
+                  gettimeofday(&tv, NULL);
+                  ts.tv_sec = tv.tv_sec + 0;
+                  ts.tv_nsec = tv.tv_usec*1000 + (long)dt;
+                  if (ts.tv_nsec > 1000000000LL)
+                  {
+                     ts.tv_sec++;
+                     ts.tv_nsec -= 1000000000LL;
+                  }
+                  rv = _aaxConditionWaitTimed(mixer->frame_ready, mutex, &ts);
+                  mixer->capturing++;
+#ifndef NDEBUG
+if (rv != 0)
+printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid");
+#endif
+               }
+#else
                float refrate = mixer->info->refresh_rate;
                int p = 0;
 
@@ -433,6 +464,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 
                   frame = _intBufGetDataPtr(dptr);
                }
+#endif
             } /* mixer->thread */
 
             if (dptr && mixer->capturing > 1)
@@ -454,6 +486,10 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
          }
       }
       _intBufReleaseNum(hf, _AAX_FRAME);
+
+#if USE_CONDITION
+      _aaxMutexDestroy(mutex);
+#endif
    }
    return num;
 }

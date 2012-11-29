@@ -23,6 +23,8 @@ extern "C" {
 #include <ringbuffer.h>
 
 
+#define USE_CONDITION		AAX_TRUE
+
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
 #define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
 

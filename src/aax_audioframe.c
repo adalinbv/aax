@@ -1141,11 +1141,10 @@ _aaxAudioFrameStart(_frame_t *frame)
 
    assert(frame);
 
-// if (frame->handle && TEST_FOR_FALSEframe->thread.started))
    if (_IS_INITIAL(frame) || _IS_PROCESSED(frame))
    {
       if  (frame->submix->thread)
-      {
+      {							// REGISTERED_FRAME;
          int r;
 
          frame->thread.ptr = _aaxThreadCreate();
@@ -1177,8 +1176,16 @@ _aaxAudioFrameStart(_frame_t *frame)
             }
             else
             {
-               frame->submix->capturing = AAX_TRUE; // REGISTERED_FRAME;
-               rv = AAX_TRUE;
+               _aaxAudioFrame* mixer = frame->submix;
+               mixer->frame_ready = _aaxConditionCreate();
+               if (mixer->frame_ready)
+               {
+                  mixer->capturing = AAX_TRUE;
+                  rv = AAX_TRUE;
+               }
+               else {
+                  _aaxAudioFrameStop(frame);
+               }
             }
          }   
          else {
@@ -1201,6 +1208,8 @@ _aaxAudioFrameStop(_frame_t *frame)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(frame->thread.started)
    {
+      _aaxAudioFrame* mixer = frame->submix;
+
       frame->thread.started = AAX_FALSE;
       _aaxConditionSignal(frame->thread.condition);
       _aaxThreadJoin(frame->thread.ptr);
@@ -1208,8 +1217,11 @@ _aaxAudioFrameStop(_frame_t *frame)
       _aaxConditionDestroy(frame->thread.condition);
       _aaxMutexDestroy(frame->thread.mutex);
       _aaxThreadDestroy(frame->thread.ptr);
+
+      _aaxConditionDestroy(mixer->frame_ready);
       rv = AAX_TRUE;
-   } else if (!frame->submix->thread) {
+   }
+   else if (!frame->submix->thread) {
       rv = AAX_TRUE;
    }
    return rv;

@@ -268,45 +268,49 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
 /* -------------------------------------------------------------------------- */
 
 static void *
-_aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, unsigned char *capturing, char dde)
+_aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, unsigned char *signal, char dde)
 {
-   if (capturing && TEST_FOR_TRUE(*capturing))
-   {
-      _oalRingBuffer *nrb;
-      unsigned int nbuf;
+   _oalRingBuffer *nrb;
+   unsigned int nbuf;
 
-      nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-      if (nbuf == 0)
+   nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+   if (nbuf == 0)
+   {
+      nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
+      _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
+   }
+   else
+   {	 /* switch ringbuffers */
+      _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+
+      if (buf)
+      {
+         nrb = _intBufSetDataPtr(buf, rb);
+         _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
+
+         if (dde) {
+            _oalRingBufferCopyDelyEffectsData(nrb, rb);
+         }
+      }
+      else
       {
          nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
          _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
       }
-      else
-      {	 /* switch ringbuffers */
-         _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-
-         if (buf)
-         {
-            nrb = _intBufSetDataPtr(buf, rb);
-            _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-
-            if (dde) {
-               _oalRingBufferCopyDelyEffectsData(nrb, rb);
-            }
-         }
-         else
-         {
-            nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-            _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
-         }
-      }
-
-      rb = nrb;
-      assert(rb != NULL);
-      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-      *capturing = *capturing + 1;
    }
+
+   rb = nrb;
+   assert(rb != NULL);
+   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+
+#if USE_CONDITION
+   if (signal) {
+      _aaxConditionSignal(signal);
+   }
+#else
+   *signal = *signal + 1;
+#endif
+
    return rb;
 }
 
@@ -401,7 +405,12 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                char dde = (_EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) != NULL);
                frame_rb = _aaxAudioFrameSwapBuffers(frame_rb,
                                                     sfmixer->frame_ringbuffers,
-                                                    &sfmixer->capturing, dde);
+#if USE_CONDITION
+                                                    NULL,
+#else
+                                                    &sfmixer->capturing,
+#endif
+                                                    dde);
                fmixer->ringbuffer = frame_rb;
 
                /* finally mix the data with dest_rb */
@@ -470,6 +479,11 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
    return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->ringbuffers,
-                                              &fmixer->capturing, dde);
+#if USE_CONDITION
+                                              fmixer->frame_ready,
+#else
+                                              &fmixer->capturing,
+#endif
+                                              dde);
 }
 
