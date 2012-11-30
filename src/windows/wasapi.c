@@ -35,11 +35,13 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define USE_TIMING		0
-#define USE_EVENT_THREAD	1
-#define EXCLUSIVE_MODE		1
-#define NO_PERIODS		4
+#define ENABLE_TIMING		AAX_FALSE
+#define USE_EVENT_THREAD	AAX_TRUE
+#define EXCLUSIVE_MODE		AAX_TRUE
 #define USE_GETID		AAX_FALSE
+
+#define PLAYBACK_PERIODS	2
+#define CAPTURE_PERIODS		4
 #define MAX_ID_STRLEN		32
 #define DEFAULT_RENDERER	"WASAPI"
 #define DEFAULT_DEVNAME		NULL
@@ -738,7 +740,11 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
       stream = 0;
       freq = (float)handle->Fmt.Format.nSamplesPerSec;
+
       hnsBufferDuration = (REFERENCE_TIME)(0.5f+10000000.0f*samples/freq);
+      if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
+         hnsBufferDuration = (hnsBufferDuration*3)/2;
+      }
       hnsPeriodicity = hnsBufferDuration;
 
       if (handle->event_driven)
@@ -750,25 +756,24 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             hnsPeriodicity = 0;
          }
       }
-      else /* timer driver */
+      else /* timer driver, w. 1ms accuracy */
       {
          if (handle->Mode == eRender) {
-            hnsPeriodicity = (hnsBufferDuration/10000)*10000;
+            hnsBufferDuration *= PLAYBACK_PERIODS;
          }
-         hnsBufferDuration = hnsPeriodicity*NO_PERIODS;
+         else {
+            hnsBufferDuration *= CAPTURE_PERIODS;
+         }
+
          if (!handle->exclusive) /* shared mode */
          {
             hnsPeriodicity = 0;
          }
       }
  
-      if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
-         hnsBufferDuration = (hnsBufferDuration*3)/2;
-      }
       hr = pIAudioClient_Initialize(handle->pAudioClient, mode, stream,
                                     hnsBufferDuration, hnsPeriodicity,
                                     &handle->Fmt.Format, NULL);
-
       /*
        * Some drivers don't support the event callback method and return
        * E_INVALIDARG for pIAudioClient_Initialize.
@@ -797,6 +802,9 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             }
          }
          else break;
+      }
+      else {
+         break;
       }
    }
    while ((hr != S_OK) && handle->event_driven);
@@ -866,7 +874,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       if (hr == S_OK) {
          handle->hnsLatency = latency;
       }
-#if 0
+#if 1
  printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
  printf("- event driven: %i, exclusive: %i\n", handle->event_driven, handle->exclusive);
  printf("- frequency: %i\n", (int)handle->Fmt.Format.nSamplesPerSec);
@@ -986,7 +994,7 @@ static int
 _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
-   UINT32 no_frames, packet_sz;
+   UINT32 no_frames, padding;
    int rv = AAX_FALSE;
 
    if ((req_frames == 0) || (data == 0)) {
@@ -1010,6 +1018,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
          hr = pIAudioClient_Start(handle->pAudioClient);
          if (hr == S_OK) {
             handle->initializing = AAX_FALSE;
+            return AAX_TRUE;
          }
          else
          {
@@ -1021,21 +1030,24 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       assert(handle->initializing == 0);
 
       /*
-       * Use this method only with shared-mode streams. It does not work
-       * with exclusive-mode streams.
+       * For an exclusive-mode rendering or capture stream that was initialized
+       * with the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag, the client typically
+       * has no use for the padding value reported by GetCurrentPadding. 
+       * Instead, the client accesses an entire buffer during each processing
+       * pass. 
        */
-      packet_sz = no_frames;
-      if (!handle->exclusive)
+      padding = no_frames;
+      if (1) // (handle->exclusive && handle->event_driven) == AAX_FALSE)
       {
-         hr = pIAudioCaptureClient_GetNextPacketSize(handle->uType.pCapture,
-                                                     &packet_sz);
+         hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
          if (hr != S_OK) {
-             packet_sz = 0;
+            padding = 0;
          }
       }
  
       *req_frames = 0;
-      if (packet_sz) //  >= no_frames)
+printf("padding: %i, no_frames: %i\n", padding, no_frames);
+      if (padding >= no_frames)
       {
          /*
           * During each GetBuffer call, the caller must either obtain the
@@ -1049,45 +1061,51 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
           *   The call succeeded and *pNumFramesToRead is 0, indicating
           *   that no capture data is available to be read.
           */
-         hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
-                                          &frames_avail, &flags, NULL, NULL);
-         if (SUCCEEDED(hr))
+         do
          {
-            if (hr == S_OK)			/* there is data available */
-            {
-               unsigned int avail = frames_avail;
+            hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
+                                             &frames_avail, &flags, NULL, NULL);
+            msecSleep(0);
+         }
+         while (hr == AUDCLNT_S_BUFFER_EMPTY);
 
-               assert(avail > 0);
-               assert(avail <= handle->buffer_frames);
+         if (frames_avail > no_frames) {
+            frames_avail = no_frames;
+         }
+          
+printf("frames_avail: %i\n", frames_avail);
+         if (SUCCEEDED(hr))
+         {				/* there is data available */
+            if ((hr == S_OK) && frames_avail)
+            {
+               assert(frames_avail > 0);
+               assert(frames_avail <= handle->buffer_frames);
 
                if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
                {
-                  assert(handle->buffer_frames >= avail);
-
-                  if (avail > no_frames) {
-                     avail = no_frames;
-                  }
-                  handle->cvt_from_intl((int32_t**)data, buf, offs, 2, avail);
+                  assert(handle->buffer_frames >= frames_avail);
+                  handle->cvt_from_intl((int32_t**)data, buf, offs, 2, frames_avail);
                }
-               no_frames -= avail;
-               offs += avail;
-               *req_frames += avail;
+               no_frames -= frames_avail;
+               offs += frames_avail;
+               *req_frames += frames_avail;
             }
             else
             {
                *req_frames = 0;
+               no_frames = 0;
                _AAX_SYSLOG("wasapi; no data available");
             }
 
             hr = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
                                                     frames_avail);
-
             if (FAILED(hr)) {
                _AAX_SYSLOG("wasapi; error releasing the buffer");
             }
          }
          else if (!SUCCEEDED(hr))
          {
+// TODO: test for AUDCLNT_E_DEVICE_INVALIDATED
             *req_frames = 0;
             _AAX_SYSLOG("wasapi; failed to get buffer data");
          }
@@ -1702,15 +1720,18 @@ void *
 _aaxWASAPIDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
+#if ENABLE_TIMING
    LARGE_INTEGER timerFreq, timerCount, timerOverhead;
+   DWORD_PTR threadMask;
+   float tfreq;
+#endif
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
-   float delay_sec, tfreq;
    int stdby_time, state;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
-   DWORD_PTR threadMask;
+   float delay_sec;
    DWORD hr;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
@@ -1767,6 +1788,9 @@ _aaxWASAPIDriverThread(void* config)
          hr = IAudioClient_SetEventHandle(be_handle->pAudioClient,
                                           be_handle->Event);
       }
+      else {
+         _AAX_SYSLOG("wasapi; unable to create audio event");
+      }
    }
    else				/* timer driven, creat a periodic timer */
    {
@@ -1781,12 +1805,15 @@ _aaxWASAPIDriverThread(void* config)
          hr = SetWaitableTimer(be_handle->Event, &liDueTime, lPeriod,
                                NULL, NULL, FALSE);
       }
+      else {
+         _AAX_SYSLOG("wasapi; unable to create event timer");
+      }
    }
    if (!be_handle->Event || FAILED(hr)) {
       _AAX_SYSLOG("wasapi; unable to set up the event handler");
    }
 
-#if USE_TIMING
+#if ENABLE_TIMING
    if (!QueryPerformanceFrequency(&timerFreq)) {
       _AAX_SYSLOG("wasapi; highres timer not available");
    }
@@ -1802,20 +1829,21 @@ _aaxWASAPIDriverThread(void* config)
    /* playback loop */
    while ((hr == S_OK) && TEST_FOR_TRUE(handle->thread.started))
    {
-#if USE_TIMING
+#if ENABLE_TIMING
       LARGE_INTEGER timerPrevCount;
       float elapsed_sec;
 #endif
 
       _aaxMutexUnLock(handle->thread.mutex);
 
-#if USE_TIMING
+#if ENABLE_TIMING
       threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
       timerPrevCount.QuadPart = timerCount.QuadPart - timerOverhead.QuadPart;
       QueryPerformanceCounter(&timerCount);
       SetThreadAffinityMask(GetCurrentThread(), threadMask);
 
       elapsed_sec = (timerCount.QuadPart-timerPrevCount.QuadPart)/tfreq;
+printf("elapsed: %f\n", elapsed_sec*1000.0f);
 #endif
 
       if (_IS_PLAYING(handle) && be->is_available(be_handle))

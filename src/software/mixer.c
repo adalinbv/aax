@@ -401,6 +401,18 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
    {
 #if USE_CONDITION
       void *mutex = _aaxMutexCreate(NULL);
+      double dt_ns = 0.8 * _oalRingBufferGetDuration(dest_rb)*1000000000;
+      struct timeval tv;
+      struct timespec ts;
+
+      gettimeofday(&tv, NULL);
+      ts.tv_sec = tv.tv_sec + 0;
+      ts.tv_nsec = tv.tv_usec*1000 + (long)dt_ns;
+      if (ts.tv_nsec > 1000000000LL)
+      {
+         ts.tv_sec++;
+         ts.tv_nsec -= 1000000000LL;
+      }
 #endif
 
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
@@ -425,20 +437,8 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
             {
 #if USE_CONDITION
                if (mixer->frame_ready)		// REGISTERED_FRAME;
-               {  // wait max. for half a refresh time
-                  float dt = 500000000.0f/mixer->info->refresh_rate;
-                  struct timeval tv;
-                  struct timespec ts;
+               {
                   int rv;
-
-                  gettimeofday(&tv, NULL);
-                  ts.tv_sec = tv.tv_sec + 0;
-                  ts.tv_nsec = tv.tv_usec*1000 + (long)dt;
-                  if (ts.tv_nsec > 1000000000LL)
-                  {
-                     ts.tv_sec++;
-                     ts.tv_nsec -= 1000000000LL;
-                  }
                   rv = _aaxConditionWaitTimed(mixer->frame_ready, mutex, &ts);
                   mixer->capturing++;
 #ifndef NDEBUG
