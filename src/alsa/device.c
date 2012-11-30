@@ -192,6 +192,7 @@ DECL_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_buffer_time_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_period_time_near);
+DECL_FUNCTION(snd_pcm_hw_params_set_period_size_near);
 DECL_FUNCTION(snd_pcm_hw_params_get_channels);
 DECL_FUNCTION(snd_pcm_sw_params_sizeof);
 DECL_FUNCTION(snd_pcm_sw_params_current);
@@ -323,6 +324,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_hw_params_set_channels);
          TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);
          TIE_FUNCTION(snd_pcm_hw_params_set_period_time_near);
+         TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);
          TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
          TIE_FUNCTION(snd_pcm_hw_params_set_buffer_time_near);
          TIE_FUNCTION(snd_pcm_hw_params_get_channels);
@@ -815,7 +817,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          no_frames = rate/25;
       }
 
-      bytes = (unsigned int)ceilf(no_frames*channels*bps*handle->pitch/periods);
+      bytes = (unsigned int)ceilf(no_frames*channels*bps*handle->pitch);
       if (bytes & 0xF)
       {
          bytes |= 0xF;
@@ -828,12 +830,14 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
       no_frames *= periods;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
-            "unvalid buffer size" );
-      *frames = no_frames;
+            "invalid buffer size" );
+
       no_frames /= periods;
+      TRUN( psnd_pcm_hw_params_set_period_size_near(hid, hwparams, &no_frames, 0), "invalid period size" );
 
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
+      *frames = no_frames;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -843,7 +847,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          rate = (unsigned int)handle->frequency_hz;
       }
       *speed = handle->frequency_hz = (float)rate;
-      handle->latency = (float)no_frames*(float)periods/(float)rate;
+//    handle->latency = (float)no_frames*(float)periods/(float)rate;
+      handle->latency = (float)no_frames/(float)rate;
 
       do
       {
