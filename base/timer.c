@@ -190,7 +190,22 @@ int resetTimerResolution(unsigned int dt_ms) {
 
 /** highres timing code */
 static void
-__aaxTimerDiff(struct timespec *tso,
+__aaxTimerSub(struct timespec *tso,
+               struct timespec *ts1, struct timespec *ts2)
+{
+   double dt1, dt2;
+
+   dt2 = ts2->tv_sec + ts2->tv_nsec/1000000000.0;
+   dt1 = ts1->tv_sec + ts1->tv_nsec/1000000000.0;
+   dt1 -= dt2;
+
+   dt2 = floor(dt1);
+   tso->tv_sec = dt2;
+   tso->tv_nsec = rint((dt1-dt2)*1000000000.0);
+}
+
+static void
+__aaxTimerAdd(struct timespec *tso,
                struct timespec *ts1, struct timespec *ts2)
 {
    double dt1, dt2;
@@ -221,7 +236,7 @@ _aaxTimerCreate()
          res = clock_gettime(CLOCK_MONOTONIC, &rv->prevTimerCount);
          res |= clock_gettime(CLOCK_MONOTONIC, &rv->timerCount);
          if (!res) {
-            __aaxTimerDiff(&rv->timerOverhead,
+            __aaxTimerSub(&rv->timerOverhead,
                            &rv->timerCount, &rv->prevTimerCount);
          }
       }
@@ -258,7 +273,7 @@ _aaxTimerElapsed(_aaxTimer *tm)
    {
       int res;
 
-      __aaxTimerDiff(&tm->prevTimerCount, &tm->timerCount, &tm->timerOverhead);
+      __aaxTimerAdd(&tm->prevTimerCount, &tm->timerCount, &tm->timerOverhead);
 
       res = clock_gettime(CLOCK_MONOTONIC, &tm->timerCount);
       if (!res)
