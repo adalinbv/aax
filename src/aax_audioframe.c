@@ -23,7 +23,7 @@
 #include <aax/aax.h>
 
 #include <base/threads.h>
-#include <base/types.h>		/* for msecSleep */
+#include <base/timer.h>		/* for msecSleep */
 #include "api.h"
 #include "arch.h"
 #include "driver.h"

@@ -255,6 +255,11 @@ IF(HAVE_PTHREAD_H)
   ENDIF(HAVE_LIBPTHREAD)
 ENDIF(HAVE_PTHREAD_H)
 
+CHECK_LIBRARY_EXISTS(rt clock_getres "" HAVE_LIBRT)
+IF(HAVE_LIBRT)
+   SET(EXTRA_LIBS rt ${EXTRA_LIBS})
+ENDIF(HAVE_LIBRT)
+
 IF(HAVE_MATH_H)
   CHECK_LIBRARY_EXISTS(m floorf "" HAVE_LIBM)
   IF(HAVE_LIBM)
@@ -292,6 +297,7 @@ SET( AEONWAVE_OBJS
      base/logging.c
      base/memory.c
      base/threads.c
+     base/timer.c
      base/types.c
      src/api.c
      src/devices.c

@@ -22,7 +22,7 @@
 #include <arch.h>
 #include <ringbuffer.h>
 #include <base/dlsym.h>
-#include <base/types.h>
+#include <base/timer.h>
 #include <base/logging.h>
 #include <base/threads.h>
 
@@ -1721,9 +1721,7 @@ _aaxWASAPIDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
 #if ENABLE_TIMING
-   LARGE_INTEGER timerFreq, timerCount, timerOverhead;
-   DWORD_PTR threadMask;
-   float tfreq;
+   _aaxTimer *timer = _aaxTimerCreate();
 #endif
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
@@ -1814,36 +1812,16 @@ _aaxWASAPIDriverThread(void* config)
    }
 
 #if ENABLE_TIMING
-   if (!QueryPerformanceFrequency(&timerFreq)) {
-      _AAX_SYSLOG("wasapi; highres timer not available");
-   }
-   threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
-   QueryPerformanceCounter(&timerCount);
-   QueryPerformanceCounter(&timerOverhead);
-   SetThreadAffinityMask(GetCurrentThread(), threadMask);
-
-   timerOverhead.QuadPart -= timerCount.QuadPart;
-   tfreq = (float)timerFreq.QuadPart;
+   _aaxTimerStart(timer);
 #endif
 
    /* playback loop */
    while ((hr == S_OK) && TEST_FOR_TRUE(handle->thread.started))
    {
-#if ENABLE_TIMING
-      LARGE_INTEGER timerPrevCount;
-      float elapsed_sec;
-#endif
-
       _aaxMutexUnLock(handle->thread.mutex);
 
 #if ENABLE_TIMING
-      threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
-      timerPrevCount.QuadPart = timerCount.QuadPart - timerOverhead.QuadPart;
-      QueryPerformanceCounter(&timerCount);
-      SetThreadAffinityMask(GetCurrentThread(), threadMask);
-
-      elapsed_sec = (timerCount.QuadPart-timerPrevCount.QuadPart)/tfreq;
-printf("elapsed: %f\n", elapsed_sec*1000.0f);
+printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
 #endif
 
       if (_IS_PLAYING(handle) && be->is_available(be_handle))

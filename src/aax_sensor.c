@@ -19,7 +19,7 @@
 
 #include <base/threads.h>
 #include <base/gmath.h>
-#include <base/types.h>		/* for msecSleep */
+#include <base/timer.h>		/* for msecSleep */
 
 #include "api.h"
 

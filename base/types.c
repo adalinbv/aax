@@ -22,115 +22,9 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_TIME_H
-# include <time.h>             /* for nanosleep */
-#endif
-#if HAVE_SYS_TIME_H
-# include <sys/time.h>         /* for struct timeval */
-#endif
 #include <errno.h>
 
 #include "types.h"
-
-
-#ifdef WIN32
-
-int _aax_snprintf(char *str,size_t size,const char *fmt,...)
-{
-   int ret;
-   va_list ap;
-    
-   va_start(ap,fmt);
-   ret = vsnprintf(str,size,fmt,ap);
-   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
-   str[size-1] = '\0';      
-   va_end(ap);   
-   return ret;   
-}
-
-/*
-   Implementation as per:
-   The Open Group Base Specifications, Issue 6
-   IEEE Std 1003.1, 2004 Edition
-
-   The timezone pointer arg is ignored.  Errors are ignored.
-*/
-int gettimeofday(struct timeval* p, void* tz /* IGNORED */)
-{
-   union {
-      long long ns100; /*time since 1 Jan 1601 in 100ns units */
-      FILETIME ft;
-   } now;
-
-   GetSystemTimeAsFileTime( &(now.ft) );
-   p->tv_usec = (long)((now.ns100 / 10LL) % 1000000LL );
-   p->tv_sec = (long)((now.ns100-(116444736000000000LL))/10000000LL);
-   return 0;
-}
-
-int clock_gettime(int clk_id, struct timespec *p)
-{
-   union {
-      long long ns100; /*time since 1 Jan 1601 in 100ns units */
-      FILETIME ft;
-   } now;
-
-   GetSystemTimeAsFileTime( &(now.ft) );
-   p->tv_nsec = (long)((now.ns100 * 100LL) % 1000000000LL );
-   p->tv_sec = (long)((now.ns100-(116444736000000000LL))/10000000LL);
-   return 0;
-}
-
-int msecSleep(unsigned int dt_ms)
-{
-   DWORD res = SleepEx((DWORD)dt_ms, 0);
-   return (res != 0) ? -1 : 0;
-}
-
-int setTimerResolution(unsigned int dt_ms)
-{
-   return timeBeginPeriod(dt_ms);
-}
-
-int resetTimerResolution(unsigned int dt_ms)
-{
-   return timeEndPeriod(dt_ms);
-}
-
-#else
-
-/*
- * dt_ms == 0 is a special case which make the time-slice available for other
- * waiting processes
- */
-int msecSleep(unsigned int dt_ms)
-{
-   static struct timespec s;
-   if (dt_ms > 0)
-   {
-      s.tv_sec = (dt_ms/1000);
-      s.tv_nsec = (dt_ms % 1000)*1000000L;
-      while(nanosleep(&s,&s)==-1 && errno == EINTR)
-         continue;
-   }
-   else
-   {
-      s.tv_sec = 0;
-      s.tv_nsec = 500000L;
-      return nanosleep(&s, 0);
-   }
-   return 0;
-}
-
-int setTimerResolution(unsigned int dt_ms)
-{
-   return 0;
-}
-
-int resetTimerResolution(unsigned int dt_ms) {
-   return 0;
-}
-#endif
 
 #if 0
 uint32_t _mem_size(void *p)
@@ -177,4 +71,19 @@ uint64_t _bswap64(uint64_t x)
    x = (x >> 32) | (x << 32);
    return x;
 }
+
+#ifdef WIN32
+int _aax_snprintf(char *str,size_t size,const char *fmt,...)
+{
+   int ret;
+   va_list ap;
+
+   va_start(ap,fmt);
+   ret = vsnprintf(str,size,fmt,ap);
+   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   str[size-1] = '\0';
+   va_end(ap);
+   return ret;
+}
+#endif  /* if defined(WIN32) */
 

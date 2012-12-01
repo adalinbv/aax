@@ -121,17 +121,6 @@ uint64_t _bswap64(uint64_t x);
 # include <string.h>
 # include <errno.h>
 
-# ifdef HAVE_TIME_H
-#  include <time.h>             /* for nanosleep */
-# endif
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>         /* for struct timeval */
-# endif
-
-# ifndef ETIMEDOUT
-#  define ETIMEDOUT WSAETIMEDOUT
-# endif
-
 # define rintf(v) (int)(v+0.5f)
 # define snprintf _aax_snprintf
 # ifndef __GNUC__
@@ -142,40 +131,13 @@ uint64_t _bswap64(uint64_t x);
 
 int _aax_snprintf(char *str,size_t size,const char *fmt,...);
 
-#define CLOCK_REALTIME                  0
-#define CLOCK_MONOTONIC                 1
-
-struct timespec
-{
-  time_t tv_sec; /* seconds */
-  long tv_nsec;  /* nanoseconds */
-};
-
-#if 0
-struct timezone
-{
-  int tz_minuteswest; /* of Greenwich */
-  int tz_dsttime;     /* type of dst correction to apply */
-};
-#endif
-int gettimeofday(struct timeval*, void*);
-int clock_gettime(int, struct timespec*); 
-
 typedef long	off_t;
 # if SIZEOF_SIZE_T == 4
 typedef INT32	ssize_t;
 # else
 typedef INT64	ssize_t;
 # endif
-
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>		/* for gettimeofday */
-# endif
-#endif
-int msecSleep(unsigned int);
-int setTimerResolution(unsigned int);
-int resetTimerResolution(unsigned int);
+#endif		// WIN32
 
 #if defined(__cplusplus)
 }  /* extern "C" */

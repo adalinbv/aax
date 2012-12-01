@@ -31,7 +31,7 @@
 
 #include <base/gmath.h>
 #include <base/threads.h>
-#include <base/types.h>		/* for msecSleep */
+#include <base/timer.h>		/* for msecSleep, etc */
 
 #include "api.h"
 

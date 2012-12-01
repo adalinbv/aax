@@ -29,7 +29,7 @@
 #include <arch.h>
 #include <devices.h>
 #include <ringbuffer.h>
-#include <base/types.h>
+#include <base/timer.h>		/* for msecSleep */
 #include <base/dlsym.h>
 #include <base/logging.h>
 #include <base/threads.h>
@@ -37,6 +37,7 @@
 #include "alsa/audio.h"
 #include "device.h"
 
+#define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		32
 
 #define DEFAULT_DEVNUM		0
@@ -2179,6 +2180,9 @@ void *
 _aaxALSADriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
+#if ENABLE_TIMING
+   _aaxTimer *timer = _aaxTimerCreate();
+#endif
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
@@ -2230,14 +2234,22 @@ _aaxALSADriverThread(void* config)
    be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
-   _aaxMutexLock(handle->thread.mutex);
+#if ENABLE_TIMING
+   _aaxTimerStart(timer);
+#endif
+
    stdby_time = 2*(int)(delay_sec*1000);
+   _aaxMutexLock(handle->thread.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
    {
       _driver_t *be_handle = (_driver_t *)handle->backend.handle;
       int err;
 
       _aaxMutexUnLock(handle->thread.mutex);
+
+#if ENABLE_TIMING
+printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
+#endif
 
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {

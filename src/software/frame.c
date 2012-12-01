@@ -16,6 +16,7 @@
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 
+#include <base/timer.h>		/* for gettimeofday */
 #include <base/threads.h>
 #include <base/buffers.h>
 #include <ringbuffer.h>
