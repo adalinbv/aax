@@ -134,7 +134,7 @@ _aaxTimerElapsed(_aaxTimer* tm)
       DWORD_PTR threadMask;
 
       tm->timerPrevCount.QuadPart = tm->timerCount.QuadPart;
-      tm->timerPrevCount.QuadPart -= tm->timerOverhead.QuadPart;
+      tm->timerPrevCount.QuadPart += tm->timerOverhead.QuadPart;
    
       threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
       QueryPerformanceCounter(&timerCount);
