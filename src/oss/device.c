@@ -59,6 +59,8 @@
 #define DEFAULT_RENDERER	"OSS"
 #define OSS_VERSION_4		0x040002
 
+#define _AAX_DRVLOG(a)		_aaxOSSDriverLog(a)
+
 static _aaxDriverDetect _aaxOSSDriverDetect;
 static _aaxDriverNewHandle _aaxOSSDriverNewHandle;
 static _aaxDriverGetDevices _aaxOSSDriverGetDevices;
@@ -75,6 +77,7 @@ static _aaxDriverState _aaxOSSDriverIsReachable;
 static _aaxDriverState _aaxOSSDriverAvailable;
 static _aaxDriver3dMixerCB _aaxOSSDriver3dMixer;
 static _aaxDriverParam _aaxOSSDriverGetLatency;
+static _aaxDriverLog _aaxOSSDriverLog;
 
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
@@ -117,7 +120,8 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverState *)*_aaxOSSDriverAvailable,
    (_aaxDriverState *)*_aaxOSSDriverIsReachable,
 
-   (_aaxDriverParam *)&_aaxOSSDriverGetLatency
+   (_aaxDriverParam *)&_aaxOSSDriverGetLatency,
+   (_aaxDriverLog *)&_aaxOSSDriverLog
 };
 
 typedef struct
@@ -767,6 +771,19 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 }
 
+static char *
+_aaxOSSDriverLog(const char *str)
+{
+   static char _errstr[1024];
+   int len = _MIN(strlen(str), 1024);
+
+   memcpy(_errstr, str, len);
+   _errstr[1023] = '\0';		/* always null terminated */
+
+   _AAX_SYSLOG(_errstr);
+
+   return (char*)&_errstr;
+}
 
 /* -------------------------------------------------------------------------- */
 

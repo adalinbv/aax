@@ -59,6 +59,8 @@
 #define DEFAULT_DEVNAME		"Analog Out"
 #define DEFAULT_RENDERER	"DMedia"
 
+#define _AAX_DRVLOG(a)		_aaxDMediaDriverLog(a)
+
 static _aaxDriverDetect _aaxDMediaDriverDetect;
 static _aaxDriverNewHandle _aaxDMediaDriverNewHandle;
 static _aaxDriverGetDevices _aaxDMediaDriverGetDevices;
@@ -74,6 +76,7 @@ static _aaxDriverGetName _aaxDMediaGetName;
 static _aaxDriverState _aaxDMediaDriverAvailable;
 static _aaxDriver3dMixerCB _aaxDMediaDriver3dMixer;
 static _aaxDriverParam _aaxDMediaDriverGetLatency;
+static _aaxDriverLog _aaxDMediaDriverLog;
 
 char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
@@ -116,7 +119,8 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverState *)&_aaxDMediaDriverAvailable,
    (_aaxDriverState *)&_aaxDMediaDriverAvailable,
 
-   (_aaxDriverParam *)&_aaxDMediaDriverGetLatency
+   (_aaxDriverParam *)&_aaxDMediaDriverGetLatency,
+   (_aaxDriverLog *)&_aaxDMediaDriverLog
 };
 
 
@@ -342,12 +346,12 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("dmedia; frequency too small.");
+               _AAX_DRVLOG("dmedia; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("dmedia; frequency too large.");
+               _AAX_DRVLOG("dmedia; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->port[0].frequency_hz = f;
@@ -360,12 +364,12 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("dmedia; no. tracks too small.");
+                  _AAX_DRVLOG("dmedia; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("dmedia; no. tracks too great.");
+                  _AAX_DRVLOG("dmedia; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->port[0].no_channels = i;
@@ -377,7 +381,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          {
             if (i != 16)
             {
-               _AAX_SYSLOG("dmedia; unsopported bits-per-sample");
+               _AAX_DRVLOG("dmedia; unsopported bits-per-sample");
                i = 16;
             }
             handle->port[0].bytes_sample = i/8;
@@ -451,7 +455,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
       handle->port[0].config = palNewConfig();
       if (handle->port[0].config == NULL)
       {
-         _AAX_SYSLOG(palGetErrorString(oserror()));
+         _AAX_DRVLOG(palGetErrorString(oserror()));
          return NULL;
       }
 
@@ -560,7 +564,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       data_format = AL_SAMPLE_16;
       break;
    default:
-      _AAX_SYSLOG("dmedia: Unsopported playback format\n");
+      _AAX_DRVLOG("dmedia: Unsopported playback format\n");
       return AAX_FALSE;
    }
    handle->port[0].bytes_sample = aaxGetBytesPerSample(*fmt);
@@ -583,7 +587,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       handle->port[0].config = palNewConfig();
       if (handle->port[0].config == NULL)
       {
-         _AAX_SYSLOG(palGetErrorString(oserror()));
+         _AAX_DRVLOG(palGetErrorString(oserror()));
          return AAX_FALSE;
       }
    }
@@ -642,7 +646,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       result = palSetConfig(handle->port[i].port, handle->port[0].config);
       if (result == -1)
       {
-         _AAX_SYSLOG(palGetErrorString(oserror()));
+         _AAX_DRVLOG(palGetErrorString(oserror()));
          return AAX_FALSE;
       }
    }
@@ -895,6 +899,20 @@ _aaxDMediaDriverGetInterfaces(const void *id, const char*devname, int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
    return (char *)renderers[mode];
+}
+
+static char *
+_aaxDMediaDriverLog(const char *str)
+{
+   static char _errstr[1024];
+   int len = _MIN(strlen(str), 1024);
+
+   memcpy(_errstr, str, len);
+   _errstr[1023] = '\0';		/* always null terminated */
+
+   _AAX_SYSLOG(_errstr);
+
+   return (char*)&_errstr;
 }
 
 /*-------------------------------------------------------------------------- */

@@ -52,6 +52,7 @@ static _aaxDriverPrepare _aaxNoneDriverPrepare;
 static _aaxDriverPostProcess _aaxNoneDriverPostProcess;
 static _aaxDriverThread _aaxNoneDriverThread;
 static _aaxDriverParam _aaxNoneDriverGetLatency;
+static _aaxDriverLog _aaxNoneDriverLog;
 
 const _aaxDriverBackend _aaxNoneDriverBackend =
 {
@@ -92,7 +93,8 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverState *)_aaxNoneDriverNotAvailable, /* supports capture  */
    (_aaxDriverState *)_aaxNoneDriverAvailable,	/* is available      */
 
-   (_aaxDriverParam *)&_aaxNoneDriverGetLatency
+   (_aaxDriverParam *)&_aaxNoneDriverGetLatency,
+   (_aaxDriverLog *)&_aaxNoneDriverLog
 };
 
 
@@ -100,6 +102,7 @@ static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
 static _aaxDriverParam _aaxLoopbackDriverGetLatency;
+static _aaxDriverLog _aaxLoopbackDriverLog;
 
 typedef struct {
    float latency;
@@ -146,7 +149,8 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverState *)_aaxNoneDriverNotAvailable,
    (_aaxDriverState *)_aaxNoneDriverAvailable,
 
-   (_aaxDriverParam *)&_aaxLoopbackDriverGetLatency
+   (_aaxDriverParam *)&_aaxLoopbackDriverGetLatency,
+   (_aaxDriverLog *)&_aaxLoopbackDriverLog
 };
 
 static int
@@ -267,11 +271,31 @@ _aaxNoneDriverGetLatency(const void *id)
    return 0.0f;
 }
 
+static char *
+_aaxNoneDriverLog(const char *str)
+{
+   return NULL;
+}
+
 static float
 _aaxLoopbackDriverGetLatency(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    return handle ? handle->latency : 0.0f;
+}
+
+static char *
+_aaxLoopbackDriverLog(const char *str)
+{
+   static char _errstr[1024];
+   int len = _MIN(strlen(str), 1024);
+
+   memcpy(_errstr, str, len);
+   _errstr[1023] = '\0';                /* always null terminated */
+
+   _AAX_SYSLOG(_errstr);
+
+   return (char*)&_errstr;
 }
 
 static char *

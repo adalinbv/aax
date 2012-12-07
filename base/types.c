@@ -73,7 +73,7 @@ uint64_t _bswap64(uint64_t x)
 }
 
 #ifdef WIN32
-int _aax_snprintf(char *str,size_t size,const char *fmt,...)
+int _aax_snprintf(char *str, size_t size, const char *fmt, ...)
 {
    int ret;
    va_list ap;

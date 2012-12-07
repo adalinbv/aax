@@ -61,6 +61,8 @@ extern "C" {
 
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);
 
+typedef char *_aaxDriverLog(const char *);
+
 typedef int _aaxDriverDetect(int mode);
 typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
 typedef char *_aaxDriverGetDevices(const void*, int mode);
@@ -126,6 +128,7 @@ typedef struct
     _aaxDriverState *is_available;
 
     _aaxDriverParam *latency;
+    _aaxDriverLog *log;
 
 } _aaxDriverBackend;
 

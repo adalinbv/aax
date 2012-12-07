@@ -43,6 +43,8 @@
 # define O_BINARY	0
 #endif
 
+#define _AAX_DRVLOG(a)		_aaxFileDriverLog(a)
+
 static _aaxDriverDetect _aaxFileDriverDetect;
 static _aaxDriverNewHandle _aaxFileDriverNewHandle;
 static _aaxDriverGetDevices _aaxFileDriverGetDevices;
@@ -56,6 +58,7 @@ static _aaxDriverCaptureCallback _aaxFileDriverCapture;
 static _aaxDriverGetName _aaxFileDriverGetName;
 static _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
 static _aaxDriverParam _aaxFileDriverGetLatency;
+static _aaxDriverLog _aaxFileDriverLog;
 
 char _file_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
@@ -98,7 +101,8 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverState *)&_aaxFileDriverAvailable,
    (_aaxDriverState *)&_aaxFileDriverAvailable,
 
-   (_aaxDriverParam *)&_aaxFileDriverGetLatency
+   (_aaxDriverParam *)&_aaxFileDriverGetLatency,
+   (_aaxDriverLog *)&_aaxFileDriverLog
 };
 
 typedef struct
@@ -292,12 +296,12 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             {
                if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
                {
-                  _AAX_SYSLOG("file; frequency too small.");
+                  _AAX_DRVLOG("file; frequency too small.");
                   f = (float)_AAX_MIN_MIXER_FREQUENCY;
                }
                else if (f > _AAX_MAX_MIXER_FREQUENCY)
                {
-                  _AAX_SYSLOG("file; frequency too large.");
+                  _AAX_DRVLOG("file; frequency too large.");
                   f = (float)_AAX_MAX_MIXER_FREQUENCY;
                }
                handle->frequency = f;
@@ -308,12 +312,12 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("file; no. tracks too small.");
+                  _AAX_DRVLOG("file; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("file; no. tracks too great.");
+                  _AAX_DRVLOG("file; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->no_channels = i;
@@ -324,7 +328,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             {
                if (i != 16)
                {
-                  _AAX_SYSLOG("file; unsopported bits-per-sample");
+                  _AAX_DRVLOG("file; unsopported bits-per-sample");
                   i = 16;
                }
                handle->bits_sample = i;
@@ -728,6 +732,20 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
    return rv;
 }
 
+static char *
+_aaxFileDriverLog(const char *str)
+{
+   static char _errstr[1024];
+   int len = _MIN(strlen(str), 1024);
+
+   memcpy(_errstr, str, len);
+   _errstr[1023] = '\0';		/* always null terminated */
+
+   _AAX_SYSLOG(_errstr);
+
+   return (char*)&_errstr;
+}
+
 /*-------------------------------------------------------------------------- */
 
 static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
@@ -793,7 +811,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       fmt = 0x7;
       break;
    default:
-      _AAX_SYSLOG("file; unsupported format");
+      _AAX_DRVLOG("file; unsupported format");
       return;
    }
 
@@ -841,7 +859,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    lseek(fd, 0L, SEEK_SET);
    res = write(fd, &waveHeader, WAVE_HEADER_SIZE*4);
    if (res == -1) {
-      _AAX_SYSLOG(strerror(errno));
+      _AAX_DRVLOG(strerror(errno));
    }
 
    if (is_bigendian()) {
@@ -854,7 +872,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    size = no_samples * no_tracks * bps;
    res = write(fd, buffer, size);
    if (res == -1) {
-      _AAX_SYSLOG(strerror(errno));
+      _AAX_DRVLOG(strerror(errno));
    }
 
    close(fd);

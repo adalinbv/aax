@@ -66,6 +66,7 @@ static _aaxDriverState _aaxALSADriverIsReachable;
 static _aaxDriverState _aaxALSADriverAvailable;
 static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
 static _aaxDriverParam _aaxALSADriverGetLatency;
+static _aaxDriverLog _aaxALSADriverLog;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxALSADriverBackend =
@@ -108,7 +109,8 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverState *)&_aaxALSADriverAvailable,
    (_aaxDriverState *)&_aaxALSADriverIsReachable,
 
-   (_aaxDriverParam *)&_aaxALSADriverGetLatency
+   (_aaxDriverParam *)&_aaxALSADriverGetLatency,
+   (_aaxDriverLog *)&_aaxALSADriverLog
 };
 
 typedef struct
@@ -255,6 +257,7 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
+#define _AAX_DRVLOG(a)		_aaxALSADriverLog(a)
 
 static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
@@ -457,12 +460,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("alsa; frequency too small.");
+               _AAX_DRVLOG("alsa; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("alsa; frequency too large.");
+               _AAX_DRVLOG("alsa; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->frequency_hz = f;
@@ -475,12 +478,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("alsa; no. tracks too small.");
+                  _AAX_DRVLOG("alsa; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("alsa; no. tracks too great.");
+                  _AAX_DRVLOG("alsa; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->no_channels = i;
@@ -493,7 +496,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             i /= 8;
             if (i < 2 || i > 4)
             {
-               _AAX_SYSLOG("alsa; unsupported bits-per-sample");
+               _AAX_DRVLOG("alsa; unsupported bits-per-sample");
                i = 2;
             }
             handle->bytes_sample = i;
@@ -504,12 +507,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          {
             if (i < 1)
             {
-               _AAX_SYSLOG("alsa; no periods too small.");
+               _AAX_DRVLOG("alsa; no periods too small.");
                i = 1;
             }
             else if (i > 16)
             {
-               _AAX_SYSLOG("alsa; no. tracks too great.");
+               _AAX_DRVLOG("alsa; no. tracks too great.");
                i = 16;
             }
             handle->no_periods = i;
@@ -605,9 +608,9 @@ _aaxALSADriverDisconnect(void *id)
 
 
 #ifndef NDEBUG
-# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_SYSLOG("alsa; "s); printf("ALSA error: %s (%i) at line %i\n", s, err, __LINE__); } }
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_DRVLOG("alsa; "s); printf("ALSA error: %s (%i) at line %i\n", s, err, __LINE__); } }
 #else
-# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_SYSLOG("alsa; "s); }
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_DRVLOG("alsa; "s); }
 #endif
 
 static int
@@ -672,7 +675,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->use_mmap = 0;
          err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                          SND_PCM_ACCESS_RW_INTERLEAVED);
-         if (err < 0) _AAX_SYSLOG("alsa; unable to set interleaved mode");
+         if (err < 0) _AAX_DRVLOG("alsa; unable to set interleaved mode");
       } else
 #endif
       if (err >= 0)			/* playback */
@@ -701,7 +704,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                                               SND_PCM_ACCESS_RW_INTERLEAVED);
             }
 
-            if (err < 0) _AAX_SYSLOG("alsa; unable to find a proper renderer");
+            if (err < 0) _AAX_DRVLOG("alsa; unable to find a proper renderer");
          }
 #if 0
          TRUN( psnd_pcm_hw_params_can_mmap_sample_resolution(hwparams),
@@ -756,7 +759,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                handle->cvt_from_intl = _batch_cvt24_8_intl;
                break;
             default:
-               _AAX_SYSLOG("alsa; error: hardware format mismatch!\n");
+               _AAX_DRVLOG("alsa; error: hardware format mismatch!\n");
                err = -EINVAL;
                break;
             }
@@ -764,7 +767,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             bps = handle->bytes_sample;
          }
          else {
-            _AAX_SYSLOG("alsa; unable to match hardware format");
+            _AAX_DRVLOG("alsa; unable to match hardware format");
          }
       }
 
@@ -789,7 +792,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             char str[255];
             snprintf((char *)&str, 255, "Unable to output to %i speakers"
                                    " (%i is the maximum)", tracks, channels);
-            _AAX_SYSLOG(str);
+            _AAX_DRVLOG(str);
          }
       }
 
@@ -855,30 +858,30 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       {
          char str[255];
 
-         _AAX_SYSLOG("alsa; driver settings:");
+         _AAX_DRVLOG("alsa; driver settings:");
 
          if (handle->mode != 0) {
             snprintf(str,255,"  output renderer: '%s'", handle->name);
          } else {
             snprintf(str,255,"  input renderer: '%s'", handle->name);
          }
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255, "  devname: '%s'", handle->devname);
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*frames*channels*bps);
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255, "  no. periods: %i", handle->no_periods);
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
-         _AAX_SYSLOG(str);
+         _AAX_DRVLOG(str);
 #if 0
 // printf("\tformat: %X", *fmt);
 #endif
@@ -899,7 +902,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
       if (err == -EBUSY) {
-         _AAX_SYSLOG("alsa; device busy\n");
+         _AAX_DRVLOG("alsa; device busy\n");
       }
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
@@ -1044,11 +1047,11 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
       if (handle->mode == 0) {
-         _AAX_SYSLOG("alsa; calling the record function with a playback handle");
+         _AAX_DRVLOG("alsa; calling the record function with a playback handle");
       } else if (req_frames == 0) {
-         _AAX_SYSLOG("alsa; record buffer size is zero bytes");
+         _AAX_DRVLOG("alsa; record buffer size is zero bytes");
       } else {
-         _AAX_SYSLOG("alsa; calling the record function with null pointer");
+         _AAX_DRVLOG("alsa; calling the record function with null pointer");
       }
       return rv;
    }
@@ -1065,7 +1068,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
          }
       }
       else if (state == SND_PCM_STATE_XRUN) {
-//       _AAX_SYSLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
+//       _AAX_DRVLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
          xrun_recovery(handle->id, -EPIPE);
       }
    }
@@ -1086,7 +1089,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       {
          char s[255];
          snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(res));
-         _AAX_SYSLOG(s);
+         _AAX_DRVLOG(s);
          avail = -1;
        }
    }
@@ -1133,7 +1136,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
                {
                   char s[255];
                   snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(res));
-                  _AAX_SYSLOG(s);
+                  _AAX_DRVLOG(s);
                   return 0;
                }
             }
@@ -1208,17 +1211,17 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
          {
             if (xrun_recovery(handle->id, res) < 0)
             {
-               _AAX_SYSLOG("alsa; unable to run xrun_recovery");
+               _AAX_DRVLOG("alsa; unable to run xrun_recovery");
                rv = AAX_FALSE;
                break;
             }
             if (try++ > 2)
             {
-               _AAX_SYSLOG("alsa; unable to recover from pcm read error");
+               _AAX_DRVLOG("alsa; unable to recover from pcm read error");
                rv = AAX_FALSE;
                break;
             }
-//          _AAX_SYSLOG("alsa; warning: pcm read error");
+//          _AAX_DRVLOG("alsa; warning: pcm read error");
             continue;
          }
 
@@ -1226,7 +1229,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
          offs += res;
       }
       while((size > 0) && --chunk);
-      if (!chunk) _AAX_SYSLOG("alsa; too many capture tries\n");
+      if (!chunk) _AAX_DRVLOG("alsa; too many capture tries\n");
       *req_frames = offs;
    }
    else rv = AAX_TRUE;
@@ -1427,6 +1430,20 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    return rv;
 }
 
+static char *
+_aaxALSADriverLog(const char *str)
+{
+   static char _errstr[1024];
+   int len = _MIN(strlen(str), 1024);
+
+   memcpy(_errstr, str, len);
+   _errstr[1023] = '\0';		/* always null terminated */
+
+   _AAX_SYSLOG(_errstr);
+
+   return (char*)&_errstr;
+}
+
 /*-------------------------------------------------------------------------- */
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
@@ -1467,7 +1484,7 @@ _alsa_error_handler(const char *file, int line, const char *function, int err,
    snprintf((char *)&s, 1024, fmt, va_arg(ap, char *));
    va_end(ap);
 
-   _AAX_SYSLOG(s);
+   _AAX_DRVLOG(s);
 }
 
 static char *
@@ -1758,7 +1775,7 @@ _xrun_recovery(snd_pcm_t *handle, int err)
    psnd_pcm_dump(handle, output);
 #endif
    if (res != 0) {
-      _AAX_SYSLOG("alsa; Unable to recover from xrun situation");
+      _AAX_DRVLOG("alsa; Unable to recover from xrun situation");
    }
    else if (err == -EPIPE)
    {
@@ -1767,14 +1784,14 @@ _xrun_recovery(snd_pcm_t *handle, int err)
          /* capturing requirs an explicit call to snd_pcm_start */
          res = psnd_pcm_start(handle);
          if (res != 0) {
-            _AAX_SYSLOG("alsa; unable to restart input stream");
+            _AAX_DRVLOG("alsa; unable to restart input stream");
          }
       }
       else
       {
          res = psnd_pcm_prepare(handle);
          if (res != 0) {
-            _AAX_SYSLOG("alsa; unable to restart output stream");
+            _AAX_DRVLOG("alsa; unable to restart output stream");
          }
       }
    }
@@ -1827,7 +1844,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
          }
       }
       else if (state == SND_PCM_STATE_XRUN) {
-         _AAX_SYSLOG("alsa (mmap_ni): state = SND_PCM_STATE_XRUN.");
+         _AAX_DRVLOG("alsa (mmap_ni): state = SND_PCM_STATE_XRUN.");
          xrun_recovery(handle->id, -EPIPE);
       }
    }
@@ -1840,7 +1857,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
       {
          char s[255];
          snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
-         _AAX_SYSLOG(s);
+         _AAX_DRVLOG(s);
          return 0;
       }
    }
@@ -1864,7 +1881,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
          {
             char s[255];
             snprintf(s, 255, "MMAP begin avail error: %s\n",psnd_strerror(err));
-            _AAX_SYSLOG(s);
+            _AAX_DRVLOG(s);
             return 0;
          }
       }
@@ -1888,7 +1905,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
       avail -= res;
    }
    while ((avail > 0) && --chunk);
-   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
+   if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -1929,7 +1946,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
          }
       }
       else if (state == SND_PCM_STATE_XRUN) {
-         _AAX_SYSLOG("alsa (mmap_il): state = SND_PCM_STATE_XRUN.");
+         _AAX_DRVLOG("alsa (mmap_il): state = SND_PCM_STATE_XRUN.");
          xrun_recovery(handle->id, -EPIPE);
       }
    }
@@ -1942,7 +1959,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
       {
          char s[255];
          snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
-         _AAX_SYSLOG(s);
+         _AAX_DRVLOG(s);
          return 0;
       }
    }
@@ -1967,7 +1984,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
          {
             char s[255];
             snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(err));
-            _AAX_SYSLOG(s);
+            _AAX_DRVLOG(s);
             return 0;
          }
       }
@@ -1986,7 +2003,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
       avail -= res;
    }
    while ((avail > 0) && --chunk);
-   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
+   if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -2083,7 +2100,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float volum
       no_samples -= err;
    }
    while ((no_samples > 0) && --chunk);
-   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
+   if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -2154,15 +2171,15 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float volum
       {
          if (xrun_recovery(handle->id, err) < 0)
          {
-            _AAX_SYSLOG("alsa; unable to run xrun_recovery");
+            _AAX_DRVLOG("alsa; unable to run xrun_recovery");
             return 0;
          }
          if (try++ > 2) 
          {
-            _AAX_SYSLOG("alsa; unable to recover from pcm write error");
+            _AAX_DRVLOG("alsa; unable to recover from pcm write error");
             break;
          }
-//       _AAX_SYSLOG("alsa; warning: pcm write error");
+//       _AAX_DRVLOG("alsa; warning: pcm write error");
          continue;
       }
 
@@ -2170,7 +2187,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float volum
       no_samples -= err;
    }
    while ((no_samples > 0) && --chunk);
-   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
+   if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
    return 0;
 }
@@ -2248,7 +2265,7 @@ _aaxALSADriverThread(void* config)
 				/* timeout is in ms */
          if ((err = psnd_pcm_wait(be_handle->id, stdby_time)) < 0)
          {
-            _AAX_SYSLOG("alsa; snd_pcm_wait polling error");
+            _AAX_DRVLOG("alsa; snd_pcm_wait polling error");
 //          _aaxMutexLock(handle->thread.mutex);
 //          continue;
          }
