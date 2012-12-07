@@ -2234,10 +2234,6 @@ _aaxALSADriverThread(void* config)
    be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
-#if ENABLE_TIMING
-   _aaxTimerStart(timer);
-#endif
-
    stdby_time = 2*(int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
@@ -2246,10 +2242,6 @@ _aaxALSADriverThread(void* config)
       int err;
 
       _aaxMutexUnLock(handle->thread.mutex);
-
-#if ENABLE_TIMING
-printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
-#endif
 
       if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
@@ -2282,9 +2274,15 @@ printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
          state = handle->state;
       }
 
+#if ENABLE_TIMING
+   _aaxTimerStart(timer);
+#endif
       if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
+#if ENABLE_TIMING
+printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
+#endif
 
 #if 0
  printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
