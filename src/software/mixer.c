@@ -502,13 +502,14 @@ _aaxSoftwareMixerPlayFrame(void** rb, const void* sensors, const void* ringbuffe
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)*rb;
    int res;
 
-   if (sensors) {
-      _aaxSensorsProcess(dest_rb, sensors, props2d);
-   }
    if (frames)
    {
       _intBuffers *mixer_frames = (_intBuffers*)frames;
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
+   }
+
+   if (sensors) {
+      _aaxSensorsProcess(dest_rb, sensors, props2d);
    }
    be->effects(be_handle, dest_rb, props2d);
    be->postprocess(be_handle, dest_rb, sensor);

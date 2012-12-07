@@ -330,11 +330,11 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                                  be, be_handle);
 
    /** process registered devices */
-   if (fmixer->devices)
-   {
-      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d);
-      process = AAX_TRUE;
-   }
+// if (fmixer->devices)
+// {
+//    _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d);
+//    process = AAX_TRUE;
+// }
 
    /** process registered sub-frames */
    if (fmixer->frames)
@@ -425,6 +425,13 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          }
          _intBufReleaseNum(hf, _AAX_FRAME);
       }
+   }
+
+   /** process registered devices */
+   if (fmixer->devices)
+   {
+      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d);
+      process = AAX_TRUE;
    }
 
    if (process)
