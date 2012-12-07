@@ -17,6 +17,8 @@ extern "C" {
 #include <time.h>
 #endif
 
+#include "timer.h"
+
 #if HAVE_PTHREAD_H
 # include <pthread.h>			/* UNIX */
 

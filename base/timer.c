@@ -103,7 +103,7 @@ _aaxTimerCreate()
 
          rv->timerOverhead.QuadPart -= rv->timerCount.QuadPart;
 
-         rv->timerPrevCount.QuadPart = rv->timerCount.QuadPart;
+         rv->prevTimerCount.QuadPart = rv->timerCount.QuadPart;
          rv->tfreq = (double)timerFreq.QuadPart;
       }
    }
@@ -122,7 +122,7 @@ _aaxTimerGetFrequency(_aaxTimer *tm)
 
 void
 _aaxTimerStart(_aaxTimer* tm) {
-   _aaxTimerElapsed(rm);
+   _aaxTimerElapsed(tm);
 }
 
 double
@@ -133,14 +133,14 @@ _aaxTimerElapsed(_aaxTimer* tm)
    {
       DWORD_PTR threadMask;
 
-      tm->timerPrevCount.QuadPart = tm->timerCount.QuadPart;
-      tm->timerPrevCount.QuadPart += tm->timerOverhead.QuadPart;
+      tm->prevTimerCount.QuadPart = tm->timerCount.QuadPart;
+      tm->prevTimerCount.QuadPart += tm->timerOverhead.QuadPart;
    
       threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
-      QueryPerformanceCounter(&timerCount);
+      QueryPerformanceCounter(&tm->timerCount);
       SetThreadAffinityMask(GetCurrentThread(), threadMask);
 
-      rv = (rm->timerCount.QuadPart - tm->timerPrevCount.QuadPart)/tfreq;
+      rv = (tm->timerCount.QuadPart - tm->prevTimerCount.QuadPart)/tm->tfreq;
    }
    return rv;
 }
@@ -148,9 +148,7 @@ _aaxTimerElapsed(_aaxTimer* tm)
 void
 _aaxTimerDestroy(_aaxTimer* tm)
 {
-   assert(tm);
-
-   free(rm);
+   free(tm);
 }
 /* end of highres timing code */
 
