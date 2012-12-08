@@ -20,6 +20,8 @@ extern "C" {
 #include "config.h"
 #endif
 
+#define _AAX_FILEDRVLOG(a)          _aaxFileDriverLog(a);
+char *_aaxFileDriverLog(const char *);
 
 /** libmpg123 */
 enum    mpg123_parms {

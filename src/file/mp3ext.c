@@ -251,8 +251,8 @@ _aaxMPG123FileOpen(void *id, const char* fname)
                               MPG123_ENC_SIGNED_16);
                pmpg123_getformat(handle->id, &rate, &channels, &enc);
 
-               if (1000 <= rate && rate <= 19200 &&
-                   1 <= channels && channels <= _AAX_MAX_SPEAKERS)
+               if ((1000 <= rate) && (rate <= 192000) &&
+                   (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
                {
                   handle->frequency = rate;
                   handle->no_tracks = channels;
@@ -261,11 +261,30 @@ _aaxMPG123FileOpen(void *id, const char* fname)
 
                   res = AAX_TRUE;
                }
+               else {
+                  _AAX_FILEDRVLOG("MP3File: file might be corrupted");
+               }
+            }
+            else {
+               _AAX_FILEDRVLOG("MP3File: Unable to create an mp3 file handler");
             }
          }
-         else {
+         else
+         {
+            _AAX_FILEDRVLOG("MP3File: writing to mp3 files is not supported");
             close(handle->fd); /* no mp3 write support (yet) */
          }
+      }
+      else {
+         _AAX_FILEDRVLOG("MP3File: file not found");
+      }
+   }
+   else
+   {
+      if (!fname) {
+         _AAX_FILEDRVLOG("MP3File: No filename prvided");
+      } else {
+         _AAX_FILEDRVLOG("MP3File: Internal error: handle id equals 0");
       }
    }
 
@@ -314,6 +333,9 @@ _aaxMPG123FileSetup(int mode, int freq, int tracks, int format)
       handle->format = format;
       handle->bits_sample = aaxGetBitsPerSample(handle->format);
    }
+   else {
+      _AAX_FILEDRVLOG("MP3File: Insufficient memory");
+   }
 
    return (void*)handle;
 }
@@ -337,7 +359,9 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
       }
       else
       {
-//       _AAX_SYSLOG("mp3; unable to read data");
+         if (ret != MPG123_DONE) {
+            _AAX_FILEDRVLOG("MP3File: error reading data");
+         }
          rv = -1;
       }
    }

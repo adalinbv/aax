@@ -35,6 +35,7 @@
 #include <arch.h>
 
 #include "filetype.h"
+#include "audio.h"
 
 static _detect_fn _aaxWavFileDetect;
 
@@ -193,6 +194,9 @@ _aaxWavFileOpen(void *id, const char* fname)
                _aaxFileDriverUpdateHeader(handle);
                res = write(handle->fd, handle->io.write.header, size);
             }
+            else {
+               _AAX_FILEDRVLOG("WAVFile: Insufficient memory");
+            }
          }
          else
          {
@@ -202,6 +206,17 @@ _aaxWavFileOpen(void *id, const char* fname)
              */
             res = _aaxFileDriverReadHeader(handle);
          }
+      }
+      else {
+         _AAX_FILEDRVLOG("WAVFile: file not found");
+      }
+   }
+   else
+   {
+      if (!fname) {
+         _AAX_FILEDRVLOG("WAVFile: No filename prvided");
+      } else {
+         _AAX_FILEDRVLOG("WAVFile: Internal error: handle id equals 0");
       }
    }
 
@@ -258,6 +273,12 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
             handle->io.write.format = getFileFormatFromFormat(format);
          }
       }
+      else {
+         _AAX_FILEDRVLOG("WAVFile: Insufficient memory");
+      }
+   }
+   else {
+      _AAX_FILEDRVLOG("WAVFile: Unsupported format");
    }
 
    return (void*)handle;
@@ -282,6 +303,9 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
             handle->io.write.update_dt -= 1.0f;
          }
          handle->io.write.size_bytes += rv;
+      }
+      else {
+          _AAX_FILEDRVLOG("WAVFile: error writing data");
       }
    }
    else		/* capturing */

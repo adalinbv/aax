@@ -287,12 +287,13 @@ _aaxLoopbackDriverGetLatency(const void *id)
 static char *
 _aaxLoopbackDriverLog(const char *str)
 {
-   static char _errstr[1024];
-   int len = _MIN(strlen(str), 1024);
+   static char _errstr[256];
+   int len = _MIN(strlen(str)+1, 256);
 
    memcpy(_errstr, str, len);
-   _errstr[1023] = '\0';                /* always null terminated */
+   _errstr[255] = '\0';  /* always null terminated */
 
+   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;

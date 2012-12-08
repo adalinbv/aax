@@ -858,30 +858,30 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       {
          char str[255];
 
-         _AAX_DRVLOG("alsa; driver settings:");
+         _AAX_SYSLOG("alsa; driver settings:");
 
          if (handle->mode != 0) {
             snprintf(str,255,"  output renderer: '%s'", handle->name);
          } else {
             snprintf(str,255,"  input renderer: '%s'", handle->name);
          }
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255, "  devname: '%s'", handle->devname);
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*frames*channels*bps);
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255, "  no. periods: %i", handle->no_periods);
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
-         _AAX_DRVLOG(str);
+         _AAX_SYSLOG(str);
 #if 0
 // printf("\tformat: %X", *fmt);
 #endif
@@ -1433,12 +1433,13 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 static char *
 _aaxALSADriverLog(const char *str)
 {
-   static char _errstr[1024];
-   int len = _MIN(strlen(str), 1024);
+   static char _errstr[256];
+   int len = _MIN(strlen(str)+1, 256);
 
    memcpy(_errstr, str, len);
-   _errstr[1023] = '\0';		/* always null terminated */
+   _errstr[255] = '\0';  /* always null terminated */
 
+   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;
