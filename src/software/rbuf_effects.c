@@ -387,7 +387,7 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
       float hf = filter->hf_gain;
       float k = filter->k;
 
-      if (!ctr && filter->lfo)
+      if (filter->lfo) // (!ctr && filter->lfo)
       {
          float fc = _MAX(filter->lfo->get(filter->lfo, s, track, dmax), 1.0f);
          float Q = filter->Q;
