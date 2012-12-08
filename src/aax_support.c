@@ -25,7 +25,7 @@ typedef struct {
    const char *name;
 } ef_type; 
 
-static const char* __aaxErrorSetFunction(const char*);
+static const char* __aaxErrorSetFunctionOrBackendString(const char*);
 
 static const ef_type _aax_filter_s[AAX_FILTER_MAX];
 static const ef_type _aax_effect_s[AAX_EFFECT_MAX];
@@ -144,30 +144,40 @@ aaxGetErrorNo()
 AAX_API const char* AAX_APIENTRY
 aaxGetErrorString(enum aaxErrorType err)
 {
-   static char str[255];
+   static char str[255] = "None";
+   const char* rv = (const char*)&str;
+
    if (err != AAX_ERROR_NONE)
    {
-      int param = err & 0xF;
-      int pos = err >> 4;
-      if ((err >= AAX_INVALID_DEVICE) && (err < AAX_ERROR_MAX))
+      if (err != AAX_BACKEND_ERROR)
       {
-         if (((err & ~0xF) == AAX_INVALID_PARAMETER) && param) {
-            snprintf(str, 255, "%s: %s for parameter %i",
-                    __aaxErrorSetFunction(NULL), _aaxErrorStrings[pos], param);
-         } else {
-            snprintf(str, 255, "%s: %s", __aaxErrorSetFunction(NULL),
-                                         _aaxErrorStrings[pos]);
+         int param = err & 0xF;
+         int pos = err >> 4;
+         if ((err >= AAX_INVALID_DEVICE) && (err < AAX_ERROR_MAX))
+         {
+            if (((err & ~0xF) == AAX_INVALID_PARAMETER) && param) {
+               snprintf(str, 255, "%s: %s for parameter %i",
+                                     __aaxErrorSetFunctionOrBackendString(NULL),
+                                     _aaxErrorStrings[pos], param);
+            } else {
+               snprintf(str, 255, "%s: %s",
+                                     __aaxErrorSetFunctionOrBackendString(NULL),
+                                     _aaxErrorStrings[pos]);
+            }
+         }
+         else {
+            rv = "AAX: Unknown error condition";
          }
       }
-      else {
-         snprintf(str, 255, "AAX: Unknown error condition");
+      else { /* err != AAX_BACKEND_ERROR */
+         rv = __aaxErrorSetFunctionOrBackendString(NULL);
       }
    }
    else {
-      snprintf(str, 255, "%s: %s", __aaxErrorSetFunction(NULL),
+      snprintf(str, 255, "%s: %s", __aaxErrorSetFunctionOrBackendString(NULL),
                                    _aaxErrorStrings[0]);
    }
-   return str;
+   return rv;
 }
 
 AAX_API unsigned AAX_APIENTRY
@@ -246,36 +256,43 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
       {
          const _handle_t* ptr = (const _handle_t*)handle;
          if (ptr->id == HANDLE_ID) rv = AAX_TRUE;
+         break;
       }
       case AAX_CONFIG_HD:
       {
           const _handle_t* ptr = (const _handle_t*)handle;
           if (ptr->id == HANDLE_ID && VALID_HANDLE(ptr)) rv = AAX_TRUE;
+         break;
       }
       case AAX_BUFFER:
       {  
          const _buffer_t* ptr = (const _buffer_t*)handle;
          if (ptr->id == BUFFER_ID) rv = AAX_TRUE;
+         break;
       }
       case AAX_EMITTER:
       {  
          const _emitter_t* ptr = (const _emitter_t*)handle;
          if (ptr->id == EMITTER_ID) rv = AAX_TRUE;
+         break;
       }
       case AAX_AUDIOFRAME:
       {  
          const _frame_t* ptr = (const _frame_t*)handle;
          if (ptr->id == AUDIOFRAME_ID) rv = AAX_TRUE;
+         break;
       }
       case AAX_FILTER:
       {
          const _filter_t* ptr = (const _filter_t*)handle;
          if (ptr->id == FILTER_ID) rv = AAX_TRUE;
+         break;
       }
       case AAX_EFFECT:
       {
          const _filter_t* ptr = (const _filter_t*)handle;
          if (ptr->id == EFFECT_ID) rv = AAX_TRUE;
+         break;
       }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -377,7 +394,7 @@ const char* _aaxErrorStrings[] =
 };
 
 static const char*
-__aaxErrorSetFunction(const char* fnname)
+__aaxErrorSetFunctionOrBackendString(const char* fnname)
 {
    static const char* __error_fn = "AAX";
    const char* rv = __error_fn;
@@ -394,9 +411,9 @@ __aaxErrorSet(enum aaxErrorType err, const char* fnname)
    enum aaxErrorType rv = _err;
 
    if (err == AAX_ERROR_NONE && _err == AAX_ERROR_NONE) {
-      __aaxErrorSetFunction("AAX");
+      __aaxErrorSetFunctionOrBackendString("AAX");
    } else if (err != AAX_ERROR_NONE) {
-      __aaxErrorSetFunction(fnname);
+      __aaxErrorSetFunctionOrBackendString(fnname);
    }
    _err = err;
 
