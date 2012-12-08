@@ -1057,9 +1057,9 @@ _aaxMixerInit(_handle_t *handle)
          __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
       }
    }
-   else {
-      __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
-   }
+// else {
+//    __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
+///}
    return res;
 }
 
