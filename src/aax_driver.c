@@ -315,10 +315,11 @@ aaxDriverOpen(aaxConfig config)
 
    if (!handle || !handle->backend.handle)
    {
-      _aaxErrorSet(AAX_INVALID_DEVICE);
       aaxDriverClose(handle);
       aaxDriverDestroy(handle);
       handle = NULL;
+
+      _aaxErrorSet(AAX_INVALID_DEVICE);
    }
    return (aaxConfig)handle;
 }
