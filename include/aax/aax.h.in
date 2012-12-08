@@ -39,7 +39,7 @@ extern "C" {
 #define AAX_MAJOR_VERSION	@AAX_MAJOR_VERSION@
 #define AAX_MINOR_VERSION	@AAX_MINOR_VERSION@
 #define AAX_MICRO_VERSION	@AAX_MICRO_VERSION@
-#define AAX_PATCH_LEVEL		1211121
+#define AAX_PATCH_LEVEL		121212
 
 #define AAX_FALSE		0
 #define AAX_TRUE		1
@@ -173,16 +173,17 @@ enum aaxSetupType
 enum aaxErrorType
 {
    AAX_ERROR_NONE = 0,
-   AAX_INVALID_DEVICE         = 0x10,
-   AAX_INVALID_SETUP          = 0x20,
-   AAX_INVALID_HANDLE         = 0x30,
-   AAX_INVALID_STATE          = 0x40,
-   AAX_INVALID_ENUM           = 0x50,
-   AAX_INVALID_PARAMETER      = 0x60,
-   AAX_INVALID_REFERENCE      = 0x70,
-   AAX_INSUFFICIENT_RESOURCES = 0x80,
-   AAX_TIMEOUT                = 0x90,
-   AAX_ERROR_MAX              = 0xA0
+   AAX_INVALID_DEVICE         = 0x010,
+   AAX_INVALID_SETUP          = 0x020,
+   AAX_INVALID_HANDLE         = 0x030,
+   AAX_INVALID_STATE          = 0x040,
+   AAX_INVALID_ENUM           = 0x050,
+   AAX_INVALID_PARAMETER      = 0x060,
+   AAX_INVALID_REFERENCE      = 0x070,
+   AAX_INSUFFICIENT_RESOURCES = 0x080,
+   AAX_TIMEOUT                = 0x090,
+   AAX_BACKEND_ERROR          = 0x0A0,
+   AAX_ERROR_MAX              = 0x0B0
 };
 
 enum aaxEmitterMode
