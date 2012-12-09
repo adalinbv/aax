@@ -56,7 +56,6 @@ int main(int argc, char **argv)
         devname = getDeviceName(argc, argv);
     }
 
-    printf("Capture device: '%s'\n", devname);
     record = aaxDriverOpenByName(devname, AAX_MODE_READ);
     testForError(record, "Capture device is unavailable.");
 
@@ -66,6 +65,9 @@ int main(int argc, char **argv)
         aaxEmitter emitter;
         float dt, freq;
         int channels;
+
+        printf("Capture device: '%s'\n",
+                aaxDriverGetSetup(record, AAX_RENDERER_STRING));
 
         format = AAX_PCM16S;
         freq = 44100.0f;

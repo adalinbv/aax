@@ -63,6 +63,8 @@ void testForALCError(void *);
 void testForALError();
 
 #ifdef _WIN32
+# include <windef.h>
+DWORD __attribute__((__stdcall__)) SleepEx(DWORD,BOOL);
 # define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
 #else
 int msecSleep(unsigned long);

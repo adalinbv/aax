@@ -51,10 +51,12 @@ int main(int argc, char **argv)
     char indevname[4096];
     int res, rv = 0;
 
+    infile = getInputFile(argc, argv, FILE_PATH);
+    devname = getDeviceName(argc, argv);
+
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "Audio output device is not available.");
-
-    if (!aaxIsValid(config, AAX_CONFIG_HD))
+    if (!config || !aaxIsValid(config, AAX_CONFIG_HD))
     {
         printf("Warning:\n");
         printf("  %s requires a registered version of AeonWave\n", argv[0]);
@@ -65,9 +67,6 @@ int main(int argc, char **argv)
         goto finish;
     }
 
-
-    devname = getDeviceName(argc, argv);
-    infile = getInputFile(argc, argv, FILE_PATH);
     snprintf(indevname, 4096, "AeonWave on Audio Files: %s", infile);
     record = aaxDriverOpenByName(indevname, AAX_MODE_READ);
     if (!record)

@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 
             x = aaxMixerGetSetup(cfg, AAX_LATENCY);
             if (x) {
-               printf("Mixer latency: %7.2f ms\n", (float)x/1e6f);
+               printf("Mixer latency: %7.2f ms\n", (float)x*1e-3f);
             }
 
             x = aaxMixerGetSetup(cfg, AAX_MONO_EMITTERS);
@@ -192,45 +192,48 @@ int main(int argc, char **argv)
             printf("Available audio-frames: ");
             if (x == UINT_MAX) printf("   infinite\n");
             else printf("%6i\n", x);
-        }
 
-        printf("\nSupported Filters:\n ");
-        for (i=1; i<AAX_FILTER_MAX; i++)
-        {
-            static int len = 1;
-            if (aaxIsFilterSupported(cfg, _filter_s[i]))
+            printf("\nSupported Filters:\n ");
+            for (i=1; i<AAX_FILTER_MAX; i++)
             {
-                len += strlen(_filter_s[i])+1;	/* one for leading space */
-                if (len >= 78)
+                static int len = 1;
+                if (aaxIsFilterSupported(cfg, _filter_s[i]))
                 {
-                    printf("\n ");
-                    len = strlen(_filter_s[i])+1;
+                    len += strlen(_filter_s[i])+1;   /* one for leading space */
+                    if (len >= 78)
+                    {
+                        printf("\n ");
+                        len = strlen(_filter_s[i])+1;
+                    }
+                    printf(" %s", _filter_s[i]);
                 }
-                printf(" %s", _filter_s[i]);
             }
-        }
 
-        printf("\n\nSupported Effects:\n ");
-        for (i=1; i<AAX_EFFECT_MAX; i++)
-        {
-            static int len = 1;
-            if (aaxIsEffectSupported(cfg, _effect_s[i]))
+            printf("\n\nSupported Effects:\n ");
+            for (i=1; i<AAX_EFFECT_MAX; i++)
             {
-                len += strlen(_effect_s[i])+1;	/* one for leading space */
-                if (len >= 78)
+                static int len = 1;
+                if (aaxIsEffectSupported(cfg, _effect_s[i]))
                 {
-                    printf("\n ");
-                    len = strlen(_effect_s[i])+1;
+                    len += strlen(_effect_s[i])+1;   /* one for leading space */
+                    if (len >= 78)
+                    {
+                        printf("\n ");
+                        len = strlen(_effect_s[i])+1;
+                    }
+                    printf(" %s", _effect_s[i]);
                 }
-                printf(" %s", _effect_s[i]);
             }
-        }
-        printf("\n\n");
+            printf("\n\n");
 
-        if (cfg)
-        {
             aaxDriverClose(cfg);
             aaxDriverDestroy(cfg);
+        }
+        else
+        {
+           enum aaxErrorType err = aaxGetErrorNo();
+           printf("Error opening the default device: ");
+           printf("%s\n\n", aaxGetErrorString(err));
         }
     }
     else {
