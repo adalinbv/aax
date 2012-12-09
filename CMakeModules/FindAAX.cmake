@@ -34,9 +34,9 @@ FIND_LIBRARY(AAX_LIBRARY
   PATHS
   ~/Library/Frameworks
   /Library/Frameworks
-  /usr/local
   /usr
   /opt
+  /usr/local
 )
 
 SET(AAX_FOUND "NO")
