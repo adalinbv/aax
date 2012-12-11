@@ -249,6 +249,7 @@ static int _xrun_recovery(snd_pcm_t *, int);
 static unsigned int get_devices_avail(int);
 static int detect_devnum(const char *, int);
 static char *detect_devname(const char*, int, unsigned int, int, char);
+static char *_aaxALSADriverLogVar(const char *, ...);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
@@ -789,10 +790,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          if (channels != tracks)
          {
-            char str[255];
-            snprintf((char *)&str, 255, "Unable to output to %i speakers"
-                                   " (%i is the maximum)", tracks, channels);
-            _AAX_DRVLOG(str);
+            _aaxALSADriverLogVar("Unable to output to %i speakers"
+                                 " (%i is the maximum)", tracks, channels);
          }
       }
 
@@ -1087,9 +1086,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    {
       if ((res = xrun_recovery(handle->id, res)) < 0)
       {
-         char s[255];
-         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(res));
-         _AAX_DRVLOG(s);
+         _aaxALSADriverLogVar("PCM avail error: %s\n", psnd_strerror(res));
          avail = -1;
        }
    }
@@ -1134,9 +1131,8 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
             {
                if ((res = xrun_recovery(handle->id, res)) < 0)
                {
-                  char s[255];
-                  snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(res));
-                  _AAX_DRVLOG(s);
+                  _aaxALSADriverLogVar("MMAP begin error: %s\n",
+                                       psnd_strerror(res));
                   return 0;
                }
             }
@@ -1428,6 +1424,23 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    }
 
    return rv;
+}
+
+static char *
+_aaxALSADriverLogVar(const char *fmt, ...)
+{
+   char _errstr[1024];
+   va_list ap;
+
+   _errstr[0] = '\0';
+   va_start(ap, fmt);
+   vsnprintf(_errstr, 1024, fmt, ap);
+
+   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   _errstr[1023] = '\0';
+   va_end(ap);
+
+   return _aaxALSADriverLog(_errstr);
 }
 
 static char *
