@@ -247,7 +247,7 @@ _aaxMP3FileSetup(int mode, int freq, int tracks, int format)
       handle = calloc(1, sizeof(_handle_t));
       if (handle)
       {
-         static const int _mode[] = { 0, O_RDONLY|O_BINARY };
+         static const int _mode[] = { O_WRONLY|O_BINARY, O_RDONLY|O_BINARY };
 
          handle->capturing = 1;
          handle->mode = _mode[handle->capturing];
@@ -478,14 +478,16 @@ _aaxMSACMFileOpen(void *id, const char* fname)
             WAVEFORMATEX pcmFmt;
             HRESULT hr;
 
+			/** PCM */
             pcmFmt.wFormatTag = WAVE_FORMAT_PCM;
-            pcmFmt.nChannels = handle->no_tracks;
-            pcmFmt.nSamplesPerSec = handle->frequency;
-            pcmFmt.wBitsPerSample = handle->bits_sample;
+            pcmFmt.nChannels = 2; //handle->no_tracks;
+            pcmFmt.nSamplesPerSec = 44100; // handle->frequency;
+            pcmFmt.wBitsPerSample = 16; // handle->bits_sample;
             pcmFmt.nBlockAlign = pcmFmt.nChannels*pcmFmt.wBitsPerSample/8;
             pcmFmt.nAvgBytesPerSec= pcmFmt.nSamplesPerSec*pcmFmt.nBlockAlign;
             pcmFmt.cbSize = 0;
 
+			/* MP3 */
             mp3Fmt.wfx.cbSize = MPEGLAYER3_WFX_EXTRA_BYTES;
             mp3Fmt.wfx.wFormatTag = WAVE_FORMAT_MPEGLAYER3;
             mp3Fmt.wfx.nChannels = 2;
@@ -496,7 +498,7 @@ _aaxMSACMFileOpen(void *id, const char* fname)
             mp3Fmt.wfx.nBlockAlign = 1;
 
             // must be the same as pcmFmt.nSamplesPerSec
-            mp3Fmt.wfx.nSamplesPerSec = handle->frequency;
+            mp3Fmt.wfx.nSamplesPerSec = 44100; // handle->frequency;
             mp3Fmt.fdwFlags = MPEGLAYER3_FLAG_PADDING_OFF;
             mp3Fmt.nBlockSize = MP3_BLOCK_SIZE;
             mp3Fmt.nFramesPerBlock = 1;
@@ -514,9 +516,9 @@ _aaxMSACMFileOpen(void *id, const char* fname)
                hr = pacmStreamSize(handle->acmStream, MP3_BLOCK_SIZE,
                                   &handle->pcmBufMax,
                                   ACM_STREAMSIZEF_SOURCE);
-               if (hr != 0)
+               if ((hr != 0) || (handle->pcmBufMax == 0))
                {
-                  _AAX_FILEDRVLOG("MP3File: Unable te retreive stream size");
+                  _AAX_FILEDRVLOG("MSACM MP3: Unable te retreive stream size");
                   goto MSACMStreamDone;
                }
 
@@ -533,7 +535,7 @@ _aaxMSACMFileOpen(void *id, const char* fname)
                                            &handle->acmStreamHeader, 0);
                if (hr != 0)
                {
-                  _AAX_FILEDRVLOG("MP3File: conversion stream error");
+                  _AAX_FILEDRVLOG("MSACM MP3: conversion stream error");
                   goto MSACMStreamDone;
                }
 
@@ -546,23 +548,23 @@ _aaxMSACMFileOpen(void *id, const char* fname)
                   handle->frequency = pcmFmt.nSamplesPerSec;
                   handle->bits_sample = pcmFmt.wBitsPerSample;
                   handle->format = getFormatFromWAVFileFormat(PCM_WAVE_FILE,
-                                                        handle->bits_sample);
+                                                           handle->bits_sample);
                   res = AAX_TRUE;
                }
                else {
-                  _AAX_FILEDRVLOG("MP3File: file may be corrupt");
+                  _AAX_FILEDRVLOG("MSACM MP3: file may be corrupt");
                }
 MSACMStreamDone:
                break;
             }
             case MMSYSERR_INVALPARAM:
-               _AAX_FILEDRVLOG("Invalid parameters passed to acmStreamOpen");
+               _AAX_FILEDRVLOG("MSACM MP3: Invalid parameters passed");
                break;
             case ACMERR_NOTPOSSIBLE:
-               _AAX_FILEDRVLOG("ACM MP3 filter not found");
+               _AAX_FILEDRVLOG("MSACM MP3: filter not found");
             default:
                break;
-               _AAX_FILEDRVLOG("Unknown error opening ACM stream");
+               _AAX_FILEDRVLOG("MSACM MP3: Unknown error when opening stream");
             }
          }
          else
@@ -578,7 +580,7 @@ MSACMStreamDone:
    else
    {
       if (!fname) {
-         _AAX_FILEDRVLOG("MP3File: No filename prvided");
+         _AAX_FILEDRVLOG("MP3File: No filename provided");
       } else {
          _AAX_FILEDRVLOG("MP3File: Internal error: handle id equals 0");
       }
@@ -616,49 +618,65 @@ _aaxMSACMFileReadWrite(void *id, void *data, unsigned int no_frames)
 
    if (handle->capturing)
    {
+      unsigned int frame_sz = handle->no_tracks*handle->bits_sample/8;
+      unsigned int avail_bytes;
       char *ptr = data;
 
       if (handle->pcmBufPos < handle->pcmBufMax)
       {
-         unsigned int avail;
+         avail_bytes = handle->pcmBufMax - handle->pcmBufPos;
+         if (avail_bytes > no_frames*frame_sz) {
+            avail_bytes = no_frames*frame_sz;
+         }
 
-         avail = _MIN(handle->pcmBufMax-handle->pcmBufPos, no_frames);
-         memcpy(ptr, handle->pcmBuffer, avail);
+         memcpy(ptr, handle->pcmBuffer+handle->pcmBufPos, avail_bytes);
+         handle->pcmBufPos += avail_bytes;
+         ptr += avail_bytes;
 
-         ptr += avail;
-         no_frames -= avail;
-         handle->pcmBufPos += avail;
+         no_frames -= avail_bytes/frame_sz;
+         rv += avail_bytes/frame_sz;
       }
 
-      do
+      while (no_frames)
       {
-//       memset(handle->mp3Buffer, 0, MP3_BLOCK_SIZE);
-         rv = read(handle->fd, handle->mp3Buffer, MP3_BLOCK_SIZE);
-         if (rv > 0)
+         int res = read(handle->fd, handle->mp3Buffer, MP3_BLOCK_SIZE);
+         if (res == MP3_BLOCK_SIZE)
          {
             HRESULT hr;
             hr = pacmStreamConvert(handle->acmStream, &handle->acmStreamHeader,
-                                  ACM_STREAMCONVERTF_BLOCKALIGN);
-            if (hr == 0) {
+                                                 ACM_STREAMCONVERTF_BLOCKALIGN);
+            if ((hr == 0) && handle->acmStreamHeader.cbDstLengthUsed)
+            {
                handle->pcmBufPos = 0;
+               handle->pcmBufMax = handle->acmStreamHeader.cbDstLengthUsed;
+               if (handle->pcmBufPos < handle->pcmBufMax)
+               {
+                  avail_bytes = handle->pcmBufMax - handle->pcmBufPos;
+                  if (avail_bytes > no_frames*frame_sz) {
+                     avail_bytes = no_frames*frame_sz;
+                  }
+
+                  memcpy(ptr, handle->pcmBuffer, avail_bytes);
+                  handle->pcmBufPos += avail_bytes;
+                  ptr += avail_bytes;
+
+                  no_frames -= avail_bytes/frame_sz;
+                  rv += avail_bytes/frame_sz;
+               }
             }
-            else {
+            else if (hr != 0)
+            {
+               _AAX_FILEDRVLOG("MSACM MP3: error while converting the stream");
+               handle->pcmBufPos = handle->pcmBufMax;
                break;
             }
          }
-
-         if (handle->pcmBufPos < handle->pcmBufMax)
+         else
          {
-            unsigned int avail;
-            avail = _MIN(handle->pcmBufMax-handle->pcmBufPos, no_frames);
-            memcpy(ptr, handle->pcmBuffer, avail);
-
-            ptr += avail;
-            no_frames -= avail;
-            handle->pcmBufPos += avail;
+            rv = -1;
+            break;
          }
-      }
-      while (no_frames);
+      }	/* while (no_frames) */
    }
 
    return rv;
