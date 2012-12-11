@@ -422,7 +422,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       }
    }
    else {
-      _AAX_FILEDRVLOG("File: Unable to intiialize file handler");
+      _AAX_FILEDRVLOG("File: Unable to intiialize the handler");
    }
 
    return rv;

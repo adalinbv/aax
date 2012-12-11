@@ -83,16 +83,6 @@ _aaxDetectWavFile()
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 
 
-enum wavFormat
-{
-   UNSUPPORTED = 0,
-   PCM_WAVE_FILE = 1,
-   FLOAT_WAVE_FILE = 3,
-   ALAW_WAVE_FILE = 6,
-   MULAW_WAVE_FILE = 7,
-   IMA4_ADPCM_WAVE_FILE = 17
-};
-
 static const uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
     0x46464952,                 /*  0. "RIFF"                                */
@@ -154,7 +144,6 @@ typedef struct
 static int _aaxFileDriverReadHeader(_handle_t *);
 static int _aaxFileDriverUpdateHeader(_handle_t *);
 static unsigned int getFileFormatFromFormat(enum aaxFormat);
-static enum aaxFormat getFormatFromFileFormat(unsigned int, int);
 static int _aaxWavFileReadIMA4(void*, int16_t *, unsigned int);
 
 
@@ -394,7 +383,7 @@ _aaxFileDriverReadHeader(_handle_t *handle)
    handle->blocksize = header[8] & 0xFFFF;
 
    fmt = header[5] & 0xFFFF;
-   handle->format = getFormatFromFileFormat(fmt, handle->bits_sample);
+   handle->format = getFormatFromWAVFileFormat(fmt, handle->bits_sample);
    if (handle->format == AAX_FORMAT_NONE) {
       return -1;
    }
@@ -494,8 +483,8 @@ _aaxFileDriverUpdateHeader(_handle_t *handle)
    return res;
 }
 
-static enum aaxFormat
-getFormatFromFileFormat(unsigned int format, int  bits_sample)
+enum aaxFormat
+getFormatFromWAVFileFormat(unsigned int format, int  bits_sample)
 {
    enum aaxFormat rv = AAX_FORMAT_NONE;
    int big_endian = is_bigendian();
