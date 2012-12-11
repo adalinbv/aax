@@ -25,15 +25,29 @@
 extern "C" {
 #endif
 
+#ifdef _WIN32
+#include <Windows.h>
+# define DLL_API		WINAPI
+# ifdef STRICT 
+#  define DLL_RV		WNDPROC
+# else
+#  define DLL_RV		FARPROC
+# endif
+
+#else	/* ifdef _WIN32 */
+# define DLL_API	
+# define DLL_RV			void*
+#endif
+
+#define DECL_FUNCTION(f)	f##_proc p##f = 0
+#define TIE_FUNCTION(f)		p##f = (f##_proc)_oalGetProcAddress(audio, #f)
+
 #define DECL_VARIABLE(v)	void* p##v = 0
 #define TIE_VARIABLE(v)		p##v = _oalGetProcAddress(audio, #v)
 
-#define DECL_FUNCTION(f)	static f##_proc p##f = 0
-#define TIE_FUNCTION(f)		p##f = (f##_proc)_oalGetProcAddress(audio, #f)
-
-char *_oalGetSymError(char *error);
+char *_oalGetSymError(const char *error);
 void *_oalIsLibraryPresent(const char *name, const char *version);
-void *_oalGetProcAddress(void *handle, const char *func);
+DLL_RV _oalGetProcAddress(void *handle, const char *func);
 void *_oalGetGlobalProcAddress(const char *func);
 
 #if defined(__cplusplus)

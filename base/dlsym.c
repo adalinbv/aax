@@ -26,10 +26,12 @@
 #include <stdlib.h>	/* for atoi */
 #include <stdio.h>	/* for snprintf */
 
+#include "dlsym.h"
 #include "types.h"
 
 
-char *_oalGetSymError(const char *err)
+char *
+_oalGetSymError(const char *err)
 {
    static char *error = 0;
    char *rv = error;
@@ -40,17 +42,20 @@ char *_oalGetSymError(const char *err)
 #if defined( __APPLE__ )
 #include <CoreFoundation/CoreFoundation.h>
 
-void *_oalIsLibraryPresent(const char *name, const char *version)
+void*
+_oalIsLibraryPresent(const char *name, const char *version)
 {
    return 0;
 }
 
-void *_oalGetProcAddress(void *handle, const char *func)
+DLL_RV
+_oalGetProcAddress(void *handle, const char *func)
 {
    return 0;
 }
 
-void* _oalGetGlobalProcAddress(const char *func)
+void*
+_oalGetGlobalProcAddress(const char *func)
 {
    static CFBundleRef bundle = 0;
    void *function = 0;
@@ -84,16 +89,13 @@ void* _oalGetGlobalProcAddress(const char *func)
 #include <direct.h>
 #include <windows.h>
 
-void *
+void*
 _oalIsLibraryPresent(const char *name, const char *version)
 {
    HINSTANCE handle;
 
-   if (name)
-   {
-      char libname[255];
-      snprintf(libname, 255, "%s", name); /* windows will add .dll */
-      handle = LoadLibrary(TEXT(libname));
+   if (name) {
+      handle = LoadLibraryA(name);
    }
    else {
       handle = GetModuleHandle(name);
@@ -103,15 +105,15 @@ _oalIsLibraryPresent(const char *name, const char *version)
    return handle;
 }
 
-void *
+DLL_RV
 _oalGetProcAddress(void *handle, const char *func)
 {
-   void *rv = NULL;
+   DLL_RV rv = NULL;
 
    assert(handle);
    assert(func);
 
-   rv = (void *)GetProcAddress(handle, func);
+   rv = (DLL_RV)GetProcAddress(handle, func);
    if (!rv)
    {
       static LPTSTR Error[255];
@@ -125,7 +127,8 @@ _oalGetProcAddress(void *handle, const char *func)
 }
 
 /* TODO */
-void *_oalGetGlobalProcAddress(const char *func)
+void*
+_oalGetGlobalProcAddress(const char *func)
 {
    return 0;
 }
@@ -133,7 +136,7 @@ void *_oalGetGlobalProcAddress(const char *func)
 #elif HAVE_DLFCN_H /* UNIX */
 #include <dlfcn.h>
 
-void *
+void*
 _oalIsLibraryPresent(const char *name, const char *version)
 {
    const char *lib = name;
@@ -153,7 +156,7 @@ _oalIsLibraryPresent(const char *name, const char *version)
    return dlopen(lib, RTLD_LAZY);
 }
 
-void *
+DLL_RV
 _oalGetProcAddress(void *handle, const char *func)
 {
    void *fptr;
@@ -173,7 +176,7 @@ _oalGetProcAddress(void *handle, const char *func)
    return fptr;
 }
 
-void *
+void*
 _oalGetGlobalProcAddress(const char *func)
 {
    static void *libHandle = 0;
