@@ -23,7 +23,8 @@ extern "C" {
 #include <ringbuffer.h>
 
 
-#define USE_CONDITION		AAX_TRUE
+#define	SET_PROCESS_PRIORITY	AAX_TRUE
+#define USE_CONDITION		AAX_FALSE
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
 #define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
@@ -326,7 +327,9 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 # define _AAX_SYSLOG(c) __oal_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
 #endif
 
-/* --- Config Files --- */
+/* --- System Specific & Config file related  --- */
+int _aaxProcessSetPriority(int);
+
 const char* userHomeDir();
 char* systemConfigFile();
 char* userConfigFile();
