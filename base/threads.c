@@ -20,7 +20,7 @@
 #include "logging.h"
 #include "types.h"
 
-#define USE_REALTIME		1
+#define REALTIME_PRIORITY	0
 #define DEBUG_TIMEOUT		3
 static char __threads_enabled = 0;
 
@@ -77,7 +77,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    assert(handler != 0);
 
    pthread_attr_init(&attr);
-#if USE_REALTIME
+#if REALTIME_PRIORITY
    sched_param.sched_priority = sched_get_priority_min(SCHED_RR);
 #else
    sched_param.sched_priority = 0;
@@ -90,7 +90,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
       int rv;
       pthread_t *id = t;
 
-#if USE_REALTIME
+#if REALTIME_PRIORITY
       rv = pthread_setschedparam(*id, SCHED_RR, &sched_param);
 #else
       rv = pthread_setschedparam(*id, SCHED_OTHER, &sched_param);
@@ -459,14 +459,13 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
      rv = 0;
    }
 
-#if USE_REALTIME
+#if REALTIME_PRIORITY
    // REALTIME_PRIORITY_CLASS or HIGH_PRIORITY_CLASS
    // Process that has the highest possible priority. The threads of the
    // process preempt the threads of all other processes, including operating
    // system processes performing important tasks. For example, a real-time
    // process that executes for more than a very brief interval can cause disk
    // caches not to flush or cause the mouse to be unresponsive.
-   SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
    SetThreadPriority(thread->handle, THREAD_PRIORITY_TIME_CRITICAL);
 #endif
 
