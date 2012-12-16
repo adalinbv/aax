@@ -126,6 +126,9 @@ typedef struct
     float pitch;       /* difference between requested freq and returned freq */
     float frequency_hz;
 
+    float padding;		/* for sensor clock drift correction   */
+    unsigned int threshold;	/* sensor buffer threshold for padding */
+
     unsigned int no_channels;
     unsigned int no_periods;
     unsigned int period_frames;
@@ -933,6 +936,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
                "wakeup treshold unsupported" );
       }
+      handle->threshold = 5*handle->period_frames/4;
 
       TRUN( psnd_pcm_sw_params(hid, swparams),
             "unable to configure software" );
@@ -1037,11 +1041,11 @@ static int
 _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int frames, frame_size, tracks;
+   unsigned int tracks, no_frames;
+   unsigned int frame_size;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   int res, threshold;
-   int rv = AAX_FALSE;
+   int res, rv = AAX_FALSE;
 
    if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
@@ -1074,9 +1078,9 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
 
    tracks = handle->no_channels;
    frame_size = tracks * handle->bytes_sample;
-   frames = *req_frames;
+   no_frames = *req_frames;
 #ifndef NDEBUG
-   handle->buf_len = frames * frame_size;
+   handle->buf_len = no_frames * frame_size;
 #endif
 
    /* synchronise capture and playback for registered sensors */
@@ -1092,23 +1096,22 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    }
 
    *req_frames = 0;
-   threshold = handle->period_frames;
-   if (frames && (avail > 2*threshold-32))
+   if (no_frames && avail)
    {
-      unsigned int fetch = frames;
-      int error, chunk, try = 0;
+      unsigned int fetch = no_frames;
+      unsigned int chunk, try = 0;
       snd_pcm_uframes_t size;
+      float diff;
 
-      error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
-      fetch += error;
-      offs += frames - fetch;
-
-#if 0
- printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
-#endif
+      /* try to keep the buffer padding at the threshold level at all times */
+      diff = (float)avail-(float)handle->threshold;
+      handle->padding = (handle->padding + diff/300.0f)/2;
+      fetch += rintf(handle->padding);
+      if (fetch > no_frames) offs += no_frames - fetch;
+      /* try to keep the buffer padding at the threshold level at all times */
 
       chunk = 10;
-      size = fetch;
+      size = fetch; // no_frames;
       rv = AAX_TRUE;
       do
       {
@@ -1122,11 +1125,11 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
          if (handle->use_mmap)
          {
             const snd_pcm_channel_area_t *area;
-            snd_pcm_uframes_t no_frames = size;
+            snd_pcm_uframes_t frames = size;
             snd_pcm_uframes_t mmap_offs = 0;
 
             psnd_pcm_avail_update(handle->id);
-            res=psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &no_frames);
+            res = psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &frames);
             if (res < 0)
             {
                if ((res = xrun_recovery(handle->id, res)) < 0)
@@ -1137,12 +1140,12 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
                }
             }
 
-            if (!no_frames) break;
+            if (!frames) break;
 
             if (handle->interleaved)
             {
                do {
-                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, no_frames);
+                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
                }
                while (res == -EAGAIN);
 
@@ -1156,7 +1159,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
             else
             {
                do {
-                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, no_frames);
+                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
                }
                while (res == -EAGAIN);
 
