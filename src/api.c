@@ -17,7 +17,7 @@
 #include <stdlib.h>		/* for getenv */
 #include <errno.h>
 #include <errno.h>
-#ifndef WIN32
+#ifndef _WIN32
 # include <sys/time.h>
 # include <sys/resource.h>
 #endif
@@ -147,11 +147,11 @@ _aaxProcessSetPriority(int prio)
    int rv = 0;
 
 #ifdef WIN32
-   DWORD priority = THREAD_PRIORITY_NORMAL;
+   DWORD priority = NORMAL_PRIORITY_CLASS;
    if (prio < -16)     priority = HIGH_PRIORITY_CLASS;
-   else if (prio < -6) priority = HREAD_PRIORITY_ABOVE_NORMAL;
-   else if (prio > 4)  priority = THREAD_PRIORITY_BELOW_NORMAL;
-   else                priority = THREAD_PRIORITY_LOWEST;
+   else if (prio < -6) priority = ABOVE_NORMAL_PRIORITY_CLASS;
+   else if (prio > 4)  priority = BELOW_NORMAL_PRIORITY_CLASS;
+   else                priority = IDLE_PRIORITY_CLASS;
 
    rv = SetPriorityClass(GetCurrentProcess(), priority);
    if (!rv) {
