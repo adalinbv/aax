@@ -1072,7 +1072,7 @@ _aaxMixerStart(_handle_t *handle)
    {
       int r;
 
-      _aaxProcessSetPriority(-20);
+      _aaxProcessSetPriority(-10);
 
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);
