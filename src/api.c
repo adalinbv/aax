@@ -147,22 +147,30 @@ _aaxProcessSetPriority(int prio)
    int rv = 0;
 
 #ifdef WIN32
-   DWORD priority = NORMAL_PRIORITY_CLASS;
-   if (prio < -16)     priority = HIGH_PRIORITY_CLASS;
-   else if (prio < -6) priority = ABOVE_NORMAL_PRIORITY_CLASS;
-   else if (prio > 4)  priority = BELOW_NORMAL_PRIORITY_CLASS;
-   else                priority = IDLE_PRIORITY_CLASS;
+   DWORD curr_priority = GetPriorityClass(GetCurrentProcess());
+   DWORD new_priority = NORMAL_PRIORITY_CLASS;
+   if (prio < -16)     new_priority = HIGH_PRIORITY_CLASS;
+   else if (prio < -6) new_priority = ABOVE_NORMAL_PRIORITY_CLASS;
+   else if (prio > 4)  new_priority = BELOW_NORMAL_PRIORITY_CLASS;
+   else                new_priority = IDLE_PRIORITY_CLASS;
 
-   rv = SetPriorityClass(GetCurrentProcess(), priority);
-   if (!rv) {
-      rv = GetLastError();
+   if (new_priority < curr_priority)
+   {
+      rv = SetPriorityClass(GetCurrentProcess(), new_priority);
+      if (!rv) {
+         rv = GetLastError();
+      }
    }
 
 #else
-   errno = 0;
-   rv = setpriority(PRIO_PROCESS, getpid(), prio);
-   if (rv < 0) {
-      rv = errno;
+   int curr_prio = getpriority(PRIO_PROCESS, getpid());
+   if (curr_prio < prio)
+   {
+      errno = 0;
+      rv = setpriority(PRIO_PROCESS, getpid(), prio);
+      if (rv < 0) {
+         rv = errno;
+     }
    }
 #endif
 
