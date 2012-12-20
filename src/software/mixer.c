@@ -386,7 +386,7 @@ _aaxSoftwareMixerSignalFrames(void *frames)
       _intBufReleaseNum(hf, _AAX_FRAME);
 
       /* give the remainder of the threads time slice to other threads */
-      msecSleep(0);
+//    msecSleep(1);
    }
    return num;
 }
@@ -458,7 +458,7 @@ printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
-                  msecSleep(0);	 /* special case, see Sleep(0) for windows */
+                  msecSleep(1);	 /* special case, see Sleep(0) for windows */
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
