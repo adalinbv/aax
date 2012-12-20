@@ -1622,7 +1622,7 @@ static int
 _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
 {
    unsigned int packet_sz = 0;
-   unsigned int cnt = 0;
+   unsigned int cnt = 2;
    HRESULT hr;
 
    /*
@@ -1693,11 +1693,10 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
       else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
          _AAX_DRVLOG(9, "wasapi; error getting the buffer");
       }
-      else if (!cnt)
+      else if (cnt--)
       {
          hr = S_OK;
          msecSleep(1);
-         cnt++;
       }
    }
    while ((hr == S_OK) && packet_sz);
