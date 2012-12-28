@@ -855,9 +855,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 
    if (config)
    {
-#ifdef _WIN32
-      char _key[256];
-#endif
       _intBufferData *dptr;
       long tract_now;
       char *path, *name;
@@ -908,17 +905,11 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
        * must be after reading aax's own configuration file to be abke to
        * invalidate the key for other products
        */
-#ifdef _WIN32
-      if (GetEnvironmentVariable("XAA23YEKVBNILADA", (LPSTR)&_key, 256)) {
-         name = (char*)&_key;
-      } else {
-         name = NULL;
-      }
-#else
-      name = getenv("XAA23YEKVBNILADA");
-#endif
-      if (name) {
+      name = aaxGetEnv("EKYAXA23VBDOLANI");
+      if (name) 
+      {
          key = _aaxCheckKeyValidityStr(name);
+         aaxUnsetEnv("EKYAXA23VBDOLANI");
       }
 
       if (key)
