@@ -334,6 +334,16 @@ const char* userHomeDir();
 char* systemConfigFile();
 char* userConfigFile();
 
+#ifdef WIN32
+char* aaxGetEnv(const char*);
+int aaxSetEnv(const char*, const char*, int);
+int aaxUnsetEnv(const char*);
+#else
+# define aaxGetEnv(a)			getenv(a)
+# define aaxSetEnv(a,b,c)		setenv((a),(b),(c))
+# define aaxUnsetEnv(a)			unsetenv(a)
+#endif
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

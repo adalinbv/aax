@@ -23,6 +23,7 @@
 #endif
 
 #include <base/types.h>
+#include <api.h>
 
 
 #define CONFIG_FILE             "config.xml"
@@ -176,3 +177,31 @@ _aaxProcessSetPriority(int prio)
 
    return rv;
 }
+
+#ifdef WIN32
+char*
+aaxGetEnv(const char*name)
+{
+   static char _key[256];
+   char *rv = NULL;
+
+   if (GetEnvironmentVariable(name, (LPSTR)&_key, 256)) {
+       rv = (char*)&_key;
+   }
+
+   return rv;
+}
+
+int
+aaxSetEnv(const char *name, const char *value, int overwrite)
+{
+   return (SetEnvironmentVariable(name, value) == 0) ? AAX_TRUE : AAX_FALSE;
+}
+
+int
+aaxUnsetEnv(const char *name)
+{
+   return (SetEnvironmentVariable(name, NULL) == 0) ? AAX_TRUE : AAX_FALSE;
+}
+#endif
+
