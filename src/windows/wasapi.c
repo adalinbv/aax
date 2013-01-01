@@ -591,6 +591,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    AUDCLNT_SHAREMODE mode;
    int co_init, frame_sz;
    int channels, bps;
+   WAVEFORMATEX *wfx;
    DWORD stream;
    HRESULT hr;
    float freq;
@@ -633,7 +634,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
    do
    {
-      WAVEFORMATEX *wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
       const WAVEFORMATEX *pfmt = &fmt.Format;
       WAVEFORMATEX **cfmt = NULL;
       float pitch;
@@ -646,11 +646,15 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
        * the IsFormatSupported call fails and wfx is non-NULL, the method sets
        * *wfx to NULL.
        */
-      if (handle->status & EXCLUSIVE_MODE_MASK) {
+      
+      if (handle->status & EXCLUSIVE_MODE_MASK)
+      {
+         wfx = NULL;
          mode = AUDCLNT_SHAREMODE_EXCLUSIVE;
       }
       else
       {
+         wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
          mode = AUDCLNT_SHAREMODE_SHARED;
          cfmt = &wfx;
       }
@@ -803,8 +807,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       }
   
       stream = 0;
-      freq = (float)handle->Fmt.Format.nSamplesPerSec;
-
       hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f*samples/freq);
       hnsPeriodicity = hnsBufferDuration;
 
@@ -897,7 +899,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          handle->status &= ~EXCLUSIVE_MODE_MASK;
          _AAX_DRVLOG(9, "wasapi: audio device in use, use shared mode");
       } 
-      else if (hr == S_OK) {
+      else { // if (hr == S_OK)
          break;
       }
 
@@ -908,13 +910,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
                                      CLSCTX_INPROC_SERVER, NULL,
                                      (void**)&handle->pAudioClient);
-      if (hr == S_OK)
-      {
-         hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
-         if (hr == S_OK) {
-            exToExtensible(&handle->Fmt, wfx, handle->setup);
-         }
-      }
+      hr = S_FALSE;
    }
    while (hr != S_OK);
 
