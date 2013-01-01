@@ -591,7 +591,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    AUDCLNT_SHAREMODE mode;
    int co_init, frame_sz;
    int channels, bps;
-   WAVEFORMATEX *wfx;
    DWORD stream;
    HRESULT hr;
    float freq;
@@ -634,6 +633,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
    do
    {
+      WAVEFORMATEX *wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
       const WAVEFORMATEX *pfmt = &fmt.Format;
       WAVEFORMATEX **cfmt = NULL;
       float pitch;
@@ -646,21 +646,15 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
        * the IsFormatSupported call fails and wfx is non-NULL, the method sets
        * *wfx to NULL.
        */
-      if (handle->status & EXCLUSIVE_MODE_MASK)
-      {
-         wfx = NULL;
+      if (handle->status & EXCLUSIVE_MODE_MASK) {
          mode = AUDCLNT_SHAREMODE_EXCLUSIVE;
       }
       else
       {
-         wfx = (WAVEFORMATEX*)&handle->Fmt.Format;
          mode = AUDCLNT_SHAREMODE_SHARED;
-      }
- 
-      if ((handle->status & EXCLUSIVE_MODE_MASK) == 0) {
          cfmt = &wfx;
       }
-   
+ 
       fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
       fmt.Format.nSamplesPerSec = (unsigned int)freq;
       fmt.Format.nChannels = channels;
@@ -907,9 +901,20 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          break;
       }
 
-      /* init failed, close the device and trye the new settings */
+      /* init failed, close and re-open the device and try the new settings */
       pIAudioClient_Release(handle->pAudioClient);
       handle->pAudioClient = NULL;
+
+      hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
+                                     CLSCTX_INPROC_SERVER, NULL,
+                                     (void**)&handle->pAudioClient);
+      if (hr == S_OK)
+      {
+         hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
+         if (hr == S_OK) {
+            exToExtensible(&handle->Fmt, wfx, handle->setup);
+         }
+      }
    }
    while (hr != S_OK);
 
