@@ -1109,6 +1109,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       fetch += roundf(handle->padding);
       if (fetch > no_frames) offs += no_frames - fetch;
 #if 0
+if (roundf(handle->padding))
 printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
 #endif
       /* try to keep the buffer padding at the threshold level at all times */
