@@ -47,6 +47,7 @@
 #define DRIVER_PAUSE_MASK	0x0004
 #define EXCLUSIVE_MODE_MASK	0x0008
 #define EVENT_DRIVEN_MASK	0x0010
+
 #define CO_INIT_MASK		0x0080
 
 // Testing purposes only!
@@ -170,13 +171,13 @@ typedef struct
 
    char *scratch;
    void *scratch_ptr;
-   unsigned int scratch_offs;	/* current offset in the scratch buffer */
-   unsigned int threshold;	/* sensor buffer threshold for padding  */
-   unsigned int packet_sz;
+   unsigned int scratch_offs;	/* current offset in the scratch buffer  */
+   unsigned int threshold;	/* sensor buffer threshold for padding   */
+   unsigned int packet_sz;	/* number of audio frames per time-frame */
 
-   float avail_padding;		/* calculated available no. frames      */
-   float avail_avg;		/* avg. no. frames per capture call     */
-   float padding;		/* for sensor clock drift correction    */
+   float avail_padding;		/* calculated available no. frames       */
+   float avail_avg;		/* avg. no. frames per capture call      */
+   float padding;		/* for sensor clock drift correction     */
 
 } _driver_t;
  
@@ -591,10 +592,10 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    AUDCLNT_SHAREMODE mode;
    int co_init, frame_sz;
    int channels, bps;
+   float freq, dt_ms;
    WAVEFORMATEX *wfx;
    DWORD stream;
    HRESULT hr;
-   float freq;
    int rv = AAX_FALSE;
 
    assert(handle);
@@ -606,10 +607,12 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
    /*
     * Adjust the number of samples to let the refresh rate be an
-    * exact and EVEN number of miliseconds (rounded upwards).
+    * exact and EVEN number of miliseconds (rounded upwards if smaler 
+    * than 10ms otherwise rounded downwards).
     */
-   samples = 2 + ((1000*samples/(unsigned int)freq) & 0xFFFFFFFE);
-   samples *= (unsigned int)freq/1000;
+   dt_ms = (float)((1000*samples/(unsigned int)freq) &  0xFFFFFFFE);
+   if (dt_ms < 10) dt_ms += 2;
+   samples = (unsigned int)(dt_ms*freq)/1000;
    /* refresh rate adjustement */
 
    channels = *tracks;
@@ -954,7 +957,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             periodFrameCnt = bufferFrameCnt;
          }
 
-         handle->buffer_frames = bufferFrameCnt;
+         handle->buffer_frames = 2*bufferFrameCnt;
 
          if (handle->Mode == eRender)
          {
@@ -998,7 +1001,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       if (hr == S_OK) {
          handle->hnsLatency = latency;
       }
-#if 1
+#if 0
  printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
  printf("- event driven: %i,", handle->status & EVENT_DRIVEN_MASK);
  printf(" exclusive: %i\n", handle->status & EXCLUSIVE_MODE_MASK);
@@ -1188,16 +1191,21 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       /* try to keep the buffer padding at the threshold level at all times */
       diff = handle->avail_avg - (float)no_frames;
-      handle->avail_padding = (handle->avail_padding + diff/(float)no_frames)/2;
-      fetch += roundf(handle->avail_padding);
+      handle->avail_padding += (diff - floorf(diff));
+      if (handle->avail_padding >= 0.5f)
+      {
+         int dval = _MIN(floorf(handle->avail_padding), 8);
+         handle->avail_padding -= dval;
+         fetch -= dval;
+      }
 
-      diff = (float)handle->scratch_offs - (float)handle->threshold;
+      diff = (float)handle->scratch_offs-(float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
       fetch += roundf(handle->padding);
       if (fetch > no_frames) offs += no_frames - fetch;
 #if 0
-if (roundf(handle->padding))
-printf("%4.2f (%3.2f), avail: %4i (th: %3i, d: %4.0f), avg: %5.2f, fetch: %3i (no: %3i)\n", handle->padding, handle->avail_padding, handle->scratch_offs, handle->threshold, diff, handle->avail_avg, fetch, no_frames);
+if (roundf(handle->avail_padding))
+printf("padding: %3.2f, avg: %3.2f\n", handle->padding, handle->avail_padding);
 #endif
       /* try to keep the buffer padding at the threshold level at all times */
 
@@ -1281,6 +1289,7 @@ printf("%4.2f (%3.2f), avail: %4i (th: %3i, d: %4.0f), avg: %5.2f, fetch: %3i (n
          _AAX_DRVLOG(5, "wasapi; not enough data available for capture");
 if (fetch > 1) {
 printf("fetch: %i, avail: %f, padding: %f, avail_padding: %f\n", fetch, handle->avail_avg, handle->padding,  handle->avail_padding);
+exit(-1);
 }
 // exit(-1);
       }
@@ -1705,7 +1714,7 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
    hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
    if (FAILED(hr)) return -1;
 
-   stdby_time = handle->hnsPeriod/(2*10000);
+   stdby_time = handle->hnsPeriod/10000;
    while (active)
    {
       DWORD res = WaitForSingleObject(handle->shutdown_event, stdby_time);
@@ -1797,7 +1806,9 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
             {
                total_avail -= avail;
                handle->scratch_offs -= avail;
-               _AAX_DRVLOG(6, "wasapi; capture buffer exhausted");
+               if (avail == handle->buffer_frames) {
+                  _AAX_DRVLOG(6, "wasapi; capture buffers exhausted");
+               }
             }
             else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
                _AAX_DRVLOG(9, "wasapi; error getting the buffer");
