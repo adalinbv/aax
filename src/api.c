@@ -182,10 +182,13 @@ _aaxProcessSetPriority(int prio)
 char*
 aaxGetEnv(const char*name)
 {
-   static char _key[256];
+   static char _key[256] = "";
    char *rv = NULL;
+   DWORD res, err;
 
-   if (GetEnvironmentVariable(name, (LPSTR)&_key, 256)) {
+   res = GetEnvironmentVariable(name, (LPSTR)&_key, 256);
+   err = GetLastError();
+   if (res || !err) {
        rv = (char*)&_key;
    }
 
