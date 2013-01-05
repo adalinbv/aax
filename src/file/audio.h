@@ -23,7 +23,7 @@ extern "C" {
 #include <base/dlsym.h>
 
 #ifdef WIN32
-# define WINXP
+// TODO: Needs fixing # define WINXP
 #endif
 
 #define _AAX_FILEDRVLOG(a)          _aaxFileDriverLog(a);
