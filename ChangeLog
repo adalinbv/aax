@@ -10,6 +10,10 @@
  * Fix LFO situations where changing the LFO values could become out of bounds.
  * Fix filters and effects for registered sensors.
  * Overhaul of the Windows backend en threads code.
+   - Run threads in normal priority again, no need for higher priority anymore.
+   - Fix a lot of corner case situations that failed before.
+   - Improve runtime performance conciderably.
+   - Fix registered sensors.
  * Allow sensors to be registered at subframes.
  * Expose the driver latency.
 
