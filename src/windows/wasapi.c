@@ -61,7 +61,7 @@
 #define DEFAULT_DEVNAME		NULL
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
 
-# define _AAX_DRVLOG(p, a)		_aaxWASAPIDriverLogPrio(p, a)
+# define _AAX_DRVLOG(p, a)		_aaxWASAPIDriverLogPrio(p, "wasapi; "a)
 # define _AAX_DRVLOG_VAR(p, args...)	_aaxWASAPIDriverLogVar(p, args);
 
 
@@ -373,12 +373,12 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          {
             if (i < _AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_DRVLOG(0, "wasapi; frequency too small.");
+               _AAX_DRVLOG(0, "frequency too small.");
                i = _AAX_MIN_MIXER_FREQUENCY;
             }
             else if (i > _AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_DRVLOG(0, "wasapi; frequency too large.");
+               _AAX_DRVLOG(0, "frequency too large.");
                i = _AAX_MAX_MIXER_FREQUENCY;
             }
             fmt.Format.nSamplesPerSec = i;
@@ -391,12 +391,12 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             {
                if (i < 1)
                {
-                  _AAX_DRVLOG(0, "wasapi; no. tracks too small.");
+                  _AAX_DRVLOG(0, "no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_DRVLOG(0, "wasapi; no. tracks too great.");
+                  _AAX_DRVLOG(0, "no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                fmt.Format.nChannels = i;
@@ -408,7 +408,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          {
             if (i != 16)
             {
-               _AAX_DRVLOG(0, "wasapi; unsopported bits-per-sample");
+               _AAX_DRVLOG(0, "unsopported bits-per-sample");
                i = 16;
             }
          }
@@ -483,7 +483,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
 
          if (hr != S_OK)
          {
-            _AAX_DRVLOG(10, "wasapi; failed to connect");
+            _AAX_DRVLOG(10, "failed to connect");
             pIMMDeviceEnumerator_Release(handle->pEnumerator);
             if (handle->status & CO_INIT_MASK) {
                pCoUninitialize();
@@ -516,7 +516,7 @@ _aaxWASAPIDriverDisconnect(void *id)
       {
          hr = pIAudioClient_Stop(handle->pAudioClient);
          if (FAILED(hr)) {
-            _AAX_DRVLOG(5, "wasapi; unable to stop the audio client");
+            _AAX_DRVLOG(5, "unable to stop the audio client");
          } else {
             pIAudioClient_Reset(handle->pAudioClient);
             handle->status |= CAPTURE_INIT_MASK;
@@ -605,6 +605,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       samples = *frames;
    }
 
+#if 0
    /*
     * Adjust the number of samples to let the refresh rate be an
     * exact and EVEN number of miliseconds (rounded upwards if smaler 
@@ -614,17 +615,20 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    if (dt_ms < 10) dt_ms += 2;
    samples = (unsigned int)(dt_ms*freq)/1000;
    /* refresh rate adjustement */
+#endif
 
    channels = *tracks;
    if (channels > handle->Fmt.Format.nChannels) {
       channels = handle->Fmt.Format.nChannels;
    }
+#if 0
    if (channels > 2) // TODO: for now
    {
       _AAX_DRVLOG_VAR(5, "wasapi; Unable to output to %i speakers in "
                       "this setup (2 is the maximum)", *tracks);
       return AAX_FALSE;
    }
+#endif
 
    bps = aaxGetBytesPerSample(*format);
    frame_sz = channels * bps;
@@ -684,7 +688,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
           */
          if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT)
          {
-            _AAX_DRVLOG(5, "wasapi; no device format found, trying mixer format");
+            _AAX_DRVLOG(5, "no device format found, trying mixer format");
             hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
             if (hr == S_OK)
             {
@@ -700,7 +704,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          if ((hr != S_OK) && (handle->Mode == eRender)
              && (handle->status & EXCLUSIVE_MODE_MASK))
          {
-            _AAX_DRVLOG(8, "wasapi; failed in exclusive mode, trying shared");
+            _AAX_DRVLOG(8, "failed in exclusive mode, trying shared");
             handle->status &= ~EXCLUSIVE_MODE_MASK;
 
             wfx = &handle->Fmt.Format;
@@ -711,19 +715,19 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          }
          else
          {
-            _AAX_DRVLOG(10, "wasapi; unable to get a proper audio  format");
+            _AAX_DRVLOG(10, "unable to get a proper audio  format");
             goto ExitSetup;
          }
 
          if (hr != S_OK) 
          {
-            _AAX_DRVLOG(5, "wasapi; no device format found, trying mixer format");
+            _AAX_DRVLOG(5, "no device format found, trying mixer format");
             hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfx);
          }
 
          if (hr != S_OK)
          {
-            _AAX_DRVLOG(10, "wasapi; unable to get a proper mixer format");
+            _AAX_DRVLOG(10, "unable to get a proper mixer format");
             goto ExitSetup;
          }
       }
@@ -742,7 +746,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          }
       }
       else {
-         _AAX_DRVLOG(10, "wasapi; uncaught format error");
+         _AAX_DRVLOG(10, "uncaught format error");
       }
 
       pitch = handle->Fmt.Format.nSamplesPerSec / freq;
@@ -783,7 +787,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          handle->cvt_from_intl = _batch_cvt24_8_intl;
          break;
       default:
-         _AAX_DRVLOG(10, "wasapi; error: hardware format mismatch!\n");
+         _AAX_DRVLOG(10, "error: hardware format mismatch!\n");
          break;
       }
 
@@ -841,11 +845,11 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             hnsBufferDuration = hnsPeriodicity;
          }
       }
-      else /* timer driver, w. 1ms accuracy */
+      else /* timer driven, w. 1ms accuracy */
       {
          if (handle->Mode == eRender)
          {
-            hnsBufferDuration /= 10000;	/* whole ms periods */
+            hnsBufferDuration /= 10000;	/* exact ms periods */
             hnsBufferDuration *= 10000*PLAYBACK_PERIODS;
          }
          else {
@@ -884,23 +888,23 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          if (handle->status & EXCLUSIVE_MODE_MASK)
          {
             handle->status &= ~EXCLUSIVE_MODE_MASK;
-            _AAX_DRVLOG(8, "wasapi: exclusive mode failed, trying shared mode");
+            _AAX_DRVLOG(8, "exclusive mode failed, trying shared mode");
          }
          else if (handle->status & EVENT_DRIVEN_MASK)
          {
             handle->status &= ~EVENT_DRIVEN_MASK;
-            _AAX_DRVLOG(9, "wasapi: event driven unsupported, trying timer mode");
+            _AAX_DRVLOG(9, "event driven mode failed, using timer mode");
          }
          else
          {
-            _AAX_DRVLOG(9, "wasapi: Init returned invalid argument");
+            _AAX_DRVLOG(9, "Init returned invalid argument");
             break;
          }
       }
       else if (hr == AUDCLNT_E_DEVICE_IN_USE)
       {
          handle->status &= ~EXCLUSIVE_MODE_MASK;
-         _AAX_DRVLOG(9, "wasapi: audio device in use, use shared mode");
+         _AAX_DRVLOG(9, "audio device in use, use shared mode");
       } 
       else { // if (hr == S_OK)
          break;
@@ -943,7 +947,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          }
       }
       else {
-         _AAX_DRVLOG(5, "wasapi; unable to get period size");
+         _AAX_DRVLOG(5, "unable to get period size");
       }
 
       /* get the actual buffer size */
@@ -953,7 +957,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          int periods = rintf((float)bufferFrameCnt/(float)periodFrameCnt);
          if (periods < 1)
          {
-            _AAX_DRVLOG(0, "wasapi; too small no. periods returned");
+            _AAX_DRVLOG(0, "too small no. periods returned");
             periodFrameCnt = bufferFrameCnt;
          }
 
@@ -969,7 +973,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          else /* handle->Mode == eCapture */
          {
             *frames = samples;
-            handle->threshold = 5*samples/4;	// same as the ALSA backend
+            handle->threshold = 5*samples/4; 	// same as ALSA
             handle->hnsPeriod = hnsPeriodicity;
             handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
             handle->avail_avg = (float)samples;
@@ -990,11 +994,11 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             rv = AAX_TRUE;
          }
          else {
-            _AAX_DRVLOG(10, "wasapi; faild to allocate the audio service");
+            _AAX_DRVLOG(10, "faild to allocate the audio service");
          }
       }
       else {
-         _AAX_DRVLOG(10, "wasapi; unable to set device buffer size");
+         _AAX_DRVLOG(10, "unable to set device buffer size");
       }
 
       hr = pIAudioClient_GetStreamLatency(handle->pAudioClient, &latency);
@@ -1022,7 +1026,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 #endif
    }
    else {
-      _AAX_DRVLOG(10, "wasapi; failed to initialize");
+      _AAX_DRVLOG(10, "failed to initialize");
    }
 
 ExitSetup:
@@ -1098,7 +1102,7 @@ _aaxWASAPIDriverResume(const void *id)
             cb = (LPTHREAD_START_ROUTINE)&_aaxWASAPIDriverCaptureThread;
             handle->thread = CreateThread(NULL, 0, cb, (LPVOID)handle, 0, NULL);
             if (handle->thread == 0) {
-               _AAX_DRVLOG(10, "wasapi; unable to create a capture thread");
+               _AAX_DRVLOG(10, "unable to create a capture thread");
             }
          }
 #endif
@@ -1110,7 +1114,7 @@ _aaxWASAPIDriverResume(const void *id)
             rv = AAX_TRUE;
          }
          else {
-            _AAX_DRVLOG(10, "wasapi; failed to resume playback");
+            _AAX_DRVLOG(10, "failed to resume playback");
          }
       } else {
          rv = AAX_TRUE;
@@ -1191,21 +1195,31 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       /* try to keep the buffer padding at the threshold level at all times */
       diff = handle->avail_avg - (float)no_frames;
+#if 0
+      handle->avail_padding += (diff - truncf(diff));
+      if (fabs(handle->avail_padding) >= 1.0f)
+      {
+         int dval = _MINMAX(truncf(handle->avail_padding), -1, 1);
+         handle->avail_padding -= dval;
+         fetch -= dval;
+      }
+#else
       handle->avail_padding += (diff - floorf(diff));
       if (handle->avail_padding >= 0.5f)
       {
-         int dval = _MIN(floorf(handle->avail_padding), 8);
+         int dval = floorf(handle->avail_padding);
          handle->avail_padding -= dval;
          fetch -= dval;
       }
 
-      diff = (float)handle->scratch_offs-(float)handle->threshold;
+      diff = (float)handle->scratch_offs - (float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
-      fetch += roundf(handle->padding);
+      fetch += _MINMAX(roundf(handle->padding), -1, 1);
+#endif
       if (fetch > no_frames) offs += no_frames - fetch;
 #if 0
-if (roundf(handle->avail_padding))
-printf("padding: %3.2f, avg: %3.2f\n", handle->padding, handle->avail_padding);
+if (roundf(handle->padding))
+printf("padding: %f, offs: %i\n", handle->padding, handle->scratch_offs);
 #endif
       /* try to keep the buffer padding at the threshold level at all times */
 
@@ -1253,9 +1267,10 @@ printf("padding: %3.2f, avg: %3.2f\n", handle->padding, handle->avail_padding);
       else
       {			/* if there's room for other packets, fetch them */
          _aaxWASAPIDriverCaptureFromHardware(handle);
+#if 0
          if (handle->status & CAPTURE_INIT_MASK)
          {
-            unsigned int keep = no_frames + handle->threshold;
+            unsigned int keep = 0; // no_frames + handle->threshold;
             if (handle->scratch_offs > keep)
             {
                size_t offset = handle->scratch_offs - keep;
@@ -1265,6 +1280,8 @@ printf("padding: %3.2f, avg: %3.2f\n", handle->padding, handle->avail_padding);
             }
             handle->status &= ~CAPTURE_INIT_MASK;
          }
+         else
+#endif
 
          /* copy (remaining) data from the buffer if required  */
          if (fetch && handle->scratch_offs)
@@ -1282,11 +1299,26 @@ printf("padding: %3.2f, avg: %3.2f\n", handle->padding, handle->avail_padding);
                        handle->scratch_offs*frame_sz);
             }
          }
+
+#if 1
+         if (handle->status & CAPTURE_INIT_MASK)
+         {
+            unsigned int keep = no_frames + handle->threshold;
+            if (handle->scratch_offs > keep)
+            {
+               size_t offset = 0; //  handle->scratch_offs - keep;
+
+               memmove(handle->scratch, handle->scratch+offset, keep*frame_sz);
+               handle->scratch_offs -= offset;
+            }
+            handle->status &= ~CAPTURE_INIT_MASK;
+         }
+#endif
       }
 
       if (fetch)
       {
-         _AAX_DRVLOG(5, "wasapi; not enough data available for capture");
+         _AAX_DRVLOG(5, "not enough data available for capture");
 if (fetch > 1) {
 printf("fetch: %i, avail: %f, padding: %f, avail_padding: %f\n", fetch, handle->avail_avg, handle->padding,  handle->avail_padding);
 exit(-1);
@@ -1374,11 +1406,11 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
             hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
                                                 frames, 0);
             if (hr != S_OK) {
-               _AAX_DRVLOG(8, "wasapi; failed to release the buffer");
+               _AAX_DRVLOG(8, "failed to release the buffer");
             }
          }
          else {
-            _AAX_DRVLOG(8, "wasapi; failed to get the buffer");
+            _AAX_DRVLOG(8, "failed to get the buffer");
          }
       }
    }
@@ -1807,27 +1839,27 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
                total_avail -= avail;
                handle->scratch_offs -= avail;
                if (avail == handle->buffer_frames) {
-                  _AAX_DRVLOG(6, "wasapi; capture buffers exhausted");
+                  _AAX_DRVLOG(6, "capture buffers exhausted");
                }
             }
             else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
-               _AAX_DRVLOG(9, "wasapi; error getting the buffer");
+               _AAX_DRVLOG(9, "error getting the buffer");
             }
          }
 
          if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-            _AAX_DRVLOG(3, "wasapi; data discontinuity");
+            _AAX_DRVLOG(3, "data discontinuity");
          }
 
          /* release the original packet size or 0 */
          res = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
                                                   packet_sz);
          if (FAILED(res)) {
-            _AAX_DRVLOG(5, "wasapi; error releasing the buffer");
+            _AAX_DRVLOG(5, "error releasing the buffer");
          }
       }
       else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
-         _AAX_DRVLOG(9, "wasapi; error getting the buffer");
+         _AAX_DRVLOG(9, "error getting the buffer");
       }
       else if (cnt--)	/* hr == AUDCLNT_S_BUFFER_EMPTY */
       {
@@ -2142,7 +2174,7 @@ _aaxWASAPIDriverThread(void* config)
                                           be_handle->Event);
       }
       else {
-         _AAX_DRVLOG(10, "wasapi; unable to create audio event");
+         _AAX_DRVLOG(10, "unable to create audio event");
       }
    }
    else				/* timer driven, creat a periodic timer */
@@ -2161,11 +2193,11 @@ _aaxWASAPIDriverThread(void* config)
          else hr = S_FALSE;
       }
       else {
-         _AAX_DRVLOG(10, "wasapi; unable to create event timer");
+         _AAX_DRVLOG(10, "unable to create event timer");
       }
    }
    if (!be_handle->Event || FAILED(hr)) {
-      _AAX_DRVLOG(8, "wasapi; unable to set up the event handler");
+      _AAX_DRVLOG(8, "unable to set up the event handler");
    }
 
    /* playback loop */
@@ -2182,13 +2214,13 @@ _aaxWASAPIDriverThread(void* config)
             break;
          case WAIT_TIMEOUT:	/* wait timed out      */
             if ((be_handle->status & DRIVER_INIT_MASK) == 0) {
-               _AAX_DRVLOG(5, "wasapi; event timeout");
+               _AAX_DRVLOG(5, "event timeout");
             }
             break;
          case WAIT_ABANDONED:
          case WAIT_FAILED:
          default:
-            _AAX_DRVLOG(7, "wasapi; wait for even failed");
+            _AAX_DRVLOG(7, "wait for even failed");
             break;
          }
       }
@@ -2315,7 +2347,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
    }
    else
    {
-      _AAX_DRVLOG(4, "wasapi; usupported format requested");
+      _AAX_DRVLOG(4, "usupported format requested");
       rv = AAX_FALSE;
    }
 
@@ -2342,7 +2374,7 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
    case 2:
       break;
    default:
-      _AAX_DRVLOG(4, "wasapi; usupported no. tracks requested");
+      _AAX_DRVLOG(4, "usupported no. tracks requested");
       break;
    }
    return rv;
