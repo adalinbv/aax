@@ -1472,8 +1472,7 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
       m = mode > 0 ? 1 : 0;
       ptr = (char *)&names[m];
       hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
-                                     DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
-                                                   &collection);
+                                             DEVICE_STATEMASK_ALL, &collection);
       if (FAILED(hr)) goto ExitGetDevices;
 
       hr = pIMMDeviceCollection_GetCount(collection, &count);
@@ -1583,8 +1582,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
 
          ptr = interfaces;
          hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
-                                     DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
-                                                      &collection);
+                                             DEVICE_STATEMASK_ALL, &collection);
          if (hr != S_OK) goto ExitGetInterfaces;
 
          hr = pIMMDeviceCollection_GetCount(collection, &count);
@@ -1687,14 +1685,14 @@ ExitGetInterfaces:
 static char *
 _aaxWASAPIDriverLogVar(int prio, const char *fmt, ...)
 {
-   char _errstr[1024];
+   static char _errstr[1024];
    va_list ap;
 
    _errstr[0] = '\0';
    va_start(ap, fmt);
    vsnprintf(_errstr, 1024, fmt, ap);
 
-   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   /* always add a null-termination */
    _errstr[1023] = '\0';
    va_end(ap);
 
@@ -1908,6 +1906,7 @@ displayError(LPTSTR lpszFunction)
 }
 #endif
 
+/* turn "<device>: <interface>" back into "<interface> (<device>)" */
 static const char *
 aaxNametoMMDevciceName(const char *devname)
 {
@@ -1928,6 +1927,7 @@ aaxNametoMMDevciceName(const char *devname)
    return (const char*)&rv;
 }
 
+/* turn "<interface> (<device>)" into "<device>: <interface>" */
 static char*
 _aaxMMDeviceNameToName(char *devname)
 {
@@ -1944,10 +1944,10 @@ _aaxMMDeviceNameToName(char *devname)
          unsigned int len;
 
          *ptr = 0;
-         ptr += 2;
+         ptr += 2;			/* skip " ("         */
 
          len = strlen(ptr);
-         *(ptr+len-1) = 0;
+         *(ptr+len-1) = 0;		/* don't include ')' */
 
          len = strlen(devname);
          snprintf(devname, len, "%s: %s", ptr, dev);
