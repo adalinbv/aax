@@ -1195,15 +1195,6 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       /* try to keep the buffer padding at the threshold level at all times */
       diff = handle->avail_avg - (float)no_frames;
-#if 0
-      handle->avail_padding += (diff - truncf(diff));
-      if (fabs(handle->avail_padding) >= 1.0f)
-      {
-         int dval = _MINMAX(truncf(handle->avail_padding), -1, 1);
-         handle->avail_padding -= dval;
-         fetch -= dval;
-      }
-#else
       handle->avail_padding += (diff - floorf(diff));
       if (handle->avail_padding >= 0.5f)
       {
@@ -1212,10 +1203,11 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
          fetch -= dval;
       }
 
+# if 1
       diff = (float)handle->scratch_offs - (float)handle->threshold;
-      handle->padding = (handle->padding + diff/(float)no_frames)/2;
+      handle->padding = 0.75f*handle->padding + 0.25f*diff/(float)no_frames;
       fetch += _MINMAX(roundf(handle->padding), -1, 1);
-#endif
+# endif
       if (fetch > no_frames) offs += no_frames - fetch;
 #if 0
 if (roundf(handle->padding))
@@ -1472,7 +1464,8 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
       m = mode > 0 ? 1 : 0;
       ptr = (char *)&names[m];
       hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
-                                             DEVICE_STATEMASK_ALL, &collection);
+                                     DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
+                                     &collection);
       if (FAILED(hr)) goto ExitGetDevices;
 
       hr = pIMMDeviceCollection_GetCount(collection, &count);
@@ -1503,8 +1496,7 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
 
          slen = len;
          devname = wcharToChar(ptr, &slen, name.pwszVal);
-         /* namedoesn't match  with previous device */
-         if (devname && strcmp(devname, ptr))
+         if (devname)
          {
             slen++;
             len -= slen;
@@ -1582,7 +1574,8 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
 
          ptr = interfaces;
          hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
-                                             DEVICE_STATEMASK_ALL, &collection);
+                                     DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
+                                     &collection);
          if (hr != S_OK) goto ExitGetInterfaces;
 
          hr = pIMMDeviceCollection_GetCount(collection, &count);
@@ -2045,8 +2038,8 @@ name_to_id(const WCHAR* dname, unsigned char m)
                           (void**)&enumerator);
    if (hr == S_OK) {
       hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
-                                                   DEVICE_STATE_ACTIVE,
-                                                   &collection);
+                                     DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
+                                     &collection);
    }
 
    if (hr == S_OK)
