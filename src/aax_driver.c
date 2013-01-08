@@ -1083,13 +1083,16 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 
             for (i=0; i<config->no_nodes; i++)
             {
-               snprintf(buf,1024,"output[%i]: '%s'\n", i, config->node[i].devname);
-              _AAX_SYSLOG(buf);
-
-               snprintf(buf,1024,"setup: %s\n", (handle->info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
+               snprintf(buf,1024,"config file; settings:");
                _AAX_SYSLOG(buf);
 
-               snprintf(buf,1024,"frequency: %5.1f, interval: %5.1f\n",
+               snprintf(buf,1024,"  output[%i]: '%s'\n", i, config->node[i].devname);
+              _AAX_SYSLOG(buf);
+
+               snprintf(buf,1024,"  setup: %s\n", (handle->info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
+               _AAX_SYSLOG(buf);
+
+               snprintf(buf,1024,"  frequency: %5.1f, interval: %5.1f\n",
                         handle->info->frequency, handle->info->refresh_rate);
                _AAX_SYSLOG(buf);
             }
@@ -1100,7 +1103,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                _aaxDriverBackend *be = _aaxGetDriverBackendByPos(backends, i);
                if (be)
                {
-                  snprintf(buf,1024,"backend[%i]: '%s'\n", i, be->driver);
+                  snprintf(buf,1024,"  backend[%i]: '%s'\n", i, be->driver);
                   _AAX_SYSLOG(buf);
                }
             }
