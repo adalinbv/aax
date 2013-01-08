@@ -262,10 +262,6 @@ static DWORD _aaxWASAPIDriverCaptureThread(LPVOID);
 # define UINT64_MAX		(18446744073709551615ULL)
 #endif
 
-#if 0
-static void displayError(LPTSTR);
-#endif
-
 static int
 _aaxWASAPIDriverDetect(int mode)
 {
@@ -621,14 +617,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    if (channels > handle->Fmt.Format.nChannels) {
       channels = handle->Fmt.Format.nChannels;
    }
-#if 0
-   if (channels > 2) // TODO: for now
-   {
-      _AAX_DRVLOG_VAR(5, "wasapi; Unable to output to %i speakers in "
-                      "this setup (2 is the maximum)", *tracks);
-      return AAX_FALSE;
-   }
-#endif
 
    bps = aaxGetBytesPerSample(*format);
    frame_sz = channels * bps;
@@ -817,18 +805,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f*samples/freq);
       hnsPeriodicity = hnsBufferDuration;
 
-#if 0
-# if USE_CAPTURE_THREAD
-# else
-      if (handle->Mode == eCapture)
-      {			/* use the minimum EVEN period size for capturing */
-         hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, NULL,
-                                            &hnsPeriodicity);
-//       hnsPeriodicity = (((hnsPeriodicity/10000) & 0xFFFFFFFE) + 2) * 10000;
-      }
-# endif
-#endif
-
       if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
          hnsBufferDuration = 3*hnsBufferDuration/2;
       }
@@ -960,6 +936,9 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             _AAX_DRVLOG(0, "too small no. periods returned");
             periodFrameCnt = bufferFrameCnt;
          }
+//       else if (periods > 3) {
+//          bufferFrameCnt = 3*periodFrameCnt;
+//       }
 
          handle->buffer_frames = 2*bufferFrameCnt;
 
@@ -1191,6 +1170,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
    {
       unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
       unsigned int fetch = no_frames;
+      int padding = 0;
       float diff;
 
       /* try to keep the buffer padding at the threshold level at all times */
@@ -1200,19 +1180,15 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       {
          int dval = floorf(handle->avail_padding);
          handle->avail_padding -= dval;
-         fetch -= dval;
+         padding -= dval;
       }
 
-# if 1
       diff = (float)handle->scratch_offs - (float)handle->threshold;
-      handle->padding = 0.75f*handle->padding + 0.25f*diff/(float)no_frames;
-      fetch += _MINMAX(roundf(handle->padding), -1, 1);
-# endif
+      handle->padding = 0.9f*handle->padding + 0.1f*diff/(float)no_frames;
+      padding += roundf(handle->padding);
+
+      fetch += _MINMAX(padding, -1, 1);
       if (fetch > no_frames) offs += no_frames - fetch;
-#if 0
-if (roundf(handle->padding))
-printf("padding: %f, offs: %i\n", handle->padding, handle->scratch_offs);
-#endif
       /* try to keep the buffer padding at the threshold level at all times */
 
       if (handle->thread) 			/* Lock the mutex */
@@ -1259,21 +1235,6 @@ printf("padding: %f, offs: %i\n", handle->padding, handle->scratch_offs);
       else
       {			/* if there's room for other packets, fetch them */
          _aaxWASAPIDriverCaptureFromHardware(handle);
-#if 0
-         if (handle->status & CAPTURE_INIT_MASK)
-         {
-            unsigned int keep = 0; // no_frames + handle->threshold;
-            if (handle->scratch_offs > keep)
-            {
-               size_t offset = handle->scratch_offs - keep;
-
-               memmove(handle->scratch, handle->scratch+offset, keep*frame_sz);
-               handle->scratch_offs -= offset;
-            }
-            handle->status &= ~CAPTURE_INIT_MASK;
-         }
-         else
-#endif
 
          /* copy (remaining) data from the buffer if required  */
          if (fetch && handle->scratch_offs)
@@ -1292,7 +1253,6 @@ printf("padding: %f, offs: %i\n", handle->padding, handle->scratch_offs);
             }
          }
 
-#if 1
          if (handle->status & CAPTURE_INIT_MASK)
          {
             unsigned int keep = no_frames + handle->threshold;
@@ -1305,7 +1265,6 @@ printf("padding: %f, offs: %i\n", handle->padding, handle->scratch_offs);
             }
             handle->status &= ~CAPTURE_INIT_MASK;
          }
-#endif
       }
 
       if (fetch)
@@ -1313,9 +1272,8 @@ printf("padding: %f, offs: %i\n", handle->padding, handle->scratch_offs);
          _AAX_DRVLOG(5, "not enough data available for capture");
 if (fetch > 1) {
 printf("fetch: %i, avail: %f, padding: %f, avail_padding: %f\n", fetch, handle->avail_avg, handle->padding,  handle->avail_padding);
-exit(-1);
-}
 // exit(-1);
+}
       }
 
       *req_frames -= fetch;
@@ -1762,13 +1720,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
    unsigned int total_avail = 0;
    unsigned int packet_cnt = 0;
    unsigned int packet_sz = 0;
-   unsigned int cnt;		// max. 3 times which equals to 3ms
    HRESULT hr;
-
-#if 0
-   if (handle->thread) cnt = 1;
-   else cnt = 3;
-#endif
 
    /*
     * During each GetBuffer call, the caller must either obtain the
@@ -1825,7 +1777,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
          else
          {
             packet_sz = 0;
-            if (handle->scratch_offs > handle->buffer_frames)
+            if (handle->scratch_offs >= handle->buffer_frames)
             {
                total_avail -= avail;
                handle->scratch_offs -= avail;
@@ -1852,52 +1804,13 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
       else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
          _AAX_DRVLOG(9, "error getting the buffer");
       }
-      else if (cnt--)	/* hr == AUDCLNT_S_BUFFER_EMPTY */
-      {
-         hr = S_OK;
-         msecSleep(1);
-      }
-      else break;
    }
-   while (packet_sz && (hr == S_OK));
+   while (0);
 
    handle->avail_avg = (0.98f*handle->avail_avg + 0.02f*total_avail);
 
    return hr;
 }
-
-
-
-#if 0
-static void
-displayError(LPTSTR lpszFunction) 
-{ 
-   LPVOID lpMsgBuf;
-   LPVOID lpDisplayBuf;
-   DWORD dw = GetLastError(); 
-
-   FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-        FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        dw,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,
-        0, NULL );
-
-   lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
-        (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR)); 
-   StringCchPrintf((LPTSTR)lpDisplayBuf, 
-        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
-        TEXT("%s failed with error %d: %s"), 
-        lpszFunction, dw, lpMsgBuf); 
-   MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
-
-   LocalFree(lpMsgBuf);
-   LocalFree(lpDisplayBuf);
-}
-#endif
 
 /* turn "<device>: <interface>" back into "<interface> (<device>)" */
 static const char *
