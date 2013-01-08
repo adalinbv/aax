@@ -783,8 +783,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          {
             do
             {
-               channels -= 2;
-               if ((int)channels < 2) break;
+               if (channels > 2) {
+                  channels -= 2;
+               } else {
+                  channels--;
+               }
+               if (channels == 0) break;
 
                err = psnd_pcm_hw_params_test_channels(hid, hwparams, channels);
             }
