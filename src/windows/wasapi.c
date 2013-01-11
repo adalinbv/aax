@@ -169,9 +169,6 @@ typedef struct
    unsigned int scratch_offs;	/* current offset in the scratch buffer  */
    unsigned int threshold;	/* sensor buffer threshold for padding   */
    unsigned int packet_sz;	/* number of audio frames per time-frame */
-
-   float avail_padding;		/* calculated available no. frames       */
-   float avail_avg;		/* avg. no. frames per capture call      */
    float padding;		/* for sensor clock drift correction     */
 
 } _driver_t;
@@ -573,10 +570,10 @@ static int
 _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
                    unsigned int *tracks, float *speed)
 {
+   unsigned int sample_frames = 1024;
    _driver_t *handle = (_driver_t *)id;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
-   unsigned int samples = 1024;
    WAVEFORMATEXTENSIBLE fmt;
    AUDCLNT_SHAREMODE mode;
    int co_init, frame_sz;
@@ -591,7 +588,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
    freq = (float)*speed;
    if (frames && *frames) {
-      samples = *frames;
+      sample_frames = *frames;
    }
 
    channels = *tracks;
@@ -721,7 +718,11 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       pitch = handle->Fmt.Format.nSamplesPerSec / freq;
       freq = (float)handle->Fmt.Format.nSamplesPerSec;
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
-      *tracks = handle->Fmt.Format.nChannels;
+      if (handle->Mode == eRender) {
+         *tracks = handle->Fmt.Format.nChannels;
+      } else {
+         *tracks = 2;
+      }
 
       switch (handle->Fmt.Format.wBitsPerSample)
       {
@@ -775,15 +776,15 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
        * on the method determines how large a buffer to allocate based on the
        * scheduling period of the audio engine.
        */
-      samples = (int)ceilf(samples*pitch);
-      if (samples & 0xF)
+      sample_frames = (int)ceilf(sample_frames*pitch);
+      if (sample_frames & 0xF)
       {
-         samples |= 0xF;
-         samples++;
+         sample_frames |= 0xF;
+         sample_frames++;
       }
   
       stream = 0;
-      hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f*samples/freq);
+      hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f*sample_frames/freq);
       hnsPeriodicity = hnsBufferDuration;
 
       if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
@@ -896,7 +897,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
        */
       hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, &defPeriod,
                                                                &minPeriod);
-      periodFrameCnt = samples;
+      periodFrameCnt = sample_frames;
       if (hr == S_OK)
       {
          if ((handle->status & EXCLUSIVE_MODE_MASK) == 0) {
@@ -917,12 +918,8 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
             _AAX_DRVLOG(0, "too small no. periods returned");
             periodFrameCnt = bufferFrameCnt;
          }
-//       else if (periods > 3) {
-//          bufferFrameCnt = 3*periodFrameCnt;
-//       }
 
          handle->buffer_frames = 2*bufferFrameCnt;
-
          if (handle->Mode == eRender)
          {
             *frames = periodFrameCnt;
@@ -932,11 +929,10 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          }
          else /* handle->Mode == eCapture */
          {
-            *frames = samples;
-            handle->threshold = 5*samples/4; 	// same as ALSA
+            *frames = sample_frames;
+            handle->threshold = 3*sample_frames/2;
             handle->hnsPeriod = hnsPeriodicity;
             handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
-            handle->avail_avg = (float)samples;
 
             hr = pIAudioClient_GetService(handle->pAudioClient,
                                           pIID_IAudioCaptureClient,
@@ -1112,93 +1108,55 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       return _aaxWASAPIDriverResume(handle);
    }
 
+
    if (data && handle->scratch_ptr)
    {
       unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
+      unsigned int tracks = handle->Fmt.Format.nChannels;
       unsigned int fetch = no_frames;
-      int padding = 0;
       float diff;
 
       /* try to keep the buffer padding at the threshold level at all times */
-      diff = handle->avail_avg - (float)no_frames;
-      handle->avail_padding += (diff - floorf(diff));
-      if (handle->avail_padding >= 0.5f)
-      {
-         int dval = floorf(handle->avail_padding);
-         handle->avail_padding -= dval;
-         padding -= dval;
-      }
-
-      diff = (float)handle->scratch_offs - (float)handle->threshold;
-      handle->padding = 0.9f*handle->padding + 0.1f*diff/(float)no_frames;
-      padding += roundf(handle->padding);
-
-      fetch += _MINMAX(padding, -1, 1);
+      diff = (float)handle->scratch_offs-(float)handle->threshold;
+      handle->padding = (handle->padding + diff/(float)no_frames)/2;
+      fetch += roundf(handle->padding);
       if (fetch > no_frames) offs += no_frames - fetch;
       /* try to keep the buffer padding at the threshold level at all times */
 
-      /* copy data from the buffer if available */
-      if (handle->scratch_offs)
+      /* if there's room for other packets, fetch them */
+      _aaxWASAPIDriverCaptureFromHardware(handle);
+
+      /* copy data from the buffer */
+      if (fetch && handle->scratch_offs)
       {
-         unsigned int cvt_frames = _MIN(handle->scratch_offs, fetch);
+         unsigned int avail = _MIN(handle->scratch_offs, fetch);
          int32_t **ptr = (int32_t**)data;
 
-         
-         handle->cvt_from_intl(ptr, handle->scratch, offs, 2, cvt_frames);
-         handle->scratch_offs -= cvt_frames;
-         fetch -= cvt_frames;
-         offs += cvt_frames;
+         handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
+         handle->scratch_offs -= avail;
+         fetch -= avail;
 
          if (handle->scratch_offs)
          {
-            memmove(handle->scratch, handle->scratch + cvt_frames*frame_sz,
+            memmove(handle->scratch, handle->scratch + avail*frame_sz,
                     handle->scratch_offs*frame_sz);
          }
       }
 
-      do
-      {			/* if there's room for other packets, fetch them */
-         _aaxWASAPIDriverCaptureFromHardware(handle);
-
-         /* copy (remaining) data from the buffer if required  */
-         if (fetch && handle->scratch_offs)
-         {
-            unsigned int avail = _MIN(handle->scratch_offs, fetch);
-            int32_t **ptr = (int32_t**)data;
-
-            handle->cvt_from_intl(ptr, handle->scratch, offs, 2, avail);
-            handle->scratch_offs -= avail;
-            fetch -= avail;
-
-            if (handle->scratch_offs)
-            {
-               memmove(handle->scratch, handle->scratch + avail*frame_sz,
-                       handle->scratch_offs*frame_sz);
-            }
+      if (handle->status & CAPTURE_INIT_MASK)
+      {			// synchronize capture with playback for low latency.
+         unsigned int keep = no_frames + handle->threshold;
+         if (handle->scratch_offs > keep) {
+            memmove(handle->scratch, handle->scratch, keep*frame_sz);
          }
-
-         if (handle->status & CAPTURE_INIT_MASK)
-         {
-            unsigned int keep = no_frames + handle->threshold;
-            if (handle->scratch_offs > keep)
-            {
-               size_t offset = 0; //  handle->scratch_offs - keep;
-
-               memmove(handle->scratch, handle->scratch+offset, keep*frame_sz);
-               handle->scratch_offs -= offset;
-            }
-            handle->status &= ~CAPTURE_INIT_MASK;
-         }
-      }
-      while (0);
+         handle->status &= ~CAPTURE_INIT_MASK;
+     }
 
       if (fetch)
       {
          _AAX_DRVLOG(5, "not enough data available for capture");
-if (fetch > 1) {
-printf("fetch: %i, avail: %f, padding: %f, avail_padding: %f\n", fetch, handle->avail_avg, handle->padding,  handle->avail_padding);
+printf("fetch: %i, padding: %f\n", fetch, handle->padding);
 // exit(-1);
-}
       }
 
       *req_frames -= fetch;
@@ -1610,9 +1568,11 @@ _aaxWASAPIDriverLog(const char *str)
 static int
 _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
 {
-   unsigned int total_avail = 0;
    unsigned int packet_cnt = 0;
    unsigned int packet_sz = 0;
+   UINT32 avail = 0;
+   BYTE* buf = NULL;
+   DWORD flags = 0;
    HRESULT hr;
 
    /*
@@ -1627,72 +1587,60 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
     *   The call succeeded and 'avail' is 0, indicating
     *   that no capture data is available to be read.
     */
-   do
-   {
-      UINT32 avail = 0;
-      BYTE* buf = NULL;
-      DWORD flags = 0;
+   packet_sz = avail = 0;
+   hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
+                                       &avail, &flags, NULL, NULL);
+   if (SUCCEEDED(hr))
+   {                                /* there is data available */
+      HRESULT res;
 
-      packet_sz = avail = 0;
-      hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
-                                          &avail, &flags, NULL, NULL);
-      if (SUCCEEDED(hr))
-      {                                /* there is data available */
-         HRESULT res;
-
-         packet_sz = avail;
-         handle->scratch_offs += avail;
-         total_avail += avail;
-         if ((hr == S_OK) && (handle->scratch_offs <= handle->buffer_frames))
+      packet_sz = avail;
+      handle->scratch_offs += avail;
+      if ((hr == S_OK) && (handle->scratch_offs <= handle->buffer_frames))
          {
-            unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
-            size_t offset = handle->scratch_offs - avail;
+         unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
+         size_t offset = handle->scratch_offs - avail;
 
-            if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
-            {
-               _aax_memcpy(handle->scratch + offset*frame_sz,
-                           buf, avail*frame_sz);
-            }
-            else {
-               memset(handle->scratch + offset*frame_sz, 0, avail*frame_sz);
-            }
-
-            packet_cnt += (avail/handle->packet_sz);
-         }
-         else
+         if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
          {
-            packet_sz = 0;
-            if (handle->scratch_offs >= handle->buffer_frames)
-            {
-               total_avail -= avail;
-               handle->scratch_offs -= avail;
-               if (avail == handle->buffer_frames) {
-                  _AAX_DRVLOG(6, "capture buffers exhausted");
-               }
-            }
-            else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
-               _AAX_DRVLOG(9, "error getting the buffer");
-            }
+            _aax_memcpy(handle->scratch + offset*frame_sz,
+                        buf, avail*frame_sz);
+         }
+         else {
+            memset(handle->scratch + offset*frame_sz, 0, avail*frame_sz);
          }
 
-         if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-            _AAX_DRVLOG(3, "data discontinuity");
+         packet_cnt += (avail/handle->packet_sz);
+      }
+      else
+      {
+         packet_sz = 0;
+         if (handle->scratch_offs >= handle->buffer_frames)
+         {
+            handle->scratch_offs -= avail;
+            if (avail == handle->buffer_frames) {
+               _AAX_DRVLOG(6, "capture buffers exhausted");
+            }
          }
-
-         /* release the original packet size or 0 */
-         res = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
-                                                  packet_sz);
-         if (FAILED(res)) {
-            _AAX_DRVLOG(5, "error releasing the buffer");
+         else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
+            _AAX_DRVLOG(9, "error getting the buffer");
          }
       }
-      else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
-         _AAX_DRVLOG(9, "error getting the buffer");
+
+      if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+         _AAX_DRVLOG(3, "data discontinuity");
+      }
+
+      /* release the original packet size or 0 */
+      res = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
+                                               packet_sz);
+      if (FAILED(res)) {
+         _AAX_DRVLOG(5, "error releasing the buffer");
       }
    }
-   while (0);
-
-   handle->avail_avg = (0.98f*handle->avail_avg + 0.02f*total_avail);
+   else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
+      _AAX_DRVLOG(9, "error getting the buffer");
+   }
 
    return hr;
 }
