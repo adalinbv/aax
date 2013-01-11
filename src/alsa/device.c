@@ -1111,7 +1111,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       /* try to keep the buffer padding at the threshold level at all times */
       diff = (float)avail-(float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
-      fetch += roundf(handle->padding);
+      fetch += _MINMAX(roundf(handle->padding), -1, 1);
       if (fetch > no_frames) offs += no_frames - fetch;
 #if 0
 if (roundf(handle->padding))
