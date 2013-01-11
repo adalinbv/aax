@@ -139,45 +139,60 @@ _batch_cvt24_pd_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 void
 _batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   unsigned int t;
-   for (t=0; t<tracks; t++)
+   if (tracks == 1) {
+      _batch_cvt24_8(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
-      int8_t *s = (int8_t *)sptr + t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
-
-      do
+      unsigned int t;
+      for (t=0; t<tracks; t++)
       {
-         *d++ = ((int32_t)*s + 127) << 16;
-         s += tracks;
+         int8_t *s = (int8_t *)sptr + t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
+
+         do
+         {
+            *d++ = ((int32_t)*s + 127) << 16;
+            s += tracks;
+         }
+         while (--i);
       }
-      while (--i);
    }
 }
 
 void
 _batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   unsigned int t;
-   for (t=0; t<tracks; t++)
+   if (tracks == 1) {
+      _batch_cvt24_16(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
-      int16_t *s = (int16_t *)sptr + t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
-
-      do
+      unsigned int t;
+      for (t=0; t<tracks; t++)
       {
-         *d++ = (int32_t)*s << 8;
-         s += tracks;
-      }
-      while (--i);
+         int16_t *s = (int16_t *)sptr + t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
+
+         do
+         {
+            *d++ = (int32_t)*s << 8;
+            s += tracks;
+         }
+         while (--i);
+     }
    }
 }
 
 void
 _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   if (tracks > 1)
+   if (tracks == 1) {
+      _batch_cvt24_24(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
       unsigned int t;
       for (t=0; t<tracks; t++)
@@ -192,82 +207,106 @@ _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int of
          }
          while (--i);
       }
-   } else if (tracks) {
-      _aax_memcpy(*dptr+offset, sptr, num*sizeof(int32_t));
    }
 }
 
 void
 _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   unsigned int t;
-   for (t=0; t<tracks; t++)
+    if (tracks == 1) {
+      _batch_cvt24_24_3(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
-      int8_t *s = (int8_t *)sptr + 3*t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
+      unsigned int t;
+      for (t=0; t<tracks; t++)
+      {
+         int8_t *s = (int8_t *)sptr + 3*t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
 
-      do {
-         *d = (int32_t)*s++;
-         *d |= *s++ << 8;
-         *d++ |= *s++ << 16;
+         do {
+            *d = (int32_t)*s++;
+            *d |= *s++ << 8;
+            *d++ |= *s++ << 16;
+         }
+         while (--i);
       }
-      while (--i);
    }
 }
 
 void
 _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   unsigned int t;
-   for (t=0; t<tracks; t++)
+    if (tracks == 1) {
+      _batch_cvt24_32(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
-      int32_t *s = (int32_t *)sptr + t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
+      unsigned int t;
+      for (t=0; t<tracks; t++)
+      {
+         int32_t *s = (int32_t *)sptr + t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
 
-      do {
-         *d++ = *s >> 8;
-         s += tracks;
+         do {
+            *d++ = *s >> 8;
+            s += tracks;
+         }
+         while (--i);
       }
-      while (--i);
    }
 }
 
 void
 _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   static const float mul = (float)(1<<23);
-   unsigned int t;
-
-   for (t=0; t<tracks; t++)
+   if (tracks == 1) {
+      _batch_cvt24_ps(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
-      float *s = (float*)sptr + t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
+      static const float mul = (float)(1<<23);
+      unsigned int t;
 
-      do {
-         *d++ = (int32_t)(*s * mul);
-         s += tracks;
-      } while (--i);
+      for (t=0; t<tracks; t++)
+      {
+         float *s = (float*)sptr + t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
+
+         do {
+            *d++ = (int32_t)(*s * mul);
+            s += tracks;
+         }
+         while (--i);
+      }
    }
 }
 
 void
 _batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
 {
-   static const double mul = (double)(1<<23);
-   unsigned int t;
-   for (t=0; t<tracks; t++)
+   if (tracks == 1) {
+      _batch_cvt24_pd(dptr[0]+offset, sptr, num);
+   }
+   else if (tracks)
    {
-      double *s = (double*)sptr + t;
-      int32_t *d = dptr[t] + offset;
-      unsigned int i = num;
+      static const double mul = (double)(1<<23);
+      unsigned int t;
+      for (t=0; t<tracks; t++)
+      {
+         double *s = (double*)sptr + t;
+         int32_t *d = dptr[t] + offset;
+         unsigned int i = num;
 
-      do {
-         *d++ = (int32_t)(*s * mul);
-         s += tracks;
-      } while (--i);
+         do {
+            *d++ = (int32_t)(*s * mul);
+            s += tracks;
+         }
+         while (--i);
+      }
    }
 }
 
