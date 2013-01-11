@@ -36,9 +36,9 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define ENABLE_TIMING		AAX_FALSE
 #define USE_EVENT_THREAD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
+#define ENABLE_TIMING		AAX_FALSE
 #define USE_GETID		AAX_FALSE
 
 #define DRIVER_INIT_MASK	0x0001
@@ -1119,7 +1119,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       /* try to keep the buffer padding at the threshold level at all times */
       diff = (float)handle->scratch_offs-(float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
-      fetch += roundf(handle->padding);
+      fetch += _MINMAX(roundf(handle->padding), -1, 1);
       if (fetch > no_frames) offs += no_frames - fetch;
       /* try to keep the buffer padding at the threshold level at all times */
 
