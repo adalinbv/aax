@@ -1102,6 +1102,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    *req_frames = 0;
    if (no_frames && avail)
    {
+      unsigned int tracks = handle->hw_channels;
       unsigned int fetch = no_frames;
       unsigned int chunk, try = 0;
       snd_pcm_uframes_t size;
@@ -1161,7 +1162,7 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
                {
                   char *p = (char *)area->addr; 
                   p += (area->first + area->step*mmap_offs) >> 3;
-                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, res);
+                  handle->cvt_from_intl((int32_t**)data, p, offs, tracks, res);
                }
             }
             else
@@ -1193,7 +1194,7 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  handle->cvt_from_intl((int32_t**)data, scratch, offs, 2, res);
+                  handle->cvt_from_intl((int32_t**)data, scratch, offs, tracks, res);
                }
             }
             else
