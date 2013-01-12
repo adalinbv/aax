@@ -1120,7 +1120,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       diff = (float)handle->scratch_offs-(float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
       fetch += _MINMAX(roundf(handle->padding), -1, 1);
-      if (fetch > no_frames) offs += no_frames - fetch;
+      offs += (no_frames - fetch);
       /* try to keep the buffer padding at the threshold level at all times */
 
       /* if there's room for other packets, fetch them */
