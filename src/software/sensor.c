@@ -41,6 +41,12 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
          be = config->backend.ptr;
          be_handle = config->backend.handle;
+         if (!be->is_available(be_handle))
+         {
+            _intBufReleaseData(dptr, _AAX_DEVICE);
+            continue;
+         }
+
          dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
          if (dptr_sensor)
          {
@@ -66,6 +72,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                _SET_STOPPED(config);
                _SET_PROCESSED(config);
             }
+
             dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
@@ -106,7 +113,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                         p2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
                      }
                      rv = be->mix2d(be_handle, dest_rb, ssr_rb,
-                                    smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
+                                 smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
                      _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
@@ -177,7 +184,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                         scratch[SCRATCH_BUFFER0]-ds, ds+frames);
       if (res && nframes)
       {
-         unsigned int t, tracks, offs;
+         unsigned int t, tracks;
          _oalRingBuffer *nrb;
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
