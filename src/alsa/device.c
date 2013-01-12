@@ -1221,7 +1221,8 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
          }
 
          if (tracks == 1) {	// copy the left channel to the right channel
-            _aax_memcpy(data[1]+offs, data[0]+offs, res*sizeof(int32_t));
+            _aax_memcpy((int32_t*)data[1]+offs, (int32_t*)data[0]+offs,
+                        res*sizeof(int32_t));
          }
 
          if (res < 0)
