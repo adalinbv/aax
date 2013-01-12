@@ -1127,12 +1127,16 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       _aaxWASAPIDriverCaptureFromHardware(handle);
 
       /* copy data from the buffer */
+      *req_frames = fetch;
       if (fetch && handle->scratch_offs)
       {
          unsigned int avail = _MIN(handle->scratch_offs, fetch);
          int32_t **ptr = (int32_t**)data;
 
          handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
+         if (tracks == 1) {	// copy the left channel to the right channel
+            _aax_memcpy(ptr[1]+offs, ptr[0]+offs, avail*sizeof(int32_t));
+         }
          handle->scratch_offs -= avail;
          fetch -= avail;
 
