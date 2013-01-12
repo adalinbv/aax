@@ -805,6 +805,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, channels),
             "unsupported no. channels" );
       if (channels > handle->no_channels) handle->no_channels = channels;
+      handle->hw_channels = channels;
       *tracks = channels;
 
       handle->pitch = (float)rate;
@@ -1080,7 +1081,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       }
    }
 
-   tracks = handle->no_channels;
+   tracks = handle->hw_channels;
    frame_size = tracks * handle->bytes_sample;
    no_frames = *req_frames;
 #ifndef NDEBUG
@@ -1102,7 +1103,6 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    *req_frames = 0;
    if (no_frames && avail)
    {
-      unsigned int tracks = handle->hw_channels;
       unsigned int fetch = no_frames;
       unsigned int chunk, try = 0;
       snd_pcm_uframes_t size;
@@ -1178,9 +1178,12 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
                   s = (((unsigned char *)area[0].addr) + (area[0].first/8));
                   s += mmap_offs*handle->bytes_sample;
                   handle->cvt_from((int32_t*)data[0]+offs, s, res);
-                  s = (((unsigned char *)area[1].addr) + (area[1].first/8));
-                  s += mmap_offs*handle->bytes_sample;
-                  handle->cvt_from((int32_t*)data[1]+offs, s, res);
+                  if (tracks == 2)
+                  {
+                     s = (((unsigned char *)area[1].addr) + (area[1].first/8));
+                     s += mmap_offs*handle->bytes_sample;
+                     handle->cvt_from((int32_t*)data[1]+offs, s, res);
+                  }
                }
             }
          }
@@ -1210,9 +1213,15 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
                if (res > 0)
                {
                   handle->cvt_from((int32_t*)data[0]+offs, s[0], res);
-                  handle->cvt_from((int32_t*)data[1]+offs, s[1], res);
+                  if (tracks == 2) {
+                     handle->cvt_from((int32_t*)data[1]+offs, s[1], res);
+                  }
                }
             }
+         }
+
+         if (tracks == 1) {	// copy the left channel to the right channel
+            _aax_memcpy(data[1]+offs, data[0]+offs, res*sizeof(int32_t));
          }
 
          if (res < 0)
