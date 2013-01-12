@@ -174,22 +174,38 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
 
       nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
       res = be->capture(be_handle, rbd->track, 0, &nframes,
-                                scratch[0]-ds, ds+frames);
+                        scratch[SCRATCH_BUFFER0]-ds, ds+frames);
       if (res && nframes)
       {
-         unsigned int t, tracks;
+         unsigned int t, tracks, offs;
          _oalRingBuffer *nrb;
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
-         ds -= frames-nframes;
-
          tracks = rbd->no_tracks;
+         ds -= frames-nframes;
          for (t=0; t<tracks; t++)
          {
             int32_t *ptr = nrb->sample->track[t];
             int32_t *optr  = rbd->track[t];
+
+            /*
+             * The backend driver may fetch one sample more, or one sample
+             * less than requested to synchronize the capture and playback
+             * streams. If one extra sample is fetched it replaces the last
+             * sample in the delay effects buffer.
+             * If one sample less wat fetched the new data starts at position
+             * one and we have to construct the first sample in the buffer
+             * ourselves based ont the last sample in the delay effects buffer
+             * and the first new sample.
+             */
+            if (frames > nframes) {
+               *optr = (*(optr-1) + *(optr+1))/2;
+            } else if (frames < nframes) {
+               *(optr-1) = (*(optr-2) + *optr)/2;
+            }
+
             _aax_memcpy(ptr-ds, optr-ds+nframes, ds*bps);
          }
          rv = nrb;
