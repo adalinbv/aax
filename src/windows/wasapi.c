@@ -1120,7 +1120,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       diff = (float)handle->scratch_offs-(float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
       fetch += _MINMAX(roundf(handle->padding), -1, 1);
-      offs += (no_frames - fetch);
+      offs += ((int)no_frames - (int)fetch);
       /* try to keep the buffer padding at the threshold level at all times */
 
       /* if there's room for other packets, fetch them */
@@ -1301,9 +1301,9 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
 #if USE_GETID
       LPWSTR pwszID = NULL;
 #endif
+      char *ptr, *prev;
       UINT i, count;
       int m, len;
-      char *ptr;
 
       len = 1023;
       m = mode > 0 ? 1 : 0;
@@ -1316,6 +1316,7 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
       hr = pIMMDeviceCollection_GetCount(collection, &count);
       if (FAILED(hr)) goto ExitGetDevices;
 
+      prev = "";
       for(i=0; i<count; i++)
       {
          PROPVARIANT name;
@@ -1336,13 +1337,14 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
          pPropVariantInit(&name);
          hr = pIPropertyStore_GetValue(props,
                          (const PROPERTYKEY*)pPKEY_DeviceInterface_FriendlyName,
-                               &name);
+                         &name);
          if (!SUCCEEDED(hr)) goto NextGetDevices;
 
          slen = len;
          devname = wcharToChar(ptr, &slen, name.pwszVal);
-         if (devname)
-         {
+         if (devname) //  && strcmp(devname, prev))
+         {		// devname doesn't match the previous device
+            prev = ptr;
             slen++;
             len -= slen;
             ptr += slen;
