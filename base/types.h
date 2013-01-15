@@ -122,7 +122,9 @@ uint64_t _bswap64(uint64_t x);
 # include <errno.h>
 
 # define rintf(v) (int)(v+0.5f)
-# define snprintf _aax_snprintf
+# ifdef _MSC_VER
+#  define snprintf _aax_snprintf
+# endif
 # ifndef __GNUC__
 #  define strtoll _strtoi64
 #  define strcasecmp _stricmp
