@@ -670,7 +670,6 @@ _aaxConditionWait(void *c, void *mutex)
    DWORD hr;
    int r = 0;
 
-   assert(condition);
    assert(mutex);
    
    _aaxMutexUnLock(m);
@@ -702,7 +701,6 @@ _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
    double dt;
    int r=0;
 
-   assert(condition);
    assert(mutex);
    assert(ts);
 
