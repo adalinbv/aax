@@ -1223,7 +1223,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
          }
       }
 
-      assert((handle->status & DRIVER_INITMASK) == 0);
+      assert((handle->status & DRIVER_INIT_MASK) == 0);
       assert(frames <= no_frames);
 
       if (frames >= no_frames)
@@ -1281,103 +1281,117 @@ static char *
 _aaxWASAPIDriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
-   IMMDeviceEnumerator *enumerator = NULL;
-   int co_init = AAX_FALSE;
-   HRESULT hr;
+   static time_t t_previous[2] = { 0, 0 };
+   int m = (mode > 0) ? 1 : 0;
+   time_t t_now;
 
-   hr = pCoInitialize(NULL);
-   if (hr != RPC_E_CHANGED_MODE) {
-      co_init = AAX_TRUE;
-   }
-
-   hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
-                          CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
-                          (void**)&enumerator);
-   if (hr == S_OK)
+   t_now = time(NULL);
+   if (t_now > (t_previous[m]+5))
    {
-      IMMDeviceCollection *collection = NULL;
-      IPropertyStore *props = NULL;
-      IMMDevice *device = NULL;
-#if USE_GETID
-      LPWSTR pwszID = NULL;
-#endif
-      char *ptr, *prev;
-      UINT i, count;
-      int m, len;
+      IMMDeviceEnumerator *enumerator = NULL;
+      int co_init = AAX_FALSE;
+      HRESULT hr;
 
-      len = 1023;
-      m = mode > 0 ? 1 : 0;
-      ptr = (char *)&names[m];
-      hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
+      t_previous[m] = t_now;
+
+      hr = pCoInitialize(NULL);
+      if (hr != RPC_E_CHANGED_MODE) {
+         co_init = AAX_TRUE;
+      }
+
+      hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
+                             CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
+                             (void**)&enumerator);
+      if (hr == S_OK)
+      {
+         IMMDeviceCollection *collection = NULL;
+         IPropertyStore *props = NULL;
+         IMMDevice *device = NULL;
+#if USE_GETID
+         LPWSTR pwszID = NULL;
+#endif
+         char *ptr, *prev;
+         UINT i, count;
+         int len;
+
+         len = 1023;
+         ptr = (char *)&names[m];
+         memset(ptr, 0, 1024);
+
+         hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
                                      DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
                                      &collection);
-      if (FAILED(hr)) goto ExitGetDevices;
+         if (FAILED(hr)) goto ExitGetDevices;
 
-      hr = pIMMDeviceCollection_GetCount(collection, &count);
-      if (FAILED(hr)) goto ExitGetDevices;
+         hr = pIMMDeviceCollection_GetCount(collection, &count);
+         if (FAILED(hr)) goto ExitGetDevices;
 
-      prev = "";
-      for(i=0; i<count; i++)
-      {
-         PROPVARIANT name;
-         char *devname;
-         int slen;
+         prev = "";
+         for(i=0; i<count; i++)
+         {
+            PROPVARIANT name;
+            char *devname;
+            int slen;
 
-         hr = pIMMDeviceCollection_Item(collection, i, &device);
-         if (hr != S_OK) goto NextGetDevices;
+            hr = pIMMDeviceCollection_Item(collection, i, &device);
+            if (hr != S_OK) goto NextGetDevices;
 
 #if USE_GETID
-         hr = pIMMDevice_GetId(device, &pwszID);
-         if (hr != S_OK) goto NextGetDevices;
+            hr = pIMMDevice_GetId(device, &pwszID);
+            if (hr != S_OK) goto NextGetDevices;
 #endif
 
-         hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
-         if (hr != S_OK) goto NextGetDevices;
+            hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
+            if (hr != S_OK) goto NextGetDevices;
 
-         pPropVariantInit(&name);
-         hr = pIPropertyStore_GetValue(props,
+            pPropVariantInit(&name);
+            hr = pIPropertyStore_GetValue(props,
                          (const PROPERTYKEY*)pPKEY_DeviceInterface_FriendlyName,
                          &name);
-         if (!SUCCEEDED(hr)) goto NextGetDevices;
+            if (!SUCCEEDED(hr)) goto NextGetDevices;
 
-         slen = len;
-         devname = wcharToChar(ptr, &slen, name.pwszVal);
-         if (devname) //  && strcmp(devname, prev))
-         {		// devname doesn't match the previous device
-            prev = ptr;
-            slen++;
-            len -= slen;
-            ptr += slen;
-            if (len <= 0) break;
-         }
+            slen = len;
+            devname = wcharToChar(ptr, &slen, name.pwszVal);
+            if (devname && strcmp(devname, prev))
+            {		// devname doesn't match the previous device
+               slen++;
+               len -= slen;
+               prev = ptr;
+               ptr += slen;
+               *(ptr+1) = 0;
+               if (len <= 0) break;
+            }
 
 NextGetDevices:
 #if USE_GETID
-         pCoTaskMemFree(pwszID);
-         pwszID = NULL;
+            pCoTaskMemFree(pwszID);
+            pwszID = NULL;
 #endif
 
-         pPropVariantClear(&name);
-         pIPropertyStore_Release(props);
-         pIMMDevice_Release(device);
-      }
-      pIMMDeviceEnumerator_Release(enumerator);
-      pIMMDeviceCollection_Release(collection);
-      if (co_init) {
-         pCoUninitialize();
-      }
+            pPropVariantClear(&name);
+            pIPropertyStore_Release(props);
+            pIMMDevice_Release(device);
+         }
+         pIMMDeviceEnumerator_Release(enumerator);
+         pIMMDeviceCollection_Release(collection);
+         if (co_init) {
+            pCoUninitialize();
+         }
 
-      return (char *)&names[mode];
+         names[m][1023] = 0;
+
+         return (char *)&names[m];
 
 ExitGetDevices:
 #if USE_GETID
-      pCoTaskMemFree(pwszID);
+         pCoTaskMemFree(pwszID);
 #endif
-      if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
-      if (collection) pIMMDeviceCollection_Release(collection);
-      if (device) pIMMDevice_Release(device);
-      if (props) pIPropertyStore_Release(props);
-      if (co_init) pCoUninitialize();
+         if (enumerator) pIMMDeviceEnumerator_Release(enumerator);
+         if (collection) pIMMDeviceCollection_Release(collection);
+         if (device) pIMMDevice_Release(device);
+         if (props) pIPropertyStore_Release(props);
+         if (co_init) pCoUninitialize();
+      }
    }
 
    return (char *)&names[mode];
@@ -1398,7 +1412,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
       int len = 1024;
       HRESULT hr;
 
-      memset(interfaces, '\0', 1024);
+      memset(interfaces, 0, 1024);
 
       hr = pCoInitialize(NULL);
       if (hr != RPC_E_CHANGED_MODE) {
