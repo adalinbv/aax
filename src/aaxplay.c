@@ -52,12 +52,31 @@ int main(int argc, char **argv)
     int res, rv = 0;
 
     infile = getInputFile(argc, argv, FILE_PATH);
+    if (infile) {
+       snprintf(indevname, 4096, "AeonWave on Audio Files: %s", infile);
+    }
+    else
+    {
+       char *capture_name = getCaptureName(argc, argv);
+       if (capture_name) {
+          snprintf(indevname, 4096, "%s", capture_name);
+       }
+       else
+       {
+          printf("Usage:\n");
+          printf("  aaxplay -i <filename> (-d <playcbakc device>)\n");
+          printf("  aaxplay -c <capture device> (-d <playcbakc device>)\n\n");
+          exit(-1);
+       }
+    }
+
     devname = getDeviceName(argc, argv);
 
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "Audio output device is not available.");
     if (!config || !aaxIsValid(config, AAX_CONFIG_HD))
     {
+    // TODO: fall back to buffer mode
         printf("Warning:\n");
         printf("  %s requires a registered version of AeonWave\n", argv[0]);
         printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
@@ -67,7 +86,6 @@ int main(int argc, char **argv)
         goto finish;
     }
 
-    snprintf(indevname, 4096, "AeonWave on Audio Files: %s", infile);
     record = aaxDriverOpenByName(indevname, AAX_MODE_READ);
     if (!record)
     {
@@ -97,8 +115,12 @@ int main(int argc, char **argv)
 
         res = aaxSensorSetState(record, AAX_CAPTURING);
         testForState(res, "aaxSensorCaptureStart");
+
+        set_mode(1);
         do
         {
+            if (get_key()) break;
+
             msecSleep(100);
             state = aaxMixerGetState(record);
         }
