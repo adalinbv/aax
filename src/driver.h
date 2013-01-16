@@ -45,6 +45,9 @@
 #endif
 #include <base/types.h>
 
+void set_mode(int want_key);
+int get_key();
+
 char *getDeviceName(int, char **);
 char *getCaptureName(int, char **);
 char *getCommandLineOption(int, char **, char *);

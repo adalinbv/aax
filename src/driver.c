@@ -39,6 +39,9 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#if HAVE_UNISTD_H
+# include <unistd.h>	/* access */
+#endif
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
@@ -163,7 +166,9 @@ char *
 getInputFile(int argc, char **argv, const char *filename)
 {
     char *fn = getCommandLineOption(argc, argv, "-i");
+
     if (!fn) fn = (char *)filename;
+    if (access(fn, F_OK|R_OK) < 0) fn = NULL;
     return fn;
 }
 
@@ -215,13 +220,66 @@ getCommandLineOption(int argc, char **argv, char *option)
 }
 
 #ifndef _WIN32
+# include <termios.h>
+# include <unistd.h>
+# include <fcntl.h>
+# include <sys/time.h>
 # include <time.h>
+
 int msecSleep(unsigned long dt_ms)
 {
     static struct timespec s;
     s.tv_sec = (dt_ms/1000);
     s.tv_nsec = (dt_ms-s.tv_sec*1000)*1000000;
     return nanosleep(&s, 0);
+}
+
+void set_mode(int want_key)
+{
+    static struct termios old, new;
+    if (!want_key) {
+        tcsetattr(STDIN_FILENO, TCSANOW, &old);
+        return;
+    }
+
+    tcgetattr(STDIN_FILENO, &old);
+    new = old;
+    new.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &new);
+}
+
+int get_key()
+{
+    int c = 0;
+    struct timeval tv;
+    fd_set fs;
+    tv.tv_usec = tv.tv_sec = 0;
+
+    FD_ZERO(&fs);
+    FD_SET(STDIN_FILENO, &fs);
+    select(STDIN_FILENO + 1, &fs, 0, 0, &tv);
+
+    if (FD_ISSET(STDIN_FILENO, &fs)) {
+        c = getchar();
+        set_mode(0);
+    }
+    return c;
+}
+
+#else
+
+# include <conio.h>
+
+int get_key()
+{
+   if (kbhit()) {
+      return getch();
+   }
+   return 0;
+}
+
+void set_mode(int want_key)
+{
 }
 #endif
 
