@@ -71,7 +71,8 @@ static const char *_effect_s[AAX_EFFECT_MAX] =
     "AAX_phasing_effect",
     "AAX_chorus_effect",
     "AAX_flanging_effect",
-    "AAX_velocity_effect"
+    "AAX_velocity_effect",
+    "AAX_reverb_effect"
 };
 
 int main(int argc, char **argv)
