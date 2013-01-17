@@ -96,6 +96,8 @@ int main(int argc, char **argv)
 
     if (config && record)
     {
+        char *fparam = getCommandLineOption(argc, argv, "-f");
+        aaxFrame frame = NULL;
         int state;
 
         /** mixer */
@@ -105,9 +107,31 @@ int main(int argc, char **argv)
         res = aaxMixerSetState(config, AAX_PLAYING);
         testForState(res, "aaxMixerStart");
 
-        /** sensor */
-        res = aaxMixerRegisterSensor(config, record);
-        testForState(res, "aaxMixerRegisterSensor");
+        if (fparam)
+        {
+            printf("  using audio-frames\n");
+
+            /** audio frame */
+            frame = aaxAudioFrameCreate(config);
+            testForError(frame, "Unable to create a new audio frame\n");   
+
+            /** register audio frame */
+            res = aaxMixerRegisterAudioFrame(config, frame);
+            testForState(res, "aaxMixerRegisterAudioFrame");
+
+            res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+            testForState(res, "aaxAudioFrameSetState");
+
+            /** sensor */
+            res = aaxAudioFrameRegisterSensor(frame, record);
+            testForState(res, "aaxAudioFrameRegisterSensor");
+        }
+        else
+        {
+            /** sensor */
+            res = aaxMixerRegisterSensor(config, record);
+            testForState(res, "aaxMixerRegisterSensor");
+        }
 
         /** must be called after aaxMixerRegisterSensor */
         res = aaxMixerSetState(record, AAX_INITIALIZED);
@@ -125,15 +149,36 @@ int main(int argc, char **argv)
             state = aaxMixerGetState(record);
         }
         while (state == AAX_PLAYING);
+        set_mode(0);
 
         res = aaxMixerSetState(config, AAX_STOPPED);
         testForState(res, "aaxMixerSetState");
 
+        if (frame)
+        {
+            res = aaxAudioFrameSetState(frame, AAX_STOPPED);
+            testForState(res, "aaxAudioFrameSetState");
+        }
+
         res = aaxSensorSetState(record, AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
 
-        res = aaxMixerDeregisterSensor(config, record);
-        testForState(res, "aaxMixerDeregisterSensor");
+        if (frame)
+        {
+            res = aaxAudioFrameDeregisterSensor(frame, record);
+            testForState(res, "aaxAudioFrameDeregisterSensor");
+
+            res = aaxMixerDeregisterAudioFrame(config, frame);
+            testForState(res, "aaxMixerDeregisterAudioFrame");
+
+            res = aaxAudioFrameDestroy(frame);
+            testForState(res, "aaxAudioFrameDestroy");
+        }
+        else
+        {
+            res = aaxMixerDeregisterSensor(config, record);
+            testForState(res, "aaxMixerDeregisterSensor");
+        }
 
         res = aaxDriverClose(record);
         testForState(res, "aaxDriverClose");
