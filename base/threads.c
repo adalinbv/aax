@@ -462,6 +462,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
    if (thread->handle != INVALID_HANDLE_VALUE)
    {
+#if 0
       static void *audio = NULL;
 
       if (!audio) {
@@ -480,6 +481,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
             if (!thread->task) thread->taskCount++;
          }
       }
+#endif
       __threads_enabled = 1;
      rv = 0;
    }
@@ -508,6 +510,7 @@ _aaxThreadJoin(void *t)
 
    __threads_enabled = 0;
 
+#if 0
    if (pAvRevertMmThreadCharacteristics)
    {
       thread->taskCount--;
@@ -517,6 +520,7 @@ _aaxThreadJoin(void *t)
          thread->task = 0;
       }
    }
+#endif
 
    r = WaitForSingleObject(thread->handle, INFINITE);
    switch (r)
@@ -733,23 +737,23 @@ _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    struct timeval now_tv;
+   double dt_ms;
    DWORD hr;
-   double dt;
    int r=0;
 
    assert(mutex);
    assert(ts);
 
    /* some time in the future (hopefuly) */
-   dt = (1000.0*ts->tv_sec + ts->tv_nsec/1000000.0);
+   dt_ms = (1000.0*ts->tv_sec + ts->tv_nsec/1000000.0);
 
    gettimeofday(&now_tv, 0);
-   dt -= (1000.0*now_tv.tv_sec + now_tv.tv_usec/1000.0);
+   dt_ms -= (1000.0*now_tv.tv_sec + now_tv.tv_usec/1000.0);
 
-   if (dt > 0.0)
+   if (dt_ms > 0.0)
    {
       _aaxMutexUnLock(m);
-      hr = WaitForSingleObject(c, (DWORD)rint(dt));
+      hr = WaitForSingleObject(c, (DWORD)rint(dt_ms));
       _aaxMutexLock(m);
 
       switch (hr)
