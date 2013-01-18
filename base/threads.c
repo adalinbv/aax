@@ -773,8 +773,12 @@ _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 int
 _aaxConditionSignal(void *c)
 {
+   BOOL rv;
+
    assert(c);
-   return SetEvent(c);
+
+   rv = SetEvent(c);
+   return rv;
 }
 
 
