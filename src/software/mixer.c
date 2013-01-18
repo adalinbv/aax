@@ -386,7 +386,7 @@ _aaxSoftwareMixerSignalFrames(void *frames)
       _intBufReleaseNum(hf, _AAX_FRAME);
 
       /* give the remainder of the threads time slice to other threads */
-//    msecSleep(1);
+//    msecSleep(2);
    }
    return num;
 }
@@ -409,10 +409,10 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
       gettimeofday(&tv, NULL);
       ts.tv_sec = tv.tv_sec + 0;
       ts.tv_nsec = tv.tv_usec*1000 + (long)dt_ns;
-      if (ts.tv_nsec > 1000000000LL)
+      if (ts.tv_nsec > 1000000000L)
       {
          ts.tv_sec++;
-         ts.tv_nsec -= 1000000000LL;
+         ts.tv_nsec -= 1000000000L;
       }
 #endif
 
@@ -441,8 +441,8 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                {
                   int rv;
                   rv = _aaxConditionWaitTimed(mixer->frame_ready, mutex, &ts);
-                  mixer->capturing++;
-#ifndef NDEBUG
+                  mixer->capturing++; 		// for the test below
+#if 0
 if (rv != 0)
 printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid");
 #endif
@@ -592,13 +592,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
 
-               /** signal threaded frames to update (if necessary) */
-               /* thread == -1: mixer; attached frames are threads */
-               /* thread >=  0: frame; call updates manually       */
-               if (mixer->thread < 0) {
-                  _aaxSoftwareMixerSignalFrames(mixer->frames);
-               }
-
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
                memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
@@ -606,6 +599,13 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                memcpy(&sp2d.pos, handle->info->speaker,
                                   _AAX_MAX_SPEAKERS*sizeof(vec4_t));
                memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
+
+               /** signal threaded frames to update (if necessary) */
+               /* thread == -1: mixer; attached frames are threads */
+               /* thread >=  0: frame; call updates manually       */
+               if (mixer->thread < 0) {
+                  _aaxSoftwareMixerSignalFrames(mixer->frames);
+               }
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                /* main mixer */
