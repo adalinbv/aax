@@ -329,13 +329,6 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                                  fmixer->emitters_2d, fmixer->emitters_3d,
                                  be, be_handle);
 
-   /** process registered devices */
-// if (fmixer->devices)
-// {
-//    _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d);
-//    process = AAX_TRUE;
-// }
-
    /** process registered sub-frames */
    if (fmixer->frames)
    {
@@ -378,13 +371,9 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             _frame_t* subframe;
             char res = 0;
 
-            /* clear the buffer for use by the subframe */
-            _oalRingBufferClear(frame_rb);
-            _oalRingBufferStart(frame_rb);
-
             /* process the subframe */
             dptr = _intBufGet(hf, _AAX_FRAME, i);
-            if (!dptr) break;
+            if (!dptr) continue;
 
             /* copy to prevent locking while walking the tree */
             subframe = _intBufGetDataPtr(dptr);
@@ -392,6 +381,10 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             memcpy(&sfp3d, sfmixer->props3d, sizeof(_oalRingBuffer3dProps));
             memcpy(&sfp2d, sfmixer->props2d, sizeof(_oalRingBuffer2dProps));
             _intBufReleaseData(dptr, _AAX_FRAME);
+
+            /* clear the buffer for use by the subframe */
+            _oalRingBufferClear(frame_rb);
+            _oalRingBufferStart(frame_rb);
 
             /*
              * frames render in the ringbuffer of their parent and mix with
@@ -421,6 +414,9 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                process = AAX_TRUE;
       
                if (--cnt == 0) break;
+            }
+            else {
+               sfmixer->capturing++;
             }
          }
          _intBufReleaseNum(hf, _AAX_FRAME);
