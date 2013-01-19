@@ -496,7 +496,7 @@ printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid
 }
 
 int
-_aaxSoftwareMixerPlayFrame(void** rb, const void* sensors, const void* ringbuffers, const void* frames, void* props2d, const void* props3d, char capturing, const void* sensor, const void* backend, const void* be_handle)
+_aaxSoftwareMixerPlayFrame(void** rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, const void* props3d, char capturing, const void* sensor, const void* backend, const void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)*rb;
@@ -508,8 +508,8 @@ _aaxSoftwareMixerPlayFrame(void** rb, const void* sensors, const void* ringbuffe
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
    }
 
-   if (sensors) {
-      _aaxSensorsProcess(dest_rb, sensors, props2d);
+   if (devices) {
+      _aaxSensorsProcess(dest_rb, devices, props2d);
    }
    be->effects(be_handle, dest_rb, props2d);
    be->postprocess(be_handle, dest_rb, sensor);
