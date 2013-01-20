@@ -462,7 +462,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
    if (thread->handle != INVALID_HANDLE_VALUE)
    {
-#if 0
+#if 1
       static void *audio = NULL;
 
       if (!audio) {
