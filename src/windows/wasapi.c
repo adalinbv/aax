@@ -37,8 +37,10 @@
 #endif
 
 #define USE_EVENT_THREAD	AAX_TRUE
+#define USE_CAPTURE_THREAD	AAX_FALSE
+#define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
-#define ENABLE_TIMING		AAX_FALSE
+#define ENABLE_TIMING		AAX_TRUE
 #define USE_GETID		AAX_FALSE
 
 #define DRIVER_INIT_MASK	0x0001
@@ -164,6 +166,12 @@ typedef struct
    _batch_cvt_from_intl_proc cvt_from_intl;
 
    /* capture related */
+#if USE_CAPTURE_THREAD
+   HANDLE thread;
+   HANDLE shutdown_event;
+   CRITICAL_SECTION mutex;
+#endif
+
    char *scratch;
    void *scratch_ptr;
    unsigned int scratch_offs;	/* current offset in the scratch buffer  */
@@ -246,7 +254,11 @@ static DWORD getChannelMask(WORD, enum aaxRenderMode);
 static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
 static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
 static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
+
 static int _aaxWASAPIDriverCaptureFromHardware(_driver_t*);
+#if USE_CAPTURE_THREAD
+static DWORD _aaxWASAPIDriverCaptureThread(LPVOID);
+#endif
 
 #ifndef UINT64_MAX
 # define UINT64_MAX		(18446744073709551615ULL)
@@ -591,6 +603,15 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       sample_frames = *frames;
    }
 
+   /*
+    * Adjust the number of samples to let the refresh rate be an
+    * exact and EVEN number of miliseconds (rounded upwards).
+    */
+   sample_frames = 2 + ((1000*sample_frames/(unsigned int)freq) & 0xFFFFFFFE);
+   sample_frames *= (unsigned int)freq/1000;
+   /* refresh rate adjustement */
+   
+
    channels = *tracks;
    if (channels > handle->Fmt.Format.nChannels) {
       channels = handle->Fmt.Format.nChannels;
@@ -786,6 +807,16 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       stream = 0;
       hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f*sample_frames/freq);
       hnsPeriodicity = hnsBufferDuration;
+
+#if USE_CAPTURE_THREAD 
+# if CAPTURE_USE_MIN_PERIOD
+      if (handle->Mode == eCapture)
+      {                         /* use the minimum period size for capturing */
+         hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, NULL,
+                                            &hnsPeriodicity);
+      }
+# endif
+#endif
 
       if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
          hnsBufferDuration = 3*hnsBufferDuration/2;
@@ -1005,6 +1036,15 @@ _aaxWASAPIDriverPause(const void *id)
       {
          HRESULT hr;
 
+#if USE_CAPTURE_THREAD
+         if (handle->Mode == eCapture)
+         {
+            if (handle->shutdown_event) {
+               SetEvent(handle->shutdown_event);
+            }
+         }
+#endif
+
          hr = pIAudioClient_Stop(handle->pAudioClient);
          if (hr == S_OK)
          {
@@ -1012,6 +1052,20 @@ _aaxWASAPIDriverPause(const void *id)
             handle->status |= (CAPTURE_INIT_MASK | DRIVER_PAUSE_MASK);
             rv = AAX_TRUE;
          }
+
+#if USE_CAPTURE_THREAD
+         if (handle->Mode == eCapture)
+         {
+            if (handle->thread)
+            {
+               WaitForSingleObject(handle->thread, INFINITE);
+
+               DeleteCriticalSection(&handle->mutex);
+               CloseHandle(handle->thread);
+               handle->thread = NULL;
+            }
+         }
+#endif
       }
    }
    return rv;
@@ -1027,6 +1081,22 @@ _aaxWASAPIDriverResume(const void *id)
       if (handle->status & DRIVER_PAUSE_MASK)
       {
          HRESULT hr = S_OK;
+
+#if USE_CAPTURE_THREAD
+         if (handle->Mode == eCapture)
+         {
+            LPTHREAD_START_ROUTINE cb;
+
+            InitializeCriticalSection(&handle->mutex);
+            handle->shutdown_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+            cb = (LPTHREAD_START_ROUTINE)&_aaxWASAPIDriverCaptureThread;
+            handle->thread = CreateThread(NULL, 0, cb, (LPVOID)handle, 0, NULL);
+            if (handle->thread == 0) {
+               _AAX_DRVLOG(10, "wasapi; unable to create a capture thread");
+            }
+         }
+#endif
 
          hr = pIAudioClient_Start(handle->pAudioClient);
          if (hr == S_OK)
@@ -1116,15 +1186,27 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       unsigned int fetch = no_frames;
       float diff;
 
+#if USE_CAPTURE_THREAD
+      if (handle->thread) {                     /* Lock the mutex */
+         EnterCriticalSection(&handle->mutex);
+      }
+#endif
+
       /* try to keep the buffer padding at the threshold level at all times */
-      diff = (float)handle->scratch_offs-(float)handle->threshold;
+      diff = (float)handle->scratch_offs - (float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
       fetch += _MINMAX(roundf(handle->padding), -1, 1);
       offs += ((int)no_frames - (int)fetch);
       /* try to keep the buffer padding at the threshold level at all times */
 
-      /* if there's room for other packets, fetch them */
+#if USE_CAPTURE_THREAD
+      if (!handle->thread) { 		/* fetch any new data packates */
+         _aaxWASAPIDriverCaptureFromHardware(handle);
+      }
+#else
+      /* fetch any new data packates */
       _aaxWASAPIDriverCaptureFromHardware(handle);
+#endif
 
       /* copy data from the buffer */
       *req_frames = fetch;
@@ -1154,13 +1236,21 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
             memmove(handle->scratch, handle->scratch, keep*frame_sz);
          }
          handle->status &= ~CAPTURE_INIT_MASK;
-     }
+      }
+
+#if USE_CAPTURE_THREAD
+      if (handle->thread) {			/* Unlock the mutex */
+         LeaveCriticalSection(&handle->mutex);
+      }
+#endif
 
       if (fetch)
       {
-         _AAX_DRVLOG(5, "not enough data available for capture");
+#if 1
+//       _AAX_DRVLOG(5, "not enough data available for capture");
 printf("fetch: %i, padding: %f\n", fetch, handle->padding);
 // exit(-1);
+#endif
       }
 
       *req_frames -= fetch;
@@ -1585,6 +1675,41 @@ _aaxWASAPIDriverLog(const char *str)
 
 /* -------------------------------------------------------------------------- */
 
+#if USE_CAPTURE_THREAD
+static DWORD
+_aaxWASAPIDriverCaptureThread(LPVOID id)
+{
+   _driver_t *handle = (_driver_t*)id;
+   unsigned int stdby_time;
+   int active = AAX_TRUE;
+   HRESULT hr;
+
+   assert(handle);
+
+// hr = pCoInitializeEx(NULL, COINIT_MULTITHREADED);
+   hr = pCoInitialize(NULL);
+   if (FAILED(hr)) return -1;
+
+   stdby_time = handle->hnsPeriod/20000;
+   while (active)
+   {
+      DWORD res = WaitForSingleObject(handle->shutdown_event, stdby_time);
+      switch (res)
+      {
+      case WAIT_OBJECT_0:
+         active = AAX_FALSE;
+         break;
+      case WAIT_TIMEOUT:
+         _aaxWASAPIDriverCaptureFromHardware(handle);
+         break;
+      }
+   }
+
+   CoUninitialize();
+   return 0;
+}
+#endif
+
 static int
 _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
 {
@@ -1595,72 +1720,93 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
    DWORD flags = 0;
    HRESULT hr;
 
-   /*
-    * During each GetBuffer call, the caller must either obtain the
-    * entire packet or none of it.
-    *
-    * return values (both are SUCCESS(hr)):
-    * S_OK:
-    *   The call succeeded and 'avail' is nonzero,
-    *   indicating that a packet is ready to be read.
-    * AUDCLNT_S_BUFFER_EMPTY:
-    *   The call succeeded and 'avail' is 0, indicating
-    *   that no capture data is available to be read.
-    */
-   packet_sz = avail = 0;
-   hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
-                                       &avail, &flags, NULL, NULL);
-   if (SUCCEEDED(hr))
-   {                                /* there is data available */
-      HRESULT res;
+  do 
+  {
+      packet_sz = avail = 0;
+      hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &avail);
+      if (FAILED(hr) || !avail) break;
 
-      packet_sz = avail;
-      handle->scratch_offs += avail;
-      if ((hr == S_OK) && (handle->scratch_offs <= handle->buffer_frames))
-         {
-         unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
-         size_t offset = handle->scratch_offs - avail;
+      /*
+       * During each GetBuffer call, the caller must either obtain the
+       * entire packet or none of it.
+       *
+       * return values (both are SUCCESS(hr)):
+       * S_OK:
+       *   The call succeeded and 'avail' is nonzero,
+       *   indicating that a packet is ready to be read.
+       * AUDCLNT_S_BUFFER_EMPTY:
+       *   The call succeeded and 'avail' is 0, indicating
+       *   that no capture data is available to be read.
+       */
+      hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf,
+                                          &avail, &flags, NULL, NULL);
+      if (SUCCEEDED(hr))
+      {                                /* there is data available */
+         unsigned int new_scratch_offs;
+         HRESULT res;
 
-         if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
+         packet_sz = avail;
+         new_scratch_offs = handle->scratch_offs + avail;
+         if ((hr == S_OK) && (new_scratch_offs <= handle->buffer_frames))
          {
-            _aax_memcpy(handle->scratch + offset*frame_sz,
-                        buf, avail*frame_sz);
+            unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
+            size_t offset = handle->scratch_offs;
+
+#if USE_CAPTURE_THREAD
+            if (handle->thread) {			/* lock the mutex */
+               EnterCriticalSection(&handle->mutex);
+            }
+#endif
+
+            handle->scratch_offs = new_scratch_offs;
+            if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) == 0)
+            {
+               _aax_memcpy(handle->scratch + offset*frame_sz,
+                           buf, avail*frame_sz);
+            }
+            else {
+               memset(handle->scratch + offset*frame_sz, 0, avail*frame_sz);
+            }
+
+#if USE_CAPTURE_THREAD
+            if (handle->thread) {			/* unlock the mutex */
+               LeaveCriticalSection(&handle->mutex);
+            }
+#endif
+
+            packet_cnt += (avail/handle->packet_sz);
          }
-         else {
-            memset(handle->scratch + offset*frame_sz, 0, avail*frame_sz);
-         }
-
-         packet_cnt += (avail/handle->packet_sz);
-      }
-      else
-      {
-         packet_sz = 0;
-         if (handle->scratch_offs >= handle->buffer_frames)
+         else
          {
-            handle->scratch_offs -= avail;
-            if (avail == handle->buffer_frames) {
-               _AAX_DRVLOG(6, "capture buffers exhausted");
+            packet_sz = 0;
+            if (new_scratch_offs >= handle->buffer_frames)
+            {
+               if (avail == handle->buffer_frames) {
+                  _AAX_DRVLOG(6, "capture buffers exhausted");
+               }
+            }
+            else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
+               _AAX_DRVLOG(9, "error getting the buffer");
             }
          }
-         else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
-            _AAX_DRVLOG(9, "error getting the buffer");
+
+         if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
+            _AAX_DRVLOG(3, "data discontinuity");
+         }
+
+         /* release the original packet size or 0 */
+         res = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
+                                               packet_sz);
+         if (FAILED(res)) {
+            _AAX_DRVLOG(5, "error releasing the buffer");
          }
       }
-
-      if (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-         _AAX_DRVLOG(3, "data discontinuity");
-      }
-
-      /* release the original packet size or 0 */
-      res = pIAudioCaptureClient_ReleaseBuffer(handle->uType.pCapture,
-                                               packet_sz);
-      if (FAILED(res)) {
-         _AAX_DRVLOG(5, "error releasing the buffer");
+      else {
+         _AAX_DRVLOG(9, "error getting the buffer");
+         packet_sz = 0;
       }
    }
-   else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
-      _AAX_DRVLOG(9, "error getting the buffer");
-   }
+   while (packet_sz);
 
    return hr;
 }
@@ -2006,14 +2152,18 @@ _aaxWASAPIDriverThread(void* config)
       }
 
 #if ENABLE_TIMING
-   _aaxTimerStart(timer);
+      _aaxTimerStart(timer);
 #endif
       /* do all the mixing */
       if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 #if ENABLE_TIMING
-//printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
+{
+float elapsed = _aaxTimerElapsed(timer);
+if (elapsed > delay_sec)
+printf("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
+}
 #endif
 
       hr = S_OK;
