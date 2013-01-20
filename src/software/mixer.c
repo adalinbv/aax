@@ -441,8 +441,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                {
                   int rv;
                   rv = _aaxConditionWaitTimed(mixer->frame_ready, mutex, &ts);
-                  mixer->capturing++; 		// for the test below
-#if 0
+#if 1
 if (rv != 0)
 printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid");
 #endif

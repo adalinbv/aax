@@ -183,6 +183,11 @@ _aaxAudioFrameThread(void* config)
          }
       }
 
+      mixer->capturing++;
+#if USE_CONDITION
+      _aaxConditionSignal(fmixer->frame_ready);
+#endif
+
       /**
        * _aaxSoftwareMixerSignalFrames uses _aaxConditionSignal to let the
        * frame procede in advance, before the main thread starts mixing so
@@ -269,7 +274,7 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
 /* -------------------------------------------------------------------------- */
 
 static void *
-_aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, unsigned char *signal, char dde)
+_aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
 {
    _oalRingBuffer *nrb;
    unsigned int nbuf;
@@ -303,14 +308,6 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, unsigned char *sig
    rb = nrb;
    assert(rb != NULL);
    _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
-#if USE_CONDITION
-   if (signal) {
-      _aaxConditionSignal(signal);
-   }
-#else
-   *signal = *signal + 1;
-#endif
 
    return rb;
 }
@@ -399,11 +396,6 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                char dde = (_EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) != NULL);
                frame_rb = _aaxAudioFrameSwapBuffers(frame_rb,
                                                     sfmixer->frame_ringbuffers,
-#if USE_CONDITION
-                                                    NULL,
-#else
-                                                    &sfmixer->capturing,
-#endif
                                                     dde);
                fmixer->ringbuffer = frame_rb;
 
@@ -414,9 +406,6 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                process = AAX_TRUE;
       
                if (--cnt == 0) break;
-            }
-            else {
-               sfmixer->capturing++;
             }
          }
          _intBufReleaseNum(hf, _AAX_FRAME);
@@ -482,12 +471,6 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
                                     &fp2d, &fp3d, be, be_handle);
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
-   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->ringbuffers,
-#if USE_CONDITION
-                                              fmixer->frame_ready,
-#else
-                                              &fmixer->capturing,
-#endif
-                                              dde);
+   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->ringbuffers, dde);
 }
 

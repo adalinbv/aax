@@ -336,7 +336,6 @@ _aaxNoneDriverProcessFrame(void* config)
    int stage;
 
    dt = 1.0f/frame->info->refresh_rate;
-   frame->capturing++;
 
    stage = 0;
    he = frame->emitters_3d;

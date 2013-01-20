@@ -1724,7 +1724,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
   {
       packet_sz = avail = 0;
       hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &avail);
-      if (hr != S_OK || !avail) break;
+      if (FAILED(hr) || !avail) break;
 
       /*
        * During each GetBuffer call, the caller must either obtain the
