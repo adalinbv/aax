@@ -1115,7 +1115,7 @@ _aaxMixerStart(_handle_t *handle)
          {
             /* set the minimum timer resolution required by us to dt*1000 ms */
             handle->dt_ms = _oalRingBufferGetDuration(handle->ringbuffer)*1000;
-            setTimerResolution(1); // 1 ms handle->dt_ms);
+            setTimerResolution(handle->dt_ms/2);
             rv = AAX_TRUE;
          }
       }   
