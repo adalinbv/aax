@@ -1137,7 +1137,7 @@ _aaxMixerStop(_handle_t *handle)
    {
       if (handle-> dt_ms > 0)
       {
-         resetTimerResolution(1); // 1ms handle->dt_ms);
+         resetTimerResolution(handle->dt_ms/2);
          handle->dt_ms = 0;
       }
       handle->thread.started = AAX_FALSE;
