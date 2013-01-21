@@ -37,7 +37,7 @@
 #endif
 
 #define USE_EVENT_THREAD	AAX_TRUE
-#define USE_CAPTURE_THREAD	AAX_FALSE
+#define USE_CAPTURE_THREAD	AAX_TRUE
 #define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
 #define ENABLE_TIMING		AAX_TRUE
@@ -203,6 +203,7 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pWideCharToMultiByte WideCharToMultiByte
 # define pMultiByteToWideChar MultiByteToWideChar
 # define pCoInitialize CoInitialize
+# define pCoInitializeEx CoInitializeEx
 # define pCoUninitialize CoUninitialize
 # define pCoCreateInstance CoCreateInstance
 # define pCoTaskMemFree CoTaskMemFree
@@ -812,8 +813,14 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 # if CAPTURE_USE_MIN_PERIOD
       if (handle->Mode == eCapture)
       {                         /* use the minimum period size for capturing */
+         REFERENCE_TIME hnsMinPeriodicity;
          hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, NULL,
-                                            &hnsPeriodicity);
+                                            &hnsMinPeriodicity);
+         if (hr == S_OK)
+         {		// make the period size en axact and even number of ms.
+            hnsPeriodicity = (hnsMinPeriodicity/10000) & 0xFFFFFFFE;
+            hnsPeriodicity = (2 + hnsPeriodicity)*10000;
+         }
       }
 # endif
 #endif
@@ -1686,9 +1693,10 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
 
    assert(handle);
 
-// hr = pCoInitializeEx(NULL, COINIT_MULTITHREADED);
    hr = pCoInitialize(NULL);
    if (FAILED(hr)) return -1;
+
+   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
    stdby_time = handle->hnsPeriod/20000;
    while (active)
@@ -1806,7 +1814,11 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
          packet_sz = 0;
       }
    }
-   while (packet_sz);
+// #if USE_CAPTURE_THREAD
+//    while (packet_sz);
+// #else
+   while(0);
+// #endif
 
    return hr;
 }
