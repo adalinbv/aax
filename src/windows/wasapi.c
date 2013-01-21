@@ -37,7 +37,7 @@
 #endif
 
 #define USE_EVENT_THREAD	AAX_TRUE
-#define USE_CAPTURE_THREAD	AAX_TRUE
+#define USE_CAPTURE_THREAD	AAX_FALSE
 #define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
 #define ENABLE_TIMING		AAX_TRUE
@@ -261,9 +261,8 @@ static int _aaxWASAPIDriverCaptureFromHardware(_driver_t*);
 static DWORD _aaxWASAPIDriverCaptureThread(LPVOID);
 #endif
 
-#ifndef UINT64_MAX
-# define UINT64_MAX		(18446744073709551615ULL)
-#endif
+
+static void *log_file = NULL;
 
 static int
 _aaxWASAPIDriverDetect(int mode)
@@ -1675,7 +1674,26 @@ _aaxWASAPIDriverLog(const char *str)
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
    OutputDebugString(_errstr);
    _AAX_SYSLOG(_errstr);
-   printf("%s\n", _errstr);
+
+
+   if (log_file == NULL)
+   {
+      char *tmp = getenv("TEMP");
+      if (!tmp) tmp = getenv("TMP");
+      if (tmp)
+      {
+         char fname[1024];
+
+         snprintf(fname, 1024, "%s\\AAX_WASAPI.log", tmp);
+         log_file = fopen(fname, "w");
+      }
+   }
+
+   if (log_file)
+   {
+      fprintf(log_file, "%s\n", _errstr);
+      fseek(log_file, 0L, SEEK_CUR);	// sync.
+   }
 
    return (char*)&_errstr;
 }
@@ -1814,11 +1832,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
          packet_sz = 0;
       }
    }
-// #if USE_CAPTURE_THREAD
-//    while (packet_sz);
-// #else
    while(0);
-// #endif
 
    return hr;
 }
