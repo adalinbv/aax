@@ -519,11 +519,12 @@ _aaxSoftwareMixerPlayFrame(void** rb, const void* devices, const void* ringbuffe
    if TEST_FOR_TRUE(capturing)
    {
       _intBuffers *mixer_ringbuffers = (_intBuffers*)ringbuffers;
-      _oalRingBufferForward(dest_rb);
-      _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, dest_rb);
-      _intBufGetNumNoLock(mixer_ringbuffers, _AAX_RINGBUFFER);
-      dest_rb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_TRUE);
-      *rb = (void*)dest_rb;
+      _oalRingBuffer *new_rb;
+
+      new_rb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE, AAX_FALSE);
+
+      _oalRingBufferForward(new_rb);
+      _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
    }
 
    _oalRingBufferClear(dest_rb);
@@ -590,6 +591,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             {
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
+               void *new_rb;
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
@@ -612,12 +614,22 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                          mixer->emitters_2d, mixer->emitters_3d,
                                          be, be_handle);
  
-               res = _aaxSoftwareMixerPlayFrame((void**)&handle->ringbuffer,
-                                                mixer->devices,
+               new_rb = handle->ringbuffer;
+               res = _aaxSoftwareMixerPlayFrame(&new_rb, mixer->devices,
                                                 mixer->ringbuffers,
                                                 mixer->frames,
                                                 &sp2d, &sp3d, mixer->capturing,
                                                 sensor, be, be_handle);
+
+               if (new_rb != handle->ringbuffer)
+               {
+                  dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+                  if (dptr_sensor)
+                  {
+                     handle->ringbuffer = new_rb;
+                     _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+                  }
+               }
             }
          }
       }
