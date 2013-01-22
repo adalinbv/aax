@@ -241,8 +241,8 @@ aaxSensorGetBuffer(const aaxConfig config)
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
-            _intBufReleaseNum(dptr_rb, _AAX_RINGBUFFER);
          }
+         _intBufReleaseNum(dptr_rb, _AAX_RINGBUFFER);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
    }
@@ -270,21 +270,24 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
       {
          nbuf = 0;
          duration += sleep_ms*0.001f;
+         if (duration >= timeout) break;
+
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _intBuffers *ringbuffers = sensor->mixer->ringbuffers;
-            nbuf=_intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
+            nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
+
          if (!nbuf)
          {
             int err = msecSleep(sleep_ms);
-            if (err < 0) break;
+            if ((err < 0) || !handle) break;
          }
       }
-      while ((nbuf == 0) && (duration < timeout));
+      while (!nbuf);
 
       if (nbuf) rv = AAX_TRUE;
       else _aaxErrorSet(AAX_TIMEOUT);
@@ -292,6 +295,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
+
    return rv;
 }
 

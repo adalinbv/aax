@@ -995,18 +995,19 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
 
      sleep_ms = (unsigned int)_MAX(100.0f/refrate, 1.0f);
      do
-      {
+     {
          nbuf = 0;
          duration += sleep_ms*0.001f;
+         if (duration >= timeout) break;
 
          nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
          if (!nbuf)
          {
             int err = msecSleep(sleep_ms);
-            if (err < 0) break;
+            if ((err < 0) || !handle) break;
          }
       }
-      while ((nbuf == 0) && (duration < timeout));
+      while (!nbuf);
 
       if (nbuf) rv = AAX_TRUE;
       else _aaxErrorSet(AAX_TIMEOUT);
