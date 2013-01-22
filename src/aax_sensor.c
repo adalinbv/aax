@@ -272,6 +272,9 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          duration += sleep_ms*0.001f;
          if (duration >= timeout) break;
 
+         handle = get_handle(config);	/* handle could be inalid by now */
+         if (!handle) break;
+
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
@@ -284,7 +287,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          if (!nbuf)
          {
             int err = msecSleep(sleep_ms);
-            if ((err < 0) || !handle) break;
+            if (err < 0) break;
          }
       }
       while (!nbuf);
