@@ -382,6 +382,8 @@ typedef float aaxMtx4f[4][4];
 /*
  * Version and Support information
  */
+AAX_API void AAX_APIENTRY aaxFree(void*);
+
 AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion();
 AAX_API unsigned AAX_APIENTRY aaxGetMinorVersion();
 AAX_API unsigned int AAX_APIENTRY aaxGetPatchLevel();

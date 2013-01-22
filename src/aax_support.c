@@ -33,6 +33,12 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX];
 const char *_aax_id_s[_AAX_MAX_ID];
 const char* _aaxErrorStrings[];
 
+AAX_API void AAX_APIENTRY
+aaxFree(void *mm)
+{
+   free(mm);
+}
+
 AAX_API unsigned AAX_APIENTRY
 aaxGetMajorVersion()
 {
