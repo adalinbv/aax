@@ -230,6 +230,7 @@ aaxSensorGetBuffer(const aaxConfig config)
                {
                   _oalRingBuffer *rb = (_oalRingBuffer *)ptr[0];
                   buf->ringbuffer = rb;
+                  buf->frequency = _oalRingBufferGetFrequency(rb);
                   buf->format = _oalRingBufferGetFormat(rb);
                   buf->ref_counter = 1;
                   buf->mipmap = AAX_FALSE;
@@ -265,11 +266,11 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
       unsigned int sleep_ms;
       unsigned int nbuf;
 
-      sleep_ms = (unsigned int)_MAX(100.0f/refrate, 1.0f);
+      sleep_ms = (unsigned int)_MAX(1000/(10.0f*refrate), 1);
       do
       {
          nbuf = 0;
-         duration += sleep_ms*0.001f;
+         duration += sleep_ms*0.001f;	// ms to sec.
          if (duration >= timeout) break;
 
          handle = get_handle(config);	/* handle could be inalid by now */
