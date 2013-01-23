@@ -328,7 +328,10 @@ typedef struct			/* static information about the sample*/
 
 typedef struct		/* playback related information about the sample*/
 {
-    _oalRingBufferSample* sample;
+    _oalRingBufferSample* sample;		/* shared, constat settings */
+
+    float peak[_AAX_MAX_SPEAKERS];		/* for the vu meter */
+    float average[_AAX_MAX_SPEAKERS];
 
     float elapsed_sec;
     float pitch_norm;
@@ -768,10 +771,10 @@ void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigne
 void iir_compute_coefs(float, float, float*, float*, float);
 _oalRingBufferMix1NFunc* _oalRingBufferMixMonoSetGenderer(enum aaxRenderMode);
 
-void bufCompress(void*, unsigned int, unsigned int, float, float);
-void bufCompressElectronic(void*, unsigned int, unsigned int);
-void bufCompressDigital(void*, unsigned int, unsigned int);
-void bufCompressValve(void*, unsigned int, unsigned int);
+void bufCompress(void*, unsigned int*, unsigned int*, float, float);
+void bufCompressElectronic(void*, unsigned int*, unsigned int*);
+void bufCompressDigital(void*, unsigned int*, unsigned int*);
+void bufCompressValve(void*, unsigned int*, unsigned int*);
 
 void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);

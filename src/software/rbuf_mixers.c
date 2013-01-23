@@ -341,17 +341,20 @@ _aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned 
 }
 
 void
-bufCompressElectronic(void *d, unsigned int dmin, unsigned int dmax) {
+bufCompressElectronic(void *d, unsigned int *dmin, unsigned int *dmax)
+{
    bufCompress(d, dmin, dmax, 0.5f, 0.0f);
 }
 
 void
-bufCompressDigital(void *d, unsigned int dmin, unsigned int dmax) {
+bufCompressDigital(void *d, unsigned int *dmin, unsigned int *dmax)
+{
    bufCompress(d, dmin, dmax, 0.9f, 0.0f);
 }
 
 void
-bufCompressValve(void *d, unsigned int dmin, unsigned int dmax) {
+bufCompressValve(void *d, unsigned int *dmin, unsigned int *dmax)
+{
    bufCompress(d, dmin, dmax, 0.2f, 0.9f);
 }
 
@@ -361,18 +364,21 @@ bufCompressValve(void *d, unsigned int dmin, unsigned int dmax) {
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 #if 1
 void
-bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
+bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
    static const float df = 1.0f/2147483648.0f; // (float)(int32_t)0x7FFFFFFF;
    int32_t *ptr = (int32_t*)d;
-   float osamp = 0.0f;
-   float imix, mix;
-   unsigned int j;
+   float osamp, imix, mix;
+   unsigned int j, max;
+   int32_t peak, iasym;
+   int64_t sum;
 
+   osamp = 0.0f;
+   sum = peak = 0;
    mix = _MINMAX(clip, 0.0f, 1.0f);
    imix = (1.0f - mix);
-   j = dmax-dmin;
-   asym *= 4096.0f;
+   j = max = *dmax - *dmin;
+   iasym = asym*4096.0f;
    do
    {
       float fact1, fact2, sdf, rise;
@@ -381,8 +387,12 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       int32_t samp;
 
       samp = *ptr;
-      asamp = (int32_t)fabsf(samp+asym);
+      asamp = abs(samp);
 
+      sum += asamp;
+      if (asamp > peak) peak = asamp;
+
+      asamp = abs(samp+iasym);
       pos = 1+(asamp >> SHIFT);
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
@@ -399,6 +409,9 @@ bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asy
       *ptr++ = (int32_t)((imix*fact1 + mix*fact2)*samp);
    }
    while (--j);
+ 
+   *dmax = peak;
+   *dmin = sum/max;
 }
 
 #else

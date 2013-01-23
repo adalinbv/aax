@@ -344,8 +344,11 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
             _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
          }
 
-         if ((fact > 0.01f) || (asym > 0.01f)) {
-            bufCompress(dptr, 0, no_samples, clip, 4*asym);
+         if ((fact > 0.01f) || (asym > 0.01f))
+         {
+            unsigned int average = 0;
+            unsigned int peak = no_samples;
+            bufCompress(dptr, &average, &peak, clip, 4*asym);
          }
 
          /* mix with the dry signal */

@@ -83,7 +83,7 @@ typedef int _aaxDriver3dMixerCB(const void*, void*, void*, void*, void*, int, un
 typedef void _aaxDriverPrepare3d(void*, void*, const void*, const void*, void*);
 typedef void _aaxDriverPostProcess(const void*, void*, const void*);
 typedef void _aaxDriverPrepare(const void*, void*, const void*);
-typedef void (*_aaxDriverCompress)(void*, unsigned int, unsigned int);
+typedef void (*_aaxDriverCompress)(void*, unsigned int*, unsigned int*);
 
 typedef void *_aaxDriverThread(void*);
 

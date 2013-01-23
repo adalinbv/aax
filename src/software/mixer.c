@@ -98,9 +98,11 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _sensor_t *sensor = (_sensor_t*)s;
    _oalRingBufferReverbData *reverb;
    unsigned int track, tracks;
+   unsigned int average, peak;
    _oalRingBufferSample *rbd;
    char parametric, graphic;
    void *ptr = 0;
+   float dt;
    char *p;
 
    assert(rb != 0);
@@ -141,7 +143,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int32_t *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
-         _aaxProcessCompression(d1, 0, dmax);
+         average = 0;
+         peak = dmax;
+         _aaxProcessCompression(d1, &average, &peak);
          bufEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
       }
@@ -198,7 +202,13 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          while (b > 0);
       }
 
-      _aaxProcessCompression(d1, 0, dmax);
+      average = 0;
+      peak = dmax;
+      _aaxProcessCompression(d1, &average, &peak);
+
+      dt = _oalRingBufferGetDuration(rb)*2.0f;	/* half a second average */
+      rb->average[track] = ((1.0f-dt)*rb->average[track] + dt*average);
+      rb->peak[track] = ((1.0f-dt)*rb->peak[track] + dt*peak);
    }
    free(ptr);
 }
