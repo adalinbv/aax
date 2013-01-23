@@ -1454,8 +1454,11 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
                len -= slen;
                prev = ptr;
                ptr += slen;
-               *(ptr+1) = 0;
-               if (len <= 0) break;
+               if (len > 0) {
+                  *(ptr+1) = 0;
+               } else {
+                  break;
+               }
             }
 
 NextGetDevices:
@@ -1474,6 +1477,8 @@ NextGetDevices:
             pCoUninitialize();
          }
 
+         /* always end with "\0\0" no matter what */
+         names[m][1022] = 0;
          names[m][1023] = 0;
 
          return (char *)&names[m];
@@ -1577,7 +1582,11 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
                      slen++;		/* skip trailing '\0' */
                      len -= slen;
                      ptr += slen;
-                     if (len <= 0) break;
+                     if (len > 0) {
+                        (*ptr+1) = 0;
+                     } else {
+                        break;
+                     }
                   }
                   pPropVariantClear(&iface);
                }
