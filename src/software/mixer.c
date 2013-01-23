@@ -109,6 +109,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    assert(rb->sample != 0);
 
    rbd = rb->sample;
+   dt = _MINMAX(_oalRingBufferGetDuration(rb)*50.0f, 0.0f, 1.0f);
 
    reverb = 0;
    parametric = graphic = 0;
@@ -205,8 +206,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       average = 0;
       peak = dmax;
       _aaxProcessCompression(d1, &average, &peak);
-
-      dt = 0.9f; // _oalRingBufferGetDuration(rb)*100;
       rb->average[track] = ((1.0f-dt)*rb->average[track] + dt*average);
       rb->peak[track] = ((1.0f-dt)*rb->peak[track] + dt*peak);
    }
