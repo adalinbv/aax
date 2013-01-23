@@ -217,50 +217,27 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             rv = info->format;
             break;
          default:
-            if (type >= AAX_TRACK_PEAK_VALUE && type < AAX_TRACK_MAX)
+            _aaxErrorSet(AAX_INVALID_ENUM);
+         }
+      }
+      else if (type >= AAX_TRACK_PEAK_VALUE && type < AAX_TRACK_MAX)
+      {
+         unsigned int track = type & 0xFF;
+         if (track < _AAX_MAX_SPEAKERS)
+         {
+            _oalRingBuffer *rb = handle->ringbuffer;
+            if (rb)
             {
-               unsigned int track = type - AAX_TRACK_PEAK_VALUE;
-               const _intBufferData* dptr;
-               dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               if (dptr)
-               {
-                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                  _aaxAudioFrame* mixer = sensor->mixer;
-                  const _intBufferData* dptr_rb;
-
-                  dptr_rb = _intBufGet(mixer->ringbuffers, _AAX_RINGBUFFER, 0);
-                  if (dptr_rb)
-                  {
-                     _oalRingBuffer *rb = _intBufGetDataPtr(dptr_rb);
-                     if (rb)
-                     {
-                        if (type < AAX_TRACK_AVERAGE_VALUE)
-                        {
-                           unsigned int track = type - AAX_TRACK_PEAK_VALUE;
-                           if (track < _AAX_MAX_SPEAKERS) {
-                              rv = rb->peak[track];
-                           } else {
-                              _aaxErrorSet(AAX_INVALID_ENUM);
-                           }
-                        }
-                        else
-                        {
-                           unsigned int track = type - AAX_TRACK_AVERAGE_VALUE;
-                           if (track < _AAX_MAX_SPEAKERS) {
-                              rv = rb->average[track];
-                           } else {
-                              _aaxErrorSet(AAX_INVALID_ENUM);
-                           }
-                        }
-                     }
-                     _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
-                  }
-                  _intBufReleaseData(dptr, _AAX_SENSOR);
+               if (type < AAX_TRACK_AVERAGE_VALUE) {
+                  unsigned int track = type - AAX_TRACK_PEAK_VALUE;
+                  rv = rb->peak[track];
+               } else {
+                  rv = rb->average[track];
                }
             }
-            else {
-               _aaxErrorSet(AAX_INVALID_ENUM);
-            }
+         }
+         else {
+            _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
       else {
