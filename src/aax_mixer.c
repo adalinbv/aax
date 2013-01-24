@@ -38,7 +38,7 @@
 static int _aaxMixerInit(_handle_t*);
 static int _aaxMixerStart(_handle_t*);
 static int _aaxMixerStop(_handle_t*);
-static int _aaxMixerSignal(_handle_t*);
+static int _aaxMixerUpdate(_handle_t*);
 
 AAX_API int AAX_APIENTRY
 aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
@@ -476,7 +476,7 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
       switch (state)
       {
       case AAX_UPDATE:
-         rv = _aaxMixerSignal(handle);
+         rv = _aaxMixerUpdate(handle);
          break;
       case AAX_SUSPENDED:
          _SET_PAUSED(handle);
@@ -1175,7 +1175,7 @@ _aaxMixerStop(_handle_t *handle)
 }
 
 static int
-_aaxMixerSignal(_handle_t *handle)
+_aaxMixerUpdate(_handle_t *handle)
 {
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(handle->thread.started)
