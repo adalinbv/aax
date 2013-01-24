@@ -2334,7 +2334,11 @@ _aaxALSADriverThread(void* config)
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 #if ENABLE_TIMING
-printf("elapsed: %f ms\n", _aaxTimerElapsed(timer)*1000.0f);
+{
+float elapsed = _aaxTimerElapsed(timer);
+if (elapsed > delay_sec)
+printf("elapsed: %f ms\n", elapsed*1000.0f);
+}
 #endif
 
 #if 0

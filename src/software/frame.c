@@ -41,8 +41,8 @@ _aaxAudioFrameThread(void* config)
    _handle_t* handle;
    unsigned int pos;
    struct timespec ts;
-   float dt, delay_sec;
-   float elapsed;
+   float dt, elapsed;
+   float delay_sec;
    int res = 0;
 
    if (!frame || !frame->submix->info->no_tracks) {
@@ -122,8 +122,10 @@ _aaxAudioFrameThread(void* config)
    _aaxMutexLock(frame->thread.mutex);
    do
    {
-#if 1
       float delay = delay_sec;                  /* twice as slow when standby */
+#if USE_CONDITION
+      delay *= 2;
+#endif
 
 //    if (_IS_STANDBY(frame)) delay *= 2;
       elapsed -= delay;
@@ -160,9 +162,6 @@ _aaxAudioFrameThread(void* config)
          ts.tv_sec++;
          ts.tv_nsec -= 1000000000L;
       }
-#else
-      clock_gettime(CLOCK_REALTIME, &ts);
-#endif
 
       if TEST_FOR_FALSE(frame->thread.started) {
          break;
@@ -185,7 +184,9 @@ _aaxAudioFrameThread(void* config)
 
       mixer->capturing++;
 #if USE_CONDITION
-      _aaxConditionSignal(fmixer->frame_ready);
+      if (fmixer->frame_ready) {
+         _aaxConditionSignal(fmixer->frame_ready);
+      }
 #endif
 
       /**
@@ -206,7 +207,7 @@ _aaxAudioFrameThread(void* config)
 
    _aaxMutexUnLock(frame->thread.mutex);
    _oalRingBufferStop(frame->ringbuffer);
-   _oalRingBufferDelete(frame->ringbuffer);
+// _oalRingBufferDelete(frame->ringbuffer);
    frame->ringbuffer = 0;
 
    return frame;
@@ -214,7 +215,7 @@ _aaxAudioFrameThread(void* config)
 
 void
 _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                  unsigned char *capturing, _oalRingBuffer2dProps *fp2d,
+                  _oalRingBuffer2dProps *fp2d, 
                   const _aaxDriverBackend *be, void *be_handle)
 {
    _intBufferData *buf;
@@ -257,7 +258,6 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
          float gstep = 0.0f;
 
          _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
-         *capturing = 1;
       }
 
       /*
@@ -401,7 +401,8 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 
                /* finally mix the data with dest_rb */
                _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
-                                 &sfmixer->capturing, &sfp2d, be, be_handle);
+                                 &sfp2d, be, be_handle);
+               sfmixer->capturing = 1;
 
                process = AAX_TRUE;
       

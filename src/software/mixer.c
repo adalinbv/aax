@@ -363,7 +363,7 @@ _aaxSoftwareMixerThread(void* config)
 }
 
 unsigned int
-_aaxSoftwareMixerSignalFrames(void *frames)
+_aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 {
    _intBuffers *hf = (_intBuffers*)frames;
    unsigned int num = 0;
@@ -371,6 +371,21 @@ _aaxSoftwareMixerSignalFrames(void *frames)
    if (hf)
    {
       unsigned int i;
+#if USE_CONDITION
+		/* 80%: 0.8*1000000000L */
+      uint32_t dt_ns = (uint32_t)(800000000.0f/refresh_rate);
+      struct timeval tv;
+      struct timespec ts;
+
+      gettimeofday(&tv, NULL);
+      ts.tv_sec = tv.tv_sec + (dt_ns % 1000000000L);
+      ts.tv_nsec = tv.tv_usec*1000 + (dt_ns / 1000000000L);
+      if (ts.tv_nsec > 1000000000L)
+      {
+         ts.tv_sec++;
+         ts.tv_nsec -= 1000000000L;
+      }
+#endif
 
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
@@ -385,9 +400,16 @@ _aaxSoftwareMixerSignalFrames(void *frames)
             {
                unsigned int nbuf;
                nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-               if (nbuf < 2) {
+#if USE_CONDITION
+if (nbuf > 2) printf("nuf: %i\n", nbuf);
+               if (frame->thread.condition) {
                   _aaxConditionSignal(frame->thread.condition);
                }
+#else
+               if (nbuf < 2 && frame->thread.condition)  {
+                  _aaxConditionSignal(frame->thread.condition);
+               }
+#endif
             }
 //          _intBufReleaseData(dptr, _AAX_FRAME);
          }
@@ -396,6 +418,25 @@ _aaxSoftwareMixerSignalFrames(void *frames)
 
       /* give the remainder of the threads time slice to other threads */
 //    msecSleep(2);
+
+      
+#if USE_CONDITION
+      /* Wait for the worker threads to finish before continuing */
+      num = _intBufGetMaxNumNoLock(hf, _AAX_FRAME);
+      for (i=0; i<num; i++)
+      {
+         _intBufferData *dptr = _intBufGetNoLock(hf, _AAX_FRAME, i);
+         if (dptr)
+         {
+            _frame_t* frame = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame* mixer = frame->submix;
+            if (mixer->frame_ready) {		// REGISTERED_FRAME;
+               _aaxConditionWaitTimed(mixer->frame_ready, NULL, &ts);
+            }
+//          _intBufReleaseData(dptr, _AAX_FRAME);
+         }
+      }
+#endif
    }
    return num;
 }
@@ -409,22 +450,6 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
    unsigned int i, num = 0;
    if (hf)
    {
-#if USE_CONDITION
-      void *mutex = _aaxMutexCreate(NULL);
-      double dt_ns = 0.8 * _oalRingBufferGetDuration(dest_rb)*1000000000;
-      struct timeval tv;
-      struct timespec ts;
-
-      gettimeofday(&tv, NULL);
-      ts.tv_sec = tv.tv_sec + 0;
-      ts.tv_nsec = tv.tv_usec*1000 + (long)dt_ns;
-      if (ts.tv_nsec > 1000000000L)
-      {
-         ts.tv_sec++;
-         ts.tv_nsec -= 1000000000L;
-      }
-#endif
-
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
       {
@@ -446,15 +471,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 //          else
             {
 #if USE_CONDITION
-               if (mixer->frame_ready)		// REGISTERED_FRAME;
-               {
-                  int rv;
-                  rv = _aaxConditionWaitTimed(mixer->frame_ready, mutex, &ts);
-#if 1
-if (rv != 0)
-printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid");
-#endif
-               }
+               mixer->capturing = 2;
 #else
                float refrate = mixer->info->refresh_rate;
                int p = 0;
@@ -484,7 +501,8 @@ printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid
                 _oalRingBuffer2dProps *p2d = mixer->props2d;
 
                 _aaxAudioFrameMix(dest_rb, mixer->ringbuffers,
-                                  &mixer->capturing, p2d, be, be_handle);
+                                  p2d, be, be_handle);
+                mixer->capturing = 1;
             }
 
             /*
@@ -495,10 +513,6 @@ printf("_aaxConditionWaitTimed: %s\n", (rv == ETIMEDOUT) ? "time-out" : "invalid
          }
       }
       _intBufReleaseNum(hf, _AAX_FRAME);
-
-#if USE_CONDITION
-      _aaxMutexDestroy(mutex);
-#endif
    }
    return num;
 }
@@ -510,14 +524,14 @@ _aaxSoftwareMixerPlayFrame(void** rb, const void* devices, const void* ringbuffe
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)*rb;
    int res;
 
+   if (devices) {
+      _aaxSensorsProcess(dest_rb, devices, props2d);
+   }
+
    if (frames)
    {
       _intBuffers *mixer_frames = (_intBuffers*)frames;
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
-   }
-
-   if (devices) {
-      _aaxSensorsProcess(dest_rb, devices, props2d);
    }
    be->effects(be_handle, dest_rb, props2d);
    be->postprocess(be_handle, dest_rb, sensor);
@@ -562,9 +576,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
       void* be_handle = handle->backend.handle;
       _aaxAudioFrame *mixer = NULL;
 
-      if (_IS_PLAYING(handle) && be->is_available(be_handle))
+      if (_IS_PLAYING(handle))
       {
-         dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
          if (dptr_sensor)
          {
             _sensor_t *sensor = _intBufGetDataPtr(dptr_sensor);
@@ -575,7 +589,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                float dt = 1.0f / mixer->info->refresh_rate;
                void *rv, *rb = dest; // mixer->ringbuffer;
 
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt,
                                                mixer->curr_pos_sec);
                if (dt == 0.0f)
@@ -602,20 +615,22 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                _oalRingBuffer3dProps sp3d;
                void *new_rb;
 
+               /** signal threaded frames to update (if necessary) */
+               /* thread == -1: mixer; attached frames are threads */
+               /* thread >=  0: frame; call updates manually       */
+               if (mixer->thread < 0) {
+                  _aaxSoftwareMixerSignalFrames(mixer->frames,
+                                                mixer->info->refresh_rate);
+               }
+
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
+               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
                memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
                memcpy(&sp2d.pos, handle->info->speaker,
                                   _AAX_MAX_SPEAKERS*sizeof(vec4_t));
                memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
-
-               /** signal threaded frames to update (if necessary) */
-               /* thread == -1: mixer; attached frames are threads */
-               /* thread >=  0: frame; call updates manually       */
-               if (mixer->thread < 0) {
-                  _aaxSoftwareMixerSignalFrames(mixer->frames);
-               }
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                /* main mixer */
