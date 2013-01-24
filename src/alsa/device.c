@@ -2328,7 +2328,7 @@ _aaxALSADriverThread(void* config)
       }
 
 #if ENABLE_TIMING
-   _aaxTimerStart(timer);
+       _aaxTimerStart(timer);
 #endif
       if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
