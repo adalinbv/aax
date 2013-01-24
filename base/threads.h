@@ -23,17 +23,26 @@ extern "C" {
 # include <pthread.h>			/* UNIX */
 
  typedef pthread_t	_aaxThread;
- typedef pthread_cond_t	_aaxCondition;
+
+ typedef struct _aaxCondition
+ {
+   pthread_cond_t condition;
+   pthread_mutex_t mutex;
+   char triggered;
+ } _aaxCondition;
 
  typedef struct _aaxMutex
  { 
-   char initialized;
    pthread_mutex_t mutex;
+
 # ifndef NDEBUG
    const char *name;
    const char *function;
 # endif
+   char initialized;
  } _aaxMutex;
+
+
 
 #elif defined( WIN32 )
 # include <Windows.h>			/* WINDOWS */
@@ -84,7 +93,6 @@ int _aaxMutexLock(void *);
 int _aaxMutexUnLock(void *);
 #endif
 void _aaxMutexDestroy(void *);
-
 
 void *_aaxConditionCreate();
 void _aaxConditionDestroy(void *);
