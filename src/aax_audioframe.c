@@ -29,7 +29,7 @@
 #include "driver.h"
 
 static int _aaxAudioFrameStart(_frame_t*);
-static int _aaxAudioFrameSignal(_frame_t*);
+static int _aaxAudioFrameUpdate(_frame_t*);
 
 AAX_API aaxFrame AAX_APIENTRY
 aaxAudioFrameCreate(aaxConfig config)
@@ -947,7 +947,7 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
       switch (state)
       {
       case AAX_UPDATE:
-         rv = _aaxAudioFrameSignal(handle);
+         rv = _aaxAudioFrameUpdate(handle);
          break;
       case AAX_SUSPENDED:
          _SET_PAUSED(handle);
@@ -1229,7 +1229,7 @@ _aaxAudioFrameStop(_frame_t *frame)
 }
 
 int
-_aaxAudioFrameSignal(_frame_t *frame)
+_aaxAudioFrameUpdate(_frame_t *frame)
 {
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(frame->thread.started)
