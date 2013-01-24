@@ -1583,7 +1583,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
                      len -= slen;
                      ptr += slen;
                      if (len > 0) {
-                        (*ptr+1) = 0;
+                        *(ptr+1) = 0;
                      } else {
                         break;
                      }
