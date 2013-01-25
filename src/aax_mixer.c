@@ -207,9 +207,13 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             }
             break;
          case AAX_TRACKSIZE:
-// TODO: is sizeof(int32_t) correct?
-            rv = (unsigned int)(info->frequency*sizeof(int32_t)/info->refresh_rate);
+         {
+            _oalRingBuffer *rb = handle->ringbuffer;
+            int bps = _oalRingBufferGetBytesPerSample(rb);
+
+            rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
             break;
+         }
          case AAX_TRACKS:
             rv = info->no_tracks;
             break;
@@ -220,7 +224,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
-      else if (type >= AAX_TRACK_PEAK_VALUE && type < AAX_TRACK_MAX)
+      else if (type >= AAX_PEAK_VALUE_TRACK0 && type <= AAX_PEAK_VALUE_TRACK7
+               && type >= AAX_AVERAGE_VALUE_TRACK0 && type < AAX_TRACK_MAX)
       {
          unsigned int track = type & 0xFF;
          if (track < _AAX_MAX_SPEAKERS)
@@ -228,8 +233,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             _oalRingBuffer *rb = handle->ringbuffer;
             if (rb)
             {
-               if (type < AAX_TRACK_AVERAGE_VALUE) {
-                  unsigned int track = type - AAX_TRACK_PEAK_VALUE;
+               if (type <= AAX_PEAK_VALUE_TRACK7) {
                   rv = rb->peak[track];
                } else {
                   rv = rb->average[track];
