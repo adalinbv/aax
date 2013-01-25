@@ -364,7 +364,7 @@ _aaxConditionDestroy(void *c)
 {
    _aaxCondition *cptr = c;
 
-   assert(condition);
+   assert(cptr);
 
    pthread_mutex_lock(&cptr->mutex);
    cptr->triggered = 0;
