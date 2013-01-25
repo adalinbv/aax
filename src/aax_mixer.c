@@ -224,8 +224,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
-      else if (type >= AAX_PEAK_VALUE_TRACK0 && type <= AAX_PEAK_VALUE_TRACK7
-               && type >= AAX_AVERAGE_VALUE_TRACK0 && type < AAX_TRACK_MAX)
+      else if ((type >= AAX_PEAK_VALUE_TRACK0 && type <= AAX_PEAK_VALUE_TRACK7)
+               || (type >= AAX_AVERAGE_VALUE_TRACK0 && type < AAX_TRACK_MAX))
       {
          unsigned int track = type & 0xFF;
          if (track < _AAX_MAX_SPEAKERS)
