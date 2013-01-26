@@ -1103,7 +1103,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    *req_frames = 0;
    if (no_frames && avail)
    {
-      unsigned int fetch = no_frames;
+      unsigned int corr, fetch = no_frames;
       unsigned int chunk, try = 0;
       snd_pcm_uframes_t size;
       float diff;
@@ -1111,10 +1111,11 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       /* try to keep the buffer padding at the threshold level at all times */
       diff = (float)avail-(float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
-      fetch += _MINMAX(roundf(handle->padding), -1, 1);
-      offs += ((int)no_frames - (int)fetch);
+      corr = _MINMAX(roundf(handle->padding), -1, 1);
+      fetch += corr;
+      offs -= corr;
 #if 0
-if (roundf(handle->padding))
+if (corr)
 printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
 #endif
       /* try to keep the buffer padding at the threshold level at all times */
