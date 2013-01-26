@@ -417,7 +417,7 @@ if (nbuf > 2) printf("nuf: %i\n", nbuf);
       _intBufReleaseNum(hf, _AAX_FRAME);
 
       /* give the remainder of the threads time slice to other threads */
-//    msecSleep(2);
+      msecSleep(2);
 
       
 #if USE_CONDITION
@@ -473,13 +473,13 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 #if USE_CONDITION
                mixer->capturing = 2;
 #else
-               float refrate = mixer->info->refresh_rate;
+               unsigned int dt = 1.5f*1000.0f/mixer->info->refresh_rate; // ms
                int p = 0;
 
                /*
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 */
-               while ((mixer->capturing == 1) && (p++ < 5000))
+               while ((mixer->capturing == 1) && (++p < dt)) // 3ms is enough
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -493,7 +493,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 #endif
             } /* mixer->thread */
 
-            if (dptr && mixer->capturing > 1)
+            if (dptr) //  && mixer->capturing > 1)
             {
                 _handle_t *handle = frame->handle;
                 const _aaxDriverBackend *be = handle->backend.ptr;

@@ -205,8 +205,8 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                 */
                if (frames < nframes)
                {
-                  *(optr-1) = (*(optr-2)*2 + *(optr+1))/3;
-                  *optr     = (*(optr-2) + *(optr+1)*2)/3;
+//                *(optr-1) = (*(optr-2)*2 + *(optr+1))/3;
+//                *optr     = (*(optr-2) + *(optr+1)*2)/3;
                }
                else if (frames > nframes) {
                   *optr = (*(optr-1) + *(optr+1))/2;
