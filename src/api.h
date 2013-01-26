@@ -23,7 +23,7 @@ extern "C" {
 #include <ringbuffer.h>
 
 
-#define	SET_PROCESS_PRIORITY	AAX_TRUE
+#define	SET_PROCESS_PRIORITY	AAX_FALSE
 #define USE_CONDITION		AAX_FALSE
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
