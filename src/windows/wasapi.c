@@ -40,7 +40,7 @@
 #define USE_CAPTURE_THREAD	AAX_FALSE
 #define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
-#define ENABLE_TIMING		AAX_TRUE
+#define ENABLE_TIMING		AAX_FALSE
 #define USE_GETID		AAX_FALSE
 
 #define DRIVER_INIT_MASK	0x0001
@@ -1189,7 +1189,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
    {
       unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
       unsigned int tracks = handle->Fmt.Format.nChannels;
-      unsigned int fetch = no_frames;
+      unsigned int corr, fetch = no_frames;
       float diff;
 
 #if USE_CAPTURE_THREAD
@@ -1201,8 +1201,13 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       /* try to keep the buffer padding at the threshold level at all times */
       diff = (float)handle->scratch_offs - (float)handle->threshold;
       handle->padding = (handle->padding + diff/(float)no_frames)/2;
-      fetch += _MINMAX(roundf(handle->padding), -1, 1);
-      offs += ((int)no_frames - (int)fetch);
+      corr = _MINMAX(roundf(handle->padding), -1, 1);
+      fetch += corr;
+      offs -= corr;
+#if 0
+if (corr)
+printf("avail: %4i (%4i), fetch: %6i\r", handle->scratch_offs, handle->threshold, fetch);
+#endif
       /* try to keep the buffer padding at the threshold level at all times */
 
 #if USE_CAPTURE_THREAD
@@ -1252,7 +1257,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       if (fetch)
       {
-#if 1
+#if 0
 //       _AAX_DRVLOG(5, "not enough data available for capture");
 printf("fetch: %i, padding: %f\n", fetch, handle->padding);
 // exit(-1);
@@ -1755,8 +1760,8 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *handle)
    DWORD flags = 0;
    HRESULT hr;
 
-  do 
-  {
+   do 
+   {
       packet_sz = avail = 0;
       hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &avail);
       if (hr != S_OK || !avail) break;
