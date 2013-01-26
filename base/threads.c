@@ -334,120 +334,63 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 void *
 _aaxConditionCreate()
 {
-   _aaxCondition *cptr;
-
-   cptr = (_aaxCondition*)calloc(1, sizeof(_aaxCondition));
-   if (cptr)
+   _aaxCondition condition;
+   void *p = malloc(sizeof(_aaxCondition));
+   if (!p) return 0;
+   memcpy(p, &condition, sizeof(_aaxCondition));
+#ifndef NDEBUG
+   do
    {
-      int status = pthread_cond_init(&cptr->condition, 0);
-      if (!status)
-      {
-         status = pthread_mutex_init(&cptr->mutex, 0);
-         if (status)
-         {
-            pthread_cond_destroy(&cptr->condition);
-            free(cptr);
-            cptr = NULL;
-         }
-      }
-      else
-      {
-         free(cptr);
-         cptr = NULL;
-      }
+      int status = pthread_cond_init(p, 0);
+      assert(status == 0);
    }
-   return cptr;
+   while(0);
+#else
+   pthread_cond_init(p, 0);
+#endif
+   return p;
 }
 
 void
 _aaxConditionDestroy(void *c)
 {
-   _aaxCondition *cptr = c;
-
-   assert(cptr);
-
-   pthread_mutex_lock(&cptr->mutex);
-   cptr->triggered = 0;
-   pthread_mutex_unlock(&cptr->mutex);
-   pthread_mutex_destroy(&cptr->mutex);
-
-   pthread_cond_destroy(&cptr->condition);
-   free(cptr);
+   _aaxCondition *condition = c;
+   assert(condition);
+   pthread_cond_destroy(condition);
+   free(condition);
    c = 0;
 }
 
 int
-_aaxConditionWait(void *c, void *mtx)
+_aaxConditionWait(void *c, void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mtx;
-   _aaxCondition *cptr = c;
-   pthread_mutex_t *mutex;
-   int rv = 0;
-
-   assert(cptr);
-
-   if (!m) 
-   {
-      mutex = &cptr->mutex;
-      pthread_mutex_lock(mutex);
-      while (!cptr->triggered) {
-         rv = pthread_cond_wait(&cptr->condition, mutex);
-      }
-      pthread_mutex_unlock(&cptr->mutex);
-   }
-   else 
-   {
-      mutex = &m->mutex;
-      rv = pthread_cond_wait(&cptr->condition, mutex);
-   }
-   return rv;
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   _aaxCondition *condition = c;
+   assert(condition);
+   assert(mutex);
+   return pthread_cond_wait(condition, &m->mutex);
 }
 
 int
-_aaxConditionWaitTimed(void *c, void *mtx, struct timespec *ts)
+_aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
-   _aaxMutex *m = (_aaxMutex *)mtx;
-   _aaxCondition *cptr = c;
-   pthread_mutex_t *mutex;
-   int rv = 0;
-
-   assert(cptr);
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   _aaxCondition *condition = c;
+   assert(condition);
+   assert(mutex);
    assert(ts);
 /* printf("*: %x/%x\n", m, m->mutex); */
-
-   if (!m)
-   {
-      mutex = &cptr->mutex;
-      pthread_mutex_lock(mutex);
-      while (!cptr->triggered)
-      {
-         rv = pthread_cond_timedwait(&cptr->condition, mutex, ts);
-         if (rv == ETIMEDOUT) break;
-      }
-      pthread_mutex_unlock(&cptr->mutex);
-   }
-   else
-   {
-      mutex = &m->mutex;
-      rv = pthread_cond_timedwait(&cptr->condition, mutex, ts);
-   }
-   return rv;
+   return pthread_cond_timedwait(condition, &m->mutex, ts);
 }
 
 int
 _aaxConditionSignal(void *c)
 {
-  _aaxCondition *cptr = c;
-  int rv;
+  _aaxCondition *condition = c;
 
-   assert(cptr);
+   assert(condition);
 
-   pthread_mutex_lock(&cptr->mutex);
-   cptr->triggered = 1;
-   rv = pthread_cond_signal(&cptr->condition);
-   pthread_mutex_unlock(&cptr->mutex);
-
-   return rv;
+   return pthread_cond_signal(condition);
 }
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
@@ -769,9 +712,9 @@ _aaxConditionWait(void *c, void *mutex)
 
    assert(mutex);
    
-   if (m) _aaxMutexUnLock(m);
+   _aaxMutexUnLock(m);
    hr = WaitForSingleObject(c, INFINITE);
-   if (m) _aaxMutexLock(m);
+   _aaxMutexLock(m);
 
    switch (hr)
    {
@@ -794,23 +737,24 @@ _aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    struct timeval now_tv;
-   int64_t dt_ms;
+   double dt_ms;
    DWORD hr;
    int r=0;
 
+   assert(mutex);
    assert(ts);
 
    /* some time in the future (hopefuly) */
-   dt_ms = (1000*ts->tv_sec + ts->tv_nsec/1000000);
+   dt_ms = (1000.0*ts->tv_sec + ts->tv_nsec/1000000.0);
 
    gettimeofday(&now_tv, 0);
-   dt_ms -= (1000*now_tv.tv_sec + now_tv.tv_usec/1000);
+   dt_ms -= (1000.0*now_tv.tv_sec + now_tv.tv_usec/1000.0);
 
-   if (dt_ms > 0)
+   if (dt_ms > 0.0)
    {
-      if (m) _aaxMutexUnLock(m);
-      hr = WaitForSingleObject(c, (DWORD)dt_ms);
-      if (m) _aaxMutexLock(m);
+      _aaxMutexUnLock(m);
+      hr = WaitForSingleObject(c, (DWORD)rint(dt_ms));
+      _aaxMutexLock(m);
 
       switch (hr)
       {
