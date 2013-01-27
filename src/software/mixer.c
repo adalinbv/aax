@@ -611,6 +611,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
+#if THREADED_FRAMES
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
                void *new_rb;
@@ -654,6 +655,28 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                   }
                }
+#else
+               _aaxAudioFrameProcessThreadedFrame(handle, handle->ringbuffer,
+                                                  mixer, sensor->mixer,
+                                                  mixer, be);
+
+               /** play back all mixed audio */
+               res = be->play(be_handle, handle->ringbuffer, 1.0, 1.0);
+               if TEST_FOR_TRUE(mixer->capturing)
+               {
+                  _intBuffers *mixer_ringbuffers;
+                  _oalRingBuffer *new_rb;
+
+                  mixer_ringbuffers = (_intBuffers*)mixer->ringbuffers;
+                  new_rb = _oalRingBufferDuplicate(mixer->ringbuffer, AAX_TRUE, AAX_FALSE);
+
+                  _oalRingBufferForward(new_rb);
+                  _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
+               }
+
+               _oalRingBufferClear(mixer->ringbuffer);
+               _oalRingBufferStart(mixer->ringbuffer);
+#endif
             }
          }
       }

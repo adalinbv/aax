@@ -23,8 +23,12 @@ extern "C" {
 #include <ringbuffer.h>
 
 
+#define THREADED_FRAMES		AAX_TRUE
 #define	SET_PROCESS_PRIORITY	AAX_FALSE
 #define USE_CONDITION		AAX_FALSE
+#if !THREADED_FRAMES
+# define SET_PROCESS_PRIORITY	AAX_TRUE
+#endif
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
 #define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
@@ -138,7 +142,9 @@ _frame_t* get_frame(aaxFrame);
 void put_frame(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
-
+void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
+                                   _aaxAudioFrame*, _aaxAudioFrame*,
+                                   const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
 void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
 
@@ -328,6 +334,13 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 #endif
 
 /* --- System Specific & Config file related  --- */
+enum {
+   AAX_HIGHEST_PRIORITY = -16,
+   AAX_HIGH_PRIORITY = -8,
+   AAX_NORMAL_RPIORITY = 0,
+   AAX_LOW_PRIORITY = 8,
+   AAX_LOWEST_PRIORITY = 16
+};
 int _aaxProcessSetPriority(int);
 
 const char* userHomeDir();

@@ -974,7 +974,11 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   rv = AAX_TRUE;
 
                   submix->refcount++;
+#if THREADED_FRAMES
                   submix->thread = AAX_TRUE;
+#else
+                  submix->thread = AAX_FALSE;
+#endif
                   frame->handle = handle;
                   frame->pos = pos;
                }
@@ -1097,7 +1101,11 @@ _aaxMixerStart(_handle_t *handle)
    {
       int r;
 
+#if SET_PROCESS_PRIORITY
+      _aaxProcessSetPriority(AAX_HIGH_PRIORITY);
+#else
       _aaxProcessSetPriority(0);
+#endif
 
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);

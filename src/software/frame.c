@@ -26,11 +26,6 @@
 
 #include "audio.h"
 
-static void*
-_aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
-                                   _aaxAudioFrame*, _aaxAudioFrame*,
-                                   const _aaxDriverBackend*);
-
 void*
 _aaxAudioFrameThread(void* config)
 {
@@ -429,7 +424,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
    return process;
 }
 
-static void*
+void*
 _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
           _aaxAudioFrame *mixer, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer,
           const _aaxDriverBackend *be)

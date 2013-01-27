@@ -814,7 +814,11 @@ _open_handle(aaxConfig config)
                      unsigned int size, num;
 
                      sensor->count = 1;
+#if THREADED_FRAMES
                      sensor->mixer->thread = -1;
+#else
+                     sensor->mixer->thread = 0;
+#endif
                      num = _oalRingBufferGetNoSources();
                      sensor->mixer->info->max_emitters = num;
                      num = _AAX_MAX_MIXER_REGISTERED;
