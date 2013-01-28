@@ -653,10 +653,11 @@ _aaxFileDriverGetName(const void *id, int playback)
 
    if (handle)
    {
-      if (!handle->name) {
-         handle->name = _aax_strdup("default");
+      if (handle->name) {
+         ret = _aax_strdup(handle->name);
+      } else {
+         ret = _aax_strdup("default");
       }
-      ret = handle->name;
    }
 
    return ret;

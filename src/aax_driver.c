@@ -944,7 +944,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          if (be || (handle->devname[0] != _aax_default_devname)) {
             handle->backend.ptr = be;
          }
-         handle->backend.driver = strdup(config->backend.driver);
+         handle->backend.driver = _aax_strdup(config->backend.driver);
 
          key ^= 0x21051974;
          if (config->node[0].no_emitters)
