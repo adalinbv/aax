@@ -353,10 +353,10 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
                }
                if (be)
                {
-                  const char* name = handle->devname[1];
+                  const char* devname = handle->devname[1];
                   char *renderer;
 
-                  handle->backend.handle = be->connect(nid, xoid, name, mode);
+                  handle->backend.handle= be->connect(nid, xoid, devname, mode);
 
                   if (handle->backend.driver != _default_renderer) {
                      free(handle->backend.driver);
