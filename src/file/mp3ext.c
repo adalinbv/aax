@@ -160,7 +160,10 @@ _aaxMP3FileDetect(int mode)
    static void *audio = NULL;
    int rv = AAX_FALSE;
 
-   if (!audio)
+   if (audio) {
+      rv = AAX_TRUE;
+   }
+   else
    {
 #ifdef WINXP
       audio = _oalIsLibraryPresent("msacm32", NULL);
@@ -227,7 +230,9 @@ _aaxMP3FileDetect(int mode)
                TIE_FUNCTION(mpg123_getformat);
 
                error = _oalGetSymError(0);
-               if (!error) {
+               if (error) {
+                  audio = NULL;
+               } else {
                   rv = AAX_TRUE;
                }
             }
