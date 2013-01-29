@@ -417,7 +417,7 @@ if (nbuf > 2) printf("nuf: %i\n", nbuf);
       _intBufReleaseNum(hf, _AAX_FRAME);
 
       /* give the remainder of the threads time slice to other threads */
-      msecSleep(2);
+//    msecSleep(2);
 
       
 #if USE_CONDITION
@@ -493,7 +493,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 #endif
             } /* mixer->thread */
 
-            if (dptr) //  && mixer->capturing > 1)
+            if (dptr && mixer->capturing > 1)
             {
                 _handle_t *handle = frame->handle;
                 const _aaxDriverBackend *be = handle->backend.ptr;
@@ -518,10 +518,10 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 }
 
 int
-_aaxSoftwareMixerPlayFrame(void** rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, const void* props3d, char capturing, const void* sensor, const void* backend, const void* be_handle)
+_aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, const void* props3d, char capturing, const void* sensor, const void* backend, const void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
-   _oalRingBuffer *dest_rb = (_oalRingBuffer *)*rb;
+   _oalRingBuffer *dest_rb = (_oalRingBuffer *)rb;
    int res;
 
    if (devices) {
@@ -639,43 +639,30 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                          mixer->emitters_2d, mixer->emitters_3d,
                                          be, be_handle);
  
-               new_rb = handle->ringbuffer;
-               res = _aaxSoftwareMixerPlayFrame(&new_rb, mixer->devices,
+               res = _aaxSoftwareMixerPlayFrame(dest, mixer->devices,
                                                 mixer->ringbuffers,
                                                 mixer->frames,
                                                 &sp2d, &sp3d, mixer->capturing,
                                                 sensor, be, be_handle);
-
-               if (new_rb != handle->ringbuffer)
-               {
-                  dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-                  if (dptr_sensor)
-                  {
-                     handle->ringbuffer = new_rb;
-                     _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-                  }
-               }
 #else
-               _aaxAudioFrameProcessThreadedFrame(handle, handle->ringbuffer,
-                                                  mixer, sensor->mixer,
-                                                  mixer, be);
-
+               _aaxAudioFrameProcessThreadedFrame(handle, dest, mixer,
+                                                  sensor->mixer, mixer, be);
                /** play back all mixed audio */
-               res = be->play(be_handle, handle->ringbuffer, 1.0, 1.0);
+               res = be->play(be_handle, dest, 1.0, 1.0);
                if TEST_FOR_TRUE(mixer->capturing)
                {
                   _intBuffers *mixer_ringbuffers;
                   _oalRingBuffer *new_rb;
 
                   mixer_ringbuffers = (_intBuffers*)mixer->ringbuffers;
-                  new_rb = _oalRingBufferDuplicate(mixer->ringbuffer, AAX_TRUE, AAX_FALSE);
+                  new_rb = _oalRingBufferDuplicate(dest, AAX_TRUE, AAX_FALSE);
 
                   _oalRingBufferForward(new_rb);
                   _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
                }
 
-               _oalRingBufferClear(mixer->ringbuffer);
-               _oalRingBufferStart(mixer->ringbuffer);
+               _oalRingBufferClear(dest);
+               _oalRingBufferStart(dest);
 #endif
             }
          }

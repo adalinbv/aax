@@ -23,10 +23,17 @@ extern "C" {
 #include <ringbuffer.h>
 
 
-#define THREADED_FRAMES		AAX_TRUE
+#define THREADED_FRAMES		AAX_FALSE
 #define	SET_PROCESS_PRIORITY	AAX_FALSE
 #define USE_CONDITION		AAX_FALSE
+
+
+#if _WIN32
+# undef THREADED_FRAMES
+# define THREADED_FRAMES	AAX_FALSE
+#endif
 #if !THREADED_FRAMES
+# undef SET_PROCESS_PRIORITY
 # define SET_PROCESS_PRIORITY	AAX_TRUE
 #endif
 

@@ -144,7 +144,7 @@ extern _aaxDriverThread _aaxSoftwareMixerThread;
 void _aaxNoneDriverProcessFrame(void*);
 
 unsigned int _aaxSoftwareMixerSignalFrames(void*, float);
-int _aaxSoftwareMixerPlayFrame(void**, const void*, const void*, const void*, void*, const void*, char, const void*, const void*, const void*);
+int _aaxSoftwareMixerPlayFrame(void*, const void*, const void*, const void*, void*, const void*, char, const void*, const void*, const void*);
 
 void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
