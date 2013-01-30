@@ -494,6 +494,8 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    // process that executes for more than a very brief interval can cause disk
    // caches not to flush or cause the mouse to be unresponsive.
    SetThreadPriority(thread->handle, THREAD_PRIORITY_TIME_CRITICAL);
+#else
+   SetThreadPriority(thread->handle, THREAD_PRIORITY_NORMAL);
 #endif
 
    return rv;
