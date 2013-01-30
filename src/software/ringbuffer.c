@@ -1553,48 +1553,51 @@ _oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
 }
 
 float
-_oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsigned int end)
+_oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsigned int num)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    static const float div = 1.0f / (float)0x000fffff;
    float rv = 1.0f;
-   if (lfo && ptr && end)
+   if (lfo && ptr && num)
    {
-      float olvl = lfo->value[0];
+      float dt = _MINMAX(50.0f*num/lfo->f, 0.0f, 1.0f);
+      float oaverage = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data        */
       /* If the left track nears 0.0f also calculate the orher trakcs    */
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
-//    if ((track == 0) || (olvl < 0.01f) || (lfo->stereo_lnk == AAX_FALSE))
       do
       {
          int32_t *sptr = (int32_t *)ptr;
-         unsigned int i = end;
-         float lvl, fact;
-         uint64_t tmp;
+         unsigned int i = num;
+         float average, fact;
+         uint64_t sum;
 
-         tmp = 0;
+         sum = 0;
          do {
-            tmp += abs(*sptr++);
+            sum += abs(*sptr++);
          } while (--i);
-         tmp /= end;
-         lvl = _MINMAX(tmp*div, 0.0f, 1.0f);
+         sum /= num;
 
-         olvl = lfo->value[track];
+         average = _MINMAX(sum*div, 0.0f, 1.0f);
+         lfo->average[track] = ((1.0f-dt)*lfo->average[track] + dt*average);
+         
+         oaverage = lfo->value[track];
          fact = lfo->step[track];
-         lfo->value[track] = _MINMAX(olvl + fact*(lvl - olvl), 0.01f, 0.99f);
+         lfo->value[track] = oaverage + fact*(average - average);
+         lfo->value[track] = _MINMAX(lfo->value[track], 0.01f, 0.99f);
       }
       while (0);
 
       // Needed for the compressor
-      if (olvl > lfo->min) {
-         olvl = (olvl-lfo->min);
+      if (oaverage > lfo->min) {
+         oaverage = (oaverage-lfo->min);
       } else  {
-         olvl = 0.0f;
+         oaverage = 0.0f;
       }
 
-      rv = lfo->convert(olvl, lfo->max-lfo->min);
+      rv = lfo->convert(oaverage, lfo->max-lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
    }
    return rv;

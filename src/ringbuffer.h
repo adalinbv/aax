@@ -238,6 +238,7 @@ typedef struct
    float f, min, max;
    float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
    float value[_AAX_MAX_SPEAKERS];	/* current value */
+   float average[_AAX_MAX_SPEAKERS];	/* average value over time */
    _oalRingBufferLFOGetFunc *get;
    _convert_fn *convert;
    char inv, envelope, stereo_lnk;
