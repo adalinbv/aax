@@ -269,6 +269,34 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
    return rv;
 }
 
+AAX_API unsigned int AAX_APIENTRY
+aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
+{
+   _frame_t *handle = get_frame(frame);
+   unsigned int rv = AAX_FALSE;
+   
+   if (handle)
+   {
+      if ((type >= AAX_COMPRESSION_VALUE_TRACK0
+                    && type <= AAX_COMPRESSION_VALUE_TRACK7))
+      {
+         unsigned int track = type & 0xFF;
+         if (track < _AAX_MAX_SPEAKERS)
+         {
+            _aaxAudioFrame* fmixer = handle->submix;
+            _oalRingBufferLFOInfo *lfo;
+
+            lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+            if (lfo) {
+               rv = 256*32768*(lfo->value[track] - lfo->average[track]);
+            }
+         }
+      }
+   }
+   put_frame(frame);
+   return rv;
+}
+
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 {

@@ -225,7 +225,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
       }
       else if ((type >= AAX_PEAK_VALUE_TRACK0 && type <= AAX_PEAK_VALUE_TRACK7)
-               || (type >= AAX_AVERAGE_VALUE_TRACK0 && type < AAX_TRACK_MAX))
+               || (type >= AAX_AVERAGE_VALUE_TRACK0
+                    && type <= AAX_AVERAGE_VALUE_TRACK7))
       {
          unsigned int track = type & 0xFF;
          if (track < _AAX_MAX_SPEAKERS)
@@ -242,6 +243,29 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
          else {
             _aaxErrorSet(AAX_INVALID_ENUM);
+         }
+      }
+      else if ((type >= AAX_COMPRESSION_VALUE_TRACK0
+                    && type <= AAX_COMPRESSION_VALUE_TRACK7))
+      {
+         unsigned int track = type & 0xFF;
+         if (track < _AAX_MAX_SPEAKERS)
+         {
+            const _intBufferData* dptr;
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame *mixer = sensor->mixer;
+               _oalRingBufferLFOInfo *lfo;
+
+               lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
+               if (lfo) {
+                  rv = 256*32768*(lfo->value[track] - lfo->average[track]);
+               }
+               
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
          }
       }
       else {
