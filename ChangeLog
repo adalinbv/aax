@@ -1,8 +1,14 @@
 * Sat Sep 22 2012 - tech@adalin.org
 - AeonWave (2.3.0) stable; urgency=low
+ * Add an aaxFree function to free memory allocated by the library.
+   This might be necessary when using different compilers.
  * Add support for a Reverb effect which applies tot only to the final mixer.
  * Make the dynamic-gain envelope-following mode a proper audio-compressor and
    expander. The offset property defines the threshold level.
+ * Add the option to retrieve the compression level for every track.
+ * Add an aaxAudioFrameGetSetup function to be able to retreive the above.
+ * Add the ability to retreive peak and average audio levers for every track
+   (final mixer only).
  * Fix distortion behavior, it was overcompressing for high distortion factors.
  * Add an envelope following option for the distortion effect.
  * Remove some dupplicate code, most code is now shared between the mixer and
@@ -10,7 +16,6 @@
  * Fix LFO situations where changing the LFO values could become out of bounds.
  * Fix filters and effects for registered sensors.
  * Overhaul of the Windows backend en threads code.
-   - Run threads in normal priority again, no need for higher priority anymore.
    - Fix a lot of corner case situations that failed before.
    - Improve runtime performance conciderably.
    - Fix registered sensors.
