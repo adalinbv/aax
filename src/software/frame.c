@@ -307,8 +307,10 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
    return rb;
 }
 
-static char
-_aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
+
+char
+_aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
+                      _aaxAudioFrame *fmixer,
                       _oalRingBuffer2dProps *sp2d, _oalRingBuffer3dProps *sp3d,
                       _oalRingBuffer2dProps *pp2d, _oalRingBuffer3dProps *pp3d,
                       _oalRingBuffer2dProps *fp2d, _oalRingBuffer3dProps *fp3d,
@@ -382,7 +384,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
              * frames render in the ringbuffer of their parent and mix with
              * dest_rb, this could potentialy save a lot of ringbuffers
              */
-            res = _aaxAudioFrameProcess(frame_rb, sfmixer, sp2d, sp3d,
+            res = _aaxAudioFrameProcess(frame_rb, NULL, sfmixer, sp2d, sp3d,
                                        fp2d, fp3d, &sfp2d, &sfp3d,
                                        be, be_handle);
             /* if the subframe actually did render something, mix the data */
@@ -418,7 +420,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
    if (process)
    {
       be->effects(be_handle, dest_rb, fp2d);
-      be->postprocess(be_handle, dest_rb, NULL);
+      be->postprocess(be_handle, dest_rb, sensor);
    }
 
    return process;
@@ -463,7 +465,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _oalRingBufferClear(frame_rb);
    _oalRingBufferStart(frame_rb);
 
-   _aaxAudioFrameProcess(frame_rb, mixer, &sp2d, &sp3d, NULL, NULL,
+   _aaxAudioFrameProcess(frame_rb, NULL, mixer, &sp2d, &sp3d, NULL, NULL,
                                     &fp2d, &fp3d, be, be_handle);
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);

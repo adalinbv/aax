@@ -611,18 +611,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
-#if THREADED_FRAMES
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
                void *new_rb;
-
-               /** signal threaded frames to update (if necessary) */
-               /* thread == -1: mixer; attached frames are threads */
-               /* thread >=  0: frame; call updates manually       */
-               if (mixer->thread < 0) {
-                  _aaxSoftwareMixerSignalFrames(mixer->frames,
-                                                mixer->info->refresh_rate);
-               }
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
@@ -634,6 +625,15 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
+#if THREADED_FRAMES
+               /** signal threaded frames to update (if necessary) */
+               /* thread == -1: mixer; attached frames are threads */
+               /* thread >=  0: frame; call updates manually       */
+               if (mixer->thread < 0) {
+                  _aaxSoftwareMixerSignalFrames(mixer->frames,
+                                                mixer->info->refresh_rate);
+               }
+
                /* main mixer */
                _aaxEmittersProcess(dest, handle->info, &sp2d, &sp3d, NULL, NULL,
                                          mixer->emitters_2d, mixer->emitters_3d,
@@ -644,9 +644,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                                 mixer->frames,
                                                 &sp2d, &sp3d, mixer->capturing,
                                                 sensor, be, be_handle);
+
 #else
-               _aaxAudioFrameProcessThreadedFrame(handle, dest, mixer,
-                                                  sensor->mixer, mixer, be);
+               _aaxAudioFrameProcess(dest, sensor, mixer, &sp2d, &sp3d,
+                                      NULL, NULL, &sp2d, &sp3d, be, be_handle);
+
                /** play back all mixed audio */
                res = be->play(be_handle, dest, 1.0, 1.0);
                if TEST_FOR_TRUE(mixer->capturing)

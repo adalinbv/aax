@@ -27,7 +27,6 @@ extern "C" {
 #define	SET_PROCESS_PRIORITY	AAX_FALSE
 #define USE_CONDITION		AAX_FALSE
 
-#if 0
 #if _WIN32
 # undef THREADED_FRAMES
 # define THREADED_FRAMES	AAX_FALSE
@@ -35,7 +34,6 @@ extern "C" {
 #if !THREADED_FRAMES
 # undef SET_PROCESS_PRIORITY
 # define SET_PROCESS_PRIORITY	AAX_TRUE
-#endif
 #endif
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
@@ -154,6 +152,7 @@ void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
                                    _aaxAudioFrame*, _aaxAudioFrame*,
                                    const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
+char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const _aaxDriverBackend*, void*);
 void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
 
 /* --- Instrument --- */
