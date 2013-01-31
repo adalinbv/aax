@@ -595,6 +595,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->convert = _compress;
                         lfo->envelope = AAX_TRUE;
                         lfo->stereo_lnk = AAX_TRUE;
+                        lfo->gate_threshold = 0.05f;
                         lfo->max *= 10.0f;
                         break;
                      default:

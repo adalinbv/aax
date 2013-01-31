@@ -1599,6 +1599,13 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
 
       rv = lfo->convert(oaverage, lfo->max-lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+
+      /* noise gate */
+      if (lfo->average[track] <= lfo->gate_threshold)
+      {
+          float fact = (lfo->average[track]/lfo->gate_threshold);
+          rv *= fact*fact;
+      }
    }
    return rv;
 }

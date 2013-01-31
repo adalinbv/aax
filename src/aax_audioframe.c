@@ -288,7 +288,7 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
 
             lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
             if (lfo) {
-               rv = 256*32768*(lfo->value[track] - lfo->average[track]);
+               rv = 256*32768*fabs(lfo->value[track] - lfo->average[track]);
             }
          }
       }
