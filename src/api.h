@@ -27,7 +27,7 @@ extern "C" {
 #define	SET_PROCESS_PRIORITY	AAX_FALSE
 #define USE_CONDITION		AAX_FALSE
 
-
+#if 0
 #if _WIN32
 # undef THREADED_FRAMES
 # define THREADED_FRAMES	AAX_FALSE
@@ -35,6 +35,7 @@ extern "C" {
 #if !THREADED_FRAMES
 # undef SET_PROCESS_PRIORITY
 # define SET_PROCESS_PRIORITY	AAX_TRUE
+#endif
 #endif
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
@@ -342,11 +343,13 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 
 /* --- System Specific & Config file related  --- */
 enum {
+   AAX_TIME_CRITICAL_PRIORITY = -20,
    AAX_HIGHEST_PRIORITY = -16,
    AAX_HIGH_PRIORITY = -8,
    AAX_NORMAL_RPIORITY = 0,
    AAX_LOW_PRIORITY = 8,
-   AAX_LOWEST_PRIORITY = 16
+   AAX_LOWEST_PRIORITY = 16,
+   AAX_IDLE_PRIORITY = 19
 };
 int _aaxProcessSetPriority(int);
 
