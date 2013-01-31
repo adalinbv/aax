@@ -1127,9 +1127,8 @@ _aaxMixerStart(_handle_t *handle)
 
 #if SET_PROCESS_PRIORITY
       _aaxProcessSetPriority(AAX_HIGH_PRIORITY);
-#else
-      _aaxProcessSetPriority(0);
 #endif
+      _aaxThreadSetPriority(AAX_HIGH_PRIORITY);
 
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);
