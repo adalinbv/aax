@@ -277,8 +277,8 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
    
    if (handle)
    {
-      if ((type >= AAX_COMPRESSION_VALUE_TRACK0
-                    && type <= AAX_COMPRESSION_VALUE_TRACK7))
+      if ((type >= AAX_COMPRESSION_VALUE_TRACK0)
+           && (type <= AAX_COMPRESSION_VALUE_TRACK7))
       {
          unsigned int track = type & 0xFF;
          if (track < _AAX_MAX_SPEAKERS)
@@ -292,6 +292,27 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
             }
          }
       }
+      else if ((type >= AAX_GATE_ENABLED_TRACK0)
+               && (type <= AAX_GATE_ENABLED_TRACK7))
+      {
+         unsigned int track = type & 0xFF;
+         if (track < _AAX_MAX_SPEAKERS)
+         {
+            _aaxAudioFrame* fmixer = handle->submix;
+            _oalRingBufferLFOInfo *lfo;
+
+            lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+            if (lfo && (lfo->average[track] < lfo->gate_threshold)) {
+               rv = AAX_TRUE;
+            }
+         }
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_ENUM);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_frame(frame);
    return rv;

@@ -176,96 +176,126 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
    else
    {
       _handle_t *handle = get_handle(config);
-      if (handle && (type < AAX_SETUP_TYPE_MAX))
+      if (handle)
       {
-         _aaxMixerInfo* info = handle->info;
-         switch(type)
+         if (type < AAX_SETUP_TYPE_MAX)
          {
-         case AAX_MONO_EMITTERS:
-            rv = info->max_emitters;
-            break;
-         case AAX_STEREO_EMITTERS:
-            rv = info->max_emitters/2;
-            break;
-         case AAX_AUDIO_FRAMES:
-            rv = VALID_HANDLE(handle) ? info->max_emitters : 0;
-            break;
-         case AAX_FREQUENCY:
-            rv = (unsigned int)info->frequency;
-            break;
-         case AAX_REFRESHRATE:
-            rv = (unsigned int)info->refresh_rate;
-            break;
-         case AAX_UPDATERATE:
-             rv = (unsigned int)(info->refresh_rate/handle->info->update_rate);
-             break;
-         case AAX_LATENCY:
-            if (handle->backend.driver)
+            _aaxMixerInfo* info = handle->info;
+            switch(type)
             {
-               const _aaxDriverBackend *be = handle->backend.ptr;
-               rv = (int)(be->latency(handle->backend.handle)*1e6);
-            }
-            break;
-         case AAX_TRACKSIZE:
-         {
-            _oalRingBuffer *rb = handle->ringbuffer;
-            int bps = _oalRingBufferGetBytesPerSample(rb);
+            case AAX_MONO_EMITTERS:
+               rv = info->max_emitters;
+               break;
+            case AAX_STEREO_EMITTERS:
+               rv = info->max_emitters/2;
+               break;
+            case AAX_AUDIO_FRAMES:
+               rv = VALID_HANDLE(handle) ? info->max_emitters : 0;
+               break;
+            case AAX_FREQUENCY:
+               rv = (unsigned int)info->frequency;
+               break;
+            case AAX_REFRESHRATE:
+               rv = (unsigned int)info->refresh_rate;
+               break;
+            case AAX_UPDATERATE:
+                rv=(unsigned int)(info->refresh_rate/handle->info->update_rate);
+                break;
+            case AAX_LATENCY:
+               if (handle->backend.driver)
+               {
+                  const _aaxDriverBackend *be = handle->backend.ptr;
+                  rv = (int)(be->latency(handle->backend.handle)*1e6);
+               }
+               break;
+            case AAX_TRACKSIZE:
+            {
+               _oalRingBuffer *rb = handle->ringbuffer;
+               int bps = _oalRingBufferGetBytesPerSample(rb);
 
-            rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
-            break;
+               rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
+               break;
+            }
+            case AAX_TRACKS:
+               rv = info->no_tracks;
+               break;
+            case AAX_FORMAT:
+               rv = info->format;
+               break;
+            default:
+               _aaxErrorSet(AAX_INVALID_ENUM);
+            }
          }
-         case AAX_TRACKS:
-            rv = info->no_tracks;
-            break;
-         case AAX_FORMAT:
-            rv = info->format;
-            break;
-         default:
-            _aaxErrorSet(AAX_INVALID_ENUM);
-         }
-      }
-      else if ((type >= AAX_PEAK_VALUE_TRACK0 && type <= AAX_PEAK_VALUE_TRACK7)
-               || (type >= AAX_AVERAGE_VALUE_TRACK0
-                    && type <= AAX_AVERAGE_VALUE_TRACK7))
-      {
-         unsigned int track = type & 0xFF;
-         if (track < _AAX_MAX_SPEAKERS)
+         else if ((type >= AAX_PEAK_VALUE_TRACK0
+                    && type <= AAX_PEAK_VALUE_TRACK7)
+                  || (type >= AAX_AVERAGE_VALUE_TRACK0
+                       && type <= AAX_AVERAGE_VALUE_TRACK7))
          {
-            _oalRingBuffer *rb = handle->ringbuffer;
-            if (rb)
+            unsigned int track = type & 0xFF;
+            if (track < _AAX_MAX_SPEAKERS)
             {
-               if (type <= AAX_PEAK_VALUE_TRACK7) {
-                  rv = rb->peak[track];
-               } else {
-                  rv = rb->average[track];
+               _oalRingBuffer *rb = handle->ringbuffer;
+               if (rb)
+               {
+                  if (type <= AAX_PEAK_VALUE_TRACK7) {
+                     rv = rb->peak[track];
+                  } else {
+                     rv = rb->average[track];
+                  }
+               }
+            }
+            else {
+               _aaxErrorSet(AAX_INVALID_ENUM);
+            }
+         }
+         else if ((type >= AAX_COMPRESSION_VALUE_TRACK0
+                       && type <= AAX_COMPRESSION_VALUE_TRACK7))
+         {
+            unsigned int track = type & 0xFF;
+            if (track < _AAX_MAX_SPEAKERS)
+            {
+               const _intBufferData* dptr;
+               dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               if (dptr)
+               {
+                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                  _aaxAudioFrame *mixer = sensor->mixer;
+                  _oalRingBufferLFOInfo *lfo;
+
+                  lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
+                  if (lfo) {
+                     rv = 256*32768*fabs(lfo->value[track]-lfo->average[track]);
+                  }
+               
+                  _intBufReleaseData(dptr, _AAX_SENSOR);
+               }
+            }
+         }
+         else if ((type >= AAX_GATE_ENABLED_TRACK0)
+               && (type <= AAX_GATE_ENABLED_TRACK7))
+         {
+            unsigned int track = type & 0xFF;
+            if (track < _AAX_MAX_SPEAKERS)
+            {
+               const _intBufferData* dptr;
+               dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               if (dptr)
+               {
+                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                  _aaxAudioFrame *mixer = sensor->mixer;
+                  _oalRingBufferLFOInfo *lfo;
+
+                  lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
+                  if (lfo && (lfo->average[track] < lfo->gate_threshold)) {
+                     rv = AAX_TRUE;
+                  }
+
+                  _intBufReleaseData(dptr, _AAX_SENSOR);
                }
             }
          }
          else {
             _aaxErrorSet(AAX_INVALID_ENUM);
-         }
-      }
-      else if ((type >= AAX_COMPRESSION_VALUE_TRACK0
-                    && type <= AAX_COMPRESSION_VALUE_TRACK7))
-      {
-         unsigned int track = type & 0xFF;
-         if (track < _AAX_MAX_SPEAKERS)
-         {
-            const _intBufferData* dptr;
-            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            if (dptr)
-            {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               _aaxAudioFrame *mixer = sensor->mixer;
-               _oalRingBufferLFOInfo *lfo;
-
-               lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
-               if (lfo) {
-                  rv = 256*32768*fabs(lfo->value[track] - lfo->average[track]);
-               }
-               
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-            }
          }
       }
       else {
