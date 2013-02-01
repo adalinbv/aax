@@ -1547,7 +1547,6 @@ _oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
 
       rv = lfo->convert(olvl, lfo->max-lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-
    }
    return rv;
 }
@@ -1560,18 +1559,18 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
    float rv = 1.0f;
    if (lfo && ptr && num)
    {
-      float dt = _MINMAX(50.0f*num/lfo->f, 0.0f, 1.0f);
       float oaverage = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data        */
       /* If the left track nears 0.0f also calculate the orher trakcs    */
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
-      do
+      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
+         float dt = 1.0f/(lfo->dt*lfo->gate_period);
          int32_t *sptr = (int32_t *)ptr;
+         float average, fact = 1.0f;
          unsigned int i = num;
-         float average, fact;
          uint64_t sum;
 
          sum = 0;
@@ -1588,7 +1587,9 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          lfo->value[track] = oaverage + fact*(average - average);
          lfo->value[track] = _MINMAX(lfo->value[track], 0.01f, 0.99f);
       }
-      while (0);
+      else {
+         lfo->average[track] = lfo->average[0];
+      }
 
       // Needed for the compressor
       if (oaverage > lfo->min) {
@@ -1601,10 +1602,8 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
       /* noise gate */
-      if (lfo->average[track] <= lfo->gate_threshold)
-      {
-          float fact = (lfo->average[track]/lfo->gate_threshold);
-          rv *= fact*fact;
+      if (lfo->average[track] < lfo->gate_threshold) {
+         rv *= (lfo->average[track]/lfo->gate_threshold);
       }
    }
    return rv;

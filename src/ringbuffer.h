@@ -235,7 +235,8 @@ typedef float _oalRingBufferLFOGetFunc(void*, const void*, unsigned, unsigned in
 
 typedef struct
 {
-   float f, min, max, gate_threshold;
+   float f, dt, min, max;
+   float gate_threshold, gate_period;
    float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
    float value[_AAX_MAX_SPEAKERS];	/* current value */
    float average[_AAX_MAX_SPEAKERS];	/* average value over time */

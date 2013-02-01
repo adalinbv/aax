@@ -596,6 +596,8 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->envelope = AAX_TRUE;
                         lfo->stereo_lnk = AAX_TRUE;
                         lfo->gate_threshold = 0.01f;
+                        lfo->gate_period = 0.25f;
+                        lfo->dt = filter->info->refresh_rate;
                         lfo->max *= 10.0f;
                         break;
                      default:
