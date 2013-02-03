@@ -118,13 +118,12 @@ _batch_cvt24_pd_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 void
 _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, float vstep)
 {
-   int32_ptr s = (int32_ptr)src;
-   __m128i *sptr = (__m128i *)s;
+   __m128i *sptr = (__m128i *)src;
    __m128i *dptr = (__m128i*)d;
    __m128 tv = _mm_set1_ps(v);
+   int32_ptr s = (int32_ptr)src;
    unsigned int i, size, step;
    long dtmp, stmp;
-
 
    dtmp = (long)dptr & 0xF;
    stmp = (long)sptr & 0xF;
@@ -208,9 +207,9 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
 void
 _batch_cvt24_16_sse2(void_ptr dbuf, const_void_ptr sbuf, unsigned int num)
 {
+   __m128i *dptr = (__m128i*)dbuf;
    int16_t *s = (int16_t *)sbuf;
    int32_t *d = (int32_t*)dbuf;
-   __m128i *dptr = (__m128i*)d;
    unsigned int i, size, step, n;
    long tmp;
 
@@ -383,7 +382,6 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    int16_t* d = (int16_t*)dst;
    int32_t *s1, *s2;
    long tmp;
-
 
    if (tracks != 2)
    {
