@@ -473,7 +473,8 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 #if USE_CONDITION
                mixer->capturing = 2;
 #else
-               unsigned int dt = 1.5f*1000.0f/mixer->info->refresh_rate; // ms
+//             unsigned int dt = 1.5f*1000.0f/mixer->info->refresh_rate; // ms
+               unsigned int dt = 5000;
                int p = 0;
 
                /*
@@ -483,7 +484,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
-                  msecSleep(1);	 /* special case, see Sleep(0) for windows */
+                  msecSleep(0);	 /* special case, see Sleep(0) for windows */
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
