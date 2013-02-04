@@ -166,6 +166,7 @@ typedef struct
    _batch_cvt_from_intl_proc cvt_from_intl;
 
    /* capture related */
+   HANDLE task;
 #if USE_CAPTURE_THREAD
    HANDLE thread;
    HANDLE shutdown_event;
@@ -241,6 +242,11 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pIAudioCaptureClient_ReleaseBuffer IAudioCaptureClient_ReleaseBuffer
 # define pIAudioCaptureClient_GetNextPacketSize IAudioCaptureClient_GetNextPacketSize
 
+typedef HANDLE (WINAPI *AvSetMmThreadCharacteristicsA_proc)(LPCTSTR, LPDWORD);
+typedef BOOL   (WINAPI *AvRevertMmThreadCharacteristics_proc)(HANDLE);
+
+DECL_FUNCTION(AvSetMmThreadCharacteristicsA);
+DECL_FUNCTION(AvRevertMmThreadCharacteristics);
 
 static const char* aaxNametoMMDevciceName(const char*);
 static char* _aaxMMDeviceNameToName(char *);
@@ -2051,6 +2057,7 @@ ExitNameId:
 void *
 _aaxWASAPIDriverThread(void* config)
 {
+   static void *audio = NULL;
    _handle_t *handle = (_handle_t *)config;
 #if ENABLE_TIMING
    _aaxTimer *timer = _aaxTimerCreate();
@@ -2068,6 +2075,7 @@ _aaxWASAPIDriverThread(void* config)
        || !handle->info->no_tracks) {
       return NULL;
    }
+
 
    delay_sec = 1.0f/handle->info->refresh_rate;
 
@@ -2109,12 +2117,28 @@ _aaxWASAPIDriverThread(void* config)
    _aaxMutexLock(handle->thread.mutex);
    stdby_time = (int)(4*delay_sec*1000);
 
+   if (!audio) {
+      audio = _oalIsLibraryPresent("avrt", 0);
+   }
+
    hr = S_OK;
    be_handle = (_driver_t *)handle->backend.handle;
    if (be_handle->status & EVENT_DRIVEN_MASK)
    {
       be_handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
-      if (be_handle->Event) {
+      if (be_handle->Event)
+      {
+         if (audio)
+         {
+            TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
+            TIE_FUNCTION(AvRevertMmThreadCharacteristics);
+            if (pAvSetMmThreadCharacteristicsA)
+            {
+               DWORD taskIndex = 0;
+               be_handle->task = pAvSetMmThreadCharacteristicsA("Pro Audio",
+                                                            &taskIndex);
+            }
+         }
          hr = IAudioClient_SetEventHandle(be_handle->pAudioClient,
                                           be_handle->Event);
       }
@@ -2129,6 +2153,18 @@ _aaxWASAPIDriverThread(void* config)
       {
          LARGE_INTEGER liDueTime;
          LONG lPeriod;
+
+         if (audio)
+         {
+            TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
+            TIE_FUNCTION(AvRevertMmThreadCharacteristics);
+            if (pAvSetMmThreadCharacteristicsA)
+            {
+               DWORD taskIndex = 0;
+               be_handle->task = pAvSetMmThreadCharacteristicsA("Audio",
+                                                            &taskIndex);
+            }
+         }
 
          lPeriod = (LONG)((delay_sec*1000)+0.5f);
          liDueTime.QuadPart = -(LONGLONG)((delay_sec*1000*10000)+0.5);
@@ -2213,6 +2249,9 @@ printf("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
       CancelWaitableTimer(be_handle->Event);
    }
    _aaxMutexUnLock(handle->thread.mutex);
+
+   pAvRevertMmThreadCharacteristics(be_handle->task);
+   be_handle->task = 0;
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)

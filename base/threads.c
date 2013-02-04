@@ -395,15 +395,6 @@ _aaxConditionSignal(void *c)
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
 							/* --- WINDOWS --- */
-#include <base/dlsym.h>
-#include <base/types.h>
-
-typedef HANDLE (WINAPI *AvSetMmThreadCharacteristicsA_proc)(LPCTSTR, LPDWORD);
-typedef BOOL   (WINAPI *AvRevertMmThreadCharacteristics_proc)(HANDLE);
-
-DECL_FUNCTION(AvSetMmThreadCharacteristicsA);
-DECL_FUNCTION(AvRevertMmThreadCharacteristics);
-
 #define _TH_SYSLOG(a)
 
 /* http://www.slideshare.net/abufayez/pthreads-vs-win32-threads */
@@ -462,26 +453,6 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
    if (thread->handle != INVALID_HANDLE_VALUE)
    {
-#if 1
-      static void *audio = NULL;
-
-      if (!audio) {
-         audio = _oalIsLibraryPresent("avrt", 0);
-      }
-
-      if (audio)
-      {
-         TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
-         TIE_FUNCTION(AvRevertMmThreadCharacteristics);
-         if (pAvSetMmThreadCharacteristicsA)
-         {
-            DWORD taskIndex = 0;
-            thread->task = pAvSetMmThreadCharacteristicsA("Pro Audio",
-                                                         &taskIndex);
-            if (!thread->task) thread->taskCount++;
-         }
-      }
-#endif
       __threads_enabled = 1;
      rv = 0;
    }
@@ -511,18 +482,6 @@ _aaxThreadJoin(void *t)
    assert(t);
 
    __threads_enabled = 0;
-
-#if 0
-   if (pAvRevertMmThreadCharacteristics)
-   {
-      thread->taskCount--;
-      if (!thread->taskCount)
-      {
-         pAvRevertMmThreadCharacteristics(thread->task);
-         thread->task = 0;
-      }
-   }
-#endif
 
    r = WaitForSingleObject(thread->handle, INFINITE);
    switch (r)

@@ -41,8 +41,6 @@ extern "C" {
  typedef struct _aaxThread 
  {
    HANDLE handle;
-   HANDLE task;
-   int taskCount;
 
    void *(*callback_fn)(void*);
    void *callback_data;
