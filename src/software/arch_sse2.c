@@ -30,7 +30,7 @@
 # define CACHE_ADVANCE_FF	 32
 
 
-void
+FN_PREALIGN void
 _ivec4Copy_sse2(ivec4 d, ivec4 v)
 {
    const __m128i *sptr = (__m128i *)v;
@@ -39,7 +39,7 @@ _ivec4Copy_sse2(ivec4 d, ivec4 v)
    _mm_store_si128(dptr, _mm_load_si128(sptr));
 }
 
-void
+FN_PREALIGN void
 _ivec4Add_sse2(ivec4 d, ivec4 v)
 {
    const __m128i *sptr = (__m128i *)v;
@@ -52,7 +52,7 @@ _ivec4Add_sse2(ivec4 d, ivec4 v)
    _mm_store_si128(dptr, _mm_add_epi32(xmm1, xmm2));
 }
 
-void
+FN_PREALIGN void
 _ivec4Sub_sse2(ivec4 d, ivec4 v)
 {
    const __m128i *sptr = (__m128i *)v;
@@ -64,7 +64,7 @@ _ivec4Sub_sse2(ivec4 d, ivec4 v)
    _mm_store_si128(dptr, _mm_sub_epi32(xmm1, xmm2));
 }
 
-void
+FN_PREALIGN void
 _ivec4Devide_sse2(ivec4 d, float s)
 {
    if (s)
@@ -78,7 +78,7 @@ _ivec4Devide_sse2(ivec4 d, float s)
    }
 }
 
-void
+FN_PREALIGN void
 _ivec4Mulivec4_sse2(ivec4 d, const ivec4 v1, const ivec4 v2)
 {
    const __m128i *sptr1 = (__m128i *)v1;
@@ -115,7 +115,7 @@ _batch_cvt24_pd_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
    } while (--i);
 }
 
-void
+FN_PREALIGN void
 _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, float vstep)
 {
    __m128i *sptr = (__m128i *)src;
@@ -204,7 +204,7 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
    }
 }
 
-void
+FN_PREALIGN void
 _batch_cvt24_16_sse2(void_ptr dbuf, const_void_ptr sbuf, unsigned int num)
 {
    __m128i *dptr = (__m128i*)dbuf;
@@ -373,7 +373,7 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 #endif
 }
 
-void
+FN_PREALIGN void
 _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
                                 unsigned int offset, unsigned int tracks,
                                 unsigned int num)
@@ -492,7 +492,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
         smp -=  mpf[0]; h0 = smp - mpf[1];      \
         smp = h0 + mpf[2]; smp += mpf[3]
 
-void
+FN_PREALIGN void
 _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
                   float *hist, float lfgain, float hfgain, float k,
                   const float *cptr)
@@ -638,7 +638,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
  * optimized memcpy for 16-byte aligned destination buffer
  * fall back tobuildt-in  memcpy otherwise.
  */
-void *
+FN_PREALIGN void *
 _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  bufsz)
 {
    unsigned int step = 8*sizeof(__m128i)/sizeof(int8_t);

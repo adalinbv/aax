@@ -44,6 +44,13 @@ extern "C" {
 #include "base/types.h"
 #include "base/geometry.h"
 
+#ifdef __MINGW32__
+	// Force proper stack alignment for functions that use SSE
+# define FN_PREALIGN	__attribute__((force_align_arg_pointer))
+#else
+# define FN_PREALIGN
+#endif
+
 /* CPU*/
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
 char* _aax_malloc_align16(char**, unsigned int);

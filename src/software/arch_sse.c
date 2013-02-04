@@ -20,7 +20,7 @@
 #ifdef __SSE__
 
 
-void 
+FN_PREALIGN void 
 _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
 {
    __m128 xmm1 = _mm_set_ps(v1[0], v1[1], v1[2], 0);
@@ -35,7 +35,7 @@ _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
    _aax_memcpy(d, r, 3*sizeof(float));
 }
 
-void
+FN_PREALIGN void
 _vec4Copy_sse(vec4 d, const vec4 v)
 {
    __m128 xmm1; 
@@ -44,7 +44,7 @@ _vec4Copy_sse(vec4 d, const vec4 v)
    _mm_store_ps(d, xmm1); 
 }
 
-void
+FN_PREALIGN void
 _vec4Add_sse(vec4 d, const vec4 v)
 {
    __m128 xmm1, xmm2; 
@@ -55,7 +55,7 @@ _vec4Add_sse(vec4 d, const vec4 v)
    _mm_store_ps(d, xmm1);
 }
 
-void
+FN_PREALIGN void
 _vec4Sub_sse(vec4 d, const vec4 v)
 {
    __m128 xmm1, xmm2;
@@ -66,7 +66,7 @@ _vec4Sub_sse(vec4 d, const vec4 v)
    _mm_store_ps(d, xmm1);
 }
 
-void
+FN_PREALIGN void
 _vec4Devide_sse(vec4 v, float s)
 {
    if (s)
@@ -80,7 +80,7 @@ _vec4Devide_sse(vec4 v, float s)
    }
 }
 
-void
+FN_PREALIGN void
 _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2)
 {
    __m128 xmm1, xmm2;
@@ -91,7 +91,7 @@ _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2)
    _mm_store_ps(r, xmm1);
 }
 
-void
+FN_PREALIGN void
 _vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
 {
    __m128 a_line, b_line, r_line;
@@ -117,7 +117,7 @@ _vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
    _mm_store_ps(r, r_line);		/* r = r_line                  */
 }
 
-void
+FN_PREALIGN void
 _mtx4Mul_sse(mtx4 d, mtx4 m1, mtx4 m2)
 {
    __m128 a_line, b_line, r_line;

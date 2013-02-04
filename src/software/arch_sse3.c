@@ -17,7 +17,7 @@
 
 #ifdef __SSE3__
 
-void
+FN_PREALIGN void
 _vec4Matrix4_sse3(vec4 d, const vec4 vi, mtx4 m)
 {
    __m128 v = _mm_load_ps((const float*)vi);

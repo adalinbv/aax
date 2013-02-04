@@ -17,21 +17,21 @@
 
 #ifdef __SSE4__
 
-float
+FN_PREALIGN float
 _vec3Magnitude_sse4(const vec3 v3)
 {
    __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
    return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v, v, 0x71)));
 }
 
-float
+FN_PREALIGN float
 _vec3MagnitudeSquared_sse4(const vec3 v3)
 {
     __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
    return _mm_cvtss_f32(_mm_dp_ps(v, v, 0x71));
 }
 
-float
+FN_PREALIGN float
 _vec3DotProduct_sse4(const vec3 v31, const vec3 v32)
 {
    __m128 v1 = _mm_set_ps(v31[0], v31[1], v31[2], 0);
@@ -39,7 +39,7 @@ _vec3DotProduct_sse4(const vec3 v31, const vec3 v32)
    return _mm_cvtss_f32(_mm_dp_ps(v1, v2,  0x71));
 }
 
-float
+FN_PREALIGN float
 _vec3Normalize_sse4(vec3 d, const vec3 v3)
 {
    __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
