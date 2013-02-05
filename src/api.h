@@ -351,7 +351,9 @@ enum {
    AAX_LOWEST_PRIORITY = 16,
    AAX_IDLE_PRIORITY = 19
 };
+
 int _aaxProcessSetPriority(int);
+int _aaxThreadSetPriority(int);
 
 const char* userHomeDir();
 char* systemConfigFile();
