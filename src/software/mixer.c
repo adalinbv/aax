@@ -207,7 +207,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       peak = dmax;
       _aaxProcessCompression(d1, &average, &peak);
       rb->average[track] = ((1.0f-dt)*rb->average[track] + dt*average);
-      rb->peak[track] = ((1.0f-dt)*rb->peak[track] + dt*peak);
+      rb->peak[track] = rb->peak[track]; //((1.0f-dt)*rb->peak[track] + dt*peak);
    }
    free(ptr);
 }

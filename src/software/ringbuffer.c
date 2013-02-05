@@ -1567,7 +1567,6 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
       /* are amplified to extreme values.                                */
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         float dt = 1.0f/(lfo->dt*lfo->gate_period);
          int32_t *sptr = (int32_t *)ptr;
          float average, fact = 1.0f;
          unsigned int i = num;
@@ -1579,12 +1578,13 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          } while (--i);
          sum /= num;
 
+         fact = lfo->gate_period;
          average = _MINMAX(sum*div, 0.0f, 1.0f);
-         lfo->average[track] = ((1.0f-dt)*lfo->average[track] + dt*average);
+         lfo->average[track] = ((1.0f-fact)*lfo->average[track] + fact*average);
          
-         oaverage = lfo->value[track];
          fact = lfo->step[track];
-         lfo->value[track] = oaverage + fact*(average - average);
+         oaverage = lfo->value[track];
+         lfo->value[track] = oaverage + fact*(average - oaverage);
          lfo->value[track] = _MINMAX(lfo->value[track], 0.01f, 0.99f);
       }
       else {

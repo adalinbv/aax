@@ -564,8 +564,11 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         lfo->step[t] = atanf(lfo->f*0.1f)/atanf(100.0f);
-                         break;
+                     {
+                        float rate = filter->slot[0]->param[AAX_RELEASE_RATE];
+                        lfo->step[t] = rate/filter->info->refresh_rate;
+                        break;
+                     }
                      default:
                         break;
                      }
@@ -596,9 +599,9 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->envelope = AAX_TRUE;
                         lfo->stereo_lnk = AAX_TRUE;
                         lfo->gate_threshold = 0.01f;
-                        lfo->gate_period = 0.25f;
-                        lfo->dt = filter->info->refresh_rate;
-                        lfo->max *= 10.0f;
+                        lfo->gate_period = 1.0f/(0.25f*filter->info->refresh_rate);
+                        lfo->max *= 10.0f; // maximum compression factor
+                        lfo->f = 10.0f*lfo->f/filter->info->refresh_rate;
                         break;
                      default:
                         break;
@@ -893,7 +896,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
     /* AAX_VOLUME_FILTER    */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    10.0f,     1.0f, 10.0f,     0.0f } },
     /* AAX_DYNAMIC_GAIN_FILTER   */
-    { {  0.0f, 0.01f, 0.0f, 0.0f }, {     0.0f,    50.0f,  1.0f,     1.0f } },
+    { { 0.01f, 0.01f, 0.0f, 0.0f }, {    50.0f,    50.0f,  1.0f,     1.0f } },
     /* AAX_TIMED_GAIN_FILTER */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
     /* AAX_ANGULAR_FILTER   */
