@@ -352,6 +352,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          case AAX_DYNAMIC_GAIN_FILTER:
          case AAX_VOLUME_FILTER:
          case AAX_TIMED_GAIN_FILTER:
+         case AAX_COMPRESSOR:
          {
             _oalRingBuffer2dProps *p2d = handle->submix->props2d;
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
@@ -360,7 +361,8 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
             _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
-            if (filter->type == AAX_DYNAMIC_GAIN_FILTER) {
+            if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
+                filter->type == AAX_COMPRESSOR) {
                p2d->final.gain_lfo = 1.0f;
             }
             rv = AAX_TRUE;
@@ -409,6 +411,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DISTANCE_FILTER:
       case AAX_ANGULAR_FILTER:
+      case AAX_COMPRESSOR:
       {
          _aaxAudioFrame* submix = handle->submix;
          rv = new_filter_handle(submix->info, type, submix->props2d,
