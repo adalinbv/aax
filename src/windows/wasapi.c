@@ -611,9 +611,9 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
    /*
     * Adjust the number of samples to let the refresh rate be an
-    * exact and EVEN number of miliseconds (rounded upwards).
+    * exact and EVEN number of miliseconds (rounded downwards).
     */
-   sample_frames = 2 + ((1000*sample_frames/(unsigned int)freq) & 0xFFFFFFFE);
+   sample_frames = ((1000*sample_frames/(unsigned int)freq) & 0xFFFFFFFE);
    sample_frames *= (unsigned int)freq/1000;
    /* refresh rate adjustement */
    
@@ -973,7 +973,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          else /* handle->Mode == eCapture */
          {
             *frames = sample_frames;
-            handle->threshold = 3*sample_frames/2;
+            handle->threshold = 5*sample_frames/4;
             handle->hnsPeriod = hnsPeriodicity;
             handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
 
