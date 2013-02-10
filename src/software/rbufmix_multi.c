@@ -117,7 +117,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    }
 
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
-   if (lfo && !lfo->envelope) {
+   if (lfo && !lfo->envelope) {				// waveforms
       max *= lfo->get(lfo, NULL, 0, 0);
    }
    if (max != 1.0f) {
@@ -139,7 +139,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    g = 1.0f;
    rbd = dest->sample;
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
-   if (lfo && lfo->envelope)
+   if (lfo && lfo->envelope)				// envelope follow
    {
       g = 0.0f;
       for (track=0; track<rbd->no_tracks; track++)
