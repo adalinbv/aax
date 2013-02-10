@@ -264,7 +264,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
                   if (lfo) {
-                     rv = 256*32768*fabs(lfo->value[track]-lfo->average[track]);
+                     rv = 256*32768*lfo->compression[track];
                   }
                
                   _intBufReleaseData(dptr, _AAX_SENSOR);
