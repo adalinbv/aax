@@ -1511,17 +1511,18 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
       } else if (lfo->value[track] >= lfo->max) {
          lfo->value[track] -= max;
       }
+      lfo->compression[track] = rv;
    }
    return rv;
 }
 
 float
-_oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsigned int end)
+_oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsigned int num)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
    static const float div = 1.0f / (float)0x000fffff;
    float rv = 1.0f;
-   if (lfo && ptr && end)
+   if (lfo && ptr && num)
    {
       float olvl = lfo->value[0];
 
@@ -1529,16 +1530,16 @@ _oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          int32_t *sptr = (int32_t *)ptr;
-         unsigned int i = end;
+         unsigned int i = num;
          float lvl, fact;
-         uint64_t tmp;
+         uint64_t sum;
 
-         tmp = 0;
+         sum = 0;
          do {
-            tmp += abs(*sptr++);
+            sum += abs(*sptr++);
          } while (--i);
-         tmp /= end;
-         lvl = _MINMAX(tmp*div, 0.0f, 1.0f);
+         sum /= num;
+         lvl = _MINMAX(sum*div, 0.0f, 1.0f);
 
          olvl = lfo->value[track];
          fact = lfo->step[track];
@@ -1555,11 +1556,13 @@ float
 _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsigned int num)
 {
    _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
-   static const float div = 1.0f / (float)0x000fffff;
+   static const float div = 1.0f / (float)0x007fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)
    {
-      float oaverage = lfo->value[0];
+      float oavg = lfo->average[0];
+      float olvl = lfo->value[0];
+      float gf = 1.0f;
 
       /* In stereo-link mode the left track (0) provides the data        */
       /* If the left track nears 0.0f also calculate the orher trakcs    */
@@ -1568,7 +1571,7 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          int32_t *sptr = (int32_t *)ptr;
-         float average, fact = 1.0f;
+         float lvl, fact = 1.0f;
          unsigned int i = num;
          uint64_t sum;
 
@@ -1577,35 +1580,27 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
             sum += abs(*sptr++);
          } while (--i);
          sum /= num;
+         lvl = _MINMAX(sum*div, 0.0f, 1.0f);
 
          fact = lfo->gate_period;
-         average = _MINMAX(sum*div, 0.0f, 1.0f);
-         lfo->average[track] = ((1.0f-fact)*lfo->average[track] + fact*average);
-         
-         fact = lfo->step[track];
-         oaverage = lfo->value[track];
-         lfo->value[track] = oaverage + fact*(average - oaverage);
-         lfo->value[track] = _MINMAX(lfo->value[track], 0.01f, 0.99f);
-      }
-      else {
-         lfo->average[track] = lfo->average[0];
+         olvl = lfo->value[track];
+         oavg = lfo->average[track];
+         lfo->average[track] = ((1.0f-fact)*oavg + fact*lvl);
+
+         fact = (lvl > olvl) ? lfo->step[track] : lfo->down[track];
+         lfo->value[track] = _MINMAX(olvl + fact*(lvl - olvl), 0.0f, 1.0f);
       }
 
-      // Needed for the compressor
-      if (oaverage > lfo->min) {
-         oaverage = (oaverage-lfo->min);
-      } else  {
-         oaverage = 0.0f;
-      }
+		// lfo->min == AAX_THRESHOLD
+		// lfo->max == AAX_COMPRESSION_RATIO
+      gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
+      rv = _MINMAX(gf*lfo->max*lfo->min/(0.0001f+olvl*0.9999f), 1.0f, 1000.0f);
 
-      rv = lfo->convert(oaverage, lfo->max-lfo->min);
-      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-
-      /* noise gate */
-      if (lfo->average[track] < lfo->gate_threshold) {
-         rv *= (lfo->average[track]/lfo->gate_threshold);
-      }
+      rv = lfo->convert(rv, 1.0f);
+      lfo->compression[track] = 1.0f - (1.0f/rv);
+      rv = lfo->inv ? 1.0f/(1.0f - 0.999f*rv) : 1.0f - rv;
    }
+
    return rv;
 }
 
