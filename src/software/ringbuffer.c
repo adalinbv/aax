@@ -1407,6 +1407,7 @@ _oalRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsi
    {
       rv = lfo->convert(lfo->value[track], 1.0f);
       rv = lfo->inv ? lfo->max-rv : rv;
+      lfo->compression[track] = 0.5f + rv;
    }
    return rv;
 }
@@ -1430,6 +1431,7 @@ _oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
       }
+      lfo->compression[track] = 0.5f + rv;
    }
    return rv;
 }
@@ -1464,6 +1466,7 @@ _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
 
       rv = lfo->convert(_fast_sin1(v), max);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+      lfo->compression[track] = 0.5f + rv;
    }
    return rv;
 }
@@ -1487,6 +1490,7 @@ _oalRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
       }
+      lfo->compression[track] = 0.5f + rv;
    }
    return rv;
 }
@@ -1511,7 +1515,7 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
       } else if (lfo->value[track] >= lfo->max) {
          lfo->value[track] -= max;
       }
-      lfo->compression[track] = rv;
+      lfo->compression[track] = 0.5f + rv;
    }
    return rv;
 }
@@ -1548,6 +1552,7 @@ _oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
 
       rv = lfo->convert(olvl, lfo->max-lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+      lfo->compression[track] = 0.5f + rv;
    }
    return rv;
 }
