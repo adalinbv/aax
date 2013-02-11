@@ -288,7 +288,7 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
 
             lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
             if (lfo) {
-               rv = 256*32768*rv = 256*32768*lfo->compression[track];
+               rv = 256*32768*lfo->compression[track];
             }
          }
       }
@@ -302,7 +302,7 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
             _oalRingBufferLFOInfo *lfo;
 
             lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-            if (lfo && (lfo->average[track] < lfo->gate_threshold)) {
+            if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
                rv = AAX_TRUE;
             }
          }

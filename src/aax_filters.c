@@ -60,7 +60,8 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
       case AAX_GRAPHIC_EQUALIZER:
          size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
          break;
-      case AAX_FREQUENCY_FILTER:		/* two slots */
+      case AAX_COMPRESSOR:			/* two slots */
+      case AAX_FREQUENCY_FILTER:
          size += sizeof(_oalRingBufferFilterInfo);
          /* break not needed */
       default:					/* one slot */
@@ -99,6 +100,12 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
             /* break not needed */
          case AAX_FREQUENCY_FILTER:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+            break;
+         case AAX_COMPRESSOR:
+            flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            flt->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
+            flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0025f;
             /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
@@ -153,6 +160,7 @@ aaxFilterDestroy(aaxFilter f)
       case AAX_FREQUENCY_FILTER:
          filter->slot[1]->data = NULL;
          /* break not needed */
+      case AAX_COMPRESSOR:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
          free(filter->slot[0]->data);
@@ -511,6 +519,9 @@ aaxFilterSetState(aaxFilter f, int state)
          }
 #endif
          break;
+      case AAX_COMPRESSOR:	// basically dynamic gain with envelope follow
+         state = state ? state|AAX_ENVELOPE_FOLLOW : AAX_FALSE;
+         /* break not needed */
       case AAX_DYNAMIC_GAIN_FILTER:
 #if !ENABLE_LITE
          if EBF_VALID(filter)
@@ -533,18 +544,28 @@ aaxFilterSetState(aaxFilter f, int state)
 
                if (lfo)
                {
-                  float depth, offs = 0.0f;
+                  float depth;
                   int t;
-
+				// AAX_LFO_DEPTH == AAX_COMPRESSION_RATIO
                   depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
                   if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
                   {
-                     offs = 0.49f*filter->slot[0]->param[AAX_LFO_OFFSET];
-                     depth *= 0.5f;
+                     if (filter->type == AAX_COMPRESSOR)
+                     {
+                        lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
+                        lfo->max = depth;
+                     }
+                     else
+                     {
+                        float offs;
+
+                        offs = 0.49f*filter->slot[0]->param[AAX_LFO_OFFSET];
+                        depth *= 0.5f;
+                        lfo->min = offs;
+                        lfo->max = offs + depth;
+                     }
                   }
 
-                  lfo->min = offs;
-                  lfo->max = offs + depth;
                   lfo->envelope = AAX_FALSE;
                   lfo->stereo_lnk = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
@@ -565,8 +586,26 @@ aaxFilterSetState(aaxFilter f, int state)
                         break;
                      case AAX_ENVELOPE_FOLLOW:
                      {
-                        float rate = filter->slot[0]->param[AAX_RELEASE_RATE];
-                        lfo->step[t] = rate/filter->info->refresh_rate;
+                        if (filter->type == AAX_COMPRESSOR)
+                        {		// 10dB
+                           float dt = 3.16228f/filter->info->refresh_rate;
+                           float rate;
+
+                           /*
+                            * We're implementing an upward dynamic range
+                            * compressor, which means that attack is down!
+                            */
+                           rate = filter->slot[0]->param[AAX_RELEASE_RATE];
+                           rate = _MINMAX(rate, 1e-3f, 0.25f);
+                           lfo->step[t] = _MIN(dt/rate, 2.0f);
+
+                           rate = filter->slot[0]->param[AAX_ATTACK_RATE];
+                           rate = _MINMAX(rate, 1e-3f, 2.5f);
+                           lfo->down[t] = _MIN(dt/rate, 2.0f);
+                        }
+                        else {
+                           lfo->step[t] = atanf(lfo->f*0.1f)/atanf(100.0f);
+                        }
                         break;
                      }
                      default:
@@ -594,14 +633,28 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->get = _oalRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                        lfo->get = _oalRingBufferLFOGetCompressor;
-                        lfo->convert = _compress;
+                        if (filter->type == AAX_COMPRESSOR)
+                        {
+                           float dt = 3.16228f/filter->info->refresh_rate;
+                           float f;
+
+                           f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
+                           f = _MINMAX(f, 2.5e-3f, 2.5f);
+                           lfo->gate_period = _MIN(dt/f, 2.0f);
+
+                           f = filter->slot[1]->param[AAX_GATE_THRESHOLD & 0xF];
+                           f = _MINMAX(f, 0.0f, 1.0f);
+                           lfo->gate_threshold = f;
+
+                           lfo->get = _oalRingBufferLFOGetCompressor;
+                        }
+                        else
+                        {
+                           lfo->get = _oalRingBufferLFOGetGainFollow;
+                           lfo->max *= 10.0f; // maximum compression factor
+                        }
                         lfo->envelope = AAX_TRUE;
                         lfo->stereo_lnk = AAX_TRUE;
-                        lfo->gate_threshold = 0.01f;
-                        lfo->gate_period = 1.0f/(0.25f*filter->info->refresh_rate);
-                        lfo->max *= 10.0f; // maximum compression factor
-                        lfo->f = 10.0f*lfo->f/filter->info->refresh_rate;
                         break;
                      default:
                         break;
@@ -882,7 +935,8 @@ static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
   { AAX_ANGULAR_FILTER,		ANGULAR_FILTER },
   { AAX_DISTANCE_FILTER,	DISTANCE_FILTER },
   { AAX_FREQUENCY_FILTER,	FREQUENCY_FILTER },
-  { AAX_GRAPHIC_EQUALIZER,	FREQUENCY_FILTER }
+  { AAX_GRAPHIC_EQUALIZER,	FREQUENCY_FILTER },
+  { AAX_COMPRESSOR,		DYNAMIC_GAIN_FILTER }
 };
 
 /* see above for the proper sequence */
@@ -896,7 +950,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
     /* AAX_VOLUME_FILTER    */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    10.0f,     1.0f, 10.0f,     0.0f } },
     /* AAX_DYNAMIC_GAIN_FILTER   */
-    { { 0.01f, 0.01f, 0.0f, 0.0f }, {    50.0f,    50.0f,  1.0f,     1.0f } },
+    { { 0.0f,  0.01f, 0.0f, 0.0f }, {     0.0f,    50.0f,  1.0f,     1.0f } },
     /* AAX_TIMED_GAIN_FILTER */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
     /* AAX_ANGULAR_FILTER   */
@@ -907,6 +961,8 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
     /* AAX_GRAPHIC_EQUALIZER */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,  2.0f,     2.0f } },
+    /* AAX_COMPRESSOR        */
+    { { 1e-3f, 1e-3f, 0.0f, 0.0f }, {    2.5f,     0.25f,  1.0f,     1.0f } },
   },
   {
      /* AAX_FILTER_NONE      */
@@ -926,7 +982,9 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
      /* AAX_FREQUENCY_FILTER */
      { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  50.0f } },
      /* AAX_GRAPHIC_EQUALIZER */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } }
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } },
+     /* AAX_COMPRESSOR        */
+     { {  0.0f, 1e-3f, 0.0f, 0.0f }, {    0.0f,     0.25f,     0.0f,   1.0f } },
   },
   {
      /* AAX_FILTER_NONE      */
@@ -946,6 +1004,8 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
      /* AAX_FREQUENCY_FILTER */
      { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
      /* AAX_GRAPHIC_EQUALIZER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_COMPRESSOR        */
      { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } }
   }
 };
@@ -999,6 +1059,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
       case AAX_GRAPHIC_EQUALIZER:
          size += EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
          break;
+      case AAX_COMPRESSOR:
       case AAX_FREQUENCY_FILTER:
          size += sizeof(_oalRingBufferFilterInfo);
          /* break not needed */
@@ -1034,6 +1095,13 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             memcpy(rv->slot[1], &p2d->filter[rv->pos], size);
             rv->slot[1]->data = NULL;
+            memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+            rv->slot[0]->data = NULL;
+            break;
+         case AAX_COMPRESSOR:
+            rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
+            rv->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
+            rv->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0025f;
             /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:

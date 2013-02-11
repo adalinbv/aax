@@ -286,7 +286,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   _oalRingBufferLFOInfo *lfo;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
-                  if (lfo && (lfo->average[track] < lfo->gate_threshold)) {
+                  if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
                      rv = AAX_TRUE;
                   }
 
