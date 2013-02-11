@@ -104,10 +104,14 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
                if (lfo) {
                   p2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
+               } else {
+                  p2d->final.pitch_lfo = 1.0f;
                }
                lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
                if (lfo && !lfo->envelope) {
                   p2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
+               } else {
+                  p2d->final.gain_lfo = 1.0f;
                }
                rv = be->mix2d(be_handle, dest_rb, ssr_rb,
                               smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
