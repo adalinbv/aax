@@ -552,18 +552,22 @@ aaxFilterSetState(aaxFilter f, int state)
                   {
                      if (filter->type == AAX_COMPRESSOR)
                      {
-                        offs = filter->slot[0]->param[AAX_THRESHOLD];
-                        depth -= offs;
+                        lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
+                        lfo->max = depth;
                      }
                      else
                      {
                         offs = 0.49f*filter->slot[0]->param[AAX_LFO_OFFSET];
                         depth *= 0.5f;
+                        lfo->min = offs;
+                        lfo->max = offs + depth;
                      }
                   }
-
-                  lfo->min = offs;
-                  lfo->max = offs + depth;
+                  else 
+                  {
+                     lfo->min = offs;
+                     lfo->max = offs + depth;
+                  }
                   lfo->envelope = AAX_FALSE;
                   lfo->stereo_lnk = AAX_FALSE;
                   lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
