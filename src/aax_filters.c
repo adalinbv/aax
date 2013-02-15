@@ -591,18 +591,22 @@ aaxFilterSetState(aaxFilter f, int state)
                         if (filter->type == AAX_COMPRESSOR)
                         {		// 10dB
                            float dt = 3.16228f/filter->info->refresh_rate;
-                           float rate;
+                           float min, max, rate;
 
                            /*
                             * We're implementing an upward dynamic range
                             * compressor, which means that attack is down!
                             */
+                           min = _flt_minmax_tbl[0][AAX_COMPRESSOR].min[AAX_RELEASE_RATE];
+                           max = _flt_minmax_tbl[0][AAX_COMPRESSOR].max[AAX_RELEASE_RATE];
                            rate = filter->slot[0]->param[AAX_RELEASE_RATE];
-                           rate = _MINMAX(rate, 1e-3f, 0.25f);
+                           rate = _MINMAX(rate, min, max);
                            lfo->step[t] = _MIN(dt/rate, 2.0f);
 
+                           min = _flt_minmax_tbl[0][AAX_COMPRESSOR].min[AAX_ATTACK_RATE];
+                           max = _flt_minmax_tbl[0][AAX_COMPRESSOR].max[AAX_ATTACK_RATE];
                            rate = filter->slot[0]->param[AAX_ATTACK_RATE];
-                           rate = _MINMAX(rate, 1e-3f, 2.5f);
+                           rate = _MINMAX(rate, min, max);
                            lfo->down[t] = _MIN(dt/rate, 2.0f);
                         }
                         else {
@@ -638,14 +642,18 @@ aaxFilterSetState(aaxFilter f, int state)
                         if (filter->type == AAX_COMPRESSOR)
                         {
                            float dt = 3.16228f/filter->info->refresh_rate;
-                           float f;
+                           float min, max, f;
 
+                           min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_PERIOD & 0xF];
+                           max = _flt_minmax_tbl[1][AAX_COMPRESSOR].max[AAX_GATE_PERIOD & 0xF];
                            f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
-                           f = _MINMAX(f, 2.5e-3f, 2.5f);
+                           f = _MINMAX(f, min, max);
                            lfo->gate_period = _MIN(dt/f, 2.0f);
 
+                           min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_THRESHOLD & 0xF];            
+                           max = _flt_minmax_tbl[1][AAX_COMPRESSOR].max[AAX_GATE_THRESHOLD & 0xF];
                            f = filter->slot[1]->param[AAX_GATE_THRESHOLD & 0xF];
-                           f = _MINMAX(f, 0.0f, 1.0f);
+                           f = _MINMAX(f, min, max);
                            lfo->gate_threshold = f;
 
                            lfo->get = _oalRingBufferLFOGetCompressor;
