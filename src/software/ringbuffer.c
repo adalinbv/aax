@@ -1598,8 +1598,8 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
 
 		// lfo->min == AAX_THRESHOLD
 		// lfo->max == AAX_COMPRESSION_RATIO
-      gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
-      rv = _MINMAX(gf*lfo->max*lfo->min/(0.0001f+olvl*0.9999f), 1.0f, 1000.0f);
+      gf = _MIN(pow(oavg/lfo->gate_threshold, 15.0f), 1.0f);
+      rv = gf*_MINMAX(lfo->min/((1.0f-lfo->max) + lfo->max*olvl), 1.0f,1000.0f);
 
       rv = lfo->convert(rv, 1.0f);
       lfo->compression[track] = 1.0f - (1.0f/rv);

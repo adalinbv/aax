@@ -85,13 +85,13 @@ void _batch_cvt24_24_3_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_32_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_ps_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_pd_cpu(void_ptr, const_void_ptr, unsigned int);
-void _batch_cvt24_8_intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_16_intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_24_3intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_24_intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_32_intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_ps_intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_pd_intl_cpu(int32_ptrptr, const_void_ptr, unsigned int, unsigned int, unsigned int);
+void _batch_cvt24_8_intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+void _batch_cvt24_16_intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+void _batch_cvt24_24_3intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+void _batch_cvt24_24_intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+void _batch_cvt24_32_intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+void _batch_cvt24_ps_intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+void _batch_cvt24_pd_intl_cpu(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
 
 void _batch_cvt8_24_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_cpu(void_ptr, const_void_ptr, unsigned int);
@@ -99,13 +99,13 @@ void _batch_cvt24_3_24_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt32_24_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvtps_24_cpu(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvtpd_24_cpu(void_ptr, const_void_ptr, unsigned int);
-void _batch_cvt8_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt16_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_3intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt24_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvt32_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
-void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
+void _batch_cvt8_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
+void _batch_cvt16_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
+void _batch_cvt24_3intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
+void _batch_cvt24_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
+void _batch_cvt32_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
+void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
+void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
 
 
 /* SSE*/
@@ -140,7 +140,7 @@ void _batch_cvt24_16_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_ps_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_pd_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_sse2(void_ptr, const_void_ptr, unsigned int);
-void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
+void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
 
 /* SSE3 */
 void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
@@ -179,7 +179,7 @@ void _aaxBufResampleSkip_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned
 
 void _batch_cvt24_16_neon(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_neon(void_ptr, const_void_ptr, unsigned int);
-void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, unsigned int, unsigned int, unsigned int);
+void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

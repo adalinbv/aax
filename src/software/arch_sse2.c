@@ -375,7 +375,7 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 
 FN_PREALIGN void
 _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
-                                unsigned int offset, unsigned int tracks,
+                                int offset, unsigned int tracks,
                                 unsigned int num)
 {
    unsigned int i, size, step;

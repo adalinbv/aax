@@ -137,7 +137,7 @@ _batch_cvt24_pd_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    if (tracks == 1) {
       _batch_cvt24_8(dptr[0]+offset, sptr, num);
@@ -162,7 +162,7 @@ _batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int off
 }
 
 void
-_batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    if (tracks == 1) {
       _batch_cvt24_16(dptr[0]+offset, sptr, num);
@@ -187,7 +187,7 @@ _batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int of
 }
 
 void
-_batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    if (tracks == 1) {
       _batch_cvt24_24(dptr[0]+offset, sptr, num);
@@ -211,7 +211,7 @@ _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int of
 }
 
 void
-_batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
     if (tracks == 1) {
       _batch_cvt24_24_3(dptr[0]+offset, sptr, num);
@@ -236,7 +236,7 @@ _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int o
 }
 
 void
-_batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
     if (tracks == 1) {
       _batch_cvt24_32(dptr[0]+offset, sptr, num);
@@ -260,7 +260,7 @@ _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int of
 }
 
 void
-_batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    if (tracks == 1) {
       _batch_cvt24_ps(dptr[0]+offset, sptr, num);
@@ -286,7 +286,7 @@ _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int of
 }
 
 void
-_batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    if (tracks == 1) {
       _batch_cvt24_pd(dptr[0]+offset, sptr, num);
@@ -407,7 +407,7 @@ _batch_cvt24_3_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
 
@@ -427,7 +427,7 @@ _batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int off
 }
 
 void
-_batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
 
@@ -447,7 +447,7 @@ _batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int of
 }
 
 void
-_batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
 
@@ -468,7 +468,7 @@ _batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int o
 } 
 
 void
-_batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
 
@@ -488,7 +488,7 @@ _batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int of
 }
 
 void
-_batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    unsigned int t;
 
@@ -508,7 +508,7 @@ _batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int of
 }
 
 void
-_batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    static const float mul = 1.0/(float)(1<<23);
    unsigned int t;
@@ -529,7 +529,7 @@ _batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int of
 }
 
 void
-_batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, unsigned int offset, unsigned int tracks, unsigned int num)
+_batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    static const double mul = 1.0/(double)(1<<23);
    unsigned int t;
