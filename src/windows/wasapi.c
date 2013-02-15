@@ -9,6 +9,15 @@
  * permission of Adalin B.V.
  */
 
+
+/***
+ * Windows behaviour is influenced at differen levels in the code:
+ * 
+ * 1 round buffer size in ms up/down (5.33ms becomes 4ms/6ms)
+ * 2 thread priority (in ../api.h and ../aax_mixer.c)
+ * 3 threshold value (3*bufsz/2 or 5*bufsz/4)
+ */
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -973,7 +982,8 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          else /* handle->Mode == eCapture */
          {
             *frames = sample_frames;
-            handle->threshold = 5*sample_frames/4;
+//          handle->threshold = 5*sample_frames/4;
+            handle->threshold = 3*sample_frames/2;
             handle->hnsPeriod = hnsPeriodicity;
             handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
 
