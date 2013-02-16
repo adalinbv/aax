@@ -994,7 +994,7 @@ static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
      /* AAX_GRAPHIC_EQUALIZER */
      { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } },
      /* AAX_COMPRESSOR        */
-     { {  0.0f, 1e-3f, 0.0f, 0.0f }, {    0.0f,     0.25f,     0.0f,   1.0f } },
+     { {  0.0f, 1e-3f, 0.0f, 0.0f }, {    0.0f,     10.0f,     0.0f,   1.0f } },
   },
   {
      /* AAX_FILTER_NONE      */
