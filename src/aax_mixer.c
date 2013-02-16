@@ -284,10 +284,15 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
                   _oalRingBufferLFOInfo *lfo;
+                  int state;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
-                  if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
-                     rv = AAX_TRUE;
+                  state =_FILTER_GET_STATE(mixer->props2d, DYNAMIC_GAIN_FILTER);
+                  if (lfo && ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW))
+                  {
+                     if (lfo->average[track] <= lfo->gate_threshold) {
+                        rv = AAX_TRUE;
+                     }
                   }
 
                   _intBufReleaseData(dptr, _AAX_SENSOR);
