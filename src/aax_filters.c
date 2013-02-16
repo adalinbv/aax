@@ -105,7 +105,7 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
          case AAX_COMPRESSOR:
             flt->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             flt->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
-            flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0025f;
+            flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
             /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
@@ -641,7 +641,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      case AAX_ENVELOPE_FOLLOW:
                         if (filter->type == AAX_COMPRESSOR)
                         {
-                           float dt = 3.16228f/filter->info->refresh_rate;
+                           float dt = 1.0f/filter->info->refresh_rate;
                            float min, max, f;
 
                            min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_PERIOD & 0xF];
@@ -1111,7 +1111,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
          case AAX_COMPRESSOR:
             rv->slot[1] = (_oalRingBufferFilterInfo*)(ptr + size);
             rv->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
-            rv->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0025f;
+            rv->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
             /* break not needed */
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:

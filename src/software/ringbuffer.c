@@ -1573,6 +1573,7 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
       /* If the left track nears 0.0f also calculate the orher trakcs    */
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
+      gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          int32_t *sptr = (int32_t *)ptr;
@@ -1591,14 +1592,14 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          olvl = lfo->value[track];
          oavg = lfo->average[track];
          lfo->average[track] = ((1.0f-fact)*oavg + fact*lvl);
+         gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
 
          fact = (lvl > olvl) ? lfo->step[track] : lfo->down[track];
-         lfo->value[track] = _MINMAX(olvl + fact*(lvl - olvl), 0.0f, 1.0f);
+         lfo->value[track] = gf*_MINMAX(olvl + fact*(lvl - olvl), 0.0f, 1.0f);
       }
 
 		// lfo->min == AAX_THRESHOLD
 		// lfo->max == AAX_COMPRESSION_RATIO
-      gf = _MIN(pow(oavg/lfo->gate_threshold, 15.0f), 1.0f);
       rv = gf*_MINMAX(lfo->min/((1.0f-lfo->max) + lfo->max*olvl), 1.0f,1000.0f);
 
       rv = lfo->convert(rv, 1.0f);
