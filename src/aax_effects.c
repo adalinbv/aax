@@ -291,8 +291,6 @@ aaxEffectSetState(aaxEffect e, int state)
       case AAX_DISTORTION_EFFECT:
          switch (state & ~AAX_INVERSE)
          {
-         case AAX_CONSTANT_VALUE:
-            break;
          case AAX_ENVELOPE_FOLLOW:
          {
             _oalRingBufferLFOInfo* lfo = effect->slot[0]->data;
@@ -323,6 +321,7 @@ aaxEffectSetState(aaxEffect e, int state)
             }
             break;
          }
+         case AAX_CONSTANT_VALUE:
          case AAX_FALSE:
             free(effect->slot[0]->data);
             effect->slot[0]->data = NULL;
