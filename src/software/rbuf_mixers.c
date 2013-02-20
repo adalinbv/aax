@@ -378,7 +378,7 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
    mix = _MINMAX(clip, 0.0f, 1.0f);
    imix = (1.0f - mix);
    j = max = *dmax - *dmin;
-   iasym = asym*4096.0f;
+   iasym = asym*16*(1<<SHIFT);
    do
    {
       float fact1, fact2, sdf, rise;
@@ -392,13 +392,13 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
       sum += asamp;
       if (asamp > peak) peak = asamp;
 
-      asamp = abs(samp+iasym);
-      pos = 1+(asamp >> SHIFT);
+      asamp = (samp < 0) ? abs(samp-iasym) : abs(samp);
+      pos = (asamp >> SHIFT);
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
-      rise = _MINMAX(osamp*df-sdf, 0.0f, 1.0f);
-      pos = (unsigned int)_MINMAX(pos+asym*rise, 0, ((1<<BITS)-1));
-      osamp = (float)asamp;
+      rise = _MINMAX(osamp-sdf, -24.0f, 5.0f);
+      pos = (unsigned int)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
+      osamp = (float)asamp*sdf;
 
       fact1 = (1.0f-sdf)*_compress_tbl[0][pos-1];
       fact1 += sdf*_compress_tbl[0][pos];
