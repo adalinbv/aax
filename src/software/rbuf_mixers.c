@@ -367,7 +367,7 @@ void
 bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
    static const float df = (float)(int32_t)0x7FFFFFFF;
-   static const float rf = 1.0f/(65536.0f*64.0f);
+   static const float rf = 1.0f/(65536.0f*12.0f);
    int32_t *ptr = (int32_t*)d;
    float osamp, imix, mix;
    unsigned int j, max;
@@ -397,7 +397,7 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
       pos = (asamp >> SHIFT);
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
-      rise = _MINMAX((osamp-samp)*rf, 0.3f, 6.3f);
+      rise = _MINMAX((osamp-samp)*rf, 0.3f, 303.3f);
       pos = (unsigned int)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
       osamp = samp;
 
