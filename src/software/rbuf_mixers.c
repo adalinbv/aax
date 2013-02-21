@@ -366,7 +366,7 @@ bufCompressValve(void *d, unsigned int *dmin, unsigned int *dmax)
 void
 bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
-   static const float df = 1.0f/2147483648.0f; // (float)(int32_t)0x7FFFFFFF;
+   static const float df = (float)(int32_t)0x7FFFFFFF;
    int32_t *ptr = (int32_t*)d;
    float osamp, imix, mix;
    unsigned int j, max;
@@ -396,9 +396,9 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
       pos = (asamp >> SHIFT);
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
-      rise = _MINMAX(osamp-sdf, -24.0f, 5.0f);
+      rise = _MINMAX(osamp-samp, 0.3f, 6.3f);
       pos = (unsigned int)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
-      osamp = (float)asamp*sdf;
+      osamp = samp;
 
       fact1 = (1.0f-sdf)*_compress_tbl[0][pos-1];
       fact1 += sdf*_compress_tbl[0][pos];
