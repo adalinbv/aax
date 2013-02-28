@@ -342,10 +342,11 @@ static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
    { 1, "AAX_DISTANCE_FILTER" },
    { 1, "AAX_FREQUENCY_FILTER" },
 #if ENABLE_LITE
-   { 0, "" }
+   { 0, "" },
 #else
-   { 1, "AAX_GRAPHIC_EQUALIZER" }
+   { 1, "AAX_GRAPHIC_EQUALIZER" },
 #endif
+   { 1, "AAX_COMPRESSOR" }
 };
 
 static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
