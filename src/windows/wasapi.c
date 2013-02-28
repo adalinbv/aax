@@ -18,6 +18,17 @@
  * 3 threshold value (3*bufsz/2 or 5*bufsz/4)
  */
 
+/**
+ * http://msdn.microsoft.com/en-us/library/windows/desktop/dd370839%28v=vs.85%29.aspx 
+ *
+ * Applications that manage exclusive-mode streams can control the volume levels
+ * of those streams through the IAudioEndpointVolume interface. This interface
+ * controls the volume level of the audio endpoint device. It uses the hardware
+ * volume control for the endpoint device if the audio hardware implements such
+ * a control. Otherwise, the IAudioEndpointVolume interface implements the
+ * volume control in software.
+ */
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
