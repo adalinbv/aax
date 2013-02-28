@@ -73,7 +73,7 @@ unsigned
 log2i(unsigned x)
 {
    int y = 0;
-   while (x > 1)
+   while (x > 0)
    {
       x >>= 1;
       ++y;
