@@ -173,7 +173,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int32_t *d3 = d2 + dmax;
          int b = 6;
 
-         eq=_FILTER_GET_DATA(sensor, EQUALIZER_HF);
+         eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
          filter = &eq->band[b--];
          _aax_memcpy(d3, d1, rbd->track_len_bytes);
          bufFilterFrequency(d1, d3,  0, dmax, 0, track, filter, 0);

@@ -38,7 +38,7 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
 {
    static const unsigned int bps = sizeof(int32_t);
    _oalRingBufferDelayEffectData* effect = delay;
-   unsigned int ds = effect ? ddesamps : 1;	/* 1 for frequency filtering */
+   unsigned int ds = effect ? ddesamps : 0;	/* 0 for frequency filtering */
    int32_t *psrc = src;
    int32_t *pdst = dst;
 
