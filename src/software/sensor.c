@@ -65,11 +65,28 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
          curr_pos_sec = smixer->curr_pos_sec;
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
+         if (!device->ringbuffer) {
+            device->ringbuffer = _oalRingBufferCreate(0.0f);
+         }
+
          rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, curr_pos_sec);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
             _SET_PROCESSED(device);
+         }
+
+         if (device->ringbuffer)
+         {
+            _oalRingBuffer *srb = device->ringbuffer;
+            _oalRingBuffer *rb = rv;
+            int t, tracks;
+
+            tracks = rb->sample->no_tracks;
+            for (t=0; t<tracks; t++) {
+               srb->average[t] = rb->average[t];
+               srb->peak[t] = rb->peak[t];
+            }
          }
 
          dptr_sensor = _intBufGetNoLock(device->sensors, _AAX_SENSOR, 0);
@@ -183,8 +200,14 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                         scratch[SCRATCH_BUFFER0]-ds, ds+frames);
       if (res && nframes)
       {
-         unsigned int t, tracks;
+         unsigned int t, tracks, dmax;
          _oalRingBuffer *nrb;
+         int32_t average, peak;
+         int64_t sum;
+         float sdt;
+
+         dmax = rbd->no_samples;
+         sdt = _MINMAX(_oalRingBufferGetDuration(dest_rb)*50.0f, 0.0f, 1.0f);
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
@@ -193,7 +216,23 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          for (t=0; t<tracks; t++)
          {
             int32_t *ptr = nrb->sample->track[t];
-            int32_t *optr  = rbd->track[t];
+            int32_t *optr = rbd->track[t];
+            int32_t *p = optr;
+            unsigned int j;
+
+            j = dmax;
+            sum = peak = 0;
+            do
+            {
+               int32_t asamp = abs(*p++);
+               if (asamp > peak) peak = asamp;
+               sum += asamp;
+            }
+            while (--j);
+            average = sum/dmax;
+
+            nrb->average[t] = ((1.0f-sdt)*dest_rb->average[t] + sdt*average);
+            nrb->peak[t] = peak;
 
             if (frames != nframes)
             {
