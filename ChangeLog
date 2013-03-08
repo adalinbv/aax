@@ -1,10 +1,10 @@
-* Sat Sep 22 2012 - tech@adalin.org
-- AeonWave (2.3.0) stable; urgency=low
+* Fri Mar 08 2013 - tech@adalin.org
+- AeonWave (2.2.5) stable; urgency=low
  * Add an aaxFree function to free memory allocated by the library.
    This might be necessary when using different compilers.
- * Add support for a Reverb effect which applies tot only to the final mixer.
+ * Add support for a Reverb effect which anly applies to the final mixer.
  * Make the dynamic-gain envelope-following mode a proper audio-compressor and
-   expander. The offset property defines the threshold level.
+   expander with noise gate. The offset property defines the threshold level.
  * Add the option to retrieve the compression level for every track.
  * Add an aaxAudioFrameGetSetup function to be able to retreive the above.
  * Add the ability to retreive peak and average audio levers for every track
@@ -22,7 +22,7 @@
  * Allow sensors to be registered at subframes.
  * Expose the driver latency.
 
- -- Erik Hofman <tech@adalin.org>  Sat, 22 Sep 2012 09:35:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Fri, 08 Mar 2013 12:32:00 +0200
 
 * Tue Aug 21 2012 - tech@adalin.org
 - AeonWave (2.2.3) stable; urgency=high
