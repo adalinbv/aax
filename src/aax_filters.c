@@ -722,6 +722,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   flt->Q = Q;
                   flt->k = k;
 
+                  // Non-Manual only
                   if ((state & ~AAX_INVERSE) != AAX_TRUE && EBF_VALID(filter)
                       && filter->slot[1])
                   {
@@ -739,8 +740,8 @@ aaxFilterSetState(aaxFilter f, int state)
                         lfo->max=filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
                         if (fabsf(lfo->max - lfo->min) < 200.0f)
                         { 
-                           lfo->min *= 0.9f;
-                           lfo->max *= 1.1f;
+                           lfo->min = 0.5f*(lfo->min + lfo->max);
+                           lfo->max = lfo->min;
                         }
                         else if (lfo->max < lfo->min)
                         {
@@ -775,7 +776,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                         lfo->envelope = AAX_FALSE;
                         lfo->get = _oalRingBufferLFOGetFixedValue;
-                        if (fabs(lfo->max - lfo->min) > 0.01f)
+                        if ((lfo->max - lfo->min) > 0.01f)
                         {
                            switch (state & ~AAX_INVERSE)
                            {
