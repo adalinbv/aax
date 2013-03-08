@@ -688,7 +688,7 @@ aaxFilterSetState(aaxFilter f, int state)
 #endif
          break;
       case AAX_FREQUENCY_FILTER:
-         if EBF_VALID(filter)
+         if (filter) // EBF_VALID(filter)
          {
             switch (state & ~AAX_INVERSE)
             {
@@ -703,6 +703,7 @@ aaxFilterSetState(aaxFilter f, int state)
                if (flt == NULL)
                {
                   flt = calloc(1, sizeof(_oalRingBufferFreqFilterInfo));
+                  flt->fs = filter->info->frequency;
                   filter->slot[0]->data = flt;
                }
 
@@ -711,21 +712,15 @@ aaxFilterSetState(aaxFilter f, int state)
                   float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                   float Q = filter->slot[0]->param[AAX_RESONANCE];
                   float *cptr = flt->coeff;
-                  float fs = 48000.0f; 
+                  float fs = flt->fs; 
                   float k = 1.0f;
 
-                  fs = filter->info->frequency;
+//                flt->fs = fs = filter->info->frequency;
                   iir_compute_coefs(fc, fs, cptr, &k, Q);
                   flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
                   flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
-                  flt->fs = fs;
                   flt->Q = Q;
                   flt->k = k;
-
-#if 0
-                  memset(flt->freqfilter_history, 0,
-                         2*_AAX_MAX_SPEAKERS*sizeof(float));
-#endif
 
                   if ((state & ~AAX_INVERSE) != AAX_TRUE && EBF_VALID(filter)
                       && filter->slot[1])
@@ -756,8 +751,7 @@ aaxFilterSetState(aaxFilter f, int state)
 
                         /* sweeprate */
                         lfo->f = filter->slot[1]->param[AAX_RESONANCE];
-                        lfo->inv=(state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                        lfo->envelope = AAX_FALSE;
+                        lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
                         lfo->convert = _linear; // _log2lin;
 
                         for (t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -772,16 +766,16 @@ aaxFilterSetState(aaxFilter f, int state)
                               lfo->step[t] *= 0.5f;
                               break;
                            case AAX_ENVELOPE_FOLLOW:
-//                            lfo->value[t] /= lfo->max;
                               lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-//                            lfo->step[t] = atan(lfo->f*0.1f)/atan(100.0f);
                               break;
                            default:
                               break;
                            }
                         }
 
-                        if ((lfo->max - lfo->min) > 0.01f)
+                        lfo->envelope = AAX_FALSE;
+                        lfo->get = _oalRingBufferLFOGetFixedValue;
+                        if (fabs(lfo->max - lfo->min) > 0.01f)
                         {
                            switch (state & ~AAX_INVERSE)
                            {
@@ -802,13 +796,17 @@ aaxFilterSetState(aaxFilter f, int state)
                               lfo->envelope = AAX_TRUE;
                               break;
                            default:
+                              _aaxErrorSet(AAX_INVALID_PARAMETER);
                               break;
                            }
-                        } else {
-                           lfo->get = _oalRingBufferLFOGetFixedValue;
                         }
                      } /* flt->lfo */
                   } /* flt */
+                  else if ((state & ~AAX_INVERSE) == AAX_TRUE)
+                  {
+                     free(flt->lfo);
+                     flt->lfo = NULL;
+                  }
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
                break;
