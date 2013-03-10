@@ -1363,6 +1363,15 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
          hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
          if (hr == S_OK)
          {
+// Software Volume, need to convert to Hardware Volume
+            if (gain < 0.99f)		// Only apply hardware volume if < 1.0f
+            {
+               int t;
+               for (t=0; t<no_tracks; t++) {
+                  _batch_mul_value(sbuf[t], sizeof(int32_t), no_frames, gain);
+               }
+            }
+
             handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
 
             assert(no_frames >= frames);

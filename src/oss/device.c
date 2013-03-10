@@ -60,6 +60,7 @@
 #define OSS_VERSION_4		0x040002
 
 #define _AAX_DRVLOG(a)		_aaxOSSDriverLog(a)
+#define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && (a->_volume >= 0))
 
 static _aaxDriverDetect _aaxOSSDriverDetect;
 static _aaxDriverNewHandle _aaxOSSDriverNewHandle;
@@ -146,6 +147,10 @@ typedef struct
 #ifndef NDEBUG
    unsigned int buf_len;
 #endif
+
+   /* initial values, reset them wehn exiting */
+   int mixfd;
+   int _volume;
 
    _oalRingBufferMix1NFunc *mix_mono3d;
 
@@ -304,7 +309,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
       if (fd)
       {
          const char *hwstr = _aaxGetSIMDSupportString();
-         int version = get_oss_version();
+         int rv, version = get_oss_version();
          char *os_name = "";
 #if HAVE_SYS_UTSNAME_H
          struct utsname utsname;
@@ -318,6 +323,21 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 
          if (version > 0) handle->oss_version = version;
          handle->fd = fd;
+
+         /* test for /dev/mixer0 */
+         handle->mixfd = open(_default_mixer, O_RDWR);
+         if (handle->mixfd < 0)	/* test for /dev/mixer instead */
+         {
+            char *mixer = _aax_strdup(_default_mixer);
+
+            *(mixer+strlen(mixer)-1) = '\0';
+            handle->mixfd = open(mixer, O_WRONLY);
+            free(mixer);
+         }
+         if (handle->mixfd >= 0) {
+            rv = pioctl(handle->fd, SOUND_MIXER_READ_VOLUME, &handle->_volume);
+            if (rv == -1) handle->_volume = -1;
+         }
       }
       else
       {
@@ -342,6 +362,14 @@ _aaxOSSDriverDisconnect(void *id)
             free(handle->name);
          }
          handle->name = 0;
+      }
+
+      if (handle->mixfd >= 0)
+      {
+         if (handle->_volume >= 0) {
+            pioctl(handle->mixfd, SOUND_MIXER_WRITE_VOLUME, &handle->_volume);
+         }
+         close(handle->mixfd);
       }
 
       close(handle->fd);
@@ -603,13 +631,14 @@ _aaxOSSDriverCapture(const void *id, void **data, int off, size_t *frames, void 
 }
 
 static int
-_aaxOSSDriverPlayback(const void *id, void *s, float pitch, float volume)
+_aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
    _oalRingBufferSample *rbd;
+   const int32_t** sbuf;
    audio_buf_info info;
    audio_errinfo err;
    int16_t *data;
@@ -639,9 +668,28 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float volume)
       return 0;
 
    rbd = rb->sample;
+   sbuf = (const int32_t**)rbd->track;
    offs = _oalRingBufferGetOffsetSamples(rb);
    no_tracks = _oalRingBufferGetNoTracks(rb);
    no_samples = _oalRingBufferGetNoSamples(rb) - offs;
+
+   if (gain < 0.99f)		// Only apply hardware volume if < 1.0f
+   {
+      if (HW_VOLUME_SUPPORT(handle))
+      {
+         int volume = (int)(gain * 100);
+         volume |= volume<<8;
+         pioctl(handle->mixfd, SOUND_MIXER_WRITE_VOLUME, &volume);
+      }
+      else 
+      {
+         int t;
+         for (t=0; t<no_tracks; t++) {
+            _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples,
+                             gain);
+         }
+      }
+   }
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->ptr == 0)
@@ -656,7 +704,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float volume)
    data = handle->scratch;
    assert(outbuf_size <= handle->buf_len);
 
-   _batch_cvt16_intl_24(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
+   _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
@@ -707,18 +755,25 @@ static char *
 _aaxOSSDriverGetDevices(const void *id, int mode)
 {
    static char names[2][256] = { "\0\0", "\0\0" };
-   int fd, err;
+   _driver_t *handle = (_driver_t*)id;
+   int fd;
 
-
-   fd = open(_default_mixer, O_RDWR);
-   if (fd < 0)                          /* test for /dev/mixer0 instead */
-   {
-      char *mixer = _aax_strdup(_default_mixer);
-
-      *(mixer+strlen(mixer)-1) = '\0';
-      fd = open(mixer, O_WRONLY);
-      free(mixer);
+   if (handle && handle->mixfd >= 0) {
+      fd = handle->mixfd;
    }
+   else
+   {
+      fd = open(_default_mixer, O_RDWR);
+      if (fd < 0)                          /* test for /dev/mixer0 instead */
+      {
+         char *mixer = _aax_strdup(_default_mixer);
+
+         *(mixer+strlen(mixer)-1) = '\0';
+         fd = open(mixer, O_WRONLY);
+         free(mixer);
+      }
+   }
+
    if (fd >= 0)
    {
       int version = get_oss_version();
@@ -726,7 +781,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
       if (version >= OSS_VERSION_4)
       {
          oss_sysinfo info;
-         err = pioctl(fd, SNDCTL_SYSINFO, &info);
+         int err = pioctl(fd, SNDCTL_SYSINFO, &info);
 
          if (err >= 0)
          {
@@ -756,8 +811,12 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
             *ptr = 0;
          }
       }
-      close(fd);
-      fd = -1;
+
+      if (!handle || handle->mixfd < 0)
+      {
+         close(fd);
+         fd = -1;
+      }
    }
 
    return (char *)&names[mode];
@@ -851,9 +910,9 @@ detect_devnum(const char *devname)
    {
       int fd, err;
 
-       if (!strcasecmp(name, "OSS") || !strcasecmp(name, "default")) {
-          name = NULL;
-       }
+      if (!strcasecmp(name, "OSS") || !strcasecmp(name, "default")) {
+         name = NULL;
+      }
 
       fd = open(_default_mixer, O_RDWR);
       if (fd < 0)			/* test for /dev/mixer0 instead */
@@ -864,6 +923,7 @@ detect_devnum(const char *devname)
          fd = open(_default_mixer, O_WRONLY);
          free(mixer);
       }
+
       if (fd >= 0)
       {
          if (version >= OSS_VERSION_4)
@@ -907,6 +967,7 @@ detect_devnum(const char *devname)
                }
             }
          }
+
          close(fd);
          fd = -1;
       }

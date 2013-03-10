@@ -32,8 +32,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
    _oalRingBufferFreqFilterInfo* freq_filter;
    _oalRingBufferDelayEffectData* delay;
    _oalRingBufferSample *rbd;
+   float gain = 1.0f;
    int dist_state;
-   float gain;
 
    assert(rb != 0);
    assert(rb->sample != 0);
@@ -45,7 +45,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
    delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-   if ((gain > 1.01f || gain < 0.99f) || (delay || freq_filter || dist_state))
+   if ((gain > 1.01f) || (delay || freq_filter || dist_state))
    {
       int32_t *scratch0 = rbd->scratch[SCRATCH_BUFFER0];
       int32_t *scratch1 = rbd->scratch[SCRATCH_BUFFER1];
@@ -84,7 +84,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
 
-         if (gain > 1.01f || gain < 0.99f) {
+         if (gain > 1.01f) {	// Only apply software gain if greater than 1.0f
             _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain);
          }
       }
@@ -522,7 +522,9 @@ int
 _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, const void* props3d, char capturing, const void* sensor, const void* backend, const void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
+   _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)rb;
+   float gain;
    int res;
 
    if (devices) {
@@ -538,7 +540,8 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
    be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
-   res = be->play(be_handle, dest_rb, 1.0, 1.0);
+   gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   res = be->play(be_handle, dest_rb, 1.0, gain);
 
    if TEST_FOR_TRUE(capturing)
    {
@@ -614,7 +617,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             {
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
+#ifndef THREADED_FRAMES
                void *new_rb;
+#endif
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */

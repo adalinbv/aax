@@ -435,13 +435,14 @@ _aaxFileDriverAvailable(const void *id)
 }
 
 static int
-_aaxFileDriverPlayback(const void *id, void *s, float pitch, float volume)
+_aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
    _oalRingBufferSample *rbd;
+   const int32_t** sbuf;
    char *data, *ndata;
    int res;
 
@@ -471,17 +472,16 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float volume)
    ndata = data + no_tracks*no_samples*sizeof(int32_t);
    assert(outbuf_size <= handle->buf_len);
 
-#if 0
-   _batch_cvt16_intl_24(data, (const int32_t**)rbd->track,
-                        offs, no_tracks, no_samples);
-
-   if (is_bigendian()) {
-      _batch_endianswap16((char*)data, no_tracks*no_samples);
+   sbuf = (const int32_t**)rbd->track;
+   if (gain < 0.99f)	// Only apply hardware volume if < 1.0f
+   {
+      int t;
+      for (t=0; t<no_tracks; t++) {
+         _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
+      }
    }
-#else
-   _batch_cvt24_intl_24(data, (const int32_t**)rbd->track,
-                        offs, no_tracks, no_samples);
 
+   _batch_cvt24_intl_24(data, sbuf, offs, no_tracks, no_samples);
    bufConvertDataFromPCM24S(ndata, data, no_tracks, no_samples,
                             handle->format, 1); // blocksize);
    data = ndata;
@@ -508,7 +508,6 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float volume)
          break;
       }
    }
-#endif
 
    res = handle->file->update(handle->file->id, data, no_samples);
 

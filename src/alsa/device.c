@@ -1846,7 +1846,7 @@ _xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
 
 
 static int
-_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float volume)
+_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -1909,6 +1909,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
       snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
+      const int32_t **sbuf;
       int err;
 
       err = psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &frames);
@@ -1923,12 +1924,18 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
          }
       }
 
+      sbuf = (const int32_t**)rbsd->track;
       for (t=0; t<no_tracks; t++)
       {
          unsigned char *p;
          p = (((unsigned char *)area[t].addr) + (area[t].first/8));
          p += mmap_offs*handle->bytes_sample;
-         handle->cvt_to(p, (const int32_t *)rbsd->track[t]+offs, frames);
+
+// Software Volume, need to convert to Hardware Volume
+         if (gain < 0.99f) {	// Only apply hardware volume if < 1.0f
+            _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), frames, gain);
+         }
+         handle->cvt_to(p, sbuf[t]+offs, frames);
       }
 
       res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
@@ -1949,7 +1956,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float vol
 
 
 static int
-_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float volume)
+_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -2011,6 +2018,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
       snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
+      const int32_t **sbuf;
       char *p;
       int err;
 
@@ -2026,8 +2034,18 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
          }
       }
 
+      sbuf = (const int32_t**)rbsd->track;
+// Software Volume, need to convert to Hardware Volume
+      if (gain < 0.99f) 	// Only apply hardware volume if < 1.0f
+      {        
+         int t;   
+         for (t=0; t<no_tracks; t++) {
+            _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), frames, gain);
+         }        
+      }
+
       p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
-      handle->cvt_to_intl(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
+      handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
 
       res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
       if (res < 0 || (snd_pcm_uframes_t)res != frames)
@@ -2047,7 +2065,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float vol
 
 
 static int
-_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float volume)
+_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -2111,8 +2129,14 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float volum
    data = handle->data;
    for (t=0; t<no_tracks; t++)
    {
+      const int32_t **sbuf = (const int32_t**)rbsd->track;
       data[t] = handle->scratch[t];
-      handle->cvt_to(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
+
+// Software Volume, need to convert to Hardware Volume
+      if (gain < 0.99f) {	// Only apply hardware volume if < 1.0f
+         _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
+      }
+      handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
    }
 
    chunk = 10;
@@ -2144,21 +2168,21 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float volum
 
 
 static int
-_aaxALSADriverPlayback(const void *id, void *src, float pitch, float volume)
+_aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle->play(id, src, pitch, volume);
+   return handle->play(id, src, pitch, gain);
 }
 
 static int
-_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float volume
-)
+_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
    unsigned int no_samples, no_tracks, offs, hw_bps;
    unsigned int outbuf_size, chunk;
    _oalRingBufferSample *rbsd;
+   const int32_t **sbuf;
    char *data;
    int err;
     
@@ -2191,8 +2215,18 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float volum
    assert(outbuf_size <= handle->buf_len);
 #endif
 
+   sbuf = (const int32_t**)rbsd->track;
+// Software Volume, need to convert to Hardware Volume
+   if (gain < 0.99f)		// Only apply hardware volume if < 1.0f
+   {
+      int t;
+      for (t=0; t<no_tracks; t++) {
+         _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
+      }
+   }
+
    data = (char*)handle->data;
-   handle->cvt_to_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
+   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
 
    chunk = 10;
    do

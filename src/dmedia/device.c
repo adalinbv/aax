@@ -753,7 +753,7 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
 }
 
 static int
-_aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float volume)
+_aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
 #if MAX_PORTS > 1
    static int check_ = CHECK_FRAMES;
@@ -763,6 +763,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float volume)
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
    _oalRingBufferSample *rbd;
+   const int32_t **sbuf;
    int16_t *data;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -792,7 +793,17 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float volume)
    data = (int16_t*)handle->data;
    assert(outbuf_size <= handle->buf_len);
 
-   _batch_cvt16_intl_24(data, (const int32_t**)rbd->track, offs, no_tracks, no_samples);
+   sbuf = (const int32_t**)rbd->track;
+// Software Volume, need to convert to Hardware Volume
+   if (gain < 0.99f) 	// Only apply hardware volume if < 1.0f
+   {
+      int t;
+      for (t=0; t<no_tracks; t++) {
+         _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
+      }
+   }
+
+   _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
