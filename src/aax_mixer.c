@@ -709,7 +709,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                         _oalRingBufferSetFrequency(rb, info->frequency);
                         _oalRingBufferSetNoTracks(rb, info->no_tracks);
 
-                        /* create a ringbuffer with a but of overrun space */
+                        /* create a ringbuffer with a bit of overrun space */
                         _oalRingBufferSetDuration(rb, delay_sec*1.0f);
 
                         /* Do not initialize the RinBuffer yet, this would

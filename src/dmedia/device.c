@@ -732,7 +732,7 @@ _aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int 
 
 
 static int
-_aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen)
+_aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int nframes = *frames;
@@ -747,7 +747,16 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
 
    *frames = 0;
    palReadFrames(handle->port[0].port, scratch, nframes);
-   _batch_cvt24_16_intl((int32_t**)data, scratch, 0, 2, nframes);
+   _batch_cvt24_16_intl((int32_t**)data, scratch, offs, 2, nframes);
+
+   if (gain < 0.99f || gain > 1.01f)
+   {
+      int t;
+      for (t=0; t<2; t++) {
+         _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
+                          gain);
+      }
+   }
    *frames = nframes;
    return AAX_TRUE;
 }
@@ -795,14 +804,13 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    sbuf = (const int32_t**)rbd->track;
 // Software Volume, need to convert to Hardware Volume
-   if (gain < 0.99f) 	// Only apply hardware volume if < 1.0f
+   if (gain < 0.99f)   // Only apply hardware volume if < 1.0f
    {
       int t;
       for (t=0; t<no_tracks; t++) {
          _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
       }
    }
-
    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
 
    if (is_bigendian()) {

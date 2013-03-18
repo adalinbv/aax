@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 #include <base/types.h>
-#include <driver.h>		/* float */
+#include <ringbuffer.h>
 
 extern const int16_t _ima4_step_table[89];
 extern const int16_t _ima4_index_table[16];
@@ -39,6 +39,12 @@ void  _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
 void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
 void _aaxFileDriverWrite(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
+
+/* sensor */
+void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,
+                        _oalRingBuffer2dProps*);
+void *_aaxSensorCapture(_oalRingBuffer*, const _aaxDriverBackend*, void*,
+                        float*, float, float);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

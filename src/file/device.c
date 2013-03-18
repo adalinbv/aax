@@ -473,14 +473,13 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(outbuf_size <= handle->buf_len);
 
    sbuf = (const int32_t**)rbd->track;
-   if (gain < 0.99f)	// Only apply hardware volume if < 1.0f
+   if (gain < 0.99f)   // Only apply hardware volume if < 1.0f
    {
       int t;
       for (t=0; t<no_tracks; t++) {
          _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
       }
    }
-
    _batch_cvt24_intl_24(data, sbuf, offs, no_tracks, no_samples);
    bufConvertDataFromPCM24S(ndata, data, no_tracks, no_samples,
                             handle->format, 1); // blocksize);
@@ -515,7 +514,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 }
 
 static int
-_aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, void *scratch, size_t scratchlen)
+_aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    int bytes = 0;
@@ -532,6 +531,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       unsigned int no_frames, file_no_samples;
       unsigned int abytes, bufsz;
       void *data = scratch;
+      int32_t **sbuf;
 
       no_frames = *frames;
       bufsz = (file_no_tracks * no_frames * file_bits)/8;
@@ -595,8 +595,17 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
          memset((int32_t*)data+samples, 0, bufsize);
       }
 					/* last resample and de-interleave */
-     _batch_cvt24_24_intl((int32_t**)tracks, data,
-                          offs, file_no_tracks, no_frames);
+      sbuf = (int32_t**)tracks;
+      _batch_cvt24_24_intl(sbuf, data, offs, file_no_tracks, no_frames);
+
+      if (gain < 0.99f || gain > 1.01f)
+      {
+         int t;
+         for (t=0; t<file_no_tracks; t++) {
+            _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_frames,
+                             gain);
+         }
+      }
    }
 
    return bytes;

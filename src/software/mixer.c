@@ -84,7 +84,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
 
-         if (gain > 1.01f) {	// Only apply software gain if greater than 1.0f
+         if (gain > 1.01f) {
             _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain);
          }
       }
@@ -590,11 +590,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 
             if (handle->info->mode == AAX_MODE_READ)
             {
-               float dt = 1.0f / mixer->info->refresh_rate;
+               float gain, dt = 1.0f / mixer->info->refresh_rate;
                void *rv, *rb = dest; // mixer->ringbuffer;
 
+               gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt,
-                                               mixer->curr_pos_sec);
+                                               mixer->curr_pos_sec, gain);
                if (dt == 0.0f)
                {
                   _SET_STOPPED(handle);

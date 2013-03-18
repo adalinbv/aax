@@ -67,11 +67,6 @@ typedef struct
 
 } _sensor_t;
 
-void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,
-                        _oalRingBuffer2dProps*);
-void *_aaxSensorCapture(_oalRingBuffer*, const _aaxDriverBackend*, void*,
-                        float*, float);
-
 /* --- Driver --- */
 /* Note: several validation mechanisms rely on this value.
  *       be sure before changing.
@@ -273,7 +268,6 @@ char _aaxEmittersProcess(_oalRingBuffer*, _aaxMixerInfo*,
                          _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
                          _intBuffers*, _intBuffers*,
                          const _aaxDriverBackend*, void*);
-
 
 /* -- Filters and Effects -- */
 

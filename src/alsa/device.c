@@ -1043,7 +1043,7 @@ _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 }
 
 static int
-_aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
+_aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int tracks, no_frames;
@@ -1218,6 +1218,15 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
                      handle->cvt_from((int32_t*)data[1]+offs, s[1], res);
                   }
                }
+            }
+         }
+
+         if (gain < 0.99f || gain > 1.01f)
+         {
+            int t;
+            for (t=0; t<tracks; t++) {
+               _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), res,
+                                gain);
             }
          }
 
@@ -1801,6 +1810,65 @@ get_devices_avail(int m)
    return rv;
 }
 
+// http://www.redhat.com/archives/fedora-cvs-commits/2005-December/msg00270.html
+#if 0
+int
+set_capture_volume(_driver_t *handle, float volume)
+{
+   snd_mixer_t *mixer;
+   snd_mixer_selem_id_t *sid;
+   snd_mixer_elem_t *elem;
+   int i, rv = 0;
+
+   snd_mixer_selem_id_alloca(&sid);
+
+   rv = snd_mixer_open(&mixer, 0);
+   if (rv < 0) {
+      return rv;
+   }
+
+   // sprintf(card, "hw:%d", index);
+   rv = snd_mixer_attach(mixer, handle->devname);
+   if (rv < 0) {
+      goto out;
+   }
+
+   rv = snd_mixer_selem_register(mixer, NULL, NULL);
+   if (rv < 0) {
+      goto out;
+   }
+
+   rv = snd_mixer_load(mixer);
+   if (rv < 0) {
+      goto out;
+   }
+
+   for (i = 0; i<SND_MIXER_SCHN_LAST; i++)
+   {
+      if (snd_mixer_selem_has_capture_channel(elem, i))
+      {
+         if (snd_mixer_selem_has_capture_volume(elem))
+         {
+            long rmin, rmax;
+            int vol;
+
+            snd_mixer_selem_get_capture_volume_range(elem, &rmin, &rmax);
+            vol = rmin + volume*(rmax-rmin);
+
+            snd_mixer_selem_set_capture_volume(elem, i, vol);
+            if (snd_mixer_selem_has_capture_switch(elem)) {
+               snd_mixer_selem_set_capture_switch_all(elem, vol>0 ? AAX_TRUE : AAX_FALSE);
+            }
+         }
+      }
+   }
+
+out:
+   snd_mixer_close(mixer);
+   return rv;
+}
+#endif
+
 static int
 _xrun_recovery(snd_pcm_t *handle, int err)
 {
@@ -1932,7 +2000,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
          p += mmap_offs*handle->bytes_sample;
 
 // Software Volume, need to convert to Hardware Volume
-         if (gain < 0.99f) {	// Only apply hardware volume if < 1.0f
+         if (gain < 0.99f) {   // Only apply hardware volume if < 1.0f
             _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), frames, gain);
          }
          handle->cvt_to(p, sbuf[t]+offs, frames);
@@ -2036,7 +2104,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
 
       sbuf = (const int32_t**)rbsd->track;
 // Software Volume, need to convert to Hardware Volume
-      if (gain < 0.99f) 	// Only apply hardware volume if < 1.0f
+      if (gain < 0.99f)        // Only apply hardware volume if < 1.0f
       {        
          int t;   
          for (t=0; t<no_tracks; t++) {
@@ -2133,7 +2201,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       data[t] = handle->scratch[t];
 
 // Software Volume, need to convert to Hardware Volume
-      if (gain < 0.99f) {	// Only apply hardware volume if < 1.0f
+      if (gain < 0.99f) {      // Only apply hardware volume if < 1.0f
          _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
       }
       handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
@@ -2217,7 +2285,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 
    sbuf = (const int32_t**)rbsd->track;
 // Software Volume, need to convert to Hardware Volume
-   if (gain < 0.99f)		// Only apply hardware volume if < 1.0f
+   if (gain < 0.99f)           // Only apply hardware volume if < 1.0f
    {
       int t;
       for (t=0; t<no_tracks; t++) {

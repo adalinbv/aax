@@ -50,7 +50,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
       if (dptr_sensor)
       {
          const _intBufferData* sptr_rb;
-         float dt, curr_pos_sec;
+         float gain, dt, curr_pos_sec;
          _oalRingBuffer *src_rb;
          _aaxAudioFrame *smixer;
          _sensor_t* sensor;
@@ -69,7 +69,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
             device->ringbuffer = _oalRingBufferCreate(0.0f);
          }
 
-         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, curr_pos_sec);
+         gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
+         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, curr_pos_sec, gain);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
@@ -172,7 +173,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
 void*
 _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
-                  void *be_handle, float *dt, float pos_sec)
+                  void *be_handle, float *dt, float pos_sec, float gain)
 {
    _oalRingBufferSample *rbd;
    void *rv = dest_rb;
@@ -197,7 +198,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
 
       nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
       res = be->capture(be_handle, rbd->track, 0, &nframes,
-                        scratch[SCRATCH_BUFFER0]-ds, ds+frames);
+                        scratch[SCRATCH_BUFFER0]-ds, ds+frames, gain);
       if (res && nframes)
       {
          unsigned int t, tracks, dmax;

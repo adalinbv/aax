@@ -1192,7 +1192,7 @@ _aaxWASAPIDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int 
 }
 
 static int
-_aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
+_aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_frames;
@@ -1254,9 +1254,21 @@ printf("avail: %4i (%4i), fetch: %6i\r", handle->scratch_offs, handle->threshold
          int32_t **ptr = (int32_t**)data;
 
          handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
-         if (tracks == 1) {	// copy the left channel to the right channel
+
+// TODO: Hardware Volume
+         if (gain < 0.99f || gain > 1.01f)
+         {
+            int t;
+            for (t=0; t<tracks; t++) {
+               _batch_mul_value((void*)(ptr[t]+offs), sizeof(int32_t), avail,
+                                gain);
+            }
+         }
+
+         if (tracks == 1) {     // copy the left channel to the right channel
             _aax_memcpy(ptr[1]+offs, ptr[0]+offs, avail*sizeof(int32_t));
          }
+
          handle->scratch_offs -= avail;
          fetch -= avail;
 
@@ -1364,7 +1376,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
          if (hr == S_OK)
          {
 // Software Volume, need to convert to Hardware Volume
-            if (gain < 0.99f)		// Only apply hardware volume if < 1.0f
+            if (gain < 0.99f)          // Only apply hardware volume if < 1.0f
             {
                int t;
                for (t=0; t<no_tracks; t++) {

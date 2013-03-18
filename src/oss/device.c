@@ -596,7 +596,7 @@ _aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, 
 }
 
 static int
-_aaxOSSDriverCapture(const void *id, void **data, int off, size_t *frames, void *scratch, size_t scratchlen)
+_aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t buflen, frame_size;
@@ -622,7 +622,35 @@ _aaxOSSDriverCapture(const void *id, void **data, int off, size_t *frames, void 
          return AAX_FALSE;
       }
       *frames = res / frame_size;
-      _batch_cvt24_16_intl((int32_t**)data, scratch, 0, 2, res);
+      _batch_cvt24_16_intl((int32_t**)data, scratch, offs, 2, res);
+
+      if (gain < 0.99f || gain > 1.01f)
+      {
+         if (HW_VOLUME_SUPPORT(handle) && (gain < 1.0f))
+         {
+            int volume = (int)(gain * 100);
+            volume |= volume<<8;
+            if (handle->oss_version >= OSS_VERSION_4) {
+               pioctl(handle->mixfd, SNDCTL_DSP_SETRECVOL, &volume);
+            }
+            else
+            {
+               int devs = 0;
+               pioctl(handle->fd, SOUND_MIXER_READ_RECMASK, &devs);
+               if (devs & SOUND_MASK_IGAIN) {
+                  pioctl(handle->mixfd, SOUND_MIXER_WRITE_VOLUME, &volume);
+               }
+            }
+         }
+         else
+         {
+            int t;
+            for (t=0; t<2; t++) {
+               _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), res,
+                                gain);
+            }
+         }
+      }
 
       return AAX_TRUE;
    }
@@ -673,7 +701,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    no_tracks = _oalRingBufferGetNoTracks(rb);
    no_samples = _oalRingBufferGetNoSamples(rb) - offs;
 
-   if (gain < 0.99f)		// Only apply hardware volume if < 1.0f
+   if (gain < 0.99f)           // Only apply hardware volume if < 1.0f
    {
       if (HW_VOLUME_SUPPORT(handle))
       {
@@ -690,6 +718,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
          }
       }
    }
+
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->ptr == 0)

@@ -322,7 +322,7 @@ _aaxNoneDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static int
-_aaxLoopbackDriverCapture(const void *id, void **data, int offs, size_t *size, void *scratch, size_t scratchlen)
+_aaxLoopbackDriverCapture(const void *id, void **data, int offs, size_t *size, void *scratch, size_t scratchlen, float gain)
 {
    return AAX_FALSE;
 }
