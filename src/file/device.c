@@ -473,7 +473,8 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(outbuf_size <= handle->buf_len);
 
    sbuf = (const int32_t**)rbd->track;
-   if (gain < 0.99f)   // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+   if (gain < 0.99f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {

@@ -626,7 +626,7 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
 
       if (gain < 0.99f || gain > 1.01f)
       {
-         if (HW_VOLUME_SUPPORT(handle) && (gain < 1.0f))
+         if (HW_VOLUME_SUPPORT(handle))
          {
             int volume = (int)(gain * 100);
             volume |= volume<<8;
@@ -701,7 +701,8 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    no_tracks = _oalRingBufferGetNoTracks(rb);
    no_samples = _oalRingBufferGetNoSamples(rb) - offs;
 
-   if (gain < 0.99f)           // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+   if (gain < 0.99f)
    {
       if (HW_VOLUME_SUPPORT(handle))
       {

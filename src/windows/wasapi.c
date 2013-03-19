@@ -18,17 +18,6 @@
  * 3 threshold value (3*bufsz/2 or 5*bufsz/4)
  */
 
-/**
- * http://msdn.microsoft.com/en-us/library/windows/desktop/dd370839%28v=vs.85%29.aspx 
- *
- * Applications that manage exclusive-mode streams can control the volume levels
- * of those streams through the IAudioEndpointVolume interface. This interface
- * controls the volume level of the audio endpoint device. It uses the hardware
- * volume control for the endpoint device if the audio hardware implements such
- * a control. Otherwise, the IAudioEndpointVolume interface implements the
- * volume control in software.
- */
-
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -185,6 +174,9 @@ typedef struct
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
 
+   IAudioEndpointVolume *pEndpointVolume;
+   float minVolume, maxVolume;
+
    /* capture related */
    HANDLE task;
 #if USE_CAPTURE_THREAD
@@ -209,6 +201,7 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pIID_IAudioRenderClient &aax_IID_IAudioRenderClient
 # define pIID_IAudioCaptureClient &aax_IID_IAudioCaptureClient
 # define pIID_IAudioClient &aax_IID_IAudioClient
+# define pIID_IAudioEndpointVolume &IID_IAudioEndpointVolume
 # define pPKEY_Device_DeviceDesc &PKEY_Device_DeviceDesc
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
 # define pPKEY_DeviceInterface_FriendlyName &PKEY_DeviceInterface_FriendlyName
@@ -281,6 +274,7 @@ static DWORD getChannelMask(WORD, enum aaxRenderMode);
 static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
 static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
 static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
+static void set_exclusive_volume(_driver_ *, float);
 
 static int _aaxWASAPIDriverCaptureFromHardware(_driver_t*);
 #if USE_CAPTURE_THREAD
@@ -505,7 +499,21 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             }
          }
 
-         if (hr != S_OK)
+         if (hr == S_OK)
+         {
+            hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioEndpointVolume,
+                                     CLSCTX_INPROC_SERVER, NULL,
+                                     (void**)&handle->pEndpointVolume);
+            if (hr == == S_OK)
+            {
+               float min, max, step;
+               hr = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
+                                                        &min, &max, &step);
+               handle-minVolome = _db2lin(min);
+               handle->maxVolume = _db2lin(max);
+            }
+         }
+         else
          {
             _AAX_DRVLOG(10, "failed to connect");
             pIMMDeviceEnumerator_Release(handle->pEnumerator);
@@ -1375,8 +1383,8 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
          hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
          if (hr == S_OK)
          {
-// Software Volume, need to convert to Hardware Volume
-            if (gain < 0.99f)          // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+            if (gain < 0.99f)
             {
                int t;
                for (t=0; t<no_tracks; t++) {
@@ -2410,3 +2418,25 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
    return rv;
 }
 
+/**
+ * http://msdn.microsoft.com/en-us/library/windows/desktop/dd370839%28v=vs.85%29.aspx 
+ *
+ * Applications that manage exclusive-mode streams can control the volume levels
+ * of those streams through the IAudioEndpointVolume interface. This interface
+ * controls the volume level of the audio endpoint device. It uses the hardware
+ * volume control for the endpoint device if the audio hardware implements such
+ * a control. Otherwise, the IAudioEndpointVolume interface implements the
+ * volume control in software.
+ *
+ * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
+ */
+static void
+set_exclusive_volume(_driver_ *handle, float volume)
+{
+
+   if (gain < 0.99f || gain > 1.01f)
+   {
+      volume = _lin2db(volume);		// SetMasterVolumeLevel id in dB's
+      IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointvolume, volume, NULL);
+   }
+}

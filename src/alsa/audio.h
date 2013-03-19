@@ -179,6 +179,7 @@ typedef struct _snd_ctl snd_ctl_t;
 typedef struct _snd_pcm snd_pcm_t;
 typedef struct _snd_pcm_hw_params snd_pcm_hw_params_t;
 typedef struct _snd_pcm_sw_params snd_pcm_sw_params_t;
+typedef struct _snd_mixer snd_mixer_t;
 typedef long snd_pcm_sframes_t;
 typedef unsigned long snd_pcm_uframes_t;
 
@@ -325,6 +326,10 @@ typedef snd_pcm_sframes_t (*snd_pcm_forward_proc)(snd_pcm_t *, snd_pcm_uframes_t
 typedef void snd_output_t;
 typedef int (*snd_pcm_dump_proc)(snd_pcm_t *, snd_output_t *);
 typedef int (*snd_output_stdio_attach_proc)(snd_output_t **, FILE*, int);
+
+typedef int (*snd_mixer_open_proc)(snd_mixer_t **, int);
+typedef int (*snd_mixer_close_proc)(snd_mixer_t *);
+typedef int (*snd_mixer_attach_proc)(snd_mixer_t *mixer, const char *name);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

@@ -254,6 +254,7 @@ static int detect_devnum(const char *, int);
 static char *detect_devname(const char*, int, unsigned int, int, char);
 static char *_aaxALSADriverLogVar(const char *, ...);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
+static int _alsa_set_volume(_driver_t *, float);
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
 static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
@@ -287,6 +288,7 @@ _aaxALSADriverDetect(int mode)
 
    if TEST_FOR_FALSE(rv) {
       audio = _oalIsLibraryPresent("asound", "2");
+//    audio = _oalIsLibraryPresent("salsa", "0");
    }
 
    if (audio)
@@ -1221,6 +1223,7 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
             }
          }
 
+// TODO: comvert to hardware volume
          if (gain < 0.99f || gain > 1.01f)
          {
             int t;
@@ -1811,10 +1814,10 @@ get_devices_avail(int m)
 }
 
 // http://www.redhat.com/archives/fedora-cvs-commits/2005-December/msg00270.html
-#if 0
-int
-set_capture_volume(_driver_t *handle, float volume)
+static int
+_alsa_set_volume(_driver_t *handle, float volume)
 {
+#if 0
    snd_mixer_t *mixer;
    snd_mixer_selem_id_t *sid;
    snd_mixer_elem_t *elem;
@@ -1822,23 +1825,23 @@ set_capture_volume(_driver_t *handle, float volume)
 
    snd_mixer_selem_id_alloca(&sid);
 
-   rv = snd_mixer_open(&mixer, 0);
+   rv = psnd_mixer_open(&mixer, 0);
    if (rv < 0) {
       return rv;
    }
 
    // sprintf(card, "hw:%d", index);
-   rv = snd_mixer_attach(mixer, handle->devname);
+   rv = psnd_mixer_attach(mixer, handle->devname);
    if (rv < 0) {
       goto out;
    }
 
-   rv = snd_mixer_selem_register(mixer, NULL, NULL);
+   rv = psnd_mixer_selem_register(mixer, NULL, NULL);
    if (rv < 0) {
       goto out;
    }
 
-   rv = snd_mixer_load(mixer);
+   rv = psnd_mixer_load(mixer);
    if (rv < 0) {
       goto out;
    }
@@ -1852,22 +1855,22 @@ set_capture_volume(_driver_t *handle, float volume)
             long rmin, rmax;
             int vol;
 
-            snd_mixer_selem_get_capture_volume_range(elem, &rmin, &rmax);
+            psnd_mixer_selem_get_capture_volume_range(elem, &rmin, &rmax);
             vol = rmin + volume*(rmax-rmin);
 
-            snd_mixer_selem_set_capture_volume(elem, i, vol);
+            psnd_mixer_selem_set_capture_volume(elem, i, vol);
             if (snd_mixer_selem_has_capture_switch(elem)) {
-               snd_mixer_selem_set_capture_switch_all(elem, vol>0 ? AAX_TRUE : AAX_FALSE);
+               psnd_mixer_selem_set_capture_switch_all(elem, vol>0 ? AAX_TRUE : AAX_FALSE);
             }
          }
       }
    }
 
 out:
-   snd_mixer_close(mixer);
+   psnd_mixer_close(mixer);
    return rv;
-}
 #endif
+}
 
 static int
 _xrun_recovery(snd_pcm_t *handle, int err)
@@ -1999,8 +2002,8 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
          p = (((unsigned char *)area[t].addr) + (area[t].first/8));
          p += mmap_offs*handle->bytes_sample;
 
-// Software Volume, need to convert to Hardware Volume
-         if (gain < 0.99f) {   // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+         if (gain < 0.99f) {
             _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), frames, gain);
          }
          handle->cvt_to(p, sbuf[t]+offs, frames);
@@ -2103,8 +2106,8 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       }
 
       sbuf = (const int32_t**)rbsd->track;
-// Software Volume, need to convert to Hardware Volume
-      if (gain < 0.99f)        // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+      if (gain < 0.99f)
       {        
          int t;   
          for (t=0; t<no_tracks; t++) {
@@ -2200,8 +2203,8 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       const int32_t **sbuf = (const int32_t**)rbsd->track;
       data[t] = handle->scratch[t];
 
-// Software Volume, need to convert to Hardware Volume
-      if (gain < 0.99f) {      // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+      if (gain < 0.99f) {
          _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
       }
       handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
@@ -2284,8 +2287,8 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 #endif
 
    sbuf = (const int32_t**)rbsd->track;
-// Software Volume, need to convert to Hardware Volume
-   if (gain < 0.99f)           // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+   if (gain < 0.99f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {

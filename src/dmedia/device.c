@@ -749,6 +749,7 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
    palReadFrames(handle->port[0].port, scratch, nframes);
    _batch_cvt24_16_intl((int32_t**)data, scratch, offs, 2, nframes);
 
+// TODO: convert to hardware volume
    if (gain < 0.99f || gain > 1.01f)
    {
       int t;
@@ -803,8 +804,8 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(outbuf_size <= handle->buf_len);
 
    sbuf = (const int32_t**)rbd->track;
-// Software Volume, need to convert to Hardware Volume
-   if (gain < 0.99f)   // Only apply hardware volume if < 1.0f
+// Software Volume, need to convert to Hardware Volume for gain < 1.0f
+   if (gain < 0.99f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
