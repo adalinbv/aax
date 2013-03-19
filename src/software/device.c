@@ -98,6 +98,9 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 };
 
 
+static _aaxDriverNewHandle _aaxLoopbackDriverNewHandle;
+static _aaxDriverConnect _aaxLoopbackDriverConnect;
+static _aaxDriverDisconnect _aaxLoopbackDriverDisconnect;
 static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
@@ -125,15 +128,15 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
-   (_aaxDriverNewHandle *)&_aaxNoneDriverNewHandle,
+   (_aaxDriverNewHandle *)&_aaxLoopbackDriverNewHandle,
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxNoneDriverGetName,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
-   (_aaxDriverConnect *)&_aaxNoneDriverConnect,
-   (_aaxDriverDisconnect *)&_aaxNoneDriverDisconnect,
+   (_aaxDriverConnect *)&_aaxLoopbackDriverConnect,
+   (_aaxDriverDisconnect *)&_aaxLoopbackDriverDisconnect,
    (_aaxDriverSetup *)&_aaxLoopbackDriverSetup,
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
    (_aaxDriverState *)&_aaxNoneDriverAvailable,
@@ -190,18 +193,6 @@ _aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tra
 }
 
 static int
-_aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
-{
-   _driver_t *handle = (_driver_t *)id;
-   if (handle) {
-      handle->latency = (float)*frames / (float)*speed;
-   } else {
-      handle->latency = 0.0f;
-   }
-   return AAX_TRUE;
-}
-
-static int
 _aaxNoneDriverAvailable(const void *id)
 {
    return AAX_TRUE;
@@ -223,19 +214,6 @@ static int
 _aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    return AAX_FALSE;
-}
-
-int
-_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
-{
-   _driver_t *handle = (_driver_t *)id;
-   float gain;
-   int ret;
-
-   gain = _aaxLoopbackDriverBackend.gain;
-   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
-
-   return ret;
 }
 
 static void
@@ -277,28 +255,6 @@ _aaxNoneDriverLog(const char *str)
    return NULL;
 }
 
-static float
-_aaxLoopbackDriverGetLatency(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->latency : 0.0f;
-}
-
-static char *
-_aaxLoopbackDriverLog(const char *str)
-{
-   static char _errstr[256];
-   int len = _MIN(strlen(str)+1, 256);
-
-   memcpy(_errstr, str, len);
-   _errstr[255] = '\0';  /* always null terminated */
-
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
-   _AAX_SYSLOG(_errstr);
-
-   return (char*)&_errstr;
-}
-
 static char *
 _aaxNoneDriverGetDevices(const void *id, int mode)
 {
@@ -321,11 +277,90 @@ _aaxNoneDriverGetInterfaces(const void *id, const char *devname, int mode)
 
 }
 
+static void *
+_aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
+{
+   _driver_t *rv = calloc(1, sizeof(_driver_t));
+   if (rv)
+   {
+      rv->latency = 0.0f;
+      rv->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+   }
+   return rv;
+}
+
+static void *
+_aaxLoopbackDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+{
+   _driver_t *handle = (_driver_t *)id;
+   if (!handle) {
+      handle = _aaxLoopbackDriverNewHandle(mode);
+   }
+   return (void *)handle;
+}
+
+
+static int
+_aaxLoopbackDriverDisconnect(void *id)
+{
+   free(id);
+   return AAX_TRUE;
+}
+
+static int
+_aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
+{
+   _driver_t *handle = (_driver_t *)id;
+   if (handle) {
+      handle->latency = (float)*frames / (float)*speed;
+   } else {
+      handle->latency = 0.0f;
+   }
+   return AAX_TRUE;
+}
+
+int
+_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   gain = _aaxLoopbackDriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
+
+   return ret;
+}
+
+static float
+_aaxLoopbackDriverGetLatency(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle ? handle->latency : 0.0f;
+}
+
+static char *
+_aaxLoopbackDriverLog(const char *str)
+{
+   static char _errstr[256];
+   int len = _MIN(strlen(str)+1, 256);
+
+   memcpy(_errstr, str, len);
+   _errstr[255] = '\0';  /* always null terminated */
+
+   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+   _AAX_SYSLOG(_errstr);
+
+   return (char*)&_errstr;
+}
+
 static int
 _aaxLoopbackDriverCapture(const void *id, void **data, int offs, size_t *size, void *scratch, size_t scratchlen, float gain)
 {
    return AAX_FALSE;
 }
+
+
 
 void
 _aaxNoneDriverProcessFrame(void* config)
