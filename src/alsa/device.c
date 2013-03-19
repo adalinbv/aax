@@ -50,6 +50,8 @@
 #define DEFAULT_HWDEVNAME	"hw:0"
 #define DEFAULT_RENDERER	"ALSA"
 
+#define ALSA_TIE_FUNCTION(a)	if ((TIE_FUNCTION(a)) == 0) printf("%s\n", #a);
+
 static _aaxDriverDetect _aaxALSADriverDetect;
 static _aaxDriverNewHandle _aaxALSADriverNewHandle;
 static _aaxDriverGetDevices _aaxALSADriverGetDevices;
@@ -280,8 +282,11 @@ _aaxALSADriverDetect(int mode)
    }
 
    if TEST_FOR_FALSE(rv) {
+#ifndef USE_SALSA
       audio = _oalIsLibraryPresent("asound", "2");
-//    audio = _oalIsLibraryPresent("salsa", "0");
+#else
+      audio = _oalIsLibraryPresent("salse", "0");
+#endif
    }
 
    if (audio)
@@ -291,81 +296,85 @@ _aaxALSADriverDetect(int mode)
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, hwstr);
       _oalGetSymError(0);
 
-      TIE_FUNCTION(snd_pcm_open);
-      if (psnd_pcm_open)
+      TIE_FUNCTION(snd_pcm_open);					//
+      if (psnd_pcm_open)	
       {
-         TIE_FUNCTION(snd_pcm_close);
-         TIE_FUNCTION(snd_pcm_wait);
-         TIE_FUNCTION(snd_pcm_nonblock);
-         TIE_FUNCTION(snd_pcm_prepare);
+         TIE_FUNCTION(snd_pcm_close);					//
+         TIE_FUNCTION(snd_pcm_wait);					//
+         TIE_FUNCTION(snd_pcm_hw_params);				//
+         TIE_FUNCTION(snd_pcm_hw_params_any);				//
+         TIE_FUNCTION(snd_pcm_sw_params);				//
+         TIE_FUNCTION(snd_pcm_mmap_begin);				//
+         TIE_FUNCTION(snd_pcm_mmap_commit);				//
+         TIE_FUNCTION(snd_pcm_writen);					//
+         TIE_FUNCTION(snd_pcm_writei);					//
+         TIE_FUNCTION(snd_pcm_readi);					//
+         TIE_FUNCTION(snd_pcm_readn);					//
+         TIE_FUNCTION(snd_pcm_avail_update);				//
+         TIE_FUNCTION(snd_pcm_recover);					//
+//       TIE_FUNCTION(snd_pcm_dump);
+#ifndef USE_SALSA
+         TIE_FUNCTION(snd_pcm_nonblock);				//
+         TIE_FUNCTION(snd_pcm_prepare);					//
+         TIE_FUNCTION(snd_pcm_pause);					//
+         TIE_FUNCTION(snd_pcm_hw_params_can_pause);			//
+         TIE_FUNCTION(snd_pcm_hw_params_can_resume);			//
+         TIE_FUNCTION(snd_device_name_hint);				//
+         TIE_FUNCTION(snd_device_name_get_hint);			//
+         TIE_FUNCTION(snd_device_name_free_hint);			//
+         TIE_FUNCTION(snd_pcm_hw_params_sizeof);			//
+         TIE_FUNCTION(snd_pcm_hw_params_set_access);			//
+         TIE_FUNCTION(snd_pcm_hw_params_set_format);			//
+         TIE_FUNCTION(snd_pcm_hw_params_set_rate_resample);		//
+         TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);			//
+         TIE_FUNCTION(snd_pcm_hw_params_test_channels);			//
+         TIE_FUNCTION(snd_pcm_hw_params_set_channels);			//
+         TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);		//
+         TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);		//
+         TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);		//
+         TIE_FUNCTION(snd_pcm_sw_params_sizeof);			//
+         TIE_FUNCTION(snd_pcm_sw_params_current);			//
+         TIE_FUNCTION(snd_pcm_sw_params_set_avail_min);			//
+         TIE_FUNCTION(snd_pcm_sw_params_set_start_threshold);		//
+         TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);	//
+         TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);		//
+         TIE_FUNCTION(snd_pcm_state);					//
+         TIE_FUNCTION(snd_pcm_start);					//
+         TIE_FUNCTION(snd_pcm_delay);					//
+         TIE_FUNCTION(snd_pcm_stream);					//
+         TIE_FUNCTION(snd_strerror);					//
+         TIE_FUNCTION(snd_lib_error_set_handler);			//
+         TIE_FUNCTION(snd_asoundlib_version);				//
+//       TIE_FUNCTION(snd_output_stdio_attach);
+#if 0
+// UNUSED?
          TIE_FUNCTION(snd_pcm_resume);
          TIE_FUNCTION(snd_pcm_drain);
-         TIE_FUNCTION(snd_pcm_drop);
-         TIE_FUNCTION(snd_pcm_pause);
-         TIE_FUNCTION(snd_pcm_hw_params_can_pause);
-         TIE_FUNCTION(snd_pcm_hw_params_can_resume);
+         TIE_FUNCTION(snd_pcm_drop); 
          TIE_FUNCTION(snd_pcm_info_malloc);
          TIE_FUNCTION(snd_pcm_info_sizeof);
-         TIE_FUNCTION(snd_asoundlib_version);
          TIE_FUNCTION(snd_pcm_info_get_name);
          TIE_FUNCTION(snd_pcm_info_get_subdevices_count);
          TIE_FUNCTION(snd_pcm_info_set_subdevice);
          TIE_FUNCTION(snd_pcm_info_set_device);
          TIE_FUNCTION(snd_pcm_info_set_stream);
          TIE_FUNCTION(snd_pcm_info_free);
-         TIE_FUNCTION(snd_device_name_hint);
-         TIE_FUNCTION(snd_device_name_get_hint);
-         TIE_FUNCTION(snd_device_name_free_hint);
-         TIE_FUNCTION(snd_pcm_hw_params_sizeof);
-         TIE_FUNCTION(snd_pcm_hw_params);
-         TIE_FUNCTION(snd_pcm_hw_params_any);
-         TIE_FUNCTION(snd_pcm_hw_params_set_access);
-         TIE_FUNCTION(snd_pcm_hw_params_set_format);
-         TIE_FUNCTION(snd_pcm_hw_params_set_rate_resample);
-         TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);
-         TIE_FUNCTION(snd_pcm_hw_params_test_channels);
-         TIE_FUNCTION(snd_pcm_hw_params_set_channels);
-         TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);
          TIE_FUNCTION(snd_pcm_hw_params_set_period_time_near);
-         TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);
-         TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
          TIE_FUNCTION(snd_pcm_hw_params_set_buffer_time_near);
          TIE_FUNCTION(snd_pcm_hw_params_get_channels);
-         TIE_FUNCTION(snd_pcm_sw_params_sizeof);
-         TIE_FUNCTION(snd_pcm_sw_params_current);
-         TIE_FUNCTION(snd_pcm_sw_params);
-         TIE_FUNCTION(snd_pcm_sw_params_set_avail_min);
-         TIE_FUNCTION(snd_pcm_sw_params_set_start_threshold);
-         TIE_FUNCTION(snd_pcm_mmap_begin);
-         TIE_FUNCTION(snd_pcm_mmap_commit);
-         TIE_FUNCTION(snd_pcm_writen);
-         TIE_FUNCTION(snd_pcm_writei);
-         TIE_FUNCTION(snd_pcm_readi);
-         TIE_FUNCTION(snd_pcm_readn);
          TIE_FUNCTION(snd_pcm_mmap_readi);
          TIE_FUNCTION(snd_pcm_mmap_readn);
          TIE_FUNCTION(snd_pcm_format_width);
-         TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
-         TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);
+         TIE_FUNCTION(snd_pcm_avail);
          TIE_FUNCTION(snd_pcm_hw_params_get_buffer_size);
          TIE_FUNCTION(snd_pcm_hw_params_get_periods);
          TIE_FUNCTION(snd_pcm_hw_params_get_period_size);
-         TIE_FUNCTION(snd_pcm_avail_update);
-         TIE_FUNCTION(snd_pcm_avail);
-         TIE_FUNCTION(snd_pcm_state);
-         TIE_FUNCTION(snd_pcm_start);
-         TIE_FUNCTION(snd_pcm_delay);
-         TIE_FUNCTION(snd_strerror);
-         TIE_FUNCTION(snd_lib_error_set_handler);
-
          TIE_FUNCTION(snd_pcm_frames_to_bytes);
          TIE_FUNCTION(snd_pcm_type);
-         TIE_FUNCTION(snd_pcm_recover);
-         TIE_FUNCTION(snd_pcm_stream);
          TIE_FUNCTION(snd_pcm_rewind);
          TIE_FUNCTION(snd_pcm_forward);
-         TIE_FUNCTION(snd_pcm_dump);
-         TIE_FUNCTION(snd_output_stdio_attach);
+#endif
+#endif
       }
 
       error = _oalGetSymError(0);
