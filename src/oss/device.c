@@ -69,15 +69,12 @@ static _aaxDriverGetInterfaces _aaxOSSDriverGetInterfaces;
 static _aaxDriverConnect _aaxOSSDriverConnect;
 static _aaxDriverDisconnect _aaxOSSDriverDisconnect;
 static _aaxDriverSetup _aaxOSSDriverSetup;
-static _aaxDriverState _aaxOSSDriverPause;
-static _aaxDriverState _aaxOSSDriverResume;
 static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
 static _aaxDriverCallback _aaxOSSDriverPlayback;
 static _aaxDriverGetName _aaxOSSDriverGetName;
-static _aaxDriverState _aaxOSSDriverIsReachable;
-static _aaxDriverState _aaxOSSDriverAvailable;
 static _aaxDriver3dMixerCB _aaxOSSDriver3dMixer;
-static _aaxDriverParam _aaxOSSDriverGetLatency;
+static _aaxDriverState _aaxOSSDriverState;
+static _aaxDriverParam _aaxOSSDriverParam;
 static _aaxDriverLog _aaxOSSDriverLog;
 
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
@@ -106,8 +103,6 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverConnect *)&_aaxOSSDriverConnect,
    (_aaxDriverDisconnect *)&_aaxOSSDriverDisconnect,
    (_aaxDriverSetup *)&_aaxOSSDriverSetup,
-   (_aaxDriverState *)&_aaxOSSDriverPause,
-   (_aaxDriverState *)&_aaxOSSDriverResume,
    (_aaxDriverCaptureCallback *)&_aaxOSSDriverCapture,
    (_aaxDriverCallback *)&_aaxOSSDriverPlayback,
 
@@ -117,11 +112,8 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)*_aaxOSSDriverAvailable,
-   (_aaxDriverState *)*_aaxOSSDriverAvailable,
-   (_aaxDriverState *)*_aaxOSSDriverIsReachable,
-
-   (_aaxDriverParam *)&_aaxOSSDriverGetLatency,
+   (_aaxDriverState *)&_aaxOSSDriverState,
+   (_aaxDriverParam *)&_aaxOSSDriverParam,
    (_aaxDriverLog *)&_aaxOSSDriverLog
 };
 
@@ -487,96 +479,6 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
 }
 
-static int
-_aaxOSSDriverPause(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-   
-   if (handle)
-   {
-      close(handle->fd);
-      handle->fd = -1;
-      rv = AAX_TRUE;
-   }
-   return rv;
-}
-
-static int
-_aaxOSSDriverResume(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-   if (handle)
-   {
-      handle->fd = open(handle->name, handle->mode|handle->exclusive);
-      if (handle->fd)
-      {
-         int err, frag, fd = handle->fd;
-         unsigned int param;
-
-         if (handle->oss_version >= OSS_VERSION_4)
-         {
-            int enable = 0;
-            err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
-         }
-
-         frag = log2i(handle->buffer_size);
-         frag |= NO_FRAGMENTS << 16;
-         pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
-
-         param = handle->format;
-         err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
-         if (err >= 0)
-         {
-            param = handle->no_tracks;
-            err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
-         }
-         if (err >= 0)
-         {
-            param = (unsigned int)handle->frequency_hz;
-            err = pioctl(fd, SNDCTL_DSP_SPEED, &param);
-         }
-         if (err >= 0) {
-            rv = AAX_TRUE;
-         }
-      }
-   }
-   return rv;
-}
-
-static int
-_aaxOSSDriverAvailable(const void *id)
-{
-   return AAX_TRUE;
-}
-
-static int
-_aaxOSSDriverIsReachable(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-
-   if (handle)
-   {
-      if (handle->oss_version >= OSS_VERSION_4)
-      {
-         oss_audioinfo ainfo;
-         int err;
-
-         ainfo.dev = handle->devnum;
-         err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-         if (err >= 0 && ainfo.enabled) {
-           rv = AAX_TRUE;
-         }
-      }
-      else {
-         rv = AAX_TRUE;
-      }
-   }
-
-   return rv;
-}
 
 int
 _aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
@@ -774,11 +676,105 @@ _aaxOSSDriverGetName(const void *id, int playback)
    return ret;
 }
 
-static float
-_aaxOSSDriverGetLatency(const void *id)
+static int
+_aaxOSSDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->latency : 0.0f;
+   int rv = AAX_FALSE;
+
+   switch(state)
+   {
+   case DRIVER_PAUSE:
+      if (handle)
+      {
+         close(handle->fd);
+         handle->fd = -1;
+         rv = AAX_TRUE;
+      }
+      break;
+   case DRIVER_RESUME:
+      if (handle) 
+      {
+         handle->fd = open(handle->name, handle->mode|handle->exclusive);
+         if (handle->fd)
+         {
+            int err, frag, fd = handle->fd;
+            unsigned int param;
+
+            if (handle->oss_version >= OSS_VERSION_4)
+            {
+               int enable = 0;
+               err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+            }
+
+            frag = log2i(handle->buffer_size);
+            frag |= NO_FRAGMENTS << 16;
+            pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
+
+            param = handle->format;
+            err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
+            if (err >= 0)
+            {
+               param = handle->no_tracks;
+               err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
+            }
+            if (err >= 0)
+            {
+               param = (unsigned int)handle->frequency_hz;
+               err = pioctl(fd, SNDCTL_DSP_SPEED, &param);
+            }
+            if (err >= 0) {
+               rv = AAX_TRUE;
+            }
+         }
+      }
+      break;
+   case DRIVER_AVAILABLE:
+      if (handle && handle->oss_version >= OSS_VERSION_4)
+      {
+         oss_audioinfo ainfo;
+         int err;
+
+         ainfo.dev = handle->devnum;
+         err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+         if (err >= 0 && ainfo.enabled) {
+           rv = AAX_TRUE;
+         }
+      }
+      else {
+         rv = AAX_TRUE;
+      }
+      break;
+   case DRIVER_SUPPORTS_PLAYBACK:
+   case DRIVER_SUPPORTS_CAPTURE:
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+
+   return rv;
+}
+
+static float
+_aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float rv = 0.0f;
+   if (handle)
+   {
+      switch(param)
+      {
+      case DRIVER_LATENCY:
+         rv = handle->latency;
+         break;
+      case DRIVER_MIN_VOLUME:
+      case DRIVER_MAX_VOLUME:
+      default:
+         break;
+      }
+   }
+   return rv;
 }
 
 static char *

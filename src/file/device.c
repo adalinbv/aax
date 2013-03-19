@@ -51,12 +51,12 @@ static _aaxDriverGetInterfaces _aaxFileDriverGetInterfaces;
 static _aaxDriverConnect _aaxFileDriverConnect;
 static _aaxDriverDisconnect _aaxFileDriverDisconnect;
 static _aaxDriverSetup _aaxFileDriverSetup;
-static _aaxDriverState _aaxFileDriverAvailable;
-static _aaxDriverCallback _aaxFileDriverPlayback;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
+static _aaxDriverCallback _aaxFileDriverPlayback;
 static _aaxDriverGetName _aaxFileDriverGetName;
 static _aaxDriver3dMixerCB _aaxFileDriver3dMixer;
-static _aaxDriverParam _aaxFileDriverGetLatency;
+static _aaxDriverState _aaxFileDriverState;
+static _aaxDriverParam _aaxFileDriverParam;
 
 char _file_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
@@ -84,8 +84,6 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverConnect *)&_aaxFileDriverConnect,
    (_aaxDriverDisconnect *)&_aaxFileDriverDisconnect,
    (_aaxDriverSetup *)&_aaxFileDriverSetup,
-   (_aaxDriverState *)&_aaxFileDriverAvailable,
-   (_aaxDriverState *)&_aaxFileDriverAvailable,
    (_aaxDriverCaptureCallback *)&_aaxFileDriverCapture,
    (_aaxDriverCallback *)&_aaxFileDriverPlayback,
 
@@ -95,11 +93,8 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxFileDriverAvailable,
-   (_aaxDriverState *)&_aaxFileDriverAvailable,
-   (_aaxDriverState *)&_aaxFileDriverAvailable,
-
-   (_aaxDriverParam *)&_aaxFileDriverGetLatency,
+   (_aaxDriverState *)&_aaxFileDriverState,
+   (_aaxDriverParam *)&_aaxFileDriverParam,
    (_aaxDriverLog *)&_aaxFileDriverLog
 };
 
@@ -429,12 +424,6 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 }
 
 static int
-_aaxFileDriverAvailable(const void *id)
-{
-   return AAX_TRUE;
-}
-
-static int
 _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
@@ -672,11 +661,44 @@ _aaxFileDriverGetName(const void *id, int playback)
    return ret;
 }
 
+static int
+_aaxFileDriverState(const void *id, enum _aaxDriverState state)
+{
+   int rv = AAX_FALSE;
+   switch(state)
+   {
+   case DRIVER_AVAILABLE:
+   case DRIVER_PAUSE:
+   case DRIVER_RESUME:
+   case DRIVER_SUPPORTS_PLAYBACK:
+   case DRIVER_SUPPORTS_CAPTURE:
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
 static float
-_aaxFileDriverGetLatency(const void *id)
+_aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->latency : 0.0f;
+   float rv = 0.0f;
+   if (handle)
+   {
+      switch(param)
+      {
+      case DRIVER_LATENCY:
+         rv = handle->latency;
+         break;
+      case DRIVER_MIN_VOLUME:
+      case DRIVER_MAX_VOLUME:
+      default:
+         break;
+      }
+   }
+   return rv;
 }
 
 static char *

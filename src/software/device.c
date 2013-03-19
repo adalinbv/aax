@@ -39,8 +39,6 @@ static _aaxDriverGetInterfaces _aaxNoneDriverGetInterfaces;
 static _aaxDriverConnect _aaxNoneDriverConnect;
 static _aaxDriverDisconnect _aaxNoneDriverDisconnect;
 static _aaxDriverSetup _aaxNoneDriverSetup;
-static _aaxDriverState _aaxNoneDriverAvailable;
-static _aaxDriverState _aaxNoneDriverNotAvailable;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
 static _aaxDriver2dMixerCB _aaxNoneDriverStereoMixer;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
@@ -51,7 +49,8 @@ static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
 static _aaxDriverPrepare _aaxNoneDriverPrepare;
 static _aaxDriverPostProcess _aaxNoneDriverPostProcess;
 static _aaxDriverThread _aaxNoneDriverThread;
-static _aaxDriverParam _aaxNoneDriverGetLatency;
+static _aaxDriverState _aaxNoneDriverState;
+static _aaxDriverParam _aaxNoneDriverParam;
 static _aaxDriverLog _aaxNoneDriverLog;
 
 const _aaxDriverBackend _aaxNoneDriverBackend =
@@ -79,8 +78,6 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverConnect *)&_aaxNoneDriverConnect,
    (_aaxDriverDisconnect *)&_aaxNoneDriverDisconnect,
    (_aaxDriverSetup *)&_aaxNoneDriverSetup,
-   (_aaxDriverState *)&_aaxNoneDriverAvailable,		/* pause  */
-   (_aaxDriverState *)&_aaxNoneDriverAvailable,		/* resume */
    NULL,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
    (_aaxDriver2dMixerCB *)&_aaxNoneDriverStereoMixer,
@@ -89,11 +86,8 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverPostProcess *)&_aaxNoneDriverPostProcess,
    (_aaxDriverPrepare *)&_aaxNoneDriverPrepare,		/* effects */
 
-   (_aaxDriverState *)_aaxNoneDriverAvailable,	/* supports playback */
-   (_aaxDriverState *)_aaxNoneDriverNotAvailable, /* supports capture  */
-   (_aaxDriverState *)_aaxNoneDriverAvailable,	/* is available      */
-
-   (_aaxDriverParam *)&_aaxNoneDriverGetLatency,
+   (_aaxDriverState *)_aaxNoneDriverState,
+   (_aaxDriverParam *)&_aaxNoneDriverParam,
    (_aaxDriverLog *)&_aaxNoneDriverLog
 };
 
@@ -104,7 +98,7 @@ static _aaxDriverDisconnect _aaxLoopbackDriverDisconnect;
 static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
-static _aaxDriverParam _aaxLoopbackDriverGetLatency;
+static _aaxDriverParam _aaxLoopbackDriverParam;
 static _aaxDriverLog _aaxLoopbackDriverLog;
 
 typedef struct {
@@ -138,8 +132,6 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverConnect *)&_aaxLoopbackDriverConnect,
    (_aaxDriverDisconnect *)&_aaxLoopbackDriverDisconnect,
    (_aaxDriverSetup *)&_aaxLoopbackDriverSetup,
-   (_aaxDriverState *)&_aaxNoneDriverAvailable,
-   (_aaxDriverState *)&_aaxNoneDriverAvailable,
    (_aaxDriverCaptureCallback *)&_aaxLoopbackDriverCapture,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
    (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
@@ -148,11 +140,8 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)_aaxNoneDriverAvailable,
-   (_aaxDriverState *)_aaxNoneDriverNotAvailable,
-   (_aaxDriverState *)_aaxNoneDriverAvailable,
-
-   (_aaxDriverParam *)&_aaxLoopbackDriverGetLatency,
+   (_aaxDriverState *)_aaxNoneDriverState,
+   (_aaxDriverParam *)&_aaxLoopbackDriverParam,
    (_aaxDriverLog *)&_aaxLoopbackDriverLog
 };
 
@@ -190,18 +179,6 @@ static int
 _aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tracks, float *speed)
 {
    return AAX_TRUE;
-}
-
-static int
-_aaxNoneDriverAvailable(const void *id)
-{
-   return AAX_TRUE;
-}
-
-static int
-_aaxNoneDriverNotAvailable(const void *id)
-{
-   return AAX_FALSE;
 }
 
 static int
@@ -243,10 +220,38 @@ _aaxNoneDriverGetName(const void *id, int playback)
    return NULL;
 }
 
-static float
-_aaxNoneDriverGetLatency(const void *id)
+static int
+_aaxNoneDriverState(const void *id, enum _aaxDriverState state)
 {
-   return 0.0f;
+   int rv = AAX_FALSE;
+   switch(state)
+   {
+   case DRIVER_AVAILABLE:
+   case DRIVER_PAUSE:
+   case DRIVER_RESUME:
+   case DRIVER_SUPPORTS_PLAYBACK:
+      rv = AAX_TRUE;
+      break;
+   case DRIVER_SUPPORTS_CAPTURE:
+   default:
+      break;
+   }
+   return rv;
+}
+
+static float
+_aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
+{
+   float rv = 0.0f;
+   switch(param)
+   {
+   case DRIVER_LATENCY:
+   case DRIVER_MIN_VOLUME:
+   case DRIVER_MAX_VOLUME:
+   default:
+      break;
+   }
+   return rv;
 }
 
 static char *
@@ -332,11 +337,22 @@ _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
    return ret;
 }
 
+
 static float
-_aaxLoopbackDriverGetLatency(const void *id)
+_aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->latency : 0.0f;
+   float rv = 0.0f;
+   switch(param)
+   {
+   case DRIVER_LATENCY:
+      rv = handle->latency;
+   case DRIVER_MIN_VOLUME:
+   case DRIVER_MAX_VOLUME:
+   default:
+      break;
+   }
+   return rv;
 }
 
 static char *

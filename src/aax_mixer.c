@@ -205,7 +205,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                if (handle->backend.driver)
                {
                   const _aaxDriverBackend *be = handle->backend.ptr;
-                  rv = (int)(be->latency(handle->backend.handle)*1e6);
+                  float ltc = be->param(handle->backend.handle, DRIVER_LATENCY);
+                  rv = (int)(ltc*1e6);
                }
                break;
             case AAX_TRACKSIZE:

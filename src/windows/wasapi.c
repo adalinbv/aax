@@ -82,16 +82,13 @@ static _aaxDriverGetInterfaces _aaxWASAPIDriverGetInterfaces;
 static _aaxDriverConnect _aaxWASAPIDriverConnect;
 static _aaxDriverDisconnect _aaxWASAPIDriverDisconnect;
 static _aaxDriverSetup _aaxWASAPIDriverSetup;
-static _aaxDriverState _aaxWASAPIDriverPause;
-static _aaxDriverState _aaxWASAPIDriverResume;
 static _aaxDriverCaptureCallback _aaxWASAPIDriverCapture;
 static _aaxDriverCallback _aaxWASAPIDriverPlayback;
 static _aaxDriverGetName _aaxWASAPIDriverGetName;
 static _aaxDriverThread _aaxWASAPIDriverThread;
-static _aaxDriverState _aaxWASAPIDriverIsReachable;
-static _aaxDriverState _aaxWASAPIDriverAvailable;
 static _aaxDriver3dMixerCB _aaxWASAPIDriver3dMixer;
-static _aaxDriverParam _aaxWASAPIDriverGetLatency;
+static _aaxDriverState _aaxWASAPIDriverState;
+static _aaxDriverParam _aaxWASAPIDriverParam;
 static _aaxDriverLog _aaxWASAPIDriverLog;
 
 static char _wasapi_default_renderer[100] = DEFAULT_RENDERER;
@@ -122,8 +119,6 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverConnect *)&_aaxWASAPIDriverConnect,
    (_aaxDriverDisconnect *)&_aaxWASAPIDriverDisconnect,
    (_aaxDriverSetup *)&_aaxWASAPIDriverSetup,
-   (_aaxDriverState *)&_aaxWASAPIDriverPause,
-   (_aaxDriverState *)&_aaxWASAPIDriverResume,
    (_aaxDriverCaptureCallback *)&_aaxWASAPIDriverCapture,
    (_aaxDriverCallback *)&_aaxWASAPIDriverPlayback,
 
@@ -133,11 +128,8 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxWASAPIDriverAvailable,
-   (_aaxDriverState *)&_aaxWASAPIDriverAvailable,
-   (_aaxDriverState *)&_aaxWASAPIDriverIsReachable,
-
-   (_aaxDriverParam *)&_aaxWASAPIDriverGetLatency
+   (_aaxDriverState *)&_aaxWASAPIDriverState,
+   (_aaxDriverParam *)&_aaxWASAPIDriverParam
 };
 
 typedef struct
@@ -1065,123 +1057,6 @@ ExitSetup:
    return rv;
 }
 
-static int
-_aaxWASAPIDriverPause(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-   
-   if (handle)
-   {
-      if ((handle->status & DRIVER_PAUSE_MASK) == 0)
-      {
-         HRESULT hr;
-
-#if USE_CAPTURE_THREAD
-         if (handle->Mode == eCapture)
-         {
-            if (handle->shutdown_event) {
-               SetEvent(handle->shutdown_event);
-            }
-         }
-#endif
-
-         hr = pIAudioClient_Stop(handle->pAudioClient);
-         if (hr == S_OK)
-         {
-            hr = pIAudioClient_Reset(handle->pAudioClient);
-            handle->status |= (CAPTURE_INIT_MASK | DRIVER_PAUSE_MASK);
-            rv = AAX_TRUE;
-         }
-
-#if USE_CAPTURE_THREAD
-         if (handle->Mode == eCapture)
-         {
-            if (handle->thread)
-            {
-               WaitForSingleObject(handle->thread, INFINITE);
-
-               DeleteCriticalSection(&handle->mutex);
-               CloseHandle(handle->thread);
-               handle->thread = NULL;
-            }
-         }
-#endif
-      }
-   }
-   return rv;
-}
-
-static int
-_aaxWASAPIDriverResume(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-   if (handle)
-   {
-      if (handle->status & DRIVER_PAUSE_MASK)
-      {
-         HRESULT hr = S_OK;
-
-#if USE_CAPTURE_THREAD
-         if (handle->Mode == eCapture)
-         {
-            LPTHREAD_START_ROUTINE cb;
-
-            InitializeCriticalSection(&handle->mutex);
-            handle->shutdown_event = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-            cb = (LPTHREAD_START_ROUTINE)&_aaxWASAPIDriverCaptureThread;
-            handle->thread = CreateThread(NULL, 0, cb, (LPVOID)handle, 0, NULL);
-            if (handle->thread == 0) {
-               _AAX_DRVLOG(10, "wasapi; unable to create a capture thread");
-            }
-         }
-#endif
-
-         hr = pIAudioClient_Start(handle->pAudioClient);
-         if (hr == S_OK)
-         {
-            handle->status &= ~DRIVER_INIT_MASK;
-            rv = AAX_TRUE;
-         }
-         else {
-            _AAX_DRVLOG(10, "failed to resume playback");
-         }
-      } else {
-         rv = AAX_TRUE;
-      }
-      handle->status &= ~DRIVER_PAUSE_MASK;
-   }
-   return rv;
-}
-
-static int
-_aaxWASAPIDriverAvailable(const void *id)
-{
-   return AAX_TRUE;
-}
-
-static int
-_aaxWASAPIDriverIsReachable(const void *id)
-{
-    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-
-   if (handle && handle->pDevice)
-   {
-      DWORD state;
-      HRESULT hr;
-
-      hr = pIMMDevice_GetState(handle->pDevice, &state);
-      if (hr == S_OK) {
-         rv = (state == DEVICE_STATE_ACTIVE) ? AAX_TRUE : AAX_FALSE;
-      }
-   }
-
-   return rv;
-}
-
 int
 _aaxWASAPIDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
@@ -1426,11 +1301,126 @@ _aaxWASAPIDriverGetName(const void *id, int playback)
    return ret;
 }
 
-static float
-_aaxWASAPIDriverGetLatency(const void *id)
+static int
+_aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->hnsLatency*100e-9f : 0.0f;
+   int rv = AAX_FALSE;
+   DWORD state;
+   HRESULT hr;
+
+   switch(state)
+   {
+   DRIVER_AVAILABLE:
+      if (handle)
+      {
+         assert(handle->pDevice);
+
+         hr = pIMMDevice_GetState(handle->pDevice, &state);
+         if (hr == S_OK) {
+            rv = (state == DEVICE_STATE_ACTIVE) ? AAX_TRUE : AAX_FALSE;
+         }
+      }
+      break;
+   DRIVER_PAUSE:
+      if (handle && ((handle->status & DRIVER_PAUSE_MASK) == 0))
+      {
+#if USE_CAPTURE_THREAD
+         if (handle->Mode == eCapture)
+         {
+            if (handle->shutdown_event) {
+               SetEvent(handle->shutdown_event);
+            }
+         }
+#endif
+
+         hr = pIAudioClient_Stop(handle->pAudioClient);
+         if (hr == S_OK)
+         {
+            hr = pIAudioClient_Reset(handle->pAudioClient);
+            handle->status |= (CAPTURE_INIT_MASK | DRIVER_PAUSE_MASK);
+            rv = AAX_TRUE;
+         }
+
+#if USE_CAPTURE_THREAD
+         if (handle->Mode == eCapture)
+         {
+            if (handle->thread)
+            {
+               WaitForSingleObject(handle->thread, INFINITE);
+
+               DeleteCriticalSection(&handle->mutex);
+               CloseHandle(handle->thread);
+               handle->thread = NULL;
+            }
+         }
+#endif
+      }
+      break;
+   DRIVER_RESUME:
+      if (handle && (handle->status & DRIVER_PAUSE_MASK))
+      {
+         hr = S_OK;
+
+#if USE_CAPTURE_THREAD
+         if (handle->Mode == eCapture)
+         {
+            LPTHREAD_START_ROUTINE cb;
+
+            InitializeCriticalSection(&handle->mutex);
+            handle->shutdown_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+            cb = (LPTHREAD_START_ROUTINE)&_aaxWASAPIDriverCaptureThread;
+            handle->thread = CreateThread(NULL, 0, cb, (LPVOID)handle, 0, NULL);
+            if (handle->thread == 0) {
+               _AAX_DRVLOG(10, "wasapi; unable to create a capture thread");
+            }
+         }
+#endif
+
+         hr = pIAudioClient_Start(handle->pAudioClient);
+         if (hr == S_OK)
+         {
+            handle->status &= ~DRIVER_INIT_MASK;
+            rv = AAX_TRUE;
+         }
+         else {
+            _AAX_DRVLOG(10, "failed to resume playback");
+         }
+      } else {
+         rv = AAX_TRUE;
+      }
+      handle->status &= ~DRIVER_PAUSE_MASK;
+      break;
+   DRIVER_SUPPORTS_PLAYBACK:
+   DRIVER_SUPPORTS_CAPTURE:
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+static float
+_aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float rv = 0.0f;
+   if (handle)
+   {
+      switch(param)
+      {
+      DRIVER_LATENCY:
+         rv = handle->hnsLatency*100e-9f;
+         break;
+      DRIVER_MIN_VOLUME:
+      DRIVER_MAX_VOLUME:
+      default:
+         break;
+      }
+   }
+   return rv;
 }
 
 

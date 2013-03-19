@@ -159,7 +159,8 @@ _aaxGetDriverBackendDefault(const _intBuffers *bs, unsigned int *pos)
 
       dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
       be = _intBufGetDataPtr(dptr);
-      if (be->detect(AAX_MODE_WRITE_STEREO) && be->support_playback(NULL))
+      if (be->detect(AAX_MODE_WRITE_STEREO) &&
+          be->state(NULL, DRIVER_SUPPORTS_PLAYBACK))
       {
          *pos = i;
          break;
@@ -215,7 +216,8 @@ _aaxGetDriverBackendDefaultCapture(const _intBuffers *bs, unsigned int *pos)
 
       dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
       be = _intBufGetDataPtr(dptr);
-      if (be->detect(AAX_MODE_READ) && be->support_recording(NULL))
+      if (be->detect(AAX_MODE_READ) &&
+          be->state(NULL, DRIVER_SUPPORTS_CAPTURE))
       {
          *pos = i;
          break;

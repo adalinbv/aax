@@ -68,14 +68,12 @@ static _aaxDriverGetInterfaces _aaxDMediaDriverGetInterfaces;
 static _aaxDriverConnect _aaxDMediaDriverConnect;
 static _aaxDriverDisconnect _aaxDMediaDriverDisconnect;
 static _aaxDriverSetup _aaxDMediaDriverSetup;
-static _aaxDriverState _aaxDMediaDriverPause;
-static _aaxDriverState _aaxDMediaDriverResume;
 static _aaxDriverCaptureCallback _aaxDMediaDriverCapture;
 static _aaxDriverCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
-static _aaxDriverState _aaxDMediaDriverAvailable;
 static _aaxDriver3dMixerCB _aaxDMediaDriver3dMixer;
-static _aaxDriverParam _aaxDMediaDriverGetLatency;
+static _aaxDriverState _aaxDMediaDriverState;
+static _aaxDriverParam _aaxDMediaDriverParam;
 static _aaxDriverLog _aaxDMediaDriverLog;
 
 char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
@@ -104,8 +102,6 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverConnect *)&_aaxDMediaDriverConnect,
    (_aaxDriverDisconnect *)&_aaxDMediaDriverDisconnect,
    (_aaxDriverSetup *)&_aaxDMediaDriverSetup,
-   (_aaxDriverState *)&_aaxDMediaDriverPause,
-   (_aaxDriverState *)&_aaxDMediaDriverResume,
    (_aaxDriverCaptureCallback *)&_aaxDMediaDriverCapture,
    (_aaxDriverCallback *)&_aaxDMediaDriverPlayback,
 
@@ -115,11 +111,8 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxDMediaDriverAvailable,
-   (_aaxDriverState *)&_aaxDMediaDriverAvailable,
-   (_aaxDriverState *)&_aaxDMediaDriverAvailable,
-
-   (_aaxDriverParam *)&_aaxDMediaDriverGetLatency,
+   (_aaxDriverState *)&_aaxDMediaDriverState,
+   (_aaxDriverParam *)&_aaxDMediaDriverParam,
    (_aaxDriverLog *)&_aaxDMediaDriverLog
 };
 
@@ -194,6 +187,7 @@ DECL_FUNCTION(dmDVIAudioDecode);
 
 static char *__mode[2] = { "r", "w" };
 const char *_dmedia_default_name = DEFAULT_DEVNAME;
+static const int __rate[] = { AL_INPUT_RATE, AL_OUTPUT_RATE };
 
 static int detect_devnum(const char *);
 static void sync_ports(const void *);
@@ -658,61 +652,6 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
    return AAX_TRUE;
 }
 
-static int
-_aaxDMediaDriverPause(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   ALpv params;
-   unsigned int i;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert (id != 0);
-
-   params.param = AL_RATE;
-   params.value.i = 0;
-   for (i=0; i < handle->noPorts; i++) {
-      palSetParams(handle->port[i].device, &params, 1);
-   }
-
-   if (handle->noPorts > 1) {
-      sync_ports(id);
-   }
-
-   return AAX_TRUE;
-}
-
-static int
-_aaxDMediaDriverResume(const void *id)
-{
-   static const int __rate[] = { AL_INPUT_RATE, AL_OUTPUT_RATE };
-   _driver_t *handle = (_driver_t *)id;
-   ALpv params;
-   unsigned int i;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert (id != 0);
-
-   if (handle->noPorts > 1) {
-      sync_ports(id);
-   }
-
-   params.param = __rate[handle->mode];
-   params.value.i = (int)handle->port[0].frequency_hz;
-   for (i=0; i < handle->noPorts; i++) {
-      palSetParams(handle->port[i].device, &params, 1);
-   }
-
-   return AAX_TRUE;
-}
-
-static int
-_aaxDMediaDriverAvailable(const void *id)
-{
-   return AAX_TRUE;
-}
-
 int
 _aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
@@ -900,11 +839,82 @@ _aaxDMediaGetName(const void *id, int playback)
 #endif
 }
 
-static float
-_aaxDMediaDriverGetLatency(const void *id)
+static int
+_aaxDMediaDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->port[0].latency : 0.0f;
+   int rv = AAX_FALSE;
+   unsigned int i;
+   ALpv params;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert (id != 0);
+
+   switch(state)
+   {
+   case DRIVER_PAUSE:
+      if (handle)
+      {
+         params.param = AL_RATE;
+         params.value.i = 0;
+         for (i=0; i < handle->noPorts; i++) {
+            palSetParams(handle->port[i].device, &params, 1);
+         }
+
+         if (handle->noPorts > 1) {
+            sync_ports(id);
+         }
+
+         rv = AAX_TRUE;
+      }
+      break;
+   case DRIVER_RESUME:
+      if (handle)
+      {
+         if (handle->noPorts > 1) {
+            sync_ports(id);
+         }
+
+         params.param = __rate[handle->mode];
+         params.value.i = (int)handle->port[0].frequency_hz;
+         for (i=0; i < handle->noPorts; i++) {
+            palSetParams(handle->port[i].device, &params, 1);
+         }
+
+         rv = AAX_TRUE;
+      }
+      break;
+   case DRIVER_AVAILABLE:
+   case DRIVER_SUPPORTS_PLAYBACK:
+   case DRIVER_SUPPORTS_CAPTURE:
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+static float
+_aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float rv = 0.0f;
+   if (handle)
+   {
+      switch(param)
+      {
+      case DRIVER_LATENCY:
+         rv = handle->port[0].latency;
+         break;
+      case DRIVER_MIN_VOLUME:
+      case DRIVER_MAX_VOLUME:
+      default:
+         break;
+      }
+   }
+   return rv;
 }
 
 static char *

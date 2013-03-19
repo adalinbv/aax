@@ -104,8 +104,8 @@ aaxDriverGetCount(enum aaxRenderMode mode)
          _aaxDriverBackend *be = _aaxGetDriverBackendByPos(backends, i);
          if (be)
          {
-            if (!m && be->support_recording(NULL)) rv++;
-            else if (m && be->support_playback(NULL)) rv++;
+            if (!m && be->state(NULL, DRIVER_SUPPORTS_CAPTURE)) rv++;
+            else if (m && be->state(NULL, DRIVER_SUPPORTS_PLAYBACK)) rv++;
          }
       }
    }
@@ -135,10 +135,12 @@ aaxDriverGetByPos(unsigned pos_req, enum aaxRenderMode mode)
             be = _aaxGetDriverBackendByPos(handle->backends, i);
             if (be)
             {
-               if ((!m && be->support_recording(NULL)) && (p++ == pos_req)) {
+               if ((!m && be->state(NULL, DRIVER_SUPPORTS_CAPTURE)) &&
+                      (p++ == pos_req)) {
                   break;
                }
-               else if ((m && be->support_playback(NULL)) && (p++ == pos_req)) {
+               else if ((m && be->state(NULL, DRIVER_SUPPORTS_PLAYBACK)) &&
+                           (p++ == pos_req)) {
                   break;
                }
             }
@@ -251,12 +253,12 @@ aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
       switch (mode)
       {
       case AAX_MODE_READ:
-         rv = be->support_recording(NULL);
+         rv = be->state(NULL, DRIVER_SUPPORTS_CAPTURE);
          break;
       case AAX_MODE_WRITE_STEREO:
       case AAX_MODE_WRITE_SURROUND:
       case AAX_MODE_WRITE_HRTF:
-         rv = be->support_playback(NULL);
+         rv = be->state(NULL, DRIVER_SUPPORTS_PLAYBACK);
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);

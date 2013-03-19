@@ -166,7 +166,7 @@ _aaxAudioFrameThread(void* config)
       {
          if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
          {
-            if (_IS_PLAYING(frame) && be->is_available(NULL))
+            if (_IS_PLAYING(frame) && be->state(NULL, DRIVER_AVAILABLE))
             {
                _aaxAudioFrameProcessThreadedFrame(handle, frame->ringbuffer,
                                                   mixer, smixer, fmixer, be);

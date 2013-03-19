@@ -36,6 +36,7 @@
 
 #include "alsa/audio.h"
 #include "device.h"
+#include "driver.h"
 
 #define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		32
@@ -57,15 +58,12 @@ static _aaxDriverConnect _aaxALSADriverConnect;
 static _aaxDriverDisconnect _aaxALSADriverDisconnect;
 static _aaxDriverSetup _aaxALSADriverSetup;
 static _aaxDriverCallback _aaxALSADriverPlayback;
-static _aaxDriverState _aaxALSADriverPause;
-static _aaxDriverState _aaxALSADriverResume;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverThread _aaxALSADriverThread;
-static _aaxDriverState _aaxALSADriverIsReachable;
-static _aaxDriverState _aaxALSADriverAvailable;
 static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
-static _aaxDriverParam _aaxALSADriverGetLatency;
+static _aaxDriverState _aaxALSADriverState;
+static _aaxDriverParam _aaxALSADriverParam;
 static _aaxDriverLog _aaxALSADriverLog;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
@@ -94,8 +92,6 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverConnect *)&_aaxALSADriverConnect,
    (_aaxDriverDisconnect *)&_aaxALSADriverDisconnect,
    (_aaxDriverSetup *)&_aaxALSADriverSetup,
-   (_aaxDriverState *)&_aaxALSADriverPause,
-   (_aaxDriverState *)&_aaxALSADriverResume,
    (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
    (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
@@ -105,11 +101,8 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxALSADriverAvailable,
-   (_aaxDriverState *)&_aaxALSADriverAvailable,
-   (_aaxDriverState *)&_aaxALSADriverIsReachable,
-
-   (_aaxDriverParam *)&_aaxALSADriverGetLatency,
+   (_aaxDriverState *)&_aaxALSADriverState,
+   (_aaxDriverParam *)&_aaxALSADriverParam,
    (_aaxDriverLog *)&_aaxALSADriverLog
 };
 
@@ -958,75 +951,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 }
 #undef TRUN
 
-static int
-_aaxALSADriverPause(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int err = -ENOSYS;
-
-   assert(id);
-
-   if (psnd_pcm_state(handle->id) == SND_PCM_STATE_RUNNING && !handle->pause)
-   {
-      handle->pause = 1;
-      if (handle->can_pause) {
-         err = psnd_pcm_pause(handle->id, 1);
-      }
-#if 0
-      else {
-         err = psnd_pcm_drop(handle->id);
-      }
-#endif
-   }
-
-   return err;
-}
-
-static int
-_aaxALSADriverResume(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int err = 0;
-
-   assert(id);
-
-   if (psnd_pcm_state(handle->id) == SND_PCM_STATE_PAUSED && handle->pause)
-   {
-      handle->pause = 0;
-      if (handle->can_pause) {
-         err = psnd_pcm_pause(handle->id, 0);
-      }
-#if 0
-      else {
-         err = psnd_pcm_prepare(handle->id);
-      }
-#endif
-   }
-
-   return err;
-}
-
-static int
-_aaxALSADriverAvailable(const void *id)
-{
-   return AAX_TRUE;
-}
-
-static int
-_aaxALSADriverIsReachable(const void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-
-   assert(id);
-
-   if (psnd_pcm_state(handle->id) != SND_PCM_STATE_DISCONNECTED) {
-      rv = AAX_TRUE;
-   }
-
-   return rv;
-}
-
 int
 _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
@@ -1286,11 +1210,69 @@ _aaxALSADriverGetName(const void *id, int playback)
    return ret;
 }
 
-static float
-_aaxALSADriverGetLatency(const void *id)
+static int
+_aaxALSADriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle ? handle->latency : 0.0f;
+   int rv = AAX_FALSE;
+
+   switch(state)
+   {
+   case DRIVER_AVAILABLE:
+      if (handle && psnd_pcm_state(handle->id) != SND_PCM_STATE_DISCONNECTED) {
+         rv = AAX_TRUE;
+      }
+      break;
+   case DRIVER_PAUSE:
+      rv = -ENOSYS;
+      if (handle && psnd_pcm_state(handle->id) == SND_PCM_STATE_RUNNING &&
+          !handle->pause)
+      {
+         handle->pause = 1;
+         if (handle->can_pause) {
+            rv = psnd_pcm_pause(handle->id, 1);
+         }
+      }
+      break;
+   case DRIVER_RESUME:
+      if (handle && psnd_pcm_state(handle->id) == SND_PCM_STATE_PAUSED &&
+          handle->pause)
+      {
+         handle->pause = 0;
+         if (handle->can_pause) {
+            rv = psnd_pcm_pause(handle->id, 0);
+         }
+      }
+      break;
+   case DRIVER_SUPPORTS_PLAYBACK:
+   case DRIVER_SUPPORTS_CAPTURE:
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+static float
+_aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float rv = 0.0f;
+   if (handle)
+   {
+      switch(param)
+      {
+      case DRIVER_LATENCY:
+         rv = handle->latency;
+         break;
+      case DRIVER_MIN_VOLUME:
+      case DRIVER_MAX_VOLUME:
+      default:
+         break;
+      }
+   }
+   return rv;
 }
 
 static char *
@@ -1817,6 +1799,7 @@ get_devices_avail(int m)
 static int
 _alsa_set_volume(_driver_t *handle, float volume)
 {
+   int rv = 0;
 #if 0
    snd_mixer_t *mixer;
    snd_mixer_selem_id_t *sid;
@@ -1868,8 +1851,8 @@ _alsa_set_volume(_driver_t *handle, float volume)
 
 out:
    psnd_mixer_close(mixer);
-   return rv;
 #endif
+   return rv;
 }
 
 static int
@@ -2390,7 +2373,7 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
-   be->pause(handle->backend.handle);
+   be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
    stdby_time = 2*(int)(delay_sec*1000);
@@ -2402,7 +2385,7 @@ _aaxALSADriverThread(void* config)
 
       _aaxMutexUnLock(handle->thread.mutex);
 
-      if (_IS_PLAYING(handle) && be->is_available(be_handle))
+      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE))
       {
 				/* timeout is in ms */
          if ((err = psnd_pcm_wait(be_handle->id, stdby_time)) < 0)
@@ -2425,10 +2408,10 @@ _aaxALSADriverThread(void* config)
       {
          if (_IS_PAUSED(handle) ||
              (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
-            be->pause(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_PAUSE);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
-            be->resume(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_RESUME);
          }
          state = handle->state;
       }
@@ -2436,7 +2419,7 @@ _aaxALSADriverThread(void* config)
 #if ENABLE_TIMING
        _aaxTimerStart(timer);
 #endif
-      if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
+      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 #if ENABLE_TIMING

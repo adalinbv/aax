@@ -276,7 +276,7 @@ _aaxSoftwareMixerThread(void* config)
    bufsz = _oalRingBufferGetNoSamples(dest_rb);
    delay_sec = _oalRingBufferGetDuration(dest_rb);
 
-   be->pause(handle->backend.handle);
+   be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
    elapsed = 0.0f;
@@ -336,10 +336,10 @@ _aaxSoftwareMixerThread(void* config)
       if (state != handle->state)
       {
          if (_IS_PAUSED(handle) || (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
-            be->pause(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_PAUSE);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
-            be->resume(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_RESUME);
          }
          state = handle->state;
       }

@@ -59,6 +59,20 @@ extern "C" {
 				AAX_MKSTR(AAX_MICRO_VERSION)"-" \
 				AAX_MKSTR(AAX_PATCH_LEVEL)
 
+enum _aaxDriverParam {
+   DRIVER_LATENCY = 0,
+   DRIVER_MIN_VOLUME,
+   DRIVER_MAX_VOLUME
+};
+
+enum _aaxDriverState {
+   DRIVER_AVAILABLE = 0,
+   DRIVER_PAUSE,
+   DRIVER_RESUME,
+   DRIVER_SUPPORTS_PLAYBACK,
+   DRIVER_SUPPORTS_CAPTURE
+};
+
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);
 
 typedef char *_aaxDriverLog(const char *);
@@ -72,8 +86,8 @@ typedef void *_aaxDriverConnect(const void*, void*, const char*, enum aaxRenderM
 typedef int _aaxDriverDisconnect(void*);
 typedef char *_aaxDriverGetName(const void*, int);
 typedef int _aaxDriverSetup(const void*, size_t*, int*, unsigned int*, float*);
-typedef int _aaxDriverState(const void*);
-typedef float _aaxDriverParam(const void*);
+typedef int _aaxDriverState(const void*, enum _aaxDriverState);
+typedef float _aaxDriverParam(const void*, enum _aaxDriverParam);
 
 typedef int _aaxDriverCallback(const void*, void*, float, float);
 typedef int _aaxDriverCaptureCallback(const void*, void**, int, size_t*, void*, size_t, float);
@@ -113,8 +127,6 @@ typedef struct
     _aaxDriverConnect *connect;
     _aaxDriverDisconnect *disconnect;
     _aaxDriverSetup *setup;
-    _aaxDriverState *pause;
-    _aaxDriverState *resume;
     _aaxDriverCaptureCallback *capture;
     _aaxDriverCallback *play;
     _aaxDriver2dMixerCB *mix2d;
@@ -123,11 +135,8 @@ typedef struct
     _aaxDriverPostProcess *postprocess;
     _aaxDriverPrepare *effects;
 
-    _aaxDriverState *support_playback;
-    _aaxDriverState *support_recording;
-    _aaxDriverState *is_available;
-
-    _aaxDriverParam *latency;
+    _aaxDriverState *state;
+    _aaxDriverParam *param;
     _aaxDriverLog *log;
 
 } _aaxDriverBackend;

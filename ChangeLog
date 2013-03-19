@@ -1,5 +1,12 @@
+* Fri Mar 19 2013 - tech@adalin.org
+- AeonWave (2.2.5) stable; urgency=medium
+ * Fix a segmentation fault for the Loopback driver.
+ * Implement hardware volume support for backends that support it.:
+
+ -- Erik Hofman <tech@adalin.org>  Fri, 19 Mar 2013 11:37:00 +0200
+
 * Fri Mar 08 2013 - tech@adalin.org
-- AeonWave (2.2.5) stable; urgency=low
+- AeonWave (2.2.4) stable; urgency=low
  * Add an aaxFree function to free memory allocated by the library.
    This might be necessary when using different compilers.
  * Add support for a Reverb effect which anly applies to the final mixer.

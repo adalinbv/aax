@@ -43,7 +43,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
       device = _intBufGetDataPtr(dptr);
       be = device->backend.ptr;
       be_handle = device->backend.handle;
-      if (be->is_available(be_handle)) {
+      if (be->state(be_handle, DRIVER_AVAILABLE)) {
          dptr_sensor = _intBufGet(device->sensors, _AAX_SENSOR, 0);
       }
 
