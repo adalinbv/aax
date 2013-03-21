@@ -168,6 +168,26 @@ enum {
    SND_CTL_ASYNC
 };
 
+enum snd_mixer_selem_regopt_abstract {
+   SND_MIXER_SABSTRACT_NONE = 0,
+   SND_MIXER_SABSTRACT_BASIC
+};
+
+typedef enum {
+   SND_MIXER_SCHN_UNKNOWN = -1,
+   SND_MIXER_SCHN_FRONT_LEFT = 0,
+   SND_MIXER_SCHN_FRONT_RIGHT,
+   SND_MIXER_SCHN_REAR_LEFT,
+   SND_MIXER_SCHN_REAR_RIGHT,
+   SND_MIXER_SCHN_FRONT_CENTER,
+   SND_MIXER_SCHN_WOOFER,
+   SND_MIXER_SCHN_SIDE_LEFT,
+   SND_MIXER_SCHN_SIDE_RIGHT,
+   SND_MIXER_SCHN_REAR_CENTER,
+   SND_MIXER_SCHN_LAST = 31,
+   SND_MIXER_SCHN_MONO = SND_MIXER_SCHN_FRONT_LEFT
+} snd_mixer_selem_channel_id_t;
+
 typedef struct _snd_pcm_channel_area
 {
    void *addr;
@@ -179,7 +199,21 @@ typedef struct _snd_ctl snd_ctl_t;
 typedef struct _snd_pcm snd_pcm_t;
 typedef struct _snd_pcm_hw_params snd_pcm_hw_params_t;
 typedef struct _snd_pcm_sw_params snd_pcm_sw_params_t;
+
+typedef struct snd_mixer_selem_regopt
+{
+   int 	ver;
+   enum snd_mixer_selem_regopt_abstract	abstract;
+   const char *device;
+   snd_pcm_t *playback_pcm;
+   snd_pcm_t *capture_pcm;
+} _snd_mixer_selem_regopt;
+
 typedef struct _snd_mixer snd_mixer_t;
+typedef struct _snd_mixer_elem_t snd_mixer_elem_t;
+typedef struct _snd_mixer_selem_id_t snd_mixer_selem_id_t;
+typedef struct _snd_mixer_class_t snd_mixer_class_t;
+
 typedef long snd_pcm_sframes_t;
 typedef unsigned long snd_pcm_uframes_t;
 
@@ -327,9 +361,27 @@ typedef void snd_output_t;
 typedef int (*snd_pcm_dump_proc)(snd_pcm_t *, snd_output_t *);
 typedef int (*snd_output_stdio_attach_proc)(snd_output_t **, FILE*, int);
 
+
 typedef int (*snd_mixer_open_proc)(snd_mixer_t **, int);
 typedef int (*snd_mixer_close_proc)(snd_mixer_t *);
-typedef int (*snd_mixer_attach_proc)(snd_mixer_t *mixer, const char *name);
+typedef int (*snd_mixer_load_proc)(snd_mixer_t *);
+typedef int (*snd_mixer_attach_proc)(snd_mixer_t *mixer, const char *name); 
+typedef snd_mixer_elem_t* (*snd_mixer_first_elem_proc)(snd_mixer_t*);
+typedef snd_mixer_elem_t* (*snd_mixer_elem_next_proc)(snd_mixer_elem_t *);
+typedef int (*snd_mixer_selem_register_proc)(snd_mixer_t*, struct snd_mixer_selem_regopt*, snd_mixer_class_t**);
+typedef int (*snd_mixer_selem_has_playback_volume_proc)(snd_mixer_elem_t*);
+typedef int (*snd_mixer_selem_get_playback_volume_proc)(snd_mixer_elem_t*,  	snd_mixer_selem_channel_id_t, long*);
+typedef int (*snd_mixer_selem_set_playback_volume_all_proc)(snd_mixer_elem_t*, long);
+typedef int (*snd_mixer_selem_get_playback_volume_range_proc)(snd_mixer_elem_t*, long*, long*);
+typedef int (*snd_mixer_selem_set_playback_volume_range_proc)(snd_mixer_elem_t *, long, long);
+typedef int (*snd_mixer_selem_has_capture_volume_proc)(snd_mixer_elem_t *);
+typedef int (*snd_mixer_selem_get_capture_volume_proc)(snd_mixer_elem_t*,      snd_mixer_selem_channel_id_t, long*);
+typedef int (*snd_mixer_selem_set_capture_volume_all_proc)(snd_mixer_elem_t*, long);
+typedef int (*snd_mixer_selem_get_capture_volume_range_proc)(snd_mixer_elem_t*, long*, long*);
+typedef int (*snd_mixer_selem_set_capture_volume_range_proc)(snd_mixer_elem_t *, long, long);
+typedef void (*snd_mixer_selem_get_id_proc)(snd_mixer_elem_t*, snd_mixer_selem_id_t*);
+typedef const char*(*snd_mixer_selem_id_get_name_proc)(const snd_mixer_selem_id_t*);
+
 
 #if defined(__cplusplus)
 }  /* extern "C" */
