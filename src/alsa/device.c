@@ -139,7 +139,7 @@ typedef struct
     char interleaved;
     char hw_channels;
     char playing;
-    char vmixer;
+    char shared;
     char sse_level;
 
 #ifndef NDEBUG
@@ -504,8 +504,9 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
          }
 
-         if (xmlNodeGetBool(xid, "virtual-mixer")) {
-            handle->vmixer = AAX_TRUE;
+         if (xmlNodeGetBool(xid, "virtual-mixer") ||
+             xmlNodeGetBool(xid, "shared")) {
+            handle->shared = AAX_TRUE;
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -591,7 +592,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       handle->devnum = detect_devnum(handle->name, m);
 
       handle->devname = detect_devname(handle->name, handle->devnum,
-                                       handle->no_channels, m, handle->vmixer);
+                                       handle->no_channels, m, handle->shared);
       err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                           SND_PCM_NONBLOCK);
       if (err >= 0)
@@ -730,8 +731,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       handle->no_channels = channels;
       handle->devnum = detect_devnum(handle->name, m);
       handle->devname = detect_devname(handle->name, handle->devnum,
-                                    handle->no_channels, m, handle->vmixer);
-      err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m], SND_PCM_NONBLOCK);
+                                    handle->no_channels, m, handle->shared);
+      err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
+                          SND_PCM_NONBLOCK);
       if (err >= 0) {
          err = psnd_pcm_nonblock(handle->pcm, 1);
       }
@@ -1932,7 +1934,9 @@ static int
 _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float gain)
 {
    int rv = 0;
-   if (handle && handle->mixer && (fabs(handle->volume - gain) > 4e-3f))
+   if (handle && handle->mixer && handle->shared &&
+       ((gain <= 1.0f) && (fabs(handle->volume - gain) > 4e-3f))
+      )
    {
       snd_mixer_selem_id_t *sid = calloc(1,4096);
       snd_mixer_elem_t *elem;
