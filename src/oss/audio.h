@@ -54,7 +54,22 @@ typedef struct oss_audioinfo
    int mixer_dev;
    int legacy_device;
    int enabled;
-   int filler[251];
+   int flags;
+   int min_rate, max_rate;
+   int min_channels;
+   int max_channels;
+   int binding;
+   int rate_source;
+   char handle[32];
+   unsigned int nrates;
+   unsigned int rates[20];
+   char song_name[64];
+   char label[16];
+   int latency;
+   char devnode[32];
+   int next_play_engine;
+   int next_rec_engine;
+   int filler[184];
 } oss_audioinfo;
 
 typedef struct audio_buf_info
@@ -101,6 +116,7 @@ typedef struct oss_card_info
 #define SOUND_MIXER_READ_VOLUME		0x80044d00
 #define SNDCTL_DSP_SETPLAYVOL		0xc0045018
 #define SNDCTL_DSP_SETRECVOL		0xc0045029
+#define SNDCTL_GETLABEL			0x80105904
 #define SOUND_MIXER_READ_RECMASK	0x80044dfd
 
 #define SOUND_MIXER_NRDEVICES		28
@@ -168,8 +184,18 @@ typedef struct oss_card_info
 
 #define PCM_CAP_INPUT			0x00010000
 #define PCM_CAP_OUTPUT			0x00020000
+#define PCM_CAP_VIRTUAL			0x00040000
+
+#define DSP_CH_MASK			0x06000000
+#define DSP_CH_ANY			0x00000000
+#define DSP_CH_MONO			0x02000000
+#define DSP_CH_STEREO			0x04000000
+#define DSP_CH_MULTI			0x06000000
 
 #define SNDCTL_SYSINFO			0x84e05801
+
+#define OSS_LABEL_SIZE			16
+typedef char oss_label_t[OSS_LABEL_SIZE];
 
 typedef int (*ioctl_proc)(int, int, void*);
 
