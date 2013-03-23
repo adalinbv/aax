@@ -136,6 +136,7 @@
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #undef HAVE_SYS_UTSNAME_H
+#cmakedefine HAVE_SYS_UTSNAME_H @HAVE_SYS_UTSNAME_H@
 
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
