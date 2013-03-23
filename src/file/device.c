@@ -674,6 +674,7 @@ _aaxFileDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
       break;
+    case DRIVER_SHARED_MIXER:
    default:
       break;
    }
@@ -692,8 +693,10 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_LATENCY:
          rv = handle->latency;
          break;
-      case DRIVER_MIN_VOLUME:
       case DRIVER_MAX_VOLUME:
+         rv = 1.0f;
+         break;
+      case DRIVER_MIN_VOLUME:
       default:
          break;
       }

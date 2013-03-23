@@ -501,7 +501,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
                float min, max, step;
                hr = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
                                                         &min, &max, &step);
-               handle-minVolome = _db2lin(min);
+               handle->minVolume = _db2lin(min);
                handle->maxVolume = _db2lin(max);
             }
          }
@@ -1392,6 +1392,9 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
       }
       handle->status &= ~DRIVER_PAUSE_MASK;
       break;
+   DRIVER_SHARED_MIXER:
+      rv = (handle->status & EXCLUSIVE_MODE_MASK) ? AAX_FALSE : AAX_TRUE;
+      break;
    DRIVER_SUPPORTS_PLAYBACK:
    DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
@@ -1414,8 +1417,12 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       DRIVER_LATENCY:
          rv = handle->hnsLatency*100e-9f;
          break;
-      DRIVER_MIN_VOLUME:
       DRIVER_MAX_VOLUME:
+         rv = handle->maxVolume;
+         break;
+      DRIVER_MIN_VOLUME:
+        rv = handle->minVolume;
+         break;
       default:
          break;
       }

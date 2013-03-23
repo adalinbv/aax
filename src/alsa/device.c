@@ -1327,6 +1327,9 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
          }
       }
       break;
+   case DRIVER_SHARED_MIXER:
+      rv = handle->shared;
+      break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
@@ -1350,7 +1353,11 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->latency;
          break;
       case DRIVER_MIN_VOLUME:
+         rv = (float)handle->minVolume/(float)handle->maxVolume;
+         break;
       case DRIVER_MAX_VOLUME:
+         rv = 1.0f;
+         break;
       default:
          break;
       }

@@ -123,8 +123,8 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 typedef struct
 {
    char *name;
-   char *fname;
-   int devnum;
+   char *devnode;
+   int nodenum;
 
    int fd;
    float latency;
@@ -155,12 +155,12 @@ typedef struct
 DECL_FUNCTION(ioctl);
 
 static int get_oss_version();
-static int detect_devfile(_driver_t*, char);
-static int detect_devnum(const char *);
+static int detect_devnode(_driver_t*, char);
+static int detect_nodenum(const char *);
 
 static const int _mode[] = { O_RDONLY, O_WRONLY };
 static const char *_const_oss_default_name = DEFAULT_DEVNAME;
-static int _oss_default_devnum = DEFAULT_DEVNUM;
+static int _oss_default_nodenum = DEFAULT_DEVNUM;
 static char *_default_mixer = DEFAULT_MIXER;
 
 static int
@@ -230,12 +230,12 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
          char *s;
          int i;
 
-         if (!handle->fname)
+         if (!handle->devnode)
          {
             s = xmlNodeGetString(xid, "renderer");
             if (s)
             {
-               handle->devnum = detect_devnum(s);
+               handle->nodenum = detect_nodenum(s);
                if (handle->name != _const_oss_default_name) {
                   free(handle->name);
                }
@@ -296,7 +296,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 
       if (renderer)
       {
-         handle->devnum = detect_devnum(renderer);
+         handle->nodenum = detect_nodenum(renderer);
          if (handle->name != _const_oss_default_name) {
             free(handle->name);
          }
@@ -305,7 +305,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 #if 0
  printf("frequency-hz: %f\n", handle->frequency_hz);
  printf("channels: %i\n", handle->no_tracks);
- printf("device number: %i\n", handle->devnum);
+ printf("device number: %i\n", handle->nodenum);
 #endif
    }
 
@@ -314,8 +314,8 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
    {
       int fd, m = handle->mode;
 
-      detect_devfile(handle, m);
-      fd = open(handle->fname, handle->mode|handle->exclusive);
+      detect_devnode(handle, m);
+      fd = open(handle->devnode, handle->mode|handle->exclusive);
       if (fd)
       {
          const char *hwstr = _aaxGetSIMDSupportString();
@@ -365,12 +365,12 @@ _aaxOSSDriverDisconnect(void *id)
       if (handle->name != _const_oss_default_name) {
          free(handle->name);
       }
-      if (handle->fname)
+      if (handle->devnode)
       {
-         if (handle->fname != _const_oss_default_name) {
-            free(handle->fname);
+         if (handle->devnode != _const_oss_default_name) {
+            free(handle->devnode);
          }
-         handle->fname = 0;
+         handle->devnode = 0;
       }
 
       if (handle->mixfd >= 0)
@@ -696,7 +696,7 @@ _aaxOSSDriverGetName(const void *id, int playback)
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle && handle->fname)
+   if (handle && handle->devnode)
       ret = _aax_strdup(handle->name);
 
    return ret;
@@ -721,7 +721,7 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_RESUME:
       if (handle) 
       {
-         handle->fd = open(handle->fname, handle->mode|handle->exclusive);
+         handle->fd = open(handle->devnode, handle->mode|handle->exclusive);
          if (handle->fd)
          {
             int err, frag, fd = handle->fd;
@@ -761,7 +761,7 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
          oss_audioinfo ainfo;
          int err;
 
-         ainfo.dev = handle->devnum;
+         ainfo.dev = handle->nodenum;
          err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
          if (err >= 0 && ainfo.enabled) {
            rv = AAX_TRUE;
@@ -970,7 +970,7 @@ get_oss_version()
 }
 
 static int
-detect_devfile(_driver_t *handle, char mode)
+detect_devnode(_driver_t *handle, char mode)
 {
    int version = get_oss_version();
    int rv = AAX_FALSE;
@@ -995,29 +995,29 @@ detect_devfile(_driver_t *handle, char mode)
       {
          oss_audioinfo ainfo;
 
-         ainfo.dev = handle->devnum;
+         ainfo.dev = handle->nodenum;
          err = pioctl (fd, SNDCTL_AUDIOINFO_EX, &ainfo);
          if (err >= 0)
          {
-            handle->fname = _aax_strdup(ainfo.devnode);
+            handle->devnode = _aax_strdup(ainfo.devnode);
             rv = AAX_TRUE;
          }
       }
    }
-   else if (handle->devnum > 0)
+   else if (handle->nodenum > 0)
    {
       int len = strlen(_const_oss_default_name)+4;
       char *name = malloc(len);
       if (name)
       {
-         snprintf(name, len, "/dev/dsp%i", handle->devnum);
-         handle->fname = name;
+         snprintf(name, len, "/dev/dsp%i", handle->nodenum);
+         handle->devnode = name;
          rv = AAX_TRUE;
       }
    }
    else
    {
-      handle->fname = (char*)_const_oss_default_name;
+      handle->devnode = (char*)_const_oss_default_name;
       rv = AAX_TRUE;
    }
 
@@ -1025,22 +1025,18 @@ detect_devfile(_driver_t *handle, char mode)
 }
 
 static int
-detect_devnum(const char *devname)
+detect_nodenum(const char *devname)
 {
    int version = get_oss_version();
-   int devnum = _oss_default_devnum;
+   int rv = _oss_default_nodenum;
    char *name = (char *)devname;
 
    if (!strncmp(name, "/dev/dsp", 8) ) {
-       devnum = atoi(name+8);
+       rv = atoi(name+8);
    }
-   else
+   else if (name && (strcasecmp(name, "OSS") && strcasecmp(name, "default")))
    {
       int fd, err;
-
-      if (!strcasecmp(name, "OSS") || !strcasecmp(name, "default")) {
-         name = NULL;
-      }
 
       fd = open(_default_mixer, O_RDWR);
       if (fd < 0)			/* test for /dev/mixer0 instead */
@@ -1064,32 +1060,16 @@ detect_devnum(const char *devname)
                int i;
                for (i = 0; i < info.numcards; i++)
                {
-                  oss_audioinfo ainfo;
                   oss_card_info cinfo;
 
                   cinfo.card = i;
                   if ( (err = pioctl (fd, SNDCTL_CARDINFO, &cinfo)) < 0) {
-                     break;
+                     continue;
                   }
 
-                  memset(&ainfo, 0, sizeof(oss_audioinfo));
-                  err = pioctl(fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-#if 0
-                  printf("ainfo.busy: %i\n", ainfo.busy);
-                  printf("ainfo.enabled: %i\n", ainfo.enabled);
-                  printf("INPUT: %i\n", ainfo.caps & PCM_CAP_INPUT);
-                  printf("OUTPUT: %i\n", ainfo.caps & PCM_CAP_OUTPUT);
-#endif
-                  if (name && !strcasecmp(name, cinfo.longname))
+                  if (!strcasecmp(name, cinfo.longname))
                   {
-                     if (ainfo.enabled && !ainfo.busy) {
-                        devnum = cinfo.card;
-                     }
-                     break;
-                  }
-                  else if (!name && ainfo.enabled && !ainfo.busy)
-                  {
-                     devnum = cinfo.card;
+                     rv = cinfo.card;
                      break;
                   }
                }
@@ -1101,6 +1081,6 @@ detect_devnum(const char *devname)
       }
    }
 
-   return devnum;
+   return rv;
 }
 

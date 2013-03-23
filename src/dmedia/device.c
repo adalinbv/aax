@@ -886,6 +886,7 @@ _aaxDMediaDriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_AVAILABLE:
+   case DRIVER_SHARED_MIXER:
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
@@ -908,8 +909,10 @@ _aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_LATENCY:
          rv = handle->port[0].latency;
          break;
-      case DRIVER_MIN_VOLUME:
       case DRIVER_MAX_VOLUME:
+         rv = 1.0f;
+         break;
+      case DRIVER_MIN_VOLUME:
       default:
          break;
       }
