@@ -246,8 +246,8 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
    switch(param)
    {
    case DRIVER_LATENCY:
-   case DRIVER_MIN_VOLUME:
-   case DRIVER_MAX_VOLUME:
+   case DRIVER_MIN_VOLUME_DB:
+   case DRIVER_MAX_VOLUME_DB:
    default:
       break;
    }
@@ -347,8 +347,12 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
    {
    case DRIVER_LATENCY:
       rv = handle->latency;
-   case DRIVER_MIN_VOLUME:
-   case DRIVER_MAX_VOLUME:
+   case DRIVER_MIN_VOLUME_DB:
+      rv = _lin2db(0.0f);
+      break;
+   case DRIVER_MAX_VOLUME_DB:
+      rv = _lin2db(1.0f);
+      break;
    default:
       break;
    }

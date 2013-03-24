@@ -167,7 +167,8 @@ typedef struct
    _batch_cvt_from_intl_proc cvt_from_intl;
 
    IAudioEndpointVolume *pEndpointVolume;
-   float minVolume, maxVolume;
+   float volumeMinDB, volumeMaxDB;
+   float volumeCurDB;
 
    /* capture related */
    HANDLE task;
@@ -498,11 +499,23 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
                                      (void**)&handle->pEndpointVolume);
             if (hr == == S_OK)
             {
-               float min, max, step;
+               float cur, min, max, step;
+               hr = IAudioEndpointVolume_GetMasterVolumeLevel(handle->pEndpointVolume, &cur);
+               if (hr == S_OK) handle->volumeCurDB = cur;
+               else handle->volumeCurDB = 0.0f;
+
                hr = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
                                                         &min, &max, &step);
-               handle->minVolume = _db2lin(min);
-               handle->maxVolume = _db2lin(max);
+               if (hr == S_OK)
+               {
+                  handle->volumeMinDB = min;
+                  handle->volumeMaxDB = max;
+               }
+               else
+               {
+                  handle->volumeMinDB = _lin2db(0.0f);
+                  handle->volumeMaxDB = _lin2db(1.0f);
+               } 
             }
          }
          else
@@ -529,6 +542,14 @@ _aaxWASAPIDriverDisconnect(void *id)
    if (handle)
    {
       HRESULT hr;
+
+      if (handle->pEndpointVolume != NULL)
+      {
+         IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
+                                                   volumeCurDB, NULL);
+         IAudioEndpointVolume__Release(handle->pEndpointVolume);
+         handle->pEndpointVolume = NULL;
+      }
 
       _aaxWASAPIDriverPause(handle);
 
@@ -1025,25 +1046,29 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       if (hr == S_OK) {
          handle->hnsLatency = latency;
       }
-#if 0
- printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
- printf("- event driven: %i,", handle->status & EVENT_DRIVEN_MASK);
- printf(" exclusive: %i\n", handle->status & EXCLUSIVE_MODE_MASK);
- printf("- frequency: %i\n", (int)handle->Fmt.Format.nSamplesPerSec);
- printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
- printf("- no. channels: %i\n", handle->Fmt.Format.nChannels);
- printf("- block size: %i\n", handle->Fmt.Format.nBlockAlign);
- printf("- cb size: %i\n",  handle->Fmt.Format.cbSize);
- printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
- printf("- speaker mask: %x\n", (int)handle->Fmt.dwChannelMask);
- printf("- subformat: float: %x - pcm: %x\n",
+
+      _AAX_DRVLOG_VAR("Format for %s\n", (handle->Mode == eRender)
+                       ? "Playback" : "Capture");
+      _AAX_DRVLOG_VAR("- event driven: %i,", handle->status&EVENT_DRIVEN_MASK);
+      _AAX_DRVLOG_VAR(" exclusive: %i\n", handle->status&EXCLUSIVE_MODE_MASK);
+      _AAX_DRVLOG_VAR("- frequency: %i\n",
+                         (int)handle->Fmt.Format.nSamplesPerSec);
+      _AAX_DRVLOG_VAR("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
+      _AAX_DRVLOG_VAR("- no. channels: %i\n", handle->Fmt.Format.nChannels);
+      _AAX_DRVLOG_VAR("- block size: %i\n", handle->Fmt.Format.nBlockAlign);
+      _AAX_DRVLOG_VAR("- cb size: %i\n",  handle->Fmt.Format.cbSize);
+      _AAX_DRVLOG_VAR("- valid bits/sample: %i\n",
+                         handle->Fmt.Samples.wValidBitsPerSample);
+      _AAX_DRVLOG_VAR("- speaker mask: %x\n", (int)handle->Fmt.dwChannelMask);
+      _AAX_DRVLOG_VAR("- subformat: float: %x - pcm: %x\n",
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
- printf("- latency: %f ms\n", handle->hnsLatency/10000.0f);
-
- printf("- periods: default: %f ms, minimum: %f ms\n", defPeriod/10000.0f, minPeriod/10000.0f);
- printf("- period: %i, buffer : %i , periods: %i\n", periodFrameCnt, bufferFrameCnt, (int)(0.5f+((float)bufferFrameCnt/(float)periodFrameCnt)));
-#endif
+      _AAX_DRVLOG_VAR("- latency: %f ms\n", handle->hnsLatency/10000.0f);
+      _AAX_DRVLOG_VAR("- periods: default: %f ms, minimum: %f ms\n",
+                         defPeriod/10000.0f, minPeriod/10000.0f);
+      _AAX_DRVLOG_VAR("- period: %i, buffer : %i , periods: %i\n",
+                     periodFrameCnt, bufferFrameCnt,
+                     (int)(0.5f+((float)bufferFrameCnt/(float)periodFrameCnt)));
    }
    else {
       _AAX_DRVLOG(10, "failed to initialize");
@@ -1263,7 +1288,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
             {
                int t;
                for (t=0; t<no_tracks; t++) {
-                  _batch_mul_value(sbuf[t], sizeof(int32_t), no_frames, gain);
+                  _batch_mul_value(sbuf[t]+offs, sizeof(int32_t), no_frames, gain);
                }
             }
 
@@ -1417,11 +1442,11 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       DRIVER_LATENCY:
          rv = handle->hnsLatency*100e-9f;
          break;
-      DRIVER_MAX_VOLUME:
-         rv = handle->maxVolume;
+      DRIVER_MAX_VOLUME_DB:
+         rv = handle->volumeMaxDB;
          break;
-      DRIVER_MIN_VOLUME:
-        rv = handle->minVolume;
+      DRIVER_MIN_VOLUME_DB:
+        rv = handle->volumeMinDB;
          break;
       default:
          break;
@@ -2434,6 +2459,6 @@ set_exclusive_volume(_driver_ *handle, float volume)
    if (gain < 0.99f || gain > 1.01f)
    {
       volume = _lin2db(volume);		// SetMasterVolumeLevel id in dB's
-      IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointvolume, volume, NULL);
+      IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume, volume, NULL);
    }
 }

@@ -61,8 +61,8 @@ extern "C" {
 
 enum _aaxDriverParam {
    DRIVER_LATENCY = 0,
-   DRIVER_MIN_VOLUME,
-   DRIVER_MAX_VOLUME
+   DRIVER_MIN_VOLUME_DB,
+   DRIVER_MAX_VOLUME_DB
 };
 
 enum _aaxDriverState {
