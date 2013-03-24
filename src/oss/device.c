@@ -124,6 +124,7 @@ typedef struct
 {
    char *name;
    char *devnode;
+   char *ifname[2];
    int nodenum;
 
    int fd;
@@ -362,6 +363,9 @@ _aaxOSSDriverDisconnect(void *id)
 
    if (handle)
    {
+      free(handle->ifname[0]);
+      free(handle->ifname[1]);
+
       if (handle->name != _const_oss_default_name) {
          free(handle->name);
       }
@@ -906,10 +910,10 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
             }
          }
 
-         if (!handle) //  || handle->mixfd < 0)
+         if (!handle)
          {
             close(fd);
-               fd = -1;
+            fd = -1;
          }
       }
    }
@@ -920,9 +924,89 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
 static char *
 _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
-   static const char *rd[2] = { "\0\0", "\0\0" };
-   return (char *)rd[mode];
+   _driver_t *handle = (_driver_t *)id;
+   int m = (mode > 0) ? 1 : 0;
+   char *rv = handle->ifname[m];
 
+   if (!rv)
+   {
+      int fd = open(_default_mixer, O_RDWR);
+      if (fd < 0)                          /* test for /dev/mixer0 instead */
+      {
+         char *mixer = _aax_strdup(_default_mixer);
+
+         *(mixer+strlen(mixer)-1) = '\0';
+         fd = open(mixer, O_WRONLY);
+         free(mixer);
+      }
+
+      if (fd >= 0)
+      {
+         int version = get_oss_version();
+
+         if (version >= OSS_VERSION_4)
+         {
+            oss_sysinfo info;
+            int err = pioctl(fd, SNDCTL_SYSINFO, &info);
+
+            if (err >= 0)
+            {
+               char interfaces[2048];
+               unsigned int buflen;
+               oss_audioinfo ainfo;
+               char *ptr;
+               int i = 0;
+
+               ptr = interfaces;
+               buflen = 2048;
+
+               for (i=0; i<info.numcards; i++)
+               {
+                  unsigned int len;
+                  char name[128];
+                  char *p;
+
+                  ainfo.dev = i;
+                  err = pioctl (fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+                  if (err < 0) continue;
+
+                  if (!ainfo.enabled) continue;
+                  if (ainfo.pid != -1) continue;		/* in use */
+                  if (ainfo.caps & PCM_CAP_VIRTUAL) continue;
+                  if (((ainfo.caps & PCM_CAP_OUTPUT) && !m) ||
+                      ((ainfo.caps & PCM_CAP_INPUT) && m)) continue;
+
+                  snprintf(name, 128, "%s", ainfo.name);
+                  p = strstr(name, " rec");
+                  if (!p) p = strstr(name, " play");
+                  if (!p) p = strstr(name, " pcm");
+                  if (!p) continue;
+
+                  *p = 0;
+                  if (!strstr(devname, name)) continue;
+
+                  *p++ = ' ';
+                  snprintf(ptr, buflen, "%s", p);
+                  len = strlen(ptr)+1;	/* skip the trailing 0 */
+                  if (len > (buflen-1)) break;
+                  buflen -= len;
+                  ptr += len;
+               }
+
+               if (ptr != interfaces)
+               {
+                  *ptr++ = '\0';
+                  rv = handle->ifname[m] = malloc(ptr-interfaces);
+                  if (rv) {
+                     memcpy(handle->ifname[m], interfaces, ptr-interfaces);
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   return rv;
 }
 
 static char *
@@ -1029,12 +1113,12 @@ detect_nodenum(const char *devname)
 {
    int version = get_oss_version();
    int rv = _oss_default_nodenum;
-   char *name = (char *)devname;
 
-   if (!strncmp(name, "/dev/dsp", 8) ) {
-       rv = atoi(name+8);
+   if (!strncmp(devname, "/dev/dsp", 8) ) {
+       rv = atoi(devname+8);
    }
-   else if (name && (strcasecmp(name, "OSS") && strcasecmp(name, "default")))
+   else if (devname && strcasecmp(devname, "OSS") &&
+                       strcasecmp(devname, "default"))
    {
       int fd, err;
 
@@ -1053,13 +1137,37 @@ detect_nodenum(const char *devname)
          if (version >= OSS_VERSION_4)
          {
             oss_sysinfo info;
-            err = pioctl(fd, SNDCTL_SYSINFO, &info);
+            char name[255];
+            char *ptr;
 
+            snprintf(name, 255, "%s", devname);
+            ptr = strstr(name, ": ");
+            if (ptr) {
+               int slen = strlen(ptr+1);
+               memmove(ptr, ptr+1, slen);
+               *(ptr+slen) = 0;
+            }
+
+            err = pioctl(fd, SNDCTL_SYSINFO, &info);
             if (err >= 0)
             {
                int i;
                for (i = 0; i < info.numcards; i++)
                {
+#if 1
+                  oss_audioinfo ainfo;
+
+                  ainfo.dev = i;
+                  if ((err = pioctl(fd, SNDCTL_AUDIOINFO_EX, &ainfo)) < 0) {
+                     continue;
+                  }
+
+                  if (strstr(name, ainfo.name))
+                  {
+                     rv = i;
+                     break;
+                  }
+#else
                   oss_card_info cinfo;
 
                   cinfo.card = i;
@@ -1072,6 +1180,7 @@ detect_nodenum(const char *devname)
                      rv = cinfo.card;
                      break;
                   }
+#endif
                }
             }
          }
