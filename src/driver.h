@@ -61,8 +61,8 @@ extern "C" {
 
 enum _aaxDriverParam {
    DRIVER_LATENCY = 0,
-   DRIVER_MIN_VOLUME_DB,
-   DRIVER_MAX_VOLUME_DB
+   DRIVER_MIN_VOLUME,
+   DRIVER_MAX_VOLUME
 };
 
 enum _aaxDriverState {
@@ -97,7 +97,7 @@ typedef int _aaxDriver2dMixerCB(const void*, void*, void*, void*, void*, float, 
 typedef int _aaxDriver3dMixerCB(const void*, void*, void*, void*, void*, int, unsigned char, unsigned int);
 typedef void _aaxDriverPrepare3d(void*, void*, const void*, const void*, void*);
 typedef void _aaxDriverPostProcess(const void*, void*, const void*);
-typedef void _aaxDriverPrepare(const void*, void*, const void*);
+typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*);
 typedef void (*_aaxDriverCompress)(void*, unsigned int*, unsigned int*);
 
 typedef void *_aaxDriverThread(void*);
@@ -159,7 +159,7 @@ int _aaxSoftwareMixerPlayFrame(void*, const void*, const void*, const void*, voi
 void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
-void _aaxSoftwareMixerApplyEffects(const void *, void *, const void *);
+void _aaxSoftwareMixerApplyEffects(const void *, const void *, void *, const void *);
 
 
 #if defined(__cplusplus)

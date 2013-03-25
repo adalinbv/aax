@@ -909,11 +909,11 @@ _aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_LATENCY:
          rv = handle->port[0].latency;
          break;
-      case DRIVER_MAX_VOLUME_DB:
-         rv = _lin2db(1.0f);
+      case DRIVER_MAX_VOLUME:
+         rv = 1.0f;
          break;
-      case DRIVER_MIN_VOLUME_DB:
-         rv = _lin2db(0.0f);
+      case DRIVER_MIN_VOLUME:
+         rv = 0.0f;
          break;
       default:
          break;

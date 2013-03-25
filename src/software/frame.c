@@ -419,7 +419,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
 
    if (process)
    {
-      be->effects(be_handle, dest_rb, fp2d);
+      be->effects(be, be_handle, dest_rb, fp2d);
       be->postprocess(be_handle, dest_rb, sensor);
    }
 

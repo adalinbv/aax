@@ -199,7 +199,7 @@ _aaxNoneDriver3dPrepare(void *sp3d, void *f3d, const void *info, const void *p2d
 }
 
 static void
-_aaxNoneDriverPrepare(const void *id, void *s, const void *l)
+_aaxNoneDriverPrepare(const void *id, const void *hid, void *s, const void *l)
 {
 }
 
@@ -246,8 +246,8 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
    switch(param)
    {
    case DRIVER_LATENCY:
-   case DRIVER_MIN_VOLUME_DB:
-   case DRIVER_MAX_VOLUME_DB:
+   case DRIVER_MIN_VOLUME:
+   case DRIVER_MAX_VOLUME:
    default:
       break;
    }
@@ -347,11 +347,11 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
    {
    case DRIVER_LATENCY:
       rv = handle->latency;
-   case DRIVER_MIN_VOLUME_DB:
-      rv = _lin2db(0.0f);
+   case DRIVER_MIN_VOLUME:
+      rv = 0.0f;
       break;
-   case DRIVER_MAX_VOLUME_DB:
-      rv = _lin2db(1.0f);
+   case DRIVER_MAX_VOLUME:
+      rv = 1.0f;
       break;
    default:
       break;

@@ -25,14 +25,15 @@
 
 
 void
-_aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
+_aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d)
 {
+   _aaxDriverBackend *be = (_aaxDriverBackend*)id;
    _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
    _oalRingBuffer *rb = (_oalRingBuffer *)drb;
    _oalRingBufferFreqFilterInfo* freq_filter;
    _oalRingBufferDelayEffectData* delay;
    _oalRingBufferSample *rbd;
-   float gain = 1.0f;
+   float maxgain, gain = 1.0f;
    int dist_state;
 
    assert(rb != 0);
@@ -40,12 +41,13 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
 
    rbd = rb->sample;
 
+   maxgain = be->param(hid, DRIVER_MAX_VOLUME);
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
 
    delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-   if ((gain > 1.01f) || (delay || freq_filter || dist_state))
+   if ((gain > maxgain) || (delay || freq_filter || dist_state))
    {
       int32_t *scratch0 = rbd->scratch[SCRATCH_BUFFER0];
       int32_t *scratch1 = rbd->scratch[SCRATCH_BUFFER1];
@@ -84,8 +86,13 @@ _aaxSoftwareMixerApplyEffects(const void *id, void *drb, const void *props2d)
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
 
-         if (gain > 1.01f) {
-            _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain);
+         /*
+          * If the requested gain is larger than the maximum capabilities of
+          * hardware volume support, adjust the difference here (before the
+          * compressor/limiter)
+          */
+         if (gain > maxgain) {
+            _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain/maxgain);
          }
       }
    }
@@ -536,7 +543,7 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
       _intBuffers *mixer_frames = (_intBuffers*)frames;
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
    }
-   be->effects(be_handle, dest_rb, props2d);
+   be->effects(be, be_handle, dest_rb, props2d);
    be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
