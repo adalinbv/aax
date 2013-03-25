@@ -578,14 +578,8 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
             }
          }
 
-         if (gain >= 0.0f)	/* software fallback */
-         {
-            int t;
-            for (t=0; t<2; t++) {
-               _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), res,
-                                gain);
-            }
-         }
+         _oss_set_volume(handle, (const int32_t**)data, offs, res, 2,
+                         gain*handle->volumeInit);
       }
 
       return AAX_TRUE;
