@@ -24,13 +24,17 @@ extern "C" {
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 
-# if defined(_MSC_VER) && (_MSC_VER >= 1400)
+# if (defined(_MSC_VER) && (_MSC_VER >= 1400)) || defined(__MINGW32__)
 #  define COBJMACROS
+# endif
+
+# if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #  include <Audioclient.h>
 #  define INITGUID
 #  include <mmdeviceapi.h>
 #  undef INITGUID
 # endif
+# include <Endpointvolume.h>
 
 # ifndef NTDDI_VERSION
 #  undef WINVER

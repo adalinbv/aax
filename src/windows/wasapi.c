@@ -31,6 +31,7 @@
 
 #include <api.h>
 #include <arch.h>
+#include <driver.h>
 #include <ringbuffer.h>
 #include <base/dlsym.h>
 #include <base/timer.h>
@@ -194,7 +195,7 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pIID_IAudioRenderClient &aax_IID_IAudioRenderClient
 # define pIID_IAudioCaptureClient &aax_IID_IAudioCaptureClient
 # define pIID_IAudioClient &aax_IID_IAudioClient
-# define pIID_IAudioEndpointVolume &IID_IAudioEndpointVolume
+# define pIID_IAudioEndpointVolume &aax_IID_IAudioEndpointVolume
 # define pPKEY_Device_DeviceDesc &PKEY_Device_DeviceDesc
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
 # define pPKEY_DeviceInterface_FriendlyName &PKEY_DeviceInterface_FriendlyName
@@ -523,12 +524,12 @@ _aaxWASAPIDriverDisconnect(void *id)
       if (handle->pEndpointVolume != NULL)
       {
          IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
-                                                   volumeInit, NULL);
-         IAudioEndpointVolume__Release(handle->pEndpointVolume);
+                                                   handle->volumeInit, NULL);
+         IAudioEndpointVolume_Release(handle->pEndpointVolume);
          handle->pEndpointVolume = NULL;
       }
 
-      _aaxWASAPIDriverPause(handle);
+      _aaxWASAPIDriverState(handle, DRIVER_PAUSE);
 
       if (handle->Event) {
          CloseHandle(handle->Event);
@@ -1007,7 +1008,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          if (hr == S_OK)
          {
             if ((handle->Mode == eCapture) && (hr == S_OK)) {
-               _aaxWASAPIDriverResume(handle);
+               _aaxWASAPIDriverState(handle, DRIVER_RESUME);
             }
             rv = AAX_TRUE;
          }
@@ -1024,6 +1025,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          handle->hnsLatency = latency;
       }
 
+#if 0
       _AAX_DRVLOG_VAR("Format for %s\n", (handle->Mode == eRender)
                        ? "Playback" : "Capture");
       _AAX_DRVLOG_VAR("- event driven: %i,", handle->status&EVENT_DRIVEN_MASK);
@@ -1046,6 +1048,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       _AAX_DRVLOG_VAR("- period: %i, buffer : %i , periods: %i\n",
                      periodFrameCnt, bufferFrameCnt,
                      (int)(0.5f+((float)bufferFrameCnt/(float)periodFrameCnt)));
+#endif
    }
    else {
       _AAX_DRVLOG(10, "failed to initialize");
@@ -1093,7 +1096,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
    } 
 
    if (handle->status & DRIVER_INIT_MASK) {
-      return _aaxWASAPIDriverResume(handle);
+      return _aaxWASAPIDriverState(handle, DRIVER_RESUME);
    }
 
 
@@ -1140,15 +1143,8 @@ printf("avail: %4i (%4i), fetch: %6i\r", handle->scratch_offs, handle->threshold
 
          handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
 
-// TODO: Hardware Volume
-         if (gain < 0.99f || gain > 1.01f)
-         {
-            int t;
-            for (t=0; t<tracks; t++) {
-               _batch_mul_value((void*)(ptr[t]+offs), sizeof(int32_t), avail,
-                                gain);
-            }
-         }
+         _wasapi_set_volume(handle, (const int32_t**)ptr, offs, avail, tracks,
+                         gain*handle->volumeInit);
 
          if (tracks == 1) {     // copy the left channel to the right channel
             _aax_memcpy(ptr[1]+offs, ptr[0]+offs, avail*sizeof(int32_t));
@@ -1200,7 +1196,7 @@ printf("fetch: %i, padding: %f\n", fetch, handle->padding);
 
 
 static int
-_aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
+_aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -1223,9 +1219,9 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
    assert(_oalRingBufferGetNoSamples(rbs) >= offs);
 
    if (handle->status & DRIVER_INIT_MASK) {
-      _aaxWASAPIDriverResume(handle);
+      _aaxWASAPIDriverState(handle, DRIVER_RESUME);
    }
-
+   
    do
    {
       unsigned int frames = no_frames;
@@ -1260,14 +1256,8 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
          hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
          if (hr == S_OK)
          {
-// Software Volume, need to convert to Hardware Volume for gain < 1.0f
-            if (gain < 0.99f)
-            {
-               int t;
-               for (t=0; t<no_tracks; t++) {
-                  _batch_mul_value(sbuf[t]+offs, sizeof(int32_t), no_frames, gain);
-               }
-            }
+            _wasapi_set_volume(handle, sbuf, offs, no_frames, no_tracks,
+                               gain*handle->volumeInit);
 
             handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
 
@@ -1308,23 +1298,23 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
-   DWORD state;
+   DWORD st;
    HRESULT hr;
 
    switch(state)
    {
-   DRIVER_AVAILABLE:
+   case DRIVER_AVAILABLE:
       if (handle)
       {
          assert(handle->pDevice);
 
-         hr = pIMMDevice_GetState(handle->pDevice, &state);
+         hr = pIMMDevice_GetState(handle->pDevice, &st);
          if (hr == S_OK) {
-            rv = (state == DEVICE_STATE_ACTIVE) ? AAX_TRUE : AAX_FALSE;
+            rv = (st == DEVICE_STATE_ACTIVE) ? AAX_TRUE : AAX_FALSE;
          }
       }
       break;
-   DRIVER_PAUSE:
+   case DRIVER_PAUSE:
       if (handle && ((handle->status & DRIVER_PAUSE_MASK) == 0))
       {
 #if USE_CAPTURE_THREAD
@@ -1359,7 +1349,7 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
 #endif
       }
       break;
-   DRIVER_RESUME:
+   case DRIVER_RESUME:
       if (handle && (handle->status & DRIVER_PAUSE_MASK))
       {
          hr = S_OK;
@@ -1394,11 +1384,11 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
       }
       handle->status &= ~DRIVER_PAUSE_MASK;
       break;
-   DRIVER_SHARED_MIXER:
+   case DRIVER_SHARED_MIXER:
       rv = (handle->status & EXCLUSIVE_MODE_MASK) ? AAX_FALSE : AAX_TRUE;
       break;
-   DRIVER_SUPPORTS_PLAYBACK:
-   DRIVER_SUPPORTS_CAPTURE:
+   case DRIVER_SUPPORTS_PLAYBACK:
+   case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
       break;
    default:
@@ -1416,13 +1406,13 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
-      DRIVER_LATENCY:
+      case DRIVER_LATENCY:
          rv = handle->hnsLatency*100e-9f;
          break;
-      DRIVER_MAX_VOLUME:
+      case DRIVER_MAX_VOLUME:
          rv = handle->volumeMax/handle->volumeInit;
          break;
-      DRIVER_MIN_VOLUME:
+      case DRIVER_MIN_VOLUME:
         rv = handle->volumeMin;
          break;
       default:
@@ -2157,7 +2147,7 @@ _aaxWASAPIDriverThread(void* config)
       return NULL;
    }
 
-   be->pause(handle->backend.handle);
+   be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
    /* get real duration, it might have been altered for better performance */
@@ -2235,7 +2225,7 @@ _aaxWASAPIDriverThread(void* config)
    {
       _aaxMutexUnLock(handle->thread.mutex);
 
-      if (_IS_PLAYING(handle) && be->is_available(be_handle))
+      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE))
       {
          hr = WaitForSingleObject(be_handle->Event, stdby_time);
          switch (hr)
@@ -2268,10 +2258,10 @@ _aaxWASAPIDriverThread(void* config)
          if (_IS_PAUSED(handle)
              || (!_IS_PLAYING(handle) && _IS_STANDBY(handle)))
          {
-            be->pause(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_PAUSE);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
-            be->resume(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_RESUME);
          }
          state = handle->state;
       }
@@ -2280,7 +2270,7 @@ _aaxWASAPIDriverThread(void* config)
       _aaxTimerStart(timer);
 #endif
       /* do all the mixing */
-      if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
+      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 #if ENABLE_TIMING
@@ -2429,7 +2419,7 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
  *
  * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
  */
-static void
+static int
 _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
 {
    int rv = 0;
@@ -2466,7 +2456,7 @@ _wasapi_get_volume_range(_driver_t *handle)
    rv = pIMMDevice_Activate(handle->pDevice, pIID_IAudioEndpointVolume,
                                      CLSCTX_INPROC_SERVER, NULL,
                                      (void**)&handle->pEndpointVolume);
-   if (rv == == S_OK)
+   if (rv == S_OK)
    {
       float cur, min, max, step;
       rv = IAudioEndpointVolume_GetMasterVolumeLevel(
