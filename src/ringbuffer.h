@@ -127,6 +127,27 @@ enum
     MAX_SCRATCH_BUFFERS
 };
 
+enum _oalRingBufferParam
+{
+   RB_VOLUME = 0,
+   RB_VOLUME_MIN,
+   RB_VOLUME_MAX,
+   RB_FREQUENCY,
+   RB_DURATION_SEC,
+   RB_OFFSET_SEC,
+   RB_LOOPPOINT_START,
+   RB_LOOPPOINT_END,
+   RB_LOOPING,
+   RB_FORMAT,
+   RB_NO_TRACKS,
+   RB_NO_SAMPLES,
+   RB_TRACKSIZE,
+   RB_BYTES_SAMPLE,
+   RB_OFFSET_SAMPLES,
+   RB_IS_PLAYING
+
+};
+
 #define PITCH_CHANGE			(PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
 #define _PROP_PITCH_HAS_CHANGED(q)	((q)->state & PITCH_CHANGE)
 #define _PROP_GAIN_HAS_CHANGED(q)	((q)->state & GAIN_CHANGED)
@@ -340,6 +361,7 @@ typedef struct		/* playback related information about the sample*/
     float elapsed_sec;
     float pitch_norm;
     float volume_norm;
+    float volume_min, volume_max;
 
     float dde_sec;
     float curr_pos_sec;
@@ -680,33 +702,11 @@ extern _oalRingBufferMix1NFunc* _oalRingBufferMixMonoGetRenderer(enum aaxRenderM
 void
 _oalRingBufferPrepare3d(_oalRingBuffer3dProps*, _oalRingBuffer3dProps*, const void*, const _oalRingBuffer2dProps*, void*);
 
-char
-_oalRingBufferTestPlaying(const _oalRingBuffer*);
-
-void _oalRingBufferSetFrequency(_oalRingBuffer*, float);
-int _oalRingBufferSetDuration(_oalRingBuffer*, float);
-int _oalRingBufferSetTrackSize(_oalRingBuffer*, unsigned int);
-int _oalRingBufferSetNoSamples(_oalRingBuffer*, unsigned int);
-void _oalRingBufferSetBytesPerSample(_oalRingBuffer*, unsigned char);
-void _oalRingBufferSetNoTracks(_oalRingBuffer*, unsigned char);
-void _oalRingBufferSetFormat(_oalRingBuffer*, _aaxCodec**codecs, enum aaxFormat);
-void _oalRingBufferSetLooping(_oalRingBuffer*, unsigned char);
-void _oalRingBufferSetLoopPoints(_oalRingBuffer*, float, float);
-void _oalRingBufferSetOffsetSec(_oalRingBuffer*, float);
-void _oalRingBufferSetOffsetSamples(_oalRingBuffer*, unsigned int);
-
-float _oalRingBufferGetFrequency(const _oalRingBuffer*);
-float _oalRingBufferGetDuration(const _oalRingBuffer*);
-unsigned int _oalRingBufferGetTrackSize(const _oalRingBuffer*);
-unsigned int _oalRingBufferGetNoSamples(const _oalRingBuffer*);
-unsigned char _oalRingBufferGetBytesPerSample(const _oalRingBuffer*);
-unsigned char _oalRingBufferGetNoTracks(const _oalRingBuffer*);
-enum aaxFormat _oalRingBufferGetFormat(const _oalRingBuffer*);
-unsigned char _oalRingBufferGetLooping(const _oalRingBuffer*);
-void _oalRingBufferGetLoopPoints(const _oalRingBuffer*, unsigned int*, unsigned int*);
-
-float _oalRingBufferGetOffsetSec(const _oalRingBuffer*);
-unsigned int _oalRingBufferGetOffsetSamples(const _oalRingBuffer*);
+int _oalRingBufferSetParamf(_oalRingBuffer*, enum _oalRingBufferParam, float);
+int _oalRingBufferSetParami(_oalRingBuffer*, enum _oalRingBufferParam, unsigned int);
+float _oalRingBufferGetParamf(const _oalRingBuffer*, enum _oalRingBufferParam);
+unsigned int _oalRingBufferGetParami(const _oalRingBuffer*, enum _oalRingBufferParam);
+int _oalRingBufferSetFormat(_oalRingBuffer*, _aaxCodec **, enum aaxFormat);
 
 void _oalRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
 void _oalRingBufferDelaysRemove(void**);

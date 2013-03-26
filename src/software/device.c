@@ -433,7 +433,7 @@ _aaxNoneDriverProcessFrame(void* config)
                   float s_offs, s_duration;
                   float d_offs = dt;
 
-                  if (_oalRingBufferTestPlaying(src_rb) == 0)
+                  if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
                         _oalRingBufferStartStreaming(src_rb);
@@ -442,11 +442,11 @@ _aaxNoneDriverProcessFrame(void* config)
                      }
                   }
 
-                  s_duration = _oalRingBufferGetDuration(src_rb);
-                  s_offs = _oalRingBufferGetOffsetSec(src_rb);
+                  s_duration = _oalRingBufferGetParamf(src_rb, RB_DURATION_SEC);
+                  s_offs = _oalRingBufferGetParamf(src_rb, RB_OFFSET_SEC);
                   if ((s_offs+dt) > s_duration)
                   {
-                     if (!_oalRingBufferGetLooping(src_rb))
+                     if (!_oalRingBufferGetParami(src_rb, RB_LOOPING))
                      {
                         d_offs = s_duration - s_offs;
                         s_offs = s_duration;
@@ -458,7 +458,7 @@ _aaxNoneDriverProcessFrame(void* config)
                   } else {
                      s_offs += dt;
                   }
-                  _oalRingBufferSetOffsetSec(src_rb, s_offs);
+                  _oalRingBufferSetParamf(src_rb, RB_OFFSET_SEC, s_offs);
                   d_pos += d_offs;
 
                   src->curr_pos_sec += dt;

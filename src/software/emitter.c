@@ -35,7 +35,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
 
    num = 0;
    stage = 0;
-   dt = _oalRingBufferGetDuration(dest_rb);
+   dt = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
    do
    {
       unsigned int i, no_emitters;
@@ -78,7 +78,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   if (_IS_STOPPED(src)) {
                      _oalRingBufferStop(src_rb);
                   }
-                  else if (_oalRingBufferTestPlaying(src_rb) == 0)
+                  else if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
                         _oalRingBufferStartStreaming(src_rb);
@@ -142,7 +142,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                            }
                         }
 
-                        rv &= _oalRingBufferTestPlaying(dest_rb);
+                        rv &= _oalRingBufferGetParami(dest_rb, RB_IS_PLAYING);
                         if (rv)
                         {
                            _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);

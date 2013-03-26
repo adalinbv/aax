@@ -450,8 +450,8 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
 
    thread->callback_fn = handler;
    thread->callback_data = arg;
-   thread->handle = CreateThread(0, 0, _callback_handler, t, 0, 0);
-   if (thread->handle != INVALID_HANDLE_VALUE)
+   thread->handle = CreateThread(NULL, 0, _callback_handler, t, 0, NULL);
+   if (thread->handle != NULL)
    {
       __threads_enabled = 1;
      rv = 0;

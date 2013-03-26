@@ -73,6 +73,8 @@ _oalRingBufferCreate(float dde)
          rb->streaming = 0;
          rb->dde_sec = dde;
          rb->pitch_norm = 1.0f;
+         rb->volume_min = 0.0f;
+         rb->volume_max = 1.0f;
          rb->format = AAX_PCM16S;
 
          format = rb->format;
@@ -255,17 +257,17 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
       rbdd->codec = rbsd->codec;
       rbdd->bytes_sample = rbsd->bytes_sample;
 
-      _oalRingBufferSetNoTracks(rb, rbsd->no_tracks);
-      _oalRingBufferSetFrequency(rb, rbsd->frequency_hz);
-      _oalRingBufferSetNoSamples(rb, rbsd->no_samples_avail);
+      _oalRingBufferSetParami(rb, RB_NO_TRACKS, rbsd->no_tracks);
+      _oalRingBufferSetParami(rb, RB_NO_SAMPLES, rbsd->no_samples_avail);
+      _oalRingBufferSetParamf(rb, RB_FREQUENCY, rbsd->frequency_hz);
 
       /*set looping */
-      rbdd->loop_start_sec = rbsd->loop_start_sec;
-      rbdd->loop_end_sec = rbsd->loop_end_sec;
+      _oalRingBufferSetParamf(rb, RB_LOOPPOINT_START, rbsd->loop_start_sec);
+      _oalRingBufferSetParamf(rb, RB_LOOPPOINT_END, rbsd->loop_end_sec);
 
       add_scratchbuf = (copy && rbsd->scratch) ? AAX_TRUE : AAX_FALSE;
       _oalRingBufferInit(rb, add_scratchbuf);
-      _oalRingBufferSetNoSamples(rb, rbsd->no_samples);
+      _oalRingBufferSetParami(rb, RB_NO_SAMPLES, rbsd->no_samples);
       if (copy)
       {
          char loop = ringbuffer->looping;
@@ -797,145 +799,262 @@ _oalRingBufferCopyDelyEffectsData(_oalRingBuffer *d, const _oalRingBuffer *s)
 }
 
 
-void
-_oalRingBufferSetFrequency(_oalRingBuffer *rb, float freq)
-{
-   _oalRingBufferSample *rbd;
-   float ddesamps;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   rbd->duration_sec = rbd->no_samples / freq;
-   rbd->loop_start_sec *= (rbd->frequency_hz / freq);
-   rbd->loop_end_sec *= (rbd->frequency_hz / freq);
-   rbd->frequency_hz = freq;
-
-   ddesamps = ceilf(rb->dde_sec * rbd->frequency_hz);
-   rbd->dde_samples = (unsigned int)ddesamps;
-}
-
 int
-_oalRingBufferSetNoSamples(_oalRingBuffer *rb, unsigned int no_samples)
+_oalRingBufferSetParamf(_oalRingBuffer *rb, enum _oalRingBufferParam param, float fval)
 {
-   _oalRingBufferSample *rbd;
-   int rv = AAX_FALSE;
+   _oalRingBufferSample *rbd = rb->sample;
+   int rv = AAX_TRUE;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   switch(param)
+   {
+   case RB_VOLUME:
+      rb->volume_norm = fval;
+      break;
+   case RB_VOLUME_MIN:
+      rb->volume_min = fval;
+      break;
+   case RB_VOLUME_MAX:
+      rb->volume_max = fval;
+      break;
+   case RB_FREQUENCY:
+      rbd->frequency_hz = fval;
+      rbd->duration_sec = rbd->no_samples / fval;
+      rbd->dde_samples = (unsigned int)ceilf(fval * rb->dde_sec);
 
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   if (rbd->track == NULL)
-   {
-      rbd->no_samples_avail = no_samples;
-      rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
-      rv = AAX_TRUE;
-   }
-   else if (no_samples <= rbd->no_samples_avail)
-   {
-      /**
-       * Note:
-       * Sensors rely in the fact that resizing to a smaller bufferr-size does
-       * not alter the actual buffer size, so it can overrun if required.
-       */
-      rbd->no_samples = no_samples;
-      rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
-      rv = AAX_TRUE;
-   }
-   else if (no_samples > rbd->no_samples_avail)
-   {
-      rbd->no_samples_avail = no_samples;
-      _oalRingBufferInitTracks(rb);
-      rv = AAX_TRUE;
-   }
+      fval = rbd->frequency_hz / fval;
+      rbd->loop_start_sec *= fval;
+      rbd->loop_end_sec *= fval;
+      break;
+   case RB_DURATION_SEC:
+      rbd->duration_sec = fval;
+      fval *= rbd->frequency_hz;
+      rv = _oalRingBufferSetParami(rb, RB_NO_SAMPLES, rintf(fval));
+      break;
+   case RB_LOOPPOINT_START:
+      if (fval < rbd->loop_end_sec)
+      {
+         rbd->loop_start_sec = fval;
+//       _oalRingBufferAddLooping(rb);
+      }
+      break;
+   case RB_LOOPPOINT_END:
+      if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec))
+      {
+         rbd->loop_end_sec = fval;
+//       _oalRingBufferAddLooping(rb);
+      }
+      break;
+   case RB_OFFSET_SEC:
+      if (fval > rbd->duration_sec) {
+         fval = rbd->duration_sec;
+      }
+      rb->curr_pos_sec = fval;
+      rb->curr_sample = rintf(fval*rbd->frequency_hz);
+      break;
+   default:
 #ifndef NDEBUG
-   else if (rbd->track == NULL) {
-      printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
-   } else {
-      printf("%s: Unknown error\n", __FUNCTION__);
-   }
+      printf("UNKNOWN PARAMETER %i at line %i\n", param, __LINE__);
 #endif
+      break;
+   }
 
    return rv;
 }
 
 int
-_oalRingBufferSetTrackSize(_oalRingBuffer *rb, unsigned int size)
+_oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsigned int val)
 {
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _oalRingBufferSample *rbd = rb->sample;
+   int rv = AAX_TRUE;
 
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return _oalRingBufferSetNoSamples(rb, size/rb->sample->bytes_sample);  
-}
-
-int
-_oalRingBufferSetDuration(_oalRingBuffer *rb, float duration)
-{
-   float freq;
-   int rv;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   freq = rb->sample->frequency_hz;
-   rv = _oalRingBufferSetNoSamples(rb, rintf(duration * freq));
-   rb->sample->duration_sec = duration;
+   switch(param)
+   {
+   case RB_BYTES_SAMPLE:
+      if (rbd->track == NULL) {
+         rbd->bytes_sample = val;
+      }
+#ifndef NDEBUG
+      else printf("Unable set bytes/sample when rbd->track == NULL\n");
+      break;
+#endif
+   case RB_NO_TRACKS:
+      if (rbd->track == NULL) {
+         rbd->no_tracks = val;
+      }
+#ifndef NDEBUG
+      else printf("Unable set the no. tracks rbd->track == NULL\n");
+#endif
+      break;
+   case RB_LOOPING:
+      rb->looping = val;
+#if 0
+      if (loops) {
+         _oalRingBufferAddLooping(rb);
+      }
+#endif
+      break;
+   case RB_LOOPPOINT_START:
+   {
+      float fval = val/rbd->frequency_hz;
+      if (fval < rbd->loop_end_sec)
+      {
+         rbd->loop_start_sec = fval;
+//       _oalRingBufferAddLooping(rb);
+      }
+      break;
+   }
+   case RB_LOOPPOINT_END:
+   {
+      float fval = val/rbd->frequency_hz;
+      if ((rbd->loop_start_sec < fval) && (val <= rbd->no_samples))
+      {
+         rbd->loop_end_sec = fval;
+//       _oalRingBufferAddLooping(rb);
+      }
+      break;
+   }
+   case RB_OFFSET_SAMPLES:
+      if (val > rbd->no_samples) {
+         val = rbd->no_samples;
+      }
+      rb->curr_sample = val;
+      rb->curr_pos_sec = (float)val / rbd->frequency_hz;
+      break;
+   case RB_TRACKSIZE:
+      val /= rbd->bytes_sample;
+      /* no break needed */
+   case RB_NO_SAMPLES:
+      if (rbd->track == NULL)
+      {
+         rbd->no_samples_avail = val;
+         rbd->duration_sec = (float)val / rbd->frequency_hz;
+         rv = AAX_TRUE;
+      }
+      else if (val <= rbd->no_samples_avail)
+      {
+         /**
+          * Note:
+          * Sensors rely in the fact that resizing to a smaller bufferr-size
+          * does not alter the actual buffer size, so it can overrun if required
+          */
+         rbd->no_samples = val;
+         rbd->duration_sec = (float)val / rbd->frequency_hz;
+         rv = AAX_TRUE;
+      }
+      else if (val > rbd->no_samples_avail)
+      {
+         rbd->no_samples_avail = val;
+         _oalRingBufferInitTracks(rb);
+         rv = AAX_TRUE;
+      }
+#ifndef NDEBUG
+      else if (rbd->track == NULL) {
+         printf("Unable to set no. tracks when rbd->track != NULL");
+      } else {
+         printf("%s: Unknown error\n", __FUNCTION__);
+      }
+#endif
+      break;
+   case RB_FORMAT:
+   default:
+#ifndef NDEBUG
+      printf("UNKNOWN PARAMETER %i at line %i\n", param, __LINE__);
+#endif
+      rv = AAX_FALSE;
+      break;
+   }
 
    return rv;
 }
 
-
-void
-_oalRingBufferSetBytesPerSample(_oalRingBuffer *rb, unsigned char bps)
+float
+_oalRingBufferGetParamf(const _oalRingBuffer *rb, enum _oalRingBufferParam param)
 {
-   _oalRingBufferSample *rbd;
+   _oalRingBufferSample *rbd = rb->sample;
+   float rv = AAX_NONE;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   if (rbd->track == NULL) {
-      rbd->bytes_sample = bps;
-   }
+   switch(param)
+   {
+   case RB_VOLUME:
+      rv = rb->volume_norm;
+      break;
+   case RB_VOLUME_MIN:
+      rv = rb->volume_min;
+      break;
+   case RB_VOLUME_MAX:
+      rv = rb->volume_max;
+      break;
+   case RB_FREQUENCY:
+      rv = rb->sample->frequency_hz;
+      break;
+   case RB_DURATION_SEC:
+      rv = rb->sample->duration_sec;
+      break;
+   case RB_OFFSET_SEC:
+      rv = rb->curr_pos_sec;
+      break;
+   default:
 #ifndef NDEBUG
-   else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
+      printf("UNKNOWN PARAMETER %i at line %i\n", param, __LINE__);
 #endif
+      break;
+   }
+
+   return rv;
 }
 
-void
-_oalRingBufferSetNoTracks(_oalRingBuffer *rb, unsigned char no_tracks)
+unsigned int
+_oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param)
 {
-   _oalRingBufferSample *rbd;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   if (rbd->track == NULL) {
-      rbd->no_tracks = no_tracks;
-   }
+   _oalRingBufferSample *rbd = rb->sample;
+   unsigned int rv = -1;
+   switch(param)
+   {
+   case RB_NO_TRACKS:
+      rv = rb->sample->no_tracks;
+      break;
+   case RB_NO_SAMPLES:
+      rv = rb->sample->no_samples;
+      break;
+   case RB_TRACKSIZE:
+      rv = rb->sample->track_len_bytes;
+      break;
+   case RB_BYTES_SAMPLE:
+      rv = rb->sample->bytes_sample;
+      break;
+   case RB_FORMAT:
+      rv = _oalRingBufferFormat[rb->format].format;
+      break;
+   case RB_LOOPING:
+      rv = rb->looping;
+      break;
+   case RB_LOOPPOINT_START:
+      rv = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);
+      break;
+   case RB_LOOPPOINT_END:
+      rv = (unsigned int)(rbd->loop_end_sec * rbd->frequency_hz);
+      break;
+   case RB_OFFSET_SAMPLES:
+      rv = rb->curr_sample;
+      break;
+   case RB_IS_PLAYING:
+      rv = !(rb->playing == 0 && rb->stopped == 1);
+      break;
+   default:
 #ifndef NDEBUG
-   else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
+      printf("UNKNOWN PARAMETER %i at line %i\n", param, __LINE__);
 #endif
+      break;
+   }
+
+   return rv;
 }
 
-void
+int
 _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat format)
 {
    _oalRingBufferSample *rbd;
+   int rv = AAX_TRUE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -953,195 +1072,12 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
       rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
    }
 #ifndef NDEBUG
-   else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
+   else printf("%s: Can't set value when rbd->track == NULL\n", __FUNCTION__);
 #endif
 
+   return rv;
 }
 
-void
-_oalRingBufferSetLooping(_oalRingBuffer *rb, unsigned char loops)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rb->looping = loops;
-#if 0
-   if (loops) {
-      _oalRingBufferAddLooping(rb);
-   }
-#endif
-}
-
-void
-_oalRingBufferSetLoopPoints(_oalRingBuffer *rb, float start, float end)
-{
-   _oalRingBufferSample *rbd;
-   int looping = AAX_FALSE;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   if ((start < end) && (end <= rbd->no_samples)) {
-      looping = AAX_TRUE;
-   }
-
-   if (looping)
-   {
-      rbd->loop_start_sec = start/rbd->frequency_hz;
-      rbd->loop_end_sec = end/rbd->frequency_hz;
-//    _oalRingBufferAddLooping(rb);
-   }
-}
-
-void
-_oalRingBufferSetOffsetSec(_oalRingBuffer *rb, float pos)
-{
-   _oalRingBufferSample *rbd;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   if (pos > rbd->duration_sec) {
-      pos = rbd->duration_sec;
-   }
-   rb->curr_pos_sec = pos;
-   rb->curr_sample = rintf(pos * rbd->frequency_hz);
-}
-
-void
-_oalRingBufferSetOffsetSamples(_oalRingBuffer *rb, unsigned int pos)
-{
-   _oalRingBufferSample *rbd;
-   float pos_sec;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   rbd = rb->sample;
-   if (pos > rbd->no_samples) {
-      pos = rbd->no_samples;
-   }
-   pos_sec = (float)pos / rbd->frequency_hz;
-   rb->curr_pos_sec = pos_sec;
-   rb->curr_sample = pos;
-}
-
-float
-_oalRingBufferGetFrequency(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->sample->frequency_hz;
-}
-
-float
-_oalRingBufferGetDuration(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->sample->duration_sec;
-}
-
-unsigned int
-_oalRingBufferGetTrackSize(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->sample->track_len_bytes;
-}
-
-unsigned char
-_oalRingBufferGetBytesPerSample(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->sample->bytes_sample;
-}
-
-unsigned int
-_oalRingBufferGetNoSamples(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->sample->no_samples;
-}
-
-
-unsigned char
-_oalRingBufferGetNoTracks(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->sample->no_tracks;
-}
-
-enum aaxFormat
-_oalRingBufferGetFormat(const _oalRingBuffer* rb)
-{
-   assert(rb != 0);
-
-   return _oalRingBufferFormat[rb->format].format;
-}
-
-unsigned char
-_oalRingBufferGetLooping(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->looping;
-}
-
-void
-_oalRingBufferGetLoopPoints(const _oalRingBuffer *rb, unsigned int*s, unsigned int *e)
-{
-   if (s && e)
-   {
-      _oalRingBufferSample *rbd = rb->sample;
-      *s = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);
-      *e = (unsigned int)(rbd->loop_end_sec * rbd->frequency_hz);
-   }
-}
-
-float
-_oalRingBufferGetOffsetSec(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-
-   return rb->curr_pos_sec;
-}
-
-unsigned int
-_oalRingBufferGetOffsetSamples(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   assert(rb->sample != 0);
-
-   return rb->curr_sample;
-}
-
-char
-_oalRingBufferTestPlaying(const _oalRingBuffer *rb)
-{
-   assert(rb != 0);
-   return !(rb->playing == 0 && rb->stopped == 1);
-}
 
 void
 _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float i_gain, float lb, float lb_gain)

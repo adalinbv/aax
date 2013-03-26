@@ -2069,9 +2069,9 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    assert(rbs->sample != 0);
 
    rbsd = rbs->sample;
-   offs = _oalRingBufferGetOffsetSamples(rbs);
-   no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
-   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
+   no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
 
    state = psnd_pcm_state(handle->pcm);
    if (state != SND_PCM_STATE_RUNNING)
@@ -2177,9 +2177,9 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    assert(rbs->sample != 0);
 
    rbsd = rbs->sample;
-   offs = _oalRingBufferGetOffsetSamples(rbs);
-   no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
-   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
+   no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
 
    state = psnd_pcm_state(handle->pcm);
    if (state != SND_PCM_STATE_RUNNING)
@@ -2283,9 +2283,9 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    assert(rbs->sample != 0);
 
    rbsd = rbs->sample;
-   offs = _oalRingBufferGetOffsetSamples(rbs);
-   no_samples = _oalRingBufferGetNoSamples(rbs) - offs;
-   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
+   no_samples = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
    if (handle->scratch == 0)
@@ -2294,7 +2294,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       int16_t *ptr;
       char *p;
 
-      samples = _oalRingBufferGetNoSamples(rbs);
+      samples = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES);
       outbuf_size = samples * hw_bps;
       if (outbuf_size & 0xF)
       {
@@ -2392,9 +2392,9 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    assert(rbs->sample != 0);
 
    rbsd = rbs->sample;
-   offs = _oalRingBufferGetOffsetSamples(rbs);
-   no_samples = _oalRingBufferGetNoSamples(rbs) - offs;
-   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
+   no_samples = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
    outbuf_size = no_tracks * no_samples*hw_bps;
@@ -2491,9 +2491,9 @@ _aaxALSADriverThread(void* config)
       if (dest_rb)
       {
          _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
-         _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
-         _oalRingBufferSetDuration(dest_rb, delay_sec);
+         _oalRingBufferSetParami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
+         _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
          _oalRingBufferStart(dest_rb);
 

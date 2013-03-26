@@ -440,9 +440,9 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(id != 0);
 
    rbd = rb->sample;
-   offs = _oalRingBufferGetOffsetSamples(rb);
-   no_tracks = _oalRingBufferGetNoTracks(rb);
-   no_samples = _oalRingBufferGetNoSamples(rb) - offs;
+   offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
+   no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
 
    no_tracks = handle->no_channels;
    assert(no_tracks == handle->no_channels);

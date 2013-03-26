@@ -65,11 +65,11 @@ _aaxAudioFrameThread(void* config)
 
       /* unregistered frames that are positional are mono */
       tracks = (!handle && _IS_POSITIONAL(frame)) ? 1 : info->no_tracks;
-      _oalRingBufferSetNoTracks(dest_rb, tracks);
+      _oalRingBufferSetParami(dest_rb, RB_NO_TRACKS, tracks);
 
       _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-      _oalRingBufferSetFrequency(dest_rb, info->frequency);
-      _oalRingBufferSetDuration(dest_rb, delay_sec);
+      _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, info->frequency);
+      _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
       _oalRingBufferInit(dest_rb, AAX_TRUE);
       _oalRingBufferStart(dest_rb);
       frame->ringbuffer = dest_rb;
@@ -110,7 +110,7 @@ _aaxAudioFrameThread(void* config)
 
    /* get real duration, it might have been altered for better performance */
    dest_rb = frame->ringbuffer;
-   delay_sec = _oalRingBufferGetDuration(dest_rb);
+   delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    dt = 0.0f;
    elapsed = 0.0f;
@@ -227,8 +227,8 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
       _oalRingBuffer *src_rb;
       float g = 1.0f;
 
-      dno_samples = _oalRingBufferGetNoSamples(dest_rb);
-      tracks = _oalRingBufferGetNoTracks(dest_rb);
+      dno_samples = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
+      tracks = _oalRingBufferGetParami(dest_rb, RB_NO_TRACKS);
       src_rb = _intBufGetDataPtr(buf);
 
       lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
@@ -339,10 +339,10 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
          {
             _aaxMixerInfo* info = fmixer->info;
 
-            _oalRingBufferSetNoTracks(frame_rb, info->no_tracks);
+            _oalRingBufferSetParami(frame_rb, RB_NO_TRACKS, info->no_tracks);
             _oalRingBufferSetFormat(frame_rb, be->codecs, AAX_PCM24S);
-            _oalRingBufferSetFrequency(frame_rb, info->frequency);
-            _oalRingBufferSetDuration(frame_rb, 1.0f / info->refresh_rate);
+            _oalRingBufferSetParamf(frame_rb, RB_FREQUENCY, info->frequency);
+            _oalRingBufferSetParamf(frame_rb, RB_DURATION_SEC, 1.0f/info->refresh_rate);
             _oalRingBufferInit(frame_rb, AAX_TRUE);
             fmixer->ringbuffer = frame_rb;
          }

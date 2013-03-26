@@ -174,15 +174,15 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
             case AAX_FRAMES:
             case AAX_SAMPLES:
                rv = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-               rv *= _oalRingBufferGetNoSamples(rb);
-               rv += _oalRingBufferGetOffsetSamples(rb);
+               rv *= _oalRingBufferGetParami(rb, RB_NO_SAMPLES);
+               rv += _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
                break;
             case AAX_BYTES:
             {
                rv = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-               rv *= _oalRingBufferGetNoSamples(rb);
-               rv += _oalRingBufferGetOffsetSamples(rb);
-               rv *= _oalRingBufferGetBytesPerSample(rb);
+               rv *= _oalRingBufferGetParami(rb, RB_NO_SAMPLES);
+               rv += _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+               rv *= _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
                break;
             }
             case AAX_MICROSECONDS:
@@ -230,8 +230,8 @@ aaxSensorGetBuffer(const aaxConfig config)
                {
                   _oalRingBuffer *rb = (_oalRingBuffer *)ptr[0];
                   buf->ringbuffer = rb;
-                  buf->frequency = _oalRingBufferGetFrequency(rb);
-                  buf->format = _oalRingBufferGetFormat(rb);
+                  buf->frequency = _oalRingBufferGetParamf(rb, RB_FREQUENCY);
+                  buf->format = _oalRingBufferGetParami(rb, RB_FORMAT);
                   buf->ref_counter = 1;
                   buf->mipmap = AAX_FALSE;
                   buf->id = BUFFER_ID;
@@ -406,22 +406,28 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          delay_sec = 1.0f / info->refresh_rate;
 
          _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetNoTracks(rb, info->no_tracks);
+         _oalRingBufferSetParami(rb, RB_NO_TRACKS, info->no_tracks);
+
+         be = handle->backend.ptr;
+         _oalRingBufferSetParamf(rb, RB_VOLUME_MIN,
+                          be->param(handle->backend.handle, DRIVER_MIN_VOLUME));
+         _oalRingBufferSetParamf(rb, RB_VOLUME_MAX,
+                          be->param(handle->backend.handle, DRIVER_MAX_VOLUME));
 
          /* Do not alter the frequency at this time, it has been set by
           * aaxMixerRegisterSensor and may have changed in the mean time
-*/       _oalRingBufferSetFrequency(rb, info->frequency);
+*/       _oalRingBufferSetParamf(rb, RB_FREQUENCY, info->frequency);
 /*        */
 
          /* create a ringbuffer with a but of overrun space */
-         _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+         _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec*1.0f);
          _oalRingBufferInit(rb, AAX_TRUE);
 
          /* 
           * Now set the actual duration, this will not alter the allocated
           * space since it is lower that the initial duration.
           */
-         _oalRingBufferSetDuration(rb, delay_sec);
+         _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
          _oalRingBufferStart(rb);
       }
       _intBufReleaseData(dptr, _AAX_SENSOR);

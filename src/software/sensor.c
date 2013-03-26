@@ -98,7 +98,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
              * first buffer from the queue when needed (below).
              * This way pitch effects (< 1.0) can be processed safely.
              */
-            _oalRingBufferSetFrequency(src_rb, device->info->frequency);
+            _oalRingBufferSetParamf(src_rb, RB_FREQUENCY, device->info->frequency);
             _oalRingBufferStart(src_rb);
             _oalRingBufferRewind(src_rb);
 
@@ -196,7 +196,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
       size_t frames, nframes;
       int res;
 
-      nframes = frames = _oalRingBufferGetNoSamples(dest_rb);
+      nframes = frames = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
       res = be->capture(be_handle, rbd->track, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, ds+frames, gain);
       if (res && nframes)
@@ -208,7 +208,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          float sdt;
 
          dmax = rbd->no_samples;
-         sdt = _MINMAX(_oalRingBufferGetDuration(dest_rb)*50.0f, 0.0f, 1.0f);
+         sdt = _MINMAX(_oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC)*50.0f, 0.0f, 1.0f);
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);

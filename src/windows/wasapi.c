@@ -72,8 +72,9 @@
 #define DEFAULT_DEVNAME		NULL
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
 
-# define _AAX_DRVLOG(p, a)		_aaxWASAPIDriverLogPrio(p, "wasapi; "a)
-# define _AAX_DRVLOG_VAR(p, args...)	_aaxWASAPIDriverLogVar(p, args);
+#define _AAX_DRVLOG(p, a)		_aaxWASAPIDriverLogPrio(p, "wasapi; "a)
+#define _AAX_DRVLOG_VAR(p, args...)	_aaxWASAPIDriverLogVar(p, args);
+#define HW_VOLUME_SUPPORT(a)		(a->pEndpointVolume && (a->volumeInit >= 0))
 
 
 static _aaxDriverDetect _aaxWASAPIDriverDetect;
@@ -523,8 +524,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 
       if (handle->pEndpointVolume != NULL)
       {
-         IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
-                                                   handle->volumeInit, NULL);
+         _wasapi_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          IAudioEndpointVolume_Release(handle->pEndpointVolume);
          handle->pEndpointVolume = NULL;
       }
@@ -1200,7 +1200,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
-   unsigned int no_tracks, offs;
+   unsigned int no_tracks, offs, frames;
    _oalRingBufferSample *rbsd;
    size_t no_frames;
    HRESULT hr;
@@ -1222,60 +1222,55 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
       _aaxWASAPIDriverState(handle, DRIVER_RESUME);
    }
    
-   do
+   /*
+    * For an exclusive-mode rendering or capture stream that was initialized
+    * with the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag, the client typically
+    * has no use for the padding value reported by GetCurrentPadding. 
+    * Instead, the client accesses an entire buffer during each processing
+    * pass. 
+    */
+   frames = no_frames;
+   if ((handle->status & (EXCLUSIVE_MODE_MASK | EVENT_DRIVEN_MASK)) == 0)
    {
-      unsigned int frames = no_frames;
+      UINT32 padding;
 
-      /*
-       * For an exclusive-mode rendering or capture stream that was initialized
-       * with the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag, the client typically
-       * has no use for the padding value reported by GetCurrentPadding. 
-       * Instead, the client accesses an entire buffer during each processing
-       * pass. 
-       */
-      if ((handle->status & (EXCLUSIVE_MODE_MASK | EVENT_DRIVEN_MASK)) == 0)
-      {
-         UINT32 padding;
-
-         frames = 0;
-         hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
-         if ((hr == S_OK) && (padding < no_frames)) {
-            frames = _MIN(handle->buffer_frames - padding, no_frames);
-         }
-      }
-
-      assert((handle->status & DRIVER_INIT_MASK) == 0);
-      assert(frames <= no_frames);
-
-      if (frames >= no_frames)
-      {
-         IAudioRenderClient *pRender = handle->uType.pRender;
-         const int32_t **sbuf = (const int32_t**)rbsd->track;
-         BYTE *data = NULL;
-
-         hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
-         if (hr == S_OK)
-         {
-            _wasapi_set_volume(handle, sbuf, offs, no_frames, no_tracks,
-                               gain*handle->volumeInit);
-
-            handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
-
-            assert(no_frames >= frames);
-            no_frames -= frames;
-
-            hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
-                                                frames, 0);
-            if (hr != S_OK) {
-               _AAX_DRVLOG(8, "failed to release the buffer");
-            }
-         }
-         else {
-            _AAX_DRVLOG(8, "failed to get the buffer");
-         }
+      frames = 0;
+      hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
+      if ((hr == S_OK) && (padding < no_frames)) {
+         frames = _MIN(handle->buffer_frames - padding, no_frames);
       }
    }
-   while (0);
+
+   assert((handle->status & DRIVER_INIT_MASK) == 0);
+   assert(frames <= no_frames);
+
+   if (frames >= no_frames)
+   {
+      IAudioRenderClient *pRender = handle->uType.pRender;
+      const int32_t **sbuf = (const int32_t**)rbsd->track;
+      BYTE *data = NULL;
+
+      hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
+      if (hr == S_OK)
+      {
+         _wasapi_set_volume(handle, sbuf, offs, no_frames, no_tracks,
+                            gain*handle->volumeInit);
+
+         handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
+
+         assert(no_frames >= frames);
+         no_frames -= frames;
+
+         hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
+                                             frames, 0);
+         if (hr != S_OK) {
+            _AAX_DRVLOG(8, "failed to release the buffer");
+         }
+      }
+      else {
+         _AAX_DRVLOG(8, "failed to get the buffer");
+      }
+   }
 
    return 0;
 }
@@ -2424,14 +2419,15 @@ _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned
 {
    int rv = 0;
 
-   if (handle && !(handle->status & EXCLUSIVE_MODE_MASK))
+   if (handle && HW_VOLUME_SUPPORT(handle) &&
+       (handle->status & EXCLUSIVE_MODE_MASK))
    {
       gain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
       if (fabs(handle->volumeCur - gain) > 4e-3f)
       {
          handle->volumeCur = gain;
-         IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
-                                                   _lin2db(gain), NULL);
+         rv = IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
+                                                        _lin2db(gain), NULL);
       }
       gain = -1.0f;
    }
@@ -2458,23 +2454,32 @@ _wasapi_get_volume_range(_driver_t *handle)
                                      (void**)&handle->pEndpointVolume);
    if (rv == S_OK)
    {
-      float cur, min, max, step;
-      rv = IAudioEndpointVolume_GetMasterVolumeLevel(
+      DWORD mask = 0;
+      rv = IAudioEndpointVolume_QueryHardwareSupport(handle->pEndpointVolume,
+                                                     &mask);
+      if (rv == S_OK && (mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME))
+      {
+         float cur, min, max, step;
+         rv = IAudioEndpointVolume_GetMasterVolumeLevel(
                                         handle->pEndpointVolume, &cur);
-      if (rv == S_OK) handle->volumeInit = _db2lin(cur);
-      else handle->volumeInit = 1.0f;
+         if (rv == S_OK) handle->volumeInit = _db2lin(cur);
+         else handle->volumeInit = 1.0f;
 
-      rv = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
-                                               &min, &max, &step);
-      if (rv == S_OK)
-      {
-         handle->volumeMin = _db2lin(min);
-         handle->volumeMax = _db2lin(max);
+         rv = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
+                                                  &min, &max, &step);
+         if (rv == S_OK)
+         {
+            handle->volumeMin = _db2lin(min);
+            handle->volumeMax = _db2lin(max);
+         }
+         else
+         {
+            handle->volumeMin = 0.0f;
+            handle->volumeMax = 1.0f;
+         }
       }
-      else
-      {
-         handle->volumeMin = 0.0f;
-         handle->volumeMax = 1.0f;
+      else {
+         handle->volumeInit = -1.0f;
       }
    }
 

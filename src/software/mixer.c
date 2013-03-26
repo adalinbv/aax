@@ -116,7 +116,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    assert(rb->sample != 0);
 
    rbd = rb->sample;
-   dt = _MINMAX(_oalRingBufferGetDuration(rb)*50.0f, 0.0f, 1.0f);
+   dt = _MINMAX(_oalRingBufferGetParamf(rb, RB_DURATION_SEC)*50.0f, 0.0f, 1.0f);
 
    reverb = 0;
    parametric = graphic = 0;
@@ -260,10 +260,10 @@ _aaxSoftwareMixerThread(void* config)
          info = mixer->info;
 
          tracks = info->no_tracks;
-         _oalRingBufferSetNoTracks(dest_rb, tracks);
+         _oalRingBufferSetParami(dest_rb, RB_NO_TRACKS, tracks);
          _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetFrequency(dest_rb, info->frequency);
-         _oalRingBufferSetDuration(dest_rb, delay_sec);
+         _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, info->frequency);
+         _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
          _oalRingBufferStart(dest_rb);
 
@@ -280,8 +280,8 @@ _aaxSoftwareMixerThread(void* config)
    }
 
    /* get real duration, it might have been altered for better performance */
-   bufsz = _oalRingBufferGetNoSamples(dest_rb);
-   delay_sec = _oalRingBufferGetDuration(dest_rb);
+   bufsz = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
+   delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
@@ -491,7 +491,11 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
 
+#ifdef _WIN32
+                  SwitchToThread();
+#else
                   msecSleep(0);	 /* special case, see Sleep(0) for windows */
+#endif
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
@@ -627,6 +631,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                _oalRingBuffer3dProps sp3d;
 #ifndef THREADED_FRAMES
                void *new_rb;
+               float gain;
 #endif
 
                /* copying here prevents locking the listener the whole time */
@@ -664,7 +669,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                                       NULL, NULL, &sp2d, &sp3d, be, be_handle);
 
                /** play back all mixed audio */
-               res = be->play(be_handle, dest, 1.0, 1.0);
+               gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
+               res = be->play(be_handle, dest, 1.0, gain);
                if TEST_FOR_TRUE(mixer->capturing)
                {
                   _intBuffers *mixer_ringbuffers;

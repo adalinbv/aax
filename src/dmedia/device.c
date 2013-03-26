@@ -725,9 +725,9 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
       return 0;
 
    rbd = rb->sample;
-   offs = _oalRingBufferGetOffsetSamples(rb);
-   no_samples = _oalRingBufferGetNoSamples(rb) - offs;
-   no_tracks = _oalRingBufferGetNoTracks(rb);
+   offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+   no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
+   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->scratch == 0)

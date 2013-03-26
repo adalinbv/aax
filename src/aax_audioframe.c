@@ -643,11 +643,11 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      delay_sec = 1.0f / info->refresh_rate;
 
                      _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-                     _oalRingBufferSetFrequency(rb, info->frequency);
-                     _oalRingBufferSetNoTracks(rb, 2);
+                     _oalRingBufferSetParamf(rb, RB_FREQUENCY, info->frequency);
+                     _oalRingBufferSetParami(rb, RB_NO_TRACKS, 2);
 
                      /* create a ringbuffer with a but of overrun space */
-                     _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+                     _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec*1.0f);
                      _oalRingBufferInit(rb, AAX_TRUE);
 
                      /* 
@@ -655,7 +655,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                       * allocated space since it is lower that the initial
                       * duration.
                       */
-                     _oalRingBufferSetDuration(rb, delay_sec);
+                     _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
                      _oalRingBufferStart(rb);
                   }
 
@@ -1092,7 +1092,7 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
             {
                _oalRingBuffer *rb = (_oalRingBuffer *)ptr[0];
                buf->ringbuffer = rb;
-               buf->format = _oalRingBufferGetFormat(rb);
+               buf->format = _oalRingBufferGetParami(rb, RB_FORMAT);
                buf->ref_counter = 1;
                buf->mipmap = AAX_FALSE;
                buf->id = BUFFER_ID;

@@ -552,35 +552,11 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
          return AAX_FALSE;
       }
       *frames = res / frame_size;
+
+      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, 2,
+                      gain*handle->volumeInit);
+
       _batch_cvt24_16_intl((int32_t**)data, scratch, offs, 2, res);
-
-      if (gain < 0.99f || gain > 1.01f)
-      {
-         if (HW_VOLUME_SUPPORT(handle))
-         {
-            int volume = (int)(gain * 100);
-
-            volume |= volume<<8;
-            if (handle->oss_version >= OSS_VERSION_4)
-            {
-               pioctl(handle->mixfd, SNDCTL_DSP_SETRECVOL, &volume);
-               gain = -1.0f;
-            }
-            else
-            {
-               int devs = 0;
-               pioctl(handle->fd, SOUND_MIXER_READ_RECMASK, &devs);
-               if (devs & SOUND_MASK_IGAIN)
-               {
-                  pioctl(handle->mixfd, SOUND_MIXER_WRITE_IGAIN, &volume);
-                  gain = -1.0f;
-               }
-            }
-         }
-
-         _oss_set_volume(handle, (const int32_t**)data, offs, res, 2,
-                         gain*handle->volumeInit);
-      }
 
       return AAX_TRUE;
    }
@@ -627,9 +603,9 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    rbd = rb->sample;
    sbuf = (const int32_t**)rbd->track;
-   offs = _oalRingBufferGetOffsetSamples(rb);
-   no_tracks = _oalRingBufferGetNoTracks(rb);
-   no_samples = _oalRingBufferGetNoSamples(rb) - offs;
+   offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
+   no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
 
    _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks,
                    gain*handle->volumeInit);

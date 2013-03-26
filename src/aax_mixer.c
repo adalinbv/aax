@@ -212,7 +212,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_TRACKSIZE:
             {
                _oalRingBuffer *rb = handle->ringbuffer;
-               int bps = _oalRingBufferGetBytesPerSample(rb);
+               int bps = _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
 
                rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
                break;
@@ -707,11 +707,11 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                         delay_sec = 1.0f / info->refresh_rate;
 
                         _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-                        _oalRingBufferSetFrequency(rb, info->frequency);
-                        _oalRingBufferSetNoTracks(rb, info->no_tracks);
+                        _oalRingBufferSetParamf(rb, RB_FREQUENCY, info->frequency);
+                        _oalRingBufferSetParami(rb, RB_NO_TRACKS, info->no_tracks);
 
                         /* create a ringbuffer with a bit of overrun space */
-                        _oalRingBufferSetDuration(rb, delay_sec*1.0f);
+                        _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec*1.0f);
 
                         /* Do not initialize the RinBuffer yet, this would
                          * assign memory to rb->tracks before the final
@@ -724,7 +724,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                          * allocated space since it is lower that the initial
                          * duration.
                          */
-                        _oalRingBufferSetDuration(rb, delay_sec);
+                        _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
                         _oalRingBufferStart(rb);
                      }
 
@@ -871,7 +871,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 
                if (_oalRingBufferIsValid(handle->ringbuffer)) {
                   src->props2d->delay_sec =
-                                  _oalRingBufferGetDuration(handle->ringbuffer);
+                   _oalRingBufferGetParamf(handle->ringbuffer, RB_DURATION_SEC);
                }
 
                if (positional)
@@ -1213,7 +1213,7 @@ _aaxMixerStart(_handle_t *handle)
 #if 0
 		// maybe when using threads for windows
             /* set the minimum timer resolution required by us to dt*1000 ms */
-            handle->dt_ms = _oalRingBufferGetDuration(handle->ringbuffer)*1000;
+            handle->dt_ms = _oalRingBufferGetParamf(handle->ringbuffer, RB_DURATION_SEC)*1000;
             setTimerResolution(1) // handle->dt_ms/2);
 #endif
             rv = AAX_TRUE;
