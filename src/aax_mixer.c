@@ -1208,14 +1208,7 @@ _aaxMixerStart(_handle_t *handle)
             _aaxErrorSet(AAX_TIMEOUT);
             handle->thread.started = AAX_FALSE;
          }
-         else
-         {
-#if 0
-		// maybe when using threads for windows
-            /* set the minimum timer resolution required by us to dt*1000 ms */
-            handle->dt_ms = _oalRingBufferGetParamf(handle->ringbuffer, RB_DURATION_SEC)*1000;
-            setTimerResolution(1) // handle->dt_ms/2);
-#endif
+         else {
             rv = AAX_TRUE;
          }
       }   
@@ -1235,11 +1228,6 @@ _aaxMixerStop(_handle_t *handle)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(handle->thread.started)
    {
-      if (handle->dt_ms > 0)
-      {
-         resetTimerResolution(1); // handle->dt_ms/2);
-         handle->dt_ms = 0;
-      }
       handle->thread.started = AAX_FALSE;
       _aaxConditionSignal(handle->thread.condition);
       _aaxThreadJoin(handle->thread.ptr);

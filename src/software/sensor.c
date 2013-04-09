@@ -247,12 +247,12 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                 * the buffer ourselves based on the last sample in the delay
                 * effects buffer and the first new sample.
                 */
-               if (frames < nframes)
+               if (frames > nframes)
                {
                   *(optr-1) = (*(optr-2)*2 + *(optr+1))/3;
                   *optr     = (*(optr-2) + *(optr+1)*2)/3;
                }
-               else if (frames > nframes) {
+               else {
                   *optr = (*(optr-1) + *(optr+1))/2;
                }
             }

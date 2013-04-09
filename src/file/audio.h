@@ -26,8 +26,8 @@ extern "C" {
 // TODO: Needs fixing # define WINXP
 #endif
 
-#define _AAX_FILEDRVLOG(a)          _aaxFileDriverLog(a);
-char *_aaxFileDriverLog(const char *);
+#define _AAX_FILEDRVLOG(a)          _aaxFileDriverLog(NULL, 0, 0, a);
+_aaxDriverLog _aaxFileDriverLog;
 
 
 enum wavFormat

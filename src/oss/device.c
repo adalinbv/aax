@@ -62,7 +62,7 @@
 #define DEFAULT_RENDERER	"OSS"
 #define OSS_VERSION_4		0x040002
 
-#define _AAX_DRVLOG(a)		_aaxOSSDriverLog(a)
+#define _AAX_DRVLOG(a)         _aaxOSSDriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && (a->volumeInit >= 0))
 
 static _aaxDriverDetect _aaxOSSDriverDetect;
@@ -973,7 +973,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static char *
-_aaxOSSDriverLog(const char *str)
+_aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
    int len = _MIN(strlen(str)+1, 256);

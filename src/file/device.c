@@ -772,7 +772,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 char *
-_aaxFileDriverLog(const char *str)
+_aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
    int len = _MIN(strlen(str)+1, 256);

@@ -20,6 +20,89 @@ extern "C" {
 #include "config.h"
 #endif
 
+enum _wasapi_log
+{
+   WASAPI_VARLOG = -1,
+   WASAPI_NO_ERROR = 0,
+
+   WASAPI_UNSUPPORTED_NO_PERIODS,
+   WASAPI_UNSUPPORTED_BUFFER_SIZE,
+   WASAPI_UNSUPPORTED_FREQUENCY,
+   WASAPI_UNSUPPORTED_NO_TRACKS,
+   WASAPI_UNSUPPORTED_FORMAT,
+   WASAPI_UNSUPPORTED_BPS,
+
+   WASAPI_EXCLUSIVE_MODE_FAILED,
+   WASAPI_EVENT_MODE_FAILED,
+   WASAPI_EVENT_CREATION_FAILED,
+   WASAPI_EVENT_SETUP_FAILED,
+   WASAPI_TIMER_CREATION_FAILED,
+   WASAPI_EVENT_TIMEOUT,
+   WASAPI_WAIT_EVENT_FAILED,
+
+   WASAPI_CONNECTION_FAILED,
+   WASAPI_INITIALIZATION_FAILED,
+   WASAPI_STOP_FAILED,
+   WASAPI_RESUME_FAILED,
+
+   WASAPI_SET_BUFFER_SIZE_FAILED,
+   WASAPI_GET_AUDIO_FORMAT_FAILED,
+   WASAPI_GET_DEVICE_FORMAT_FAILED,
+   WASAPI_GET_MIXER_FORMAT_FAILED,
+   WASAPI_GET_PERIOD_SIZE_FAILED,
+   WASAPI_GET_BUFFER_FAILED,
+   WASAPI_RELEASE_BUFFER_FAILED,
+
+   WASAPI_CREATE_CAPTURE_THREAD_FAILED,
+   WASAPI_GET_AUDIO_SERVICE_FAILED,
+   WASAPI_DATA_DISCONTINUITY,
+   WASAPI_BUFFER_UNDERRUN,
+   WASAPI_BUFFER_OVERRUN,
+
+   WASAPI_UNCAUGHT_ERROR,
+   WASAPI_MAX_ERROR
+
+};
+
+static char *_wasapi_errors[WASAPI_MAX_ERROR] =
+{
+   "No Error",
+   "Unsupported no. periods",
+   "Unsupported buffer size",
+   "Invalid sample frequency",
+   "Unsupported no. tracks",
+   "Unsupported audio format",
+   "Unsupported bits per sample",
+
+   "Exclusive mode failed",
+   "Event mode failed",
+   "Event creation failed",
+   "Event Setup failed",
+   "Timer creation field",
+   "Event timeout",
+   "Wait event failed",
+
+   "Connection failed",
+   "Initialization failed",
+   "Failed to stop",
+   "Failed to resume",
+
+   "Unable to set the buffer size",
+   "Unable to get the audio format",
+   "Unable to het the device format",
+   "Unable to get the mixer format",
+   "Unable to get the period size",
+   "Unable to get the audio buffer",
+   "Unable to release the audio buffer",
+
+   "Capture thread creation failed",
+   "Failed to get the audio service",
+   "Data discontinuity",
+   "Buffer underrun",
+   "Buffer overrun",
+
+   "uncaught error"
+};
 
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>

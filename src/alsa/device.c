@@ -271,7 +271,7 @@ static int _xrun_recovery(snd_pcm_t *, int);
 static unsigned int get_devices_avail(int);
 static int detect_devnum(const char *, int);
 static char *detect_devname(const char*, int, unsigned int, int, char);
-static char *_aaxALSADriverLogVar(const char *, ...);
+static char *_aaxALSADriverLogVar(const void *, const char *, ...);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
 static int _alsa_set_volume(_driver_t*, const int32_t**, int, snd_pcm_sframes_t, unsigned int, float);
@@ -282,7 +282,7 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
-#define _AAX_DRVLOG(a)		_aaxALSADriverLog(a)
+#define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, 0, 0, a)
 
 static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
@@ -878,7 +878,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          if (channels != tracks)
          {
-            _aaxALSADriverLogVar("Unable to output to %i speakers"
+            _aaxALSADriverLogVar(id, "Unable to output to %i speakers"
                                  " (%i is the maximum)", tracks, channels);
          }
       }
@@ -1107,7 +1107,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    {
       if ((res = xrun_recovery(handle->pcm, res)) < 0)
       {
-         _aaxALSADriverLogVar("PCM avail error: %s\n", psnd_strerror(res));
+         _aaxALSADriverLogVar(id, "PCM avail error: %s\n", psnd_strerror(res));
          avail = -1;
        }
    }
@@ -1158,7 +1158,7 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
             {
                if ((res = xrun_recovery(handle->pcm, res)) < 0)
                {
-                  _aaxALSADriverLogVar("MMAP begin error: %s\n",
+                  _aaxALSADriverLogVar(id, "MMAP begin error: %s\n",
                                        psnd_strerror(res));
                   return 0;
                }
@@ -1531,7 +1531,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static char *
-_aaxALSADriverLogVar(const char *fmt, ...)
+_aaxALSADriverLogVar(const void *id, const char *fmt, ...)
 {
    char _errstr[1024];
    va_list ap;
@@ -1544,11 +1544,11 @@ _aaxALSADriverLogVar(const char *fmt, ...)
    _errstr[1023] = '\0';
    va_end(ap);
 
-   return _aaxALSADriverLog(_errstr);
+   return _aaxALSADriverLog(id, 0, -1, _errstr);
 }
 
 static char *
-_aaxALSADriverLog(const char *str)
+_aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
    int len = _MIN(strlen(str)+1, 256);
@@ -1590,6 +1590,7 @@ static void
 _alsa_error_handler(const char *file, int line, const char *function, int err,
                     const char *fmt, ...)
 {
+   const void *id = NULL;
    char s[1024];
    va_list ap;
 
@@ -2008,6 +2009,7 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
 static int
 _xrun_recovery(snd_pcm_t *handle, int err)
 {
+   const void *id = NULL;
    int res = psnd_pcm_recover(handle, err, 1);
 #if 0
    snd_output_t *output = NULL;
@@ -2467,6 +2469,7 @@ _aaxALSADriverThread(void* config)
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
+   const void *id;
    float delay_sec;
    int stdby_time;
    char state;
@@ -2479,6 +2482,8 @@ _aaxALSADriverThread(void* config)
    delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
+   id = handle->backend.handle;
+
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {

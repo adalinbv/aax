@@ -255,7 +255,7 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxNoneDriverLog(const char *str)
+_aaxNoneDriverLog(const void *id, int prio, int type, const char *str)
 {
    return NULL;
 }
@@ -360,7 +360,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxLoopbackDriverLog(const char *str)
+_aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
    int len = _MIN(strlen(str)+1, 256);

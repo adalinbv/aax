@@ -630,7 +630,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
 #ifndef THREADED_FRAMES
-               void *new_rb;
                float gain;
 #endif
 

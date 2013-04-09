@@ -59,7 +59,7 @@
 #define DEFAULT_DEVNAME		"Analog Out"
 #define DEFAULT_RENDERER	"DMedia"
 
-#define _AAX_DRVLOG(a)		_aaxDMediaDriverLog(a)
+#define _AAX_DRVLOG(a)		_aaxDMediaDriverLog(NULL, 0, 0, a)
 
 static _aaxDriverDetect _aaxDMediaDriverDetect;
 static _aaxDriverNewHandle _aaxDMediaDriverNewHandle;
@@ -937,7 +937,7 @@ _aaxDMediaDriverGetInterfaces(const void *id, const char*devname, int mode)
 }
 
 static char *
-_aaxDMediaDriverLog(const char *str)
+_aaxDMediaDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
    int len = _MIN(strlen(str)+1, 256);

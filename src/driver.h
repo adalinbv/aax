@@ -76,7 +76,7 @@ enum _aaxDriverState {
 
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);
 
-typedef char *_aaxDriverLog(const char *);
+typedef char *_aaxDriverLog(const void*, int, int, const char *);
 
 typedef int _aaxDriverDetect(int mode);
 typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
