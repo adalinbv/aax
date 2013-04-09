@@ -73,13 +73,27 @@ int msecSleep(unsigned int dt_ms)
    return (res != 0) ? -1 : 0;
 }
 
-int setTimerResolution(unsigned int dt_ms)
+unsigned int
+getTimerResolution()
 {
+   _aaxTimer* timer = _aaxTimerCreate();
+   double dt;
+
+   _aaxTimerStart(timer);
+   SleepEx(1, 0);
+   dt = _aaxTimerElapsed(timer);
+   _aaxTimerDestroy(timer);
+
+   return 1000*dt;
+}
+
+int
+setTimerResolution(unsigned int dt_ms) {
    return timeBeginPeriod(dt_ms);
 }
 
-int resetTimerResolution(unsigned int dt_ms)
-{
+int
+resetTimerResolution(unsigned int dt_ms) {
    return timeEndPeriod(dt_ms);
 }
 
@@ -177,12 +191,18 @@ int msecSleep(unsigned int dt_ms)
    return 0;
 }
 
-int setTimerResolution(unsigned int dt_ms)
-{
+unsigned int
+getTimerResolution() {
    return 0;
 }
 
-int resetTimerResolution(unsigned int dt_ms) {
+int
+setTimerResolution(unsigned int dt_ms) {
+   return 0;
+}
+
+int
+resetTimerResolution(unsigned int dt_ms) {
    return 0;
 }
 
