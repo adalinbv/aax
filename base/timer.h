@@ -31,7 +31,6 @@ extern "C" {
 
 #include "types.h"
 
-
 #if defined( WIN32 )
 
 # ifdef HAVE_TIME_H
@@ -83,6 +82,11 @@ typedef struct
    LARGE_INTEGER timerOverhead;
    LARGE_INTEGER prevTimerCount;
    LARGE_INTEGER timerCount;
+
+   /* repeatable */
+   HANDLE Event;	/* if Event != NULL the timer is repeatable */
+   LONG Period;
+
 } _aaxTimer;
 #else
 typedef struct
@@ -91,14 +95,27 @@ typedef struct
    struct timespec timerOverhead;
    struct timespec prevTimerCount;
    struct timespec timerCount;
+
+   /* repeatable */
+   void *condition;	/* if condition!= NULL the timer is repeatable */
+   struct timespec ts;
+   float elapsed;
+   float period;
+   float dt;
+
 } _aaxTimer;
 #endif
 
 _aaxTimer* _aaxTimerCreate();
-double _aaxTimerGetFrequency(_aaxTimer*);
-void _aaxTimerStart(_aaxTimer*);
-double _aaxTimerElapsed(_aaxTimer*);
 void _aaxTimerDestroy(_aaxTimer*);
+double _aaxTimerGetFrequency(_aaxTimer*);
+double _aaxTimerElapsed(_aaxTimer*);
+void _aaxTimerStart(_aaxTimer*);
+
+/* repeatable */
+int _aaxTimerStartRepeatable(_aaxTimer*, unsigned int);
+int _aaxTimerStop(_aaxTimer*);
+int _aaxTimerWait(_aaxTimer*, void*);
 
 /* end of highres timing code */
 

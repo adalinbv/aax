@@ -227,13 +227,9 @@ _aaxSoftwareMixerThread(void* config)
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
-   unsigned int bufsz;
-   struct timespec ts;
+   _aaxTimer *timer;
+   int state, tracks;
    float delay_sec;
-   float dt = 0.0;
-   float elapsed;
-   int state;
-   int tracks;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
@@ -280,62 +276,17 @@ _aaxSoftwareMixerThread(void* config)
    }
 
    /* get real duration, it might have been altered for better performance */
-   bufsz = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
    delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   elapsed = 0.0f;
+   timer = _aaxTimerCreate();
+   _aaxTimerStartRepeatable(timer, delay_sec*1000);
+
    _aaxMutexLock(handle->thread.mutex);
    do
    {
-      static int res = 0;
-      float time_fact = 1.0f -(float)res/(float)bufsz;
-#if 1
-      float delay = delay_sec*time_fact;
-
-      /* once per second when standby */
-//    if (_IS_STANDBY(handle)) delay = 1.0f;
-
-      elapsed -= delay;
-      if (elapsed <= 0.0f)
-      {
-         struct timeval now;
-         float fdt;
-
-         elapsed += 60.0f;               /* resync the time every 60 seconds */
-
-         dt = delay;
-         fdt = floorf(dt);
-
-         gettimeofday(&now, 0);
-         ts.tv_sec = now.tv_sec + (time_t)fdt;
-
-         dt -= fdt;
-         dt += now.tv_usec*1e-6f;
-         ts.tv_nsec = (long)(dt*1e9f);
-         if (ts.tv_nsec >= 1e9f)
-         {
-            ts.tv_sec++;
-            ts.tv_nsec -= 1000000000;
-         }
-      }
-      else
-      {
-         dt += delay;
-         if (dt >= 1.0f)
-         {
-            float fdt = floorf(dt);
-            ts.tv_sec += (time_t)fdt;
-            dt -= fdt;
-         }
-         ts.tv_nsec = (long)(dt*1e9f);
-      }
-#else
-      clock_gettime(CLOCK_REALTIME, &ts);
-#endif
-
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -352,10 +303,11 @@ _aaxSoftwareMixerThread(void* config)
       }
 
       /* do all the mixing */
-      res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
    }
-   while (_aaxConditionWaitTimed(handle->thread.condition, handle->thread.mutex, &ts) == ETIMEDOUT);
+   while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
 
+   _aaxTimerDestroy(timer);
    _aaxMutexUnLock(handle->thread.mutex);
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);

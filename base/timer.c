@@ -30,6 +30,8 @@
 #endif
 #include <errno.h>
 
+#include <aax/aax.h>
+#include <base/threads.h>
 #include "timer.h"
 
 
@@ -119,6 +121,9 @@ _aaxTimerCreate()
 
          rv->prevTimerCount.QuadPart = rv->timerCount.QuadPart;
          rv->tfreq = (double)timerFreq.QuadPart;
+
+         rv->Event = NULL;
+         rv->Period = 0;
       }
    }
    return rv;
@@ -149,7 +154,7 @@ _aaxTimerElapsed(_aaxTimer* tm)
 
       tm->prevTimerCount.QuadPart = tm->timerCount.QuadPart;
       tm->prevTimerCount.QuadPart += tm->timerOverhead.QuadPart;
-   
+
       threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
       QueryPerformanceCounter(&tm->timerCount);
       SetThreadAffinityMask(GetCurrentThread(), threadMask);
@@ -162,7 +167,86 @@ _aaxTimerElapsed(_aaxTimer* tm)
 void
 _aaxTimerDestroy(_aaxTimer* tm)
 {
+   _aaxTimerStop(tm);
    free(tm);
+}
+
+int
+_aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
+{
+   int rv = AAX_FALSE;
+   if (period > 0)
+   {
+      if (tm->Event == NULL) {
+         tm->Event = CreateWaitableTimer(NULL, FALSE, NULL);
+      }
+
+      if (tm->Event)
+      {
+         LARGE_INTEGER li;
+         HRESULT hr;
+
+         tm->Period = period;
+         li.QuadPart = -(LONGLONG)tm->Period;
+         hr = SetWaitableTimer(tm->Event, &li, tm->Period, NULL, NULL, FALSE);
+
+         if (hr)
+         {
+            setTimerResolution(1);
+            rv = AAX_TRUE;
+         }
+      }
+   }
+   else {
+      rv = _aaxTimerStop(tm);
+   }
+   return rv;
+}
+
+int
+_aaxTimerStop(_aaxTimer* tm)
+{
+   int rv = AAX_FALSE;
+   if (tm && tm->Event)
+   {
+      if ( CancelWaitableTimer(tm->Event))
+      {
+         resetTimerResolution(1);
+         tm->Event = NULL;
+         rv = AAX_TRUE;
+      }
+   }
+   return rv;
+}
+
+int
+_aaxTimerWait(_aaxTimer* tm, void* mutex)
+{
+   int rv = AAX_TRUE;
+
+   if (tm->Event)
+   {
+      DWORD hr;
+
+      _aaxMutexUnLock(mutex);
+      hr = WaitForSingleObject(tm->Event, 4*tm->Period);
+      _aaxMutexLock(mutex);
+
+      switch(hr)
+      {
+      case WAIT_TIMEOUT:
+         rv = AAX_TIMEOUT;
+         break;
+      case WAIT_OBJECT_0:
+         rv = AAX_TRUE;
+         break;
+      default:
+         rv = AAX_FALSE;
+         break;
+      }
+   }
+
+   return rv;
 }
 /* end of highres timing code */
 
@@ -257,6 +341,11 @@ _aaxTimerCreate()
             __aaxTimerSub(&rv->timerOverhead,
                            &rv->timerCount, &rv->prevTimerCount);
          }
+
+         rv->condition = NULL;
+         rv->elapsed = 0.0f;
+         rv->period = 0.0f;
+         rv->dt = 0.0f;
       }
       
       if (res == -1)
@@ -309,7 +398,118 @@ _aaxTimerElapsed(_aaxTimer *tm)
 void
 _aaxTimerDestroy(_aaxTimer *tm)
 {
+   if (tm && tm->condition) {
+      _aaxConditionDestroy(tm->condition);
+   }
    free(tm);
+}
+
+
+int
+_aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
+{
+   int rv = AAX_FALSE;
+   if (period > 0)
+   {
+      if (tm->condition == NULL) {
+         tm->condition = _aaxConditionCreate();
+      }
+
+      if (tm->condition)
+      {
+         struct timeval now;
+         float fdt;
+
+         tm->elapsed += 60.0f;		/* resync the time every 60 seconds */
+         tm->period = (float)period*1e-3;
+
+         tm->dt = tm->period;
+         fdt = floorf(tm->dt);
+
+         gettimeofday(&now, 0);
+         tm->ts.tv_sec = now.tv_sec + (time_t)fdt;
+
+         tm->dt -= fdt;
+         tm->dt += now.tv_usec*1e-6f;
+         tm->ts.tv_nsec = (long)(tm->dt*1e9f);
+         if (tm->ts.tv_nsec >= 1e9f)
+         {
+            tm->ts.tv_sec++;
+            tm->ts.tv_nsec -= 1000000000;
+         }
+
+         rv = AAX_TRUE;
+      }
+   }
+   else {
+      rv = _aaxTimerStop(tm);
+   }
+   return rv;
+}
+
+int
+_aaxTimerStop(_aaxTimer* tm) {
+   return AAX_TRUE;
+}
+
+int
+_aaxTimerWait(_aaxTimer* tm, void* mutex)
+{
+   int rv = AAX_TRUE;
+
+   if (tm->condition)
+   {
+      int res = _aaxConditionWaitTimed(tm->condition, mutex, &tm->ts);
+      switch(res)
+      {
+      case ETIMEDOUT:
+         rv = AAX_TIMEOUT;
+         break;
+      case 0:
+         rv = AAX_TRUE;
+         break;
+      default:
+         rv = AAX_FALSE;
+         break;
+      }
+
+      tm->elapsed -= tm->period;
+      if (tm->elapsed <= 0.0f)
+      {
+         struct timeval now;
+         float fdt;
+
+         tm->elapsed += 60.0f;		/* resync the time every 60 seconds */
+
+         tm->dt = tm->period;
+         fdt = floorf(tm->dt);
+
+         gettimeofday(&now, 0);
+         tm->ts.tv_sec = now.tv_sec + (time_t)fdt;
+
+         tm->dt -= fdt;
+         tm->dt += now.tv_usec*1e-6f;
+         tm->ts.tv_nsec = (long)(tm->dt*1e9f);
+         if (tm->ts.tv_nsec >= 1e9f)
+         {
+            tm->ts.tv_sec++;
+            tm->ts.tv_nsec -= 1000000000;
+         }
+      }
+      else
+      {
+         tm->dt += tm->period;
+         if (tm->dt >= 1.0f)
+         {
+            float fdt = floorf(tm->dt);
+            tm->ts.tv_sec += (time_t)fdt;
+            tm->dt -= fdt;
+         }
+         tm->ts.tv_nsec = (long)(tm->dt*1e9f);
+      }
+   }
+
+   return rv;
 }
 /* end of highres timing code */
 

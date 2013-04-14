@@ -534,11 +534,9 @@ _aaxNoneDriverThread(void* config)
    _intBufferData *dptr_sensor;
    _oalRingBuffer *dest_rb;
    _aaxAudioFrame* mixer;
+   _aaxTimer *timer;
    _sensor_t* sensor;
-   struct timespec ts;
    float delay_sec;
-   float elapsed;
-   float dt = 0.0f;
 
 
    if (!handle || !handle->sensors || !handle->backend.ptr
@@ -567,51 +565,12 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   elapsed = 0.0f;
+   timer = _aaxTimerCreate();
+   _aaxTimerStartRepeatable(timer, delay_sec*1000);
+
    _aaxMutexLock(handle->thread.mutex);
    do
    {
-#if 1
-      float delay = delay_sec;
-
-      elapsed -= delay;
-      if (elapsed <= 0.0f)
-      {
-         struct timeval now;
-         float fdt;
-
-         elapsed += 10.0f;               /* resync the time every 10 seconds */
-
-         dt = delay;
-         fdt = floorf(dt);
-
-         gettimeofday(&now, 0);
-         ts.tv_sec = (time_t)(now.tv_sec + fdt);
-
-         dt -= fdt;
-         dt += now.tv_usec*1e-6f;
-         ts.tv_nsec = (long)(dt*1e9f);
-         if (ts.tv_nsec >= 1e9f)
-         {
-            ts.tv_sec++;
-            ts.tv_nsec -= 1000000000;
-         }
-      }
-      else
-      {
-         dt += delay;
-         if (dt >= 1.0f)
-         {
-            float fdt = floorf(dt);
-            ts.tv_sec += (time_t)fdt;
-            dt -= fdt;
-         }
-         ts.tv_nsec = (long)(dt*1e9f);
-      }
-#else
-      clock_gettime(CLOCK_REALTIME, &ts);
-#endif
-
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -626,8 +585,9 @@ _aaxNoneDriverThread(void* config)
          }
       }
    }
-   while (_aaxConditionWaitTimed(handle->thread.condition, handle->thread.mutex, &ts) == ETIMEDOUT);
+   while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
 
+   _aaxTimerDestroy(timer);
    _aaxMutexUnLock(handle->thread.mutex);
    _oalRingBufferDelete(dest_rb);
 

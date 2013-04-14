@@ -33,10 +33,9 @@ _aaxAudioFrameThread(void* config)
    _aaxAudioFrame *smixer, *fmixer, *mixer;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
+   _aaxTimer *timer;
    _handle_t* handle;
    unsigned int pos;
-   struct timespec ts;
-   float dt, elapsed;
    float delay_sec;
    int res = 0;
 
@@ -112,52 +111,12 @@ _aaxAudioFrameThread(void* config)
    dest_rb = frame->ringbuffer;
    delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
-   dt = 0.0f;
-   elapsed = 0.0f;
+   timer = _aaxTimerCreate();
+   _aaxTimerStartRepeatable(timer, delay_sec*1000);
+
    _aaxMutexLock(frame->thread.mutex);
    do
    {
-      float delay = delay_sec;                  /* twice as slow when standby */
-#if USE_CONDITION
-      delay *= 2;
-#endif
-
-//    if (_IS_STANDBY(frame)) delay *= 2;
-      elapsed -= delay;
-      if (elapsed <= 0.0f)
-      {
-         struct timeval now;
-         float fdt;
-         elapsed += 60.0f;               /* resync the time every 60 seconds */
-
-         dt = delay;
-         fdt = floorf(dt);
-
-         gettimeofday(&now, 0);
-         ts.tv_sec = now.tv_sec + (time_t)fdt;
-
-         dt -= fdt;
-         dt *= 1000000.0f;	/* to usec */
-         dt += now.tv_usec;
-         ts.tv_nsec = (long)rintf(dt*1000.0f);
-      }
-      else
-      {
-         dt += delay;
-         if (dt >= 1.0f)
-         {
-            float fdt = floorf(dt);
-            ts.tv_sec += (time_t)fdt;
-            dt -= fdt;
-         }
-         ts.tv_nsec = (long)rintf(dt*1e9f);
-      }
-      if (ts.tv_nsec >= 1000000000L)
-      {
-         ts.tv_sec++;
-         ts.tv_nsec -= 1000000000L;
-      }
-
       if TEST_FOR_FALSE(frame->thread.started) {
          break;
       }
@@ -188,17 +147,16 @@ _aaxAudioFrameThread(void* config)
        * _aaxSoftwareMixerSignalFrames uses _aaxConditionSignal to let the
        * frame procede in advance, before the main thread starts mixing so
        * threads will be finished soon after the main thread.
-       * As a result _aaxConditionWaitTimed may return 0 instead, which is
+       * As a result _aaxTimerWait may return AAX_TRUE instead, which is
        * not a problem since earlier in the loop there is a test to see if
        * the thread really is finished and then breaks the loop.
        *
        * Note: the thread will not be signaled to start mixing if there's
        *       already a buffer in it's buffer queue.
        */
-      res = _aaxConditionWaitTimed(frame->thread.condition,
-                                   frame->thread.mutex, &ts);
+      res = _aaxTimerWait(timer, frame->thread.mutex);
    }
-   while ((res == ETIMEDOUT) || (res == 0));
+   while ((res == AAX_TIMEOUT) || (res == AAX_TRUE));
 
    _aaxMutexUnLock(frame->thread.mutex);
    _oalRingBufferStop(frame->ringbuffer);
