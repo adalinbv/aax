@@ -282,7 +282,7 @@ _aaxSoftwareMixerThread(void* config)
    state = AAX_SUSPENDED;
 
    timer = _aaxTimerCreate();
-   _aaxTimerStartRepeatable(timer, delay_sec*1000);
+   _aaxTimerStartRepeatable(timer, delay_sec);
 
    _aaxMutexLock(handle->thread.mutex);
    do

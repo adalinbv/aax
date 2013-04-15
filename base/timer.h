@@ -99,7 +99,7 @@ typedef struct
    /* repeatable */
    void *condition;	/* if condition!= NULL the timer is repeatable */
    struct timespec ts;
-   float elapsed;
+   float remain;
    float period;
    float dt;
 
@@ -113,7 +113,7 @@ double _aaxTimerElapsed(_aaxTimer*);
 void _aaxTimerStart(_aaxTimer*);
 
 /* repeatable */
-int _aaxTimerStartRepeatable(_aaxTimer*, unsigned int);
+int _aaxTimerStartRepeatable(_aaxTimer*, float);
 int _aaxTimerStop(_aaxTimer*);
 int _aaxTimerWait(_aaxTimer*, void*);
 

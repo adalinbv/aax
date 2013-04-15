@@ -29,6 +29,7 @@
 # include <sys/time.h>         /* for struct timeval */
 #endif
 #include <errno.h>
+#include <math.h>
 
 #include <aax/aax.h>
 #include <base/threads.h>
@@ -172,10 +173,10 @@ _aaxTimerDestroy(_aaxTimer* tm)
 }
 
 int
-_aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
+_aaxTimrStartRepeatable(_aaxTimer* tm, float sec)
 {
    int rv = AAX_FALSE;
-   if (period > 0)
+   if (period > 1e-6f)
    {
       if (tm->Event == NULL) {
          tm->Event = CreateWaitableTimer(NULL, FALSE, NULL);
@@ -186,8 +187,8 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
          LARGE_INTEGER li;
          HRESULT hr;
 
-         tm->Period = period;
-         li.QuadPart = -(LONGLONG)tm->Period;
+         tm->Period = (LONG)(sec*1000);
+         li.QuadPart = -(LONGLONG)(sec*10000*1000);
          hr = SetWaitableTimer(tm->Event, &li, tm->Period, NULL, NULL, FALSE);
 
          if (hr)
@@ -229,15 +230,16 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
       DWORD hr;
 
       _aaxMutexUnLock(mutex);
-      hr = WaitForSingleObject(tm->Event, 4*tm->Period);
+      hr = WaitForSingleObject(tm->Event, tm->Period);
       _aaxMutexLock(mutex);
 
       switch(hr)
       {
       case WAIT_TIMEOUT:
+      case WAIT_OBJECT_0:
          rv = AAX_TIMEOUT;
          break;
-      case WAIT_OBJECT_0:
+      case WAIT_ABANDONED:
          rv = AAX_TRUE;
          break;
       default:
@@ -343,7 +345,7 @@ _aaxTimerCreate()
          }
 
          rv->condition = NULL;
-         rv->elapsed = 0.0f;
+         rv->remain = 0.0f;
          rv->period = 0.0f;
          rv->dt = 0.0f;
       }
@@ -406,10 +408,10 @@ _aaxTimerDestroy(_aaxTimer *tm)
 
 
 int
-_aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
+_aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
    int rv = AAX_FALSE;
-   if (period > 0)
+   if (sec > 1e-6f)
    {
       if (tm->condition == NULL) {
          tm->condition = _aaxConditionCreate();
@@ -420,9 +422,9 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
          struct timeval now;
          float fdt;
 
-         tm->elapsed += 60.0f;		/* resync the time every 60 seconds */
-         tm->period = (float)period*1e-3;
+         tm->period = sec;
 
+         tm->remain = 60.0f;
          tm->dt = tm->period;
          fdt = floorf(tm->dt);
 
@@ -431,11 +433,12 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, unsigned int period)
 
          tm->dt -= fdt;
          tm->dt += now.tv_usec*1e-6f;
-         tm->ts.tv_nsec = (long)(tm->dt*1e9f);
-         if (tm->ts.tv_nsec >= 1e9f)
+         tm->ts.tv_nsec = (long)rintf(tm->dt*1000000000L);
+
+         if (tm->ts.tv_nsec >= 1000000000L)
          {
             tm->ts.tv_sec++;
-            tm->ts.tv_nsec -= 1000000000;
+            tm->ts.tv_nsec -= 1000000000L;
          }
 
          rv = AAX_TRUE;
@@ -473,13 +476,13 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
          break;
       }
 
-      tm->elapsed -= tm->period;
-      if (tm->elapsed <= 0.0f)
+      tm->remain -= tm->period;
+      if (tm->remain <= 0.0f)
       {
          struct timeval now;
          float fdt;
 
-         tm->elapsed += 60.0f;		/* resync the time every 60 seconds */
+         tm->remain += 60.0f;	/* resync the time every 60 seconds */
 
          tm->dt = tm->period;
          fdt = floorf(tm->dt);
@@ -489,12 +492,7 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 
          tm->dt -= fdt;
          tm->dt += now.tv_usec*1e-6f;
-         tm->ts.tv_nsec = (long)(tm->dt*1e9f);
-         if (tm->ts.tv_nsec >= 1e9f)
-         {
-            tm->ts.tv_sec++;
-            tm->ts.tv_nsec -= 1000000000;
-         }
+         tm->ts.tv_nsec = (long)rintf(tm->dt*1000000000L);
       }
       else
       {
@@ -506,6 +504,12 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
             tm->dt -= fdt;
          }
          tm->ts.tv_nsec = (long)(tm->dt*1e9f);
+      }
+
+      if (tm->ts.tv_nsec >= 1000000000L)
+      {
+         tm->ts.tv_sec++;
+         tm->ts.tv_nsec -= 1000000000L;
       }
    }
 

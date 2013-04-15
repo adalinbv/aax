@@ -1163,6 +1163,7 @@ _aaxMixerStart(_handle_t *handle)
 
    if (handle && TEST_FOR_FALSE(handle->thread.started))
    {
+      unsigned int ms;
       int r;
 
 #if SET_PROCESS_PRIORITY
@@ -1182,7 +1183,9 @@ _aaxMixerStart(_handle_t *handle)
       assert(handle->thread.mutex != 0);
 
       handle->thread.started = AAX_TRUE;
-      r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread, handle);
+      ms = rintf(1000/handle->info->refresh_rate);
+      r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread,
+                          handle, ms);
       if (r == 0)
       {
          int p = 0;

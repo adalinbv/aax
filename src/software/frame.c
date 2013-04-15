@@ -112,7 +112,7 @@ _aaxAudioFrameThread(void* config)
    delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    timer = _aaxTimerCreate();
-   _aaxTimerStartRepeatable(timer, delay_sec*1000);
+   _aaxTimerStartRepeatable(timer, delay_sec);
 
    _aaxMutexLock(frame->thread.mutex);
    do

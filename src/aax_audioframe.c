@@ -1198,6 +1198,7 @@ _aaxAudioFrameStart(_frame_t *frame)
    {
       if  (frame->submix->thread)
       {							// REGISTERED_FRAME;
+         unsigned int ms;
          int r;
 
          frame->thread.ptr = _aaxThreadCreate();
@@ -1210,7 +1211,8 @@ _aaxAudioFrameStart(_frame_t *frame)
          assert(frame->thread.mutex != 0);
 
          frame->thread.started = AAX_TRUE;
-         r = _aaxThreadStart(frame->thread.ptr, _aaxAudioFrameThread, frame);
+         ms = rintf(1000/frame->submix->info->refresh_rate);
+         r =_aaxThreadStart(frame->thread.ptr, _aaxAudioFrameThread, frame, ms);
          if (r == 0)
          {
             int p = 0;

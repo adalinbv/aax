@@ -38,9 +38,23 @@ extern "C" {
 #elif defined( WIN32 )
 # include <Windows.h>			/* WINDOWS */
 
+ typedef enum
+ {
+    AVRT_PRIORITY_LOW = -1,
+    AVRT_PRIORITY_NORMAL,
+    AVRT_PRIORITY_HIGH,
+    AVRT_PRIORITY_CRITICAL
+ } AVRT_PRIORITY;
+
+ typedef HANDLE (WINAPI *AvSetMmThreadCharacteristicsA_proc)(LPCTSTR, LPDWORD);
+ typedef BOOL   (WINAPI *AvRevertMmThreadCharacteristics_proc)(HANDLE);
+ typedef BOOL   (WINAPI *AvSetMmThreadPriority_proc)(HANDLE, AVRT_PRIORITY);
+
  typedef struct _aaxThread 
  {
    HANDLE handle;
+   HANDLE task;
+   LONG ms;
 
    void *(*callback_fn)(void*);
    void *callback_data;
@@ -58,13 +72,17 @@ extern "C" {
 #endif
  } _aaxMutex;
 
+ AvSetMmThreadCharacteristicsA_proc pAvSetMmThreadCharacteristicsA;
+ AvRevertMmThreadCharacteristics_proc pAvRevertMmThreadCharacteristics;
+ AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
+
 #endif
 
 
 void *_aaxThreadCreate();
 int _aaxThreadSetAffinity(void *, int);
 void _aaxThreadDestroy(void *);
-int _aaxThreadStart(void *,  void *(*handler)(void*), void *);
+int _aaxThreadStart(void *,  void *(*handler)(void*), void*, unsigned int);
 // int _aaxThreadCancel(void *);
 int _aaxThreadJoin(void *);
 

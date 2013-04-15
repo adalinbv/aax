@@ -20,7 +20,6 @@
 #include "logging.h"
 #include "types.h"
 
-#define REALTIME_PRIORITY	0
 #define DEBUG_TIMEOUT		3
 static char __threads_enabled = 0;
 
@@ -67,7 +66,7 @@ _aaxThreadDestroy(void *t)
 }
 
 int
-_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
+_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
 {
    struct sched_param sched_param;
    pthread_attr_t attr;
@@ -77,11 +76,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
    assert(handler != 0);
 
    pthread_attr_init(&attr);
-#if REALTIME_PRIORITY
-   sched_param.sched_priority = sched_get_priority_min(SCHED_RR);
-#else
    sched_param.sched_priority = 0;
-#endif
    pthread_attr_setschedparam(&attr, &sched_param);
 
    ret = pthread_create(t, &attr, handler, arg);
@@ -90,12 +85,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
       int rv;
       pthread_t *id = t;
 
-#if REALTIME_PRIORITY
-      rv = pthread_setschedparam(*id, SCHED_RR, &sched_param);
-#else
       rv = pthread_setschedparam(*id, SCHED_OTHER, &sched_param);
-#endif
-
       if (rv != 0) {
          _TH_SYSLOG("no thread scheduling privilege");
       } else {
@@ -394,16 +384,33 @@ _aaxConditionSignal(void *c)
 }
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
+
+#include <base/dlsym.h> 
 							/* --- WINDOWS --- */
 #define _TH_SYSLOG(a)
 
 /* http://www.slideshare.net/abufayez/pthreads-vs-win32-threads */
 /* http://www.ibm.com/developerworks/linux/library/l-ipc2lin3/index.html */
 
+DECL_FUNCTION(AvSetMmThreadCharacteristicsA);
+DECL_FUNCTION(AvRevertMmThreadCharacteristics);
+DECL_FUNCTION(AvSetMmThreadPriority);
+
 void *
 _aaxThreadCreate()
 {
    void *ret  = calloc(1, sizeof(_aaxThread));
+
+   if (!pAvSetMmThreadCharacteristicsA)
+   {
+      void *audio = _oalIsLibraryPresent("avrt", 0);
+      if (audio)
+      {
+         TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
+         TIE_FUNCTION(AvRevertMmThreadCharacteristics);
+         TIE_FUNCTION(AvSetMmThreadPriority);
+      }
+   }
 
    return ret;
 }
@@ -425,6 +432,14 @@ _aaxThreadDestroy(void *t)
 
    assert(t);
 
+   if (thread->task)
+   {
+      if (pAvRevertMmThreadCharacteristics) {
+         pAvRevertMmThreadCharacteristics(thread->task);
+      }
+      thread->task = 0;
+   }
+
    if (thread->handle)
    {
       CloseHandle(thread->handle);
@@ -438,16 +453,32 @@ static DWORD WINAPI
 _callback_handler(LPVOID t)
 { 
    _aaxThread *thread = t;
+
+   if (pAvSetMmThreadCharacteristicsA)
+   {
+      DWORD tIdx = 0;
+      if (thread->ms >= 10) {
+         thread->task = pAvSetMmThreadCharacteristicsA("Audio", &tIdx);
+      } else {
+         thread->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
+      }
+//    if (thread->task && pAvSetMmThreadPriority) {
+//       pAvSetMmThreadPriority(thread->task, AVRT_PRIORITY_HIGH);
+//    }
+   }
+
    thread->callback_fn(thread->callback_data);
+
    return 0;
 }
 
 int
-_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
+_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
 {
    _aaxThread *thread = t;
    int rv = -1;
 
+   thread->ms = ms;
    thread->callback_fn = handler;
    thread->callback_data = arg;
    thread->handle = CreateThread(NULL, 0, _callback_handler, t, 0, NULL);
@@ -456,18 +487,6 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg)
       __threads_enabled = 1;
      rv = 0;
    }
-
-#if REALTIME_PRIORITY
-   // REALTIME_PRIORITY_CLASS or HIGH_PRIORITY_CLASS
-   // Process that has the highest possible priority. The threads of the
-   // process preempt the threads of all other processes, including operating
-   // system processes performing important tasks. For example, a real-time
-   // process that executes for more than a very brief interval can cause disk
-   // caches not to flush or cause the mouse to be unresponsive.
-   SetThreadPriority(thread->handle, THREAD_PRIORITY_TIME_CRITICAL);
-#else
-   SetThreadPriority(thread->handle, THREAD_PRIORITY_NORMAL);
-#endif
 
    return rv;
 }

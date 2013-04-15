@@ -460,6 +460,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
 
             if (be->thread)
             {
+               unsigned int ms;
                int r;
 
                handle->thread.ptr = _aaxThreadCreate();
@@ -472,11 +473,13 @@ _aaxSensorCaptureStart(_handle_t *handle)
                assert(handle->thread.mutex != 0);
 
                handle->thread.started = AAX_TRUE;
+               ms = rintf(1000/handle->info->refresh_rate);
 #if 0
                r = _aaxThreadStart(handle->thread.ptr,
-                                   handle->backend.ptr->thread, handle);
+                                   handle->backend.ptr->thread, handle, ms);
 #else
-               r = _aaxThreadStart(handle->thread.ptr, _aaxSoftwareMixerThread, handle);
+               r = _aaxThreadStart(handle->thread.ptr, _aaxSoftwareMixerThread,
+                                    handle, ms);
 #endif
                if (r == 0)
                {

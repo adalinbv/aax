@@ -16,6 +16,7 @@
  * 1 round buffer size in ms up/down (5.33ms becomes 4ms/6ms)
  * 2 thread priority (in ../api.h and ../aax_mixer.c)
  * 3 threshold value (3*bufsz/2 or 5*bufsz/4)
+ *   (these are set at _aaxThreadStart, or by our own)
  */
 
 #if HAVE_CONFIG_H
@@ -259,22 +260,6 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pIAudioCaptureClient_GetBuffer IAudioCaptureClient_GetBuffer
 # define pIAudioCaptureClient_ReleaseBuffer IAudioCaptureClient_ReleaseBuffer
 # define pIAudioCaptureClient_GetNextPacketSize IAudioCaptureClient_GetNextPacketSize
-
-typedef enum 
-{
-   AVRT_PRIORITY_LOW = -1,
-   AVRT_PRIORITY_NORMAL,
-   AVRT_PRIORITY_HIGH,
-   AVRT_PRIORITY_CRITICAL
-} AVRT_PRIORITY;
-
-typedef HANDLE (WINAPI *AvSetMmThreadCharacteristicsA_proc)(LPCTSTR, LPDWORD);
-typedef BOOL   (WINAPI *AvRevertMmThreadCharacteristics_proc)(HANDLE);
-typedef BOOL   (WINAPI *AvSetMmThreadPriority_proc)(HANDLE, AVRT_PRIORITY);
-
-DECL_FUNCTION(AvSetMmThreadCharacteristicsA);
-DECL_FUNCTION(AvRevertMmThreadCharacteristics);
-DECL_FUNCTION(AvSetMmThreadPriority);
 
 static const char* aaxNametoMMDevciceName(const char*);
 static char* _aaxMMDeviceNameToName(char *);
@@ -658,6 +643,8 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    if (frames && *frames) {
       sample_frames = *frames;
    }
+
+_AAX_DRVLOG_VAR("no. frames request: %i", sample_frames);
 
    /*
     * Adjust the number of samples to let the refresh rate be an
@@ -1913,7 +1900,6 @@ _aaxCaptureThreadStop(_driver_t *id)
 static DWORD
 _aaxWASAPIDriverCaptureThread(LPVOID id)
 {
-   static void *audio = NULL;
    _driver_t *handle = (_driver_t*)id;
    unsigned int stdby_time;
    int co_init;
@@ -1928,22 +1914,8 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
    }
    if (FAILED(hr)) return -1;
 
-   if (!audio) {
-      audio = _oalIsLibraryPresent("avrt", 0);
-   }
-   if (audio)
-   {
-      TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
-      TIE_FUNCTION(AvRevertMmThreadCharacteristics);
-      TIE_FUNCTION(AvSetMmThreadPriority);
-      if (pAvSetMmThreadCharacteristicsA)
-      {
-         DWORD tIdx = 0;
-         handle->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
-         if (handle->task && pAvSetMmThreadPriority) {
-            pAvSetMmThreadPriority(handle->task, AVRT_PRIORITY_HIGH);
-         }
-      }
+   if (pAvSetMmThreadCharacteristicsA) {
+      handle->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
    }
 
    hr = S_OK;
@@ -2032,7 +2004,9 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
       handle->Event = NULL;
    }
 
-   pAvRevertMmThreadCharacteristics(handle->task);
+   if (pAvRevertMmThreadCharacteristics) {
+      pAvRevertMmThreadCharacteristics(handle->task);
+   }
    handle->task = 0;
 
    if (co_init) {
@@ -2319,7 +2293,6 @@ ExitNameId:
 void *
 _aaxWASAPIDriverThread(void* config)
 {
-   static void *audio = NULL;
    _handle_t *handle = (_handle_t *)config;
 #if ENABLE_TIMING
    _aaxTimer *timer = _aaxTimerCreate();
@@ -2380,27 +2353,6 @@ _aaxWASAPIDriverThread(void* config)
 
    _aaxMutexLock(handle->thread.mutex);
    stdby_time = (int)(4*delay_sec*1000);
-
-   if (!audio) {
-      audio = _oalIsLibraryPresent("avrt", 0);
-   }
-   if (audio)
-   {
-      TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
-      TIE_FUNCTION(AvRevertMmThreadCharacteristics);
-      TIE_FUNCTION(AvSetMmThreadPriority);
-      if (pAvSetMmThreadCharacteristicsA)
-      {
-         unsigned long res;
-         DWORD tIdx = 0;
-         be_handle->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
-         if (be_handle->task && pAvSetMmThreadPriority) {
-            pAvSetMmThreadPriority(be_handle->task, AVRT_PRIORITY_HIGH);
-         }
-         res = getTimerResolution();
-         _AAX_DRVLOG_VAR("Initial timer resolution: %ims", res);
-      }
-   }
 
    hr = S_OK;
    be_handle = (_driver_t *)handle->backend.handle;
@@ -2516,9 +2468,6 @@ _AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
    be_handle->Event = NULL;
    
    _aaxMutexUnLock(handle->thread.mutex);
-
-   pAvRevertMmThreadCharacteristics(be_handle->task);
-   be_handle->task = 0;
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
