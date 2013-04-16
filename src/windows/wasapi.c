@@ -644,8 +644,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       sample_frames = *frames;
    }
 
-_AAX_DRVLOG_VAR("no. frames request: %i", sample_frames);
-
    /*
     * Adjust the number of samples to let the refresh rate be an
     * exact and EVEN number of miliseconds (rounded downwards).

@@ -404,10 +404,23 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             no_frames |= 0xF;
             no_frames++;
          }
+
+         if (handle->mode != AAX_MODE_READ)
+         {
+            /*
+             * Make no_samples an exact and even number of milliseconds.
+             * This comes in handy because timer resolutions almost never
+             * are less than 1ms.
+             */
+            no_frames = 2 + ((1000*no_frames/freq) & 0xFFFFFFFE);
+            no_frames = no_frames*freq/1000;
+            no_frames++;
+         }
          *frames = no_frames;
 
          handle->latency = (float)no_frames / (float)handle->frequency;
          rv = AAX_TRUE;
+ 
       }
       else
       {

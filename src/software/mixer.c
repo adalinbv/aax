@@ -446,7 +446,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 #ifdef _WIN32
                   SwitchToThread();
 #else
-                  msecSleep(0);	 /* special case, see Sleep(0) for windows */
+                  msecSleep(1);	 /* special case, see Sleep(0) for windows */
 #endif
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
