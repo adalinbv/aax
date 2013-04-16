@@ -173,10 +173,10 @@ _aaxTimerDestroy(_aaxTimer* tm)
 }
 
 int
-_aaxTimrStartRepeatable(_aaxTimer* tm, float sec)
+_aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
    int rv = AAX_FALSE;
-   if (period > 1e-6f)
+   if (sec > 1e-6f)
    {
       if (tm->Event == NULL) {
          tm->Event = CreateWaitableTimer(NULL, FALSE, NULL);
@@ -184,13 +184,11 @@ _aaxTimrStartRepeatable(_aaxTimer* tm, float sec)
 
       if (tm->Event)
       {
-         LARGE_INTEGER li;
          HRESULT hr;
 
          tm->Period = (LONG)(sec*1000);
-         li.QuadPart = -(LONGLONG)(sec*10000*1000);
-         hr = SetWaitableTimer(tm->Event, &li, tm->Period, NULL, NULL, FALSE);
-
+         tm->dueTime.QuadPart = -(LONGLONG)(sec*10000*1000);
+         hr = SetWaitableTimer(tm->Event, &tm->dueTime, 0, NULL, NULL, FALSE);
          if (hr)
          {
             setTimerResolution(1);
@@ -231,6 +229,7 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 
       _aaxMutexUnLock(mutex);
       hr = WaitForSingleObject(tm->Event, tm->Period);
+      SetWaitableTimer(tm->Event, &tm->dueTime, 0, NULL, NULL, FALSE);
       _aaxMutexLock(mutex);
 
       switch(hr)
@@ -321,6 +320,12 @@ __aaxTimerAdd(struct timespec *tso,
    dt2 = floor(dt1);
    tso->tv_sec = dt2;
    tso->tv_nsec = rint((dt1-dt2)*1000000000.0);
+
+   if (tso->tv_nsec >= 1000000000L)
+   {
+      tso->tv_sec++;
+      tso->tv_nsec -= 1000000000L;
+   }
 }
 
 _aaxTimer*
@@ -345,9 +350,8 @@ _aaxTimerCreate()
          }
 
          rv->condition = NULL;
-         rv->remain = 0.0f;
-         rv->period = 0.0f;
-         rv->dt = 0.0f;
+         rv->timeStep.tv_nsec = 0;
+         rv->timeStep.tv_sec = 0;
       }
       
       if (res == -1)
@@ -419,22 +423,13 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 
       if (tm->condition)
       {
-         struct timeval now;
-         float fdt;
+         clock_gettime(CLOCK_REALTIME, &tm->ts);
 
-         tm->period = sec;
+         tm->timeStep.tv_sec = (time_t)floorf(sec);
+         tm->timeStep.tv_nsec = (long)(1e9f*sec - 1e9f*floorf(sec));
 
-         tm->remain = 60.0f;
-         tm->dt = tm->period;
-         fdt = floorf(tm->dt);
-
-         gettimeofday(&now, 0);
-         tm->ts.tv_sec = now.tv_sec + (time_t)fdt;
-
-         tm->dt -= fdt;
-         tm->dt += now.tv_usec*1e-6f;
-         tm->ts.tv_nsec = (long)rintf(tm->dt*1000000000L);
-
+         tm->ts.tv_sec += tm->timeStep.tv_sec;
+         tm->ts.tv_nsec += tm->timeStep.tv_nsec;
          if (tm->ts.tv_nsec >= 1000000000L)
          {
             tm->ts.tv_sec++;
@@ -476,36 +471,8 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
          break;
       }
 
-      tm->remain -= tm->period;
-      if (tm->remain <= 0.0f)
-      {
-         struct timeval now;
-         float fdt;
-
-         tm->remain += 60.0f;	/* resync the time every 60 seconds */
-
-         tm->dt = tm->period;
-         fdt = floorf(tm->dt);
-
-         gettimeofday(&now, 0);
-         tm->ts.tv_sec = now.tv_sec + (time_t)fdt;
-
-         tm->dt -= fdt;
-         tm->dt += now.tv_usec*1e-6f;
-         tm->ts.tv_nsec = (long)rintf(tm->dt*1000000000L);
-      }
-      else
-      {
-         tm->dt += tm->period;
-         if (tm->dt >= 1.0f)
-         {
-            float fdt = floorf(tm->dt);
-            tm->ts.tv_sec += (time_t)fdt;
-            tm->dt -= fdt;
-         }
-         tm->ts.tv_nsec = (long)(tm->dt*1e9f);
-      }
-
+      tm->ts.tv_sec += tm->timeStep.tv_sec;
+      tm->ts.tv_nsec += tm->timeStep.tv_nsec;
       if (tm->ts.tv_nsec >= 1000000000L)
       {
          tm->ts.tv_sec++;

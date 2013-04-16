@@ -85,6 +85,7 @@ typedef struct
 
    /* repeatable */
    HANDLE Event;	/* if Event != NULL the timer is repeatable */
+   LARGE_INTEGER dueTime;
    LONG Period;
 
 } _aaxTimer;
@@ -98,10 +99,8 @@ typedef struct
 
    /* repeatable */
    void *condition;	/* if condition!= NULL the timer is repeatable */
+   struct timespec timeStep;
    struct timespec ts;
-   float remain;
-   float period;
-   float dt;
 
 } _aaxTimer;
 #endif
