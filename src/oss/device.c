@@ -446,11 +446,14 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    }
    handle->bytes_sample = aaxGetBytesPerSample(*fmt);
 
-   no_samples = (unsigned int)ceilf(no_samples);
-   if (no_samples & 0xF)
+   if (handle->mode == O_WRONLY)
    {
-      no_samples |= 0xF;
-      no_samples++;
+      no_samples = (unsigned int)ceilf(no_samples);
+      if (no_samples & 0xF)
+      {
+         no_samples |= 0xF;
+         no_samples++;
+      }
    }
 
    frag = log2i(no_samples*channels*handle->bytes_sample);

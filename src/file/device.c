@@ -398,13 +398,6 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
          *speed = handle->frequency;
          *tracks = handle->no_channels;
 
-         no_frames = (unsigned int)ceilf(no_frames * pitch);
-         if (no_frames & 0xF)
-         {
-            no_frames |= 0xF;
-            no_frames++;
-         }
-
          if (handle->mode != AAX_MODE_READ)
          {
             /*
