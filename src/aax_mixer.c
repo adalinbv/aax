@@ -1128,7 +1128,12 @@ _aaxMixerInit(_handle_t *handle)
 
    assert(be != 0);
 
-   frames = (size_t)(freq/refrate);
+   frames = (size_t)rintf(freq/refrate);
+   if (frames & 0xF)
+   {
+      frames |= 0xF;
+      frames++;
+   }
 
    res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq);
    if TEST_FOR_TRUE(res)
@@ -1136,7 +1141,6 @@ _aaxMixerInit(_handle_t *handle)
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
       {
          handle->valid |= AAX_TRUE;
-//       info->pitch = freq/info->frequency;
          info->frequency = freq;
          info->no_tracks = ch;
          info->format = fmt;
@@ -1150,9 +1154,6 @@ _aaxMixerInit(_handle_t *handle)
          __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
       }
    }
-// else {
-//    __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
-///}
    return res;
 }
 

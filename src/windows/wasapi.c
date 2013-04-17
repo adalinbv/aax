@@ -644,14 +644,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       sample_frames = *frames;
    }
 
-   /*
-    * Adjust the number of samples to let the refresh rate be an
-    * exact and EVEN number of miliseconds (rounded downwards).
-    */
-   sample_frames = ((1000*sample_frames/(unsigned int)freq) & 0xFFFFFFFE);
-   sample_frames *= (unsigned int)freq/1000;
-   /* refresh rate adjustement */
-
    channels = *tracks;
    if (channels > handle->Fmt.Format.nChannels) {
       channels = handle->Fmt.Format.nChannels;
@@ -855,12 +847,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
        * Initialize method determines how large a buffer to allocate based
        * on the scheduling period of the audio engine.
        */
-      if ((handle->Mode == eRender) && (sample_frames & 0xF))
-      {
-         sample_frames |= 0xF;
-         sample_frames++;
-      }
-  
       stream = 0;
       hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f/freq*sample_frames);
       hnsPeriodicity = hnsBufferDuration;
@@ -1037,9 +1023,8 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          }
          else /* handle->Mode == eCapture */
          {
-            if (frames) *frames = periodFrameCnt;
-            handle->threshold = 5*periodFrameCnt/4;	/* same as ALSA */
-//          handle->threshold = 3*periodFrameCnt/2;
+//          if (frames) *frames = periodFrameCnt; /* accept what's requested */
+            handle->threshold = *frames*5/4;		/* same as ALSA */
             handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
 
             hr = pIAudioClient_GetService(handle->pAudioClient,

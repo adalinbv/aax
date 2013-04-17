@@ -120,7 +120,6 @@ typedef struct
     snd_pcm_t *pcm;
 
     float latency;
-    float pitch;       /* difference between requested freq and returned freq */
     float frequency_hz;
     float volumeCur;
 
@@ -889,10 +888,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       handle->hw_channels = channels;
       *tracks = channels;
 
-      handle->pitch = (float)rate;
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
-      handle->pitch = rate/handle->pitch;
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" );
@@ -908,15 +905,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       } else {
          no_frames = rate/25;
       }
-
-      bytes = (unsigned int)ceilf(no_frames*channels*bps*handle->pitch);
-      if (bytes & 0xF)
-      {
-         bytes |= 0xF;
-         bytes++;
-      }
-      if (bytes < 16) bytes = 16;
-      no_frames = bytes/(channels*bps);
 
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
