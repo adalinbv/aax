@@ -104,12 +104,13 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _oalRingBuffer *rb = (_oalRingBuffer*)d;
    _sensor_t *sensor = (_sensor_t*)s;
    _oalRingBufferReverbData *reverb;
-   unsigned int track, tracks;
+   unsigned int maxavg, maxpeak;
    unsigned int average, peak;
+   unsigned int track, tracks;
    _oalRingBufferSample *rbd;
    char parametric, graphic;
+   float dt, period, max;
    void *ptr = 0;
-   float dt;
    char *p;
 
    assert(rb != 0);
@@ -138,6 +139,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    }
 
    /* set up this way because we always need to apply compression */
+   maxavg = maxpeak = 0;
    tracks = rbd->no_tracks;
    for (track=0; track<tracks; track++)
    {
@@ -215,8 +217,27 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       _aaxProcessCompression(d1, &average, &peak);
       rb->average[track] = ((1.0f-dt)*rb->average[track] + dt*average);
       rb->peak[track] = peak; //((1.0f-dt)*rb->peak[track] + dt*peak);
+
+      if (maxavg < average) maxavg = average;
+      if (maxpeak < peak) maxpeak = peak;
    }
    free(ptr);
+
+   rb->average[_AAX_MAX_SPEAKERS] = maxavg;
+   rb->peak[_AAX_MAX_SPEAKERS] = maxpeak;
+
+   /** Automatic Gain Control */
+   max = 0.0f;
+   if (maxavg > 256) {
+      max = 0.707f*8388608.0f/maxavg;
+   }
+   if (max < rb->gain_agc) {
+      period = 0.1f;
+      rb->gain_agc = period*rb->gain_agc + (1.0f-period)*max;
+   } else {
+      period *= 0.75f;
+      rb->gain_agc = (1.0f-period)*rb->gain_agc + period*max;
+   }
 }
 
 void*

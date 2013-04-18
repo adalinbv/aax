@@ -355,12 +355,12 @@ typedef struct		/* playback related information about the sample*/
 {
     _oalRingBufferSample* sample;		/* shared, constat settings */
 
-    float peak[_AAX_MAX_SPEAKERS];		/* for the vu meter */
-    float average[_AAX_MAX_SPEAKERS];
+    float peak[_AAX_MAX_SPEAKERS+1];		/* for the vu meter */
+    float average[_AAX_MAX_SPEAKERS+1];
 
     float elapsed_sec;
     float pitch_norm;
-    float volume_norm;
+    float volume_norm, gain_agc;
     float volume_min, volume_max;
 
     float dde_sec;

@@ -72,6 +72,7 @@ _oalRingBufferCreate(float dde)
          rb->stopped = 1;
          rb->streaming = 0;
          rb->dde_sec = dde;
+         rb->gain_agc = 1.0f;
          rb->pitch_norm = 1.0f;
          rb->volume_min = 0.0f;
          rb->volume_max = 1.0f;
@@ -657,7 +658,6 @@ _oalRingBufferClear(_oalRingBuffer *rb)
 
    rb->elapsed_sec = 0.0f;
    rb->pitch_norm = 1.0f;
-   rb->volume_norm = 1.0f;
 
    rb->curr_pos_sec = 0.0f;
    rb->curr_sample = 0;
