@@ -109,8 +109,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    unsigned int track, tracks;
    _oalRingBufferSample *rbd;
    char parametric, graphic;
-   float dt, period, max;
    void *ptr = 0;
+   float dt;
    char *p;
 
    assert(rb != 0);
@@ -225,19 +225,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    rb->average[_AAX_MAX_SPEAKERS] = maxavg;
    rb->peak[_AAX_MAX_SPEAKERS] = maxpeak;
-
-   /** Automatic Gain Control */
-   max = 0.0f;
-   if (maxavg > 256) {
-      max = 0.707f*8388608.0f/maxavg;
-   }
-   if (max < rb->gain_agc) {
-      period = 0.1f;
-      rb->gain_agc = period*rb->gain_agc + (1.0f-period)*max;
-   } else {
-      period *= 0.75f;
-      rb->gain_agc = (1.0f-period)*rb->gain_agc + period*max;
-   }
 }
 
 void*

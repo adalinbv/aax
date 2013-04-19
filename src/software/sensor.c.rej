@@ -1,0 +1,61 @@
+--- src/software/sensor.c
++++ src/software/sensor.c
+@@ -93,8 +93,6 @@
+          if (sptr_rb)
+          {
+             _oalRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
+-            _oalRingBufferSample *drbd;
+-            unsigned int track, tracks;
+             unsigned int rv = 0;
+ 
+             do
+@@ -115,18 +113,9 @@
+                } else {
+                   p2d->final.gain_lfo = 1.0f;
+                }
+-               rv = be->mix2d(be_handle, dest_rb, ssr_rb,
+-                              smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
+-
+-               drbd = dest_rb->sample;
+-               tracks = drbd->no_tracks;
+-               for (track=0; track<tracks; track++)
+-               {
+-                  int32_t *dptr = drbd->track[track];
+-                  _batch_mul_value(dptr, sizeof(int32_t), drbd->no_samples,
+-                                   dest_rb->gain_agc);
+-               }
+ 
++               rv = be->mix2d(be_handle, dest_rb, ssr_rb, smixer->props2d,
++                              props2d, 1.0f, dest_rb->gain_agc, 0, 0);
+                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
+ 
+                if (rv) /* always streaming */
+@@ -195,17 +184,24 @@
+                         scratch[SCRATCH_BUFFER0]-ds, ds+frames);
+       if (res && nframes)
+       {
+-         unsigned int t, tracks;
++         unsigned int j, track, tracks;
++         unsigned int maxavg, maxpeak;
++         unsigned int average, peak;
+          _oalRingBuffer *nrb;
++         float dt, max;
++         int64_t sum;
+ 
+          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+          assert(nrb != 0);
+ 
++         maxavg = maxpeak = 0;
++         dt = _oalRingBufferGetDuration(dest_rb);
++
+          tracks = rbd->no_tracks;
+-         for (t=0; t<tracks; t++)
++         for (track=0; track<tracks; track++)
+          {
+-            int32_t *ptr = nrb->sample->track[t];
+-            int32_t *optr  = rbd->track[t];
++            int32_t *ptr = nrb->sample->track[track];
++            int32_t *optr  = rbd->track[track];
+ 
+             if (frames != nframes)
+             {

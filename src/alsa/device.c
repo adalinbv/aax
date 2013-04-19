@@ -1927,16 +1927,18 @@ static int
 _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float gain)
 {
    int rv = 0;
+
    if (handle && handle->mixer && !handle->shared)
    {
-      gain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
-
-      if (fabs(handle->volumeCur - gain) > 4e-3f)
+      if (handle->volumeMax || handle->volumeMin)
       {
+         long volume = gain*handle->volumeMax;
          snd_mixer_selem_id_t *sid = calloc(1,4096);
          snd_mixer_elem_t *elem;
 
-         handle->volumeCur = gain;
+         volume = _MINMAX(volume, handle->volumeMin, handle->volumeMax);
+         handle->volumeCur = volume;
+
          for (elem = psnd_mixer_first_elem(handle->mixer); elem;
               elem = psnd_mixer_elem_next(elem))
          {
@@ -1947,42 +1949,25 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
 
             if (handle->mode == AAX_MODE_READ)
             {
-               if (!strcmp(name, "Capture"))
-               {
-                  if (psnd_mixer_selem_has_capture_volume(elem)) {
-                     psnd_mixer_selem_set_capture_volume_all(elem,
-                                           handle->volumeMax*gain);
-                     gain = -1.0f;
-                  }
+               if (!strcmp(name, "Capture")) {
+                  psnd_mixer_selem_set_capture_volume_all(elem, volume);
                }
             }
-            else
-            {
-               if (!strcmp(name, "Front") || !strcmp(name, "Surround") ||
+            else if (!strcmp(name, "Front") || !strcmp(name, "Surround") ||
                    !strcmp(name, "Center") || !strcmp(name, "LFE") ||
                    !strcmp(name, "Side") || !strcmp(name, "Rear"))
-               {
-//
-// volume from 0 .. 100
-// snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-// snd_mixer_selem_set_playback_volume_all(elem, volume * max / 100);
-
-                  if (psnd_mixer_selem_has_playback_volume(elem)) {
-                     psnd_mixer_selem_set_playback_volume_all(elem,
-                                            handle->volumeMax*gain);
-                     gain = -1.0f;
-                  }
-               }
+            {
+               psnd_mixer_selem_set_playback_volume_all(elem, volume);
             }             
          }
          free(sid);
-      }
-      else {
-         gain = -1.0f;
+
+         rv = AAX_TRUE;
       }
    }
 
-   if (gain >= 0.0f)		/* software fallback */
+   /* software volume fallback */
+   if (!rv || (gain > 1.0f))
    {
       int t;
       for (t=0; t<no_tracks; t++) {
