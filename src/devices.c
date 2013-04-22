@@ -287,7 +287,7 @@ _aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxCo
       if (be)
       {
          config->node[0].devname = _aax_strdup(be->driver);
-         config->node[0].frequency = (float)be->rate;
+         config->node[0].frequency = 48000;
       }
       else
       {

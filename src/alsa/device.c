@@ -72,11 +72,6 @@ static _aaxDriverLog _aaxALSADriverLog;
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxALSADriverBackend =
 {
-   1.0,
-   AAX_PCM16S,
-   DEFAULT_OUTPUT_RATE,
-   2,
-
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
@@ -121,7 +116,6 @@ typedef struct
 
     float latency;
     float frequency_hz;
-    float volumeCur;
 
     float padding;		/* for sensor clock drift correction   */
     unsigned int threshold;	/* sensor buffer threshold for padding */
@@ -448,8 +442,8 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->interleaved = 0;
       handle->hw_channels = 2;
 
-      handle->frequency_hz = (float)_aaxALSADriverBackend.rate;
-      handle->no_channels = _aaxALSADriverBackend.tracks;
+      handle->frequency_hz = 48000.0f; 
+      handle->no_channels = 2;
       handle->bytes_sample = 2;
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
@@ -745,7 +739,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       snd_pcm_t *hid = handle->pcm;
       snd_pcm_format_t data_format;
       snd_pcm_uframes_t no_frames;
-      unsigned int bytes;
+//    unsigned int bytes;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
@@ -1029,14 +1023,13 @@ int
 _aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain;
+   float gain = 1.0f;
    int ret;
 
    assert(s);
    assert(d);
    assert(p);
 
-   gain = _aaxALSADriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
@@ -1177,15 +1170,13 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
 
                if (res > 0)
                {
-                  unsigned char *s;
-                  s = (((unsigned char *)area[0].addr) + (area[0].first/8));
-                  s += mmap_offs*handle->bytes_sample;
-                  handle->cvt_from(sbuf[0]+offs, s, res);
-                  if (tracks == 2)
+                  unsigned int t;
+                  for (t=0; t<tracks; t++)
                   {
-                     s = (((unsigned char *)area[1].addr) + (area[1].first/8));
+                     unsigned char *s;
+                     s = (((unsigned char *)area[t].addr) + (area[t].first/8));
                      s += mmap_offs*handle->bytes_sample;
-                     handle->cvt_from(sbuf[1]+offs, s, res);
+                     handle->cvt_from(sbuf[t]+offs, s, res);
                   }
                }
             }
@@ -1224,11 +1215,6 @@ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
          }
 
          _alsa_set_volume(handle, (const int32_t**)sbuf, offs, res, tracks, gain);
-
-         if (tracks == 1) {	// copy the left channel to the right channel
-            _aax_memcpy(sbuf[1]+offs, sbuf[0]+offs,
-                        res*sizeof(int32_t));
-         }
 
          if (res < 0)
          {
@@ -1937,8 +1923,6 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
          snd_mixer_elem_t *elem;
 
          volume = _MINMAX(volume, handle->volumeMin, handle->volumeMax);
-         handle->volumeCur = volume;
-
          for (elem = psnd_mixer_first_elem(handle->mixer); elem;
               elem = psnd_mixer_elem_next(elem))
          {
@@ -1967,7 +1951,7 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
    }
 
    /* software volume fallback */
-   if (!rv || (gain > 1.0f))
+   if (gain > 1.0f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {

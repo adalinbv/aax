@@ -61,11 +61,6 @@ static _aaxDriverParam _aaxFileDriverParam;
 char _file_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
 {
-   1.0,
-   AAX_PCM16S,
-   DEFAULT_OUTPUT_RATE,
-   2,
-
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
@@ -386,10 +381,10 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       if (res)
       {
          unsigned int no_frames = *frames;
-         float pitch;
+//       float pitch;
 
          freq = handle->file->get_frequency(handle->file->id);
-         pitch = freq / *speed;
+//       pitch = freq / *speed;
 
          handle->frequency = (float)freq;
          handle->no_channels = handle->file->get_no_tracks(handle->file->id);
@@ -599,14 +594,13 @@ int
 _aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain;
+   float gain = 1.0f;
    int ret;
 
    assert(s);
    assert(d);
    assert(p);
 
-   gain = _aaxFileDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
@@ -631,7 +625,6 @@ _aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, fl
    assert(s);
    assert(d);
 
-   volume *= _aaxFileDriverBackend.gain;
    ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr, nbuf);
 
    return ret;

@@ -62,7 +62,8 @@ extern "C" {
 enum _aaxDriverParam {
    DRIVER_LATENCY = 0,
    DRIVER_MIN_VOLUME,
-   DRIVER_MAX_VOLUME
+   DRIVER_MAX_VOLUME,
+   DRIVER_AGC_LEVEL
 };
 
 enum _aaxDriverState {
@@ -105,11 +106,6 @@ typedef void *_aaxDriverThread(void*);
 
 typedef struct
 {
-    float gain;
-    int format;
-    unsigned int rate;
-    unsigned int tracks;
-
     const char *version;
     const char *driver;
     const char *vendor;
@@ -120,7 +116,7 @@ typedef struct
     _aaxDriverDetect *detect;
     _aaxDriverNewHandle *new_handle;
     _aaxDriverGetDevices *get_devices;
-    _aaxDriverGetInterfaces * get_interfaces;
+    _aaxDriverGetInterfaces *get_interfaces;
  
     _aaxDriverGetName *name;
     _aaxDriverThread *thread;

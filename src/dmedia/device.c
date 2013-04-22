@@ -79,11 +79,6 @@ static _aaxDriverLog _aaxDMediaDriverLog;
 char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
 {
-   1.0,
-   AAX_PCM16S,
-   DEFAULT_OUTPUT_RATE,
-   2,
-
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
@@ -656,14 +651,13 @@ int
 _aaxDMediaDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain;
+   float gain = 1.0f;
    int ret;
 
    assert(s);
    assert(d);
    assert(p);
 
-   gain = _aaxDMediaDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
@@ -675,6 +669,7 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int nframes = *frames;
+   int tracks;
 
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
      return AAX_FALSE;
@@ -685,14 +680,15 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
    }
 
    *frames = 0;
+   tracks = handle->port[0].no_channels;
    palReadFrames(handle->port[0].port, scratch, nframes);
-   _batch_cvt24_16_intl((int32_t**)data, scratch, offs, 2, nframes);
+   _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
 
-// TODO: convert to hardware volume
+// TODO: convert to hardware volume if possible
    if (gain < 0.99f || gain > 1.01f)
    {
       int t;
-      for (t=0; t<2; t++) {
+      for (t=0; t<tracks; t++) {
          _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
                           gain);
       }

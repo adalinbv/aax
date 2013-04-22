@@ -970,7 +970,7 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
 float
 _oalRingBufferGetParamf(const _oalRingBuffer *rb, enum _oalRingBufferParam param)
 {
-   _oalRingBufferSample *rbd = rb->sample;
+// _oalRingBufferSample *rbd = rb->sample;
    float rv = AAX_NONE;
 
    switch(param)

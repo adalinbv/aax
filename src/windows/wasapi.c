@@ -100,11 +100,6 @@ static const EDataFlow _mode[] = { eCapture, eRender };
 
 const _aaxDriverBackend _aaxWASAPIDriverBackend =
 {
-   1.0,
-   AAX_PCM16S,
-   48000,
-   2,
-
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
@@ -790,11 +785,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
       freq = (float)handle->Fmt.Format.nSamplesPerSec;
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
-      if (handle->Mode == eRender) {
-         *tracks = handle->Fmt.Format.nChannels;
-      } else {
-         *tracks = 2;
-      }
+      *tracks = handle->Fmt.Format.nChannels;
 
       switch (handle->Fmt.Format.wBitsPerSample)
       {
@@ -1184,10 +1175,6 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
             }
          }
 
-         if (tracks == 1) {     /* copy the left channel to the right channel */
-            _aax_memcpy(ptr[1]+offs, ptr[0]+offs, fetch*sizeof(int32_t));
-         }
-         
          handle->scratch_offs -= avail;
          fetch -= avail;
 

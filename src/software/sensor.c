@@ -174,11 +174,12 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
 void*
 _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
-                  void *be_handle, float *dt, float pos_sec, float gain)
+                  void *be_handle, float *delay, float pos_sec, float gain)
 {
    _oalRingBufferSample *rbd;
    void *rv = dest_rb;
    int32_t **scratch;
+   float dt = *delay;
 
    /*
     * dest_rb is thread specific and does not need a lock
@@ -206,13 +207,13 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          unsigned int maxavg, maxpeak;
          unsigned int average, peak;
          _oalRingBuffer *nrb;
-         float dt, max;
+         float max;
          int64_t sum;
          float sdt;
 
          dmax = rbd->no_samples;
-         dt = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
-         sdt = _MINMAX(dt*50.0f, 0.0f, 1.0f);
+//       dt = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
+         sdt = _MINMAX(dt * 50.0f, 0.0f, 1.0f);
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
@@ -294,11 +295,9 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          }
 
          if (max < dest_rb->gain_agc) {
-            dt = 0.1f;
-            nrb->gain_agc = dt*dest_rb->gain_agc + (1.0f-dt)*max;
+            nrb->gain_agc = 0.1f*dest_rb->gain_agc + 0.9f*max;
          } else {
-            dt *= 0.5f;
-            nrb->gain_agc = (1.0f-dt)*dest_rb->gain_agc + dt*max;
+            nrb->gain_agc = (1.0f-0.5f*dt)*dest_rb->gain_agc + (0.5f*dt)*max;
          }
 
          rv = nrb;
@@ -306,7 +305,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
       else {
          _oalRingBufferClear(dest_rb);
       }
-      if (res <= 0) *dt = 0.0f;
+      if (res <= 0) *delay = 0.0f;
    }
 
    return rv;

@@ -83,11 +83,6 @@ static _aaxDriverLog _aaxOSSDriverLog;
 char _oss_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
 {
-   1.0,
-   AAX_PCM16S,
-   48000,
-   2,
-
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
@@ -203,8 +198,8 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
    {
       handle->name = (char*)_const_oss_default_name;
       handle->sse_level = _aaxGetSSELevel();
-      handle->frequency_hz = (float)_aaxOSSDriverBackend.rate;
-      handle->no_tracks = _aaxOSSDriverBackend.tracks;
+      handle->frequency_hz = (float)48000.0f;
+      handle->no_tracks = 2;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
       handle->exclusive = O_EXCL;
@@ -505,14 +500,13 @@ int
 _aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain;
+   float gain = 1.0f;
    int ret;
 
    assert(s);
    assert(d);
    assert(p);
 
-   gain = _aaxOSSDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
@@ -522,7 +516,7 @@ static int
 _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t buflen, frame_size;
+   size_t buflen, frame_size, tracks;
 
    if (handle->mode != O_RDONLY || (frames == 0) || (data == 0))
       return AAX_FALSE;
@@ -530,7 +524,8 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
    if (*frames == 0)
       return AAX_TRUE;
 
-   frame_size = handle->bytes_sample * handle->no_tracks;
+   tracks = handle->no_tracks;
+   frame_size = handle->bytes_sample * tracks;
    buflen = *frames * frame_size;
 
    *frames = 0;
@@ -546,10 +541,10 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
       }
       *frames = res / frame_size;
 
-      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, 2,
+      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, tracks,
                       gain*handle->volumeInit);
 
-      _batch_cvt24_16_intl((int32_t**)data, scratch, offs, 2, res);
+      _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, res);
 
       return AAX_TRUE;
    }

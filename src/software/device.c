@@ -55,11 +55,6 @@ static _aaxDriverLog _aaxNoneDriverLog;
 
 const _aaxDriverBackend _aaxNoneDriverBackend =
 {
-   0.8f,
-   AAX_PCM8S,
-   0,
-   0,
-
    AAX_VERSION_STR,
    NONE_RENDERER,
    AAX_VENDOR_STR,
@@ -109,11 +104,6 @@ typedef struct {
 char _null_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
-   1.0,
-   AAX_PCM16S,
-   DEFAULT_OUTPUT_RATE,
-   2,
-
    AAX_VERSION_STR,
    LOOPBACK_RENDERER,
    AAX_VENDOR_STR,
@@ -328,10 +318,9 @@ int
 _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain;
+   float gain = 1.0f;
    int ret;
 
-   gain = _aaxLoopbackDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
