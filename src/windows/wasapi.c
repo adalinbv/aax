@@ -172,6 +172,7 @@ typedef struct
    float volumeCur;
 
    /* capture related */
+   HANDLE cthread;
 #if USE_CAPTURE_THREAD
    char cthread_init;
    HANDLE task;
@@ -359,8 +360,8 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
    {
       handle->setup = mode;
 
-      fmt.Format.nSamplesPerSec = _aaxWASAPIDriverBackend.rate;
-      fmt.Format.nChannels = _aaxWASAPIDriverBackend.tracks;
+      fmt.Format.nSamplesPerSec = 48000;
+      fmt.Format.nChannels = 2;
       fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
       fmt.Format.wBitsPerSample = 16;
       fmt.Format.cbSize = CBSIZE;
@@ -1079,14 +1080,13 @@ int
 _aaxWASAPIDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain;
+   float gain = 1.0f;
    int ret;
 
    assert(s);
    assert(d);
    assert(p);
 
-   gain = _aaxWASAPIDriverBackend.gain;
    ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
 
    return ret;
@@ -1207,7 +1207,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
 
 static int
-_aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
+_aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _oalRingBuffer *rbs = (_oalRingBuffer *)src;
@@ -1223,9 +1223,9 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float volume)
    assert(rbs->sample != 0);
 
    rbsd = rbs->sample;
-   offs = _oalRingBufferGetOffsetSamples(rbs);
-   no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
-   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
+   no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
 
    assert(_oalRingBufferGetNoSamples(rbs) >= offs);
 
@@ -1345,18 +1345,7 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
             rv = AAX_TRUE;
          }
 
-#if USE_CAPTURE_THREAD         if (handle->Mode == eCapture)
-         {
-            if (handle->thread)
-            {
-               WaitForSingleObject(handle->thread, INFINITE);
-
-               DeleteCriticalSection(&handle->mutex);
-               CloseHandle(handle->thread);
-               handle->thread = NULL;
-            }
-         }
-#endif
+         _aaxCaptureThreadStop(handle);
       }
       break;
    case DRIVER_RESUME:
@@ -1364,21 +1353,7 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
       {
          hr = S_OK;
 
-#if USE_CAPTURE_THREAD
-         if (handle->Mode == eCapture)
-         {
-            LPTHREAD_START_ROUTINE cb;
-
-            InitializeCriticalSection(&handle->mutex);
-            handle->shutdown_event = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-            cb = (LPTHREAD_START_ROUTINE)&_aaxWASAPIDriverCaptureThread;
-            handle->thread = CreateThread(NULL, 0, cb, (LPVOID)handle, 0, NULL);
-            if (handle->thread == 0) {
-               _AAX_DRVLOG(10, "wasapi; unable to create a capture thread");
-            }
-         }
-#endif
+         _aaxCaptureThreadStart(handle);
 
          hr = pIAudioClient_Start(handle->pAudioClient);
          if (hr == S_OK)
@@ -1387,7 +1362,7 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
             rv = AAX_TRUE;
          }
          else {
-            _AAX_DRVLOG(10, "failed to resume playback");
+            _AAX_DRVLOG(WASAPI_RESUME_FAILED);
          }
       } else {
          rv = AAX_TRUE;
@@ -2296,9 +2271,9 @@ _aaxWASAPIDriverThread(void* config)
       if (dest_rb)
       {
          _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
-         _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
-         _oalRingBufferSetDuration(dest_rb, delay_sec);
+         _oalRingBufferSetParami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
+         _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
          _oalRingBufferStart(dest_rb);
 
@@ -2315,11 +2290,11 @@ _aaxWASAPIDriverThread(void* config)
    }
 
    id = be_handle = (_driver_t *)handle->backend.handle;
-   be->pause(be_handle);
+   be->state(be_handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
    /* get real duration, it might have been altered for better performance */
-   delay_sec = _oalRingBufferGetDuration(dest_rb);
+   delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    _aaxMutexLock(handle->thread.mutex);
    stdby_time = (int)(4*delay_sec*1000);
@@ -2366,7 +2341,7 @@ _aaxWASAPIDriverThread(void* config)
    {
       _aaxMutexUnLock(handle->thread.mutex);
 
-      if ((_IS_PLAYING(handle) && be->is_available(be_handle)) ||
+      if ((_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE)) ||
           ((be_handle->status & EVENT_DRIVEN_MASK) == 0))
       {
          hr = WaitForSingleObject(be_handle->Event, stdby_time);
@@ -2401,10 +2376,10 @@ _aaxWASAPIDriverThread(void* config)
          if (_IS_PAUSED(handle)
              || (!_IS_PLAYING(handle) && _IS_STANDBY(handle)))
          {
-            be->pause(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_PAUSE);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
-            be->resume(handle->backend.handle);
+            be->state(handle->backend.handle, DRIVER_RESUME);
          }
          state = handle->state;
       }
@@ -2413,7 +2388,7 @@ _aaxWASAPIDriverThread(void* config)
       _aaxTimerStart(timer);
 #endif
       /* do all the mixing */
-      if (_IS_PLAYING(handle) && be->is_available(be_handle)) {
+      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 #if ENABLE_TIMING
@@ -2551,6 +2526,90 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
       _aaxWASAPIDriverLog(NULL, 0, WASAPI_UNSUPPORTED_NO_TRACKS, __FUNCTION__);
       break;
    }
+   return rv;
+}
+
+/**
+ * http://msdn.microsoft.com/en-us/library/windows/desktop/dd370839%28v=vs.85%29.aspx 
+ *
+ * Applications that manage exclusive-mode streams can control the volume levels
+ * of those streams through the IAudioEndpointVolume interface. This interface
+ * controls the volume level of the audio endpoint device. It uses the hardware
+ * volume control for the endpoint device if the audio hardware implements such
+ * a control. Otherwise, the IAudioEndpointVolume interface implements the
+ * volume control in software.
+ *
+ * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
+ */
+static int
+_wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
+{
+   int rv = 0;
+
+   if (handle && HW_VOLUME_SUPPORT(handle) &&
+       (handle->status & EXCLUSIVE_MODE_MASK))
+   {
+      gain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
+      if (fabs(handle->volumeCur - gain) > 4e-3f)
+      {
+         handle->volumeCur = gain;
+         rv = IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
+                                                        _lin2db(gain), NULL);
+      }
+      gain = -1.0f;
+   }
+
+   if (gain >= 0.0f)            /* software fallback */
+   {
+      int t;
+      for (t=0; t<no_tracks; t++) {
+         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
+                          no_frames, gain);
+      }
+   }
+
+   return rv;
+}
+
+static int
+_wasapi_get_volume_range(_driver_t *handle)
+{
+   int rv;
+
+   rv = pIMMDevice_Activate(handle->pDevice, pIID_IAudioEndpointVolume,
+                                     CLSCTX_INPROC_SERVER, NULL,
+                                     (void**)&handle->pEndpointVolume);
+   if (rv == S_OK)
+   {
+      DWORD mask = 0;
+      rv = IAudioEndpointVolume_QueryHardwareSupport(handle->pEndpointVolume,
+                                                     &mask);
+      if (rv == S_OK && (mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME))
+      {
+         float cur, min, max, step;
+         rv = IAudioEndpointVolume_GetMasterVolumeLevel(
+                                        handle->pEndpointVolume, &cur);
+         if (rv == S_OK) handle->volumeInit = _db2lin(cur);
+         else handle->volumeInit = 1.0f;
+
+         rv = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
+                                                  &min, &max, &step);
+         if (rv == S_OK)
+         {
+            handle->volumeMin = _db2lin(min);
+            handle->volumeMax = _db2lin(max);
+         }
+         else
+         {
+            handle->volumeMin = 0.0f;
+            handle->volumeMax = 1.0f;
+         }
+      }
+      else {
+         handle->volumeInit = -1.0f;
+      }
+   }
+
    return rv;
 }
 

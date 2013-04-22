@@ -589,9 +589,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             {
                _oalRingBuffer2dProps sp2d;
                _oalRingBuffer3dProps sp3d;
-#ifndef THREADED_FRAMES
                float gain;
-#endif
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
