@@ -71,7 +71,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
          }
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
-         rr = dt * _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
+         rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
+         if (rr > 0.0f) rr = dt/rr;
          rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, curr_pos_sec, gain);
          if (dt == 0.0f)
          {
