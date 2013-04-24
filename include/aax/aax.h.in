@@ -311,7 +311,7 @@ enum aaxEffectType
 
 enum aaxParameter {	/* Filter & Effect parameter number definitions */
    /* AAX_VOLUME_FILTER */
-   AAX_GAIN = 0, AAX_MIN_GAIN, AAX_MAX_GAIN,
+   AAX_GAIN = 0, AAX_MIN_GAIN, AAX_MAX_GAIN, AAX_AGC_RESPONSE_RATE,
    /* AAX_ANGULAR_FILTER */
    AAX_INNER_ANGLE = 0, AAX_OUTER_ANGLE, AAX_OUTER_GAIN,
    /* AAX_DISTANCE_FILTER */
@@ -628,7 +628,7 @@ AAX_API const aaxEffect AAX_APIENTRY aaxAudioFrameGetEffect(const aaxFrame, enum
 /*
  * Instrument support (version 3.0 and later)
  */
-#if AAX_PATCH_LEVEL > 131002
+#if 0
 AAX_API aaxInstrument AAX_APIENTRY aaxInstrumentCeate(aaxConfig);
 AAX_API int AAX_APIENTRY aaxInstrumentDestroy(aaxInstrument);
 AAX_API int AAX_APIENTRY aaxInstrumentLoad(aaxInstrument, const char*, unsigned int, unsigned int);

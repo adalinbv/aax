@@ -49,8 +49,9 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
       if (dptr_sensor)
       {
+         _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
+         float gain, dt, rr, curr_pos_sec;
          const _intBufferData* sptr_rb;
-         float gain, dt, curr_pos_sec;
          _oalRingBuffer *src_rb;
          _aaxAudioFrame *smixer;
          _sensor_t* sensor;
@@ -69,9 +70,9 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
             device->ringbuffer = _oalRingBufferCreate(0.0f);
          }
 
-         gain = src_rb->gain_agc;
-         gain *= _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
-         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, curr_pos_sec, gain);
+         gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
+         rr = dt * _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
+         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, curr_pos_sec, gain);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
@@ -116,10 +117,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
             do
             {
-               _oalRingBuffer2dProps *p2d;
                _oalRingBufferLFOInfo *lfo;
 
-               p2d = (_oalRingBuffer2dProps*)props2d;
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
                if (lfo) {
                   p2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
@@ -174,7 +173,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
 void*
 _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
-                  void *be_handle, float *delay, float pos_sec, float gain)
+                  void *be_handle, float *delay, float rr, float pos_sec, float gain)
 {
    _oalRingBufferSample *rbd;
    void *rv = dest_rb;
@@ -198,6 +197,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
       size_t frames, nframes;
       int res;
 
+      if (rr > 0.0f) gain *= dest_rb->gain_agc;
       nframes = frames = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
       res = be->capture(be_handle, rbd->track, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, ds+frames, gain);
@@ -297,7 +297,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          if (max < dest_rb->gain_agc) {
             nrb->gain_agc = 0.1f*dest_rb->gain_agc + 0.9f*max;
          } else {
-            nrb->gain_agc = (1.0f-0.5f*dt)*dest_rb->gain_agc + (0.5f*dt)*max;
+            nrb->gain_agc = (1.0f-rr)*dest_rb->gain_agc + rr*max;
          }
 
          rv = nrb;

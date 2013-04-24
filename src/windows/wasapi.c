@@ -47,12 +47,12 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define USE_CAPTURE_THREAD	AAX_FALSE
+#define USE_CAPTURE_THREAD	AAX_TRUE
 #define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
 #define EVENT_DRIVEN		AAX_TRUE
 #define ENABLE_TIMING		AAX_FALSE
-#define LOG_TO_FILE		AAX_FALSE
+#define LOG_TO_FILE		AAX_TRUE
 #define USE_GETID		AAX_FALSE
 
 #define DRIVER_INIT_MASK	0x0001
@@ -172,13 +172,10 @@ typedef struct
    float volumeCur;
 
    /* capture related */
-   HANDLE cthread;
-#if USE_CAPTURE_THREAD
    char cthread_init;
    HANDLE task;
    HANDLE cthread;
    CRITICAL_SECTION mutex;
-#endif
 
    char *scratch;
    void *scratch_ptr;
@@ -1045,23 +1042,22 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
          handle->hnsLatency = latency;
       }
 #if 1
+ _AAX_DRVLOG_VAR("AeonWave version %i.%i.%i-%i", AAX_MAJOR_VERSION, AAX_MINOR_VERSION, AAX_MICRO_VERSION, AAX_PATCH_LEVEL);
+ _AAX_DRVLOG_VAR("Device: %s", _aaxMMDeviceNameToName(detect_devname(handle->pDevice)));
  _AAX_DRVLOG_VAR("Format for %s", (handle->Mode == eRender) ? "Playback" : "Capture");
- _AAX_DRVLOG_VAR("- device: %s", _aaxMMDeviceNameToName(detect_devname(handle->pDevice)));
- _AAX_DRVLOG_VAR("- event driven: %i, exclusive: %i", handle->status & EVENT_DRIVEN_MASK, handle->status & EXCLUSIVE_MODE_MASK);
+ _AAX_DRVLOG_VAR("- event driven: %s, exclusive: %s", (handle->status & EVENT_DRIVEN_MASK)?"true":"false", (handle->status & EXCLUSIVE_MODE_MASK)?"true":"false");
  _AAX_DRVLOG_VAR("- frequency: %i", (int)handle->Fmt.Format.nSamplesPerSec);
+ _AAX_DRVLOG_VAR("- no. tracks: %i", handle->Fmt.Format.nChannels);
+ _AAX_DRVLOG_VAR("- block size: %i (cb: %i)", handle->Fmt.Format.nBlockAlign, handle->Fmt.Format.cbSize);
  _AAX_DRVLOG_VAR("- bits/sample: %i", handle->Fmt.Format.wBitsPerSample);
- _AAX_DRVLOG_VAR("- no. channels: %i", handle->Fmt.Format.nChannels);
- _AAX_DRVLOG_VAR("- block size: %i", handle->Fmt.Format.nBlockAlign);
- _AAX_DRVLOG_VAR("- cb size: %i",  handle->Fmt.Format.cbSize);
  _AAX_DRVLOG_VAR("- valid bits/sample: %i", handle->Fmt.Samples.wValidBitsPerSample);
- _AAX_DRVLOG_VAR("- speaker mask: %x", (int)handle->Fmt.dwChannelMask);
  _AAX_DRVLOG_VAR("- subformat: float: %x - pcm: %x",
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
- _AAX_DRVLOG_VAR("- latency: %f ms", handle->hnsLatency/10000.0f);
-
- _AAX_DRVLOG_VAR("- periods: default: %f ms, minimum: %f ms", defPeriod/10000.0f, minPeriod/10000.0f);
- _AAX_DRVLOG_VAR("- period: %i, buffer : %i , periods: %i", periodFrameCnt, bufferFrameCnt, (int)(0.5f+((float)bufferFrameCnt/(float)periodFrameCnt)));
+ _AAX_DRVLOG_VAR("- periods: default: %4.2f ms, minimum: %4.2f ms", defPeriod/10000.0f, minPeriod/10000.0f);
+ _AAX_DRVLOG_VAR("- latency: %5.3f ms", handle->hnsLatency/10000.0f);
+ _AAX_DRVLOG_VAR("- buffers: %i frames, total: %i frames , periods: %i", periodFrameCnt, bufferFrameCnt, rintf((float)bufferFrameCnt/(float)periodFrameCnt));
+ _AAX_DRVLOG_VAR("- speaker mask: 0x%x", (int)handle->Fmt.dwChannelMask);
 #endif
    }
    else {
@@ -1121,24 +1117,20 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       if (handle->status & CAPTURE_INIT_MASK)
       {
-#if !USE_CAPTURE_THREAD
          if ((handle->status & EVENT_DRIVEN_MASK) == 0)
          {
             if (!handle->cthread) {
                _aaxWASAPIDriverCaptureFromHardware(handle);
             }
          }
-#endif
          handle->scratch_offs = 0;
          handle->status &= ~CAPTURE_INIT_MASK;
          return AAX_TRUE;
       }
 
-#if USE_CAPTURE_THREAD
       if (handle->cthread) {				/* Lock the mutex */
          EnterCriticalSection(&handle->mutex);
       }
-#endif
 
       /* try to keep the buffer padding at the threshold level at all times */
       diff = (float)handle->scratch_offs - (float)handle->threshold;
@@ -1147,11 +1139,9 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       fetch += corr;
       offs -= corr;
 
-#if !USE_CAPTURE_THREAD
       if (!handle->cthread) { 		/* fetch any new data packates */
          _aaxWASAPIDriverCaptureFromHardware(handle);
       }
-#endif
 
       /* copy data from the buffer */
       *req_frames = fetch;
@@ -1185,11 +1175,9 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
          }
       }
 
-#if USE_CAPTURE_THREAD
       if (handle->cthread) {				/* Unlock the mutex */
          LeaveCriticalSection(&handle->mutex);
       }
-#endif
 
       if (fetch) {
          _AAX_DRVLOG(WASAPI_BUFFER_UNDERRUN);
@@ -1329,11 +1317,8 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
       if (handle && ((handle->status & DRIVER_PAUSE_MASK) == 0))
       {
 #if USE_CAPTURE_THREAD
-         if (handle->Mode == eCapture)
-         {
-            if (handle->shutdown_event) {
-               SetEvent(handle->shutdown_event);
-            }
+         if (handle->Mode == eCapture) {
+            handle->cthread_init = -1;
          }
 #endif
 
@@ -1859,7 +1844,9 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
    }
    if (FAILED(hr)) return -1;
 
-   if (pAvSetMmThreadCharacteristicsA) {
+   if (pAvSetMmThreadCharacteristicsA)
+   {
+      DWORD tIdx = 0;
       handle->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
    }
 
@@ -1978,7 +1965,6 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
       DWORD flags = 0;
       HRESULT res;
 
-#if USE_CAPTURE_THREAD
       /*
        * lock the mutex, needs to be before GetBuffer to keep the time
        * between GetBuffer and ReleaseBuffer as short as humanly possible
@@ -1986,7 +1972,6 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
       if (handle->cthread) {
          EnterCriticalSection(&handle->mutex);
       }
-#endif
 
       hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf, &avail,
                                           &flags, NULL, NULL);
@@ -2028,11 +2013,9 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
          _AAX_DRVLOG(WASAPI_GET_BUFFER_FAILED);
       }
 
-#if USE_CAPTURE_THREAD
       if (handle->cthread) {				/* unlock the mutex */
          LeaveCriticalSection(&handle->mutex);
       }
-#endif
    } /* while (hr == S_OK) */
 
    return hr;

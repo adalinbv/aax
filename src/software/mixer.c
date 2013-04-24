@@ -561,11 +561,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 
             if (handle->info->mode == AAX_MODE_READ)
             {
-               float gain, dt = 1.0f / mixer->info->refresh_rate;
+               float gain, rr, dt = 1.0f / mixer->info->refresh_rate;
                void *rv, *rb = dest; // mixer->ringbuffer;
 
                gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
-               rv = _aaxSensorCapture(rb, be, be_handle, &dt,
+               rr = dt * _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
+               rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
                                                mixer->curr_pos_sec, gain);
                if (dt == 0.0f)
                {
