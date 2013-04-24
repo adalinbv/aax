@@ -118,6 +118,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    rbd = rb->sample;
    dt = _MINMAX(_oalRingBufferGetParamf(rb, RB_DURATION_SEC)*50.0f, 0.0f, 1.0f);
+   dt *= GMATH_E1;
 
    reverb = 0;
    parametric = graphic = 0;
