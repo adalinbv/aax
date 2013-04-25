@@ -211,10 +211,10 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          int64_t sum;
          float dt;
 
-         dt = GMATH_E1 * _MINMAX(*delay * 50.0f, 0.0f, 1.0f);
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
+         dt = GMATH_E1 * *delay;
          maxavg = maxpeak = 0;
          tracks = rbd->no_tracks;
          for (track=0; track<tracks; track++)
@@ -251,7 +251,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
             j = nframes;
             do
             {
-               int32_t asamp = abs(*optr++);
+               int32_t asamp = 2*abs(*optr++);
 
                sum += asamp;
                if (asamp > peak) peak = asamp;
@@ -259,8 +259,8 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
             while (--j);
             average = sum/nframes;
       
-            nrb->average[track] = ((1.0f-dt)*dest_rb->average[track]
-                                       + dt*average);
+            nrb->average[track] = (dt*dest_rb->average[track]
+                                       + (1.0f-dt)*average);
             nrb->peak[track] = peak;
 
             if (maxavg < average) maxavg = average;

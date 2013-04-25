@@ -47,7 +47,7 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define USE_CAPTURE_THREAD	AAX_TRUE
+#define USE_CAPTURE_THREAD	AAX_FALSE
 #define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
 #define EVENT_DRIVEN		AAX_TRUE
@@ -1056,7 +1056,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
           IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
  _AAX_DRVLOG_VAR("- periods: default: %4.2f ms, minimum: %4.2f ms", defPeriod/10000.0f, minPeriod/10000.0f);
  _AAX_DRVLOG_VAR("- latency: %5.3f ms", handle->hnsLatency/10000.0f);
- _AAX_DRVLOG_VAR("- buffers: %i frames, total: %i frames , periods: %i", periodFrameCnt, bufferFrameCnt, rintf((float)bufferFrameCnt/(float)periodFrameCnt));
+ _AAX_DRVLOG_VAR("- buffers: %i frames, total: %i frames, periods: %i", periodFrameCnt, bufferFrameCnt, rintf((float)bufferFrameCnt/(float)periodFrameCnt));
  _AAX_DRVLOG_VAR("- speaker mask: 0x%x", (int)handle->Fmt.dwChannelMask);
 #endif
    }
