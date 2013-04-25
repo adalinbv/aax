@@ -251,7 +251,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
             j = nframes;
             do
             {
-               int32_t asamp = 2*abs(*optr++);
+               int32_t asamp = abs(*optr++);
 
                sum += asamp;
                if (asamp > peak) peak = asamp;

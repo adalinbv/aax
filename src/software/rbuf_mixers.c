@@ -388,7 +388,7 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
       int32_t samp;
 
       samp = *ptr;
-      asamp = 2*abs(samp);
+      asamp = abs(samp);
       sum += asamp;
       if (asamp > peak) peak = asamp;
 
