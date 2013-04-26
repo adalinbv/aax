@@ -2532,14 +2532,14 @@ _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned
    if (handle && HW_VOLUME_SUPPORT(handle) &&
        (handle->status & EXCLUSIVE_MODE_MASK))
    {
-      gain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
-      if (fabs(handle->volumeCur - gain) > 4e-3f)
+      float hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
+      if (fabs(handle->volumeCur - hwgain) > 4e-3f)
       {
-         handle->volumeCur = gain;
+         handle->volumeCur = hwgain;
          rv = IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
-                                                        _lin2db(gain), NULL);
+                                                        _lin2db(hwgain), NULL);
       }
-      gain = -1.0f;
+      gain /= hwgain;
    }
 
    if (gain >= 0.0f)            /* software fallback */

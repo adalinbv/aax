@@ -203,19 +203,17 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                         scratch[SCRATCH_BUFFER0]-ds, ds+frames, gain);
       if (res && nframes)
       {
+         float peak, rms, max, maxrms, maxpeak;
          unsigned int track, tracks;
-         unsigned int maxavg, maxpeak;
-         unsigned int average, peak;
          _oalRingBuffer *nrb;
-         float max;
-         int64_t sum;
+         double sum;
          float dt;
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
          dt = GMATH_E1 * *delay;
-         maxavg = maxpeak = 0;
+         maxrms = maxpeak = 0;
          tracks = rbd->no_tracks;
          for (track=0; track<tracks; track++)
          {
@@ -251,28 +249,28 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
             j = nframes;
             do
             {
-               int32_t asamp = abs(*optr++);
+               int32_t val = *optr++;
+               float samp = (float)val*val;	// RMS
 
-               sum += asamp;
-               if (asamp > peak) peak = asamp;
+               sum += samp;
+               if (samp > peak) peak = samp;
             }
             while (--j);
-            average = sum/nframes;
+            rms = sqrt(sum/nframes);
       
-            nrb->average[track] = (dt*dest_rb->average[track]
-                                       + (1.0f-dt)*average);
-            nrb->peak[track] = peak;
+            nrb->average[track] = (dt*dest_rb->average[track] + (1.0f-dt)*rms);
+            nrb->peak[track] = (unsigned int)sqrtf(peak);
 
-            if (maxavg < average) maxavg = average;
+            if (maxrms < rms) maxrms = rms;
             if (maxpeak < peak) maxpeak = peak;
          }
-         nrb->average[_AAX_MAX_SPEAKERS] = maxavg;
+         nrb->average[_AAX_MAX_SPEAKERS] = maxrms;
          nrb->peak[_AAX_MAX_SPEAKERS] = maxpeak;
 
          /** Automatic Gain Control */
          max = 0.0f;
-         if (maxavg > 256) {
-            max = 0.707f*8388608.0f/maxavg;
+         if (maxrms > 256) {
+            max = 8388607.0f/maxrms;
          }
 
          if (max < dest_rb->gain_agc) {

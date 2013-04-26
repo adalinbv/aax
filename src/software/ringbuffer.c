@@ -1527,7 +1527,7 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          fact = lfo->gate_period;
          olvl = lfo->value[track];
          oavg = lfo->average[track];
-         lfo->average[track] = ((1.0f-fact)*oavg + fact*lvl);
+         lfo->average[track] = (fact*oavg + (1.0f-fact)*lvl);
          gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
 
          fact = (lvl > olvl) ? lfo->step[track] : lfo->down[track];

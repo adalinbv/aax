@@ -371,8 +371,9 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
    int32_t *ptr = (int32_t*)d;
    float osamp, imix, mix;
    unsigned int j, max;
-   int32_t peak, iasym;
-   int64_t sum;
+   int32_t iasym;
+   float peak;
+   double sum;
 
    osamp = 0.0f;
    sum = peak = 0;
@@ -382,15 +383,14 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
    iasym = asym*16*(1<<SHIFT);
    do
    {
-      float fact1, fact2, sdf, rise;
+      float val, fact1, fact2, sdf, rise;
+      int32_t asamp, samp;
       unsigned int pos;
-      uint32_t asamp;
-      int32_t samp;
 
       samp = *ptr;
-      asamp = abs(samp);
-      sum += asamp;
-      if (asamp > peak) peak = asamp;
+      val = (float)samp*samp;	// RMS
+      sum += val;
+      if (val > peak) peak = val;
 
       asamp = (samp < 0) ? abs(samp-iasym) : abs(samp);
       pos = (asamp >> SHIFT);
@@ -410,8 +410,8 @@ bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float a
    }
    while (--j);
  
-   *dmax = peak;
-   *dmin = sum/max;
+   *dmax = (unsigned int)sqrtf(peak);
+   *dmin = (unsigned int)sqrt(sum/max);
 }
 
 #else

@@ -648,7 +648,7 @@ aaxFilterSetState(aaxFilter f, int state)
                            max = _flt_minmax_tbl[1][AAX_COMPRESSOR].max[AAX_GATE_PERIOD & 0xF];
                            f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
                            f = _MINMAX(f, min, max);
-                           lfo->gate_period = _MIN(dt/f, 2.0f);
+                           lfo->gate_period = GMATH_E1 * _MIN(dt/f, 2.0f);
 
                            min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_THRESHOLD & 0xF];            
                            max = _flt_minmax_tbl[1][AAX_COMPRESSOR].max[AAX_GATE_THRESHOLD & 0xF];
