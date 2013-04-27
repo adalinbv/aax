@@ -104,21 +104,21 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _oalRingBuffer *rb = (_oalRingBuffer*)d;
    _sensor_t *sensor = (_sensor_t*)s;
    _oalRingBufferReverbData *reverb;
-   unsigned int maxavg, maxpeak;
-   unsigned int average, peak;
    unsigned int track, tracks;
+   unsigned int peak, maxpeak;
+   unsigned int rms, maxrms;
    _oalRingBufferSample *rbd;
    char parametric, graphic;
+   float dt, rms_rr;
    void *ptr = 0;
-   float dt;
    char *p;
 
    assert(rb != 0);
    assert(rb->sample != 0);
 
    rbd = rb->sample;
-   dt = _MINMAX(_oalRingBufferGetParamf(rb, RB_DURATION_SEC)*50.0f, 0.0f, 1.0f);
-   dt *= GMATH_E1;
+   dt = GMATH_E1 * _oalRingBufferGetParamf(rb, RB_DURATION_SEC);
+   rms_rr = _MINMAX(dt/0.2f, 0.0f, 1.0f);	// 200ms average
 
    reverb = 0;
    parametric = graphic = 0;
@@ -140,7 +140,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    }
 
    /* set up this way because we always need to apply compression */
-   maxavg = maxpeak = 0;
+   maxrms = maxpeak = 0;
    tracks = rbd->no_tracks;
    for (track=0; track<tracks; track++)
    {
@@ -154,9 +154,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int32_t *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
-         average = 0;
+         rms = 0;
          peak = dmax;
-         _aaxProcessCompression(d1, &average, &peak);
+         _aaxProcessCompression(d1, &rms, &peak);
          bufEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
       }
@@ -213,18 +213,18 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          while (b > 0);
       }
 
-      average = 0;
+      rms = 0;
       peak = dmax;
-      _aaxProcessCompression(d1, &average, &peak);
-      rb->average[track] = (dt*rb->average[track] + (1.0f-dt)*average);
+      _aaxProcessCompression(d1, &rms, &peak);
+      rb->average[track] = (rms_rr*rb->average[track] + (1.0f-rms_rr)*rms);
       rb->peak[track] = peak;
 
-      if (maxavg < average) maxavg = average;
+      if (maxrms < rms) maxrms = rms;
       if (maxpeak < peak) maxpeak = peak;
    }
    free(ptr);
 
-   rb->average[_AAX_MAX_SPEAKERS] = maxavg;
+   rb->average[_AAX_MAX_SPEAKERS] = maxrms;
    rb->peak[_AAX_MAX_SPEAKERS] = maxpeak;
 }
 
@@ -562,11 +562,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 
             if (handle->info->mode == AAX_MODE_READ)
             {
-               float gain, rr, dt = 1.0f / mixer->info->refresh_rate;
-               void *rv, *rb = dest; // mixer->ringbuffer;
+               float gain, rr, dt = 1.0f/mixer->info->refresh_rate;
+               void *rv, *rb = dest;
 
                gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
-               rr = dt * _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
+               rr = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
                                                mixer->curr_pos_sec, gain);
                if (dt == 0.0f)

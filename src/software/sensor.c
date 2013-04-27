@@ -72,7 +72,6 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
-         if (rr > 0.0f) rr = GMATH_E1*dt/rr;
          rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, curr_pos_sec, gain);
          if (dt == 0.0f)
          {
@@ -174,7 +173,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
 void*
 _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
-                  void *be_handle, float *delay, float rr, float pos_sec, float gain)
+                  void *be_handle, float *delay, float agc_rr, float pos_sec,
+                  float gain)
 {
    _oalRingBufferSample *rbd;
    void *rv = dest_rb;
@@ -187,6 +187,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
     *  - capture functions should return the data in signed 24-bit
     */
    assert(dest_rb->sample);
+   assert(delay);
 
    rbd = dest_rb->sample;
    scratch = (int32_t**)rbd->scratch;
@@ -194,25 +195,30 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
    {
       unsigned int bps = rbd->bytes_sample;
       unsigned int ds = rbd->dde_samples;
+      float dt = GMATH_E1 * *delay;
       size_t frames, nframes;
       int res;
 
-      if (rr > 0.0f) gain *= dest_rb->gain_agc;
+      if (agc_rr > 0.0f) 
+      {
+         agc_rr = _MINMAX(dt/agc_rr,  0.0f, 1.0f);
+         gain *= dest_rb->gain_agc;
+      }
+
       nframes = frames = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
       res = be->capture(be_handle, rbd->track, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, ds+frames, gain);
       if (res && nframes)
       {
-         float peak, rms, max, maxrms, maxpeak;
+         float peak, rms, rms_rr, max, maxrms, maxpeak;
          unsigned int track, tracks;
          _oalRingBuffer *nrb;
          double sum;
-         float dt;
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
-         dt = GMATH_E1 * *delay;
+         rms_rr = _MINMAX(dt/0.2f, 0.0f, 1.0f);		// 200 ms RMS average
          maxrms = maxpeak = 0;
          tracks = rbd->no_tracks;
          for (track=0; track<tracks; track++)
@@ -256,10 +262,12 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                if (samp > peak) peak = samp;
             }
             while (--j);
+
             rms = sqrt(sum/nframes);
-      
-            nrb->average[track] = (dt*dest_rb->average[track] + (1.0f-dt)*rms);
-            nrb->peak[track] = (unsigned int)sqrtf(peak);
+            nrb->average[track] = (rms_rr*dest_rb->average[track]
+                                   + (1.0f-rms_rr)*rms);
+            peak = sqrtf(peak);
+            nrb->peak[track] = peak;
 
             if (maxrms < rms) maxrms = rms;
             if (maxpeak < peak) maxpeak = peak;
@@ -270,13 +278,13 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          /** Automatic Gain Control */
          max = 0.0f;
          if (maxrms > 256) {
-            max = 8388607.0f/maxrms;
+            max = 0.707f*8388607.0f/maxrms;
          }
 
          if (max < dest_rb->gain_agc) {
             nrb->gain_agc = 0.1f*dest_rb->gain_agc + 0.9f*max;
          } else {
-            nrb->gain_agc = (1.0f-rr)*dest_rb->gain_agc + rr*max;
+            nrb->gain_agc = (1.0f-agc_rr)*dest_rb->gain_agc + (agc_rr)*max;
          }
 
          rv = nrb;

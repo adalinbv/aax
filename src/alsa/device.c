@@ -114,13 +114,15 @@ typedef struct
     snd_mixer_t *mixer;
     snd_pcm_t *pcm;
 
+    long volumeInit, volumeMin, volumeMax;
+    float volumeCur;
+
     float latency;
     float frequency_hz;
 
     float padding;		/* for sensor clock drift correction   */
     unsigned int threshold;	/* sensor buffer threshold for padding */
 
-    long volumeInit, volumeMin, volumeMax;
     unsigned int no_channels;
     unsigned int no_periods;
     unsigned int period_frames;
@@ -1912,17 +1914,33 @@ _alsa_get_volume_range(_driver_t *handle)
 static int
 _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float gain)
 {
+   float hwgain = gain;
    int rv = 0;
 
-   if (handle && handle->mixer && !handle->shared)
+   if (handle && handle->mixer && !handle->shared && handle->volumeMax)
    {
-      if (handle->volumeMax || handle->volumeMin)
+      hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 1.0f);
+      if (fabs(handle->volumeCur - hwgain) > 4e-3f)
       {
-         long volume = gain*handle->volumeMax;
+         long volume;
+
+         /*
+          * instantly change to a lower requested volume, slowly adjust to
+          * a higher requested volume
+          */
+         if ((handle->mode == AAX_MODE_READ) && (hwgain > handle->volumeCur))
+         {
+            float dt = GMATH_E1*no_frames/handle->frequency_hz;
+            float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	// 10 sec average
+
+            hwgain = (1.0f-rr)*handle->volumeCur + (rr)*hwgain;
+         }
+         handle->volumeCur = hwgain;
+         volume = ceilf(hwgain * handle->volumeMax);
+
          snd_mixer_selem_id_t *sid = calloc(1,4096);
          snd_mixer_elem_t *elem;
 
-         volume = _MINMAX(volume, handle->volumeMin, handle->volumeMax);
          for (elem = psnd_mixer_first_elem(handle->mixer); elem;
               elem = psnd_mixer_elem_next(elem))
          {
@@ -1946,12 +1964,14 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
          }
          free(sid);
 
+         if (hwgain) gain /= hwgain;
+         else gain = 0.0f;
          rv = AAX_TRUE;
       }
    }
 
    /* software volume fallback */
-   if (gain > 1.0f)
+   if (fabs(hwgain - gain) > 4e-3f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {

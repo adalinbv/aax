@@ -2527,22 +2527,36 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
 static int
 _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
 {
+   float hwgain = gain;
    int rv = 0;
 
    if (handle && HW_VOLUME_SUPPORT(handle) &&
        (handle->status & EXCLUSIVE_MODE_MASK))
    {
-      float hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
+      hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
       if (fabs(handle->volumeCur - hwgain) > 4e-3f)
       {
+         /*
+          * instantly change to a lower requested volume, slowly adjust to
+          * a higher requested volume
+          */
+         if ((handle->Mode == eCapture) && (hwgain > handle->volumeCur))
+         {
+            float dt = GMATH_E1*no_frames/handle->Fmt.Format.nSamplesPerSec;
+            float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);   // 10 sec average
+
+            hwgain = (1.0f-rr)*handle->volumeCur + (rr)*hwgain;
+         }
          handle->volumeCur = hwgain;
          rv = IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
                                                         _lin2db(hwgain), NULL);
+         if (hwgain) gain /= hwgain;
+         else gain = 0.0f;
       }
-      gain /= hwgain;
    }
 
-   if (gain >= 0.0f)            /* software fallback */
+   /* software volume fallback */
+   if (fabs(hwgain - gain) > 4e-3f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
