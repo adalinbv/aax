@@ -102,7 +102,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
-         case AAX_UPDATERATE:
+         case AAX_UPDATE_RATE:
             if (((setup <= _AAX_MAX_MIXER_REFRESH_RATE)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
@@ -127,6 +127,14 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             if (setup < _AAX_MAX_SPEAKERS)
             {
                info->no_tracks = setup;
+               rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+         case AAX_TRACK_NO:
+            if (setup < _AAX_MAX_SPEAKERS)
+            {
+               info->track = setup;
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);

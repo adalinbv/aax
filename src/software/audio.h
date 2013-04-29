@@ -42,9 +42,9 @@ void _aaxFileDriverWrite(const char *, enum aaxProcessingType, void *, unsigned 
 
 /* sensor */
 void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,
-                        _oalRingBuffer2dProps*);
+                        _oalRingBuffer2dProps*, int);
 void *_aaxSensorCapture(_oalRingBuffer*, const _aaxDriverBackend*, void*,
-                        float*, float, float, float);
+                        float*, float, int, float, float);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

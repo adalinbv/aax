@@ -85,6 +85,10 @@ enum
    HRTF_OFFSET
 };
 
+/* warning:
+ * need to update the pre defined structure in objects.c ehwn changing
+ * something here
+ */
 typedef ALIGN16 struct
 {
    vec4_t hrtf[2];
@@ -92,6 +96,7 @@ typedef ALIGN16 struct
 
    char router[_AAX_MAX_SPEAKERS];
    unsigned no_tracks;
+   int track;
 
    float pitch;
    float frequency;

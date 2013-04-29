@@ -499,8 +499,10 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
    float gain;
    int res;
 
-   if (devices) {
-      _aaxSensorsProcess(dest_rb, devices, props2d);
+   if (devices)
+   {
+      _sensor_t* ssr = (_sensor_t*)sensor;
+      _aaxSensorsProcess(dest_rb, devices, props2d, ssr->mixer->info->track);
    }
 
    if (frames)
@@ -568,7 +570,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
                rr = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
-                                               mixer->curr_pos_sec, gain);
+                                      mixer->info->track,
+                                      mixer->curr_pos_sec, gain);
                if (dt == 0.0f)
                {
                   _SET_STOPPED(handle);

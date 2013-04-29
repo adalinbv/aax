@@ -247,6 +247,7 @@ const _aaxMixerInfo _aaxDefaultMixerInfo =
 
   { 0, 1, 0, 1, 0, 1, 0, 1 },	/* speaker router setup */
   2,				/* no. speakers */
+  -1,				/* track no. */
 
   1.0f,				/* pitch */
   48000.0f,			/* frequency */
