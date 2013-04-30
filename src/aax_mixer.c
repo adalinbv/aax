@@ -131,14 +131,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
-         case AAX_TRACK_NO:
-            if (setup < _AAX_MAX_SPEAKERS)
-            {
-               info->track = setup;
-               rv = AAX_TRUE;
-            }
-            else _aaxErrorSet(AAX_INVALID_PARAMETER);
-            break;
+         
          case AAX_FORMAT:
             if (setup < AAX_FORMAT_MAX)
             {
@@ -147,7 +140,35 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
+         case AAX_TRACK_LAYOUT:
+            if ((setup < _AAX_MAX_SPEAKERS) || (setup == AAX_TRACK_ALL) ||
+                (setup == AAX_TRACK_MIX))
+            {
+               info->track = setup;
+               rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
          default:
+            _aaxErrorSet(AAX_INVALID_ENUM);
+            break;
+         }
+      }
+      else if (handle)	/* registered sensors */
+      {
+         _aaxMixerInfo* info = handle->info;
+         switch(type)
+         {
+         case AAX_TRACK_LAYOUT:
+            if ((setup < _AAX_MAX_SPEAKERS) || (setup == AAX_TRACK_ALL) ||
+                (setup == AAX_TRACK_MIX))
+            {
+               info->track = setup;
+               rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+        default:
             _aaxErrorSet(AAX_INVALID_ENUM);
             break;
          }

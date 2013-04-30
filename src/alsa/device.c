@@ -1114,7 +1114,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       offs -= corr;
 #if 0
 if (corr)
-printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
+ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
 #endif
       /* try to keep the buffer padding at the threshold level at all times */
       chunk = 10;
@@ -2546,7 +2546,7 @@ _aaxALSADriverThread(void* config)
 {
 float elapsed = _aaxTimerElapsed(timer);
 if (elapsed > delay_sec)
-printf("elapsed: %f ms\n", elapsed*1000.0f);
+ printf("elapsed: %f ms\n", elapsed*1000.0f);
 }
 #endif
 

@@ -371,7 +371,8 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
    /** process registered devices */
    if (fmixer->devices)
    {
-      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, fmixer->info->track);
+      _aaxMixerInfo* info = fmixer->info;
+      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track);
       process = AAX_TRUE;
    }
 

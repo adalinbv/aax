@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2012 by Erik Hofman.
- * Copyright 2009-2012 by Adalin B.V.
+ * Copyright 2005-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -21,7 +21,7 @@
 
 void
 _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
-                   _oalRingBuffer2dProps *props2d, int track)
+                   _oalRingBuffer2dProps *props2d, int dest_track)
 {
    _intBuffers *hd = (_intBuffers *)devices;
    unsigned int i, num;
@@ -72,7 +72,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
-         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, track, curr_pos_sec, gain);
+         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, dest_track, curr_pos_sec, gain);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
@@ -83,13 +83,13 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
          {
             _oalRingBuffer *srb = device->ringbuffer;
             _oalRingBuffer *rb = rv;
-            int t, tracks;
+            int track, tracks;
 
             tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
-            for (t=0; t<tracks; t++)
+            for (track=0; track<tracks; track++)
             {
-               srb->average[t] = rb->average[t];
-               srb->peak[t] = rb->peak[t];
+               srb->average[track] = rb->average[track];
+               srb->peak[track] = rb->peak[track];
             }
          }
 
@@ -174,7 +174,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
 void*
 _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
-                  void *be_handle, float *delay, float agc_rr, int t,
+                  void *be_handle, float *delay, float agc_rr, int dest_track,
                   float pos_sec, float gain)
 {
    _oalRingBufferSample *rbd;
@@ -228,9 +228,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          tracks = rbd->no_tracks;
          for (track=0; track<tracks; track++)
          {
-            int32_t *ptr = tptr[track];
             int32_t *optr = otptr[track];
-            unsigned int j;
 
             if (frames != nframes)
             {
@@ -253,9 +251,29 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
                }
             }
 
+            /* stereo downmix requested, add the tracks to track0 */
+            if ((dest_track == AAX_TRACK_MIX) && track) {
+               _batch_fmadd(otptr[0], optr, frames, 1.0f, 0.0f);
+            }
+         }
+
+         /* if downmix requested devide track0 by the number of tracks */
+         if ((dest_track == AAX_TRACK_MIX) && tracks)
+         {
+            float fact = 1.0f/tracks;
+            _batch_mul_value(otptr[0], sizeof(int32_t), frames, fact);
+            dest_track = 0;
+         }
+
+         for (track=0; track<tracks; track++)
+         {
+            int32_t *ptr = tptr[track];
+            int32_t *optr = otptr[track];
+            unsigned int j;
+
             /* single channel requested, copy to the other channels */
-            if ((t >= 0) && (track != t)) {
-               _aax_memcpy(otptr[track], otptr[t], frames*sizeof(int32_t));
+            if ((dest_track >= 0) && (track != dest_track)) {
+               _aax_memcpy(optr, otptr[dest_track], frames*sizeof(int32_t));
             }
 
             /* copy the delay effects buffer */
