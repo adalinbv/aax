@@ -115,7 +115,7 @@ typedef struct
     snd_pcm_t *pcm;
 
     long volumeInit, volumeMin, volumeMax;
-    float volumeCur;
+    long volumeCur;
 
     float latency;
     float frequency_hz;
@@ -1920,28 +1920,29 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
 
    if (handle && handle->mixer && !handle->shared && handle->volumeMax)
    {
+      long volume;
+
       hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 1.0f);
-      if (fabs(handle->volumeCur - hwgain) > 4e-3f)
+
+      /*
+       * instantly change to a lower requested volume, slowly adjust to
+       * a higher requested volume
+       */
+      if ((handle->mode == AAX_MODE_READ) && (hwgain > handle->volumeCur))
       {
-         long volume;
+         float dt = GMATH_E1*no_frames/handle->frequency_hz;
+         float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	// 10 sec average
 
-         /*
-          * instantly change to a lower requested volume, slowly adjust to
-          * a higher requested volume
-          */
-         if ((handle->mode == AAX_MODE_READ) && (hwgain > handle->volumeCur))
-         {
-            float dt = GMATH_E1*no_frames/handle->frequency_hz;
-            float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	// 10 sec average
+         hwgain = (1.0f-rr)*handle->volumeCur + (rr)*hwgain;
+      }
 
-            hwgain = (1.0f-rr)*handle->volumeCur + (rr)*hwgain;
-         }
-         handle->volumeCur = hwgain;
-         volume = ceilf(hwgain * handle->volumeMax);
-
+      volume = ceilf(hwgain * handle->volumeMax);
+      if (volume != handle->volumeCur)
+      {
          snd_mixer_selem_id_t *sid = calloc(1,4096);
          snd_mixer_elem_t *elem;
 
+         handle->volumeCur = volume;
          for (elem = psnd_mixer_first_elem(handle->mixer); elem;
               elem = psnd_mixer_elem_next(elem))
          {
@@ -1964,11 +1965,12 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
             }             
          }
          free(sid);
-
-         if (hwgain) gain /= hwgain;
-         else gain = 0.0f;
-         rv = AAX_TRUE;
       }
+
+      hwgain = (float)volume/handle->volumeMax;
+      if (hwgain) gain /= hwgain;
+      else gain = 0.0f;
+      rv = AAX_TRUE;
    }
 
    /* software volume fallback */
