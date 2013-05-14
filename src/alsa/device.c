@@ -660,7 +660,8 @@ _aaxALSADriverDisconnect(void *id)
 
       if (handle->mixer)
       {
-         _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
+         _alsa_set_volume(handle, NULL, 0, 0, 0,
+                          (float)handle->volumeInit/handle->volumeMax);
          psnd_mixer_close(handle->mixer);
       }
       if (handle->pcm) {
