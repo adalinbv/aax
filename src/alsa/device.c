@@ -607,6 +607,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
             if (err >= 0) {
                _alsa_get_volume_range(handle);
+               _alsa_set_volume(handle, NULL, 0, 0, 0, 1.0f);
             }
             else
             {
