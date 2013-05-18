@@ -63,7 +63,7 @@
 #define OSS_VERSION_4		0x040002
 
 #define _AAX_DRVLOG(a)         _aaxOSSDriverLog(id, 0, 0, a)
-#define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && (a->volumeInit >= 0))
+#define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
 
 static _aaxDriverDetect _aaxOSSDriverDetect;
 static _aaxDriverNewHandle _aaxOSSDriverNewHandle;
@@ -142,8 +142,8 @@ typedef struct
 
    /* initial values, reset them wehn exiting */
    int mixfd;
-   int volumeInit, volumeMin, volumeMax;
-   int volumeCur;
+   long volumeCur, volumeMin, volumeMax;
+   float hwVolumeMax, hwVolumeCur;
    
 
    _oalRingBufferMix1NFunc *mix_mono3d;
@@ -203,7 +203,7 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
       handle->mode = _mode[(mode > 0) ? 1 : 0];
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
       handle->exclusive = O_EXCL;
-      handle->volumeMax = 100;
+      handle->volumeMax = 0;
       handle->volumeMin = 0;
    }
 
@@ -380,7 +380,7 @@ _aaxOSSDriverDisconnect(void *id)
 
       if (handle->mixfd >= 0)
       {
-         _oss_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
+         _oss_set_volume(handle, NULL, 0, 0, 0, 1.0f);
          close(handle->mixfd);
       }
 
@@ -541,9 +541,7 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
       }
       *frames = res / frame_size;
 
-      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, tracks,
-                      gain*handle->volumeInit);
-
+      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, tracks, gain);
       _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, res);
 
       return AAX_TRUE;
@@ -595,8 +593,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
    no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
 
-   _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks,
-                   gain*handle->volumeInit);
+   _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->ptr == 0)
@@ -747,11 +744,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->latency;
          break;
       case DRIVER_MAX_VOLUME:
-         if (HW_VOLUME_SUPPORT(handle)) {
-            rv = (float)handle->volumeMax/(float)handle->volumeInit;
-         } else {
-            rv = 1.0f;
-         }
+         rv = handle->hwVolumeMax;
          break;
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
@@ -978,19 +971,22 @@ _aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
 static int
 _oss_get_volume(_driver_t *handle)
 {
-   int rv = -1, volume = -1;
+   int rv = 0;
 
    if (handle && handle->fd >= 0)
    {
+      int vlr = -1;
+
       if (handle->oss_version >= OSS_VERSION_4)
       {
          errno = 0;
          if (handle->mode == O_RDONLY) {
-            pioctl(handle->fd, SNDCTL_DSP_GETRECVOL, &volume);
+            rv = pioctl(handle->fd, SNDCTL_DSP_GETRECVOL, &vlr);
          } else {
-            pioctl(handle->fd, SNDCTL_DSP_GETPLAYVOL, &volume);
+            rv = pioctl(handle->fd, SNDCTL_DSP_GETPLAYVOL, &vlr);
          }
-         rv = ((volume & 0xFF) + ((volume >> 8) & 0xFF))/2;
+         handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
+         handle->hwVolumeMax = (float)handle->volumeMax/handle->volumeCur;
       }
       else
       {
@@ -998,52 +994,71 @@ _oss_get_volume(_driver_t *handle)
          if (handle->mode == O_RDONLY)
          {
             pioctl(handle->fd, SOUND_MIXER_READ_RECMASK, &devs);
-            if (devs & SOUND_MASK_IGAIN) {
-               pioctl(handle->mixfd, SOUND_MIXER_READ_IGAIN, &volume);
-               rv = ((volume & 0xFF) + ((volume >> 8) & 0xFF))/2;
+            if (devs & SOUND_MASK_IGAIN)
+            {
+               rv = pioctl(handle->mixfd, SOUND_MIXER_READ_IGAIN, &vlr);
+               handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
             }
          }
          else
          {
             pioctl(handle->fd, SOUND_MIXER_READ_DEVMASK, &devs);
-            if (devs & SOUND_MASK_OGAIN) {
-               pioctl(handle->mixfd, SOUND_MIXER_READ_OGAIN, &volume);
-               rv = ((volume & 0xFF) + ((volume >> 8) & 0xFF))/2;
+            if (devs & SOUND_MASK_OGAIN)
+            {
+               rv = pioctl(handle->mixfd, SOUND_MIXER_READ_OGAIN, &vlr);
+               handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
             }
          }
       }
-   }
 
-   if (handle) {
-      handle->volumeInit = rv;
+      handle->volumeMin = 0;
+      if (rv == EINVAL) {
+         handle->volumeMax = 0;
+      } else {
+         handle->volumeMax = 100;
+      }
    }
-
    return rv;
 }
 
 static int
 _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
 {
+   float hwgain = gain;
    int rv = 0;
 
    if (handle && HW_VOLUME_SUPPORT(handle))
    {
-      int v = _MINMAX((int)gain, handle->volumeMin, handle->volumeMax);
+      int volume;
 
-      if (v != handle->volumeCur)
+      hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax,
+                       handle->hwVolumeMax);
+      /*
+       * instantly change to a lower requested volume, slowly adjust to
+       * a higher requested volume
+       */
+      if ((handle->mode == O_RDONLY) && (hwgain > handle->hwVolumeCur))
       {
-         int volume = v | (v << 8);
+         float dt = GMATH_E1*no_frames/handle->frequency_hz;
+         float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);      // 10 sec average
 
-         handle->volumeCur = v;
+         hwgain = (1.0f-rr)*handle->hwVolumeCur + (rr)*hwgain;
+         handle->hwVolumeCur = hwgain;
+      }
 
+      volume = ceilf(hwgain * handle->volumeMax/handle->hwVolumeMax);
+      if (volume != handle->volumeCur)
+      {
+         int vlr = volume | (volume << 8);
+
+         handle->volumeCur = volume;
          if (handle->oss_version >= OSS_VERSION_4)
          {
             if (handle->mode == O_RDONLY) {
-               rv = pioctl(handle->fd, SNDCTL_DSP_SETRECVOL, &volume);
+               rv = pioctl(handle->fd, SNDCTL_DSP_SETRECVOL, &vlr);
             } else {
-               rv = pioctl(handle->fd, SNDCTL_DSP_SETPLAYVOL, &volume);
+               rv = pioctl(handle->fd, SNDCTL_DSP_SETPLAYVOL, &vlr);
             }
-            gain = -1.0f;
          }
          else
          {
@@ -1051,33 +1066,32 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
             if (handle->mode == O_RDONLY)
             {
                pioctl(handle->fd, SOUND_MIXER_READ_RECMASK, &devs);
-               if (devs & SOUND_MASK_IGAIN)
-               {
-                  rv = pioctl(handle->mixfd, SOUND_MIXER_WRITE_IGAIN, &volume);
-                  gain = -1.0f;
+               if (devs & SOUND_MASK_IGAIN) {
+                  rv = pioctl(handle->mixfd, SOUND_MIXER_WRITE_IGAIN, &vlr);
                }
             }
             else
             {
                pioctl(handle->fd, SOUND_MIXER_READ_DEVMASK, &devs);
-               if (devs & SOUND_MASK_OGAIN)
-               {
-                  rv = pioctl(handle->mixfd, SOUND_MIXER_WRITE_OGAIN, &volume);
-                  gain = -1.0f;
+               if (devs & SOUND_MASK_OGAIN) {
+                  rv = pioctl(handle->mixfd, SOUND_MIXER_WRITE_OGAIN, &vlr);
                }
             }
          }
       }
-      else {
-         gain = -1.0f;
-      }
+
+      hwgain = (float)volume/handle->volumeMax;
+      if (hwgain) gain /= hwgain;
+      else gain = 0.0f;
+      rv = AAX_TRUE;
    }
 
-   if (gain >= 0.0f)		/* software fallback */
+   /* software volume fallback */
+   if (fabs(hwgain - gain) > 4e-3f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_mul_value((int32_t**)sbuf[t]+offset, sizeof(int32_t),
+         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
                           no_frames, gain);
       }
    }
