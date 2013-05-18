@@ -32,37 +32,41 @@ void
 _batch_mul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
 {
    unsigned int i = num;
-   switch (bps)
+
+   if (num)
    {
-   case 1:
-   {
-      int8_t* d = (int8_t*)data;
-      do {
-         *d++ *= f;
+      switch (bps)
+      {
+      case 1:
+      {
+         int8_t* d = (int8_t*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
       }
-      while (--i);
-      break;
-   }
-   case 2:
-   {
-      int16_t* d = (int16_t*)data;
-      do {
-         *d++ *= f;
+      case 2:
+      {
+         int16_t* d = (int16_t*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+         }
+      case 4:
+      {
+         int32_t* d = (int32_t*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
       }
-      while (--i);
-      break;
-   }
-   case 4:
-   {
-      int32_t* d = (int32_t*)data;
-      do {
-         *d++ *= f;
+      default:
+         break;
       }
-      while (--i);
-      break;
-   }
-   default:
-      break;
    }
 }
 
