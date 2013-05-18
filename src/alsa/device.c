@@ -1925,7 +1925,6 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
       long volume;
 
       hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 1.0f);
-printf("gain: %f, hwgain: %f\n", gain, hwgain);
 
       /*
        * instantly change to a lower requested volume, slowly adjust to
