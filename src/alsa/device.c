@@ -607,7 +607,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
             if (err >= 0) {
                _alsa_get_volume_range(handle);
-               _alsa_set_volume(handle, NULL, 0, 0, 0, 1.0f);
             }
             else
             {
@@ -1888,6 +1887,7 @@ _alsa_get_volume_range(_driver_t *handle)
                rv = psnd_mixer_selem_get_capture_volume(elem,
                                               SND_MIXER_SCHN_MONO,
                                               &handle->volumeInit);
+               handle->volumeCur = handle->volumeInit;
             }
             break;
          }
@@ -1904,6 +1904,7 @@ _alsa_get_volume_range(_driver_t *handle)
                rv = psnd_mixer_selem_get_playback_volume(elem,
                                                SND_MIXER_SCHN_MONO,
                                                &handle->volumeInit);
+               handle->volumeCur = handle->volumeInit;
             }
             break;
          }
@@ -1924,6 +1925,7 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
       long volume;
 
       hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 1.0f);
+printf("gain: %f, hwgain: %f\n", gain, hwgain);
 
       /*
        * instantly change to a lower requested volume, slowly adjust to
@@ -2112,9 +2114,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       }
 
       sbuf = (const int32_t**)rbsd->track;
-      if (gain < 0.99f) {
-         _alsa_set_volume(handle, sbuf, offs, frames, no_tracks, gain);
-      }
+      _alsa_set_volume(handle, sbuf, offs, frames, no_tracks, gain);
 
       for (t=0; t<no_tracks; t++)
       {
@@ -2221,9 +2221,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       }
 
       sbuf = (const int32_t**)rbsd->track;
-      if (gain < 0.99f) {
-         _alsa_set_volume(handle, sbuf, offs, frames, no_tracks, gain);
-      }
+      _alsa_set_volume(handle, sbuf, offs, frames, no_tracks, gain);
 
       p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
       handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
@@ -2308,9 +2306,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 #endif
 
    sbuf = (const int32_t**)rbsd->track;
-   if (gain < 0.99f) {
-      _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
-   }
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
   
    data = handle->data;
    for (t=0; t<no_tracks; t++)
@@ -2396,9 +2392,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 #endif
 
    sbuf = (const int32_t**)rbsd->track;
-   if (gain < 0.99f) {
-      _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
-   }
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
    data = (char*)handle->data;
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
