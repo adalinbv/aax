@@ -114,8 +114,8 @@ typedef struct
     snd_mixer_t *mixer;
     snd_pcm_t *pcm;
 
-    long volumeInit, volumeMin, volumeMax;
-    long volumeCur;
+    long volumeCur, volumeMin, volumeMax;
+    float hwVolumeMax, hwVolumeCur;
 
     float latency;
     float frequency_hz;
@@ -660,8 +660,7 @@ _aaxALSADriverDisconnect(void *id)
 
       if (handle->mixer)
       {
-         _alsa_set_volume(handle, NULL, 0, 0, 0,
-                          (float)handle->volumeInit/handle->volumeMax);
+         _alsa_set_volume(handle, NULL, 0, 0, 0, 1.0f);
          psnd_mixer_close(handle->mixer);
       }
       if (handle->pcm) {
@@ -1327,7 +1326,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->latency;
          break;
       case DRIVER_MAX_VOLUME:
-         rv = (float)handle->volumeMax/(float)handle->volumeInit;
+         rv = handle->hwVolumeMax;
          break;
       case DRIVER_MIN_VOLUME:
          rv = (float)handle->volumeMin;
@@ -1886,8 +1885,8 @@ _alsa_get_volume_range(_driver_t *handle)
                                             &handle->volumeMax);
                rv = psnd_mixer_selem_get_capture_volume(elem,
                                               SND_MIXER_SCHN_MONO,
-                                              &handle->volumeInit);
-               handle->volumeCur = handle->volumeInit;
+                                              &handle->volumeCur);
+               handle->hwVolumeMax = (float)handle->volumeMax/handle->volumeCur;
             }
             break;
          }
@@ -1903,8 +1902,8 @@ _alsa_get_volume_range(_driver_t *handle)
                                              &handle->volumeMax);
                rv = psnd_mixer_selem_get_playback_volume(elem,
                                                SND_MIXER_SCHN_MONO,
-                                               &handle->volumeInit);
-               handle->volumeCur = handle->volumeInit;
+                                               &handle->volumeCur);
+               handle->hwVolumeMax = (float)handle->volumeMax/handle->volumeCur;
             }
             break;
          }
@@ -1924,21 +1923,22 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
    {
       long volume;
 
-      hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 1.0f);
-
+      hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 
+                       handle->hwVolumeMax);
       /*
        * instantly change to a lower requested volume, slowly adjust to
        * a higher requested volume
        */
-      if ((handle->mode == AAX_MODE_READ) && (hwgain > handle->volumeCur))
+      if ((handle->mode == AAX_MODE_READ) && (hwgain > handle->hwVolumeCur))
       {
          float dt = GMATH_E1*no_frames/handle->frequency_hz;
          float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	// 10 sec average
 
-         hwgain = (1.0f-rr)*handle->volumeCur + (rr)*hwgain;
+         hwgain = (1.0f-rr)*handle->hwVolumeCur + (rr)*hwgain;
+         handle->hwVolumeCur = hwgain;
       }
 
-      volume = ceilf(hwgain * handle->volumeMax);
+      volume = ceilf(hwgain * handle->volumeMax/handle->hwVolumeMax);
       if (volume != handle->volumeCur)
       {
          snd_mixer_selem_id_t *sid = calloc(1,4096);
