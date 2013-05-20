@@ -123,6 +123,7 @@ typedef struct
    int nodenum;
 
    int fd;
+   float gain;
    float latency;
    float frequency_hz;
    unsigned int format;
@@ -205,6 +206,7 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
       handle->exclusive = O_EXCL;
       handle->volumeMax = 0;
       handle->volumeMin = 0;
+      handle->gain = 1.0f;
    }
 
    return handle;
@@ -541,7 +543,10 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
       }
       *frames = res / frame_size;
 
-      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, tracks, gain);
+      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, tracks,
+                      handle->gain);
+      handle->gain = gain;
+
       _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, res);
 
       return AAX_TRUE;
@@ -1091,7 +1096,7 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
+         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int16_t),
                           no_frames, gain);
       }
    }

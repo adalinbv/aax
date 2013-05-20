@@ -99,6 +99,7 @@ typedef struct
    int mode;
    char *name;
 
+   float gain;
    float latency;
    float frequency;
    enum aaxFormat format;
@@ -154,6 +155,7 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
    {
       _aaxExtensionDetect *ftype = _aaxFileTypes[0];
 
+      handle->gain = 1.0f;
       handle->mode = mode;
       handle->sse_level = _aaxGetSSELevel();
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
@@ -577,14 +579,15 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       sbuf = (int32_t**)tracks;
       _batch_cvt24_24_intl(sbuf, data, offs, file_no_tracks, no_frames);
 
-      if (gain < 0.99f || gain > 1.01f)
+      if (handle->gain < 0.99f || handle->gain > 1.01f)
       {
          int t;
          for (t=0; t<file_no_tracks; t++) {
             _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_frames,
-                             gain);
+                             handle->gain);
          }
       }
+      handle->gain = gain;
    }
 
    return bytes;
