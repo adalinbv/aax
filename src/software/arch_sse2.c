@@ -94,25 +94,31 @@ _ivec4Mulivec4_sse2(ivec4 d, const ivec4 v1, const ivec4 v2)
 void
 _batch_cvt24_ps_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 {
-   static const float mul = (float)(1<<24);
-   int32_t *d = (int32_t*)dptr;
-   float* s = (float*)sptr;
-   unsigned int i = num;
-   do {
-      *d++ = (int32_t)(*s++ * mul);
-   } while (--i);
+   if (num)
+   {
+      static const float mul = (float)(1<<24);
+      int32_t *d = (int32_t*)dptr;
+      float* s = (float*)sptr;
+      unsigned int i = num;
+      do {
+         *d++ = (int32_t)(*s++ * mul);
+      } while (--i);
+   }
 }
 
 void
 _batch_cvt24_pd_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 {
-   static const double mul = (double)(1<<24);
-   int32_t *d = (int32_t*)dptr;
-   double* s = (double*)sptr;
-   unsigned int i = num;
-   do {
-      *d++ = (int32_t)(*s++ * mul);
-   } while (--i);
+   if (num)
+   {
+      static const double mul = (double)(1<<24);
+      int32_t *d = (int32_t*)dptr;
+      double* s = (double*)sptr;
+      unsigned int i = num;
+      do {
+         *d++ = (int32_t)(*s++ * mul);
+      } while (--i);
+   }
 }
 
 FN_PREALIGN void
@@ -124,6 +130,8 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
    int32_ptr s = (int32_ptr)src;
    unsigned int i, size, step;
    long dtmp, stmp;
+
+   if (!num) return;
 
    dtmp = (long)dptr & 0xF;
    stmp = (long)sptr & 0xF;
@@ -213,6 +221,8 @@ _batch_cvt24_16_sse2(void_ptr dbuf, const_void_ptr sbuf, unsigned int num)
    unsigned int i, size, step, n;
    long tmp;
 
+   if (!num) return;
+
    n = num;
    step = 2*sizeof(__m128i)/sizeof(int16_t);
 
@@ -281,6 +291,7 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
    int32_t* s = (int32_t*)src;
    int16_t* d = (int16_t*)dst;
+
 #if 1
    unsigned int i = (num/4)*4;
    unsigned int j = num-i;
@@ -382,6 +393,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    int16_t* d = (int16_t*)dst;
    int32_t *s1, *s2;
    long tmp;
+
+   if (!num) return;
 
    if (tracks != 2)
    {
@@ -501,6 +514,8 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
    unsigned int i, size, step;
    float h0, h1;
    long tmp;
+
+   if (!num) return;
 
    h0 = hist[0];
    h1 = hist[1];
@@ -803,21 +818,24 @@ _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
 
 
    i=dmax-dmin;
-   do
+   if (i)
    {
-      int step;
+      do
+      {
+         int step;
 
-      *dptr++ = samp + (int32_t)(dsamp * smu);
+         *dptr++ = samp + (int32_t)(dsamp * smu);
 
-      smu += freq_factor;
-      step = (int)floorf(smu);
+         smu += freq_factor;
+         step = (int)floorf(smu);
 
-      smu -= step;
-      sptr += step-1;
-      samp = *sptr++;
-      dsamp = *sptr - samp;
+         smu -= step;
+         sptr += step-1;
+         samp = *sptr++;
+         dsamp = *sptr - samp;
+      }
+      while (--i);
    }
-   while (--i);
 }
 
 void
@@ -842,18 +860,21 @@ _aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
       dptr += dmin;
 
       i = dmax-dmin;
-      do
+      if (i)
       {
-         *dptr++ = *sptr;
-
-         smu += freq_factor;
-         if (smu > 0.5f)
+         do
          {
-            sptr++;
-            smu -= 1.0f;
+            *dptr++ = *sptr;
+
+            smu += freq_factor;
+            if (smu > 0.5f)
+            {
+               sptr++;
+               smu -= 1.0f;
+            }
          }
+         while (--i);
       }
-      while (--i);
    }
 }
 
@@ -878,19 +899,22 @@ _aaxBufResampleLinear_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    dsamp = *sptr - samp;	// (n+1) - n
 
    i = dmax-dmin;
-   do
+   if (i)
    {
-      *dptr++ = samp + (int32_t)(dsamp * smu);
-
-      smu += freq_factor;
-      if (smu >= 1.0)
+      do
       {
-         smu -= 1.0;
-         samp = *sptr++;
-         dsamp = *sptr - samp;
+         *dptr++ = samp + (int32_t)(dsamp * smu);
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu -= 1.0;
+            samp = *sptr++;
+            dsamp = *sptr - samp;
+         }
       }
+      while (--i);
    }
-   while (--i);
 }
 
 
@@ -921,29 +945,32 @@ _aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
    a2 = y2 - y0;
 
    i = dmax-dmin;
-   do
+   if (i)
    {
-      float smu2, ftmp;
-
-      smu2 = smu*smu;
-      ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
-      *dptr++ = (int32_t)ftmp;
-
-      smu += freq_factor;
-      if (smu >= 1.0)
+      do
       {
-         smu--;
-         a0 += y0;
-         y0 = y1;
-         y1 = y2;
-         y2 = y3;
-         y3 = (float)*sptr++;
-         a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
-         a1 = y0 - y1 - a0;
-         a2 = y2 - y0;
+         float smu2, ftmp;
+
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *dptr++ = (int32_t)ftmp;
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu--;
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = (float)*sptr++;
+            a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+         }
       }
+      while (--i);
    }
-   while (--i);
 }
 #endif /* SSE2 */
 

@@ -199,6 +199,8 @@ _mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2)
 void
 _batch_fmadd_neon(int32_ptr d, const_int32_ptr src, unsigned int num, float f, float fstep)
 {
+   if (!num) return;
+
 #if 0
    unsigned int i = (num/4)*4;
    do
@@ -301,6 +303,8 @@ _batch_cvt24_16_neon(void_ptr d, const_void_ptr src, unsigned int num)
    unsigned int i, size, step;
    long tmp;
 
+   if (!num) return;
+
    step = 2*4*sizeof(int32x4_t)/sizeof(int32_t);
    
 #if 0
@@ -372,6 +376,8 @@ _batch_cvt16_24_neon(void_ptr dst, const_void_ptr s, unsigned int num)
    int16_t* d = (int16_t*)dst;
    unsigned int i, size, step;
    long tmp;
+
+   if (!num) return;
 
    step = 2*4*sizeof(int32x4_t)/sizeof(int32_t);
 
@@ -447,6 +453,7 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
    int32_t *s1, *s2;
    long tmp;
 
+   if (!num) return;
 
 #if 0
    if (tracks != 2)
@@ -553,6 +560,8 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
    unsigned int i, size, step;
    float h0, h1;
    long tmp;
+
+   if (!num) return;
 
    h0 = hist[0];
    h1 = hist[1];
@@ -694,16 +703,19 @@ _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    nsamp = *sptr;
 
    i=dmax-dmin;
-   do
+   if (i)
    {
-      *dptr++ = (samp + nsamp) / 2;
+      do
+      {
+         *dptr++ = (samp + nsamp) / 2;
 
-      samp = nsamp;
-      pos += freq_factor;
-      sptr = s + (unsigned int)pos;
-      nsamp = *sptr;
+         samp = nsamp;
+         pos += freq_factor;
+         sptr = s + (unsigned int)pos;
+         nsamp = *sptr;
+      }
+      while (--i);
    }
-   while (--i);
 }
 
 void
@@ -723,18 +735,21 @@ _aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
    dptr += dmin;
 
    i = dmax-dmin;
-   do
+   if (i)
    {
-      *dptr++ = *sptr;
-
-      smu += freq_factor;
-      if (smu > 0.5)
+      do
       {
-         sptr++;
-         smu -= 1.0;
+         *dptr++ = *sptr;
+
+         smu += freq_factor;
+         if (smu > 0.5)
+         {
+            sptr++;
+            smu -= 1.0;
+         }
       }
+      while (--i);
    }
-   while (--i);
 }
 
 void
@@ -758,19 +773,22 @@ _aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    dsamp = *sptr - samp;        // (n+1) - n
 
    i = dmax-dmin;
-   do
+   if (i)
    {
-      *dptr++ = samp + (dsamp * smu);
-
-      smu += freq_factor;
-      if (smu >= 1.0)
+      do
       {
-         smu -= 1.0;
-         samp = *sptr++;
-         dsamp = *sptr - samp;
+         *dptr++ = samp + (dsamp * smu);
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu -= 1.0;
+            samp = *sptr++;
+            dsamp = *sptr - samp;
+         }
       }
+      while (--i);
    }
-   while (--i);
 }
 
 void
@@ -800,28 +818,31 @@ _aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
    a2 = y2 - y0;
 
    i = dmax-dmin;
-   do
+   if (i)
    {
-      float smu2, ftmp;
+      do
+      {
+         float smu2, ftmp;
 
-      smu2 = smu*smu;
-      ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
-      *dptr++ = (int32_t)ftmp;
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *dptr++ = (int32_t)ftmp;
 
-      smu += freq_factor;
-      if (smu >= 1.0)      {
-         smu--;
-         a0 += y0;
-         y0 = y1;
-         y1 = y2;
-         y2 = y3;
-         y3 = *sptr++;
-         a0 = -a0 + y3;                 /* a0 = y3 - y2 - y0 + y1; */
-         a1 = y0 - y1 - a0;
-         a2 = y2 - y0;
+         smu += freq_factor;
+         if (smu >= 1.0)      {
+            smu--;
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = *sptr++;
+            a0 = -a0 + y3;                 /* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+         }
       }
+      while (--i);
    }
-   while (--i);
 }
 #endif /* NEON */
 
