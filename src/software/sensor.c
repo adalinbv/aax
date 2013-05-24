@@ -72,7 +72,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
-         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, dest_track, curr_pos_sec, gain);
+         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, dest_track,
+                                curr_pos_sec, gain);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
@@ -200,9 +201,9 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
       size_t frames, nframes;
       int res;
 
-      if (agc_rr > 0.0f) 
+      if (agc_rr > 0.0f)
       {
-         agc_rr = _MINMAX(dt/agc_rr,  0.0f, 1.0f);
+         agc_rr = _MINMAX(dt/agc_rr, 0.0f, 1.0f);
          gain *= dest_rb->gain_agc;
       }
 
@@ -316,6 +317,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          } else {
             nrb->gain_agc = (1.0f-agc_rr)*dest_rb->gain_agc + (agc_rr)*max;
          }
+         if (nrb->gain_agc < 0.01f) nrb->gain_agc = 0.01f;
 
          rv = nrb;
       }

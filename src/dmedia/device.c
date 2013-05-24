@@ -129,7 +129,6 @@ typedef struct
    stamp_t offset;
    float frequency_hz;
    float latency;
-   float gain;
 
    unsigned int _no_channels_init;
    unsigned int _no_channels_avail;
@@ -291,7 +290,6 @@ _aaxDMediaDriverNewHandle(enum aaxRenderMode mode)
       handle->port[0].frequency_hz = 44100;
       handle->port[0].bytes_sample = 2;
       handle->port[0].no_channels = 2;
-      handle->port[0].gain = 1.0f;
       handle->mode = (mode > 0) ? 1 : 0;
    }
 
@@ -687,15 +685,14 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
    _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
 
 // TODO: convert to hardware volume if possible
-   if (handle->port[0].gain < 0.99f || handle->port[0].gain > 1.01f)
+   if (gain < 0.99f || gain > 1.01f)
    {
       int t;
       for (t=0; t<tracks; t++) {
          _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
-                          handle->port[0].gain);
+                          gain);
       }
    }
-   handle->port[0].gain = gain;
    *frames = nframes;
    return AAX_TRUE;
 }

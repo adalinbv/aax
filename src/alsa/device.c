@@ -114,8 +114,10 @@ typedef struct
     snd_mixer_t *mixer;
     snd_pcm_t *pcm;
 
-    long volumeCur, volumeMin, volumeMax;
-    float hwVolumeMax, hwVolumeCur;
+    long volumeHW, volumeCurDB;
+    float volumeCur, volumeInit;
+    float volumeMin, volumeMax;
+    float volumeStep, hwgain;
 
     float latency;
     float frequency_hz;
@@ -212,12 +214,16 @@ DECL_FUNCTION(snd_mixer_selem_register);
 DECL_FUNCTION(snd_mixer_first_elem);
 DECL_FUNCTION(snd_mixer_elem_next);
 DECL_FUNCTION(snd_mixer_selem_has_playback_volume);
-DECL_FUNCTION(snd_mixer_selem_get_playback_volume);
+DECL_FUNCTION(snd_mixer_selem_get_playback_dB);
 DECL_FUNCTION(snd_mixer_selem_get_playback_volume_range);
+DECL_FUNCTION(snd_mixer_selem_get_playback_dB_range);
+DECL_FUNCTION(snd_mixer_selem_ask_playback_dB_vol);
 DECL_FUNCTION(snd_mixer_selem_set_playback_volume_all);
 DECL_FUNCTION(snd_mixer_selem_has_capture_volume);
-DECL_FUNCTION(snd_mixer_selem_get_capture_volume);
+DECL_FUNCTION(snd_mixer_selem_get_capture_dB);
 DECL_FUNCTION(snd_mixer_selem_get_capture_volume_range);
+DECL_FUNCTION(snd_mixer_selem_get_capture_dB_range);
+DECL_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);
 DECL_FUNCTION(snd_mixer_selem_set_capture_volume_all);
 DECL_FUNCTION(snd_mixer_selem_get_id);
 DECL_FUNCTION(snd_mixer_selem_id_get_name);
@@ -341,12 +347,16 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_mixer_first_elem);				//
          TIE_FUNCTION(snd_mixer_elem_next);				//
          TIE_FUNCTION(snd_mixer_selem_has_playback_volume);		//
-         TIE_FUNCTION(snd_mixer_selem_get_playback_volume);		//
+         TIE_FUNCTION(snd_mixer_selem_get_playback_dB);			//
          TIE_FUNCTION(snd_mixer_selem_get_playback_volume_range);	//
+         TIE_FUNCTION(snd_mixer_selem_get_playback_dB_range);		//
+         TIE_FUNCTION(snd_mixer_selem_ask_playback_dB_vol);		//
          TIE_FUNCTION(snd_mixer_selem_set_playback_volume_all);		//
          TIE_FUNCTION(snd_mixer_selem_has_capture_volume);		//
-         TIE_FUNCTION(snd_mixer_selem_get_capture_volume);		//
+         TIE_FUNCTION(snd_mixer_selem_get_capture_dB);			//
          TIE_FUNCTION(snd_mixer_selem_get_capture_volume_range);	//
+         TIE_FUNCTION(snd_mixer_selem_get_capture_dB_range);		//
+         TIE_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);		//
          TIE_FUNCTION(snd_mixer_selem_set_capture_volume_all);		//
          TIE_FUNCTION(snd_mixer_selem_get_id);				//
          TIE_FUNCTION(snd_mixer_selem_id_get_name);			//
@@ -660,7 +670,7 @@ _aaxALSADriverDisconnect(void *id)
 
       if (handle->mixer)
       {
-         _alsa_set_volume(handle, NULL, 0, 0, 0, 1.0f);
+         _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          psnd_mixer_close(handle->mixer);
       }
       if (handle->pcm) {
@@ -1046,6 +1056,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    int res, rv = AAX_FALSE;
+   int init_offs = offs;
 
    if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
@@ -1216,8 +1227,6 @@ if (corr)
             }
          }
 
-         _alsa_set_volume(handle, (const int32_t**)sbuf, offs, res, tracks, gain);
-
          if (res < 0)
          {
             if (xrun_recovery(handle->pcm, res) < 0)
@@ -1242,6 +1251,8 @@ if (corr)
       while((size > 0) && --chunk);
       if (!chunk) _AAX_DRVLOG("alsa; too many capture tries\n");
       *req_frames = offs;
+
+      _alsa_set_volume(handle, (const int32_t **)sbuf, init_offs, offs, tracks, gain);
    }
    else rv = AAX_TRUE;
 
@@ -1326,10 +1337,13 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->latency;
          break;
       case DRIVER_MAX_VOLUME:
-         rv = handle->hwVolumeMax;
+         rv = handle->volumeMax;
          break;
       case DRIVER_MIN_VOLUME:
-         rv = (float)handle->volumeMin;
+         rv = handle->volumeMin;
+         break;
+      case DRIVER_VOLUME:
+         rv = handle->volumeHW;
          break;
       default:
          break;
@@ -1880,13 +1894,19 @@ _alsa_get_volume_range(_driver_t *handle)
          {
             if (psnd_mixer_selem_has_capture_volume(elem))
             {
-               psnd_mixer_selem_get_capture_volume_range(elem,
-                                            &handle->volumeMin,
-                                            &handle->volumeMax);
-               rv = psnd_mixer_selem_get_capture_volume(elem,
-                                              SND_MIXER_SCHN_MONO,
-                                              &handle->volumeCur);
-               handle->hwVolumeMax = (float)handle->volumeMax/handle->volumeCur;
+               long min, max;
+
+               psnd_mixer_selem_get_capture_dB_range(elem, &min, &max);
+               handle->volumeMin = _db2lin((float)min*0.01f);
+               handle->volumeMax = _db2lin((float)max*0.01f);
+
+               rv = psnd_mixer_selem_get_capture_dB(elem,
+                                                     SND_MIXER_SCHN_MONO, &max);
+               handle->volumeInit = _db2lin((float)max*0.01f);
+               handle->volumeCur = handle->volumeInit;
+
+               psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
+               handle->volumeStep = 1.0f/((float)max-(float)min);
             }
             break;
          }
@@ -1897,13 +1917,19 @@ _alsa_get_volume_range(_driver_t *handle)
          {
             if (psnd_mixer_selem_has_playback_volume(elem))
             {
-               psnd_mixer_selem_get_playback_volume_range(elem,
-                                             &handle->volumeMin,
-                                             &handle->volumeMax);
-               rv = psnd_mixer_selem_get_playback_volume(elem,
-                                               SND_MIXER_SCHN_MONO,
-                                               &handle->volumeCur);
-               handle->hwVolumeMax = (float)handle->volumeMax/handle->volumeCur;
+               long min, max;
+
+               psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+               handle->volumeMin = _db2lin((float)min*0.01f);
+               handle->volumeMax = _db2lin((float)max*0.01f);
+
+               rv = psnd_mixer_selem_get_playback_dB(elem,
+                                                     SND_MIXER_SCHN_MONO, &min);
+               handle->volumeInit = _db2lin((float)max*0.01f);
+               handle->volumeCur = handle->volumeInit;
+
+               psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+               handle->volumeStep = 1.0f/((float)max-(float)min);
             }
             break;
          }
@@ -1921,62 +1947,85 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
 
    if (handle && handle->mixer && !handle->shared && handle->volumeMax)
    {
-      long volume;
+      hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
 
-      hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax, 
-                       handle->hwVolumeMax);
       /*
-       * instantly change to a lower requested volume, slowly adjust to
-       * a higher requested volume
+       * Slowly adjust volume to dampen volume slider movement.
+       * If the volume step is large, don't dampen it.
        */
-      if ((handle->mode == AAX_MODE_READ) && (hwgain > handle->hwVolumeCur))
+      if (handle->mode == AAX_MODE_READ)
       {
          float dt = GMATH_E1*no_frames/handle->frequency_hz;
-         float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	// 10 sec average
+         float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);	/* 10 sec average */
 
-         hwgain = (1.0f-rr)*handle->hwVolumeCur + (rr)*hwgain;
-         handle->hwVolumeCur = hwgain;
+         /* Quickly adjust for a very large step in volume */
+         if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.1f;
+
+         hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
+         handle->hwgain = hwgain;
       }
 
-      volume = ceilf(hwgain * handle->volumeMax/handle->hwVolumeMax);
-      if (volume != handle->volumeCur)
+      if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
       {
          snd_mixer_selem_id_t *sid = calloc(1,4096);
          snd_mixer_elem_t *elem;
 
-         handle->volumeCur = volume;
          for (elem = psnd_mixer_first_elem(handle->mixer); elem;
               elem = psnd_mixer_elem_next(elem))
          {
             const char *name;
+            long volume;
 
             psnd_mixer_selem_get_id(elem, sid);
             name = psnd_mixer_selem_id_get_name(sid);
 
             if (handle->mode == AAX_MODE_READ)
             {
-               if (!strcmp(name, "Capture")) {
-                  psnd_mixer_selem_set_capture_volume_all(elem, volume);
+               if (psnd_mixer_selem_has_capture_volume(elem) &&
+                   !strcmp(name, "Capture"))
+               {
+                  long volumeDB;
+                  psnd_mixer_selem_get_capture_dB(elem, SND_MIXER_SCHN_MONO,
+                                                  &volumeDB);
+                  handle->volumeHW = _db2lin(volumeDB)*0.01f;
+
+                  volumeDB = (long)(_lin2db(hwgain)*100.0f);
+                  psnd_mixer_selem_ask_capture_dB_vol(elem,volumeDB,1, &volume);
+                  rv = psnd_mixer_selem_set_capture_volume_all(elem, volume);
+                  handle->volumeCurDB = volumeDB;
                }
             }
-            else if (!strcmp(name, "Front") || !strcmp(name, "Surround") ||
-                   !strcmp(name, "Center") || !strcmp(name, "LFE") ||
-                   !strcmp(name, "Side") || !strcmp(name, "Rear"))
+            else if (psnd_mixer_selem_has_playback_volume(elem) &&
+                     (!strcmp(name, "Front") || !strcmp(name, "Surround") ||
+                      !strcmp(name, "Center") || !strcmp(name, "LFE") ||
+                      !strcmp(name, "Side")))
             {
-               psnd_mixer_selem_set_playback_volume_all(elem, volume);
+               long volumeDB;
+
+               if (!strcmp(name,"Front"))
+               {
+                  psnd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_MONO,
+                                                   &volumeDB);
+                  handle->volumeHW = _db2lin(volumeDB)*0.01f;
+               }
+
+               volumeDB = (long)(_lin2db(hwgain)*100.0f);
+               psnd_mixer_selem_ask_playback_dB_vol(elem, volumeDB, 1, &volume);
+               rv = psnd_mixer_selem_set_playback_volume_all(elem, volume);
+               handle->volumeCurDB = volumeDB;
             }             
          }
          free(sid);
+
+         handle->volumeCur = hwgain;
       }
 
-      hwgain = (float)volume/handle->volumeMax;
       if (hwgain) gain /= hwgain;
       else gain = 0.0f;
-      rv = AAX_TRUE;
    }
 
    /* software volume fallback */
-   if (fabs(hwgain - gain) > 4e-3f)
+   if (fabsf(gain - 1.0f) > 0.05f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
@@ -2043,6 +2092,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
+   const int32_t **sbuf;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2056,6 +2106,9 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
    no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
+
+   sbuf = (const int32_t**)rbsd->track;
+   _alsa_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
 
    state = psnd_pcm_state(handle->pcm);
    if (state != SND_PCM_STATE_RUNNING)
@@ -2097,7 +2150,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
-      const int32_t **sbuf;
       int err;
 
       err = psnd_pcm_mmap_begin(handle->pcm, &area, &mmap_offs, &frames);
@@ -2111,9 +2163,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
             return 0;
          }
       }
-
-      sbuf = (const int32_t**)rbsd->track;
-      _alsa_set_volume(handle, sbuf, offs, frames, no_tracks, gain);
 
       for (t=0; t<no_tracks; t++)
       {
@@ -2150,6 +2199,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
+   const int32_t **sbuf;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2162,6 +2212,9 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
    no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
+
+   sbuf = (const int32_t**)rbsd->track;
+   _alsa_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
 
    state = psnd_pcm_state(handle->pcm);
    if (state != SND_PCM_STATE_RUNNING)
@@ -2203,7 +2256,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
-      const int32_t **sbuf;
       char *p;
       int err;
 
@@ -2218,9 +2270,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
             return 0;
          }
       }
-
-      sbuf = (const int32_t**)rbsd->track;
-      _alsa_set_volume(handle, sbuf, offs, frames, no_tracks, gain);
 
       p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
       handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
@@ -2268,6 +2317,9 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
+   sbuf = (const int32_t**)rbsd->track;
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
+
    if (handle->scratch == 0)
    {
       unsigned int samples, outbuf_size, size;
@@ -2304,9 +2356,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       assert(no_samples*hw_bps <= handle->buf_len);
 #endif
 
-   sbuf = (const int32_t**)rbsd->track;
-   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
-  
    data = handle->data;
    for (t=0; t<no_tracks; t++)
    {
@@ -2375,6 +2424,9 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
+   sbuf = (const int32_t**)rbsd->track;
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
+
    outbuf_size = no_tracks * no_samples*hw_bps;
    if (handle->scratch == 0)
    {
@@ -2389,9 +2441,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 #if 0
    assert(outbuf_size <= handle->buf_len);
 #endif
-
-   sbuf = (const int32_t**)rbsd->track;
-   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
    data = (char*)handle->data;
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);

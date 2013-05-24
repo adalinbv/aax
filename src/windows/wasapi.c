@@ -76,7 +76,7 @@
 
 #define _AAX_DRVLOG(p)			_aaxWASAPIDriverLog(id, 0, p, __FUNCTION__)
 #define _AAX_DRVLOG_VAR(args...)	_aaxWASAPIDriverLogVar(id, args);
-#define HW_VOLUME_SUPPORT(a)		(a->pEndpointVolume && (a->volumeInit >= 0))
+#define HW_VOLUME_SUPPORT(a)		(a->pEndpointVolume && (a->volumeMax))
 
 
 static _aaxDriverDetect _aaxWASAPIDriverDetect;
@@ -168,8 +168,8 @@ typedef struct
 
    /* enpoint volume control */
    IAudioEndpointVolume *pEndpointVolume;
-   float volumeInit, volumeMin, volumeMax;
-   float volumeCur;
+   float volumeCur, volumeMin, volumeMax;
+   float hwVolumeMax, hwVolumeCur;
 
    /* capture related */
    char cthread_init;
@@ -533,7 +533,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 
       if (handle->pEndpointVolume != NULL)
       {
-         _wasapi_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
+         _wasapi_set_volume(handle, NULL, 0, 0, 0, 1.0f);
          IAudioEndpointVolume_Release(handle->pEndpointVolume);
          handle->pEndpointVolume = NULL;
       }
@@ -1058,6 +1058,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
  _AAX_DRVLOG_VAR("- latency: %5.3f ms", handle->hnsLatency/10000.0f);
  _AAX_DRVLOG_VAR("- buffers: %i frames, total: %i frames, periods: %i", periodFrameCnt, bufferFrameCnt, rintf((float)bufferFrameCnt/(float)periodFrameCnt));
  _AAX_DRVLOG_VAR("- speaker mask: 0x%x", (int)handle->Fmt.dwChannelMask);
+ _AAX_DRVLOG_VAR("- volume: %5.4f (%3.1f dB), min: %5.4f (%3.1f dB), max: %5.4f (%3.1f dB)", handle->volumeCur, _lin2db(handle->volumeCur), handle->volumeMin, _lin2db(handle->volumeMin), handle->volumeMax, _lin2db(handle->volumeMax));
 #endif
    }
    else {
@@ -1150,12 +1151,12 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
          unsigned int avail = _MIN(handle->scratch_offs, fetch);
          int32_t **ptr = (int32_t**)data;
 
-         if (avail)
-         {
+         if (avail) {
             handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
-            _wasapi_set_volume(handle, (const int32_t**)ptr, offs, avail,
-                               tracks, gain*handle->volumeInit);
          }
+
+         _wasapi_set_volume(handle, (const int32_t**)ptr, offs, avail,
+                               tracks, gain);
 
          if (avail < fetch)
          {
@@ -1252,8 +1253,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
          const int32_t **sbuf = (const int32_t**)rbsd->track;
          BYTE *data = NULL;
 
-         _wasapi_set_volume(handle, sbuf, offs, no_frames, no_tracks,
-                            gain*handle->volumeInit);
+         _wasapi_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
 
          hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
          if (hr == S_OK)
@@ -1379,7 +1379,7 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->hnsLatency*100e-9f;
          break;
       case DRIVER_MAX_VOLUME:
-         rv = handle->volumeMax/handle->volumeInit;
+         rv = handle->hwVolumeMax;
          break;
       case DRIVER_MIN_VOLUME:
         rv = handle->volumeMin;
@@ -2527,32 +2527,23 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
 static int
 _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
 {
+_driver_t *id = handle;
    float hwgain = gain;
    int rv = 0;
 
    if (handle && HW_VOLUME_SUPPORT(handle) &&
        (handle->status & EXCLUSIVE_MODE_MASK))
    {
+float tq = handle->hwVolumeCur;
       hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
-      if (fabs(handle->volumeCur - hwgain) > 4e-3f)
+      if (fabs(handle->hwVolumeCur - hwgain) > 4e-3f)
       {
-         /*
-          * instantly change to a lower requested volume, slowly adjust to
-          * a higher requested volume
-          */
-         if ((handle->Mode == eCapture) && (hwgain > handle->volumeCur))
-         {
-            float dt = GMATH_E1*no_frames/handle->Fmt.Format.nSamplesPerSec;
-            float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);   // 10 sec average
-
-            hwgain = (1.0f-rr)*handle->volumeCur + (rr)*hwgain;
-         }
-         handle->volumeCur = hwgain;
          rv = IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
                                                         _lin2db(hwgain), NULL);
          if (hwgain) gain /= hwgain;
          else gain = 0.0f;
       }
+_AAX_DRVLOG_VAR("hwgain: %f (%f), sw: %f, min: %f, max: %f", hwgain, tq, gain, handle->volumeMin/handle->volumeMax, handle->hwVolumeMax);
    }
 
    /* software volume fallback */
@@ -2584,10 +2575,14 @@ _wasapi_get_volume_range(_driver_t *handle)
       if (rv == S_OK && (mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME))
       {
          float cur, min, max, step;
+
          rv = IAudioEndpointVolume_GetMasterVolumeLevel(
                                         handle->pEndpointVolume, &cur);
-         if (rv == S_OK) handle->volumeInit = _db2lin(cur);
-         else handle->volumeInit = 1.0f;
+         if (rv == S_OK) {
+            handle->volumeCur = _db2lin(cur);
+         } else {
+            handle->volumeCur = 1.0f;
+         }
 
          rv = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
                                                   &min, &max, &step);
@@ -2601,9 +2596,10 @@ _wasapi_get_volume_range(_driver_t *handle)
             handle->volumeMin = 0.0f;
             handle->volumeMax = 1.0f;
          }
+         handle->hwVolumeMax = handle->volumeMax/handle->volumeCur;
       }
       else {
-         handle->volumeInit = -1.0f;
+         handle->volumeMax = 0.0f;
       }
    }
 

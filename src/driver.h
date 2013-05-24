@@ -63,6 +63,7 @@ enum _aaxDriverParam {
    DRIVER_LATENCY = 0,
    DRIVER_MIN_VOLUME,
    DRIVER_MAX_VOLUME,
+   DRIVER_VOLUME,
    DRIVER_AGC_LEVEL
 };
 

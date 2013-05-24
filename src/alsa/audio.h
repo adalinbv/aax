@@ -371,15 +371,29 @@ typedef snd_mixer_elem_t* (*snd_mixer_elem_next_proc)(snd_mixer_elem_t *);
 typedef int (*snd_mixer_selem_register_proc)(snd_mixer_t*, struct snd_mixer_selem_regopt*, snd_mixer_class_t**);
 typedef int (*snd_mixer_selem_has_playback_volume_proc)(snd_mixer_elem_t*);
 typedef int (*snd_mixer_selem_get_playback_volume_proc)(snd_mixer_elem_t*,  	snd_mixer_selem_channel_id_t, long*);
+typedef int (*snd_mixer_selem_get_playback_dB_proc)(snd_mixer_elem_t *, snd_mixer_selem_channel_id_t, long*);
 typedef int (*snd_mixer_selem_set_playback_volume_all_proc)(snd_mixer_elem_t*, long);
 typedef int (*snd_mixer_selem_get_playback_volume_range_proc)(snd_mixer_elem_t*, long*, long*);
+typedef int (*snd_mixer_selem_get_playback_dB_range_proc)(snd_mixer_elem_t*, long*, long*);
+typedef int (*snd_mixer_selem_ask_playback_vol_dB_proc)(snd_mixer_elem_t*, long, long*);
+typedef int (*snd_mixer_selem_ask_playback_dB_vol_proc)(snd_mixer_elem_t *, long, int, long*);
 typedef int (*snd_mixer_selem_has_capture_volume_proc)(snd_mixer_elem_t *);
-typedef int (*snd_mixer_selem_get_capture_volume_proc)(snd_mixer_elem_t*,      snd_mixer_selem_channel_id_t, long*);
+typedef int (*snd_mixer_selem_get_capture_volume_proc)(snd_mixer_elem_t*, snd_mixer_selem_channel_id_t, long*);
+typedef int (*snd_mixer_selem_get_capture_dB_proc)(snd_mixer_elem_t *, snd_mixer_selem_channel_id_t, long *);
 typedef int (*snd_mixer_selem_set_capture_volume_all_proc)(snd_mixer_elem_t*, long);
 typedef int (*snd_mixer_selem_get_capture_volume_range_proc)(snd_mixer_elem_t*, long*, long*);
+typedef int (*snd_mixer_selem_get_capture_dB_range_proc)(snd_mixer_elem_t*, long*, long*);
+typedef int (*snd_mixer_selem_ask_capture_vol_dB_proc)(snd_mixer_elem_t*, long, long*);
+typedef int (*snd_mixer_selem_ask_capture_dB_vol_proc)(snd_mixer_elem_t *, long, int, long*);
 typedef void (*snd_mixer_selem_get_id_proc)(snd_mixer_elem_t*, snd_mixer_selem_id_t*);
 typedef const char*(*snd_mixer_selem_id_get_name_proc)(const snd_mixer_selem_id_t*);
 
+
+typedef int (*snd_mixer_callback_t)(snd_mixer_t *, unsigned int, snd_mixer_elem_t *);
+typedef void (*snd_mixer_set_callback_proc)(snd_mixer_t *, snd_mixer_callback_t);
+typedef void (*snd_mixer_set_callback_private_proc)(snd_mixer_t *, void *);
+typedef void* (*snd_mixer_get_callback_private_proc)(const snd_mixer_t *);
+typedef int (*snd_mixer_handle_events_proc)(snd_mixer_t * );	
 
 #if defined(__cplusplus)
 }  /* extern "C" */
