@@ -114,7 +114,7 @@ typedef struct
     snd_mixer_t *mixer;
     snd_pcm_t *pcm;
 
-    long volumeHW, volumeCurDB;
+    long volumeHW;
     float volumeCur, volumeInit;
     float volumeMin, volumeMax;
     float volumeStep, hwgain;
@@ -615,16 +615,14 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             if (err >= 0) {
                err = psnd_mixer_load(handle->mixer);
             }
-            if (err >= 0) {
-               _alsa_get_volume_range(handle);
-            }
-            else
+            if (err < 0)
             {
                psnd_mixer_close(handle->mixer);
                handle->mixer = NULL;
             }
          }
-         else {
+         else
+         {
             psnd_pcm_close(handle->pcm);
             handle->pcm = NULL;
          }
@@ -635,6 +633,10 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          if (id == 0) free(handle);
          handle = 0;
       }
+   }
+
+   if (handle) {
+      _alsa_get_volume_range(handle);
    }
 
    return handle;
@@ -1252,7 +1254,8 @@ if (corr)
       if (!chunk) _AAX_DRVLOG("alsa; too many capture tries\n");
       *req_frames = offs;
 
-      _alsa_set_volume(handle, (const int32_t **)sbuf, init_offs, offs, tracks, gain);
+      _alsa_set_volume(handle, (const int32_t **)sbuf,
+                       init_offs, offs, tracks, gain);
    }
    else rv = AAX_TRUE;
 
@@ -1992,7 +1995,6 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
                   volumeDB = (long)(_lin2db(hwgain)*100.0f);
                   psnd_mixer_selem_ask_capture_dB_vol(elem,volumeDB,1, &volume);
                   rv = psnd_mixer_selem_set_capture_volume_all(elem, volume);
-                  handle->volumeCurDB = volumeDB;
                }
             }
             else if (psnd_mixer_selem_has_playback_volume(elem) &&
@@ -2012,7 +2014,6 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
                volumeDB = (long)(_lin2db(hwgain)*100.0f);
                psnd_mixer_selem_ask_playback_dB_vol(elem, volumeDB, 1, &volume);
                rv = psnd_mixer_selem_set_playback_volume_all(elem, volume);
-               handle->volumeCurDB = volumeDB;
             }             
          }
          free(sid);

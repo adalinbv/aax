@@ -168,8 +168,10 @@ typedef struct
 
    /* enpoint volume control */
    IAudioEndpointVolume *pEndpointVolume;
-   float volumeCur, volumeMin, volumeMax;
-   float hwVolumeMax, hwVolumeCur;
+   float volumeHW;
+   float volumeCur, volumeInit;
+   float volumeMin, volumeMax;
+   float volumeStep, hwgain;
 
    /* capture related */
    char cthread_init;
@@ -499,10 +501,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             }
          }
 
-         if (hr == S_OK) {
-            _wasapi_get_volume_range(handle);
-         }
-         else
+         if (hr != S_OK)
          {
             _AAX_DRVLOG(WASAPI_CONNECTION_FAILED);
             pIMMDeviceEnumerator_Release(handle->pEnumerator);
@@ -513,6 +512,10 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             handle = 0;
          }
       }
+   }
+
+   if (handle) {
+      _wasapi_get_volume_range(handle);
    }
 
    return (void *)handle;
@@ -533,7 +536,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 
       if (handle->pEndpointVolume != NULL)
       {
-         _wasapi_set_volume(handle, NULL, 0, 0, 0, 1.0f);
+         _wasapi_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          IAudioEndpointVolume_Release(handle->pEndpointVolume);
          handle->pEndpointVolume = NULL;
       }
@@ -1155,8 +1158,8 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
             handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
          }
 
-         _wasapi_set_volume(handle, (const int32_t**)ptr, offs, avail,
-                               tracks, gain);
+         _wasapi_set_volume(handle, (const int32_t**)ptr,
+                            offs, avail, tracks, gain);
 
          if (avail < fetch)
          {
@@ -1379,10 +1382,13 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->hnsLatency*100e-9f;
          break;
       case DRIVER_MAX_VOLUME:
-         rv = handle->hwVolumeMax;
+         rv = handle->volumeMax;
          break;
       case DRIVER_MIN_VOLUME:
         rv = handle->volumeMin;
+         break;
+      case DRIVER_VOLUME:
+         rv = handle->volumeHW;
          break;
       default:
          break;
@@ -2527,27 +2533,50 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
 static int
 _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
 {
-_driver_t *id = handle;
    float hwgain = gain;
    int rv = 0;
 
    if (handle && HW_VOLUME_SUPPORT(handle) &&
        (handle->status & EXCLUSIVE_MODE_MASK))
    {
-float tq = handle->hwVolumeCur;
       hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
-      if (fabs(handle->hwVolumeCur - hwgain) > 4e-3f)
+
+      /*
+       * Slowly adjust volume to dampen volume slider movement.
+       * If the volume step is large, don't dampen it.
+       */
+      if (handle->Mode == eCapture)
       {
+         float dt = GMATH_E1*no_frames/handle->Fmt.Format.nSamplesPerSec;
+         float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);	/* 10 sec average */
+
+         /* Quickly adjust for a very large step in volume */
+         if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.1f;
+
+         hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
+         handle->hwgain = hwgain;
+      }
+
+      if (fabsf(hwgain - handle->volumeCur) > 0.05f)
+      {
+         float cur;
+         rv = IAudioEndpointVolume_GetMasterVolumeLevel(handle->pEndpointVolume,
+                                                        &cur);
+         if (rv == S_OK) {
+            handle->volumeHW = _db2lin(cur);
+         }
+
          rv = IAudioEndpointVolume_SetMasterVolumeLevel(handle->pEndpointVolume,
                                                         _lin2db(hwgain), NULL);
-         if (hwgain) gain /= hwgain;
-         else gain = 0.0f;
+          handle->volumeCur = hwgain;
       }
-_AAX_DRVLOG_VAR("hwgain: %f (%f), sw: %f, min: %f, max: %f", hwgain, tq, gain, handle->volumeMin/handle->volumeMax, handle->hwVolumeMax);
+
+      if (hwgain) gain /= hwgain;
+      else gain = 0.0f;
    }
 
    /* software volume fallback */
-   if (fabs(hwgain - gain) > 4e-3f)
+   if (fabsf(gain - 1.0f) > 0.05f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
@@ -2565,8 +2594,8 @@ _wasapi_get_volume_range(_driver_t *handle)
    int rv;
 
    rv = pIMMDevice_Activate(handle->pDevice, pIID_IAudioEndpointVolume,
-                                     CLSCTX_INPROC_SERVER, NULL,
-                                     (void**)&handle->pEndpointVolume);
+                            CLSCTX_INPROC_SERVER, NULL,
+                            (void**)&handle->pEndpointVolume);
    if (rv == S_OK)
    {
       DWORD mask = 0;
@@ -2575,14 +2604,6 @@ _wasapi_get_volume_range(_driver_t *handle)
       if (rv == S_OK && (mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME))
       {
          float cur, min, max, step;
-
-         rv = IAudioEndpointVolume_GetMasterVolumeLevel(
-                                        handle->pEndpointVolume, &cur);
-         if (rv == S_OK) {
-            handle->volumeCur = _db2lin(cur);
-         } else {
-            handle->volumeCur = 1.0f;
-         }
 
          rv = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
                                                   &min, &max, &step);
@@ -2594,12 +2615,17 @@ _wasapi_get_volume_range(_driver_t *handle)
          else
          {
             handle->volumeMin = 0.0f;
-            handle->volumeMax = 1.0f;
+            handle->volumeMax = 0.0f;
          }
-         handle->hwVolumeMax = handle->volumeMax/handle->volumeCur;
-      }
-      else {
-         handle->volumeMax = 0.0f;
+
+         rv = IAudioEndpointVolume_GetMasterVolumeLevel(handle->pEndpointVolume,
+                                                        &cur);
+         if (rv == S_OK) {
+            handle->volumeInit = _db2lin(cur);
+         } else {
+            handle->volumeInit = 1.0f;
+         }
+         handle->volumeCur = handle->volumeInit;
       }
    }
 
