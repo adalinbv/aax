@@ -143,7 +143,7 @@ typedef struct
    /* initial values, reset them wehn exiting */
    int mixfd;
    long volumeCur, volumeMin, volumeMax;
-   float hwVolumeMax, hwVolumeCur;
+   float volumeInit, hwgain;
    
 
    _oalRingBufferMix1NFunc *mix_mono3d;
@@ -380,7 +380,7 @@ _aaxOSSDriverDisconnect(void *id)
 
       if (handle->mixfd >= 0)
       {
-         _oss_set_volume(handle, NULL, 0, 0, 0, 1.0f);
+         _oss_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          close(handle->mixfd);
       }
 
@@ -516,37 +516,40 @@ static int
 _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t buflen, frame_size, tracks;
+   int rv = AAX_FALSE;
+ 
+   assert(handle->mode == O_RDONLY);
 
-   if (handle->mode != O_RDONLY || (frames == 0) || (data == 0))
-      return AAX_FALSE;
+   if ((frames == 0) || (data == 0))
+      return rv;
 
-   if (*frames == 0)
-      return AAX_TRUE;
-
-   tracks = handle->no_tracks;
-   frame_size = handle->bytes_sample * tracks;
-   buflen = *frames * frame_size;
-
-   *frames = 0;
-   if (data)
+   if (*frames)
    {
+      size_t tracks = handle->no_tracks;
+      size_t frame_size = handle->bytes_sample * tracks;
+      unsigned int no_frames, buflen;
       int res;
 
+      no_frames = *frames;
+      buflen = no_frames * frame_size;
+
       res = read(handle->fd, scratch, buflen);
-      if (res == -1)
+      if (res > 0)
       {
-         _AAX_SYSLOG(strerror(errno));
-         return AAX_FALSE;
+         const int32_t **sptr = (const int32_t**)data;
+         int32_t **sbuf = (int32_t**)data;
+
+         res /= frame_size;
+
+         _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, res);
+         _oss_set_volume(handle, sptr, offs, res, tracks, gain);
+         *frames = res;
+
+         rv = AAX_TRUE;
       }
-      *frames = res / frame_size;
-
-      _oss_set_volume(handle, (const int32_t**)scratch, offs, res, tracks,
-                      gain);
-
-      _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, res);
-
-      return AAX_TRUE;
+      else {
+         _AAX_SYSLOG(strerror(errno));
+      }
    }
 
    return AAX_FALSE;
@@ -746,10 +749,13 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
          rv = handle->latency;
          break;
       case DRIVER_MAX_VOLUME:
-         rv = handle->hwVolumeMax;
+         rv = 1.0f;
          break;
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
+         break;
+      case DRIVER_VOLUME:
+         rv = handle->hwgain;
          break;
       default:
          break;
@@ -979,6 +985,7 @@ _oss_get_volume(_driver_t *handle)
    {
       int vlr = -1;
 
+      handle->volumeMax = 100;
       if (handle->oss_version >= OSS_VERSION_4)
       {
          errno = 0;
@@ -988,7 +995,6 @@ _oss_get_volume(_driver_t *handle)
             rv = pioctl(handle->fd, SNDCTL_DSP_GETPLAYVOL, &vlr);
          }
          handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
-         handle->hwVolumeMax = (float)handle->volumeMax/handle->volumeCur;
       }
       else
       {
@@ -1012,12 +1018,11 @@ _oss_get_volume(_driver_t *handle)
             }
          }
       }
+      handle->volumeInit = (float)handle->volumeCur/(float)handle->volumeMax;
 
       handle->volumeMin = 0;
       if (rv == EINVAL) {
          handle->volumeMax = 0;
-      } else {
-         handle->volumeMax = 100;
       }
    }
    return rv;
@@ -1031,24 +1036,28 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
 
    if (handle && HW_VOLUME_SUPPORT(handle))
    {
-      int volume;
+      long volume;
 
-      hwgain = _MINMAX(gain, (float)handle->volumeMin/handle->volumeMax,
-                       handle->hwVolumeMax);
+      hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
+      volume = (hwgain * handle->volumeMax);
+
       /*
-       * instantly change to a lower requested volume, slowly adjust to
-       * a higher requested volume
+       * Slowly adjust volume to dampen volume slider movement.
+       * If the volume step is large, don't dampen it.
        */
-      if ((handle->mode == O_RDONLY) && (hwgain > handle->hwVolumeCur))
+      if (handle->mode == O_RDONLY)
       {
          float dt = GMATH_E1*no_frames/handle->frequency_hz;
-         float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);      // 10 sec average
+         float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);       /* 10 sec average */
 
-         hwgain = (1.0f-rr)*handle->hwVolumeCur + (rr)*hwgain;
-         handle->hwVolumeCur = hwgain;
+         /* Quickly adjust for a very large step in volume */
+         if (abs(volume - handle->volumeCur) > 82) rr = 0.9f;
+
+         hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
+         handle->hwgain = hwgain;
       }
 
-      volume = ceilf(hwgain * handle->volumeMax/handle->hwVolumeMax);
+      volume = (hwgain * handle->volumeMax);
       if (volume != handle->volumeCur)
       {
          int vlr = volume | (volume << 8);
@@ -1089,11 +1098,11 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
    }
 
    /* software volume fallback */
-   if (fabs(hwgain - gain) > 4e-3f)
+   if (sbuf && fabs(hwgain - gain) > 4e-3f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int16_t),
+         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
                           no_frames, gain);
       }
    }
