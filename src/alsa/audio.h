@@ -380,6 +380,7 @@ typedef int (*snd_mixer_selem_ask_playback_dB_vol_proc)(snd_mixer_elem_t *, long
 typedef int (*snd_mixer_selem_has_capture_volume_proc)(snd_mixer_elem_t *);
 typedef int (*snd_mixer_selem_get_capture_volume_proc)(snd_mixer_elem_t*, snd_mixer_selem_channel_id_t, long*);
 typedef int (*snd_mixer_selem_get_capture_dB_proc)(snd_mixer_elem_t *, snd_mixer_selem_channel_id_t, long *);
+typedef int (*snd_mixer_selem_set_capture_volume_proc)(snd_mixer_elem_t*, snd_mixer_selem_channel_id_t, long);
 typedef int (*snd_mixer_selem_set_capture_volume_all_proc)(snd_mixer_elem_t*, long);
 typedef int (*snd_mixer_selem_get_capture_volume_range_proc)(snd_mixer_elem_t*, long*, long*);
 typedef int (*snd_mixer_selem_get_capture_dB_range_proc)(snd_mixer_elem_t*, long*, long*);
