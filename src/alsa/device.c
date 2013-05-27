@@ -1954,11 +1954,10 @@ _alsa_get_volume_range(_driver_t *handle)
 
                rv = psnd_mixer_selem_get_playback_dB(elem,
                                                      SND_MIXER_SCHN_MONO, &min);
-               handle->volumeInit = _db2lin((float)max*0.01f);
+               handle->volumeInit = _db2lin((float)min*0.01f);
                handle->volumeCur = handle->volumeInit;
                handle->volumeHW = handle->volumeInit;
                
-
                psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
                handle->volumeStep = 1.0f/((float)max-(float)min);
             }
