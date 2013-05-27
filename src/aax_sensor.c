@@ -399,6 +399,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       {
          _aaxMixerInfo* info = submix->info;
          const _aaxDriverBackend *be;
+         float min, max, cur;
          unsigned int pos;
          float delay_sec;
 
@@ -409,10 +410,13 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          _oalRingBufferSetParami(rb, RB_NO_TRACKS, info->no_tracks);
 
          be = handle->backend.ptr;
-         _oalRingBufferSetParamf(rb, RB_VOLUME_MIN,
-                          be->param(handle->backend.handle, DRIVER_MIN_VOLUME));
-         _oalRingBufferSetParamf(rb, RB_VOLUME_MAX,
-                          be->param(handle->backend.handle, DRIVER_MAX_VOLUME));
+         min = be->param(handle->backend.handle, DRIVER_MIN_VOLUME);
+         max = be->param(handle->backend.handle, DRIVER_MAX_VOLUME);
+         cur = be->param(handle->backend.handle, DRIVER_VOLUME);
+
+//       _oalRingBufferSetParamf(rb, RB_VOLUME, cur);
+         _oalRingBufferSetParamf(rb, RB_VOLUME_MIN, min);
+         _oalRingBufferSetParamf(rb, RB_VOLUME_MAX, max);
 
          /* Do not alter the frequency at this time, it has been set by
           * aaxMixerRegisterSensor and may have changed in the mean time

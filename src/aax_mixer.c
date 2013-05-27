@@ -363,7 +363,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
                _aaxAudioFrame *mixer = sensor->mixer;
                _oalRingBuffer2dProps *p2d = mixer->props2d;
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-                   /* gain min and gain max are fixed values for the mixer   */
+                   /* gain min and gain max are read-only for the mixer      */
                /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
                /* _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2)); */
                _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
@@ -1169,6 +1169,8 @@ _aaxMixerInit(_handle_t *handle)
    {
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
       {
+         const _intBufferData* dptr;
+
          handle->valid |= AAX_TRUE;
          info->frequency = freq;
          info->no_tracks = ch;
@@ -1177,6 +1179,25 @@ _aaxMixerInit(_handle_t *handle)
          /* only alter the refresh rate when not registered */
          if (!handle->handle) {
             info->refresh_rate = freq/frames;
+         }
+
+         /* copy the hardware volume settings from the backend */
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *mixer = sensor->mixer;
+            _oalRingBuffer2dProps *p2d = mixer->props2d;
+            float cur, min, max;
+
+            cur = be->param(handle->backend.handle, DRIVER_VOLUME);
+            min = be->param(handle->backend.handle, DRIVER_MIN_VOLUME);
+            max = be->param(handle->backend.handle, DRIVER_MAX_VOLUME);
+
+            _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
+            _FILTER_SET(p2d, VOLUME_FILTER, AAX_MIN_GAIN, min);
+            _FILTER_SET(p2d, VOLUME_FILTER, AAX_MAX_GAIN, max);
+            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
       else {
