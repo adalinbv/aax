@@ -1029,8 +1029,9 @@ _oss_get_volume(_driver_t *handle)
 }
 
 static int
-_oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
+_oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float volume)
 {
+   float gain = fabsf(volume);
    float hwgain = gain;
    int rv = 0;
 
@@ -1044,8 +1045,9 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
       /*
        * Slowly adjust volume to dampen volume slider movement.
        * If the volume step is large, don't dampen it.
+       * volume is negative for auto-gain mode.
        */
-      if (handle->mode == O_RDONLY)
+      if ((volume < 0.0f) && (handle->mode == O_RDONLY))
       {
          float dt = GMATH_E1*no_frames/handle->frequency_hz;
          float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);       /* 10 sec average */

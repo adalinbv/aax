@@ -186,23 +186,31 @@ typedef struct
    unsigned int packet_sz;	/* number of audio frames per time-frame */
    float padding;		/* for sensor clock drift correction     */
 
-  /* error handling */
-  void *log_file;
-  int prev_type;
-  unsigned int err_ctr;
-  unsigned int type_ctr;
-  char errstr[256];
+   /* Audio session events */
+   IAudioSessionControl *pControl;
+   struct IAudioSessionEvents events;
+   LONG refs;
+
+   /* error handling */
+   void *log_file;
+   int prev_type;
+   unsigned int err_ctr;
+   unsigned int type_ctr;
+   char errstr[256];
 
 } _driver_t;
  
 const char* _wasapi_default_name = DEFAULT_DEVNAME;
+static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
 
-# define pCLSID_MMDeviceEnumerator &aax_CLSID_MMDeviceEnumerator
+# define pIID_IUnknown &aax_IID_IUnknown
+# define pIID_IAudioSessionEvents &aax_IID_IAudioSessionEvents
 # define pIID_IMMDeviceEnumerator &aax_IID_IMMDeviceEnumerator
 # define pIID_IAudioRenderClient &aax_IID_IAudioRenderClient
 # define pIID_IAudioCaptureClient &aax_IID_IAudioCaptureClient
 # define pIID_IAudioClient &aax_IID_IAudioClient
 # define pIID_IAudioEndpointVolume &aax_IID_IAudioEndpointVolume
+# define pIID_IAudioSessionControl &aax_IID_IAudioSessionControl
 # define pPKEY_Device_DeviceDesc &PKEY_Device_DeviceDesc
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
 # define pPKEY_DeviceInterface_FriendlyName &PKEY_DeviceInterface_FriendlyName
@@ -211,6 +219,7 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pKSDATAFORMAT_SUBTYPE_ADPCM &aax_KSDATAFORMAT_SUBTYPE_ADPCM
 # define pKSDATAFORMAT_SUBTYPE_PCM &aax_KSDATAFORMAT_SUBTYPE_PCM
 
+# define pCLSID_MMDeviceEnumerator &aax_CLSID_MMDeviceEnumerator
 # define pIAudioClient_SetEventHandle IAudioClient_SetEventHandle
 
 # define pPropVariantInit PropVariantInit
@@ -256,7 +265,7 @@ const char* _wasapi_default_name = DEFAULT_DEVNAME;
 # define pIAudioCaptureClient_ReleaseBuffer IAudioCaptureClient_ReleaseBuffer
 # define pIAudioCaptureClient_GetNextPacketSize IAudioCaptureClient_GetNextPacketSize
 
-static const char* aaxNametoMMDevciceName(const char*);
+static const char* _aaxNametoMMDevciceName(const char*);
 static char* _aaxMMDeviceNameToName(char *);
 static char *_aaxWASAPIDriverLogVar(const void *, const char *fmt, ...);
 static HRESULT _aaxCaptureThreadStart(_driver_t*);
@@ -381,7 +390,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             {
                if (strcmp(s, "default")) 
                {
-                  handle->devname = charToWChar(aaxNametoMMDevciceName(s));
+                  handle->devname = charToWChar(_aaxNametoMMDevciceName(s));
                   handle->devid = name_to_id(handle->devname, mode ? 1 : 0);
                }
                else handle->devname = NULL;
@@ -470,7 +479,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
       {
          if (renderer && strcmp(renderer, "default"))
          {
-            handle->devname = charToWChar(aaxNametoMMDevciceName(renderer));
+            handle->devname = charToWChar(_aaxNametoMMDevciceName(renderer));
             handle->devid = name_to_id(handle->devname, m);
          }
 
@@ -501,7 +510,23 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             }
          }
 
-         if (hr != S_OK)
+         if (hr == S_OK)
+         {
+            hr = IAudioClient_GetService(handle->pAudioClient,
+                                         pIID_IAudioSessionControl,
+                                         (void**)&handle->pControl);
+            if ((hr == S_OK) && (handle->pControl != NULL))
+            {
+               handle->events.lpVtbl = &_aaxAudioSessionEvents;
+               IAudioSessionControl_RegisterAudioSessionNotification(
+                                                               handle->pControl,
+                                                               &handle->events);
+            }
+            else {
+               _AAX_DRVLOG(WASAPI_EVENT_NOTIFICATION_FAILED);
+            }
+         }
+         else // hr != S_OK
          {
             _AAX_DRVLOG(WASAPI_CONNECTION_FAILED);
             pIMMDeviceEnumerator_Release(handle->pEnumerator);
@@ -532,6 +557,14 @@ _aaxWASAPIDriverDisconnect(void *id)
 
       if (handle->log_file) {
          fclose(handle->log_file);
+      }
+
+      if (handle->pControl != NULL)
+      {
+         IAudioSessionControl_UnregisterAudioSessionNotification(
+                                                              handle->pControl,
+                                                              &handle->events);
+         IAudioSessionControl_Release(handle->pControl);
       }
 
       if (handle->pEndpointVolume != NULL)
@@ -2029,7 +2062,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
 
 /* turn "<device>: <interface>" back into "<interface> (<device>)" */
 static const char *
-aaxNametoMMDevciceName(const char *devname)
+_aaxNametoMMDevciceName(const char *devname)
 {
    static char rv[1024] ;
 
@@ -2531,8 +2564,9 @@ getChannelMask(WORD nChannels, enum aaxRenderMode mode)
  * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
  */
 static int
-_wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float gain)
+_wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float volume)
 {
+   float gain = fabsf(volume);
    float hwgain = gain;
    int rv = 0;
 
@@ -2544,14 +2578,15 @@ _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned
       /*
        * Slowly adjust volume to dampen volume slider movement.
        * If the volume step is large, don't dampen it.
+       * volume is negative for auto-gain mode.
        */
-      if (handle->Mode == eCapture)
+      if ((volume < 0.0f) && (handle->Mode == eCapture))
       {
          float dt = GMATH_E1*no_frames/handle->Fmt.Format.nSamplesPerSec;
          float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);	/* 10 sec average */
 
          /* Quickly adjust for a very large step in volume */
-         if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.1f;
+         if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.9f;
 
          hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
          handle->hwgain = hwgain;
@@ -2631,4 +2666,185 @@ _wasapi_get_volume_range(_driver_t *handle)
 
    return rv;
 }
+
+/** Audio Session Events */
+static _driver_t *
+_aaxAudioSessionEventsUserData(IAudioSessionEvents *event)
+{
+   return (void *)(((char *)event) - offsetof(_driver_t, events));
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_QueryInterface(IAudioSessionEvents *event, REFIID riid,
+                                      void **ppvInterface)
+{
+#if 1
+   if (IsEqualIID(riid, pIID_IUnknown)
+     || IsEqualIID(riid, pIID_IAudioSessionEvents))
+    {
+        *ppvInterface = event;
+        IUnknown_AddRef(event);
+        return S_OK;
+    }
+    else
+    {
+       *ppvInterface = NULL;
+        return E_NOINTERFACE;
+    }
+#else
+   if (IsEqualIID(riid, pIID_IUnknown))
+   {
+      IUnknown_AddRef(event);
+      *ppvInterface = (IUnknown*)event;
+   }
+   else if (IsEqualIID(riid, pIID_IAudioSessionEvents))
+   {
+      IUnknown_AddRef(event);
+      *ppvInterface = event;
+   }
+   else
+   {
+      *ppvInterface = NULL;
+      return E_NOINTERFACE;
+   }
+#endif
+   return S_OK;
+}
+
+static STDMETHODIMP_(ULONG)
+_aaxAudioSessionEvents_AddRef(IAudioSessionEvents *event)
+{
+   _driver_t *handle = _aaxAudioSessionEventsUserData(event);
+   return InterlockedIncrement(&handle->refs);
+}
+
+static STDMETHODIMP_(ULONG)
+_aaxAudioSessionEvents_Release(IAudioSessionEvents *event)
+{
+   _driver_t *handle = _aaxAudioSessionEventsUserData(event);
+   return InterlockedDecrement(&handle->refs);
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnDisplayNameChanged(IAudioSessionEvents *event,
+                                            LPCWSTR NewDisplayName,
+                                            LPCGUID EventContext)
+{
+   return S_OK;
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnIconPathChanged(IAudioSessionEvents *event,
+                                         LPCWSTR NewIconPath,
+                                         LPCGUID EventContext)
+{
+   return S_OK;
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnSimpleVolumeChanged(IAudioSessionEvents *event,
+                                             float NewVolume,
+                                              BOOL NewMute,
+                                              LPCGUID EventContext)
+{
+   if (NewMute)
+   {
+      printf("MUTE\n");
+   }
+   else
+   {
+      printf("Volume = %d percent\n", (UINT32)(100*NewVolume + 0.5));
+   }
+   return S_OK;
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnChannelVolumeChanged(IAudioSessionEvents *event,
+                                              DWORD ChannelCount,
+                                              float NewChannelVolumeArray[],
+                                              DWORD ChangedChannel,
+                                              LPCGUID EventContext)
+{
+   return S_OK;
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnGroupingParamChanged(IAudioSessionEvents *event,
+                                              LPCGUID NewGroupingParam,
+                                              LPCGUID EventContext)
+
+{
+   return S_OK;
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnStateChanged(IAudioSessionEvents *event,
+                                      AudioSessionState NewState)
+{
+   char *pszState = "?????";
+
+   switch (NewState)
+   {
+   case AudioSessionStateActive:
+      pszState = "active";
+      break;
+   case AudioSessionStateInactive:
+      pszState = "inactive";
+      break;
+   case AudioSessionStateExpired:
+      pszState = "expired";
+      break;
+   }
+   printf("New session state = %s\n", pszState);
+   return S_OK;
+}
+
+static STDMETHODIMP
+_aaxAudioSessionEvents_OnSessionDisconnected(IAudioSessionEvents *event,
+                                  AudioSessionDisconnectReason DisconnectReason)
+{
+// _driver_t *handle = _aaxAudioSessionEventsUserData(event);
+   char *pszReason = "?????";
+
+   switch (DisconnectReason)
+   {
+   case DisconnectReasonDeviceRemoval:
+      pszReason = "device removed";
+      break;
+   case DisconnectReasonServerShutdown:
+      pszReason = "server shut down";
+      break;
+   case DisconnectReasonFormatChanged:
+      pszReason = "format changed";
+      break;
+   case DisconnectReasonSessionLogoff:
+      pszReason = "user logged off";
+      break;
+   case DisconnectReasonSessionDisconnected:
+      pszReason = "session disconnected";
+      break;
+   case DisconnectReasonExclusiveModeOverride:
+      pszReason = "exclusive-mode override";
+      break;
+   }
+   printf("Audio session disconnected (reason: %s)\n",
+          pszReason);
+
+   return S_OK;
+}
+
+static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents =
+{
+   _aaxAudioSessionEvents_QueryInterface,
+   _aaxAudioSessionEvents_AddRef,
+   _aaxAudioSessionEvents_Release,
+
+   _aaxAudioSessionEvents_OnDisplayNameChanged,
+   _aaxAudioSessionEvents_OnIconPathChanged,
+   _aaxAudioSessionEvents_OnSimpleVolumeChanged,
+   _aaxAudioSessionEvents_OnChannelVolumeChanged,
+   _aaxAudioSessionEvents_OnGroupingParamChanged,
+   _aaxAudioSessionEvents_OnStateChanged,
+   _aaxAudioSessionEvents_OnSessionDisconnected,
+};
 

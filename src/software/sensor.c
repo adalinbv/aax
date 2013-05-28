@@ -204,7 +204,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
       if (agc_rr > 0.0f)
       {
          agc_rr = _MINMAX(dt/agc_rr, 0.0f, 1.0f);
-         gain *= dest_rb->gain_agc;
+         gain *= -dest_rb->gain_agc;
       }
 
       nframes = frames = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);

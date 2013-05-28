@@ -685,6 +685,8 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
    _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
 
 // TODO: convert to hardware volume if possible
+   /* gain is negative for auto-gain mode */
+   gain = fabsf(gain);
    if (gain < 0.99f || gain > 1.01f)
    {
       int t;

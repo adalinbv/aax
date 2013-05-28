@@ -39,6 +39,7 @@ enum _wasapi_log
    WASAPI_TIMER_CREATION_FAILED,
    WASAPI_EVENT_TIMEOUT,
    WASAPI_WAIT_EVENT_FAILED,
+   WASAPI_EVENT_NOTIFICATION_FAILED,
 
    WASAPI_CONNECTION_FAILED,
    WASAPI_INITIALIZATION_FAILED,
@@ -81,6 +82,7 @@ static char *_wasapi_errors[WASAPI_MAX_ERROR] =
    "Timer creation field",
    "Event timeout",
    "Wait event failed",
+   "Unable to setup event notification handler",
 
    "Connection failed",
    "Initialization failed",
@@ -175,9 +177,12 @@ typedef LONGLONG REFERENCE_TIME;
 #  include <propkeydef.h>
 #  define COBJMACROS
 #  define INITGUID
+#  define CONST_VTABLE
 #  include <audioclient.h>
+#  include <audiopolicy.h>
 #  include <mmdeviceapi.h>
 #  include <functiondiscoverykeys.h>
+#  include <unknwn.h>
 #  undef INITGUID
 # endif // NTDDI_VERSION
 
@@ -192,11 +197,16 @@ typedef LONGLONG REFERENCE_TIME;
 
 #define AAX_DEFINE_IID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const IID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 
+ AAX_DEFINE_IID(aax_IID_IUnknown, 0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
  AAX_DEFINE_IID(aax_IID_IAudioEndpointVolume, 0x5CDF2C82, 0x841E, 0x4546, 0x97,0x22,0x0c,0xf7,0x40,0x78,0x22,0x9a);
  AAX_DEFINE_IID(aax_IID_IMMDeviceEnumerator, 0xa95664d2, 0x9614, 0x4f35, 0xa7,0x46, 0xde,0x8d,0xb6,0x36,0x17,0xe6);
  AAX_DEFINE_IID(aax_IID_IAudioClient, 0x1cb9ad4c, 0xdbfa, 0x4c32, 0xb1,0x78, 0xc2,0xf5,0x68,0xa7,0x03,0xb2);
  AAX_DEFINE_IID(aax_IID_IAudioRenderClient, 0xf294acfc, 0x3146, 0x4483, 0xa7,0xbf, 0xad,0xdc,0xa7,0xc2,0x60,0xe2);
  AAX_DEFINE_IID(aax_IID_IAudioCaptureClient, 0xc8adbd64, 0xe71e, 0x48a0, 0xa4,0xde, 0x18,0x5c,0x39,0x5c,0xd3,0x17);
+ AAX_DEFINE_IID(aax_IID_IAudioSessionEvents, 0x24918acc, 0x64b3, 0x37c1, 0x8c,0xa9, 0x74,0xa6,0x6e,0x99,0x57,0xa8);
+ AAX_DEFINE_IID(aax_IID_IAudioSessionControl, 0xf4b1a599, 0x7266, 0x4319, 0xa8,0xca, 0xe7,0x0a,0xcb,0x11,0xe8,0xcd);
+
+
 
 #define AAX_DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 

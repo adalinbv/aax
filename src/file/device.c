@@ -577,6 +577,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       sbuf = (int32_t**)tracks;
       _batch_cvt24_24_intl(sbuf, data, offs, file_no_tracks, no_frames);
 
+      /* gain is netagive for auto-gain mode */
+      gain = fabsf(gain);
       if (gain < 0.99f || gain > 1.01f)
       {
          int t;

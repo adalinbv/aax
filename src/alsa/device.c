@@ -1935,7 +1935,7 @@ _alsa_get_volume_range(_driver_t *handle)
                handle->volumeHW = handle->volumeInit;
 
                psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
-               handle->volumeStep = 1.0f/((float)max-(float)min);
+               handle->volumeStep = 0.5f/((float)max-(float)min);
             }
             break;
          }
@@ -1959,7 +1959,7 @@ _alsa_get_volume_range(_driver_t *handle)
                handle->volumeHW = handle->volumeInit;
                
                psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-               handle->volumeStep = 1.0f/((float)max-(float)min);
+               handle->volumeStep = 0.5f/((float)max-(float)min);
             }
             break;
          }
@@ -1970,20 +1970,22 @@ _alsa_get_volume_range(_driver_t *handle)
 }
 
 static int
-_alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float gain)
+_alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
 {
+   float gain = fabsf(volume);
    float hwgain = gain;
    int rv = 0;
 
    if (handle && handle->mixer && !handle->shared && handle->volumeMax)
    {
-      hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
+      hwgain = _MINMAX(fabsf(gain), handle->volumeMin, handle->volumeMax);
 
       /*
        * Slowly adjust volume to dampen volume slider movement.
        * If the volume step is large, don't dampen it.
+       * volume is negative for auto-gain mode.
        */
-      if (handle->mode == AAX_MODE_READ)
+      if ((volume < 0.0f) && (handle->mode == AAX_MODE_READ))
       {
          float dt = GMATH_E1*no_frames/handle->frequency_hz;
          float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);	/* 10 sec average */
@@ -2022,8 +2024,12 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
 #endif
                   if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
                   {
+                     int dir = 0;
+
                      volumeDB = (long)(_lin2db(hwgain)*100.0f);
-                     psnd_mixer_selem_ask_capture_dB_vol(elem, volumeDB, 1,
+                     if (volumeDB > 0) dir = -1;
+                     else if (volumeDB < 0) dir = 1;
+                     psnd_mixer_selem_ask_capture_dB_vol(elem, volumeDB, dir,
                                                          &volume);
                      rv = psnd_mixer_selem_set_capture_volume_all(elem, volume);
                   }
@@ -2049,8 +2055,12 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
                       !strcmp(name, "Center") || !strcmp(name, "LFE") ||
                       !strcmp(name, "Side")))
                {
+                  int dir = 0;
+
                   volumeDB = (long)(_lin2db(hwgain)*100.0f);
-                  psnd_mixer_selem_ask_playback_dB_vol(elem, volumeDB, 1,
+                  if (volumeDB > 0) dir = -1;
+                  else if (volumeDB < 0) dir = 1;
+                  psnd_mixer_selem_ask_playback_dB_vol(elem, volumeDB, dir,
                                                        &volume);
                   rv = psnd_mixer_selem_set_playback_volume_all(elem, volume);
                }
