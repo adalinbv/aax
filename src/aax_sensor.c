@@ -399,9 +399,8 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       {
          _aaxMixerInfo* info = submix->info;
          const _aaxDriverBackend *be;
-         float min, max, cur;
+         float min, max, delay_sec;
          unsigned int pos;
-         float delay_sec;
 
          be = _aaxGetDriverBackendLoopback(&pos);
          delay_sec = 1.0f / info->refresh_rate;
@@ -412,9 +411,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          be = handle->backend.ptr;
          min = be->param(handle->backend.handle, DRIVER_MIN_VOLUME);
          max = be->param(handle->backend.handle, DRIVER_MAX_VOLUME);
-         cur = be->param(handle->backend.handle, DRIVER_VOLUME);
 
-//       _oalRingBufferSetParamf(rb, RB_VOLUME, cur);
          _oalRingBufferSetParamf(rb, RB_VOLUME_MIN, min);
          _oalRingBufferSetParamf(rb, RB_VOLUME_MAX, max);
 

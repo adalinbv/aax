@@ -1181,22 +1181,17 @@ _aaxMixerInit(_handle_t *handle)
             info->refresh_rate = freq/frames;
          }
 
-         /* copy the hardware volume settings from the backend */
+         /* copy the hardware volume from the backend */
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
             _oalRingBuffer2dProps *p2d = mixer->props2d;
-            float cur, min, max;
+            float cur;
 
             cur = be->param(handle->backend.handle, DRIVER_VOLUME);
-            min = be->param(handle->backend.handle, DRIVER_MIN_VOLUME);
-            max = be->param(handle->backend.handle, DRIVER_MAX_VOLUME);
-
             _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
-            _FILTER_SET(p2d, VOLUME_FILTER, AAX_MIN_GAIN, min);
-            _FILTER_SET(p2d, VOLUME_FILTER, AAX_MAX_GAIN, max);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
