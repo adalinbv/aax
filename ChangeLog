@@ -1,9 +1,17 @@
-* Fri Mar 19 2013 - tech@adalin.org
-- AeonWave (2.2.5) stable; urgency=medium
+* Mon Jun 03 2013 - tech@adalin.org
+- AeonWave (2.3.0) stable; urgency=medium
  * Fix a segmentation fault for the Loopback driver.
- * Implement hardware volume support for backends that support it.:
+ * Implement hardware volume support for ALSA and WASAPI.
+   hardware volume is adjusted within hardware boundaries, volume settings
+   outside the hardware range are adjusted using software fallback.
+ * Implement Auto-Gain Control with a user definable adjust-rate.
+ * Add the option to select stereo, mono-left, mono-rigt of mono-mix for
+   audio capturing sensors.
+ * Add an aaxMixerGetState function to retreive the state of the current
+   audio stream. This can for instance be used to reinitialize the device
+   after the hardware audio format has changed.
 
- -- Erik Hofman <tech@adalin.org>  Fri, 19 Mar 2013 11:37:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Mon, 03 Jun 2013 10:10:00 +0200
 
 * Fri Mar 08 2013 - tech@adalin.org
 - AeonWave (2.2.4) stable; urgency=low

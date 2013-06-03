@@ -1263,7 +1263,6 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_PAUSE:
-      rv = -ENOSYS;
       if (handle && psnd_pcm_state(handle->pcm) == SND_PCM_STATE_RUNNING &&
           !handle->pause)
       {
@@ -1290,6 +1289,7 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
       break;
+   case DRIVER_NEED_REINIT:
    default:
       break;
    }
@@ -1987,8 +1987,8 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
        */
       if ((volume < 0.0f) && (handle->mode == AAX_MODE_READ))
       {
-         float dt = GMATH_E1*no_frames/handle->frequency_hz;
-         float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);	/* 10 sec average */
+         float dt = no_frames/handle->frequency_hz;
+         float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	/* 10 sec average */
 
          /* Quickly adjust for a very large step in volume */
          if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.9f;
@@ -2602,7 +2602,7 @@ _aaxALSADriverThread(void* config)
 
       _aaxMutexUnLock(handle->thread.mutex);
 
-      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE))
+      if (_IS_PLAYING(handle))
       {
 				/* timeout is in ms */
          if ((err = psnd_pcm_wait(be_handle->pcm, stdby_time)) < 0)
@@ -2614,6 +2614,10 @@ _aaxALSADriverThread(void* config)
       }
       else {
          msecSleep((unsigned int)(delay_sec*1000));
+      }
+
+      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+         _SET_PROCESSED(handle);
       }
 
       _aaxMutexLock(handle->thread.mutex);
@@ -2636,7 +2640,7 @@ _aaxALSADriverThread(void* config)
 #if ENABLE_TIMING
        _aaxTimerStart(timer);
 #endif
-      if (_IS_PLAYING(handle) && be->state(be_handle, DRIVER_AVAILABLE)) {
+      if (_IS_PLAYING(handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 #if ENABLE_TIMING

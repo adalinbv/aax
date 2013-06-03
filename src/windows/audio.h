@@ -91,7 +91,7 @@ static char *_wasapi_errors[WASAPI_MAX_ERROR] =
 
    "Unable to set the buffer size",
    "Unable to get the audio format",
-   "Unable to het the device format",
+   "Unable to get the device format",
    "Unable to get the mixer format",
    "Unable to get the period size",
    "Unable to get the audio buffer",
@@ -113,13 +113,6 @@ static char *_wasapi_errors[WASAPI_MAX_ERROR] =
 #  define COBJMACROS
 # endif
 
-# if defined(_MSC_VER) && (_MSC_VER >= 1400)
-#  include <Audioclient.h>
-#  define INITGUID
-#  include <mmdeviceapi.h>
-#  undef INITGUID
-# endif
-# include <Endpointvolume.h>
 
 # ifndef NTDDI_VERSION
 #  undef WINVER
@@ -181,9 +174,20 @@ typedef LONGLONG REFERENCE_TIME;
 #  include <audioclient.h>
 #  include <audiopolicy.h>
 #  include <mmdeviceapi.h>
+#  include <Endpointvolume.h>
 #  include <functiondiscoverykeys.h>
 #  include <unknwn.h>
 #  undef INITGUID
+
+# ifndef InterlockedAnd
+#  define InterlockedAnd InterlockedAnd_Inline
+LONG InterlockedAnd_Inline(LONG volatile *, LONG);
+# endif
+# ifndef InterlockedOr
+#  define InterlockedOr InterlockedOr_Inline
+LONG InterlockedOr_Inline(LONG volatile *, LONG);
+# endif
+
 # endif // NTDDI_VERSION
 
 # ifndef GUID_SECT
@@ -216,3 +220,4 @@ typedef LONGLONG REFERENCE_TIME;
 
 
 #endif /*__MMDEVAPI_AUDIO_H */
+

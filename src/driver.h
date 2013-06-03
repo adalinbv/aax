@@ -73,7 +73,8 @@ enum _aaxDriverState {
    DRIVER_RESUME,
    DRIVER_SUPPORTS_PLAYBACK,
    DRIVER_SUPPORTS_CAPTURE,
-   DRIVER_SHARED_MIXER
+   DRIVER_SHARED_MIXER,
+   DRIVER_NEED_REINIT
 };
 
 typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);

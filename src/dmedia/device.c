@@ -888,7 +888,8 @@ _aaxDMediaDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
-      break;
+      break; 
+   case DRIVER_NEED_REINIT:
    default:
       break;
    }

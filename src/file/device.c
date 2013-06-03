@@ -663,7 +663,8 @@ _aaxFileDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
       break;
-    case DRIVER_SHARED_MIXER:
+   case DRIVER_SHARED_MIXER:
+   case DRIVER_NEED_REINIT:
    default:
       break;
    }

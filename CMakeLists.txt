@@ -370,6 +370,7 @@ SET( AEONWAVE_OBJS
 IF(HAVE_WINDOWS_H)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
      src/windows/wasapi.c
+     src/windows/audio.c
   )
 ENDIF(HAVE_WINDOWS_H)
 
