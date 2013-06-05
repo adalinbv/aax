@@ -18,6 +18,11 @@
 # include <strings.h>
 #endif
 #include <math.h>
+#include <stdlib.h>
+#include <malloc.h>
+#ifndef NDEBUG
+# include <stdio.h>
+#endif
 
 #include <api.h>
 #include <arch.h>
