@@ -613,11 +613,11 @@ aaxMixerGetState(aaxConfig config)
    handle = get_valid_handle(config);
    if (handle)
    {
-      if (_IS_PLAYING(handle)) rv = AAX_PLAYING;
-      else if (_IS_STOPPED(handle)) rv = AAX_STOPPED;
+      if (_IS_STOPPED(handle)) rv = AAX_STOPPED;
       else if (_IS_PROCESSED(handle)) rv = AAX_PROCESSED;
       else if (_IS_STANDBY(handle)) rv = AAX_STANDBY;
       else if (_IS_PAUSED(handle)) rv = AAX_SUSPENDED;
+      else if (_IS_PLAYING(handle)) rv = AAX_PLAYING;
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
