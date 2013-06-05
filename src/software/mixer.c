@@ -614,12 +614,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                   _aaxSoftwareMixerSignalFrames(mixer->frames,
                                                 mixer->info->refresh_rate);
                }
-
                /* main mixer */
                _aaxEmittersProcess(dest, handle->info, &sp2d, &sp3d, NULL, NULL,
                                          mixer->emitters_2d, mixer->emitters_3d,
                                          be, be_handle);
- 
                res = _aaxSoftwareMixerPlayFrame(dest, mixer->devices,
                                                 mixer->ringbuffers,
                                                 mixer->frames,
@@ -629,7 +627,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 #else
                _aaxAudioFrameProcess(dest, sensor, mixer, &sp2d, &sp3d,
                                       NULL, NULL, &sp2d, &sp3d, be, be_handle);
-
                /** play back all mixed audio */
                gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
                res = be->play(be_handle, dest, 1.0, gain);

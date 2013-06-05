@@ -47,13 +47,14 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define USE_CAPTURE_THREAD	AAX_FALSE
-#define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 #define EXCLUSIVE_MODE		AAX_TRUE
 #define EVENT_DRIVEN		AAX_TRUE
+#define USE_EVENT_SESSION	AAX_TRUE
 #define ENABLE_TIMING		AAX_FALSE
 #define LOG_TO_FILE		AAX_TRUE
 #define USE_GETID		AAX_FALSE
+#define USE_CAPTURE_THREAD	AAX_FALSE
+#define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
 
 // Testing purposes only!
 #ifdef NDEBUG
@@ -179,9 +180,11 @@ typedef struct
    float padding;		/* for sensor clock drift correction     */
 
    /* Audio session events */
+#if USE_EVENT_SESSION
    IAudioSessionControl *pControl;
    struct IAudioSessionEvents events;
    LONG refs;
+#endif
    LONG flags;
 
    /* error handling */
@@ -208,7 +211,10 @@ enum _aaxFlags
 };
 
 const char* _wasapi_default_name = DEFAULT_DEVNAME;
+
+#if USE_EVENT_SESSION
 static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
+#endif
 
 # define pIID_IUnknown &aax_IID_IUnknown
 # define pIID_IAudioSessionEvents &aax_IID_IAudioSessionEvents
@@ -335,8 +341,9 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->Mode = _mode[(mode > 0) ? 1 : 0];
-      handle->sse_level = _aaxGetSSELevel();
       handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
+
+      handle->sse_level = _aaxGetSSELevel();
       handle->status = DRIVER_INIT_MASK | CAPTURE_INIT_MASK;
       handle->status |= DRIVER_PAUSE_MASK;
 #if EXCLUSIVE_MODE
@@ -516,8 +523,10 @@ _aaxWASAPIDriverDisconnect(void *id)
 
    if (handle)
    {
-      if (handle->log_file) {
+      if (handle->log_file)
+      {
          fclose(handle->log_file);
+         handle->log_file = NULL;
       }
 
       _aaxWASAPIDriverState(handle, DRIVER_PAUSE);
@@ -540,7 +549,6 @@ _aaxWASAPIDriverDisconnect(void *id)
       if (handle->status & CO_INIT_MASK) {
          pCoUninitialize();
       }
-
       free(handle);
  
       return AAX_TRUE;
@@ -789,7 +797,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
             handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
 
             hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
-                                                frames, 0);
+                                                   frames, 0);
             if (hr != S_OK) {
                _AAX_DRVLOG(WASAPI_RELEASE_BUFFER_FAILED);
             }
@@ -1368,7 +1376,8 @@ static DWORD
 _aaxWASAPIDriverCaptureThread(LPVOID id)
 {
    _driver_t *handle = (_driver_t*)id;
-   unsigned int stdby_time;
+   unsigned int stdby_time_ms;
+   float delay_sec;
    int co_init;
    HRESULT hr;
 
@@ -1387,91 +1396,38 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
       handle->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
    }
 
-   hr = S_OK;
-   if (handle->status & EVENT_DRIVEN_MASK)
-   {
-      handle->Event = CreateEvent(NULL, FALSE, FALSE, NULL);
-      if (handle->Event) {
-         hr = pIAudioClient_SetEventHandle(handle->pAudioClient,
-                                          handle->Event);
-      }
-      else {
-         _AAX_DRVLOG(WASAPI_EVENT_CREATION_FAILED);
-      }
-   }
-   else				/* timer driven, creat a periodic timer */
-   {
-      handle->Event = CreateWaitableTimer(NULL, FALSE, NULL);
-      if (handle->Event)
-      {
-         LARGE_INTEGER liDueTime;
-         LONG lPeriod;
+   handle->cthread_init = 1;
+   delay_sec = handle->hnsPeriod*1e-7f;
+   stdby_time_ms = (int)(4*delay_sec*1000);
 
-         /*
-          * In Timer Driven mode, we want to wait for half the desired latency
-          * in milliseconds.
-          *
-          * That way we'll wake up half way through the processing period to
-          * pull the next set of samples from the engine.
-          */
-         lPeriod = (LONG)rintf(handle->hnsPeriod/(2*10*1000));
-         liDueTime.QuadPart = -(LONGLONG)rintf(handle->hnsPeriod/2);
-         hr = SetWaitableTimer(handle->Event, &liDueTime, lPeriod,
-                               NULL, NULL, FALSE);
-         if (hr) hr = S_OK;
-         else hr = S_FALSE;
-      }
-      else {
-         _AAX_DRVLOG(WASAPI_TIMER_CREATION_FAILED);
-      }
-   }
-
-   if (handle->Event && SUCCEEDED(hr))
-   {
-      handle->cthread_init = 1;
-
-      /*
-       * the standby timeout is ten times the period length to not interfere 
-       * with the more accurate event drivers.
-       */
-      stdby_time = handle->hnsPeriod/1000;
-      do
-      {
-         hr = WaitForSingleObject(handle->Event, stdby_time);
-         if (handle->cthread_init < 0) break;
-
-         switch (hr)
-         {
-         case WAIT_TIMEOUT:
-            _AAX_DRVLOG(WASAPI_EVENT_TIMEOUT);
-            /* break not needed */
-         case WAIT_OBJECT_0:
-            _aaxWASAPIDriverCaptureFromHardware(handle);
-            break;
-         case WAIT_ABANDONED:
-         case WAIT_FAILED:
-         default:
-            _AAX_DRVLOG(WASAPI_WAIT_EVENT_FAILED);
-            hr = S_FALSE;
-            break;
-         }
-      }
-      while(hr != S_FALSE);
-   }
-   else {
+   hr = _wasapi_setup_event(handle, delay_sec);
+   if (!be_handle->Event || FAILED(hr)) {
       _AAX_DRVLOG(WASAPI_EVENT_SETUP_FAILED);
    }
 
-   if (handle->Event)
+   while (hr == S_OK)
    {
-      if ((handle->status & EVENT_DRIVEN_MASK) == 0) {
-         CancelWaitableTimer(handle->Event);
+      hr = WaitForSingleObject(handle->Event, stdby_time_ms);
+      if (handle->cthread_init < 0) break;
+
+      switch (hr)
+      {
+      case WAIT_TIMEOUT:
+         _AAX_DRVLOG(WASAPI_EVENT_TIMEOUT);
+         /* break not needed */
+      case WAIT_OBJECT_0:
+         _aaxWASAPIDriverCaptureFromHardware(handle);
+         break;
+      case WAIT_ABANDONED:
+      case WAIT_FAILED:
+      default:
+         _AAX_DRVLOG(WASAPI_WAIT_EVENT_FAILED);
+         hr = S_FALSE;
+         break;
       }
-      else {
-         CloseHandle(handle->Event);
-      }
-      handle->Event = NULL;
    }
+
+   _wasapi_close_event(handle);
 
    if (pAvRevertMmThreadCharacteristics) {
       pAvRevertMmThreadCharacteristics(handle->task);
@@ -1509,10 +1465,9 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
       if (handle->cthread) {
          EnterCriticalSection(&handle->mutex);
       }
-
       hr = pIAudioCaptureClient_GetBuffer(handle->uType.pCapture, &buf, &avail,
                                           &flags, NULL, NULL);
-      if (SUCCEEDED(hr))
+      if (hr == S_OK) // SUCCEEDED(hr))
       {              /* no error, but maybe there is no data available */
          new_scratch_offs = handle->scratch_offs + avail;
          if (new_scratch_offs <= handle->buffer_frames)
@@ -1769,7 +1724,7 @@ _aaxWASAPIDriverThread(void* config)
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _oalRingBuffer *dest_rb;
-   int stdby_time, state;
+   int stdby_time_ms, state;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
    const void *id;
@@ -1780,7 +1735,6 @@ _aaxWASAPIDriverThread(void* config)
        || !handle->info->no_tracks) {
       return NULL;
    }
-
 
    delay_sec = 1.0f/handle->info->refresh_rate;
 
@@ -1821,7 +1775,7 @@ _aaxWASAPIDriverThread(void* config)
    delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    _aaxMutexLock(handle->thread.mutex);
-   stdby_time = (int)(4*delay_sec*1000);
+   stdby_time_ms = (int)(4*delay_sec*1000);
 
    be_handle = (_driver_t *)handle->backend.handle;
    hr = _wasapi_setup_event(be_handle, delay_sec);
@@ -1833,20 +1787,16 @@ _aaxWASAPIDriverThread(void* config)
    while ((hr == S_OK) && TEST_FOR_TRUE(handle->thread.started))
    {
       _aaxMutexUnLock(handle->thread.mutex);
-      if (_IS_PLAYING(handle) || ((be_handle->status & EVENT_DRIVEN_MASK) == 0))
+      if (_IS_PLAYING(handle))
       {
-         hr = WaitForSingleObject(be_handle->Event, stdby_time);
+         hr = WaitForSingleObject(be_handle->Event, stdby_time_ms);
          switch (hr)
          {
          case WAIT_OBJECT_0:	/* event was triggered */
             break;
          case WAIT_TIMEOUT:	/* wait timed out      */
-            if ((be_handle->status & DRIVER_INIT_MASK) == 0)
-            {
-               LONG flags = InterlockedAnd(&be_handle->flags, (LONG)(ULONG)-1);
-               if ((flags & DRIVER_CONNECTED_MASK) != 0) {
-                  _AAX_DRVLOG(WASAPI_EVENT_TIMEOUT);
-               }
+            if ((be_handle->status & DRIVER_INIT_MASK) == 0) {
+               _AAX_DRVLOG(WASAPI_EVENT_TIMEOUT);
             }
             break;
          case WAIT_ABANDONED:
@@ -1858,21 +1808,25 @@ _aaxWASAPIDriverThread(void* config)
          }
       }
       else {
-         msecSleep((unsigned int)(delay_sec*1000));
+         msecSleep(stdby_time_ms);
       }
-
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE)
-      {
-         if (be->state(be_handle, DRIVER_NEED_REINIT) == AAX_TRUE) {
-            _SET_STOPPED(handle);
-         } else {
-            _SET_PROCESSED(handle);
-         }
-      }
-
       _aaxMutexLock(handle->thread.mutex);
+
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
+      }
+
+      if (!_IS_STOPPED(handle) && !_IS_PROCESSED(handle))
+      {
+         LONG flags = InterlockedAnd(&be_handle->flags, (LONG)(ULONG)-1);
+         if ((flags & DRIVER_CONNECTED_MASK) == AAX_FALSE)
+         {
+            if ((flags & DRIVER_REINIT_MASK) != 0) {
+               _SET_STOPPED(handle);
+            } else {
+               _SET_PROCESSED(handle);
+            }
+         }
       }
 
       if (state != handle->state)
@@ -1892,6 +1846,7 @@ _aaxWASAPIDriverThread(void* config)
       _aaxTimerStart(timer);
 #endif
       /* do all the mixing */
+//    if (!_IS_STOPPED(handle) && !_IS_PROCESSED(handle)) {
       if (_IS_PLAYING(handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
@@ -2155,19 +2110,18 @@ _wasapi_get_volume_range(_driver_t *handle)
 static int
 _wasapi_open(_driver_t *handle, WAVEFORMATEXTENSIBLE *fmt)
 {
+   _driver_t *id = handle;
    HRESULT hr = S_OK;
 
    if (handle)
    {
-_driver_t *id = handle;
       int m = (handle->setup > 0) ? 1 : 0;
 
       hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
                              CLSCTX_INPROC_SERVER, pIID_IMMDeviceEnumerator,
                              (void**)&handle->pEnumerator);
-_AAX_DRVLOG_VAR("hr: %x, handle->pEnumerator: %x", hr, handle->pEnumerator);
       if (hr == S_OK)
-       {
+      {
          if (!handle->devname)
          {
             hr = pIMMDeviceEnumerator_GetDefaultAudioEndpoint(
@@ -2207,10 +2161,11 @@ _AAX_DRVLOG_VAR("hr: %x, handle->pEnumerator: %x", hr, handle->pEnumerator);
 static int
 _wasapi_close(_driver_t *handle)
 {
+   _driver_t *id = handle;
    HRESULT hr = S_OK;
-
    if (handle)
    {
+#if USE_EVENT_SESSION
       if (handle->pControl != NULL)
       {
          IAudioSessionControl_UnregisterAudioSessionNotification(
@@ -2218,6 +2173,7 @@ _wasapi_close(_driver_t *handle)
                                                               &handle->events);
          IAudioSessionControl_Release(handle->pControl);
       }
+#endif
 
      if (handle->pEndpointVolume != NULL)
       {
@@ -2634,6 +2590,7 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
          if (hr == S_OK)
          {
             InterlockedOr(&handle->flags, DRIVER_CONNECTED_MASK);
+            InterlockedAnd(&handle->flags, ~DRIVER_REINIT_MASK);
             rv = AAX_TRUE;
          }
          else {
@@ -2644,6 +2601,7 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
          _AAX_DRVLOG(WASAPI_SET_BUFFER_SIZE_FAILED);
       }
 
+#if USE_EVENT_SESSION
       if (hr == S_OK)
       {
          hr = IAudioClient_GetService(handle->pAudioClient,
@@ -2660,6 +2618,7 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
             _AAX_DRVLOG(WASAPI_EVENT_NOTIFICATION_FAILED);
          }
       }
+#endif
 
       hr = pIAudioClient_GetStreamLatency(handle->pAudioClient, &latency);
       if (hr == S_OK) {
@@ -2779,6 +2738,7 @@ _wasapi_setup_event(_driver_t *handle, float delay_sec)
 static int
 _wasapi_close_event(_driver_t *handle)
 {
+   _driver_t *id = handle;
    HRESULT hr = S_OK;
 
    if ((handle->status & EVENT_DRIVEN_MASK) == 0)
@@ -2795,6 +2755,7 @@ _wasapi_close_event(_driver_t *handle)
 }
 
 /** Audio Session Events */
+#if USE_EVENT_SESSION
 static _driver_t *
 _aaxAudioSessionEventsUserData(IAudioSessionEvents *event)
 {
@@ -2997,5 +2958,6 @@ static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents =
    _aaxAudioSessionEvents_OnStateChanged,
    _aaxAudioSessionEvents_OnSessionDisconnected,
 };
+#endif
 /** Audio Session Events */
 
