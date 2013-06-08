@@ -306,10 +306,13 @@ static int
 _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
-   if (handle) {
-      handle->latency = (float)*frames / (float)*speed;
-   } else {
-      handle->latency = 0.0f;
+   if (handle)
+   {
+      if (frames && speed && (*speed > 0)) {
+         handle->latency = (float)*frames / (float)*speed;
+      } else {
+         handle->latency = 0.0f;
+      }
    }
    return AAX_TRUE;
 }
