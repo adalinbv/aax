@@ -87,13 +87,13 @@ int
 _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
                               _oalRingBuffer2dProps *p2d,
                               _oalRingBuffer2dProps *mix_p2d,
-                              float gain, unsigned char ch, unsigned char ctr,
+                              unsigned char ch, unsigned char ctr,
                               unsigned int n)
 {
    unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
-   float svol, evol;
+   float gain, svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
@@ -109,7 +109,6 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
    /** Pitch */
    pitch = p2d->final.pitch; /* Doppler effect */
-   pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
    lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
@@ -148,7 +147,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
       }
    }
 
-   gain *= _oalRingBufferEnvelopeGet(env, src->stopped);
+   gain = _oalRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -238,13 +237,13 @@ int
 _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
                                 _oalRingBuffer2dProps *p2d,
                                 _oalRingBuffer2dProps *mix_p2d,
-                                float gain, unsigned char ch, unsigned char ctr,
+                                unsigned char ch, unsigned char ctr,
                                 unsigned int n)
 {
    unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
-   float svol, evol;
+   float gain, svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
@@ -299,7 +298,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       }
    }
 
-   gain *= _oalRingBufferEnvelopeGet(env, src->stopped);
+   gain = _oalRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -427,13 +426,13 @@ int
 _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
                                _oalRingBuffer2dProps *p2d,
                                _oalRingBuffer2dProps *mix_p2d,
-                               float gain, unsigned char ch, unsigned char ctr,
+                               unsigned char ch, unsigned char ctr,
                                unsigned int n)
 {
    unsigned int track, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
-   float svol, evol;
+   float gain, svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
@@ -488,7 +487,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       }
    }
 
-   gain *= _oalRingBufferEnvelopeGet(env, src->stopped);
+   gain = _oalRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -564,13 +563,13 @@ int
 _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
                             _oalRingBuffer2dProps *p2d,
                             _oalRingBuffer2dProps *mix_p2d,
-                            float gain, unsigned char ch, unsigned char ctr,
+                            unsigned char ch, unsigned char ctr,
                             unsigned int n)
 {
    unsigned int track, offs, dno_samples, ddesamps;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
-   float svol, evol;
+   float gain, svol, evol;
    float pitch, max;
    int32_t **sptr;
    void *env;
@@ -627,7 +626,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       }
    }
 
-   gain *= _oalRingBufferEnvelopeGet(env, src->stopped);
+   gain = _oalRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -736,7 +735,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    info = (const _aaxMixerInfo*)mix_info;
    src = (_aaxEmitter *)source;
 
-   eprops3d = src->props3d;
+   eprops3d = src->dprops3d->props3d;
    eprops2d = src->props2d;
 
    distfn = _FILTER_GET_DATA(eprops3d, DISTANCE_FILTER);
@@ -807,7 +806,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       /*
        * Doppler
        */
-      eprops2d->final.pitch = 1.0f;
+      src->dprops3d->pitch = _EFFECT_GET(eprops2d, PITCH_EFFECT, AAX_PITCH);
       if (dist > 1.0f)
       {
          float ve, vs, de, df;
@@ -833,7 +832,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          de = sprops3d->effect[VELOCITY_EFFECT].param[AAX_DOPPLER_FACTOR];
          df = dopplerfn(vs, ve, ss/de);
 
-         eprops2d->final.pitch = df;
+         src->dprops3d->pitch *= df;
 
 #if 0
          if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
@@ -859,9 +858,9 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          _PROP_MTX_CLEAR_CHANGED(sprops3d);
          if (fprops3d) _PROP_MTX_CLEAR_CHANGED(fprops3d);
 
-         refdist = _FILTER_GET3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
-         maxdist = _FILTER_GET3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
-         rolloff = _FILTER_GET3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
+         refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
+         maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
+         rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
          dist_fact = _MIN(dist/refdist, 1.0f);
 
          switch (info->mode)
@@ -934,12 +933,12 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          {
             float inner_vec, tmp = -mtx[DIR_BACK][2];
 
-            inner_vec = _FILTER_GET3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
+            inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
             if (tmp < inner_vec)
             {
                float outer_vec, outer_gain;
-               outer_vec = _FILTER_GET3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
-               outer_gain = _FILTER_GET3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
+               outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
+               outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
                if (outer_vec < tmp)
                {
                   tmp -= inner_vec;
@@ -951,13 +950,20 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
                }
             }
          }
+         gain *= cone_volume;
+         src->dprops3d->gain = gain;
 
+         /** now use the current (delayed) properties */
+         /* gain */
+         gain = src->dprops3d->gain;
          gain_min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
          gain_max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
-         gain *= cone_volume;
 
          eprops2d->final.gain = _MINMAX(gain, gain_min, gain_max);
          eprops2d->final.gain *= _FILTER_GET(sprops2d, VOLUME_FILTER, AAX_GAIN);
+
+         /* pitch */
+         eprops2d->final.pitch = src->dprops3d->pitch;
       }
    }
 }

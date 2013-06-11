@@ -85,7 +85,7 @@ enum
     MAX_STEREO_FILTER,
 
     /* 3d filters */
-    DISTANCE_FILTER = 0,	/* distance attewnuation */
+    DISTANCE_FILTER = 0,	/* distance attennuation */
     ANGULAR_FILTER,		/* audio cone support    */
     MAX_3D_FILTER,
 
@@ -432,7 +432,7 @@ typedef ALIGN16 struct
 typedef int
 _oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, 
-                        float, unsigned char, unsigned char, unsigned int);
+                        unsigned char, unsigned char, unsigned int);
 typedef int
 _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*,

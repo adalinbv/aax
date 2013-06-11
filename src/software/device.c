@@ -321,12 +321,7 @@ int
 _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
 {
    _driver_t *handle = (_driver_t *)id;
-   float gain = 1.0f;
-   int ret;
-
-   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
-
-   return ret;
+   return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
 }
 
 
@@ -514,8 +509,8 @@ _aaxNoneDriverProcessFrame(void* config)
    }
    while (++stage < 2); /* positional and stereo */
 
-   _PROP_MTX_CLEAR_CHANGED(frame->props3d);
-   _PROP_PITCH_CLEAR_CHANGED(frame->props3d);
+   _PROP_MTX_CLEAR_CHANGED(frame->dprops3d->props3d);
+   _PROP_PITCH_CLEAR_CHANGED(frame->dprops3d->props3d);
 }
 
 

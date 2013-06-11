@@ -599,7 +599,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               memcpy(&sp3d, mixer->props3d, sizeof(_oalRingBuffer3dProps));
+               memcpy(&sp3d, mixer->dprops3d->props3d, sizeof(_oalRingBuffer3dProps));
                memcpy(&sp2d, mixer->props2d, sizeof(_oalRingBuffer2dProps));
                memcpy(&sp2d.pos, handle->info->speaker,
                                   _AAX_MAX_SPEAKERS*sizeof(vec4_t));

@@ -43,8 +43,8 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
-            mtx4Copy(mixer->props3d->matrix, mtx);
-            _PROP_MTX_SET_CHANGED(mixer->props3d);
+            mtx4Copy(mixer->dprops3d->props3d->matrix, mtx);
+            _PROP_MTX_SET_CHANGED(mixer->dprops3d->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }
@@ -74,7 +74,7 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
-             mtx4Copy(mtx, mixer->props3d->matrix);
+             mtx4Copy(mtx, mixer->dprops3d->props3d->matrix);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }
@@ -104,7 +104,7 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
-            vec3Copy(mixer->props3d->velocity, velocity);
+            vec3Copy(mixer->dprops3d->props3d->velocity, velocity);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }
@@ -134,7 +134,7 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
-            vec3Copy(velocity, mixer->props3d->velocity);
+            vec3Copy(velocity, mixer->dprops3d->props3d->velocity);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }

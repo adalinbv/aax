@@ -103,7 +103,7 @@ _aaxAudioFrameThread(void* config)
       memcpy(&sp2d.pos, smixer->info->speaker,
                                      _AAX_MAX_SPEAKERS*sizeof(vec4_t));
       memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4_t));
-      memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
+      memcpy(&sp3d, smixer->dprops3d->props3d, sizeof(_oalRingBuffer3dProps));
    }
 #endif
 
@@ -330,7 +330,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
             /* copy to prevent locking while walking the tree */
             subframe = _intBufGetDataPtr(dptr);
             sfmixer = subframe->submix;
-            memcpy(&sfp3d, sfmixer->props3d, sizeof(_oalRingBuffer3dProps));
+            memcpy(&sfp3d, sfmixer->dprops3d->props3d, sizeof(_oalRingBuffer3dProps));
             memcpy(&sfp2d, sfmixer->props2d, sizeof(_oalRingBuffer2dProps));
             _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -410,14 +410,14 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr)
    {
-      memcpy(&sp3d, smixer->props3d, sizeof(_oalRingBuffer3dProps));
+      memcpy(&sp3d, smixer->dprops3d->props3d, sizeof(_oalRingBuffer3dProps));
       memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
       memcpy(&sp2d.pos, smixer->info->speaker,_AAX_MAX_SPEAKERS*sizeof(vec4_t));
       memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4_t));
       _intBufReleaseData(dptr, _AAX_SENSOR);
    }
 
-   memcpy(&fp3d, fmixer->props3d, sizeof(_oalRingBuffer3dProps));
+   memcpy(&fp3d, fmixer->dprops3d->props3d, sizeof(_oalRingBuffer3dProps));
    memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
 
    /* clear the buffer for use by the subframe */

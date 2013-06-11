@@ -23,7 +23,30 @@
 #include <math.h>		/* for MAXFLOAT */
 
 #include "objects.h"
+#include "arch.h"
 #include "api.h"
+
+_aaxDelayed3dProps *
+_aaxDelayed3dPropsCreate()
+{
+   _aaxDelayed3dProps *rv = NULL;
+   unsigned int size;
+   char *ptr1, *ptr2;
+
+   size = sizeof(_aaxDelayed3dProps);
+   ptr2 = (char*)size;
+   size += sizeof(_oalRingBuffer3dProps);
+   ptr1 = _aax_calloc(&ptr2, 1, size);
+   if (ptr1)
+   {
+      rv = (_aaxDelayed3dProps*)ptr1;
+      rv->props3d = (_oalRingBuffer3dProps*)ptr2;
+
+      _aaxSetDefault3dProps(rv->props3d);
+      rv->pitch = rv->gain = 1.0f;
+   }
+   return rv;
+}
 
 void
 _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)

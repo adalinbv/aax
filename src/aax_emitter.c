@@ -63,26 +63,8 @@ aaxEmitterCreate()
        * is not possible since it prevents setting 3d position and orientation
        * before the emitter is set to 3d mode
        */
-      if (src->props3d == NULL)
-      {
-         unsigned int size = sizeof(_oalRingBuffer3dProps);
-         ptr2 = (char*)0;
-         ptr1 = _aax_calloc(&ptr2, 1, size);
-         if (ptr1)
-         {
-            src->props3d_ptr = ptr1;
-            src->props3d = (_oalRingBuffer3dProps*)ptr2;
-            _aaxSetDefault3dProps(src->props3d);
-         }
-         else
-         {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            free(handle);
-            src = NULL;
-         }
-      }
-
-      if (src)
+      src->dprops3d = _aaxDelayed3dPropsCreate();
+      if (src->dprops3d)
       {
          _intBufCreate(&src->buffers, _AAX_EMITTER_BUFFER);
          if (src->buffers)
@@ -94,12 +76,13 @@ aaxEmitterCreate()
 
             rv = (aaxEmitter)handle;
          }
-         else
-         {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            free(handle->source->props3d_ptr);
-            free(handle);
-         }
+      }
+
+      if (!src->buffers)
+      {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         free(handle->source->dprops3d);
+         free(handle);
       }
    }
    else {
@@ -134,7 +117,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          if (effect) free(effect->history_ptr);
          free(effect);
 
-         free(src->props3d_ptr);
+         free(src->dprops3d);
 
          /* safeguard against using already destroyed handles */
          handle->id = 0xdeadbeef;
@@ -359,7 +342,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       case AAX_STOPPED:
          if (_IS_PLAYING(src))
          {
-            if (!_PROP_DISTDELAY_IS_DEFINED(src->props3d))
+            if (!_PROP_DISTDELAY_IS_DEFINED(src->dprops3d->props3d))
             {
                _SET_PROCESSED(src);
                src->pos = -1;
@@ -441,7 +424,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          switch (filter->type)
          {
          case AAX_TIMED_GAIN_FILTER:
-            _PROP_DISTDELAY_SET_DEFINED(src->props3d);
+            _PROP_DISTDELAY_SET_DEFINED(src->dprops3d->props3d);
             /* break not needed */
          case AAX_FREQUENCY_FILTER:
          case AAX_VOLUME_FILTER:
@@ -459,7 +442,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          }      
          case AAX_DISTANCE_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = src->props3d;
+            _oalRingBuffer3dProps *p3d = src->dprops3d->props3d;
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -471,7 +454,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          }
          case AAX_ANGULAR_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = src->props3d;
+            _oalRingBuffer3dProps *p3d = src->dprops3d->props3d;
             float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
             float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
             float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
@@ -525,7 +508,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
          _aaxEmitter *src = handle->source;
          _handle_t *cfg = (_handle_t*)handle->handle;
          _aaxMixerInfo* info = (cfg) ? cfg->info : NULL;
-         rv = new_filter_handle(info, type, src->props2d, src->props3d);
+         rv = new_filter_handle(info, type, src->props2d, src->dprops3d->props3d);
          break;
       }
       default:
@@ -555,7 +538,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          {
          case AAX_PITCH_EFFECT:
          case AAX_TIMED_PITCH_EFFECT:
-            _PROP_PITCH_SET_CHANGED(src->props3d);
+            _PROP_PITCH_SET_CHANGED(src->dprops3d->props3d);
             /* break not needed */
          case AAX_DISTORTION_EFFECT:
          {
@@ -613,7 +596,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             if (lfo) /* enabled */
             {
                float lfo_val = _EFFECT_GET_SLOT(effect, 0, AAX_LFO_FREQUENCY);
-               _PROP_DYNAMIC_PITCH_SET_DEFINED(src->props3d);
+               _PROP_DYNAMIC_PITCH_SET_DEFINED(src->dprops3d->props3d);
 		/*
 		 * The vibrato effect is not gradual like tremolo but is
 		 * adjusted every update and stays constant which requires
@@ -625,7 +608,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             }
             else
             { 
-               _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->props3d);
+               _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->dprops3d->props3d);
                src->update_rate = 0;
             }
             rv = AAX_TRUE;
@@ -633,7 +616,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          }
          case AAX_VELOCITY_EFFECT:
          {
-            _oalRingBuffer3dProps *p3d = src->props3d;
+            _oalRingBuffer3dProps *p3d = src->dprops3d->props3d;
             _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -677,7 +660,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_VELOCITY_EFFECT:
       {
          _aaxEmitter *src = handle->source;
-         rv = new_effect_handle(src->info, type, src->props2d, src->props3d);
+         rv = new_effect_handle(src->info, type, src->props2d, src->dprops3d->props3d);
          break;
       }
       default:
@@ -710,9 +693,9 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(src, m);
             if TEST_FOR_TRUE(m) {
-               src->props3d->matrix[LOCATION][3] = 0.0f;
+               src->dprops3d->props3d->matrix[LOCATION][3] = 0.0f;
             } else {
-               src->props3d->matrix[LOCATION][3] = 1.0f;
+               src->dprops3d->props3d->matrix[LOCATION][3] = 1.0f;
             }
          }
          rv = AAX_TRUE;
@@ -768,13 +751,13 @@ aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
                  !detect_nan_vec4(mtx[2]) && !detect_nan_vec4(mtx[3]))
       {
          _aaxEmitter *src = handle->source;
-         mtx4Copy(src->props3d->matrix, mtx);
+         mtx4Copy(src->dprops3d->props3d->matrix, mtx);
          if (_IS_RELATIVE(src)) {
-            src->props3d->matrix[LOCATION][3] = 0.0f;
+            src->dprops3d->props3d->matrix[LOCATION][3] = 0.0f;
          } else {
-            src->props3d->matrix[LOCATION][3] = 1.0f;
+            src->dprops3d->props3d->matrix[LOCATION][3] = 1.0f;
          }
-         _PROP_MTX_SET_CHANGED(src->props3d);
+         _PROP_MTX_SET_CHANGED(src->dprops3d->props3d);
          rv = AAX_TRUE;
       }
       else {
@@ -798,7 +781,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
       if (velocity && !detect_nan_vec3(velocity))
       {
          _aaxEmitter *src = handle->source;
-         vec3Copy(src->props3d->velocity, velocity);
+         vec3Copy(src->dprops3d->props3d->velocity, velocity);
          rv = AAX_TRUE;
       }
       else {
@@ -822,7 +805,7 @@ aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
       if (mtx)
       {
          _aaxEmitter *src = handle->source;
-         mtx4Copy(mtx, src->props3d->matrix);
+         mtx4Copy(mtx, src->dprops3d->props3d->matrix);
          rv = AAX_TRUE;
       }
       else {
@@ -1044,7 +1027,7 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
       if (velocity)
       {
          const _aaxEmitter *src = handle->source;
-         vec3Copy(velocity, src->props3d->velocity);
+         vec3Copy(velocity, src->dprops3d->props3d->velocity);
          rv = AAX_TRUE;
       }
       else {

@@ -79,11 +79,29 @@ enum
 #define _TAS_RELATIVE(q,r)    _STATE_TAS((q)->state, (r), _STATE_RELATIVE)
 #define _TAS_POSITIONAL(q,r)  _STATE_TAS((q)->state, (r), _STATE_POSITIONAL)
 
+#define _EFFECT_GETD3D(a,b,c)		_EFFECT_GET3D(a->dprops3d,b,c)
+#define _EFFECT_SETD3D_DATA(a,b,c)	_EFFECT_SET3D_DATA(a->dprops3d,b,c)
+#define _EFFECT_COPYD3D(a,b,c,d)	_EFFECT_COPY3D(a->dprops3d,b->dprops3d,c,d)
+#define _EFFECT_COPYD3D_DATA(a,b,c)	_EFFECT_COPY3D_DATA(a->dprops3d,b->dprops3d,c)
+
+#define _FILTER_GETD3D(a,b,c)		_FILTER_GET3D(a->dprops3d,b,c)
+#define _FILTER_SETD3D_DATA(a,b,c)	_FILTER_SET3D_DATA(a->dprops3d,b,c)
+#define _FILTER_COPYD3D_DATA(a,b,c)	_FILTER_COPY3D_DATA(a->dprops3d,b->dprops3d,c)
+
 enum
 {
    HRTF_FACTOR = 0,
    HRTF_OFFSET
 };
+
+typedef struct
+{
+   _oalRingBuffer3dProps* props3d;
+   float pitch, gain;
+   float pos;
+
+} _aaxDelayed3dProps;
+
 
 /* warning:
  * need to update the pre defined structure in objects.c ehwn changing
@@ -117,8 +135,7 @@ typedef struct
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps* props2d;
-   _oalRingBuffer3dProps* props3d;
-   void *props3d_ptr;
+   _aaxDelayed3dProps *dprops3d;
 
    _intBuffers *emitters_2d;	/* plain stereo emitters		*/
    _intBuffers *emitters_3d;	/* emitters with positional information	*/
@@ -145,8 +162,10 @@ typedef struct
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
-   _oalRingBuffer3dProps *props3d;	/* 16 byte aligned */
-   void *props3d_ptr;
+   _aaxDelayed3dProps *dprops3d;
+
+   _intBuffers *props3d_queue;		/* _aaxDelayed3dProps array */
+   _intBuffers *props3d_avail;		/* array of freed _aaxDelayed3dProps */
 
    _intBuffers *buffers;
 
@@ -184,6 +203,7 @@ void _aaxRemoveRingBufferByPos(void *, unsigned int);
 void _aaxRemoveFrameRingBufferByPos(void *, unsigned int);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
+_aaxDelayed3dProps *_aaxDelayed3dPropsCreate();
 void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
 void _aaxSetDefault3dProps(_oalRingBuffer3dProps *);
 

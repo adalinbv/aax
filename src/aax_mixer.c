@@ -449,7 +449,7 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
             rv = new_filter_handle(handle->info, type, mixer->props2d,
-                                                       mixer->props3d);
+                                                       mixer->dprops3d->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          break;
@@ -542,7 +542,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
             rv = new_effect_handle(handle->info, type, mixer->props2d,
-                                                       mixer->props3d);
+                                                       mixer->dprops3d->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          break;
@@ -690,8 +690,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      mixer = sensor->mixer;
                      submix = sframe_sensor->mixer;
 
-                     mp3d = mixer->props3d;
-                     sp3d = submix->props3d;
+                     mp3d = mixer->dprops3d->props3d;
+                     sp3d = submix->dprops3d->props3d;
 
                      submix->info->frequency = mixer->info->frequency;
                      while (submix->info->frequency > 48000.0f) {
@@ -895,7 +895,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)
             {
-               _oalRingBuffer3dProps *mp3d, *ep3d = src->props3d;
+               _oalRingBuffer3dProps *mp3d, *ep3d = src->dprops3d->props3d;
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
 
@@ -906,9 +906,9 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 
                if (positional)
                {
-                  mp3d = mixer->props3d;
+                  mp3d = mixer->dprops3d->props3d;
                   if (mixer->dist_delaying) {
-                     _PROP_DISTDELAY_SET_DEFINED(src->props3d);
+                     _PROP_DISTDELAY_SET_DEFINED(src->dprops3d->props3d);
                   }
 
                   if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
@@ -964,7 +964,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             if (_IS_POSITIONAL(src))
             {
                he = mixer->emitters_3d;
-               _PROP_DISTDELAY_CLEAR_DEFINED(src->props3d);
+               _PROP_DISTDELAY_CLEAR_DEFINED(src->dprops3d->props3d);
             }
             else {
                he = mixer->emitters_2d;
@@ -1050,8 +1050,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   mixer = sensor->mixer;
                   submix = frame->submix;
 
-                  mp3d = mixer->props3d;
-                  fp3d = submix->props3d;
+                  mp3d = mixer->dprops3d->props3d;
+                  fp3d = submix->dprops3d->props3d;
 
                   submix->dist_delaying = mixer->dist_delaying;
                   if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
@@ -1060,8 +1060,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
                   if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
                   {
-                     _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-                     _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
+                     _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
+                     _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
                      _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
                   }
                   _intBufReleaseData(dptr, _AAX_SENSOR);

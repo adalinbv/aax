@@ -318,6 +318,7 @@ enum
     _AAX_FRAME,
     _AAX_RINGBUFFER,
     _AAX_EXTENSION,
+    _AAX_DELAYED3D,
 
     _AAX_MAX_ID
 };
