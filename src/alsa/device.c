@@ -1348,13 +1348,15 @@ _aaxALSADriverGetDevices(const void *id, int mode)
          char *ptr;
 
          ptr = (char *)&names[m];
+         *ptr = 0;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && !strncmp(name, "front:", strlen("front:")))
+               if (name && !strncmp(name, "hw:", strlen("hw:")) && 
+                   strstr(name, ",DEV=0"))
                {
                   snd_pcm_t *id;
                   if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
