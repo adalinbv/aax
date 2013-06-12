@@ -813,7 +813,12 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       /*
        * Doppler
        */
-      pitch = src->dprops3d->pitch;
+#if 0
+      max = _EFFECT_GET2D(src, PITCH_EFFECT, AAX_MAX_PITCH);
+      pitch = _MIN(src->dprops3d->pitch, max);
+#else
+       pitch = src->dprops3d->pitch;
+#endif
       if (dist > 1.0f)
       {
          float ve, vs, de, df;
@@ -849,8 +854,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          }
 #endif
       }
-      max = _EFFECT_GET2D(src, PITCH_EFFECT, AAX_MAX_PITCH);
-      eprops2d->final.pitch = _MIN(pitch, max);
+      eprops2d->final.pitch = pitch;
 
       /*
        * Distance queues for every speaker (volume)
