@@ -837,7 +837,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
          unsigned int pos, positional;
          _intBufferData *dptr;
 
-         positional = _IS_POSITIONAL(src);
+         positional = _IS_POSITIONAL(src->dprops3d);
 
          pos = UINT_MAX;
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -961,7 +961,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             _intBuffers *he;
             void *ptr;
 
-            if (_IS_POSITIONAL(src))
+            if (_IS_POSITIONAL(src->dprops3d))
             {
                he = mixer->emitters_3d;
                _PROP_DISTDELAY_CLEAR_DEFINED(src->dprops3d->props3d);

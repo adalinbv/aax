@@ -399,7 +399,7 @@ _aaxNoneDriverProcessFrame(void* config)
 
          emitter = _intBufGetDataPtr(dptr_src);
          src = emitter->source;
-         if (_IS_PLAYING(src))
+         if (_IS_PLAYING(src->dprops3d))
          {
             _intBufferData *dptr_sbuf;
             unsigned int nbuf, rv = 0;
@@ -471,8 +471,8 @@ _aaxNoneDriverProcessFrame(void* config)
                            }
                            else
                            {
-                              _SET_STOPPED(src);
-                              _SET_PROCESSED(src);
+                              _SET_STOPPED(src->dprops3d);
+                              _SET_PROCESSED(src->dprops3d);
                               break;
                            }
                         }
@@ -489,7 +489,7 @@ _aaxNoneDriverProcessFrame(void* config)
                      }
                      else
                      {
-                        _SET_PROCESSED(src);
+                        _SET_PROCESSED(src->dprops3d);
                         break;
                      }
                   }

@@ -99,6 +99,7 @@ typedef struct
    _oalRingBuffer3dProps* props3d;
    float pitch, gain;
    float pos;
+   int state;
 
 } _aaxDelayed3dProps;
 
@@ -141,6 +142,7 @@ typedef struct
    _intBuffers *emitters_3d;	/* emitters with positional information	*/
    _intBuffers *frames;		/* other audio frames			*/
    _intBuffers *devices;	/* registered input devices		*/
+   _intBuffers *p3dq;		/* 3d properties delay queue            */
 
    _oalRingBuffer* ringbuffer;
    _intBuffers *frame_ringbuffers;	/* for audio frame rendering */
@@ -164,17 +166,14 @@ typedef struct
    _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
    _aaxDelayed3dProps *dprops3d;
 
-   _intBuffers *props3d_queue;		/* _aaxDelayed3dProps array */
-   _intBuffers *props3d_avail;		/* array of freed _aaxDelayed3dProps */
-
-   _intBuffers *buffers;
-
-   int pos;
-   int state;
-   float curr_pos_sec;
+   _intBuffers *p3dq;			/* 3d properties delay queue     */
+   _intBuffers *buffers;		/* audio buffer queue            */
+   int pos;				/* audio buffer queue pos        */
 
    int8_t update_rate;
    int8_t update_ctr;
+
+   float curr_pos_sec;
 
 #if 0
    /* delay effects */

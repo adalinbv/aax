@@ -101,7 +101,7 @@ _aaxSetDefault3dProps(_oalRingBuffer3dProps *p3d)
    memset(p3d->velocity, 0, size);
 
    /* status */
-   p3d->state = _STATE_PAUSED;
+   p3d->state = 0;
 
    for (pos=0; pos<MAX_3D_FILTER; pos++) {
       _aaxSetDefaultFilter3d(&p3d->filter[pos], pos);

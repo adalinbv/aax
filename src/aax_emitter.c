@@ -52,7 +52,6 @@ aaxEmitterCreate()
 
       src = (_aaxEmitter*)((char*)ptr1 + sizeof(_emitter_t));
       handle->source = src;
-      _SET_INITIAL(src);
       src->pos = -1;
 
       assert(((long int)ptr2 & 0xF) == 0);
@@ -66,13 +65,15 @@ aaxEmitterCreate()
       src->dprops3d = _aaxDelayed3dPropsCreate();
       if (src->dprops3d)
       {
+          _SET_INITIAL(src->dprops3d);
+
          _intBufCreate(&src->buffers, _AAX_EMITTER_BUFFER);
          if (src->buffers)
          {
             handle->id = EMITTER_ID;
             handle->pos = UINT_MAX;
             handle->looping = AAX_FALSE;
-            _SET_INITIAL(src);
+            _SET_INITIAL(src->dprops3d);
 
             rv = (aaxEmitter)handle;
          }
@@ -103,7 +104,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          _oalRingBufferDelayEffectData* effect;
          _aaxEmitter *src = handle->source;
 
-         _SET_PROCESSED(src);
+         _SET_PROCESSED(src->dprops3d);
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,
                       removeEmitterBufferByPos, src);
 
@@ -195,7 +196,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
    if (handle)
    {
       _aaxEmitter *src = handle->source;
-      if (!_IS_PLAYING(src) || src->pos > 0)
+      if (!_IS_PLAYING(src->dprops3d) || src->pos > 0)
       {
          unsigned int num;
 
@@ -287,14 +288,14 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
       switch (state)
       {
       case AAX_PROCESSED:
-         if (_IS_PROCESSED(src)) {
+         if (_IS_PROCESSED(src->dprops3d)) {
             rv = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
          } else if (src->pos > 0) {
             rv = src->pos;
          }
          break;
       case AAX_PLAYING:
-         if (_IS_PLAYING(src)) {
+         if (_IS_PLAYING(src->dprops3d)) {
             rv = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
             rv -= src->pos;
          }
@@ -324,46 +325,46 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       switch (state)
       {
       case AAX_PLAYING:
-         if (!_IS_PLAYING(src))
+         if (!_IS_PLAYING(src->dprops3d))
          {
             unsigned int num;
             num = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
             if (num)
             {
                src->pos = 0;
-               _SET_PLAYING(src);
+               _SET_PLAYING(src->dprops3d);
             }
          }
-         else if (_IS_PAUSED(src)) {
-            _TAS_PAUSED(src, AAX_FALSE);
+         else if (_IS_PAUSED(src->dprops3d)) {
+            _TAS_PAUSED(src->dprops3d, AAX_FALSE);
          }
          rv = AAX_TRUE;
          break;
       case AAX_STOPPED:
-         if (_IS_PLAYING(src))
+         if (_IS_PLAYING(src->dprops3d))
          {
             if (!_PROP_DISTDELAY_IS_DEFINED(src->dprops3d->props3d))
             {
-               _SET_PROCESSED(src);
+               _SET_PROCESSED(src->dprops3d);
                src->pos = -1;
             }
             else {
-               _SET_STOPPED(src);
+               _SET_STOPPED(src->dprops3d);
             }
          }
          rv = AAX_TRUE;
          break;
       case AAX_PROCESSED:
-         if (_IS_PLAYING(src))
+         if (_IS_PLAYING(src->dprops3d))
          {
-            _SET_PROCESSED(src);
+            _SET_PROCESSED(src->dprops3d);
             src->pos = -1;
          }
          rv = AAX_TRUE;
          break;
       case AAX_SUSPENDED:
-         if (_IS_PLAYING(src)) {
-            _SET_PAUSED(src);
+         if (_IS_PLAYING(src->dprops3d)) {
+            _SET_PAUSED(src->dprops3d);
          }
          rv = AAX_TRUE;
          break;
@@ -687,11 +688,11 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
       case AAX_POSITION:
       {
          int m = (mode > AAX_MODE_NONE) ? AAX_TRUE : AAX_FALSE;
-         _TAS_POSITIONAL(src, m);
+         _TAS_POSITIONAL(src->dprops3d, m);
          if TEST_FOR_TRUE(m)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
-            _TAS_RELATIVE(src, m);
+            _TAS_RELATIVE(src->dprops3d, m);
             if TEST_FOR_TRUE(m) {
                src->dprops3d->props3d->matrix[LOCATION][3] = 0.0f;
             } else {
@@ -752,7 +753,7 @@ aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
       {
          _aaxEmitter *src = handle->source;
          mtx4Copy(src->dprops3d->props3d->matrix, mtx);
-         if (_IS_RELATIVE(src)) {
+         if (_IS_RELATIVE(src->dprops3d)) {
             src->dprops3d->props3d->matrix[LOCATION][3] = 0.0f;
          } else {
             src->dprops3d->props3d->matrix[LOCATION][3] = 1.0f;
@@ -980,9 +981,9 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
       switch(type)
       {
       case AAX_POSITION:
-         if (_IS_POSITIONAL(src))
+         if (_IS_POSITIONAL(src->dprops3d))
          {
-            if (_IS_RELATIVE(src)) {
+            if (_IS_RELATIVE(src->dprops3d)) {
                rv = AAX_RELATIVE;
             } else {
                rv = AAX_ABSOLUTE;
@@ -1052,10 +1053,10 @@ aaxEmitterGetState(const aaxEmitter emitter)
       if (thread)
       {
          const _aaxEmitter *src = handle->source;
-         if (_IS_PLAYING(src)) ret = AAX_PLAYING;
-         else if (_IS_PROCESSED(src)) ret = AAX_PROCESSED;
-         else if (_IS_STOPPED(src)) ret = AAX_STOPPED;
-         else if (_IS_PAUSED(src)) ret = AAX_SUSPENDED;
+         if (_IS_PLAYING(src->dprops3d)) ret = AAX_PLAYING;
+         else if (_IS_PROCESSED(src->dprops3d)) ret = AAX_PROCESSED;
+         else if (_IS_STOPPED(src->dprops3d)) ret = AAX_STOPPED;
+         else if (_IS_PAUSED(src->dprops3d)) ret = AAX_SUSPENDED;
          else ret = AAX_INITIALIZED;
        }
        else ret = AAX_INITIALIZED;
@@ -1172,7 +1173,7 @@ get_emitter(aaxEmitter em)
             _intBufferData *dptr_src;
             _intBuffers *he;
 
-            if (!_IS_POSITIONAL(emitter->source)) {
+            if (!_IS_POSITIONAL(emitter->source->dprops3d)) {
                he = mixer->emitters_2d;
             } else {
                he = mixer->emitters_3d;
@@ -1188,7 +1189,7 @@ get_emitter(aaxEmitter em)
          _intBufferData *dptr_src;
          _intBuffers *he;
 
-         if (!_IS_POSITIONAL(emitter->source)) {
+         if (!_IS_POSITIONAL(emitter->source->dprops3d)) {
             he = handle->submix->emitters_2d;
          } else {
             he = handle->submix->emitters_3d;
@@ -1218,7 +1219,7 @@ put_emitter(aaxEmitter em)
             _aaxAudioFrame* mixer = sensor->mixer;
             _intBuffers *he;
 
-            if (!_IS_POSITIONAL(emitter->source)) {
+            if (!_IS_POSITIONAL(emitter->source->dprops3d)) {
                he = mixer->emitters_2d;
             } else {
                he = mixer->emitters_3d;
@@ -1232,7 +1233,7 @@ put_emitter(aaxEmitter em)
          _frame_t *handle = (_frame_t*)emitter->handle;
          _intBuffers *he;
 
-         if (!_IS_POSITIONAL(emitter->source)) {
+         if (!_IS_POSITIONAL(emitter->source->dprops3d)) {
             he = handle->submix->emitters_2d;
          } else {
             he = handle->submix->emitters_3d;

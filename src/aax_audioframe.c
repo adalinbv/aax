@@ -732,7 +732,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
          unsigned int positional;
          _intBuffers *he;
 
-         positional = _IS_POSITIONAL(src);
+         positional = _IS_POSITIONAL(src->dprops3d);
          if (!positional) {
             he = mixer->emitters_2d;
          } else {
@@ -826,7 +826,7 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
          _aaxEmitter *src = emitter->source;
          _intBuffers *he;
 
-         if (_IS_POSITIONAL(src))
+         if (_IS_POSITIONAL(src->dprops3d))
          {
             he = mixer->emitters_3d;
             _PROP_DISTDELAY_CLEAR_DEFINED(src->dprops3d->props3d);

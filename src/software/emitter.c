@@ -56,7 +56,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
 
          emitter = _intBufGetDataPtr(dptr_src);
          src = emitter->source;
-         if (_IS_PLAYING(src))
+         if (_IS_PLAYING(src->dprops3d))
          {
             _intBufferData *dptr_sbuf;
             unsigned int nbuf, rv = 0;
@@ -75,7 +75,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                _oalRingBuffer *src_rb = embuf->ringbuffer;
                do
                {
-                  if (_IS_STOPPED(src)) {
+                  if (_IS_STOPPED(src->dprops3d)) {
                      _oalRingBufferStop(src_rb);
                   }
                   else if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
@@ -92,7 +92,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   /* 3d mixing */
                   if (stage == 0)
                   {
-                     assert(_IS_POSITIONAL(src));
+                     assert(_IS_POSITIONAL(src->dprops3d));
                      if (!src->update_ctr) {
                         be->prepare3d(sp3d, fp3d, info, pp2d, src);
                      }
@@ -104,7 +104,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   }
                   else
                   {
-                     assert(!_IS_POSITIONAL(src));
+                     assert(!_IS_POSITIONAL(src->dprops3d));
                      rv = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
                                            pp2d, 1.0, 1.0, src->update_ctr,
                                            nbuf);
@@ -136,8 +136,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                            }
                            else
                            {
-                              _SET_STOPPED(src);
-                              _SET_PROCESSED(src);
+                              _SET_STOPPED(src->dprops3d);
+                              _SET_PROCESSED(src->dprops3d);
                               break;
                            }
                         }
@@ -154,7 +154,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                      }
                      else /* !streaming */
                      {
-                        _SET_PROCESSED(src);
+                        _SET_PROCESSED(src->dprops3d);
                         break;
                      }
                   }
