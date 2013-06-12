@@ -738,6 +738,11 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    eprops3d = src->dprops3d->props3d;
    eprops2d = src->props2d;
 
+   src->dprops3d->pitch = _EFFECT_GET(eprops2d, PITCH_EFFECT, AAX_PITCH);
+   src->dprops3d->gain = _FILTER_GET(eprops2d, VOLUME_FILTER, AAX_GAIN);
+   /** TODO: push this one and pull a new src->dprops3d */
+   // if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
+
    distfn = _FILTER_GET_DATA(eprops3d, DISTANCE_FILTER);
    dopplerfn = _EFFECT_GET_DATA(eprops3d, VELOCITY_EFFECT);
    assert(dopplerfn);
@@ -748,8 +753,9 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    {
       mtx4_t mtx;
       vec4_t epos;
+      float dist, gain, pitch;
       float esv, ssv, ss;
-      float dist, gain;
+      float min, max;
 
 //    _PROP_PITCH_CLEAR_CHANGED(eprops3d);
 //    _PROP_PITCH_CLEAR_CHANGED(sprops3d);
@@ -783,6 +789,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       dist = vec3Normalize(epos, mtx[LOCATION]);
 
       /* calculate the sound velocity inbetween the emitter and the sensor */
+      /* TODO: interpolate based on distance                               */
       esv = eprops3d->effect[VELOCITY_EFFECT].param[AAX_SOUND_VELOCITY];
       if (fprops3d) {
          ssv = fprops3d->effect[VELOCITY_EFFECT].param[AAX_SOUND_VELOCITY];
@@ -806,7 +813,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       /*
        * Doppler
        */
-      src->dprops3d->pitch = _EFFECT_GET(eprops2d, PITCH_EFFECT, AAX_PITCH);
+      pitch = src->dprops3d->pitch;
       if (dist > 1.0f)
       {
          float ve, vs, de, df;
@@ -819,20 +826,20 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          if (fprops3d)
          {
             vec4_t fv;
+
             vec4Copy(fv, fprops3d->velocity);
             vec4Add(fv, eprops3d->velocity);
             vec4Matrix4(ev, fv, sprops3d->matrix);
-            
          }
          else {
             vec4Matrix4(ev, eprops3d->velocity, sprops3d->matrix);
          }
          vs = vec3DotProduct(sv, epos);
          ve = vec3DotProduct(ev, epos);
-         de = sprops3d->effect[VELOCITY_EFFECT].param[AAX_DOPPLER_FACTOR];
+         de = _EFFECT_GET(sprops3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
          df = dopplerfn(vs, ve, ss/de);
 
-         src->dprops3d->pitch *= df;
+         pitch *= df;
 
 #if 0
          if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
@@ -842,16 +849,18 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          }
 #endif
       }
+      max = _EFFECT_GET2D(src, PITCH_EFFECT, AAX_MAX_PITCH);
+      eprops2d->final.pitch = _MIN(pitch, max);
 
       /*
        * Distance queues for every speaker (volume)
        */
+      gain = src->dprops3d->gain;
       if (_PROP_MTX_HAS_CHANGED(eprops3d) || _PROP_MTX_HAS_CHANGED(sprops3d)
           || (fprops3d && _PROP_MTX_HAS_CHANGED(fprops3d)))
       {
          float dist_fact, cone_volume = 1.0f;
          float refdist, maxdist, rolloff;
-         float gain_min, gain_max;
          unsigned int i;
 
          _PROP_MTX_CLEAR_CHANGED(eprops3d);
@@ -923,7 +932,6 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
             }
          }
 
-         gain = _FILTER_GET2D(src, VOLUME_FILTER, AAX_GAIN);
          gain *= distfn(dist, refdist, maxdist, rolloff, ss, 1.0f);
 
          /*
@@ -951,20 +959,10 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
             }
          }
          gain *= cone_volume;
-         src->dprops3d->gain = gain;
-
-         /** now use the current (delayed) properties */
-         /* gain */
-         gain = src->dprops3d->gain;
-         gain_min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
-         gain_max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
-
-         eprops2d->final.gain = _MINMAX(gain, gain_min, gain_max);
-         eprops2d->final.gain *= _FILTER_GET(sprops2d, VOLUME_FILTER, AAX_GAIN);
-
-         /* pitch */
-         eprops2d->final.pitch = src->dprops3d->pitch;
       }
+      min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
+      max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
+      eprops2d->final.gain = _MINMAX(gain, min, max);
    }
 }
 
