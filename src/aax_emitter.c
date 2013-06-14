@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2007-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -118,6 +118,9 @@ aaxEmitterDestroy(aaxEmitter emitter)
          if (effect) free(effect->history_ptr);
          free(effect);
 
+         if (src->p3dq) {
+            _intBufErase(&src->p3dq, _AAX_DELAYED3D, 0, 0);
+         }
          free(src->dprops3d);
 
          /* safeguard against using already destroyed handles */

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -725,6 +725,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    _oalRingBufferDistFunc* distfn;
    _oalRingBuffer2dProps *eprops2d;
    _oalRingBuffer3dProps *eprops3d;
+   _aaxDelayed3dProps *edprops3d;
    const _aaxMixerInfo* info;
    _aaxEmitter *src;
 
@@ -735,13 +736,54 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
    info = (const _aaxMixerInfo*)mix_info;
    src = (_aaxEmitter *)source;
 
-   eprops3d = src->dprops3d->props3d;
+   edprops3d = src->dprops3d;
+   eprops3d = edprops3d->props3d;
    eprops2d = src->props2d;
 
-   src->dprops3d->pitch = _EFFECT_GET(eprops2d, PITCH_EFFECT, AAX_PITCH);
-   src->dprops3d->gain = _FILTER_GET(eprops2d, VOLUME_FILTER, AAX_GAIN);
-   /** TODO: push this one and pull a new src->dprops3d */
-   // if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
+   edprops3d->pitch = _EFFECT_GET(eprops2d, PITCH_EFFECT, AAX_PITCH);
+   edprops3d->gain = _FILTER_GET(eprops2d, VOLUME_FILTER, AAX_GAIN);
+   if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
+   {
+      if (!src->p3dq) {
+         _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
+      }
+
+      if (src->p3dq)
+      {
+         _aaxDelayed3dProps *sdp3d = NULL;
+         _intBufferData *buf;
+         float pos;
+
+         edprops3d->pos += eprops2d->final.doppler_f;
+         _intBufAddData(src->p3dq, _AAX_DELAYED3D, edprops3d);
+
+         /* keep current props2d settings */
+         if (edprops3d->pos <= 0.0f) return;
+
+// TODO: Implement a free'd dp3d buffer cache
+         do
+         {
+            buf = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
+            if (buf)
+            {
+               sdp3d = _intBufGetDataPtr(buf);
+               free(buf);
+            }
+         }
+         while (--edprops3d->pos > 0.0f);
+
+// TODO: Try to get a free dp3d from the free'd dp3d buffer cache
+         if (!sdp3d) {
+            sdp3d = _aaxDelayed3dPropsDup(edprops3d);
+         }
+
+         pos = edprops3d->pos;
+         src->dprops3d = sdp3d;
+         edprops3d = src->dprops3d;
+         eprops3d = edprops3d->props3d;
+         edprops3d->pos = pos;
+      }
+   }
 
    distfn = _FILTER_GET_DATA(eprops3d, DISTANCE_FILTER);
    dopplerfn = _EFFECT_GET_DATA(eprops3d, VELOCITY_EFFECT);
@@ -815,13 +857,13 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
        */
 #if 0
       max = _EFFECT_GET2D(src, PITCH_EFFECT, AAX_MAX_PITCH);
-      pitch = _MIN(src->dprops3d->pitch, max);
+      pitch = _MIN(edprops3d->pitch, max);
 #else
-       pitch = src->dprops3d->pitch;
+      pitch = edprops3d->pitch;
 #endif
       if (dist > 1.0f)
       {
-         float ve, vs, de, df;
+         float ve, vs, de;
          vec4_t sv, ev;
 
          /* align velocity vectors with the modified emitter position
@@ -842,9 +884,9 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          vs = vec3DotProduct(sv, epos);
          ve = vec3DotProduct(ev, epos);
          de = _EFFECT_GET(sprops3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-         df = dopplerfn(vs, ve, ss/de);
 
-         pitch *= df;
+         eprops2d->final.doppler_f = dopplerfn(vs, ve, ss/de);
+         pitch *= eprops2d->final.doppler_f;
 
 #if 0
          if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
@@ -859,7 +901,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       /*
        * Distance queues for every speaker (volume)
        */
-      gain = src->dprops3d->gain;
+      gain = edprops3d->gain;
       if (_PROP_MTX_HAS_CHANGED(eprops3d) || _PROP_MTX_HAS_CHANGED(sprops3d)
           || (fprops3d && _PROP_MTX_HAS_CHANGED(fprops3d)))
       {

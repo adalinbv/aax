@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -203,6 +203,7 @@ void _aaxRemoveFrameRingBufferByPos(void *, unsigned int);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
 _aaxDelayed3dProps *_aaxDelayed3dPropsCreate();
+_aaxDelayed3dProps *_aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
 void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
 void _aaxSetDefault3dProps(_oalRingBuffer3dProps *);
 

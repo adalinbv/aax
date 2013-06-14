@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -48,6 +48,21 @@ _aaxDelayed3dPropsCreate()
    return rv;
 }
 
+_aaxDelayed3dProps *
+_aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
+{
+   _aaxDelayed3dProps *rv = _aaxDelayed3dPropsCreate();
+   if (rv)
+   {
+      rv->pos = dp3d->pos;
+      rv->gain = dp3d->gain;
+      rv->pitch = dp3d->pitch;
+      rv->state = dp3d->state;
+      _aax_memcpy(rv->props3d, dp3d->props3d, sizeof(_oalRingBuffer3dProps));
+   }
+   return rv;
+}
+
 void
 _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 {
@@ -80,6 +95,7 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    memset(&p2d->prev_gain, 0, size);
    p2d->prev_freq_fact = 0.0f;
    p2d->delay_sec = 0.0f;
+   p2d->final.doppler_f = 1.0f;
    p2d->final.pitch_lfo = 1.0f;
    p2d->final.pitch = 1.0f;
    p2d->final.gain_lfo = 1.0f;

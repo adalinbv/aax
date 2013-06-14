@@ -1,6 +1,6 @@
 /*
- * Copyright 2011 by Erik Hofman.
- * Copyright 2011 by Adalin B.V.
+ * Copyright 2011-2013 by Erik Hofman.
+ * Copyright 2011-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
