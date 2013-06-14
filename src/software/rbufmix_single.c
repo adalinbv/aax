@@ -752,16 +752,22 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       {
          _aaxDelayed3dProps *sdp3d = NULL;
          _intBufferData *buf;
-         float pos;
 
-         edprops3d->pos += eprops2d->final.doppler_f;
          _intBufAddData(src->p3dq, _AAX_DELAYED3D, edprops3d);
 
-         /* keep current props2d settings */
-         if (edprops3d->pos <= 0.0f) return;
+         buf = _intBufGetNoLock(src->p3dq, _AAX_DELAYED3D, 0);
+         if (buf)
+         {
+            float pos = eprops2d->bufpos;
 
-// TODO: Implement a free'd dp3d buffer cache
-         do
+            sdp3d = _intBufGetDataPtr(buf);
+            eprops2d->bufpos += sdp3d->doppler_f;
+            if (pos <= 0.0f) {
+               return; 		/* no need to reclalculate te current props2d */
+            }
+         }
+
+         do	
          {
             buf = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
             if (buf)
@@ -770,18 +776,15 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
                free(buf);
             }
          }
-         while (--edprops3d->pos > 0.0f);
+         while (--eprops2d->bufpos > 1.0f);
 
-// TODO: Try to get a free dp3d from the free'd dp3d buffer cache
-         if (!sdp3d) {
+         if (!sdp3d) {			// TODO: get from buffer cache
             sdp3d = _aaxDelayed3dPropsDup(edprops3d);
          }
 
-         pos = edprops3d->pos;
          src->dprops3d = sdp3d;
          edprops3d = src->dprops3d;
          eprops3d = edprops3d->props3d;
-         edprops3d->pos = pos;
       }
    }
 
@@ -885,8 +888,8 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          ve = vec3DotProduct(ev, epos);
          de = _EFFECT_GET(sprops3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
 
-         eprops2d->final.doppler_f = dopplerfn(vs, ve, ss/de);
-         pitch *= eprops2d->final.doppler_f;
+         edprops3d->doppler_f = dopplerfn(vs, ve, ss/de);
+         pitch *= edprops3d->doppler_f;
 
 #if 0
          if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))

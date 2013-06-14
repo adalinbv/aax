@@ -54,7 +54,7 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
    _aaxDelayed3dProps *rv = _aaxDelayed3dPropsCreate();
    if (rv)
    {
-      rv->pos = dp3d->pos;
+      rv->doppler_f = dp3d->doppler_f;
       rv->gain = dp3d->gain;
       rv->pitch = dp3d->pitch;
       rv->state = dp3d->state;
@@ -95,7 +95,7 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    memset(&p2d->prev_gain, 0, size);
    p2d->prev_freq_fact = 0.0f;
    p2d->delay_sec = 0.0f;
-   p2d->final.doppler_f = 1.0f;
+   p2d->bufpos = 0.0f;
    p2d->final.pitch_lfo = 1.0f;
    p2d->final.pitch = 1.0f;
    p2d->final.gain_lfo = 1.0f;

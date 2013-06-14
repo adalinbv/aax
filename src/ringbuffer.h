@@ -417,10 +417,11 @@ typedef ALIGN16 struct
 
    float prev_gain[_AAX_MAX_SPEAKERS];
    float prev_freq_fact;
+
    float delay_sec;
+   float bufpos;
 
    struct {
-      float doppler_f;
       float pitch_lfo;
       float pitch;
       float gain_lfo;
