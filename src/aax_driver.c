@@ -465,11 +465,13 @@ aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
          char *ptr;
 
          ptr = be->get_devices(be_handle, mode);
-         while(ptr && *(ptr+1) != '\0')
+         if (ptr)
          {
-            ptr = strchr(ptr+1, '\0');
-            ptr++;
-            num++;
+            while (*ptr)
+            {
+               ptr += strlen(ptr)+1;
+               num++;
+            }
          }
       }
       else {
@@ -485,7 +487,7 @@ aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
 AAX_API const char* AAX_APIENTRY
 aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRenderMode mode)
 {
-   char *ptr = NULL;
+   char *rv = NULL;
 
    if (mode < AAX_MODE_WRITE_MAX)
    {
@@ -495,6 +497,7 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
          const _aaxDriverBackend *be = handle->backend.ptr;
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
+         char *ptr;
 
          if (handle->be_pos != pos)
          {
@@ -518,16 +521,17 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
          }
 
          ptr = be->get_devices(be_handle, mode);
-         if (pos)
+         if (ptr)
          {
-            while(ptr && *(ptr+1) != '\0')
+            while(*ptr && (pos != num))
             {
-               if (pos == num) break;
-               ptr = strchr(ptr+1, '\0');
-               ptr++;
+               ptr += strlen(ptr)+1;
                num++;
             }
-            if (ptr == NULL) {
+            if (ptr) {
+               rv = ptr;
+            }
+             else {
                _aaxErrorSet(AAX_INVALID_PARAMETER);
             }
          }
@@ -539,7 +543,7 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
    else {
       _aaxErrorSet(AAX_INVALID_ENUM);
    }
-   return ptr;
+   return rv;
 }
 
 AAX_API unsigned AAX_APIENTRY
@@ -557,13 +561,11 @@ aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aax
          char *ptr;
 
          ptr = be->get_interfaces(be_handle, devname, mode);
-         if (ptr && *ptr != '\0')
+         if (ptr)
          {
-            num++;
-            ptr = strchr(ptr, '\0')+1;
-            while(*ptr != '\0')
+            while(*ptr)
             {
-               ptr = strchr(ptr, '\0')+1;
+               ptr += strlen(ptr)+1;
                num++;
             }
          }
@@ -581,7 +583,7 @@ aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aax
 AAX_API const char* AAX_APIENTRY
 aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsigned pos, enum aaxRenderMode mode)
 {
-   char *ptr = NULL;
+   char *rv = NULL;
 
    if (mode < AAX_MODE_WRITE_MAX)
    {
@@ -591,19 +593,19 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
          const _aaxDriverBackend *be = handle->backend.ptr;
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
+         char *ptr;
  
          ptr = be->get_interfaces(be_handle, devname, mode);
-         if (pos && ptr && *ptr != '\0')
+         if (*ptr)
          {
-            num++;
-            ptr = strchr(ptr, '\0')+1;
-            while(*ptr != '\0')
+            while(*ptr && (pos != num))
             {
-               if (pos == num) break;
-               ptr = strchr(ptr, '\0')+1;
+               ptr += strlen(ptr)+1;
                num++;
             }
-            if (ptr == NULL) {
+            if (ptr) {
+               rv = ptr;
+            } else {
                _aaxErrorSet(AAX_INVALID_PARAMETER);
             }
          }
@@ -615,7 +617,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
    else {
       _aaxErrorSet(AAX_INVALID_ENUM);
    }
-   return ptr;
+   return rv;
 }
 
 /* -------------------------------------------------------------------------- */
