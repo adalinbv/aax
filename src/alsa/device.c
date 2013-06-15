@@ -1339,7 +1339,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
          char *ptr;
 
          ptr = (char *)&names[m];
-         *ptr = 0;
+         *ptr = 0; *(ptr+1) = 0;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
@@ -1349,28 +1349,23 @@ _aaxALSADriverGetDevices(const void *id, int mode)
                if (name && !strncmp(name, "hw:", strlen("hw:")) && 
                    strstr(name, ",DEV=0"))
                {
-                  snd_pcm_t *id;
-                  if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
-                  {
-                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *iface;
-                     int slen;
+                  char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                  char *iface;
+                  int slen;
 
-                     psnd_pcm_close(id);
-                     if (!desc) desc = name;
+                  if (!desc) desc = name;
 
-                     iface = strstr(desc, ", ");
-                     if (iface) *iface = 0;
+                  iface = strstr(desc, ", ");
+                  if (iface) *iface = 0;
 
-                     snprintf(ptr, len, "%s", desc);
-                     slen = strlen(ptr)+1;	/* skip the trailing 0 */
-                     if (slen > (len-1)) break;
+                  snprintf(ptr, len, "%s", desc);
+                  slen = strlen(ptr)+1;	/* skip the trailing 0 */
+                  if (slen > (len-1)) break;
 
-                     len -= slen;
-                     ptr += slen;
+                  len -= slen;
+                  ptr += slen;
 
-                     if (desc != name) _aax_free(desc);
-                  }
+                  if (desc != name) _aax_free(desc);
                }
                _aax_free(name);
             }
@@ -1432,33 +1427,27 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      if (iface) *iface = 0;
                      if (iface && !strcmp(devname, desc))
                      {
-                        snd_pcm_t *id;
-                        if (!psnd_pcm_open(&id, name, _alsa_mode[m],
-                                           SND_PCM_NONBLOCK))
+                        int slen;
+
+                        if (m || strncmp(name, "front:", strlen("front:")))
                         {
-                           int slen;
-
-                           psnd_pcm_close(id);
-                           if (m || strncmp(name, "front:", strlen("front:")))
-                           {
-                              if (iface != desc) {
-                                 iface = strchr(iface+2, '\n')+1;
-                              }
-                              snprintf(ptr, len, "%s", iface);
+                           if (iface != desc) {
+                              iface = strchr(iface+2, '\n')+1;
                            }
-                           else
-                           {
-                              if (iface != desc) iface += 2;
-                              snprintf(ptr, len, "%s", iface);
-                              iface = strchr(ptr, '\n');
-                              if (iface) *iface = 0;
-                           }
-                           slen = strlen(ptr)+1; /* skip the trailing 0 */
-                           if (slen > (len-1)) break;
-
-                           len -= slen;
-                           ptr += slen;
+                           snprintf(ptr, len, "%s", iface);
                         }
+                        else
+                        {
+                           if (iface != desc) iface += 2;
+                           snprintf(ptr, len, "%s", iface);
+                           iface = strchr(ptr, '\n');
+                           if (iface) *iface = 0;
+                        }
+                        slen = strlen(ptr)+1; /* skip the trailing 0 */
+                        if (slen > (len-1)) break;
+
+                        len -= slen;
+                        ptr += slen;
                      }
                      if (desc != name) _aax_free(desc);
                   }
@@ -1473,8 +1462,10 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          if (ptr != name)
          {
             *ptr++ = '\0';
-            rv = handle->ifname[m] = malloc(ptr-name);
-            if (rv) {
+            rv = realloc(handle->ifname[m], ptr-name);
+            if (rv)
+            {
+               handle->ifname[m] = rv;
                memcpy(handle->ifname[m], name, ptr-name);
             }
          }
