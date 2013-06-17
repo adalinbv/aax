@@ -907,7 +907,19 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                if (positional)
                {
                   mp3d = mixer->dprops3d->props3d;
-                  if (mixer->dist_delaying) {
+                  if (mixer->dist_delaying)
+                  {
+                     _oalRingBuffer2dProps *ep2d = src->props2d;
+                     float dist, ss;
+                     vec4_t epos;
+                     mtx4_t mtx;
+
+                     mtx4Mul(mtx, mp3d->matrix, ep3d->matrix);
+                     dist = vec3Normalize(epos, mtx[LOCATION]);
+
+                     ss =_EFFECT_GET(mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+                     ep2d->dist_delay_sec = dist / ss;
+
                      _PROP_DISTDELAY_SET_DEFINED(src->dprops3d->props3d);
                   }
 

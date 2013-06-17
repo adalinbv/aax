@@ -779,7 +779,32 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                _oalRingBuffer3dProps *mp3d, *ep3d = src->dprops3d->props3d;
 
                mp3d = mixer->dprops3d->props3d;
-               if (mixer->dist_delaying) {
+               if (mixer->dist_delaying)
+               {
+                  _oalRingBuffer2dProps *ep2d = src->props2d;
+                  _handle_t *shandle = handle->handle;
+                  _intBufferData *dptr;
+                  mtx4_t mtx, fmtx;
+                  float dist, ss;
+                  vec4_t epos;
+
+                  dptr = _intBufGet(shandle->sensors, _AAX_SENSOR, 0);
+                  if (dptr)
+                  {
+                     _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                     _aaxAudioFrame *smixer = sensor->mixer;
+                     _oalRingBuffer3dProps *sp3d = smixer->dprops3d->props3d;
+
+                     mtx4Mul(fmtx, sp3d->matrix, mp3d->matrix);
+
+                     _intBufReleaseData(dptr, _AAX_SENSOR);
+                  }
+                  mtx4Mul(mtx, fmtx, ep3d->matrix);
+                  dist = vec3Normalize(epos, mtx[LOCATION]);
+
+                  ss =_EFFECT_GET(mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+                  ep2d->dist_delay_sec = dist / ss;
+
                   _PROP_DISTDELAY_SET_DEFINED(ep3d);
                }
 
