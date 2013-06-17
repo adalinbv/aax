@@ -140,9 +140,9 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
    else if (!env && src->stopped == 1)
-   {
-      p2d->delay_sec -= dest->sample->duration_sec;
-      if (p2d->delay_sec <= 0.0f) {
+   {		/* distance delayed stopping of playback */
+      p2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (p2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -291,9 +291,9 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
    else if (!env && src->stopped == 1)
-   {
-      p2d->delay_sec -= dest->sample->duration_sec;
-      if (p2d->delay_sec <= 0.0f) {
+   {		/* distance delayed stopping of playback */
+      p2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (p2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -480,9 +480,9 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
    else if (!env && src->stopped == 1)
-   {
-      p2d->delay_sec -= dest->sample->duration_sec;
-      if (p2d->delay_sec <= 0.0f) {
+   {		/* distance delayed stopping of playback */
+      p2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (p2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -619,9 +619,9 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       ret = -1;
    }
    else if (!env && src->stopped == 1)
-   {
-      p2d->delay_sec -= dest->sample->duration_sec;
-      if (p2d->delay_sec <= 0.0f) {
+   {		/* distance delayed stopping of playback */
+      p2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (p2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -754,6 +754,9 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          _intBufferData *buf;
 
          _intBufAddData(src->p3dq, _AAX_DELAYED3D, edprops3d);
+         if (src->curr_pos_sec < eprops2d->dist_delay_sec) {
+            return;
+         }
 
          buf = _intBufGetNoLock(src->p3dq, _AAX_DELAYED3D, 0);
          if (buf)
@@ -776,7 +779,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
                free(buf);
             }
          }
-         while (--eprops2d->bufpos > 1.0f);
+         while (--eprops2d->bufpos > 0.0f);
 
          if (!sdp3d) {			// TODO: get from buffer cache
             sdp3d = _aaxDelayed3dPropsDup(edprops3d);
@@ -849,9 +852,9 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          if (_PROP_DISTDELAY_IS_DEFINED(eprops3d)
              && _PROP_MTX_HAS_CHANGED(eprops3d))
          {
-            eprops2d->delay_sec = dist / ss;
+            eprops2d->dist_delay_sec = dist / ss;
          } else {
-            eprops2d->delay_sec = 0.0f;
+            eprops2d->dist_delay_sec = 0.0f;
          }
       }
 
@@ -890,14 +893,6 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
 
          edprops3d->doppler_f = dopplerfn(vs, ve, ss/de);
          pitch *= edprops3d->doppler_f;
-
-#if 0
-         if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
-         {
-            float vd = _MAX((vs+ve-ss) / ss, 0.0f);
-            eprops2d->delay_sec += vd;
-         }
-#endif
       }
       eprops2d->final.pitch = pitch;
 

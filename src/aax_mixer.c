@@ -900,7 +900,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                _aaxAudioFrame *mixer = sensor->mixer;
 
                if (_oalRingBufferIsValid(handle->ringbuffer)) {
-                  src->props2d->delay_sec =
+                  src->props2d->dist_delay_sec =
                    _oalRingBufferGetParamf(handle->ringbuffer, RB_DURATION_SEC);
                }
 

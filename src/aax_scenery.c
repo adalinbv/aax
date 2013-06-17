@@ -135,7 +135,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
             {
                _oalRingBuffer3dProps *p3d = mixer->dprops3d->props3d;
                if (_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR) < 0)
-               {
+               {		/* distance delay is enabled */
                   float rf;
                   rf = -1.0f*_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR);
                   _FILTER_SET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR, rf);

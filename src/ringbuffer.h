@@ -340,7 +340,6 @@ typedef struct			/* static information about the sample*/
 
     float frequency_hz;
     float duration_sec;
-//  float delay_sec;
     float loop_start_sec;
     float loop_end_sec;
 
@@ -418,8 +417,8 @@ typedef ALIGN16 struct
    float prev_gain[_AAX_MAX_SPEAKERS];
    float prev_freq_fact;
 
-   float delay_sec;
-   float bufpos;
+   float dist_delay_sec;	/* time to keep playing after a stop request */
+   float bufpos;		/* distance delay queue buffer position      */
 
    struct {
       float pitch_lfo;

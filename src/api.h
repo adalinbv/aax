@@ -240,7 +240,7 @@ typedef struct
 {
    unsigned int id;	/* always first */
 
-   unsigned int pos;
+   unsigned int pos;	/* rigsitered emitter position                  */
    unsigned char track;	/* specifies which track to use from the buffer */
    char looping;
 

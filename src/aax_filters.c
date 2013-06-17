@@ -834,10 +834,10 @@ aaxFilterSetState(aaxFilter f, int state)
                pos = state - AAX_AL_INVERSE_DISTANCE;
                filter->slot[0]->data = _oalRingBufferALDistanceFunc[pos];
             }
-            else if ((state & ~0x80) < AAX_DISTANCE_MODEL_MAX)
+            else if ((state & ~AAX_DISTANCE_DELAY) < AAX_DISTANCE_MODEL_MAX)
             {
-               pos = state & ~0x80;
-               if (state & 0x80) {	/* distance delay enabled */
+               pos = state & ~AAX_DISTANCE_DELAY;
+               if (state & AAX_DISTANCE_DELAY) {    /* distance delay enabled */
                   filter->slot[0]->param[AAX_ROLLOFF_FACTOR] *= -1;
                }
                filter->slot[0]->data = _oalRingBufferDistanceFunc[pos];

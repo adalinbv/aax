@@ -96,7 +96,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                      if (!src->update_ctr) {
                         be->prepare3d(sp3d, fp3d, info, pp2d, src);
                      }
-                     if (src->curr_pos_sec >= pp2d->delay_sec) {
+                     if (src->curr_pos_sec >= pp2d->dist_delay_sec) {
                         rv = be->mix3d(be_handle, dest_rb, src_rb, src->props2d,
                                        pp2d, emitter->track,
                                        src->update_ctr, nbuf);

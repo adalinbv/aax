@@ -1379,6 +1379,10 @@ _aaxALSADriverGetDevices(const void *id, int mode)
       res = psnd_device_name_free_hint(hints);
    }
 
+    /* always end with "\0\0" no matter what */
+    names[m][1022] = 0;
+    names[m][1023] = 0;
+
    return (char *)&names[m];
 }
 
