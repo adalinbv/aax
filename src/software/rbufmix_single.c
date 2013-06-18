@@ -752,25 +752,18 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
       {
          _aaxDelayed3dProps *sdp3d = NULL;
          _intBufferData *buf;
+         float pos;
 
          _intBufAddData(src->p3dq, _AAX_DELAYED3D, edprops3d);
-         if (src->curr_pos_sec < eprops2d->dist_delay_sec) {
+         if (src->curr_pos_sec <= eprops2d->dist_delay_sec) {
             return;
          }
 
-         buf = _intBufGetNoLock(src->p3dq, _AAX_DELAYED3D, 0);
-         if (buf)
-         {
-            float pos = eprops2d->bufpos;
+         pos = eprops2d->bufpos;
+         eprops2d->bufpos += edprops3d->doppler_f;
+         if (pos <= 0.0f) return;
 
-            sdp3d = _intBufGetDataPtr(buf);
-            eprops2d->bufpos += sdp3d->doppler_f;
-            if (pos <= 0.0f) {
-               return; 		/* no need to reclalculate te current props2d */
-            }
-         }
-
-         do	
+         do
          {
             buf = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
             if (buf)
@@ -778,8 +771,9 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
                sdp3d = _intBufGetDataPtr(buf);
                free(buf);
             }
+            --eprops2d->bufpos;
          }
-         while (--eprops2d->bufpos > 0.0f);
+         while (eprops2d->bufpos > 1.0f);
 
          if (!sdp3d) {			// TODO: get from buffer cache
             sdp3d = _aaxDelayed3dPropsDup(edprops3d);
@@ -845,18 +839,6 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          ssv = sprops3d->effect[VELOCITY_EFFECT].param[AAX_SOUND_VELOCITY];
       }
       ss = (esv+ssv) / 2.0f;
-
-      /* distance delay effect */
-//    if (!src->stopped)
-      {
-         if (_PROP_DISTDELAY_IS_DEFINED(eprops3d)
-             && _PROP_MTX_HAS_CHANGED(eprops3d))
-         {
-            eprops2d->dist_delay_sec = dist / ss;
-         } else {
-            eprops2d->dist_delay_sec = 0.0f;
-         }
-      }
 
       /*
        * Doppler

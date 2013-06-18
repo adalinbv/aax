@@ -92,14 +92,20 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   /* 3d mixing */
                   if (stage == 0)
                   {
+                     _oalRingBuffer2dProps *eprops2d;
+
                      assert(_IS_POSITIONAL(src->dprops3d));
+
                      if (!src->update_ctr) {
                         be->prepare3d(sp3d, fp3d, info, pp2d, src);
                      }
-                     if (src->curr_pos_sec >= pp2d->dist_delay_sec) {
-                        rv = be->mix3d(be_handle, dest_rb, src_rb, src->props2d,
-                                       pp2d, emitter->track,
-                                       src->update_ctr, nbuf);
+
+                     rv = AAX_FALSE;
+                     eprops2d = src->props2d;
+                     if (src->curr_pos_sec > eprops2d->dist_delay_sec) {
+                        rv = be->mix3d(be_handle, dest_rb, src_rb, eprops2d,
+                                                  pp2d, emitter->track,
+                                                  src->update_ctr, nbuf);
                      }
                   }
                   else
