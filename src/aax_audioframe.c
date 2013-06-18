@@ -806,6 +806,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                   ep2d->dist_delay_sec = dist / ss;
 
                   _PROP_DISTDELAY_SET_DEFINED(ep3d);
+                  src->dprops3d->doppler_f = 1.0f;
                }
 
                if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
