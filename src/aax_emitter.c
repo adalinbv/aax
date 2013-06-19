@@ -156,7 +156,8 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             handle->track = 0;
          }
 
-         if (handle->track < _oalRingBufferGetParami(buffer->ringbuffer, RB_NO_TRACKS))
+         if (handle->track < _oalRingBufferGetParami(buffer->ringbuffer,
+                                                     RB_NO_TRACKS))
          {
             _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
             if (embuf)
@@ -336,6 +337,32 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             {
                src->pos = 0;
                _SET_PLAYING(src->dprops3d);
+            }
+
+            /* set distance delay */
+            if (handle->pos != UINT_MAX)	/* emitter is registered */
+            {
+               _handle_t *shandle = get_driver_handle(handle->handle);
+               if (shandle)
+               {
+                  _intBufferData *dptr;
+                  dptr = _intBufGet(shandle->sensors, _AAX_SENSOR, 0);
+                  if (dptr)
+                  {
+                     _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                     _aaxAudioFrame *mixer = sensor->mixer;
+                     _aaxEmitter *src = handle->source;
+                     _frame_t *frame = handle->handle;
+                     _aaxAudioFrame *fmixer = NULL;
+
+                     if (frame->id == AUDIOFRAME_ID) {
+                         fmixer = frame->submix;
+                     }
+
+                     _aaxEMitterSetDistDelay(src, mixer, fmixer);
+                     _intBufReleaseData(dptr, _AAX_SENSOR);
+                  }
+               }
             }
          }
          else if (_IS_PAUSED(src->dprops3d)) {
@@ -1243,6 +1270,45 @@ put_emitter(aaxEmitter em)
          }
          _intBufRelease(he, _AAX_EMITTER, emitter->pos);
       }
+   }
+}
+
+void
+_aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer)
+{
+   _aaxAudioFrame *mixer;
+   
+   assert(src);
+   assert(smixer);
+
+   mixer = fmixer ? fmixer : smixer;
+   if (mixer->dist_delaying)
+   {
+      _oalRingBuffer3dProps *mp3d = mixer->dprops3d->props3d;
+      _oalRingBuffer3dProps *ep3d = src->dprops3d->props3d;
+      _oalRingBuffer2dProps *ep2d = src->props2d;
+      float dist, ss;
+      vec4_t epos;
+      mtx4_t mtx;
+
+      if (fmixer)
+      {
+         _oalRingBuffer3dProps *sp3d = smixer->dprops3d->props3d;        
+         mtx4_t fmtx;
+
+         mtx4Mul(fmtx, sp3d->matrix, mp3d->matrix);
+         mtx4Mul(mtx, fmtx, ep3d->matrix);
+      }
+      else {
+         mtx4Mul(mtx, mp3d->matrix, ep3d->matrix);
+      }
+      dist = vec3Normalize(epos, mtx[LOCATION]);
+
+      ss = _EFFECT_GET(mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+      ep2d->dist_delay_sec = dist / ss;
+
+      _PROP_DISTDELAY_SET_DEFINED(ep3d);
+      src->dprops3d->doppler_f = 1.0f;
    }
 }
 

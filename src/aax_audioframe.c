@@ -781,32 +781,20 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                mp3d = mixer->dprops3d->props3d;
                if (mixer->dist_delaying)
                {
-                  _oalRingBuffer2dProps *ep2d = src->props2d;
-                  _handle_t *shandle = handle->handle;
-                  _intBufferData *dptr;
-                  mtx4_t mtx, fmtx;
-                  float dist, ss;
-                  vec4_t epos;
-
-                  dptr = _intBufGet(shandle->sensors, _AAX_SENSOR, 0);
-                  if (dptr)
+                  _handle_t *shandle = get_driver_handle(handle);
+                  if (shandle)
                   {
-                     _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                     _aaxAudioFrame *smixer = sensor->mixer;
-                     _oalRingBuffer3dProps *sp3d = smixer->dprops3d->props3d;
+                     _intBufferData *dptr;
+                     dptr = _intBufGet(shandle->sensors, _AAX_SENSOR, 0);
+                     if (dptr)
+                     {
+                        _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                        _aaxAudioFrame *smixer = sensor->mixer;
 
-                     mtx4Mul(fmtx, sp3d->matrix, mp3d->matrix);
-
-                     _intBufReleaseData(dptr, _AAX_SENSOR);
+                        _aaxEMitterSetDistDelay(src, smixer, mixer);
+                        _intBufReleaseData(dptr, _AAX_SENSOR);
+                     }
                   }
-                  mtx4Mul(mtx, fmtx, ep3d->matrix);
-                  dist = vec3Normalize(epos, mtx[LOCATION]);
-
-                  ss =_EFFECT_GET(mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-                  ep2d->dist_delay_sec = dist / ss;
-
-                  _PROP_DISTDELAY_SET_DEFINED(ep3d);
-                  src->dprops3d->doppler_f = 1.0f;
                }
 
                if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
@@ -1204,6 +1192,22 @@ put_frame(aaxFrame f)
          _intBufRelease(hf, _AAX_FRAME, frame->pos);
       }
    }
+}
+
+_handle_t *
+get_driver_handle(aaxFrame f)
+{
+   _frame_t* frame = (_frame_t*)f;
+   _handle_t* rv = NULL;
+
+   while (frame && (frame->id != HANDLE_ID)) {
+      frame = frame->handle;
+   }
+   
+   if (frame && (frame->id == HANDLE_ID)) {
+      rv = (_handle_t*)frame;
+   }
+   return rv;
 }
 
 int

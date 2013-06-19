@@ -142,6 +142,7 @@ typedef struct
 
 _frame_t* get_frame(aaxFrame);
 void put_frame(aaxFrame);
+_handle_t *get_driver_handle(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
 void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
@@ -268,6 +269,8 @@ char _aaxEmittersProcess(_oalRingBuffer*, _aaxMixerInfo*,
                          _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
                          _intBuffers*, _intBuffers*,
                          const _aaxDriverBackend*, void*);
+void _aaxEMitterSetDistDelay(_aaxEmitter*, _aaxAudioFrame*, _aaxAudioFrame*);
+
 
 /* -- Filters and Effects -- */
 
