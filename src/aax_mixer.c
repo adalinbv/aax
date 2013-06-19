@@ -256,10 +256,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                _aaxErrorSet(AAX_INVALID_ENUM);
             }
          }
-         else if ((type >= AAX_PEAK_VALUE_TRACK0
-                    && type <= AAX_PEAK_VALUE_TRACK7)
-                  || (type >= AAX_AVERAGE_VALUE_TRACK0
-                       && type <= AAX_AVERAGE_VALUE_TRACK7))
+         else if ((type >= AAX_PEAK_VALUE
+                    && type <= (AAX_PEAK_VALUE+AAX_TRACK7))
+                  || (type >= AAX_AVERAGE_VALUE
+                       && type <= (AAX_AVERAGE_VALUE+AAX_TRACK7)))
          {
             unsigned int track = type & 0xFF;
             if (track < _AAX_MAX_SPEAKERS)
@@ -267,7 +267,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                _oalRingBuffer *rb = handle->ringbuffer;
                if (rb)
                {
-                  if (type <= AAX_PEAK_VALUE_TRACK7) {
+                  if (type <= (AAX_PEAK_VALUE+AAX_TRACK7)) {
                      rv = rb->peak[track];
                   } else {
                      rv = rb->average[track];
@@ -278,8 +278,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                _aaxErrorSet(AAX_INVALID_ENUM);
             }
          }
-         else if ((type >= AAX_COMPRESSION_VALUE_TRACK0
-                       && type <= AAX_COMPRESSION_VALUE_TRACK7))
+         else if ((type >= AAX_COMPRESSION_VALUE
+                       && type <= (AAX_COMPRESSION_VALUE+AAX_TRACK7)))
          {
             unsigned int track = type & 0xFF;
             if (track < _AAX_MAX_SPEAKERS)
@@ -301,8 +301,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                }
             }
          }
-         else if ((type >= AAX_GATE_ENABLED_TRACK0)
-               && (type <= AAX_GATE_ENABLED_TRACK7))
+         else if ((type >= AAX_GATE_ENABLED)
+               && (type <= (AAX_GATE_ENABLED+AAX_TRACK7)))
          {
             unsigned int track = type & 0xFF;
             if (track < _AAX_MAX_SPEAKERS)

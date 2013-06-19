@@ -270,8 +270,8 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
    
    if (handle)
    {
-      if ((type >= AAX_COMPRESSION_VALUE_TRACK0)
-           && (type <= AAX_COMPRESSION_VALUE_TRACK7))
+      if ((type >= AAX_COMPRESSION_VALUE)
+           && (type <= (AAX_COMPRESSION_VALUE+AAX_TRACK7)))
       {
          unsigned int track = type & 0xFF;
          if (track < _AAX_MAX_SPEAKERS)
@@ -285,8 +285,8 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
             }
          }
       }
-      else if ((type >= AAX_GATE_ENABLED_TRACK0)
-               && (type <= AAX_GATE_ENABLED_TRACK7))
+      else if ((type >= AAX_GATE_ENABLED)
+               && (type <= (AAX_GATE_ENABLED+AAX_TRACK7)))
       {
          unsigned int track = type & 0xFF;
          if (track < _AAX_MAX_SPEAKERS)
