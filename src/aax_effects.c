@@ -708,7 +708,7 @@ aaxEffectSetState(aaxEffect e, int state)
                unsigned int tracks = effect->info->no_tracks;
                float delays[8], gains[8];
                float di, gi, dip, dlb, glb;
-               float fs = 48000.0f;
+               float depth, fs = 48000.0f;
                int num;
 
                if (effect->info) {
@@ -718,7 +718,7 @@ aaxEffectSetState(aaxEffect e, int state)
                /* initial delay in seconds (should be between 10ms en 70 ms) */
                /* initial gains, defnining a direct path is not necessary    */
                /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
-              //http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
+// http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
                num = 3;
                gi = 0.50f;
                gains[0] = gi*0.9484f;	// conrete/brick = 0.95
@@ -729,8 +729,9 @@ aaxEffectSetState(aaxEffect e, int state)
                gains[5] = gi*0.7718f;
                gains[6] = gi*0.7946f;
 
-               di = 0.005f+0.045f*effect->slot[0]->param[AAX_DELAY_DEPTH];
-               dip = (max_depth-di)*effect->slot[0]->param[AAX_DELAY_DEPTH];
+               depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
+               di = 0.005f+0.045f*depth;
+               dip = (max_depth-di)*depth;
                dip = _MINMAX(dip, 0.01f, max_depth-0.05f);
                assert(dip+di*0.9876543f <= REVERB_EFFECTS_TIME);
 
@@ -743,7 +744,7 @@ aaxEffectSetState(aaxEffect e, int state)
                delays[3] = dip + di*0.0769231f;
 
                /* calculate initial and loopback samples                       */
-               dlb = effect->slot[0]->param[AAX_DECAY_DEPTH];
+               dlb = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
                glb = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
                _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
                                        delays, gains, num, 1.25f, dlb, glb);
@@ -930,7 +931,7 @@ static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_VELOCITY_EFFECT  */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } },
     /* AAX_REVERB_EFFECT     */
-    { {50.0f, 0.0f,  0.0f, 0.0f }, { 22000.0f,     1.0f, 1.0f,     1.0f } }
+    { {50.0f, 0.0f,  0.0f, 0.0f }, { 22000.0f,    0.07f, 1.0f,     0.7f } }
   },
   {
     /* AAX_EFFECT_NONE      */
