@@ -98,7 +98,7 @@ typedef struct
 {
    _oalRingBuffer3dProps* props3d;
    float pitch, gain;
-   float doppler_f;
+   float buf_step;
    int state;
 
 } _aaxDelayed3dProps;

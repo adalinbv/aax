@@ -256,20 +256,21 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                _aaxErrorSet(AAX_INVALID_ENUM);
             }
          }
-         else if ((type >= AAX_PEAK_VALUE
-                    && type <= (AAX_PEAK_VALUE+AAX_TRACK7))
-                  || (type >= AAX_AVERAGE_VALUE
-                       && type <= (AAX_AVERAGE_VALUE+AAX_TRACK7)))
+         else if ((type & AAX_PEAK_VALUE) || (type & AAX_AVERAGE_VALUE))
          {
-            unsigned int track = type & 0xFF;
+            unsigned int track = type & 0x3F;
             if (track < _AAX_MAX_SPEAKERS)
             {
                _oalRingBuffer *rb = handle->ringbuffer;
                if (rb)
                {
-                  if (type <= (AAX_PEAK_VALUE+AAX_TRACK7)) {
+                  if (type & AAX_TRACK_ALL) {
+                     track = AAX_TRACK_MAX;
+                  }
+
+                  if (type & AAX_PEAK_VALUE) {
                      rv = rb->peak[track];
-                  } else {
+                  } else if (type & AAX_AVERAGE_VALUE) {
                      rv = rb->average[track];
                   }
                }
@@ -278,10 +279,9 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                _aaxErrorSet(AAX_INVALID_ENUM);
             }
          }
-         else if ((type >= AAX_COMPRESSION_VALUE
-                       && type <= (AAX_COMPRESSION_VALUE+AAX_TRACK7)))
+         else if (type & AAX_COMPRESSION_VALUE)
          {
-            unsigned int track = type & 0xFF;
+            unsigned int track = type & 0x3F;
             if (track < _AAX_MAX_SPEAKERS)
             {
                const _intBufferData* dptr;
@@ -301,10 +301,9 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                }
             }
          }
-         else if ((type >= AAX_GATE_ENABLED)
-               && (type <= (AAX_GATE_ENABLED+AAX_TRACK7)))
+         else if (type & AAX_GATE_ENABLED)
          {
-            unsigned int track = type & 0xFF;
+            unsigned int track = type & 0x3F;
             if (track < _AAX_MAX_SPEAKERS)
             {
                const _intBufferData* dptr;

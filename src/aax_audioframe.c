@@ -270,10 +270,9 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
    
    if (handle)
    {
-      if ((type >= AAX_COMPRESSION_VALUE)
-           && (type <= (AAX_COMPRESSION_VALUE+AAX_TRACK7)))
+      if (type & AAX_COMPRESSION_VALUE)
       {
-         unsigned int track = type & 0xFF;
+         unsigned int track = type & 0x3F;
          if (track < _AAX_MAX_SPEAKERS)
          {
             _aaxAudioFrame* fmixer = handle->submix;
@@ -285,10 +284,9 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
             }
          }
       }
-      else if ((type >= AAX_GATE_ENABLED)
-               && (type <= (AAX_GATE_ENABLED+AAX_TRACK7)))
+      else if (type & AAX_GATE_ENABLED)
       {
-         unsigned int track = type & 0xFF;
+         unsigned int track = type & 0x3F;
          if (track < _AAX_MAX_SPEAKERS)
          {
             _aaxAudioFrame* fmixer = handle->submix;

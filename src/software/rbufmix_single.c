@@ -760,7 +760,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          }
 
          pos = eprops2d->bufpos;
-         eprops2d->bufpos += edprops3d->doppler_f;
+         eprops2d->bufpos += edprops3d->buf_step;
          if (pos <= 0.0f) return;
 
          do
@@ -851,7 +851,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
 #endif
       if (dist > 1.0f)
       {
-         float ve, vs, de;
+         float ve, vs, de, df;
          vec4_t sv, ev;
 
          /* align velocity vectors with the modified emitter position
@@ -872,9 +872,10 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
          vs = vec3DotProduct(sv, epos);
          ve = vec3DotProduct(ev, epos);
          de = _EFFECT_GET(sprops3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
+         df = dopplerfn(vs, ve, ss/de);
 
-         edprops3d->doppler_f = dopplerfn(vs, ve, ss/de);
-         pitch *= edprops3d->doppler_f;
+         pitch *= df;
+         edprops3d->buf_step = df;
       }
       eprops2d->final.pitch = pitch;
 
@@ -1038,12 +1039,15 @@ _oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rollo
 }
 
 static float
-_oalRingBufferDopplerShift(float vs, float ve, float ss)
+_oalRingBufferDopplerShift(float vs, float ve, float vsound)
 {
-   float vss, ves;
-   vss = ss - _MIN(vs, ss);
-   ves = _MAX(ss - _MIN(ve, ss), 1.0f);
-   return vss/ves;
+   float vse, rv;
+
+   /* relative speed */
+   vse = _MIN(ve, vsound) - _MIN(vs, vsound);
+   rv =  vsound/_MAX(vsound - vse, 1.0f);
+
+   return rv;
 }
 
 
