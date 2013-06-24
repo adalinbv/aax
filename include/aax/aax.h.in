@@ -145,8 +145,8 @@ enum aaxModeType
 
 enum aaxTrackType
 {
-   AAX_TRACK_MIX = -2,
-   AAX_TRACK_ALL = -1,
+   AAX_TRACK_MIX = 0x40,
+   AAX_TRACK_ALL = 0x80,
 
    AAX_TRACK0 = 0,
    AAX_TRACK_LEFT = AAX_TRACK0,
@@ -174,7 +174,9 @@ enum aaxTrackType
    AAX_TRACK_SIDE_LEFT = AAX_TRACK6,
 
    AAX_TRACK7 = 7,
-   AAX_TRACK_SIDE_RIGHT = AAX_TRACK7
+   AAX_TRACK_SIDE_RIGHT = AAX_TRACK7,
+
+   AAX_TRACK_MAX
 };
 
 enum aaxSetupType
@@ -207,48 +209,10 @@ enum aaxSetupType
    AAX_TRACK_LAYOUT,
    AAX_SETUP_TYPE_MAX,
 
-   AAX_PEAK_VALUE			= 0x0100,
-   AAX_PEAK_VALUE_TRACK0 = AAX_PEAK_VALUE,
-   AAX_PEAK_VALUE_TRACK1,
-   AAX_PEAK_VALUE_TRACK2,
-   AAX_PEAK_VALUE_TRACK3,
-   AAX_PEAK_VALUE_TRACK4,
-   AAX_PEAK_VALUE_TRACK5,
-   AAX_PEAK_VALUE_TRACK6,
-   AAX_PEAK_VALUE_TRACK7,
-   AAX_PEAK_VALUE_MAXIMUM,
-
-   AAX_AVERAGE_VALUE			= 0x0200,
-   AAX_AVERAGE_VALUE_TRACK0 = AAX_AVERAGE_VALUE,
-   AAX_AVERAGE_VALUE_TRACK1,
-   AAX_AVERAGE_VALUE_TRACK2,
-   AAX_AVERAGE_VALUE_TRACK3,
-   AAX_AVERAGE_VALUE_TRACK4,
-   AAX_AVERAGE_VALUE_TRACK5,
-   AAX_AVERAGE_VALUE_TRACK6,
-   AAX_AVERAGE_VALUE_TRACK7,
-   AAX_AVERAGE_VALUE_MAXIMUM,
-
-   AAX_COMPRESSION_VALUE		= 0x0400,
-   AAX_COMPRESSION_VALUE_TRACK0	= AAX_COMPRESSION_VALUE,
-   AAX_COMPRESSION_VALUE_TRACK1,
-   AAX_COMPRESSION_VALUE_TRACK2,
-   AAX_COMPRESSION_VALUE_TRACK3,
-   AAX_COMPRESSION_VALUE_TRACK4,
-   AAX_COMPRESSION_VALUE_TRACK5,
-   AAX_COMPRESSION_VALUE_TRACK6,
-   AAX_COMPRESSION_VALUE_TRACK7,
-
-   AAX_GATE_ENABLED			= 0x0800,
-   AAX_GATE_ENABLED_TRACK0 = AAX_GATE_ENABLED,
-   AAX_GATE_ENABLED_TRACK1,
-   AAX_GATE_ENABLED_TRACK2,
-   AAX_GATE_ENABLED_TRACK3,
-   AAX_GATE_ENABLED_TRACK4,
-   AAX_GATE_ENABLED_TRACK5,
-   AAX_GATE_ENABLED_TRACK6,
-   AAX_GATE_ENABLED_TRACK7
-  
+   AAX_PEAK_VALUE             = 0x0100,
+   AAX_AVERAGE_VALUE          = 0x0200,
+   AAX_COMPRESSION_VALUE      = 0x0400,
+   AAX_GATE_ENABLED           = 0x0800
 };
 
 enum aaxErrorType
@@ -576,7 +540,6 @@ AAX_API unsigned int AAX_APIENTRY aaxEmitterGetNoBuffers(const aaxEmitter, enum 
 AAX_API const aaxBuffer AAX_APIENTRY aaxEmitterGetBufferByPos(const aaxEmitter, unsigned int, int);
 AAX_API float AAX_APIENTRY aaxEmitterGetOffsetSec(const aaxEmitter);
 AAX_API unsigned long  AAX_APIENTRY aaxEmitterGetOffset(const aaxEmitter, enum aaxType);
-AAX_API unsigned int AAX_APIENTRY aaxEmitterSetSetup(const aaxEmitter, enum aaxSetupType);
 AAX_API int AAX_APIENTRY aaxEmitterGetMatrix(aaxConfig, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
 
@@ -585,12 +548,11 @@ AAX_API int AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
  */
 AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, const aaxVec3f);
+AAX_API int AAX_APIENTRY aaxSensorSetState(aaxConfig, enum aaxState);
+AAX_API int AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
 
 AAX_API int AAX_APIENTRY aaxSensorGetMatrix(const aaxConfig, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxSensorGetVelocity(const aaxConfig, aaxVec3f);
-
-AAX_API int AAX_APIENTRY aaxSensorSetState(aaxConfig, enum aaxState);
-AAX_API int AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxSensorGetBuffer(const aaxConfig);
 AAX_API unsigned long AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxType);
 
@@ -599,6 +561,7 @@ AAX_API unsigned long AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxT
  */
 typedef int (*aaxFilterFn)(void*, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxConfig config, enum aaxFilterType);
+AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
 AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
@@ -607,7 +570,6 @@ AAX_API float AAX_APIENTRY aaxFilterGetParam(const aaxFilter, int, int);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterGetSlotParams(const aaxFilter, unsigned, int, aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterGetSlot(const aaxFilter, unsigned, int, float*, float*, float*, float*);
 AAX_API int AAX_APIENTRY aaxFilterGetState(aaxFilter);
-AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
 AAX_API float AAX_APIENTRY aaxFilterApplyParam(const aaxFilter, int, int, int);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterApply(aaxFilterFn, void *, aaxFilter);
 
@@ -616,6 +578,7 @@ AAX_API aaxFilter AAX_APIENTRY aaxFilterApply(aaxFilterFn, void *, aaxFilter);
  */
 typedef int (*aaxEffectFn)(void*, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxConfig config, enum aaxEffectType);
+AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
 AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
@@ -624,7 +587,6 @@ AAX_API float AAX_APIENTRY aaxEffectGetParam(const aaxEffect, int , int);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectGetSlotParams(const aaxEffect, unsigned, int, aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectGetSlot(const aaxEffect, unsigned, int, float*, float*, float*, float*);
 AAX_API int AAX_APIENTRY aaxEffectGetState(aaxEffect);
-AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
 AAX_API float AAX_APIENTRY aaxEffectApplyParam(const aaxEffect, int, int, int);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectApply(aaxEffectFn, void *, aaxEffect);
 
@@ -647,6 +609,7 @@ AAX_API int AAX_APIENTRY aaxMatrixGetOrientation(aaxMtx4f, aaxVec3f, aaxVec3f, a
  */
 AAX_API aaxFrame AAX_APIENTRY aaxAudioFrameCreate(aaxConfig);
 AAX_API int AAX_APIENTRY aaxAudioFrameDestroy(aaxFrame);
+AAX_API int AAX_APIENTRY aaxAudioFrameSetState(aaxFrame, enum aaxState);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
 AAX_API int AAX_APIENTRY aaxAudioFrameRegisterSensor(const aaxFrame, const aaxConfig);
 AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterSensor(const aaxFrame, const aaxConfig);
@@ -658,7 +621,6 @@ AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetEffect(aaxFrame, aaxEffect);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetState(aaxFrame, enum aaxState);
 
 AAX_API unsigned int aaxAudioFrameGetSetup(const aaxFrame, enum aaxSetupType);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetMatrix(aaxFrame, aaxMtx4f);
