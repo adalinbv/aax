@@ -100,7 +100,7 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    p2d->final.pitch_lfo = 1.0f;
    p2d->final.pitch = 1.0f;
    p2d->final.gain_lfo = 1.0f;
-   p2d->final.gain = 1.0f;
+   p2d->final.gain = 0.0f;
 }
 
 void
