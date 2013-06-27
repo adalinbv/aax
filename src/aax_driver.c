@@ -403,6 +403,10 @@ aaxDriverDestroy(aaxConfig config)
       assert(handle->backends != NULL);
 
       handle->info->id = 0xdeadbeef;
+      if (_info == handle->info) {
+         _info = NULL;
+      }
+
       _intBufErase(&handle->sensors, _AAX_SENSOR, removeMixerByPos, handle);
 
       if (handle->devname[0] != _aax_default_devname)
@@ -443,9 +447,6 @@ aaxDriverClose(aaxConfig config)
       }
       if (be && handle->backend.handle) {
          be->disconnect(handle->backend.handle);
-      }
-      if (_info == handle->info) {
-         _info = NULL;
       }
       rv = AAX_TRUE;
    }
