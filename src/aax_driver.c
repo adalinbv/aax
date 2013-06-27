@@ -46,7 +46,8 @@ static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
-_intBuffers* _backends;
+_intBuffers* _backends = NULL;
+_aaxMixerInfo* _info = NULL;
 time_t _tvnow = 0;
 
 
@@ -307,6 +308,7 @@ aaxDriverOpen(aaxConfig config)
             }
             renderer = be->name(handle->backend.handle, mode);
             handle->backend.driver = renderer ? renderer : _default_renderer;
+            _info =  handle->info;
          }
          _aaxDriverBackendClearConfigSettings(cfg);
       }
@@ -622,7 +624,6 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 /* -------------------------------------------------------------------------- */
 
-_intBuffers* _backends = NULL;
 static const char* _aax_default_devname = "None";
 static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
 {

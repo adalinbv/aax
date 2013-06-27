@@ -1035,7 +1035,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
          char *ptr = (char*)rv + sizeof(_filter_t);
 
          rv->id = EFFECT_ID;
-         rv->info = info;
+         rv->info = info ? info : _info;
          rv->slot[0] = (_oalRingBufferFilterInfo*)ptr;
          rv->pos = _eff_cvt_tbl[type].pos;
          rv->state = p2d->effect[rv->pos].state;

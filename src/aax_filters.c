@@ -690,7 +690,7 @@ aaxFilterSetState(aaxFilter f, int state)
 #endif
          break;
       case AAX_FREQUENCY_FILTER:
-         if (filter) // EBF_VALID(filter)
+         if EBF_VALID(filter)
          {
             switch (state & ~AAX_INVERSE)
             {
@@ -1085,7 +1085,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
          char *ptr = (char*)rv + sizeof(_filter_t);
 
          rv->id = FILTER_ID;
-         rv->info = info;
+         rv->info = info ? info : _info;
          rv->slot[0] = (_oalRingBufferFilterInfo*)ptr;
          rv->pos = _flt_cvt_tbl[type].pos;
          rv->state = p2d->filter[rv->pos].state;

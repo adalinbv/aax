@@ -184,7 +184,7 @@ aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
             rv = new_filter_handle(handle->info, type, mixer->props2d,
-                                                       mixer->dprops3d->props3d);
+                                                      mixer->dprops3d->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          break;

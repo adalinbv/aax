@@ -75,6 +75,8 @@ typedef struct
 
 #define VALID_HANDLE(handle)	(handle && (handle->valid & ~AAX_TRUE) == HANDLE_ID)
 
+extern _aaxMixerInfo* _info;
+
 struct backend_t
 {
    char *driver;
