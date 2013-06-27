@@ -444,6 +444,9 @@ aaxDriverClose(aaxConfig config)
       if (be && handle->backend.handle) {
          be->disconnect(handle->backend.handle);
       }
+      if (_info == handle->info) {
+         _info = NULL;
+      }
       rv = AAX_TRUE;
    }
    else {
