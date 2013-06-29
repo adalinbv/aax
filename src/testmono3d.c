@@ -85,6 +85,11 @@ int main(int argc, char **argv)
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
+            /** scenery settings */
+            res=aaxScenerySetDistanceModel(config,
+                                           AAX_EXPONENTIAL_DISTANCE_DELAY);
+            testForState(res, "aaxScenerySetDistanceModel");
+
             /** sensor settings */
             res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
             testForState(res, "aaxSensorSetOrientation");

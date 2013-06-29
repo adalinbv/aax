@@ -54,10 +54,8 @@ int main(int argc, char **argv)
     aaxConfig config;
     int state, res;
     char *devname;
-    float pitch;
     int rv = 0;
 
-    pitch = getPitch(argc, argv);
     devname = getDeviceName(argc, argv);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
@@ -69,17 +67,16 @@ int main(int argc, char **argv)
         printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
         printf("obtain\n  a product-key.\n\n");
         rv = -1;
-
-        goto finish;
     }
 
-    if (config)
+    if (config && (rv >= 0))
     {
         unsigned int no_samples;
         aaxEmitter emitter;
         aaxBuffer buffer;
         aaxFilter filter;
         aaxEffect effect;
+        float pitch;
         int i;
 
         no_samples = (unsigned int)(0.3f*SAMPLE_FREQUENCY);
@@ -89,6 +86,7 @@ int main(int argc, char **argv)
         res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
         testForState(res, "aaxBufferSetFrequency");
 
+        pitch = getPitch(argc, argv);
         res = aaxBufferSetWaveform(buffer, 220.0f*pitch, AAX_SAWTOOTH_WAVE);
         res = aaxBufferMixWaveform(buffer, 880.0f*pitch, AAX_SINE_WAVE, 0.2f);
         testForState(res, "aaxBufferProcessWaveform");
@@ -265,7 +263,6 @@ int main(int argc, char **argv)
         res = aaxEmitterDestroy(emitter);
     }
 
-finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 

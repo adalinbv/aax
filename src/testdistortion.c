@@ -42,10 +42,10 @@
 #include "wavfile.h"
 
 
-#define ENABLE_EMITTER_FREQFILTER	1
-#define ENABLE_STATIC_FREQFILTER	1
+#define ENABLE_EMITTER_FREQFILTER	0
+#define ENABLE_STATIC_FREQFILTER	0
 #define ENABLE_EMITTER_DISTORTION	1
-#define ENABLE_EMITTER_PHASING		1
+#define ENABLE_EMITTER_PHASING		0
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
 #define FILE_PATH			SRC_PATH"/wasp.wav"
 
@@ -125,8 +125,9 @@ int main(int argc, char **argv)
             effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
+            // distortion, clipping (soft-hard), mix, symmertry (sym-asym)
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              0.8f, 0.0f, 1.0f, 0.5f);
+                                              1.0f, 0.0f, 1.0f, 1.0f);
             testForError(effect, "aaxEffectSetSlot 0");
 
             effect = aaxEffectSetState(effect, AAX_TRUE);

@@ -83,11 +83,9 @@ int main(int argc, char **argv)
         printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
         printf("obtain\n  a product-key.\n\n");
         rv = -1;
-
-        goto finish;
     }
 
-    if (config)
+    if (config && (rv >= 0))
     {
         aaxBuffer buffer[MAX_WAVES];
         aaxEmitter emitter;
@@ -183,7 +181,6 @@ int main(int argc, char **argv)
         res = aaxEmitterDestroy(emitter);
     }
 
-finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 

@@ -63,16 +63,16 @@ int main(int argc, char **argv)
         printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
         printf("obtain\n  a product-key.\n\n");
         rv = -1;
-
-        goto finish;
+    }
+    else
+    {
+        devname = getCaptureName(argc, argv);
+        record = aaxDriverOpenByName(devname, AAX_MODE_READ);
+        printf("Recording: %s\n",aaxDriverGetSetup(record,AAX_RENDERER_STRING));
+        testForError(record, "Audio capture device is not available.");
     }
 
-    devname = getCaptureName(argc, argv);
-    record = aaxDriverOpenByName(devname, AAX_MODE_READ);
-    printf("Recording: %s\n", aaxDriverGetSetup(record, AAX_RENDERER_STRING));
-    testForError(record, "Audio capture device is not available.");
-
-    if (config && record)
+    if (config && record && (rv >= 0))
     {
         enum aaxFormat format;
         int channels;
@@ -141,7 +141,6 @@ int main(int argc, char **argv)
         printf("Unable to open capture device.\n");
     }
 
-finish:
     res = aaxDriverClose(config);
     testForState(res, "aaxDriverClose");
 
