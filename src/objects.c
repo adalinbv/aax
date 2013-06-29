@@ -26,44 +26,6 @@
 #include "arch.h"
 #include "api.h"
 
-_aaxDelayed3dProps *
-_aaxDelayed3dPropsCreate()
-{
-   _aaxDelayed3dProps *rv = NULL;
-   unsigned int size;
-   char *ptr1, *ptr2;
-
-   size = sizeof(_aaxDelayed3dProps);
-   ptr2 = (char*)size;
-   size += sizeof(_oalRingBuffer3dProps);
-   ptr1 = _aax_calloc(&ptr2, 1, size);
-   if (ptr1)
-   {
-      rv = (_aaxDelayed3dProps*)ptr1;
-      rv->props3d = (_oalRingBuffer3dProps*)ptr2;
-
-      _aaxSetDefault3dProps(rv->props3d);
-      rv->pitch = 1.0f;
-      rv->gain = 0.0f;
-   }
-   return rv;
-}
-
-_aaxDelayed3dProps *
-_aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
-{
-   _aaxDelayed3dProps *rv = _aaxDelayed3dPropsCreate();
-   if (rv)
-   {
-      rv->buf_step = dp3d->buf_step;
-      rv->gain = dp3d->gain;
-      rv->pitch = dp3d->pitch;
-      rv->state = dp3d->state;
-      _aax_memcpy(rv->props3d, dp3d->props3d, sizeof(_oalRingBuffer3dProps));
-   }
-   return rv;
-}
-
 void
 _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 {
@@ -101,6 +63,44 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
    p2d->final.pitch = 1.0f;
    p2d->final.gain_lfo = 1.0f;
    p2d->final.gain = 0.0f;
+}
+
+_aaxDelayed3dProps *
+_aaxDelayed3dPropsCreate()
+{
+   _aaxDelayed3dProps *rv = NULL;
+   unsigned int size;
+   char *ptr1, *ptr2;
+
+   size = sizeof(_aaxDelayed3dProps);
+   ptr2 = (char*)size;
+   size += sizeof(_oalRingBuffer3dProps);
+   ptr1 = _aax_calloc(&ptr2, 1, size);
+   if (ptr1)
+   {
+      rv = (_aaxDelayed3dProps*)ptr1;
+      rv->props3d = (_oalRingBuffer3dProps*)ptr2;
+
+      _aaxSetDefault3dProps(rv->props3d);
+      rv->pitch = 1.0f;
+      rv->gain = 1.0f;
+   }
+   return rv;
+}
+
+_aaxDelayed3dProps *
+_aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
+{
+   _aaxDelayed3dProps *rv = _aaxDelayed3dPropsCreate();
+   if (rv)
+   {
+      rv->buf_step = dp3d->buf_step;
+      rv->gain = dp3d->gain;
+      rv->pitch = dp3d->pitch;
+      rv->state = dp3d->state;
+      _aax_memcpy(rv->props3d, dp3d->props3d, sizeof(_oalRingBuffer3dProps));
+   }
+   return rv;
 }
 
 void

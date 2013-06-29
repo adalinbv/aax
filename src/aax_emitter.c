@@ -1307,7 +1307,7 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *smixer, _aaxAudioFrame
       ss = _EFFECT_GET(mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
       ep2d->dist_delay_sec = dist / ss;
 
-      _PROP_DISTDELAY_SET_DEFINED(ep3d);
+      _PROP_DISTQUEUE_SET_DEFINED(ep3d);
       src->dprops3d->buf_step = 1.0f;
    }
 }

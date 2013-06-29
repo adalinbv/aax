@@ -963,7 +963,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             if (_IS_POSITIONAL(src->dprops3d))
             {
                he = mixer->emitters_3d;
-               _PROP_DISTDELAY_CLEAR_DEFINED(src->dprops3d->props3d);
+               _PROP_DISTQUEUE_CLEAR_DEFINED(src->dprops3d->props3d);
             }
             else {
                he = mixer->emitters_2d;

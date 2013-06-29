@@ -742,7 +742,7 @@ _oalRingBufferPrepare3d(_oalRingBuffer3dProps* sprops3d, _oalRingBuffer3dProps* 
 
    edprops3d->pitch = _EFFECT_GET(eprops2d, PITCH_EFFECT, AAX_PITCH);
    edprops3d->gain = _FILTER_GET(eprops2d, VOLUME_FILTER, AAX_GAIN);
-   if (_PROP_DISTDELAY_IS_DEFINED(eprops3d))
+   if (_PROP_DISTQUEUE_IS_DEFINED(eprops3d))
    {
       if (!src->p3dq) {
          _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
