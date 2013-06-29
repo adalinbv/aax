@@ -41,14 +41,14 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define ENABLE_EMITTER_FREQFILTER	0
-#define ENABLE_STATIC_FREQFILTER	0
-#define ENABLE_EMITTER_DISTORTION	1
-#define ENABLE_EMITTER_PHASING		1
+#define ENABLE_EMITTER_DISTORTION	0
+#define ENABLE_EMITTER_PHASING		0
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
 #define ENABLE_FRAME_CHORUS		0
 #define ENABLE_FRAME_DYNAMIC_PITCH	0
 #define ENABLE_FRAME_DYNAMIC_GAIN	0
+#define ENABLE_FRAME_FREQFILTER		1
+#define ENABLE_STATIC_FREQFILTER	1
 #define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
@@ -69,11 +69,9 @@ int main(int argc, char **argv)
         printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
         printf("obtain\n  a product-key.\n\n");
         rv = -1;
-
-        goto finish;
     }
 
-    if (config)
+    if (config && (rv >= 0))
     {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
@@ -162,7 +160,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEffectDestroy");
 #endif
 
-#if ENABLE_EMITTER_FREQFILTER
+#if ENABLE_FRAME_FREQFILTER
             /* audio-frame frequency filter */
             filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
             testForError(filter, "aaxFilterCreate");
@@ -170,7 +168,7 @@ int main(int argc, char **argv)
 	 /* straight frequency filter */
             printf("frequency filter at 200Hz\n");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              200.0f, 1.0f, 0.5f, 2.0f);
+                                              12000.0f, 0.8f, 0.0f, 1.0f);
             testForError(filter, "aaxFilterSetSlot");
             filter = aaxFilterSetState(filter, AAX_TRUE);
             testForError(filter, "aaxFilterSetState");
@@ -306,7 +304,6 @@ int main(int argc, char **argv)
         }
     }
 
-finish:
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 

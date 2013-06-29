@@ -76,25 +76,25 @@ int main(int argc, char **argv)
     testForError(config, "Audio output device is not available.");
     if (!config || !aaxIsValid(config, AAX_CONFIG_HD))
     {
-    // TODO: fall back to buffer mode
+    // TODO: fall back to buffer streaming mode
         printf("Warning:\n");
         printf("  %s requires a registered version of AeonWave\n", argv[0]);
         printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
         printf("obtain\n  a product-key.\n\n");
-        rv = -1;
-
-        goto finish;
+        rv = -2;
     }
-
-    record = aaxDriverOpenByName(indevname, AAX_MODE_READ);
-    if (!record)
+    else
     {
-        printf("File not found: %s\n", infile);
-        exit(-1);
+        record = aaxDriverOpenByName(indevname, AAX_MODE_READ);
+        if (!record)
+        {
+            printf("File not found: %s\n", infile);
+            exit(-1);
+        }
+        printf("Playing: %s\n", infile);
     }
-    printf("Playing: %s\n", infile);
 
-    if (config && record)
+    if (config && record && (rv >= 0))
     {
         char *fparam = getCommandLineOption(argc, argv, "-f");
         aaxFrame frame = NULL;
@@ -190,7 +190,6 @@ int main(int argc, char **argv)
         printf("Unable to open capture device.\n");
     }
 
-finish:
     res = aaxDriverClose(config);
     testForState(res, "aaxDriverClose");
 

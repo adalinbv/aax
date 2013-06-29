@@ -42,17 +42,18 @@
 #include "driver.h"
 #include "wavfile.h"
 
-/* 50m/s = about 100kts */
-#define INITIAL_DIST		300.0f
-#define SPEED			15.0f
-#define TIME			20.0f
-#define STEP			(((2*INITIAL_DIST)/fabsf(SPEED))/TIME)
-#define DELAY			fabs((STEP/TIME)*1000)
+/* 50m/s (0.145*Vsound) = about 100kts */
+#define UPDATE_DELAY		0.001f
+#define SPEED_OF_SOUND		343.0f
+#define SPEED			(0.145f*SPEED_OF_SOUND)
+#define INITIAL_DIST		(2.0f*SPEED_OF_SOUND)
+#define STEP			(SPEED*UPDATE_DELAY)
+
 #define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3f EmitterPos = {  0.0f,  100.0f, -INITIAL_DIST };
-aaxVec3f EmitterDir = {  1.0f,    0.0f,          0.0f };
-aaxVec3f EmitterVel = {  0.0f,    0.0f,         SPEED };
+aaxVec3f EmitterPos = { -INITIAL_DIST, 100.0f, -100.0f };
+aaxVec3f EmitterDir = {          1.0f,   0.0f,    0.0f };
+aaxVec3f EmitterVel = {         SPEED,   0.0f,    0.0f };
 
 aaxVec3f SensorPos = { 0.0f, 0.0f,  0.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
     enum aaxRenderMode mode;
     char *devname, *infile;
     aaxConfig config;
-    int res;
+    int i, res;
 
     mode = getMode(argc, argv);
     devname = getDeviceName(argc, argv);
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxScenerySetDistanceModel");
 
             /** dopller settings */
-            res = aaxScenerySetSoundVelocity(config, 333.0f);
+            res = aaxScenerySetSoundVelocity(config, SPEED_OF_SOUND);
             testForState(res, "aaxScenerySetSoundVelocity");
 
             /** sensor settings */
@@ -148,14 +149,14 @@ int main(int argc, char **argv)
             dist = INITIAL_DIST;
             while(dist > -INITIAL_DIST)
             {
-                msecSleep(DELAY);
+                msecSleep((int)(ceilf(UPDATE_DELAY*1000.0f)));
 
-                EmitterPos[2] = -dist;
+                EmitterPos[0] = -dist;
                 dist -= STEP;
-
+#if 0
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n", dist,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);
-
+#endif
                 res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
                 testForState(res, "aaxMatrixSetDirection");
 

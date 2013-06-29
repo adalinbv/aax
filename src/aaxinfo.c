@@ -51,28 +51,31 @@
 static const char *_filter_s[AAX_FILTER_MAX] =
 {
     "_",
-    "AAX_equalizer",
+    "AAX_equalizer",		/* 2d filters */
     "AAX_volume_filter",
     "AAX_dynamic_gain_filter",
     "AAX_timed_gain_filter",
-    "AAX_angular_filter",
-    "AAX_distance_filter",
     "AAX_frequency_filter",
-    "AAX_graphic_equalizer"
+    "AAX_graphic_equalizer",
+    "AAX_compressor",
+
+    "AAX_angular_filter",
+    "AAX_distance_filter"	/* 3d filters */
 };
 
 static const char *_effect_s[AAX_EFFECT_MAX] =
 {
     "_",
-    "AAX_pitch_effect",
+    "AAX_pitch_effect",		/* 2d effects */
     "AAX_dynamic_pitch_effect",
     "AAX_timed_pitch_effect",
     "AAX_distortion_effect",
     "AAX_phasing_effect",
     "AAX_chorus_effect",
     "AAX_flanging_effect",
-    "AAX_velocity_effect",
-    "AAX_reverb_effect"
+    "AAX_reverb_effect",
+
+    "AAX_velocity_effect"	/* 3d effects */
 };
 
 int main(int argc, char **argv)
