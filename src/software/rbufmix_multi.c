@@ -100,15 +100,31 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
 
    /** Volume */
    env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-   if (!env && src->playing == 0 && src->stopped == 1) {
+   if (src->playing == 0 && src->stopped == 1)
+   {
+      /* the emitter was already flagged as stopped */
       ret = -1;
    }
+   else if (!env && src->stopped == 1)
+   {
+      /*
+       * Distance delay induced stopping of playback
+       * In the event that distance delay is not active dist_delay_sec equals
+       * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
+       */
+      p2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (p2d->dist_delay_sec <= 0.0f) {
+         ret = -1;
+      }
+   }
 
+   /* apply envelope filter */
    gain *= _oalRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
 
+   /* apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
    if (mix_p2d)
    {
@@ -116,14 +132,18 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
       max *= mix_p2d->final.gain_lfo;
    }
 
+   /* tremolo, envelope following gain filter is applied below! */
    lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
-   if (lfo && !lfo->envelope) {				// waveforms
+   if (lfo && !lfo->envelope) {
       max *= lfo->get(lfo, NULL, 0, 0);
    }
+
+   /* tremolo was defined */
    if (max != 1.0f) {
       gain *= 1.0f - max/2.0f;
    }
 
+   /* final emitter volume */
    gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
 
    /** Automatic volume ramping to avoid clicking */
