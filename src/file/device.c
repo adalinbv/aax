@@ -680,6 +680,9 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
          break;
+      case DRIVER_VOLUME:
+         rv = 1.0f;
+         break;
       default:
          break;
       }
