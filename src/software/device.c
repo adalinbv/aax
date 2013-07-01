@@ -18,6 +18,7 @@
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>		/* for struct time */
 #endif
+#include <assert.h>
 
 #include <aax/aax.h>
 
@@ -75,6 +76,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverSetup *)&_aaxNoneDriverSetup,
    NULL,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
+
    (_aaxDriver2dMixerCB *)&_aaxNoneDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxNoneDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxNoneDriver3dPrepare,
@@ -90,24 +92,34 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 static _aaxDriverNewHandle _aaxLoopbackDriverNewHandle;
 static _aaxDriverConnect _aaxLoopbackDriverConnect;
 static _aaxDriverDisconnect _aaxLoopbackDriverDisconnect;
-static _aaxDriverCaptureCallback _aaxLoopbackDriverCapture;
 static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
+static _aaxDriverPrepare3d _aaxLoopbackDriver3dPrepare;
+static _aaxDriver2dMixerCB _aaxLoopbackDriverStereoMixer;
+
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
 static _aaxDriverParam _aaxLoopbackDriverParam;
 static _aaxDriverLog _aaxLoopbackDriverLog;
 
-typedef struct {
+typedef struct
+{
    float latency;
+   float frequency;
+   enum aaxFormat format;
+   uint8_t no_channels;
+   uint8_t bits_sample;
+   char sse_level;
+
    _oalRingBufferMix1NFunc *mix_mono3d;
+
 } _driver_t;
 
-char _null_default_renderer[100] = DEFAULT_RENDERER;
+char _loopback_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
    AAX_VERSION_STR,
    LOOPBACK_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_null_default_renderer,
+   (char *)&_loopback_default_renderer,
 
    (_aaxCodec **)&_oalRingBufferCodecs,
 
@@ -122,11 +134,12 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverConnect *)&_aaxLoopbackDriverConnect,
    (_aaxDriverDisconnect *)&_aaxLoopbackDriverDisconnect,
    (_aaxDriverSetup *)&_aaxLoopbackDriverSetup,
-   (_aaxDriverCaptureCallback *)&_aaxLoopbackDriverCapture,
+   NULL,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
-   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+
+   (_aaxDriver2dMixerCB *)&_aaxLoopbackDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxLoopbackDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
+   (_aaxDriverPrepare3d *)&_aaxLoopbackDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
@@ -154,7 +167,7 @@ _aaxNoneDriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
    if (mode == AAX_MODE_READ) return NULL;
 
-   snprintf(_null_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
+   snprintf(_loopback_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
 
    return (void *)&_aaxNoneDriverBackend;
 }
@@ -223,6 +236,8 @@ _aaxNoneDriverState(const void *id, enum _aaxDriverState state)
       rv = AAX_TRUE;
       break;
    case DRIVER_SUPPORTS_CAPTURE:
+   case DRIVER_SHARED_MIXER:
+   case DRIVER_NEED_REINIT:
    default:
       break;
    }
@@ -236,8 +251,9 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
    switch(param)
    {
    case DRIVER_LATENCY:
-   case DRIVER_MIN_VOLUME:
    case DRIVER_MAX_VOLUME:
+   case DRIVER_MIN_VOLUME:
+   case DRIVER_VOLUME:
    default:
       break;
    }
@@ -308,6 +324,11 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
    _driver_t *handle = (_driver_t *)id;
    if (handle)
    {
+      handle->format = *fmt;
+      handle->frequency = *speed;
+      handle->no_channels = *tracks;
+      handle->bits_sample = aaxGetBitsPerSample(*fmt);
+      
       if (frames && speed && (*speed > 0)) {
          handle->latency = (float)*frames / (float)*speed;
       } else {
@@ -324,24 +345,53 @@ _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
    return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
 }
 
+void
+_aaxLoopbackDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void* p2d, void* src)
+{
+   assert(sp3d);
+   assert(info);
+   assert(p2d);
+   assert(src);
+
+   _oalRingBufferPrepare3d(sp3d, fp3d, info, p2d, src);
+}
+
+int
+_aaxLoopbackDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
+{
+   int ret;
+
+   assert(s);
+   assert(d);
+
+   ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr, nbuf);
+
+   return ret;
+}
 
 static float
 _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    float rv = 0.0f;
-   switch(param)
+   if (handle)
    {
-   case DRIVER_LATENCY:
-      rv = handle->latency;
-   case DRIVER_MIN_VOLUME:
-      rv = 0.0f;
-      break;
-   case DRIVER_MAX_VOLUME:
-      rv = 1.0f;
-      break;
-   default:
-      break;
+      switch(param)
+      {
+      case DRIVER_LATENCY:
+         rv = handle->latency;
+      case DRIVER_MAX_VOLUME:
+         rv = 1.0f;
+         break;
+      case DRIVER_MIN_VOLUME:
+         rv = 0.0f;
+         break;
+      case DRIVER_VOLUME:
+         rv = 1.0f;
+         break;
+      default:
+         break;
+      }
    }
    return rv;
 }
