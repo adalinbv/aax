@@ -707,11 +707,18 @@ extern _oalRingBufferMix1NFunc* _oalRingBufferMixMonoGetRenderer(enum aaxRenderM
 void
 _oalRingBufferPrepare3d(_oalRingBuffer3dProps*, _oalRingBuffer3dProps*, const void*, const _oalRingBuffer2dProps*, void*);
 
+
+
 int _oalRingBufferSetParamf(_oalRingBuffer*, enum _oalRingBufferParam, float);
 int _oalRingBufferSetParami(_oalRingBuffer*, enum _oalRingBufferParam, unsigned int);
 float _oalRingBufferGetParamf(const _oalRingBuffer*, enum _oalRingBufferParam);
 unsigned int _oalRingBufferGetParami(const _oalRingBuffer*, enum _oalRingBufferParam);
 int _oalRingBufferSetFormat(_oalRingBuffer*, _aaxCodec **, enum aaxFormat);
+
+#define _oalRingBufferCopyParamf(dbr, srb, param) \
+    _oalRingBufferSetParamf(drb, param, _oalRingBufferGetParamf(srb, param))
+#define _oalRingBufferCopyParami(dbr, srb, param) \
+    _oalRingBufferSetParami(drb, param, _oalRingBufferGetParami(srb, param))
 
 void _oalRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
 void _oalRingBufferDelaysRemove(void**);

@@ -243,53 +243,63 @@ _oalRingBufferReference(_oalRingBuffer *ringbuffer)
 _oalRingBuffer *
 _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
 {
-   _oalRingBuffer *rb;
+   _oalRingBuffer *srb = ringbuffer;
+   _oalRingBuffer *drb;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(ringbuffer != 0);
 
-   rb = _oalRingBufferCreate(ringbuffer->dde_sec);
-   if (rb)
+   drb = _oalRingBufferCreate(srb->dde_sec);
+   if (drb)
    {
-      _oalRingBufferSample *rbsd, *rbdd;
-      char add_scratchbuf;
+      _oalRingBufferSample *srbd, *drbd;
+      char add_scratchbuf = AAX_FALSE;
+      void *ptr;
 
-      rbdd = rb->sample;
-      rbsd = ringbuffer->sample;
+      srbd = srb->sample;
+      drbd = drb->sample;
 
-      /* set format */
-      rb->format = ringbuffer->format;
-      rbdd->codec = rbsd->codec;
-      rbdd->bytes_sample = rbsd->bytes_sample;
+      _aax_memcpy(drb, srb, sizeof(_oalRingBuffer));
+      drb->sample = drbd;
 
-      _oalRingBufferSetParami(rb, RB_NO_TRACKS, rbsd->no_tracks);
-      _oalRingBufferSetParami(rb, RB_NO_SAMPLES, rbsd->no_samples_avail);
-      _oalRingBufferSetParamf(rb, RB_FREQUENCY, rbsd->frequency_hz);
+      ptr = drbd->track;
+      _aax_memcpy(drbd, srbd, sizeof(_oalRingBufferSample));
+      drbd->track = ptr;
+      drbd->scratch = NULL;
 
-      /*set looping */
-      _oalRingBufferSetParamf(rb, RB_LOOPPOINT_START, rbsd->loop_start_sec);
-      _oalRingBufferSetParamf(rb, RB_LOOPPOINT_END, rbsd->loop_end_sec);
-
-      add_scratchbuf = (copy && rbsd->scratch) ? AAX_TRUE : AAX_FALSE;
-      _oalRingBufferInit(rb, add_scratchbuf);
-      _oalRingBufferSetParami(rb, RB_NO_SAMPLES, rbsd->no_samples);
-      if (copy)
+      if (srbd->scratch)
       {
-         char loop = ringbuffer->looping;
-         _oalRingBufferFillNonInterleaved(rb, rbsd->track, 1, loop);
+         if (!copy)
+         {
+            drbd->scratch = srbd->scratch;
+            srbd->scratch = NULL;
+         }
+         else {
+            add_scratchbuf = AAX_TRUE;
+         }
       }
-      else
+      _oalRingBufferInit(drb, add_scratchbuf);
+
+      if (copy || dde)
       {
-         rbdd->scratch = rbsd->scratch;
-         rbsd->scratch = NULL;
-      }
-      if (dde) {
-         _oalRingBufferCopyDelyEffectsData(rb, ringbuffer);
+         unsigned int t, ds, tracksize;
+
+         tracksize = copy ? _oalRingBufferGetParami(srb, RB_NO_SAMPLES) : 0;
+         tracksize *= _oalRingBufferGetParami(srb, RB_BYTES_SAMPLE);
+         ds = dde ? srbd->dde_samples : 0;
+         for (t=0; t<drbd->no_tracks; t++)
+         {
+            char *s, *d;
+
+            s = (char *)srbd->track[t];
+            d = (char *)drbd->track[t];
+            _aax_memcpy(d-ds, s-ds, tracksize+ds);
+         }
       }
    }
 
-   return rb;
+   return drb;
 }
 
 void

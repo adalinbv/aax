@@ -515,8 +515,6 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
-   res = be->play(be_handle, dest_rb, 1.0, gain);
-
    if TEST_FOR_TRUE(capturing)
    {
       _intBuffers *mixer_ringbuffers = (_intBuffers*)ringbuffers;
@@ -524,9 +522,12 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
 
       new_rb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE, AAX_FALSE);
 
-      _oalRingBufferForward(new_rb);
+      _oalRingBufferRewind(new_rb);
       _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
+
+      res = be->play(be_handle, new_rb, 1.0, gain);
    }
+   else res = be->play(be_handle, dest_rb, 1.0, gain);
 
    _oalRingBufferClear(dest_rb);
    _oalRingBufferStart(dest_rb);
