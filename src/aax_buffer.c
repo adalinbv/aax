@@ -42,17 +42,14 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
          if (rb)
          {
             _handle_t* handle = (_handle_t*)config;
-            buf->codecs = _oalRingBufferCodecs;
-            if (handle)
-            {
-               if VALID_HANDLE(handle) buf->info = handle->info;
-               buf->codecs = handle->backend.ptr->codecs;
+            _aaxCodec** codecs;
+            int blocksize;
+
+            if (handle) {
+               codecs = handle->backend.ptr->codecs;
+            } else {
+               codecs = _oalRingBufferCodecs;
             }
-            buf->mipmap = AAX_FALSE;
-            buf->ref_counter = 1;
-            buf->format = format;
-            buf->id = BUFFER_ID;
-            buf->frequency = 0.0f;
 
             /* initialize the ringbuffer in native format only */
             _oalRingBufferSetFormat(rb, buf->codecs, native_fmt);
@@ -61,16 +58,29 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
             /* Postpone until aaxBufferSetData gets called
              * _oalRingBufferInit(rb, AAX_FALSE);
             */
-            buf->ringbuffer = rb;
 
             switch(native_fmt)
             {
             case AAX_IMA4_ADPCM:
-               buf->blocksize = DEFAULT_IMA4_BLOCKSIZE;
+               blocksize = DEFAULT_IMA4_BLOCKSIZE;
                break;
             default:
-               buf->blocksize = 1;
+               blocksize = 1;
             }
+
+            buf->id = BUFFER_ID;
+            buf->ref_counter = 1;
+
+            buf->blocksize = blocksize;
+            buf->pos = 0;
+            buf->format = format;
+            buf->frequency = 0.0f;
+
+            buf->mipmap = AAX_FALSE;
+
+            buf->ringbuffer = rb;
+            buf->info = VALID_HANDLE(handle) ? handle->info : NULL;
+            buf->codecs = codecs;
 
             rv = (aaxBuffer)buf;
          }
