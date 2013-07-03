@@ -1198,17 +1198,14 @@ get_driver_handle(aaxFrame f)
    _frame_t* frame = (_frame_t*)f;
    _handle_t* rv = NULL;
 
-#if 1
-   rv = frame->submix->info->backend;
-#else
-   while (frame && (frame->id != HANDLE_ID)) {
-      frame = frame->handle;
+   if (frame)
+   {
+      if (frame->id == HANDLE_ID) {
+         rv = (_handle_t*)frame;
+      } else if (frame->id == AUDIOFRAME_ID) {
+         rv = frame->submix->info->backend;
+      }
    }
-   
-   if (frame && (frame->id == HANDLE_ID)) {
-      rv = (_handle_t*)frame;
-   }
-#endif
    return rv;
 }
 

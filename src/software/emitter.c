@@ -34,7 +34,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
    float dt;
 
    num = 0;
-   stage = 0;
+   stage = 2;
    dt = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
    do
    {
@@ -59,7 +59,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
          if (_IS_PLAYING(src->dprops3d))
          {
             _intBufferData *dptr_sbuf;
-            unsigned int nbuf, rv = 0;
+            unsigned int nbuf;
             int streaming;
 
             rv = AAX_TRUE;
@@ -73,6 +73,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
             {
                _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
                _oalRingBuffer *src_rb = embuf->ringbuffer;
+               unsigned int res = 0;
                do
                {
                   if (_IS_STOPPED(src->dprops3d)) {
@@ -90,7 +91,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   --src->update_ctr;
                    
                   /* 3d mixing */
-                  if (stage == 0)
+                  if (stage == 2)
                   {
                      _oalRingBuffer2dProps *eprops2d;
 
@@ -100,18 +101,18 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                         be->prepare3d(sp3d, fp3d, info, pp2d, src);
                      }
 
-                     rv = AAX_FALSE;
+                     res = AAX_FALSE;
                      eprops2d = src->props2d;
-                     if (src->curr_pos_sec > eprops2d->dist_delay_sec) {
-                        rv = be->mix3d(be_handle, dest_rb, src_rb, eprops2d,
-                                                  pp2d, emitter->track,
-                                                  src->update_ctr, nbuf);
+                     if (src->curr_pos_sec >= eprops2d->dist_delay_sec) {
+                        res = be->mix3d(be_handle, dest_rb, src_rb, eprops2d,
+                                       pp2d, emitter->track, src->update_ctr,
+                                       nbuf, info->mode);
                      }
                   }
                   else
                   {
                      assert(!_IS_POSITIONAL(src->dprops3d));
-                     rv = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
+                     res = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
                                            pp2d, 1.0, 1.0, src->update_ctr,
                                            nbuf);
                   }
@@ -126,7 +127,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                    * The current buffer of the source has finished playing.
                    * Decide what to do next.
                    */
-                  if (rv)
+                  if (res)
                   {
                      if (streaming)
                      {
@@ -148,8 +149,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                            }
                         }
 
-                        rv &= _oalRingBufferGetParami(dest_rb, RB_IS_PLAYING);
-                        if (rv)
+                        res &= _oalRingBufferGetParami(dest_rb, RB_IS_PLAYING);
+                        if (res)
                         {
                            _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
                            dptr_sbuf = _intBufGet(src->buffers,
@@ -165,7 +166,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                      }
                   }
                }
-               while (rv);
+               while (res);
                _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
@@ -176,14 +177,14 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
       _intBufReleaseNum(he, _AAX_EMITTER);
 
       /*
-       * stage == 0 is 3d positional audio
+       * stage == 2 is 3d positional audio
        * stage == 1 is stereo audio
        */
-      if (stage == 0) {
+      if (stage == 2) {
          he = e2d;	/* switch to stereo */
       }
    }
-   while (++stage < 2); /* process 3d positional and stereo emitters */
+   while (--stage); /* process 3d positional and stereo emitters */
 
    _PROP_MTX_CLEAR_CHANGED(pp3d);
    _PROP_PITCH_CLEAR_CHANGED(pp3d);

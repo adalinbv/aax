@@ -146,6 +146,8 @@ _aaxFileDriverDetect(int mode)
    return rv;
 }
 
+
+
 static void *
 _aaxFileDriverNewHandle(enum aaxRenderMode mode)
 {
@@ -593,7 +595,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
 }
 
 int
-_aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
+_aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);

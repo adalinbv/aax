@@ -191,7 +191,7 @@ _aaxNoneDriverPlayback(const void *id, void *s, float pitch, float volume)
 }
 
 static int
-_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
+_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
    return AAX_FALSE;
 }
@@ -339,10 +339,17 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
 }
 
 int
-_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
+_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
+#if 0
    _driver_t *handle = (_driver_t *)id;
+
    return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
+#else
+   _oalRingBufferMix1NFunc *mix3d = _oalRingBufferMixMonoGetRenderer(mode);
+
+   return mix3d(d, s, p, m, n, ctr, nbuf);
+#endif
 }
 
 void

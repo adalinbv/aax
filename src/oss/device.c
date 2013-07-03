@@ -497,7 +497,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 
 
 int
-_aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
+_aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
