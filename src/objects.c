@@ -298,6 +298,7 @@ const _aaxMixerInfo _aaxDefaultMixerInfo =
 
   0,				/* update counter */
   0,
-  INFO_ID
+  INFO_ID,
+  0				/* pointer to the backend handle */
 };
 
