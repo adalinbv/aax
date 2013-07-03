@@ -673,6 +673,7 @@ new_handle()
       _aax_memcpy(info, &_aaxDefaultMixerInfo, sizeof(_aaxMixerInfo));
 
       handle->info = info;
+      info->backend = handle;
       rv = handle;
    }
 

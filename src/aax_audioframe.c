@@ -1198,6 +1198,9 @@ get_driver_handle(aaxFrame f)
    _frame_t* frame = (_frame_t*)f;
    _handle_t* rv = NULL;
 
+#if 1
+   rv = frame->submix->info->backend;
+#else
    while (frame && (frame->id != HANDLE_ID)) {
       frame = frame->handle;
    }
@@ -1205,6 +1208,7 @@ get_driver_handle(aaxFrame f)
    if (frame && (frame->id == HANDLE_ID)) {
       rv = (_handle_t*)frame;
    }
+#endif
    return rv;
 }
 
@@ -1217,8 +1221,8 @@ _aaxAudioFrameStart(_frame_t *frame)
 
    if (_IS_INITIAL(frame) || _IS_PROCESSED(frame))
    {
-      if  (frame->submix->thread)
-      {							// REGISTERED_FRAME;
+      if  (frame->submix->thread)	/* threaded frame */
+      {	
          unsigned int ms;
          int r;
 
@@ -1268,8 +1272,10 @@ _aaxAudioFrameStart(_frame_t *frame)
             _aaxErrorSet(AAX_INVALID_STATE);
          }
       }
-      else {
+      else				/* unthreaded frame */
+      {
          frame->submix->capturing = AAX_TRUE;
+         rv = AAX_TRUE;
       }
    }
    else if (_IS_STANDBY(frame) || !frame->submix->thread) {
