@@ -273,6 +273,7 @@ static unsigned int get_devices_avail(int);
 static int detect_devnum(const char *, int);
 static char *detect_devname(const char*, int, unsigned int, int, char);
 static char *_aaxALSADriverLogVar(const void *, const char *, ...);
+static char *_aaxALSADriverGetDefaultInterface(const void *, int);
 
 static int _alsa_pcm_open(_driver_t*, int);
 static int _alsa_pcm_close(_driver_t*);
@@ -488,7 +489,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
-      handle->name = _aax_strdup((char*)renderer);
+      if (strcasecmp(renderer, "default")) {
+         handle->name = _aax_strdup((char*)renderer);
+      }
+      else {
+         handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
+      }
 
       if (xid)
       {
@@ -505,7 +511,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             else
             {
                free(s); /* 'default' */
-               handle->name = (char *)_alsa_default_name[mode > 0 ? 1 : 0];
+               handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
             }
          }
 
@@ -1395,7 +1401,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 
    if (!rv)
    {
-      char name[1024] = "\0\0";
+      char devlist[1024] = "\0\0";
       int len = 1024;
       void **hints;
       int res;
@@ -1406,7 +1412,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          void **lst = hints;
          char *ptr;
 
-         ptr = name;
+         ptr = devlist;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
@@ -1463,14 +1469,14 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          }
          while (*lst != NULL);
 
-         if (ptr != name)
+         if (ptr != devlist)
          {
             *ptr++ = '\0';
-            rv = realloc(handle->ifname[m], ptr-name);
+            rv = realloc(handle->ifname[m], ptr-devlist);
             if (rv)
             {
                handle->ifname[m] = rv;
-               memcpy(handle->ifname[m], name, ptr-name);
+               memcpy(handle->ifname[m], devlist, ptr-devlist);
             }
          }
       }
@@ -1479,6 +1485,63 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 
    return rv;
 }
+
+static char *
+_aaxALSADriverGetDefaultInterface(const void *id, int mode)
+{
+// _driver_t *handle = (_driver_t *)id;
+   int m = (mode > 0) ? 1 : 0;
+   char rv[1024]  = "default";
+   int len = 1024;
+   void **hints;
+   int res;
+
+   res = psnd_device_name_hint(-1, "pcm", &hints);
+   if (!res && hints)
+   {
+      void **lst = hints;
+      int found = 0;
+
+      do
+      {
+         char *type = psnd_device_name_get_hint(*lst, "IOID");
+         if (!type || (type && !strcmp(type, _alsa_type[m])))
+         {
+            char *name = psnd_device_name_get_hint(*lst, "NAME");
+            if (name)
+            {
+               if (!strncmp(name, "default:", strlen("default:")))
+               {
+                  char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                  char *iface;
+ 
+                  if (!desc) desc = name;
+                  iface = strstr(desc, ", ");
+
+                  if (iface)
+                  {
+                     *iface = ':';
+                     iface = strchr(iface+2, '\n');
+                     if (iface) *iface = 0;
+                     
+                     snprintf(rv, len, "%s", desc);
+                     found = 1;
+                  }
+                  if (desc != name) _aax_free(desc);
+               }
+               _aax_free(name);
+            }
+         }
+         _aax_free(type);
+         ++lst;
+       }
+      while (!found && (*lst != NULL));
+      res = psnd_device_name_free_hint(hints);
+   }
+
+   return _aax_strdup(rv);
+}
+
 
 static char *
 _aaxALSADriverLogVar(const void *id, const char *fmt, ...)
