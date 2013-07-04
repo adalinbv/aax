@@ -217,8 +217,14 @@ _aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps
       delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);	// phasing, etc.
       freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
       dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-      if (delay_effect) {
-         ddesamps = drbd->dde_samples;
+      if (delay_effect)
+      {
+         /*
+          * can not use drbd->dde_samples since it's 10 times as big for the
+          * fial mixer to accomodate for reverb
+          */
+         // ddesamps = drbd->dde_samples;
+         ddesamps = (unsigned int)ceilf(DELAY_EFFECTS_TIME*dfreq);
       }
 
       if (track_ptr)
