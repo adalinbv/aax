@@ -56,8 +56,14 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       void* distortion = NULL;
 
       bps = rbd->bytes_sample;
-      ddesamps = rbd->dde_samples;
       no_samples = rbd->no_samples;
+
+      /*
+       * can not use drbd->dde_samples since it's 10 times as big for the
+       * fial mixer to accomodate for reverb
+       */
+      // ddesamps = drbd->dde_samples;
+      ddesamps = (unsigned int)ceilf(DELAY_EFFECTS_TIME*rbd->frequency_hz);
 
       if (dist_state) {
          distortion = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
