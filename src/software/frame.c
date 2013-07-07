@@ -276,6 +276,12 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
 {
    char process;
 
+//
+// TODO: Create a new position/orientation matrix and velocity vector
+//       based on our own and those from the parent object.
+//       This must be done bevore processing the emitters or registered sensors.
+//
+
    /** process possible registered emitters */
    process = _aaxEmittersProcess(dest_rb, fmixer->info, sp2d, sp3d, pp2d, pp3d,
                                  fmixer->emitters_2d, fmixer->emitters_3d,

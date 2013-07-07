@@ -19,10 +19,15 @@
 
 #include <math.h>		/* for floorf */
 #include <string.h>		/* for memset */
+#include <assert.h>
+
+#include <xml.h>
 
 #include <software/audio.h>
 #include "api.h"
 #include "arch.h"
+
+static int _bufProcessAAXS(_buffer_t*, const void*, float);
 
 static unsigned char  _oalFormatsBPS[AAX_FORMAT_MAX];
 
@@ -271,7 +276,20 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* buf = get_buffer(buffer);
    int rv = AAX_FALSE;
-   if (buf)
+   if (buf && (buf->format & AAX_SPECIAL))
+   {				/* the data in *d isn't actual sample data */
+      unsigned int format = buf->format;
+      switch(format)
+      {
+      case AAX_AAXS16S:
+      case AAX_AAXS24S:
+         rv = _bufProcessAAXS(buf, d, 0);
+         break;
+      default:					/* should never happen */
+         break;
+      }
+   }
+   else if (buf)
    {
       unsigned int tracks, no_samples, buf_samples;
 
@@ -397,8 +415,8 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType type
             no_samples = (unsigned int)ceilf(duration*fs);
             _oalRingBufferSetParami(rb, RB_NO_SAMPLES, no_samples);
             _oalRingBufferInit(rb, AAX_FALSE);
-        }
-        f = fs/fw;
+         }
+         f = fs/fw;
 
          data = rb->sample->track;
          switch (ptype)
@@ -717,4 +735,85 @@ free_buffer(_buffer_t* buf)
    }
    return rv;
 }
+
+static int
+_bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
+{
+   int rv = AAX_FALSE;
+   void *xid;
+
+   assert(d);
+
+   xid = xmlInitBuffer(d, strlen(d));
+   if (xid)
+   {
+      void *xsid = xmlNodeGet(xid, "/sound");
+      if (xsid)
+      {
+         unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
+         void *xwid = xmlMarkId(xsid);
+
+         if (!freq) freq = xmlAttributeGetDouble(xsid, "freq_hz");
+         if (freq > 10000.0f) freq = 10000.0f;
+         if (!freq) freq = 1000.0f;
+
+         rv = AAX_TRUE;
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xsid, xwid, "waveform", i) != 0)
+            {
+               enum aaxProcessingType ptype = AAX_OVERWRITE;
+               enum aaxWaveformType wtype = AAX_SINE_WAVE;
+               float pitch, ratio;
+
+               ratio = _MINMAX(xmlNodeGetDouble(xwid, "ratio"), -1.0f, 1.0f);
+               if (!ratio) ratio = 1.0f;
+
+               pitch = xmlNodeGetDouble(xwid, "pitch");
+               if (!pitch) pitch = 1.0f;
+
+               if (!xmlAttributeCompareString(xwid, "src", "sine")) {
+                  wtype = AAX_SINE_WAVE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "square")) {
+                  wtype = AAX_SQUARE_WAVE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
+                   wtype = AAX_TRIANGLE_WAVE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
+                   wtype = AAX_SAWTOOTH_WAVE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
+                   wtype = AAX_IMPULSE_WAVE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "white-noise")) {
+                   wtype = AAX_WHITE_NOISE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "pink-noise")) {
+                   wtype = AAX_PINK_NOISE;
+               } else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
+                   wtype = AAX_BROWNIAN_NOISE;
+               } else {
+                  wtype = AAX_SINE_WAVE;
+               }
+
+               if (!xmlNodeCompareString(xwid, "processing", "overwrite")) {
+                  ptype = AAX_OVERWRITE;
+               } else if (!xmlNodeCompareString(xwid, "processing", "add")) {
+                  ptype = AAX_ADD;
+               } else if (!xmlNodeCompareString(xwid, "processing", "mix")) {
+                  ptype = AAX_MIX;
+               } else if (!xmlNodeCompareString(xwid, "processing", "modulate")) {
+                  ptype = AAX_RINGMODULATE;
+               } else {
+                  ptype = AAX_OVERWRITE;
+               }
+
+               pitch *= freq;
+               rv &= aaxBufferProcessWaveform(buf, pitch, wtype, ratio, ptype);
+            }
+         }
+         xmlFree(xwid);
+      }
+      xmlClose(xid);
+   }
+
+   return rv;
+}
+
 
