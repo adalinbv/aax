@@ -49,6 +49,16 @@
 #define ENABLE_MIXER_DYNAMIC_GAIN	0
 #define SAMPLE_FREQUENCY		22050
 
+static const char* aaxs_data_sax = 
+"    <sound freq_hz=\"220\">			\
+       <waveform src=\"sawtooth\"/>		\
+       <waveform src=\"sine\">			\
+         <processing>mix</processing>		\
+         <pitch>4.0</pitch>			\
+         <ratio>0.2</ratio>			\
+       </waveform>				\
+     </sound>";
+
 int main(int argc, char **argv)
 {
     aaxConfig config;
@@ -80,16 +90,14 @@ int main(int argc, char **argv)
         int i;
 
         no_samples = (unsigned int)(0.3f*SAMPLE_FREQUENCY);
-        buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
+        buffer = aaxBufferCreate(config, no_samples, 1, AAX_AAXS16S);
         testForError(buffer, "Unable to generate buffer\n");
 
         res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
         testForState(res, "aaxBufferSetFrequency");
 
-        pitch = getPitch(argc, argv);
-        res = aaxBufferSetWaveform(buffer, 220.0f*pitch, AAX_SAWTOOTH_WAVE);
-        res = aaxBufferMixWaveform(buffer, 880.0f*pitch, AAX_SINE_WAVE, 0.2f);
-        testForState(res, "aaxBufferProcessWaveform");
+        res = aaxBufferSetData(buffer, aaxs_data_sax);
+        testForState(res, "aaxBufferSetData");
 
         /** emitter */
         emitter = aaxEmitterCreate();
