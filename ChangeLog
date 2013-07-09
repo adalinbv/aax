@@ -11,8 +11,13 @@
  * Add an aaxMixerGetState function to retreive the state of the current
    audio stream. This can for instance be used to reinitialize the device
    after the hardware audio format has changed.
+ * Add support for the AAXS (AeonWave Auto-generated XML Sound) audio format.
  * Fix an issue that prevented ALSA from reporting new hardware while an
    application was running.
+ * Fix an issue with loopback capturing of the playback stream.
+ * Fix an issue with emitters registered at audio subframes.
+ * Fix an issue with flanging for emitters registered at the final mixer.
+
 
  -- Erik Hofman <tech@adalin.org>  Mon, 03 Jun 2013 10:10:00 +0200
 
