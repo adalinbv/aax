@@ -62,7 +62,7 @@ aaxEmitterCreate()
        * is not possible since it prevents setting 3d position and orientation
        * before the emitter is set to 3d mode
        */
-      src->dprops3d = _aaxDelayed3dPropsCreate();
+      src->dprops3d = _oalRingBufferDelayed3dPropsCreate();
       if (src->dprops3d)
       {
           _SET_INITIAL(src->dprops3d);
@@ -473,7 +473,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          }      
          case AAX_DISTANCE_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = src->dprops3d->props3d;
+            _oalRingBufferDelayed3dProps *p3d = src->dprops3d;
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -485,7 +485,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          }
          case AAX_ANGULAR_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = src->dprops3d->props3d;
+            _oalRingBufferDelayed3dProps *p3d = src->dprops3d;
             float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
             float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
             float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
@@ -539,7 +539,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
          _aaxEmitter *src = handle->source;
          _handle_t *cfg = (_handle_t*)handle->handle;
          _aaxMixerInfo* info = (cfg) ? cfg->info : NULL;
-         rv = new_filter_handle(info, type, src->props2d, src->dprops3d->props3d);
+         rv = new_filter_handle(info, type, src->props2d, src->dprops3d);
          break;
       }
       default:
@@ -647,7 +647,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          }
          case AAX_VELOCITY_EFFECT:
          {
-            _oalRingBuffer3dProps *p3d = src->dprops3d->props3d;
+            _oalRingBufferDelayed3dProps *p3d = src->dprops3d;
             _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -691,7 +691,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_VELOCITY_EFFECT:
       {
          _aaxEmitter *src = handle->source;
-         rv = new_effect_handle(src->info, type, src->props2d, src->dprops3d->props3d);
+         rv = new_effect_handle(src->info, type, src->props2d, src->dprops3d);
          break;
       }
       default:
@@ -1284,7 +1284,8 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *smixer, _aaxAudioFrame
    mixer = fmixer ? fmixer : smixer;
    if (mixer->dist_delaying)
    {
-      _oalRingBuffer3dProps *mp3d = mixer->dprops3d->props3d;
+      _oalRingBufferDelayed3dProps *mdp3d = mixer->dprops3d;
+      _oalRingBuffer3dProps *mp3d = mdp3d->props3d;
       _oalRingBuffer3dProps *ep3d = src->dprops3d->props3d;
       _oalRingBuffer2dProps *ep2d = src->props2d;
       float dist, ss;
@@ -1304,7 +1305,7 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *smixer, _aaxAudioFrame
       }
       dist = vec3Normalize(epos, mtx[LOCATION]);
 
-      ss = _EFFECT_GET(mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+      ss = _EFFECT_GET(mdp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
       ep2d->dist_delay_sec = dist / ss;
 
       _PROP_DISTQUEUE_SET_DEFINED(ep3d);
