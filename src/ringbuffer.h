@@ -216,6 +216,10 @@ enum _oalRingBufferParam
 #define _FILTER_COPY2D_DATA(G1, G2, f)	_FILTER_COPY_DATA(G1->props2d, G2->props2d, f)
 #define _FILTER_COPY3D_DATA(G1, G2, f)	_FILTER_COPY_DATA(G1->props3d, G2->props3d, f)
 
+#define _FILTER_GETD3D(G, f, p)		_FILTER_GET(G->dprops3d, f, p)
+#define _FILTER_SETD3D_DATA(G, f, v)	_FILTER_SET_DATA(G->dprops3d, f, v)
+#define _FILTER_COPYD3D_DATA(G1, G2, f)	_FILTER_COPY_DATA(G1->dprops3d, G2->dprops3d, f)
+
 #define _FILTER_SWAP_SLOT_DATA(P, f, F, s)	 			\
     do { void* ptr = P->filter[f].data;					\
     P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr; 	\
@@ -247,6 +251,11 @@ enum _oalRingBufferParam
 #define _EFFECT_COPY3D(G1, G2, f, p)	_EFFECT_COPY(G1->props3d, G2->props3d, f, p)
 #define _EFFECT_COPY2D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props2d, G2->props2d, f)
 #define _EFFECT_COPY3D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props3d, G2->props3d, f)
+
+#define _EFFECT_GETD3D(G, f, c)		_EFFECT_GET(G->dprops3d, f, p)
+#define _EFFECT_SETD3D_DATA(G, f, v)	_EFFECT_SET_DATA(G->dprops3d, f, v)
+#define _EFFECT_COPYD3D(G1, G2, f, p)	_EFFECT_COPY(G1->dprops3d, G2->dprops3d, f, p)
+#define _EFFECT_COPYD3D_DATA(G1, G2, f)	_EFFECT_COPY_DATA(G1->dprops3d, G2->dprops3d, f)
 
 #define _EFFECT_SWAP_SLOT_DATA(P, f, F, s)	 			\
     do { void* ptr = P->effect[f].data;					\
@@ -393,11 +402,20 @@ typedef ALIGN16 struct
 
    int state;
 
+} _oalRingBuffer3dProps ALIGN16C;
+
+typedef struct
+{
+   _oalRingBuffer3dProps* props3d;
+   float pitch, gain;
+   float buf_step;
+   int state;
+
    /* 3d filters and effects */
    _oalRingBufferFilterInfo filter[MAX_3D_FILTER];
    _oalRingBufferFilterInfo effect[MAX_3D_EFFECT];
 
-} _oalRingBuffer3dProps ALIGN16C;
+} _oalRingBufferDelayed3dProps;
 
 typedef ALIGN16 struct
 {
@@ -704,8 +722,9 @@ extern _oalRingBufferMix1NFunc* _oalRingBufferMixMono16;
 extern _oalRingBufferMix1NFunc* _oalRingBufferMixMonoGetRenderer(enum aaxRenderMode);
 
 
-void
-_oalRingBufferPrepare3d(_oalRingBuffer3dProps*, _oalRingBuffer3dProps*, const void*, const _oalRingBuffer2dProps*, void*);
+_oalRingBufferDelayed3dProps *_oalRingBufferDelayed3dPropsCreate();
+_oalRingBufferDelayed3dProps *_oalRingBufferDelayed3dPropsDup(_oalRingBufferDelayed3dProps*);
+void _oalRingBufferPrepare3d(float, float, const _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const void*, void*);
 
 
 
