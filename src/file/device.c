@@ -82,9 +82,9 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxFileDriverCapture,
    (_aaxDriverCallback *)&_aaxFileDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxFileDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
+   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
@@ -599,30 +599,6 @@ _aaxFileDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 {
    _driver_t *handle = (_driver_t *)id;
    return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
-}
-
-void
-_aaxFileDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void* p2d, void* src)
-{
-   assert(sp3d);
-   assert(info);
-   assert(p2d);
-   assert(src);
-
-   _oalRingBufferPrepare3d(sp3d, fp3d, info, p2d, src);
-}
-
-int
-_aaxFileDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
-{
-   int ret;
-
-   assert(s);
-   assert(d);
-
-   ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr, nbuf);
-
-   return ret;
 }
 
 static char *

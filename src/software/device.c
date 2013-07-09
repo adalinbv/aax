@@ -93,8 +93,6 @@ static _aaxDriverNewHandle _aaxLoopbackDriverNewHandle;
 static _aaxDriverConnect _aaxLoopbackDriverConnect;
 static _aaxDriverDisconnect _aaxLoopbackDriverDisconnect;
 static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
-static _aaxDriverPrepare3d _aaxLoopbackDriver3dPrepare;
-static _aaxDriver2dMixerCB _aaxLoopbackDriverStereoMixer;
 
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
 static _aaxDriverParam _aaxLoopbackDriverParam;
@@ -137,9 +135,9 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    NULL,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxLoopbackDriverStereoMixer,
+   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxLoopbackDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxLoopbackDriver3dPrepare,
+   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
@@ -197,7 +195,7 @@ _aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 }
 
 static void
-_aaxNoneDriver3dPrepare(void *sp3d, void *f3d, const void *info, const void *p2d, void* src)
+_aaxNoneDriver3dPrepare(float ssv, float sdf, const void*fp2d, void *f3d, const void *info, void* src)
 {
 }
 
@@ -353,18 +351,18 @@ _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
 }
 
 void
-_aaxLoopbackDriver3dPrepare(void* sp3d, void* fp3d, const void* info, const void* p2d, void* src)
+_aaxSoftwareDriver3dPrepare(float ssv, float sdf, const void* fp2d, void* fp3d, const void* info, void* src)
 {
-   assert(sp3d);
+   assert(fp2d);
+   assert(fp3d);
    assert(info);
-   assert(p2d);
    assert(src);
 
-   _oalRingBufferPrepare3d(sp3d, fp3d, info, p2d, src);
+   _oalRingBufferPrepare3d(ssv, sdf, fp2d, fp3d, info, src);
 }
 
 int
-_aaxLoopbackDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
+_aaxSoftwareDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
 {
    int ret;
 
@@ -417,14 +415,6 @@ _aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
 
    return (char*)&_errstr;
 }
-
-static int
-_aaxLoopbackDriverCapture(const void *id, void **data, int offs, size_t *size, void *scratch, size_t scratchlen, float gain)
-{
-   return AAX_FALSE;
-}
-
-
 
 void
 _aaxNoneDriverProcessFrame(void* config)

@@ -114,9 +114,9 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxWASAPIDriverCapture,
    (_aaxDriverCallback *)&_aaxWASAPIDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
    (_aaxDriver3dMixerCB *)&_aaxWASAPIDriver3dMixer,
-   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
+   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
