@@ -84,7 +84,7 @@ enum aaxFormat
    AAX_IMA4_ADPCM,
    AAX_FORMAT_MAX,
 	
-   AAX_FORMAT_NATIVE = 0x07F,
+   AAX_FORMAT_NATIVE = 0x07F,	/* format mask */
 
    			/* the following formats get converted before use */
    AAX_FORMAT_UNSIGNED = 0x080,
@@ -118,6 +118,14 @@ enum aaxFormat
    AAX_PCM16U_BE,
    AAX_PCM24U_BE,
    AAX_PCM32U_BE,
+
+   /** Unusual audio formats, the last bytes specifies the internal format **/
+   AAX_SPECIAL = 0x80000,
+
+   /* AeonWave Auto-generated XML Sound */
+   AAX_AAXS = AAX_SPECIAL,
+   AAX_AAXS16S = (AAX_AAXS|AAX_PCM16S),
+   AAX_AAXS24S = (AAX_AAXS|AAX_PCM24S)
 };
 
 enum aaxType
