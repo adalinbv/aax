@@ -64,7 +64,7 @@ aaxAudioFrameCreate(aaxConfig config)
          _aaxSetDefault2dProps(submix->props2d);
          _EFFECT_SET2D(submix, PITCH_EFFECT, AAX_PITCH, handle->info->pitch);
 
-         submix->dprops3d = _aaxDelayed3dPropsCreate();
+         submix->dprops3d = _oalRingBufferDelayed3dPropsCreate();
          if (submix->dprops3d)
          {
             const _intBufferData* dptr;
@@ -362,7 +362,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          case AAX_DISTANCE_FILTER:
          case AAX_ANGULAR_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = handle->submix->dprops3d->props3d;
+            _oalRingBufferDelayed3dProps *p3d = handle->submix->dprops3d;
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -406,7 +406,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       {
          _aaxAudioFrame* submix = handle->submix;
          rv = new_filter_handle(submix->info, type, submix->props2d,
-                                                    submix->dprops3d->props3d);
+                                                    submix->dprops3d);
          break;
       }
       default:
@@ -487,7 +487,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       {
          _aaxAudioFrame* mixer = handle->submix;
          rv = new_effect_handle(mixer->info, type, mixer->props2d,
-                                                   mixer->dprops3d->props3d);
+                                                   mixer->dprops3d);
          break;
       }
       default:
@@ -586,14 +586,14 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                if (dptr)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                  _oalRingBuffer3dProps *mp3d, *sp3d;
+                  _oalRingBufferDelayed3dProps *mp3d, *sp3d;
                   _aaxAudioFrame *submix;
                   _oalRingBuffer *rb;
 
                   submix = sensor->mixer;
 
-                  mp3d = fmixer->dprops3d->props3d;
-                  sp3d = submix->dprops3d->props3d;
+                  mp3d = fmixer->dprops3d;
+                  sp3d = submix->dprops3d;
 
                   submix->info->frequency = fmixer->info->frequency;
                   while (submix->info->frequency > 48000.0f) {
@@ -774,9 +774,9 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
             if (positional)
             {
-               _oalRingBuffer3dProps *mp3d, *ep3d = src->dprops3d->props3d;
+               _oalRingBufferDelayed3dProps *mp3d, *ep3d = src->dprops3d;
 
-               mp3d = mixer->dprops3d->props3d;
+               mp3d = mixer->dprops3d;
                if (mixer->dist_delaying)
                {
                   _handle_t *shandle = get_driver_handle(handle);
@@ -906,16 +906,16 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
             if (pos != UINT_MAX)
             {
+               _oalRingBufferDelayed3dProps *mp3d, *fp3d;
                _aaxAudioFrame *submix = sframe->submix;
-               _oalRingBuffer3dProps *mp3d, *fp3d;
                const _aaxDriverBackend *be = NULL;
                unsigned int be_pos;
 
                be = _aaxGetDriverBackendLoopback(&be_pos);
                if (be)
                {
-                  mp3d = mixer->dprops3d->props3d;
-                  fp3d = submix->dprops3d->props3d;
+                  mp3d = mixer->dprops3d;
+                  fp3d = submix->dprops3d;
 
                   submix->dist_delaying = mixer->dist_delaying;
                   if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
