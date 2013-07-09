@@ -79,30 +79,11 @@ enum
 #define _TAS_RELATIVE(q,r)    _STATE_TAS((q)->state, (r), _STATE_RELATIVE)
 #define _TAS_POSITIONAL(q,r)  _STATE_TAS((q)->state, (r), _STATE_POSITIONAL)
 
-#define _EFFECT_GETD3D(a,b,c)		_EFFECT_GET3D(a->dprops3d,b,c)
-#define _EFFECT_SETD3D_DATA(a,b,c)	_EFFECT_SET3D_DATA(a->dprops3d,b,c)
-#define _EFFECT_COPYD3D(a,b,c,d)	_EFFECT_COPY3D(a->dprops3d,b->dprops3d,c,d)
-#define _EFFECT_COPYD3D_DATA(a,b,c)	_EFFECT_COPY3D_DATA(a->dprops3d,b->dprops3d,c)
-
-#define _FILTER_GETD3D(a,b,c)		_FILTER_GET3D(a->dprops3d,b,c)
-#define _FILTER_SETD3D_DATA(a,b,c)	_FILTER_SET3D_DATA(a->dprops3d,b,c)
-#define _FILTER_COPYD3D_DATA(a,b,c)	_FILTER_COPY3D_DATA(a->dprops3d,b->dprops3d,c)
-
 enum
 {
    HRTF_FACTOR = 0,
    HRTF_OFFSET
 };
-
-typedef struct
-{
-   _oalRingBuffer3dProps* props3d;
-   float pitch, gain;
-   float buf_step;
-   int state;
-
-} _aaxDelayed3dProps;
-
 
 /* warning:
  * need to update the pre defined structure in objects.c ehwn changing
@@ -136,8 +117,8 @@ typedef struct
 {
    _aaxMixerInfo *info;
 
-   _oalRingBuffer2dProps* props2d;
-   _aaxDelayed3dProps *dprops3d;
+   _oalRingBuffer2dProps *props2d;
+   _oalRingBufferDelayed3dProps *dprops3d;
 
    _intBuffers *emitters_2d;	/* plain stereo emitters		*/
    _intBuffers *emitters_3d;	/* emitters with positional information	*/
@@ -145,13 +126,14 @@ typedef struct
    _intBuffers *devices;	/* registered input devices		*/
    _intBuffers *p3dq;		/* 3d properties delay queue            */
 
-   _oalRingBuffer* ringbuffer;
+   _oalRingBuffer *ringbuffer;
    _intBuffers *frame_ringbuffers;	/* for audio frame rendering */
    _intBuffers *ringbuffers;		/* for loopback capture */
 
-   float curr_pos_sec;
-   unsigned char dist_delaying;
    unsigned int no_registered;
+   float curr_pos_sec;
+
+   unsigned char dist_delaying;
    unsigned char refcount;
 
    unsigned char capturing;
@@ -165,7 +147,7 @@ typedef struct
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
-   _aaxDelayed3dProps *dprops3d;
+   _oalRingBufferDelayed3dProps *dprops3d;
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
@@ -203,8 +185,6 @@ void _aaxRemoveRingBufferByPos(void *, unsigned int);
 void _aaxRemoveFrameRingBufferByPos(void *, unsigned int);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
-_aaxDelayed3dProps *_aaxDelayed3dPropsCreate();
-_aaxDelayed3dProps *_aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
 void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
 void _aaxSetDefault3dProps(_oalRingBuffer3dProps *);
 
