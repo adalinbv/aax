@@ -724,8 +724,6 @@ extern _oalRingBufferMix1NFunc* _oalRingBufferMixMonoGetRenderer(enum aaxRenderM
 
 _oalRingBufferDelayed3dProps *_oalRingBufferDelayed3dPropsCreate();
 _oalRingBufferDelayed3dProps *_oalRingBufferDelayed3dPropsDup(_oalRingBufferDelayed3dProps*);
-void _oalRingBufferPrepare3d(float, float, const _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const void*, void*);
-
 
 
 int _oalRingBufferSetParamf(_oalRingBuffer*, enum _oalRingBufferParam, float);

@@ -266,6 +266,8 @@ void put_emitter(aaxEmitter);
 int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);
 
+void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float,
+                          vec4_t*, _oalRingBuffer3dProps*);
 char _aaxEmittersProcess(_oalRingBuffer*, _aaxMixerInfo*, float, float,
                          _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*,
                          _intBuffers*, _intBuffers*,

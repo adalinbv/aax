@@ -195,7 +195,7 @@ _aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 }
 
 static void
-_aaxNoneDriver3dPrepare(float ssv, float sdf, const void*fp2d, void *f3d, const void *info, void* src)
+_aaxNoneDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
 }
 
@@ -351,14 +351,14 @@ _aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
 }
 
 void
-_aaxSoftwareDriver3dPrepare(float ssv, float sdf, const void* fp2d, void* fp3d, const void* info, void* src)
+_aaxSoftwareDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
-   assert(fp2d);
+   assert(fp2dpos);
    assert(fp3d);
    assert(info);
    assert(src);
 
-   _oalRingBufferPrepare3d(ssv, sdf, fp2d, fp3d, info, src);
+   _aaxEmitterPrepare3d(src, info, ssv, sdf, fp2dpos, fp3d);
 }
 
 int
