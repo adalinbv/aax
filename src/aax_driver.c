@@ -794,7 +794,7 @@ _open_handle(aaxConfig config)
                _aaxSetDefault2dProps(mixer->props2d);
                _EFFECT_SET2D(mixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
 
-               mixer->dprops3d = _aaxDelayed3dPropsCreate();
+               mixer->dprops3d = _oalRingBufferDelayed3dPropsCreate();
                if (mixer->dprops3d)
                {
                   _EFFECT_SETD3D_DATA(mixer, VELOCITY_EFFECT,
