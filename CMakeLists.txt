@@ -37,7 +37,7 @@ SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utilities to show the capabilities of AeonWave")
 
 # We have some custom .cmake scripts not in the official distribution.
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+SET(CMAKE_MODULE_PATH "${aax-utils_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 INCLUDE(CPack_Modules)
 INCLUDE(CPack_Defaults)
@@ -122,11 +122,11 @@ endif(NOT AAX_FOUND)
 FIND_PACKAGE(XML REQUIRED)
 
 # Add definitions, compiler switches, etc.
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"
+INCLUDE_DIRECTORIES("${aax-utils_SOURCE_DIR}"
     base
     ${AAX_INCLUDE_DIR}
     ${RMALLOC_INCLUDE_DIR}
-    "${CMAKE_BINARY_DIR}/include"
+    "${aax-utils_BINARY_DIR}/include"
 )
 
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
@@ -157,5 +157,5 @@ CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
-ADD_CUSTOM_TARGET(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+#ADD_CUSTOM_TARGET(uninstall
+#  "${CMAKE_COMMAND}" -P "${aax-utils_BINARY_DIR}/cmake_uninstall.cmake")
