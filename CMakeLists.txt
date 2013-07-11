@@ -77,7 +77,7 @@ SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library")
 
 # We have some custom .cmake scripts not in the official distribution.
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+SET(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 INCLUDE(CPack_Modules)
 INCLUDE(CPack_Defaults)
@@ -94,12 +94,12 @@ ELSE(WIN32)
   SET(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   SET(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0")
   SET(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
-  SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/config;${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/postrm;${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/templates;")
+  SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/config;${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;${AeonWave_SOURCE_DIR}/admin/debian/templates;")
   # RPM
   SET(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
   SET(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
-  SET(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/admin/rpm/aeonwave.postun")
-  SET(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
+  SET(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.postun")
+  SET(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
   SET(CPACK_RPM_PACKAGE_PROVIDES "libaax2")
 ENDIF(WIN32)
 
@@ -115,12 +115,12 @@ IF(NOT XML_FOUND)
 ENDIF(NOT XML_FOUND)
 
 # Add definitions, compiler switches, etc.
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src"
-    ${CMAKE_SOURCE_DIR}
+INCLUDE_DIRECTORIES("${AeonWave_SOURCE_DIR}/src"
+    ${AeonWave_SOURCE_DIR}
     ${XML_INCLUDE_DIR}
     include
     base
-    ${CMAKE_BINARY_DIR}/include
+    ${AeonWave_BINARY_DIR}/include
 )
 
 IF(NOT CMAKE_BUILD_TYPE)
@@ -185,7 +185,7 @@ ELSE(MSVC)
     IF(NOT MINGW)
        SET(C_FLAGS "${C_FLAGS} -fPIC")
     ELSE(NOT MINGW)
-       INCLUDE_DIRECTORIES ("${PROJECT_SOURCE_DIR}/src/windows/mingw")
+       INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
        SET(C_FLAGS "${C_FLAGS} -static-libgcc")
        FOREACH(flag_var
@@ -292,19 +292,19 @@ IF(HAVE_DLFCN_H)
 ENDIF(HAVE_DLFCN_H)
 
 CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/aax/aax.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/aax/aax.h")
+    "${AeonWave_SOURCE_DIR}/include/aax/aax.h.in"
+    "${AeonWave_BINARY_DIR}/include/aax/aax.h")
 
 CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/cmake_config.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
+    "${AeonWave_SOURCE_DIR}/include/cmake_config.h.in"
+    "${AeonWave_BINARY_DIR}/include/config.h")
 
 CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/control.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/admin/debian/control")
+    "${AeonWave_SOURCE_DIR}/admin/debian/control.in"
+    "${AeonWave_BINARY_DIR}/admin/debian/control")
 CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/admin/debian/control-dev.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/admin/debian/control-dev")
+    "${AeonWave_SOURCE_DIR}/admin/debian/control-dev.in"
+    "${AeonWave_BINARY_DIR}/admin/debian/control-dev")
 
 SET( AEONWAVE_OBJS
      base/buffers.c
@@ -404,7 +404,7 @@ INSTALL(TARGETS ${LIBAEONWAVE}
         COMPONENT Headers
 )
 INSTALL(FILES 
-        ${CMAKE_CURRENT_BINARY_DIR}/include/aax/aax.h
+        ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
         DESTINATION include/aax
         COMPONENT Headers
@@ -419,7 +419,7 @@ INSTALL(FILES
 IF (UNIX AND NOT WIN32)
     macro(install_symlink _dest _source)
       install(CODE "
-             include(\"${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/Symlink.cmake\")
+             include(\"${AeonWave_SOURCE_DIR}/CMakeModules/Symlink.cmake\")
              InstallSymlink(\"${_dest}\" \"\$ENV{DESTDIR}${_source}\")")
     endmacro(install_symlink)
 
@@ -432,8 +432,8 @@ ENDIF(UNIX AND NOT WIN32)
 ### uninstall target
 #-----------------------------------------------------------------------------
 CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+  "${AeonWave_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
+  "${AeonWave_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
-ADD_CUSTOM_TARGET(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+#ADD_CUSTOM_TARGET(uninstall
+#  "${CMAKE_COMMAND}" -P "${AeonWave_BINARY_DIR}/cmake_uninstall.cmake")
