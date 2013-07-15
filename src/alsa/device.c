@@ -64,7 +64,6 @@ static _aaxDriverCallback _aaxALSADriverPlayback;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverThread _aaxALSADriverThread;
-static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
 static _aaxDriverState _aaxALSADriverState;
 static _aaxDriverParam _aaxALSADriverParam;
 static _aaxDriverLog _aaxALSADriverLog;
@@ -94,7 +93,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxALSADriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -1007,13 +1006,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
 }
 #undef TRUN
-
-int
-_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
-}
 
 static int
 _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
