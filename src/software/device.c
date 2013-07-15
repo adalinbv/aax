@@ -92,7 +92,6 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 static _aaxDriverNewHandle _aaxLoopbackDriverNewHandle;
 static _aaxDriverConnect _aaxLoopbackDriverConnect;
 static _aaxDriverDisconnect _aaxLoopbackDriverDisconnect;
-static _aaxDriver3dMixerCB _aaxLoopbackDriver3dMixer;
 
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
 static _aaxDriverParam _aaxLoopbackDriverParam;
@@ -136,7 +135,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxLoopbackDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -337,7 +336,7 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
 }
 
 int
-_aaxLoopbackDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
+_aaxSoftwareDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
 #if 0
    _driver_t *handle = (_driver_t *)id;
@@ -556,8 +555,8 @@ _aaxNoneDriverProcessFrame(void* config)
    }
    while (++stage < 2); /* positional and stereo */
 
-   _PROP_MTX_CLEAR_CHANGED(frame->dprops3d->props3d);
-   _PROP_PITCH_CLEAR_CHANGED(frame->dprops3d->props3d);
+   _PROP_MTX_CLEAR_CHANGED(frame->dprops3d);
+   _PROP_PITCH_CLEAR_CHANGED(frame->dprops3d);
 }
 
 

@@ -841,8 +841,8 @@ _open_handle(aaxConfig config)
                      size = 2*sizeof(vec4_t);
                      _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
 
-                     _PROP_PITCH_SET_CHANGED(mixer->dprops3d->props3d);
-                     _PROP_MTX_SET_CHANGED(mixer->dprops3d->props3d);
+                     _PROP_PITCH_SET_CHANGED(mixer->dprops3d);
+                     _PROP_MTX_SET_CHANGED(mixer->dprops3d);
 
                      return handle;
                   }

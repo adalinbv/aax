@@ -373,7 +373,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       case AAX_STOPPED:
          if (_IS_PLAYING(src->dprops3d))
          {
-            if (!_PROP_DISTDELAY_IS_DEFINED(src->dprops3d->props3d))
+            if (!_PROP_DISTDELAY_IS_DEFINED(src->dprops3d))
             {
                _SET_PROCESSED(src->dprops3d);
                src->pos = -1;
@@ -455,7 +455,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          switch (filter->type)
          {
          case AAX_TIMED_GAIN_FILTER:
-            _PROP_DISTDELAY_SET_DEFINED(src->dprops3d->props3d);
+            _PROP_DISTDELAY_SET_DEFINED(src->dprops3d);
             /* break not needed */
          case AAX_FREQUENCY_FILTER:
          case AAX_VOLUME_FILTER:
@@ -569,7 +569,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          {
          case AAX_PITCH_EFFECT:
          case AAX_TIMED_PITCH_EFFECT:
-            _PROP_PITCH_SET_CHANGED(src->dprops3d->props3d);
+            _PROP_PITCH_SET_CHANGED(src->dprops3d);
             /* break not needed */
          case AAX_DISTORTION_EFFECT:
          {
@@ -627,7 +627,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             if (lfo) /* enabled */
             {
                float lfo_val = _EFFECT_GET_SLOT(effect, 0, AAX_LFO_FREQUENCY);
-               _PROP_DYNAMIC_PITCH_SET_DEFINED(src->dprops3d->props3d);
+               _PROP_DYNAMIC_PITCH_SET_DEFINED(src->dprops3d);
 		/*
 		 * The vibrato effect is not gradual like tremolo but is
 		 * adjusted every update and stays constant which requires
@@ -639,7 +639,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             }
             else
             { 
-               _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->dprops3d->props3d);
+               _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->dprops3d);
                src->update_rate = 0;
             }
             rv = AAX_TRUE;
@@ -788,7 +788,7 @@ aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
          } else {
             src->dprops3d->props3d->matrix[LOCATION][3] = 1.0f;
          }
-         _PROP_MTX_SET_CHANGED(src->dprops3d->props3d);
+         _PROP_MTX_SET_CHANGED(src->dprops3d);
          rv = AAX_TRUE;
       }
       else {
@@ -1308,7 +1308,7 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *smixer, _aaxAudioFrame
       ss = _EFFECT_GET(mdp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
       ep2d->dist_delay_sec = dist / ss;
 
-      _PROP_DISTQUEUE_SET_DEFINED(ep3d);
+      _PROP_DISTQUEUE_SET_DEFINED(src->dprops3d);
       src->dprops3d->buf_step = 1.0f;
    }
 }

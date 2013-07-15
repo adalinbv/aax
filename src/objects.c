@@ -80,7 +80,7 @@ _aaxSetDefault3dProps(_oalRingBuffer3dProps *p3d)
    memset(p3d->velocity, 0, size);
 
    /* status */
-   p3d->state = 0;
+   p3d->state3d = 0;
 }
 
 

@@ -150,46 +150,90 @@ enum _oalRingBufferParam
 };
 
 #define PITCH_CHANGE			(PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
-#define _PROP_PITCH_HAS_CHANGED(q)	((q)->state & PITCH_CHANGE)
-#define _PROP_GAIN_HAS_CHANGED(q)	((q)->state & GAIN_CHANGED)
-#define _PROP_DIST_HAS_CHANGED(q)	((q)->state & DIST_CHANGED)
-#define _PROP_MTX_HAS_CHANGED(q)	((q)->state & MTX_CHANGED)
-#define _PROP_CONE_IS_DEFINED(q)	((q)->state & CONE_DEFINED)
 
-#define _PROP_PITCH_SET_CHANGED(q)	((q)->state |= PITCH_CHANGED)
-#define _PROP_GAIN_SET_CHANGED(q)	((q)->state |= GAIN_CHANGED)
-#define _PROP_DIST_SET_CHANGED(q)	((q)->state |= DIST_CHANGED)
-#define _PROP_MTX_SET_CHANGED(q)	((q)->state |= MTX_CHANGED)
-#define _PROP_CONE_SET_DEFINED(q)	((q)->state |= CONE_DEFINED)
-#define _PROP_DYNAMIC_PITCH_SET_DEFINED(q)	((q)->state |= DYNAMIC_PITCH_DEFINED)
+/* 3d properties */
+#define _PROP3D_CLEAR(q)		((q)->state3d &= (CONE_DEFINED|DYNAMIC_PITCH_DEFINED))
+#define _PROP3D_PITCH_HAS_CHANGED(q)	((q)->state3d & PITCH_CHANGE)
+#define _PROP3D_GAIN_HAS_CHANGED(q)	((q)->state3d & GAIN_CHANGED)
+#define _PROP3D_DIST_HAS_CHANGED(q)	((q)->state3d & DIST_CHANGED)
+#define _PROP3D_MTX_HAS_CHANGED(q)	((q)->state3d & MTX_CHANGED)
+#define _PROP3D_CONE_IS_DEFINED(q)	((q)->state3d & CONE_DEFINED)
 
-#define _PROP_PITCH_CLEAR_CHANGED(q)	((q)->state &= ~PITCH_CHANGED)
-#define _PROP_GAIN_CLEAR_CHANGED(q)	((q)->state &= ~GAIN_CHANGED)
-#define _PROP_DIST_CLEAR_CHANGED(q)	((q)->state &= ~DIST_CHANGED)
-#define _PROP_MTX_CLEAR_CHANGED(q)	((q)->state &= ~MTX_CHANGED)
-#define _PROP_CONE_CLEAR_DEFINED(q)	((q)->state &= ~CONE_DEFINED)
-#define _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(q)	((q)->state &= ~DYNAMIC_PITCH_DEFINED)
+#define _PROP3D_PITCH_SET_CHANGED(q)	((q)->state3d |= PITCH_CHANGED)
+#define _PROP3D_GAIN_SET_CHANGED(q)	((q)->state3d |= GAIN_CHANGED)
+#define _PROP3D_DIST_SET_CHANGED(q)	((q)->state3d |= DIST_CHANGED)
+#define _PROP3D_MTX_SET_CHANGED(q)	((q)->state3d |= MTX_CHANGED)
+#define _PROP3D_CONE_SET_DEFINED(q)	((q)->state3d |= CONE_DEFINED)
+#define _PROP3D_DYNAMIC_PITCH_SET_DEFINED(q) ((q)->state3d |= DYNAMIC_PITCH_DEFINED)
 
-/* AAX Scene extension*/
-#define _PROP_SCENE_IS_DEFINED(q)	((q)->state & SCENE_CHANGED)
-#define _PROP_REVERB_IS_DEFINED(q)	((q)->state & REVERB_CHANGED)
-#define _PROP_DISTDELAY_IS_DEFINED(q)	((q)->state & DISTDELAY_CHANGED)
-#define _PROP_DISTQUEUE_IS_DEFINED(q)	((q)->state & DISTQUEUE_CHANGED)
-#define _PROP_WIND_IS_DEFINED(q)	((q)->state & WIND_CHANGED)
+#define _PROP3D_PITCH_CLEAR_CHANGED(q)	((q)->state3d &= ~PITCH_CHANGED)
+#define _PROP3D_GAIN_CLEAR_CHANGED(q)	((q)->state3d &= ~GAIN_CHANGED)
+#define _PROP3D_DIST_CLEAR_CHANGED(q)	((q)->state3d &= ~DIST_CHANGED)
+#define _PROP3D_MTX_CLEAR_CHANGED(q)	((q)->state3d &= ~MTX_CHANGED)
+#define _PROP3D_CONE_CLEAR_DEFINED(q)	((q)->state3d &= ~CONE_DEFINED)
+#define _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED(q) ((q)->state3d &= ~DYNAMIC_PITCH_DEFINED)
 
-#define _PROP_SCENE_SET_CHANGED(q)	((q)->state |= SCENE_CHANGED)
-#define _PROP_REVERB_SET_CHANGED(q)	((q)->state |= REVERB_CHANGED)
-#define _PROP_DISTDELAY_SET_DEFINED(q)	((q)->state |= DISTDELAY_CHANGED)
-#define _PROP_DISTQUEUE_SET_DEFINED(q)	((q)->state |= (DISTQUEUE_CHANGED & DISTDELAY_CHANGED))
-#define _PROP_WIND_SET_CHANGED(q)	((q)->state |= WIND_CHANGED)
+/* delayed 3d properties */
+#define _PROP_CLEAR(q)			_PROP3D_CLEAR((q)->props3d)
+#define _PROP_PITCH_HAS_CHANGED(q)	_PROP3D_PITCH_HAS_CHANGED((q)->props3d)
+#define _PROP_GAIN_HAS_CHANGED(q)	_PROP3D_GAIN_HAS_CHANGED((q)->props3d)
+#define _PROP_DIST_HAS_CHANGED(q)	_PROP3D_DIST_HAS_CHANGED((q)->props3d)
+#define _PROP_MTX_HAS_CHANGED(q)	_PROP3D_MTX_HAS_CHANGED((q)->props3d)
+#define _PROP_CONE_IS_DEFINED(q)	_PROP3D_CONE_IS_DEFINED((q)->props3d)
 
-#define _PROP_SCENE_CLEAR_CHANGED(q)	((q)->state &= ~SCENE_CHANGED)
-#define _PROP_REVERB_CLEAR_CHANGED(q)	((q)->state &= ~REVERB_CHANGED)
-#define _PROP_DISTDELAY_CLEAR_DEFINED(q) ((q)->state &= ~DISTDELAY_CHANGED)
-#define _PROP_DISTQUEUE_CLEAR_DEFINED(q) ((q)->state &= ~(DISTQUEUE_CHANGED & DISTDELAY_CHANGED))
-#define _PROP_WIND_CLEAR_CHANGED(q)	((q)->state &= ~WIND_CHANGED)
+#define _PROP_PITCH_SET_CHANGED(q)	_PROP3D_PITCH_SET_CHANGED((q)->props3d)
+#define _PROP_GAIN_SET_CHANGED(q)	_PROP3D_GAIN_SET_CHANGED((q)->props3d)
+#define _PROP_DIST_SET_CHANGED(q)	_PROP3D_DIST_SET_CHANGED((q)->props3d)
+#define _PROP_MTX_SET_CHANGED(q)	_PROP3D_MTX_SET_CHANGED((q)->props3d)
+#define _PROP_CONE_SET_DEFINED(q)	_PROP3D_CONE_SET_DEFINED((q)->props3d)
+#define _PROP_DYNAMIC_PITCH_SET_DEFINED(q) _PROP3D_DYNAMIC_PITCH_SET_DEFINED((q)->props3d)
 
+#define _PROP_PITCH_CLEAR_CHANGED(q)	_PROP3D_PITCH_CLEAR_CHANGED((q)->props3d)
+#define _PROP_GAIN_CLEAR_CHANGED(q)	_PROP3D_GAIN_CLEAR_CHANGED((q)->props3d)
+#define _PROP_DIST_CLEAR_CHANGED(q)	_PROP3D_DIST_CLEAR_CHANGED((q)->props3d)
+#define _PROP_MTX_CLEAR_CHANGED(q)	_PROP3D_MTX_CLEAR_CHANGED((q)->props3d)
+#define _PROP_CONE_CLEAR_DEFINED(q)	_PROP3D_CONE_CLEAR_DEFINED((q)->props3d)
+#define _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(q) _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED((q)->props3d)
 
+/* 3d properties: AAX Scene extension*/
+#define _PROP3D_SCENE_IS_DEFINED(q)	((q)->state3d & SCENE_CHANGED)
+#define _PROP3D_REVERB_IS_DEFINED(q)	((q)->state3d & REVERB_CHANGED)
+#define _PROP3D_DISTDELAY_IS_DEFINED(q)	((q)->state3d & DISTDELAY_CHANGED)
+#define _PROP3D_DISTQUEUE_IS_DEFINED(q)	((q)->state3d & DISTQUEUE_CHANGED)
+#define _PROP3D_WIND_IS_DEFINED(q)	((q)->state3d & WIND_CHANGED)
+
+#define _PROP3D_SCENE_SET_CHANGED(q)	((q)->state3d |= SCENE_CHANGED)
+#define _PROP3D_REVERB_SET_CHANGED(q)	((q)->state3d |= REVERB_CHANGED)
+#define _PROP3D_DISTDELAY_SET_DEFINED(q) ((q)->state3d |= DISTDELAY_CHANGED)
+#define _PROP3D_DISTQUEUE_SET_DEFINED(q) ((q)->state3d |= (DISTQUEUE_CHANGED & DISTDELAY_CHANGED))
+#define _PROP3D_WIND_SET_CHANGED(q)	((q)->state3d |= WIND_CHANGED)
+
+#define _PROP3D_SCENE_CLEAR_CHANGED(q)	((q)->state3d &= ~SCENE_CHANGED)
+#define _PROP3D_REVERB_CLEAR_CHANGED(q)	((q)->state3d &= ~REVERB_CHANGED)
+#define _PROP3D_DISTDELAY_CLEAR_DEFINED(q) ((q)->state3d &= ~DISTDELAY_CHANGED)
+#define _PROP3D_DISTQUEUE_CLEAR_DEFINED(q) ((q)->state3d &= ~(DISTQUEUE_CHANGED & DISTDELAY_CHANGED))
+#define _PROP3D_WIND_CLEAR_CHANGED(q)	((q)->state3d &= ~WIND_CHANGED)
+
+/* delayed 3d properties: AAX Scene extension*/
+#define _PROP_SCENE_IS_DEFINED(q)	_PROP3D_SCENE_IS_DEFINED((q)->props3d)
+#define _PROP_REVERB_IS_DEFINED(q)	_PROP3D_REVERB_IS_DEFINED((q)->props3d)
+#define _PROP_DISTDELAY_IS_DEFINED(q)	_PROP3D_DISTDELAY_IS_DEFINED((q)->props3d)
+#define _PROP_DISTQUEUE_IS_DEFINED(q)	_PROP3D_DISTQUEUE_IS_DEFINED((q)->props3d)
+#define _PROP_WIND_IS_DEFINED(q)	_PROP3D_WIND_IS_DEFINED((q)->props3d)
+
+#define _PROP_SCENE_SET_CHANGED(q)	_PROP3D_SCENE_SET_CHANGED((q)->props3d)
+#define _PROP_REVERB_SET_CHANGED(q)	_PROP3D_REVERB_SET_CHANGED((q)->props3d)
+#define _PROP_DISTDELAY_SET_DEFINED(q)	_PROP3D_DISTDELAY_SET_DEFINED((q)->props3d)
+#define _PROP_DISTQUEUE_SET_DEFINED(q)	_PROP3D_DISTQUEUE_SET_DEFINED((q)->props3d)
+#define _PROP_WIND_SET_CHANGED(q)	_PROP3D_WIND_SET_CHANGED((q)->props3d)
+
+#define _PROP_SCENE_CLEAR_CHANGED(q)	_PROP3D_SCENE_CLEAR_CHANGED((q)->props3d)
+#define _PROP_REVERB_CLEAR_CHANGED(q)	_PROP3D_REVERB_CLEAR_CHANGED(((q)->props3d)
+#define _PROP_DISTDELAY_CLEAR_DEFINED(q) _PROP3D_DISTDELAY_CLEAR_DEFINED((q)->props3d)
+#define _PROP_DISTQUEUE_CLEAR_DEFINED(q) _PROP3D_DISTQUEUE_CLEAR_DEFINED((q)->props3d)
+#define _PROP_WIND_CLEAR_CHANGED(q)	_PROP3D_WIND_CLEAR_CHANGED((q)->props3d
+
+/* filters */
 #define _FILTER_GET_SLOT(F, s, p)	F->slot[s]->param[p]
 #define _FILTER_GET_SLOT_STATE(F)	F->slot[0]->state
 #define _FILTER_GET_SLOT_DATA(F, s)	F->slot[s]->data
@@ -225,6 +269,7 @@ enum _oalRingBufferParam
     P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr; 	\
     if (!s) aaxFilterSetState(F, P->filter[f].state); } while (0);
 
+/* effects */
 #define _EFFECT_GET_SLOT		_FILTER_GET_SLOT
 #define _EFFECT_GET_SLOT_STATE		_FILTER_GET_SLOT_STATE
 #define _EFFECT_GET_SLOT_DATA		_FILTER_GET_SLOT_DATA
@@ -252,7 +297,7 @@ enum _oalRingBufferParam
 #define _EFFECT_COPY2D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props2d, G2->props2d, f)
 #define _EFFECT_COPY3D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props3d, G2->props3d, f)
 
-#define _EFFECT_GETD3D(G, f, c)		_EFFECT_GET(G->dprops3d, f, p)
+#define _EFFECT_GETD3D(G, f, p)		_EFFECT_GET(G->dprops3d, f, p)
 #define _EFFECT_SETD3D_DATA(G, f, v)	_EFFECT_SET_DATA(G->dprops3d, f, v)
 #define _EFFECT_COPYD3D(G1, G2, f, p)	_EFFECT_COPY(G1->dprops3d, G2->dprops3d, f, p)
 #define _EFFECT_COPYD3D_DATA(G1, G2, f)	_EFFECT_COPY_DATA(G1->dprops3d, G2->dprops3d, f)
@@ -400,7 +445,7 @@ typedef ALIGN16 struct
    mtx4_t matrix;
    vec4_t velocity;
 
-   int state;
+   int state3d;
 
 } _oalRingBuffer3dProps ALIGN16C;
 

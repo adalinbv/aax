@@ -57,6 +57,9 @@ _aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   assert(no_samples);
+   *no_samples = 0;
+
    srbd = srb->sample;
    drbd = drb->sample;
    track_ptr = (int32_t**)drbd->scratch;

@@ -19,15 +19,18 @@
 #include <objects.h>
 #include <api.h>
 
+/**
+ * ssv -> sensor sound velocity
+ * sdf -> sensor doppler factor
+ * pos
+ */
 char
-_aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
-                    _oalRingBuffer2dProps *sp2d, _oalRingBuffer3dProps *sp3d,
-                    _oalRingBuffer2dProps *fp2d, _oalRingBuffer3dProps *fp3d,
+_aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
+                    float ssv, float sdf, _oalRingBuffer2dProps *fp2d,
+                    _oalRingBuffer3dProps *fp3d,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
-   _oalRingBuffer3dProps *pp3d = fp3d ? fp3d : sp3d;
-   _oalRingBuffer2dProps *pp2d = fp2d ? fp2d : sp2d;
    unsigned int num, stage;
    _intBuffers *he = e3d;
    char rv = AAX_FALSE;
@@ -93,19 +96,19 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   /* 3d mixing */
                   if (stage == 2)
                   {
-                     _oalRingBuffer2dProps *eprops2d;
+                     _oalRingBuffer2dProps *ep2d;
 
                      assert(_IS_POSITIONAL(src->dprops3d));
 
                      if (!src->update_ctr) {
-                        be->prepare3d(sp3d, fp3d, info, pp2d, src);
+                        be->prepare3d(src, info, ssv, sdf, fp2d->pos, fp3d);
                      }
 
                      res = AAX_FALSE;
-                     eprops2d = src->props2d;
-                     if (src->curr_pos_sec >= eprops2d->dist_delay_sec) {
-                        res = be->mix3d(be_handle, dest_rb, src_rb, eprops2d,
-                                       pp2d, emitter->track, src->update_ctr,
+                     ep2d = src->props2d;
+                     if (src->curr_pos_sec >= ep2d->dist_delay_sec) {
+                        res = be->mix3d(be_handle, dest_rb, src_rb, ep2d,
+                                       fp2d, emitter->track, src->update_ctr,
                                        nbuf, info->mode);
                      }
                   }
@@ -113,7 +116,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
                   {
                      assert(!_IS_POSITIONAL(src->dprops3d));
                      res = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
-                                           pp2d, 1.0, 1.0, src->update_ctr,
+                                           fp2d, 1.0, 1.0, src->update_ctr,
                                            nbuf);
                   }
 
@@ -186,9 +189,243 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, _aaxMixerInfo *info,
    }
    while (--stage); /* process 3d positional and stereo emitters */
 
-   _PROP_MTX_CLEAR_CHANGED(pp3d);
-   _PROP_PITCH_CLEAR_CHANGED(pp3d);
+   _PROP3D_MTX_CLEAR_CHANGED(fp3d);
+   _PROP3D_PITCH_CLEAR_CHANGED(fp3d);
 
    return rv;
 }
 
+
+/**
+ * ssv:     sensor velocity vector
+ * de:      sensor doppler factor
+ * fp2dpos: parent frame p2d->pos
+ * fp3d:    parent frame dp3d->props3d
+ */
+void
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *fp2dpos, _oalRingBuffer3dProps* fp3d)
+{
+   _oalRingBufferPitchShiftFunc* dopplerfn;
+   _oalRingBufferDelayed3dProps *edp3d;
+   _oalRingBuffer3dProps *ep3d;
+   _oalRingBuffer2dProps *ep2d;
+   _oalRingBufferDistFunc* distfn;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(src);
+   assert(info);
+
+   edp3d = src->dprops3d;
+   ep3d = edp3d->props3d;
+   ep2d = src->props2d;
+
+   edp3d->pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+   edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   if (_PROP3D_DISTQUEUE_IS_DEFINED(ep3d))
+   {
+      if (!src->p3dq) {
+         _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
+      }
+
+      if (src->p3dq)
+      {
+         _oalRingBufferDelayed3dProps *sdp3d = NULL;
+         _intBufferData *buf;
+         float pos;
+
+         _intBufAddData(src->p3dq, _AAX_DELAYED3D, edp3d);
+         if (src->curr_pos_sec <= ep2d->dist_delay_sec) {
+            return;
+         }
+
+         pos = ep2d->bufpos;
+         ep2d->bufpos += edp3d->buf_step;
+         if (pos <= 0.0f) return;
+
+         do
+         {
+            buf = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
+            if (buf)
+            {
+               sdp3d = _intBufGetDataPtr(buf);
+               free(buf);
+            }
+            --ep2d->bufpos;
+         }
+         while (ep2d->bufpos > 1.0f);
+
+         if (!sdp3d) {                  // TODO: get from buffer cache
+            sdp3d = _oalRingBufferDelayed3dPropsDup(edp3d);
+         }
+
+         src->dprops3d = sdp3d;
+         edp3d = src->dprops3d;
+         ep3d = edp3d->props3d;
+      }
+   }
+
+   distfn = _FILTER_GET_DATA(edp3d, DISTANCE_FILTER);
+   dopplerfn = _EFFECT_GET_DATA(edp3d, VELOCITY_EFFECT);
+   assert(dopplerfn);
+   assert(distfn);
+
+   if (_PROP3D_MTX_HAS_CHANGED(ep3d) || _PROP3D_MTX_HAS_CHANGED(fp3d))
+   {
+      mtx4_t mtx;
+      vec4_t epos;
+      float gain, pitch;
+      float dist, esv, ss;
+      float min, max;
+
+      /* align the emitter with the parent frame.
+       * (compensate for the parents direction offset)
+       */
+      mtx4Mul(mtx, fp3d->matrix, ep3d->matrix);
+      dist = vec3Normalize(epos, mtx[LOCATION]);
+#if 0
+ printf("parent:\t\t\t\temitter:\n");
+ PRINT_MATRICES(fp3d->matrix, ep3d->matrix);
+ printf("modified emitter\n");
+ PRINT_MATRIX(mtx);
+ printf("dist: %f\n", dist);
+#endif
+
+      /* calculate the sound velocity inbetween the emitter and the sensor */
+      esv = _EFFECT_GET(edp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+      ss = (esv+ssv) / 2.0f;
+
+      /*
+       * Doppler
+       */
+      pitch = edp3d->pitch;
+      if (dist > 1.0f)
+      {
+         float ve, vs, df;
+         vec4_t sv, ev;
+
+         /* align velocity vectors with the modified emitter position
+          * relative to the sensor
+          */
+         vec4Matrix4(sv, fp3d->velocity, fp3d->matrix);
+         vec4Matrix4(ev, ep3d->velocity, fp3d->matrix);
+         vs = vec3DotProduct(sv, epos);
+         ve = vec3DotProduct(ev, epos);
+         df = dopplerfn(vs, ve, ss/sdf);
+
+         pitch *= df;
+         edp3d->buf_step = df;
+      }
+      ep2d->final.pitch = pitch;
+
+      /*
+       * Distance queues for every speaker (volume)
+       */
+      gain = edp3d->gain;
+      if (_PROP3D_MTX_HAS_CHANGED(ep3d) || _PROP3D_MTX_HAS_CHANGED(fp3d))
+      {
+         float dist_fact, cone_volume = 1.0f;
+         float refdist, maxdist, rolloff;
+         unsigned int i;
+
+         _PROP3D_MTX_CLEAR_CHANGED(ep3d);
+         _PROP3D_MTX_CLEAR_CHANGED(fp3d);
+
+         refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
+         maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
+         rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
+         dist_fact = _MIN(dist/refdist, 1.0f);
+
+         switch (info->mode)
+         {
+         case AAX_MODE_WRITE_HRTF:
+         {
+            unsigned int t, tracks = info->no_tracks;
+            for (t=0; t<tracks; t++)
+            {
+               for (i=0; i<3; i++)
+               {
+                  float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
+                  float offs, fact;
+
+                  ep2d->pos[3*t+i][0] = dp * dist_fact;  /* -1 .. +1 */
+
+                  dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
+                  if (i == DIR_BACK) dp *= dp;
+                  if (i == DIR_UPWD) dp = 0.25f*(5.0f*dp - dp*dp);
+
+                  offs = info->hrtf[HRTF_OFFSET][i];
+                  fact = info->hrtf[HRTF_FACTOR][i];
+                  ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
+                  ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
+               }
+            }
+            break;
+         }
+         case AAX_MODE_WRITE_SPATIAL:
+            for (i=0; i<info->no_tracks; i++)
+            {
+               float dp = vec3DotProduct(fp2dpos[i], epos);
+               ep2d->pos[i][0] = 0.5f + dp * dist_fact;
+            }
+            break;
+         case AAX_MODE_WRITE_SURROUND:
+         {
+            unsigned int t, tracks = info->no_tracks;
+            for (t=0; t<tracks; t++)
+            {
+               for (i=1; i<3; i++) /* skip left-right */
+               {
+                  float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
+                  float offs, fact;
+
+                  dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
+                  offs = info->hrtf[HRTF_OFFSET][i];
+                  fact = info->hrtf[HRTF_FACTOR][i];
+                  ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
+                  ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
+               }
+            }
+            /* break not needed */
+         }
+         default: /* AAX_MODE_WRITE_STEREO */
+            for (i=0; i<info->no_tracks; i++)
+            {
+               vec4Mulvec4(ep2d->pos[i], fp2dpos[i], epos);
+               vec4ScalarMul(ep2d->pos[i], dist_fact);
+            }
+         }
+
+         gain *= distfn(dist, refdist, maxdist, rolloff, ss, 1.0f);
+
+         /*
+          * audio cone recalculaion
+          */
+         if (_PROP3D_CONE_IS_DEFINED(ep3d))
+         {
+            float inner_vec, tmp = -mtx[DIR_BACK][2];
+
+            inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
+            if (tmp < inner_vec)
+            {
+               float outer_vec, outer_gain;
+               outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
+               outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
+               if (outer_vec < tmp)
+               {
+                  tmp -= inner_vec;
+                  tmp *= (outer_gain - 1.0f);
+                  tmp /= (outer_vec - inner_vec);
+                  cone_volume = (1.0f + tmp);
+               } else {
+                  cone_volume = outer_gain;
+               }
+            }
+         }
+         gain *= cone_volume;
+      }
+      min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
+      max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
+      ep2d->final.gain = _MINMAX(gain, min, max);
+   }
+}

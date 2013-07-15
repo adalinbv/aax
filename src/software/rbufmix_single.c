@@ -85,8 +85,8 @@ _oalRingBufferMixMonoGetRenderer(enum aaxRenderMode mode)
  */
 int
 _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
-                              _oalRingBuffer2dProps *p2d,
-                              _oalRingBuffer2dProps *mix_p2d,
+                              _oalRingBuffer2dProps *ep2d,
+                              _oalRingBuffer2dProps *fp2d,
                               unsigned char ch, unsigned char ctr,
                               unsigned int n)
 {
@@ -105,37 +105,37 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    assert(dest != 0);
    assert(src->sample != 0);
    assert(dest->sample != 0);
-   assert(p2d != 0);
+   assert(ep2d != 0);
 
    /** Pitch */
-   pitch = p2d->final.pitch; /* Doppler effect */
-   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+   pitch = ep2d->final.pitch; /* Doppler effect */
+   lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   if (mix_p2d)
+   if (fp2d)
    {
-      float lfo = mix_p2d->final.pitch_lfo-0.5f;
-      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
+      float lfo = fp2d->final.pitch_lfo-0.5f;
+      pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
       pitch = 1.0f+((pitch-1.0f)*lfo);
    }
 
-   env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
+   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
 
-   max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
+   max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);
-   if (sptr == NULL) {
+   sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, n);
+   if (sptr == NULL || dno_samples == 0) {
       return ret;
    }
 
    /** Volume */
-   env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   env = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (src->playing == 0 && src->stopped == 1)
    {
       /* the emitter was already flagged as stopped */
@@ -148,8 +148,8 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      p2d->dist_delay_sec -= dest->sample->duration_sec;
-      if (p2d->dist_delay_sec <= 0.0f) {
+      ep2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -161,18 +161,18 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* 3d: distance and audio-cone related gain */
-   gain *= p2d->final.gain;
+   gain *= ep2d->final.gain;
 
    /* apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
-   if (mix_p2d)
+   if (fp2d)
    {
-      gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
-      max *= mix_p2d->final.gain_lfo;
+      gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
+      max *= fp2d->final.gain_lfo;
    }
 
    /* tremolo and envelope following gain filter */
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
       if (lfo->envelope)
@@ -192,7 +192,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* final emitter volume */
-   gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -220,7 +220,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
        *
        * 0.8776 = cosf(0.5)
        */
-      dir_fact = _MIN(0.8776f + p2d->pos[track][DIR_RIGHT], 1.0f);
+      dir_fact = _MIN(0.8776f + ep2d->pos[track][DIR_RIGHT], 1.0f);
       ch_volume = gain * dir_fact;
       do
       {
@@ -228,7 +228,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
          int32_t *ptr = sptr[ch]+offs;
          int32_t *dptr = t + offs;
 
-         vstart = gain * svol * p2d->prev_gain[track];
+         vstart = gain * svol * ep2d->prev_gain[track];
          vend = gain * evol * ch_volume;
          vstep = (vend - vstart) / dno_samples;
 
@@ -238,7 +238,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
 
 //       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
          _batch_fmadd(dptr, ptr, dno_samples, vstart, vstep);
-         p2d->prev_gain[track] = ch_volume;
+         ep2d->prev_gain[track] = ch_volume;
       }
       while (0);
    }
@@ -260,8 +260,8 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
  */
 int
 _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
-                                _oalRingBuffer2dProps *p2d,
-                                _oalRingBuffer2dProps *mix_p2d,
+                                _oalRingBuffer2dProps *ep2d,
+                                _oalRingBuffer2dProps *fp2d,
                                 unsigned char ch, unsigned char ctr,
                                 unsigned int n)
 {
@@ -280,38 +280,38 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    assert(dest != 0);
    assert(src->sample != 0);
    assert(dest->sample != 0);
-   assert(p2d != 0);
+   assert(ep2d != 0);
 
    /** Pitch */
-   pitch = p2d->final.pitch; /* Doppler effect */
-   pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+   pitch = ep2d->final.pitch; /* Doppler effect */
+   pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+   lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   if (mix_p2d)
+   if (fp2d)
    {
-      float lfo = mix_p2d->final.pitch_lfo-0.5f;
-      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
+      float lfo = fp2d->final.pitch_lfo-0.5f;
+      pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
       pitch = 1.0f+((pitch-1.0f)*lfo);
    }
 
-   env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
+   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
 
-   max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
+   max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);
+   sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, n);
    if (sptr == NULL) {
       return ret;
    }
 
    /** Volume */
-   env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   env = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (src->playing == 0 && src->stopped == 1)
    {
       /* the emitter was already flagged as stopped */
@@ -324,8 +324,8 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      p2d->dist_delay_sec -= dest->sample->duration_sec;
-      if (p2d->dist_delay_sec <= 0.0f) {
+      ep2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -337,18 +337,18 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* 3d: distance and audio-cone related gain */
-   gain *= p2d->final.gain;
+   gain *= ep2d->final.gain;
 
    /* apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
-   if (mix_p2d)
+   if (fp2d)
    {
-      gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
-      max *= mix_p2d->final.gain_lfo;
+      gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
+      max *= fp2d->final.gain_lfo;
    }
 
    /* tremolo and envelope following gain filter */
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
       if (lfo->envelope) 
@@ -368,7 +368,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* final emitter volume */
-   gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -391,10 +391,10 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
        * vertical positioning
        **/
 #if 1
-      dir_fact = p2d->pos[DIR_UPWD+3*track][0];
+      dir_fact = ep2d->pos[DIR_UPWD+3*track][0];
       hrtf_volume[DIR_UPWD] = gain * 0.25f;
 #else
-      dir_fact = (p2d->pos[DIR_UPWD+3*track][0]);
+      dir_fact = (ep2d->pos[DIR_UPWD+3*track][0]);
       hrtf_volume[DIR_UPWD] = gain * (-0.25 +  0.75f*dir_fact);
 #endif
 
@@ -402,10 +402,10 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
        * horizontal positioning, back-front
        **/
 #if 1
-      dir_fact = p2d->pos[DIR_BACK+3*track][0];
+      dir_fact = ep2d->pos[DIR_BACK+3*track][0];
       hrtf_volume[DIR_BACK] = gain * (0.25f + 0.5f*dir_fact);
 #else
-      dir_fact = _MIN(0.33f - p2d->pos[DIR_BACK+3*track][0], 1.0f);
+      dir_fact = _MIN(0.33f - ep2d->pos[DIR_BACK+3*track][0], 1.0f);
       hrtf_volume[DIR_BACK] = gain * dir_fact;
 #endif
 
@@ -419,7 +419,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
        *
        * 0.8776 = cosf(0.5)
        */
-      dir_fact = _MIN(0.8776f + p2d->pos[track][DIR_RIGHT], 1.0f);
+      dir_fact = _MIN(0.8776f + ep2d->pos[track][DIR_RIGHT], 1.0f);
       ch_volume = gain * dir_fact;
       do
       {
@@ -428,7 +428,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          int32_t *dptr = t + offs;
          int j;
 
-         vstart = gain * svol * p2d->prev_gain[track];
+         vstart = gain * svol * ep2d->prev_gain[track];
          vend = gain * evol * ch_volume;
          vstep = (vend - vstart) / dno_samples;
 
@@ -438,11 +438,11 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
 
 //       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
          _batch_fmadd(dptr, ptr, dno_samples, vstart, vstep);
-         p2d->prev_gain[track] = ch_volume;
+         ep2d->prev_gain[track] = ch_volume;
 
          for (j=1; j<3; j++) /* skip left-right delays */
          {
-            int diff = (int)p2d->hrtf[track][j];
+            int diff = (int)ep2d->hrtf[track][j];
             float v_start, v_step;
 
             assert(diff < (int)rbd->dde_samples);
@@ -474,8 +474,8 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
  */
 int
 _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
-                               _oalRingBuffer2dProps *p2d,
-                               _oalRingBuffer2dProps *mix_p2d,
+                               _oalRingBuffer2dProps *ep2d,
+                               _oalRingBuffer2dProps *fp2d,
                                unsigned char ch, unsigned char ctr,
                                unsigned int n)
 {
@@ -494,38 +494,38 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    assert(dest != 0);
    assert(src->sample != 0);
    assert(dest->sample != 0);
-   assert(p2d != 0);
+   assert(ep2d != 0);
 
    /** Pitch */
-   pitch = p2d->final.pitch; /* Doppler effect */
-   pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+   pitch = ep2d->final.pitch; /* Doppler effect */
+   pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+   lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   if (mix_p2d)
+   if (fp2d)
    {
-      float lfo = mix_p2d->final.pitch_lfo-0.5f;
-      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
+      float lfo = fp2d->final.pitch_lfo-0.5f;
+      pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
       pitch = 1.0f+((pitch-1.0f)*lfo);
    }
 
-   env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
+   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
 
-   max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
+   max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);
+   sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, n);
    if (sptr == NULL) {
       return ret;
    }
 
    /** Volume */
-   env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   env = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (src->playing == 0 && src->stopped == 1)
    {
       /* the emitter was already flagged as stopped */
@@ -538,8 +538,8 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      p2d->dist_delay_sec -= dest->sample->duration_sec;
-      if (p2d->dist_delay_sec <= 0.0f) {
+      ep2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -551,18 +551,18 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* 3d: distance and audio-cone related gain */
-   gain *= p2d->final.gain;
+   gain *= ep2d->final.gain;
 
    /* apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
-   if (mix_p2d)
+   if (fp2d)
    {
-      gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
-      max *= mix_p2d->final.gain_lfo;
+      gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
+      max *= fp2d->final.gain_lfo;
    }
    
    /* tremolo and envelope following gain filter */
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
       if (lfo->envelope) 
@@ -582,7 +582,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* final emitter volume */
-   gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -601,15 +601,15 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       float vstart, vend, vstep;
       float dir_fact;
 
-      dir_fact = p2d->pos[track][DIR_RIGHT];
-      vstart = svol * gain * dir_fact * p2d->prev_gain[track];
+      dir_fact = ep2d->pos[track][DIR_RIGHT];
+      vstart = svol * gain * dir_fact * ep2d->prev_gain[track];
       vend   = evol * gain * dir_fact * gain;
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
       _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
-      p2d->prev_gain[track] = gain;
+      ep2d->prev_gain[track] = gain;
    }
 
    return ret;
@@ -630,14 +630,14 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
 
 /* the time delay from ear to ear, in seconds */
 #define HEAD_DELAY	p2d->head[0]
-#define IDT_FB_DEVIDER	(p2d->head[0] / p2d->head[1])
-#define IDT_UD_DEVIDER	(p2d->head[0] / p2d->head[2])
+#define IDT_FB_DEVIDER	(ep2d->head[0] / ep2d->head[1])
+#define IDT_UD_DEVIDER	(ep2d->head[0] / ep2d->head[2])
 #define IDT_UD_OFFSET	p2d->head[3]
 
 int
 _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
-                            _oalRingBuffer2dProps *p2d,
-                            _oalRingBuffer2dProps *mix_p2d,
+                            _oalRingBuffer2dProps *ep2d,
+                            _oalRingBuffer2dProps *fp2d,
                             unsigned char ch, unsigned char ctr,
                             unsigned int n)
 {
@@ -656,40 +656,40 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    assert(dest != 0);
    assert(src->sample != 0);
    assert(dest->sample != 0);
-   assert(p2d != 0);
+   assert(ep2d != 0);
 
    /** Pitch */
-   pitch = p2d->final.pitch; /* Doppler effect */
-   pitch *= _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+   pitch = ep2d->final.pitch; /* Doppler effect */
+   pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+   lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
       pitch *= lfo->get(lfo, NULL, 0, 0);
    }
 
-   if (mix_p2d)
+   if (fp2d)
    {
-      float lfo = mix_p2d->final.pitch_lfo-0.5f;
-      pitch *= _EFFECT_GET(mix_p2d, PITCH_EFFECT, AAX_PITCH);
+      float lfo = fp2d->final.pitch_lfo-0.5f;
+      pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
       pitch = 1.0f+((pitch-1.0f)*lfo);
    }
 
-   env = _EFFECT_GET_DATA(p2d, TIMED_PITCH_EFFECT);
+   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
 
-   max = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_MAX_PITCH);
+   max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
    // make sure the returned buffer has at least ddesamps prior to sptr[track]
    rbd = dest->sample;
    offs = ddesamps = rbd->dde_samples;
-   sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);
+   sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, n);
    if (sptr == NULL) {
       return ret;
    }
 
    /** Volume */
-   env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   env = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (src->playing == 0 && src->stopped == 1)
    {
       /* the emitter was already flagged as stopped */
@@ -702,8 +702,8 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      p2d->dist_delay_sec -= dest->sample->duration_sec;
-      if (p2d->dist_delay_sec <= 0.0f) {
+      ep2d->dist_delay_sec -= dest->sample->duration_sec;
+      if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
@@ -715,18 +715,18 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* 3d: distance and audio-cone related gain */
-   gain *= p2d->final.gain;
+   gain *= ep2d->final.gain;
 
    /* apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
-   if (mix_p2d)
+   if (fp2d)
    {
-      gain *= _FILTER_GET(mix_p2d, VOLUME_FILTER, AAX_GAIN);
-      max *= mix_p2d->final.gain_lfo;
+      gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
+      max *= fp2d->final.gain_lfo;
    }
 
    /* tremolo and envelope following gain filter */
-   lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
       if (lfo->envelope) 
@@ -746,7 +746,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    }
 
    /* final emitter volume */
-   gain *= _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
@@ -765,9 +765,9 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       float hrtf_volume[3];
       int j;
 
-      vstart = gain * svol * p2d->prev_gain[track];
+      vstart = gain * svol * ep2d->prev_gain[track];
       vend = gain * evol * gain;
-      p2d->prev_gain[track] = vend;
+      ep2d->prev_gain[track] = vend;
 
       /*
        * IID; Interaural Intensitive Differenc
@@ -777,30 +777,30 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * horizontal positioning, left-right
        **/
-      dir_fact = p2d->pos[DIR_RIGHT+3*track][0];
+      dir_fact = ep2d->pos[DIR_RIGHT+3*track][0];
       hrtf_volume[DIR_RIGHT] = 0.5f + 0.75f*dir_fact*vend;
-// printf("l-r: %i, volume %f, delay: %f, dir_fact: %f\n", track, hrtf_volume[DIR_RIGHT], p2d->hrtf[track][DIR_RIGHT]/48000.0, dir_fact);
+// printf("l-r: %i, volume %f, delay: %f, dir_fact: %f\n", track, hrtf_volume[DIR_RIGHT], ep2d->hrtf[track][DIR_RIGHT]/48000.0, dir_fact);
 
       /**
        * vertical positioning
        **/
-      dir_fact = (p2d->pos[DIR_UPWD+3*track][0]);
+      dir_fact = (ep2d->pos[DIR_UPWD+3*track][0]);
       hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
-// printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", track, hrtf_volume[DIR_UPWD], p2d->hrtf[track][DIR_UPWD]/48000.0, dir_fact);
+// printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", track, hrtf_volume[DIR_UPWD], ep2d->hrtf[track][DIR_UPWD]/48000.0, dir_fact);
 
       /**
        * horizontal positioning, back-front
        **/
-      dir_fact = (p2d->pos[DIR_BACK+3*track][0]);
+      dir_fact = (ep2d->pos[DIR_BACK+3*track][0]);
       hrtf_volume[DIR_BACK] = (0.25f + 0.5f*dir_fact)*vend;
-// printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", track, hrtf_volume[DIR_BACK], p2d->hrtf[track][DIR_BACK]/48000.0, dir_fact);
+// printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", track, hrtf_volume[DIR_BACK], ep2d->hrtf[track][DIR_BACK]/48000.0, dir_fact);
 
       dptr = t+offs;
       ptr = sptr[ch]+offs;
       // vstep = (vend - vstart) / dno_samples;
       for (j=0; j<3; j++)
       {
-         int diff = (int)p2d->hrtf[track][j];
+         int diff = (int)ep2d->hrtf[track][j];
          float v_start, v_step;
 
          assert(diff < (int)ddesamps);
