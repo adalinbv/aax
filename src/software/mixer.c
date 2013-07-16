@@ -505,19 +505,6 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
    float gain;
    int res;
 
-   if (devices)
-   {
-      _sensor_t* ssr = (_sensor_t*)sensor;
-      _aaxSensorsProcess(dest_rb, devices, props2d, ssr->mixer->info->track);
-   }
-
-   if (frames)
-   {
-      _intBuffers *mixer_frames = (_intBuffers*)frames;
-      _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
-   }
-   be->effects(be, be_handle, dest_rb, props2d);
-   be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
@@ -601,10 +588,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             {
                _oalRingBuffer3dProps sp3d;
                _oalRingBuffer2dProps sp2d;
+               char fprocess = AAX_TRUE;
                float ssv, sdf;
-#if !THREADED_FRAMES
-               float gain;
-#endif
 
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
@@ -629,40 +614,16 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                   _aaxSoftwareMixerSignalFrames(mixer->frames,
                                                 mixer->info->refresh_rate);
                }
-
-               /* main mixer */
-               _aaxEmittersProcess(dest, handle->info, ssv, sdf, &sp2d, &sp3d,
-                                   mixer->emitters_2d, mixer->emitters_3d,
-                                   be, be_handle);
+               fprocess = AAX_FALSE;
+#endif
+               _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf, NULL, NULL,
+                                     &sp2d, &sp3d, be, be_handle, fprocess);
 
                res = _aaxSoftwareMixerPlayFrame(dest, mixer->devices,
                                                 mixer->ringbuffers,
                                                 mixer->frames,
                                                 &sp2d, mixer->capturing,
                                                 sensor, be, be_handle);
-
-#else
-               _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf, NULL, NULL,
-                                     &sp2d, &sp3d, be, be_handle);
-
-               /** play back all mixed audio */
-               gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
-               res = be->play(be_handle, dest, 1.0, gain);
-               if TEST_FOR_TRUE(mixer->capturing)
-               {
-                  _intBuffers *mixer_ringbuffers;
-                  _oalRingBuffer *new_rb;
-
-                  mixer_ringbuffers = (_intBuffers*)mixer->ringbuffers;
-                  new_rb = _oalRingBufferDuplicate(dest, AAX_TRUE, AAX_FALSE);
-
-                  _oalRingBufferForward(new_rb);
-                  _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
-               }
-
-               _oalRingBufferClear(dest);
-               _oalRingBufferStart(dest);
-#endif
             }
          }
       }

@@ -151,7 +151,7 @@ void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
                                    _aaxAudioFrame*, _aaxAudioFrame*,
                                    const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
-char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const _aaxDriverBackend*, void*);
+char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const _aaxDriverBackend*, void*, char);
 void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
 
 /* --- Instrument --- */
