@@ -46,11 +46,15 @@
 #define RADIUS			10.0f
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
-aaxVec3f EmitterPos = { 10000.0f, -1000.0f, 0.0f };
+#define XEPOS		10000.0f
+#define YEPOS		-1000.0f
+#define ZEPOS		90.0f
+
+aaxVec3f EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
 aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
 aaxVec3f EmitterVel = {     0.0f,     0.0f, 0.0f };
 
-aaxVec3f SensorPos = { 10000.0f, -1000.0f,  0.0f };
+aaxVec3f SensorPos = { 10000.0f, -1000.0f, 90.0f };
 aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
 aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
 aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };
@@ -160,9 +164,9 @@ int main(int argc, char **argv)
 
                 msecSleep(50);
 
-                EmitterPos[0] = 10000.0f + RADIUS * sinf(ang);
-                EmitterPos[2] = -RADIUS * cosf(ang);
-                /* EmitterPos[1] = -1000.0f -RADIUS * cosf(ang); */
+                EmitterPos[0] = XEPOS + RADIUS * sinf(ang);
+                EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
+                /* EmitterPos[1] = YEPOS + -RADIUS * cosf(ang); */
 
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);
