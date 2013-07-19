@@ -189,9 +189,6 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
    }
    while (--stage); /* process 3d positional and stereo emitters */
 
-   _PROP3D_MTX_CLEAR_CHANGED(fp3d);
-   _PROP3D_PITCH_CLEAR_CHANGED(fp3d);
-
    return rv;
 }
 
@@ -283,12 +280,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        */
       mtx4Mul(mtx, fp3d->matrix, ep3d->matrix);
       dist = vec3Normalize(epos, mtx[LOCATION]);
-#if 0
- printf("parent:\t\t\t\temitter:\n");
+#if 1
+ printf("# emitter parent:\t\t\t\temitter:\n");
  PRINT_MATRICES(fp3d->matrix, ep3d->matrix);
- printf("modified emitter\n");
+ printf("# modified emitter\n");
  PRINT_MATRIX(mtx);
- printf("dist: %f\n", dist);
+ printf("# dist: %f\n", dist);
 #endif
 
       /* calculate the sound velocity inbetween the emitter and the sensor */
@@ -329,7 +326,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          unsigned int i;
 
          _PROP3D_MTX_CLEAR_CHANGED(ep3d);
-         _PROP3D_MTX_CLEAR_CHANGED(fp3d);
 
          refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
          maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
