@@ -189,12 +189,11 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
             vec3Copy(upwd, up);
             vec3Copy(fwd, at);
             vec3CrossProduct(side, fwd, upwd);
-//          vec3CrossProduct(upwd, side, fwd);
 
             vec3Negate(back, fwd);
             mtx4Copy(mtx, aaxIdentityMatrix);
             vec3Normalize(mtx[0], side);
-            vec3Normalize(mtx[1], up); // upwd
+            vec3Normalize(mtx[1], up);
             vec3Normalize(mtx[2], back);
             vec3Negate(mtx[3], pos);
             rv = AAX_TRUE;
@@ -231,12 +230,11 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
                vec3Copy(upwd, up);
                vec3Copy(fwd, at);
                vec3CrossProduct(side, fwd, upwd);
-//             vec3CrossProduct(upwd, side, fwd);
 
                vec3Negate(back, fwd);
                mtx4Copy(mtx, aaxIdentityMatrix);
                vec3Normalize(mtx[0], side);
-               vec3Normalize(mtx[1], up); // upwd
+               vec3Normalize(mtx[1], up);
                vec3Normalize(mtx[2], back);
                vec3Negate(mtx[3], pos);
                rv = AAX_TRUE;
