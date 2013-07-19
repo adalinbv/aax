@@ -554,9 +554,6 @@ _aaxNoneDriverProcessFrame(void* config)
       }
    }
    while (++stage < 2); /* positional and stereo */
-
-   _PROP_MTX_CLEAR_CHANGED(frame->dprops3d);
-   _PROP_PITCH_CLEAR_CHANGED(frame->dprops3d);
 }
 
 
