@@ -497,7 +497,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 }
 
 int
-_aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle)
+_aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
@@ -505,6 +505,13 @@ _aaxSoftwareMixerPlayFrame(void* rb, const void* devices, const void* ringbuffer
    float gain;
    int res;
 
+   if (frames)
+   {
+      _intBuffers *mixer_frames = (_intBuffers*)frames;
+      _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
+   }
+   be->effects(be, be_handle, dest_rb, props2d);
+   be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
@@ -618,12 +625,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 #endif
                _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf, NULL, NULL,
                                      &sp2d, &sp3d, be, be_handle, fprocess);
-
-               res = _aaxSoftwareMixerPlayFrame(dest, mixer->devices,
-                                                mixer->ringbuffers,
-                                                mixer->frames,
-                                                &sp2d, mixer->capturing,
-                                                sensor, be, be_handle);
+               res = _aaxSoftwareMixerPlay(dest, mixer->devices,
+                                           mixer->ringbuffers,  mixer->frames,
+                                           &sp2d, mixer->capturing,
+                                           sensor, be, be_handle);
             }
          }
       }
