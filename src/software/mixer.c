@@ -625,6 +625,13 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 #endif
                _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf, NULL, NULL,
                                      &sp2d, &sp3d, be, be_handle, fprocess);
+
+               /* copy back the altered sp3d; modified matrix and state */
+               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               _aax_memcpy(mixer->dprops3d->props3d,
+                           &sp3d, sizeof(_oalRingBuffer3dProps));
+               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
                res = _aaxSoftwareMixerPlay(dest, mixer->devices,
                                            mixer->ringbuffers,  mixer->frames,
                                            &sp2d, mixer->capturing,
