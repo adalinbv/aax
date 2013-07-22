@@ -362,9 +362,9 @@ mtx4Rotate(mtx4 mtx, float angle_rad, float x, float y, float z)
 {
    if (angle_rad)
    {
-      float c = cosf(angle_rad);
-      float t = 1.00f - c;
       float s = sinf(angle_rad);
+      float c = cosf(angle_rad);
+      float t = 1.0f - c;
       vec3 axis, tmp;
       mtx4_t m, o;
 
@@ -373,24 +373,41 @@ mtx4Rotate(mtx4 mtx, float angle_rad, float x, float y, float z)
       tmp[2] = z;
       vec3Normalize(axis, tmp);
 
-      /* rotation matrix */
+ 	     /* rotation matrix */
+#if 0
       m[0][0] = axis[0]*axis[0]*t + c;
       m[1][0] = axis[0]*axis[1]*t + axis[2]*s;
       m[2][0] = axis[0]*axis[2]*t - axis[1]*s;
-      m[3][0] = 0.0;
+      m[3][0] = 0.0f;
 
       m[0][1] = axis[1]*axis[0]*t - axis[2]*s;
       m[1][1] = axis[1]*axis[1]*t + c;
       m[2][1] = axis[1]*axis[2]*t + axis[0]*s;
-      m[3][1] = 0.0;
+      m[3][1] = 0.0f;
         
       m[0][2] = axis[2]*axis[0]*t + axis[1]*s;
       m[1][2] = axis[2]*axis[1]*t - axis[0]*s;
       m[2][2] = axis[2]*axis[2]*t + c;
-      m[3][2] = 0.0;
+      m[3][2] = 0.0f;
+#else
+      m[0][0] = axis[0]*axis[0]*t + c;
+      m[0][1] = axis[0]*axis[1]*t + axis[2]*s;
+      m[0][2] = axis[0]*axis[2]*t - axis[1]*s;
+      m[0][3] = 0.0f;
 
-      m[0][3] = m[1][3] = m[2][3] = 0.0;
-      m[3][3] = 1.0;
+      m[1][0] = axis[1]*axis[0]*t - axis[2]*s;
+      m[1][1] = axis[1]*axis[1]*t + c;
+      m[1][2] = axis[1]*axis[2]*t + axis[0]*s;
+      m[1][3] = 0.0f;
+        
+      m[2][0] = axis[2]*axis[0]*t + axis[1]*s;
+      m[2][1] = axis[2]*axis[1]*t - axis[0]*s;
+      m[2][2] = axis[2]*axis[2]*t + c;
+      m[2][3] = 0.0f;
+#endif
+
+      m[0][3] = m[1][3] = m[2][3] = 0.0f;
+      m[3][3] = 1.0f;
 
       mtx4Copy(o, mtx);
       mtx4Mul(mtx, o, m);
