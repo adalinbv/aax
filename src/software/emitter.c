@@ -267,7 +267,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(dopplerfn);
    assert(distfn);
 
-   if (_PROP3D_MTX_HAS_CHANGED(ep3d) || _PROP3D_MTX_HAS_CHANGED(fp3d))
+   if (_PROP3D_MTXSPEED_HAS_CHANGED(ep3d) || _PROP3D_MTXSPEED_HAS_CHANGED(fp3d))
    {
       mtx4_t mtx;
       vec4_t epos;

@@ -226,6 +226,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
       if (velocity && !detect_nan_vec3(velocity))
       {
          vec3Copy(handle->submix->dprops3d->props3d->velocity, velocity);
+         _PROP_SPEED_SET_CHANGED(handle->submix->dprops3d);
          rv = AAX_TRUE;
       }
       else {

@@ -813,6 +813,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
       {
          _aaxEmitter *src = handle->source;
          vec3Copy(src->dprops3d->props3d->velocity, velocity);
+         _PROP_SPEED_SET_CHANGED(src->dprops3d);
          rv = AAX_TRUE;
       }
       else {
