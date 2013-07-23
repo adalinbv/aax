@@ -73,10 +73,11 @@ extern vec3Copy_proc vec3Copy;
 extern vec3Devide_proc vec3Devide;
 extern vec3Mulvec3_proc vec3Mulvec3;
 extern vec3Sub_proc vec3Sub;
+void vec3Set(vec3 d, float x, float y, float z);
 void vec3Negate(vec3 d, const vec3 v);
-
 void vec3Inverse(vec3 v1, const vec3 v2);
 void vec3Matrix3(vec3 d, const vec3 v, mtx3 m);
+
 void mtx3Sub(mtx3 d, mtx3 m);
 void mtx3Copy(mtx3 d, mtx3 m);
 
@@ -92,14 +93,12 @@ extern vec3DotProduct_proc vec3DotProduct;
 extern vec3Normalize_proc vec3Normalize;
 extern vec3CrossProduct_proc vec3CrossProduct;
 
-
 typedef void (*vec4Copy_proc)(vec4 d, const vec4 v);
 typedef void (*vec4Add_proc)(vec4 d, const vec4 v);
 typedef void (*vec4Sub_proc)(vec4 d, const vec4 v);
 typedef void (*vec4Devide_proc)(vec4 d, float s);
 typedef void (*vec4Mulvec4_proc)(vec4 r, const vec4 v1, const vec4 v2);
 typedef void (*vec4Matrix4_proc)(vec4 d, const vec4 v, mtx4 m);
-typedef void (*mtx4Mul_proc)(mtx4 d, mtx4 m1, mtx4 m2);
 
 extern vec4Add_proc vec4Add;
 extern vec4Copy_proc vec4Copy;
@@ -107,15 +106,22 @@ extern vec4Devide_proc vec4Devide;
 extern vec4Mulvec4_proc vec4Mulvec4;
 extern vec4Sub_proc vec4Sub;
 extern vec4Matrix4_proc vec4Matrix4;
-extern mtx4Mul_proc mtx4Mul;
+
 void vec4ScalarMul(vec4 r, float v);
+void vec4Negate(vec4 d, const vec4 v);
+void vec4Set(vec4 d, float x, float y, float z, float w);
+
+typedef void (*mtx4Mul_proc)(mtx4 d, mtx4 m1, mtx4 m2);
+
+extern mtx4Mul_proc mtx4Mul;
+
+void mtx4Sub(mtx4 d, mtx4 m);
 void mtx4MulVec4(vec4 d, mtx4 m, const vec4 v);
 void mtx4Translate(mtx4 m, float x, float y, float z);
 void mtx4Rotate(mtx4 m, float angle, float x, float y, float z);
 void mtx4InverseSimple(mtx4 d, mtx4 m);
-void mtx4Sub(mtx4 d, mtx4 m);
+void mtx4SetAbsolute(mtx4 d, char);
 void mtx4Copy(mtx4 d, void *);
-void vec4Negate(vec4 d, const vec4 v);
 
 typedef void (*ivec4Copy_proc)(ivec4 d, const ivec4 v);
 typedef void (*ivec4Add_proc)(ivec4 d, ivec4 v);

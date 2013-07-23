@@ -26,6 +26,14 @@ _vec3Copy(vec3 d, const vec3 v)
 }
 
 void
+vec3Set(vec3 d, float x, float y, float z)
+{
+   d[0] = x;
+   d[1] = y;
+   d[3] = z;
+}
+
+void
 vec3Negate(vec3 d, const vec3 v)
 {
    d[0] = -v[0];
@@ -156,9 +164,12 @@ _vec4Copy(vec4 d, const vec4 v)
 }
 
 void
-mtx4Copy(mtx4 d, void *m)
+vec4Set(vec4 d, float x, float y, float z, float w)
 {
-   memcpy(d, m, sizeof(mtx4));
+   d[0] = x;
+   d[1] = y;
+   d[3] = z;
+   d[4] = w;
 }
 
 void
@@ -168,16 +179,6 @@ vec4Negate(vec4 d, const vec4 v)
    d[1] = -v[1];
    d[2] = -v[2];
    d[3] = -v[3];
-}
-
-void mtx4Sub(mtx4 d, mtx4 m)
-{
-   float *a = (float*)d;
-   float *b = (float*)m;
-   int i;
-   for (i=0; i<16; i++) {
-      a[i] -= b[i];
-   }
 }
 
 void
@@ -237,6 +238,28 @@ _vec4Matrix4(vec4 d, const vec4 v, mtx4 m)
    d[1] = v0*m[1][0] + v1*m[1][1] + v2*m[1][2] + v3*m[1][3];
    d[2] = v0*m[2][0] + v1*m[2][1] + v2*m[2][2] + v3*m[2][3];
    d[3] = v0*m[3][0] + v1*m[3][1] + v2*m[3][2] + v3*m[3][3];
+}
+
+void
+mtx4Copy(mtx4 d, void *m)
+{
+   memcpy(d, m, sizeof(mtx4));
+}
+
+void
+mtx4SetAbsolute(mtx4 d, char absolute)
+{
+   d[3][3] = absolute ? 1.0f : 0.0f;
+}
+
+void mtx4Sub(mtx4 d, mtx4 m)
+{
+   float *a = (float*)d;
+   float *b = (float*)m;
+   int i;
+   for (i=0; i<16; i++) {
+      a[i] -= b[i];
+   }
 }
 
 void
