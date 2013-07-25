@@ -288,14 +288,9 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
    /* update the model-view matrix based on our own and that of out parent */
    if (pp3d)
    {
-      vec4_t fv;
-
       if (_PROP3D_MTX_HAS_CHANGED(pp3d) || _PROP3D_MTX_HAS_CHANGED(fp3d))
       {
-         mtx4_t fmatrix;
-
-         mtx4Copy(fmatrix, fp3d->matrix);
-         mtx4Mul(fp3d->matrix, pp3d->matrix, fmatrix);
+         mtx4Mul(fp3d->m_matrix, pp3d->matrix, fp3d->matrix);
 #if 0
  printf("parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pp3d->matrix, fmatrix);
@@ -310,9 +305,8 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       if (_PROP3D_MTXSPEED_HAS_CHANGED(pp3d) ||
           _PROP3D_MTXSPEED_HAS_CHANGED(fp3d))
       {
-         vec4Copy(fv, fp3d->velocity);
-         vec4Matrix4(fp3d->velocity, fv, pp3d->matrix);
-         vec4Add(fp3d->velocity, pp3d->velocity);
+         vec4Matrix4(fp3d->m_velocity, fp3d->velocity, fp3d->m_matrix);
+         vec4Add(fp3d->m_velocity, pp3d->m_velocity);
 
          _PROP3D_SPEED_CLEAR_CHANGED(pp3d);
          _PROP3D_SPEED_SET_CHANGED(fp3d);
@@ -407,12 +401,12 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
                /* beware, they might have been altered in the mean time! */
                dptr = _intBufGet(hf, _AAX_FRAME, i);
                if (!_PROP_MTX_HAS_CHANGED(sfmixer->dprops3d)) {
-                  _aax_memcpy(sfmixer->dprops3d->props3d->matrix,
-                              &sfp3d.matrix, sizeof(mtx4_t));
+                  _aax_memcpy(sfmixer->dprops3d->props3d->m_matrix,
+                              &sfp3d.m_matrix, sizeof(mtx4_t));
                }
                if (!_PROP_SPEED_HAS_CHANGED(sfmixer->dprops3d)) {
-                  _aax_memcpy(sfmixer->dprops3d->props3d->velocity,
-                              &sfp3d.velocity, sizeof(vec4_t));
+                  _aax_memcpy(sfmixer->dprops3d->props3d->m_velocity,
+                              &sfp3d.m_velocity, sizeof(vec4_t));
                }
                _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -501,11 +495,11 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    /* copy back the altered fp3dmatrix and velocity vector   */
    /* beware, they might have been altered in the mean time! */
    if (!_PROP_MTX_HAS_CHANGED(fmixer->dprops3d)) {
-      _aax_memcpy(fmixer->dprops3d->props3d->matrix, &fp3d.matrix,
+      _aax_memcpy(fmixer->dprops3d->props3d->m_matrix, &fp3d.m_matrix,
                   sizeof(mtx4_t));
    }
    if (!_PROP_SPEED_HAS_CHANGED(fmixer->dprops3d)) {
-      _aax_memcpy(fmixer->dprops3d->props3d->velocity, &fp3d.velocity,
+      _aax_memcpy(fmixer->dprops3d->props3d->m_velocity, &fp3d.m_velocity,
                   sizeof(vec4_t));
    }
 

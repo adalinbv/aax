@@ -610,6 +610,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                sdf = _EFFECT_GETD3D(mixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _aax_memcpy(&sp3d, mixer->dprops3d->props3d,
                                   sizeof(_oalRingBuffer3dProps));
+               if (_PROP_MTX_HAS_CHANGED(mixer->dprops3d)) {
+                  mtx4Copy(sp3d.m_matrix, sp3d.matrix);
+               }
+               vec4Negate(sp3d.m_velocity, sp3d.velocity);
                _PROP_CLEAR(mixer->dprops3d);
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
@@ -630,7 +634,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                /* beware, they might have been altered in the mean time! */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (!_PROP_MTX_HAS_CHANGED(mixer->dprops3d)) {
-                  _aax_memcpy(mixer->dprops3d->props3d->matrix, &sp3d.matrix,
+                  _aax_memcpy(mixer->dprops3d->props3d->m_matrix,&sp3d.m_matrix,
                               sizeof(mtx4_t));
                }
                if (!_PROP_SPEED_HAS_CHANGED(mixer->dprops3d)) {

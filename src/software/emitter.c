@@ -269,7 +269,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
    if (_PROP3D_MTXSPEED_HAS_CHANGED(ep3d) || _PROP3D_MTXSPEED_HAS_CHANGED(fp3d))
    {
-      mtx4_t mtx;
       vec4_t epos;
       float gain, pitch;
       float dist, esv, ss;
@@ -278,13 +277,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /* align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
-      mtx4Mul(mtx, fp3d->matrix, ep3d->matrix);
-      dist = vec3Normalize(epos, mtx[LOCATION]);
+      mtx4Mul(ep3d->m_matrix, fp3d->m_matrix, ep3d->matrix);
+      dist = vec3Normalize(epos, ep3d->m_matrix[LOCATION]);
 #if 0
  printf("# emitter parent:\t\t\t\temitter:\n");
  PRINT_MATRICES(fp3d->matrix, ep3d->matrix);
  printf("# modified emitter\n");
- PRINT_MATRIX(mtx);
+ PRINT_MATRIX(ep3d->m_matrix);
  printf("# dist: %f\n", dist);
 #endif
 
@@ -298,17 +297,15 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       pitch = edp3d->pitch;
       if (dist > 1.0f)
       {
-         float ve, vs, df;
-         vec4_t sv, ev;
+         float ve, df;
+         vec4_t ev;
 
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
           */
-         vec4Matrix4(sv, fp3d->velocity, fp3d->matrix);
-         vec4Matrix4(ev, ep3d->velocity, fp3d->matrix);
-         vs = vec3DotProduct(sv, epos);
-         ve = vec3DotProduct(ev, epos);
-         df = dopplerfn(vs, ve, ss/sdf);
+         vec4Matrix4(ep3d->m_velocity, ep3d->velocity, ep3d->m_matrix);
+         ve = vec3DotProduct(ep3d->m_velocity, epos);
+         df = dopplerfn(0.0f, ve, ss/sdf);
 
          pitch *= df;
          edp3d->buf_step = df;
@@ -399,7 +396,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
           */
          if (_PROP3D_CONE_IS_DEFINED(ep3d))
          {
-            float inner_vec, tmp = -mtx[DIR_BACK][2];
+            float inner_vec, tmp = -ep3d->m_matrix[DIR_BACK][2];
 
             inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
             if (tmp < inner_vec)

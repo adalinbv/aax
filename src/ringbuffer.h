@@ -454,6 +454,10 @@ typedef ALIGN16 struct
    mtx4_t matrix;
    vec4_t velocity;
 
+   /* modified matrix and velocity */
+   mtx4_t m_matrix;
+   vec4_t m_velocity;
+
    int state3d;
 
 } _oalRingBuffer3dProps ALIGN16C;
