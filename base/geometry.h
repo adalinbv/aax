@@ -75,10 +75,8 @@ extern vec3Mulvec3_proc vec3Mulvec3;
 extern vec3Sub_proc vec3Sub;
 void vec3Set(vec3 d, float x, float y, float z);
 void vec3Negate(vec3 d, const vec3 v);
-void vec3Inverse(vec3 v1, const vec3 v2);
 void vec3Matrix3(vec3 d, const vec3 v, mtx3 m);
 
-void mtx3Sub(mtx3 d, mtx3 m);
 void mtx3Copy(mtx3 d, mtx3 m);
 
 typedef float (*vec3Magnitude_proc)(const vec3 v);
@@ -115,7 +113,6 @@ typedef void (*mtx4Mul_proc)(mtx4 d, mtx4 m1, mtx4 m2);
 
 extern mtx4Mul_proc mtx4Mul;
 
-void mtx4Sub(mtx4 d, mtx4 m);
 void mtx4MulVec4(vec4 d, mtx4 m, const vec4 v);
 void mtx4Translate(mtx4 m, float x, float y, float z);
 void mtx4Rotate(mtx4 m, float angle, float x, float y, float z);
