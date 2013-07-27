@@ -1176,8 +1176,8 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
          f = (float)xmlNodeGetDouble(xsid, "volume-norm");
          _aaxContextDefaultSpeakers[channel][GAIN] = f;
 
-         v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
-         v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
+         v[0] = (float)xmlNodeGetDouble(xsid, "pos-x");
+         v[1] = (float)xmlNodeGetDouble(xsid, "pos-y");
          v[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          /* vec3Normalize(_aaxContextDefaultSpeakers[channel], v); */
          vec3Copy(_aaxContextDefaultSpeakers[channel], v);
