@@ -298,7 +298,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       if (dist > 1.0f)
       {
          float ve, df;
-         vec4_t ev;
 
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
