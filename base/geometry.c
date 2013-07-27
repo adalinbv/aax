@@ -264,6 +264,9 @@ vec3Matrix3(vec3 d, const vec3 v, mtx3 m)
  * matrices. That means 4 dimensions, vectors are [x y z w]. That fourth 
  * coordinate is the homogenoeous coordinate, it should be 1 for points and 0
  * for vectors.
+ *
+ * Note: this doe not work for non-uniform scaling (that means scaling by
+ * different amounts in the different axis)
  */
 void
 _vec4Matrix4(vec4 d, const vec4 v, mtx4 m)
