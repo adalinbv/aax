@@ -78,9 +78,9 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A cross platform, hardware accelerated, v
 
 # We have some custom .cmake scripts not in the official distribution.
 SET(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
-
 INCLUDE(CPack_Modules)
 INCLUDE(CPack_Defaults)
+INCLUDE(inline)
 
 IF (WIN32)
   SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
