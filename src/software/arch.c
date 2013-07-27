@@ -353,6 +353,7 @@ _aaxGetSIMDSupportString()
       vec4Devide = _vec4Devide_neon;
       vec4Mulvec4 = _vec4Mulvec4_neon;
       vec4Matrix4 = _vec4Matrix4_neon;
+      pt4Matrix4 = _pt4Matrix4_neon;
 
       mtx4Mul = _mtx4Mul_neon;
       ivec4Add = _ivec4Add_neon;
@@ -385,6 +386,7 @@ _aaxGetSIMDSupportString()
          vec4Devide = _vec4Devide_sse;
          vec4Mulvec4 = _vec4Mulvec4_sse;
          vec4Matrix4 = _vec4Matrix4_sse;
+         pt4Matrix4 = _pt4Matrix4_sse;
          mtx4Mul = _mtx4Mul_sse;
       }
       if (level >= AAX_SSE2)
@@ -409,6 +411,7 @@ _aaxGetSIMDSupportString()
       if (level >= AAX_SSE3)
       {
          vec4Matrix4 = _vec4Matrix4_sse3;
+         pt4Matrix4 = _pt4Matrix4_sse3;
          _batch_mul_value = _batch_mul_value_sse3;
       }
 #if 0

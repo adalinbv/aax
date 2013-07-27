@@ -140,8 +140,8 @@ _ivec4Mulivec4_neon(ivec4 d, const ivec4 v1, const ivec4 v2)
    vst1q_s32(d, nfr1);
 }
 
-void
-_vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
+inline void
+__vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
 {
    float32x4_t a_line, b_line, r_line;
    const float32_t *a = (const float32_t *)m;
@@ -165,6 +165,21 @@ _vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
    }
    vst1q_f32(r, r_line);             /* r = r_line                  */
 }
+
+void
+_pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m)
+{
+   p[3] = 1.0f;
+   __vec4Matrix4_neon(d, p, m);
+}
+
+void
+_vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
+{
+   v[3] = 0.0f;
+   __vec4Matrix4_neon(d, v, m);
+}
+
 
 void
 _mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2)

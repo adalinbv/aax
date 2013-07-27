@@ -91,8 +91,8 @@ _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2)
    _mm_store_ps(r, xmm1);
 }
 
-FN_PREALIGN void
-_vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
+FN_PREALIGN inline void
+__vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
 {
    __m128 a_line, b_line, r_line;
    const float *a = (const float *)m;
@@ -115,6 +115,22 @@ _vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
       r_line = _mm_add_ps(_mm_mul_ps(a_line, b_line), r_line);
    }
    _mm_store_ps(r, r_line);		/* r = r_line                  */
+}
+
+void
+_vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
+{
+   float *pv = (float*)v;
+   pv[3] = 0.0f;
+   __vec4Matrix4_sse(d, pv, m);
+}
+
+void
+_pt4Matrix4_sse(vec4 d, const vec4 p, mtx4 m)
+{
+   float *pp = (float*)p;
+   pp[3] = 1.0f;
+   __vec4Matrix4_sse(d, pp, m);
 }
 
 FN_PREALIGN void

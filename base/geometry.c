@@ -258,15 +258,33 @@ vec3Matrix3(vec3 d, const vec3 v, mtx3 m)
    d[2] = v0*m[0][2] + v1*m[1][2] + v2*m[2][2];
 }
 
+/*
+ * http://www.unknownroad.com/rtfm/graphics/rt_normals.html
+ * If you are doing any real graphics, you are using homogenoeus vectors and 
+ * matrices. That means 4 dimensions, vectors are [x y z w]. That fourth 
+ * coordinate is the homogenoeous coordinate, it should be 1 for points and 0
+ * for vectors.
+ */
 void
 _vec4Matrix4(vec4 d, const vec4 v, mtx4 m)
 {
-   float v0 = v[0], v1 = v[1], v2 = v[2], v3 = v[3];
+   float v0 = v[0], v1 = v[1], v2 = v[2]; // v3 = 0.0f;
 
-   d[0] = v0*m[0][0] + v1*m[1][0] + v2*m[2][0] + v3*m[3][0];
-   d[1] = v0*m[0][1] + v1*m[1][1] + v2*m[2][1] + v3*m[3][1];
-   d[2] = v0*m[0][2] + v1*m[1][2] + v2*m[2][2] + v3*m[3][2];
-   d[3] = v0*m[0][3] + v1*m[1][3] + v2*m[2][3] + v3*m[3][3];
+   d[0] = v0*m[0][0] + v1*m[1][0] + v2*m[2][0]; // + v3*m[3][0];
+   d[1] = v0*m[0][1] + v1*m[1][1] + v2*m[2][1]; // + v3*m[3][1];
+   d[2] = v0*m[0][2] + v1*m[1][2] + v2*m[2][2]; // + v3*m[3][2];
+   d[3] = v0*m[0][3] + v1*m[1][3] + v2*m[2][3]; // + v3*m[3][3];
+}
+
+void
+_pt4Matrix4(vec4 d, const vec4 p, mtx4 m)
+{
+   float p0 = p[0], p1 = p[1], p2 = p[2]; // p3 = 1.0f;
+
+   d[0] = p0*m[0][0] + p1*m[1][0] + p2*m[2][0] + m[3][0]; // *p3
+   d[1] = p0*m[0][1] + p1*m[1][1] + p2*m[2][1] + m[3][1]; // *p3
+   d[2] = p0*m[0][2] + p1*m[1][2] + p2*m[2][2] + m[3][2]; // *p3
+   d[3] = p0*m[0][3] + p1*m[1][3] + p2*m[2][3] + m[3][3]; // *p3
 }
 
 
@@ -429,6 +447,7 @@ vec4Devide_proc vec4Devide = _vec4Devide;
 vec4Mulvec4_proc vec4Mulvec4 = _vec4Mulvec4;
 vec4Sub_proc vec4Sub = _vec4Sub;
 vec4Matrix4_proc vec4Matrix4 = _vec4Matrix4;
+vec4Matrix4_proc pt4Matrix4 = _pt4Matrix4;
 mtx4Mul_proc mtx4Mul = _mtx4Mul;
 
 ivec4Add_proc ivec4Add = _ivec4Add;

@@ -116,6 +116,7 @@ void _vec4Devide_sse(vec4 d, float s);
 void _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2);
 void _vec4Sub_sse(vec4 d, const vec4 v);
 void _vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m);
+void _pt4Matrix4_sse(vec4 d, const vec4 p, mtx4 m);
 void _mtx4Mul_sse(mtx4 d, mtx4 m1, mtx4 m2);
 
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
@@ -144,6 +145,7 @@ void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, int, unsigned int, 
 
 /* SSE3 */
 void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
+void _pt4Matrix4_sse3(vec4 d, const vec4 p, mtx4 m);
 void _batch_mul_value_sse3(void*, unsigned, unsigned int, float);
 
 /* SSE4 */
@@ -164,6 +166,7 @@ void _vec4Devide_neon(vec4 d, float s);
 void _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2);
 void _vec4Sub_neon(vec4 d, const vec4 v);
 void _vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m);
+void _pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m);
 void _mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2);
 void _ivec4Add_neon(ivec4 d, ivec4 v);
 void _ivec4Devide_neon(ivec4 d, float s);

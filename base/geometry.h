@@ -104,6 +104,7 @@ extern vec4Devide_proc vec4Devide;
 extern vec4Mulvec4_proc vec4Mulvec4;
 extern vec4Sub_proc vec4Sub;
 extern vec4Matrix4_proc vec4Matrix4;
+extern vec4Matrix4_proc pt4Matrix4;
 
 void vec4ScalarMul(vec4 r, float v);
 void vec4Negate(vec4 d, const vec4 v);
