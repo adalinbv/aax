@@ -610,9 +610,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                sdf = _EFFECT_GETD3D(mixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _aax_memcpy(&sp3d, mixer->dprops3d->props3d,
                                   sizeof(_oalRingBuffer3dProps));
-               if (_PROP_MTX_HAS_CHANGED(mixer->dprops3d)) {
-                  mtx4Copy(sp3d.m_matrix, sp3d.matrix);
-               }
+               mtx4Copy(sp3d.m_matrix, sp3d.matrix);
                vec4Negate(sp3d.m_velocity, sp3d.velocity);
                _PROP_CLEAR(mixer->dprops3d);
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
@@ -629,19 +627,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 #endif
                _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf, NULL, NULL,
                                      &sp2d, &sp3d, be, be_handle, fprocess);
-
-               /* copy back the altered sp3d matrix and velocity vector  */
-               /* beware, they might have been altered in the mean time! */
-               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               if (!_PROP_MTX_HAS_CHANGED(mixer->dprops3d)) {
-                  _aax_memcpy(mixer->dprops3d->props3d->m_matrix,&sp3d.m_matrix,
-                              sizeof(mtx4_t));
-               }
-               if (!_PROP_SPEED_HAS_CHANGED(mixer->dprops3d)) {
-                  _aax_memcpy(mixer->dprops3d->props3d->velocity,&sp3d.velocity,
-                              sizeof(vec4_t));
-               }
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                res = _aaxSoftwareMixerPlay(dest, mixer->devices,
                                            mixer->ringbuffers,  mixer->frames,
