@@ -373,77 +373,55 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    for (t=0; t<rbd->no_tracks; t++)
    {
       int32_t *track = (int32_t *)rbd->track[t];
-      float ch_volume, dir_fact;
+      float vstart, vend, dir_fact, vstep;
+      int32_t *dptr, *ptr;
       float hrtf_volume[3];
+      int j;
+
+      dptr = track+offs;
+      ptr = sptr[ch]+offs;
+
+      vstart = svol * ep2d->prev_gain[t];
+      vend = gain * evol;
+      ep2d->prev_gain[t] = vend;
+
+      /**
+       * horizontal positioning, left-right
+       **/
+      dir_fact = ep2d->pos[t][DIR_RIGHT];
+      hrtf_volume[DIR_RIGHT] = dir_fact*vend;
+      vstep = (vend - vstart) / dno_samples;
+
+      vstep = (vend - vstart) / dno_samples;
+      _batch_fmadd(dptr, ptr, dno_samples, dir_fact*vstart, vstep);
 
       /**
        * vertical positioning
        **/
-#if 1
-      dir_fact = ep2d->pos[DIR_UPWD+3*t][0];
-      hrtf_volume[DIR_UPWD] = gain * 0.25f;
-#else
-      dir_fact = (ep2d->pos[DIR_UPWD+3*t][0]);
-      hrtf_volume[DIR_UPWD] = gain * (-0.25 +  0.75f*dir_fact);
-#endif
+      dir_fact = ep2d->pos[t][DIR_UPWD];
+      hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
 
       /**
        * horizontal positioning, back-front
        **/
-#if 1
-      dir_fact = ep2d->pos[DIR_BACK+3*t][0];
-      hrtf_volume[DIR_BACK] = gain * (0.25f + 0.5f*dir_fact);
-#else
-      dir_fact = _MIN(0.33f - ep2d->pos[DIR_BACK+3*t][0], 1.0f);
-      hrtf_volume[DIR_BACK] = gain * dir_fact;
-#endif
+      dir_fact = ep2d->pos[t][DIR_BACK];
+      hrtf_volume[DIR_BACK] = gain * (0.25f + 0.5f*dir_fact)*vend;
 
-      /*
-       * dir_fact is speaker and source position dependent.
-       * If the source is at the speaker's side of the listener it will
-       * always be 1.0 (normal volume) for this speaker, but if it's located
-       * at the opposite side of the speaker (the listener is between the
-       * speaker and the source) it gradually silences until the source is 
-       * directly opposite of the speaker, relative to the listener.
-       *
-       * 0.8776 = cosf(0.5)
-       */
-      dir_fact = _MIN(0.8776f + ep2d->pos[t][DIR_RIGHT], 1.0f);
-      ch_volume = gain * dir_fact;
-      do
+      for (j=1; j<2; j++)	/* skip left-right and back-front */
       {
-         int32_t *ptr = sptr[ch]+offs;
-         int32_t *dptr = track + offs;
-         float vstart, vend, vstep;
-         int j;
+         int diff = (int)ep2d->hrtf[t][j];
+         float v_start, v_step;
 
-         vstart = svol * ep2d->prev_gain[t];
-         vend = gain * evol * ch_volume;
-         vstep = (vend - vstart) / dno_samples;
+         assert(diff < (int)ddesamps);
+         assert(diff > -(int)dno_samples);
+         diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
 
-         assert(dptr+dno_samples <= track+rbd->no_samples);
-         if (dptr+dno_samples > track+rbd->no_samples)
-             dno_samples = track+rbd->no_samples-dptr;
+         v_start = vstart * hrtf_volume[j];
+         v_step = 0.0f; // vstep * hrtf_volume[j];
 
-//       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
-         _batch_fmadd(dptr, ptr, dno_samples, vstart, vstep);
-         ep2d->prev_gain[t] = ch_volume;
-
-         for (j=1; j<3; j++) /* skip left-right delays */
-         {
-            int diff = (int)ep2d->hrtf[t][j];
-            float v_start, v_step;
-
-            assert(diff < (int)rbd->dde_samples);
-            assert(diff > -(int)dno_samples);
-            diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
-
-            v_start = vstart * hrtf_volume[j];
-            v_step = 0.0f; // vstep * hrtf_volume[j];
-            _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
-         }
+//       DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+         _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
       }
-      while (0);
    }
 
    return ret;
@@ -766,7 +744,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * horizontal positioning, left-right
        **/
-      dir_fact = ep2d->pos[DIR_RIGHT+3*t][0];
+      dir_fact = ep2d->pos[t][DIR_RIGHT];
       hrtf_volume[DIR_RIGHT] = 0.5f + dir_fact*vend;
 #if 0
  printf("l-r: %i, volume %f, delay: %f, dir_fact: %f, f_gain: %f\n", t, hrtf_volume[DIR_RIGHT], ep2d->hrtf[t][DIR_RIGHT]/48000.0, dir_fact, vend);
@@ -775,7 +753,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * vertical positioning
        **/
-      dir_fact = (ep2d->pos[DIR_UPWD+3*t][0]);
+      dir_fact = (ep2d->pos[t][DIR_UPWD]);
       hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
 #if 0
  printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_UPWD], ep2d->hrtf[t][DIR_UPWD]/48000.0, dir_fact);
@@ -784,7 +762,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * horizontal positioning, back-front
        **/
-      dir_fact = (ep2d->pos[DIR_BACK+3*t][0]);
+      dir_fact = (ep2d->pos[t][DIR_BACK]);
       hrtf_volume[DIR_BACK] = (0.25f + 0.5f*dir_fact)*vend;
 #if 0
  printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_BACK], ep2d->hrtf[t][DIR_BACK]/48000.0, dir_fact);

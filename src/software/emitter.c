@@ -319,7 +319,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       {
          float dist_fact, cone_volume = 1.0f;
          float refdist, maxdist, rolloff;
-         unsigned int i;
+         unsigned int i, t;
 
          _PROP3D_MTX_CLEAR_CHANGED(ep3d);
 
@@ -331,16 +331,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          switch (info->mode)
          {
          case AAX_MODE_WRITE_HRTF:
-         {
-            unsigned int t, tracks = info->no_tracks;
-            for (t=0; t<tracks; t++)
+            for (t=0; t<info->no_tracks; t++)
             {
                for (i=0; i<3; i++)
                {
                   float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
                   float offs, fact;
 
-                  ep2d->pos[3*t+i][0] = dp * dist_fact;  /* -1 .. +1 */
+                  ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
 
                   dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
                   if (i == DIR_BACK) dp *= dp;
@@ -353,38 +351,42 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                }
             }
             break;
-         }
          case AAX_MODE_WRITE_SPATIAL:
-            for (i=0; i<info->no_tracks; i++)
-            {
-               float dp = vec3DotProduct(fp2dpos[i], epos);
-               ep2d->pos[i][0] = 0.5f + dp * dist_fact;
+            for (t=0; t<info->no_tracks; t++)
+            {			/* fp2dpos == sensor_pos */
+               float dp = vec3DotProduct(fp2dpos[t], epos);
+               ep2d->pos[t][0] = 0.5f + dp * dist_fact;
             }
             break;
          case AAX_MODE_WRITE_SURROUND:
-         {
-            unsigned int t, tracks = info->no_tracks;
-            for (t=0; t<tracks; t++)
+            for (t=0; t<info->no_tracks; t++)
             {
+               float dp = vec3DotProduct(fp2dpos[t], epos);
+               ep2d->pos[t][0] = 0.5f + dp * dist_fact;
+
                for (i=1; i<3; i++) /* skip left-right */
                {
                   float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
                   float offs, fact;
 
+                  ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
+
                   dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
+                  if (i == DIR_BACK) dp *= dp;
+                  if (i == DIR_UPWD) dp = 0.25f*(5.0f*dp - dp*dp);
+
                   offs = info->hrtf[HRTF_OFFSET][i];
                   fact = info->hrtf[HRTF_FACTOR][i];
                   ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
                   ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
                }
             }
-            /* break not needed */
-         }
+            break;
          default: /* AAX_MODE_WRITE_STEREO */
-            for (i=0; i<info->no_tracks; i++)
+            for (t=0; t<info->no_tracks; t++)
             {
-               vec4Mulvec4(ep2d->pos[i], fp2dpos[i], epos);
-               vec4ScalarMul(ep2d->pos[i], dist_fact);
+               vec4Mulvec4(ep2d->pos[t], fp2dpos[t], epos);
+               vec4ScalarMul(ep2d->pos[t], dist_fact);
             }
          }
 
