@@ -214,7 +214,7 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
             handle->backend.ptr = be;
             if (be) { /* be == NULL should never happen */
                handle->devname[0] = _aax_strdup(be->driver);
-               handle->devname[1] = _default_renderer;
+               handle->devname[1] = be->name(handle->backend.handle, mode);
             }
          }
 
@@ -973,7 +973,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                handle->info->mode = AAX_MODE_WRITE_HRTF;
             } else if (!strcasecmp(ptr, "spatial")) {
                handle->info->mode = AAX_MODE_WRITE_SPATIAL;
-            } else if (strcasecmp(ptr, "stereo")) {
+            } else if (!strcasecmp(ptr, "stereo")) {
                handle->info->mode = AAX_MODE_WRITE_STEREO;
             }
          }
