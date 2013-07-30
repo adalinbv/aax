@@ -207,8 +207,9 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
    rbd = dest->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
-      int32_t *track = (int32_t *)rbd->track[t];
-      float ch_volume, dir_fact;
+      int32_t *dptr = (int32_t *)rbd->track[t] + offs;
+      float vstart, vend, vstep;
+      float dir_fact;
 
       /*
        * dir_fact is speaker and source position dependent.
@@ -221,26 +222,14 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
        * 0.8776 = cosf(0.5)
        */
       dir_fact = _MIN(0.8776f + ep2d->pos[t][DIR_RIGHT], 1.0f);
-      ch_volume = gain * dir_fact;
-      do
-      {
-         float vstart, vend, vstep;
-         int32_t *ptr = sptr[ch]+offs;
-         int32_t *dptr = track + offs;
+      vstart = dir_fact * svol * ep2d->prev_gain[t];
+      vend   = dir_fact * evol * gain;
+      vstep  = (vend - vstart) / dno_samples;
 
-         vstart = gain * svol * ep2d->prev_gain[t];
-         vend = gain * evol * ch_volume;
-         vstep = (vend - vstart) / dno_samples;
+//    DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+      _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
-         assert(dptr+dno_samples <= track+rbd->no_samples);
-         if (dptr+dno_samples > track+rbd->no_samples)
-             dno_samples = track+rbd->no_samples-dptr;
-
-//       DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
-         _batch_fmadd(dptr, ptr, dno_samples, vstart, vstep);
-         ep2d->prev_gain[t] = ch_volume;
-      }
-      while (0);
+      ep2d->prev_gain[t] = gain;
    }
 
    return ret;
@@ -428,7 +417,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          float vstart, vend, vstep;
          int j;
 
-         vstart = gain * svol * ep2d->prev_gain[t];
+         vstart = svol * ep2d->prev_gain[t];
          vend = gain * evol * ch_volume;
          vstep = (vend - vstart) / dno_samples;
 
@@ -602,8 +591,8 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       float dir_fact;
 
       dir_fact = ep2d->pos[t][DIR_RIGHT];
-      vstart = svol * gain * dir_fact * ep2d->prev_gain[t];
-      vend   = evol * gain * dir_fact * gain;
+      vstart = dir_fact * svol * ep2d->prev_gain[t];
+      vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
@@ -765,8 +754,8 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       float hrtf_volume[3];
       int j;
 
-      vstart = gain * svol * ep2d->prev_gain[t];
-      vend = gain * evol * gain;
+      vstart = svol * ep2d->prev_gain[t];
+      vend = gain * evol;
       ep2d->prev_gain[t] = vend;
 
       /*
@@ -778,22 +767,28 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
        * horizontal positioning, left-right
        **/
       dir_fact = ep2d->pos[DIR_RIGHT+3*t][0];
-      hrtf_volume[DIR_RIGHT] = 0.5f + 0.75f*dir_fact*vend;
-// printf("l-r: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_RIGHT], ep2d->hrtf[t][DIR_RIGHT]/48000.0, dir_fact);
+      hrtf_volume[DIR_RIGHT] = 0.5f + dir_fact*vend;
+#if 0
+ printf("l-r: %i, volume %f, delay: %f, dir_fact: %f, f_gain: %f\n", t, hrtf_volume[DIR_RIGHT], ep2d->hrtf[t][DIR_RIGHT]/48000.0, dir_fact, vend);
+#endif
 
       /**
        * vertical positioning
        **/
       dir_fact = (ep2d->pos[DIR_UPWD+3*t][0]);
       hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
-// printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_UPWD], ep2d->hrtf[t][DIR_UPWD]/48000.0, dir_fact);
+#if 0
+ printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_UPWD], ep2d->hrtf[t][DIR_UPWD]/48000.0, dir_fact);
+#endif
 
       /**
        * horizontal positioning, back-front
        **/
       dir_fact = (ep2d->pos[DIR_BACK+3*t][0]);
       hrtf_volume[DIR_BACK] = (0.25f + 0.5f*dir_fact)*vend;
-// printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_BACK], ep2d->hrtf[t][DIR_BACK]/48000.0, dir_fact);
+#if 0
+ printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_BACK], ep2d->hrtf[t][DIR_BACK]/48000.0, dir_fact);
+#endif
 
       dptr = track+offs;
       ptr = sptr[ch]+offs;
