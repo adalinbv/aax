@@ -1221,7 +1221,7 @@ if (corr)
 }
 
 static char *
-_aaxALSADriverGetName(const void *id, int playback)
+_aaxALSADriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
@@ -1233,6 +1233,9 @@ _aaxALSADriverGetName(const void *id, int playback)
       } else if (handle->devname) {
          ret = _aax_strdup(handle->devname);
       }
+   }
+   else {
+      ret = _aaxALSADriverGetDefaultInterface(id, mode);
    }
 
    return ret;
@@ -1502,7 +1505,10 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name)
             {
-               if (!strncmp(name, "default:", strlen("default:")))
+               if ((!m && (!strncmp(name, "default:", strlen("default:")) ||
+                          !strncmp(name, "sysdefault:", strlen("sysdefault:"))))
+                    || !strncmp(name, "front:", strlen("front:"))
+                  )
                {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
                   char *iface;
@@ -1510,13 +1516,24 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
                   if (!desc) desc = name;
                   iface = strstr(desc, ", ");
 
-                  if (iface)
+                  if (iface && (len > (iface-desc)))
                   {
-                     *iface = ':';
-                     iface = strchr(iface+2, '\n');
-                     if (iface) *iface = 0;
+                     char *s = rv;
                      
-                     snprintf(rv, len, "%s", desc);
+                     snprintf(s, (iface-desc)+1, "%s", desc);
+                     len -= iface-desc;
+                     s += (iface-desc);
+
+                     if (m) iface = strchr(desc, '\n')+1;
+                     if (!m || !iface) iface = strstr(desc, ", ")+2;
+                     
+                     snprintf(s, len, ": %s", iface);
+
+                     if (!m)
+                     {
+                        iface = strchr(iface+2, '\n');
+                        *iface = 0;
+                     }
                      found = 1;
                   }
                   if (desc != name) _aax_free(desc);
