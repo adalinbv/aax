@@ -466,7 +466,7 @@ typedef struct
 {
    _oalRingBuffer3dProps* props3d;
    float pitch, gain;
-   float buf_step;
+   float buf3dq_step;
    int state;
 
    /* 3d filters and effects */
@@ -498,7 +498,7 @@ typedef ALIGN16 struct
    float prev_freq_fact;
 
    float dist_delay_sec;	/* time to keep playing after a stop request */
-   float bufpos;		/* distance delay queue buffer position      */
+   float bufpos3dq;		/* distance delay queue buffer position      */
 
    struct {
       float pitch_lfo;

@@ -228,29 +228,29 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       if (src->p3dq)
       {
          _oalRingBufferDelayed3dProps *sdp3d = NULL;
-         _intBufferData *buf;
-         float pos;
+         _intBufferData *buf3dq;
+         float pos3dq;
 
          _intBufAddData(src->p3dq, _AAX_DELAYED3D, edp3d);
          if (src->curr_pos_sec <= ep2d->dist_delay_sec) {
             return;
          }
 
-         pos = ep2d->bufpos;
-         ep2d->bufpos += edp3d->buf_step;
-         if (pos <= 0.0f) return;
+         pos3dq = ep2d->bufpos3dq;
+         ep2d->bufpos3dq += edp3d->buf3dq_step;
+         if (pos3dq <= 0.0f) return;
 
          do
          {
-            buf = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
-            if (buf)
+            buf3dq = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
+            if (buf3dq)
             {
-               sdp3d = _intBufGetDataPtr(buf);
-               free(buf);
+               sdp3d = _intBufGetDataPtr(buf3dq);
+               free(buf3dq);
             }
-            --ep2d->bufpos;
+            --ep2d->bufpos3dq;
          }
-         while (ep2d->bufpos > 1.0f);
+         while (ep2d->bufpos3dq > 1.0f);
 
          if (!sdp3d) {                  // TODO: get from buffer cache
             sdp3d = _oalRingBufferDelayed3dPropsDup(edp3d);
@@ -307,7 +307,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          df = dopplerfn(0.0f, ve, ss/sdf);
 
          pitch *= df;
-         edp3d->buf_step = df;
+         edp3d->buf3dq_step = df;
       }
       ep2d->final.pitch = pitch;
 

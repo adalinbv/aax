@@ -906,9 +906,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                if (positional)
                {
                   mp3d = mixer->dprops3d;
-                  if (mixer->dist_delaying) {
-                     _aaxEMitterSetDistDelay(src, mixer, NULL);
-                  }
+                  _aaxEMitterSetDistDelay(src, mixer);
 
                   if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
                      _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
@@ -1053,6 +1051,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   fp3d = submix->dprops3d;
 
                   submix->dist_delaying = mixer->dist_delaying;
+                  _aaxAudioFrameSetDistDelay(submix, mixer);
+
                   if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
                      _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
                   }

@@ -342,26 +342,25 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             /* set distance delay */
             if (handle->pos != UINT_MAX)	/* emitter is registered */
             {
-               _handle_t *shandle = get_driver_handle(handle->handle);
-               if (shandle)
+               _handle_t *phandle = handle->handle;
+               _aaxEmitter *src = handle->source;
+               if (phandle->id == HANDLE_ID)
                {
                   _intBufferData *dptr;
-                  dptr = _intBufGet(shandle->sensors, _AAX_SENSOR, 0);
+                  dptr = _intBufGet(phandle->sensors, _AAX_SENSOR, 0);
                   if (dptr)
                   {
                      _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                     _aaxAudioFrame *mixer = sensor->mixer;
-                     _aaxEmitter *src = handle->source;
-                     _frame_t *frame = handle->handle;
-                     _aaxAudioFrame *fmixer = NULL;
+                     _aaxAudioFrame *pmixer = sensor->mixer;
 
-                     if (frame->id == AUDIOFRAME_ID) {
-                         fmixer = frame->submix;
-                     }
-
-                     _aaxEMitterSetDistDelay(src, mixer, fmixer);
+                     _aaxEMitterSetDistDelay(src, pmixer);
                      _intBufReleaseData(dptr, _AAX_SENSOR);
                   }
+               }
+               else if (phandle->id == AUDIOFRAME_ID)
+               {
+                  _aaxAudioFrame *pmixer = ((_frame_t*)phandle)->submix;
+                  _aaxEMitterSetDistDelay(src, pmixer);
                }
             }
          }
@@ -1275,42 +1274,31 @@ put_emitter(aaxEmitter em)
 }
 
 void
-_aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer)
+_aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
 {
-   _aaxAudioFrame *mixer;
-   
    assert(src);
    assert(smixer);
 
-   mixer = fmixer ? fmixer : smixer;
    if (mixer->dist_delaying)
    {
-      _oalRingBufferDelayed3dProps *mdp3d = mixer->dprops3d;
-      _oalRingBuffer3dProps *mp3d = mdp3d->props3d;
+      _oalRingBufferDelayed3dProps *fdp3d = mixer->dprops3d;
+      _oalRingBuffer3dProps *fp3d = fdp3d->props3d;
       _oalRingBuffer3dProps *ep3d = src->dprops3d->props3d;
       _oalRingBuffer2dProps *ep2d = src->props2d;
-      float dist, ss;
-      vec4_t epos;
-      mtx4_t mtx;
+      float dist, vs;
 
-      if (fmixer)
-      {
-         _oalRingBuffer3dProps *sp3d = smixer->dprops3d->props3d;        
-         mtx4_t fmtx;
+      vs = _EFFECT_GET(fdp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
 
-         mtx4Mul(fmtx, sp3d->matrix, mp3d->matrix);
-         mtx4Mul(mtx, fmtx, ep3d->matrix);
-      }
-      else {
-         mtx4Mul(mtx, mp3d->matrix, ep3d->matrix);
-      }
-      dist = vec3Normalize(epos, mtx[LOCATION]);
-
-      ss = _EFFECT_GET(mdp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-      ep2d->dist_delay_sec = dist / ss;
+      /**
+       * Align the modified emitter matrix with the sensor by multiplying 
+       * the emitter matrix by the modified frame matrix.
+       */ 
+      mtx4Mul(ep3d->m_matrix, fp3d->m_matrix, ep3d->matrix);
+      dist = vec3Magnitude(ep3d->m_matrix[LOCATION]);
+      ep2d->dist_delay_sec = dist / vs;
 
       _PROP_DISTQUEUE_SET_DEFINED(src->dprops3d);
-      src->dprops3d->buf_step = 1.0f;
+      src->dprops3d->buf3dq_step = 1.0f;
    }
 }
 

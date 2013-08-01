@@ -601,6 +601,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                /* copying here prevents locking the listener the whole time */
                /* it's used for just one time-frame anyhow                  */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               _aaxAudioFrameProcessDelayQueue(mixer);
+
                _aax_memcpy(&sp2d, mixer->props2d,sizeof(_oalRingBuffer2dProps));
                _aax_memcpy(&sp2d.pos, handle->info->speaker,
                                       _AAX_MAX_SPEAKERS*sizeof(vec4_t));

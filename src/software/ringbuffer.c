@@ -1131,7 +1131,7 @@ _oalRingBufferDelayed3dPropsDup(_oalRingBufferDelayed3dProps *dp3d)
    _oalRingBufferDelayed3dProps *rv = _oalRingBufferDelayed3dPropsCreate();
    if (rv)
    {
-      rv->buf_step = dp3d->buf_step;
+      rv->buf3dq_step = dp3d->buf3dq_step;
       rv->gain = dp3d->gain;
       rv->pitch = dp3d->pitch;
       rv->state = dp3d->state;

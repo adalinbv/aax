@@ -152,6 +152,8 @@ void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
                                    const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
 char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const _aaxDriverBackend*, void*, char);
+void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
+void _aaxAudioFrameSetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
 
 /* --- Instrument --- */
@@ -272,7 +274,7 @@ char _aaxEmittersProcess(_oalRingBuffer*, const _aaxMixerInfo*, float, float,
                          _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
                          _intBuffers*, _intBuffers*,
                          const _aaxDriverBackend*, void*);
-void _aaxEMitterSetDistDelay(_aaxEmitter*, _aaxAudioFrame*, _aaxAudioFrame*);
+void _aaxEMitterSetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 
 
 /* -- Filters and Effects -- */
