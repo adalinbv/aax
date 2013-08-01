@@ -216,16 +216,16 @@ vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
 
 vec4_t _aaxContextDefaultHead[2] = 
 {
-   { 0.00064f, 0.000090f, 0.00024f, 1.000f },	/* head delay factors */
-   { 0.00000f, 0.000100f, 0.00000f, 1.000f }	/* head delay offsets */
+   {-0.00128f,-0.00025f, 0.00009f, 0.000f },	/* head delay factors */
+   { 0.00064f, 0.00035f, 0.00000f, 0.000f }	/* head delay offsets */
 };
 
 const _aaxMixerInfo _aaxDefaultMixerInfo =
 {
   /* hrtf setup */
   {
-     { 28.224f, 10.584f, 3.969f, 0.000f } ,
-     {  0.000f,  4.410f, 0.000f, 0.000f }
+     {-56.448f,-11.025f, 3.969f, 0.000f } ,
+     { 28.224f, 15.435f, 0.000f, 0.000f }
   },
 
   /* speaker setup */
