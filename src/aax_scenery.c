@@ -133,7 +133,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
             }
             case AAX_DISTANCE_FILTER:
             {
-               _oalRingBufferDelayed3dProps *p3d = mixer->dprops3d;
+               _oalRingBuffer3dProps *p3d = mixer->props3d;
                if (_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR) < 0)
                {		/* distance delay is enabled */
                   float rf;
@@ -184,7 +184,7 @@ aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
             rv = new_filter_handle(handle->info, type, mixer->props2d,
-                                                      mixer->dprops3d);
+                                                      mixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          break;
@@ -219,7 +219,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
             {
             case AAX_VELOCITY_EFFECT:
             {
-               _oalRingBufferDelayed3dProps *p3d = mixer->dprops3d;
+               _oalRingBuffer3dProps *p3d = mixer->props3d;
                _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -262,7 +262,7 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
             rv = new_effect_handle(handle->info, type, mixer->props2d,
-                                                      mixer->dprops3d);
+                                                      mixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          break;

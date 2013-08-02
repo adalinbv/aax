@@ -151,7 +151,7 @@ void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*,
                                    _aaxAudioFrame*, _aaxAudioFrame*,
                                    const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
-char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*, const _aaxDriverBackend*, void*, char);
+char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _oalRingBufferDelayed3dProps*, const _aaxDriverBackend*, void*, char);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameSetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
@@ -269,9 +269,9 @@ int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);
 
 void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float,
-                          vec4_t*, _oalRingBuffer3dProps*);
+                          vec4_t*, _oalRingBufferDelayed3dProps*);
 char _aaxEmittersProcess(_oalRingBuffer*, const _aaxMixerInfo*, float, float,
-                         _oalRingBuffer2dProps*, _oalRingBuffer3dProps*,
+                         _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*,
                          _intBuffers*, _intBuffers*,
                          const _aaxDriverBackend*, void*);
 void _aaxEMitterSetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
@@ -293,11 +293,11 @@ typedef struct
 } _filter_t;
 
 _filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
-_filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*);
+_filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*);
 _filter_t* get_filter(aaxFilter);
 
 _filter_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
-_filter_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*);
+_filter_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _oalRingBuffer2dProps*, _oalRingBuffer3dProps*);
 _filter_t* get_effect(aaxEffect);
 _filter_t* get_effect(aaxEffect);
 

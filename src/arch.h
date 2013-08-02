@@ -38,6 +38,9 @@ typedef void (*_batch_mul_value_proc)(void*,  unsigned, unsigned int, float);
 typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 
+void* _aax_aligned_alloc16(size_t);
+void _aax_aligned_free(void*);
+
 extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
 extern _aax_memcpy_proc _aax_memcpy;

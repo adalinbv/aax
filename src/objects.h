@@ -118,7 +118,7 @@ typedef struct
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;
-   _oalRingBufferDelayed3dProps *dprops3d;
+   _oalRingBuffer3dProps *props3d;
 
    _intBuffers *emitters_2d;	/* plain stereo emitters		*/
    _intBuffers *emitters_3d;	/* emitters with positional information	*/
@@ -147,7 +147,7 @@ typedef struct
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
-   _oalRingBufferDelayed3dProps *dprops3d;
+   _oalRingBuffer3dProps *props3d;
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
@@ -186,7 +186,9 @@ void _aaxRemoveFrameRingBufferByPos(void *, unsigned int);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
 void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
-void _aaxSetDefault3dProps(_oalRingBuffer3dProps *);
+_oalRingBuffer3dProps *_aax3dPropsCreate();
+_oalRingBufferDelayed3dProps *_aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps*);
+void _aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *);
 
 void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);

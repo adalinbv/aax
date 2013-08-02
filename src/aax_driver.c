@@ -794,8 +794,8 @@ _open_handle(aaxConfig config)
                _aaxSetDefault2dProps(mixer->props2d);
                _EFFECT_SET2D(mixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
 
-               mixer->dprops3d = _oalRingBufferDelayed3dPropsCreate();
-               if (mixer->dprops3d)
+               mixer->props3d = _aax3dPropsCreate();
+               if (mixer->props3d)
                {
                   _EFFECT_SETD3D_DATA(mixer, VELOCITY_EFFECT,
                                             _oalRingBufferDopplerFunc[0]);
@@ -841,8 +841,8 @@ _open_handle(aaxConfig config)
                      size = 2*sizeof(vec4_t);
                      _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
 
-                     _PROP_PITCH_SET_CHANGED(mixer->dprops3d);
-                     _PROP_MTX_SET_CHANGED(mixer->dprops3d);
+                     _PROP_PITCH_SET_CHANGED(mixer->props3d);
+                     _PROP_MTX_SET_CHANGED(mixer->props3d);
 
                      return handle;
                   }
@@ -1285,7 +1285,7 @@ removeMixerByPos(void *config, unsigned int pos)
       free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
       free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
       free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
-      free(mixer->dprops3d);
+      free(mixer->props3d);
 
       /* ringbuffer gets removed by the thread */
       /* _oalRingBufferDelete(mixer->ringbuffer); */

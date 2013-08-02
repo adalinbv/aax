@@ -593,7 +593,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
-               _oalRingBuffer3dProps sp3d;
+               _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
                _oalRingBuffer2dProps sp2d;
                char fprocess = AAX_TRUE;
                float ssv, sdf;
@@ -610,11 +610,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
 
                ssv = _EFFECT_GETD3D(mixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
                sdf = _EFFECT_GETD3D(mixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-               _aax_memcpy(&sp3d, mixer->dprops3d->props3d,
-                                  sizeof(_oalRingBuffer3dProps));
-               mtx4Copy(sp3d.m_matrix, sp3d.matrix);
-               vec4Negate(sp3d.m_velocity, sp3d.velocity);
-               _PROP_CLEAR(mixer->dprops3d);
+               _aax_memcpy(&sdp3d, mixer->props3d->dprops3d,
+                                  sizeof(_oalRingBufferDelayed3dProps));
+               mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
+               vec4Negate(sdp3d_m.velocity, sdp3d.velocity);
+               _PROP_CLEAR(mixer->props3d);
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
 #if THREADED_FRAMES
@@ -627,8 +627,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                }
                fprocess = AAX_FALSE;
 #endif
-               _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf, NULL, NULL,
-                                     &sp2d, &sp3d, be, be_handle, fprocess);
+               _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf,
+                                     NULL, NULL, &sp2d, &sdp3d, &sdp3d_m,
+                                     be, be_handle, fprocess);
 
                res = _aaxSoftwareMixerPlay(dest, mixer->devices,
                                            mixer->ringbuffers,  mixer->frames,

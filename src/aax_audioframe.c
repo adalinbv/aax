@@ -64,8 +64,8 @@ aaxAudioFrameCreate(aaxConfig config)
          _aaxSetDefault2dProps(submix->props2d);
          _EFFECT_SET2D(submix, PITCH_EFFECT, AAX_PITCH, handle->info->pitch);
 
-         submix->dprops3d = _oalRingBufferDelayed3dPropsCreate();
-         if (submix->dprops3d)
+         submix->props3d = _aax3dPropsCreate();
+         if (submix->props3d)
          {
             const _intBufferData* dptr;
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -132,7 +132,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
          effect = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
          if (effect) free(effect->history_ptr);
          free(effect);
-         free(fmixer->dprops3d);
+         free(fmixer->props3d);
 
          /* handle->ringbuffer gets removed bij the frame thread */
          /* _oalRingBufferDelete(handle->ringbuffer); */
@@ -173,13 +173,13 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
       {
          _aaxAudioFrame* mixer = handle->submix;
 
-         mtx4Copy(mixer->dprops3d->props3d->matrix, mtx);
+         mtx4Copy(mixer->props3d->dprops3d->matrix, mtx);
          if (_IS_RELATIVE(handle)) {
-            mixer->dprops3d->props3d->matrix[LOCATION][3] = 0.0f;
+            mixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
          } else {
-            mixer->dprops3d->props3d->matrix[LOCATION][3] = 1.0f;
+            mixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
          }
-         _PROP_MTX_SET_CHANGED(mixer->dprops3d);
+         _PROP_MTX_SET_CHANGED(mixer->props3d);
          rv = AAX_TRUE;
       }
       else {
@@ -202,7 +202,7 @@ aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4f mtx)
    {
       if (mtx)
       {
-         mtx4Copy(mtx, handle->submix->dprops3d->props3d->matrix);
+         mtx4Copy(mtx, handle->submix->props3d->dprops3d->matrix);
          rv = AAX_TRUE;
       }
       else {
@@ -225,8 +225,8 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
    {
       if (velocity && !detect_nan_vec3(velocity))
       {
-         vec3Copy(handle->submix->dprops3d->props3d->velocity, velocity);
-         _PROP_SPEED_SET_CHANGED(handle->submix->dprops3d);
+         vec3Copy(handle->submix->props3d->dprops3d->velocity, velocity);
+         _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
          rv = AAX_TRUE;
       }
       else {
@@ -249,7 +249,7 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
    {
       if (velocity)
       {
-         vec3Copy(velocity, handle->submix->dprops3d->props3d->velocity);
+         vec3Copy(velocity, handle->submix->props3d->dprops3d->velocity);
          rv = AAX_TRUE;
       }
       else {
@@ -363,7 +363,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          case AAX_DISTANCE_FILTER:
          case AAX_ANGULAR_FILTER:
          {
-            _oalRingBufferDelayed3dProps *p3d = handle->submix->dprops3d;
+            _oalRingBuffer3dProps *p3d = handle->submix->props3d;
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -407,7 +407,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       {
          _aaxAudioFrame* submix = handle->submix;
          rv = new_filter_handle(submix->info, type, submix->props2d,
-                                                    submix->dprops3d);
+                                                    submix->props3d);
          break;
       }
       default:
@@ -488,7 +488,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       {
          _aaxAudioFrame* mixer = handle->submix;
          rv = new_effect_handle(mixer->info, type, mixer->props2d,
-                                                   mixer->dprops3d);
+                                                   mixer->props3d);
          break;
       }
       default:
@@ -521,9 +521,9 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(handle, m);
             if TEST_FOR_TRUE(m) {
-               mixer->dprops3d->props3d->matrix[LOCATION][3] = 0.0f;
+               mixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
             } else {
-               mixer->dprops3d->props3d->matrix[LOCATION][3] = 1.0f;
+               mixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
             }
          }
          rv = AAX_TRUE;
@@ -587,14 +587,14 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                if (dptr)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                  _oalRingBufferDelayed3dProps *mp3d, *sp3d;
+                  _oalRingBuffer3dProps *mp3d, *sp3d;
                   _aaxAudioFrame *submix;
                   _oalRingBuffer *rb;
 
                   submix = sensor->mixer;
 
-                  mp3d = fmixer->dprops3d;
-                  sp3d = submix->dprops3d;
+                  mp3d = fmixer->props3d;
+                  sp3d = submix->props3d;
 
                   submix->info->frequency = fmixer->info->frequency;
                   while (submix->info->frequency > 48000.0f) {
@@ -731,7 +731,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
          unsigned int positional;
          _intBuffers *he;
 
-         positional = _IS_POSITIONAL(src->dprops3d);
+         positional = _IS_POSITIONAL(src->props3d);
          if (!positional) {
             he = mixer->emitters_2d;
          } else {
@@ -775,9 +775,9 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
             if (positional)
             {
-               _oalRingBufferDelayed3dProps *mp3d, *ep3d = src->dprops3d;
+               _oalRingBuffer3dProps *mp3d, *ep3d = src->props3d;
 
-               mp3d = mixer->dprops3d;
+               mp3d = mixer->props3d;
 
                _aaxEMitterSetDistDelay(src, mixer);
                if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
@@ -823,10 +823,10 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
          _aaxEmitter *src = emitter->source;
          _intBuffers *he;
 
-         if (_IS_POSITIONAL(src->dprops3d))
+         if (_IS_POSITIONAL(src->props3d))
          {
             he = mixer->emitters_3d;
-            _PROP_DISTQUEUE_CLEAR_DEFINED(src->dprops3d);
+            _PROP_DISTQUEUE_CLEAR_DEFINED(src->props3d);
          } else {
             he = mixer->emitters_2d;
          }
@@ -891,7 +891,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
             if (pos != UINT_MAX)
             {
-               _oalRingBufferDelayed3dProps *mp3d, *fp3d;
+               _oalRingBuffer3dProps *mp3d, *fp3d;
                _aaxAudioFrame *submix = sframe->submix;
                const _aaxDriverBackend *be = NULL;
                unsigned int be_pos;
@@ -899,8 +899,8 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
                be = _aaxGetDriverBackendLoopback(&be_pos);
                if (be)
                {
-                  mp3d = mixer->dprops3d;
-                  fp3d = submix->dprops3d;
+                  mp3d = mixer->props3d;
+                  fp3d = submix->props3d;
 
                   submix->dist_delaying = mixer->dist_delaying;
                   _aaxAudioFrameSetDistDelay(submix, mixer);
@@ -1204,24 +1204,26 @@ _aaxAudioFrameSetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
 
    if (mixer->dist_delaying)
    {
-      _oalRingBufferDelayed3dProps *pdp3d = mixer->dprops3d;
-      _oalRingBuffer3dProps *pp3d = pdp3d->props3d;
-      _oalRingBuffer3dProps *fp3d = frame->dprops3d->props3d;
+      _oalRingBuffer3dProps *pp3d = mixer->props3d;
+      _oalRingBufferDelayed3dProps *pdp3d_m = pp3d->m_dprops3d;
+      _oalRingBuffer3dProps *fp3d = frame->props3d;
+      _oalRingBufferDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
+      _oalRingBufferDelayed3dProps *fdp3d = fp3d->dprops3d;
       _oalRingBuffer2dProps *fp2d = frame->props2d;
       float dist, vs;
 
-      vs = _EFFECT_GET(pdp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+      vs = _EFFECT_GET(pp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
 
       /**
        * Align the modified frame matrix with the sensor by multiplying 
        * the frame matrix by the modified parent matrix.
        */
-      mtx4Mul(fp3d->m_matrix, pp3d->m_matrix, fp3d->matrix);
-      dist = vec3Magnitude(fp3d->m_matrix[LOCATION]);
+      mtx4Mul(fdp3d_m->matrix, pdp3d_m->matrix, fdp3d->matrix);
+      dist = vec3Magnitude(fdp3d_m->matrix[LOCATION]);
       fp2d->dist_delay_sec = dist / vs;
 
-      _PROP_DISTQUEUE_SET_DEFINED(frame->dprops3d);
-      frame->dprops3d->buf3dq_step = 1.0f;
+      _PROP_DISTQUEUE_SET_DEFINED(frame->props3d);
+      fp3d->buf3dq_step = 1.0f;
    }
 }
 

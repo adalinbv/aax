@@ -13,7 +13,8 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>	/* getenv, malloc */
+#include <stdlib.h>	/* getenv, malloc, aligned_alloc */
+#include <malloc.h>
 #if HAVE_STRINGS_H
 # include <strings.h>	/* strcasecmp */
 #endif
@@ -534,6 +535,33 @@ check_extcpuid_ecx(unsigned int type)
    return (_regs[ECX] & type) ? 3 : 0;
 }
 #endif /* __i386__ || __x86_64__ */
+
+void *
+_aax_aligned_alloc16(size_t size)
+{
+   void *rv;
+#if _MSC_VER
+   rv = _aligned_malloc(size, 16);
+#elif __STDC_VERSION__ >= 201112L
+   rv = aligned_alloc(16, size);
+#elif _POSIX_VERSION >= 200112L
+   if (posix_memalign(&rv, 16, size)) {
+      rv = NULL;
+   }
+#endif
+
+   return rv;
+}
+
+void
+_aax_aligned_free(void *ptr)
+{
+#if _MSC_VER
+   _aligned_free(ptr);
+#else
+   free(ptr);
+#endif
+}
 
 char *
 _aax_malloc_align16(char **start, unsigned int size)

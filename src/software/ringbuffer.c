@@ -1093,54 +1093,6 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
    return rv;
 }
 
-_oalRingBufferDelayed3dProps *
-_oalRingBufferDelayed3dPropsCreate()
-{
-   _oalRingBufferDelayed3dProps *rv = NULL;
-   unsigned int size;
-   char *ptr1, *ptr2;
-
-   size = sizeof(_oalRingBufferDelayed3dProps);
-   ptr2 = (char*)size;
-   size += sizeof(_oalRingBuffer3dProps);
-   ptr1 = _aax_calloc(&ptr2, 1, size);
-   if (ptr1)
-   {
-      unsigned int pos;
-
-      rv = (_oalRingBufferDelayed3dProps*)ptr1;
-      rv->props3d = (_oalRingBuffer3dProps*)ptr2;
-
-      _aaxSetDefault3dProps(rv->props3d);
-      rv->pitch = 1.0f;
-      rv->gain = 1.0f;
-
-      for (pos=0; pos<MAX_3D_FILTER; pos++) {
-         _aaxSetDefaultFilter3d(&rv->filter[pos], pos);
-      }
-      for (pos=0; pos<MAX_3D_EFFECT; pos++) {
-         _aaxSetDefaultEffect3d(&rv->effect[pos], pos);
-      }
-   }
-   return rv;
-}
-
-_oalRingBufferDelayed3dProps *
-_oalRingBufferDelayed3dPropsDup(_oalRingBufferDelayed3dProps *dp3d)
-{
-   _oalRingBufferDelayed3dProps *rv = _oalRingBufferDelayed3dPropsCreate();
-   if (rv)
-   {
-      rv->buf3dq_step = dp3d->buf3dq_step;
-      rv->gain = dp3d->gain;
-      rv->pitch = dp3d->pitch;
-      rv->state = dp3d->state;
-
-      _aax_memcpy(rv->props3d, dp3d->props3d, sizeof(_oalRingBuffer3dProps));
-   }
-   return rv;
-}
-
 void
 _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float i_gain, float lb, float lb_gain)
 {

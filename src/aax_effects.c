@@ -1012,7 +1012,7 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
 }
 
 _filter_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2dProps* p2d, _oalRingBufferDelayed3dProps* p3d)
+new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2dProps* p2d, _oalRingBuffer3dProps* p3d)
 {
    _filter_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
