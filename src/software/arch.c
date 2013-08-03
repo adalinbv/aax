@@ -543,15 +543,15 @@ _aax_aligned_alloc16(size_t size)
    void *rv;
 #if __STDC_VERSION__ >= 201112L
    rv = aligned_alloc(16, size);
-   _aax_aligned_free = free;
+   _aax_aligned_free = (_aax_aligned_free_proc)free;
 #elif _POSIX_VERSION >= 200112L
-   _aax_aligned_free = free;
+   _aax_aligned_free = (_aax_aligned_free_proc)free;
    if (posix_memalign(&rv, 16, size)) {
       rv = NULL;
    }
 #elif _MSC_VER
    rv = _aligned_malloc(size, 16);
-   _aax_aligned_free = _aligned_free;
+   _aax_aligned_free = (_aax_aligned_free_proc)_aligned_free;
 #endif
 
    return rv;

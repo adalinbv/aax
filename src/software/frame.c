@@ -359,7 +359,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
          cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);
          for (i=0; i<max; i++)
          {
-            _aaxAudioFrame *sfmixer;
+            _aaxAudioFrame *sfmixer = NULL;
             _intBufferData *dptr;
             _frame_t* subframe;
             char res = 0;

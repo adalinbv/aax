@@ -32,6 +32,21 @@ aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
 }
 
 AAX_API int AAX_APIENTRY
+aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
+{
+   int rv = AAX_FALSE;
+   if (mtx)
+   {
+      mtx4dCopy(mtx, aaxIdentityMatrix64);
+      rv = AAX_TRUE;
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
 aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
 {
    int rv = AAX_FALSE;
@@ -49,6 +64,44 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
                mtx4Copy(m, mtx);
                mtx4Translate(m, dx, dy, dz);
                mtx4Copy(mtx, m);
+               rv = AAX_TRUE;
+            }
+            else {
+               _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+            }
+         }
+         else {
+            _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         }
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
+{
+   int rv = AAX_FALSE;
+   if (mtx && !detect_nan_vec4d(mtx[0]) && !detect_nan_vec4d(mtx[1]) &&
+              !detect_nan_vec4d(mtx[2]) && !detect_nan_vec4d(mtx[3]))
+   {
+      if (!is_nan64(dx))
+      {
+         if (!is_nan64(dy))
+         {
+            if (!is_nan64(dz))
+            {
+               mtx4d_t m;
+
+               mtx4dCopy(m, mtx);
+               mtx4dTranslate(m, dx, dy, dz);
+               mtx4dCopy(mtx, m);
                rv = AAX_TRUE;
             }
             else {
@@ -114,6 +167,51 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
 }
 
 AAX_API int AAX_APIENTRY
+aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
+{
+   int rv = AAX_FALSE;
+   if (mtx && !detect_nan_vec4d(mtx[0]) && !detect_nan_vec4d(mtx[1]) &&
+              !detect_nan_vec4d(mtx[2]) && !detect_nan_vec4d(mtx[3]))
+   {
+      if (!is_nan64(angle_rad))
+      {
+         if (!is_nan64(x))
+         {
+            if (!is_nan64(y))
+            {
+               if (!is_nan64(z))
+               {
+                  mtx4d_t m;
+
+                  mtx4dCopy(m, mtx);
+                  mtx4dRotate(m, angle_rad, x, y, z);
+                  mtx4dCopy(mtx, m);
+                  rv = AAX_TRUE;
+               }
+               else {
+                  _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
+               }
+            }
+            else {
+               _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+            }
+         }
+         else {
+            _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         }
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+
+
+AAX_API int AAX_APIENTRY
 aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
 {
    int rv = AAX_FALSE;
@@ -142,6 +240,34 @@ aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
 }
 
 AAX_API int AAX_APIENTRY
+aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
+{
+   int rv = AAX_FALSE;
+   if (mtx1 && !detect_nan_vec4d(mtx1[0]) && !detect_nan_vec4d(mtx1[1]) &&
+               !detect_nan_vec4d(mtx1[2]) && !detect_nan_vec4d(mtx1[3]))
+   {
+      if (mtx2 && !detect_nan_vec4d(mtx2[0]) && !detect_nan_vec4d(mtx2[1]) &&
+                  !detect_nan_vec4d(mtx2[2]) && !detect_nan_vec4d(mtx2[3]))
+      {
+         mtx4d_t m1, m2, m3;
+
+         mtx4dCopy(m1, mtx1);
+         mtx4dCopy(m2, mtx2);
+         mtx4dMul(m3, m1, m2);
+         mtx4dCopy(mtx1, m3);
+         rv = AAX_TRUE;
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
 aaxMatrixInverse(aaxMtx4f mtx)
 {
    int rv = AAX_FALSE;
@@ -154,6 +280,31 @@ aaxMatrixInverse(aaxMtx4f mtx)
          mtx4Copy(m1, mtx);
          mtx4InverseSimple(m2, m1);
          mtx4Copy(mtx, m2);
+         rv = AAX_TRUE;
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxMatrix64Inverse(aaxMtx4d mtx)
+{
+   int rv = AAX_FALSE;
+   if (mtx)
+   {
+      if (!detect_nan_vec4d(mtx[0]) && !detect_nan_vec4d(mtx[1]) &&
+          !detect_nan_vec4d(mtx[2]) && !detect_nan_vec4d(mtx[3]))
+      {
+         mtx4d_t m1, m2;
+         mtx4dCopy(m1, mtx);
+         mtx4dInverseSimple(m2, m1);
+         mtx4dCopy(mtx, m2);
          rv = AAX_TRUE;
       }
       else {
@@ -283,3 +434,32 @@ aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxMatrix64ToMatrix(aaxMtx4f mtx, aaxMtx4d mtx64)
+{
+   int rv = AAX_FALSE;
+   if (mtx && mtx64 &&
+           !detect_nan_vec4d(mtx64[0]) && !detect_nan_vec4d(mtx64[1]) &&
+           !detect_nan_vec4d(mtx64[2]) && !detect_nan_vec4d(mtx64[3]))
+   {
+      int i, j;
+      i = 4;
+      do
+      {
+         i--;
+         j = 4;
+         do
+         {
+            j--;
+            mtx[i][j] = (float)mtx64[i][j];
+         }
+         while(j);
+      }
+      while(i);
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+ 

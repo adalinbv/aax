@@ -17,6 +17,7 @@
  * Fix an issue with loopback capturing of the playback stream.
  * Fix an issue with emitters registered at audio subframes.
  * Fix an issue with flanging for emitters registered at the final mixer.
+ * Add 64-bit matrix support funxtions.
 
 
  -- Erik Hofman <tech@adalin.org>  Mon, 03 Jun 2013 10:10:00 +0200

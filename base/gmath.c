@@ -93,6 +93,17 @@ is_nan(float x)
 }
 
 int
+is_nan64(double x)
+{
+#if HAVE_ISNAN
+   return is_nan(x);
+#else
+   volatile double temp = x;
+   return (temp != x) ? 1 : 0;
+#endif
+}
+
+int
 detect_nan_vec3(const float *vec)
 {
    return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]);
@@ -100,6 +111,12 @@ detect_nan_vec3(const float *vec)
 
 int
 detect_nan_vec4(const float *vec)
+{
+   return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]) || is_nan(vec[3]);
+}
+
+int
+detect_nan_vec4d(const double *vec)
 {
    return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]) || is_nan(vec[3]);
 }

@@ -437,6 +437,7 @@ typedef void* aaxInstrument;
 typedef float aaxVec3f[3];
 typedef float aaxVec4f[4];
 typedef float aaxMtx4f[4][4];
+typedef double aaxMtx4d[4][4];
 
 /*
  * Version and Support information
@@ -610,6 +611,13 @@ AAX_API int AAX_APIENTRY aaxMatrixInverse(aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixSetDirection(aaxMtx4f, const aaxVec3f, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxMatrixSetOrientation(aaxMtx4f, const aaxVec3f, const aaxVec3f, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxMatrixGetOrientation(aaxMtx4f, aaxVec3f, aaxVec3f, aaxVec3f);
+
+AAX_API int AAX_APIENTRY aaxMatrix64SetIdentityMatrix(aaxMtx4d);
+AAX_API int AAX_APIENTRY aaxMatrix64Translate(aaxMtx4d, double, double, double);
+AAX_API int AAX_APIENTRY aaxMatrix64Rotate(aaxMtx4d, double, double, double, double);
+AAX_API int AAX_APIENTRY aaxMatrix64Multiply(aaxMtx4d, aaxMtx4d);
+AAX_API int AAX_APIENTRY aaxMatrix64Inverse(aaxMtx4d);
+AAX_API int AAX_APIENTRY aaxMatrix64ToMatrix(aaxMtx4f, aaxMtx4d);
 
 
 /*

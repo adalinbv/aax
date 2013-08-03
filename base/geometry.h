@@ -60,7 +60,12 @@ typedef int32_t ivec4[4];
 typedef float vec4[4];
 typedef float mtx4[4][4];
 
+typedef double vec3d[3];
+typedef ALIGN16 double mtx4d_t[4][4] ALIGN16C;
+typedef double mtx4d[4][4];
+
 AAX_API extern aaxMtx4f aaxIdentityMatrix;
+AAX_API extern aaxMtx4d aaxIdentityMatrix64;
 
 typedef void (*vec3Copy_proc)(vec3 d, const vec3 v);
 typedef void (*vec3Add_proc)(vec3 d, vec3 v);
@@ -85,10 +90,17 @@ typedef float (*vec3DotProduct_proc)(const vec3 v1, const vec3 v2);
 typedef float (*vec3Normalize_proc)(vec3 d, const vec3 v);
 typedef void (*vec3CrossProduct_proc)(vec3 d, const vec3 v1, const vec3 v2);
 
+typedef double (*vec3dMagnitude_proc)(const vec3d v);
+typedef double (*vec3dDotProduct_proc)(const vec3d v1, const vec3d v2);
+typedef double (*vec3dNormalize_proc)(vec3d d, const vec3d v);
+
 extern vec3Magnitude_proc vec3Magnitude;
+extern vec3dMagnitude_proc vec3dMagnitude;
 extern vec3MagnitudeSquared_proc vec3MagnitudeSquared;
 extern vec3DotProduct_proc vec3DotProduct;
+extern vec3dDotProduct_proc vec3dDotProduct;
 extern vec3Normalize_proc vec3Normalize;
+extern vec3dNormalize_proc vec3dNormalize;
 extern vec3CrossProduct_proc vec3CrossProduct;
 
 typedef void (*vec4Copy_proc)(vec4 d, const vec4 v);
@@ -111,15 +123,22 @@ void vec4Negate(vec4 d, const vec4 v);
 void vec4Set(vec4 d, float x, float y, float z, float w);
 
 typedef void (*mtx4Mul_proc)(mtx4 d, mtx4 m1, mtx4 m2);
+typedef void (*mtx4dMul_proc)(mtx4d d, mtx4d m1, mtx4d m2);
 
 extern mtx4Mul_proc mtx4Mul;
+extern mtx4dMul_proc mtx4dMul;
 
-void mtx4MulVec4(vec4 d, mtx4 m, const vec4 v);
+void tx4MulVec4(vec4 d, mtx4 m, const vec4 v);
 void mtx4Translate(mtx4 m, float x, float y, float z);
 void mtx4Rotate(mtx4 m, float angle, float x, float y, float z);
 void mtx4InverseSimple(mtx4 d, mtx4 m);
 void mtx4SetAbsolute(mtx4 d, char);
 void mtx4Copy(mtx4 d, void *);
+
+void mtx4dCopy(mtx4d d, void *);
+void mtx4dTranslate(mtx4d m, double x, double y, double z);
+void mtx4dRotate(mtx4d m, double angle, double x, double y, double z);
+void mtx4dInverseSimple(mtx4d d, mtx4d m);
 
 typedef void (*ivec4Copy_proc)(ivec4 d, const ivec4 v);
 typedef void (*ivec4Add_proc)(ivec4 d, ivec4 v);
