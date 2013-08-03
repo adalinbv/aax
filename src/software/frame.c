@@ -370,18 +370,25 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
 
             /* copy to prevent locking while walking the tree */
             subframe = _intBufGetDataPtr(dptr);
-            sfmixer = subframe->submix;
-            _aaxAudioFrameProcessDelayQueue(sfmixer);
+            if (subframe)
+            {
+               sfmixer = subframe->submix;
 
-            _aax_memcpy(&sfp2d, sfmixer->props2d,
-                                sizeof(_oalRingBuffer2dProps));
-            _aax_memcpy(&sfp2d.pos,fp2d->pos, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-            _aax_memcpy(&sfdp3d, sfmixer->props3d->dprops3d,
-                                sizeof(_oalRingBufferDelayed3dProps));
-            _aax_memcpy(&sfdp3d_m, sfmixer->props3d->m_dprops3d,
-                                sizeof(_oalRingBufferDelayed3dProps));
-            _PROP_CLEAR(sfmixer->props3d);
-            _intBufReleaseData(dptr, _AAX_FRAME);
+               _aaxAudioFrameProcessDelayQueue(sfmixer);
+
+               _aax_memcpy(&sfp2d, sfmixer->props2d,
+                                   sizeof(_oalRingBuffer2dProps));
+               _aax_memcpy(&sfdp3d, sfmixer->props3d->dprops3d,
+                                    sizeof(_oalRingBufferDelayed3dProps));
+               _aax_memcpy(&sfdp3d_m, sfmixer->props3d->m_dprops3d,
+                                      sizeof(_oalRingBufferDelayed3dProps));
+
+               _PROP_CLEAR(sfmixer->props3d);
+               _intBufReleaseData(dptr, _AAX_FRAME);
+            }
+
+            /* read-only data */           
+            _aax_memcpy(&sfp2d.pos, fp2d->pos,_AAX_MAX_SPEAKERS*sizeof(vec4_t));
 
             /* clear the buffer for use by the subframe */
             _oalRingBufferClear(frame_rb);
@@ -503,8 +510,9 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
           const _aaxDriverBackend *be)
 {
    void *be_handle = NULL;
-   _oalRingBufferDelayed3dProps pdp3d_m, fdp3d, fdp3d_m;
-   _oalRingBuffer2dProps pp2d, fp2d;
+   _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
+   _oalRingBufferDelayed3dProps fdp3d, fdp3d_m;
+   _oalRingBuffer2dProps sp2d, fp2d;
    _intBufferData *dptr;
    float ssv = 343.3f;
    float sdf = 1.0f;
@@ -517,37 +525,56 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
 
    be_handle = handle->backend.handle;
 
-   /* copying prevents locking the listener the whole time */
-   /* it's used for just one time-frame anyhow             */
+   /**
+    * copying here prevents locking the listener the whole time
+    * it's used for just one time-frame anyhow
+    * Note: modifications here should also be made to
+    *       _aaxSoftwareMixerThreadUpdate
+    */
    dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr)
    {
-      _aax_memcpy(&pp2d, smixer->props2d,sizeof(_oalRingBuffer2dProps));
-      _aax_memcpy(&pp2d.pos, handle->info->speaker,
-                             _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-      _aax_memcpy(&pp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
-
+      // _aaxAudioFrameProcessDelayQueue is called in
+      // _aaxSoftwareMixerThreadUpdate
       ssv = _EFFECT_GETD3D(smixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
       sdf = _EFFECT_GETD3D(smixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-      _aax_memcpy(&pdp3d_m, smixer->props3d->m_dprops3d,
-                         sizeof(_oalRingBufferDelayed3dProps));
-      _PROP_CLEAR(smixer->props3d);
 
+      _aax_memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
+      _aax_memcpy(&sdp3d, smixer->props3d->dprops3d,
+                          sizeof(_oalRingBufferDelayed3dProps));
+      _PROP_CLEAR(smixer->props3d);
       _intBufReleaseData(dptr, _AAX_SENSOR);
    }
 
+   /* read-only data */
+   _aax_memcpy(&sp2d.pos, handle->info->speaker,
+                          _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+   _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
+
+   /* update the modified properties */
+   mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
+   vec4Negate(sdp3d_m.velocity, sdp3d.velocity);
+   sdp3d_m.state3d = sdp3d.state3d;
+   sdp3d_m.pitch = sdp3d.pitch;
+   sdp3d_m.gain = sdp3d.gain;
+
+   /* frame */
    _aaxAudioFrameProcessDelayQueue(fmixer);
    _aax_memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
-   _aax_memcpy(&fp2d.pos, &pp2d.pos, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
-   _aax_memcpy(&fdp3d, fmixer->props3d->dprops3d, sizeof(_oalRingBufferDelayed3dProps));
-   _aax_memcpy(&fdp3d_m, fmixer->props3d->m_dprops3d, sizeof(_oalRingBufferDelayed3dProps));
+   _aax_memcpy(&fdp3d, fmixer->props3d->dprops3d,
+                       sizeof(_oalRingBufferDelayed3dProps));
+   _aax_memcpy(&fdp3d_m, fmixer->props3d->m_dprops3d,
+                         sizeof(_oalRingBufferDelayed3dProps));
    _PROP_CLEAR(fmixer->props3d);
+
+   /* frame read-only data */
+   _aax_memcpy(&fp2d.pos, &sp2d.pos, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
 
    /* clear the buffer for use by the subframe */
    _oalRingBufferClear(frame_rb);
    _oalRingBufferStart(frame_rb);
 
-   _aaxAudioFrameProcess(frame_rb, NULL, mixer, ssv, sdf, &pp2d, &pdp3d_m,
+   _aaxAudioFrameProcess(frame_rb, NULL, mixer, ssv, sdf, &sp2d, &sdp3d_m,
                          &fp2d, &fdp3d, &fdp3d_m, be, be_handle, AAX_TRUE);
 
    /* copy back the altered fdp3d matrix and velocity vector   */

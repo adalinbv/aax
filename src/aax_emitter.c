@@ -82,6 +82,7 @@ aaxEmitterCreate()
       if (!src->buffers)
       {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         _aax_aligned_free(handle->source->props3d->dprops3d);
          free(handle->source->props3d);
          free(handle);
       }
@@ -121,6 +122,8 @@ aaxEmitterDestroy(aaxEmitter emitter)
          if (src->p3dq) {
             _intBufErase(&src->p3dq, _AAX_DELAYED3D, 0, 0);
          }
+
+         _aax_aligned_free(src->props3d->dprops3d);
          free(src->props3d);
 
          /* safeguard against using already destroyed handles */

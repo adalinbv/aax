@@ -125,9 +125,10 @@ _aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps *dp3d)
    if (rv)
    {
       _aaxSetDefaultDelayed3dProps(rv);
-      rv->gain = dp3d->gain;
-      rv->pitch = dp3d->pitch;
+
       rv->state3d = dp3d->state3d;
+      rv->pitch = dp3d->pitch;
+      rv->gain = dp3d->gain;
    }
    return rv;
 }

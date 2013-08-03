@@ -218,8 +218,11 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    edp3d_m = ep3d->m_dprops3d;
    ep2d = src->props2d;
 
+   /* get pitch and gain before it is pushed to the delay queue */
    edp3d->pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
    edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+
+   // _aaxEmitterProcessDelayQueue
    if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d))
    {
       if (!src->p3dq) {
@@ -267,14 +270,17 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(dopplerfn);
    assert(distfn);
 
-   if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) || _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
+   /* only update when the matrix and/or the velocity vector has changed */
+   if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
+       _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec4_t epos;
       float gain, pitch;
       float dist, esv, ss;
       float min, max;
 
-      /* align the emitter with the parent frame.
+      /**
+       * align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
       mtx4Mul(edp3d_m->matrix, fdp3d_m->matrix, edp3d->matrix);

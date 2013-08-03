@@ -596,26 +596,41 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
                _oalRingBuffer2dProps sp2d;
                char fprocess = AAX_TRUE;
-               float ssv, sdf;
+               float ssv = 343.3f;
+               float sdf = 1.0f;
 
-               /* copying here prevents locking the listener the whole time */
-               /* it's used for just one time-frame anyhow                  */
+               /**
+                * copying here prevents locking the listener the whole time
+                * it's used for just one time-frame anyhow
+                * Note: modifications here should also be made to
+                *       _aaxAudioFrameProcessThreadedFrame
+                */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               _aaxAudioFrameProcessDelayQueue(mixer);
+               if (dptr_sensor)
+               {
+                  _aaxAudioFrameProcessDelayQueue(mixer);
+                  ssv =_EFFECT_GETD3D(mixer,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
+                  sdf =_EFFECT_GETD3D(mixer,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
 
-               _aax_memcpy(&sp2d, mixer->props2d,sizeof(_oalRingBuffer2dProps));
+                  _aax_memcpy(&sp2d, mixer->props2d,
+                                     sizeof(_oalRingBuffer2dProps));
+                  _aax_memcpy(&sdp3d, mixer->props3d->dprops3d,
+                                      sizeof(_oalRingBufferDelayed3dProps));
+                  _PROP_CLEAR(mixer->props3d);
+                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+               }
+
+               /* read-only data */
                _aax_memcpy(&sp2d.pos, handle->info->speaker,
                                       _AAX_MAX_SPEAKERS*sizeof(vec4_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
 
-               ssv = _EFFECT_GETD3D(mixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-               sdf = _EFFECT_GETD3D(mixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-               _aax_memcpy(&sdp3d, mixer->props3d->dprops3d,
-                                  sizeof(_oalRingBufferDelayed3dProps));
+               /* update the modified properties */
                mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
                vec4Negate(sdp3d_m.velocity, sdp3d.velocity);
-               _PROP_CLEAR(mixer->props3d);
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+               sdp3d_m.state3d = sdp3d.state3d;
+               sdp3d_m.pitch = sdp3d.pitch;
+               sdp3d_m.gain = sdp3d.gain;
 
 #if THREADED_FRAMES
                /** signal threaded frames to update (if necessary) */
