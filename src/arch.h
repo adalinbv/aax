@@ -25,6 +25,7 @@ extern "C" {
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, unsigned int, unsigned int);
 typedef char* (*_aax_malloc_proc)(char**, unsigned int);
+typedef void* (*_aax_aligned_free_proc)(void*);
 
 typedef void (*_batch_cvt_proc)(void*, unsigned int);
 typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, unsigned int);
@@ -39,7 +40,7 @@ typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, unsigned int,
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 
 void* _aax_aligned_alloc16(size_t);
-void _aax_aligned_free(void*);
+extern _aax_aligned_free_proc _aax_aligned_free;
 
 extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;

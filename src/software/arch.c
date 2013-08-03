@@ -108,6 +108,7 @@ static char check_extcpuid_ecx(unsigned int);
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_align16;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_align16;
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 _aax_memcpy_proc _batch_cvt24_24 = (_aax_memcpy_proc)_batch_cvt24_24_cpu;
 
 _batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
@@ -540,27 +541,20 @@ void *
 _aax_aligned_alloc16(size_t size)
 {
    void *rv;
-#if _MSC_VER
-   rv = _aligned_malloc(size, 16);
-#elif __STDC_VERSION__ >= 201112L
+#if __STDC_VERSION__ >= 201112L
    rv = aligned_alloc(16, size);
+   _aax_aligned_free = free;
 #elif _POSIX_VERSION >= 200112L
+   _aax_aligned_free = free;
    if (posix_memalign(&rv, 16, size)) {
       rv = NULL;
    }
+#elif _MSC_VER
+   rv = _aligned_malloc(size, 16);
+   _aax_aligned_free = _aligned_free;
 #endif
 
    return rv;
-}
-
-void
-_aax_aligned_free(void *ptr)
-{
-#if _MSC_VER
-   _aligned_free(ptr);
-#else
-   free(ptr);
-#endif
 }
 
 char *
