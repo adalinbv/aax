@@ -17,10 +17,16 @@
 
 #ifdef __SSE3__
 
-FN_PREALIGN inline void
-__vec4Matrix4_sse3(vec4 d, const vec4 vi, mtx4 m)
+FN_PREALIGN void
+_vec4Matrix4_sse3(vec4 d, const vec4 pv, mtx4 m)
 {
-   __m128 v = _mm_load_ps((const float*)vi);
+   vec4_t vi;
+   __m128 v;
+   
+   vec3Copy(vi, pv);
+   vi[3] = 0.0f;
+
+   v = _mm_load_ps((const float*)vi);
    __m128 vm0 = _mm_mul_ps(_mm_load_ps((const float*)(m+0)), v);
    __m128 vm1 = _mm_mul_ps(_mm_load_ps((const float*)(m+1)), v);
    __m128 vm2 = _mm_mul_ps(_mm_load_ps((const float*)(m+2)), v);
@@ -28,20 +34,21 @@ __vec4Matrix4_sse3(vec4 d, const vec4 vi, mtx4 m)
    _mm_store_ps(d, _mm_hadd_ps(_mm_hadd_ps(vm0, vm1), _mm_hadd_ps(vm2, vm3)));
 }
 
-void
-_vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m)
+FN_PREALIGN void
+_pt4Matrix4_sse3(vec4 d, const vec4 pv, mtx4 m)
 {
-   float *pv = (float*)v;
-   pv[3] = 0.0f;
-   __vec4Matrix4_sse3(d, pv, m);
-}
+   vec4_t vi;
+   __m128 v;
+   
+   vec3Copy(vi, pv);
+   vi[3] = 1.0f;
 
-void
-_pt4Matrix4_sse3(vec4 d, const vec4 p, mtx4 m)
-{
-   float *pp = (float*)p;
-   pp[3] = 0.0f;
-   __vec4Matrix4_sse3(d, pp, m);
+   v = _mm_load_ps((const float*)vi);
+   __m128 vm0 = _mm_mul_ps(_mm_load_ps((const float*)(m+0)), v);
+   __m128 vm1 = _mm_mul_ps(_mm_load_ps((const float*)(m+1)), v);
+   __m128 vm2 = _mm_mul_ps(_mm_load_ps((const float*)(m+2)), v);
+   __m128 vm3 = _mm_mul_ps(_mm_load_ps((const float*)(m+3)), v);
+   _mm_store_ps(d, _mm_hadd_ps(_mm_hadd_ps(vm0, vm1), _mm_hadd_ps(vm2, vm3)));
 }
 
 void

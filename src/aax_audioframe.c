@@ -1199,8 +1199,8 @@ get_driver_handle(aaxFrame f)
 void
 _aaxAudioFrameSetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
 {
-   assert(src);
-   assert(smixer);
+   assert(frame);
+   assert(mixer);
 
    if (mixer->dist_delaying)
    {

@@ -1280,7 +1280,7 @@ void
 _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
 {
    assert(src);
-   assert(smixer);
+   assert(mixer);
 
    if (mixer->dist_delaying)
    {

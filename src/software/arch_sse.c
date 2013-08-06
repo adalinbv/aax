@@ -91,14 +91,21 @@ _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2)
    _mm_store_ps(r, xmm1);
 }
 
-FN_PREALIGN inline void
-__vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
+FN_PREALIGN void
+_vec4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
 {
    __m128 a_line, b_line, r_line;
-   const float *a = (const float *)m;
-   const float *b = (const float *)v;
-   float *r = (float *)d;
+   vec4_t v;
+   const float *a, *b; 
+   float *r;
    int i;
+
+   vec3Copy(v, vi);
+   v[3] = 0.0f;
+
+   a = (const float *)m;
+   b = (const float *)v;
+   r = (float *)d;
 
   /*
    * unroll the first step of the loop to avoid having to initialize
@@ -117,20 +124,37 @@ __vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
    _mm_store_ps(r, r_line);		/* r = r_line                  */
 }
 
-void
-_vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m)
+FN_PREALIGN void
+_pt4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
 {
-   float *pv = (float*)v;
-   pv[3] = 0.0f;
-   __vec4Matrix4_sse(d, pv, m);
-}
+   __m128 a_line, b_line, r_line;
+   vec4_t v;
+   const float *a, *b;
+   float *r;
+   int i;
 
-void
-_pt4Matrix4_sse(vec4 d, const vec4 p, mtx4 m)
-{
-   float *pp = (float*)p;
-   pp[3] = 1.0f;
-   __vec4Matrix4_sse(d, pp, m);
+   vec3Copy(v, vi);
+   v[3] = 1.0f;
+
+   a = (const float *)m;
+   b = (const float *)v;
+   r = (float *)d;
+
+  /*
+   * unroll the first step of the loop to avoid having to initialize
+   * r_line to zero
+   */
+   a_line = _mm_load_ps(a);		/* a_line = vec4(column(m, 0)) */
+   b_line = _mm_set1_ps(b[0]);		/* b_line = vec4(v[0])         */
+   r_line = _mm_mul_ps(a_line, b_line);	/* r_line = a_line * b_line    */
+   for (i=1; i<4; i++)
+   {
+      a_line = _mm_load_ps(&a[i*4]);	/* a_line = vec4(column(m, i)) */
+      b_line = _mm_set1_ps(b[i]);	/* b_line = vec4(v[i])         */
+					/* r_line += a_line * b_line   */
+      r_line = _mm_add_ps(_mm_mul_ps(a_line, b_line), r_line);
+   }
+   _mm_store_ps(r, r_line);		/* r = r_line                  */
 }
 
 FN_PREALIGN void

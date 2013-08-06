@@ -412,7 +412,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          int diff = (int)ep2d->hrtf[t][j];
          float v_start, v_step;
 
-         assert(diff < (int)ddesamps);
+         assert(diff < (int)rbd->dde_samples);
          assert(diff > -(int)dno_samples);
          diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
 
@@ -608,7 +608,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
                             unsigned char ch, unsigned char ctr,
                             unsigned int n)
 {
-   unsigned int t, offs, dno_samples, ddesamps;
+   unsigned int t, offs, dno_samples;
    _oalRingBufferLFOInfo *lfo;
    _oalRingBufferSample *rbd;
    float gain, svol, evol;
@@ -647,9 +647,10 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
-   // make sure the returned buffer has at least ddesamps prior to sptr[t]
+   // make sure the returned buffer has at least rbd->dde_samples
+   // prior to sptr[t]
    rbd = dest->sample;
-   offs = ddesamps = rbd->dde_samples;
+   offs = rbd->dde_samples;
    sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, n);
    if (sptr == NULL) {
       return ret;
@@ -776,7 +777,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
          int diff = (int)ep2d->hrtf[t][j];
          float v_start, v_step;
 
-         assert(diff < (int)ddesamps);
+         assert(diff < (int)rbd->dde_samples);
          assert(diff > -(int)dno_samples);
          diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
  
