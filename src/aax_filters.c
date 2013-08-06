@@ -79,7 +79,7 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
-         flt->info = handle->info;
+         flt->info = handle->info ? handle->info : _info;
 
          ptr = (char*)flt + sizeof(_filter_t);
          flt->slot[0] = (_oalRingBufferFilterInfo*)ptr;
@@ -690,7 +690,7 @@ aaxFilterSetState(aaxFilter f, int state)
 #endif
          break;
       case AAX_FREQUENCY_FILTER:
-         if EBF_VALID(filter)
+         if (filter) // EBF_VALID(filter)
          {
             switch (state & ~AAX_INVERSE)
             {

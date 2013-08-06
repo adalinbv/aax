@@ -367,6 +367,7 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
                   }
                   renderer = be->name(handle->backend.handle, mode);
                   handle->backend.driver=renderer? renderer : _default_renderer;
+                  _info =  handle->info;
                }
                _aaxDriverBackendClearConfigSettings(cfg);
             }
