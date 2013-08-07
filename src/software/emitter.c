@@ -287,9 +287,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       dist = vec3Normalize(epos, edp3d_m->matrix[LOCATION]);
 #if 0
  printf("# emitter parent:\t\t\t\temitter:\n");
- PRINT_MATRICES(fdp3d_m->matrix, ep3d->matrix);
+ PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
  printf("# modified emitter\n");
- PRINT_MATRIX(ep3d_m->matrix);
+ PRINT_MATRIX(edp3d_m->matrix);
  printf("# dist: %f\n", dist);
 #endif
 
