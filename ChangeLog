@@ -1,26 +1,32 @@
 * Mon Jun 03 2013 - tech@adalin.org
-- AeonWave (2.3.0) stable; urgency=medium
- * Fix a segmentation fault for the Loopback driver.
+- AeonWave (2.3.0) stable; urgency=high
+ * Distance-delay mode now adds delayed state changes in addition to delayed
+   start/stop. State changes include; pitch, gain, position, orientation and
+   velocity.
+ * Added sense of height to Surround sound; emitters can now be heard above
+   and below the speakers. This is best perceived if the speakers and the
+   listeners ears are (almost) in the same horizontal plane.
+ * Add support for the AAXS (AeonWave Auto-generated XML Sound) audio format.
+ * Add double precision 64-bit floating point matrix support functions.
  * Implement hardware volume support for ALSA and WASAPI.
    - hardware volume is adjusted within hardware boundaries, volume settings
      outside the hardware range are adjusted using software fallback.
    - the volume filter now reports the hardware minimum and maximum.
  * Implement Auto-Gain Control with a user definable adjust-rate.
- * Add the option to select stereo, mono-left, mono-rigt of mono-mix for
-   audio capturing sensors.
+ * Add the option to select stereo, mono-left, mono-right or mono-mix for
+   audio capturing.
  * Add an aaxMixerGetState function to retreive the state of the current
    audio stream. This can for instance be used to reinitialize the device
    after the hardware audio format has changed.
- * Add support for the AAXS (AeonWave Auto-generated XML Sound) audio format.
- * Fix an issue that prevented ALSA from reporting new hardware while an
-   application was running.
- * Fix an issue with loopback capturing of the playback stream.
- * Fix an issue with emitters registered at audio subframes.
- * Fix an issue with flanging for emitters registered at the final mixer.
- * Add 64-bit matrix support funxtions.
-
+ * Fixed reported bugs.
+   - Fix an issue that prevented ALSA from reporting new hardware while an
+     application was running.
+   - Fix an issue with loopback capturing of the playback stream.
+   - Fix an issue with flanging for emitters registered at the final mixer.
+   - Fix an issue that affected HRTF and Surround sound playback.
 
  -- Erik Hofman <tech@adalin.org>  Mon, 03 Jun 2013 10:10:00 +0200
+
 
 * Fri Mar 08 2013 - tech@adalin.org
 - AeonWave (2.2.4) stable; urgency=low
@@ -48,6 +54,7 @@
 
  -- Erik Hofman <tech@adalin.org>  Fri, 08 Mar 2013 12:32:00 +0200
 
+
 * Tue Aug 21 2012 - tech@adalin.org
 - AeonWave (2.2.3) stable; urgency=high
   * Fix a naming clash between ZeroXML and libxml2. The function names of the
@@ -56,6 +63,7 @@
     respective SetState function to prevent possible buffer overflows.
 
  -- Erik Hofman <tech@adalin.org>  Tue, 21 Aug 2012 10:34:00 +0200
+
 
 * Tue Jul 31 2012 - tech@adalin.org
 - AeonWave (2.2.2) stable; urgency=medium
@@ -66,6 +74,7 @@
   * Fix an off-by-one problem for the loopback device.
 
  -- Erik Hofman <tech@adalin.org>  Tue, 31 Jul 2012 13:10:00 +0200
+
 
 * Mon Jul 16 2012 - tech@adalin.org
 - AeonWave (2.2.1) stable; urgency=low
@@ -90,6 +99,7 @@
     kernel audio device detection calls).
 
  -- Erik Hofman <tech@adalin.org>  Mon, 16 Jul 2012 10:45:00 +0200
+
 
 * Tue May 01 2012 - tech@adalin.org
 - AeonWave (2.2.0) stable; urgency=low
@@ -125,12 +135,14 @@
 
  -- Erik Hofman <tech@adalin.org>  Tue, 01 May 2012 10:31:05 +0200
 
+
 * Fri Nov 11 2011 - <tech@adalin.org>
 - AeonWave (2.1.2) stable; urgency=medium
   * Fix some possible type conversion problems
   * Fix a possible dead-lock situation
 
  -- Erik Hofman <tech@adalin.org>  Fri, 11 Nov 2011 15:33:00 +0100
+
 
 * Mon Oct 10 2011 - <tech@adalin.org>
 - AeonWave (2.1.0) stable; urgency=low
@@ -140,6 +152,7 @@
   * Assorted small bug-fixes and usability updates.
 
  -- Erik Hofman <tech@adalin.org>  Mon, 10 Oct 2011 11:05:00 +0100
+
 
 * Tue Aug 27 2011 - <tech@adalin.org>
 - AeonWave (2.0.0) stable; urgency=low
@@ -152,6 +165,7 @@
 
  -- Erik Hofman <tech@adalin.org>  Tue, 27 Aug 2011 14:08:00 +0200
 
+
 * Wed Dec 23 2009 - <tech@adalin.org>
 - AeonWave (1.0.0) stable; urgency=low
 
@@ -160,6 +174,7 @@
   * Added matrix operations
 
  -- Erik Hofman <tech@adalin.org>  Wed, 23 Dec 2009 15:21:00 +0100
+
 
 * Wed May 21 2008 - <tech@adalin.org>
 - OpenAL (1.0.0) stable; urgency=low
