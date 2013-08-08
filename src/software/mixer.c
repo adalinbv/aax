@@ -345,21 +345,6 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
    if (hf)
    {
       unsigned int i;
-#if USE_CONDITION
-		/* 80%: 0.8*1000000000L */
-      uint32_t dt_ns = (uint32_t)(800000000.0f/refresh_rate);
-      struct timeval tv;
-      struct timespec ts;
-
-      gettimeofday(&tv, NULL);
-      ts.tv_sec = tv.tv_sec + (dt_ns % 1000000000L);
-      ts.tv_nsec = tv.tv_usec*1000 + (dt_ns / 1000000000L);
-      if (ts.tv_nsec > 1000000000L)
-      {
-         ts.tv_sec++;
-         ts.tv_nsec -= 1000000000L;
-      }
-#endif
 
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
@@ -374,16 +359,9 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
             {
                unsigned int nbuf;
                nbuf = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
-#if USE_CONDITION
-if (nbuf > 2) printf("nuf: %i\n", nbuf);
-               if (frame->thread.condition) {
-                  _aaxConditionSignal(frame->thread.condition);
-               }
-#else
                if (nbuf < 2 && frame->thread.condition)  {
                   _aaxConditionSignal(frame->thread.condition);
                }
-#endif
             }
 //          _intBufReleaseData(dptr, _AAX_FRAME);
          }
@@ -392,25 +370,6 @@ if (nbuf > 2) printf("nuf: %i\n", nbuf);
 
       /* give the remainder of the threads time slice to other threads */
 //    msecSleep(2);
-
-      
-#if USE_CONDITION
-      /* Wait for the worker threads to finish before continuing */
-      num = _intBufGetMaxNumNoLock(hf, _AAX_FRAME);
-      for (i=0; i<num; i++)
-      {
-         _intBufferData *dptr = _intBufGetNoLock(hf, _AAX_FRAME, i);
-         if (dptr)
-         {
-            _frame_t* frame = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = frame->submix;
-            if (mixer->frame_ready) {		// REGISTERED_FRAME;
-               _aaxConditionWaitTimed(mixer->frame_ready, NULL, &ts);
-            }
-//          _intBufReleaseData(dptr, _AAX_FRAME);
-         }
-      }
-#endif
    }
    return num;
 }
@@ -438,39 +397,31 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
              * mixer->thread  =  1: threaded frame
              * mixer->thread  =  0: non threaded frame, call update ourselves.
              */
-//          if (!mixer->thread)
-//          {
-// printf("non threaded frame\n");
-//          }
-//          else
+            if (mixer->thread)
             {
-#if USE_CONDITION
-               mixer->capturing = 2;
-#else
 //             unsigned int dt = 1.5f*1000.0f/mixer->info->refresh_rate; // ms
                unsigned int dt = 5000;
                int p = 0;
 
                /*
+                * Wait for the frame's buffer te be available.
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 */
                while ((mixer->capturing == 1) && (++p < dt)) // 3ms is enough
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
-
 #ifdef _WIN32
                   SwitchToThread();
 #else
                   msecSleep(1);	 /* special case, see Sleep(0) for windows */
 #endif
-
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
 
                   frame = _intBufGetDataPtr(dptr);
                }
-#endif
             } /* mixer->thread */
+//          else { // non registered frames }
 
             if (dptr && mixer->capturing > 1)
             {
@@ -505,13 +456,14 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    float gain;
    int res;
 
+   /* mix all threaded frame ringbuffers to the final mixer ringbuffer */
+#if 1
    if (frames)
    {
       _intBuffers *mixer_frames = (_intBuffers*)frames;
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
    }
-   be->effects(be, be_handle, dest_rb, props2d);
-   be->postprocess(be_handle, dest_rb, sensor);
+#endif
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
@@ -536,7 +488,7 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
 }
 
 int
-_aaxSoftwareMixerThreadUpdate(void *config, void *dest)
+_aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 {
    _handle_t *handle = (_handle_t *)config;
    const _aaxDriverBackend* be;
@@ -566,7 +518,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
             if (handle->info->mode == AAX_MODE_READ)
             {
                float gain, rr, dt = 1.0f/mixer->info->refresh_rate;
-               void *rv, *rb = dest;
+               void *rv, *rb = dest_rb;
 
                gain = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_GAIN);
                rr = _FILTER_GET(mixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
@@ -642,12 +594,21 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest)
                }
                fprocess = AAX_FALSE;
 #endif
-               _aaxAudioFrameProcess(dest, sensor, mixer, ssv, sdf,
-                                     NULL, NULL, &sp2d, &sdp3d, &sdp3d_m,
-                                     be, be_handle, fprocess);
 
-               res = _aaxSoftwareMixerPlay(dest, mixer->devices,
-                                           mixer->ringbuffers,  mixer->frames,
+               /* clear the buffer for use by the subframe */
+               _oalRingBufferClear(dest_rb);
+               _oalRingBufferStart(dest_rb);
+
+               /* process emitters, (sub-)frames and registered sensors */
+               res = _aaxAudioFrameProcess(dest_rb, sensor, mixer, ssv, sdf,
+                                           NULL, NULL, &sp2d, &sdp3d, &sdp3d_m,
+                                           be, be_handle, fprocess);
+               /*
+                * if the final mixer actually did render something,
+                * mix the data.
+                */
+               res = _aaxSoftwareMixerPlay(dest_rb, mixer->devices,
+                                           mixer->ringbuffers, mixer->frames,
                                            &sp2d, mixer->capturing,
                                            sensor, be, be_handle);
             }
