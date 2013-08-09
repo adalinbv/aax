@@ -117,6 +117,7 @@ typedef struct
     float volumeCur, volumeInit;
     float volumeMin, volumeMax;
     float volumeStep, hwgain;
+    char *outMixer;		/* mixer element name for output volume */
 
     float latency;
     float frequency_hz;
@@ -644,6 +645,7 @@ _aaxALSADriverDisconnect(void *id)
          handle->name = 0;
       }
 
+      _aax_free(handle->outMixer);
       if (handle->mixer)
       {
          _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
@@ -2012,8 +2014,9 @@ _alsa_get_volume_range(_driver_t *handle)
          psnd_mixer_selem_get_id(elem, sid);
          name = psnd_mixer_selem_id_get_name(sid);
 
-         if (!strcmp(name, "PCM"))
+         if (!strcmp(name, "Front") || !strcmp(name, "Speaker"))
          {
+            handle->outMixer = _aax_strdup(name);
             if (psnd_mixer_selem_has_playback_volume(elem))
             {
                long min, max;
@@ -2034,6 +2037,77 @@ _alsa_get_volume_range(_driver_t *handle)
             break;
          }
       }
+
+      if (handle->volumeMax == 0.0f)
+      {
+         for (elem = psnd_mixer_first_elem(handle->mixer); elem;
+              elem = psnd_mixer_elem_next(elem))
+         {
+            const char *name;
+
+            psnd_mixer_selem_get_id(elem, sid);
+            name = psnd_mixer_selem_id_get_name(sid);
+
+            if (!strcmp(name, "PCM"))
+            {
+               handle->outMixer = _aax_strdup(name);
+               if (psnd_mixer_selem_has_playback_volume(elem))
+               {
+                  long min, max;
+
+                  psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+                  handle->volumeMin = _db2lin((float)min*0.01f);
+                  handle->volumeMax = _db2lin((float)max*0.01f);
+
+                  rv = psnd_mixer_selem_get_playback_dB(elem,
+                                                     SND_MIXER_SCHN_MONO, &min);
+                  handle->volumeInit = _db2lin((float)min*0.01f);
+                  handle->volumeCur = handle->volumeInit;
+                  handle->volumeHW = handle->volumeInit;
+               
+                  psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+                  handle->volumeStep = 0.5f/((float)max-(float)min);
+               }
+               break;
+            }
+         }
+      }
+
+      if (handle->volumeMax == 0.0f)
+      {
+         for (elem = psnd_mixer_first_elem(handle->mixer); elem;
+              elem = psnd_mixer_elem_next(elem))
+         {
+            const char *name;
+
+            psnd_mixer_selem_get_id(elem, sid);
+            name = psnd_mixer_selem_id_get_name(sid);
+
+            if (!strcmp(name, "Master"))
+            {
+               handle->outMixer = _aax_strdup(name);
+               if (psnd_mixer_selem_has_playback_volume(elem))
+               {
+                  long min, max;
+
+                  psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+                  handle->volumeMin = _db2lin((float)min*0.01f);
+                  handle->volumeMax = _db2lin((float)max*0.01f);
+
+                  rv = psnd_mixer_selem_get_playback_dB(elem,
+                                                     SND_MIXER_SCHN_MONO, &min);
+                  handle->volumeInit = _db2lin((float)min*0.01f);
+                  handle->volumeCur = handle->volumeInit;
+                  handle->volumeHW = handle->volumeInit;
+               
+                  psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+                  handle->volumeStep = 0.5f/((float)max-(float)min);
+               }
+               break;
+            }
+         }
+      }
+
    }
    free(sid);
 
@@ -2113,19 +2187,10 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
                long volumeDB;
 
                name = psnd_mixer_selem_id_get_name(sid);
-#if 0
-               if (!strcmp(name,"Front"))
-               {
-                  psnd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_MONO,
-                                                   &volumeDB);
-                  handle->volumeHW = _db2lin(volumeDB*0.01f);
-               }
-#endif
                if ((fabsf(hwgain - handle->volumeCur) >= handle->volumeStep) &&
-                   (!strcmp(name, "Front") || !strcmp(name, "Surround") ||
-                      !strcmp(name, "Center") || !strcmp(name, "LFE") ||
-                      !strcmp(name, "Side") || !strcmp(name, "Speaker") ||
-                      !strcmp(name, "Headphone")))
+                   (!strcmp(name, handle->outMixer) || !strcmp(name, "Center")
+                    || !strcmp(name, "Surround") || !strcmp(name, "LFE")
+                    || !strcmp(name, "Side")))
                {
                   int dir = 0;
 
