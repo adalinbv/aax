@@ -457,13 +457,13 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    int res;
 
    /* mix all threaded frame ringbuffers to the final mixer ringbuffer */
-#if 1
    if (frames)
    {
       _intBuffers *mixer_frames = (_intBuffers*)frames;
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
    }
-#endif
+be->effects(be, be_handle, dest_rb, props2d);
+be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
@@ -480,9 +480,6 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
       res = be->play(be_handle, new_rb, 1.0, gain);
    }
    else res = be->play(be_handle, dest_rb, 1.0, gain);
-
-   _oalRingBufferClear(dest_rb);
-   _oalRingBufferStart(dest_rb);
 
    return res;
 }
@@ -584,6 +581,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                sdp3d_m.pitch = sdp3d.pitch;
                sdp3d_m.gain = sdp3d.gain;
 
+               /* clear the buffer for use by the subframe */
+               _oalRingBufferClear(dest_rb);
+               _oalRingBufferStart(dest_rb);
+
 #if THREADED_FRAMES
                /** signal threaded frames to update (if necessary) */
                /* thread == -1: mixer; attached frames are threads */
@@ -594,10 +595,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                }
                fprocess = AAX_FALSE;
 #endif
-
-               /* clear the buffer for use by the subframe */
-               _oalRingBufferClear(dest_rb);
-               _oalRingBufferStart(dest_rb);
 
                /* process emitters, (sub-)frames and registered sensors */
                res = _aaxAudioFrameProcess(dest_rb, sensor, mixer, ssv, sdf,
