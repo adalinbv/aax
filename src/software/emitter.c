@@ -271,8 +271,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(distfn);
 
    /* only update when the matrix and/or the velocity vector has changed */
+#if 0
    if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
+#else
+   if (_PROP3D_MTX_HAS_CHANGED(edp3d) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
+#endif
    {
       vec4_t epos;
       float gain, pitch;
