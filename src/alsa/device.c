@@ -1965,19 +1965,19 @@ static int
 _alsa_get_volume_range(_driver_t *handle)
 {
    snd_mixer_selem_id_t *sid = calloc(1,4096);
-   snd_mixer_elem_t *elem;
    int rv = 0;
 
-   for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-        elem = psnd_mixer_elem_next(elem))
+   if (handle->mode == AAX_MODE_READ)
    {
-      const char *name;
-
-      psnd_mixer_selem_get_id(elem, sid);
-      name = psnd_mixer_selem_id_get_name(sid);
-
-      if (handle->mode == AAX_MODE_READ)
+      snd_mixer_elem_t *elem;
+      for (elem = psnd_mixer_first_elem(handle->mixer); elem;
+           elem = psnd_mixer_elem_next(elem))
       {
+         const char *name;
+
+         psnd_mixer_selem_get_id(elem, sid);
+         name = psnd_mixer_selem_id_get_name(sid);
+
          if (!strcmp(name, "Capture"))
          {
             if (psnd_mixer_selem_has_capture_volume(elem))
@@ -2000,9 +2000,19 @@ _alsa_get_volume_range(_driver_t *handle)
             break;
          }
       }
-      else
+   }
+   else
+   {
+      snd_mixer_elem_t *elem;
+      for (elem = psnd_mixer_first_elem(handle->mixer); elem;
+           elem = psnd_mixer_elem_next(elem))
       {
-         if (!strcmp(name, "Front"))
+         const char *name;
+
+         psnd_mixer_selem_get_id(elem, sid);
+         name = psnd_mixer_selem_id_get_name(sid);
+
+         if (!strcmp(name, "PCM"))
          {
             if (psnd_mixer_selem_has_playback_volume(elem))
             {
@@ -2026,6 +2036,7 @@ _alsa_get_volume_range(_driver_t *handle)
       }
    }
    free(sid);
+
    return rv;
 }
 
@@ -2113,7 +2124,8 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
                if ((fabsf(hwgain - handle->volumeCur) >= handle->volumeStep) &&
                    (!strcmp(name, "Front") || !strcmp(name, "Surround") ||
                       !strcmp(name, "Center") || !strcmp(name, "LFE") ||
-                      !strcmp(name, "Side")))
+                      !strcmp(name, "Side") || !strcmp(name, "Speaker") ||
+                      !strcmp(name, "Headphone")))
                {
                   int dir = 0;
 
