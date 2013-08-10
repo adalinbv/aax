@@ -123,19 +123,18 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                rv = AAX_TRUE;
             }
             break;
-         case AAX_TRACKS:
-            if (setup < _AAX_MAX_SPEAKERS)
-            {
-               info->no_tracks = setup;
-               rv = AAX_TRUE;
-            }
-            else _aaxErrorSet(AAX_INVALID_PARAMETER);
-            break;
-         
          case AAX_FORMAT:
             if (setup < AAX_FORMAT_MAX)
             {
                info->format = setup;
+               rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+         case AAX_TRACKS:
+            if (setup < _AAX_MAX_SPEAKERS)
+            {
+               info->no_tracks = setup;
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -145,6 +144,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                 (setup == AAX_TRACK_MIX))
             {
                info->track = setup;
+               if (setup != AAX_TRACK_ALL) {
+                  info->no_tracks = 1;
+               }
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -164,6 +166,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                 (setup == AAX_TRACK_MIX))
             {
                info->track = setup;
+               if (setup != AAX_TRACK_ALL) {
+                  info->no_tracks = 1;
+               }
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
