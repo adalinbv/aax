@@ -462,8 +462,8 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
       _intBuffers *mixer_frames = (_intBuffers*)frames;
       _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
    }
-be->effects(be, be_handle, dest_rb, props2d);
-be->postprocess(be_handle, dest_rb, sensor);
+   be->effects(be, be_handle, dest_rb, props2d);
+   be->postprocess(be_handle, dest_rb, sensor);
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
