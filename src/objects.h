@@ -189,6 +189,7 @@ void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
 _oalRingBuffer3dProps *_aax3dPropsCreate();
 _oalRingBufferDelayed3dProps *_aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps*);
 void _aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *);
+void removeDelayed3dQueueByPos(void *, unsigned int);
 
 void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);

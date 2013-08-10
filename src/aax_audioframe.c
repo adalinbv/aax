@@ -132,6 +132,12 @@ aaxAudioFrameDestroy(aaxFrame frame)
          effect = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
          if (effect) free(effect->history_ptr);
          free(effect);
+
+         if (fmixer->p3dq) {
+            _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D,
+                         removeDelayed3dQueueByPos, fmixer->p3dq);
+         }
+         _aax_aligned_free(fmixer->props3d->dprops3d);
          free(fmixer->props3d);
 
          /* handle->ringbuffer gets removed bij the frame thread */

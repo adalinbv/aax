@@ -134,6 +134,18 @@ _aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps *dp3d)
 }
 
 void
+removeDelayed3dQueueByPos(void *queue, unsigned int pos)
+{
+   _intBuffers *p3dq = (_intBuffers*)queue;
+   _oalRingBufferDelayed3dProps *d3dp;
+
+   d3dp = _intBufRemove(p3dq, _AAX_DELAYED3D, pos, AAX_FALSE);
+   if (d3dp) {
+      _aax_aligned_free(d3dp);
+   }
+}
+
+void
 _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *filter, unsigned int type)
 {
    assert(type < MAX_STEREO_FILTER);

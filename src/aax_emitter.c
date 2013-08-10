@@ -30,7 +30,6 @@
 #include "api.h"
 
 static void removeEmitterBufferByPos(void *, unsigned int);
-static void removeDelayed3dQueueByPos(void *, unsigned int);
 
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -122,7 +121,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
 
          if (src->p3dq) {
             _intBufErase(&src->p3dq, _AAX_DELAYED3D,
-                         removeDelayed3dQueueByPos, src);
+                         removeDelayed3dQueueByPos, src->p3dq);
          }
 
          _aax_aligned_free(src->props3d->dprops3d);
@@ -1275,18 +1274,6 @@ put_emitter(aaxEmitter em)
          }
          _intBufRelease(he, _AAX_EMITTER, emitter->pos);
       }
-   }
-}
-
-static void
-removeDelayed3dQueueByPos(void *emitter, unsigned int pos)
-{
-   _aaxEmitter *src = (_aaxEmitter*)emitter;
-   _oalRingBufferDelayed3dProps *d3dp;
-
-   d3dp = _intBufRemove(src->p3dq, _AAX_DELAYED3D, pos, AAX_FALSE);
-   if (d3dp) {
-      _aax_aligned_free(d3dp);
    }
 }
 
