@@ -271,17 +271,19 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(distfn);
 
    /* only update when the matrix and/or the velocity vector has changed */
-#if 0
    if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
-#else
-   if (_PROP3D_MTX_HAS_CHANGED(edp3d) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
-#endif
    {
       vec4_t epos;
+      float dist_fact, cone_volume = 1.0f;
+      float refdist, maxdist, rolloff;
+      unsigned int i, t;
       float gain, pitch;
       float dist, esv, ss;
       float min, max;
+
+      _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
+      _PROP3D_MTX_CLEAR_CHANGED(edp3d);
 
       /**
        * align the emitter with the parent frame.
@@ -315,6 +317,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          vec4Matrix4(edp3d_m->velocity, edp3d->velocity, edp3d_m->matrix);
          ve = vec3DotProduct(edp3d_m->velocity, epos);
          df = dopplerfn(0.0f, ve, ss/sdf);
+printf("doppler: %f (ve: %f)\n", df, ve);
 
          pitch *= df;
          ep3d->buf3dq_step = df;
@@ -325,109 +328,102 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * Distance queues for every speaker (volume)
        */
       gain = edp3d->gain;
-      if (_PROP3D_MTX_HAS_CHANGED(edp3d) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
+
+      refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
+      maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
+      rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
+      dist_fact = _MIN(dist/refdist, 1.0f);
+
+      switch (info->mode)
       {
-         float dist_fact, cone_volume = 1.0f;
-         float refdist, maxdist, rolloff;
-         unsigned int i, t;
-
-         _PROP3D_MTX_CLEAR_CHANGED(edp3d);
-
-         refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
-         maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
-         rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
-         dist_fact = _MIN(dist/refdist, 1.0f);
-
-         switch (info->mode)
+      case AAX_MODE_WRITE_HRTF:
+         for (t=0; t<info->no_tracks; t++)
          {
-         case AAX_MODE_WRITE_HRTF:
-            for (t=0; t<info->no_tracks; t++)
+            for (i=0; i<3; i++)
             {
-               for (i=0; i<3; i++)
-               {
-                  float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
-                  float offs, fact;
+               float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
+               float offs, fact;
 
-                  ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
+               ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
 
-                  dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
-                  if (i == DIR_BACK) dp *= dp;
-                  if (i == DIR_UPWD) dp = 0.25f*(5.0f*dp - dp*dp);
+               dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
+               if (i == DIR_BACK) dp *= dp;
+               if (i == DIR_UPWD) dp = 0.25f*(5.0f*dp - dp*dp);
 
-                  offs = info->hrtf[HRTF_OFFSET][i];
-                  fact = info->hrtf[HRTF_FACTOR][i];
-                  ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
-                  ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
-               }
-            }
-            break;
-         case AAX_MODE_WRITE_SPATIAL:
-            for (t=0; t<info->no_tracks; t++)
-            {			/* fp2dpos == sensor_pos */
-               float dp = vec3DotProduct(fp2dpos[t], epos);
-               ep2d->pos[t][0] = 0.5f + dp * dist_fact;
-            }
-            break;
-         case AAX_MODE_WRITE_SURROUND:
-            for (t=0; t<info->no_tracks; t++)
-            {
-               float dp = vec3DotProduct(fp2dpos[t], epos);
-               ep2d->pos[t][0] = 0.5f + dp * dist_fact;
-
-               for (i=1; i<3; i++) /* skip left-right */
-               {
-                  float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
-                  float offs, fact;
-
-                  ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
-
-                  dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
-                  if (i == DIR_BACK) dp *= dp;
-                  if (i == DIR_UPWD) dp = 0.25f*(5.0f*dp - dp*dp);
-
-                  offs = info->hrtf[HRTF_OFFSET][i];
-                  fact = info->hrtf[HRTF_FACTOR][i];
-                  ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
-                  ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
-               }
-            }
-            break;
-         default: /* AAX_MODE_WRITE_STEREO */
-            for (t=0; t<info->no_tracks; t++)
-            {
-               vec4Mulvec4(ep2d->pos[t], fp2dpos[t], epos);
-               vec4ScalarMul(ep2d->pos[t], dist_fact);
+               offs = info->hrtf[HRTF_OFFSET][i];
+               fact = info->hrtf[HRTF_FACTOR][i];
+               ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
+               ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
             }
          }
-
-         gain *= distfn(dist, refdist, maxdist, rolloff, ss, 1.0f);
-
-         /*
-          * audio cone recalculaion
-          */
-         if (_PROP3D_CONE_IS_DEFINED(edp3d))
+         break;
+      case AAX_MODE_WRITE_SPATIAL:
+         for (t=0; t<info->no_tracks; t++)
+         {			/* fp2dpos == sensor_pos */
+            float dp = vec3DotProduct(fp2dpos[t], epos);
+            ep2d->pos[t][0] = 0.5f + dp * dist_fact;
+         }
+         break;
+      case AAX_MODE_WRITE_SURROUND:
+         for (t=0; t<info->no_tracks; t++)
          {
-            float inner_vec, tmp = -edp3d_m->matrix[DIR_BACK][2];
+            float dp = vec3DotProduct(fp2dpos[t], epos);
+            ep2d->pos[t][0] = 0.5f + dp * dist_fact;
 
-            inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
-            if (tmp < inner_vec)
+            for (i=1; i<3; i++) /* skip left-right */
             {
-               float outer_vec, outer_gain;
-               outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
-               outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
-               if (outer_vec < tmp)
-               {
-                  tmp -= inner_vec;
-                  tmp *= (outer_gain - 1.0f);
-                  tmp /= (outer_vec - inner_vec);
-                  cone_volume = (1.0f + tmp);
-               } else {
-                  cone_volume = outer_gain;
-               }
+               float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
+               float offs, fact;
+
+               ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
+
+               dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
+               if (i == DIR_BACK) dp *= dp;
+               if (i == DIR_UPWD) dp = 0.25f*(5.0f*dp - dp*dp);
+
+               offs = info->hrtf[HRTF_OFFSET][i];
+               fact = info->hrtf[HRTF_FACTOR][i];
+               ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
+               ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
             }
          }
-         gain *= cone_volume;
+         break;
+      default: /* AAX_MODE_WRITE_STEREO */
+         for (t=0; t<info->no_tracks; t++)
+         {
+            vec4Mulvec4(ep2d->pos[t], fp2dpos[t], epos);
+            vec4ScalarMul(ep2d->pos[t], dist_fact);
+         }
       }
+
+      gain *= distfn(dist, refdist, maxdist, rolloff, ss, 1.0f);
+
+      /*
+       * audio cone recalculaion
+       */
+      if (_PROP3D_CONE_IS_DEFINED(edp3d))
+      {
+         float inner_vec, tmp = -edp3d_m->matrix[DIR_BACK][2];
+
+         inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
+         if (tmp < inner_vec)
+         {
+            float outer_vec, outer_gain;
+            outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
+            outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
+            if (outer_vec < tmp)
+            {
+               tmp -= inner_vec;
+               tmp *= (outer_gain - 1.0f);
+               tmp /= (outer_vec - inner_vec);
+               cone_volume = (1.0f + tmp);
+            } else {
+               cone_volume = outer_gain;
+            }
+         }
+      }
+      gain *= cone_volume;
+
       min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
       max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
       ep2d->final.gain = _MINMAX(gain, min, max);
