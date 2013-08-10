@@ -834,7 +834,7 @@ _open_handle(aaxConfig config)
                      memcpy(&info->router, &_aaxContextDefaultRouter, size);
 
                      info->no_tracks = 2;
-                     info->track = -1;
+                     info->track = AAX_TRACK_ALL;
                      size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
                      _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakers,
                                  size);
