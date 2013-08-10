@@ -3,7 +3,7 @@ Version: @AAX_VERSION@
 Section: development
 Priority: optional
 Architecture: all
-Depends: libc6 (>= 2.1), libaax2 (>= 2.2)
+Depends: libaax2 (>= @AAX_VERSION@)
 Replaces: libaax2 (<= 2.1)
 Installed-Size: 35
 Provides: aeonwave-dev
