@@ -893,7 +893,7 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       break;
 #endif
    case RB_NO_TRACKS:
-      if (rbd->track == NULL) {
+      if ((rbd->track == NULL) || (val <= rbd->no_tracks)) {
          rbd->no_tracks = val;
       }
 #ifndef NDEBUG
