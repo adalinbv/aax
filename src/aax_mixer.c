@@ -903,6 +903,10 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
 
+               if (!src->p3dq && VALID_HANDLE(handle)) {
+                  _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
+               }
+
                if (_oalRingBufferIsValid(handle->ringbuffer)) {
                   src->props2d->dist_delay_sec =
                    _oalRingBufferGetParamf(handle->ringbuffer, RB_DURATION_SEC);

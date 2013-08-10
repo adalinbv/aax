@@ -60,6 +60,8 @@ aaxAudioFrameCreate(aaxConfig config)
          submix = (_aaxAudioFrame*)((char*)frame + size);
          frame->submix = submix;
 
+         _intBufCreate(&frame->submix->p3dq, _AAX_DELAYED3D);
+
          submix->props2d = (_oalRingBuffer2dProps*)ptr2;
          _aaxSetDefault2dProps(submix->props2d);
          _EFFECT_SET2D(submix, PITCH_EFFECT, AAX_PITCH, handle->info->pitch);

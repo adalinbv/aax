@@ -470,43 +470,35 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
    if (_PROP3D_DISTQUEUE_IS_DEFINED(fdp3d))
    {
       _oalRingBuffer2dProps* fp2d = frame->props2d;
+      _oalRingBufferDelayed3dProps *tdp3d = NULL;
+      _intBufferData *buf3dq;
+      float pos3dq;
 
-      if (!frame->p3dq) {
-         _intBufCreate(&frame->p3dq, _AAX_DELAYED3D);
+      _intBufAddData(frame->p3dq, _AAX_DELAYED3D, fdp3d);
+      if (frame->curr_pos_sec <= fp2d->dist_delay_sec) {
+         return;
       }
 
-      if (frame->p3dq)
+      pos3dq = fp2d->bufpos3dq;
+      fp2d->bufpos3dq += fp3d->buf3dq_step;
+      if (pos3dq <= 0.0f) return;
+
+      do
       {
-         _oalRingBufferDelayed3dProps *tdp3d = NULL;
-         _intBufferData *buf3dq;
-         float pos3dq;
-
-         _intBufAddData(frame->p3dq, _AAX_DELAYED3D, fdp3d);
-         if (frame->curr_pos_sec <= fp2d->dist_delay_sec) {
-            return;
-         }
-
-         pos3dq = fp2d->bufpos3dq;
-         fp2d->bufpos3dq += fp3d->buf3dq_step;
-         if (pos3dq <= 0.0f) return;
-
-         do
+         buf3dq = _intBufPopData(frame->p3dq, _AAX_DELAYED3D);
+         if (buf3dq)
          {
-            buf3dq = _intBufPopData(frame->p3dq, _AAX_DELAYED3D);
-            if (buf3dq)
-            {
-               tdp3d = _intBufGetDataPtr(buf3dq);
-               _aax_aligned_free(tdp3d);
-            }
-            --fp2d->bufpos3dq;
+            tdp3d = _intBufGetDataPtr(buf3dq);
+            _aax_aligned_free(tdp3d);
          }
-         while (fp2d->bufpos3dq > 1.0f);
-
-         if (!tdp3d) {                  // TODO: get from buffer cache
-            tdp3d = _aaxDelayed3dPropsDup(fdp3d);
-         }
-         fp3d->dprops3d = tdp3d;
+         --fp2d->bufpos3dq;
       }
+      while (fp2d->bufpos3dq > 1.0f);
+
+      if (!tdp3d) {			// TODO: get from buffer cache
+         tdp3d = _aaxDelayed3dPropsDup(fdp3d);
+      }
+      fp3d->dprops3d = tdp3d;
    }
 }
 
