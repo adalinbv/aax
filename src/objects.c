@@ -35,7 +35,7 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 
    /* normalized  directions */
    size = _AAX_MAX_SPEAKERS*sizeof(vec4_t);
-   memset(p2d->pos, 0, size);
+   memset(p2d->speaker, 0, size);
 
    /* heade setup, unused for emitters */
    size = sizeof(vec4_t);

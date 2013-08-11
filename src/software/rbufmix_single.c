@@ -221,7 +221,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
        *
        * 0.8776 = cosf(0.5)
        */
-      dir_fact = _MIN(0.8776f + ep2d->pos[t][DIR_RIGHT], 1.0f);
+      dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
       vstart = dir_fact * svol * ep2d->prev_gain[t];
       vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
@@ -388,7 +388,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * horizontal positioning, left-right
        **/
-      dir_fact = ep2d->pos[t][DIR_RIGHT];
+      dir_fact = ep2d->speaker[t][DIR_RIGHT];
       hrtf_volume[DIR_RIGHT] = dir_fact*vend;
       vstep = (vend - vstart) / dno_samples;
 
@@ -398,13 +398,13 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * vertical positioning
        **/
-      dir_fact = ep2d->pos[t][DIR_UPWD];
+      dir_fact = ep2d->speaker[t][DIR_UPWD];
       hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
 
       /**
        * horizontal positioning, back-front
        **/
-      dir_fact = ep2d->pos[t][DIR_BACK];
+      dir_fact = ep2d->speaker[t][DIR_BACK];
       hrtf_volume[DIR_BACK] = gain * (0.25f + 0.5f*dir_fact)*vend;
 
       for (j=1; j<2; j++)	/* skip left-right and back-front */
@@ -568,7 +568,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, _oalRingBuffer *src,
       float vstart, vend, vstep;
       float dir_fact;
 
-      dir_fact = ep2d->pos[t][DIR_RIGHT];
+      dir_fact = ep2d->speaker[t][DIR_RIGHT];
       vstart = dir_fact * svol * ep2d->prev_gain[t];
       vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
@@ -745,7 +745,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * horizontal positioning, left-right
        **/
-      dir_fact = ep2d->pos[t][DIR_RIGHT];
+      dir_fact = ep2d->speaker[t][DIR_RIGHT];
       hrtf_volume[DIR_RIGHT] = 0.5f + dir_fact*vend;
 #if 0
  printf("l-r: %i, volume %f, delay: %f, dir_fact: %f, f_gain: %f\n", t, hrtf_volume[DIR_RIGHT], ep2d->hrtf[t][DIR_RIGHT]/48000.0, dir_fact, vend);
@@ -754,7 +754,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * vertical positioning
        **/
-      dir_fact = (ep2d->pos[t][DIR_UPWD]);
+      dir_fact = (ep2d->speaker[t][DIR_UPWD]);
       hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
 #if 0
  printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_UPWD], ep2d->hrtf[t][DIR_UPWD]/48000.0, dir_fact);
@@ -763,7 +763,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, _oalRingBuffer *src,
       /**
        * horizontal positioning, back-front
        **/
-      dir_fact = (ep2d->pos[t][DIR_BACK]);
+      dir_fact = (ep2d->speaker[t][DIR_BACK]);
       hrtf_volume[DIR_BACK] = (0.25f + 0.5f*dir_fact)*vend;
 #if 0
  printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_BACK], ep2d->hrtf[t][DIR_BACK]/48000.0, dir_fact);
@@ -840,6 +840,7 @@ _oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rollo
 static float
 _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 {
+#if 1
    float vse, rv;
 
    /* relative speed */
@@ -847,6 +848,13 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
    rv =  vsound/_MAX(vsound - vse, 1.0f);
 
    return rv;
+#else
+
+   float vss, ves;
+   vss = vsound - _MIN(vs, vsound);
+   ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
+   return vss/ves;
+#endif
 }
 
 

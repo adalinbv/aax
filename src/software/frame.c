@@ -100,7 +100,7 @@ _aaxAudioFrameThread(void* config)
    {
       mixer = smixer = fmixer = frame->submix;
       memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
-      memcpy(&sp2d.pos, smixer->info->speaker,
+      memcpy(&sp2d.speaker, smixer->info->speaker,
                                      _AAX_MAX_SPEAKERS*sizeof(vec4_t));
       memcpy(&sp2d.hrtf, smixer->info->hrtf, 2*sizeof(vec4_t));
       sp3d = _oalRingBuffer3dPropsDup(smixer->props3d);
@@ -413,7 +413,8 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
       _intBufReleaseData(dptr, _AAX_FRAME);
 
       /* read-only data */           
-      _aax_memcpy(&sfp2d.pos, fp2d->pos, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+      _aax_memcpy(&sfp2d.speaker, fp2d->speaker,
+                                  _AAX_MAX_SPEAKERS*sizeof(vec4_t));
       _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, 2*sizeof(vec4_t));
 
       /* clear the buffer for use by the subframe */
@@ -545,7 +546,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    }
 
    /* read-only data */
-   _aax_memcpy(&sp2d.pos, handle->info->speaker,
+   _aax_memcpy(&sp2d.speaker, handle->info->speaker,
                           _AAX_MAX_SPEAKERS*sizeof(vec4_t));
    _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
 
@@ -566,7 +567,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _PROP_CLEAR(fmixer->props3d);
 
    /* frame read-only data */
-   _aax_memcpy(&fp2d.pos, &sp2d.pos, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+   _aax_memcpy(&fp2d.speaker, &sp2d.speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
    _aax_memcpy(&fp2d.hrtf, &sp2d.hrtf, 2*sizeof(vec4_t));
 
    /* clear the buffer for use by the subframe */

@@ -570,7 +570,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                }
 
                /* read-only data */
-               _aax_memcpy(&sp2d.pos, handle->info->speaker,
+               _aax_memcpy(&sp2d.speaker, handle->info->speaker,
                                       _AAX_MAX_SPEAKERS*sizeof(vec4_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
 

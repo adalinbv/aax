@@ -101,7 +101,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                      assert(_IS_POSITIONAL(src->props3d));
 
                      if (!src->update_ctr) {
-                        be->prepare3d(src, info, ssv, sdf, fp2d->pos, fdp3d_m);
+                        be->prepare3d(src, info, ssv,sdf,fp2d->speaker,fdp3d_m);
                      }
 
                      res = AAX_FALSE;
@@ -310,7 +310,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          vec4Matrix4(edp3d_m->velocity, edp3d->velocity, edp3d_m->matrix);
          ve = vec3DotProduct(edp3d_m->velocity, epos);
          df = dopplerfn(0.0f, ve, ss/sdf);
-printf("doppler: %f (ve: %f)\n", df, ve);
 
          pitch *= df;
          ep3d->buf3dq_step = df;
@@ -337,7 +336,7 @@ printf("doppler: %f (ve: %f)\n", df, ve);
                float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
                float offs, fact;
 
-               ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
+               ep2d->speaker[t][i] = dp * dist_fact;  /* -1 .. +1 */
 
                dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
                if (i == DIR_BACK) dp *= dp;
@@ -354,21 +353,21 @@ printf("doppler: %f (ve: %f)\n", df, ve);
          for (t=0; t<info->no_tracks; t++)
          {			/* fp2dpos == sensor_pos */
             float dp = vec3DotProduct(fp2dpos[t], epos);
-            ep2d->pos[t][0] = 0.5f + dp * dist_fact;
+            ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
          }
          break;
       case AAX_MODE_WRITE_SURROUND:
          for (t=0; t<info->no_tracks; t++)
          {
             float dp = vec3DotProduct(fp2dpos[t], epos);
-            ep2d->pos[t][0] = 0.5f + dp * dist_fact;
+            ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
 
             for (i=1; i<3; i++) /* skip left-right */
             {
                float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
                float offs, fact;
 
-               ep2d->pos[t][i] = dp * dist_fact;  /* -1 .. +1 */
+               ep2d->speaker[t][i] = dp * dist_fact;  /* -1 .. +1 */
 
                dp = 0.5f+dp/2.0f;  /* 0 .. +1 */
                if (i == DIR_BACK) dp *= dp;
@@ -384,8 +383,8 @@ printf("doppler: %f (ve: %f)\n", df, ve);
       default: /* AAX_MODE_WRITE_STEREO */
          for (t=0; t<info->no_tracks; t++)
          {
-            vec4Mulvec4(ep2d->pos[t], fp2dpos[t], epos);
-            vec4ScalarMul(ep2d->pos[t], dist_fact);
+            vec4Mulvec4(ep2d->speaker[t], fp2dpos[t], epos);
+            vec4ScalarMul(ep2d->speaker[t], dist_fact);
          }
       }
 

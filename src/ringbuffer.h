@@ -478,7 +478,7 @@ typedef ALIGN16 struct
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
       /* pos[2] position; -1.0 front, 0.0 center, 1.0 back  */
-   vec4_t pos[_AAX_MAX_SPEAKERS];
+   vec4_t speaker[_AAX_MAX_SPEAKERS];
 
       /* head[0] side delay sec    */
       /* head[1] up delay sec      */
