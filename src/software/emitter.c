@@ -196,11 +196,11 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
 /**
  * ssv:     sensor velocity vector
  * de:      sensor doppler factor
- * fp2dpos: parent frame p2d->pos
+ * speaker: parent frame p2d->speaker position
  * fp3d:    parent frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *fp2dpos, _oalRingBufferDelayed3dProps* fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _oalRingBufferDelayed3dProps* fdp3d_m)
 {
    _oalRingBufferPitchShiftFunc* dopplerfn;
    _oalRingBufferDelayed3dProps *edp3d, *edp3d_m;
@@ -333,7 +333,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          {
             for (i=0; i<3; i++)
             {
-               float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
+               float dp = vec3DotProduct(speaker[3*t+i], epos);
                float offs, fact;
 
                ep2d->speaker[t][i] = dp * dist_fact;  /* -1 .. +1 */
@@ -351,20 +351,20 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          break;
       case AAX_MODE_WRITE_SPATIAL:
          for (t=0; t<info->no_tracks; t++)
-         {			/* fp2dpos == sensor_pos */
-            float dp = vec3DotProduct(fp2dpos[t], epos);
+         {			/* speaker == sensor_pos */
+            float dp = vec3DotProduct(speaker[t], epos);
             ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
          }
          break;
       case AAX_MODE_WRITE_SURROUND:
          for (t=0; t<info->no_tracks; t++)
          {
-            float dp = vec3DotProduct(fp2dpos[t], epos);
+            float dp = vec3DotProduct(speaker[t], epos);
             ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
 
             for (i=1; i<3; i++) /* skip left-right */
             {
-               float dp = vec3DotProduct(fp2dpos[3*t+i], epos);
+               float dp = vec3DotProduct(speaker[3*t+i], epos);
                float offs, fact;
 
                ep2d->speaker[t][i] = dp * dist_fact;  /* -1 .. +1 */
@@ -383,7 +383,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       default: /* AAX_MODE_WRITE_STEREO */
          for (t=0; t<info->no_tracks; t++)
          {
-            vec4Mulvec4(ep2d->speaker[t], fp2dpos[t], epos);
+            vec4Mulvec4(ep2d->speaker[t], speaker[t], epos);
             vec4ScalarMul(ep2d->speaker[t], dist_fact);
          }
       }
