@@ -23,6 +23,7 @@ extern "C" {
 #include <ringbuffer.h>
 
 
+#define USE_SPATIAL_FOR_SURROUND AAX_TRUE
 #define SET_PROCESS_PRIORITY	AAX_FALSE
 #define SET_THREAD_PRIORITY	AAX_FALSE
 #define THREADED_FRAMES		AAX_TRUE

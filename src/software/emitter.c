@@ -349,20 +349,17 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             }
          }
          break;
-      case AAX_MODE_WRITE_SPATIAL:
-         for (t=0; t<info->no_tracks; t++)
-         {			/* speaker == sensor_pos */
-            float dp = vec3DotProduct(speaker[t], epos);
-            ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
-         }
-         break;
       case AAX_MODE_WRITE_SURROUND:
          for (t=0; t<info->no_tracks; t++)
          {
+#ifdef USE_SPATIAL_FOR_SURROUND
             float dp = vec3DotProduct(speaker[t], epos);
             ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
-
-            for (i=1; i<3; i++) /* skip left-right */
+#else
+            vec4Mulvec4(ep2d->speaker[t], speaker[t], epos);
+            vec4ScalarMul(ep2d->speaker[t], dist_fact);
+#endif
+            for (i=1; i<2; i++) /* skip left-right and back-front */
             {
                float dp = vec3DotProduct(speaker[3*t+i], epos);
                float offs, fact;
@@ -378,6 +375,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                ep2d->hrtf[t][i] = info->hrtf[HRTF_OFFSET][i];
                ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
             }
+         }
+         break;
+      case AAX_MODE_WRITE_SPATIAL:
+         for (t=0; t<info->no_tracks; t++)
+         {                      /* speaker == sensor_pos */
+            float dp = vec3DotProduct(speaker[t], epos);
+            ep2d->speaker[t][0] = 0.5f + dp * dist_fact;
          }
          break;
       default: /* AAX_MODE_WRITE_STEREO */

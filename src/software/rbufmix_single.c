@@ -221,7 +221,11 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, _oalRingBuffer *src,
        *
        * 0.8776 = cosf(0.5)
        */
+#ifdef PURE_STEREO
+      dir_fact = _MINMAX(ep2d->speaker[t][DIR_RIGHT], 0.0f, 1.0f);
+#else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
+#endif
       vstart = dir_fact * svol * ep2d->prev_gain[t];
       vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
@@ -372,28 +376,28 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
    rbd = dest->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
-      int32_t *track = (int32_t *)rbd->track[t];
-      float vstart, vend, dir_fact, vstep;
-      int32_t *dptr, *ptr;
+      int32_t *dptr = (int32_t *)rbd->track[t] + offs;
+      float vstart, vend, vstep;
+      float dir_fact;
       float hrtf_volume[3];
       int j;
-
-      dptr = track+offs;
-      ptr = sptr[ch]+offs;
-
-      vstart = svol * ep2d->prev_gain[t];
-      vend = gain * evol;
-      ep2d->prev_gain[t] = vend;
 
       /**
        * horizontal positioning, left-right
        **/
+#ifdef USE_SPATIAL_FOR_SURROUND
       dir_fact = ep2d->speaker[t][DIR_RIGHT];
-      hrtf_volume[DIR_RIGHT] = dir_fact*vend;
+#else
+      dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
+#endif
+      vstart = svol * ep2d->prev_gain[t];
+      vend = evol * gain;
       vstep = (vend - vstart) / dno_samples;
 
-      vstep = (vend - vstart) / dno_samples;
-      _batch_fmadd(dptr, ptr, dno_samples, dir_fact*vstart, vstep);
+      hrtf_volume[DIR_RIGHT] = dir_fact*vend;
+      _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+
+      ep2d->prev_gain[t] = vend;
 
       /**
        * vertical positioning
@@ -420,7 +424,7 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, _oalRingBuffer *src,
          v_step = 0.0f; // vstep * hrtf_volume[j];
 
 //       DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
-         _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
+         _batch_fmadd(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
       }
    }
 
