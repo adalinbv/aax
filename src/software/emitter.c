@@ -270,9 +270,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       vec4_t epos;
       float dist_fact, cone_volume = 1.0f;
       float refdist, maxdist, rolloff;
+      float dist, esv, vs;
       unsigned int i, t;
       float gain, pitch;
-      float dist, esv, ss;
       float min, max;
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
@@ -294,7 +294,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
       /* calculate the sound velocity inbetween the emitter and the sensor */
       esv = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-      ss = (esv+ssv) / 2.0f;
+      vs = (esv+ssv) / 2.0f;
 
       /*
        * Doppler
@@ -307,9 +307,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
           */
-         vec4Matrix4(edp3d_m->velocity, edp3d->velocity, edp3d_m->matrix);
+         vec4Matrix4(edp3d_m->velocity, edp3d->velocity, fdp3d_m->matrix);
          ve = vec3DotProduct(edp3d_m->velocity, epos);
-         df = dopplerfn(0.0f, ve, ss/sdf);
+         df = dopplerfn(0.0f, ve, vs/sdf);
 
          pitch *= df;
          ep3d->buf3dq_step = df;
@@ -392,7 +392,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          }
       }
 
-      gain *= distfn(dist, refdist, maxdist, rolloff, ss, 1.0f);
+      gain *= distfn(dist, refdist, maxdist, rolloff, vs, 1.0f);
 
       /*
        * audio cone recalculaion

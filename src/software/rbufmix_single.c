@@ -853,7 +853,7 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 
    return rv;
 #else
-
+// Old OpenAL code
    float vss, ves;
    vss = vsound - _MIN(vs, vsound);
    ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
