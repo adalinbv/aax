@@ -302,21 +302,24 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       pitch = edp3d->pitch;
       if (dist > 1.0f)
       {
-         float ve, df;
+         float ve, vf, df;
 
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
           */
-         vec4Matrix4(edp3d_m->velocity, edp3d->velocity, edp3d_m->matrix);
-         vec4Add(edp3d_m->velocity, fdp3d_m->velocity);
+         vec4Matrix4(edp3d_m->velocity, edp3d->velocity, fdp3d_m->matrix);
+//       vec4Add(edp3d_m->velocity, fdp3d_m->velocity);
 
          ve = vec3DotProduct(edp3d_m->velocity, epos);
-         df = dopplerfn(0.0f, ve, vs/sdf);
-
+         vf = vec3DotProduct(fdp3d_m->velocity, epos);
+         df = dopplerfn(vf, ve, vs/sdf);
 #if 0
- printf("edp3d velocity  : %3.2f %3.2f %3.2f\n", edp3d->velocity[0], edp3d->velocity[1], edp3d->velocity[2]);
- printf("fdp3d_m velocity: %3.2f %3.2f %3.2f\n", fdp3d_m->velocity[0], fdp3d_m->velocity[1], fdp3d_m->velocity[2]);
- printf("edp3d_m velocity: %3.2f %3.2f %3.2f\n", edp3d_m->velocity[0], edp3d_m->velocity[1], edp3d_m->velocity[2]);
+ printf("edp3d velocity  : %3.2f %3.2f %3.2f\n",
+         edp3d->velocity[0], edp3d->velocity[1], edp3d->velocity[2]);
+ printf("fdp3d_m velocity: %3.2f %3.2f %3.2f\n",
+         fdp3d_m->velocity[0], fdp3d_m->velocity[1], fdp3d_m->velocity[2]);
+ printf("edp3d_m velocity: %3.2f %3.2f %3.2f\n",
+         edp3d_m->velocity[0], edp3d_m->velocity[1], edp3d_m->velocity[2]);
  printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 #endif
 

@@ -576,7 +576,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 
                /* update the modified properties */
                mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
-               vec4Negate(sdp3d_m.velocity, sdp3d.velocity);
+               vec4Matrix4(sdp3d_m.velocity, sdp3d.velocity, sdp3d_m.matrix);
                sdp3d_m.state3d = sdp3d.state3d;
                sdp3d_m.pitch = sdp3d.pitch;
                sdp3d_m.gain = sdp3d.gain;

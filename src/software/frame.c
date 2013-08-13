@@ -294,7 +294,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d))
       {
          mtx4Mul(fdp3d_m->matrix, pdp3d_m->matrix, fdp3d->matrix);
-#if 0
+#if 1
  printf("parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
  printf("modified frame\n");
