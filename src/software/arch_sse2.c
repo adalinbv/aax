@@ -31,7 +31,7 @@
 
 
 FN_PREALIGN void
-_ivec4Copy_sse2(ivec4 d, ivec4 v)
+_ivec4Copy_sse2(ivec4_t d, ivec4_t v)
 {
    const __m128i *sptr = (__m128i *)v;
    __m128i *dptr = (__m128i*)d;
@@ -40,7 +40,7 @@ _ivec4Copy_sse2(ivec4 d, ivec4 v)
 }
 
 FN_PREALIGN void
-_ivec4Add_sse2(ivec4 d, ivec4 v)
+_ivec4Add_sse2(ivec4_t d, ivec4_t v)
 {
    const __m128i *sptr = (__m128i *)v;
    __m128i *dptr = (__m128i*)d;
@@ -53,7 +53,7 @@ _ivec4Add_sse2(ivec4 d, ivec4 v)
 }
 
 FN_PREALIGN void
-_ivec4Sub_sse2(ivec4 d, ivec4 v)
+_ivec4Sub_sse2(ivec4_t d, ivec4_t v)
 {
    const __m128i *sptr = (__m128i *)v;
    __m128i *dptr = (__m128i*)d;
@@ -65,7 +65,7 @@ _ivec4Sub_sse2(ivec4 d, ivec4 v)
 }
 
 FN_PREALIGN void
-_ivec4Devide_sse2(ivec4 d, float s)
+_ivec4Devide_sse2(ivec4_t d, float s)
 {
    if (s)
    {
@@ -79,7 +79,7 @@ _ivec4Devide_sse2(ivec4 d, float s)
 }
 
 FN_PREALIGN void
-_ivec4Mulivec4_sse2(ivec4 d, const ivec4 v1, const ivec4 v2)
+_ivec4Mulivec4_sse2(ivec4_t d, const ivec4_t v1, const ivec4_t v2)
 {
    const __m128i *sptr1 = (__m128i *)v1;
    const __m128i *sptr2 = (__m128i *)v2;

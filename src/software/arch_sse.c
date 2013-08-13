@@ -35,10 +35,36 @@ _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
    _mm_store_ps(r, _mm_sub_ps(_mm_mul_ps(xmm5, xmm0), _mm_mul_ps(xmm4, xmm3)));
    _aax_memcpy(d, r, 3*sizeof(float));
 }
+#else
+
+#define VECTOR3D_ROT1_MASK 0xC9
+#define VECTOR3D_ROT2_MASK 0xD2
+
+FN_PREALIGN void 
+_vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
+{
+   __m128 L0 = _mm_set_ps(v1[0], v1[1], v1[2], 0);
+   __m128 R0 = _mm_set_ps(v2[0], v2[1], v2[2], 0);
+   __m128 L1 = L0;
+   __m128 R1 = R0;
+   vec4_t r;
+
+   L0 = _mm_shuffle_ps(L0, L0, VECTOR3D_ROT1_MASK);
+   R1 = _mm_shuffle_ps(R1, R1, VECTOR3D_ROT1_MASK);
+   R0 = _mm_shuffle_ps(R0, R0, VECTOR3D_ROT2_MASK);
+   L1 = _mm_shuffle_ps(L1, L1, VECTOR3D_ROT2_MASK);
+
+   L0 = _mm_mul_ps(L0, R0);
+   L1 = _mm_mul_ps(L1, R1);
+
+   L0 = _mm_sub_ps(L0, L1);
+   _mm_store_ps(r, L0);
+   _aax_memcpy(d, r, 3*sizeof(float));
+}
 #endif
 
 FN_PREALIGN void
-_vec4Copy_sse(vec4 d, const vec4 v)
+_vec4Copy_sse(vec4_t d, const vec4_t v)
 {
    __m128 xmm1; 
    
@@ -47,7 +73,7 @@ _vec4Copy_sse(vec4 d, const vec4 v)
 }
 
 FN_PREALIGN void
-_vec4Add_sse(vec4 d, const vec4 v)
+_vec4Add_sse(vec4_t d, const vec4_t v)
 {
    __m128 xmm1, xmm2; 
    
@@ -58,7 +84,7 @@ _vec4Add_sse(vec4 d, const vec4 v)
 }
 
 FN_PREALIGN void
-_vec4Sub_sse(vec4 d, const vec4 v)
+_vec4Sub_sse(vec4_t d, const vec4_t v)
 {
    __m128 xmm1, xmm2;
 
@@ -69,7 +95,7 @@ _vec4Sub_sse(vec4 d, const vec4 v)
 }
 
 FN_PREALIGN void
-_vec4Devide_sse(vec4 v, float s)
+_vec4Devide_sse(vec4_t v, float s)
 {
    if (s)
    {
@@ -83,7 +109,7 @@ _vec4Devide_sse(vec4 v, float s)
 }
 
 FN_PREALIGN void
-_vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2)
+_vec4Mulvec4_sse(vec4_t r, const vec4_t v1, const vec4_t v2)
 {
    __m128 xmm1, xmm2;
 
@@ -94,7 +120,7 @@ _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2)
 }
 
 FN_PREALIGN void
-_vec4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
+_vec4Matrix4_sse(vec4_t d, const vec4_t vi, mtx4_t m)
 {
    __m128 a_line, b_line, r_line;
    vec4_t v;
@@ -102,7 +128,7 @@ _vec4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
    float *r;
    int i;
 
-   vec3Copy(v, vi);
+   vec4Copy(v, vi);
    v[3] = 0.0f;
 
    a = (const float *)m;
@@ -127,7 +153,7 @@ _vec4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
 }
 
 FN_PREALIGN void
-_pt4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
+_pt4Matrix4_sse(vec4_t d, const vec4_t vi, mtx4_t m)
 {
    __m128 a_line, b_line, r_line;
    vec4_t v;
@@ -135,7 +161,7 @@ _pt4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
    float *r;
    int i;
 
-   vec3Copy(v, vi);
+   vec4Copy(v, vi);
    v[3] = 1.0f;
 
    a = (const float *)m;
@@ -160,7 +186,7 @@ _pt4Matrix4_sse(vec4 d, const vec4 vi, mtx4 m)
 }
 
 FN_PREALIGN void
-_mtx4Mul_sse(mtx4 d, mtx4 m1, mtx4 m2)
+_mtx4Mul_sse(mtx4_t d, mtx4_t m1, mtx4_t m2)
 {
    __m128 a_line, b_line, r_line;
    const float *a = (const float *)m1;

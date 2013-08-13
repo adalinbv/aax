@@ -18,12 +18,12 @@
 #ifdef __SSE3__
 
 FN_PREALIGN void
-_vec4Matrix4_sse3(vec4 d, const vec4 pv, mtx4 m)
+_vec4Matrix4_sse3(vec4_t d, const vec4_t pv, mtx4_t m)
 {
    vec4_t vi;
    __m128 v;
    
-   vec3Copy(vi, pv);
+   vec4Copy(vi, pv);
    vi[3] = 0.0f;
 
    v = _mm_load_ps((const float*)vi);
@@ -35,12 +35,12 @@ _vec4Matrix4_sse3(vec4 d, const vec4 pv, mtx4 m)
 }
 
 FN_PREALIGN void
-_pt4Matrix4_sse3(vec4 d, const vec4 pv, mtx4 m)
+_pt4Matrix4_sse3(vec4_t d, const vec4_t pv, mtx4_t m)
 {
    vec4_t vi;
    __m128 v;
    
-   vec3Copy(vi, pv);
+   vec4Copy(vi, pv);
    vi[3] = 1.0f;
 
    v = _mm_load_ps((const float*)vi);

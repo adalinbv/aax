@@ -103,12 +103,12 @@ extern vec3Normalize_proc vec3Normalize;
 extern vec3dNormalize_proc vec3dNormalize;
 extern vec3CrossProduct_proc vec3CrossProduct;
 
-typedef void (*vec4Copy_proc)(vec4 d, const vec4 v);
-typedef void (*vec4Add_proc)(vec4 d, const vec4 v);
-typedef void (*vec4Sub_proc)(vec4 d, const vec4 v);
-typedef void (*vec4Devide_proc)(vec4 d, float s);
-typedef void (*vec4Mulvec4_proc)(vec4 r, const vec4 v1, const vec4 v2);
-typedef void (*vec4Matrix4_proc)(vec4 d, const vec4 v, mtx4 m);
+typedef void (*vec4Copy_proc)(vec4_t d, const vec4_t v);
+typedef void (*vec4Add_proc)(vec4_t d, const vec4_t v);
+typedef void (*vec4Sub_proc)(vec4_t d, const vec4_t v);
+typedef void (*vec4Devide_proc)(vec4_t d, float s);
+typedef void (*vec4Mulvec4_proc)(vec4_t r, const vec4_t v1, const vec4_t v2);
+typedef void (*vec4Matrix4_proc)(vec4_t d, const vec4_t v, mtx4_t m);
 
 extern vec4Add_proc vec4Add;
 extern vec4Copy_proc vec4Copy;
@@ -118,33 +118,33 @@ extern vec4Sub_proc vec4Sub;
 extern vec4Matrix4_proc vec4Matrix4;
 extern vec4Matrix4_proc pt4Matrix4;
 
-void vec4ScalarMul(vec4 r, float v);
-void vec4Negate(vec4 d, const vec4 v);
-void vec4Set(vec4 d, float x, float y, float z, float w);
+void vec4ScalarMul(vec4_t r, float v);
+void vec4Negate(vec4_t d, const vec4_t v);
+void vec4Set(vec4_t d, float x, float y, float z, float w);
 
-typedef void (*mtx4Mul_proc)(mtx4 d, mtx4 m1, mtx4 m2);
-typedef void (*mtx4dMul_proc)(mtx4d d, mtx4d m1, mtx4d m2);
+typedef void (*mtx4Mul_proc)(mtx4_t d, mtx4_t m1, mtx4_t m2);
+typedef void (*mtx4dMul_proc)(mtx4d_t d, mtx4d_t m1, mtx4d_t m2);
 
 extern mtx4Mul_proc mtx4Mul;
 extern mtx4dMul_proc mtx4dMul;
 
-void tx4MulVec4(vec4 d, mtx4 m, const vec4 v);
-void mtx4Translate(mtx4 m, float x, float y, float z);
-void mtx4Rotate(mtx4 m, float angle, float x, float y, float z);
-void mtx4InverseSimple(mtx4 d, mtx4 m);
-void mtx4SetAbsolute(mtx4 d, char);
-void mtx4Copy(mtx4 d, void *);
+void tx4MulVec4(vec4_t d, mtx4_t m, const vec4_t v);
+void mtx4Translate(mtx4_t m, float x, float y, float z);
+void mtx4Rotate(mtx4_t m, float angle, float x, float y, float z);
+void mtx4InverseSimple(mtx4_t d, mtx4_t m);
+void mtx4SetAbsolute(mtx4_t d, char);
+void mtx4Copy(mtx4_t d, void *);
 
 void mtx4dCopy(mtx4d d, void *);
 void mtx4dTranslate(mtx4d m, double x, double y, double z);
 void mtx4dRotate(mtx4d m, double angle, double x, double y, double z);
 void mtx4dInverseSimple(mtx4d d, mtx4d m);
 
-typedef void (*ivec4Copy_proc)(ivec4 d, const ivec4 v);
-typedef void (*ivec4Add_proc)(ivec4 d, ivec4 v);
-typedef void (*ivec4Sub_proc)(ivec4 d, ivec4 v);
-typedef void (*ivec4Devide_proc)(ivec4 d, float s);
-typedef void (*ivec4Mulivec4_proc)(ivec4 r, const ivec4 v1, const ivec4 v2);
+typedef void (*ivec4Copy_proc)(ivec4_t d, const ivec4_t v);
+typedef void (*ivec4Add_proc)(ivec4_t d, ivec4_t v);
+typedef void (*ivec4Sub_proc)(ivec4_t d, ivec4_t v);
+typedef void (*ivec4Devide_proc)(ivec4_t d, float s);
+typedef void (*ivec4Mulivec4_proc)(ivec4_t r, const ivec4_t v1, const ivec4_t v2);
 
 extern ivec4Add_proc ivec4Add;
 extern ivec4Copy_proc ivec4Copy;

@@ -45,7 +45,7 @@ _vec3Normalize_sse4(vec3 d, const vec3 v3)
    __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
    __m128 inverse_norm = _mm_rsqrt_ps(_mm_dp_ps(v, v, 0x77));
    __m128 norm =_mm_mul_ps(v, inverse_norm);
-   vec4 r;
+   vec4_t r;
 
    _mm_store_ps(r, norm);
    _aax_memcpy(d, r, 3*sizeof(float));
