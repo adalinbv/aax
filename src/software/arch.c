@@ -381,7 +381,7 @@ _aaxGetSIMDSupportString()
 #if defined(__i386__) || defined(__x86_64__)
       if (level >= AAX_SSE)
       {
-         vec3CrossProduct = _vec3CrossProduct_sse;
+//       vec3CrossProduct = _vec3CrossProduct_sse;
          vec4Add = _vec4Add_sse;
          vec4Sub = _vec4Sub_sse;
          vec4Copy = _vec4Copy_sse;
