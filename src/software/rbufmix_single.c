@@ -847,7 +847,7 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 #if 1
    float vse, rv;
 
-   /* relative speed */
+   /* relative speed, Note: vs is always 0.0f, we could optimize the code */
    vse = _MIN(ve, vsound) - _MIN(vs, vsound);
    rv =  vsound/_MAX(vsound - vse, 1.0f);
 
