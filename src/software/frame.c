@@ -295,7 +295,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d))
       {
          mtx4Mul(fdp3d_m->matrix, pdp3d_m->matrix, fdp3d->matrix);
-#if 1
+#if 0
  printf("parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
  printf("modified frame\n");
@@ -309,7 +309,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       if (_PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m) ||
           _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d))
       {
-         vec4Matrix4(fdp3d_m->velocity, fdp3d->velocity, fdp3d_m->matrix);
+         vec4Matrix4(fdp3d_m->velocity, fdp3d->velocity, pdp3d_m->matrix);
          vec4Add(fdp3d_m->velocity, pdp3d_m->velocity);
 
          _PROP3D_SPEED_CLEAR_CHANGED(pdp3d_m);

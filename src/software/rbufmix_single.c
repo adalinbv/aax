@@ -847,13 +847,13 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 #if 1
    float vse, rv;
 
-   /* relative speed, Note: vs is always 0.0f, we could optimize the code */
+   /* relative speed */
    vse = _MIN(ve, vsound) - _MIN(vs, vsound);
    rv =  vsound/_MAX(vsound - vse, 1.0f);
 
    return rv;
 #else
-// Old OpenAL code
+   /* Old OpenAL code */
    float vss, ves;
    vss = vsound - _MIN(vs, vsound);
    ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
