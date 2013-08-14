@@ -542,6 +542,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
+               vec4_t vs_m;
                _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
                _oalRingBuffer2dProps sp2d;
                char fprocess = AAX_TRUE;
@@ -576,7 +577,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 
                /* update the modified properties */
                mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
-               vec4Matrix4(sdp3d_m.velocity, sdp3d.velocity, sdp3d_m.matrix);
+               memset(sdp3d_m.velocity, 0, sizeof(vec4_t));
+               vec4Matrix4(vs_m, sdp3d.velocity, sdp3d_m.matrix);
                sdp3d_m.state3d = sdp3d.state3d;
                sdp3d_m.pitch = sdp3d.pitch;
                sdp3d_m.gain = sdp3d.gain;
@@ -599,7 +601,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                /* process emitters, (sub-)frames and registered sensors */
                res = _aaxAudioFrameProcess(dest_rb, sensor, mixer, ssv, sdf,
                                            NULL, NULL, &sp2d, &sdp3d, &sdp3d_m,
-                                           be, be_handle, fprocess);
+                                           vs_m, be, be_handle, fprocess);
                /*
                 * if the final mixer actually did render something,
                 * mix the data.

@@ -20,6 +20,7 @@
 #include <api.h>
 
 /**
+ * sv_m -> modified sensor velocity vector
  * ssv -> sensor sound velocity
  * sdf -> sensor doppler factor
  * pos
@@ -28,7 +29,7 @@ char
 _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                     float ssv, float sdf, _oalRingBuffer2dProps *fp2d,
                     _oalRingBufferDelayed3dProps *fdp3d_m,
-                    _intBuffers *e2d, _intBuffers *e3d,
+                    _intBuffers *e2d, _intBuffers *e3d, vec4_t vs_m,
                     const _aaxDriverBackend* be, void *be_handle)
 {
    unsigned int num, stage;
@@ -101,7 +102,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                      assert(_IS_POSITIONAL(src->props3d));
 
                      if (!src->update_ctr) {
-                        be->prepare3d(src, info, ssv,sdf,fp2d->speaker,fdp3d_m);
+                        be->prepare3d(src, info, vs_m, ssv, sdf, 
+                                      fp2d->speaker,fdp3d_m);
                      }
 
                      res = AAX_FALSE;
@@ -200,7 +202,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
  * fp3d:    parent frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _oalRingBufferDelayed3dProps* fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, vec4_t vs_m, float ssv, float sdf, vec4_t *speaker, _oalRingBufferDelayed3dProps* fdp3d_m)
 {
    _oalRingBufferPitchShiftFunc* dopplerfn;
    _oalRingBufferDelayed3dProps *edp3d, *edp3d_m;
@@ -308,14 +310,15 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
           * relative to the sensor
           */
          vec4Matrix4(edp3d_m->velocity, edp3d->velocity, fdp3d_m->matrix);
-//       vec4Add(edp3d_m->velocity, fdp3d_m->velocity);
+         vec4Add(edp3d_m->velocity, fdp3d_m->velocity);
 
          ve = vec3DotProduct(edp3d_m->velocity, epos);
-         vf = vec3DotProduct(fdp3d_m->velocity, epos);
+         vf = vec3DotProduct(vs_m, epos);
          df = dopplerfn(vf, ve, vs/sdf);
 #if 0
- printf("edp3d velocity  : %3.2f %3.2f %3.2f\n",
-         edp3d->velocity[0], edp3d->velocity[1], edp3d->velocity[2]);
+ printf("edp3d velocity  : %3.2f %3.2f %3.2f\tsensor: %3.2f %3.2f %3.2f\n",
+         edp3d->velocity[0], edp3d->velocity[1], edp3d->velocity[2],
+         vs_m[0], vs_m[1], vs_m[2]);
  printf("fdp3d_m velocity: %3.2f %3.2f %3.2f\n",
          fdp3d_m->velocity[0], fdp3d_m->velocity[1], fdp3d_m->velocity[2]);
  printf("edp3d_m velocity: %3.2f %3.2f %3.2f\n",

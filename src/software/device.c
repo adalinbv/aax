@@ -194,7 +194,7 @@ _aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 }
 
 static void
-_aaxNoneDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
+_aaxNoneDriver3dPrepare(void* src, const void *info, float *vs_m, float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
 }
 
@@ -350,14 +350,14 @@ _aaxSoftwareDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, in
 }
 
 void
-_aaxSoftwareDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
+_aaxSoftwareDriver3dPrepare(void* src, const void *info, float *vs_m, float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
    assert(fp2dpos);
    assert(fp3d);
    assert(info);
    assert(src);
 
-   _aaxEmitterPrepare3d(src, info, ssv, sdf, fp2dpos, fp3d);
+   _aaxEmitterPrepare3d(src, info, vs_m, ssv, sdf, fp2dpos, fp3d);
 }
 
 int
