@@ -55,6 +55,15 @@
 #define _DELAY				120
 #define DELAY				\
     deg = 0; while(deg < _DELAY) { msecSleep(50); deg++; }
+#define FILLBUFFER			\
+    if (aaxEmitterGetNoBuffers(emitter, AAX_PLAYING) < 32) {		\
+        for (i=0; i<aaxEmitterGetNoBuffers(emitter, AAX_PROCESSED); i++)\
+            aaxEmitterRemoveBuffer(emitter);				\
+        for (i=0; i<NUM_BUFFERS; i++) {					\
+            res = aaxEmitterAddBuffer(emitter, buffer);			\
+            testForState(res, "aaxEmitterAddBuffer"); 			\
+        }								\
+    }
 
 int main(int argc, char **argv)
 {
@@ -91,16 +100,12 @@ int main(int argc, char **argv)
             testForError(emitter, "Unable to create a new emitter\n");
 
             /** buffer */
-            for (i=0; i<NUM_BUFFERS; i++)
-            {
-                res = aaxEmitterAddBuffer(emitter, buffer);
-                testForState(res, "aaxEmitterAddBuffer");
-            }
+            FILLBUFFER;
 
             res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_RELATIVE);
             testForState(res, "aaxEmitterSetMode");
 
-            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
+            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_FALSE);
             testForState(res, "aaxEmitterSetLooping");
 
             pitch = getPitch(argc, argv);
@@ -128,6 +133,7 @@ int main(int argc, char **argv)
             testForError(effect, "aaxEffectCreate");
 
             DELAY;
+            FILLBUFFER;
 
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
             effect = aaxEffectSetState(effect, AAX_FALSE);
@@ -149,6 +155,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterSetEffect");
 
             DELAY;
+            FILLBUFFER;
 #else
             printf("no effect\n");
 #endif
@@ -158,14 +165,19 @@ int main(int argc, char **argv)
             /* flanging effect */
             printf("emitter chorus.. (envelope following)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
+            testForError(effect, "aaxEmitterGetEffect");
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               1.0f, 0.8f, 1.0f, 0.0f);
+            testForError(effect, "aaxEffectSetSlot");
             effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
+            testForError(effect, "aaxEffectSetState");
             res = aaxEmitterSetEffect(emitter, effect);
+            testForState(res, "aaxEmitterSetEffect");
             res = aaxEffectDestroy(effect);
-            testForError(effect, "aaxEffectCreate");
+            testForState(res, "aaxEffectDestroy");
 
             DELAY;
+            FILLBUFFER;
 # endif
 
 #if ENABLE_EMITTER_FILTERS
@@ -190,29 +202,43 @@ int main(int argc, char **argv)
                 /* flanging effect */
                 printf("emitter flanging..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
+                testForError(effect, "aaxEmitterGetEffect");
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   0.88f, 0.08f, 1.0f, 0.0f);
+                testForError(effect, "aaxEffectSetSlot");
                 effect = aaxEffectSetState(effect, AAX_TRUE);
+                testForError(effect, "aaxEffectSetState");
                 res = aaxEmitterSetEffect(emitter, effect);
+                testForState(res, "aaxEmitterSetEffect");
                 res = aaxEffectDestroy(effect);
-                testForError(effect, "aaxEffectCreate");
+                testForError(effect, "aaxEffectDestroy");
 
                 DELAY;
+                FILLBUFFER;
 # endif
 
 # if ENABLE_EMITTER_PHASING
                 /* phasing effect */
                 printf("emitter phasing..\n");
+#if 0
                 effect = aaxEffectCreate(config, AAX_PHASING_EFFECT);
+                testForError(effect, "aaxEffectCreate");
+#else
+                effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
+                testForError(effect, "aaxEmitterGetEffect");
+#endif
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   1.0f, 0.08f, 1.0f, 0.0f);
+                testForError(effect, "aaxEffectSetSlot");
                 effect = aaxEffectSetState(effect, AAX_TRUE);
-                testForError(effect, "aaxEffectCreate");
+                testForError(effect, "aaxEffectSetState");
                 res = aaxEmitterSetEffect(emitter, effect);
-                res = aaxEffectDestroy(effect);
                 testForState(res, "aaxEmitterSetEffect");
+                res = aaxEffectDestroy(effect);
+                testForState(res, "aaxEffectDestroy");
 
                 DELAY;
+                FILLBUFFER;
 #else
                 printf("no effect\n");
 #endif
@@ -221,28 +247,38 @@ int main(int argc, char **argv)
                 /* chorus effect */
                 printf("emitter chorus..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
+                testForError(effect, "aaxEmitterGetEffect");
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   1.0f, 0.08f, 1.0f, 0.0f);
+                testForError(effect, "aaxEffectSetSlot");
                 effect = aaxEffectSetState(effect, AAX_TRUE);
+                testForError(effect, "aaxEffectSetState");
                 res = aaxEmitterSetEffect(emitter, effect);
+                testForState(res, "aaxEmitterSetEffect");
                 res = aaxEffectDestroy(effect);
-                testForError(effect, "aaxEffectCreate");
+                testForState(res, "aaxEffectDestroy");
 
                 DELAY;
+                FILLBUFFER;
 # endif
 
 # if ENABLE_EMITTER_FLANGING
                 /* flanging effect */
                 printf("emitter flanging..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
+                testForError(effect, "aaxEmitterGetEffect");
                 effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   0.88f, 0.08f, 1.0f, 0.0f);
+                testForError(effect, "aaxEffectSetSlot");
                 effect = aaxEffectSetState(effect, AAX_TRUE);
+                testForError(effect, "aaxEffectSetState");
                 res = aaxEmitterSetEffect(emitter, effect);
+                testForState(res, "aaxEmitterSetEffect");
                 res = aaxEffectDestroy(effect);
-                testForError(effect, "aaxEffectCreate");
+                testForState(res, "aaxEffectDestroy");
 
                 DELAY;
+                FILLBUFFER;
 # endif
             }
 
@@ -274,6 +310,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerSetEffect");
 
             DELAY;
+            FILLBUFFER;
 #endif
 
 #if ENABLE_MIXER_CHORUS
@@ -289,6 +326,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerSetEffect");
 
             DELAY;
+            FILLBUFFER;
 #endif
 
 #if ENABLE_MIXER_FlANGING
@@ -296,7 +334,7 @@ int main(int argc, char **argv)
             printf("mixer flanging..\n");
             effect = aaxEffectCreate(config, AAX_FLANGING_EFFECT);
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              0.88f, 0.08f, 1.0f, 0.0f);
+                                              0.7f, 1.0f, 0.2f, 0.0f);
             effect = aaxEffectSetState(effect, AAX_TRUE);
             testForError(effect, "aaxEffectCreate");
             res = aaxMixerSetEffect(config, effect);
@@ -304,6 +342,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerSetEffect");
 
             DELAY;
+            FILLBUFFER;
 #endif
 
             res = aaxEmitterSetState(emitter, AAX_STOPPED);
@@ -311,6 +350,10 @@ int main(int argc, char **argv)
 
             res = aaxMixerDeregisterEmitter(config, emitter);
             testForState(res, "aaxMixerDeregisterEmitter");
+
+            for (i=0; i<aaxEmitterGetNoBuffers(emitter, AAX_PROCESSED); i++) {
+                aaxEmitterRemoveBuffer(emitter);
+            }
 
             res = aaxEmitterDestroy(emitter);
             testForState(res, "aaxEmitterDestroy");
