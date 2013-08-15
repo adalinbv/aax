@@ -30,76 +30,86 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    _aaxDriverBackend *be = (_aaxDriverBackend*)id;
    _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
    _oalRingBuffer *rb = (_oalRingBuffer *)drb;
+   _oalRingBufferDelayEffectData* delay_effect;
    _oalRingBufferFreqFilterInfo* freq_filter;
-   _oalRingBufferDelayEffectData* delay;
    _oalRingBufferSample *rbd;
-   float maxgain, gain = 1.0f;
+   int32_t **track_ptr;
+   float maxgain, gain;
    int dist_state;
 
    assert(rb != 0);
    assert(rb->sample != 0);
 
    rbd = rb->sample;
+   track_ptr = (int32_t**)rbd->scratch;
 
-   maxgain = be->param(hid, DRIVER_MAX_VOLUME);
-   gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   assert(rbd->bytes_sample == sizeof(int32_t));
 
-   delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+   delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-   if ((gain > maxgain) || (delay || freq_filter || dist_state))
+   if (delay_effect || freq_filter || dist_state)
    {
-      int32_t *scratch0 = rbd->scratch[SCRATCH_BUFFER0];
-      int32_t *scratch1 = rbd->scratch[SCRATCH_BUFFER1];
-      unsigned int bps, no_samples, ddesamps;
+      int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
+      int32_t *scratch1 = track_ptr[SCRATCH_BUFFER1];
+      void* distortion_effect = NULL;
+      unsigned int no_samples, ddesamps = 0;
       unsigned int track, tracks;
-      void* distortion = NULL;
-
-      bps = rbd->bytes_sample;
-      no_samples = rbd->no_samples;
-
-      /*
-       * can not use drbd->dde_samples since it's 10 times as big for the
-       * fial mixer to accomodate for reverb
-       */
-      // ddesamps = drbd->dde_samples;
-      ddesamps = (unsigned int)ceilf(DELAY_EFFECTS_TIME*rbd->frequency_hz);
 
       if (dist_state) {
-         distortion = &_EFFECT_GET(p2d, DISTORTION_EFFECT, 0);
+         distortion_effect = &p2d->effect[DISTORTION_EFFECT];
+      }
+
+      if (delay_effect)
+      {
+         /*
+          * can not use drbd->dde_samples since it's 10 times as big for the
+          * fial mixer to accomodate for reverb
+          */
+         // ddesamps = drbd->dde_samples;
+         ddesamps = (unsigned int)ceilf(DELAY_EFFECTS_TIME*rbd->frequency_hz);
       }
 
       tracks = rbd->no_tracks;
+      no_samples = rbd->no_samples;
       for (track=0; track<tracks; track++)
       {
          int32_t *dptr = rbd->track[track];
          int32_t *ddeptr = dptr - ddesamps;
 
-         /* save the unmodified next effects buffer for later use          */
-         /* (scratch buffers have a leading and a trailing effects buffer) */
-         DBG_MEMCLR(1, scratch1-ddesamps, no_samples+2*ddesamps, bps);
-         _aax_memcpy(scratch1+no_samples, ddeptr+no_samples, ddesamps*bps);
+         /* save the unmodified next effects buffer for later use            */
+         /* (scratch buffers have a leading *and* a trailing effects buffer) */
+         DBG_MEMCLR(1,scratch1-ddesamps, no_samples+2*ddesamps,sizeof(int32_t));
+         _aax_memcpy(scratch1+no_samples, ddeptr+no_samples,
+                     ddesamps*sizeof(int32_t));
 
          /* mix the buffer and the delay buffer */
-         DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
-         bufEffectsApply(scratch0, dptr, scratch1, 0, no_samples, no_samples,
-                         ddesamps, track, 0, freq_filter, delay, distortion);
+         _aax_memcpy(scratch1, dptr, no_samples*sizeof(int32_t));
+         bufEffectsApply(dptr, scratch1, scratch0, 0, no_samples,
+                         no_samples, ddesamps, track, 0,
+                         freq_filter, delay_effect, distortion_effect);
 
          /* copy the unmodified next effects buffer back */
-         DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
-         _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
+         DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, sizeof(int32_t));
+         _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*sizeof(int32_t));
+      }
+   }
 
-         /* copy the data back from scratch0 to dptr */
-         _aax_memcpy(dptr, scratch0, no_samples*bps);
-
-         /*
-          * If the requested gain is larger than the maximum capabilities of
-          * hardware volume support, adjust the difference here (before the
-          * compressor/limiter)
-          */
-         if (gain > maxgain) {
-            _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain/maxgain);
-         }
+   /*
+    * If the requested gain is larger than the maximum capabilities of
+    * hardware volume support, adjust the difference here (before the
+    * compressor/limiter)
+    */
+   maxgain = be->param(hid, DRIVER_MAX_VOLUME);
+   gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   if (gain > maxgain) 
+   {
+      unsigned int track, tracks = rbd->no_tracks;
+      unsigned int no_samples = rbd->no_samples;
+      for (track=0; track<tracks; track++)
+      {
+         int32_t *dptr = rbd->track[track];
+         _batch_mul_value(dptr, sizeof(int32_t), no_samples, gain/maxgain);
       }
    }
 }

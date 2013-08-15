@@ -284,7 +284,7 @@ _aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps
             void* distortion_effect = NULL;
             int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
             
-            if ( dist_state) {
+            if (dist_state) {
                 distortion_effect = &p2d->effect[DISTORTION_EFFECT];
             }
 
