@@ -89,7 +89,7 @@ _oalRingBufferMixMulti16Effects(_oalRingBuffer *dest, _oalRingBuffer *src, _oalR
    /** Resample */
    offs = 0;
    sptr = _aaxProcessMixer(dest, src, p2d, pitch, &offs, &dno_samples, ctr, n);
-   if (sptr == NULL)
+   if (sptr == NULL || dno_samples == 0)
    {
       if (src->playing == 0 && src->stopped == 1) {
          return -1;
