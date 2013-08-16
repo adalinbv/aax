@@ -118,7 +118,6 @@ int main(int argc, char **argv)
             do
             {
                 static float mul = 1.0f;
-                aaxVec3f pos;
 
                 emitter[i] = aaxEmitterCreate();
                 testForError(emitter[i], "Unable to create a new emitter\n");
@@ -126,10 +125,7 @@ int main(int argc, char **argv)
                 res = aaxEmitterAddBuffer(emitter[i], buffer);
                 testForState(res, "aaxEmitterAddBuffer");
 
-                pos[1] = EmitterPos[1] + mul*cosf(anglestep * i) * RADIUS;
-                pos[0] = EmitterPos[0] + mul*cosf(anglestep * i) * RADIUS;
-                pos[2] = EmitterPos[2] + sinf(anglestep * i) * RADIUS;
-                aaxMatrixSetDirection(mtx, pos, EmitterDir);
+                aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
                 res = aaxEmitterSetMatrix(emitter[i], mtx);
                 testForState(res, "aaxEmitterSetIdentityMatrix");
                 mul *= -1.0f;
@@ -166,7 +162,7 @@ int main(int argc, char **argv)
 
                 EmitterPos[0] = XEPOS + RADIUS * sinf(ang);
                 EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
-                /* EmitterPos[1] = YEPOS + -RADIUS * cosf(ang); */
+                EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
 
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);
