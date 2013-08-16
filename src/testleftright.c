@@ -45,7 +45,7 @@
 #define FILE_PATH_LEFT		SRC_PATH"/left_channel.wav"
 #define FILE_PATH_RIGHT		SRC_PATH"/right_channel.wav"
 
-aaxVec3f EmitterPos = {-2.0f, 0.0f, 0.0f };
+aaxVec3f EmitterPos = {-10.0f, 0.0f, 0.0f };
 aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
 aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
 
@@ -98,14 +98,18 @@ int main(int argc, char **argv)
 
         /** emitter */
         num = 2;
+        for (i=0; i<num; i++)
+        {
+            buffer[i] = bufferFromFile(config, infile[i]);
+            testForError(buffer[i], "Failed to load sample file");
+        }
+
         printf("Starting %i emitters\n", num);
+        printf("left / right\n");
         for (i=0; i<num; i++)
         {
             emitter[i] = aaxEmitterCreate();
             testForError(emitter[i], "Unable to create a new emitter\n");
-
-            buffer[i] = bufferFromFile(config, infile[i]);
-            testForError(buffer[i], "Failed to load sample file");
 
             res = aaxEmitterAddBuffer(emitter[i], buffer[i]);
             testForState(res, "aaxEmitterAddBuffer");
@@ -114,6 +118,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterSetBufferTrack");
 
             if (i == 1) _neg(EmitterPos[0]);
+printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 
@@ -134,7 +139,6 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterStart");
         }
 
-        printf("left / right\n");
         deg = 0;
         while(deg < 360)
         {
@@ -142,11 +146,13 @@ int main(int argc, char **argv)
             deg += 5;
         }
 
-        _neg(EmitterPos[0]); /* restore original */
-        _swap(EmitterPos[0], EmitterPos[2]);
+        _neg(EmitterPos[0]); /* restore to original after left-right swap */
+        _swap(EmitterPos[2], EmitterPos[0]);
+        printf("front (left) / back (right)\n");
         for (i=0; i<num; i++)
         {
             if (i == 1) _neg(EmitterPos[2]);
+printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 
@@ -154,7 +160,6 @@ int main(int argc, char **argv)
             testForState(res, "aaxSensorSetMatrix");
         }
 
-        printf("front (left) / back (right)\n");
         deg = 0;
         while(deg < 360)
         {
@@ -162,10 +167,13 @@ int main(int argc, char **argv)
             deg += 5;
         }
 
+        /* no need to restore to original; up is negative from left/front */
         _swap(EmitterPos[1], EmitterPos[2]);
+        printf("up (left) / down (right)\n");
         for (i=0; i<num; i++)
         {
             if (i == 1) _neg(EmitterPos[1]);
+printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 
@@ -173,7 +181,6 @@ int main(int argc, char **argv)
             testForState(res, "aaxSensorSetMatrix");
         }
 
-        printf("front (up) / back (down)\n");
         deg = 0;
         while(deg < 360)
         {
