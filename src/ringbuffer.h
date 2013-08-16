@@ -648,7 +648,7 @@ _oalRingBufferFillInterleaved(_oalRingBuffer*, const void*, unsigned, char);
  * @param fact rersampling factor
  */
 void
-_oalRingBufferGetDataInterleaved(_oalRingBuffer*, void*, unsigned int, float);
+_oalRingBufferGetDataInterleaved(_oalRingBuffer*, void*, unsigned int, int, float);
 
 /**
  * Get the interleaved sound data.
@@ -660,7 +660,7 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer*, void*, unsigned int, float);
  */
 
 void*
-_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer*, float);
+_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer*, int, float);
 
 /**
  * Get the non-interleaved sound data.
@@ -670,7 +670,7 @@ _oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer*, float);
  * @param fact rersampling factor
  */
 void
-_oalRingBufferGetDataNonInterleaved(_oalRingBuffer*, void*, unsigned int, float);
+_oalRingBufferGetDataNonInterleaved(_oalRingBuffer*, void*, unsigned int, int, float);
 
 /**
  * Get the interleaved sound data.
@@ -682,7 +682,7 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer*, void*, unsigned int, float)
  */
 
 void*
-_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*, float);
+_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*, int, float);
 
 /**
  * Clear the sound data of the ringbuffer

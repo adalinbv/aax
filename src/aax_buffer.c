@@ -132,12 +132,10 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_TRACKS:
-         if (setup < _AAX_MAX_SPEAKERS)
-         {
-            _oalRingBufferSetParami(rb, RB_NO_TRACKS, setup);
-            rv = AAX_TRUE;
+         rv = _oalRingBufferSetParami(rb, RB_NO_TRACKS, setup);
+         if (!rv) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
-         else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_FORMAT:
       {
@@ -155,11 +153,15 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
                break;
             }
             rv = AAX_TRUE;
-         } else _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+         else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       }
       case AAX_TRACKSIZE:
          rv = _oalRingBufferSetParami(rb, RB_TRACKSIZE, setup);
+         if (!rv) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
          break;
       case AAX_LOOP_START:
          if (setup < _oalRingBufferGetParami(rb, RB_NO_SAMPLES))
@@ -551,7 +553,7 @@ aaxBufferGetData(const aaxBuffer buffer)
          return data;
       }
 
-      _oalRingBufferGetDataInterleaved(rb, ptr, no_samples, fact);
+      _oalRingBufferGetDataInterleaved(rb, ptr, no_samples, tracks, fact);
       *data = (void*)(ptr + pos*tracks*bps);
 
       user_format = buf->format;
@@ -587,9 +589,9 @@ aaxBufferGetData(const aaxBuffer buffer)
             ndata = (void**)_aax_malloc(&ptr, tracks*new_samples*new_bps);
             if (ndata)
             {
-                *ndata = (void*)ptr;
-                bufConvertDataFromPCM24S(*ndata, *data, tracks, no_samples,
-                                        native_fmt, buf->blocksize);
+               *ndata = (void*)ptr;
+               bufConvertDataFromPCM24S(*ndata, *data, tracks, no_samples,
+                                         native_fmt, buf->blocksize);
                free(data);
                data = ndata;
             }

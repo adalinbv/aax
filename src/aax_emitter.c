@@ -1091,6 +1091,7 @@ aaxEmitterGetState(const aaxEmitter emitter)
          else if (_IS_PROCESSED(src->props3d)) ret = AAX_PROCESSED;
          else if (_IS_STOPPED(src->props3d)) ret = AAX_STOPPED;
          else if (_IS_PAUSED(src->props3d)) ret = AAX_SUSPENDED;
+         else if (_IS_PLAYING(src->props3d)) ret = AAX_PLAYING;
          else ret = AAX_INITIALIZED;
        }
        else ret = AAX_INITIALIZED;

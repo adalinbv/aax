@@ -443,7 +443,7 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
 
 
 void
-_oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int samples, float fact)
+_oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int samples, int tracks, float fact)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -459,6 +459,9 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
       void **ptr, **track = rbd->track;
 
       assert(samples >= (unsigned int)(fact*no_samples));
+
+      memset(data, 0, no_samples*no_tracks*bps);
+      if (no_tracks > tracks) no_tracks = tracks;
 
       fact = 1.0f/fact;
       ptr = track;
@@ -533,7 +536,7 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
 }
 
 void*
-_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, float fact)
+_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, int tracks, float fact)
 {
    unsigned int samples;
    void *data;
@@ -544,16 +547,16 @@ _oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, float fact)
    assert(rb->sample != 0);
   
    samples = (unsigned int)(fact*rb->sample->no_samples);
-   data = malloc(rb->sample->no_tracks * samples*rb->sample->bytes_sample);
+   data = malloc(tracks * samples*rb->sample->bytes_sample);
    if (data) {
-      _oalRingBufferGetDataInterleaved(rb, data, samples, fact);
+      _oalRingBufferGetDataInterleaved(rb, data, samples, tracks, fact);
    }
 
    return data;
 }
 
 void
-_oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int samples, float fact)
+_oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int samples, int tracks, float fact)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -570,6 +573,9 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int
       char *p = data;
 
       assert(samples >= (unsigned int)(fact*no_samples));
+
+      memset(data, 0, no_samples*no_tracks*bps);
+      if (no_tracks > tracks) no_tracks = tracks;
 
       fact = 1.0f/fact;
       ptr = track;
@@ -631,7 +637,7 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int
 }
 
 void*
-_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, float fact)
+_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, int tracks, float fact)
 {
    unsigned int samples;
    void *data;
@@ -642,9 +648,9 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, float fact)
    assert(rb->sample != 0);
 
    samples = (unsigned int)(fact*rb->sample->no_samples);
-   data = malloc(rb->sample->no_tracks * samples*rb->sample->bytes_sample);
+   data = malloc(tracks * samples*rb->sample->bytes_sample);
    if (data) {
-      _oalRingBufferGetDataNonInterleaved(rb, data, samples, fact);
+      _oalRingBufferGetDataNonInterleaved(rb, data, samples, tracks, fact);
    }
 
    return data;
