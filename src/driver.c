@@ -221,18 +221,29 @@ getCommandLineOption(int argc, char **argv, char *option)
 
 #ifndef _WIN32
 # include <termios.h>
-# include <unistd.h>
-# include <fcntl.h>
-# include <sys/time.h>
-# include <time.h>
+# include <math.h>
 
+# if USE_NANOSLEEP
+#  include <time.h>		/* for nanosleep */
+#  include <sys/time.h>		/* for struct timeval */
+#  include <errno.h>
 int msecSleep(unsigned long dt_ms)
-{
-    static struct timespec s;
-    s.tv_sec = (dt_ms/1000);
-    s.tv_nsec = (dt_ms-s.tv_sec*1000)*1000000;
-    return nanosleep(&s, 0);
-}
+   {
+       static struct timespec s;
+       s.tv_sec = (dt_ms/1000);
+       s.tv_nsec = (dt_ms % 1000)*1000000L;
+       while(nanosleep(&s,&s)==-1 && errno == EINTR)
+            continue;
+       return errno;
+   }
+
+#else
+#  include <unistd.h>		/* usleep */
+int msecSleep(unsigned long dt_ms)
+   {
+       return usleep(dt_ms*1000);
+   }
+#endif
 
 void set_mode(int want_key)
 {
