@@ -106,8 +106,6 @@ typedef struct
    uint8_t bits_sample;
    char sse_level;
 
-   _oalRingBufferMix1NFunc *mix_mono3d;
-
 } _driver_t;
 
 char _loopback_default_renderer[100] = DEFAULT_RENDERER;
@@ -209,7 +207,7 @@ _aaxNoneDriverPostProcess(const void *id, void *s, const void *l)
 }
 
 static int
-_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
+_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, unsigned char ctr, unsigned int nbuf)
 {
    return AAX_FALSE;
 }
@@ -292,7 +290,6 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
    if (rv)
    {
       rv->latency = 0.0f;
-      rv->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
    }
    return rv;
 }
@@ -336,17 +333,9 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
 }
 
 int
-_aaxSoftwareDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
+_aaxSoftwareDriver3dMixer(const void *id, void *dest, void *src, void *ep2d, void *fp2d, int ch, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
-#if 0
-   _driver_t *handle = (_driver_t *)id;
-
-   return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
-#else
-   _oalRingBufferMix1NFunc *mix3d = _oalRingBufferMixMonoGetRenderer(mode);
-
-   return mix3d(d, s, p, m, n, ctr, nbuf);
-#endif
+   return _oalRingBufferMixMono16(dest, src, mode, ep2d, fp2d, ch, ctr, nbuf);
 }
 
 void
@@ -361,14 +350,14 @@ _aaxSoftwareDriver3dPrepare(void* src, const void *info, float *vs_m, float ssv,
 }
 
 int
-_aaxSoftwareDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, float pitch, float volume, unsigned char ctr, unsigned int nbuf)
+_aaxSoftwareDriverStereoMixer(const void *id, void *dest, void *src, void *ep2d, void *fp2d, unsigned char ctr, unsigned int nbuf)
 {
    int ret;
 
    assert(s);
    assert(d);
 
-   ret = _oalRingBufferMixMulti16(d, s, p, m, pitch, volume, ctr, nbuf);
+   ret = _oalRingBufferMixMulti16(dest, src, ep2d, fp2d, ctr, nbuf);
 
    return ret;
 }

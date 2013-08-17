@@ -509,13 +509,13 @@ typedef ALIGN16 struct
 
 
 typedef int
-_oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*,
+_oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*, char,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, 
                         unsigned char, unsigned char, unsigned int);
 typedef int
 _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
                         _oalRingBuffer2dProps*, _oalRingBuffer2dProps*,
-                        float, float, unsigned char, unsigned int);
+                        unsigned char, unsigned int);
 
 
 /**
@@ -752,30 +752,41 @@ _oalRingBufferCopyDelyEffectsData(_oalRingBuffer*, const _oalRingBuffer*);
 /**
  * M:N channel ringbuffer mixer.
  *
- * @param dest the pre initialized destination ringbuffer
- * @param src the source of the ringbuffer to mix with the destination buffer
- * @param pitch speed multiplier for the src frequency
- * @param volume volume multiplier
+ * @param dest multi track destination buffer
+ * @param src single track source buffer
+ * @param ep2d 3d positioning information structure of the source
+ * @param fp2f 3d positioning information structure of the parents frame
+ * @param ctr update-rate counter:
+ *     - Rendering to the destination buffer is done every frame at the
+ *       interval rate. Updating of 3d properties and the like is done
+ *       once every 'ctr' frame updates. so if ctr == 1, updates are
+ *       done every frame.
+ * @param nbuf number of buffers in the source queue (>1 means streaming)
  *
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
-extern _oalRingBufferMixMNFunc* _oalRingBufferMixMulti16;
+int _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *ep2d, _oalRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf);
+
 
 /**
  * 1:N channel ringbuffer mixer.
  *
- * @param dest the pre initialized destination ringbuffer
- * @param src the source of the ringbuffer to mix with the destination buffer
- * @param p2d the structure holding the 3d positioning information
+ * @param dest multi track destination buffer
+ * @param src single track source buffer
+ * @param mode mixing mode (resembles enum aaxRenderMode)
+ * @param ep2d 3d positioning information structure of the source
+ * @param fp2f 3d positioning information structure of the parents frame
+ * @param ch channel to use from the source buffer if it is multi-channel
+ * @param ctr update-rate counter:
+ *     - Rendering to the destination buffer is done every frame at the
+ *       interval rate. Updating of 3d properties and the like is done
+ *       once every 'ctr' frame updates. so if ctr == 1, updates are
+ *       done every frame.
+ * @param nbuf number of buffers in the source queue (>1 means streaming)
  *
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
-extern _oalRingBufferMix1NFunc* _oalRingBufferMixMono16;
-
-/**
- * Return the matching _oalRingBufferMixMono16 function for a particular mode
- */
-extern _oalRingBufferMix1NFunc* _oalRingBufferMixMonoGetRenderer(enum aaxRenderMode);
+int _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRenderMode mode, _oalRingBuffer2dProps *ep2d, _oalRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf);
 
 
 int _oalRingBufferSetParamf(_oalRingBuffer*, enum _oalRingBufferParam, float);
@@ -854,7 +865,6 @@ void bufEffectReflections(int32_t*, const int32_ptr, const int32_ptr, unsigned i
 void bufEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 
 void iir_compute_coefs(float, float, float*, float*, float);
-_oalRingBufferMix1NFunc* _oalRingBufferMixMonoSetGenderer(enum aaxRenderMode);
 
 void bufCompress(void*, unsigned int*, unsigned int*, float, float);
 void bufCompressElectronic(void*, unsigned int*, unsigned int*);

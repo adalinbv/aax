@@ -80,6 +80,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                unsigned int res = 0;
                do
                {
+                  _oalRingBuffer2dProps *ep2d = src->props2d;
+
                   if (_IS_STOPPED(src->props3d)) {
                      _oalRingBufferStop(src_rb);
                   }
@@ -97,8 +99,6 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                   /* 3d mixing */
                   if (stage == 2)
                   {
-                     _oalRingBuffer2dProps *ep2d;
-
                      assert(_IS_POSITIONAL(src->props3d));
 
                      if (!src->update_ctr) {
@@ -107,7 +107,6 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                      }
 
                      res = AAX_FALSE;
-                     ep2d = src->props2d;
                      if (src->curr_pos_sec >= ep2d->dist_delay_sec) {
                         res = be->mix3d(be_handle, dest_rb, src_rb, ep2d,
                                        fp2d, emitter->track, src->update_ctr,
@@ -117,9 +116,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                   else
                   {
                      assert(!_IS_POSITIONAL(src->props3d));
-                     res = be->mix2d(be_handle, dest_rb, src_rb, src->props2d,
-                                           fp2d, 1.0, 1.0, src->update_ctr,
-                                           nbuf);
+                     res = be->mix2d(be_handle, dest_rb, src_rb, ep2d,
+                                           fp2d, src->update_ctr, nbuf);
                   }
 
                   if (!src->update_ctr) {

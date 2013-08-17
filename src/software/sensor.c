@@ -135,7 +135,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
                   p2d->final.gain_lfo = 1.0f;
                }
                rv = be->mix2d(be_handle, dest_rb, ssr_rb,
-                              smixer->props2d, props2d, 1.0f, 1.0f, 0, 0);
+                              smixer->props2d, props2d, 0, 0);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                if (rv) /* always streaming */
@@ -384,7 +384,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                   do
                   {
                      rv = be->mix2d(be_handle, dest_rb, src_rb, mixer->props2d,
-                                               NULL, 1.0f, 1.0f, 0, 0);
+                                               NULL, 0, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
