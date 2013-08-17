@@ -153,7 +153,6 @@ typedef struct
     char **data;
 
     char *ifname[2];
-    _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -464,7 +463,6 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
       handle->mode = (mode > 0) ? 1 : 0;
-      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
    }
 
    return handle;

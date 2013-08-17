@@ -153,7 +153,6 @@ typedef struct
    char sse_level;
 
    char *ifname[2];
-   _oalRingBufferMix1NFunc *mix_mono3d;
    enum aaxRenderMode setup;
 
    _batch_cvt_to_intl_proc cvt_to_intl;
@@ -341,7 +340,6 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->Mode = _mode[(mode > 0) ? 1 : 0];
-      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
 
       handle->sse_level = _aaxGetSSELevel();
       handle->status = DRIVER_INIT_MASK | CAPTURE_INIT_MASK;
@@ -604,13 +602,6 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    }
 
    return rv;
-}
-
-int
-_aaxWASAPIDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
 }
 
 static int

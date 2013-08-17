@@ -75,7 +75,6 @@ static _aaxDriverSetup _aaxOSSDriverSetup;
 static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
 static _aaxDriverCallback _aaxOSSDriverPlayback;
 static _aaxDriverGetName _aaxOSSDriverGetName;
-static _aaxDriver3dMixerCB _aaxOSSDriver3dMixer;
 static _aaxDriverState _aaxOSSDriverState;
 static _aaxDriverParam _aaxOSSDriverParam;
 static _aaxDriverLog _aaxOSSDriverLog;
@@ -105,7 +104,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverCallback *)&_aaxOSSDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxOSSDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -144,9 +143,6 @@ typedef struct
    int mixfd;
    long volumeCur, volumeMin, volumeMax;
    float volumeInit, hwgain;
-   
-
-   _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
 
@@ -201,7 +197,6 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
       handle->frequency_hz = (float)48000.0f;
       handle->no_tracks = 2;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
-      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
       handle->exclusive = O_EXCL;
       handle->volumeMax = 0;
       handle->volumeMin = 0;
@@ -495,13 +490,6 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
 }
 
-
-int
-_aaxOSSDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle->mix_mono3d(d, s, p, m, n, ctr, nbuf);
-}
 
 static int
 _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
