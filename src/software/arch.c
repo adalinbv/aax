@@ -688,10 +688,14 @@ _aaxGetNoCores()
    cores = mpctl(MPC_GETNUMSPUS, NULL, NULL);
 
 #elif defined( WIN32 )
+// AeonWave does not use threads for audio-frames since it's thread model
+// can't handle it.
+# if 0
    SYSTEM_INFO sysinfo;
 
    GetSystemInfo( &sysinfo );
    cores = sysinfo.dwNumberOfProcessors;
+# endif
 #endif
 
 #if defined(__i386__)
