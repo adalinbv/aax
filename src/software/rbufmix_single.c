@@ -50,10 +50,10 @@ static _oalRingBufferDistFunc _oalRingBufferALDistLinClamped;
 static _oalRingBufferDistFunc _oalRingBufferALDistExp;
 static _oalRingBufferDistFunc _oalRingBufferALDistExpClamped;
 
-static int _oalRingBufferMixMono16Stereo(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
-static int _oalRingBufferMixMono16Spatial(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
-static int _oalRingBufferMixMono16Surround(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
-static int _oalRingBufferMixMono16HRTF(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+static void _oalRingBufferMixMono16Stereo(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+static void _oalRingBufferMixMono16Spatial(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+static void _oalRingBufferMixMono16Surround(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+static void _oalRingBufferMixMono16HRTF(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
 
 /**
  * Mix a single track source buffer into a multi track destination buffer.
@@ -222,12 +222,35 @@ _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRende
    return ret;
 }
 
-static int
+/* -------------------------------------------------------------------------- */
+
+_oalRingBufferDistFunc *_oalRingBufferDistanceFunc[AAX_DISTANCE_MODEL_MAX] =
+{
+   (_oalRingBufferDistFunc *)&_oalRingBufferDistNone,
+   (_oalRingBufferDistFunc *)&_oalRingBufferDistInvExp
+};
+
+#define AL_DISTANCE_MODEL_MAX AAX_AL_DISTANCE_MODEL_MAX-AAX_AL_INVERSE_DISTANCE
+_oalRingBufferDistFunc *_oalRingBufferALDistanceFunc[AL_DISTANCE_MODEL_MAX] =
+{
+   (_oalRingBufferDistFunc *)&_oalRingBufferALDistInv,
+   (_oalRingBufferDistFunc *)&_oalRingBufferALDistInvClamped,
+   (_oalRingBufferDistFunc *)&_oalRingBufferALDistLin,
+   (_oalRingBufferDistFunc *)&_oalRingBufferALDistLinClamped,
+   (_oalRingBufferDistFunc *)&_oalRingBufferALDistExp,
+   (_oalRingBufferDistFunc *)&_oalRingBufferALDistExpClamped
+};
+
+_oalRingBufferPitchShiftFunc *_oalRingBufferDopplerFunc[] =
+{
+  (_oalRingBufferPitchShiftFunc *)&_oalRingBufferDopplerShift
+};
+
+static void
 _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _oalRingBufferSample *rbd;
    unsigned int t;
-   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -263,16 +286,13 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuff
 
       ep2d->prev_gain[t] = gain;
    }
-
-   return ret;
 }
 
-static int
+static void
 _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _oalRingBufferSample *rbd;
    unsigned int t;
-   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -331,16 +351,13 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, int32_t **sptr, _oalRingBu
          _batch_fmadd(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
       }
    }
-
-   return ret;
 }
 
-static int
+static void
 _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _oalRingBufferSample *rbd;
    unsigned int t;
-   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__)
 
@@ -362,8 +379,6 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuf
 
       ep2d->prev_gain[t] = gain;
    }
-
-   return ret;
 }
 
 /* the time delay from ear to ear, in seconds */
@@ -372,12 +387,11 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuf
 #define IDT_UD_DEVIDER	(ep2d->head[0] / ep2d->head[2])
 #define IDT_UD_OFFSET	p2d->head[3]
 
-static int
+static void
 _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _oalRingBufferSample *rbd;
    unsigned int t;
-   int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__)
 
@@ -445,59 +459,40 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer
          _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
       }
    }
-
-   return ret;
 }
 
-/* -------------------------------------------------------------------------- */
-
-_oalRingBufferDistFunc *_oalRingBufferDistanceFunc[AAX_DISTANCE_MODEL_MAX] =
-{
-   (_oalRingBufferDistFunc *)&_oalRingBufferDistNone,
-   (_oalRingBufferDistFunc *)&_oalRingBufferDistInvExp
-};
-
-#define AL_DISTANCE_MODEL_MAX AAX_AL_DISTANCE_MODEL_MAX-AAX_AL_INVERSE_DISTANCE
-_oalRingBufferDistFunc *_oalRingBufferALDistanceFunc[AL_DISTANCE_MODEL_MAX] =
-{
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistInv,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistInvClamped,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistLin,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistLinClamped,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistExp,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistExpClamped
-};
-
-_oalRingBufferPitchShiftFunc *_oalRingBufferDopplerFunc[] =
-{
-  (_oalRingBufferPitchShiftFunc *)&_oalRingBufferDopplerShift
-};
-
 static float
-_oalRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    return 1.0f;
 }
 
+
+/**
+ * http://www.engineeringtoolbox.com/outdoor-propagation-sound-d_64.html
+ *
+ * Lp = Lw + 10 log(Q/(4π r2) + 4/R)  (1b)
+ *
+ * where
+ *
+ * Lp = sound pressure level (dB)
+ * Lw = sound power level source in decibel (dB)
+ * Q = Q coefficient 
+ *     1 if uniform spherical
+ *     2 if uniform half spherical (single reflecting surface)
+ *     4 if uniform radiation over 1/4 sphere (two reflecting surfaces, corner)
+ * r = distance from source   (m)
+ * R = room constant (m2)
+ */
 static float
-_oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
-#if 0
-   float p = 0.5f;
-   float rv = 1.0f/(1.0f + pow(dist, p)); // p=2 equals natural decay */
-   return rv;
-#else
-   float fraction = 0.0f, gain = 1.0f;
-   if (ref_dist) fraction = dist / ref_dist;
-   if (fraction) gain = powf(fraction, -rolloff);
-   return gain;
-#endif
+   return powf(dist/_MAX(ref_dist, 1.0f), -rolloff);
 }
 
 static float
 _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 {
-#if 1
    float vse, rv;
 
    /* relative speed */
@@ -505,20 +500,13 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
    rv =  vsound/_MAX(vsound - vse, 1.0f);
 
    return rv;
-#else
-   /* Old OpenAL code */
-   float vss, ves;
-   vss = vsound - _MIN(vs, vsound);
-   ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
-   return vss/ves;
-#endif
 }
 
 
 /* --- OpenAL support --- */
 
 static float
-_oalRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom = ref_dist + rolloff * (dist - ref_dist);
@@ -527,20 +515,20 @@ _oalRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_oalRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom;
    dist = _MAX(dist, ref_dist);
    dist = _MIN(dist, max_dist);
    denom = ref_dist + rolloff * (dist - ref_dist);
-   if (denom) gain =ref_dist/denom;
+   if (denom) gain = ref_dist/denom;
 
    return gain;
 }
 
 static float
-_oalRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -549,7 +537,7 @@ _oalRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_oalRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -560,7 +548,7 @@ _oalRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float
 }
 
 static float
-_oalRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float fraction = 0.0f, gain = 1.0f;
    if (ref_dist) fraction = dist / ref_dist;
@@ -569,7 +557,7 @@ _oalRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_oalRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, float sound_velocity, float directivity)
+_oalRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float fraction = 0.0f, gain = 1.0f;
 
