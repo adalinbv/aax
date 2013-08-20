@@ -82,7 +82,6 @@ _oalRingBufferCreate(float dde)
          rb->volume_min = 0.0f;
          rb->volume_max = 1.0f;
          rb->format = AAX_PCM16S;
-         rb->loop_max = (unsigned int)-1;
 
          format = rb->format;
          rbd->no_tracks = 1;

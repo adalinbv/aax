@@ -18,6 +18,7 @@
  * Add an aaxMixerGetState function to retreive the state of the current
    audio stream. This can for instance be used to reinitialize the device
    after the hardware audio format has changed.
+ * Add the option to set the number of times to loop a buffer.
  * Fixed reported bugs.
    - Fix an issue that prevented ALSA from reporting new hardware while an
      application was running.

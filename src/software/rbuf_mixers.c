@@ -128,9 +128,7 @@ _aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps
       if (src_loops)
       {
          srb->loop_no++;
-         if ((srb->loop_max != (unsigned int)-1) &&
-             (srb->loop_no >= srb->loop_max))
-         {
+         if (srb->loop_max && (srb->loop_no >= srb->loop_max)) {
             srb->looping = AAX_FALSE;
          }
          else
