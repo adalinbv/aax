@@ -27,6 +27,37 @@
 #include "api.h"
 
 void
+_aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
+{
+   unsigned int size;
+
+   size = 2*sizeof(vec4_t); 
+   _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
+
+   size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
+   _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakers, size);
+
+   size = _AAX_MAX_SPEAKERS;
+   memcpy(&info->router, &_aaxContextDefaultRouter, size);
+
+   info->no_tracks = 2;
+   info->track = AAX_TRACK_ALL;
+
+   info->pitch = 1.0f;
+   info->frequency = 48000.0f;
+   info->refresh_rate = 20.0f;
+   info->format = AAX_PCM16S;
+   info->mode = AAX_MODE_WRITE_STEREO;
+   info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
+   info->max_registered = 0;
+
+   info->update_rate = 0;
+
+   info->id = INFO_ID;
+   info->backend = handle;
+}
+
+void
 _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 {
    unsigned int pos, size;
@@ -248,18 +279,6 @@ _aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *effect, unsigned int type)
 char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
  { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
-{
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* front left speaker    */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* front right speaker   */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* rear left speaker     */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* rear right speaker    */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* front center speaker  */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* low frequency emitter */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* left side speaker     */
-   { 1.0f, 0.0f, 0.0f, 1.0f }      /* right side speaker    */
-};
-
 vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell */
@@ -281,40 +300,15 @@ vec4_t _aaxContextDefaultHead[2] =
    { 0.00064f, 0.00035f, 0.00000f, 0.000f }	/* head delay offsets */
 };
 
-const _aaxMixerInfo _aaxDefaultMixerInfo =
+vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
 {
-  /* hrtf setup */
-  {
-     {-56.448f,-11.025f, 3.969f, 0.000f } ,
-     { 28.224f, 15.435f, 0.000f, 0.000f }
-  },
-
-  /* speaker setup */
-  {
-    {-1.0f, 0.0f, 1.0f, 1.0f },		/* front left speaker    */
-    { 1.0f, 0.0f, 1.0f, 1.0f },		/* front right speaker   */
-    {-1.0f, 0.0f,-1.0f, 1.0f },		/* rear left speaker     */
-    { 1.0f, 0.0f,-1.0f, 1.0f },		/* rear right speaker    */
-    { 0.0f, 0.0f, 1.0f, 1.0f },		/* front center speaker  */
-    { 0.0f, 0.0f, 1.0f, 1.0f },		/* low frequency emitter */
-    {-1.0f, 0.0f, 0.0f, 1.0f },		/* left side speaker     */
-    { 1.0f, 0.0f, 0.0f, 1.0f }		/* right side speaker    */
-  },
-
-  { 0, 1, 0, 1, 0, 1, 0, 1 },	/* speaker router setup */
-  2,				/* no. speakers */
-  -1,				/* track no. */
-
-  1.0f,				/* pitch */
-  48000.0f,			/* frequency */
-  20.0f,			/* refresh_rate */
-  AAX_PCM16S,			/* format */
-  AAX_MODE_WRITE_STEREO,	/* render mode */
-  _AAX_MAX_MIXER_REGISTERED,	/* max emitters */
-
-  0,				/* update counter */
-  0,
-  INFO_ID,
-  0				/* pointer to the backend handle */
+   { 1.0f, 0.0f, 1.0f, 1.0f },		/* front left speaker    */
+   {-1.0f, 0.0f, 1.0f, 1.0f },		/* front right speaker   */
+   { 1.0f, 0.0f,-1.0f, 1.0f },		/* rear left speaker     */
+   {-1.0f, 0.0f,-1.0f, 1.0f },		/* rear right speaker    */
+   { 0.0f, 0.0f, 1.0f, 1.0f },		 /* front center speaker  */
+   { 0.0f, 0.0f, 1.0f, 1.0f },		/* low frequency emitter */
+   { 1.0f, 0.0f, 0.0f, 1.0f },		/* left side speaker     */
+   {-1.0f, 0.0f, 0.0f, 1.0f }		/* right side speaker    */
 };
 

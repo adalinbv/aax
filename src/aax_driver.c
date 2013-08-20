@@ -661,7 +661,6 @@ new_handle()
    if (ptr1)
    {
       _handle_t* handle = (_handle_t*)ptr1;
-      _aaxMixerInfo* info;
 
       handle->id = HANDLE_ID;
       handle->backends = get_backends();
@@ -670,11 +669,9 @@ new_handle()
       handle->be_pos = UINT_MAX;
       _SET_PROCESSED(handle);
 
-      info = (_aaxMixerInfo*)ptr2;
-      _aax_memcpy(info, &_aaxDefaultMixerInfo, sizeof(_aaxMixerInfo));
+      handle->info = (_aaxMixerInfo*)ptr2;
+      _aaxSetDefaultInfo(handle->info, handle);
 
-      handle->info = info;
-      info->backend = handle;
       rv = handle;
    }
 
@@ -816,8 +813,7 @@ _open_handle(aaxConfig config)
                   res=_intBufAddData(handle->sensors,_AAX_SENSOR, sensor);
                   if (res != UINT_MAX)
                   {
-                     _aaxMixerInfo *info = handle->info;
-                     unsigned int size, num;
+                     unsigned int num;
 
                      sensor->count = 1;
 #if THREADED_FRAMES
@@ -829,18 +825,6 @@ _open_handle(aaxConfig config)
                      sensor->mixer->info->max_emitters = num;
                      num = _AAX_MAX_MIXER_REGISTERED;
                      sensor->mixer->info->max_registered = num;
-
-                     size = _AAX_MAX_SPEAKERS;
-                     memcpy(&info->router, &_aaxContextDefaultRouter, size);
-
-                     info->no_tracks = 2;
-                     info->track = AAX_TRACK_ALL;
-                     size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
-                     _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakers,
-                                 size);
-
-                     size = 2*sizeof(vec4_t);
-                     _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
 
                      _PROP_PITCH_SET_CHANGED(mixer->props3d);
                      _PROP_MTX_SET_CHANGED(mixer->props3d);
@@ -1177,7 +1161,7 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
          f = (float)xmlNodeGetDouble(xsid, "volume-norm");
          _aaxContextDefaultSpeakers[channel][GAIN] = f;
 
-         v[0] = (float)xmlNodeGetDouble(xsid, "pos-x");
+         v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
          v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
          v[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          /* vec3Normalize(_aaxContextDefaultSpeakers[channel], v); */
