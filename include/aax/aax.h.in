@@ -148,7 +148,6 @@ enum aaxModeType
    AAX_POSITION,
    AAX_LOOPING,
    AAX_BUFFER_TRACK,
-   AAX_LOOP_COUNT,
    AAX_MODE_TYPE_MAX
 };
 

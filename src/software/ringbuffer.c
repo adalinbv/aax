@@ -907,15 +907,13 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
 #endif
       break;
    case RB_LOOPING:
-      rb->looping = val;
+      rb->looping = val ? AAX_TRUE : AAX_FALSE;
+      rb->loop_max = (val > AAX_TRUE) ? val : 0;
 #if 0
       if (loops) {
          _oalRingBufferAddLooping(rb);
       }
 #endif
-      break;
-   case RB_LOOP_COUNT:
-      rb->loop_max = val;
       break;
    case RB_LOOPPOINT_START:
    {
@@ -1050,10 +1048,7 @@ _oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param
       rv = _oalRingBufferFormat[rb->format].format;
       break;
    case RB_LOOPING:
-      rv = rb->looping;
-      break;
-   case RB_LOOP_COUNT:
-      rv = rb->loop_max;
+      rv = rb->loop_max ? rb->loop_max : rb->looping;
       break;
    case RB_LOOPPOINT_START:
       rv = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);
