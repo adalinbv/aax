@@ -127,12 +127,21 @@ _aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps
    {
       if (src_loops)
       {
-         // new_srb_pos_sec = fmodf(new_srb_pos_sec, sduration);
-         float loop_length_sec = srbd->loop_end_sec - srbd->loop_start_sec;
-         new_srb_pos_sec -= srbd->loop_start_sec;
-         new_srb_pos_sec = fmodf(new_srb_pos_sec, loop_length_sec);
-         new_srb_pos_sec += srbd->loop_start_sec;
-         drb->curr_pos_sec = 0.0f;
+         srb->loop_no++;
+         if ((srb->loop_max != (unsigned int)-1) &&
+             (srb->loop_no >= srb->loop_max))
+         {
+            srb->looping = AAX_FALSE;
+         }
+         else
+         {
+            // new_srb_pos_sec = fmodf(new_srb_pos_sec, sduration);
+            float loop_length_sec = srbd->loop_end_sec - srbd->loop_start_sec;
+            new_srb_pos_sec -= srbd->loop_start_sec;
+            new_srb_pos_sec = fmodf(new_srb_pos_sec, loop_length_sec);
+            new_srb_pos_sec += srbd->loop_start_sec;
+            drb->curr_pos_sec = 0.0f;
+         }
       }  
       else if (new_srb_pos_sec >= (srbd->duration_sec-eps))	/* streaming */
       {  

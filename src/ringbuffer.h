@@ -122,6 +122,7 @@ enum _oalRingBufferParam
    RB_LOOPPOINT_START,
    RB_LOOPPOINT_END,
    RB_LOOPING,
+   RB_LOOP_COUNT,
    RB_FORMAT,
    RB_NO_TRACKS,
    RB_NO_SAMPLES,
@@ -434,9 +435,13 @@ typedef struct		/* playback related information about the sample*/
     unsigned int curr_sample;
 
     int format;
+
+    unsigned int loop_max;
+    unsigned int loop_no;
+    char looping;
+
     char playing;
     char stopped;
-    char looping;
     char streaming;
 
 } _oalRingBuffer;

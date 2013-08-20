@@ -82,6 +82,7 @@ _oalRingBufferCreate(float dde)
          rb->volume_min = 0.0f;
          rb->volume_max = 1.0f;
          rb->format = AAX_PCM16S;
+         rb->loop_max = (unsigned int)-1;
 
          format = rb->format;
          rbd->no_tracks = 1;
@@ -914,6 +915,9 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       }
 #endif
       break;
+   case RB_LOOP_COUNT:
+      rb->loop_max = val;
+      break;
    case RB_LOOPPOINT_START:
    {
       float fval = val/rbd->frequency_hz;
@@ -1048,6 +1052,9 @@ _oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param
       break;
    case RB_LOOPING:
       rv = rb->looping;
+      break;
+   case RB_LOOP_COUNT:
+      rv = rb->loop_max;
       break;
    case RB_LOOPPOINT_START:
       rv = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);

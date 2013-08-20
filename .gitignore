@@ -24,4 +24,5 @@ cmake_uninstall.cmake
 CTestTestfile.cmake
 .kdev4
 *.kdev4
+*.orig
 

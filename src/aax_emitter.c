@@ -736,12 +736,17 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          break;
       }
       case AAX_LOOPING:
+      case AAX_LOOP_COUNT:
       {
          _intBufferData *dptr =_intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _oalRingBufferSetParami(embuf->ringbuffer, RB_LOOPING, mode);
+            if (type == AAX_LOOPING) {
+               _oalRingBufferSetParami(embuf->ringbuffer, RB_LOOPING, mode);
+            } else {
+               _oalRingBufferSetParami(embuf->ringbuffer, RB_LOOP_COUNT, mode);
+            }
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
@@ -1027,12 +1032,17 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
          }
          break;
       case AAX_LOOPING:
+      case AAX_LOOP_COUNT:
       {
          _intBufferData *dptr =_intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            rv = _oalRingBufferGetParami(embuf->ringbuffer, RB_LOOPING);
+            if (type == AAX_LOOPING) {
+               rv = _oalRingBufferGetParami(embuf->ringbuffer, RB_LOOPING);
+            } else {
+               rv = _oalRingBufferGetParami(embuf->ringbuffer, RB_LOOP_COUNT);
+            }
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          break;
