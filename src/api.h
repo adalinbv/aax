@@ -149,8 +149,8 @@ int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
 void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
-char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _oalRingBufferDelayed3dProps*, vec4_t, const _aaxDriverBackend*, void*, char);
-char _aaxAudioFrameRender(_oalRingBuffer *, _aaxAudioFrame *, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps *, _intBuffers *, unsigned int, vec4_t, float, float, const _aaxDriverBackend*, void*);
+char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _oalRingBufferDelayed3dProps*, vec4_t[2], const _aaxDriverBackend*, void*, char);
+char _aaxAudioFrameRender(_oalRingBuffer *, _aaxAudioFrame *, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps *, _intBuffers *, unsigned int, vec4_t[2], float, float, const _aaxDriverBackend*, void*);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameSetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
@@ -267,8 +267,8 @@ void put_emitter(aaxEmitter);
 int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);
 
-void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, vec4_t, float, float, vec4_t*, _oalRingBufferDelayed3dProps*);
-char _aaxEmittersProcess(_oalRingBuffer*, const _aaxMixerInfo*, float, float, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _intBuffers*, _intBuffers*, vec4_t, const _aaxDriverBackend*, void*);
+void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, vec4_t[2], float, float, vec4_t*, _oalRingBufferDelayed3dProps*);
+char _aaxEmittersProcess(_oalRingBuffer*, const _aaxMixerInfo*, float, float, _oalRingBuffer2dProps*, _oalRingBufferDelayed3dProps*, _intBuffers*, _intBuffers*, vec4_t[2], const _aaxDriverBackend*, void*);
 void _aaxEMitterSetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 
 

@@ -192,7 +192,7 @@ _aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n,
 }
 
 static void
-_aaxNoneDriver3dPrepare(void* src, const void *info, float *vs_m, float ssv, float sdf, void* fp2dpos, void *fp3d)
+_aaxNoneDriver3dPrepare(void* src, const void *info, float vs_m[2][4], float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
 }
 
@@ -339,7 +339,7 @@ _aaxSoftwareDriver3dMixer(const void *id, void *dest, void *src, void *ep2d, voi
 }
 
 void
-_aaxSoftwareDriver3dPrepare(void* src, const void *info, float *vs_m, float ssv, float sdf, void* fp2dpos, void *fp3d)
+_aaxSoftwareDriver3dPrepare(void* src, const void *info, float vs_m[2][4], float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
    assert(fp2dpos);
    assert(fp3d);

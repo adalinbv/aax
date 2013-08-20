@@ -347,6 +347,10 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
             vec3Normalize(mtx[1], up);
             vec3Normalize(mtx[2], back);
             vec3Negate(mtx[3], pos);
+#if 0
+ printf("SetDirection:\n");
+ PRINT_MATRIX(mtx);
+#endif
             rv = AAX_TRUE;
          }
          else {

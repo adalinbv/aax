@@ -552,7 +552,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
-               vec4_t vs_m;
+               vec4_t vs_m[2];
                _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
                _oalRingBuffer2dProps sp2d;
                char fprocess = AAX_TRUE;
@@ -588,7 +588,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                /* update the modified properties */
                mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
                memset(sdp3d_m.velocity, 0, sizeof(vec4_t));
-               vec4Matrix4(vs_m, sdp3d.velocity, sdp3d_m.matrix);
+               vec4Copy(vs_m[0], sdp3d.velocity);
+               vec4Negate(vs_m[1], sdp3d_m.matrix[LOCATION]);
                sdp3d_m.state3d = sdp3d.state3d;
                sdp3d_m.pitch = sdp3d.pitch;
                sdp3d_m.gain = sdp3d.gain;

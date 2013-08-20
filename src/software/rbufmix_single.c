@@ -487,12 +487,20 @@ _oalRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff
 static float
 _oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
-   return powf(dist/_MAX(ref_dist, 1.0f), -rolloff);
+#if 1
+   float fraction = 0.0f, gain = 1.0f;
+   if (ref_dist) fraction = _MAX(dist, 0.01f) / _MAX(ref_dist, 0.01f);
+   if (fraction) gain = powf(fraction, -rolloff);
+   return gain;
+#else
+   return powf(dist/ref_dist, -rolloff);
+#endif
 }
 
 static float
 _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 {
+#if 1
    float vse, rv;
 
    /* relative speed */
@@ -500,6 +508,12 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
    rv =  vsound/_MAX(vsound - vse, 1.0f);
 
    return rv;
+#else
+   float vss, ves;
+   vss = vsound - _MIN(vs, vsound);
+   ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
+   return vss/ves;
+#endif
 }
 
 
