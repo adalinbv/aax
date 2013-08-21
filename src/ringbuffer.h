@@ -65,6 +65,7 @@ enum
     DIR_BACK,				/* vec4*/
     LOCATION,				/* vec4*/
     OFFSET = LOCATION,
+    VELOCITY = LOCATION,
     GAIN = LOCATION,
 
     MAX_OBJECT
@@ -456,10 +457,10 @@ typedef ALIGN16 struct
 {
    /* modelview matrix and velocity */
    mtx4_t matrix;
-   vec4_t velocity;
+   mtx4_t velocity;
 
-   int state3d;
    float pitch, gain;
+   int state3d;
 
 } _oalRingBufferDelayed3dProps ALIGN16C;
 

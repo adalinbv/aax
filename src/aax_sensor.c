@@ -104,9 +104,12 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            vec3Copy(mixer->props3d->dprops3d->velocity, velocity);
-            _PROP_SPEED_SET_CHANGED(mixer->props3d);
+            _oalRingBufferDelayed3dProps *dp3d;
+
+            dp3d = sensor->mixer->props3d->dprops3d;
+            vec3Copy(dp3d->velocity[VELOCITY], velocity);
+            _PROP_SPEED_SET_CHANGED(sensor->mixer->props3d);
+
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }
@@ -135,9 +138,11 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            vec3Copy(velocity, mixer->props3d->dprops3d->velocity);
+            _oalRingBufferDelayed3dProps *dp3d;
+            dp3d = sensor->mixer->props3d->dprops3d;
+            vec3Copy(velocity, dp3d->velocity[VELOCITY]);
             _intBufReleaseData(dptr, _AAX_SENSOR);
+
             rv = AAX_TRUE;
          }
       }

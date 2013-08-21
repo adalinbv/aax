@@ -283,15 +283,10 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
                       _oalRingBuffer2dProps *fp2d,
                       _oalRingBufferDelayed3dProps *fdp3d,
                       _oalRingBufferDelayed3dProps *fdp3d_m,
-                      vec4_t vs_m[2],
                       const _aaxDriverBackend *be, void *be_handle,
                       char fprocess)
 {
-   vec4_t vsf_m[2];
    char process;
-
-   vec4Copy(vsf_m[0], vs_m[0]);
-   vec4Copy(vsf_m[1], vs_m[1]);
 
    /* update the model-view matrix based on our own and that of out parent */
    if (pdp3d_m)
@@ -313,10 +308,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       if (_PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m) ||
           _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d))
       {
-         vec4Copy(fdp3d_m->velocity, fdp3d->velocity);
-         vec4Add(fdp3d_m->velocity, pdp3d_m->velocity);
-
-         vec4Add(vsf_m[1], fdp3d->matrix[LOCATION]);
+         mtx4Mul(fdp3d_m->velocity, pdp3d_m->velocity, fdp3d->velocity);
 
          _PROP3D_SPEED_CLEAR_CHANGED(pdp3d_m);
          _PROP3D_SPEED_SET_CHANGED(fdp3d);
@@ -326,7 +318,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
    /** process possible registered emitters */
    process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf, fp2d, fdp3d_m,
                                  fmixer->emitters_2d, fmixer->emitters_3d,
-                                 vsf_m, be, be_handle);
+                                 be, be_handle);
 
    /** process registered sub-frames */
    if (fprocess && fmixer->frames)
@@ -365,7 +357,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
          for (i=0; i<max; i++)
          {
             process = _aaxAudioFrameRender(dest_rb, fmixer, fp2d, fdp3d_m, hf,
-                                           i, vsf_m, ssv, sdf, be, be_handle);
+                                           i, ssv, sdf, be, be_handle);
             if (process) --cnt;
             if (cnt == 0) break;
          }
@@ -391,7 +383,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
 }
 
 char
-_aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBuffer2dProps *fp2d, _oalRingBufferDelayed3dProps *fdp3d_m, _intBuffers *hf, unsigned int i, vec4_t vs_m[2], float ssv, float sdf, const _aaxDriverBackend *be, void *be_handle)
+_aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBuffer2dProps *fp2d, _oalRingBufferDelayed3dProps *fdp3d_m, _intBuffers *hf, unsigned int i, float ssv, float sdf, const _aaxDriverBackend *be, void *be_handle)
 {
    char process = AAX_FALSE;
    _intBufferData *dptr;
@@ -434,7 +426,7 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
        */
       res = _aaxAudioFrameProcess(frame_rb, NULL, sfmixer, ssv, sdf,
                                   fp2d, fdp3d_m, &sfp2d, &sfdp3d, &sfdp3d_m,
-                                  vs_m, be, be_handle, AAX_TRUE);
+                                  be, be_handle, AAX_TRUE);
 
       /* if the subframe actually did render something, mix the data */
       if (res)
@@ -453,7 +445,7 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
             mtx4Copy(m_sfdp3d->matrix, sfdp3d_m.matrix);
          }
          if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
-            vec4Copy(m_sfdp3d->velocity, sfdp3d_m.velocity);
+            mtx4Copy(m_sfdp3d->velocity, sfdp3d_m.velocity);
          }
          _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -515,7 +507,6 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
           _aaxAudioFrame *mixer, _aaxAudioFrame *smixer, _aaxAudioFrame *fmixer,
           const _aaxDriverBackend *be)
 {
-   vec4_t vs_m[2];
    void *be_handle = NULL;
    _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
    _oalRingBufferDelayed3dProps fdp3d, fdp3d_m;
@@ -560,9 +551,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
 
    /* update the modified properties */
    mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
-   memset(sdp3d_m.velocity, 0, sizeof(vec4_t));
-   vec4Copy(vs_m[0], sdp3d.velocity);
-   vec3Normalize(vs_m[1], sdp3d_m.matrix[LOCATION]);
+   mtx4Copy(sdp3d_m.velocity, sdp3d.velocity);
    sdp3d_m.state3d = sdp3d.state3d;
    sdp3d_m.pitch = sdp3d.pitch;
    sdp3d_m.gain = sdp3d.gain;
@@ -585,7 +574,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _oalRingBufferStart(frame_rb);
 
    _aaxAudioFrameProcess(frame_rb, NULL, mixer, ssv, sdf, &sp2d, &sdp3d_m,
-                         &fp2d, &fdp3d, &fdp3d_m, vs_m, be, be_handle,AAX_TRUE);
+                         &fp2d, &fdp3d, &fdp3d_m, be, be_handle,AAX_TRUE);
 
    /* copy back the altered fdp3d matrix and velocity vector   */
    /* beware, they might have been altered in the mean time! */
@@ -593,7 +582,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
       mtx4Copy(fmixer->props3d->m_dprops3d->matrix, fdp3d_m.matrix);
    }
    if (!_PROP_SPEED_HAS_CHANGED(fmixer->props3d)) {
-      vec4Copy(fmixer->props3d->m_dprops3d->velocity, fdp3d_m.velocity);
+      mtx4Copy(fmixer->props3d->m_dprops3d->velocity, fdp3d_m.velocity);
    }
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);

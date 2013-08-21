@@ -331,9 +331,9 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
             if (at[0] || at[1] || at[2])
             {
                aaxVec3f up = { 0.0f, 1.0f, 0.0f }; 
-               vec3 side, upwd, fwd, back;
+               vec3_t side, upwd, fwd, back;
 
-               if (fabs(at[0]) < 1e-6f && fabs(at[2]) < 1e-6f)
+               if ((fabs(at[0]) < FLT_EPSILON)  && (fabs(at[2]) < FLT_EPSILON))
                {  
                   up[1] = 0.0f;
                   if (at[2] < 0.0f) up[2] = -1.0f;
@@ -386,7 +386,7 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
                mtx4Copy(mtx, aaxIdentityMatrix);
                if (at[0] || at[1] || at[2] || up[0] || up[1] || up[2])
                {
-                  vec3 side, upwd, fwd, back;
+                  vec3_t side, upwd, fwd, back;
 
                   vec3Copy(upwd, up);
                   vec3Copy(fwd, at);

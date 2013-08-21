@@ -182,10 +182,15 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
          _aaxAudioFrame* mixer = handle->submix;
 
          mtx4Copy(mixer->props3d->dprops3d->matrix, mtx);
-         if (_IS_RELATIVE(handle)) {
+         if (_IS_RELATIVE(handle))
+         {
             mixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
-         } else {
+            mixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+         }
+         else
+         {
             mixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
+            mixer->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
          }
          _PROP_MTX_SET_CHANGED(mixer->props3d);
          rv = AAX_TRUE;
@@ -233,8 +238,12 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
    {
       if (velocity && !detect_nan_vec3(velocity))
       {
-         vec3Copy(handle->submix->props3d->dprops3d->velocity, velocity);
+         _oalRingBufferDelayed3dProps *dp3d;
+
+         dp3d = handle->submix->props3d->dprops3d;
+         vec3Copy(dp3d->velocity[VELOCITY], velocity);
          _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
+
          rv = AAX_TRUE;
       }
       else {
@@ -257,7 +266,11 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
    {
       if (velocity)
       {
-         vec3Copy(velocity, handle->submix->props3d->dprops3d->velocity);
+         _oalRingBufferDelayed3dProps *dp3d;
+
+         dp3d = handle->submix->props3d->dprops3d;
+         vec3Copy(velocity, dp3d->velocity[VELOCITY]);
+
          rv = AAX_TRUE;
       }
       else {

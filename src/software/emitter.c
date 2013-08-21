@@ -29,7 +29,7 @@ char
 _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                     float ssv, float sdf, _oalRingBuffer2dProps *fp2d,
                     _oalRingBufferDelayed3dProps *fdp3d_m,
-                    _intBuffers *e2d, _intBuffers *e3d, vec4_t vs_m[2],
+                    _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
    unsigned int num, stage;
@@ -102,7 +102,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                      assert(_IS_POSITIONAL(src->props3d));
 
                      if (!src->update_ctr) {
-                        be->prepare3d(src, info, vs_m, ssv, sdf, 
+                        be->prepare3d(src, info, ssv, sdf, 
                                       fp2d->speaker, fdp3d_m);
                      }
 
@@ -200,7 +200,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
  * fp3d:    parent frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, vec4_t vs_m[2], float ssv, float sdf, vec4_t *speaker, _oalRingBufferDelayed3dProps* fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _oalRingBufferDelayed3dProps* fdp3d_m)
 {
    _oalRingBufferPitchShiftFunc* dopplerfn;
    _oalRingBufferDelayed3dProps *edp3d, *edp3d_m;
@@ -303,34 +303,23 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, vec4_t vs_m[2
       if (dist > 1.0f)
       {
          float ve, vf, df;
-         vec4_t sevec, tmp;
 
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
           */
-         vec4Copy(edp3d_m->velocity, edp3d->velocity);
-         vec4Add(edp3d_m->velocity, fdp3d_m->velocity);
+         mtx4Mul(edp3d_m->velocity, fdp3d_m->velocity, edp3d->velocity);
 
-         vec4Copy(tmp, vs_m[1]);
-         vec4Add(tmp, edp3d->matrix[LOCATION]);
-         vec3Normalize(sevec, tmp);
-
-         ve = vec3DotProduct(edp3d_m->velocity, sevec);
-         vf = vec3DotProduct(vs_m[0], sevec);
+         vf = 0.0f;
+         ve = vec3DotProduct(edp3d_m->velocity[LOCATION], epos);
          df = dopplerfn(vf, ve, vs/sdf);
 #if 0
- printf("sevec: %3.2f, %3.2f, %3.2f, %3.2f\n",
-         tmp[0], tmp[1], tmp[2], tmp[3]);
- printf("edp3d velocity  : %3.2f %3.2f %3.2f\tsensor: %3.2f %3.2f %3.2f\n",
-         edp3d->velocity[0], edp3d->velocity[1], edp3d->velocity[2],
-         vs_m[0][0], vs_m[0][1], vs_m[0][2]);
- printf("fdp3d_m velocity: %3.2f %3.2f %3.2f\n",
-         fdp3d_m->velocity[0], fdp3d_m->velocity[1], fdp3d_m->velocity[2]);
- printf("edp3d_m velocity: %3.2f %3.2f %3.2f\n",
-         edp3d_m->velocity[0], edp3d_m->velocity[1], edp3d_m->velocity[2]);
+ printf("velocity: %3.2f, %3.2f, %3.2f\n", edp3d_m->velocity[LOCATION][0], edp3d_m->velocity[LOCATION][1], edp3d_m->velocity[LOCATION][2]);
+ printf("parent velocity:\t\t\t\temitter velocity:\n");
+ PRINT_MATRICES(fdp3d_m->velocity, edp3d->velocity);
+ printf("# modified emitter velocity\n");
+ PRINT_MATRIX(edp3d_m->velocity);
  printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 #endif
-
          pitch *= df;
          ep3d->buf3dq_step = df;
       }

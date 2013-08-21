@@ -726,10 +726,15 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(src->props3d, m);
-            if TEST_FOR_TRUE(m) {
+            if TEST_FOR_TRUE(m)
+            {
                src->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
-            } else {
+               src->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+            }
+            else
+            {
                src->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
+               src->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
             }
          }
          rv = AAX_TRUE;
@@ -814,9 +819,12 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
    {
       if (velocity && !detect_nan_vec3(velocity))
       {
-         _aaxEmitter *src = handle->source;
-         vec3Copy(src->props3d->dprops3d->velocity, velocity);
-         _PROP_SPEED_SET_CHANGED(src->props3d);
+         _oalRingBufferDelayed3dProps *dp3d;
+ 
+         dp3d = handle->source->props3d->dprops3d;
+         vec3Copy(dp3d->velocity[VELOCITY], velocity);
+         _PROP_SPEED_SET_CHANGED(handle->source->props3d);
+
          rv = AAX_TRUE;
       }
       else {
@@ -1061,8 +1069,11 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
    {
       if (velocity)
       {
-         const _aaxEmitter *src = handle->source;
-         vec3Copy(velocity, src->props3d->dprops3d->velocity);
+         _oalRingBufferDelayed3dProps *dp3d;
+
+         dp3d = handle->source->props3d->dprops3d;
+         vec3Copy(velocity, dp3d->velocity[VELOCITY]);
+
          rv = AAX_TRUE;
       }
       else {

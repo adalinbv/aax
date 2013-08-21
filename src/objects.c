@@ -99,16 +99,13 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 void
 _aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *dp3d)
 {
-   unsigned int size;
-
    assert(dp3d);
 
    /* modelview matrix */
    mtx4Copy(dp3d->matrix, aaxIdentityMatrix);
 
    /* velocity     */
-   size = sizeof(vec4_t);
-   memset(dp3d->velocity, 0, size);
+   mtx4Copy(dp3d->velocity, aaxIdentityMatrix);
 
    /* status */
    dp3d->state3d = 0;
