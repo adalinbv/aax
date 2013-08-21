@@ -327,25 +327,28 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
       {
           if (at && !detect_nan_vec3(at))
           {
-            aaxVec3f up = { 0.0f, 1.0f, 0.0f };
-            vec3 side, upwd, fwd, back;
-
-            if (fabs(at[0]) < 1e-6f && fabs(at[2]) < 1e-6f)
-            {
-               up[1] = 0.0f;
-               if (at[2] < 0.0f) up[2] = -1.0f;
-               else              up[2] =  1.0f;
-            }
-
-            vec3Copy(upwd, up);
-            vec3Copy(fwd, at);
-            vec3CrossProduct(side, fwd, upwd);
-
-            vec3Negate(back, fwd);
             mtx4Copy(mtx, aaxIdentityMatrix);
-            vec3Normalize(mtx[0], side);
-            vec3Normalize(mtx[1], up);
-            vec3Normalize(mtx[2], back);
+            if (at[0] || at[1] || at[2])
+            {
+               aaxVec3f up = { 0.0f, 1.0f, 0.0f }; 
+               vec3 side, upwd, fwd, back;
+
+               if (fabs(at[0]) < 1e-6f && fabs(at[2]) < 1e-6f)
+               {  
+                  up[1] = 0.0f;
+                  if (at[2] < 0.0f) up[2] = -1.0f;
+                  else              up[2] =  1.0f;
+               }  
+
+               vec3Copy(upwd, up);
+               vec3Copy(fwd, at);
+               vec3CrossProduct(side, fwd, upwd);
+
+               vec3Negate(back, fwd);
+               vec3Normalize(mtx[0], side);
+               vec3Normalize(mtx[1], up);
+               vec3Normalize(mtx[2], back);
+            }
             vec3Negate(mtx[3], pos);
 #if 0
  printf("SetDirection:\n");
@@ -380,17 +383,20 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
          {
             if (up && !detect_nan_vec3(up))
             {
-               vec3 side, upwd, fwd, back;
-
-               vec3Copy(upwd, up);
-               vec3Copy(fwd, at);
-               vec3CrossProduct(side, fwd, upwd);
-
-               vec3Negate(back, fwd);
                mtx4Copy(mtx, aaxIdentityMatrix);
-               vec3Normalize(mtx[0], side);
-               vec3Normalize(mtx[1], up);
-               vec3Normalize(mtx[2], back);
+               if (at[0] || at[1] || at[2] || up[0] || up[1] || up[2])
+               {
+                  vec3 side, upwd, fwd, back;
+
+                  vec3Copy(upwd, up);
+                  vec3Copy(fwd, at);
+                  vec3CrossProduct(side, fwd, upwd);
+
+                  vec3Negate(back, fwd);
+                  vec3Normalize(mtx[0], side);
+                  vec3Normalize(mtx[1], up);
+                  vec3Normalize(mtx[2], back);
+               }
                vec3Negate(mtx[3], pos);
                rv = AAX_TRUE;
             }
