@@ -566,6 +566,14 @@ mtx4dRotate(mtx4d mtx, double angle_rad, double x, double y, double z)
 
 /* -------------------------------------------------------------------------- */
 
+AAX_API aaxVec4f aaxZeroVector = {
+    0.0f, 0.0f, 0.0f, 0.0f
+};
+
+AAX_API aaxVec4f aaxAxisUnitVec = {
+    1.0f, 1.0f, 1.0f, 0.0f
+};
+
 AAX_API aaxMtx4d aaxIdentityMatrix64 = {
   { 1.0, 0.0, 0.0, 0.0 },
   { 0.0, 1.0, 0.0, 0.0 },

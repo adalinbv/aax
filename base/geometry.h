@@ -64,6 +64,8 @@ typedef double vec3d[3];
 typedef ALIGN16 double mtx4d_t[4][4] ALIGN16C;
 typedef double mtx4d[4][4];
 
+AAX_API extern aaxVec4f aaxZeroVector;
+AAX_API extern aaxVec4f aaxAxisUnitVec;
 AAX_API extern aaxMtx4f aaxIdentityMatrix;
 AAX_API extern aaxMtx4d aaxIdentityMatrix64;
 
