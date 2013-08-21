@@ -354,8 +354,8 @@ _aaxSoftwareDriverStereoMixer(const void *id, void *dest, void *src, void *ep2d,
 {
    int ret;
 
-   assert(s);
-   assert(d);
+   assert(src);
+   assert(dest);
 
    ret = _oalRingBufferMixMulti16(dest, src, ep2d, fp2d, ctr, nbuf);
 

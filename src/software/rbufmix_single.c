@@ -359,7 +359,7 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuf
    _oalRingBufferSample *rbd;
    unsigned int t;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__)
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
    rbd = dest->sample;
@@ -393,7 +393,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer
    _oalRingBufferSample *rbd;
    unsigned int t;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__)
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    rbd = dest->sample;
    for (t=0; t<rbd->no_tracks; t++)
