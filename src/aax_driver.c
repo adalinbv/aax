@@ -795,6 +795,7 @@ _open_handle(aaxConfig config)
                mixer->props3d = _aax3dPropsCreate();
                if (mixer->props3d)
                {
+                  mixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
                   _EFFECT_SETD3D_DATA(mixer, VELOCITY_EFFECT,
                                             _oalRingBufferDopplerFunc[0]);
                   _FILTER_SETD3D_DATA(mixer, DISTANCE_FILTER,

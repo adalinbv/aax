@@ -108,6 +108,8 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
 
             dp3d = sensor->mixer->props3d->dprops3d;
             vec3Copy(dp3d->velocity[VELOCITY], velocity);
+            mtx4InverseSimple(dp3d->velocity, dp3d->velocity);
+            dp3d->velocity[VELOCITY][3] = 0.0f;
             _PROP_SPEED_SET_CHANGED(sensor->mixer->props3d);
 
             _intBufReleaseData(dptr, _AAX_SENSOR);
