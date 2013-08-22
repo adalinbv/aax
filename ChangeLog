@@ -1,4 +1,4 @@
-* Mon Jun 03 2013 - tech@adalin.org
+* Mon Aug 27 2013 - tech@adalin.org
 - AeonWave (2.3.0) stable; urgency=high
  * Distance-delay mode now adds delayed state changes in addition to delayed
    start/stop. State changes include; pitch, gain, position, orientation and
@@ -26,7 +26,7 @@
    - Fix an issue with flanging for emitters registered at the final mixer.
    - Fix an issue that affected HRTF and Surround sound playback.
 
- -- Erik Hofman <tech@adalin.org>  Mon, 03 Jun 2013 10:10:00 +0200
+ -- Erik Hofman <tech@adalin.org>  Mon, 27 Aug 2013 08:27:00 +0200
 
 
 * Fri Mar 08 2013 - tech@adalin.org
