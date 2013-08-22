@@ -587,6 +587,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                /* update the modified properties */
                mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
                mtx4Mul(sdp3d_m.velocity, sdp3d.matrix, sdp3d.velocity);
+#if 0
+ printf("matrix:\t\t\t\tvelocity\n");
+ PRINT_MATRICES(sdp3d.matrix, sdp3d.velocity);
+ printf("modified velocity\n");
+ PRINT_MATRIX(sdp3d_m.velocity);
+#endif
                sdp3d_m.state3d = sdp3d.state3d;
                sdp3d_m.pitch = sdp3d.pitch;
                sdp3d_m.gain = sdp3d.gain;
