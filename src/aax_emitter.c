@@ -1298,7 +1298,7 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
    if (mixer->dist_delaying)
    {
       _oalRingBuffer3dProps *fp3d = mixer->props3d;
-      _oalRingBufferDelayed3dProps *fdp3d_m= fp3d->m_dprops3d;
+      _oalRingBufferDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
       _oalRingBuffer3dProps *ep3d = src->props3d;
       _oalRingBufferDelayed3dProps *edp3d_m = ep3d->m_dprops3d;
       _oalRingBufferDelayed3dProps *edp3d = ep3d->dprops3d;
@@ -1314,6 +1314,14 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       mtx4Mul(edp3d_m->matrix, fdp3d_m->matrix, edp3d->matrix);
       dist = vec3Magnitude(edp3d_m->matrix[LOCATION]);
       ep2d->dist_delay_sec = dist / vs;
+
+#if 0
+ printf("# emitter parent:\t\t\t\temitter:\n");
+ PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
+ printf("# modified emitter\n");
+ PRINT_MATRIX(edp3d_m->matrix);
+ printf("delay: %f, dist: %f, vs: %f\n", ep2d->dist_delay_sec, dist, vs);
+#endif
 
       _PROP_DISTQUEUE_SET_DEFINED(src->props3d);
       src->props3d->buf3dq_step = 1.0f;

@@ -825,21 +825,21 @@ aaxFilterSetState(aaxFilter f, int state)
          }
          break;
       case AAX_DISTANCE_FILTER:
-         if (state < AAX_AL_DISTANCE_MODEL_MAX)
+         if ((state & ~AAX_DISTANCE_DELAY) < AAX_AL_DISTANCE_MODEL_MAX)
          {
-            int pos = 0;
-            if ((state >= AAX_AL_INVERSE_DISTANCE)
-                && (state < AAX_AL_DISTANCE_MODEL_MAX))
+            int pos = state & ~AAX_DISTANCE_DELAY;
+
+            if (state & AAX_DISTANCE_DELAY) {    /* distance delay enabled */
+               filter->slot[0]->param[AAX_ROLLOFF_FACTOR] *= -1;
+            }
+
+            if ((pos >= AAX_AL_INVERSE_DISTANCE)
+                && (pos < AAX_AL_DISTANCE_MODEL_MAX))
             {
-               pos = state - AAX_AL_INVERSE_DISTANCE;
+               pos -= AAX_AL_INVERSE_DISTANCE;
                filter->slot[0]->data = _oalRingBufferALDistanceFunc[pos];
             }
-            else if ((state & ~AAX_DISTANCE_DELAY) < AAX_DISTANCE_MODEL_MAX)
-            {
-               pos = state & ~AAX_DISTANCE_DELAY;
-               if (state & AAX_DISTANCE_DELAY) {    /* distance delay enabled */
-                  filter->slot[0]->param[AAX_ROLLOFF_FACTOR] *= -1;
-               }
+            else if (pos < AAX_DISTANCE_MODEL_MAX) {
                filter->slot[0]->data = _oalRingBufferDistanceFunc[pos];
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);

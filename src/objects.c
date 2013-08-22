@@ -133,6 +133,7 @@ _aax3dPropsCreate()
 
       rv->dprops3d = _aax_aligned_alloc16(sizeof(_oalRingBufferDelayed3dProps));
       _aaxSetDefaultDelayed3dProps(rv->dprops3d);
+      _aaxSetDefaultDelayed3dProps(rv->m_dprops3d);
 
       for (pos=0; pos<MAX_3D_FILTER; pos++) {
          _aaxSetDefaultFilter3d(&rv->filter[pos], pos);

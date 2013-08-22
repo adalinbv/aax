@@ -908,8 +908,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                }
 
                if (_oalRingBufferIsValid(handle->ringbuffer)) {
-                  src->props2d->dist_delay_sec =
-                   _oalRingBufferGetParamf(handle->ringbuffer, RB_DURATION_SEC);
+                  src->props2d->dist_delay_sec = 0.0f;
                }
 
                if (positional)
