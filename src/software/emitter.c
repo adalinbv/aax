@@ -268,8 +268,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec4_t epos;
-      float dist_fact, cone_volume = 1.0f;
-      float refdist, maxdist, rolloff;
+      float refdist, dist_fact, maxdist, rolloff;
       float dist, esv, vs;
       unsigned int i, t;
       float gain, pitch;
@@ -418,7 +417,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
          if (tmp < inner_vec)
          {
-            float outer_vec, outer_gain;
+            float outer_vec, outer_gain, cone_volume;
             outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
             outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
             if (outer_vec < tmp)
@@ -430,9 +429,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             } else {
                cone_volume = outer_gain;
             }
+            gain *= cone_volume;
          }
       }
-      gain *= cone_volume;
 
       min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
       max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
