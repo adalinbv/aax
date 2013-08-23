@@ -47,25 +47,25 @@ int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
-    int num, res;
+    int num, res, rv = 0;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
-    devname = getDeviceName(argc, argv);
     num = getNumEmitters(argc, argv);
     if (num>256) num = 256;
 
-    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-    testForError(config, "Audio output device is not available.");
+    devname = getDeviceName(argc, argv);
+    infile = getInputFile(argc, argv, FILE_PATH);
 
-    if (config)
+    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+    testForError(config, "No default audio device available.");
+
+    if (config && (rv >= 0))
     {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
             aaxEmitter emitter[256];
-            float dt = 0.0f;
+            float pitch, dt = 0.0f;
             int q, state;
-            float pitch;
 
             /** mixer */
             res = aaxMixerInit(config);
@@ -130,5 +130,5 @@ int main(int argc, char **argv)
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 
-    return 0;
+    return rv;
 }
