@@ -55,7 +55,7 @@ aaxVec3f EmitterPos = { -INITIAL_DIST, 100.0f, -100.0f };
 aaxVec3f EmitterDir = {          1.0f,   0.0f,    0.0f };
 aaxVec3f EmitterVel = {         SPEED,   0.0f,    0.0f };
 
-aaxVec3f SensorPos = { 0.0f, 0.0f,  0.0f };
+aaxVec3f SensorPos = {-1.0f, 2.0f, -1.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
 aaxVec3f SensorAt =  { 0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp =  { 0.0f, 1.0f,  0.0f };
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
-            float dist;
             aaxMtx4f mtx;
+            float dist;
 
             /** mixer */
             res = aaxMixerInit(config);
@@ -90,8 +90,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
-            res=aaxScenerySetDistanceModel(config,
-                                           AAX_EXPONENTIAL_DISTANCE_DELAY);
+            res = aaxScenerySetDistanceModel(config,
+                                             AAX_EXPONENTIAL_DISTANCE_DELAY);
             testForState(res, "aaxScenerySetDistanceModel");
 
             /** dopller settings */
@@ -99,8 +99,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxScenerySetSoundVelocity");
 
             /** sensor settings */
-            res=aaxMatrixSetOrientation(mtx, SensorPos,
-                                             SensorAt, SensorUp);
+            res = aaxMatrixSetOrientation(mtx, SensorPos,
+                                               SensorAt, SensorUp);
             testForState(res, "aaxMatrixSetOrientation");
 
             res = aaxMatrixInverse(mtx);
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
-            res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_RELATIVE);
+            res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
             testForState(res, "aaxEmitterSetMode");
 
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
@@ -153,9 +153,12 @@ int main(int argc, char **argv)
 
                 EmitterPos[0] = -dist;
                 dist -= STEP;
-#if 0
-                printf("dist: %5.4f\tpos (% f, % f, % f)\n", dist,
-                            EmitterPos[0], EmitterPos[1], EmitterPos[2]);
+#if 1
+                printf("dist: %5.4f\tpos (% f, % f, % f)\n",
+                            _vec3Magnitude(EmitterPos),
+                            EmitterPos[0]-SensorPos[0],
+                            EmitterPos[1]-SensorPos[1],
+                            EmitterPos[2]-SensorPos[2]);
 #endif
                 res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
                 testForState(res, "aaxMatrixSetDirection");
