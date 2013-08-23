@@ -301,3 +301,12 @@ char *strDup(const char *s)
     if (p) memcpy(p, s,len);
     return p;
 }
+
+float
+_vec3Magnitude(const aaxVec3f v)
+{
+   float val = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+   return sqrtf(val);
+}
+
+
