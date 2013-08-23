@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
+
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
@@ -68,10 +69,9 @@ int main(int argc, char **argv)
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            float pitch, dt = 0.0f;
             aaxEmitter emitter;
-            aaxFilter filter;
             aaxFrame frame;
+            float pitch, dt = 0.0f;
             int q, state;
 
             /** mixer */
@@ -92,29 +92,6 @@ int main(int argc, char **argv)
             /** register audio frame */
             res = aaxMixerRegisterAudioFrame(config, frame);
             testForState(res, "aaxMixerRegisterAudioFrame");
-
-#if ENABLE_FRAME_EQUALIZER
-            /* frame equalizer, not supported */
-            filter = aaxFilterCreate(config, AAX_EQUALIZER);
-            testForError(filter, "aaxFilterCreate");
-
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              500.0f, 1.0f, 0.1f, 0.0f);
-            testForError(filter, "aaxFilterSetSlot/0");
-
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              8000.0f, 0.1f, 0.5f, 0.0f);
-            testForError(filter, "aaxFilterSetSlot/1");
-
-            filter = aaxFilterSetState(filter, AAX_TRUE);
-            testForError(filter, "aaxFilterSetState");
-
-            res = aaxAudioFrameSetFilter(frame, filter);
-            testForState(res, "aaxAudioFrameSetFilter");
-
-            res = aaxFilterDestroy(filter);
-            testForState(res, "aaxFilterDestroy");
-#endif
 
             /** schedule the audioframe for playback */
             res = aaxAudioFrameSetState(frame, AAX_PLAYING);
