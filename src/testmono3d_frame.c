@@ -57,7 +57,6 @@ aaxVec3f FrameAt = {  0.0f, 0.0f, 1.0f };
 aaxVec3f FrameUp = {  0.0f, 1.0f, 0.0f };
 aaxVec3f FrameVel = { 0.0f, 0.0f, 0.0f };
 
-
 aaxVec3f SensorPos = { 10000.0f, -1000.0f,  0.0f };
 aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
 aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
@@ -109,6 +108,13 @@ int main(int argc, char **argv)
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
+
+#if 0
+            /** scenery settings */
+            res=aaxScenerySetDistanceModel(config,
+                                           AAX_EXPONENTIAL_DISTANCE_DELAY);
+            testForState(res, "aaxScenerySetDistanceModel");
+#endif
 
             /** sensor settings */
             res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
@@ -204,6 +210,7 @@ int main(int argc, char **argv)
                         pos[0] = EmitterPos[0] + mul*cosf(anglestep * p)*RADIUS;
                         pos[2] = EmitterPos[2] + sinf(anglestep * p)*RADIUS;
                         aaxMatrixSetDirection(mtx, pos, EmitterDir);
+
                         res = aaxEmitterSetMatrix(emitter[p], mtx);
                         testForState(res, "aaxEmitterSetIdentityMatrix");
                         mul *= -1.0f;
@@ -221,20 +228,27 @@ int main(int argc, char **argv)
                         res = aaxEmitterSetPitch(emitter[p], pitch);
                         testForState(res, "aaxEmitterSetPitch");
 
-                        /** register the emitter to the audio-frame */
-                        res = aaxAudioFrameRegisterEmitter(subframe[j][k],
-                                                           emitter[p]);
-                        testForState(res, "aaxMixerRegisterEmitter");
+                        if (p == -1)
+                        {
+                           res = aaxMixerRegisterEmitter(config, emitter[p]);
+                           testForState(res, "aaxMixerRegisterEmitter");
+                        }
+                        else
+                        {
+                           /** register the emitter to the audio-frame */
+                           res = aaxAudioFrameRegisterEmitter(subframe[j][k],
+                                                              emitter[p]);
+                           testForState(res, "aaxMixerRegisterEmitter");
+                        }
 
                         /** schedule the emitter for playback */
                         res = aaxEmitterSetState(emitter[p], AAX_PLAYING);
                         testForState(res, "aaxEmitterStart");
 
-                        msecSleep(750);
+                        msecSleep(230);
                     }
                     while (++i < num);
-
-                    msecSleep(50);
+                    msecSleep(73);
                 }
             }
 
