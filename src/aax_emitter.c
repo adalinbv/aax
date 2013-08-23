@@ -342,34 +342,34 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                src->pos = 0;
                _SET_PLAYING(src->props3d);
             }
-
-            /* set distance delay */
-            if (handle->pos != UINT_MAX)	/* emitter is registered */
-            {
-               _handle_t *phandle = handle->handle;
-               _aaxEmitter *src = handle->source;
-               if (phandle->id == HANDLE_ID)
-               {
-                  _intBufferData *dptr;
-                  dptr = _intBufGet(phandle->sensors, _AAX_SENSOR, 0);
-                  if (dptr)
-                  {
-                     _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                     _aaxAudioFrame *pmixer = sensor->mixer;
-
-                     _aaxEMitterSetDistDelay(src, pmixer);
-                     _intBufReleaseData(dptr, _AAX_SENSOR);
-                  }
-               }
-               else if (phandle->id == AUDIOFRAME_ID)
-               {
-                  _aaxAudioFrame *pmixer = ((_frame_t*)phandle)->submix;
-                  _aaxEMitterSetDistDelay(src, pmixer);
-               }
-            }
          }
          else if (_IS_PAUSED(src->props3d)) {
             _TAS_PAUSED(src->props3d, AAX_FALSE);
+         }
+
+         /* set distance delay */
+         if (handle->pos != UINT_MAX)		/* emitter is registered */
+         {
+            _handle_t *phandle = handle->handle;
+            _aaxEmitter *src = handle->source;
+            if (phandle->id == HANDLE_ID)
+            {
+               _intBufferData *dptr;
+               dptr = _intBufGet(phandle->sensors, _AAX_SENSOR, 0);
+               if (dptr)
+               {
+                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                  _aaxAudioFrame *pmixer = sensor->mixer;
+
+                  _aaxEMitterSetDistDelay(src, pmixer);
+                  _intBufReleaseData(dptr, _AAX_SENSOR);
+               }
+            }
+            else if (phandle->id == AUDIOFRAME_ID)
+            {
+               _aaxAudioFrame *pmixer = ((_frame_t*)phandle)->submix;
+               _aaxEMitterSetDistDelay(src, pmixer);
+            }
          }
          rv = AAX_TRUE;
          break;
@@ -413,6 +413,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _oalRingBufferRewind(embuf->ringbuffer);
+            src->pos = 0;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
             env = _FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER);
