@@ -63,7 +63,7 @@ int main(int argc, char **argv)
         {
             aaxEmitter emitter;
             float freq, dt = 0.0f;
-            int q, state;
+            int q, state, num;
 
             freq = (float)aaxBufferGetSetup(buffer, AAX_FREQUENCY);
             res = aaxBufferSetLoopPoints(buffer,
@@ -78,7 +78,8 @@ int main(int argc, char **argv)
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
-            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
+            num = getNumEmitters(argc, argv);
+            res = aaxEmitterSetMode(emitter, AAX_LOOPING, num);
             testForState(res, "aaxEmitterSetLooping");
 
             /** mixer */
