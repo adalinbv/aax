@@ -46,7 +46,7 @@ if [ ! -f "$CONFIGFILE" ]; then
 fi
 db_reset libaax2/product_key
 
-if [ "$1" = "remove" ]; then
+if [ "$1" = "configure" ]; then
   ldconfig
 fi
 
