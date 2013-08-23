@@ -65,6 +65,10 @@ void testForState(int, const char *);
 void testForALCError(void *);
 void testForALError();
 
+/* geometry */
+float _vec3Magnitude(const aaxVec3f v);
+
+
 #ifdef _WIN32
 # include <windef.h>
 DWORD __attribute__((__stdcall__)) SleepEx(DWORD,BOOL);
