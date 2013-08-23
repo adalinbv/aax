@@ -1326,6 +1326,11 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
 
       _PROP_DISTQUEUE_SET_DEFINED(src->props3d);
       src->props3d->buf3dq_step = 1.0f;
+
+      if (src->p3dq) {
+         _intBufErase(&src->p3dq, _AAX_DELAYED3D,
+                      removeDelayed3dQueueByPos, src->p3dq);
+      }
    }
 }
 
