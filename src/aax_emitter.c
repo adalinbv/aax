@@ -346,12 +346,11 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          else if (_IS_PAUSED(src->props3d)) {
             _TAS_PAUSED(src->props3d, AAX_FALSE);
          }
-
-         /* set distance delay */
+         /* break not needed */
+      case AAX_UPDATE:				/* update distance delay */
          if (handle->pos != UINT_MAX)		/* emitter is registered */
          {
             _handle_t *phandle = handle->handle;
-            _aaxEmitter *src = handle->source;
             if (phandle->id == HANDLE_ID)
             {
                _intBufferData *dptr;
