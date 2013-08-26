@@ -74,7 +74,7 @@ SET(AAX_PATCH_LEVEL ${DATE})
 SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
 SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
 SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Cross platform, hardware accelerated, stereo and 4D audio audio library")
 
 # We have some custom .cmake scripts not in the official distribution.
 SET(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
@@ -90,11 +90,17 @@ ELSE(WIN32)
 
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1)")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
   SET(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   SET(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0")
   SET(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
   SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/config;${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;${AeonWave_SOURCE_DIR}/admin/debian/templates;")
+# SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS TRUE COMPONENT Libraries)
+
+# SET(CPACK_DEBIAN_PACKAGE_DEPENDS "debconf" COMPONENT Headers)
+# SET(CPACK_DEBIAN_PACKAGE_SECTION "libdevel" COMPONENT Headers)
+# SET(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-dev" COMPONENT Headers)
+
   # RPM
   SET(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
   SET(CPACK_RPM_PACKAGE_GROUP "System/Libraries")

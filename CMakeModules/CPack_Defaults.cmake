@@ -1,4 +1,5 @@
 
+INCLUDE (CMakeModules/FindGZIP.cmake)
 
 # Set default libdir
 IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
@@ -70,11 +71,39 @@ ELSE(WIN32)
   SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
   SET(CPACK_DEB_COMPONENT_INSTALL ON)
 
+  INSTALL(FILES
+          debian/copyright
+          DESTINATION /usr/share/doc/${PACKAGE}-bin
+          COMPONENT Libraries
+  )
+  INSTALL(FILES
+          debian/copyright
+          DESTINATION /usr/share/doc/${PACKAGE}-dev
+          COMPONENT Headers
+  )
+
+  EXECUTE_PROCESS(COMMAND "cp" -f -p ChangeLog debian/ChangeLog
+                  COMMAND "gzip" -f -9 debian/ChangeLog
+                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes)
+  INSTALL(FILES
+          debian/ChangeLog.gz
+          DESTINATION /usr/share/doc/${PACKAGE}-bin
+          RENAME changelog.gz
+          COMPONENT Libraries
+  )
+  INSTALL(FILES
+          debian/ChangeLog.gz
+          DESTINATION /usr/share/doc/${PACKAGE}-dev
+          RENAME changelog.gz
+          COMPONENT Headers
+  )
+
   # RPM
   SET(CPACK_RPM_PACKAGE_ARCHITECTURE ${PACK_PACKAGE_ARCHITECTURE})
   SET(CPACK_RPM_PACKAGE_DESCRIPTION ${rpmDescription})
   SET(CPACK_RPM_CHANGELOG_FILE "${CMAKE_SOURCE_DIR}/ChangeLog")
   SET(CPACK_RPM_COMPONENT_INSTALL ON)
+
 ENDIF(WIN32)
 
 # ZIP

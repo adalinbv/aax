@@ -1,31 +1,10 @@
-A cross platform, hardware accelerated, versatile stereo and 4D audio mixing library.
- AeonWave is a hardware accelerated, high speed, low power consumption and
- versatile stereo and 4D audio mixing library that can handle almost any audio
- mixing demands: from studio effect mixing to immersive simulation.
+Cross platform, hardware accelerated, stereo and 4D audio audio library
+ AeonWave is a hardware accelerated, high speed and low power consumption
+ audio library designed for professional studio and simulation solutions.
+ It can handle 4D (the 4th dimension time delay) positional audio and stereo
+ mixing equally well.
  .
- AeonWave combines the demands for stereo mixing and immersive 3D audio
- rendering (for simulation and gaming) in one library. In addition to
- registered sensors that adds support for both jack-in audio-capturing as well
- as file-input auto-streaming the software adds support for audio-frames.
- Audio-frames can be used as containers to move multiple inter-connected 3D
- sound emitters aroud the scene with just one function call. Audio-frames can
- also be used or for applying filters or effects to multiple (stereo) sources
- before they get mixed together.
- .
- Stereo filters include Tremolo, Volume Envelope and Frequency filtering.
- 3D filters include angular and distance filtering.
- Stereo effects include Vibrato, Pitch Envelope, Distortion, Chorus And Flanging.
- 3D effects support consists of Velocity effect (Doppler).
- Either a three-band parametric equalizer or 8-band graphical equalizer can be
- assinged to the final mixing stage.
- .
- A built-in waveform generator supports 5 waveform types and 3 types of noise.
- Different waveforms can be mixed or ringmodulated at different frequencies and
- mixing ratio's allowing a wide range of complex waveforms to be generated
- on-demand.
- .
- For audio buffers the library supports 9 native audio formats and a total of
- 29 different formats (inclusing signed/unsigned and big/little-endian).
- Buffers can handle sample-rate conversion and can be converted from and to any
- of the supported formats.
+ The separately available OpenAL layer makes the library ready for most of
+ the current software while it's native API makes it ready for future audio
+ demands.
 
