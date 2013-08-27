@@ -73,6 +73,22 @@ ELSE(WIN32)
   SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
   SET(CPACK_DEB_COMPONENT_INSTALL ON)
 
+  INSTALL(FILES
+          debian/copyright
+          DESTINATION /usr/share/doc/${PACKAGE}-bin
+          COMPONENT Applications
+  )
+
+  EXECUTE_PROCESS(COMMAND "cp" -f -p ChangeLog debian/ChangeLog
+                  COMMAND "gzip" -f -9 debian/ChangeLog
+                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes)
+  INSTALL(FILES
+          debian/ChangeLog.gz
+          DESTINATION /usr/share/doc/${PACKAGE}-bin
+          RENAME changelog.gz
+          COMPONENT Applications
+  )
+
   # RPM
   SET(CPACK_RPM_PACKAGE_ARCHITECTURE ${PACK_PACKAGE_ARCHITECTURE})
   SET(CPACK_RPM_PACKAGE_DESCRIPTION ${rpmDescription})

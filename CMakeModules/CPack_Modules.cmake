@@ -1,6 +1,7 @@
 
 # Component support
-SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+#SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
+SET(CPACK_COMPONENTS_ALL Applications)
 
 # Display name
 SET(CPACK_COMPONENT_APPLICATIONS_HIDDEN ON)
