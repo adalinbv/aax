@@ -1,6 +1,4 @@
 
-INCLUDE (CMakeModules/FindGZIP.cmake)
-
 # Set default libdir
 IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   SET(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "library destination directory")
@@ -97,6 +95,13 @@ ELSE(WIN32)
           RENAME changelog.gz
           COMPONENT Headers
   )
+
+# INSTALL(FILES
+#         debian/shlibs
+#         DESTINATION /var/lib/dpkg/info
+#         RENAME ${PACKAGE}-bin:${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.shlibs
+#         COMPONENT Libraries
+# )
 
   # RPM
   SET(CPACK_RPM_PACKAGE_ARCHITECTURE ${PACK_PACKAGE_ARCHITECTURE})
