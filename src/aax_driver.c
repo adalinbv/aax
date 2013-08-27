@@ -1262,6 +1262,7 @@ removeMixerByPos(void *config, unsigned int pos)
    sensor = _intBufRemove(handle->sensors, _AAX_SENSOR, pos, AAX_FALSE);
    if (sensor)
    {
+      _oalRingBufferDelayEffectData* effect;
       _aaxAudioFrame* mixer = sensor->mixer;
 
       /* frees both EQUALIZER_LF and EQUALIZER_HF */
@@ -1271,6 +1272,16 @@ removeMixerByPos(void *config, unsigned int pos)
       free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
       free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
       free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
+
+      effect = _EFFECT_GET2D_DATA(mixer, DELAY_EFFECT);
+      if (effect) free(effect->history_ptr);
+      free(effect);
+
+      if (mixer->p3dq) {
+         _intBufErase(&mixer->p3dq, _AAX_DELAYED3D,
+                      removeDelayed3dQueueByPos, mixer->p3dq);
+      }
+      _aax_aligned_free(mixer->props3d->dprops3d);
       free(mixer->props3d);
 
       /* ringbuffer gets removed by the thread */
