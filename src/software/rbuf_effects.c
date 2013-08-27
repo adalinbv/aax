@@ -276,21 +276,27 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
       }
       else	/* chorus, phasing */
       {
-         _batch_resample_proc resamplefn = _aaxBufResampleNearest;
          int doffs = noffs - offs;
          float fact;
 
          fact = _MAX((float)((int)end-doffs)/(float)(end), 0.0f);
-         if (fact < 1.0f) {
-            resamplefn = _aaxBufResampleLinear;
+         if (fact == 1.0f) {
+            _batch_fmadd(dptr, sptr-offs, no_samples, volume, 0.0f);
          }
-         else if (fact > 1.0f) {
-            resamplefn = _aaxBufResampleSkip;
-         }
+         else
+         {
+            _batch_resample_proc resamplefn = _aaxBufResampleNearest;
+            if (fact < 1.0f) {
+               resamplefn = _aaxBufResampleLinear;
+            }
+            else if (fact > 1.0f) {
+               resamplefn = _aaxBufResampleSkip;
+            }
 
-         DBG_MEMCLR(1, scratch-ds, ds+end, bps);
-         resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
-         _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+            DBG_MEMCLR(1, scratch-ds, ds+end, bps);
+            resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
+            _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+         }
       }
    }
    while (0);
