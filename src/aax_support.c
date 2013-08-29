@@ -60,7 +60,7 @@ aaxGetPatchLevel()
 AAX_API const char* AAX_APIENTRY
 aaxGetCopyrightString()
 {
-   return (const char*)___COPYING;
+   return (const char*)COPYING;
 }
 
 AAX_API const char* AAX_APIENTRY

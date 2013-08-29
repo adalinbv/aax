@@ -25,4 +25,5 @@ CTestTestfile.cmake
 .kdev4
 *.kdev4
 *.orig
+src/copyright.h
 debian/ChangeLog.gz

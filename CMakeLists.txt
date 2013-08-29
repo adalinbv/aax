@@ -398,6 +398,10 @@ TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
     ${XML_LIBRARY}
 )
 
+# Create the copyright file
+EXECUTE_PROCESS(COMMAND "xxd" -include COPYING src/copyright.h
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes)
+
 # Add an install target here
 # Note Windows DLL are specified by RUNTIME
 INSTALL(TARGETS ${LIBAEONWAVE}
