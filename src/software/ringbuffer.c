@@ -460,7 +460,6 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
 
       assert(samples >= (unsigned int)(fact*no_samples));
 
-      memset(data, 0, no_samples*no_tracks*bps);
       if (no_tracks > tracks) no_tracks = tracks;
 
       fact = 1.0f/fact;
