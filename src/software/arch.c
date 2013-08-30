@@ -15,6 +15,9 @@
 
 #include <stdlib.h>	/* getenv, malloc, aligned_alloc */
 #include <malloc.h>
+#if defined(__MINGW32__)
+# include <mm_malloc.h>
+#endif
 #if HAVE_STRINGS_H
 # include <strings.h>	/* strcasecmp */
 #endif
@@ -552,6 +555,11 @@ _aax_aligned_alloc16(size_t size)
 #elif _MSC_VER
    rv = _aligned_malloc(size, 16);
    _aax_aligned_free = (_aax_aligned_free_proc)_aligned_free;
+#elif defined(__MINGW32__)
+   rv = _mm_malloc(size, 16);
+   _aax_aligned_free = (_aax_aligned_free_proc)_mm_free;
+#else
+   assert(1 = 0);
 #endif
 
    return rv;
