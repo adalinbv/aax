@@ -83,7 +83,6 @@ static _aaxDriverCaptureCallback _aaxWASAPIDriverCapture;
 static _aaxDriverCallback _aaxWASAPIDriverPlayback;
 static _aaxDriverGetName _aaxWASAPIDriverGetName;
 static _aaxDriverThread _aaxWASAPIDriverThread;
-static _aaxDriver3dMixerCB _aaxWASAPIDriver3dMixer;
 static _aaxDriverState _aaxWASAPIDriverState;
 static _aaxDriverParam _aaxWASAPIDriverParam;
 static _aaxDriverLog _aaxWASAPIDriverLog;
@@ -115,7 +114,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverCallback *)&_aaxWASAPIDriverPlayback,
 
    (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxWASAPIDriver3dMixer,
+   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
