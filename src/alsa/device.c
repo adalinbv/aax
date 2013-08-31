@@ -643,12 +643,14 @@ _aaxALSADriverDisconnect(void *id)
          handle->name = 0;
       }
 
-      _aax_free(handle->outMixer);
       if (handle->mixer)
       {
          _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          psnd_mixer_close(handle->mixer);
       }
+      _aax_free(handle->outMixer);
+      handle->outMixer = NULL;
+
       if (handle->pcm) {
          psnd_pcm_close(handle->pcm);
       }
