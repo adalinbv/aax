@@ -314,11 +314,11 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          /** Automatic Gain Control */
          max = 0.0f;
          if (maxrms > 256) {
-            max = 0.707f*8388607.0f/maxrms;
+            max = _MIN(0.707f*8388607.0f/maxrms, 128.0f);
          }
 
          if (max < dest_rb->gain_agc) {
-            nrb->gain_agc = 0.1f*dest_rb->gain_agc + 0.9f*max;
+            nrb->gain_agc = 0.2f*dest_rb->gain_agc + 0.8f*max;
          } else {
             nrb->gain_agc = (1.0f-agc_rr)*dest_rb->gain_agc + (agc_rr)*max;
          }
