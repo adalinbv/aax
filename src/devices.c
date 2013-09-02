@@ -21,6 +21,7 @@
 # if HAVE_STRINGS_H
 #  include <strings.h>   /* strcasecmp */
 # endif
+#endif
 #include <time.h>	/* time */
 
 #include <xml.h>
