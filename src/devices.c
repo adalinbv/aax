@@ -17,7 +17,6 @@
 #include <stdlib.h>	/* malloc */
 #if HAVE_STRINGS_H
 # include <strings.h>	/* strncasecmp, strstr */
-#endif
 #include <time.h>	/* time */
 
 #include <xml.h>
@@ -437,7 +436,6 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             snprintf((char*)driver_name, 255, "%s", config->backend.driver);
             for (be=0; be<be_num; be++)
             {
-               char *input, *output;
                char level;
 
                xmlNodeGetPos(xcid, xbid, "backend", be);
@@ -447,114 +445,122 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                if (m)
                {
+                  char *output = xmlNodeCopy(xbid, "output");
                   level = 0;
-                  output = xmlNodeCopy(xbid, "output");
-                  if (output) {
-                      _aaxDriverDetectConfigRenderer(output, devname,
+
+                  if (output)
+                  {
+                     _aaxDriverDetectConfigRenderer(output, devname,
                                                       (char *)&level,
                                                       (char *)&curlevel);
-                  }
-
-                  if (output && (level > curlevel))
-                  {
-                     unsigned int q, i, l, index = -1;
-                     char *ptr, *tmp;
-                     char rr[255];
-                     void *xsid;
-
-                     curlevel = level;
-
-                     xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
-                     ptr = config->backend.driver;
-
-                     tmp = strstr(ptr, " on ");
-                     if (tmp) q = tmp-ptr;
-                     else q = strlen(ptr);
-
-                     l = ++q + strlen(rr) + strlen(" on \0");
-                     config->backend.driver = malloc(l);
-                     snprintf(config->backend.driver, q, "%s", ptr);
-                     strcat(config->backend.driver, " on ");
-                     strcat(config->backend.driver, rr);
-                     free(ptr);
-
-                     xmlFree(config->backend.output);
-                     config->backend.output = output;
-
-                     /* setup speakers */
-                     xsid = xmlMarkId(output);
-
-                     i = xmlNodeGetInt(xsid, "channels");
-                     if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
-                     config->node[n].no_speakers = i;
-
-                     i = xmlNodeGetNum(xsid, "speaker");
-                     if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
-
-                     ptr = xmlNodeGetString(xsid, "setup");
-                     if (ptr)
+                     if (level > curlevel)
                      {
-                        free(config->node[0].setup);
-                        config->node[0].setup = _aax_strdup(ptr);
-                        xmlFree(ptr);
-                     }
+                        unsigned int q, i, l, index = -1;
+                        char *ptr, *tmp;
+                        char rr[255];
+                        void *xsid;
 
-                     for (q=0; q<i; q++)
-                     {
-                        char attrib[10];
-                        void *ptr;
+                        curlevel = level;
 
-                        if (xmlAttributeCopyString(output, "n", (char*)&attrib, 9))
+                        xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
+                        ptr = config->backend.driver;
+
+                        tmp = strstr(ptr, " on ");
+                        if (tmp) q = tmp-ptr;
+                        else q = strlen(ptr);
+
+                        l = ++q + strlen(rr) + strlen(" on \0");
+                        config->backend.driver = malloc(l);
+                        snprintf(config->backend.driver, q, "%s", ptr);
+                        strcat(config->backend.driver, " on ");
+                        strcat(config->backend.driver, rr);
+                        free(ptr);
+
+                        xmlFree(config->backend.output);
+                        config->backend.output = output;
+
+                        /* setup speakers */
+                        xsid = xmlMarkId(output);
+
+                        i = xmlNodeGetInt(xsid, "channels");
+                        if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
+                        config->node[n].no_speakers = i;
+
+                        i = xmlNodeGetNum(xsid, "speaker");
+                        if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
+
+                        ptr = xmlNodeGetString(xsid, "setup");
+                        if (ptr)
                         {
-                           char *pe = (char *)&attrib + index;
-                           index = strtol(attrib, &pe, 10);
-                        }
-                        else index++;
-                        if (index >= _AAX_MAX_SPEAKERS) {
-                           index = _AAX_MAX_SPEAKERS;
+                           free(config->node[0].setup);
+                           config->node[0].setup = _aax_strdup(ptr);
+                           xmlFree(ptr);
                         }
 
-                        xmlFree(config->node[n].speaker[index]);
-                        ptr = xmlNodeCopyPos(output, xsid, "speaker", q);
-                        config->node[n].speaker[index] = ptr;
+                        for (q=0; q<i; q++)
+                        {
+                           char attrib[10];
+                           void *ptr;
+
+                           if (xmlAttributeCopyString(output, "n", (char*)&attrib, 9))
+                           {
+                              char *pe = (char *)&attrib + index;
+                              index = strtol(attrib, &pe, 10);
+                           }
+                           else index++;
+                           if (index >= _AAX_MAX_SPEAKERS) {
+                              index = _AAX_MAX_SPEAKERS;
+                           }
+
+                           xmlFree(config->node[n].speaker[index]);
+                           ptr = xmlNodeCopyPos(output, xsid, "speaker", q);
+                           config->node[n].speaker[index] = ptr;
+                        }
+                        xmlFree(xsid);
                      }
-                     xmlFree(xsid);
+                     else {
+                        xmlFree(output);
+                     }
                   }
                }
                else /* m == AAAX_MODE_READ */
                {
+                  char *input = xmlNodeCopy(xbid, "input");
+
                   level = 0;
-                  input = xmlNodeCopy(xbid, "input");
-                  if (input) {
-                      _aaxDriverDetectConfigRenderer(input, devname,
+                  if (input)
+                  {
+                     _aaxDriverDetectConfigRenderer(input, devname,
                                                       (char *)&level,
                                                       (char *)&curlevel);
-                  }
+                     if (level >= curlevel)
+                     {
+                        unsigned int q, l;
+                        char *ptr, *tmp;
+                        char rr[255];
+ 
+                        curlevel = level;
 
-                  if (input && (level >= curlevel))
-                  {
-                     unsigned int q, l;
-                     char *ptr, *tmp;
-                     char rr[255];
+                        xmlNodeCopyString(input, "renderer", (char*)&rr, 255);
+                        ptr = config->backend.driver;
 
-                     curlevel = level;
+                        tmp = strstr(ptr, " on ");
+                        if (tmp) q = tmp-ptr;
+                        else q = strlen(ptr);
 
-                     xmlNodeCopyString(input, "renderer", (char*)&rr, 255);
-                     ptr = config->backend.driver;
+                        l = ++q + strlen(rr) + strlen(" on \0");
+                        config->backend.driver = malloc(l);
+                        snprintf(config->backend.driver, q, "%s", ptr);
+                        strcat(config->backend.driver, " on ");
+                        strcat(config->backend.driver, rr);
+                        free(ptr);
 
-                     tmp = strstr(ptr, " on ");
-                     if (tmp) q = tmp-ptr;
-                     else q = strlen(ptr);
-
-                     l = ++q + strlen(rr) + strlen(" on \0");
-                     config->backend.driver = malloc(l);
-                     snprintf(config->backend.driver, q, "%s", ptr);
-                     strcat(config->backend.driver, " on ");
-                     strcat(config->backend.driver, rr);
-                     free(ptr);
-
-                     xmlFree(config->backend.input);
-                     config->backend.input = input;
+                        xmlFree(config->backend.input);
+                        config->backend.input = input;
+                     }
+                     else {
+                        xmlFree(input);
+                     }
                   }
                }
             }
