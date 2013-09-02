@@ -13,9 +13,6 @@
 #include "config.h"
 #endif
 
-#include <string.h>
-#include <stdlib.h>		/* for getenv */
-#include <errno.h>
 #include <errno.h>
 #ifndef _WIN32
 # include <sys/time.h>
@@ -24,7 +21,8 @@
 
 #include <base/threads.h>
 #include <base/types.h>
-#include <api.h>
+
+#include "api.h"
 
 
 #define CONFIG_FILE             "config.xml"

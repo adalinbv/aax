@@ -16,11 +16,15 @@
 #ifdef HAVE_LIBIO_H
 #include <libio.h>		/* for NULL */
 #endif
-#include <math.h>		/* for INFINITY */
-#include <string.h>		/* for calloc */
-#if HAVE_STRINGS_H
-# include <strings.h>		/* for strcasecmp */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
 #endif
+#include <math.h>		/* for INFINITY */
 #include <assert.h>
 
 #include <xml.h>

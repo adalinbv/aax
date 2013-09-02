@@ -13,14 +13,18 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>		/* for malloc */
-#include <string.h>		/* for strdup */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>   /* strcasecmp */
+# endif
+#endif
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
 #include <errno.h>
-#if HAVE_STRINGS_H
-# include <strings.h>
-#endif
 #if HAVE_UNISTD_H
 # include <unistd.h>
 #endif

@@ -16,10 +16,14 @@
 #ifdef HAVE_ASSERT_H
 # include <assert.h>
 #endif
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 #ifdef HAVE_LIBIO_H
 # include <libio.h>		/* for NULL */
 #endif
-#include <string.h>		/* for memset */
 #include <math.h>		/* for MAXFLOAT */
 
 #include "objects.h"

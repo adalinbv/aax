@@ -9,10 +9,22 @@
  * permission of Adalin B.V.
  */
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>      /* for printf */
-#include <stdlib.h>     /* for malloc */
 #include <math.h>	/* for powf */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <malloc.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>   /* strcasecmp */
+# endif
+#endif
+
 
 #include <aax/aax.h>
 #include <xml.h>

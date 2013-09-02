@@ -14,9 +14,13 @@
 #endif
 
 #include <assert.h>
-#include <stdlib.h>	/* malloc */
-#if HAVE_STRINGS_H
-# include <strings.h>	/* strncasecmp, strstr */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>   /* strcasecmp */
+# endif
 #include <time.h>	/* time */
 
 #include <xml.h>

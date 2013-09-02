@@ -13,13 +13,17 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>	/* getenv, malloc, aligned_alloc */
-#include <malloc.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <malloc.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>   /* strcasecmp */
+# endif
+#endif
 #if defined(__MINGW32__)
 # include <mm_malloc.h>
-#endif
-#if HAVE_STRINGS_H
-# include <strings.h>	/* strcasecmp */
 #endif
 #if HAVE_UNISTD_H
 # include <unistd.h>	/* for sysconf */

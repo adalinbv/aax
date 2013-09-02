@@ -112,8 +112,6 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                                        fp2d, emitter->track, src->update_ctr,
                                        nbuf, info->mode);
                      }
-else
-printf("%3.2f (%3.2f)\n", src->curr_pos_sec, ep2d->dist_delay_sec);
                   }
                   else
                   {

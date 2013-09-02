@@ -1,7 +1,15 @@
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <string.h>
+#endif
 #include <assert.h>
 
 #include "memory.h"

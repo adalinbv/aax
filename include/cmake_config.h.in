@@ -196,6 +196,9 @@
 #undef USE_RMALLOC
 #cmakedefine USE_RMALLOC @USE_RMALLOC@
 
+#undef HAVE_RMALLOC_H
+#cmakedefine HAVE_RMALLOC_H @HAVE_RMALLOC_H@
+
 /* Version number of package */
 #undef VERSION
 

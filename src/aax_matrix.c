@@ -9,6 +9,10 @@
  * permission of Adalin B.V.
  */
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <aax/aax.h>
 
 #include <base/gmath.h>

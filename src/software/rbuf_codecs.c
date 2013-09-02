@@ -14,7 +14,11 @@
 #endif
 
 #include <assert.h>
-#include <stdlib.h>	/* free */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+#endif
 
 #include <base/types.h>
 #include <ringbuffer.h>

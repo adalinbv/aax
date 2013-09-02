@@ -14,8 +14,12 @@
 #endif
 
 #include <assert.h>
-#include <stdlib.h>
-#include <malloc.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <malloc.h>
+#endif
 
 #include <aax/aax.h>
 

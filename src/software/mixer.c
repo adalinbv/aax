@@ -13,7 +13,11 @@
 #include "config.h"
 #endif
 
-#include <string.h>		/* for memset */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 

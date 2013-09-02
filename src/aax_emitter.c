@@ -13,11 +13,15 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 #ifdef HAVE_LIBIO_H
 #include <libio.h>              /* for NULL */
 #endif
 #include <math.h>		/* for fabs */
-#include <string.h>		/* for calloc */
 #include <assert.h>
 
 #include <base/gmath.h>

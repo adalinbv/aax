@@ -10,11 +10,14 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 #if HAVE_MATH_H
 #include <math.h>
 #endif
-#include <string.h>
-
 
 #include "geometry.h"
 

@@ -9,7 +9,15 @@
  * permission of Adalin B.V.
  */
 
-#include <stdlib.h>	/* for rand() */
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+#endif
 #include <math.h>	/* for floorf() */
 #include <time.h>	/* for time() */
 

@@ -47,7 +47,11 @@ extern "C" {
 # define ALIGN16C
 #endif
 
-#include <stdlib.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+#endif
 
 #if HAVE_SYS_TYPES_H
 # include <sys/types.h>

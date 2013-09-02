@@ -22,12 +22,7 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>	/* for strtol */
-#include <string.h>	/* for strncasecmp */
 #include <assert.h>
-#if HAVE_SYSLOG_H
-# include <strings.h>	/* for strcasecmp */
-#endif
 #if WIN32
 	/* See: http://support.microsoft.com/kb/815661 */
 # include <tchar.h>
@@ -37,10 +32,10 @@
 # endif
 #endif
 
-void (*_aax_free)(void*) = free;
-
 #include "logging.h"
 #include "types.h"
+
+void (*_aax_free)(void*) = free;
 
 void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level)
 {

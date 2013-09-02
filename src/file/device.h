@@ -16,6 +16,11 @@
 extern "C" {
 #endif
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
 #include <driver.h>
 
 extern const _aaxDriverBackend _aaxNoneDriverBackend;

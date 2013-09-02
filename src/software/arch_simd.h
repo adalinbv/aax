@@ -16,8 +16,17 @@
 extern "C" {
 #endif
 
-#include <string.h>
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
 #include <assert.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 
 #include <arch.h>
 

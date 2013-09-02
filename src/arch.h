@@ -20,6 +20,10 @@ extern "C" {
 #include "config.h"
 #endif
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <base/types.h>
 
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);

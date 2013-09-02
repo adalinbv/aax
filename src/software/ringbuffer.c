@@ -14,12 +14,16 @@
 #endif
 
 #include <assert.h>
-#if HAVE_STRINGS_H
-# include <strings.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <malloc.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>   /* strcasecmp */
+# endif
 #endif
 #include <math.h>
-#include <stdlib.h>
-#include <malloc.h>
 #ifndef NDEBUG
 # include <stdio.h>
 #endif

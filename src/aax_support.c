@@ -9,7 +9,11 @@
  * permission of Adalin B.V.
  */
 
-#if HAVES_TRINGS_H
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#if HAVE_STRINGS_H
 # include <strings.h>	/* strcasecmp */
 #endif
 

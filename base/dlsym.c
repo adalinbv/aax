@@ -23,7 +23,11 @@
 #endif
 
 #include <assert.h>
-#include <stdlib.h>	/* for atoi */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+#endif
 #include <stdio.h>	/* for snprintf */
 
 #include "dlsym.h"

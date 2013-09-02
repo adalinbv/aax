@@ -13,12 +13,15 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 #ifdef HAVE_LIBIO_H
 #include <libio.h>              /* for NULL */
 #endif
-
 #include <math.h>		/* for floorf */
-#include <string.h>		/* for memset */
 #include <assert.h>
 
 #include <xml.h>

@@ -13,9 +13,13 @@
 #include "config.h"
 #endif
 
-#include <string.h>		/* strlen */
-#if HAVE_STRINGS_H
-# include <strings.h>		/* strncasecmp */
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
 #endif
 #ifdef HAVE_IO_H
 #include <io.h>

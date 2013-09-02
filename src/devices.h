@@ -16,6 +16,10 @@
 extern "C" {
 #endif
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <base/buffers.h>
 
 #include "driver.h"
