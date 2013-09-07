@@ -364,14 +364,14 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *pmixer = sensor->mixer;
 
-                  _aaxEMitterSetDistDelay(src, pmixer);
+                  _aaxEMitterResetDistDelay(src, pmixer);
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                }
             }
             else if (phandle->id == AUDIOFRAME_ID)
             {
                _aaxAudioFrame *pmixer = ((_frame_t*)phandle)->submix;
-               _aaxEMitterSetDistDelay(src, pmixer);
+               _aaxEMitterResetDistDelay(src, pmixer);
             }
          }
          rv = AAX_TRUE;
@@ -481,6 +481,12 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          case AAX_DISTANCE_FILTER:
          {
             _oalRingBuffer3dProps *p3d = src->props3d;
+            if (_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR) < 0)
+            {			/* distance delay is enabled */
+               float rf;
+               rf = -1.0f*_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR);
+               _FILTER_SET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR, rf);
+            }
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -1294,12 +1300,17 @@ put_emitter(aaxEmitter em)
 }
 
 void
-_aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
+_aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
 {
+   int dist_delaying;
+
    assert(src);
    assert(mixer);
 
-   if (mixer->dist_delaying)
+   dist_delaying = _FILTER_GET_STATE(src->props3d, DISTANCE_FILTER);
+   dist_delaying |= _FILTER_GET_STATE(mixer->props3d, DISTANCE_FILTER);
+   dist_delaying &= AAX_DISTANCE_DELAY;
+   if (dist_delaying)
    {
       _oalRingBuffer3dProps *fp3d = mixer->props3d;
       _oalRingBufferDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
@@ -1327,10 +1338,12 @@ _aaxEMitterSetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
  printf("delay: %f, dist: %f, vs: %f\n", ep2d->dist_delay_sec, dist, vs);
 #endif
 
-      _PROP_DISTQUEUE_SET_DEFINED(src->props3d);
+      _PROP_DISTQUEUE_SET_DEFINED(ep3d);
       src->props3d->buf3dq_step = 1.0f;
 
-      if (src->p3dq) {
+      if (!src->p3dq) {
+         _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
+      } else {
          _intBufErase(&src->p3dq, _AAX_DELAYED3D,
                       removeDelayed3dQueueByPos, src->p3dq);
       }

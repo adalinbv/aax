@@ -223,6 +223,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    // _aaxEmitterProcessDelayQueue
+#if 0
+printf("DISTQUEUE: %x, src->p3dq: %x\r", _PROP3D_DISTQUEUE_IS_DEFINED(edp3d), src->p3dq);
+#endif
    if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d) && src->p3dq)
    {
       _oalRingBufferDelayed3dProps *sdp3d = NULL;
@@ -238,6 +241,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       ep2d->bufpos3dq += ep3d->buf3dq_step;
       if (pos3dq <= 0.0f) return;
 
+printf("p3dq: %i\n", _intBufGetNumNoLock(src->p3dq, _AAX_DELAYED3D));
       do
       {
          buf3dq = _intBufPopData(src->p3dq, _AAX_DELAYED3D);

@@ -707,10 +707,12 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      }
                      submix->info->refresh_rate = mixer->info->refresh_rate;
                      submix->info->update_rate = mixer->info->update_rate;
-                     submix->dist_delaying = mixer->dist_delaying;
-                     if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
+                     if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
+                     {
+                        _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
                         _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
                      }
+                     _aaxAudioFrameResetDistDelay(submix, mixer);
 
                      if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
                      {
@@ -918,11 +920,12 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                if (positional)
                {
                   mp3d = mixer->props3d;
-                  _aaxEMitterSetDistDelay(src, mixer);
-
-                  if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
+                  if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL)
+                  {
+                     _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
                   }
+                  _aaxEMitterResetDistDelay(src, mixer);
 
                   if (_EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT) == NULL)
                   {
@@ -1062,12 +1065,12 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   mp3d = mixer->props3d;
                   fp3d = submix->props3d;
 
-                  submix->dist_delaying = mixer->dist_delaying;
-                  _aaxAudioFrameSetDistDelay(submix, mixer);
-
-                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
+                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
+                  {
+                     _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
                   }
+                  _aaxAudioFrameResetDistDelay(submix, mixer);
 
                   if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
                   {

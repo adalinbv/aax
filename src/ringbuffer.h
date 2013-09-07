@@ -219,7 +219,7 @@ enum
 #define _PROP3D_SCENE_SET_CHANGED(q)	((q)->state3d |= SCENE_CHANGED)
 #define _PROP3D_REVERB_SET_CHANGED(q)	((q)->state3d |= REVERB_CHANGED)
 #define _PROP3D_DISTDELAY_SET_DEFINED(q) ((q)->state3d |= DISTDELAY_CHANGED)
-#define _PROP3D_DISTQUEUE_SET_DEFINED(q) ((q)->state3d |= (DISTQUEUE_CHANGED & DISTDELAY_CHANGED))
+#define _PROP3D_DISTQUEUE_SET_DEFINED(q) ((q)->state3d |= (DISTQUEUE_CHANGED|DISTDELAY_CHANGED))
 #define _PROP3D_WIND_SET_CHANGED(q)	((q)->state3d |= WIND_CHANGED)
 
 #define _PROP3D_SCENE_CLEAR_CHANGED(q)	((q)->state3d &= ~SCENE_CHANGED)
@@ -262,6 +262,7 @@ enum
 #define _FILTER_SET_DATA(P, f, v)	P->filter[f].data = v
 #define _FILTER_COPY(P1, P2, f, p)	P1->filter[f].param[p] = P2->filter[f].param[p]
 #define _FILTER_COPY_DATA(P1, P2, f)	P1->filter[f].data = P2->filter[f].data
+#define _FILTER_COPY_STATE(P1, P2, f)	P1->filter[f].state = P2->filter[f].state
 
 #define _FILTER_GET2D(G, f, p)		_FILTER_GET(G->props2d, f, p)
 #define _FILTER_GET2D_DATA(G, f)	_FILTER_GET_DATA(G->props2d, f)

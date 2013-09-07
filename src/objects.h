@@ -137,7 +137,6 @@ typedef struct
    unsigned int no_registered;
    float curr_pos_sec;
 
-   unsigned char dist_delaying;
    unsigned char refcount;
 
    unsigned char capturing;

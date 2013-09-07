@@ -60,8 +60,6 @@ aaxAudioFrameCreate(aaxConfig config)
          submix = (_aaxAudioFrame*)((char*)frame + size);
          frame->submix = submix;
 
-         _intBufCreate(&frame->submix->p3dq, _AAX_DELAYED3D);
-
          submix->props2d = (_oalRingBuffer2dProps*)ptr2;
          _aaxSetDefault2dProps(submix->props2d);
          _EFFECT_SET2D(submix, PITCH_EFFECT, AAX_PITCH, handle->info->pitch);
@@ -623,10 +621,12 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   }
                   submix->info->refresh_rate = fmixer->info->refresh_rate;
                   submix->info->update_rate = fmixer->info->update_rate;
-                  submix->dist_delaying = fmixer->dist_delaying;
-                  if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL) {
+                  if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
+                  {
+                     _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
                   }
+                  _aaxAudioFrameResetDistDelay(submix, fmixer);
 
                   if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
                   {
@@ -796,14 +796,15 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
             if (positional)
             {
-               _oalRingBuffer3dProps *mp3d, *ep3d = src->props3d;
+               _oalRingBuffer3dProps *ep3d = src->props3d;
+               _oalRingBuffer3dProps *mp3d = mixer->props3d;
 
-               mp3d = mixer->props3d;
-
-               _aaxEMitterSetDistDelay(src, mixer);
-               if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL) {
+               if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL)
+               {
+                  _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
                   _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
                }
+               _aaxEMitterResetDistDelay(src, mixer);
 
                if (_EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT) == NULL)
                {
@@ -923,12 +924,12 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
                   mp3d = mixer->props3d;
                   fp3d = submix->props3d;
 
-                  submix->dist_delaying = mixer->dist_delaying;
-                  _aaxAudioFrameSetDistDelay(submix, mixer);
-
-                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL) {
+                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
+                  {
+                     _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
                   }
+                  _aaxAudioFrameResetDistDelay(submix, mixer);
 
                   if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
                   {
@@ -1218,12 +1219,17 @@ get_driver_handle(aaxFrame f)
 }
 
 void
-_aaxAudioFrameSetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
+_aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
 {
+   int dist_delaying;
+
    assert(frame);
    assert(mixer);
 
-   if (mixer->dist_delaying)
+   dist_delaying = _FILTER_GET_STATE(frame->props3d, DISTANCE_FILTER);
+   dist_delaying |= _FILTER_GET_STATE(mixer->props3d, DISTANCE_FILTER);
+   dist_delaying &= AAX_DISTANCE_DELAY;
+   if (dist_delaying)
    {
       _oalRingBuffer3dProps *pp3d = mixer->props3d;
       _oalRingBufferDelayed3dProps *pdp3d_m = pp3d->m_dprops3d;
@@ -1243,8 +1249,23 @@ _aaxAudioFrameSetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
       dist = vec3Magnitude(fdp3d_m->matrix[LOCATION]);
       fp2d->dist_delay_sec = dist / vs;
 
+#if 0
+ printf("# frame parent:\t\t\t\tfrmae:\n");
+ PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
+ printf("# modified frame\n");
+ PRINT_MATRIX(fdp3d_m->matrix);
+ printf("delay: %f, dist: %f, vs: %f\n", fp2d->dist_delay_sec, dist, vs);
+#endif
+
       _PROP_DISTQUEUE_SET_DEFINED(frame->props3d);
       fp3d->buf3dq_step = 1.0f;
+
+      if (!frame->p3dq) {
+         _intBufCreate(&frame->p3dq, _AAX_DELAYED3D);
+      } else {
+         _intBufErase(&frame->p3dq, _AAX_DELAYED3D,
+                      removeDelayed3dQueueByPos, frame->p3dq);
+      }
    }
 }
 
@@ -1307,14 +1328,14 @@ _aaxAudioFrameStart(_frame_t *frame)
                         _sensor_t* sensor = _intBufGetDataPtr(dptr);
                         _aaxAudioFrame *pmixer = sensor->mixer;
 
-                        _aaxAudioFrameSetDistDelay(mixer, pmixer);
+                        _aaxAudioFrameResetDistDelay(mixer, pmixer);
                         _intBufReleaseData(dptr, _AAX_SENSOR);
                      }
                   }
                   else if (phandle->id == AUDIOFRAME_ID)
                   {
                      _aaxAudioFrame *pmixer = ((_frame_t*)phandle)->submix;
-                     _aaxAudioFrameSetDistDelay(mixer, pmixer);
+                     _aaxAudioFrameResetDistDelay(mixer, pmixer);
                   }
 
                   mixer->capturing = AAX_TRUE;
