@@ -1100,6 +1100,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
          }
          case AAX_VELOCITY_EFFECT:
             memcpy(rv->slot[0], &p3d->effect[rv->pos], size);
+            rv->state = p3d->effect[rv->pos].state;
             break;
          default:
             break;
