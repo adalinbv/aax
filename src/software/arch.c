@@ -115,7 +115,6 @@ static char check_extcpuid_ecx(unsigned int);
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_align16;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_align16;
-_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 _aax_memcpy_proc _batch_cvt24_24 = (_aax_memcpy_proc)_batch_cvt24_24_cpu;
 
 _batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
@@ -547,27 +546,42 @@ check_extcpuid_ecx(unsigned int type)
 void *
 _aax_aligned_alloc16(size_t size)
 {
-   void *rv;
-#if __STDC_VERSION__ >= 201112L
+   void *rv = NULL;
+
+   if (size & 0xF)
+   {
+      size |= 0xF;
+      size++;
+   }
+
+#if ISOC11_SOURCE 
    rv = aligned_alloc(16, size);
-   _aax_aligned_free = (_aax_aligned_free_proc)free;
-#elif _POSIX_VERSION >= 200112L
-   _aax_aligned_free = (_aax_aligned_free_proc)free;
-   if (posix_memalign(&rv, 16, size)) {
+#elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
+   if (posix_memalign(&rv, 16, size) != 0) {
       rv = NULL;
    }
 #elif _MSC_VER
    rv = _aligned_malloc(size, 16);
-   _aax_aligned_free = (_aax_aligned_free_proc)_aligned_free;
 #elif defined(__MINGW32__)
    rv = _mm_malloc(size, 16);
-   _aax_aligned_free = (_aax_aligned_free_proc)_mm_free;
 #else
-   assert(1 = 0);
+   assert(1 == 0);
 #endif
-
    return rv;
 }
+
+#if ISOC11_SOURCE 
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
+#elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
+#elif _MSC_VER
+_aax_aligned_free_proc _aax_aligned_free= (_aax_aligned_free_proc)_aligned_free;
+#elif defined(__MINGW32__)
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_mm_free;
+#else
+# pragma warnig _aax_aligned_alloc16 needs implementing
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
+#endif
 
 char *
 _aax_malloc_align16(char **start, unsigned int size)
