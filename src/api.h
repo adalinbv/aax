@@ -35,6 +35,10 @@ extern "C" {
 #if _WIN32
 # undef THREADED_FRAMES
 # define THREADED_FRAMES	AAX_FALSE
+# ifndef WIN32
+#  pragma waring _WIN32 defined but not WIN32
+#  define WIN32			_WIN32
+# endif
 #endif
 #if !THREADED_FRAMES
 # undef SET_PROCESS_PRIORITY
