@@ -243,7 +243,7 @@ _oalRingBufferDistFunc *_oalRingBufferALDistanceFunc[AL_DISTANCE_MODEL_MAX] =
 
 _oalRingBufferPitchShiftFunc *_oalRingBufferDopplerFunc[] =
 {
-  (_oalRingBufferPitchShiftFunc *)&_oalRingBufferDopplerShift
+   (_oalRingBufferPitchShiftFunc *)&_oalRingBufferDopplerShift
 };
 
 static void
@@ -537,7 +537,6 @@ _oalRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float
    dist = _MIN(dist, max_dist);
    denom = ref_dist + rolloff * (dist - ref_dist);
    if (denom) gain = ref_dist/denom;
-
    return gain;
 }
 
