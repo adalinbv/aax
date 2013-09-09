@@ -188,7 +188,12 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
       if (handle)
       {
          handle->info->mode = mode;
-         if (name != NULL)
+         if ((name != NULL) 
+#ifdef WIN32
+              && strcasecmp(name, "Generic Software")
+              && strcasecmp(name, "Generic Hardware")
+#endif
+            )
          {
             char *ptr;
 
