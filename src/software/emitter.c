@@ -223,36 +223,34 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    // _aaxEmitterProcessDelayQueue
-#if 0
-printf("DISTQUEUE: %x, src->p3dq: %x\r", _PROP3D_DISTQUEUE_IS_DEFINED(edp3d), src->p3dq);
-#endif
-   if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d) && src->p3dq)
+   if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d))
    {
       _oalRingBufferDelayed3dProps *sdp3d = NULL;
       _intBufferData *buf3dq;
       float pos3dq;
 
+      assert(src->p3dq);
+
       _intBufAddData(src->p3dq, _AAX_DELAYED3D, edp3d);
-      if (src->curr_pos_sec < ep2d->dist_delay_sec) {
-         return;
-      }
-
-      pos3dq = ep2d->bufpos3dq;
-      ep2d->bufpos3dq += ep3d->buf3dq_step;
-      if (pos3dq <= 0.0f) return;
-
-printf("p3dq: %i\n", _intBufGetNumNoLock(src->p3dq, _AAX_DELAYED3D));
-      do
+      if (src->curr_pos_sec >= ep2d->dist_delay_sec)
       {
-         buf3dq = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
-         if (buf3dq)
+         pos3dq = ep2d->bufpos3dq;
+         ep2d->bufpos3dq += ep3d->buf3dq_step;
+         if (pos3dq > 0.0f)
          {
-            sdp3d = _intBufGetDataPtr(buf3dq);
-            free(buf3dq);
+            do
+            {
+               buf3dq = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
+               if (buf3dq)
+               {
+                  sdp3d = _intBufGetDataPtr(buf3dq);
+                  free(buf3dq);
+               }
+               --ep2d->bufpos3dq;
+            }
+            while (ep2d->bufpos3dq > 1.0f);
          }
-         --ep2d->bufpos3dq;
       }
-      while (ep2d->bufpos3dq > 1.0f);
 
       if (!sdp3d) {                  // TODO: get from buffer cache
          sdp3d = _aaxDelayed3dPropsDup(edp3d);

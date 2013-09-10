@@ -832,10 +832,6 @@ aaxFilterSetState(aaxFilter f, int state)
          if ((state & ~AAX_DISTANCE_DELAY) < AAX_AL_DISTANCE_MODEL_MAX)
          {
             int pos = state & ~AAX_DISTANCE_DELAY;
-            if (state & AAX_DISTANCE_DELAY) {    /* distance delay enabled */
-               filter->slot[0]->param[AAX_ROLLOFF_FACTOR] *= -1;
-            }
-
             if ((pos >= AAX_AL_INVERSE_DISTANCE)
                 && (pos < AAX_AL_DISTANCE_MODEL_MAX))
             {
@@ -845,7 +841,9 @@ aaxFilterSetState(aaxFilter f, int state)
                   filter->slot[0]->data = _oalRingBufferALDistanceFunc[pos];
                }
             }
-            else if (pos < AAX_DISTANCE_MODEL_MAX) {
+            else if (pos < AAX_DISTANCE_MODEL_MAX)
+            {
+               filter->slot[0]->state = state;
                if (filter->slot[0]->data) {
                   filter->slot[0]->data = _oalRingBufferDistanceFunc[pos];
                }
@@ -1194,7 +1192,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _oalRingBuffer2d
             break;
          case AAX_ANGULAR_FILTER:
             memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
-            rv->state = p3d->filter[rv->pos].state;
+//          rv->state = p3d->filter[rv->pos].state;
             break;
          default:
             break;

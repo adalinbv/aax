@@ -225,7 +225,7 @@ enum
 #define _PROP3D_SCENE_CLEAR_CHANGED(q)	((q)->state3d &= ~SCENE_CHANGED)
 #define _PROP3D_REVERB_CLEAR_CHANGED(q)	((q)->state3d &= ~REVERB_CHANGED)
 #define _PROP3D_DISTDELAY_CLEAR_DEFINED(q) ((q)->state3d &= ~DISTDELAY_CHANGED)
-#define _PROP3D_DISTQUEUE_CLEAR_DEFINED(q) ((q)->state3d &= ~(DISTQUEUE_CHANGED & DISTDELAY_CHANGED))
+#define _PROP3D_DISTQUEUE_CLEAR_DEFINED(q) ((q)->state3d &= ~(DISTQUEUE_CHANGED|DISTDELAY_CHANGED))
 #define _PROP3D_WIND_CLEAR_CHANGED(q)	((q)->state3d &= ~WIND_CHANGED)
 
 /* delayed 3d properties: AAX Scene extension*/

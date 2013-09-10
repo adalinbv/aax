@@ -1263,7 +1263,7 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
       if (!frame->p3dq) {
          _intBufCreate(&frame->p3dq, _AAX_DELAYED3D);
       } else {
-         _intBufErase(&frame->p3dq, _AAX_DELAYED3D,
+         _intBufClear(frame->p3dq, _AAX_DELAYED3D,
                       removeDelayed3dQueueByPos, frame->p3dq);
       }
    }

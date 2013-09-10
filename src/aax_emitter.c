@@ -481,12 +481,6 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          case AAX_DISTANCE_FILTER:
          {
             _oalRingBuffer3dProps *p3d = src->props3d;
-            if (_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR) < 0)
-            {			/* distance delay is enabled */
-               float rf;
-               rf = -1.0f*_FILTER_GET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR);
-               _FILTER_SET_SLOT(filter, 0, AAX_ROLLOFF_FACTOR, rf);
-            }
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -1108,8 +1102,7 @@ aaxEmitterGetState(const aaxEmitter emitter)
       if (thread)
       {
          const _aaxEmitter *src = handle->source;
-         if (_IS_PLAYING(src->props3d)) ret = AAX_PLAYING;
-         else if (_IS_PROCESSED(src->props3d)) ret = AAX_PROCESSED;
+         if (_IS_PROCESSED(src->props3d)) ret = AAX_PROCESSED;
          else if (_IS_STOPPED(src->props3d)) ret = AAX_STOPPED;
          else if (_IS_PAUSED(src->props3d)) ret = AAX_SUSPENDED;
          else if (_IS_PLAYING(src->props3d)) ret = AAX_PLAYING;
@@ -1344,7 +1337,7 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       if (!src->p3dq) {
          _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
       } else {
-         _intBufErase(&src->p3dq, _AAX_DELAYED3D,
+         _intBufClear(src->p3dq, _AAX_DELAYED3D,
                       removeDelayed3dQueueByPos, src->p3dq);
       }
    }

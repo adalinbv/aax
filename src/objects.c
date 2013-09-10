@@ -136,14 +136,22 @@ _aax3dPropsCreate()
       rv->m_dprops3d = (_oalRingBufferDelayed3dProps*)ptr2;
 
       rv->dprops3d = _aax_aligned_alloc16(sizeof(_oalRingBufferDelayed3dProps));
-      _aaxSetDefaultDelayed3dProps(rv->dprops3d);
-      _aaxSetDefaultDelayed3dProps(rv->m_dprops3d);
+      if (rv->dprops3d)
+      {
+         _aaxSetDefaultDelayed3dProps(rv->dprops3d);
+         _aaxSetDefaultDelayed3dProps(rv->m_dprops3d);
 
-      for (pos=0; pos<MAX_3D_FILTER; pos++) {
-         _aaxSetDefaultFilter3d(&rv->filter[pos], pos);
+         for (pos=0; pos<MAX_3D_FILTER; pos++) {
+            _aaxSetDefaultFilter3d(&rv->filter[pos], pos);
+         }
+         for (pos=0; pos<MAX_3D_EFFECT; pos++) {
+            _aaxSetDefaultEffect3d(&rv->effect[pos], pos);
+         }
       }
-      for (pos=0; pos<MAX_3D_EFFECT; pos++) {
-         _aaxSetDefaultEffect3d(&rv->effect[pos], pos);
+      else
+      {
+         free(rv);
+         rv = NULL;
       }
    }
    return rv;
@@ -155,13 +163,8 @@ _aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps *dp3d)
    _oalRingBufferDelayed3dProps *rv;
 
    rv = _aax_aligned_alloc16(sizeof(_oalRingBufferDelayed3dProps));
-   if (rv)
-   {
-      _aaxSetDefaultDelayed3dProps(rv);
-
-      rv->state3d = dp3d->state3d;
-      rv->pitch = dp3d->pitch;
-      rv->gain = dp3d->gain;
+   if (rv) {
+      _aax_memcpy(rv, dp3d, sizeof(_oalRingBufferDelayed3dProps));
    }
    return rv;
 }

@@ -475,25 +475,25 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
       float pos3dq;
 
       _intBufAddData(frame->p3dq, _AAX_DELAYED3D, fdp3d);
-      if (frame->curr_pos_sec <= fp2d->dist_delay_sec) {
-         return;
-      }
-
-      pos3dq = fp2d->bufpos3dq;
-      fp2d->bufpos3dq += fp3d->buf3dq_step;
-      if (pos3dq <= 0.0f) return;
-
-      do
+      if (frame->curr_pos_sec > fp2d->dist_delay_sec)
       {
-         buf3dq = _intBufPopData(frame->p3dq, _AAX_DELAYED3D);
-         if (buf3dq)
+         pos3dq = fp2d->bufpos3dq;
+         fp2d->bufpos3dq += fp3d->buf3dq_step;
+         if (pos3dq > 0.0f)
          {
-            tdp3d = _intBufGetDataPtr(buf3dq);
-            _aax_aligned_free(tdp3d);
+            do
+            {
+               buf3dq = _intBufPopData(frame->p3dq, _AAX_DELAYED3D);
+               if (buf3dq)
+               {
+                  tdp3d = _intBufGetDataPtr(buf3dq);
+                  _aax_aligned_free(tdp3d);
+               }
+               --fp2d->bufpos3dq;
+            }
+            while (fp2d->bufpos3dq > 1.0f);
          }
-         --fp2d->bufpos3dq;
       }
-      while (fp2d->bufpos3dq > 1.0f);
 
       if (!tdp3d) {			// TODO: get from buffer cache
          tdp3d = _aaxDelayed3dPropsDup(fdp3d);
