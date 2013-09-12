@@ -407,7 +407,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
    return rv;
 }
 
-AAX_API const aaxFilter AAX_APIENTRY
+AAX_API aaxFilter AAX_APIENTRY
 aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
 {
    _frame_t *handle = get_frame(frame);
@@ -489,7 +489,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
    return rv;
 }
 
-AAX_API const aaxEffect AAX_APIENTRY
+AAX_API aaxEffect AAX_APIENTRY
 aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
 {
    _frame_t *handle = get_frame(frame);

@@ -163,7 +163,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
    return rv;
 }
 
-AAX_API const aaxFilter AAX_APIENTRY
+AAX_API aaxFilter AAX_APIENTRY
 aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
 {
    _handle_t* handle = get_handle(config);
@@ -242,7 +242,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
    return rv;
 }
 
-AAX_API const aaxEffect AAX_APIENTRY
+AAX_API aaxEffect AAX_APIENTRY
 aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t* handle = get_handle(config);

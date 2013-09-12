@@ -258,7 +258,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
    return rv;
 }
 
-AAX_API const aaxBuffer AAX_APIENTRY
+AAX_API aaxBuffer AAX_APIENTRY
 aaxEmitterGetBufferByPos(const aaxEmitter emitter, unsigned int pos, int copy)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -527,7 +527,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
    return rv;
 }
 
-AAX_API const aaxFilter AAX_APIENTRY
+AAX_API aaxFilter AAX_APIENTRY
 aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
 {
    _emitter_t* handle = get_emitter(emitter);
@@ -679,7 +679,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
    return rv;
 }
 
-AAX_API const aaxEffect AAX_APIENTRY
+AAX_API aaxEffect AAX_APIENTRY
 aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
 {
    _emitter_t* handle = get_emitter(emitter);
