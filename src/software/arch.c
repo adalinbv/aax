@@ -554,7 +554,9 @@ _aax_aligned_alloc16(size_t size)
       size++;
    }
 
-#if ISOC11_SOURCE 
+#if __MINGW32__
+   rv = _mm_malloc(size, 16);
+#elif ISOC11_SOURCE 
    rv = aligned_alloc(16, size);
 #elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
    if (posix_memalign(&rv, 16, size) != 0) {
@@ -562,22 +564,20 @@ _aax_aligned_alloc16(size_t size)
    }
 #elif _MSC_VER
    rv = _aligned_malloc(size, 16);
-#elif defined(__MINGW32__)
-   rv = _mm_malloc(size, 16);
 #else
    assert(1 == 0);
 #endif
    return rv;
 }
 
-#if ISOC11_SOURCE 
+#if defined(__MINGW32__)
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_mm_free;
+#elif ISOC11_SOURCE 
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #elif _MSC_VER
 _aax_aligned_free_proc _aax_aligned_free= (_aax_aligned_free_proc)_aligned_free;
-#elif defined(__MINGW32__)
-_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_mm_free;
 #else
 # pragma warnig _aax_aligned_alloc16 needs implementing
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
