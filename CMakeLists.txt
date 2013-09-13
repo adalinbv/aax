@@ -27,7 +27,7 @@ ADD_DEFINITIONS(-D_XOPEN_SOURCE=600)
 IF(WIN32)
   SET(EXTRA_LIBS Winmm ${EXTRA_LIBS})
   ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
-  ADD_DEFINITIONS(-D_WIN32)
+  ADD_DEFINITIONS(-D_WIN32 -DWIN32)
   SET(LIBAEONWAVE AAX32)
 ELSE(WIN32)
   ADD_DEFINITIONS(-D_GNU_SOURCE=1)
@@ -112,7 +112,9 @@ ENDIF(WIN32)
 # ZIP
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
+IF(NOT SINGLE_PACKAGE)
 INCLUDE (CPack)
+ENDIF(NOT SINGLE_PACKAGE)
 
 # Required libraries
 FIND_PACKAGE(XML REQUIRED)
@@ -185,7 +187,7 @@ ELSE(MSVC)
     ENDIF(LTO)
 
     IF(NOT MINGW)
-       SET(C_FLAGS "${C_FLAGS} -fPIC")
+       SET(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both")
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
@@ -225,7 +227,7 @@ ELSE(MSVC)
       )
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -Wl,--hash-style=both -shared -funroll-loops -fomit-frame-pointer" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
