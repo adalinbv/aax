@@ -98,6 +98,7 @@ int main(int argc, char **argv)
     {
         char *fparam = getCommandLineOption(argc, argv, "-f");
         aaxFrame frame = NULL;
+        aaxFilter filter;
         int state;
 
         /** mixer */
@@ -131,6 +132,14 @@ int main(int argc, char **argv)
             /** sensor */
             res = aaxMixerRegisterSensor(config, record);
             testForState(res, "aaxMixerRegisterSensor");
+        }
+
+        /** set capturing Auto-Gain Control (AGC): 0dB */
+        filter = aaxMixerGetFilter(record, AAX_VOLUME_FILTER);
+        if (filter)
+        {
+            aaxFilterSetParam(filter, AAX_AGC_RESPONSE_RATE, AAX_LINEAR, 1.5f);
+            aaxMixerSetFilter(record, filter);
         }
 
         /** must be called after aaxMixerRegisterSensor */
