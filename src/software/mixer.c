@@ -597,6 +597,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                                      sizeof(_oalRingBuffer2dProps));
                   _aax_memcpy(&sdp3d, mixer->props3d->dprops3d,
                                       sizeof(_oalRingBufferDelayed3dProps));
+                  sdp3d_m.state3d = sdp3d.state3d;
+                  sdp3d_m.pitch = sdp3d.pitch;
+                  sdp3d_m.gain = sdp3d.gain;
                   _PROP_CLEAR(mixer->props3d);
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
@@ -615,10 +618,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
  printf("modified velocity\n");
  PRINT_MATRIX(sdp3d_m.velocity);
 #endif
-               sdp3d_m.state3d = sdp3d.state3d;
-               sdp3d_m.pitch = sdp3d.pitch;
-               sdp3d_m.gain = sdp3d.gain;
-
                /* clear the buffer for use by the subframe */
                _oalRingBufferClear(dest_rb);
                _oalRingBufferStart(dest_rb);

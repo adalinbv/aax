@@ -302,11 +302,11 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
 #endif
 
          _PROP3D_MTX_CLEAR_CHANGED(pdp3d_m);
-         _PROP3D_MTX_SET_CHANGED(fdp3d);
+         _PROP3D_MTX_SET_CHANGED(fdp3d_m);
       }
 
       if (_PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m) ||
-          _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d))
+          _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
       {
          mtx4Mul(fdp3d_m->velocity, pdp3d_m->velocity, fdp3d->velocity);
 
@@ -563,7 +563,8 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
                        sizeof(_oalRingBufferDelayed3dProps));
    _aax_memcpy(&fdp3d_m, fmixer->props3d->m_dprops3d,
                          sizeof(_oalRingBufferDelayed3dProps));
-   _PROP_CLEAR(fmixer->props3d);
+// TODO: Fixme:
+// _PROP_CLEAR(fmixer->props3d);
 
    /* frame read-only data */
    _aax_memcpy(&fp2d.speaker, &sp2d.speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
