@@ -42,23 +42,45 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAMPLE_FREQUENCY	22050
+/*
+ * Attach an emitter to a sub-frame which is attached to an audio-frame,
+ * in such a way that rotating on or more of them for 90 degrees moves the
+ * emitter from left to right (or forn or back) of the sensor.
+ * All positions are relative.
+ *
+ * X: positive to the right,
+ * Y: positive upwards,
+ * Z: positibe backwards.
+ */
 
-aaxVec3f EmitterPos = { 0.0f, 0.0f, -1.0f };
-aaxVec3f EmitterDir = { 0.0f, 0.0f,  1.0f };
+#define FILE_PATH		SRC_PATH"/tictac.wav"
 
-aaxVec3f SensorPos = { 0.0f, 0.0f,  0.0f };
-aaxVec3f SensorAt  = { 0.0f, 0.0f, -1.0f };
-aaxVec3f SensorUp  = { 0.0f, 1.0f,  0.0f };
+aaxVec3f SensorPos =  { 9.0f, 9.0f,  9.0f };
+aaxVec3f SensorAt  =  { 0.0f, 0.0f, -1.0f };
+aaxVec3f SensorUp  =  { 0.0f, 1.0f,  0.0f };
+
+aaxVec3f Frame1Pos =  { -0.5f, 0.0f, 0.0f };		/* 0.5m to the left */
+aaxVec3f Frame1At =   {  0.0f, 0.0f, 1.0f };
+aaxVec3f Frame1Up =   {  0.0f, 1.0f, 0.0f };
+
+aaxVec3f Frame2Pos =  {  1.0f, 0.0f, 0.0f };		/* 1m to the right */
+aaxVec3f Frame2At =   {  0.0f, 0.0f, 1.0f };
+aaxVec3f Frame2Up =   {  0.0f, 1.0f, 0.0f };
+
+aaxVec3f EmitterPos = { -1.0f, 0.0f, 0.0f };		/* 1m to the left */
+aaxVec3f EmitterDir = {  0.0f, 0.0f, 1.0f };
 
 int main(int argc, char **argv)
 {
+    enum aaxRenderMode mode;
+    char *devname, *infile;
     aaxConfig config;
     int res, rv = 0;
-    char *devname;
 
+    mode = getMode(argc, argv);
     devname = getDeviceName(argc, argv);
-    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+    infile = getInputFile(argc, argv, FILE_PATH);
+    config = aaxDriverOpenByName(devname, mode);
     testForError(config, "No default audio device available.");
 
     if (!aaxIsValid(config, AAX_CONFIG_HD))
@@ -72,25 +94,73 @@ int main(int argc, char **argv)
 
     if (config && (rv >= 0))
     {
-        unsigned int no_samples;
         aaxEmitter emitter;
+        aaxFrame frame[2];
         aaxBuffer buffer;
         aaxFilter filter;
         aaxMtx4f mtx;
         float pitch;
 
-        no_samples = (unsigned int)(1.1f*SAMPLE_FREQUENCY);
-        buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
+        buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to generate buffer\n");
 
-        res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
-        testForState(res, "aaxBufferSetFrequency");
+        /** mixer */
+        res = aaxMixerInit(config);
+        testForState(res, "aaxMixerInit");
 
-        res = aaxBufferSetWaveform(buffer, 1250.0f, AAX_TRIANGLE_WAVE);
-        res = aaxBufferMixWaveform(buffer, 1500.0f, AAX_SINE_WAVE, 0.6f);
-        res=aaxBufferRingmodulateWaveform(buffer, 500.0f, AAX_SINE_WAVE, 0.6f);
-        /* res = aaxBufferAddWaveform(buffer, 0.0f, AAX_PINK_NOISE, 0.08f); */
-        testForState(res, "aaxBufferProcessWaveform");
+        res = aaxMixerSetState(config, AAX_PLAYING);
+        testForState(res, "aaxMixerStart");
+
+        /** sensor */
+        res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
+        testForState(res, "aaxSensorSetOrientation");
+
+        res = aaxMatrixTranslate(mtx, 5.0f, 5.0f, 5.0f);
+        testForState(res, "aaxMatrixTranslate");
+
+        res = aaxMatrixInverse(mtx);
+        testForState(res, "aaxMatrixInverse");
+
+        res = aaxSensorSetMatrix(config, mtx);
+        testForState(res, "aaxSensorSetMatrix");
+
+        /* frame */
+        frame[0] = aaxAudioFrameCreate(config);
+        testForError(frame[0], "Unable to create a new audio frame\n");
+
+        res = aaxMatrixSetOrientation(mtx, Frame1Pos, Frame1At, Frame1Up);
+        testForState(res, "aaxAudioFrameSetOrientation");
+
+        res = aaxAudioFrameSetMatrix(frame[0], mtx);
+        testForState(res, "aaxAudioFrameSetMatrix");
+
+        res=aaxAudioFrameSetMode(frame[0], AAX_POSITION, AAX_RELATIVE);
+        testForState(res, "aaxAudioFrameSetMode");
+
+        res = aaxMixerRegisterAudioFrame(config, frame[0]);
+        testForState(res, "aaxMixerRegisterAudioFrame");
+
+        res = aaxAudioFrameSetState(frame[0], AAX_PLAYING);
+        testForState(res, "aaxAudioFrameStart");
+
+        /* sub-frame */
+        frame[1] = aaxAudioFrameCreate(config);
+        testForError(frame[1], "Unable to create a new audio frame\n");
+
+        res = aaxMatrixSetOrientation(mtx, Frame2Pos, Frame2At, Frame2Up);
+        testForState(res, "aaxAudioFrameSetOrientation");
+
+        res = aaxAudioFrameSetMatrix(frame[1], mtx);
+        testForState(res, "aaxAudioFrameSetMatrix");
+
+        res=aaxAudioFrameSetMode(frame[1], AAX_POSITION, AAX_RELATIVE);
+        testForState(res, "aaxAudioFrameSetMode");
+
+        res = aaxAudioFrameRegisterAudioFrame(frame[0], frame[1]);
+        testForState(res, "aaxAudioFrameRegisterAudioFrame");
+
+        res = aaxAudioFrameSetState(frame[1], AAX_PLAYING);
+        testForState(res, "aaxAudioFrameStart");
 
         /** emitter */
         emitter = aaxEmitterCreate();
@@ -103,75 +173,26 @@ int main(int argc, char **argv)
         res = aaxEmitterSetPitch(emitter, pitch);
         testForState(res, "aaxEmitterSetPitch");
 
-        printf("Locate the emitter 5 meters in front of the sensor\n");
         res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
         testForState(res, "aaxMatrixSetDirection");
 
         res = aaxEmitterSetMatrix(emitter, mtx);
         testForState(res, "aaxEmitterSetMatrix");
 
-        res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
+        res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_RELATIVE);
         testForState(res, "aaxEmitterSetMode");
 
         res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
         testForState(res, "aaxEmitterSetLooping");
 
-        /* tremolo filter for emitter */
-        filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
-        testForError(filter, "aaxFilterCreate");
-
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                          0.0f, 2.8f, 0.4f, 0.0f);
-        testForError(filter, "aaxFilterSetSlot");
-
-        filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
-        testForError(filter, "aaxFilterSetState");
-
-        res = aaxEmitterSetFilter(emitter, filter);
-        testForState(res, "aaxEmitterSetFilter");
-
-        res = aaxFilterDestroy(filter);
-        testForState(res, "aaxFilterDestroy");
-
-        /** mixer */
-        res = aaxMixerInit(config);
-        testForState(res, "aaxMixerInit");
-
-        res = aaxMixerRegisterEmitter(config, emitter);
+        res = aaxAudioFrameRegisterEmitter(frame[1], emitter);
         testForState(res, "aaxMixerRegisterEmitter");
 
-        res = aaxMixerSetState(config, AAX_PLAYING);
-        testForState(res, "aaxMixerStart");
-
-        res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
-        testForState(res, "aaxMatrixSetOrientation");
-
-        /* tremolo filter for mixer */
-        filter = aaxFilterCreate(config, AAX_TREMOLO_FILTER);
-        testForError(filter, "aaxFilterCreate");
-
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                          0.0f, 0.9f, 0.5f, 0.0f);
-        testForError(filter, "aaxFilterSetSlot");
-
-        filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
-        testForError(filter, "aaxFilterSetState");
-
-        res = aaxMixerSetFilter(config, filter);
-        testForState(res, "aaxMixerSetFilter");
-
-        res = aaxFilterDestroy(filter);
-        testForState(res, "aaxFilterDestroy");
-
-        /** sensor */
-        res = aaxMatrixInverse(mtx);
-        res = aaxSensorSetMatrix(config, mtx);
-        testForState(res, "aaxSensorSetMatrix");
-
-        /** schedule the emitter for playback */
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
         testForState(res, "aaxEmitterStart");
 
+        printf("Starting playback.\n");
+        printf("The emitter is now positioned 90 degrees to the left.\n");
         do
         {
             static int i = 0;
@@ -181,33 +202,40 @@ int main(int argc, char **argv)
             switch(i)
             {
             case 0:
-                printf("rotate the sensor 90 degrees counter-clockwise\n");
-                printf("the emitter is now 5 meters to the left\n");
-                SensorAt[0] =  1.0f;
-                SensorAt[1] =  0.0f;
-                SensorAt[2] =  0.0f;
+                printf("Rotating the sensor 180 degrees.\n");
+                printf("The emitter is now 90 degrees to the right.\n");
                 res=aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
+                testForState(res, "aaxSensorSetOrientation");
+
+                res=aaxMatrixRotate(mtx,180.0f*GMATH_DEG_TO_RAD,0.0f,1.0f,0.0f);
+                testForState(res, "aaxMatrixRotate");
+                res = aaxMatrixInverse(mtx);
+                testForState(res, "aaxMatrixInverse");
+
+                res = aaxSensorSetMatrix(config, mtx);
+                testForState(res, "aaxSensorSetMatrix");
                 break;
             case 1:
-                printf("translate the sensor 5 meters backwards\n");
-                printf("the emitter is now 5 meters the left and 5 "
-                       "meters in front\n");
-                res=aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
-                res = aaxMatrixTranslate(mtx, 0.0f, 0.0f, -5.0f);
+                printf("Rotating the audio-frame 180 degrees.\n");
+                printf("The emitter is now positioned 90 degrees to the left.\n");
+                res=aaxMatrixSetOrientation(mtx, Frame1Pos, Frame1At, Frame1Up);
+                res=aaxMatrixRotate(mtx,180.0f*GMATH_DEG_TO_RAD,0.0f,1.0f,0.0f);
+                testForState(res, "aaxMatrixRotate");
+                res = aaxAudioFrameSetMatrix(frame[0], mtx);
+                testForState(res, "aaxAudioFrameSetMatrix");
                 break;
             case 2:
-                printf("Rotate the sensor 90 degrees counter clockwise\n");
-                res = aaxMatrixSetOrientation(mtx, SensorPos,
-                                                   SensorAt, SensorUp);
-                res = aaxMatrixTranslate(mtx, 0.0f, 0.0f, -5.0f);
-                res = aaxMatrixRotate(mtx, -90.0f*GMATH_DEG_TO_RAD,
-                                           0.0f, 1.0f, 0.0f);
+                printf("Rotating the sub-frame 180 degrees.\n");
+                printf("The emitter is now back to 90 degrees to the right.\n");
+                res=aaxMatrixSetOrientation(mtx, Frame2Pos, Frame2At, Frame2Up);
+                res=aaxMatrixRotate(mtx,180.0f*GMATH_DEG_TO_RAD,0.0f,1.0f,0.0f);
+                testForState(res, "aaxMatrixRotate");
+                res = aaxAudioFrameSetMatrix(frame[1], mtx);
+                testForState(res, "aaxAudioFrameSetMatrix");
                 break;
             default:
                 break;
             }
-            res = aaxMatrixInverse(mtx);
-            res = aaxSensorSetMatrix(config, mtx);
 
             if (++i == 4) break;
         }
