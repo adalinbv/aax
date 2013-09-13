@@ -61,8 +61,9 @@ ENDIF(WIN32)
 # ZIP
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAXUTILS_VERSION}" CACHE INTERNAL "tarball basename")
 
-
+IF(NOT SINGLE_PACKAGE)
 INCLUDE (CPack)
+ENDIF(NOT SINGLE_PACKAGE)
 
 # Add definitions, compiler switches, etc.
 ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
@@ -114,12 +115,8 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 # Required libraries
-FIND_PACKAGE(AAX REQUIRED)
-if(NOT AAX_FOUND)
-  message(STATUS "ERROR: required AAX library is not installed, aborting.")
-  return()
-endif(NOT AAX_FOUND)
-FIND_PACKAGE(XML REQUIRED)
+FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
+FIND_PACKAGE(XML COMPONENTS xml REQUIRED)
 
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${aax-utils_SOURCE_DIR}"
