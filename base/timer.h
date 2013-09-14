@@ -112,6 +112,7 @@ double _aaxTimerElapsed(_aaxTimer*);
 void _aaxTimerStart(_aaxTimer*);
 
 /* repeatable */
+int _aaxTimerSetCondition(_aaxTimer*, void*);
 int _aaxTimerStartRepeatable(_aaxTimer*, float);
 int _aaxTimerStop(_aaxTimer*);
 int _aaxTimerWait(_aaxTimer*, void*);

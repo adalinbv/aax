@@ -206,8 +206,7 @@ _aaxMutexLock(void *mutex)
          m = _aaxMutexCreateInt(m);
       }
 
-      if (m->initialized != 0)
-      {
+      if (m->initialized != 0) {
          r = pthread_mutex_lock(&m->mutex);
       }
    }

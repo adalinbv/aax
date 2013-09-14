@@ -173,6 +173,18 @@ _aaxTimerDestroy(_aaxTimer* tm)
 }
 
 int
+_aaxTimerSetCondition(_aaxTimer *rm, void *evet)
+{
+    int rv = AAX_FALSE;
+    if (tm && !tm->Event)
+    {
+       tm->Event = event;
+       rv = AAX_TRUE;
+    }
+    return rv;
+}
+
+int
 _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
    int rv = AAX_FALSE;
@@ -410,6 +422,18 @@ _aaxTimerDestroy(_aaxTimer *tm)
    free(tm);
 }
 
+
+int
+_aaxTimerSetCondition(_aaxTimer *tm, void *condition)
+{
+    int rv = AAX_FALSE;
+    if(tm && !tm->condition)
+    {
+       tm->condition = condition;
+       rv = AAX_TRUE;
+    }
+    return rv;
+}
 
 int
 _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
