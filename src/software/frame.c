@@ -112,6 +112,7 @@ _aaxAudioFrameThread(void* config)
    delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    timer = _aaxTimerCreate();
+   _aaxTimerSetCondition(timer, frame->thread.condition);
    _aaxTimerStartRepeatable(timer, delay_sec);
 
    _aaxMutexLock(frame->thread.mutex);
@@ -135,13 +136,7 @@ _aaxAudioFrameThread(void* config)
             }
          }
       }
-
       mixer->capturing++;
-#if USE_CONDITION
-      if (fmixer->frame_ready) {
-         _aaxConditionSignal(fmixer->frame_ready);
-      }
-#endif
 
       /**
        * _aaxSoftwareMixerSignalFrames uses _aaxConditionSignal to let the
@@ -311,7 +306,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
          mtx4Mul(fdp3d_m->velocity, pdp3d_m->velocity, fdp3d->velocity);
 
          _PROP3D_SPEED_CLEAR_CHANGED(pdp3d_m);
-         _PROP3D_SPEED_SET_CHANGED(fdp3d);
+         _PROP3D_SPEED_SET_CHANGED(fdp3d_m);
       }
    }
 
