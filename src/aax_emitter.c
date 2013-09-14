@@ -189,7 +189,8 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       }
       else if (buffer) {
          _aaxErrorSet(AAX_INVALID_STATE);
-      } else {
+      }
+      else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
