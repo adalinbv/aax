@@ -635,14 +635,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 
 #if GOOD_CODE
 # if THREADED_FRAMES
-               /** signal threaded frames to update (if necessary) */
-               /* thread == -1: mixer; attached frames are threads */
-               /* thread >=  0: frame; call updates manually       */
-               if (mixer->thread < 0) {
-                  _aaxSoftwareMixerSignalFrames(mixer->frames,
-                                                mixer->info->refresh_rate);
-               }
-
                /* main mixer */
                _aaxEmittersProcess(dest_rb, handle->info, ssv, sdf,
                                    &sp2d, &sdp3d,
