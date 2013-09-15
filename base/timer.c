@@ -36,7 +36,7 @@
 #include "timer.h"
 
 
-#ifdef WIN32
+#ifdef _WIN32
 /*
    Implementation as per:
    The Open Group Base Specifications, Issue 6
@@ -123,7 +123,8 @@ _aaxTimerCreate()
          rv->prevTimerCount.QuadPart = rv->timerCount.QuadPart;
          rv->tfreq = (double)timerFreq.QuadPart;
 
-         rv->Event = NULL;
+         rv->Event[WAITABLE_TIMER_EVENT] = NULL;
+         rv->Event[CONDITION_EVENT] = NULL;
          rv->Period = 0;
       }
    }
@@ -169,16 +170,25 @@ void
 _aaxTimerDestroy(_aaxTimer* tm)
 {
    _aaxTimerStop(tm);
+   if (tm)
+   {
+      if (tm->Event[WAITABLE_TIMER_EVENT]) {
+         CloseHandle(tm->Event[WAITABLE_TIMER_EVENT]);
+      }
+      if (tm->Event[CONDITION_EVENT]) {
+         CloseHandle(tm->Event[CONDITION_EVENT]);
+      }
+   }
    free(tm);
 }
 
 int
-_aaxTimerSetCondition(_aaxTimer *rm, void *evet)
+_aaxTimerSetCondition(_aaxTimer *tm, void *event)
 {
     int rv = AAX_FALSE;
-    if (tm && !tm->Event)
+    if (tm && !tm->Event[CONDITION_EVENT])
     {
-       tm->Event = event;
+       tm->Event[CONDITION_EVENT] = event;
        rv = AAX_TRUE;
     }
     return rv;
@@ -188,19 +198,20 @@ int
 _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
    int rv = AAX_FALSE;
-   if (sec > 1e-6f)
+   if (tm && sec > 1e-6f)
    {
-      if (tm->Event == NULL) {
-         tm->Event = CreateWaitableTimer(NULL, FALSE, NULL);
+      if (tm->Event[WAITABLE_TIMER_EVENT] == NULL) {
+         tm->Event[WAITABLE_TIMER_EVENT] = CreateWaitableTimer(NULL,FALSE,NULL);
       }
 
-      if (tm->Event)
+      if (tm->Event[WAITABLE_TIMER_EVENT])
       {
          HRESULT hr;
 
          tm->Period = (LONG)(sec*1000);
          tm->dueTime.QuadPart = -(LONGLONG)(sec*10000*1000);
-         hr = SetWaitableTimer(tm->Event, &tm->dueTime, 0, NULL, NULL, FALSE);
+         hr= SetWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT],
+                              &tm->dueTime, 0, NULL, NULL, FALSE);
          if (hr)
          {
             setTimerResolution(1);
@@ -218,12 +229,13 @@ int
 _aaxTimerStop(_aaxTimer* tm)
 {
    int rv = AAX_FALSE;
-   if (tm && tm->Event)
+   if (tm && tm->Event[WAITABLE_TIMER_EVENT])
    {
-      if ( CancelWaitableTimer(tm->Event))
+      if (CancelWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT]))
       {
          resetTimerResolution(1);
-         tm->Event = NULL;
+         CloseHandle(tm->Event[WAITABLE_TIMER_EVENT]);
+         tm->Event[WAITABLE_TIMER_EVENT] = NULL;
          rv = AAX_TRUE;
       }
    }
@@ -235,22 +247,23 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 {
    int rv = AAX_TRUE;
 
-   if (tm->Event)
+   if (tm->Event[WAITABLE_TIMER_EVENT])
    {
-      DWORD hr;
+      DWORD hr, num = tm->Event[CONDITION_EVENT] ? 2 : 1;
 
       _aaxMutexUnLock(mutex);
-      hr = WaitForSingleObject(tm->Event, tm->Period);
-      SetWaitableTimer(tm->Event, &tm->dueTime, 0, NULL, NULL, FALSE);
+      hr = WaitForMultipleObjects(num, tm->Event, FALSE, tm->Period);
+      SetWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT],
+                       &tm->dueTime, 0, NULL, NULL, FALSE);
       _aaxMutexLock(mutex);
 
       switch(hr)
       {
       case WAIT_TIMEOUT:
-      case WAIT_OBJECT_0:
+      case WAIT_OBJECT_0 + WAITABLE_TIMER_EVENT:
          rv = AAX_TIMEOUT;
          break;
-      case WAIT_ABANDONED:
+      case WAIT_OBJECT_0 + CONDITION_EVENT:
          rv = AAX_TRUE;
          break;
       default:
@@ -263,7 +276,7 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 }
 /* end of highres timing code */
 
-#else	/* if defined(WIN32) */
+#else	/* _WIN32 */
 
 /*
  * dt_ms == 0 is a special case which make the time-slice available for other
@@ -362,6 +375,7 @@ _aaxTimerCreate()
          }
 
          rv->condition = NULL;
+         rv->user_condition = AAX_FALSE;
          rv->timeStep.tv_nsec = 0;
          rv->timeStep.tv_sec = 0;
       }
@@ -416,7 +430,8 @@ _aaxTimerElapsed(_aaxTimer *tm)
 void
 _aaxTimerDestroy(_aaxTimer *tm)
 {
-   if (tm && tm->condition) {
+   _aaxTimerStop(tm);
+   if (tm && tm->condition && !tm->user_condition) {
       _aaxConditionDestroy(tm->condition);
    }
    free(tm);
@@ -430,6 +445,7 @@ _aaxTimerSetCondition(_aaxTimer *tm, void *condition)
     if(tm && !tm->condition)
     {
        tm->condition = condition;
+       tm->user_condition = AAX_TRUE;
        rv = AAX_TRUE;
     }
     return rv;
@@ -439,7 +455,7 @@ int
 _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
    int rv = AAX_FALSE;
-   if (sec > 1e-6f)
+   if (tm && sec > 1e-6f)
    {
       if (tm->condition == NULL) {
          tm->condition = _aaxConditionCreate();
@@ -508,5 +524,5 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 }
 /* end of highres timing code */
 
-#endif	/* if defined(WIN32) */
+#endif	/* if defined(_WIN32) */
 

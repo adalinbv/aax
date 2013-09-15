@@ -31,7 +31,7 @@ extern "C" {
 
 #include "types.h"
 
-#if defined( WIN32 )
+#ifdef _WIN32
 
 # ifdef HAVE_TIME_H
 #  include <time.h>             /* for nanosleep */
@@ -45,6 +45,11 @@ extern "C" {
 # endif
 # define CLOCK_REALTIME			0
 # define CLOCK_MONOTONIC		1
+
+enum {
+    WAITABLE_TIMER_EVENT = 0,
+    CONDITION_EVENT = 1
+} _Event_e;
 
 struct timespec
 {
@@ -62,11 +67,11 @@ typedef INT32   ssize_t;
 typedef INT64   ssize_t;
 # endif
 
-#else	/* if defined( WIN32 ) */
+#else	/* _WIN32 */
 # if HAVE_SYS_TIME_H
 #  include <sys/time.h>         /* for gettimeofday */
 # endif
-#endif	/* if defined( WIN32 ) */
+#endif	/* _WIN32 */
 
 int msecSleep(unsigned int);
 unsigned int getTimerResolution();
@@ -75,7 +80,7 @@ int resetTimerResolution(unsigned int);
 
 
 /** highres timing code */
-#ifdef WIN32
+#ifdef _WIN32
 typedef struct
 {
    double tfreq;
@@ -84,7 +89,7 @@ typedef struct
    LARGE_INTEGER timerCount;
 
    /* repeatable */
-   HANDLE Event;	/* if Event != NULL the timer is repeatable */
+   HANDLE Event[2];	/* if Event != NULL the timer is repeatable */
    LARGE_INTEGER dueTime;
    LONG Period;
 
@@ -101,6 +106,8 @@ typedef struct
    void *condition;	/* if condition!= NULL the timer is repeatable */
    struct timespec timeStep;
    struct timespec ts;
+
+   char user_condition;
 
 } _aaxTimer;
 #endif
