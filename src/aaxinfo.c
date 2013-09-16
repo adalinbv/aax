@@ -39,6 +39,15 @@
 
 #include <stdio.h>
 #include <string.h>
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#if HAVE_SYS_IOCTL_H
+# include <sys/ioctl.h>
+#endif
+#if _WIN32
+# include <Windows.h>
+#endif
 #ifndef NDEBUG
 # ifdef HAVE_RMALLOC_H
 #  include <rmalloc.h>
@@ -78,6 +87,34 @@ static const char *_effect_s[AAX_EFFECT_MAX] =
     "AAX_velocity_effect"	/* 3d effects */
 };
 
+static int maximumWidth = 80;
+
+#if _WIN32
+static int
+terminalWidth()
+{
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    int ret, rv = maximumWidth;
+    ret = GetConsoleScreenBufferInfo(GetStdHandle( STD_OUTPUT_HANDLE ),&csbi);
+    if (ret) rv = csbi.dwSize.X;
+    return rv;
+}
+#elif HAVE_SYS_IOCTL_H
+static int
+terminalWidth()
+{
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    return w.ws_col;
+}
+#else
+#pragma warning Implement terminal width
+static int
+terminalWidth() {
+    return maximumWidth;
+}
+#endif
+
 int main(int argc, char **argv)
 {
     unsigned int i, x, y, z, max;
@@ -90,6 +127,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    maximumWidth = terminalWidth()-1;
     printf("Run %s -copyright to read the copyright information.\n", argv[0]);
 
     for (mode = AAX_MODE_READ; mode <= AAX_MODE_WRITE_STEREO; mode++)
@@ -204,7 +242,7 @@ int main(int argc, char **argv)
                 if (aaxIsFilterSupported(cfg, _filter_s[i]))
                 {
                     len += strlen(_filter_s[i])+1;   /* one for leading space */
-                    if (len >= 78)
+                    if (len >= maximumWidth)
                     {
                         printf("\n ");
                         len = strlen(_filter_s[i])+1;
@@ -220,7 +258,7 @@ int main(int argc, char **argv)
                 if (aaxIsEffectSupported(cfg, _effect_s[i]))
                 {
                     len += strlen(_effect_s[i])+1;   /* one for leading space */
-                    if (len >= 78)
+                    if (len >= maximumWidth)
                     {
                         printf("\n ");
                         len = strlen(_effect_s[i])+1;
