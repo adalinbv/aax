@@ -71,14 +71,14 @@ int main(int argc, char **argv)
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, mode);
-    testForError(config, "No default audio device available.");
-
     if (config)
     {
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
+            char *fparam = getCommandLineOption(argc, argv, "-f");
             aaxEmitter emitter;
+            aaxFrame frame;
             aaxMtx4f mtx;
             float dist;
 
@@ -138,8 +138,25 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMatrix(emitter, mtx);
             testForState(res, "aaxEmitterSetMatrix");
 
-            res = aaxMixerRegisterEmitter(config, emitter);
-            testForState(res, "aaxMixerRegisterEmitter");
+            if (!fparam)
+            {
+                res = aaxMixerRegisterEmitter(config, emitter);
+                testForState(res, "aaxMixerRegisterEmitter");
+            }
+            else
+            {
+                frame = aaxAudioFrameCreate(config);
+                testForError(frame, "Unable to create a new frame");
+
+                res = aaxMixerRegisterAudioFrame(config, frame);
+                testForState(res, "aaxMixerRegisterAudioFrame");
+
+                res = aaxAudioFrameRegisterEmitter(frame, emitter);
+                testForState(res, "aaxAudioFrameRegisterEmitter");
+
+                res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+                testForState(res, "aaxAudioFrameSetState");
+            }
 
             /** schedule the emitter for playback */
             printf("Engine start\n");
@@ -153,7 +170,7 @@ int main(int argc, char **argv)
 
                 EmitterPos[0] = -dist;
                 dist -= STEP;
-#if 1
+#if 0
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n",
                             _vec3Magnitude(EmitterPos),
                             EmitterPos[0]-SensorPos[0],
@@ -170,8 +187,14 @@ int main(int argc, char **argv)
             res = aaxEmitterSetState(emitter, AAX_STOPPED);
             testForState(res, "aaxEmitterStop");
 
-            res = aaxMixerDeregisterEmitter(config, emitter);
-            testForState(res, "aaxMixerDeregisterEmitter");
+            if (!fparam)
+            {
+                res = aaxMixerDeregisterEmitter(config, emitter);
+                testForState(res, "aaxMixerDeregisterEmitter");
+            }
+            else
+            {
+            }
 
             res = aaxEmitterDestroy(emitter);
             testForState(res, "aaxEmitterDestroy");
