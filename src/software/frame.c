@@ -286,13 +286,13 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
    /* update the model-view matrix based on our own and that of out parent */
    if (pdp3d_m)
    {
-      if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d))
+      if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
       {
          mtx4Mul(fdp3d_m->matrix, pdp3d_m->matrix, fdp3d->matrix);
 #if 0
- printf("parent:\t\t\t\tframe:\n");
+ printf("!  parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
- printf("modified frame\n");
+ printf("!  modified frame\n");
  PRINT_MATRIX(fdp3d_m->matrix);
 #endif
 
@@ -403,6 +403,9 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
       _aax_memcpy(&sfdp3d_m, sfmixer->props3d->m_dprops3d,
                              sizeof(_oalRingBufferDelayed3dProps));
 
+      sfdp3d_m.state3d = sfdp3d.state3d;
+      sfdp3d_m.pitch = sfdp3d.pitch;
+      sfdp3d_m.gain = sfdp3d.gain;
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -558,8 +561,11 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
                        sizeof(_oalRingBufferDelayed3dProps));
    _aax_memcpy(&fdp3d_m, fmixer->props3d->m_dprops3d,
                          sizeof(_oalRingBufferDelayed3dProps));
-// TODO: Fixme:
-// _PROP_CLEAR(fmixer->props3d);
+
+   fdp3d_m.state3d = fdp3d.state3d;
+   fdp3d_m.pitch = fdp3d.pitch;
+   fdp3d_m.gain = fdp3d.gain;
+   _PROP_CLEAR(fmixer->props3d);
 
    /* frame read-only data */
    _aax_memcpy(&fp2d.speaker, &sp2d.speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));

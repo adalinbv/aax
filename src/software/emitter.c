@@ -314,7 +314,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          ve = vec3DotProduct(edp3d_m->velocity[LOCATION], epos);
          df = dopplerfn(vf, ve, vs/sdf);
 #if 0
-# if 1
+# if 0
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
             edp3d_m->velocity[LOCATION][0],
             edp3d_m->velocity[LOCATION][1],
@@ -324,7 +324,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
  printf("# modified emitter velocity\n");
  PRINT_MATRIX(edp3d_m->velocity);
 # endif
- printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
+ printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
 #endif
          pitch *= df;
          ep3d->buf3dq_step = df;
