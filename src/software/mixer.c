@@ -613,10 +613,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
                mtx4Mul(sdp3d_m.velocity, sdp3d.matrix, sdp3d.velocity);
 #if 0
+ if (_PROP3D_MTXSPEED_HAS_CHANGED(&sdp3d_m)) {
  printf("matrix:\t\t\t\tvelocity\n");
  PRINT_MATRICES(sdp3d.matrix, sdp3d.velocity);
  printf("modified velocity\n");
  PRINT_MATRIX(sdp3d_m.velocity);
+ }
 #endif
                /* clear the buffer for use by the subframe */
                _oalRingBufferClear(dest_rb);
@@ -637,7 +639,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 # if THREADED_FRAMES
                /* main mixer */
                _aaxEmittersProcess(dest_rb, handle->info, ssv, sdf,
-                                   &sp2d, &sdp3d,
+                                   &sp2d, &sdp3d_m,
                                    mixer->emitters_2d, mixer->emitters_3d,
                                    be, be_handle);
 

@@ -305,6 +305,14 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       {
          mtx4Mul(fdp3d_m->velocity, pdp3d_m->velocity, fdp3d->velocity);
 
+#if 0
+ printf("parent velocity:\t\t\tframe velocity:\n");
+ PRINT_MATRICES(pdp3d_m->velocity, fdp3d->velocity);
+ printf("modified frame velocity\n");
+ PRINT_MATRIX(fdp3d_m->velocity);
+#endif
+
+
          _PROP3D_SPEED_CLEAR_CHANGED(pdp3d_m);
          _PROP3D_SPEED_SET_CHANGED(fdp3d_m);
       }
@@ -549,7 +557,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
 
    /* update the modified properties */
    mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
-   mtx4Copy(sdp3d_m.velocity, sdp3d.velocity);
+   mtx4Mul(sdp3d_m.velocity, sdp3d.matrix, sdp3d.velocity);
    sdp3d_m.state3d = sdp3d.state3d;
    sdp3d_m.pitch = sdp3d.pitch;
    sdp3d_m.gain = sdp3d.gain;
@@ -565,7 +573,8 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    fdp3d_m.state3d = fdp3d.state3d;
    fdp3d_m.pitch = fdp3d.pitch;
    fdp3d_m.gain = fdp3d.gain;
-   _PROP_CLEAR(fmixer->props3d);
+// TODO: (test with kx, 4 channel)
+// _PROP_CLEAR(fmixer->props3d);
 
    /* frame read-only data */
    _aax_memcpy(&fp2d.speaker, &sp2d.speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
