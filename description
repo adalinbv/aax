@@ -1,8 +1,8 @@
-Cross platform, hardware accelerated, stereo and 4D audio audio library
+Cross platform, hardware accelerated, multi-channel and 4D capable audio rendering engine
  AeonWave is a hardware accelerated, high speed and low power consumption
  audio library designed for professional studio and simulation solutions.
- It can handle 4D (the 4th dimension time delay) positional audio and stereo
- mixing equally well.
+ It can handle 4D (where 4th dimension is time delay) positional audio and
+ multi-channel mixing equally well.
  .
  The separately available OpenAL layer makes the library ready for most of
  the current software while it's native API makes it ready for future audio
