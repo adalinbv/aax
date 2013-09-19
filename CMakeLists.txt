@@ -112,10 +112,6 @@ ENDIF(WIN32)
 # ZIP
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
-IF(NOT SINGLE_PACKAGE)
-INCLUDE (CPack)
-ENDIF(NOT SINGLE_PACKAGE)
-
 # Required libraries
 FIND_PACKAGE(XML REQUIRED)
 IF(NOT XML_FOUND)
@@ -417,6 +413,17 @@ INSTALL(TARGETS ${LIBAEONWAVE}
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" NAMELINK_ONLY
         COMPONENT Headers
 )
+IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+      CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+      ")
+  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+      IfFileExists \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\" 0 next
+        Delete \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+      next:
+      ")
+ENDIF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
+
 INSTALL(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
@@ -441,6 +448,10 @@ IF (UNIX AND NOT WIN32)
     install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}.so ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}.so)
 ENDIF(UNIX AND NOT WIN32)
 
+
+IF(NOT SINGLE_PACKAGE)
+  INCLUDE (CPack)
+ENDIF(NOT SINGLE_PACKAGE)
 
 #-----------------------------------------------------------------------------
 ### uninstall target
