@@ -44,29 +44,38 @@
 
 #define FILE_PATH		SRC_PATH"/stereo.mp3"
 
+void
+help()
+{
+    printf("Usage:\n");
+    printf("  aaxplay -i <filename> (-d <playcbakc device>)\n");
+    printf("  aaxplay -c <capture device> (-d <playcbakc device>)\n\n");
+    exit(-1);
+}
+
 int main(int argc, char **argv)
 {
+    char *devname, *infile, *capture_name;
+    char indevname[4096] = "\0";
     aaxConfig config, record;
-    char *devname, *infile;
-    char indevname[4096];
     int res, rv = 0;
 
-    infile = getInputFile(argc, argv, FILE_PATH);
-    if (infile) {
-       snprintf(indevname, 4096, "AeonWave on Audio Files: %s", infile);
+    if (argc == 1) {
+        help();
+    }
+
+    capture_name = getCaptureName(argc, argv);
+    if (capture_name) {
+       snprintf(indevname, 4096, "%s", capture_name);
     }
     else
     {
-       char *capture_name = getCaptureName(argc, argv);
-       if (capture_name) {
-          snprintf(indevname, 4096, "%s", capture_name);
+       infile = getInputFile(argc, argv, FILE_PATH);
+       if (infile) {
+          snprintf(indevname, 4096, "AeonWave on Audio Files: %s", infile);
        }
-       else
-       {
-          printf("Usage:\n");
-          printf("  aaxplay -i <filename> (-d <playcbakc device>)\n");
-          printf("  aaxplay -c <capture device> (-d <playcbakc device>)\n\n");
-          exit(-1);
+       else {
+          help();
        }
     }
 
@@ -91,7 +100,7 @@ int main(int argc, char **argv)
             printf("File not found: %s\n", infile);
             exit(-1);
         }
-        printf("Playing: %s\n", infile);
+        printf("Playing: %s\n", capture_name ? indevname : infile);
     }
 
     if (config && record && (rv >= 0))
