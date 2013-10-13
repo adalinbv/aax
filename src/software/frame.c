@@ -128,8 +128,10 @@ _aaxAudioFrameThread(void* config)
          {
             if (_IS_PLAYING(frame) && be->state(NULL, DRIVER_AVAILABLE))
             {
-               _aaxAudioFrameProcessThreadedFrame(handle, frame->ringbuffer,
-                                                  mixer, smixer, fmixer, be);
+               void *rv = _aaxAudioFrameProcessThreadedFrame(handle,
+                                  frame->ringbuffer, mixer, smixer, fmixer, be);
+               if (rv) frame->ringbuffer = rv;
+               assert(rv);
             }
             else { /* if (_IS_STANDBY(frame)) */
                _aaxNoneDriverProcessFrame(mixer);
