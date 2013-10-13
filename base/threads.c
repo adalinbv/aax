@@ -110,7 +110,14 @@ _aaxThreadJoin(void *t)
    return ret;
 }
 
-#ifdef NDEBUG
+int
+_aaxThreadSwitch()
+{
+   return pthread_yield() ? -1 : 0;
+}
+
+
+#if defined(NDEBUG)
 void *
 _aaxMutexCreate(void *mutex)
 {
@@ -158,11 +165,11 @@ _aaxMutexCreateInt(_aaxMutex *m)
       status = pthread_mutexattr_init(&mta);
       if (!status)
       {
-#ifndef NDEBUG
+# ifndef NDEBUG
          status = pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
-#else
+# else
          status = pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_NORMAL);
-#endif
+# endif
          if (!status) {
             status = pthread_mutex_init(&m->mutex, &mta);
          }
@@ -193,26 +200,46 @@ _aaxMutexDestroy(void *mutex)
    m = 0;
 }
 
-#ifdef NDEBUG
+#if defined(NDEBUG)
 int
 _aaxMutexLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m)
+   if (m)
    {
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
       }
 
       if (m->initialized != 0) {
+#ifndef TIMED_MUTEX
          r = pthread_mutex_lock(&m->mutex);
+#else
+         struct timespec to;
+         to.tv_sec = time(NULL);
+         to.tv_nsec = 9000000LL;			// 9 ms
+         if (to.tv_nsec > 1000000000LL) {
+            to.tv_nsec -= 1000000000LL;
+            to.tv_sec++;
+         }
+         r = pthread_mutex_timedlock(&m->mutex, &to);
+         if (r == ETIMEDOUT) {
+            printf("mutex timed out in %s line %i\n", file, line);
+            abort();
+         } else if (r == EDEADLK) {
+            printf("dealock in %s line %i\n", file, line);
+            abort();
+         } else if (r) {
+            printf("mutex lock error %i in %s line %i\n", r, file, line);
+         }
+#endif
       }
    }
    return r;
 }
-#else
+#endif
 
 int
 _aaxMutexLockDebug(void *mutex, char *file, int line)
@@ -220,7 +247,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m)
+   if (m)
    {
       if (m->initialized == 0) {
          mutex = _aaxMutexCreateInt(m);
@@ -229,23 +256,23 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       if (m->initialized != 0)
       {
          struct timespec to;
-#ifdef __GNUC__
+#ifndef NDEBUG
+# ifdef __GNUC__
          unsigned int mtx;
  
-         mtx = m->mutex.__data.__count;
-         
-         if (mtx > 1) {
-            printf("lock mutex > 1 (%i) in %s line %i, for: %s in %s\n",
+         mtx = m->mutex.__data.__count;	/* only works for recursive locks */
+         if (mtx != 0 && mtx != 1) {
+            printf("1. lock mutex = %i in %s line %i, for: %s in %s\n",
                                          mtx, file, line, m->name, m->function);
             r = -mtx;
             abort();
          }
+# endif
 #endif
 
          to.tv_sec = time(NULL) + DEBUG_TIMEOUT;
          to.tv_nsec = 0;
          r = pthread_mutex_timedlock(&m->mutex, &to);
-         // r = pthread_mutex_lock(&m->mutex);
 
          if (r == ETIMEDOUT) {
             printf("mutex timed out in %s line %i\n", file, line);
@@ -257,29 +284,29 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
             printf("mutex lock error %i in %s line %i\n", r, file, line);
          }
 
-#ifdef __GNUC__
-         mtx = m->mutex.__data.__count;
+#ifndef NDEBUG
+# ifdef __GNUC__
+         mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 1) {
-            printf("lock mutex != 1 (%i) in %s line %i, for: %s in %s\n", mtx, file, line, m->name, m->function);
+            printf("2. lock mutex != 1 (%i) in %s line %i, for: %s in %s\n", mtx, file, line, m->name, m->function);
             r = -mtx;
             abort();
          }
+# endif
 #endif
       }
    }
    return r;
 }
-#endif
 
-#ifdef NDEBUG
+#if defined(NDEBUG)
 int
 _aaxMutexUnLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m)
-   {
+   if (m) {
       r = pthread_mutex_unlock(&m->mutex);
    }
    return r;
@@ -292,9 +319,10 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m)
+   if (m)
    {
-#ifdef __GNUC__
+#ifndef NDEBUG
+# ifdef __GNUC__
       unsigned int mtx;
 
       mtx = m->mutex.__data.__count;
@@ -308,6 +336,7 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
          r = -mtx;
          abort();
       }
+# endif
 #endif
 
       r = pthread_mutex_unlock(&m->mutex);
@@ -517,6 +546,12 @@ _aaxThreadJoin(void *t)
    }
 
    return ret;
+}
+
+int
+_aaxThreadSwitch()
+{
+   return SwitchToThread() ? 0 : -1;
 }
 
 /*

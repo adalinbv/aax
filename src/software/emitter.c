@@ -240,7 +240,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          {
             do
             {
-               buf3dq = _intBufPopData(src->p3dq, _AAX_DELAYED3D);
+               buf3dq = _intBufPop(src->p3dq, _AAX_DELAYED3D);
                if (buf3dq)
                {
                   sdp3d = _intBufGetDataPtr(buf3dq);

@@ -231,42 +231,36 @@ aaxSensorGetBuffer(const aaxConfig config)
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* mixer = sensor->mixer;
          _intBuffers *dptr_rb = mixer->ringbuffers;
-         unsigned int nbuf;
+         _intBufferData *rbuf;
 
-         nbuf = _intBufGetNum(dptr_rb, _AAX_RINGBUFFER);
-         if (nbuf > 0)
+         rbuf = _intBufPop(dptr_rb, _AAX_RINGBUFFER);
+         if (rbuf)
          {
-            void **ptr = _intBufShiftIndex(dptr_rb, _AAX_RINGBUFFER, 0, 1);
-            if (ptr)
+            _oalRingBuffer *rb = _intBufGetDataPtr(rbuf);
+            _buffer_t *buf = calloc(1, sizeof(_buffer_t));
+            if (buf)
             {
-               _buffer_t *buf = calloc(1, sizeof(_buffer_t));
-               if (buf)
-               {
-                  _oalRingBuffer *rb = (_oalRingBuffer *)ptr[0];
+               buf->id = BUFFER_ID;
+               buf->ref_counter = 1;
 
-                  buf->id = BUFFER_ID;
-                  buf->ref_counter = 1;
+               buf->blocksize = 1;
+               buf->pos = 0;
+               buf->format = _oalRingBufferGetParami(rb, RB_FORMAT);
+               buf->frequency = _oalRingBufferGetParamf(rb, RB_FREQUENCY);
 
-                  buf->blocksize = 1;
-                  buf->pos = 0;
-                  buf->format = _oalRingBufferGetParami(rb, RB_FORMAT);
-                  buf->frequency = _oalRingBufferGetParamf(rb, RB_FREQUENCY);
+               buf->mipmap = AAX_FALSE;
 
-                  buf->mipmap = AAX_FALSE;
+               buf->ringbuffer = rb;
+               buf->info = handle->info;
+               buf->codecs = handle->backend.ptr->codecs;
 
-                  buf->ringbuffer = rb;
-                  buf->info = handle->info;
-                  buf->codecs = handle->backend.ptr->codecs;
-
-                  buffer = (aaxBuffer)buf;
-               }
-               free(ptr);
+               buffer = (aaxBuffer)buf;
             }
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             }
+            _intBufDestroyDataNoLock(rbuf);
          }
-         _intBufReleaseNum(dptr_rb, _AAX_RINGBUFFER);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
    }

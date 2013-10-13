@@ -42,7 +42,7 @@ static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int);
 static void _aaxContextSetupHRTF(void *, unsigned int);
 static void _aaxContextSetupSpeakers(void **, unsigned int);
-static void removeMixerByPos(void *, unsigned int);
+static void _aaxFreeSensor(void *);
 static int _aaxCheckKeyValidity(void*);
 static int _aaxCheckKeyValidityStr(char*);
 
@@ -417,7 +417,7 @@ aaxDriverDestroy(aaxConfig config)
          _info = NULL;
       }
 
-      _intBufErase(&handle->sensors, _AAX_SENSOR, removeMixerByPos, handle);
+      _intBufErase(&handle->sensors, _AAX_SENSOR, _aaxFreeSensor);
 
       if (handle->devname[0] != _aax_default_devname)
       {
@@ -841,12 +841,13 @@ _open_handle(aaxConfig config)
 
                      return handle;
                   }
-                  _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER, 0, 0);
+                  _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER,
+                               _oalRingBufferClear);
                }
                /* creating the sensor failed */
                free(ptr1);
             }
-            _intBufErase(&handle->sensors, _AAX_SENSOR, 0, 0);
+            _intBufErase(&handle->sensors, _AAX_SENSOR, _aaxFreeSensor);
          }
       }
    }
@@ -1238,72 +1239,37 @@ _aaxCheckKeyValidity(void *xid)
    return rv;
 }
 
-void
-_aaxRemoveRingBufferByPos(void *frame, unsigned int pos)
-{
-   _aaxAudioFrame* mixer = (_aaxAudioFrame*)frame;
-   _oalRingBuffer *rb;
-
-   rb = _intBufRemove(mixer->ringbuffers, _AAX_RINGBUFFER, pos, AAX_FALSE);
-   if (rb) {
-      _oalRingBufferDelete(rb);
-   }
-}
-
-void
-_aaxRemoveFrameRingBufferByPos(void *frame, unsigned int pos)
-{
-   _aaxAudioFrame* mixer = (_aaxAudioFrame*)frame;
-   _oalRingBuffer *rb;
-
-   rb =_intBufRemove(mixer->frame_ringbuffers, _AAX_RINGBUFFER, pos, AAX_FALSE);
-   if (rb) {
-      _oalRingBufferDelete(rb);
-   }
-}
-
 static void
-removeMixerByPos(void *config, unsigned int pos)
+_aaxFreeSensor(void *ssr)
 {
-   _handle_t* handle = (_handle_t*)config;
-   _sensor_t* sensor;
+   _sensor_t *sensor = (_sensor_t*)ssr;
+   _oalRingBufferDelayEffectData* effect;
+   _aaxAudioFrame* mixer = sensor->mixer;
 
-   sensor = _intBufRemove(handle->sensors, _AAX_SENSOR, pos, AAX_FALSE);
-   if (sensor)
-   {
-      _oalRingBufferDelayEffectData* effect;
-      _aaxAudioFrame* mixer = sensor->mixer;
+   /* frees both EQUALIZER_LF and EQUALIZER_HF */
+   free(sensor->filter[EQUALIZER_LF].data);
 
-      /* frees both EQUALIZER_LF and EQUALIZER_HF */
-      free(sensor->filter[EQUALIZER_LF].data);
+   free(_FILTER_GET2D_DATA(mixer, FREQUENCY_FILTER));
+   free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
+   free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
+   free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
 
-      free(_FILTER_GET2D_DATA(mixer, FREQUENCY_FILTER));
-      free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
-      free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
-      free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
+   effect = _EFFECT_GET2D_DATA(mixer, DELAY_EFFECT);
+   if (effect) free(effect->history_ptr);
+   free(effect);
 
-      effect = _EFFECT_GET2D_DATA(mixer, DELAY_EFFECT);
-      if (effect) free(effect->history_ptr);
-      free(effect);
-
-      if (mixer->p3dq) {
-         _intBufErase(&mixer->p3dq, _AAX_DELAYED3D,
-                      removeDelayed3dQueueByPos, mixer->p3dq);
-      }
-      _aax_aligned_free(mixer->props3d->dprops3d);
-      free(mixer->props3d);
-
-      /* ringbuffer gets removed by the thread */
-      /* _oalRingBufferDelete(mixer->ringbuffer); */
-      _intBufErase(&mixer->frames, _AAX_FRAME, 0, 0);
-      _intBufErase(&mixer->devices, _AAX_DEVICE, 0, 0);
-      _intBufErase(&mixer->emitters_2d, _AAX_EMITTER, 0, 0);
-      _intBufErase(&mixer->emitters_3d, _AAX_EMITTER, 0, 0);
-#if 0
-// TODO: fix lock mutex != 1 (2) in buffers.c line 696,
-      _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER,
-                   _aaxRemoveRingBufferByPos, mixer);
-#endif
-      free(sensor);
+   if (mixer->p3dq) {
+      _intBufErase(&mixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
    }
+   _aax_aligned_free(mixer->props3d->dprops3d);
+   free(mixer->props3d);
+
+   /* ringbuffer gets removed by the thread */
+   /* _oalRingBufferDelete(mixer->ringbuffer); */
+   _intBufErase(&mixer->frames, _AAX_FRAME, free);
+   _intBufErase(&mixer->devices, _AAX_DEVICE, free);
+   _intBufErase(&mixer->emitters_2d, _AAX_EMITTER, free);
+   _intBufErase(&mixer->emitters_3d, _AAX_EMITTER, free);
+   _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER, _oalRingBufferClear);
+   free(sensor);
 }

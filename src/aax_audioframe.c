@@ -134,22 +134,21 @@ aaxAudioFrameDestroy(aaxFrame frame)
          free(effect);
 
          if (fmixer->p3dq) {
-            _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D,
-                         removeDelayed3dQueueByPos, fmixer->p3dq);
+            _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          }
          _aax_aligned_free(fmixer->props3d->dprops3d);
          free(fmixer->props3d);
 
          /* handle->ringbuffer gets removed bij the frame thread */
          /* _oalRingBufferDelete(handle->ringbuffer); */
-         _intBufErase(&fmixer->frames, _AAX_FRAME, 0, 0);
-         _intBufErase(&fmixer->devices, _AAX_DEVICE, 0, 0);
-         _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, 0, 0);
-         _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, 0, 0);
+         _intBufErase(&fmixer->frames, _AAX_FRAME, free);
+         _intBufErase(&fmixer->devices, _AAX_DEVICE, free);
+         _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, free);
+         _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, free);
          _intBufErase(&fmixer->ringbuffers, _AAX_RINGBUFFER,
-                      _aaxRemoveRingBufferByPos, fmixer);
+                      _oalRingBufferClear);
          _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
-                      _aaxRemoveFrameRingBufferByPos, fmixer);
+                      _oalRingBufferClear);
 
          /* safeguard against using already destroyed handles */
          handle->id = 0xdeadbeef;
@@ -853,7 +852,8 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
             he = mixer->emitters_2d;
          }
 
-         _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
+			/* get_emitter already locks the emitter */
+         _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_TRUE);
          _oalRingBufferPutSource();
          mixer->no_registered--;
          emitter->handle = NULL;
@@ -983,7 +983,8 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       {
          _intBuffers *hf = handle->submix->frames;
 
-         _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
+			/* get_frame already locks the frame */
+         _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_TRUE);
          frame->submix->refcount--;
          frame->handle = NULL;
          frame->pos = UINT_MAX;
@@ -1093,32 +1094,27 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
    {
       _aaxAudioFrame* mixer = handle->submix;
       _intBuffers *ringbuffers = mixer->ringbuffers;
-      unsigned int nbuf;
+      _intBufferData *rbuf;
 
-      nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-      if (nbuf > 0)
+      rbuf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
+      if (rbuf)
       {
-         void **ptr = _intBufShiftIndex(ringbuffers, _AAX_RINGBUFFER, 0, 1);
-         if (ptr)
+         _oalRingBuffer *rb = _intBufGetDataPtr(rbuf);
+         _buffer_t *buf = calloc(1, sizeof(_buffer_t));
+         if (buf)
          {
-            _buffer_t *buf = calloc(1, sizeof(_buffer_t));
-            if (buf)
-            {
-               _oalRingBuffer *rb = (_oalRingBuffer *)ptr[0];
-               buf->ringbuffer = rb;
-               buf->format = _oalRingBufferGetParami(rb, RB_FORMAT);
-               buf->ref_counter = 1;
-               buf->mipmap = AAX_FALSE;
-               buf->id = BUFFER_ID;
-               buffer = (aaxBuffer)buf;
-            }
-            free(ptr);
+            buf->ringbuffer = rb;
+            buf->format = _oalRingBufferGetParami(rb, RB_FORMAT);
+            buf->ref_counter = 1;
+            buf->mipmap = AAX_FALSE;
+            buf->id = BUFFER_ID;
+            buffer = (aaxBuffer)buf;
          }
          else {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
+         _intBufDestroyDataNoLock(rbuf);
       }
-      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
    }
    put_frame(frame);
 
@@ -1263,8 +1259,7 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
       if (!frame->p3dq) {
          _intBufCreate(&frame->p3dq, _AAX_DELAYED3D);
       } else {
-         _intBufClear(frame->p3dq, _AAX_DELAYED3D,
-                      removeDelayed3dQueueByPos, frame->p3dq);
+         _intBufClear(frame->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       }
    }
 }

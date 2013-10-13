@@ -57,13 +57,13 @@ _intBuffers *_aaxGetDriverBackends();
 _aaxDriverBackend *_aaxGetDriverBackendLoopback(unsigned int *);
 void *_aaxRemoveDriverBackends(_intBuffers **);
 
-_aaxDriverBackend *_aaxGetDriverBackendDefault(const _intBuffers *, unsigned int *);
-_aaxDriverBackend *_aaxGetDriverBackendDefaultCapture(const _intBuffers *, unsigned int *);
-_aaxDriverBackend *_aaxGetDriverBackendByName(const _intBuffers *, const char *, unsigned int *);
-_aaxDriverBackend *_aaxGetDriverBackendByPos(const _intBuffers *, unsigned int);
+_aaxDriverBackend *_aaxGetDriverBackendDefault(_intBuffers *, unsigned int *);
+_aaxDriverBackend *_aaxGetDriverBackendDefaultCapture(_intBuffers *, unsigned int *);
+_aaxDriverBackend *_aaxGetDriverBackendByName(_intBuffers *, const char *, unsigned int *);
+_aaxDriverBackend *_aaxGetDriverBackendByPos(_intBuffers *, unsigned int);
 const char *_aaxGetDriverBackendName(const _aaxDriverBackend *);
 
-long _aaxDriverBackendSetConfigSettings(const _intBuffers *,char**, _aaxConfig *);
+long _aaxDriverBackendSetConfigSettings(_intBuffers *,char**, _aaxConfig *);
 void _aaxDriverBackendReadConfigSettings(void *, char**, _aaxConfig *, const char *, int);
 void _aaxDriverBackendClearConfigSettings(_aaxConfig *);
 char _aaxGetDriverBackendExtensionSupport(const _aaxDriverBackend *, const char *);

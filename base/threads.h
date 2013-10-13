@@ -11,13 +11,17 @@ extern "C" {
 #include "config.h"
 #endif
 
-#include "types.h"
-
 #if HAVE_TIME_H
 #include <time.h>
 #endif
 
+#include "types.h"
 #include "timer.h"
+
+#if 0
+#define TIMED_MUTEX	1
+#endif
+
 
 #if HAVE_PTHREAD_H
 # include <pthread.h>			/* UNIX */
@@ -29,10 +33,8 @@ extern "C" {
  { 
    char initialized;
    pthread_mutex_t mutex;
-# ifndef NDEBUG
    const char *name;
    const char *function;
-# endif
  } _aaxMutex;
 
 #elif defined( WIN32 )
@@ -85,6 +87,7 @@ void _aaxThreadDestroy(void *);
 int _aaxThreadStart(void *,  void *(*handler)(void*), void*, unsigned int);
 // int _aaxThreadCancel(void *);
 int _aaxThreadJoin(void *);
+int _aaxThreadSwitch();
 
 
 #ifndef NDEBUG
@@ -92,13 +95,17 @@ int _aaxThreadJoin(void *);
 #define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
 #define _aaxMutexUnLock(a) _aaxMutexUnLockDebug(a, __FILE__, __LINE__)
 void *_aaxMutexCreateDebug(void *, const char *, const char *);
-int _aaxMutexLockDebug(void *, char *, int);
 int _aaxMutexUnLockDebug(void *, char *, int);
 #else
-void *_aaxMutexCreate(void *);
+# ifdef TIMED_MUTEX
+#  define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
+# else
 int _aaxMutexLock(void *);
+# endif
+void *_aaxMutexCreate(void *);
 int _aaxMutexUnLock(void *);
 #endif
+int _aaxMutexLockDebug(void *, char *, int);
 void _aaxMutexDestroy(void *);
 
 

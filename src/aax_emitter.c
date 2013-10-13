@@ -33,7 +33,7 @@
 #include "devices.h"
 #include "api.h"
 
-static void removeEmitterBufferByPos(void *, unsigned int);
+static void _aaxFreeEmitterBuffer(void *);
 
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -110,8 +110,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          _aaxEmitter *src = handle->source;
 
          _SET_PROCESSED(src->props3d);
-         _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,
-                      removeEmitterBufferByPos, src);
+         _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
          free(_FILTER_GET2D_DATA(src, FREQUENCY_FILTER));
          free(_FILTER_GET2D_DATA(src, DYNAMIC_GAIN_FILTER));
@@ -124,8 +123,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          free(effect);
 
          if (src->p3dq) {
-            _intBufErase(&src->p3dq, _AAX_DELAYED3D,
-                         removeDelayed3dQueueByPos, src->p3dq);
+            _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          }
 
          _aax_aligned_free(src->props3d->dprops3d);
@@ -211,42 +209,32 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
       _aaxEmitter *src = handle->source;
       if (!_IS_PLAYING(src->props3d) || src->pos > 0)
       {
-         unsigned int num;
+         _intBufferData *buf;
 
-         num = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-         if (num > 0)
+         buf = _intBufPop(src->buffers, _AAX_EMITTER_BUFFER);
+         if (buf)
          {
-            void **ptr;
-            ptr = _intBufShiftIndex(src->buffers, _AAX_EMITTER_BUFFER, 0, 1);
-            if (ptr)
+            _embuffer_t *embuf = _intBufGetDataPtr(buf);
+            if (embuf)
             {
-               _embuffer_t *embuf = ptr[0];
-               if (embuf)
-               {
-                  assert(embuf->id == EMBUFFER_ID);
+               assert(embuf->id == EMBUFFER_ID);
 
-                  free_buffer(embuf->buffer);
-                  _oalRingBufferDelete(embuf->ringbuffer);
-                  embuf->ringbuffer = NULL;
-                  embuf->id = 0xdeadbeef;
-                  free(embuf);
-               }
-               free(ptr);
-               ptr = NULL;
+               free_buffer(embuf->buffer);
+               _oalRingBufferDelete(embuf->ringbuffer);
+               embuf->ringbuffer = NULL;
+               embuf->id = 0xdeadbeef;
+               free(embuf);
+            }
+             _intBufDestroyDataNoLock(buf);
 
-               if (src->pos > 0) {
-                  src->pos--;
-               }
-               rv = AAX_TRUE;
+            if (src->pos > 0) {
+               src->pos--;
             }
-            else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            }
+            rv = AAX_TRUE;
          }
          else {
             _aaxErrorSet(AAX_INVALID_REFERENCE);
          }
-         _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
       }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
@@ -1338,27 +1326,21 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       if (!src->p3dq) {
          _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
       } else {
-         _intBufClear(src->p3dq, _AAX_DELAYED3D,
-                      removeDelayed3dQueueByPos, src->p3dq);
+         _intBufClear(src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       }
    }
 }
 
 static void
-removeEmitterBufferByPos(void *source, unsigned int pos)
+_aaxFreeEmitterBuffer(void *sbuf)
 {
-   _aaxEmitter *src = (_aaxEmitter *)source;
-   _embuffer_t *embuf;
-   
-   embuf = _intBufRemove(src->buffers, _AAX_EMITTER_BUFFER, pos, AAX_FALSE);
-   if (embuf)
-   {
-      free_buffer(embuf->buffer);
-      _oalRingBufferDelete(embuf->ringbuffer);
-      embuf->ringbuffer = NULL;
-      embuf->id = 0xdeadbeef;
-      free(embuf);
-      embuf = NULL;
-   }
+   _embuffer_t *embuf = (_embuffer_t*)sbuf;
+
+   free_buffer(embuf->buffer);
+   _oalRingBufferDelete(embuf->ringbuffer);
+   embuf->ringbuffer = NULL;
+   embuf->id = 0xdeadbeef;
+   free(embuf);
+   embuf = NULL;
 }
 

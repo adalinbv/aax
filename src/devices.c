@@ -99,12 +99,12 @@ _aaxGetDriverBackends()
 void *
 _aaxRemoveDriverBackends(_intBuffers **be)
 {
-   _intBufErase(be, _AAX_BACKEND, 0, 0);
+   _intBufErase(be, _AAX_BACKEND, 0);
    return 0;
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendByName(const _intBuffers *bs, const char *name, unsigned int *pos)
+_aaxGetDriverBackendByName(_intBuffers *bs, const char *name, unsigned int *pos)
 {
    _aaxDriverBackend *be = 0;
 
@@ -149,7 +149,7 @@ _aaxGetDriverBackendByName(const _intBuffers *bs, const char *name, unsigned int
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendDefault(const _intBuffers *bs, unsigned int *pos)
+_aaxGetDriverBackendDefault(_intBuffers *bs, unsigned int *pos)
 {
    _aaxDriverBackend *be = 0;
    int i;
@@ -178,7 +178,7 @@ _aaxGetDriverBackendDefault(const _intBuffers *bs, unsigned int *pos)
 _aaxDriverBackend *
 _aaxGetDriverBackendLoopback(unsigned int *pos)
 {
-   const _intBuffers *dbe = &_aaxIntDriverBackends;
+   _intBuffers *dbe = &_aaxIntDriverBackends;
    const char *name = "AeonWave Loopback";
    _aaxDriverBackend *be = 0;
    unsigned int i, num;
@@ -206,7 +206,7 @@ _aaxGetDriverBackendLoopback(unsigned int *pos)
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendDefaultCapture(const _intBuffers *bs, unsigned int *pos)
+_aaxGetDriverBackendDefaultCapture(_intBuffers *bs, unsigned int *pos)
 {
    _aaxDriverBackend *be = 0;
    int i;
@@ -233,7 +233,7 @@ _aaxGetDriverBackendDefaultCapture(const _intBuffers *bs, unsigned int *pos)
 }
 
 _aaxDriverBackend *
-_aaxGetDriverBackendByPos(const _intBuffers *bs, unsigned int pos)
+_aaxGetDriverBackendByPos(_intBuffers *bs, unsigned int pos)
 {
    _aaxDriverBackend *be = 0;
    unsigned int num;
@@ -257,7 +257,7 @@ _aaxGetDriverBackendName(const _aaxDriverBackend *be)
 }
 
 long
-_aaxDriverBackendSetConfigSettings(const _intBuffers *bs, char** devname, _aaxConfig *config)
+_aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *config)
 {
    _intBuffers *dbe = (_intBuffers *)&_aaxIntDriverBackends;
    time_t rv = time(NULL);
@@ -633,8 +633,10 @@ void *_aaxBackendsPtr[_AAX_MAX_BACKENDS] =
 
 _intBuffers _aaxIntDriverBackends =
 {
-   0,
    _AAX_BACKEND,
+   0,
+   0,
+   0,
    _AAX_MAX_BACKENDS,
    _AAX_MAX_BACKENDS,
    _AAX_MAX_BACKENDS,

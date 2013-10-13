@@ -660,8 +660,9 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, int tracks, float 
 }
 
 void
-_oalRingBufferClear(_oalRingBuffer *rb)
+_oalRingBufferClear(void *rbuf)
 {
+   _oalRingBuffer *rb = (_oalRingBuffer*)rbuf;
    _oalRingBufferSample *rbd;
    unsigned int i;
 

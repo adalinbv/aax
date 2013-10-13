@@ -700,7 +700,7 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*, int, float);
  * @param rb the ringbuffer to clear
  */
 void
-_oalRingBufferClear(_oalRingBuffer*);
+_oalRingBufferClear(void*);
 
 /**
  * Remove the ringbuffer and all it's tracks from memory.

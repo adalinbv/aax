@@ -168,10 +168,7 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
 {
    _intBufferData *buf;
 
-   _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-   buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
-   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
-
+   buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
    if (buf)
    {
       _oalRingBufferLFOInfo *lfo;
@@ -213,9 +210,7 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
        * be used without the need to delete this one now and 
        * create a new ringbuffer later on.
        */
-      _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-      _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
-      _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
+      _intBufPush(ringbuffers, _AAX_RINGBUFFER, buf);
    }
 }
 
@@ -231,16 +226,16 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
    if (nbuf == 0)
    {
       nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-      _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
+      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
    }
    else
    {	 /* switch ringbuffers */
-      _intBufferData *buf = _intBufPopData(ringbuffers, _AAX_RINGBUFFER);
+      _intBufferData *buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, 1);
 
       if (buf)
       {
          nrb = _intBufSetDataPtr(buf, rb);
-         _intBufPushData(ringbuffers, _AAX_RINGBUFFER, buf);
+         _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, 1);
 
          if (dde) {
             _oalRingBufferCopyDelyEffectsData(nrb, rb);
@@ -249,7 +244,7 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
       else
       {
          nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-         _intBufAddData(ringbuffers, _AAX_RINGBUFFER, rb);
+         _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
       }
    }
 
@@ -489,7 +484,7 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
          {
             do
             {
-               buf3dq = _intBufPopData(frame->p3dq, _AAX_DELAYED3D);
+               buf3dq = _intBufPop(frame->p3dq, _AAX_DELAYED3D);
                if (buf3dq)
                {
                   tdp3d = _intBufGetDataPtr(buf3dq);

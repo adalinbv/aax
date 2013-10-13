@@ -140,24 +140,19 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
 
                if (rv) /* always streaming */
                {
-                  unsigned int nbuf;
+                  _intBufferData *rbuf;
 
-                  nbuf = _intBufGetNumNoLock(srbs, _AAX_RINGBUFFER);
-                  if (nbuf)
+                  rbuf = _intBufPop(srbs, _AAX_RINGBUFFER);
+                  if (rbuf)
                   {
-                     void **ptr;
-                     ptr = _intBufShiftIndex(srbs,_AAX_RINGBUFFER, 0, 1);
-                     if (ptr)
-                     {
-                        nbuf--;
-                        _oalRingBufferDelete(ptr[0]);
-                        free(ptr);
-                     }
+                     _oalRingBuffer *rb = _intBufGetDataPtr(rbuf);
+
+                     _oalRingBufferDelete(rb);
+                     _intBufDestroyDataNoLock(rbuf);
                   }
 
-                  if (nbuf)
+                  if ((sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0)) != NULL)
                   {
-                     sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
                      ssr_rb = _intBufGetDataPtr(sptr_rb);
                      /* since rv == AAX_TRUE this will be unlocked 
                         after be->mix2d */
@@ -389,18 +384,13 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 
                      if (rv) /* always streaming */
                      {
-                        void **ptr;
+                        buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
+                        _oalRingBufferDelete(src_rb);
+                        _intBufDestroyDataNoLock(buf);
 
-                        ptr =_intBufShiftIndex(ringbuffers,_AAX_RINGBUFFER,0,1);
-                        if (ptr)
+                        buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
+                        if (buf)
                         {
-                           _oalRingBufferDelete(ptr[0]);
-                           free(ptr);
-                        }
-
-                        if (--nbuf)
-                        {
-                           buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
                            src_rb = _intBufGetDataPtr(buf);
                            /* since rv == AAX_TRUE this will be unlocked 
                               after be->mix2d */

@@ -181,9 +181,7 @@ extern vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS];
 extern vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS];
 extern char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS];
 
-void _aaxRemoveSourceByPos(void *, unsigned int);
-void _aaxRemoveRingBufferByPos(void *, unsigned int);
-void _aaxRemoveFrameRingBufferByPos(void *, unsigned int);
+void _aaxFreeSource(void *);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
 void _aaxSetDefaultInfo(_aaxMixerInfo *, void *);
@@ -192,7 +190,6 @@ void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
 _oalRingBuffer3dProps *_aax3dPropsCreate();
 _oalRingBufferDelayed3dProps *_aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps*);
 void _aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *);
-void removeDelayed3dQueueByPos(void *, unsigned int);
 
 void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);

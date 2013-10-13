@@ -982,7 +982,8 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
                he = mixer->emitters_2d;
             }
 
-            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
+				/* get_emitter already locks the emitter */
+            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_TRUE);
             if (ptr)
             {
                _oalRingBufferPutSource();
@@ -1133,7 +1134,9 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
             _intBuffers *hf = mixer->frames;
-            _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
+
+			/* get_frame already locks the frame */
+            _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_TRUE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
