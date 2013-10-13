@@ -225,7 +225,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
                embuf->id = 0xdeadbeef;
                free(embuf);
             }
-             _intBufDestroyDataNoLock(buf);
+            _intBufDestroyDataNoLock(buf);
 
             if (src->pos > 0) {
                src->pos--;

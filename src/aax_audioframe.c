@@ -141,10 +141,10 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
          /* handle->ringbuffer gets removed bij the frame thread */
          /* _oalRingBufferDelete(handle->ringbuffer); */
-         _intBufErase(&fmixer->frames, _AAX_FRAME, free);
-         _intBufErase(&fmixer->devices, _AAX_DEVICE, free);
-         _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, free);
-         _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, free);
+         _intBufErase(&fmixer->frames, _AAX_FRAME, 0); // free);
+         _intBufErase(&fmixer->devices, _AAX_DEVICE, 0); // free);
+         _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, 0); // free);
+         _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, 0); // free);
          _intBufErase(&fmixer->ringbuffers, _AAX_RINGBUFFER,
                       _oalRingBufferClear);
          _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
