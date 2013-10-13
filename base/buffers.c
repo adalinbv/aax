@@ -455,7 +455,6 @@ _intBufGetNumDebug(_intBuffers *buffer, unsigned int id, char *file, int line)
         }
         if (i >= 20000) {
             PRINT("_intBufGetNumNormal timeout\n");
-            break;
         }
     }
     else
