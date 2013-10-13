@@ -314,7 +314,7 @@ _aaxALSADriverDetect(int mode)
 #ifndef USE_SALSA
       audio = _oalIsLibraryPresent("asound", "2");
 #else
-      audio = _oalIsLibraryPresent("salse", "0");
+      audio = _oalIsLibraryPresent("salsa", "0");
 #endif
    }
 
