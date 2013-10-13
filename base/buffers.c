@@ -204,7 +204,6 @@ _intBufAddDataNormal(_intBuffers *buffer, unsigned int id, const void *data, cha
             if (buffer->data[++pos] != 0)
             {
                 unsigned int i, max = buffer->max_allocations - buffer->start;
-printf("add searching..\n");
                 for(i=buffer->first_free; i<max; i++)
                 {
                     if (buffer->data[buffer->start+i] == 0)
@@ -455,7 +454,8 @@ _intBufGetNumDebug(_intBuffers *buffer, unsigned int id, char *file, int line)
             _aaxMutexLock(buffer->mutex);
         }
         if (i >= 20000) {
-            printf("_intBufGetNumNormal timeout\n");
+            PRINT("_intBufGetNumNormal timeout\n");
+            break;
         }
     }
     else
@@ -489,7 +489,7 @@ _intBufGetNumNormal(_intBuffers *buffer, unsigned int id, char lock)
             _aaxMutexLock(buffer->mutex);
         }
         if (i >= 20000) {
-            printf("_intBufGetNumNormal timeout\n");
+            PRINT("_intBufGetNumNormal timeout\n");
         }
     }
     else
@@ -612,7 +612,8 @@ _intBufPopDebug(_intBuffers *buffer, unsigned int id, char locked, char *file, i
         _intBufGetNum(buffer, id);
     }
 
-    if ((buffer->num_allocated == 0) || (buffer->data[buffer->start] == 0))
+    if (((buffer->num_allocated == 0) || (buffer->data[buffer->start] == 0))
+        && (buffer->num_allocated || buffer->data[buffer->start]))
     {
         unsigned int i, start = buffer->start;
         printf("start: %i, num: %i, max: %i\n", start, buffer->num_allocated,
@@ -708,7 +709,6 @@ _intBufPushNormal(_intBuffers *buffer, unsigned int id, const _intBufferData *da
         if (buffer->data[++pos] != 0)
         {
             unsigned int i, max = buffer->max_allocations - buffer->start;
-printf("push searching..\n");
             for(i=buffer->first_free; i<max; i++)
             {
                 if (buffer->data[buffer->start+i] == 0)
