@@ -851,6 +851,9 @@ _intBufEraseNormal(_intBuffers **buf, unsigned int id,
     if (*buf)
     {
         _intBuffers *buffer = *buf;
+#if 1
+        _intBufClear(buffer, id, cb_free);
+#else
         unsigned int max;
 
         assert(buffer->id == id);
@@ -877,7 +880,7 @@ _intBufEraseNormal(_intBuffers **buf, unsigned int id,
             }
             while (--max);
         }
-
+#endif
         free(buffer->data);
 
 #ifndef _AL_NOTHREADS
