@@ -799,27 +799,28 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
       if (sframe && sframe->pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         _intBufferData *dptr_sframe;
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
             _intBuffers *hs = mixer->devices;
+            _intBufferData *dptr_sframe;
+
             _intBufRemove(hs, _AAX_DEVICE, sframe->pos, AAX_FALSE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
-         }
 
-         dptr_sframe = _intBufGet(sframe->sensors, _AAX_SENSOR, 0);
-         if (dptr_sframe)
-         {
-            _sensor_t* sframe_sensor = _intBufGetDataPtr(dptr_sframe);
-            sframe_sensor->mixer->refcount--;
-            _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
-
-            sframe->handle = NULL;
-            sframe->pos = UINT_MAX;
-            rv = AAX_TRUE;
+            dptr_sframe = _intBufGet(sframe->sensors, _AAX_SENSOR, 0);
+            if (dptr_sframe)
+            {
+               _sensor_t* sframe_sensor = _intBufGetDataPtr(dptr_sframe);
+               sframe_sensor->mixer->refcount--;
+               _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
+   
+               sframe->handle = NULL;
+               sframe->pos = UINT_MAX;
+               rv = AAX_TRUE;
+            }
          }
       }
       else {
@@ -1011,7 +1012,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
-   if (handle && VALID_HANDLE(handle))
+   if (handle && VALID_MIXER(handle))
    {
       _frame_t* frame = get_frame(f);
       if (frame && !frame->handle && !frame->thread.started)
@@ -1042,6 +1043,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   while ((buf = aaxAudioFrameGetBuffer(frame)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
+                  _aaxMutexUnLock(frame->thread.mutex);
+
                   pos = _intBufAddData(hf, _AAX_FRAME, frame);
                   mixer->no_registered++;
                }
@@ -1128,10 +1131,10 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
       if (frame && frame->pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         _aaxAudioFrame *submix = frame->submix;
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *submix = frame->submix;
             _aaxAudioFrame *mixer = sensor->mixer;
             _intBuffers *hf = mixer->frames;
 
@@ -1139,13 +1142,13 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_TRUE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
-         }
 
-         submix->refcount--;
-         submix->thread = AAX_FALSE;
-         frame->handle = NULL;
-         frame->pos = UINT_MAX;
-         rv = AAX_TRUE;
+            submix->refcount--;
+            submix->thread = AAX_FALSE;
+            frame->handle = NULL;
+            frame->pos = UINT_MAX;
+            rv = AAX_TRUE;
+         }
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -1225,7 +1228,7 @@ _aaxMixerStart(_handle_t *handle)
 {
    int rv = AAX_FALSE;
 
-   if (handle && TEST_FOR_FALSE(handle->thread.started))
+   if (VALID_MIXER(handle) && TEST_FOR_FALSE(handle->thread.started))
    {
       unsigned int ms;
       int r;

@@ -56,6 +56,11 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->pos = UINT_MAX;
          _SET_INITIAL(frame);
 
+         frame->thread.mutex = _aaxMutexCreate(0);
+         assert(frame->thread.mutex != 0);
+
+         _aaxMutexLock(frame->thread.mutex);
+
          size = sizeof(_frame_t);
          submix = (_aaxAudioFrame*)((char*)frame + size);
          frame->submix = submix;
@@ -1284,9 +1289,6 @@ _aaxAudioFrameStart(_frame_t *frame)
 
          frame->thread.condition = _aaxConditionCreate();
          assert(frame->thread.condition != 0);
-
-         frame->thread.mutex = _aaxMutexCreate(0);
-         assert(frame->thread.mutex != 0);
 
          frame->thread.started = AAX_TRUE;
          ms = rintf(1000/frame->submix->info->refresh_rate);

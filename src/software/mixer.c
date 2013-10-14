@@ -21,7 +21,6 @@
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 
-#include <base/timer.h>		/* for msecSleep, gettimeofday */
 #include <base/threads.h>
 #include <ringbuffer.h>
 #include <arch.h>
@@ -390,7 +389,7 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
       _intBufReleaseNum(hf, _AAX_FRAME);
 
       /* give the remainder of the threads time slice to other threads */
-//    msecSleep(2);
+//    _aaxThreadSwitch();
    }
    return num;
 }
@@ -431,11 +430,16 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                while ((mixer->capturing == 1) && (++p < dt)) // 3ms is enough
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
-#ifdef _WIN32
+#if 1
+# ifdef _WIN32
                   SwitchToThread();
+# else
+                  msecSleep(1);	/* special case, see Sleep(0) for windo */
+# endif
 #else
-                  msecSleep(1);	 /* special case, see Sleep(0) for windows */
+                  _aaxThreadSwitch();
 #endif
+
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
 

@@ -51,9 +51,13 @@ _aaxAudioFrameThread(void* config)
 
    fmixer = NULL;
    smixer = frame->submix;
-   delay_sec = 1.0f / smixer->info->refresh_rate;
+   be = _aaxGetDriverBackendLoopback(&pos);	/* be = handle->backend.ptr */
+   if (!be) {
+      return NULL;
+   }
 
-   be = _aaxGetDriverBackendLoopback(&pos);     /* be = handle->backend.ptr */
+   _aaxMutexLock(frame->thread.mutex);
+   delay_sec = 1.0f / smixer->info->refresh_rate;
    if (be)
    {
 //    _oalRingBuffer *nrb;
@@ -115,7 +119,6 @@ _aaxAudioFrameThread(void* config)
    _aaxTimerSetCondition(timer, frame->thread.condition);
    _aaxTimerStartRepeatable(timer, delay_sec);
 
-   _aaxMutexLock(frame->thread.mutex);
    do
    {
       if TEST_FOR_FALSE(frame->thread.started) {
@@ -130,7 +133,7 @@ _aaxAudioFrameThread(void* config)
             {
                void *rv = _aaxAudioFrameProcessThreadedFrame(handle,
                                   frame->ringbuffer, mixer, smixer, fmixer, be);
-               if (rv) frame->ringbuffer = rv;
+//             if (rv) frame->ringbuffer = rv;
                assert(rv);
             }
             else { /* if (_IS_STANDBY(frame)) */
