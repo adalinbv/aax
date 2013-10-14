@@ -430,15 +430,8 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                while ((mixer->capturing == 1) && (++p < dt)) // 3ms is enough
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
-#if 1
-# ifdef _WIN32
-                  SwitchToThread();
-# else
-                  msecSleep(1);	/* special case, see Sleep(0) for windo */
-# endif
-#else
-                  _aaxThreadSwitch();
-#endif
+
+                  msecSleep(1);
 
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
