@@ -100,6 +100,7 @@ struct threat_t
    void *mutex;
    void *condition;
    char started;
+   char initialized;
 };
 
 typedef struct
@@ -146,7 +147,6 @@ typedef struct
    void* handle;	/* assigned when registered to a (sub)mixer */
 
    _aaxAudioFrame *submix;
-   _oalRingBuffer *ringbuffer;
 
    struct threat_t thread;
 

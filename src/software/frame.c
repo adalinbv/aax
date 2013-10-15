@@ -74,7 +74,7 @@ _aaxAudioFrameThread(void* config)
       _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
       _oalRingBufferInit(dest_rb, AAX_TRUE);
       _oalRingBufferStart(dest_rb);
-      frame->ringbuffer = dest_rb;
+      frame->thread.initialized = AAX_TRUE;
    }
 
    mixer = smixer;
@@ -108,7 +108,6 @@ _aaxAudioFrameThread(void* config)
 #endif
 
    /* get real duration, it might have been altered for better performance */
-   dest_rb = frame->ringbuffer;
    delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    timer = _aaxTimerCreate();
@@ -127,10 +126,9 @@ _aaxAudioFrameThread(void* config)
          {
             if (_IS_PLAYING(frame) && be->state(NULL, DRIVER_AVAILABLE))
             {
-               void *rv = _aaxAudioFrameProcessThreadedFrame(handle,
-                                  frame->ringbuffer, mixer, smixer, fmixer, be);
-//             if (rv) frame->ringbuffer = rv;
-               assert(rv);
+               dest_rb = _aaxAudioFrameProcessThreadedFrame(handle,
+                                 dest_rb, mixer, smixer, fmixer, be);
+               assert(dest_rb);
             }
             else { /* if (_IS_STANDBY(frame)) */
                _aaxNoneDriverProcessFrame(mixer);
@@ -154,10 +152,10 @@ _aaxAudioFrameThread(void* config)
    }
    while ((res == AAX_TIMEOUT) || (res == AAX_TRUE));
 
+   frame->thread.initialized = AAX_FALSE;
    _aaxMutexUnLock(frame->thread.mutex);
-   _oalRingBufferStop(frame->ringbuffer);
-// _oalRingBufferDelete(frame->ringbuffer);
-   frame->ringbuffer = 0;
+   _oalRingBufferStop(dest_rb);
+   _oalRingBufferDelete(dest_rb);
 
    return frame;
 }

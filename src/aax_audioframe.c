@@ -1300,7 +1300,7 @@ _aaxAudioFrameStart(_frame_t *frame)
             do
             {
                msecSleep(100);
-               r = (frame->ringbuffer != 0);
+               r = frame->thread.initialized;
                if (p++ > 5000) break;
             }
             while (r == 0);
