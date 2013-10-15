@@ -309,7 +309,7 @@ _intBufReplace(_intBuffers *buffer, unsigned int id, unsigned int n, void *data)
     return rv;
 }
 
-#if !defined(NDEBUG) || defined(PRINT_FUNC)
+#ifndef NDEBUG
 _intBufferData *
 _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char *file, int line)
 {

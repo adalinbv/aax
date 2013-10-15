@@ -169,7 +169,7 @@ _intBufReplace(_intBuffers *, unsigned int, unsigned int, void *);
  * @param pos the position in the array of the opbject to get
  * @return the object data
  */
-#if defined(BUFFER_DEBUG) || defined(PRINT_FUNC)
+#ifdef BUFFER_DEBUG
 # define _intBufGet(a, b, c)  _intBufGetDebug(a, b, c, __FILE__, __LINE__)
  _intBufferData *
  _intBufGetDebug(_intBuffers *, unsigned int, unsigned int, char *, int);
