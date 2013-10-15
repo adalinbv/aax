@@ -122,10 +122,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          if (effect) free(effect->history_ptr);
          free(effect);
 
-         if (src->p3dq) {
-            _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-         }
-
+         _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          _aax_aligned_free(src->props3d->dprops3d);
          free(src->props3d);
 

@@ -820,7 +820,7 @@ _open_handle(aaxConfig config)
                }
                if (res != UINT_MAX)
                {
-                  res=_intBufAddData(handle->sensors,_AAX_SENSOR, sensor);
+                  res = _intBufAddData(handle->sensors,_AAX_SENSOR, sensor);
                   if (res != UINT_MAX)
                   {
                      unsigned int num;
@@ -841,12 +841,12 @@ _open_handle(aaxConfig config)
 
                      return handle;
                   }
-                  _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER, 0);
+                  _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER, 0); // free);
                }
                /* creating the sensor failed */
                free(ptr1);
             }
-            _intBufErase(&handle->sensors, _AAX_SENSOR, 0);
+            _intBufErase(&handle->sensors, _AAX_SENSOR, 0); // _aaxFreeSensor);
          }
       }
    }
@@ -1257,9 +1257,7 @@ _aaxFreeSensor(void *ssr)
    if (effect) free(effect->history_ptr);
    free(effect);
 
-   if (mixer->p3dq) {
-      _intBufErase(&mixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-   }
+   _intBufErase(&mixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
    _aax_aligned_free(mixer->props3d->dprops3d);
    free(mixer->props3d);
 

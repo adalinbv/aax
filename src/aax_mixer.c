@@ -816,7 +816,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
                _sensor_t* sframe_sensor = _intBufGetDataPtr(dptr_sframe);
                sframe_sensor->mixer->refcount--;
                _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
-   
+
                sframe->handle = NULL;
                sframe->pos = UINT_MAX;
                rv = AAX_TRUE;
@@ -1091,6 +1091,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 #else
                   submix->thread = AAX_FALSE;
 #endif
+
                   frame->handle = handle;
                   frame->pos = pos;
                }

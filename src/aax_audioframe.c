@@ -138,9 +138,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
          if (effect) free(effect->history_ptr);
          free(effect);
 
-         if (fmixer->p3dq) {
-            _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-         }
+         _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          _aax_aligned_free(fmixer->props3d->dprops3d);
          free(fmixer->props3d);
 
@@ -1119,6 +1117,9 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
          _intBufDestroyDataNoLock(rbuf);
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_REFERENCE);
       }
    }
    put_frame(frame);

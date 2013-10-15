@@ -261,6 +261,9 @@ aaxSensorGetBuffer(const aaxConfig config)
             }
             _intBufDestroyDataNoLock(rbuf);
          }
+         else {
+            _aaxErrorSet(AAX_INVALID_REFERENCE);
+         }
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
    }
@@ -290,7 +293,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          duration += sleep_ms*0.001f;	// ms to sec.
          if (duration >= timeout) break;
 
-         handle = get_handle(config);	/* handle could be inalid by now */
+         handle = get_handle(config);	/* handle could be invalid by now */
          if (!handle) break;
 
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
