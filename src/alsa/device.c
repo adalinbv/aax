@@ -1817,7 +1817,6 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            if (rv)
                            {
                               char *ptr = name+strlen("front:");
-
                               if (vmix)
                               {
                                  snprintf(rv, dlen, "plug:'%s%s'",
@@ -2699,7 +2698,6 @@ _aaxALSADriverThread(void* config)
    if (dptr_sensor)
    {
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
-//    _oalRingBuffer *nrb;
 
       mixer = sensor->mixer;
 
@@ -2714,8 +2712,6 @@ _aaxALSADriverThread(void* config)
          _oalRingBufferStart(dest_rb);
 
          handle->ringbuffer = dest_rb;
-//       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-//       _intBufAddData(mixer->ringbuffers, _AAX_RINGBUFFER, nrb);
       }
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
@@ -2730,7 +2726,7 @@ _aaxALSADriverThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   stdby_time = 2*(int)(delay_sec*1000);
+   stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
    {
@@ -2742,15 +2738,16 @@ _aaxALSADriverThread(void* config)
       if (_IS_PLAYING(handle))
       {
 				/* timeout is in ms */
-         if ((err = psnd_pcm_wait(be_handle->pcm, stdby_time)) < 0)
+         if ((err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time)) < 0)
          {
+            xrun_recovery(be_handle->pcm, err);
             _AAX_DRVLOG("alsa; snd_pcm_wait polling error");
-//          _aaxMutexLock(handle->thread.mutex);
-//          continue;
+            _aaxMutexLock(handle->thread.mutex);
+            continue;
          }
       }
       else {
-         msecSleep((unsigned int)(delay_sec*1000));
+         msecSleep(stdby_time);
       }
 
       if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
