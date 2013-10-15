@@ -2103,15 +2103,19 @@ _wasapi_open(_driver_t *handle, WAVEFORMATEXTENSIBLE *fmt)
                              (void**)&handle->pEnumerator);
       if (hr == S_OK)
       {
-         if (!handle->devname)
+         if (handle->devname) {
+            handle->devid = name_to_id(handle->devname, m);
+         }
+
+         if (!handle->devid)
          {
             hr = pIMMDeviceEnumerator_GetDefaultAudioEndpoint(
                                                  handle->pEnumerator, _mode[m],
                                                  eMultimedia, &handle->pDevice);
+
          }
          else
          {
-            handle->devid = name_to_id(handle->devname, m);
             hr = pIMMDeviceEnumerator_GetDevice(handle->pEnumerator,
                                                 handle->devid,
                                                 &handle->pDevice);
