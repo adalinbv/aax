@@ -60,7 +60,6 @@ _aaxAudioFrameThread(void* config)
    delay_sec = 1.0f / smixer->info->refresh_rate;
    if (be)
    {
-//    _oalRingBuffer *nrb;
       _aaxMixerInfo* info;
       int tracks;
 
@@ -76,9 +75,6 @@ _aaxAudioFrameThread(void* config)
       _oalRingBufferInit(dest_rb, AAX_TRUE);
       _oalRingBufferStart(dest_rb);
       frame->ringbuffer = dest_rb;
-//    nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-//    _intBufAddData(smixer->ringbuffers, _AAX_RINGBUFFER, nrb);
-
    }
 
    mixer = smixer;
@@ -171,9 +167,7 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
                   _oalRingBuffer2dProps *fp2d, 
                   const _aaxDriverBackend *be, void *be_handle)
 {
-   _intBufferData *buf;
-
-   buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
+   _intBufferData *buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
    if (buf)
    {
       _oalRingBufferLFOInfo *lfo;
@@ -226,7 +220,28 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
 {
    _oalRingBuffer *nrb;
    unsigned int nbuf;
+#if 0
+   _intBufferData *buf;
 
+   nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+
+   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
+   if (buf)
+   {
+      nrb = _intBufSetDataPtr(buf, rb);
+      if (dde) {
+         _oalRingBufferCopyDelyEffectsData(nrb, rb);
+      }
+
+      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);
+   }
+   else
+   {
+      nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
+      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, AAX_TRUE);
+   }
+
+#else
    nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
    if (nbuf == 0)
    {
@@ -252,6 +267,7 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
          _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
       }
    }
+#endif
 
    rb = nrb;
    assert(rb != NULL);
@@ -397,23 +413,28 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
       _oalRingBuffer *frame_rb = fmixer->ringbuffer;
       _frame_t* subframe = _intBufGetDataPtr(dptr);
       _aaxAudioFrame *sfmixer = subframe->submix;
-      _oalRingBufferDelayed3dProps sfdp3d_m;
-      _oalRingBufferDelayed3dProps sfdp3d;
+      _oalRingBufferDelayed3dProps *sfdp3d_m;
+      _oalRingBufferDelayed3dProps *sfdp3d;
       _oalRingBuffer2dProps sfp2d;
+      unsigned int size;
       int res;
+
+      size = sizeof(_oalRingBufferDelayed3dProps);
+      sfdp3d = _aax_aligned_alloc16(size);
+      sfdp3d_m = _aax_aligned_alloc16(size);
 
       _aaxAudioFrameProcessDelayQueue(sfmixer);
 
       _aax_memcpy(&sfp2d, sfmixer->props2d,
                           sizeof(_oalRingBuffer2dProps));
-      _aax_memcpy(&sfdp3d, sfmixer->props3d->dprops3d,
+      _aax_memcpy(sfdp3d, sfmixer->props3d->dprops3d,
                            sizeof(_oalRingBufferDelayed3dProps));
-      _aax_memcpy(&sfdp3d_m, sfmixer->props3d->m_dprops3d,
+      _aax_memcpy(sfdp3d_m, sfmixer->props3d->m_dprops3d,
                              sizeof(_oalRingBufferDelayed3dProps));
 
-      sfdp3d_m.state3d = sfdp3d.state3d;
-      sfdp3d_m.pitch = sfdp3d.pitch;
-      sfdp3d_m.gain = sfdp3d.gain;
+      sfdp3d_m->state3d = sfdp3d->state3d;
+      sfdp3d_m->pitch = sfdp3d->pitch;
+      sfdp3d_m->gain = sfdp3d->gain;
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -431,7 +452,7 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
       res = _aaxAudioFrameProcess(frame_rb, NULL, sfmixer, ssv, sdf,
-                                  fp2d, fdp3d_m, &sfp2d, &sfdp3d, &sfdp3d_m,
+                                  fp2d, fdp3d_m, &sfp2d, sfdp3d, sfdp3d_m,
                                   be, be_handle, AAX_TRUE);
 
       /* if the subframe actually did render something, mix the data */
@@ -448,10 +469,10 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
          dptr = _intBufGet(hf, _AAX_FRAME, i);
          m_sfdp3d = sfmixer->props3d->m_dprops3d;
          if (!_PROP_MTX_HAS_CHANGED(sfmixer->props3d)) {
-            mtx4Copy(m_sfdp3d->matrix, sfdp3d_m.matrix);
+            mtx4Copy(m_sfdp3d->matrix, sfdp3d_m->matrix);
          }
          if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
-            mtx4Copy(m_sfdp3d->velocity, sfdp3d_m.velocity);
+            mtx4Copy(m_sfdp3d->velocity, sfdp3d_m->velocity);
          }
          _intBufReleaseData(dptr, _AAX_FRAME);
 
@@ -462,6 +483,9 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
 
          process = AAX_TRUE;
       }
+
+      _aax_aligned_free(sfdp3d);
+      _aax_aligned_free(sfdp3d_m);
    }
 
    return process;
@@ -514,10 +538,11 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
           const _aaxDriverBackend *be)
 {
    void *be_handle = NULL;
-   _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
-   _oalRingBufferDelayed3dProps fdp3d, fdp3d_m;
+   _oalRingBufferDelayed3dProps *sdp3d, *sdp3d_m;
+   _oalRingBufferDelayed3dProps *fdp3d, *fdp3d_m;
    _oalRingBuffer2dProps sp2d, fp2d;
    _intBufferData *dptr;
+   unsigned int size;
    float ssv = 343.3f;
    float sdf = 1.0f;
    char dde;
@@ -528,6 +553,12 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    assert(fmixer); /* frame submixer */
 
    be_handle = handle->backend.handle;
+
+   size = sizeof(_oalRingBufferDelayed3dProps);
+   sdp3d = _aax_aligned_alloc16(size);
+   sdp3d_m = _aax_aligned_alloc16(size);
+   fdp3d = _aax_aligned_alloc16(size);
+   fdp3d_m = _aax_aligned_alloc16(size);
 
    /**
     * copying here prevents locking the listener the whole time
@@ -544,7 +575,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
       sdf = _EFFECT_GETD3D(smixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
 
       _aax_memcpy(&sp2d, smixer->props2d, sizeof(_oalRingBuffer2dProps));
-      _aax_memcpy(&sdp3d, smixer->props3d->dprops3d,
+      _aax_memcpy(sdp3d, smixer->props3d->dprops3d,
                           sizeof(_oalRingBufferDelayed3dProps));
       _PROP_CLEAR(smixer->props3d);
       _intBufReleaseData(dptr, _AAX_SENSOR);
@@ -556,23 +587,23 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
 
    /* update the modified properties */
-   mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
-   mtx4Mul(sdp3d_m.velocity, sdp3d.matrix, sdp3d.velocity);
-   sdp3d_m.state3d = sdp3d.state3d;
-   sdp3d_m.pitch = sdp3d.pitch;
-   sdp3d_m.gain = sdp3d.gain;
+   mtx4Copy(sdp3d_m->matrix, sdp3d->matrix);
+   mtx4Mul(sdp3d_m->velocity, sdp3d->matrix, sdp3d->velocity);
+   sdp3d_m->state3d = sdp3d->state3d;
+   sdp3d_m->pitch = sdp3d->pitch;
+   sdp3d_m->gain = sdp3d->gain;
 
    /* frame */
    _aaxAudioFrameProcessDelayQueue(fmixer);
    _aax_memcpy(&fp2d, fmixer->props2d, sizeof(_oalRingBuffer2dProps));
-   _aax_memcpy(&fdp3d, fmixer->props3d->dprops3d,
+   _aax_memcpy(fdp3d, fmixer->props3d->dprops3d,
                        sizeof(_oalRingBufferDelayed3dProps));
-   _aax_memcpy(&fdp3d_m, fmixer->props3d->m_dprops3d,
+   _aax_memcpy(fdp3d_m, fmixer->props3d->m_dprops3d,
                          sizeof(_oalRingBufferDelayed3dProps));
 
-   fdp3d_m.state3d = fdp3d.state3d;
-   fdp3d_m.pitch = fdp3d.pitch;
-   fdp3d_m.gain = fdp3d.gain;
+   fdp3d_m->state3d = fdp3d->state3d;
+   fdp3d_m->pitch = fdp3d->pitch;
+   fdp3d_m->gain = fdp3d->gain;
 // TODO: (test with kx, 4 channel)
 // _PROP_CLEAR(fmixer->props3d);
 
@@ -584,17 +615,22 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _oalRingBufferClear(frame_rb);
    _oalRingBufferStart(frame_rb);
 
-   _aaxAudioFrameProcess(frame_rb, NULL, mixer, ssv, sdf, &sp2d, &sdp3d_m,
-                         &fp2d, &fdp3d, &fdp3d_m, be, be_handle,AAX_TRUE);
+   _aaxAudioFrameProcess(frame_rb, NULL, mixer, ssv, sdf, &sp2d, sdp3d_m,
+                         &fp2d, fdp3d, fdp3d_m, be, be_handle,AAX_TRUE);
 
    /* copy back the altered fdp3d matrix and velocity vector   */
    /* beware, they might have been altered in the mean time! */
    if (!_PROP_MTX_HAS_CHANGED(fmixer->props3d)) {
-      mtx4Copy(fmixer->props3d->m_dprops3d->matrix, fdp3d_m.matrix);
+      mtx4Copy(fmixer->props3d->m_dprops3d->matrix, fdp3d_m->matrix);
    }
    if (!_PROP_SPEED_HAS_CHANGED(fmixer->props3d)) {
-      mtx4Copy(fmixer->props3d->m_dprops3d->velocity, fdp3d_m.velocity);
+      mtx4Copy(fmixer->props3d->m_dprops3d->velocity, fdp3d_m->velocity);
    }
+
+   _aax_aligned_free(sdp3d);
+   _aax_aligned_free(sdp3d_m);
+   _aax_aligned_free(fdp3d);
+   _aax_aligned_free(fdp3d_m);
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
    return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->ringbuffers, dde);

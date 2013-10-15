@@ -568,14 +568,19 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
             }
             else if (mixer->emitters_3d || mixer->emitters_2d || mixer->frames)
             {
-               _oalRingBufferDelayed3dProps sdp3d, sdp3d_m;
+               _oalRingBufferDelayed3dProps *sdp3d, *sdp3d_m;
                _oalRingBuffer2dProps sp2d;
                char fprocess = AAX_TRUE;
+               unsigned int size;
                float ssv = 343.3f;
                float sdf = 1.0f;
 #if !THREADED_FRAMES
                float gain;
 #endif
+
+               size = sizeof(_oalRingBufferDelayed3dProps);
+               sdp3d = _aax_aligned_alloc16(size);
+               sdp3d_m = _aax_aligned_alloc16(size);
 
                /**
                 * copying here prevents locking the listener the whole time
@@ -592,11 +597,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 
                   _aax_memcpy(&sp2d, mixer->props2d,
                                      sizeof(_oalRingBuffer2dProps));
-                  _aax_memcpy(&sdp3d, mixer->props3d->dprops3d,
+                  _aax_memcpy(sdp3d, mixer->props3d->dprops3d,
                                       sizeof(_oalRingBufferDelayed3dProps));
-                  sdp3d_m.state3d = sdp3d.state3d;
-                  sdp3d_m.pitch = sdp3d.pitch;
-                  sdp3d_m.gain = sdp3d.gain;
+                  sdp3d_m->state3d = sdp3d->state3d;
+                  sdp3d_m->pitch = sdp3d->pitch;
+                  sdp3d_m->gain = sdp3d->gain;
                   _PROP_CLEAR(mixer->props3d);
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
@@ -607,14 +612,14 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
 
                /* update the modified properties */
-               mtx4Copy(sdp3d_m.matrix, sdp3d.matrix);
-               mtx4Mul(sdp3d_m.velocity, sdp3d.matrix, sdp3d.velocity);
+               mtx4Copy(sdp3d_m->matrix, sdp3d->matrix);
+               mtx4Mul(sdp3d_m->velocity, sdp3d->matrix, sdp3d->velocity);
 #if 0
- if (_PROP3D_MTXSPEED_HAS_CHANGED(&sdp3d_m)) {
+ if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
  printf("matrix:\t\t\t\tvelocity\n");
- PRINT_MATRICES(sdp3d.matrix, sdp3d.velocity);
+ PRINT_MATRICES(sdp3d->matrix, sdp3d->velocity);
  printf("modified velocity\n");
- PRINT_MATRIX(sdp3d_m.velocity);
+ PRINT_MATRIX(sdp3d_m->velocity);
  }
 #endif
                /* clear the buffer for use by the subframe */
@@ -636,7 +641,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 # if THREADED_FRAMES
                /* main mixer */
                _aaxEmittersProcess(dest_rb, handle->info, ssv, sdf,
-                                   &sp2d, &sdp3d_m,
+                                   &sp2d, sdp3d_m,
                                    mixer->emitters_2d, mixer->emitters_3d,
                                    be, be_handle);
 
@@ -647,7 +652,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                                                 sensor, be, be_handle);
 # else
                _aaxAudioFrameProcess(dest_rb, sensor, mixer, ssv, sdf,
-                                     NULL, NULL, &sp2d, &sdp3d, &sdp3d_m,
+                                     NULL, NULL, &sp2d, sdp3d, sdp3d_m,
                                      be, be_handle, fprocess);
 
                /** play back all mixed audio */
@@ -671,7 +676,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 #else
                /* process emitters, (sub-)frames and registered sensors */
                res = _aaxAudioFrameProcess(dest_rb, sensor, mixer, ssv, sdf,
-                                           NULL, NULL, &sp2d, &sdp3d, &sdp3d_m,
+                                           NULL, NULL, &sp2d, sdp3d, sdp3d_m,
                                            be, be_handle, fprocess);
                /*
                 * if the final mixer actually did render something,
@@ -682,6 +687,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                                            &sp2d, mixer->capturing,
                                            sensor, be, be_handle);
 #endif
+
+               _aax_aligned_free(sdp3d);
+               _aax_aligned_free(sdp3d_m);
             }
          }
       }
