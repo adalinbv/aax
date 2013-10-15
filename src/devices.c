@@ -39,6 +39,8 @@
 # include <windows/wasapi.h>
 #endif
 
+static _intBuffers *_aaxIntDriverGetBackends();
+
 char is_bigendian()
 {
    static char __big_endian = 0;
@@ -63,7 +65,7 @@ _aaxGetDriverBackends()
    r = _intBufCreate(&backends, _AAX_BACKEND);
    if (r != UINT_MAX)
    {
-      _intBuffers *dbe = &_aaxIntDriverBackends;
+      _intBuffers *dbe = _aaxIntDriverGetBackends();
       unsigned int i, num;
 
       num = _intBufGetNumNoLock(dbe, _AAX_BACKEND);
@@ -157,11 +159,11 @@ _aaxGetDriverBackendDefault(_intBuffers *bs, unsigned int *pos)
    assert (bs != 0);
 
    i = _intBufGetNumNoLock(bs, _AAX_BACKEND);
-   do
+   while (i--)
    {
       _intBufferData *dptr;
 
-      dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
+      dptr = _intBufGetNoLock(bs, _AAX_BACKEND, i);
       be = _intBufGetDataPtr(dptr);
       if (be->detect(AAX_MODE_WRITE_STEREO) &&
           be->state(NULL, DRIVER_SUPPORTS_PLAYBACK))
@@ -170,7 +172,6 @@ _aaxGetDriverBackendDefault(_intBuffers *bs, unsigned int *pos)
          break;
       }
    }
-   while (i);
 
    return be;
 }
@@ -178,7 +179,7 @@ _aaxGetDriverBackendDefault(_intBuffers *bs, unsigned int *pos)
 _aaxDriverBackend *
 _aaxGetDriverBackendLoopback(unsigned int *pos)
 {
-   _intBuffers *dbe = &_aaxIntDriverBackends;
+   _intBuffers *dbe = _aaxIntDriverGetBackends();
    const char *name = "AeonWave Loopback";
    _aaxDriverBackend *be = 0;
    unsigned int i, num;
@@ -214,11 +215,11 @@ _aaxGetDriverBackendDefaultCapture(_intBuffers *bs, unsigned int *pos)
    assert (bs != 0);
 
    i = _intBufGetNumNoLock(bs, _AAX_BACKEND);
-   do
+   while(i--)
    {
       _intBufferData *dptr;
 
-      dptr = _intBufGetNoLock(bs, _AAX_BACKEND, --i);
+      dptr = _intBufGetNoLock(bs, _AAX_BACKEND, i);
       be = _intBufGetDataPtr(dptr);
       if (be->detect(AAX_MODE_READ) &&
           be->state(NULL, DRIVER_SUPPORTS_CAPTURE))
@@ -227,7 +228,6 @@ _aaxGetDriverBackendDefaultCapture(_intBuffers *bs, unsigned int *pos)
          break;
       }
    }
-   while (i);
 
    return be;
 }
@@ -259,7 +259,7 @@ _aaxGetDriverBackendName(const _aaxDriverBackend *be)
 long
 _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *config)
 {
-   _intBuffers *dbe = (_intBuffers *)&_aaxIntDriverBackends;
+   _intBuffers *dbe = _aaxIntDriverGetBackends();
    time_t rv = time(NULL);
    _aaxDriverBackend *be;
    unsigned int i, num;
@@ -601,45 +601,26 @@ _aaxDriverBackendClearConfigSettings(_aaxConfig *config)
 
 /* -------------------------------------------------------------------------- */
 
-/**
- * backends
- * _AAX_MAX_BACKENDS is defines in driver.h
- */
-_intBufferData _aaxBackends[_AAX_MAX_BACKENDS] =
+static _intBuffers *_aaxIntBackends = NULL;
+
+static _intBuffers *
+_aaxIntDriverGetBackends()
 {
-   {0, 1, (void *)&_aaxNoneDriverBackend},
-   {0, 1, (void *)&_aaxFileDriverBackend},
-   {0, 1, (void *)&_aaxLoopbackDriverBackend},
-   {0, 1, (void *)&_aaxOSSDriverBackend},
-   {0, 1, (void *)&_aaxALSADriverBackend},
+   if (_aaxIntBackends == NULL)
+   {
+      unsigned int r = _intBufCreate(&_aaxIntBackends, _AAX_BACKEND);
+      if (r == UINT_MAX) return NULL;
+
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxNoneDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLoopbackDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);
 #ifdef HAVE_WINDOWS_H
-   {0, 1, (void *)&_aaxWASAPIDriverBackend},
-#else
-   {0, 1, NULL},
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif
-   {0, 1, (void *)&_aaxDMediaDriverBackend}
-};
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxDMediaDriverBackend);
+   }
 
-void *_aaxBackendsPtr[_AAX_MAX_BACKENDS] =
-{ 
-   (void *)&_aaxBackends[0],
-   (void *)&_aaxBackends[1],
-   (void *)&_aaxBackends[2],
-   (void *)&_aaxBackends[3],
-   (void *)&_aaxBackends[4],
-   (void *)&_aaxBackends[5],
-   (void *)&_aaxBackends[6]
-};
-
-_intBuffers _aaxIntDriverBackends =
-{
-   _AAX_BACKEND,
-   0,
-   0,
-   0,
-   _AAX_MAX_BACKENDS,
-   _AAX_MAX_BACKENDS,
-   _AAX_MAX_BACKENDS,
-   (void *)&_aaxBackendsPtr
-};
+   return _aaxIntBackends;
+}
 

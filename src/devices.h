@@ -48,10 +48,6 @@ typedef struct
 } _aaxConfig;
 
 
-extern _intBuffers *_aaxDriverBackends;
-extern _intBuffers _aaxIntDriverBackends;
-
-
 char is_bigendian();
 _intBuffers *_aaxGetDriverBackends();
 _aaxDriverBackend *_aaxGetDriverBackendLoopback(unsigned int *);
