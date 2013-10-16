@@ -249,7 +249,6 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
    nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
    if (nbuf < 1)
    {
-printf("nbuf == %i\n", nbuf);
       nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
       _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, nrb, 1);
    }
@@ -268,7 +267,6 @@ printf("nbuf == %i\n", nbuf);
       }
       else
       {
-printf("_intBufPop returned NULL\n");
          nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
          _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
       }
