@@ -126,8 +126,8 @@ _aaxAudioFrameThread(void* config)
          {
             if (_IS_PLAYING(frame) && be->state(NULL, DRIVER_AVAILABLE))
             {
-               dest_rb = _aaxAudioFrameProcessThreadedFrame(handle,
-                                 dest_rb, mixer, smixer, fmixer, be);
+               dest_rb = _aaxAudioFrameProcessThreadedFrame(handle, dest_rb,
+                                                     mixer, smixer, fmixer, be);
                assert(dest_rb);
             }
             else { /* if (_IS_STANDBY(frame)) */
@@ -241,10 +241,11 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
 
 #else
    nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-   if (nbuf == 0)
+   if (nbuf < 1)
    {
+printf("nbuf == %i\n", nbuf);
       nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
+      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, nrb, 1);
    }
    else
    {	 /* switch ringbuffers */
@@ -261,6 +262,7 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
       }
       else
       {
+printf("_intBufPop returned NULL\n");
          nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
          _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
       }
@@ -631,6 +633,6 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _aax_aligned_free(fdp3d_m);
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
-   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->ringbuffers, dde);
+   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->play_ringbuffers, dde);
 }
 

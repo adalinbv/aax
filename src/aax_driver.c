@@ -783,40 +783,40 @@ _open_handle(aaxConfig config)
             if (ptr1)
             {
                _sensor_t* sensor = ptr1;
-               _aaxAudioFrame* mixer;
+               _aaxAudioFrame* smixer;
 
                sensor->filter = handle->filter;
                size = EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
                memcpy(sensor->filter, &_aaxMixerDefaultEqualizer, size);
 
                size = sizeof(_sensor_t);
-               mixer = (_aaxAudioFrame*)((char*)sensor + size);
+               smixer = (_aaxAudioFrame*)((char*)sensor + size);
 
-               sensor->mixer = mixer;
+               sensor->mixer = smixer;
                sensor->mixer->info = handle->info;
 
                assert(((long int)ptr2 & 0xF) == 0);
 
-               mixer->props2d = (_oalRingBuffer2dProps*)ptr2;
-               _aaxSetDefault2dProps(mixer->props2d);
-               _EFFECT_SET2D(mixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
+               smixer->props2d = (_oalRingBuffer2dProps*)ptr2;
+               _aaxSetDefault2dProps(smixer->props2d);
+               _EFFECT_SET2D(smixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
 
-               mixer->props3d = _aax3dPropsCreate();
-               if (mixer->props3d)
+               smixer->props3d = _aax3dPropsCreate();
+               if (smixer->props3d)
                {
-                  mixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
-                  _EFFECT_SETD3D_DATA(mixer, VELOCITY_EFFECT,
+                  smixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+                  _EFFECT_SETD3D_DATA(smixer, VELOCITY_EFFECT,
                                             _oalRingBufferDopplerFunc[0]);
-                  _FILTER_SETD3D_DATA(mixer, DISTANCE_FILTER,
+                  _FILTER_SETD3D_DATA(smixer, DISTANCE_FILTER,
                           _oalRingBufferDistanceFunc[AAX_EXPONENTIAL_DISTANCE]);
                }
 
-               res = _intBufCreate(&mixer->emitters_3d, _AAX_EMITTER);
+               res = _intBufCreate(&smixer->emitters_3d, _AAX_EMITTER);
                if (res != UINT_MAX) {
-                  res = _intBufCreate(&mixer->emitters_2d, _AAX_EMITTER);
+                  res = _intBufCreate(&smixer->emitters_2d, _AAX_EMITTER);
                }
                if (res != UINT_MAX) {
-                  res = _intBufCreate(&mixer->ringbuffers, _AAX_RINGBUFFER);
+                  res = _intBufCreate(&smixer->play_ringbuffers, _AAX_RINGBUFFER);
                }
                if (res != UINT_MAX)
                {
@@ -836,12 +836,12 @@ _open_handle(aaxConfig config)
                      num = _AAX_MAX_MIXER_REGISTERED;
                      sensor->mixer->info->max_registered = num;
 
-                     _PROP_PITCH_SET_CHANGED(mixer->props3d);
-                     _PROP_MTX_SET_CHANGED(mixer->props3d);
+                     _PROP_PITCH_SET_CHANGED(smixer->props3d);
+                     _PROP_MTX_SET_CHANGED(smixer->props3d);
 
                      return handle;
                   }
-                  _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER, 0); // free);
+                  _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, 0); // free);
                }
                /* creating the sensor failed */
                free(ptr1);
@@ -1243,30 +1243,30 @@ _aaxFreeSensor(void *ssr)
 {
    _sensor_t *sensor = (_sensor_t*)ssr;
    _oalRingBufferDelayEffectData* effect;
-   _aaxAudioFrame* mixer = sensor->mixer;
+   _aaxAudioFrame* smixer = sensor->mixer;
 
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
    free(sensor->filter[EQUALIZER_LF].data);
 
-   free(_FILTER_GET2D_DATA(mixer, FREQUENCY_FILTER));
-   free(_FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER));
-   free(_FILTER_GET2D_DATA(mixer, TIMED_GAIN_FILTER));
-   free(_EFFECT_GET2D_DATA(mixer, DYNAMIC_PITCH_EFFECT));
+   free(_FILTER_GET2D_DATA(smixer, FREQUENCY_FILTER));
+   free(_FILTER_GET2D_DATA(smixer, DYNAMIC_GAIN_FILTER));
+   free(_FILTER_GET2D_DATA(smixer, TIMED_GAIN_FILTER));
+   free(_EFFECT_GET2D_DATA(smixer, DYNAMIC_PITCH_EFFECT));
 
-   effect = _EFFECT_GET2D_DATA(mixer, DELAY_EFFECT);
+   effect = _EFFECT_GET2D_DATA(smixer, DELAY_EFFECT);
    if (effect) free(effect->history_ptr);
    free(effect);
 
-   _intBufErase(&mixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-   _aax_aligned_free(mixer->props3d->dprops3d);
-   free(mixer->props3d);
+   _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
+   _aax_aligned_free(smixer->props3d->dprops3d);
+   free(smixer->props3d);
 
    /* ringbuffer gets removed by the thread */
-   /* _oalRingBufferDelete(mixer->ringbuffer); */
-   _intBufErase(&mixer->frames, _AAX_FRAME, 0); // free);
-   _intBufErase(&mixer->devices, _AAX_DEVICE, 0); // free);
-   _intBufErase(&mixer->emitters_2d, _AAX_EMITTER, 0); // free);
-   _intBufErase(&mixer->emitters_3d, _AAX_EMITTER, 0); // free);
-   _intBufErase(&mixer->ringbuffers, _AAX_RINGBUFFER, _oalRingBufferClear);
+   /* _oalRingBufferDelete(smixer->ringbuffer); */
+   _intBufErase(&smixer->frames, _AAX_FRAME, 0); // free);
+   _intBufErase(&smixer->devices, _AAX_DEVICE, 0); // free);
+   _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, 0); // free);
+   _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, 0); // free);
+   _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, _oalRingBufferClear);
    free(sensor);
 }

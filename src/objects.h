@@ -132,7 +132,7 @@ typedef struct
 
    _oalRingBuffer *ringbuffer;
    _intBuffers *frame_ringbuffers;	/* for audio frame rendering */
-   _intBuffers *ringbuffers;		/* for loopback capture */
+   _intBuffers *play_ringbuffers;		/* for loopback capture */
 
    unsigned int no_registered;
    float curr_pos_sec;

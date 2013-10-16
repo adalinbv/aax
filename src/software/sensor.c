@@ -63,7 +63,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
          smixer = sensor->mixer;
          src_rb = smixer->ringbuffer;
          dt = 1.0f / smixer->info->refresh_rate;
-         srbs = smixer->ringbuffers;
+         srbs = smixer->play_ringbuffers;
          curr_pos_sec = smixer->curr_pos_sec;
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
@@ -358,13 +358,13 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
             if (dptr_sensor)
             {
                _intBuffers *ringbuffers;
-               _aaxAudioFrame *mixer;
+               _aaxAudioFrame *smixer;
                _sensor_t* sensor;
                unsigned int nbuf;
 
                sensor = _intBufGetDataPtr(dptr_sensor);
-               mixer = sensor->mixer;
-               ringbuffers = mixer->ringbuffers;
+               smixer = sensor->mixer;
+               ringbuffers = smixer->play_ringbuffers;
                _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
                nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
@@ -378,7 +378,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                   src_rb = _intBufGetDataPtr(buf);
                   do
                   {
-                     rv = be->mix2d(be_handle, dest_rb, src_rb, mixer->props2d,
+                     rv = be->mix2d(be_handle, dest_rb, src_rb, smixer->props2d,
                                                NULL, 0, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 

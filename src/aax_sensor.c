@@ -42,9 +42,9 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            mtx4Copy(mixer->props3d->dprops3d->matrix, mtx);
-            _PROP_MTX_SET_CHANGED(mixer->props3d);
+            _aaxAudioFrame* smixer = sensor->mixer;
+            mtx4Copy(smixer->props3d->dprops3d->matrix, mtx);
+            _PROP_MTX_SET_CHANGED(smixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }
@@ -73,9 +73,9 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-             mtx4Copy(mtx, mixer->props3d->dprops3d->matrix);
-             _PROP_MTX_SET_CHANGED(mixer->props3d);
+            _aaxAudioFrame* smixer = sensor->mixer;
+             mtx4Copy(mtx, smixer->props3d->dprops3d->matrix);
+             _PROP_MTX_SET_CHANGED(smixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
          }
@@ -176,10 +176,10 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
       if (dptr)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
-         _aaxAudioFrame* mixer = sensor->mixer;
+         _aaxAudioFrame* smixer = sensor->mixer;
          const _intBufferData* dptr_rb;
 
-         dptr_rb = _intBufGet(mixer->ringbuffers, _AAX_RINGBUFFER, 0);
+         dptr_rb = _intBufGet(smixer->play_ringbuffers, _AAX_RINGBUFFER, 0);
          if (dptr_rb)
          {
             _oalRingBuffer *rb = _intBufGetDataPtr(dptr_rb);
@@ -187,13 +187,13 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
             {
             case AAX_FRAMES:
             case AAX_SAMPLES:
-               rv = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
+               rv = _intBufGetNumNoLock(smixer->play_ringbuffers, _AAX_RINGBUFFER);
                rv *= _oalRingBufferGetParami(rb, RB_NO_SAMPLES);
                rv += _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
                break;
             case AAX_BYTES:
             {
-               rv = _intBufGetNumNoLock(mixer->ringbuffers, _AAX_RINGBUFFER);
+               rv = _intBufGetNumNoLock(smixer->play_ringbuffers, _AAX_RINGBUFFER);
                rv *= _oalRingBufferGetParami(rb, RB_NO_SAMPLES);
                rv += _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
                rv *= _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
@@ -229,8 +229,8 @@ aaxSensorGetBuffer(const aaxConfig config)
       if (dptr)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
-         _aaxAudioFrame* mixer = sensor->mixer;
-         _intBuffers *dptr_rb = mixer->ringbuffers;
+         _aaxAudioFrame* smixer = sensor->mixer;
+         _intBuffers *dptr_rb = smixer->play_ringbuffers;
          _intBufferData *rbuf;
 
          rbuf = _intBufPop(dptr_rb, _AAX_RINGBUFFER);
@@ -300,7 +300,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _intBuffers *ringbuffers = sensor->mixer->ringbuffers;
+            _intBuffers *ringbuffers = sensor->mixer->play_ringbuffers;
             nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
