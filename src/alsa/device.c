@@ -2742,8 +2742,6 @@ _aaxALSADriverThread(void* config)
          {
             xrun_recovery(be_handle->pcm, err);
             _AAX_DRVLOG("alsa; snd_pcm_wait polling error");
-            _aaxMutexLock(handle->thread.mutex);
-            continue;
          }
       }
       else {
