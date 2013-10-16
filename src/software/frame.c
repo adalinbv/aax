@@ -165,7 +165,11 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
                   _oalRingBuffer2dProps *fp2d, 
                   const _aaxDriverBackend *be, void *be_handle)
 {
-   _intBufferData *buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
+   _intBufferData *buf;
+
+   _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+
+   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
    if (buf)
    {
       _oalRingBufferLFOInfo *lfo;
@@ -207,8 +211,10 @@ _aaxAudioFrameMix(_oalRingBuffer *dest_rb, _intBuffers *ringbuffers,
        * be used without the need to delete this one now and 
        * create a new ringbuffer later on.
        */
-      _intBufPush(ringbuffers, _AAX_RINGBUFFER, buf);
+      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);
    }
+
+   _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
 }
 
 /* -------------------------------------------------------------------------- */
