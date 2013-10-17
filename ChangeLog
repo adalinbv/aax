@@ -1,4 +1,4 @@
-* Mon Aug 27 2013 - tech@adalin.org
+* Fri Oct 18 2013 - tech@adalin.org
 - AeonWave (2.3.0) stable; urgency=high
  * Distance-delay mode now adds delayed state changes in addition to delayed
    start/stop. State changes include; pitch, gain, position, orientation and
