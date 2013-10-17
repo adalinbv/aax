@@ -49,7 +49,7 @@ STRING(REGEX REPLACE "; \\.?" "\n" rpmDescription "${descriptionFile}")
 STRING(REGEX REPLACE ";" "\n" debDescription "${descriptionFile}")
 
 IF(WIN32)
-  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "Adalin\\AeonWave")
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "Adalin\\\\AeonWave")
   SET(CPACK_NSIS_CONTACT "info@adalin.com")
   SET(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${PACKAGE_NAME}")
   SET(CPACK_NSIS_DISPLAY_NAME "${PACKAGE_NAME}")

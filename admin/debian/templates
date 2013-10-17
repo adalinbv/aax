@@ -15,25 +15,26 @@ Description: product-key:
  product-key the software will function in the Lite mode which is with
  limited functionality.
  .
- Keep this line empty if you did not yet pruchase the product key.
+ Keep this line empty if you did not yet purchase the product key.
 
 Template: libaax2/failed_key
 Type: error
-Description: An incorrect product-key was entered
+Description: No or an incorrect product-key was entered
  If you don't provide a valid product-key the software will function in the
  Lite mode with reduced functionality.
  .
  The personal product-key was provided when you purchased the software.
- If you don't have the product-key at hand at this time please leave the
- line empty. A stub configuration file called .aaxconfig.xml will
- then be created in your home directory (or in case of the root user
- in the file /etc/aax/config.xml)
  .
- It is always possibel to add a valid product-key afterwards by editing the
- configuration file and enter the personal product-key between the
- <product-key> and the </product-key> tags
+ It is always possible to add a valid product-key after installation by
+ installing and running aaxconfig.
 
-Template: libaax2/copyright
+Template: libaax2/copyright_accept
+Type: boolean
+Description: Do you accept?
+ This Software is licensed material an by accepting you agree to be bound by
+ the terms and conditions laid out in the Customer License.
+
+Template: libaax2/copyright-short
 Type: note
 Description: License For Customer Use of ADALIN Software
  IMPORTANT NOTICE -- READ CAREFULLY: This License For Customer Use of ADALIN Software ("LICENSE") is the agreement which governs use of the software of ADALIN B.V. (“ADALIN”) obtainable herefrom, including computer software and associated printed materials ("SOFTWARE"). By obtaining, installing, copying, or otherwise using the SOFTWARE, you agree to be bound by the terms of this LICENSE. If you do not agree to the terms of this LICENSE, do not install the SOFTWARE.
@@ -42,8 +43,65 @@ Description: License For Customer Use of ADALIN Software
  .
  http://www.adalin.com/LICENSE-AeonWave.html
 
-Template: libaax2/copyright_accept
-Type: boolean
-Description: Do you accept?
- This Software is licensed material an by accepting you agree to be bound by
- the terms and conditions laid out in the Customer License.
+Template: libaax2/copyright
+Type: note
+Description: License For Customer Use of ADALIN Software
+ IMPORTANT NOTICE -- READ CAREFULLY: This License For Customer Use of ADALIN Software ("LICENSE") is the agreement which governs use of the software of ADALIN B.V. (“ADALIN”) obtainable herefrom, including computer software and associated printed materials ("SOFTWARE"). By obtaining, installing, copying, or otherwise using the SOFTWARE, you agree to be bound by the terms of this LICENSE. If you do not agree to the terms of this LICENSE, do not install the SOFTWARE.
+ .
+ RECITALS
+ .
+ Use of ADALIN's products requires two elements: the SOFTWARE and a personal computer. The SOFTWARE is protected by copyright laws and international copyright treaties, as well as other intellectual property laws and treaties. The SOFTWARE is not sold, and instead is only licensed for use, strictly in accordance with this document. This LICENSE sets forth the terms and conditions of the SOFTWARE LICENSE only.
+ .
+ 1. DEFINITIONS
+ .
+ 1.1 Customer. Customer means the entity or individual that obtains the SOFTWARE.
+ .
+ 1.2 Product-Key. A series of letters and digits supplied to the Customer to unlock the extended feature set of the SOFTWARE.
+ .
+ 2. GRANT OF LICENSE
+ .
+ 2.1 Rights and Limitations of Grant. ADALIN hereby grants Customer the following non-exclusive, non-transferable right to use the SOFTWARE, with the following limitations:
+ .
+ 2.1.1 Rights. Customer may install and use one copy of the SOFTWARE on a single computer, and except for making one back-up copy of the Software, may not otherwise copy the SOFTWARE. This LICENSE of SOFTWARE may not be shared or used concurrently on different computers.
+ .
+ 2.1.2 Linux/FreeBSD Exception. Notwithstanding the foregoing terms of Section 2.1.1, SOFTWARE designed exclusively for use on the Linux or FreeBSD operating systems, or other operating systems derived from the source code to these operating systems, may be copied and redistributed, provided that the binary files thereof are not modified in any way.
+ .
+ 2.1.3 Personal Product-Key. The Product-Key is personal and is not transferable. The Product-Key may not be shared or used concurrently on different computers and Customer is responsible to keep their Product-Key safe. Product-Key's are provided by ADALIN and by ADALIN only. Use of a Product-Key provided by a third party is prohibited.
+ .
+ 2.1.4 Limitations.
+ .
+ No Reverse Engineering. Customer may not reverse engineer, decompile, or disassemble the SOFTWARE, nor attempt in any other manner to obtain the source code.
+ .
+ No Separation of Components. The SOFTWARE is licensed as a single product. Its component parts may not be separated for use on more than one computer, nor otherwise used separately from the other parts.
+ .
+ No Rental. Customer may not rent or lease the SOFTWARE to someone else.
+ .
+ 3. TERMINATION
+ .
+ This LICENSE will automatically terminate if Customer fails to comply with any of the terms and conditions hereof. In such event, Customer must destroy all copies of the PRODUCT-KEY and all copies of the SOFTWARE and all of its component parts.
+ .
+ Defensive Suspension. If Customer commences or participates in any legal proceeding against ADALIN, then ADALIN may, in its sole discretion, suspend or terminate all license grants and any other rights provided under this LICENSE.
+ .
+ 4. COPYRIGHT
+ .
+ All title and copyrights in and to the SOFTWARE (including but not limited to all images, photographs, animations, video, audio, music, text, and other information incorporated into the SOFTWARE), the accompanying printed materials, and any copies of the SOFTWARE, are owned by ADALIN. The SOFTWARE is protected by copyright laws and international treaty provisions. Accordingly, Customer is required to treat the SOFTWARE like any other copyrighted material, except as otherwise allowed pursuant to this LICENSE and that it may make one copy of the SOFTWARE solely for backup or archive purposes.
+ .
+ 5. APPLICABLE LAW
+ .
+ This LICENSE shall be deemed to have been made in, and shall be construed pursuant to, the laws of the The Netherlands. The United Nations Convention on Contracts for the International Sale of Goods is specifically disclaimed.
+ .
+ 6. SOFTWARE PATENTS
+ .
+ Customer agrees not to pursue any Software Patent infringement proceeding against ADALIN. In the event Customer does commences or participates in any legal proceeding against ADALIN for Software Patent infringement Customer specifically agrees to indemnify ADALIN against all costs and liabilities arising out of all claims which result from, or involve an allegation of, any breach of this clause.
+ .
+ 7. DISCLAIMER OF WARRANTIES AND LIMITATION ON LIABILITY
+ .
+ 7.1 No Warranties. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS" AND ADALIN DISCLAIMS ALL WARRANTIES, EITHERWHETHER EXPRESS OR, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND, FITNESS FOR A PARTICULAR PURPOSE. , TITLE, AND NON-INFRINGEMENT. Without limiting the foregoing, you are solely responsible for determining and verifying that the SOFTWARE that you obtain and install is the appropriate version for your operating system, and computer hardware.
+ .
+ 7.2 No Liability for Consequential Damages. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL ADALIN BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, DAMAGES FOR LOSS OF BUSINESS PROFITS, LOSS OF DATA, BUSINESS INTERRUPTION, LOSS OF BUSINESS INFORMATION, OR ANY OTHER PECUNIARY LOSS) ARISING OUT OF THE USE OF OR INABILITY TO USE THE SOFTWARE, EVEN IF ADALIN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ .
+ 8. MISCELLANEOUS
+ .
+ If any provision of this LICENSE is inconsistent with, or cannot be fully enforced under, the law, such provision will be construed as limited to the extent necessary to be consistent with and fully enforceable under the law. This LICENSE is the final, complete and exclusive agreement between the parties relating to the subject matter hereof, and supersedes all prior or contemporaneous understandings and agreements relating to such subject matter, whether oral or written. This LICENSE may only be modified in writing signed by an authorized officer of ADALIN.  Customer agrees that it will not ship, transfer or export the SOFTWARE into any country, or use the SOFTWARE in any manner, prohibited by any export laws, restrictions or regulations.
+ .
+ Copyright 2005-2013 Adalin B.V. <tech@adalin.org>
