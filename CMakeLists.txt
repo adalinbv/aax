@@ -304,13 +304,6 @@ CONFIGURE_FILE(
     "${AeonWave_SOURCE_DIR}/include/cmake_config.h.in"
     "${AeonWave_BINARY_DIR}/include/config.h")
 
-CONFIGURE_FILE(
-    "${AeonWave_SOURCE_DIR}/admin/debian/control.in"
-    "${AeonWave_BINARY_DIR}/admin/debian/control")
-CONFIGURE_FILE(
-    "${AeonWave_SOURCE_DIR}/admin/debian/control-dev.in"
-    "${AeonWave_BINARY_DIR}/admin/debian/control-dev")
-
 SET( AEONWAVE_OBJS
      base/buffers.c
      base/dlsym.c
