@@ -663,7 +663,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                   _intBuffers *smixer_ringbuffers;
                   _oalRingBuffer *new_rb;
 
-                  smixer_ringbuffers = (_intBuffers*)smixer->ringbuffers;
+                  smixer_ringbuffers = (_intBuffers*)smixer->play_ringbuffers;
                   new_rb =_oalRingBufferDuplicate(dest_rb, AAX_TRUE, AAX_FALSE);
 
                   _oalRingBufferForward(new_rb);
