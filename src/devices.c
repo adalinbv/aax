@@ -612,6 +612,7 @@ _aaxIntDriverGetBackends()
       if (r == UINT_MAX) return NULL;
 
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxNoneDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxFileDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLoopbackDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);
