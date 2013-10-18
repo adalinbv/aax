@@ -700,15 +700,15 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*, int, float);
  * @param rb the ringbuffer to clear
  */
 void
-_oalRingBufferClear(void*);
+_oalRingBufferClear(_oalRingBuffer*);
 
 /**
  * Remove the ringbuffer and all it's tracks from memory.
  *
  * @param rb the ringbuffer to delete
  */
-_oalRingBuffer*
-_oalRingBufferDelete(_oalRingBuffer*);
+void
+_oalRingBufferDelete(void*);
 
 /**
  * Set the playback position of the ringbuffer to zero sec.

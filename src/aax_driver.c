@@ -1267,6 +1267,6 @@ _aaxFreeSensor(void *ssr)
    _intBufErase(&smixer->devices, _AAX_DEVICE, 0); // free);
    _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, 0); // free);
    _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, 0); // free);
-   _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, _oalRingBufferClear);
+   _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, _oalRingBufferDelete);
    free(sensor);
 }

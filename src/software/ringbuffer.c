@@ -660,9 +660,8 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, int tracks, float 
 }
 
 void
-_oalRingBufferClear(void *rbuf)
+_oalRingBufferClear(_oalRingBuffer *rb)
 {
-   _oalRingBuffer *rb = (_oalRingBuffer*)rbuf;
    _oalRingBufferSample *rbd;
    unsigned int i;
 
@@ -695,15 +694,16 @@ _oalRingBufferClear(void *rbuf)
 // rb->dde_sec = dde;
 }
 
-_oalRingBuffer *
-_oalRingBufferDelete(_oalRingBuffer *rb)
+void
+_oalRingBufferDelete(void *rbuf)
 {
+   _oalRingBuffer *rb = (_oalRingBuffer*)rbuf;
    _oalRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(rb != 0);
-// assert(rb->sample != 0);
+   assert(rb->sample != 0);
 
    rbd = rb->sample;
    if (rbd && rbd->ref_counter > 0)
@@ -721,7 +721,6 @@ _oalRingBufferDelete(_oalRingBuffer *rb)
       }
       free(rb);
    }
-   return NULL;
 }
 
 void

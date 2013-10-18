@@ -323,7 +323,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       switch (state)
       {
       case AAX_PLAYING:
-         if (!_IS_PLAYING(src->props3d))
+         if (!_IS_PLAYING(src->props3d) || _IS_STOPPED(src->props3d))
          {
             unsigned int num;
             num = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);

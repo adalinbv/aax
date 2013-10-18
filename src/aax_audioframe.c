@@ -149,9 +149,9 @@ aaxAudioFrameDestroy(aaxFrame frame)
          _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, 0); // free);
          _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, 0); // free);
          _intBufErase(&fmixer->play_ringbuffers, _AAX_RINGBUFFER,
-                      _oalRingBufferClear);
+                      _oalRingBufferDelete);
          _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
-                      _oalRingBufferClear);
+                      _oalRingBufferDelete);
 
          /* safeguard against using already destroyed handles */
          handle->id = 0xdeadbeef;
