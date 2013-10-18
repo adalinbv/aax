@@ -11,7 +11,7 @@ tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/test$$
 trap "rm -f $tempfile" 0 1 2 5 15
 $DIALOG --clear --title "License For Customer Use of ADALIN Software" \
         --cr-wrap --yesno \
-        "IMPORTANT NOTICE -- READ CAREFULLY: This License For Customer Use of ADALIN Software (\"LICENSE\") is the agreement which governs use of the software of ADALIN B.V. (“ADALIN”) obtainable herefrom, including computer software and associated printed materials (\"SOFTWARE\"). By obtaining, installing, copying, or otherwise using the SOFTWARE, you agree to be bound by the terms of this LICENSE. If you do not agree to the terms of this LICENSE, do not obtain the SOFTWARE.
+        "IMPORTANT NOTICE -- READ CAREFULLY: This License For Customer Use of ADALIN Software (\"LICENSE\") is the agreement which governs use of the software of ADALIN B.V. (“ADALIN”) obtainable herefrom, including computer software and associated printed materials (\"SOFTWARE\"). By obtaining, installing, copying, or otherwise using the SOFTWARE, you agree to be bound by the terms of this LICENSE. If you do not agree to the terms of this LICENSE, do not install the SOFTWARE.
 
 RECITALS
 
