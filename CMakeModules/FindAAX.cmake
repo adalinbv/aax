@@ -15,6 +15,7 @@ FIND_PATH(AAX_INCLUDE_DIR aax.h
   $ENV{AAXDIR}
   $ENV{ProgramFiles}/aax
   $ENV{ProgramFiles}/AeonWave
+  $ENV{ProgramFiles}/Adalin/AeonWave
   ${CMAKE_SOURCE_DIR}/aax
   PATH_SUFFIXES include
   PATHS
@@ -32,8 +33,9 @@ FIND_LIBRARY(AAX_LIBRARY
   $ENV{AAXDIR}
   $ENV{ProgramFiles}/AAX
   $ENV{ProgramFiles}/AeonWave
+  $ENV{ProgramFiles}/Adalin/AeonWave
   ${CMAKE_BUILD_DIR}/aax
-  PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
+  PATH_SUFFIXES bin lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
   PATHS
   ~/Library/Frameworks
   /Library/Frameworks
