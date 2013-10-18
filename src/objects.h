@@ -61,7 +61,7 @@ enum
 #define _IS_STANDBY(q)       (((q)->state & _STATE_INITIAL) == _STATE_INITIAL)
 #define _IS_STOPPED(q)       (((q)->state & _STATE_INITIAL) == _STATE_STOPPED)
 #define _IS_PAUSED(q)        (((q)->state & _STATE_INITIAL) == _STATE_PAUSED)
-#define _IS_PROCESSED(q)     (((q)->state & _STATE_INITIAL) == _STATE_PROCESSED)
+#define _IS_PROCESSED(q)     (((q)->state & _STATE_PLAYING_MASK) == _STATE_PROCESSED)
 #define _IS_LOOPING(q)       ((q)->state & _STATE_LOOPING)
 #define _IS_RELATIVE(q)      ((q)->state & _STATE_RELATIVE)
 #define _IS_POSITIONAL(q)    ((q)->state & _STATE_POSITIONAL)

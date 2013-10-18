@@ -204,7 +204,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
    if (handle)
    {
       _aaxEmitter *src = handle->source;
-      if (!_IS_PLAYING(src->props3d) || src->pos > 0)
+      if (_IS_PROCESSED(src->props3d) || src->pos > 0)
       {
          _intBufferData *buf;
 
