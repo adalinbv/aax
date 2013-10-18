@@ -709,7 +709,7 @@ aaxFilterSetState(aaxFilter f, int state)
                if (flt == NULL)
                {
                   flt = calloc(1, sizeof(_oalRingBufferFreqFilterInfo));
-                  flt->fs = filter->info->frequency;
+                  flt->fs = filter->info ? filter->info->frequency : 48000.0f;
                   filter->slot[0]->data = flt;
                }
 

@@ -530,8 +530,8 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
       case AAX_ANGULAR_FILTER:
       {
          _aaxEmitter *src = handle->source;
-         _handle_t *cfg = (_handle_t*)handle->handle;
-         _aaxMixerInfo* info = (cfg) ? cfg->info : NULL;
+         _handle_t *cfg = get_driver_handle(handle->handle);
+         _aaxMixerInfo* info = (cfg) ? cfg->info : _info;
          rv = new_filter_handle(info, type, src->props2d, src->props3d);
          break;
       }
