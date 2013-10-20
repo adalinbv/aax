@@ -110,9 +110,7 @@ typedef struct
    char sse_level;
 
    char *ptr, *scratch;
-#ifndef NDEBUG
    unsigned int buf_len;
-#endif
 
    _aaxFileHandle* file;
    char *interfaces;
@@ -440,29 +438,34 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(no_tracks == handle->no_channels);
 
    outbuf_size = no_tracks * no_samples*(sizeof(int32_t)+handle->bits_sample);
-   if (handle->ptr == 0)
+   if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
+
+      if (handle->buf_len < outbuf_size) {
+         _aax_free(handle->ptr);
+      }
       handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
       handle->scratch = (char *)p;
-#ifndef NDEBUG
       handle->buf_len = outbuf_size;
-#endif
    }
    data = (char *)handle->scratch;
    ndata = data + no_tracks*no_samples*sizeof(int32_t);
    assert(outbuf_size <= handle->buf_len);
 
    sbuf = (const int32_t**)rbd->track;
-// Software Volume, need to convert to Hardware Volume for gain < 1.0f
-   if (gain < 0.99f)
+   if (gain < 0.99f || gain > 1.01f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
          _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
       }
    }
+
+   /* convert to interleaved format */
    _batch_cvt24_intl_24(data, sbuf, offs, no_tracks, no_samples);
+
+   /* then convert to requested audio format */
    bufConvertDataFromPCM24S(ndata, data, no_tracks, no_samples,
                             handle->format, 1); // blocksize);
    data = ndata;
@@ -510,7 +513,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       int file_no_tracks = handle->file->get_no_tracks(handle->file->id);
       int file_bits = handle->file->get_bits_per_sample(handle->file->id);
       int file_fmt = handle->file->get_format(handle->file->id);
-      unsigned int no_frames, file_no_samples;
+      unsigned int no_frames, file_no_samples, outbuf_size;
       unsigned int abytes, bufsz;
       void *data = scratch;
       int32_t **sbuf;
@@ -518,17 +521,17 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
       no_frames = *frames;
       bufsz = (file_no_tracks * no_frames * file_bits)/8;
 
-      if (handle->ptr == 0)
+      outbuf_size = handle->no_channels * no_frames * sizeof(int32_t);
+      if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
       {
-         unsigned int outbuf_size;
          char *p = 0;
 
-         outbuf_size = handle->no_channels * no_frames * sizeof(int32_t);
+         if (handle->buf_len < outbuf_size) {
+            _aax_free(handle->ptr);
+         }
          handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
          handle->scratch = (char *)p;
-#ifndef NDEBUG
          handle->buf_len = outbuf_size;
-#endif
       }
 						/* read the frames */
       bytes = handle->file->update(handle->file->id, scratch, no_frames);
