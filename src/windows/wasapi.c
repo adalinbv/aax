@@ -1482,7 +1482,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
             _AAX_DRVLOG(WASAPI_DATA_DISCONTINUITY);
          }
       }
-      else {
+      else if (hr != AUDCLNT_S_BUFFER_EMPTY) {
          _AAX_DRVLOG(WASAPI_GET_BUFFER_FAILED);
       }
 
