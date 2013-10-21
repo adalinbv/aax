@@ -224,7 +224,7 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
 {
    _oalRingBuffer *nrb;
    unsigned int nbuf;
-#if 0
+#if 1
    _intBufferData *buf;
 
    nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
@@ -396,7 +396,7 @@ _aaxAudioFrameProcess(_oalRingBuffer *dest_rb, void *sensor,
       process = AAX_TRUE;
    }
 
-   if (process)
+   if (fprocess && process)
    {
       be->effects(be, be_handle, dest_rb, fp2d);
       be->postprocess(be_handle, dest_rb, sensor);

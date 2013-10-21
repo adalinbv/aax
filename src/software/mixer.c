@@ -27,13 +27,6 @@
 #include <api.h>
 
 
-/* TODO: Make it work without this code which basically means treat the mixer
- *       and audio-frames exactly the same.
- *       The effect is most noticeable in the mixer part of teststream_phasing
- *       and testmono3d_phasing located in aax-utils.
- */
-#define GOOD_CODE 1
-
 void
 _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d)
 {
@@ -282,7 +275,6 @@ _aaxSoftwareMixerThread(void* config)
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr_sensor)
       {
-//       _oalRingBuffer *nrb;
          _aaxMixerInfo* info;
          _sensor_t* sensor;
 
@@ -299,8 +291,6 @@ _aaxSoftwareMixerThread(void* config)
          _oalRingBufferStart(dest_rb);
 
          handle->ringbuffer = dest_rb;
-//       nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
-//       _intBufAddData(smixer->ringbuffers, _AAX_RINGBUFFER, nrb);
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
       }
    }
@@ -474,14 +464,6 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    float gain;
    int res;
 
-#if GOOD_CODE
-   if (devices)
-   {
-      _sensor_t* ssr = (_sensor_t*)sensor;
-      _aaxSensorsProcess(dest_rb, devices, props2d, ssr->mixer->info->track);
-   }
-#endif
-
    /* mix all threaded frame ringbuffers to the final mixer ringbuffer */
    if (frames)
    {
@@ -574,9 +556,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                unsigned int size;
                float ssv = 343.3f;
                float sdf = 1.0f;
-#if !THREADED_FRAMES
-               float gain;
-#endif
 
                size = sizeof(_oalRingBufferDelayed3dProps);
                sdp3d = _aax_aligned_alloc16(size);
@@ -626,55 +605,17 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                _oalRingBufferClear(dest_rb);
                _oalRingBufferStart(dest_rb);
 
-#if THREADED_FRAMES
                /** signal threaded frames to update (if necessary) */
                /* thread == -1: mixer; attached frames are threads */
                /* thread >=  0: frame; call updates manually       */
-               if (smixer->thread < 0) {
+               if (smixer->thread < 0)
+               {
                   _aaxSoftwareMixerSignalFrames(smixer->frames,
                                                 smixer->info->refresh_rate);
-               }
-               fprocess = AAX_FALSE;
-#endif
-
-#if GOOD_CODE
-# if THREADED_FRAMES
-               /* main mixer */
-               _aaxEmittersProcess(dest_rb, handle->info, ssv, sdf,
-                                   &sp2d, sdp3d_m,
-                                   smixer->emitters_2d, smixer->emitters_3d,
-                                   be, be_handle);
-
-               res = _aaxSoftwareMixerPlay(dest_rb, smixer->devices,
-                                                smixer->play_ringbuffers,
-                                                smixer->frames,
-                                                &sp2d, smixer->capturing,
-                                                sensor, be, be_handle);
-# else
-               _aaxAudioFrameProcess(dest_rb, sensor, smixer, ssv, sdf,
-                                     NULL, NULL, &sp2d, sdp3d, sdp3d_m,
-                                     be, be_handle, fprocess);
-
-               /** play back all mixed audio */
-               gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
-               res = be->play(be_handle, dest_rb, 1.0, gain);
-               if TEST_FOR_TRUE(smixer->capturing)
-               {
-                  _intBuffers *smixer_ringbuffers;
-                  _oalRingBuffer *new_rb;
-
-                  smixer_ringbuffers = (_intBuffers*)smixer->play_ringbuffers;
-                  new_rb =_oalRingBufferDuplicate(dest_rb, AAX_TRUE, AAX_FALSE);
-
-                  _oalRingBufferForward(new_rb);
-                  _intBufAddData(smixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
+                  fprocess = AAX_FALSE;
                }
 
-               _oalRingBufferClear(dest_rb);
-               _oalRingBufferStart(dest_rb);
-# endif
-#else
-               /* process emitters, (sub-)frames and registered sensors */
+               /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(dest_rb, sensor, smixer, ssv, sdf,
                                            NULL, NULL, &sp2d, sdp3d, sdp3d_m,
                                            be, be_handle, fprocess);
@@ -683,11 +624,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                 * mix the data.
                 */
                res = _aaxSoftwareMixerPlay(dest_rb, smixer->devices,
-                                           smixer->ringbuffers, smixer->frames,
-                                           &sp2d, smixer->capturing,
-                                           sensor, be, be_handle);
-#endif
-
+                                           smixer->play_ringbuffers,
+                                           smixer->frames, &sp2d,
+                                           smixer->capturing, sensor,
+                                           be, be_handle);
                _aax_aligned_free(sdp3d);
                _aax_aligned_free(sdp3d_m);
             }
