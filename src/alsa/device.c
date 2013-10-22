@@ -128,6 +128,7 @@ typedef struct
     unsigned int no_channels;
     unsigned int no_periods;
     unsigned int period_frames;
+    unsigned int buf_len;
     int mode;
 
     char pause;
@@ -140,17 +141,13 @@ typedef struct
     char shared;
     char sse_level;
 
-#ifndef NDEBUG
-   unsigned int buf_len;
-#endif
-
     _batch_cvt_to_proc cvt_to;
     _batch_cvt_from_proc cvt_from;
     _batch_cvt_to_intl_proc cvt_to_intl;
     _batch_cvt_from_intl_proc cvt_from_intl;
 
-    void **scratch;
-    char **data;
+    void **ptr;
+    char **scratch;
 
     char *ifname[2];
 
@@ -654,8 +651,8 @@ _aaxALSADriverDisconnect(void *id)
       if (handle->pcm) {
          psnd_pcm_close(handle->pcm);
       }
-      free(handle->scratch);
-      handle->scratch = 0;
+      free(handle->ptr);
+      handle->ptr = 0;
       handle->pcm = 0;
       free(handle);
       handle = 0;
@@ -735,7 +732,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-#if 0
+#if 1
       /* for testing purposes */
       if (err >= 0)
       {
@@ -1052,9 +1049,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    tracks = handle->hw_channels;
    frame_size = tracks * handle->bytes_sample;
    no_frames = *req_frames;
-#ifndef NDEBUG
    handle->buf_len = no_frames * frame_size;
-#endif
 
    /* synchronise capture and playback for registered sensors */
    avail = 0;
@@ -2507,7 +2502,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    sbuf = (const int32_t**)rbsd->track;
    _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
-   if (handle->scratch == 0)
+   if (handle->ptr == 0)
    {
       unsigned int samples, outbuf_size, size;
       int16_t *ptr;
@@ -2525,28 +2520,24 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       size += no_tracks * outbuf_size;
 
       p = (char *)(no_tracks * 2*sizeof(void*));
-      handle->scratch = (void**)_aax_malloc(&p, size);
-      handle->data = (char**)handle->scratch + no_tracks;
+      handle->ptr = (void**)_aax_malloc(&p, size);
+      handle->scratch = (char**)handle->ptr + no_tracks;
 
       ptr = (int16_t*)p;
       for (t=0; t<no_tracks; t++)
       {
-         handle->scratch[t] = ptr;
+         handle->ptr[t] = ptr;
          ptr += samples;
       }
-#ifndef NDEBUG
       handle->buf_len = outbuf_size;
-#endif
    }
 
-#ifndef NDEBUG
-      assert(no_samples*hw_bps <= handle->buf_len);
-#endif
+   assert(no_samples*hw_bps <= handle->buf_len);
 
-   data = handle->data;
+   data = handle->scratch;
    for (t=0; t<no_tracks; t++)
    {
-      data[t] = handle->scratch[t];
+      data[t] = handle->ptr[t];
       handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
    }
 
@@ -2615,21 +2606,21 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
    outbuf_size = no_tracks * no_samples*hw_bps;
-   if (handle->scratch == 0)
+   if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
-      handle->scratch = (void**)_aax_malloc(&p, outbuf_size);
-      handle->data = (char**)p;
-#ifndef NDEBUG
+
+      _aax_free(handle->ptr);
+      handle->ptr = (void**)_aax_malloc(&p, outbuf_size);
+      handle->scratch = (char**)p;
       handle->buf_len = outbuf_size;
-#endif
    }
 
 #if 0
    assert(outbuf_size <= handle->buf_len);
 #endif
 
-   data = (char*)handle->data;
+   data = (char*)handle->scratch;
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
 
    chunk = 10;
