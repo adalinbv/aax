@@ -778,6 +778,47 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
             }
          }
       }
+      else if (handle->file.ptr == NULL)
+      {
+         sframe = get_write_handle(s);
+         if (sframe && !sframe->thread.started && (sframe != handle))
+         {
+            _intBufferData *dptr;
+
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame *mixer = sensor->mixer;
+               _intBufferData *dptr_sframe;
+
+               dptr_sframe = _intBufGet(sframe->sensors, _AAX_SENSOR, 0);
+               if (dptr_sframe)
+               {
+                  _sensor_t *sframe_sensor = _intBufGetDataPtr(dptr_sframe);
+                  _aaxAudioFrame *submix = sframe_sensor->mixer;
+
+                  submix->info->frequency = mixer->info->frequency;
+                  submix->info->refresh_rate = mixer->info->refresh_rate;
+                  submix->info->update_rate = mixer->info->update_rate;
+                  submix->info->no_tracks = mixer->info->no_tracks;
+                  submix->info->format = mixer->info->format;
+
+                  _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
+               }
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
+
+            sframe->handle = handle;
+            handle->file.driver = (char*)sframe;
+            handle->file.handle = sframe->backend.handle;
+            handle->file.ptr = sframe->backend.ptr;
+            rv = AAX_TRUE;
+         }
+         else {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         }
+      }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
       }
@@ -795,7 +836,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
    int rv = AAX_FALSE;
    if (handle)
    {
-      _handle_t* sframe = get_handle(s);
+      _handle_t* sframe = get_read_handle(s);
       if (sframe && sframe->pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -821,6 +862,21 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
                sframe->pos = UINT_MAX;
                rv = AAX_TRUE;
             }
+         }
+      }
+      else if (handle->file.ptr != NULL)
+      {
+         sframe = get_write_handle(s);
+         if (sframe && (handle->file.ptr == sframe->backend.ptr))
+         {
+            handle->file.ptr = NULL;
+            handle->file.driver = NULL;
+            handle->file.handle = NULL;
+            sframe->handle = NULL;
+            rv = AAX_TRUE;
+         }
+         else {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
       }
       else {
@@ -1186,7 +1242,9 @@ _aaxMixerInit(_handle_t *handle)
       frames++;
    }
 
+printf(">> mixer setup: frames: %i, bps: %i, tracks: %i, freq: %i\n", frames, aaxGetBytesPerSample(info->format), ch, (int)freq);
    res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq);
+printf("<< returned:    frames: %i, bps: %i, tracks: %i\n", frames, aaxGetBytesPerSample(info->format), ch);
    if TEST_FOR_TRUE(res)
    {
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))

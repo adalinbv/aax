@@ -408,7 +408,7 @@ aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
    int rv = AAX_FALSE;
-   if (handle)
+   if (handle && !handle->handle)
    {
       assert(handle->backends != NULL);
 
@@ -436,6 +436,9 @@ aaxDriverDestroy(aaxConfig config)
       _aaxRemoveDriverBackends(&_backends);
       rv = AAX_TRUE;
    }
+   else if (handle) {
+       _aaxErrorSet(AAX_INVALID_STATE);
+   }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
@@ -448,7 +451,7 @@ aaxDriverClose(aaxConfig config)
    _handle_t *handle = get_valid_handle(config);
    int rv = AAX_FALSE;
 
-   if (handle)
+   if (handle && !handle->handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
 
@@ -459,6 +462,9 @@ aaxDriverClose(aaxConfig config)
          be->disconnect(handle->backend.handle);
       }
       rv = AAX_TRUE;
+   }
+   else if (handle) {
+       _aaxErrorSet(AAX_INVALID_STATE);
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
