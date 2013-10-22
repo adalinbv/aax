@@ -223,11 +223,9 @@ static void *
 _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
 {
    _oalRingBuffer *nrb;
-   unsigned int nbuf;
-#if 1
    _intBufferData *buf;
-
-   nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
+   
+   _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
 
    buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
    if (buf)
@@ -244,34 +242,6 @@ _aaxAudioFrameSwapBuffers(void *rb, _intBuffers *ringbuffers, char dde)
       nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
       _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, AAX_TRUE);
    }
-
-#else
-   nbuf = _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-   if (nbuf < 1)
-   {
-      nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, nrb, 1);
-   }
-   else
-   {	 /* switch ringbuffers */
-      _intBufferData *buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, 1);
-
-      if (buf)
-      {
-         nrb = _intBufSetDataPtr(buf, rb);
-         _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, 1);
-
-         if (dde) {
-            _oalRingBufferCopyDelyEffectsData(nrb, rb);
-         }
-      }
-      else
-      {
-         nrb = _oalRingBufferDuplicate(rb, AAX_TRUE, dde);
-         _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, 1);
-      }
-   }
-#endif
 
    rb = nrb;
    assert(rb != NULL);
