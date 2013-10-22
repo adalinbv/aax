@@ -1242,9 +1242,7 @@ _aaxMixerInit(_handle_t *handle)
       frames++;
    }
 
-printf(">> mixer setup: frames: %i, bps: %i, tracks: %i, freq: %i\n", frames, aaxGetBytesPerSample(info->format), ch, (int)freq);
    res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq);
-printf("<< returned:    frames: %i, bps: %i, tracks: %i\n", frames, aaxGetBytesPerSample(info->format), ch);
    if TEST_FOR_TRUE(res)
    {
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
@@ -1287,7 +1285,8 @@ _aaxMixerStart(_handle_t *handle)
 {
    int rv = AAX_FALSE;
 
-   if (VALID_MIXER(handle) && TEST_FOR_FALSE(handle->thread.started))
+   if (VALID_MIXER(handle) && TEST_FOR_FALSE(handle->thread.started)
+       && !handle->handle)
    {
       unsigned int ms;
       int r;
@@ -1345,7 +1344,7 @@ _aaxMixerStart(_handle_t *handle)
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
-   else if (_IS_STANDBY(handle)) {
+   else if (_IS_STANDBY(handle) || handle->handle) {
       rv = AAX_TRUE;
    }
    return rv;

@@ -418,8 +418,9 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   unsigned int rb_tracks, no_tracks, no_samples;
-   unsigned int bps, offs, outbuf_size, file_fmt;
+   unsigned int file_bps, file_no_tracks,file_fmt;
+   unsigned int no_samples, no_tracks;
+   unsigned int offs, outbuf_size;
    _oalRingBufferSample *rbd;
    const int32_t** sbuf;
    char *data, *ndata;
@@ -431,14 +432,15 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    rbd = rb->sample;
    offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   rb_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
+   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
    no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
 
-   bps = handle->bits_sample;
-   no_tracks = handle->no_channels;
-   assert(no_tracks == handle->no_channels);
+   file_bps = handle->file->get_bits_per_sample(handle->file->id)/8;
+   file_no_tracks = handle->file->get_no_tracks(handle->file->id);
+   file_fmt = handle->file->get_format(handle->file->id);
+   assert(file_no_tracks == handle->no_channels);
 
-   outbuf_size = no_tracks * no_samples*(sizeof(int32_t)+bps);
+   outbuf_size = file_no_tracks * no_samples*(sizeof(int32_t)+file_bps);
    if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
@@ -449,24 +451,44 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
       handle->buf_len = outbuf_size;
    }
    ndata = (char *)handle->scratch;
-   data = ndata + no_tracks*no_samples*bps;
+   data = ndata + file_no_tracks*no_samples*file_bps;
    assert(outbuf_size <= handle->buf_len);
 
    sbuf = (const int32_t**)rbd->track;
-   if (gain < 0.99f || gain > 1.01f)
+   if (fabs(gain - 1.0f) > 0.05f)
    {
       int t;
-      for (t=0; t<no_tracks; t++) {
+      for (t=0; t<file_no_tracks; t++) {
          _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
       }
    }
 
    /* convert to interleaved format */
-   _batch_cvt24_intl_24(data, sbuf, offs, no_tracks, no_samples);
+   if (file_no_tracks == no_tracks) {
+      _batch_cvt24_intl_24(data, sbuf, offs, file_no_tracks, no_samples);
+   }
+   else if (file_no_tracks == 1) {
+      data = (char*)sbuf[0];
+   }
+   else /* stereo */
+   {
+      unsigned int t;
+      for (t=0; t<file_no_tracks; t++)
+      {
+         int32_t *sptr = (int32_t*)sbuf[t];
+         int32_t *dptr = (int32_t*)data+t;
+         unsigned int i = no_samples;
+         do
+         {
+            *dptr = *sptr++;
+            dptr += file_no_tracks;
+         }
+         while (--i);
+      }
+   }
 
    /* then convert to requested audio format */
-   file_fmt = handle->file->get_format(handle->file->id);
-   bufConvertDataFromPCM24S(ndata, data, no_tracks, no_samples, file_fmt, 1);
+   bufConvertDataFromPCM24S(ndata, data, file_no_tracks, no_samples, file_fmt, 1);
 
    res = handle->file->update(handle->file->id, ndata, no_samples);
 

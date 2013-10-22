@@ -262,7 +262,6 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
-printf("initial:                      bps: %i, tracks: %i, freq: %i\n", bits_sample/8, tracks, freq);
          if (!handle->capturing) {
             handle->io.write.format = getFileFormatFromFormat(format);
          }
@@ -451,7 +450,6 @@ _aaxFileDriverUpdateHeader(_handle_t *handle)
       s = size;
       handle->io.write.header[10] = s;
 
-printf("freq: %i, bps: %i, tracks: %i\n", (uint32_t)handle->frequency, handle->bits_sample, handle->no_tracks);
       if (is_bigendian())
       {
          handle->io.write.header[1] = _bswap32(handle->io.write.header[1]);

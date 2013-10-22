@@ -732,7 +732,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-#if 1
+#if 0
       /* for testing purposes */
       if (err >= 0)
       {
@@ -2286,8 +2286,8 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 
    rbsd = rbs->sample;
    offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
-   no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
+   no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
 
    sbuf = (const int32_t**)rbsd->track;
    _alsa_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
