@@ -262,6 +262,7 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
+printf("initial:                      bps: %i, tracks: %i, freq: %i\n", bits_sample/8, tracks, freq);
          if (!handle->capturing) {
             handle->io.write.format = getFileFormatFromFormat(format);
          }
@@ -278,10 +279,11 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
 }
 
 static int
-_aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
+_aaxWavFileReadWrite(void *id, void *data, unsigned int no_samples)
 {
    _handle_t *handle = (_handle_t *)id;
-   size_t bufsize = (handle->no_tracks * no_frames * handle->bits_sample)/8;
+   unsigned int no_tracks = handle->no_tracks;
+   size_t bufsize = (no_tracks * no_samples * handle->bits_sample)/8;
    int rv = 0;
 
    if (!handle->capturing)
@@ -289,7 +291,7 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
       rv = write(handle->fd, data, bufsize);
       if (rv > 0)
       {				/* update the file header once a second */
-         handle->io.write.update_dt += (float)no_frames/handle->frequency;
+         handle->io.write.update_dt += (float)no_samples/handle->frequency;
          if (handle->io.write.update_dt >= 1.0f)
          {
             _aaxFileDriverUpdateHeader(handle);
@@ -304,7 +306,7 @@ _aaxWavFileReadWrite(void *id, void *data, unsigned int no_frames)
    else		/* capturing */
    {
       if (handle->format == AAX_IMA4_ADPCM) {
-         rv = _aaxWavFileReadIMA4(handle, data, no_frames);
+         rv = _aaxWavFileReadIMA4(handle, data, no_samples);
       } else {
          rv = read(handle->fd, data, bufsize);
       }
@@ -449,6 +451,7 @@ _aaxFileDriverUpdateHeader(_handle_t *handle)
       s = size;
       handle->io.write.header[10] = s;
 
+printf("freq: %i, bps: %i, tracks: %i\n", (uint32_t)handle->frequency, handle->bits_sample, handle->no_tracks);
       if (is_bigendian())
       {
          handle->io.write.header[1] = _bswap32(handle->io.write.header[1]);

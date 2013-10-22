@@ -118,6 +118,7 @@ typedef struct
    _intBuffers *sensors;		/* locked sensor and scene properies */
    _intBuffers *backends;
    struct backend_t backend;
+   struct backend_t file;		/* file recording backend */
    struct threat_t thread;
 
    /* destination ringbuffer */

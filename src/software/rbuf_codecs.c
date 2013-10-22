@@ -419,7 +419,55 @@ bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxFo
 {
    if (ndata)
    {
-      switch(format)
+      unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
+
+      if (format != native_fmt)
+      {
+				/* then convert to proper signedness */
+         if (format & AAX_FORMAT_UNSIGNED)
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM8S:
+               _batch_cvt8u_8s(data, samples);
+               break;
+            case AAX_PCM16S:
+               _batch_cvt16u_16s(data, samples);
+               break;
+            case AAX_PCM24S:
+               _batch_cvt24u_24s(data, samples);
+               break;
+            case AAX_PCM32S:
+               _batch_cvt32u_32s(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+                                /* first convert to requested endianness */
+         if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
+              ((format & AAX_FORMAT_BE) && !is_bigendian()) )
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM16S:
+               _batch_endianswap16(data, samples);
+               break;
+            case AAX_PCM24S:
+            case AAX_PCM32S:
+            case AAX_FLOAT:
+               _batch_endianswap32(data, samples);
+               break;
+            case AAX_DOUBLE:
+               _batch_endianswap64(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+      }
+
+      switch(native_fmt)
       {
       case AAX_PCM8S:
          _batch_cvt24_8(ndata, data, samples);
@@ -533,8 +581,56 @@ bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned 
 {
    if (ndata)
    {
+      unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
       unsigned int samples = tracks*no_samples;
-      switch(format)
+
+      if (format != native_fmt)
+      {
+				/* first convert to requested endianness */
+         if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
+              ((format & AAX_FORMAT_BE) && !is_bigendian()) )
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM16S:
+               _batch_endianswap16(data, samples);
+               break;
+            case AAX_PCM24S:
+            case AAX_PCM32S:
+            case AAX_FLOAT:
+               _batch_endianswap32(data, samples);
+               break;
+            case AAX_DOUBLE:
+               _batch_endianswap64(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+				/* then convert to proper signedness */
+         if (format & AAX_FORMAT_UNSIGNED)
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM8S:
+               _batch_cvt8u_8s(data, samples);
+               break;
+            case AAX_PCM16S:
+               _batch_cvt16u_16s(data, samples);
+               break;
+            case AAX_PCM24S:
+               _batch_cvt24u_24s(data, samples);
+               break;
+            case AAX_PCM32S:
+               _batch_cvt32u_32s(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+      }
+
+      switch(native_fmt)
       {
       case AAX_PCM8S:
          _batch_cvt8_24(ndata, data, samples);

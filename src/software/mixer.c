@@ -456,9 +456,10 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 }
 
 int
-_aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle)
+_aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
+   const _aaxDriverBackend* fbe = (const _aaxDriverBackend*)fbackend;
    _oalRingBuffer2dProps *p2d = (_oalRingBuffer2dProps*)props2d;
    _oalRingBuffer *dest_rb = (_oalRingBuffer *)rb;
    float gain;
@@ -485,9 +486,13 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
       _oalRingBufferRewind(new_rb);
       _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
 
-      res = be->play(be_handle, new_rb, 1.0, gain);
+      dest_rb = new_rb;
    }
-   else res = be->play(be_handle, dest_rb, 1.0, gain);
+
+   res = be->play(be_handle, dest_rb, 1.0f, gain);
+   if (fbe) {	/* slaved file-out backend */
+      fbe->play(fbe_handle, dest_rb, 1.0f, gain);
+   }
 
    return res;
 }
@@ -496,7 +501,7 @@ int
 _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
 {
    _handle_t *handle = (_handle_t *)config;
-   const _aaxDriverBackend* be;
+   const _aaxDriverBackend *be, *fbe = NULL;
    _intBufferData *dptr_sensor;
    int res = 0;
 
@@ -506,10 +511,14 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
    assert(handle->info->no_tracks);
 
    be = handle->backend.ptr;
+   if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {
+      fbe = handle->file.ptr;
+   }
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor && (_IS_PLAYING(handle) || _IS_STANDBY(handle)))
    {
       void* be_handle = handle->backend.handle;
+      void* fbe_handle = handle->file.handle;
       _aaxAudioFrame *smixer = NULL;
 
       if (_IS_PLAYING(handle))
@@ -627,7 +636,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                                            smixer->play_ringbuffers,
                                            smixer->frames, &sp2d,
                                            smixer->capturing, sensor,
-                                           be, be_handle);
+                                           be, be_handle, fbe, fbe_handle);
                _aax_aligned_free(sdp3d);
                _aax_aligned_free(sdp3d_m);
             }
