@@ -29,8 +29,6 @@ extern "C" {
 
 
 #define USE_SPATIAL_FOR_SURROUND AAX_TRUE
-#define SET_PROCESS_PRIORITY	AAX_FALSE
-#define SET_THREAD_PRIORITY	AAX_FALSE
 #define THREADED_FRAMES		AAX_TRUE
 
 #if _WIN32
@@ -40,10 +38,6 @@ extern "C" {
 #  pragma waring _WIN32 defined but not WIN32
 #  define WIN32			_WIN32
 # endif
-#endif
-#if !THREADED_FRAMES
-# undef SET_PROCESS_PRIORITY
-# define SET_PROCESS_PRIORITY	AAX_FALSE
 #endif
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)

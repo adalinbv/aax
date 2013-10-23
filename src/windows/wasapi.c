@@ -54,7 +54,7 @@
 #define LOG_TO_FILE		AAX_TRUE
 #define USE_GETID		AAX_FALSE
 #define USE_CAPTURE_THREAD	AAX_FALSE
-#define CAPTURE_USE_MIN_PERIOD	AAX_TRUE
+#define CAPTURE_USE_MIN_PERIOD	AAX_FALSE
 
 // Testing purposes only!
 #ifdef NDEBUG
