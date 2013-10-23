@@ -491,7 +491,7 @@ _callback_handler(LPVOID t)
       {
          thread->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
          if (thread->task && pAvSetMmThreadPriority) {
-         pAvSetMmThreadPriority(thread->task, AVRT_PRIORITY_HIGH);
+            pAvSetMmThreadPriority(thread->task, AVRT_PRIORITY_HIGH);
          }
       }
    }

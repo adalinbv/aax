@@ -1382,7 +1382,7 @@ _aaxWASAPIDriverCaptureThread(LPVOID id)
    stdby_time_ms = (int)(4*delay_sec*1000);
 
    hr = _wasapi_setup_event(handle, delay_sec);
-   if (!be_handle->Event || FAILED(hr)) {
+   if (!handle->Event || FAILED(hr)) {
       _AAX_DRVLOG(WASAPI_EVENT_SETUP_FAILED);
    }
 
