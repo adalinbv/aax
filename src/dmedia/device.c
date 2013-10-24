@@ -523,7 +523,7 @@ _aaxDMediaDriverDisconnect(void *id)
 }
 
 static int
-_aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
+_aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, data_format;

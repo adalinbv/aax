@@ -174,7 +174,7 @@ _aaxNoneDriverDisconnect(void *id)
 }
 
 static int
-_aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tracks, float *speed)
+_aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
 {
    return AAX_TRUE;
 }
@@ -313,7 +313,7 @@ _aaxLoopbackDriverDisconnect(void *id)
 }
 
 static int
-_aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed)
+_aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    if (handle)

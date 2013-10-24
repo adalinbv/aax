@@ -679,7 +679,7 @@ _aaxALSADriverDisconnect(void *id)
 
 static int
 _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
-                        unsigned int *tracks, float *speed)
+                        unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_hw_params_t *hwparams;

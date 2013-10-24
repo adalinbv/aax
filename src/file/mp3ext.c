@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2012 by Erik Hofman.
- * Copyright 2009-2012 by Adalin B.V.
+ * Copyright 2005-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -102,6 +102,18 @@ DECL_FUNCTION(mpg123_delete);
 DECL_FUNCTION(mpg123_format);
 DECL_FUNCTION(mpg123_getformat);
 
+	/** lame */
+DECL_FUNCTION(lame_init);
+DECL_FUNCTION(lame_init_params);
+DECL_FUNCTION(lame_close);
+DECL_FUNCTION(lame_set_num_samples);
+DECL_FUNCTION(lame_set_in_samplerate);
+DECL_FUNCTION(lame_set_num_channels);
+DECL_FUNCTION(lame_set_brate);
+DECL_FUNCTION(lame_set_VBR);
+DECL_FUNCTION(lame_encode_buffer_interleaved);
+DECL_FUNCTION(lame_encode_flush);
+
 _aaxFileHandle*
 _aaxDetectMP3File()
 {
@@ -140,6 +152,8 @@ typedef struct
    int capturing;
 
    int frequency;
+   int bitrate;
+   unsigned int no_samples;
    enum aaxFormat format;
    uint8_t no_tracks;
    uint8_t bits_sample;
@@ -151,29 +165,35 @@ typedef struct
    LPBYTE pcmBuffer;
    unsigned long pcmBufPos;
    unsigned long pcmBufMax;
-
    BYTE mp3Buffer[MP3_BLOCK_SIZE];
+#else
+
+   unsigned int mp3BufSize;
+   unsigned char *mp3Buffer;
 #endif
 
-} _handle_t;
+} _driver_t;
 
 
 static int
 _aaxMP3FileDetect(int mode)
 {
-   static void *audio = NULL;
+   static void *_audio[2] = { NULL, NULL };
+   int m = mode > 0 ? 1 : 0;
    int rv = AAX_FALSE;
 
-   if (audio) {
+   if (_audio[m]) {
       rv = AAX_TRUE;
    }
    else
    {
 #ifdef WINXP
-      audio = _oalIsLibraryPresent("msacm32", NULL);
-      if (audio)
+      _audio[m] = _oalIsLibraryPresent("msacm32", NULL);
+      if (_audio[m])
       {
+         void *audio = _audio[m];
          char *error;
+
          _oalGetSymError(0);
 
          TIE_FUNCTION(acmDriverOpen);
@@ -210,59 +230,102 @@ _aaxMP3FileDetect(int mode)
 #endif	/* WINXP */
 
       /* if not found, try mpg123 */
-      if (!audio)
+      if (!_audio[m])
       {
-         audio = _oalIsLibraryPresent("mpg123", "0");
-         if (!audio) {
-            audio = _oalIsLibraryPresent("libmpg123-0", "0");
-         }
-
-         if (audio)
+         if (mode == 0) /* read */
          {
-            char *error;
-            _oalGetSymError(0);
+            _audio[m] = _oalIsLibraryPresent("mpg123", "0");
+            if (!_audio[m]) {
+               _audio[m] = _oalIsLibraryPresent("libmpg123-0", "0");
+            }
 
-            TIE_FUNCTION(mpg123_init);
-            if (pmpg123_init)
+            if (_audio[m])
             {
-               TIE_FUNCTION(mpg123_exit);
-               TIE_FUNCTION(mpg123_new);
-               TIE_FUNCTION(mpg123_open_fd);
-               TIE_FUNCTION(mpg123_read);
-               TIE_FUNCTION(mpg123_delete);
-               TIE_FUNCTION(mpg123_format);
-               TIE_FUNCTION(mpg123_getformat);
+               void *audio = _audio[m];
+               char *error;
 
-               error = _oalGetSymError(0);
-               if (error) {
-                  audio = NULL;
-               } else {
-                  rv = AAX_TRUE;
+               _oalGetSymError(0);
+
+               TIE_FUNCTION(mpg123_init);
+               if (pmpg123_init)
+               {
+                  TIE_FUNCTION(mpg123_exit);
+                  TIE_FUNCTION(mpg123_new);
+                  TIE_FUNCTION(mpg123_open_fd);
+                  TIE_FUNCTION(mpg123_read);
+                  TIE_FUNCTION(mpg123_delete);
+                  TIE_FUNCTION(mpg123_format);
+                  TIE_FUNCTION(mpg123_getformat);
+
+                  error = _oalGetSymError(0);
+                  if (error) {
+                     _audio[m] = NULL;
+                  } else {
+                     rv = AAX_TRUE;
+                  }
+               }
+            }
+         }
+         else /* write */
+         {
+            _audio[m] = _oalIsLibraryPresent("mp3lame", "0");
+            if (!_audio[m]) {
+               _audio[m] = _oalIsLibraryPresent("libmp3lame", "0");
+            }
+
+            if (_audio[m])
+            {
+               void *audio = _audio[m];
+               char *error;
+               _oalGetSymError(0);
+
+               TIE_FUNCTION(lame_init);
+               if (plame_init)
+               {
+                  TIE_FUNCTION(lame_init_params);
+                  TIE_FUNCTION(lame_close);
+                  TIE_FUNCTION(lame_set_num_samples);
+                  TIE_FUNCTION(lame_set_in_samplerate);
+                  TIE_FUNCTION(lame_set_num_channels);
+                  TIE_FUNCTION(lame_set_brate);
+                  TIE_FUNCTION(lame_set_VBR);
+                  TIE_FUNCTION(lame_encode_buffer_interleaved);
+                  TIE_FUNCTION(lame_encode_flush);
+
+                  error = _oalGetSymError(0);
+                  if (error) {
+                     _audio[m] = NULL;
+                  } else {
+                     rv = AAX_TRUE;
+                  }
                }
             }
          }
       }
-   } /* !audio */
+   } /* !audio[m] */
    return rv;
 }
 
 static void*
-_aaxMP3FileSetup(int mode, int freq, int tracks, int format)
+_aaxMP3FileSetup(int mode, int freq, int tracks, int format, int no_samples, int bitrate)
 {
-   _handle_t *handle = NULL;
+   _driver_t *handle = NULL;
    
-   if(mode == 0)
+   if (1) // mode == 0)
    {
-      handle = calloc(1, sizeof(_handle_t));
+      handle = calloc(1, sizeof(_driver_t));
       if (handle)
       {
-         static const int _mode[] = { O_WRONLY|O_BINARY, O_RDONLY|O_BINARY };
+         static const int _mode[] = { O_WRONLY|O_BINARY|O_CREAT|O_TRUNC,
+                                      O_RDONLY|O_BINARY };
 
-         handle->capturing = 1;
+         handle->capturing = (mode == 0) ? 1 : 0;
          handle->mode = _mode[handle->capturing];
          handle->frequency = freq;
          handle->no_tracks = tracks;
+         handle->bitrate = bitrate;
          handle->format = format;
+         handle->no_samples = no_samples;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
       }
       else {
@@ -284,35 +347,35 @@ _aaxMP3FileExtension(char *ext) {
 static char*
 _aaxMP3FileInterfaces(int mode)
 {
-   static const char *rd[2] = { "*.mp3\0", "\0" };
+   static const char *rd[2] = { "*.mp3\0", "*.mp3" };
    return (char *)rd[mode];
 }
 
 static unsigned int
 _aaxMP3FileGetFormat(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->format;
 }
 
 static unsigned int
 _aaxMP3FileGetNoTracks(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->no_tracks;
 }
 
 static unsigned int
 _aaxMP3FileGetFrequency(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->frequency;
 }
 
 static unsigned int
 _aaxMP3FileGetBitsPerSample(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->bits_sample;
 }
 
@@ -349,7 +412,7 @@ getFormatFromMP3FileFormat(int enc)
 static int
 _aaxMPG123FileOpen(void *id, const char* fname)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int res = -1;
 
    if (handle && fname)
@@ -394,8 +457,26 @@ _aaxMPG123FileOpen(void *id, const char* fname)
          }
          else
          {
-            _AAX_FILEDRVLOG("MP3File: playback is not supported");
-            close(handle->fd); /* no mp3 write support (yet) */
+            /*
+             * The required mp3buf_size can be computed from num_samples,
+             * samplerate and encoding rate, but here is a worst case estimate:
+             *
+             * mp3buf_size in bytes = 1.25*num_samples + 7200
+             */
+            handle->mp3BufSize = 7200 + ceilf(1.25f*handle->no_samples);
+            handle->mp3Buffer = malloc(handle->mp3BufSize);
+            if (handle->mp3Buffer)
+            {
+               handle->id = plame_init();
+               plame_set_num_samples(handle->id, handle->no_samples);
+               plame_set_in_samplerate(handle->id, handle->frequency);
+               plame_set_num_channels(handle->id, handle->no_tracks);
+               plame_set_brate(handle->id, handle->bitrate);
+               plame_set_VBR(handle->id, VBR_OFF);
+               plame_init_params(handle->id);
+
+               res = AAX_TRUE;
+            }
          }
       }
       else {
@@ -417,7 +498,7 @@ _aaxMPG123FileOpen(void *id, const char* fname)
 static int
 _aaxMPG123FileClose(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
 
    if (handle)
@@ -427,6 +508,12 @@ _aaxMPG123FileClose(void *id)
          pmpg123_delete(handle->id);
          handle->id = NULL;
          pmpg123_exit();
+      }
+      else
+      {
+         plame_encode_flush(handle->id, handle->mp3Buffer, handle->mp3BufSize);
+         // plame_mp3_tags_fid(handle->id, mp3);
+         plame_close(handle->id);
       }
       close(handle->fd);
 #ifdef WINXP
@@ -442,7 +529,7 @@ _aaxMPG123FileClose(void *id)
 static int
 _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int rv = 0;
 
    if (handle->capturing)
@@ -464,6 +551,17 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
          rv = -1;
       }
    }
+   else
+   {
+      int res;
+      res = plame_encode_buffer_interleaved(handle->id, data, no_frames,
+                                               handle->mp3Buffer,
+                                               handle->mp3BufSize);
+      rv = write(handle->fd, handle->mp3Buffer, res);
+      if (rv < 0) {
+          _AAX_FILEDRVLOG("MP3File: error writing data");
+      }
+   }
 
    return rv;
 }
@@ -472,7 +570,7 @@ _aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
 static int
 _aaxMSACMFileOpen(void *id, const char* fname)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int res = -1;
 
    if (handle && fname)
@@ -601,7 +699,7 @@ MSACMStreamDone:
 static int
 _aaxMSACMFileClose(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
 
    if (handle)
@@ -622,7 +720,7 @@ _aaxMSACMFileClose(void *id)
 static int
 _aaxMSACMFileReadWrite(void *id, void *data, unsigned int no_frames)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int rv = 0;
 
    if (handle->capturing)

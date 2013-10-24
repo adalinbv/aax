@@ -42,6 +42,7 @@ enum wavFormat
 enum aaxFormat getFormatFromWAVFileFormat(unsigned int, int);
 
 /** libmpg123 */
+
 enum    mpg123_parms {
   MPG123_VERBOSE = 0, MPG123_FLAGS,
   MPG123_ADD_FLAGS, MPG123_FORCE_RATE,
@@ -171,6 +172,36 @@ typedef int (*mpg123_format_proc)(void*, long, int, int);
 typedef int (*mpg123_getformat_proc)(void*, long*, int*, int*);
 
 /* libmpg123 */
+
+/** lame */
+
+typedef enum vbr_mode_e {
+  VBR_OFF=0,
+  VBR_MT,		/* obsolete, same as vbr_mtrh */
+  VBR_RH,
+  VBR_ABR,
+  VBR_MTRH,
+  VBR_MAX_INDICATOR,	/* Don't use this! It's used for sanity checks.       */
+  VBR_DEFAULT=VBR_MTRH	/* change this to change the default VBR mode of LAME */
+} vbr_mode;
+
+typedef void* (*lame_init_proc)(void);
+typedef void* (*lame_init_params_proc)(void*);
+typedef int (*lame_close_proc)(void*);
+typedef int (*lame_set_num_samples_proc)(void*, int);
+typedef int (*lame_set_in_samplerate_proc)(void*, int);
+typedef int (*lame_set_num_channels_proc)(void*, int);
+typedef int (*lame_set_quality_proc)(void*, int);
+typedef int (*lame_set_brate_proc)(void*, int);
+
+typedef int (*lame_set_VBR_proc)(void*, enum vbr_mode_e);
+typedef int (*lame_set_VBR_quality_proc)(void*, float);
+
+typedef int (*lame_encode_buffer_interleaved_proc)(void*, short int[], int, unsigned char*, int);
+typedef int (*lame_encode_flush_proc)(void*, unsigned char*, int);
+typedef void (*lame_mp3_tags_fid_proc)(void*, void*);
+
+/* lame */
 
 #ifdef WINXP
 #include <Windows.h>

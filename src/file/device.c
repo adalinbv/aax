@@ -357,7 +357,7 @@ _aaxFileDriverDisconnect(void *id)
 
 static int
 _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
-                        unsigned int *tracks, float *speed)
+                        unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    int freq, rv = AAX_FALSE;
@@ -375,7 +375,8 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 #endif
    freq = (int)handle->frequency;
 
-   handle->file->id = handle->file->setup(handle->mode, freq, *tracks, *fmt);
+   handle->file->id = handle->file->setup(handle->mode, freq,
+                                          *tracks, *fmt, *frames, *bitrate);
    if (handle->file->id)
    {
       int res = handle->file->open(handle->file->id, handle->name);

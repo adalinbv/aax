@@ -89,7 +89,7 @@ typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
 typedef void *_aaxDriverConnect(const void*, void*, const char*, enum aaxRenderMode);
 typedef int _aaxDriverDisconnect(void*);
 typedef char *_aaxDriverGetName(const void*, int);
-typedef int _aaxDriverSetup(const void*, size_t*, int*, unsigned int*, float*);
+typedef int _aaxDriverSetup(const void*, size_t*, int*, unsigned int*, float*, int*);
 typedef int _aaxDriverState(const void*, enum _aaxDriverState);
 typedef float _aaxDriverParam(const void*, enum _aaxDriverParam);
 

@@ -555,7 +555,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 
 static int
 _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
-                   unsigned int *tracks, float *speed)
+                   unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int sample_frames = 1024;

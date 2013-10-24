@@ -127,6 +127,14 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                rv = AAX_TRUE;
             }
             break;
+         case AAX_BITRATE:
+            if (setup > 0)
+            {
+               info->bitrate = setup;
+                rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
          case AAX_FORMAT:
             if (setup < AAX_FORMAT_MAX)
             {
@@ -247,6 +255,9 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   rv = (int)(ltc*1e6);
                }
                break;
+            case AAX_BITRATE:
+               rv = info->bitrate;
+            break;
             case AAX_TRACKSIZE:
             {
                _oalRingBuffer *rb = handle->ringbuffer;
@@ -1230,6 +1241,7 @@ _aaxMixerInit(_handle_t *handle)
    float refrate = info->refresh_rate;
    unsigned ch = info->no_tracks;
    float freq = info->frequency;
+   int brate = info->bitrate;
    int fmt = info->format;
    size_t frames;
 
@@ -1242,7 +1254,7 @@ _aaxMixerInit(_handle_t *handle)
       frames++;
    }
 
-   res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq);
+   res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq, &brate);
    if TEST_FOR_TRUE(res)
    {
       if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
@@ -1250,6 +1262,7 @@ _aaxMixerInit(_handle_t *handle)
          const _intBufferData* dptr;
 
          handle->valid |= AAX_TRUE;
+         info->bitrate = brate;
          info->frequency = freq;
          info->no_tracks = ch;
          info->format = fmt;

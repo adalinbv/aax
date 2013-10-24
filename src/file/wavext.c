@@ -143,10 +143,10 @@ typedef struct
       } read;
    } io;
 
-} _handle_t;
+} _driver_t;
 
-static int _aaxFileDriverReadHeader(_handle_t *);
-static int _aaxFileDriverUpdateHeader(_handle_t *);
+static int _aaxFileDriverReadHeader(_driver_t *);
+static int _aaxFileDriverUpdateHeader(_driver_t *);
 static unsigned int getFileFormatFromFormat(enum aaxFormat);
 static int _aaxWavFileReadIMA4(void*, int16_t *, unsigned int);
 
@@ -159,7 +159,7 @@ _aaxWavFileDetect(int mode) {
 static int
 _aaxWavFileOpen(void *id, const char* fname)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int res = -1;
 
    if (handle && fname)
@@ -219,7 +219,7 @@ _aaxWavFileOpen(void *id, const char* fname)
 static int
 _aaxWavFileClose(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
 
    if (handle)
@@ -241,14 +241,14 @@ _aaxWavFileClose(void *id)
 }
 
 static void*
-_aaxWavFileSetup(int mode, int freq, int tracks, int format)
+_aaxWavFileSetup(int mode, int freq, int tracks, int format, int no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
-   _handle_t *handle = NULL;
+   _driver_t *handle = NULL;
 
    if (bits_sample)
    {
-      handle = calloc(1, sizeof(_handle_t));
+      handle = calloc(1, sizeof(_driver_t));
       if (handle)
       {
          static const int _mode[] = {
@@ -280,7 +280,7 @@ _aaxWavFileSetup(int mode, int freq, int tracks, int format)
 static int
 _aaxWavFileReadWrite(void *id, void *data, unsigned int no_samples)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks = handle->no_tracks;
    size_t bufsize = (no_tracks * no_samples * handle->bits_sample)/8;
    int rv = 0;
@@ -336,33 +336,33 @@ _aaxWavFileInterfaces(int mode)
 static unsigned int
 _aaxWavFileGetFormat(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->format;
 }
 
 static unsigned int
 _aaxWavFileGetNoTracks(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->no_tracks;
 }
 
 static unsigned int
 _aaxWavFileGetFrequency(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->frequency;
 }
 
 static unsigned int
 _aaxWavFileGetBitsPerSample(void *id)
 {
-   _handle_t *handle = (_handle_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    return handle->bits_sample;
 }
 
 int
-_aaxFileDriverReadHeader(_handle_t *handle)
+_aaxFileDriverReadHeader(_driver_t *handle)
 {
    uint32_t header[WAVE_EXT_HEADER_SIZE];
    size_t bufsize;
@@ -425,7 +425,7 @@ _aaxFileDriverReadHeader(_handle_t *handle)
 }
 
 static int
-_aaxFileDriverUpdateHeader(_handle_t *handle)
+_aaxFileDriverUpdateHeader(_driver_t *handle)
 {
    int res = 0;
 
@@ -567,7 +567,7 @@ getFileFormatFromFormat(enum aaxFormat format)
 static int16_t*
 _aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int no_samples, unsigned int offs)
 {
-   _handle_t *handle = (_handle_t*)id;
+   _driver_t *handle = (_driver_t*)id;
    int32_t *src = handle->io.read.blockbuf;
    unsigned t, tracks = handle->no_tracks;
    int16_t *d = dst;
@@ -664,7 +664,7 @@ _aaxWavFileMSIMADecode(void *id, int16_t *dst, unsigned int no_samples, unsigned
 static int
 _aaxWavFileReadIMA4(void *id, int16_t *dst, unsigned int no_samples)
 {
-   _handle_t *handle = (_handle_t*)id;
+   _driver_t *handle = (_driver_t*)id;
    int rv = 0;
 
    if (handle->no_tracks > _AAX_MAX_SPEAKERS) {

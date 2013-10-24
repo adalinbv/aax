@@ -100,6 +100,7 @@ typedef ALIGN16 struct
 
    char router[_AAX_MAX_SPEAKERS];
    unsigned no_tracks;
+   int bitrate;
    int track;
 
    float pitch;

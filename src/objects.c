@@ -55,6 +55,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
    info->max_registered = 0;
 
+   info->bitrate = 320;
    info->update_rate = 0;
 
    info->id = INFO_ID;
