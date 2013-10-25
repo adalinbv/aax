@@ -32,6 +32,7 @@
 
 #include <arch.h>
 #include <ringbuffer.h>
+#include <file/device.h>
 
 #include <base/gmath.h>
 #include <base/threads.h>
@@ -130,7 +131,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          case AAX_BITRATE:
             if (setup > 0)
             {
-               info->bitrate = setup;
+                info->bitrate = setup;
                 rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -182,6 +183,22 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                   info->no_tracks = 1;
                }
                rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+        case AAX_BITRATE:
+            if (setup > 0)
+            {
+                info->bitrate = setup;
+                rv = AAX_TRUE;
+            }
+            else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+        case AAX_BITRATE:
+            if (setup > 0)
+            {
+                info->bitrate = setup;
+                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -792,7 +809,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
       else if (handle->file.ptr == NULL)
       {
          sframe = get_write_handle(s);
-         if (sframe && !sframe->thread.started && (sframe != handle))
+         if (sframe && !sframe->thread.started && (sframe != handle) &&
+             (sframe->backend.ptr == &_aaxFileDriverBackend))
          {
             _intBufferData *dptr;
 
