@@ -112,7 +112,7 @@ typedef struct
    char *ptr, *scratch;
    unsigned int buf_len;
 
-   _aaxFileHandle* file;
+   _aaxFmtHandle* fmt;
    char *interfaces;
 
 } _driver_t;
@@ -132,7 +132,7 @@ _aaxFileDriverDetect(int mode)
    {
       if ((ftype = _aaxFileTypes[i++]) != NULL)
       {
-         _aaxFileHandle* type = ftype();
+         _aaxFmtHandle* type = ftype();
          if (type)
          {
             rv = type->detect(mode);
@@ -160,9 +160,9 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
       handle->sse_level = _aaxGetSSELevel();
       if (ftype)
       {
-         _aaxFileHandle* type = ftype();
+         _aaxFmtHandle* type = ftype();
          if (type && type->detect(mode)) {
-            handle->file = type;
+            handle->fmt = type;
          }
          else
          {
@@ -255,10 +255,10 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             {
                if ((ftype = _aaxFileTypes[i++]) != NULL)
                {
-                  _aaxFileHandle* type = ftype();
+                  _aaxFmtHandle* type = ftype();
                   if (type && type->detect(mode) && type->supported(ext))
                   {
-                     handle->file = type;
+                     handle->fmt = type;
                      break;
                   }
                   free(type);
@@ -268,7 +268,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
          }
       }
 
-      if (handle->file)
+      if (handle->fmt)
       {
          handle->name = s;
 
@@ -346,8 +346,10 @@ _aaxFileDriverDisconnect(void *id)
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
-      handle->file->close(handle->file->id);
-      free(handle->file);
+      handle->fmt->close(handle->fmt->id);
+//    close(handle->fd);
+
+      free(handle->fmt);
       free(handle->interfaces);
       free(handle);
    }
@@ -375,21 +377,24 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 #endif
    freq = (int)handle->frequency;
 
-   handle->file->id = handle->file->setup(handle->mode, freq,
+   handle->fmt->id = handle->fmt->setup(handle->mode, freq,
                                           *tracks, *fmt, *frames, *bitrate);
-   if (handle->file->id)
+   if (handle->fmt->id)
    {
-      int res = handle->file->open(handle->file->id, handle->name);
+      int res;
+
+//    handle->fd = open(fname, handle->mode, 0644);
+      res = handle->fmt->open(handle->fmt->id, handle->name);
       if (res)
       {
          unsigned int no_frames = *frames;
 //       float pitch;
 
-         freq = handle->file->get_frequency(handle->file->id);
+         freq = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
 //       pitch = freq / *speed;
 
          handle->frequency = (float)freq;
-         handle->no_channels = handle->file->get_no_tracks(handle->file->id);
+         handle->no_channels = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
 
          *fmt = handle->format;
          *speed = handle->frequency;
@@ -403,8 +408,8 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       else
       {
 //       _AAX_FILEDRVLOG("File: Unable to open the requested file");
-         free(handle->file->id);
-         handle->file->id = 0;
+         free(handle->fmt->id);
+         handle->fmt->id = 0;
       }
    }
    else {
@@ -436,9 +441,9 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
    no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
 
-   file_bps = handle->file->get_bits_per_sample(handle->file->id)/8;
-   file_no_tracks = handle->file->get_no_tracks(handle->file->id);
-   file_fmt = handle->file->get_format(handle->file->id);
+   file_bps = handle->fmt->get_param(handle->fmt->id, __F_BITS)/8;
+   file_no_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+   file_fmt = handle->fmt->get_param(handle->fmt->id, __F_FMT);
    assert(file_no_tracks == handle->no_channels);
 
    outbuf_size = file_no_tracks * no_samples*(sizeof(int32_t)+file_bps);
@@ -491,7 +496,8 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    /* then convert to requested audio format */
    bufConvertDataFromPCM24S(ndata, data, file_no_tracks, no_samples, file_fmt, 1);
 
-   res = handle->file->update(handle->file->id, ndata, no_samples);
+   res = handle->fmt->cvt_to(handle->fmt->id, ndata, no_samples);
+   // rv = write(handle->fd, data, bufsize);
 
    return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);
 }
@@ -508,9 +514,9 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
 
    if (*frames)
    {
-      int file_no_tracks = handle->file->get_no_tracks(handle->file->id);
-      int file_bits = handle->file->get_bits_per_sample(handle->file->id);
-      int file_fmt = handle->file->get_format(handle->file->id);
+      int file_no_tracks=handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+      int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS);
+      int file_fmt = handle->fmt->get_param(handle->fmt->id, __F_FMT);
       unsigned int no_frames, file_no_samples, outbuf_size;
       unsigned int abytes, bufsz;
       void *data = scratch;
@@ -530,7 +536,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, v
          handle->buf_len = outbuf_size;
       }
 						/* read the frames */
-      bytes = handle->file->update(handle->file->id, scratch, no_frames);
+      bytes = handle->fmt->cvt_from(handle->fmt->id, scratch, no_frames);
+//    rv = read(handle->fd, data, bufsize);
       if (bytes <= 0) return bytes;
 
       abytes = abs(bytes);
@@ -665,7 +672,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
       {
          if ((ftype = _aaxFileTypes[i++]) != NULL)
          {
-            _aaxFileHandle* type = ftype();
+            _aaxFmtHandle* type = ftype();
             if (type)
             {
                if (type->detect(mode))

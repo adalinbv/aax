@@ -46,32 +46,33 @@
         /** libmpg123 */
 static _open_fn _aaxMPG123FileOpen;
 static _close_fn _aaxMPG123FileClose;
-static _update_fn _aaxMPG123FileReadWrite;
+static _update_fn _aaxMPG123FileCvtFrom;
+static _update_fn _aaxMPG123FileCvtTo;
 	/** libmpg123 */
 
 #ifdef WINXP
 static _open_fn _aaxMSACMFileOpen;
 static _close_fn _aaxMSACMFileClose;
-static _update_fn _aaxMSACMFileReadWrite;
+static _update_fn _aaxMSACMFileCvtFrom;
+static _update_fn _aaxMSACMFileCvtTo;
 
-static _open_fn *_aaxMP3FileOpen = (_open_fn*)&_aaxMSACMFileOpen;
-static _close_fn *_aaxMP3FileClose = (_close_fn*)&_aaxMSACMFileClose;
-static _update_fn *_aaxMP3FileReadWrite = (_update_fn*)&_aaxMSACMFileReadWrite;
+static _open_fn *_aaxMP3Open = (_open_fn*)&_aaxMSACMFileOpen;
+static _close_fn *_aaxMP3Close = (_close_fn*)&_aaxMSACMFileClose;
+static _update_fn *_aaxMP3CvtFrom = (_update_fn*)&_aaxMSACMFileCvtFrom;
+static _update_fn *_aaxMP3CvtTo = (_update_fn*)&_aaxMSACMFileCvtTo;
 #else
-static _open_fn *_aaxMP3FileOpen = (_open_fn*)&_aaxMPG123FileOpen;
-static _close_fn *_aaxMP3FileClose = (_close_fn*)&_aaxMPG123FileClose;
-static _update_fn *_aaxMP3FileReadWrite = (_update_fn*)&_aaxMPG123FileReadWrite;
+static _open_fn *_aaxMP3Open = (_open_fn*)&_aaxMPG123FileOpen;
+static _close_fn *_aaxMP3Close = (_close_fn*)&_aaxMPG123FileClose;
+static _update_fn *_aaxMP3CvtFrom = (_update_fn*)&_aaxMPG123FileCvtFrom;
+static _update_fn *_aaxMP3CvtTo = (_update_fn*)&_aaxMPG123FileCvtTo;
 #endif
 
-static _detect_fn _aaxMP3FileDetect;
-static _new_hanle_fn _aaxMP3FileSetup;
-static _default_fname_fn _aaxMP3FileInterfaces;
-static _extension_fn _aaxMP3FileExtension;
+static _detect_fn _aaxMP3Detect;
+static _new_hanle_fn _aaxMP3Setup;
+static _default_fname_fn _aaxMP3Interfaces;
+static _extension_fn _aaxMP3Extension;
 
-static _get_param_fn _aaxMP3FileGetFormat;
-static _get_param_fn _aaxMP3FileGetNoTracks;
-static _get_param_fn _aaxMP3FileGetFrequency;
-static _get_param_fn _aaxMP3FileGetBitsPerSample;
+static _get_param_fn _aaxMP3GetParam;
 
 #ifdef WINXP
 	/** windows (xp and later) native */
@@ -114,28 +115,26 @@ DECL_FUNCTION(lame_set_VBR);
 DECL_FUNCTION(lame_encode_buffer_interleaved);
 DECL_FUNCTION(lame_encode_flush);
 
-_aaxFileHandle*
+_aaxFmtHandle*
 _aaxDetectMP3File()
 {
-   _aaxFileHandle* rv = NULL;
+   _aaxFmtHandle* rv = NULL;
 
-   rv = calloc(1, sizeof(_aaxFileHandle));
+   rv = calloc(1, sizeof(_aaxFmtHandle));
    if (rv)
    {
-      rv->detect = (_detect_fn*)&_aaxMP3FileDetect;
-      rv->setup = (_new_hanle_fn*)&_aaxMP3FileSetup;
+      rv->detect = (_detect_fn*)&_aaxMP3Detect;
+      rv->setup = (_new_hanle_fn*)&_aaxMP3Setup;
 
-      rv->open = _aaxMP3FileOpen;
-      rv->close = _aaxMP3FileClose;
-      rv->update = _aaxMP3FileReadWrite;
+      rv->open = _aaxMP3Open;
+      rv->close = _aaxMP3Close;
+      rv->cvt_from = _aaxMP3CvtFrom;
+      rv->cvt_to = _aaxMP3CvtTo;
 
-      rv->supported = (_extension_fn*)&_aaxMP3FileExtension;
-      rv->interfaces = (_default_fname_fn*)&_aaxMP3FileInterfaces;
+      rv->supported = (_extension_fn*)&_aaxMP3Extension;
+      rv->interfaces = (_default_fname_fn*)&_aaxMP3Interfaces;
 
-      rv->get_format = (_get_param_fn*)&_aaxMP3FileGetFormat;
-      rv->get_no_tracks = (_get_param_fn*)&_aaxMP3FileGetNoTracks;
-      rv->get_frequency = (_get_param_fn*)&_aaxMP3FileGetFrequency;
-      rv->get_bits_per_sample = (_get_param_fn*)&_aaxMP3FileGetBitsPerSample;
+      rv->get_param = (_get_param_fn*)&_aaxMP3GetParam;
    }
    return rv;
 }
@@ -176,7 +175,7 @@ typedef struct
 
 
 static int
-_aaxMP3FileDetect(int mode)
+_aaxMP3Detect(int mode)
 {
    static void *_audio[2] = { NULL, NULL };
    int m = mode > 0 ? 1 : 0;
@@ -219,9 +218,10 @@ _aaxMP3FileDetect(int mode)
 
                if (acmMP3Support)
                {
-//                _aaxMP3FileOpen = (_open_fn*)&_aaxMSACMFileOpen;
-//                _aaxMP3FileClose = (_close_fn*)&_aaxMSACMFileClose;
-//                _aaxMP3FileReadWrite = (_update_fn*)&_aaxMSACMFileReadWrite;
+//                _aaxMP3Open = (_open_fn*)&_aaxMSACMFileOpen;
+//                _aaxMP3Close = (_close_fn*)&_aaxMSACMFileClose;
+//                _aaxMP3CvtFrom = (_update_fn*)&_aaxMSACMFileCvtFrom;
+//                _aaxMP3CvtTo = (_update_fn*)&_aaxMSACMFileCvtTo;
                   rv = AAX_TRUE;
                }
             }
@@ -272,6 +272,9 @@ _aaxMP3FileDetect(int mode)
             if (!_audio[m]) {
                _audio[m] = _oalIsLibraryPresent("libmp3lame", "0");
             }
+//          if (!_audio[m]) {
+//             _audio[m] = _oalIsLibraryPresent("lame_enc", "0");
+//          }
 
             if (_audio[m])
             {
@@ -307,7 +310,7 @@ _aaxMP3FileDetect(int mode)
 }
 
 static void*
-_aaxMP3FileSetup(int mode, int freq, int tracks, int format, int no_samples, int bitrate)
+_aaxMP3Setup(int mode, int freq, int tracks, int format, int no_samples, int bitrate)
 {
    _driver_t *handle = NULL;
    
@@ -340,43 +343,41 @@ _aaxMP3FileSetup(int mode, int freq, int tracks, int format, int no_samples, int
 }
 
 static int
-_aaxMP3FileExtension(char *ext) {
+_aaxMP3Extension(char *ext) {
    return !strcasecmp(ext, "mp3");
 }
 
 static char*
-_aaxMP3FileInterfaces(int mode)
+_aaxMP3Interfaces(int mode)
 {
-   static const char *rd[2] = { "*.mp3\0", "*.mp3" };
+   static const char *rd[2] = { "*.mp3\0", "*.mp3\0" };
    return (char *)rd[mode];
 }
 
 static unsigned int
-_aaxMP3FileGetFormat(void *id)
+_aaxMP3GetParam(void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle->format;
-}
+   unsigned int rv = 0;
 
-static unsigned int
-_aaxMP3FileGetNoTracks(void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle->no_tracks;
-}
-
-static unsigned int
-_aaxMP3FileGetFrequency(void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle->frequency;
-}
-
-static unsigned int
-_aaxMP3FileGetBitsPerSample(void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   return handle->bits_sample;
+   switch(type)
+   {
+   case __F_FMT:
+      rv = handle->format;
+      break;
+   case __F_TRACKS:
+      rv = handle->no_tracks;
+      break;
+   case __F_FREQ:
+      rv = handle->frequency;
+      break;
+   case __F_BITS:
+      rv = handle->bits_sample;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
 static int
@@ -527,40 +528,43 @@ _aaxMPG123FileClose(void *id)
 }
 
 static int
-_aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
+_aaxMPG123FileCvtFrom(void *id, void *data, unsigned int no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
+   int framesz_bits = handle->no_tracks*handle->bits_sample;
+   size_t blocksize = (no_frames*framesz_bits)/8;
+   size_t size = 0;
    int rv = 0;
+   int ret;
 
-   if (handle->capturing)
-   {
-      int framesz_bits = handle->no_tracks*handle->bits_sample;
-      size_t blocksize = (no_frames*framesz_bits)/8;
-      size_t size = 0;
-      int ret;
-
-      ret = pmpg123_read(handle->id, data, blocksize, &size);
-      if (ret == MPG123_OK) {
-         rv = size;
-      }
-      else
-      {
-         if (ret != MPG123_DONE) {
-            _AAX_FILEDRVLOG("MP3File: error reading data");
-         }
-         rv = -1;
-      }
+   ret = pmpg123_read(handle->id, data, blocksize, &size);
+   if (ret == MPG123_OK) {
+      rv = size;
    }
    else
    {
-      int res;
-      res = plame_encode_buffer_interleaved(handle->id, data, no_frames,
-                                               handle->mp3Buffer,
-                                               handle->mp3BufSize);
-      rv = write(handle->fd, handle->mp3Buffer, res);
-      if (rv < 0) {
-          _AAX_FILEDRVLOG("MP3File: error writing data");
+      if (ret != MPG123_DONE) {
+         _AAX_FILEDRVLOG("MP3File: error reading data");
       }
+      rv = -1;
+   }
+
+   return rv;
+}
+
+static int
+_aaxMPG123FileCvtTo(void *id, void *data, unsigned int no_frames)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int rv = 0;
+   int res;
+
+   res = plame_encode_buffer_interleaved(handle->id, data, no_frames,
+                                            handle->mp3Buffer,
+                                            handle->mp3BufSize);
+   rv = write(handle->fd, handle->mp3Buffer, res);
+   if (rv < 0) {
+       _AAX_FILEDRVLOG("MP3File: error writing data");
    }
 
    return rv;
@@ -718,73 +722,78 @@ _aaxMSACMFileClose(void *id)
 }
 
 static int
-_aaxMSACMFileReadWrite(void *id, void *data, unsigned int no_frames)
+_aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
+   unsigned int frame_sz = handle->no_tracks*handle->bits_sample/8;
+   unsigned int avail_bytes;
+   char *ptr = data;
    int rv = 0;
 
-   if (handle->capturing)
+   if (handle->pcmBufPos < handle->pcmBufMax)
    {
-      unsigned int frame_sz = handle->no_tracks*handle->bits_sample/8;
-      unsigned int avail_bytes;
-      char *ptr = data;
-
-      if (handle->pcmBufPos < handle->pcmBufMax)
-      {
-         avail_bytes = handle->pcmBufMax - handle->pcmBufPos;
-         if (avail_bytes > no_frames*frame_sz) {
-            avail_bytes = no_frames*frame_sz;
-         }
-
-         memcpy(ptr, handle->pcmBuffer+handle->pcmBufPos, avail_bytes);
-         handle->pcmBufPos += avail_bytes;
-         ptr += avail_bytes;
-
-         no_frames -= avail_bytes/frame_sz;
-         rv += avail_bytes/frame_sz;
+      avail_bytes = handle->pcmBufMax - handle->pcmBufPos;
+      if (avail_bytes > no_frames*frame_sz) {
+         avail_bytes = no_frames*frame_sz;
       }
 
-      while (no_frames)
+      memcpy(ptr, handle->pcmBuffer+handle->pcmBufPos, avail_bytes);
+      handle->pcmBufPos += avail_bytes;
+      ptr += avail_bytes;
+
+      no_frames -= avail_bytes/frame_sz;
+      rv += avail_bytes/frame_sz;
+   }
+
+   while (no_frames)
+   {
+      int res = read(handle->fd, handle->mp3Buffer, MP3_BLOCK_SIZE);
+      if (res == MP3_BLOCK_SIZE)
       {
-         int res = read(handle->fd, handle->mp3Buffer, MP3_BLOCK_SIZE);
-         if (res == MP3_BLOCK_SIZE)
+         HRESULT hr;
+         hr = pacmStreamConvert(handle->acmStream, &handle->acmStreamHeader,
+                                              ACM_STREAMCONVERTF_BLOCKALIGN);
+         if ((hr == 0) && handle->acmStreamHeader.cbDstLengthUsed)
          {
-            HRESULT hr;
-            hr = pacmStreamConvert(handle->acmStream, &handle->acmStreamHeader,
-                                                 ACM_STREAMCONVERTF_BLOCKALIGN);
-            if ((hr == 0) && handle->acmStreamHeader.cbDstLengthUsed)
+            handle->pcmBufPos = 0;
+            handle->pcmBufMax = handle->acmStreamHeader.cbDstLengthUsed;
+            if (handle->pcmBufPos < handle->pcmBufMax)
             {
-               handle->pcmBufPos = 0;
-               handle->pcmBufMax = handle->acmStreamHeader.cbDstLengthUsed;
-               if (handle->pcmBufPos < handle->pcmBufMax)
-               {
-                  avail_bytes = handle->pcmBufMax - handle->pcmBufPos;
-                  if (avail_bytes > no_frames*frame_sz) {
-                     avail_bytes = no_frames*frame_sz;
-                  }
-
-                  memcpy(ptr, handle->pcmBuffer, avail_bytes);
-                  handle->pcmBufPos += avail_bytes;
-                  ptr += avail_bytes;
-
-                  no_frames -= avail_bytes/frame_sz;
-                  rv += avail_bytes/frame_sz;
+               avail_bytes = handle->pcmBufMax - handle->pcmBufPos;
+               if (avail_bytes > no_frames*frame_sz) {
+                  avail_bytes = no_frames*frame_sz;
                }
-            }
-            else if (hr != 0)
-            {
-               _AAX_FILEDRVLOG("MSACM MP3: error while converting the stream");
-               handle->pcmBufPos = handle->pcmBufMax;
-               break;
+
+               memcpy(ptr, handle->pcmBuffer, avail_bytes);
+               handle->pcmBufPos += avail_bytes;
+               ptr += avail_bytes;
+
+               no_frames -= avail_bytes/frame_sz;
+               rv += avail_bytes/frame_sz;
             }
          }
-         else
+         else if (hr != 0)
          {
-            rv = -1;
+            _AAX_FILEDRVLOG("MSACM MP3: error while converting the stream");
+            handle->pcmBufPos = handle->pcmBufMax;
             break;
          }
-      }	/* while (no_frames) */
-   }
+      }
+      else
+      {
+         rv = -1;
+         break;
+      }
+   }	/* while (no_frames) */
+
+   return rv;
+}
+
+static int
+_aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int rv = -1;
 
    return rv;
 }

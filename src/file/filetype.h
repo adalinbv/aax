@@ -20,6 +20,13 @@ extern "C" {
 #include "config.h"
 #endif
 
+enum _aaxFileParam {
+   __F_FMT = 0,
+   __F_TRACKS,
+   __F_FREQ,
+   __F_BITS
+};
+
 typedef int (_detect_fn)(int);
 typedef void* (_new_hanle_fn)(int, int, int, int, int, int);
 typedef int (_open_fn)(void*, const char*);
@@ -28,7 +35,7 @@ typedef int (_update_fn)(void*, void*, unsigned int);
 
 typedef char* (_default_fname_fn)(int);
 typedef int (_extension_fn)(char*);
-typedef unsigned int (_get_param_fn)(void *);
+typedef unsigned int (_get_param_fn)(void *, int);
 
 typedef struct
 {
@@ -38,20 +45,18 @@ typedef struct
 
    _open_fn *open;
    _close_fn *close;
-   _update_fn *update;
+   _update_fn *cvt_from;
+   _update_fn *cvt_to;
 
    _extension_fn *supported;
    _default_fname_fn *interfaces;
 
-   _get_param_fn *get_format;
-   _get_param_fn *get_no_tracks;
-   _get_param_fn *get_frequency;
-   _get_param_fn *get_bits_per_sample;
+   _get_param_fn *get_param;
 
-} _aaxFileHandle;
+} _aaxFmtHandle;
 
 
-typedef _aaxFileHandle* (_aaxExtensionDetect)(void);
+typedef _aaxFmtHandle* (_aaxExtensionDetect)(void);
 
 extern _aaxExtensionDetect* _aaxFileTypes[];
 
