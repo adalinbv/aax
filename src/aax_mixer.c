@@ -194,14 +194,6 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
-        case AAX_BITRATE:
-            if (setup > 0)
-            {
-                info->bitrate = setup;
-                rv = AAX_TRUE;
-            }
-            else _aaxErrorSet(AAX_INVALID_PARAMETER);
-            break;
         default:
             _aaxErrorSet(AAX_INVALID_ENUM);
             break;
