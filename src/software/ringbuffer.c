@@ -189,7 +189,8 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples*bps) : 0;
+//    dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples*bps) : 0;
+      dde_bytes = rbd->dde_samples;
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
@@ -1097,7 +1098,7 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
       rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
    }
 #ifndef NDEBUG
-   else printf("%s: Can't set value when rbd->track == NULL\n", __FUNCTION__);
+   else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
 #endif
 
    return rv;
