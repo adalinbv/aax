@@ -259,8 +259,8 @@ _sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, unsigned in
    do
    {
       uint8_t nibble = *s++;
-      *d++ = ima2linear(nibble & 0xF, &predictor, &index);
-      *d++ = ima2linear(nibble >> 4, &predictor, &index);
+      *d++ = adpcm2linear(nibble & 0xF, &predictor, &index);
+      *d++ = adpcm2linear(nibble >> 4, &predictor, &index);
    }
    while (--i);
 }
@@ -322,7 +322,7 @@ linear2alaw(int16_t sample)
 
 /* single sample convert */
 int16_t
-ima2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
+adpcm2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
 {
   int32_t predictor;
   int16_t diff, step;
@@ -356,7 +356,7 @@ ima2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
 
 /* single sample convert */
 void
-linear2ima(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
+linear2adpcm(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
 {
    int16_t diff, ndiff, mask, step;
    uint8_t nibble, index = *idx;
@@ -533,12 +533,12 @@ _aaxLinear2IMABlock(uint8_t* ndata, int32_t* data, unsigned block_smp,
       int16_t nsample;
 
       nsample = *data >> 8;
-      linear2ima(sample, nsample, &nibble, index);
+      linear2adpcm(sample, nsample, &nibble, index);
       data += step;
       *ndata = nibble;
 
       nsample = *data >> 8;
-      linear2ima(sample, nsample, &nibble, index);
+      linear2adpcm(sample, nsample, &nibble, index);
       data += step;
       *ndata++ |= nibble << 4;
    }
