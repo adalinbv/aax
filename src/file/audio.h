@@ -26,6 +26,30 @@ extern "C" {
 // TODO: Needs fixing # define WINXP
 #endif
 
+#define SPEAKER_FRONT_LEFT              0x1
+#define SPEAKER_FRONT_RIGHT             0x2
+#define SPEAKER_FRONT_CENTER            0x4
+#define SPEAKER_LOW_FREQUENCY           0x8
+#define SPEAKER_BACK_LEFT               0x10
+#define SPEAKER_BACK_RIGHT              0x20
+#define SPEAKER_FRONT_LEFT_OF_CENTER    0x40
+#define SPEAKER_FRONT_RIGHT_OF_CENTER   0x80
+#define SPEAKER_BACK_CENTER             0x100
+#define SPEAKER_SIDE_LEFT               0x200
+#define SPEAKER_SIDE_RIGHT              0x400
+#define SPEAKER_TOP_CENTER              0x800
+#define SPEAKER_TOP_FRONT_LEFT          0x1000
+#define SPEAKER_TOP_FRONT_CENTER        0x2000
+#define SPEAKER_TOP_FRONT_RIGHT         0x4000
+#define SPEAKER_TOP_BACK_LEFT           0x8000
+#define SPEAKER_TOP_BACK_CENTER         0x10000
+#define SPEAKER_TOP_BACK_RIGHT          0x20000
+
+#define KSDATAFORMAT_SUBTYPE1           0x00000010
+#define KSDATAFORMAT_SUBTYPE2           0x800000aa
+#define KSDATAFORMAT_SUBTYPE3           0x00389b71
+
+
 #define _AAX_FILEDRVLOG(a)          _aaxFileDriverLog(NULL, 0, 0, a);
 _aaxDriverLog _aaxFileDriverLog;
 
@@ -34,10 +58,13 @@ enum wavFormat
 {
    UNSUPPORTED = 0,
    PCM_WAVE_FILE = 1,
+   MSADPCM_WAVE_FILE = 2,
    FLOAT_WAVE_FILE = 3,
    ALAW_WAVE_FILE = 6,
    MULAW_WAVE_FILE = 7,
-   IMA4_ADPCM_WAVE_FILE = 17
+   IMA4_ADPCM_WAVE_FILE = 17,
+
+   EXTENSIBLE_WAVE_FORMAT = 0xFFFE
 };
 enum aaxFormat getFormatFromWAVFileFormat(unsigned int, int);
 
@@ -169,6 +196,7 @@ typedef int (*mpg123_param_proc)(void*, enum mpg123_parms, long, double);
 typedef int (*mpg123_getparam_proc)(void*, enum mpg123_parms, long*, double*);
 typedef int (*mpg123_feature_proc)(const enum mpg123_feature_set);
 typedef int (*mpg123_format_proc)(void*, long, int, int);
+typedef int (*mpg123_format_none_proc)(void*);
 typedef int (*mpg123_getformat_proc)(void*, long*, int*, int*);
 
 /* libmpg123 */
@@ -198,6 +226,7 @@ typedef int (*lame_set_VBR_proc)(void*, enum vbr_mode_e);
 typedef int (*lame_set_VBR_quality_proc)(void*, float);
 
 typedef int (*lame_encode_buffer_interleaved_proc)(void*, short int[], int, unsigned char*, int);
+typedef int (*lame_encode_buffer_proc)(void*, short int[], short int[], int, unsigned char*, int);
 typedef int (*lame_encode_flush_proc)(void*, unsigned char*, int);
 typedef void (*lame_mp3_tags_fid_proc)(void*, void*);
 

@@ -99,9 +99,10 @@ const _aaxDriverBackend _aaxFileDriverBackend =
 typedef struct
 {
    int fd;
-   int mode;
+   int fmode;
    char *name;
 
+   int mode;
    float latency;
    float frequency;
    enum aaxFormat format;
@@ -242,6 +243,14 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 
    if (handle)
    {
+      static const int _mode[] = {
+         O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
+         O_RDONLY|O_BINARY
+      };
+      int m = (handle->mode > 0) ? 0 : 1;
+
+      handle->fmode = _mode[m];
+
       if (s)
       {
          char *ext = strrchr(s, '.');
@@ -342,12 +351,25 @@ _aaxFileDriverDisconnect(void *id)
 
    if (handle)
    {
+      unsigned int offs, size;
+      void *buf = NULL;
+
       free(handle->ptr);
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
+
+      if (handle->fmt->update) {
+         buf = handle->fmt->update(handle->fmt->id, &offs, &size, AAX_TRUE);
+      }
+      if (buf)
+      {
+         off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
+         lseek(handle->fd, offs, SEEK_SET);
+         ret = write(handle->fd, buf, size);
+      }
       handle->fmt->close(handle->fmt->id);
-//    close(handle->fd);
+      close(handle->fd);
 
       free(handle->fmt);
       free(handle->interfaces);
@@ -363,6 +385,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    int freq, rv = AAX_FALSE;
+   unsigned int bufsize;
 
    assert(handle);
 
@@ -377,33 +400,62 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 #endif
    freq = (int)handle->frequency;
 
-   handle->fmt->id = handle->fmt->setup(handle->mode, freq,
+   handle->fmt->id = handle->fmt->setup(handle->mode, &bufsize, freq,
                                           *tracks, *fmt, *frames, *bitrate);
    if (handle->fmt->id)
    {
-      int res;
-
-//    handle->fd = open(fname, handle->mode, 0644);
-      res = handle->fmt->open(handle->fmt->id, handle->name);
-      if (res)
+      handle->fd = open(handle->name, handle->fmode, 0644);
+      if (handle->fd >= 0)
       {
-         unsigned int no_frames = *frames;
-//       float pitch;
+         unsigned int no_samples = *frames;
+         void *buf, *header = NULL;
+         int res = AAX_TRUE;
 
-         freq = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
-//       pitch = freq / *speed;
+         if (bufsize) {
+            header = malloc(bufsize);
+         }
 
-         handle->frequency = (float)freq;
-         handle->no_channels = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+         do
+         {
+            if (handle->mode == AAX_MODE_READ && header && bufsize)
+            {
+               res = read(handle->fd, header, bufsize);
+               if (res <= 0) break;
+            }
 
-         *fmt = handle->format;
-         *speed = handle->frequency;
-         *tracks = handle->no_channels;
-         *frames = no_frames;
+            bufsize = res;
+            buf = handle->fmt->open(handle->fmt->id, header, &bufsize);
+            res = bufsize;
 
-         handle->latency = (float)no_frames / (float)handle->frequency;
-         rv = AAX_TRUE;
- 
+            if (bufsize)
+            {
+               if (handle->mode != AAX_MODE_READ && buf) {
+                  res = write(handle->fd, buf, bufsize);
+               } else if (handle->mode == AAX_MODE_READ && !buf) {
+                  res = lseek(handle->fd, bufsize, SEEK_SET);
+               }
+            }
+         }
+         while (handle->mode == AAX_MODE_READ && buf && bufsize);
+
+         free(header);
+
+         if (res == bufsize)
+         {
+            freq = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
+
+            handle->frequency = (float)freq;
+            handle->format = handle->fmt->get_param(handle->fmt->id, __F_FMT);
+            handle->no_channels = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+
+            *fmt = handle->format;
+            *speed = handle->frequency;
+            *tracks = handle->no_channels;
+            *frames = no_samples;
+
+            handle->latency = (float)no_samples / (float)handle->frequency;
+            rv = AAX_TRUE;
+         }
       }
       else
       {
@@ -422,14 +474,13 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 static int
 _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
+   _driver_t *handle = (_driver_t *)id;  
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
-   _driver_t *handle = (_driver_t *)id;
-   unsigned int file_bps, file_no_tracks,file_fmt;
-   unsigned int no_samples, no_tracks;
-   unsigned int offs, outbuf_size;
+   unsigned int bps, no_samples, offs, bufsize;
+   unsigned int file_bufsize, file_bps, file_tracks;
    _oalRingBufferSample *rbd;
    const int32_t** sbuf;
-   char *data, *ndata;
+   char *scratch, *data;
    int res;
 
    assert(rb);
@@ -438,138 +489,180 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    rbd = rb->sample;
    offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
    no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
+   bps = _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
 
    file_bps = handle->fmt->get_param(handle->fmt->id, __F_BITS)/8;
-   file_no_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
-   file_fmt = handle->fmt->get_param(handle->fmt->id, __F_FMT);
-   assert(file_no_tracks == handle->no_channels);
+   file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+   assert(file_tracks == handle->no_channels);
 
-   outbuf_size = file_no_tracks * no_samples*(sizeof(int32_t)+file_bps);
-   if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
+   bufsize = no_samples * (file_tracks*file_bps);
+   if ((handle->ptr == 0) || (handle->buf_len < bufsize))
    {
       char *p = 0;
 
       _aax_free(handle->ptr);
-      handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
+      handle->ptr = (char *)_aax_malloc(&p, 2*bufsize);
       handle->scratch = (char *)p;
-      handle->buf_len = outbuf_size;
+      handle->buf_len = bufsize;
    }
-   ndata = (char *)handle->scratch;
-   data = ndata + file_no_tracks*no_samples*file_bps;
-   assert(outbuf_size <= handle->buf_len);
+   data = (char *)handle->scratch;
+   scratch = data + bufsize;
+   assert(bufsize <= handle->buf_len);
 
-   sbuf = (const int32_t**)rbd->track;
    if (fabs(gain - 1.0f) > 0.05f)
    {
       int t;
-      for (t=0; t<file_no_tracks; t++) {
-         _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
+      for (t=0; t<file_tracks; t++) {
+         _batch_mul_value(rbd->track[t]+offs, bps, no_samples, gain);
       }
    }
 
-   /* convert to interleaved format */
-   if (file_no_tracks == no_tracks) {
-      _batch_cvt24_intl_24(data, sbuf, offs, file_no_tracks, no_samples);
-   }
-   else if (file_no_tracks == 1) {
-      data = (char*)sbuf[0];
-   }
-   else /* stereo */
+   sbuf = (const int32_t**)rbd->track;
+   do
    {
-      unsigned int t;
-      for (t=0; t<file_no_tracks; t++)
+      unsigned int spos, usize;
+      void *buf;
+
+      res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
+                                     offs, file_tracks, no_samples, scratch);
+      if (res > 0)
       {
-         int32_t *sptr = (int32_t*)sbuf[t];
-         int32_t *dptr = (int32_t*)data+t;
-         unsigned int i = no_samples;
-         do
-         {
-            *dptr = *sptr++;
-            dptr += file_no_tracks;
+         if (handle->fmt->cvt_from_signed) {
+            handle->fmt->cvt_from_signed(handle->fmt->id, data, res);
          }
-         while (--i);
+         if (handle->fmt->cvt_endianness) {
+            handle->fmt->cvt_endianness(handle->fmt->id, data, res);
+         }
+
+         file_bufsize = res;
+         res = write(handle->fd, data, file_bufsize);
+         if (res <= 0) break;
+
+         if (handle->fmt->update)
+         {
+            buf=handle->fmt->update(handle->fmt->id, &spos, &usize, AAX_FALSE);
+            if (buf)
+            {
+               off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
+               lseek(handle->fd, spos, SEEK_SET);
+               res = write(handle->fd, buf, usize);
+               lseek(handle->fd, floc, SEEK_SET);
+            }
+         }
+      }
+      else {
+         break;
       }
    }
-
-   /* then convert to requested audio format */
-   bufConvertDataFromPCM24S(ndata, data, file_no_tracks, no_samples, file_fmt, 1);
-
-   res = handle->fmt->cvt_to(handle->fmt->id, ndata, no_samples);
-   // rv = write(handle->fd, data, bufsize);
+   while (0); // bufsize);
 
    return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);
 }
 
 static int
-_aaxFileDriverCapture(const void *id, void **tracks, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    int bytes = 0;
 
-   if ((frames == 0) || (tracks == 0)) {
-      return AAX_FALSE;
-   }
+   assert(*frames);
 
-   if (*frames)
+   if (frames && tracks)
    {
-      int file_no_tracks=handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+      int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
       int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS);
-      int file_fmt = handle->fmt->get_param(handle->fmt->id, __F_FMT);
-      unsigned int no_frames, file_no_samples, outbuf_size;
-      unsigned int abytes, bufsz;
-      void *data = scratch;
-      int32_t **sbuf;
+      int file_block = handle->fmt->get_param(handle->fmt->id, __F_BLOCK);
+      unsigned int frame_bits = file_tracks*file_bits;
+      int32_t **sbuf = (int32_t**)tracks;
+      unsigned int no_samples, bufsize;
+      int res, samples, offs = offset;
+      void *data;
 
-      no_frames = *frames;
-      bufsz = (file_no_tracks * no_frames * file_bits)/8;
-
-      outbuf_size = handle->no_channels * no_frames * sizeof(int32_t);
-      if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
-      {
-         char *p = 0;
-
-         _aax_free(handle->ptr);
-         handle->ptr = (char *)_aax_malloc(&p, outbuf_size);
-         handle->scratch = (char *)p;
-         handle->buf_len = outbuf_size;
+      no_samples = *frames;
+      if (!file_block) {
+         bufsize = no_samples*frame_bits/8;
       }
-						/* read the frames */
-      bytes = handle->fmt->cvt_from(handle->fmt->id, scratch, no_frames);
-//    rv = read(handle->fd, data, bufsize);
-      if (bytes <= 0) return bytes;
-
-      abytes = abs(bytes);
-      file_no_samples = abytes*8/file_bits;		/* still interleaved */
-					/* then convert to proper signedness */
-      if (file_fmt != AAX_PCM24S)
-      {
-         char *ndata = handle->scratch;
-         bufConvertDataToPCM24S(ndata, data, file_no_samples, file_fmt);
-         data = ndata;
-      }
-				/* clear the rest of the buffer if required */
-      if (abytes != bufsz)
-      {
-         size_t bufsize = (bufsz-abytes)*32/file_bits;
-         unsigned int samples = abytes*8/file_bits;
-
-         memset((int32_t*)data+samples, 0, bufsize);
+      else {
+         bufsize = file_block;
       }
 
-					/* finally resample and de-interleave */
-      sbuf = (int32_t**)tracks;
-      _batch_cvt24_24_intl(sbuf, data, offs, file_no_tracks, no_frames);
+      if (bufsize > scratchlen) {
+         bufsize = (scratchlen/frame_bits)*frame_bits;
+      }
 
-      /* gain is netagive for auto-gain mode */
-      gain = fabsf(gain);
-      if (gain < 0.99f || gain > 1.01f)
+      bytes = 0;
+      data = NULL;
+      samples = no_samples;
+      do
       {
-         int t;
-         for (t=0; t<file_no_tracks; t++) {
-            _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_frames,
-                             gain);
+         /* convert data still in the buffer */
+         if (handle->fmt->cvt_endianness) {
+            handle->fmt->cvt_endianness(handle->fmt->id, data, samples);
+         }
+         if (handle->fmt->cvt_to_signed) {
+            handle->fmt->cvt_to_signed(handle->fmt->id, data, samples);
+         }
+         res = handle->fmt->cvt_from_intl(handle->fmt->id, sbuf, data,
+                                          offs, file_tracks, samples);
+
+         /* res holds the number of samples that are actually converted */
+         /* or -2 if the next chunk can be processed                    */
+         /* or -1 if an error occured, or end of file                   */
+         if (res == __F_PROCESS)
+         {
+            data = NULL;
+            samples = no_samples;
+         }
+         else if (samples > 0)
+         {
+            unsigned int res_bytes = res*frame_bits/8;
+
+            offs += res;
+            no_samples -= res;
+            bytes += res_bytes;
+
+            if (no_samples)
+            {
+               int ret;
+
+               if (!file_block)
+               {
+                  bufsize = no_samples*frame_bits/8;
+                  if (bufsize > scratchlen) {
+                     bufsize = (scratchlen/frame_bits)*frame_bits;
+                  }
+               }
+
+               /* more data is requested */
+               data = scratch;
+               ret = read(handle->fd, data, bufsize);
+               if (ret <= 0)
+               {
+                  bytes = -1;
+                  break;
+               }
+               samples = ret*8/frame_bits;
+            }
+         }
+         else
+         {
+            bytes = -1;
+            break;
+         }
+      } while (no_samples);
+ 
+      if (bytes > 0)
+      {
+         /* gain is netagive for auto-gain mode */
+         gain = fabsf(gain);
+         if (fabs(gain - 1.0f) > 0.05f)
+         {
+            int t;
+            for (t=0; t<file_tracks; t++) {
+               _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
+                                *frames, gain);
+            }
          }
       }
    }

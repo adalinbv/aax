@@ -22,7 +22,6 @@
 #  include <strings.h>   /* strcasecmp */
 # endif
 #endif
-#include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
 #include <errno.h>
 #include <sys/stat.h>
@@ -43,42 +42,30 @@
 #include "filetype.h"
 #include "audio.h"
 
-        /** libmpg123 */
-static _open_fn _aaxMPG123FileOpen;
-static _close_fn _aaxMPG123FileClose;
-static _update_fn _aaxMPG123FileCvtFrom;
-static _update_fn _aaxMPG123FileCvtTo;
+        /** libmpg123: both Linux and Windows */
+static _open_fn _aaxMPG123Open;
+static _close_fn _aaxMPG123Close;
+static _cvt_to_fn _aaxMPG123CvtToIntl;
+static _cvt_from_fn _aaxMPG123CvtFromIntl;
 	/** libmpg123 */
-
-#ifdef WINXP
-static _open_fn _aaxMSACMFileOpen;
-static _close_fn _aaxMSACMFileClose;
-static _update_fn _aaxMSACMFileCvtFrom;
-static _update_fn _aaxMSACMFileCvtTo;
-
-static _open_fn *_aaxMP3Open = (_open_fn*)&_aaxMSACMFileOpen;
-static _close_fn *_aaxMP3Close = (_close_fn*)&_aaxMSACMFileClose;
-static _update_fn *_aaxMP3CvtFrom = (_update_fn*)&_aaxMSACMFileCvtFrom;
-static _update_fn *_aaxMP3CvtTo = (_update_fn*)&_aaxMSACMFileCvtTo;
-#else
-static _open_fn *_aaxMP3Open = (_open_fn*)&_aaxMPG123FileOpen;
-static _close_fn *_aaxMP3Close = (_close_fn*)&_aaxMPG123FileClose;
-static _update_fn *_aaxMP3CvtFrom = (_update_fn*)&_aaxMPG123FileCvtFrom;
-static _update_fn *_aaxMP3CvtTo = (_update_fn*)&_aaxMPG123FileCvtTo;
-#endif
 
 static _detect_fn _aaxMP3Detect;
 static _new_hanle_fn _aaxMP3Setup;
 static _default_fname_fn _aaxMP3Interfaces;
 static _extension_fn _aaxMP3Extension;
-
 static _get_param_fn _aaxMP3GetParam;
 
 #ifdef WINXP
 	/** windows (xp and later) native */
-static int acmMP3Support = AAX_FALSE;
+static _open_fn _aaxMSACMFileOpen;
+static _close_fn _aaxMSACMFileClose;
+static _update_fn _aaxMSACMFileCvtFrom;
+static _update_fn _aaxMSACMFileCvtTo;
 
-static BOOL CALLBACK acmDriverEnumCallback(HACMDRIVERID, DWORD, DWORD);
+static _open_fn *_aaxMP3Open = _aaxMSACMFileOpen;
+static _close_fn *_aaxMP3Close = _aaxMSACMFileClose;
+static _update_fn *_aaxMP3CvtFrom = _aaxMSACMFileCvtFrom;
+static _update_fn *_aaxMP3CvtTo = _aaxMSACMFileCvtTo;
 
 DECL_FUNCTION(acmDriverOpen);
 DECL_FUNCTION(acmDriverClose);
@@ -91,19 +78,30 @@ DECL_FUNCTION(acmStreamConvert);
 DECL_FUNCTION(acmStreamPrepareHeader);
 DECL_FUNCTION(acmStreamUnprepareHeader);
 DECL_FUNCTION(acmFormatTagDetailsA);
+
+static int acmMP3Support = AAX_FALSE;
+static BOOL CALLBACK acmDriverEnumCallback(HACMDRIVERID, DWORD, DWORD);
+
+#else
+
+static _open_fn *_aaxMP3Open = _aaxMPG123Open;
+static _close_fn *_aaxMP3Close = _aaxMPG123Close;
+static _cvt_to_fn *_aaxMP3CvtToIntl = _aaxMPG123CvtToIntl;
+static _cvt_from_fn *_aaxMP3CvtFromIntl = _aaxMPG123CvtFromIntl;
 #endif
 
-	/** libmpg123 */
+	/** libmpg123: both Linxu and Windows */
 DECL_FUNCTION(mpg123_init);
 DECL_FUNCTION(mpg123_exit);
 DECL_FUNCTION(mpg123_new);
-DECL_FUNCTION(mpg123_open_fd);
-DECL_FUNCTION(mpg123_read);
+DECL_FUNCTION(mpg123_open_feed);
+DECL_FUNCTION(mpg123_decode);
 DECL_FUNCTION(mpg123_delete);
 DECL_FUNCTION(mpg123_format);
+DECL_FUNCTION(mpg123_format_none);
 DECL_FUNCTION(mpg123_getformat);
 
-	/** lame */
+	/** lame: both Linxu and Windows */
 DECL_FUNCTION(lame_init);
 DECL_FUNCTION(lame_init_params);
 DECL_FUNCTION(lame_close);
@@ -123,18 +121,22 @@ _aaxDetectMP3File()
    rv = calloc(1, sizeof(_aaxFmtHandle));
    if (rv)
    {
-      rv->detect = (_detect_fn*)&_aaxMP3Detect;
-      rv->setup = (_new_hanle_fn*)&_aaxMP3Setup;
-
+      rv->detect = _aaxMP3Detect;
+      rv->setup = _aaxMP3Setup;
       rv->open = _aaxMP3Open;
       rv->close = _aaxMP3Close;
-      rv->cvt_from = _aaxMP3CvtFrom;
-      rv->cvt_to = _aaxMP3CvtTo;
+      rv->update = NULL;
 
-      rv->supported = (_extension_fn*)&_aaxMP3Extension;
-      rv->interfaces = (_default_fname_fn*)&_aaxMP3Interfaces;
+      rv->cvt_from_intl = _aaxMP3CvtFromIntl;
+      rv->cvt_to_intl = _aaxMP3CvtToIntl;
+      rv->cvt_endianness = NULL;
+      rv->cvt_from_signed = NULL;
+      rv->cvt_to_signed = NULL;
 
-      rv->get_param = (_get_param_fn*)&_aaxMP3GetParam;
+      rv->supported = _aaxMP3Extension;
+      rv->interfaces = _aaxMP3Interfaces;
+
+      rv->get_param = _aaxMP3GetParam;
    }
    return rv;
 }
@@ -143,10 +145,8 @@ _aaxDetectMP3File()
 
 typedef struct
 {
-   char *name;
    void *id;
 
-   int fd;
    int mode;
    int capturing;
 
@@ -154,8 +154,13 @@ typedef struct
    int bitrate;
    unsigned int no_samples;
    enum aaxFormat format;
+   int blocksize;
    uint8_t no_tracks;
    uint8_t bits_sample;
+
+   unsigned int mp3BufSize;
+   void *mp3Buffer;
+   void *mp3ptr;
 
 #ifdef WINXP
    HACMSTREAM acmStream;
@@ -164,11 +169,6 @@ typedef struct
    LPBYTE pcmBuffer;
    unsigned long pcmBufPos;
    unsigned long pcmBufMax;
-   BYTE mp3Buffer[MP3_BLOCK_SIZE];
-#else
-
-   unsigned int mp3BufSize;
-   unsigned char *mp3Buffer;
 #endif
 
 } _driver_t;
@@ -251,10 +251,11 @@ _aaxMP3Detect(int mode)
                {
                   TIE_FUNCTION(mpg123_exit);
                   TIE_FUNCTION(mpg123_new);
-                  TIE_FUNCTION(mpg123_open_fd);
-                  TIE_FUNCTION(mpg123_read);
+                  TIE_FUNCTION(mpg123_open_feed);
+                  TIE_FUNCTION(mpg123_decode);
                   TIE_FUNCTION(mpg123_delete);
                   TIE_FUNCTION(mpg123_format);
+                  TIE_FUNCTION(mpg123_format_none);
                   TIE_FUNCTION(mpg123_getformat);
 
                   error = _oalGetSymError(0);
@@ -310,26 +311,28 @@ _aaxMP3Detect(int mode)
 }
 
 static void*
-_aaxMP3Setup(int mode, int freq, int tracks, int format, int no_samples, int bitrate)
+_aaxMP3Setup(int mode, unsigned int *bufsize, int freq, int tracks, int format, int no_samples, int bitrate)
 {
    _driver_t *handle = NULL;
    
+   *bufsize = 0;
    if (1) // mode == 0)
    {
       handle = calloc(1, sizeof(_driver_t));
       if (handle)
       {
-         static const int _mode[] = { O_WRONLY|O_BINARY|O_CREAT|O_TRUNC,
-                                      O_RDONLY|O_BINARY };
-
          handle->capturing = (mode == 0) ? 1 : 0;
-         handle->mode = _mode[handle->capturing];
+         handle->blocksize = 4096;
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->bitrate = bitrate;
          handle->format = format;
          handle->no_samples = no_samples;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
+         if (mode == 0) {
+            *bufsize = (no_samples*tracks*handle->bits_sample)/8;
+         }
       }
       else {
          _AAX_FILEDRVLOG("MP3File: Insufficient memory");
@@ -374,6 +377,9 @@ _aaxMP3GetParam(void *id, int type)
    case __F_BITS:
       rv = handle->bits_sample;
       break;
+   case __F_BLOCK:
+      rv = handle->blocksize;
+      break;
    default:
       break;
    }
@@ -410,94 +416,111 @@ getFormatFromMP3FileFormat(int enc)
    return rv;
 }
 
-static int
-_aaxMPG123FileOpen(void *id, const char* fname)
+static void*
+_aaxMPG123Open(void *id, void *buf, unsigned int *bufsize)
 {
    _driver_t *handle = (_driver_t *)id;
-   int res = -1;
+   void *rv = NULL;
 
-   if (handle && fname)
+   assert(bufsize);
+
+   if (handle)
    {
-      handle->fd = open(fname, handle->mode, 0644);
-      if (handle->fd >= 0)
+      if (handle->capturing)
       {
-         handle->name = strdup(fname);
-         if (handle->capturing)
+         if (!handle->id)
          {
             pmpg123_init();
             handle->id = pmpg123_new(NULL, NULL);
             if (handle->id)
             {
+               char *ptr = 0;
+               pmpg123_open_feed(handle->id);
+               handle->mp3BufSize = 16384;
+
+               handle->mp3ptr = _aax_malloc(&ptr, handle->mp3BufSize);
+               handle->mp3Buffer = ptr;
+            }
+         }
+
+         if (handle->id)
+         {
+            size_t size;
+            int ret;
+
+            ret = pmpg123_decode(handle->id, buf, *bufsize, NULL, 0, &size);
+            if (ret == MPG123_NEW_FORMAT)
+            {
                int enc, channels;
                long rate;
 
-               pmpg123_open_fd(handle->id, handle->fd); 
-
-               pmpg123_format(handle->id, handle->frequency,
-                              MPG123_MONO | MPG123_STEREO,
-                              MPG123_ENC_SIGNED_16);
-               pmpg123_getformat(handle->id, &rate, &channels, &enc);
-
-               if ((1000 <= rate) && (rate <= 192000) &&
-                   (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
+               ret = pmpg123_getformat(handle->id, &rate, &channels, &enc);
+               if (ret == MPG123_OK)
                {
-                  handle->frequency = rate;
-                  handle->no_tracks = channels;
-                  handle->format = getFormatFromMP3FileFormat(enc);
-                  handle->bits_sample = aaxGetBitsPerSample(handle->format);
+                  pmpg123_format_none(handle->id);
+                  ret = pmpg123_format(handle->id, handle->frequency,
+                                       MPG123_MONO | MPG123_STEREO,
+                                       MPG123_ENC_SIGNED_16);
 
-                  res = AAX_TRUE;
+                  if (ret == MPG123_OK &&
+                      (1000 <= rate) && (rate <= 192000) &&
+                      (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
+                  {
+                     handle->frequency = rate;
+                     handle->no_tracks = channels;
+                     handle->format = getFormatFromMP3FileFormat(enc);
+                     handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
+                     *bufsize = 0;
+                     rv = buf;
+                  }
                }
                else {
                   _AAX_FILEDRVLOG("MP3File: file may be corrupt");
                }
             }
-            else {
-               _AAX_FILEDRVLOG("MP3File: Unable to create a handler");
+            else if (ret == MPG123_NEED_MORE) {
+               rv = buf;
             }
          }
-         else
-         {
-            /*
-             * The required mp3buf_size can be computed from num_samples,
-             * samplerate and encoding rate, but here is a worst case estimate:
-             *
-             * mp3buf_size in bytes = 1.25*num_samples + 7200
-             */
-            handle->mp3BufSize = 7200 + ceilf(1.25f*handle->no_samples);
-            handle->mp3Buffer = malloc(handle->mp3BufSize);
-            if (handle->mp3Buffer)
-            {
-               handle->id = plame_init();
-               plame_set_num_samples(handle->id, handle->no_samples);
-               plame_set_in_samplerate(handle->id, handle->frequency);
-               plame_set_num_channels(handle->id, handle->no_tracks);
-               plame_set_brate(handle->id, handle->bitrate);
-               plame_set_VBR(handle->id, VBR_OFF);
-               plame_init_params(handle->id);
-
-               res = AAX_TRUE;
-            }
+         else {
+            _AAX_FILEDRVLOG("MP3File: Unable to create a handler");
          }
       }
-      else {
-         _AAX_FILEDRVLOG("MP3File: file not found");
+      else
+      {
+         char *ptr = 0;
+         /*
+          * The required mp3buf_size can be computed from num_samples,
+          * samplerate and encoding rate, but here is a worst case estimate:
+          *
+          * mp3buf_size in bytes = 1.25*num_samples + 7200
+          */
+         handle->mp3BufSize = 7200 + handle->no_samples*5/4;
+         handle->mp3ptr = _aax_malloc(&ptr, handle->mp3BufSize);
+         handle->mp3Buffer = ptr;
+         if (handle->mp3ptr)
+         {
+            handle->id = plame_init();
+            plame_set_num_samples(handle->id, handle->no_samples);
+            plame_set_in_samplerate(handle->id, handle->frequency);
+            plame_set_num_channels(handle->id, handle->no_tracks);
+            plame_set_brate(handle->id, handle->bitrate);
+            plame_set_VBR(handle->id, VBR_OFF);
+            plame_init_params(handle->id);
+         }
       }
    }
    else
    {
-      if (!fname) {
-         _AAX_FILEDRVLOG("MP3File: No filename prvided");
-      } else {
-         _AAX_FILEDRVLOG("MP3File: Internal error: handle id equals 0");
-      }
+      _AAX_FILEDRVLOG("MP3File: Internal error: handle id equals 0");
    }
 
-   return (res >= 0) ? AAX_TRUE : AAX_FALSE;
+   return rv;
 }
 
 static int
-_aaxMPG123FileClose(void *id)
+_aaxMPG123Close(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
@@ -516,11 +539,11 @@ _aaxMPG123FileClose(void *id)
          // plame_mp3_tags_fid(handle->id, mp3);
          plame_close(handle->id);
       }
-      close(handle->fd);
+      free(handle->mp3ptr);
+
 #ifdef WINXP
       free(handle->pcmBuffer);
 #endif
-      free(handle->name);
       free(handle);
    }
 
@@ -528,46 +551,54 @@ _aaxMPG123FileClose(void *id)
 }
 
 static int
-_aaxMPG123FileCvtFrom(void *id, void *data, unsigned int no_frames)
+_aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    _driver_t *handle = (_driver_t *)id;
-   int framesz_bits = handle->no_tracks*handle->bits_sample;
-   size_t blocksize = (no_frames*framesz_bits)/8;
+   unsigned int bytes, bufsize;
+   int bps, ret, rv = __F_EOF;
+   unsigned char *buf;
    size_t size = 0;
-   int rv = 0;
-   int ret;
 
-   ret = pmpg123_read(handle->id, data, blocksize, &size);
-   if (ret == MPG123_OK) {
-      rv = size;
+   buf = (unsigned char*)handle->mp3Buffer;
+   bufsize = handle->mp3BufSize;
+
+   bps = handle->bits_sample/8;
+   bytes = num*tracks*bps;
+   if (!sptr)
+   {
+      if (bytes > bufsize) {
+         bytes = bufsize;
+      }
+      ret = pmpg123_decode(handle->id, NULL, 0, buf, bytes, &size);
+      if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
+      {
+         rv = size/(tracks*bps);
+         _batch_cvt24_16_intl(dptr, buf, offset, tracks, rv);
+      }
    }
    else
    {
-      if (ret != MPG123_DONE) {
-         _AAX_FILEDRVLOG("MP3File: error reading data");
+      ret = pmpg123_decode(handle->id, sptr, bytes, NULL, 0, &size);
+      if (ret == MPG123_OK) {
+         rv = __F_PROCESS;
       }
-      rv = -1;
    }
 
    return rv;
 }
 
 static int
-_aaxMPG123FileCvtTo(void *id, void *data, unsigned int no_frames)
+_aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num, void *scratch)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = 0;
    int res;
 
-   res = plame_encode_buffer_interleaved(handle->id, data, no_frames,
-                                            handle->mp3Buffer,
-                                            handle->mp3BufSize);
-   rv = write(handle->fd, handle->mp3Buffer, res);
-   if (rv < 0) {
-       _AAX_FILEDRVLOG("MP3File: error writing data");
-   }
+   _batch_cvt16_intl_24(scratch, sptr, offset, tracks, num);
+   res = plame_encode_buffer_interleaved(handle->id, scratch, num,
+                                         handle->mp3Buffer, handle->mp3BufSize);
+   _aax_memcpy(dptr, handle->mp3Buffer, res);
 
-   return rv;
+   return res;
 }
 
 #ifdef WINXP
@@ -575,14 +606,19 @@ static int
 _aaxMSACMFileOpen(void *id, const char* fname)
 {
    _driver_t *handle = (_driver_t *)id;
-   int res = -1;
+   int res = __F_EOF;
 
    if (handle && fname)
    {
       handle->fd = open(fname, handle->mode, 0644);
       if (handle->fd >= 0)
       {
+         char *ptr = 0;
+
          handle->name = strdup(fname);
+         handl->mp3ptr = _aax_malloc(&ptr, MP3_BLOCK_SIZE);
+         handle->mp3Buffer = ptr;
+
          if (handle->capturing)
          {
             MPEGLAYER3WAVEFORMAT mp3Fmt;
@@ -747,7 +783,8 @@ _aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
 
    while (no_frames)
    {
-      int res = read(handle->fd, handle->mp3Buffer, MP3_BLOCK_SIZE);
+      // TODO: adopt new scheme weher de file_driver does the reading.
+      int res = 0; // read(handle->fd, handle->mp3Buffer, MP3_BLOCK_SIZE);
       if (res == MP3_BLOCK_SIZE)
       {
          HRESULT hr;
@@ -781,7 +818,7 @@ _aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
       }
       else
       {
-         rv = -1;
+         rv = __F_EOF;
          break;
       }
    }	/* while (no_frames) */
@@ -793,7 +830,7 @@ static int
 _aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = -1;
+   int rv = __F_EOF;
 
    return rv;
 }
