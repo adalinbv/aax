@@ -405,13 +405,28 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
          int32_t *sptr = (int32_t *)src[t] + offset;
          int16_t *dptr = d + t;
          unsigned int i = (num/4)*4;
-         assert(i == num);
-         do
+
+         if (i)
          {
-            *dptr = *(sptr++) >> 8;
-            dptr += tracks;
+            do
+            {
+               *dptr = *(sptr++) >> 8;
+               dptr += tracks;
+            }
+            while (--i);
          }
-         while (--i);
+
+         num -= (num/4)*4;
+         i = num;
+         if (i)
+         {
+            do
+            {
+               *dptr = *(sptr++) >> 8;
+               dptr += tracks;
+            }
+            while (--i);
+         }
       }
       return;
    }
