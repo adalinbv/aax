@@ -159,6 +159,8 @@ void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
 void _aaxSoftwareMixerApplyEffects(const void *, const void *, void *, const void *);
 
 
+uint32_t getMSChannelMask(uint16_t);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

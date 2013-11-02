@@ -290,7 +290,6 @@ static LPWSTR name_to_id(const WCHAR*, unsigned char);
 static char* detect_devname(IMMDevice*);
 static char* wcharToChar(char*, int*, const WCHAR*);
 static WCHAR* charToWChar(const char*);
-static DWORD getChannelMask(WORD, enum aaxRenderMode);
 static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
 static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
 static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
@@ -391,7 +390,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
       fmt.Format.cbSize = CBSIZE;
 
       fmt.Samples.wValidBitsPerSample = fmt.Format.wBitsPerSample;
-      fmt.dwChannelMask = getChannelMask(fmt.Format.nChannels, mode);
+      fmt.dwChannelMask = getMSChannelMask(fmt.Format.nChannels);
       fmt.SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
 
       if (xid)
@@ -588,8 +587,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    handle->Fmt.Format.cbSize = CBSIZE;
 
    handle->Fmt.Samples.wValidBitsPerSample = handle->Fmt.Format.wBitsPerSample;
-   handle->Fmt.dwChannelMask = getChannelMask(handle->Fmt.Format.nChannels,
-                                              handle->setup);
+   handle->Fmt.dwChannelMask = getMSChannelMask(handle->Fmt.Format.nChannels);
    handle->Fmt.SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
 
    rv = _wasapi_setup(handle, &sample_frames);
@@ -1929,7 +1927,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
          /* all formats match */
          out->Samples.wValidBitsPerSample = in->wBitsPerSample;
 
-         out->dwChannelMask = getChannelMask(in->nChannels, setup);
+         out->dwChannelMask = getMSChannelMask(in->nChannels);
          if (in->wFormatTag == WAVE_FORMAT_PCM) {
             out->SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
          } else {
@@ -1943,32 +1941,6 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
       rv = AAX_FALSE;
    }
 
-   return rv;
-}
-
-static DWORD
-getChannelMask(WORD nChannels, enum aaxRenderMode mode)
-{
-   DWORD rv = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-
-   /* for now without mode */
-   switch (nChannels)
-   {
-   case 1:
-      rv = SPEAKER_FRONT_CENTER;
-      break;
-   case 8:
-      rv |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
-   case 6:
-      rv |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
-   case 4:
-      rv |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
-   case 2:
-      break;
-   default:
-      _aaxWASAPIDriverLog(NULL, 0, WASAPI_UNSUPPORTED_NO_TRACKS, __FUNCTION__);
-      break;
-   }
    return rv;
 }
 
