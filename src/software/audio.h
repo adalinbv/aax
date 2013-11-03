@@ -26,17 +26,15 @@ extern "C" {
 extern const int16_t _ima4_step_table[89];
 extern const int16_t _ima4_index_table[16];
 extern const int16_t _ima4_index_adjust[16];
-extern const int16_t _alaw2linear_table[256];
-extern const int8_t _linear2alaw_table[128];
-extern const int16_t _mulaw2linear_table[256];
-extern const int8_t _linear2mulaw_table[256];
 
 extern const float _compress_tbl[2][2048];
 
-uint8_t linear2alaw(int16_t);
-uint8_t linear2mulaw(int16_t);
-int16_t adpcm2linear (uint8_t, int16_t *, uint8_t *);
-void    linear2adpcm(int16_t *, int16_t, uint8_t *, uint8_t *);
+uint8_t _linear2alaw(int16_t);
+uint8_t _linear2mulaw(int16_t);
+int16_t _alaw2linear(uint8_t);
+int16_t _mulaw2linear(uint8_t);
+int16_t _adpcm2linear (uint8_t, int16_t *, uint8_t *);
+void    _linear2adpcm(int16_t *, int16_t, uint8_t *, uint8_t *);
 
 void  _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
 

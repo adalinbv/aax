@@ -88,7 +88,7 @@ _aaxDetectWavFile()
 /* -------------------------------------------------------------------------- */
 
 #define WAVE_HEADER_SIZE        	(3+8)
-#define WAVE_EXT_HEADER_SIZE    	(3+14)
+#define WAVE_EXT_HEADER_SIZE    	(3+20)
 #define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
@@ -132,15 +132,13 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
     KSDATAFORMAT_SUBTYPE1,
     KSDATAFORMAT_SUBTYPE2,
     KSDATAFORMAT_SUBTYPE3,
-    0x61746164,                 /* 15. "data"                                */
-    0
-};
 
-static const uint32_t _aaxDefaultWaveFactCHunck[3] =
-{
-    0x74636166,			/*  0. "fact"                                */
-    4,				/*  1. chunk size                            */
-    0				/*  2. no. samples                           */
+    0x74636166,			/* 15. "fact"                                */
+    4,				/* 16. chunk size                            */
+    0,				/* 17. no. samples per track                 */
+
+    0x61746164,                 /* 18. "data"                                */
+    0,				/* 19. chunk size in bytes following thsi    */
 };
 
 typedef struct
@@ -157,20 +155,24 @@ typedef struct
    {
       struct
       {
+         int16_t format;
+         uint32_t no_samples;
+
          uint32_t *header;
          unsigned int header_size;
          size_t size_bytes;
          float update_dt;
-         int16_t format;
       } write;
 
       struct 
       {
+         int16_t format;
+         uint32_t no_samples;
+
          void *blockbuf;
          unsigned int blockstart_smp;
          int16_t predictor[_AAX_MAX_SPEAKERS];
          uint8_t index[_AAX_MAX_SPEAKERS];
-         int16_t format;
       } read;
    } io;
 
@@ -259,7 +261,7 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
                s = handle->bits_sample;
                handle->io.write.header[9] = s << 16 | 22;
 
-               s = 0; // getMSChannelMask(handle->no_tracks);
+               s = getMSChannelMask(handle->no_tracks);
                handle->io.write.header[10] = s;
 
                s = handle->io.write.format;
@@ -275,10 +277,19 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
                   handle->io.write.header[i] = tmp;
                }
 
-               handle->io.write.header[5]=_bswap32(handle->io.write.header[5]);
-               handle->io.write.header[6]=_bswap32(handle->io.write.header[6]);
-               handle->io.write.header[7]=_bswap32(handle->io.write.header[7]);
-               handle->io.write.header[8]=_bswap32(handle->io.write.header[8]);
+               handle->io.write.header[5] =_bswap32(handle->io.write.header[5]);
+               handle->io.write.header[6] =_bswap32(handle->io.write.header[6]);
+               handle->io.write.header[7] =_bswap32(handle->io.write.header[7]);
+               handle->io.write.header[8] =_bswap32(handle->io.write.header[8]);
+               if (extfmt)
+               { 
+                  handle->io.write.header[9] =
+                                           _bswap32(handle->io.write.header[9]);
+                  handle->io.write.header[10] =
+                                          _bswap32(handle->io.write.header[10]);
+                  handle->io.write.header[11] =
+                                          _bswap32(handle->io.write.header[11]);
+               }
             }
             _aaxFileDriverUpdateHeader(handle, bufsize);
 
@@ -478,19 +489,32 @@ _aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset,
    _driver_t *handle = (_driver_t *)id;
    int rv = __F_EOF;
 
-   if (handle->format == AAX_IMA4_ADPCM) {
-      rv = _batch_cvt24_adpcm_intl(id, dptr, sptr, offset, tracks, num);
+   if (handle->io.read.no_samples < num) {
+      num = handle->io.read.no_samples;
    }
-   else if (sptr)
+
+   if (num)
    {
-      if (handle->cvt_from_intl)
-      {
-         handle->cvt_from_intl(dptr, sptr, offset, tracks, num);
-         rv = num;
+      if (handle->format == AAX_IMA4_ADPCM) {
+         rv = _batch_cvt24_adpcm_intl(id, dptr, sptr, offset, tracks, num);
       }
-   }
-   else {
-      rv = 0;
+      else if (sptr)
+      {
+         if (handle->cvt_from_intl)
+         {
+            handle->cvt_from_intl(dptr, sptr, offset, tracks, num);
+            rv = num;
+         }
+      }
+      else {
+         rv = 0;
+      }
+
+      if (handle->io.read.no_samples >= rv) {
+         handle->io.read.no_samples -= rv;
+      } else {
+         handle->io.read.no_samples = 0;
+      }
    }
 
    return rv;
@@ -506,8 +530,10 @@ _aaxWavCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, u
       unsigned int bytes = (num*tracks*handle->bits_sample)/8;
 
       handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
+
       handle->io.write.update_dt += (float)num/handle->frequency;
       handle->io.write.size_bytes += bytes;
+      handle->io.write.no_samples += num;
 
       rv = bytes;
    }
@@ -687,8 +713,11 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
          else if (*q == 0x74636166)	/* "fact */
          {
             unsigned int chunk_size = 8 + *(++q);
+
             ptr += chunk_size;
             i -= chunk_size;
+
+            handle->io.read.no_samples = *(++q);
          }
          else ptr++;
       }
@@ -716,8 +745,10 @@ _aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
       handle->io.write.header[1] = s;
 
       s = size;
-      if (extfmt) {
-         handle->io.write.header[16] = s;
+      if (extfmt)
+      {
+         handle->io.write.header[17] = handle->io.write.no_samples;
+         handle->io.write.header[19] = s;
       }
       else {
          handle->io.write.header[10] = s;
@@ -726,8 +757,10 @@ _aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
       if (is_bigendian())
       {
          handle->io.write.header[1] = _bswap32(handle->io.write.header[1]);
-         if (extfmt) {
-            handle->io.write.header[16] = _bswap32(handle->io.write.header[16]);
+         if (extfmt)
+         {
+            handle->io.write.header[17] = _bswap32(handle->io.write.header[17]);
+            handle->io.write.header[19] = _bswap32(handle->io.write.header[19]);
          }
          else {
             handle->io.write.header[10] = _bswap32(handle->io.write.header[10]);
@@ -737,7 +770,7 @@ _aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
       *bufsize = 4*handle->io.write.header_size;
       res = handle->io.write.header;
 
-#if 0
+#if 1
    printf("Write %s Header:\n", extfmt ? "Extnesible" : "Canonical");
    printf(" 0: %08x (ChunkID \"RIFF\")\n", handle->io.write.header[0]);
    printf(" 1: %08x (ChunkSize: %i)\n", handle->io.write.header[1], handle->io.write.header[1]);
@@ -761,8 +794,13 @@ _aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
       printf("12: %08x (GUID1)\n", handle->io.write.header[12]);
       printf("13: %08x (GUID2)\n", handle->io.write.header[13]);
       printf("14: %08x (GUID3)\n", handle->io.write.header[14]);
-      printf("15: %08x (SubChunk2ID \"data\")\n", handle->io.write.header[15]);
+
+      printf("15: %08x (SubChunk2ID \"fact\")\n", handle->io.write.header[15]);
       printf("16: %08x (Subchunk2Size: %i)\n", handle->io.write.header[16], handle->io.write.header[16]);
+      printf("17: %08x (NumSamplesPerChannel: %i)\n", handle->io.write.header[17], handle->io.write.header[17]);
+
+      printf("18: %08x (SubChunk3ID \"data\")\n", handle->io.write.header[18]);
+      printf("19: %08x (Subchunk3Size: %i)\n", handle->io.write.header[19], handle->io.write.header[19]);
    }
 #endif
    }
@@ -867,12 +905,13 @@ getFileFormatFromFormat(enum aaxFormat format)
 }
 
 void *
-_aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, int *blocksize)
+_aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, int *size)
 {
-   *blocksize /= tracks;
+   int blocksize = *size;
+   *size /= tracks;
    if (tracks > 1)
    {
-      int32_t *buf = malloc(blocksize);
+      int32_t *buf = (int32_t*)malloc(blocksize);
       if (buf)
       {
          int32_t* dptr = (int32_t*)data;
@@ -922,7 +961,6 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
          unsigned int l, ctr = 4;
          int32_t *d = dptr[t]+offset;
          int32_t *s = src+t;
-         int32_t samp;
          uint8_t *sptr;
 
          l = num;
@@ -960,8 +998,7 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
             if (offs_smp)			/* offset is an odd number */
             {
                uint8_t nibble = *sptr++;
-               samp = adpcm2linear(nibble >> 4, &predictor, &index);
-               *d++ = samp << 8;
+               *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
                if (--ctr == 0)
                {
                   ctr = 4;
@@ -976,10 +1013,8 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
             do
             {
                uint8_t nibble = *sptr++;
-               samp = adpcm2linear(nibble & 0xF, &predictor, &index);
-               *d++ = samp << 8;
-               samp = adpcm2linear(nibble >> 4, &predictor, &index);
-               *d++ = samp << 8;
+               *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
+               *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
                if (--ctr == 0)
                {
                   ctr = 4;
@@ -994,8 +1029,7 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
          if (l)				/* no. samples was an odd number */
          {
             uint8_t nibble = *sptr;
-            samp = adpcm2linear(nibble & 0xF, &predictor, &index);
-            *d++ = samp << 8;
+            *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
             l--;
          }
 
@@ -1058,7 +1092,7 @@ _batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsi
 
          do
          {
-            *d++ = _mulaw2linear_table[*s] << 8;
+            *d++ = _mulaw2linear(*s) << 8;
             s += tracks;
          }
          while (--i);
@@ -1080,7 +1114,7 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsig
 
          do
          {
-            *d++ = _alaw2linear_table[*s] << 8;
+            *d++ = _alaw2linear(*s) << 8;
             s += tracks;
          }
          while (--i);

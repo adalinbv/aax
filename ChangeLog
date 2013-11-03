@@ -1,3 +1,11 @@
+* Fri Oct 24 2013 - tech@adalin.org
+- AeonWave (2.3.1) stable; urgency=high
+ * Add mp3 file output support if libmp3lame is found.
+ * Add support for more WAV file types and fix mulaw and alaw decoding.
+ * Add the option to register one sensor opened in write mode (file only) at
+   the mixer to support a dedicated record to file option.
+ * Fix a major registered-sensor bug (most noticeable on Windows).
+
 * Fri Oct 18 2013 - tech@adalin.org
 - AeonWave (2.3.0) stable; urgency=high
  * Distance-delay mode now adds delayed state changes in addition to delayed

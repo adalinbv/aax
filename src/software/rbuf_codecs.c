@@ -206,6 +206,24 @@ _sw_bufcpy_32s(void *dst, const void *src, unsigned char sbps, unsigned int l)
 }
 #endif
 
+/** http://docs.freeswitch.org/g711_8h-source.html */
+#define ULAW_BIAS       0x84
+int16_t
+_mulaw2linear(uint8_t ulaw)
+{
+   int t;
+
+   /* Complement to obtain normal u-law value. */
+   ulaw = ~ulaw;
+
+   /*
+    * Extract and bias the quantization bits. Then
+    * shift up by the segment number and subtract out the bias.
+    */
+   t = (((ulaw & 0x0F) << 3) + ULAW_BIAS) << (((int) ulaw & 0x70) >> 4);
+   return (int16_t) ((ulaw & 0x80) ? (ULAW_BIAS - t) : (t - ULAW_BIAS));
+}
+
 static void
 _sw_bufcpy_mulaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
 {
@@ -215,10 +233,27 @@ _sw_bufcpy_mulaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
       uint8_t *s = (uint8_t *)src;
       unsigned int i = l;
       do {
-         *d++ = _mulaw2linear_table[*s++] << 8;
+         *d++ = _mulaw2linear(*s++) << 8;
       }     
       while (--i);
    }
+}
+
+#define ALAW_AMI_MASK   0x55
+int16_t
+_alaw2linear(uint8_t alaw)
+{
+   int i;
+   int seg;
+
+   alaw ^= ALAW_AMI_MASK;
+   i = ((alaw & 0x0F) << 4);
+   seg = (((int) alaw & 0x70) >> 4);
+   if (seg)           
+      i = (i + 0x108) << (seg - 1);
+   else               
+      i += 8;
+   return (int16_t) ((alaw & 0x80) ? i : -i);
 }
 
 static void
@@ -230,7 +265,7 @@ _sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
       uint8_t *s = (uint8_t *)src;
       unsigned int i = l;
       do {
-         *d++ = _alaw2linear_table[*s++] << 8;
+         *d++ = _alaw2linear(*s++) << 8;
       }
       while (--i);
    }
@@ -259,8 +294,8 @@ _sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, unsigned in
    do
    {
       uint8_t nibble = *s++;
-      *d++ = adpcm2linear(nibble & 0xF, &predictor, &index);
-      *d++ = adpcm2linear(nibble >> 4, &predictor, &index);
+      *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index);
+      *d++ = _adpcm2linear(nibble >> 4, &predictor, &index);
    }
    while (--i);
 }
@@ -270,7 +305,7 @@ _sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, unsigned in
 #define _BIAS		0x80
 #define _CLIP		32635
 uint8_t
-linear2mulaw(int16_t sample)
+_linear2mulaw(int16_t sample)
 {
    int sign, exponent, mantissa;
    int rv;
@@ -284,7 +319,7 @@ linear2mulaw(int16_t sample)
    }
    sample = (int16_t)(sample + 0x84);
 
-   exponent = (int)_linear2mulaw_table[(sample>>7) & 0xFF];
+   exponent = (int)_linear2mulaw((sample>>7) & 0xFF);
    mantissa = (sample >> (exponent+3)) & 0x0F;
    rv = ~ (sign | (exponent << 4) | mantissa);
 
@@ -307,7 +342,7 @@ linear2alaw(int16_t sample)
      }
      if (sample >= 256)
      {
-          exponent = (int)_linear2alaw_table[(sample >> 8) & 0x7F];
+          exponent = (int)_linear2alaw((sample >> 8) & 0x7F);
           mantissa = (sample >> (exponent + 3) ) & 0x0F;
           rv = ((exponent << 4) | mantissa);
      }
@@ -322,7 +357,7 @@ linear2alaw(int16_t sample)
 
 /* single sample convert */
 int16_t
-adpcm2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
+_adpcm2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
 {
   int32_t predictor;
   int16_t diff, step;
@@ -402,7 +437,7 @@ static void
 _aaxMuLaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 {
    do {
-      *ndata++ = _mulaw2linear_table[*data++] << 8;
+      *ndata++ = _mulaw2linear(*data++) << 8;
    } while (--i);
 }
 
@@ -410,7 +445,7 @@ static void
 _aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 {
    do {
-      *ndata++ = _alaw2linear_table[*data++] << 8;
+      *ndata++ = _alaw2linear(*data++) << 8;
    } while (--i);
 }
 
@@ -502,7 +537,7 @@ static void
 _aaxLinear2MuLaw(uint8_t* ndata, int32_t* data, unsigned int i)
 {
    do {
-      *ndata++ = linear2mulaw(*data++ >> 8);
+      *ndata++ = _linear2mulaw(*data++ >> 8);
    } while (--i);
 }
 
@@ -510,7 +545,7 @@ static void
 _aaxLinear2ALaw(uint8_t* ndata, int32_t* data, unsigned int i)
 {
    do {
-      *ndata++ = linear2alaw(*data++ >> 8);
+      *ndata++ = _linear2alaw(*data++ >> 8);
    } while (--i);
 }
 
@@ -533,12 +568,12 @@ _aaxLinear2IMABlock(uint8_t* ndata, int32_t* data, unsigned block_smp,
       int16_t nsample;
 
       nsample = *data >> 8;
-      linear2adpcm(sample, nsample, &nibble, index);
+      _linear2adpcm(sample, nsample, &nibble, index);
       data += step;
       *ndata = nibble;
 
       nsample = *data >> 8;
-      linear2adpcm(sample, nsample, &nibble, index);
+      _linear2adpcm(sample, nsample, &nibble, index);
       data += step;
       *ndata++ |= nibble << 4;
    }
