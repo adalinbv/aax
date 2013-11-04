@@ -34,7 +34,7 @@ enum _aaxFileParam
 };
 
 typedef int (_detect_fn)(int);
-typedef void* (_new_hanle_fn)(int, unsigned int*, int, int, int, int, int);
+typedef void* (_new_handle_fn)(int, unsigned int*, int, int, int, int, int);
 typedef void* (_open_fn)(void*, void*, unsigned int*);
 typedef int (_close_fn)(void*);
 typedef void* (_update_fn)(void*, unsigned int*, unsigned int*, char);
@@ -51,7 +51,7 @@ typedef struct
 {
    void *id;
    _detect_fn *detect;
-   _new_hanle_fn *setup;
+   _new_handle_fn *setup;
 
    _open_fn *open;
    _close_fn *close;

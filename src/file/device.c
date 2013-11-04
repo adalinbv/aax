@@ -41,6 +41,9 @@
 #define BACKEND_NAME_OLD	"File"
 #define BACKEND_NAME		"Audio Files"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
+
+#define PERIOD_SIZE		4096
+#define IOBUF_SIZE		4*PERIOD_SIZE
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
 #define WAVE_EXT_HEADER_SIZE	17
@@ -112,6 +115,9 @@ typedef struct
 
    char *ptr, *scratch;
    unsigned int buf_len;
+
+   uint8_t buf[IOBUF_SIZE];
+   unsigned int bufpos;
 
    _aaxFmtHandle* fmt;
    char *interfaces;
@@ -364,7 +370,6 @@ _aaxFileDriverDisconnect(void *id)
       }
       if (buf)
       {
-         off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
          lseek(handle->fd, offs, SEEK_SET);
          ret = write(handle->fd, buf, size);
       }
@@ -453,7 +458,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             *tracks = handle->no_channels;
             *frames = no_samples;
 
-            handle->latency = (float)no_samples / (float)handle->frequency;
+            handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
             rv = AAX_TRUE;
          }
       }
@@ -479,8 +484,10 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    unsigned int bps, no_samples, offs, bufsize;
    unsigned int file_bufsize, file_bps, file_tracks;
    _oalRingBufferSample *rbd;
+   unsigned int spos, usize;
    const int32_t** sbuf;
    char *scratch, *data;
+   void *buf;
    int res;
 
    assert(rb);
@@ -519,43 +526,62 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    }
 
    sbuf = (const int32_t**)rbd->track;
-   do
+   res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
+                                  offs, file_tracks, no_samples, scratch);
+   if (res > 0)
    {
-      unsigned int spos, usize;
-      void *buf;
+      if (handle->fmt->cvt_from_signed) {
+         handle->fmt->cvt_from_signed(handle->fmt->id, data, res);
+      }
+      if (handle->fmt->cvt_endianness) {
+         handle->fmt->cvt_endianness(handle->fmt->id, data, res);
+      }
 
-      res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
-                                     offs, file_tracks, no_samples, scratch);
-      if (res > 0)
+      file_bufsize = res;
+      do
       {
-         if (handle->fmt->cvt_from_signed) {
-            handle->fmt->cvt_from_signed(handle->fmt->id, data, res);
-         }
-         if (handle->fmt->cvt_endianness) {
-            handle->fmt->cvt_endianness(handle->fmt->id, data, res);
-         }
+         usize = file_bufsize;
 
-         file_bufsize = res;
-         res = write(handle->fd, data, file_bufsize);
-         if (res <= 0) break;
+         if (handle->bufpos+usize >= IOBUF_SIZE) {
+            usize = IOBUF_SIZE - handle->bufpos;
+         }
+         memcpy(handle->buf+handle->bufpos, data, usize);
 
-         if (handle->fmt->update)
+         handle->bufpos += usize;
+         if (handle->bufpos >= PERIOD_SIZE)
          {
-            buf=handle->fmt->update(handle->fmt->id, &spos, &usize, AAX_FALSE);
-            if (buf)
+            unsigned int wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+
+            res = write(handle->fd, handle->buf, wsize);
+            if (res > 0)
             {
-               off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
-               lseek(handle->fd, spos, SEEK_SET);
-               res = write(handle->fd, buf, usize);
-               lseek(handle->fd, floc, SEEK_SET);
+               memcpy(handle->buf, handle->buf+res, IOBUF_SIZE-handle->bufpos);
+               handle->bufpos -= res;
+               file_bufsize -= _MIN(res, usize);
+
+               if (handle->fmt->update)
+               {
+                  buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
+                                            AAX_FALSE);
+                  if (buf)
+                  {
+                     off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
+                     lseek(handle->fd, spos, SEEK_SET);
+                     res = write(handle->fd, buf, usize);
+                     lseek(handle->fd, floc, SEEK_SET);
+                  }
+               }
+            }
+            else {
+               break;
             }
          }
+         else {
+            break;
+         }
       }
-      else {
-         break;
-      }
+      while (file_bufsize);
    }
-   while (0); // bufsize);
 
    return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);
 }

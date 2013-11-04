@@ -43,7 +43,7 @@
 
 static _detect_fn _aaxWavDetect;
 
-static _new_hanle_fn _aaxWavSetup;
+static _new_handle_fn _aaxWavSetup;
 static _open_fn _aaxWavOpen;
 static _close_fn _aaxWavClose;
 static _update_fn _aaxWavUpdate;
@@ -87,9 +87,9 @@ _aaxDetectWavFile()
 
 /* -------------------------------------------------------------------------- */
 
+#define WAVE_FACT_CHUNK_SIZE		3
 #define WAVE_HEADER_SIZE        	(3+8)
 #define WAVE_EXT_HEADER_SIZE    	(3+20)
-#define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 #define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
@@ -160,7 +160,6 @@ typedef struct
 
          uint32_t *header;
          unsigned int header_size;
-         size_t size_bytes;
          float update_dt;
       } write;
 
@@ -448,7 +447,9 @@ _aaxWavSetup(int mode, unsigned int *bufsize, int freq, int tracks, int format, 
             handle->io.write.format = getFileFormatFromFormat(format);
             *bufsize = 0;
          }
-         else {
+         else
+         {
+            handle->io.read.no_samples = UINT_MAX;
             *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
       }
@@ -532,7 +533,6 @@ _aaxWavCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, u
       handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
 
       handle->io.write.update_dt += (float)num/handle->frequency;
-      handle->io.write.size_bytes += bytes;
       handle->io.write.no_samples += num;
 
       rv = bytes;
@@ -629,7 +629,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
       }
    }
 
-#if 1
+#if 0
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
    printf(" 0: %08x (ChunkID \"RIFF\")\n", header[0]);
    printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
@@ -735,12 +735,13 @@ _aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
 {
    void *res = NULL;
 
-   if (handle->io.write.size_bytes != 0)
+   if (handle->io.write.no_samples != 0)
    {
       char extfmt = (handle->io.write.header_size == WAVE_HEADER_SIZE) ? 0 : 1;
-      unsigned int size = handle->io.write.size_bytes;
+      unsigned int size;
       uint32_t s;
 
+      size = (handle->io.write.no_samples*handle->no_tracks*handle->bits_sample)/8;
       s =  4*handle->io.write.header_size + size - 8;
       handle->io.write.header[1] = s;
 
@@ -770,7 +771,7 @@ _aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
       *bufsize = 4*handle->io.write.header_size;
       res = handle->io.write.header;
 
-#if 1
+#if 0
    printf("Write %s Header:\n", extfmt ? "Extnesible" : "Canonical");
    printf(" 0: %08x (ChunkID \"RIFF\")\n", handle->io.write.header[0]);
    printf(" 1: %08x (ChunkSize: %i)\n", handle->io.write.header[1], handle->io.write.header[1]);

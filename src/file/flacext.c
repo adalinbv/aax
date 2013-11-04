@@ -61,7 +61,7 @@ static _get_param_fn _aaxFLACFileGetFrequency;
 static _get_param_fn _aaxFLACFileGetBitsPerSample;
 
 	/** libmpg123 */
-static _new_hanle_fn _aaxMPG123FileSetup;
+static _new_handle_fn _aaxMPG123FileSetup;
 static _open_fn _aaxMPG123FileOpen;
 static _close_fn _aaxMPG123FileClose;
 static _update_fn _aaxMPG123FileReadWrite;
@@ -81,7 +81,7 @@ _aaxDetectFLACFile()
    if (rv)
    {
       rv->detect = (_detect_fn*)&_aaxFLACFileDetect;
-      rv->setup = (_new_hanle_fn*)&_aaxMPG123FileSetup;
+      rv->setup = (_new_handle_fn*)&_aaxMPG123FileSetup;
       rv->open = (_open_fn*)&_aaxMPG123FileOpen;
       rv->close = (_close_fn*)&_aaxMPG123FileClose;
       rv->update = (_update_fn*)&_aaxMPG123FileReadWrite;
