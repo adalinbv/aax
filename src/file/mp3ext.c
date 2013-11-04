@@ -50,7 +50,7 @@ static _cvt_from_fn _aaxMPG123CvtFromIntl;
 	/** libmpg123 */
 
 static _detect_fn _aaxMP3Detect;
-static _new_hanle_fn _aaxMP3Setup;
+static _new_handle_fn _aaxMP3Setup;
 static _default_fname_fn _aaxMP3Interfaces;
 static _extension_fn _aaxMP3Extension;
 static _get_param_fn _aaxMP3GetParam;
@@ -501,12 +501,26 @@ _aaxMPG123Open(void *id, void *buf, unsigned int *bufsize)
          handle->mp3Buffer = ptr;
          if (handle->mp3ptr)
          {
+            int ret;
+
             handle->id = plame_init();
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->frequency);
-            plame_set_num_channels(handle->id, handle->no_tracks);
             plame_set_brate(handle->id, handle->bitrate);
             plame_set_VBR(handle->id, VBR_OFF);
+     
+            do
+            {
+               ret = plame_set_num_channels(handle->id, handle->no_tracks);
+               if (ret < 0 && handle->no_tracks > 2) {
+                  handle->no_tracks -= 2;
+               }
+               else {
+                  break;
+               }
+            }
+            while (ret < 0);
+
             plame_init_params(handle->id);
          }
       }
