@@ -398,36 +398,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 
    if (tracks != 2)
    {
-      // _batch_cvt24_intl_16_cpu(d, src, offset, tracks, num);
-      unsigned int t;
-      for (t=0; t<tracks; t++)
-      {
-         int32_t *sptr = (int32_t *)src[t] + offset;
-         int16_t *dptr = d + t;
-         unsigned int i = (num/4)*4;
-
-         if (i)
-         {
-            do
-            {
-               *dptr = *(sptr++) >> 8;
-               dptr += tracks;
-            }
-            while (--i);
-         }
-
-         num -= (num/4)*4;
-         i = num;
-         if (i)
-         {
-            do
-            {
-               *dptr = *(sptr++) >> 8;
-               dptr += tracks;
-            }
-            while (--i);
-         }
-      }
+      _batch_cvt16_intl_24_cpu(d, src, offset, tracks, num);
       return;
    }
 
