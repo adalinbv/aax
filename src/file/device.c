@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2011 by Erik Hofman.
- * Copyright 2009-2011 by Adalin B.V.
+ * Copyright 2005-2013 by Erik Hofman.
+ * Copyright 2009-2013 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -31,6 +31,8 @@
 #include <xml.h>
 
 #include <base/types.h>
+#include <base/threads.h>
+
 #include <api.h>
 #include <arch.h>
 
@@ -116,8 +118,10 @@ typedef struct
    char *ptr, *scratch;
    unsigned int buf_len;
 
+   struct threat_t thread;
    uint8_t buf[IOBUF_SIZE];
    unsigned int bufpos;
+   unsigned int no_samples;
 
    _aaxFmtHandle* fmt;
    char *interfaces;
@@ -125,6 +129,8 @@ typedef struct
 } _driver_t;
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
+static void* _aaxFileDriverWriteThread(void*);
+static void* _aaxFileDriverReadThread(void*);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -360,6 +366,14 @@ _aaxFileDriverDisconnect(void *id)
       unsigned int offs, size;
       void *buf = NULL;
 
+      handle->thread.started = AAX_FALSE;
+      _aaxConditionSignal(handle->thread.condition);
+      _aaxThreadJoin(handle->thread.ptr);
+
+      _aaxConditionDestroy(handle->thread.condition);
+      _aaxMutexDestroy(handle->thread.mutex);
+      _aaxThreadDestroy(handle->thread.ptr);
+
       free(handle->ptr);
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
@@ -459,7 +473,23 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             *frames = no_samples;
 
             handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
-            rv = AAX_TRUE;
+
+            handle->thread.ptr = _aaxThreadCreate();
+            handle->thread.mutex = _aaxMutexCreate(0);
+            handle->thread.condition = _aaxConditionCreate();
+            if (handle->mode == AAX_MODE_READ) {
+               res =_aaxThreadStart(handle->thread.ptr,
+                                  _aaxFileDriverReadThread, handle, 20);
+            } else {
+               res =_aaxThreadStart(handle->thread.ptr,
+                                  _aaxFileDriverWriteThread, handle, 20);
+            }
+
+            if (res == 0)
+            {
+               handle->thread.started = AAX_TRUE;
+               rv = AAX_TRUE;
+            }
          }
       }
       else
@@ -482,12 +512,10 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    _driver_t *handle = (_driver_t *)id;  
    _oalRingBuffer *rb = (_oalRingBuffer *)s;
    unsigned int bps, no_samples, offs, bufsize;
-   unsigned int file_bufsize, file_bps, file_tracks;
+   unsigned int file_bps, file_tracks;
    _oalRingBufferSample *rbd;
-   unsigned int spos, usize;
    const int32_t** sbuf;
    char *scratch, *data;
-   void *buf;
    int res;
 
    assert(rb);
@@ -503,6 +531,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
    assert(file_tracks == handle->no_channels);
 
+   _aaxMutexLock(handle->thread.mutex);
    bufsize = no_samples * (file_tracks*file_bps);
    if ((handle->ptr == 0) || (handle->buf_len < bufsize))
    {
@@ -528,60 +557,10 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    sbuf = (const int32_t**)rbd->track;
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
                                   offs, file_tracks, no_samples, scratch);
-   if (res > 0)
-   {
-      if (handle->fmt->cvt_from_signed) {
-         handle->fmt->cvt_from_signed(handle->fmt->id, data, res);
-      }
-      if (handle->fmt->cvt_endianness) {
-         handle->fmt->cvt_endianness(handle->fmt->id, data, res);
-      }
+   handle->no_samples = res;
+   _aaxMutexUnLock(handle->thread.mutex);
 
-      file_bufsize = res;
-      do
-      {
-         usize = file_bufsize;
-
-         if (handle->bufpos+usize >= IOBUF_SIZE) {
-            usize = IOBUF_SIZE - handle->bufpos;
-         }
-         memcpy(handle->buf+handle->bufpos, data, usize);
-
-         handle->bufpos += usize;
-         if (handle->bufpos >= PERIOD_SIZE)
-         {
-            unsigned int wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
-
-            res = write(handle->fd, handle->buf, wsize);
-            if (res > 0)
-            {
-               memcpy(handle->buf, handle->buf+res, IOBUF_SIZE-handle->bufpos);
-               handle->bufpos -= res;
-               file_bufsize -= _MIN(res, usize);
-
-               if (handle->fmt->update)
-               {
-                  buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
-                                            AAX_FALSE);
-                  if (buf)
-                  {
-                     off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
-                     lseek(handle->fd, spos, SEEK_SET);
-                     res = write(handle->fd, buf, usize);
-                     lseek(handle->fd, floc, SEEK_SET);
-                  }
-               }
-            }
-            else {
-               break;
-            }
-         }
-         else {
-            break;
-         }
-      }
-      while (file_bufsize);
-   }
+   _aaxConditionSignal(handle->thread.condition);
 
    return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);
 }
@@ -662,7 +641,16 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames,
 
                /* more data is requested */
                data = scratch;
-               ret = read(handle->fd, data, bufsize);
+
+               _aaxMutexLock(handle->thread.mutex);
+               ret = _MIN(handle->bufpos, bufsize);
+               memcpy(data, handle->buf, ret);
+               memcpy(handle->buf, handle->buf+ret, handle->bufpos-ret);
+               handle->bufpos -= ret;
+               _aaxMutexUnLock(handle->thread.mutex);
+
+               _aaxConditionSignal(handle->thread.condition);
+
                if (ret <= 0)
                {
                   bytes = -1;
@@ -844,6 +832,109 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 }
 
 /*-------------------------------------------------------------------------- */
+
+static void*
+_aaxFileDriverWriteThread(void *id)
+{
+   _driver_t *handle = (_driver_t*)id;
+
+   _aaxThreadSetPriority(AAX_LOW_PRIORITY);
+
+   _aaxMutexLock(handle->thread.mutex);
+   do
+   {
+      unsigned int res, usize, file_bufsize;
+      char *data;
+
+      _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
+      res = handle->no_samples;
+      data = (char*)handle->scratch;
+
+      if (handle->fmt->cvt_from_signed) {
+         handle->fmt->cvt_from_signed(handle->fmt->id, data, res);
+      }
+      if (handle->fmt->cvt_endianness) {
+         handle->fmt->cvt_endianness(handle->fmt->id, data, res);
+      }
+
+      file_bufsize = res;
+      do
+      {
+         usize = file_bufsize;
+
+         if (handle->bufpos+usize >= IOBUF_SIZE) {
+            usize = IOBUF_SIZE - handle->bufpos;
+         }
+         memcpy(handle->buf+handle->bufpos, data, usize);
+
+         handle->bufpos += usize;
+         if (handle->bufpos >= PERIOD_SIZE)
+         {
+            unsigned int wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+
+            res = write(handle->fd, handle->buf, wsize);
+            if (res > 0)
+            {
+               void *buf;
+
+               memcpy(handle->buf, handle->buf+res, handle->bufpos-res);
+               handle->bufpos -= res;
+               file_bufsize -= _MIN(res, usize);
+
+               if (handle->fmt->update)
+               {
+                  unsigned int spos = 0;
+                  buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
+                                            AAX_FALSE);
+                  if (buf)
+                  {
+                     off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
+                     lseek(handle->fd, spos, SEEK_SET);
+                     res = write(handle->fd, buf, usize);
+                     lseek(handle->fd, floc, SEEK_SET);
+                  }
+               }
+            }
+            else {
+               break;
+            }
+         }
+         else {
+            break;
+         }
+      }
+      while (file_bufsize);
+      handle->no_samples = 0;
+   }
+   while(handle->thread.started);
+
+   write(handle->fd, handle->buf, handle->bufpos);
+   _aaxMutexUnLock(handle->thread.mutex);
+
+   return handle; 
+}
+
+static void*
+_aaxFileDriverReadThread(void *id)
+{
+   _driver_t *handle = (_driver_t*)id;
+
+   _aaxThreadSetPriority(AAX_LOW_PRIORITY);
+
+   _aaxMutexLock(handle->thread.mutex);
+   do
+   {
+      unsigned int size = IOBUF_SIZE - handle->bufpos;
+      unsigned int res = read(handle->fd, handle->buf+handle->bufpos, size);
+      if (res < 0) break;
+
+      handle->bufpos += res;
+      _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
+   }
+   while(handle->thread.started);
+
+   return handle;
+}
 
 static uint32_t _aaxDefaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
