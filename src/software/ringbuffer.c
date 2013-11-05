@@ -95,11 +95,6 @@ _oalRingBufferCreate(float dde)
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
          rbd->dde_samples = (unsigned int)ddesamps;
-         if (rbd->dde_samples & 0xF)
-         {
-            rbd->dde_samples |= 0xF;
-            rbd->dde_samples++;
-         }
          rbd->scratch = NULL;
       }
       else
@@ -132,6 +127,11 @@ _oalRingBufferInitTracks(_oalRingBuffer *rb)
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
       dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples * bps) : 0;
+      if (dde_bytes & 0xF)
+      {
+         dde_bytes |= 0xF;
+         dde_bytes++;
+      }
       tracksize = dde_bytes + (no_samples + 0xF) * bps;
 
       /*
@@ -194,8 +194,12 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-//    dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples*bps) : 0;
-      dde_bytes = rbd->dde_samples;
+      dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples*bps) : 0;
+      if (dde_bytes & 0xF)
+      {
+         dde_bytes |= 0xF;
+         dde_bytes++;
+      }
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
@@ -850,11 +854,6 @@ _oalRingBufferSetParamf(_oalRingBuffer *rb, enum _oalRingBufferParam param, floa
       rbd->frequency_hz = fval;
       rbd->duration_sec = rbd->no_samples / fval;
       rbd->dde_samples = (unsigned int)ceilf(fval * rb->dde_sec);
-      if (rbd->dde_samples & 0xF)
-      {
-         rbd->dde_samples |= 0xF;
-         rbd->dde_samples++;
-      }
 
       fval = rbd->frequency_hz / fval;
       rbd->loop_start_sec *= fval;
