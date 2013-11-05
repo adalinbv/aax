@@ -328,7 +328,7 @@ _linear2mulaw(int16_t sample)
 
 /* single sample convert */
 uint8_t
-linear2alaw(int16_t sample)
+_linear2alaw(int16_t sample)
 {
      int sign, exponent, mantissa;
      uint8_t rv;
@@ -391,7 +391,7 @@ _adpcm2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
 
 /* single sample convert */
 void
-linear2adpcm(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
+_linear2adpcm(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
 {
    int16_t diff, ndiff, mask, step;
    uint8_t nibble, index = *idx;
