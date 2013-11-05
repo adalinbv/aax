@@ -95,6 +95,11 @@ _oalRingBufferCreate(float dde)
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
          rbd->dde_samples = (unsigned int)ddesamps;
+         if (rbd->dde_samples & 0xF)
+         {
+            rbd->dde_samples |= 0xF;
+            rbd->dde_samples++;
+         }
          rbd->scratch = NULL;
       }
       else
@@ -845,6 +850,11 @@ _oalRingBufferSetParamf(_oalRingBuffer *rb, enum _oalRingBufferParam param, floa
       rbd->frequency_hz = fval;
       rbd->duration_sec = rbd->no_samples / fval;
       rbd->dde_samples = (unsigned int)ceilf(fval * rb->dde_sec);
+      if (rbd->dde_samples & 0xF)
+      {
+         rbd->dde_samples |= 0xF;
+         rbd->dde_samples++;
+      }
 
       fval = rbd->frequency_hz / fval;
       rbd->loop_start_sec *= fval;
