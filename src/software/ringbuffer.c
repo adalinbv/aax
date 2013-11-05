@@ -194,7 +194,7 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rb->dde_sec) ? (rbd->dde_samples*bps) : 0;
+      dde_bytes = rbd->dde_samples*bps;
       if (dde_bytes & 0xF)
       {
          dde_bytes |= 0xF;

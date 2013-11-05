@@ -209,7 +209,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
 
       nframes = frames = _oalRingBufferGetParami(dest_rb, RB_NO_SAMPLES);
       res = be->capture(be_handle, rbd->track, 0, &nframes,
-                        scratch[SCRATCH_BUFFER0]-ds, 2*ds+frames, gain);
+                        scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       if (res && nframes)
       {
          float peak, rms, rms_rr, max, maxrms, maxpeak;
