@@ -1393,9 +1393,12 @@ static int
 _aaxMixerUpdate(_handle_t *handle)
 {
    int rv = AAX_FALSE;
-   if TEST_FOR_TRUE(handle->thread.started)
+   if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
       _aaxConditionSignal(handle->thread.condition);
+      rv = AAX_TRUE;
+   }
+   else if (handle->handle) {
       rv = AAX_TRUE;
    }
 
