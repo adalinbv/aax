@@ -31,7 +31,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 #include <base/logging.h>
-#include <file/device.h>
+#include <stream/file.h>
 #include <dmedia/device.h>
 #include <alsa/device.h>
 #include <oss/device.h>

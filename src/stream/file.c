@@ -36,7 +36,7 @@
 #include <api.h>
 #include <arch.h>
 
-#include "device.h"
+#include "file.h"
 #include "filetype.h"
 #include "audio.h"
 

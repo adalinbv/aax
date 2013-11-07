@@ -332,10 +332,10 @@ SET( AEONWAVE_OBJS
      src/alsa/device.c
      src/dmedia/device.c
      src/oss/device.c
-     src/file/device.c
-     src/file/filetype.c
-     src/file/wavext.c
-     src/file/mp3ext.c
+     src/stream/file.c
+     src/stream/filetype.c
+     src/stream/wavext.c
+     src/stream/mp3ext.c
      src/software/device.c
      src/software/arch.c
      src/software/arch_cpu.c

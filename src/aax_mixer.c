@@ -32,7 +32,7 @@
 
 #include <arch.h>
 #include <ringbuffer.h>
-#include <file/device.h>
+#include <stream/file.h>
 
 #include <base/gmath.h>
 #include <base/threads.h>
