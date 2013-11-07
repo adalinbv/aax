@@ -519,7 +519,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 
    if (handle)
    {
-      if (handle->log_file)
+      if (handle->log_file != 0)
       {
          fclose(handle->log_file);
          handle->log_file = NULL;
@@ -1218,7 +1218,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
    }
 
 #if LOG_TO_FILE
-   if (handle && (handle->log_file == NULL) && handle->pDevice)
+   if (handle && (handle->log_file == 0) && handle->pDevice)
    {
       char *tmp = getenv("TEMP");
       if (!tmp) tmp = getenv("TMP");

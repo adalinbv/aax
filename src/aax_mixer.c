@@ -1370,7 +1370,7 @@ static int
 _aaxMixerStop(_handle_t *handle)
 {
    int rv = AAX_FALSE;
-   if TEST_FOR_TRUE(handle->thread.started)
+   if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
       handle->thread.started = AAX_FALSE;
       _aaxConditionSignal(handle->thread.condition);
@@ -1380,6 +1380,9 @@ _aaxMixerStop(_handle_t *handle)
       _aaxMutexDestroy(handle->thread.mutex);
       _aaxThreadDestroy(handle->thread.ptr);
 
+      rv = AAX_TRUE;
+   }
+   else if (handle->handle) {
       rv = AAX_TRUE;
    }
 
