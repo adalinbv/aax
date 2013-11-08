@@ -851,12 +851,12 @@ _open_handle(aaxConfig config)
 
                      return handle;
                   }
-                  _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, 0); // free);
+                  _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, free);
                }
                /* creating the sensor failed */
                free(ptr1);
             }
-            _intBufErase(&handle->sensors, _AAX_SENSOR, 0); // _aaxFreeSensor);
+            _intBufErase(&handle->sensors, _AAX_SENSOR, _aaxFreeSensor);
          }
       }
    }
@@ -1273,10 +1273,13 @@ _aaxFreeSensor(void *ssr)
 
    /* ringbuffer gets removed by the thread */
    /* _oalRingBufferDelete(smixer->ringbuffer); */
-   _intBufErase(&smixer->frames, _AAX_FRAME, 0); // free);
-   _intBufErase(&smixer->devices, _AAX_DEVICE, 0); // free);
-   _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, 0); // free);
-   _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, 0); // free);
-   _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER, _oalRingBufferDelete);
+   _intBufErase(&smixer->frames, _AAX_FRAME, free);
+   _intBufErase(&smixer->devices, _AAX_DEVICE, free);
+   _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, free);
+   _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, free);
+   _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER,
+                                           _oalRingBufferDelete);
+   _intBufErase(&smixer->frame_ringbuffers, _AAX_RINGBUFFER,
+                                            _oalRingBufferDelete);
    free(sensor);
 }

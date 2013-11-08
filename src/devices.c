@@ -101,7 +101,7 @@ _aaxGetDriverBackends()
 void *
 _aaxRemoveDriverBackends(_intBuffers **be)
 {
-   _intBufErase(be, _AAX_BACKEND, 0);
+   _intBufErase(be, _AAX_BACKEND, free);
    return 0;
 }
 
@@ -603,6 +603,16 @@ _aaxDriverBackendClearConfigSettings(_aaxConfig *config)
 
 static _intBuffers *_aaxIntBackends = NULL;
 
+static void
+_aaxIntDriverRemoveBackends()
+{
+   if (_aaxIntBackends)
+   {
+      _intBufErase(&_aaxIntBackends, _AAX_BACKEND, 0);
+      _aaxIntBackends = NULL;
+   }
+}
+
 static _intBuffers *
 _aaxIntDriverGetBackends()
 {
@@ -620,6 +630,8 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxDMediaDriverBackend);
+
+      atexit(_aaxIntDriverRemoveBackends);
    }
 
    return _aaxIntBackends;
