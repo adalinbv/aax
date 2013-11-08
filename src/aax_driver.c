@@ -448,10 +448,10 @@ aaxDriverDestroy(aaxConfig config)
 AAX_API int AAX_APIENTRY
 aaxDriverClose(aaxConfig config)
 {
-   _handle_t *handle = get_valid_handle(config);
+   _handle_t *handle = get_handle(config);
    int rv = AAX_FALSE;
 
-   if (handle && !handle->handle)
+   if (handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
 
@@ -523,8 +523,8 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
 
          if (handle->be_pos != pos)
          {
+            aaxDriverClose(handle);
             handle->be_pos = pos;
-            be->disconnect(be_handle);
             be_handle = NULL;
          }
 
@@ -616,7 +616,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
          void* be_handle = handle->backend.handle;
          unsigned int num = 0;
          char *ptr;
- 
+
          ptr = be->get_interfaces(be_handle, devname, mode);
          if (*ptr)
          {

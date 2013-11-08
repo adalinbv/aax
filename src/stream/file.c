@@ -350,7 +350,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       }
       else
       {
-         free(handle);
+         _aaxFileDriverDisconnect(handle);
          handle = 0;
       }
    }
@@ -369,20 +369,23 @@ _aaxFileDriverDisconnect(void *id)
       unsigned int offs, size;
       void *buf = NULL;
 
-      handle->thread.started = AAX_FALSE;
-      _aaxConditionSignal(handle->thread.condition);
-      _aaxThreadJoin(handle->thread.ptr);
+      if (handle->thread.started)
+      {
+         handle->thread.started = AAX_FALSE;
+         _aaxConditionSignal(handle->thread.condition);
+         _aaxThreadJoin(handle->thread.ptr);
 
-      _aaxConditionDestroy(handle->thread.condition);
-      _aaxMutexDestroy(handle->thread.mutex);
-      _aaxThreadDestroy(handle->thread.ptr);
+         _aaxConditionDestroy(handle->thread.condition);
+         _aaxMutexDestroy(handle->thread.mutex);
+         _aaxThreadDestroy(handle->thread.ptr);
+      }
 
       free(handle->ptr);
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
 
-      if (handle->fmt->update) {
+      if (handle->fmt->update && handle->fmt->id) {
          buf = handle->fmt->update(handle->fmt->id, &offs, &size, AAX_TRUE);
       }
       if (buf)
