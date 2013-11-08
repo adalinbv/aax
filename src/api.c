@@ -48,10 +48,14 @@
 
 
 #ifndef WIN32
+# include <stdio.h>
 # include <sys/types.h>
 # include <sys/stat.h>
-# include <unistd.h>
-# include <stdio.h>
+# ifdef HAVE_RMALLOC_H
+#  include <rmalloc.h>
+# else
+#  include <unistd.h>
+# endif
 
 static void
 moveOldCfgFile()

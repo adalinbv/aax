@@ -532,7 +532,8 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(file_tracks == handle->no_channels);
 
    _aaxMutexLock(handle->thread.mutex);
-   bufsize = no_samples * (file_tracks*file_bps);
+
+   bufsize = no_samples * (file_tracks*_MAX(file_bps, bps));
    if ((handle->ptr == 0) || (handle->buf_len < bufsize))
    {
       char *p = 0;
@@ -556,10 +557,11 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    sbuf = (const int32_t**)rbd->track;
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
-                                  offs, file_tracks, no_samples, scratch);
+                                  offs, file_tracks, no_samples,
+                                  scratch, handle->buf_len);
    handle->no_samples = res;
-   _aaxMutexUnLock(handle->thread.mutex);
 
+   _aaxMutexUnLock(handle->thread.mutex);
    _aaxConditionSignal(handle->thread.condition);
 
    return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);

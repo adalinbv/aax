@@ -41,7 +41,7 @@ typedef void* (_update_fn)(void*, unsigned int*, unsigned int*, char);
 
 typedef void (_cvt_fn)(void*, void_ptr, unsigned int);
 typedef int (_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
-typedef int (_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int, void*);
+typedef int (_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int, void*, unsigned int);
 
 typedef char* (_default_fname_fn)(int);
 typedef int (_extension_fn)(char*);

@@ -23,7 +23,11 @@
 static char __threads_enabled = 0;
 
 #if HAVE_PTHREAD_H
-# include <string.h>	/* for memcpy */
+# ifdef HAVE_RMALLOC_H
+#  include <rmalloc.h>
+# else
+#  include <string.h>	/* for memcpy */
+# endif
 
 #define _TH_SYSLOG(a) __oal_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
 

@@ -21,14 +21,14 @@
 # if HAVE_STRINGS_H
 #  include <strings.h>   /* strcasecmp */
 # endif
+# if HAVE_UNISTD_H
+#  include <unistd.h>
+# endif
 #endif
 #include <assert.h>		/* assert */
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#if HAVE_UNISTD_H
-# include <unistd.h>
-#endif
 #ifdef HAVE_IO_H
 # include <io.h>
 #endif
@@ -602,11 +602,12 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offs
 }
 
 static int
-_aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num, void *scratch)
+_aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num, void *scratch, unsigned int scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
    int res;
 
+   assert(scratchlen >= num*tracks*sizeof(int32_t));
    _batch_cvt16_intl_24(scratch, sptr, offset, tracks, num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, num,
                                          handle->mp3Buffer, handle->mp3BufSize);

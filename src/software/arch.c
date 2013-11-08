@@ -13,20 +13,11 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-# if HAVE_STRINGS_H
-#  include <strings.h>   /* strcasecmp */
-# endif
+#if HAVE_UNISTD_H
+# include <unistd.h>    /* sysconf */
 #endif
 #if defined(__MINGW32__)
 # include <mm_malloc.h>
-#endif
-#if HAVE_UNISTD_H
-# include <unistd.h>	/* for sysconf */
 #endif
 #if HAVE_CPU_FEATURES_H
 #include <machine/cpu-features.h>
