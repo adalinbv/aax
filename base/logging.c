@@ -22,6 +22,11 @@
 #include <config.h>
 #endif
 
+/* Note: Must be declared before any inclussion of rmalloc.h */
+extern void free(void*);
+void (*_sys_free)(void*) = free;
+
+
 #include <assert.h>
 #if WIN32
 	/* See: http://support.microsoft.com/kb/815661 */
@@ -34,8 +39,6 @@
 
 #include "logging.h"
 #include "types.h"
-
-void (*_aax_free)(void*) = free;
 
 void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level)
 {

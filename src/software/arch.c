@@ -13,6 +13,9 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#endif
 #if HAVE_UNISTD_H
 # include <unistd.h>    /* sysconf */
 #endif
@@ -104,6 +107,7 @@ static char check_extcpuid_ecx(unsigned int);
 #endif
 
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
+_aax_free_proc _aax_free = (_aax_free_proc)_aax_free_align16;
 _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_align16;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_align16;
 _aax_memcpy_proc _batch_cvt24_24 = (_aax_memcpy_proc)_batch_cvt24_24_cpu;
@@ -658,6 +662,12 @@ _aax_calloc_align16(char **start, unsigned int num, unsigned int size)
    }
 
    return ptr;
+}
+
+void
+_aax_free_align16(void *ptr)
+{
+   free(ptr);
 }
 
 char *

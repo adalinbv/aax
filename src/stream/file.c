@@ -21,6 +21,9 @@
 #  include <strings.h>
 # endif
 #endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>		/* read, write, close, lseek */
+#endif
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
@@ -839,13 +842,14 @@ static void*
 _aaxFileDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
+   int res;
 
    _aaxThreadSetPriority(AAX_LOW_PRIORITY);
 
    _aaxMutexLock(handle->thread.mutex);
    do
    {
-      unsigned int res, usize, file_bufsize;
+      unsigned int usize, file_bufsize;
       char *data;
 
       _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
@@ -910,7 +914,7 @@ _aaxFileDriverWriteThread(void *id)
    }
    while(handle->thread.started);
 
-   write(handle->fd, handle->buf, handle->bufpos);
+   res = write(handle->fd, handle->buf, handle->bufpos);
    _aaxMutexUnLock(handle->thread.mutex);
 
    return handle; 

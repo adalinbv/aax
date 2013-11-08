@@ -505,7 +505,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
             else
             {
-               free(s); /* 'default' */
+               _aax_free(s); /* 'default' */
                handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
             }
          }
@@ -1363,11 +1363,11 @@ _aaxALSADriverGetDevices(const void *id, int mode)
                   len -= slen;
                   ptr += slen;
 
-                  if (desc != name) _aax_free(desc);
+                  if (desc != name) _sys_free(desc);
                }
-               _aax_free(name);
+               _sys_free(name);
             }
-            _aax_free(type);
+            _sys_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1451,12 +1451,12 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                         len -= slen;
                         ptr += slen;
                      }
-                     if (desc != name) _aax_free(desc);
+                     if (desc != name) _sys_free(desc);
                   }
                }
-               _aax_free(name);
+               _sys_free(name);
             }
-            _aax_free(type);
+            _sys_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1464,7 +1464,11 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          if (ptr != devlist)
          {
             *ptr++ = '\0';
-            rv = realloc(handle->ifname[m], ptr-devlist);
+            if (handle->ifname[m]) {
+               rv = realloc(handle->ifname[m], ptr-devlist);
+            } else {
+               rv = malloc(ptr-devlist);
+            }
             if (rv)
             {
                handle->ifname[m] = rv;
@@ -1533,12 +1537,12 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
                      }
                      found = 1;
                   }
-                  if (desc != name) _aax_free(desc);
+                  if (desc != name) _sys_free(desc);
                }
-               _aax_free(name);
+               _sys_free(name);
             }
          }
-         _aax_free(type);
+         _sys_free(type);
          ++lst;
        }
       while (!found && (*lst != NULL));
@@ -1903,18 +1907,18 @@ detect_devnum(const char *devname, int m)
    
                         if (!strncmp(devname, desc, len))
                         {
-                           _aax_free(desc);
-                           _aax_free(name);
+                           _sys_free(desc);
+                           _sys_free(name);
                            devnum = ctr;
                            break;
                         }
                         ctr++;
                      }
                   }
-                  _aax_free(name);
+                  _sys_free(name);
                }
             }
-            _aax_free(type);
+            _sys_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1946,7 +1950,7 @@ get_devices_avail(int m)
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name && !strncmp(name, "front:", strlen("front:"))) rv++;
          }
-         _aax_free(type);
+         _sys_free(type);
          ++lst;
       }
       while (*lst != NULL);

@@ -77,7 +77,7 @@ extern "C" {
     PRINT_ROW(m1, 3, '\t'); PRINT_ROW(m2, 3, '\n');
 
 
-extern void (*_aax_free)(void*);
+extern void (*_sys_free)(void*);
 
 int _oal_getbool(const char*);
 void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level);

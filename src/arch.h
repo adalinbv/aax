@@ -20,15 +20,12 @@ extern "C" {
 #include "config.h"
 #endif
 
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <base/types.h>
 
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, unsigned int, unsigned int);
 typedef char* (*_aax_malloc_proc)(char**, unsigned int);
+typedef void (*_aax_free_proc)(void*);
 
 typedef void (*_batch_cvt_proc)(void*, unsigned int);
 typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, unsigned int);
@@ -48,6 +45,7 @@ _aax_aligned_free_proc _aax_aligned_free;
 
 extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
+extern _aax_free_proc _aax_free;
 extern _aax_memcpy_proc _aax_memcpy;
 extern _aax_memcpy_proc _batch_cvt24_24;
 extern char* _aax_strdup(const_char_ptr);

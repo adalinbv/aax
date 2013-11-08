@@ -20,7 +20,6 @@ extern "C" {
 #include "config.h"
 #endif
 
-
 #include <assert.h>
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
@@ -61,6 +60,7 @@ extern "C" {
 #endif
 
 /* CPU*/
+void _aax_free_align16(void*);
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
 char* _aax_malloc_align16(char**, unsigned int);
 void _batch_cvt24_24_cpu(void_ptr, const void*, unsigned int);
