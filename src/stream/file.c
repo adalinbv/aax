@@ -153,8 +153,8 @@ _aaxFileDriverDetect(int mode)
          {
             rv = type->detect(mode);
             free(type);
+            if (rv) break;
          }
-         if (rv) break;
       }
    }
    while (ftype);
@@ -282,6 +282,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
                   _aaxFmtHandle* type = ftype();
                   if (type && type->detect(mode) && type->supported(ext))
                   {
+                     free(handle->fmt);
                      handle->fmt = type;
                      break;
                   }
