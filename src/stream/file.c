@@ -375,9 +375,15 @@ _aaxFileDriverDisconnect(void *id)
          handle->thread.started = AAX_FALSE;
          _aaxConditionSignal(handle->thread.condition);
          _aaxThreadJoin(handle->thread.ptr);
+      }
 
+      if (handle->thread.condition) {
          _aaxConditionDestroy(handle->thread.condition);
+      }
+      if (handle->thread.mutex) {
          _aaxMutexDestroy(handle->thread.mutex);
+      }
+      if (handle->thread.ptr) {
          _aaxThreadDestroy(handle->thread.ptr);
       }
 
@@ -482,7 +488,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
 
             handle->thread.ptr = _aaxThreadCreate();
-            handle->thread.mutex = _aaxMutexCreate(0);
+            handle->thread.mutex = _aaxMutexCreate(handle->thread.mutex);
             handle->thread.condition = _aaxConditionCreate();
             if (handle->mode == AAX_MODE_READ) {
                res =_aaxThreadStart(handle->thread.ptr,

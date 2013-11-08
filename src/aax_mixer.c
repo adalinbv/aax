@@ -1320,7 +1320,7 @@ _aaxMixerStart(_handle_t *handle)
       handle->thread.condition = _aaxConditionCreate();
       assert(handle->thread.condition != 0);
 
-      handle->thread.mutex = _aaxMutexCreate(0);
+      handle->thread.mutex = _aaxMutexCreate(handle->thread.mutex);
       assert(handle->thread.mutex != 0);
 
       handle->thread.started = AAX_TRUE;

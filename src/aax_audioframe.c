@@ -56,7 +56,7 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->pos = UINT_MAX;
          _SET_INITIAL(frame);
 
-         frame->thread.mutex = _aaxMutexCreate(0);
+         frame->thread.mutex = _aaxMutexCreate(frame->thread.mutex);
          assert(frame->thread.mutex != 0);
 
          _aaxMutexLock(frame->thread.mutex);
@@ -122,6 +122,8 @@ aaxAudioFrameDestroy(aaxFrame frame)
 {
    _frame_t* handle = get_frame(frame);
    int rv = AAX_FALSE;
+
+   _aaxAudioFrameStop(handle);
    if (handle)
    {
       if (!handle->handle)

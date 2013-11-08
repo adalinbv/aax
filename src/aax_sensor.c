@@ -405,8 +405,11 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
    int rv = AAX_FALSE;
 
    assert(handle);
-   assert(handle->info->mode == AAX_MODE_READ);
-   assert(handle->thread.started == AAX_FALSE);
+
+   if ((handle->info->mode != AAX_MODE_READ) ||
+       (handle->thread.started != AAX_FALSE)) {
+      return rv;
+   }
 
    dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr)
@@ -495,7 +498,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
                handle->thread.condition = _aaxConditionCreate();
                assert(handle->thread.condition != 0);
 
-               handle->thread.mutex = _aaxMutexCreate(0);
+               handle->thread.mutex = _aaxMutexCreate(handle->thread.mutex);
                assert(handle->thread.mutex != 0);
 
                handle->thread.started = AAX_TRUE;

@@ -408,6 +408,10 @@ aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
    int rv = AAX_FALSE;
+
+   aaxMixerSetState(handle, AAX_STOPPED);
+   aaxSensorSetState(handle, AAX_STOPPED);
+
    if (handle && !handle->handle)
    {
       assert(handle->backends != NULL);
