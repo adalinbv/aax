@@ -1275,8 +1275,9 @@ _aaxFreeSensor(void *ssr)
    _aax_aligned_free(smixer->props3d->dprops3d);
    free(smixer->props3d);
 
-   /* ringbuffer gets removed by the thread */
-   /* _oalRingBufferDelete(smixer->ringbuffer); */
+   if (smixer->ringbuffer) {
+      _oalRingBufferDelete(smixer->ringbuffer);
+   }
    _intBufErase(&smixer->frames, _AAX_FRAME, free);
    _intBufErase(&smixer->devices, _AAX_DEVICE, free);
    _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, free);
