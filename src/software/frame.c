@@ -156,7 +156,7 @@ _aaxAudioFrameThread(void* config)
    frame->thread.initialized = AAX_FALSE;
    _aaxMutexUnLock(frame->thread.mutex);
    _oalRingBufferStop(dest_rb);
-// _oalRingBufferDelete(dest_rb);
+   _oalRingBufferDelete(dest_rb);
 
    return frame;
 }
