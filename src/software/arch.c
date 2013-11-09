@@ -90,12 +90,6 @@ enum {
 # define __x86_64__
 #endif
 
-#ifdef _MSC_VER
-# define ASM	__asm
-#else
-# define ASM	__asm volatile
-#endif
-
 #if defined(__i386__)
 static char check_cpuid_ecx(unsigned int);
 static char check_cpuid_edx(unsigned int);

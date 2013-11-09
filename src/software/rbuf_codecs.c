@@ -302,57 +302,131 @@ _sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, unsigned in
 
 
 /* single sample convert */
-#define _BIAS		0x80
-#define _CLIP		32635
-uint8_t
-_linear2mulaw(int16_t sample)
+/** http://docs.freeswitch.org/g711_8h-source.html */
+int16_t
+top_bit(uint16_t bits)
 {
-   int sign, exponent, mantissa;
-   int rv;
+   int i = 0;
 
-   sign = (sample >> 8) & _BIAS;
-   if (sign) {
-      sample = (int16_t)-sample;
+#if 0 // defined(__i386__)
+   ASM ("movl $-1,%%edx;\n"		\
+            "bsfl %%eax, %%edx;\n"	\
+            : "=d" (i)			\
+            : "a" (bits));
+#elif 0 // defined(__x86_64__)
+   ASM ("movq $-1,%%rdx;\n"		\
+            "bsrq %%rax, %%rdx;\n"	\
+            : "=d" (i)			\
+            : "a" (bits));
+#else
+   if  (bits == 0)
+      return -1;
+
+   if  (bits & 0xFFFF0000)
+   {
+      bits &= 0xFFFF0000;
+      i += 16;
    }
-   if (sample > _CLIP) {
-      sample = _CLIP;
+   if (bits & 0xFF00FF00)
+   {
+      bits &= 0xFF00FF00;
+      i += 8;
    }
-   sample = (int16_t)(sample + 0x84);
-
-   exponent = (int)_linear2mulaw((sample>>7) & 0xFF);
-   mantissa = (sample >> (exponent+3)) & 0x0F;
-   rv = ~ (sign | (exponent << 4) | mantissa);
-
-   return (uint8_t)rv;
+   if (bits & 0xF0F0F0F0)
+   {
+      bits &= 0xF0F0F0F0;
+      i += 4;
+   }
+   if (bits & 0xCCCCCCCC)
+   {
+      bits &= 0xCCCCCCCC;
+      i += 2;
+   }
+   if (bits & 0xAAAAAAAA)
+   {
+      bits &= 0xAAAAAAAA;
+      i += 1;
+   }
+#endif
+   return i;
 }
 
-/* single sample convert */
+/** http://docs.freeswitch.org/g711_8h-source.html */
 uint8_t
-_linear2alaw(int16_t sample)
+_linear2mulaw(int16_t linear)
 {
-     int sign, exponent, mantissa;
-     uint8_t rv;
+   uint8_t u_val;
+   int mask;
+   int seg;
 
-     sign = ((~sample) >> 8) & _BIAS;
-     if (!sign) {
-        sample = (int16_t)-sample;
-     }
-     if (sample > _CLIP) {
-        sample = _CLIP;
-     }
-     if (sample >= 256)
-     {
-          exponent = (int)_linear2alaw((sample >> 8) & 0x7F);
-          mantissa = (sample >> (exponent + 3) ) & 0x0F;
-          rv = ((exponent << 4) | mantissa);
-     }
-     else
-     {
-          rv = (uint8_t)(sample >> 4);
-     }
-     rv ^= (sign ^ 0x55);
+   /* Get the sign and the magnitude of the value. */
+   if (linear < 0)
+   {
+      linear = ULAW_BIAS - linear;
+      mask = 0x7F;
+   }
+   else
+   {
+      linear = ULAW_BIAS + linear;
+      mask = 0xFF;
+   }
 
-     return rv;
+   seg = top_bit(linear | 0xFF) - 7;
+
+   /*
+    * Combine the sign, segment, quantization bits,
+    * and complement the code word.
+    */
+   if (seg >= 8) {
+      u_val = (uint8_t)(0x7F ^ mask);
+   } else {
+      u_val = (uint8_t)(((seg << 4) | ((linear >> (seg+3)) & 0xF))^mask);
+   }
+
+#ifdef ULAW_ZEROTRAP
+   /* Optional ITU trap */
+   if (u_val == 0) {
+           u_val = 0x02;
+   }
+#endif
+
+   return u_val;
+}
+
+/** http://docs.freeswitch.org/g711_8h-source.html */
+#define ALAW_AMI_MASK		0x55
+uint8_t
+_linear2alaw(int16_t linear)
+{
+   int mask;
+   int seg;
+
+   if (linear >= 0)
+   {
+      /* Sign (bit 7) bit = 1 */
+      mask = ALAW_AMI_MASK | 0x80;
+   }
+   else
+   {
+      /* Sign (bit 7) bit = 0 */
+      mask = ALAW_AMI_MASK;
+      linear = -linear - 8;
+   }
+
+   /* Convert the scaled magnitude to segment number. */
+   seg = top_bit(linear | 0xFF) - 7;
+   if (seg >= 8)
+   {
+      if (linear >= 0)
+      {
+         /* Out of range. Return maximum value. */
+         return (uint8_t)(0x7F ^ mask);
+      }
+      /* We must be just a tiny step below zero */
+      return (uint8_t)(0x00 ^ mask);
+   }
+   /* Combine the sign, segment, and quantization bits. */
+   return (uint8_t)(((seg << 4) | ((linear >> ((seg) ? (seg+3) : 4)) & 0x0F))^ mask);
 }
 
 /* single sample convert */

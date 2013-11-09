@@ -22,6 +22,12 @@ extern "C" {
 
 #include <base/types.h>
 
+#ifdef _MSC_VER
+# define ASM    __asm
+#else
+# define ASM    __asm volatile
+#endif
+
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, unsigned int, unsigned int);
 typedef char* (*_aax_malloc_proc)(char**, unsigned int);
