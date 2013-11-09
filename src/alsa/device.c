@@ -505,7 +505,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
             else
             {
-               _aax_free(s); /* 'default' */
+               xmlFree(s); /* 'default' */
                handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
             }
          }
@@ -1834,12 +1834,12 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            break;
                         }
                      }
-                     if (desc != name) _aax_free(desc);
+                     if (desc != name) _sys_free(desc);
                   }
-                  _aax_free(name);
+                  _sys_free(name);
                }
             }
-            _aax_free(type);
+            _sys_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -1882,7 +1882,7 @@ detect_devnum(const char *devname, int m)
                {
                   if (!strcmp(devname, name))
                   {
-                     _aax_free(name);
+                     _sys_free(name);
                      devnum = ctr;
                      break;
                   }
@@ -1891,7 +1891,7 @@ detect_devnum(const char *devname, int m)
                   {
                      if (!strcmp(devname, "default"))
                      {
-                        _aax_free(name);
+                        _sys_free(name);
                         devnum = ctr;
                         break;
                      }
