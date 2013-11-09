@@ -47,7 +47,8 @@
 
 int main(int argc, char **argv)
 {
-    aaxConfig config, record;
+    aaxConfig config = NULL;
+    aaxConfig record = NULL;
     int res, rv = 0;
     char *devname;
 

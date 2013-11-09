@@ -65,7 +65,6 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter, emitter2;
-            aaxFilter filter;
             float dt = 0.0f;
             int q, state;
 
@@ -90,27 +89,32 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerRegisterEmitter");
 
 #if 0
-            /* equalizer */
-            filter = aaxFilterCreate(record, AAX_EQUALIZER);
-            testForError(filter, "aaxFilterCreate");
+            do
+            {
+                aaxFilter filter;
 
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              500.0f, 1.0f, 0.1f, 5.0f);
-            testForError(filter, "aaxFilterSetSlot/0");
+                /* equalizer */
+                filter = aaxFilterCreate(record, AAX_EQUALIZER);
+                testForError(filter, "aaxFilterCreate");
 
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              8000.0f, 0.1f, 0.5f, 5.0f);
-            testForError(filter, "aaxFilterSetSlot/1");
+                filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                                  500.0f, 1.0f, 0.1f, 5.0f);
+                testForError(filter, "aaxFilterSetSlot/0");
 
-            filter = aaxFilterSetState(filter, AAX_TRUE);
-            testForError(filter, "aaxFilterSetState");
+                filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                                  8000.0f, 0.1f, 0.5f, 5.0f);
+                testForError(filter, "aaxFilterSetSlot/1");
 
-            res = aaxMixerSetFilter(record, filter);
-            testForState(res, "aaxMixerSetFilter");
+                filter = aaxFilterSetState(filter, AAX_TRUE);
+                testForError(filter, "aaxFilterSetState");
 
-            res = aaxFilterDestroy(filter);
-            testForState(res, "aaxFilterDestroy");
+                res = aaxMixerSetFilter(record, filter);
+                testForState(res, "aaxMixerSetFilter");
 
+                res = aaxFilterDestroy(filter);
+                testForState(res, "aaxFilterDestroy");
+            }
+            while(0);
 #endif
             /** schedule the emitter for playback */
             res = aaxEmitterSetState(emitter, AAX_PLAYING);

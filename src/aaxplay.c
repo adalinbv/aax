@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2012 by Erik Hofman.
- * Copyright (C) 2009-2012 by Adalin B.V.
+ * Copyright (C) 2008-2013 by Erik Hofman.
+ * Copyright (C) 2009-2013 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,8 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH		SRC_PATH"/stereo.mp3"
+#define IFILE_PATH		SRC_PATH"/stereo.mp3"
+#define OFILE_PATH		"aaxout.wav"
 
 void
 help()
@@ -55,24 +56,26 @@ help()
 
 int main(int argc, char **argv)
 {
-    char *devname, *infile, *capture_name;
-    char indevname[4096] = "\0";
-    aaxConfig config, record;
+    char *devname, *idevname;
+    char ibuf[256], obuf[256];
+    char *infile, *outfile;
+    aaxConfig config = NULL;
+    aaxConfig record = NULL;
+    aaxConfig file = NULL;
     int res, rv = 0;
 
     if (argc == 1) {
         help();
     }
 
-    capture_name = getCaptureName(argc, argv);
-    if (capture_name) {
-       snprintf(indevname, 4096, "%s", capture_name);
-    }
-    else
+    idevname = getCaptureName(argc, argv);
+    if (!idevname)
     {
-       infile = getInputFile(argc, argv, FILE_PATH);
-       if (infile) {
-          snprintf(indevname, 4096, "AeonWave on Audio Files: %s", infile);
+       infile = getInputFile(argc, argv, IFILE_PATH);
+       if (infile)
+       {
+           snprintf(ibuf, 256, "AeonWave on Audio Files: %s", infile);
+           idevname = ibuf;
        }
        else {
           help();
@@ -80,7 +83,6 @@ int main(int argc, char **argv)
     }
 
     devname = getDeviceName(argc, argv);
-
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "Audio output device is not available.");
     if (!config || !aaxIsValid(config, AAX_CONFIG_HD))
@@ -94,13 +96,23 @@ int main(int argc, char **argv)
     }
     else
     {
-        record = aaxDriverOpenByName(indevname, AAX_MODE_READ);
+        record = aaxDriverOpenByName(idevname, AAX_MODE_READ);
         if (!record)
         {
             printf("File not found: %s\n", infile);
             exit(-1);
         }
-        printf("Playing: %s\n", capture_name ? indevname : infile);
+        printf("Playing: %s\n", idevname ? idevname : infile);
+    }
+
+    outfile = getOutputFile(argc, argv, NULL);
+    if (outfile)
+    {
+        snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
+        file = aaxDriverOpenByName(obuf, AAX_MODE_WRITE_STEREO);
+    }
+    else {
+        file = NULL;
     }
 
     if (config && record && (rv >= 0))
@@ -143,12 +155,19 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerRegisterSensor");
         }
 
+        if (file)
+        {
+            res = aaxMixerRegisterSensor(config, file);
+            testForState(res, "aaxMixerRegisterSensor file out");
+        }
+
         /** set capturing Auto-Gain Control (AGC): 0dB */
         filter = aaxMixerGetFilter(record, AAX_VOLUME_FILTER);
         if (filter)
         {
             aaxFilterSetParam(filter, AAX_AGC_RESPONSE_RATE, AAX_LINEAR, 1.5f);
             aaxMixerSetFilter(record, filter);
+            res = aaxFilterDestroy(filter);
         }
 
         /** must be called after aaxMixerRegisterSensor */
@@ -157,6 +176,15 @@ int main(int argc, char **argv)
 
         res = aaxSensorSetState(record, AAX_CAPTURING);
         testForState(res, "aaxSensorCaptureStart");
+
+        if (file)
+        {
+            res = aaxMixerSetState(file, AAX_INITIALIZED);
+            testForState(res, "aaxMixerSetInitialize");
+
+            res = aaxMixerSetState(file, AAX_PLAYING);
+            testForState(res, "aaxSensorCaptureStart");
+        }
 
         set_mode(1);
         do
@@ -197,15 +225,21 @@ int main(int argc, char **argv)
             res = aaxMixerDeregisterSensor(config, record);
             testForState(res, "aaxMixerDeregisterSensor");
         }
-
-        res = aaxDriverClose(record);
-        testForState(res, "aaxDriverClose");
-
-        res = aaxDriverDestroy(record);
-        testForState(res, "aaxDriverDestroy");
     }
     else {
         printf("Unable to open capture device.\n");
+    }
+
+    if (record)
+    {
+        res = aaxDriverClose(record);
+        res = aaxDriverDestroy(record);
+    }
+
+    if (file)
+    {
+        res = aaxDriverClose(file);
+        res = aaxDriverDestroy(file);
     }
 
     res = aaxDriverClose(config);

@@ -172,6 +172,16 @@ getInputFile(int argc, char **argv, const char *filename)
     return fn;
 }
 
+char *
+getOutputFile(int argc, char **argv, const char *filename)
+{
+    char *fn = getCommandLineOption(argc, argv, "-o");
+
+    if (!fn) fn = (char *)filename;
+    return fn;
+}
+
+
 void
 testForError(void *p, char *s)
 {
