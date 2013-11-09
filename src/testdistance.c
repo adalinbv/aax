@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     enum aaxRenderMode mode;
     char *devname, *infile;
     aaxConfig config;
-    int i, res;
+    int res;
 
     mode = getMode(argc, argv);
     devname = getDeviceName(argc, argv);

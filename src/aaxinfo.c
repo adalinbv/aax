@@ -170,10 +170,12 @@ int main(int argc, char **argv)
                         else {
                             printf(" '%s on %s'\n", d, r);
                         }
+                        
                     }
                 } else {
                     printf(" '%s'\n", d);
                 }
+                aaxDriverClose(cfg);
                 aaxDriverDestroy(cfg);
             } else {
                 printf("\t%i. not found\n", x);

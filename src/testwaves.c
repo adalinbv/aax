@@ -167,7 +167,7 @@ int main(int argc, char **argv)
                 msecSleep(50);
                 state = aaxEmitterGetState(emitter);
             }
-            while (state == AAX_PLAYING);
+            while (state != AAX_PROCESSED);
 
             res = aaxEmitterRemoveBuffer(emitter);
             testForState(res, "aaxEmitterRemoveBuffer");

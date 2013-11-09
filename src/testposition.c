@@ -97,7 +97,6 @@ int main(int argc, char **argv)
         aaxEmitter emitter;
         aaxFrame frame[2];
         aaxBuffer buffer;
-        aaxFilter filter;
         aaxMtx4f mtx;
         float pitch;
 

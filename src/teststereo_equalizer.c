@@ -45,8 +45,8 @@
 
 int main(int argc, char **argv)
 {
-    char *device, *devname, *infile;
-    aaxConfig config, record;
+    char *devname, *infile;
+    aaxConfig config = NULL;
     aaxBuffer buffer = 0;
     int res;
 

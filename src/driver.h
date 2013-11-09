@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2012 by Erik Hofman.
- * Copyright (C) 2009-2012 by Adalin B.V.
+ * Copyright (C) 2008-2013 by Erik Hofman.
+ * Copyright (C) 2009-2013 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ char *getDeviceName(int, char **);
 char *getCaptureName(int, char **);
 char *getCommandLineOption(int, char **, char *);
 char *getInputFile(int, char **, const char *);
+char *getOutputFile(int, char**, const char *);
 int getNumEmitters(int, char **);
 float getPitch(int, char **);
 float getGain(int, char **);

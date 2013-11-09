@@ -126,6 +126,7 @@ int main(int argc, char **argv)
                 testForState(res, "aaxEmitterAddBuffer");
 
                 aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
+                aaxMatrixRotate(mtx, anglestep, 0.0f, 1.0f, 0.0f);
                 res = aaxEmitterSetMatrix(emitter[i], mtx);
                 testForState(res, "aaxEmitterSetIdentityMatrix");
                 mul *= -1.0f;

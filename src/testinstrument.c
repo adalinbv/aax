@@ -86,7 +86,6 @@ int main(int argc, char **argv)
         aaxBuffer buffer;
         aaxFilter filter;
         aaxEffect effect;
-        float pitch;
         int i;
 
         no_samples = (unsigned int)(0.3f*SAMPLE_FREQUENCY);
@@ -235,9 +234,8 @@ int main(int argc, char **argv)
         i = 0;
         do
         {
-            msecSleep(20);
-            if (i == 50) break;
-            state = aaxEmitterGetState(emitter);
+            msecSleep(50);
+            if (i == 100) break;
 
             if (i == 10) 
             {
@@ -246,7 +244,16 @@ int main(int argc, char **argv)
                 res = aaxEmitterSetPitch(emitter, 0.87f);
                 res = aaxEmitterStart(emitter);
             }
+            else if (i == 27)
+            {
+                res = aaxEmitterStop(emitter);
+                res = aaxEmitterRewind(emitter);
+                res = aaxEmitterSetPitch(emitter, 0.31f);
+                res = aaxEmitterStart(emitter);
+            }
             i++;
+
+            state = aaxEmitterGetState(emitter);
         }
         while (state == AAX_PLAYING);
 

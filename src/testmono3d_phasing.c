@@ -73,7 +73,6 @@ int main(int argc, char **argv)
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            const int NUM_BUFFERS = 32;
             aaxEmitter emitter;
             aaxEffect effect;
             aaxFilter filter;
