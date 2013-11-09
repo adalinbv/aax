@@ -219,7 +219,7 @@ int main(int argc, char **argv)
             effect = aaxEffectSetState(effect, AAX_INVERSE_ENVELOPE_FOLLOW);
             res = aaxAudioFrameSetEffect(frame, effect);
             res = aaxEffectDestroy(effect);
-            testForError(effect, "aaxEffectCreate");
+            testForError(effect, "aaxEffectDestroy");
 #endif
 
 #if ENABLE_FRAME_DYNAMIC_PITCH

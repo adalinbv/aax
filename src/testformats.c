@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 
                     res = aaxBufferSetData(buffer, *data);
                     testForState(res, "aaxBufferSetData");
-                    free(data);
+                    aaxFree(data);
 
                     res = aaxEmitterAddBuffer(emitter, buffer);
                     testForState(res, "aaxEmitterAddBuffer");
