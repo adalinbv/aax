@@ -1840,6 +1840,10 @@ _AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
       hr = S_OK;
    }
 
+#if ENABLE_TIMING
+   _aaxTimerDestroy(timer);
+#endif
+
    _wasapi_close_event(be_handle);
    _aaxMutexUnLock(handle->thread.mutex);
 

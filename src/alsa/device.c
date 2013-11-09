@@ -2783,6 +2783,10 @@ if (elapsed > delay_sec)
  printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
    }
+
+#if ENABLE_TIMING
+   _aaxTimerDestroy(timer);
+#endif
    _aaxMutexUnLock(handle->thread.mutex);
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);

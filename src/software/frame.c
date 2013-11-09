@@ -152,6 +152,7 @@ _aaxAudioFrameThread(void* config)
    }
    while ((res == AAX_TIMEOUT) || (res == AAX_TRUE));
 
+   _aaxTimerDestroy(timer);
    frame->thread.initialized = AAX_FALSE;
    _aaxMutexUnLock(frame->thread.mutex);
    _oalRingBufferStop(dest_rb);
