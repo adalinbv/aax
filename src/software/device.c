@@ -607,8 +607,9 @@ _aaxNoneDriverThread(void* config)
    while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
 
    _aaxTimerDestroy(timer);
-   _aaxMutexUnLock(handle->thread.mutex);
    _oalRingBufferDelete(dest_rb);
+   handle->ringbuffer = NULL;
+   _aaxMutexUnLock(handle->thread.mutex);
 
    return handle;
 }

@@ -2787,14 +2787,9 @@ if (elapsed > delay_sec)
 #if ENABLE_TIMING
    _aaxTimerDestroy(timer);
 #endif
+   handle->ringbuffer = NULL;
+   _oalRingBufferDelete(dest_rb);
    _aaxMutexUnLock(handle->thread.mutex);
 
-   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
-   if (dptr_sensor)
-   {
-      _oalRingBufferStop(handle->ringbuffer);
-      _oalRingBufferDelete(handle->ringbuffer);
-      handle->ringbuffer = NULL;
-   }
    return handle;
 }

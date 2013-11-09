@@ -1843,16 +1843,12 @@ _AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
 #if ENABLE_TIMING
    _aaxTimerDestroy(timer);
 #endif
-
    _wasapi_close_event(be_handle);
+
+   handle->ringbuffer = NULL;
+   _oalRingBufferDelete(dest_rb);
    _aaxMutexUnLock(handle->thread.mutex);
 
-   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
-   if (dptr_sensor)
-   {
-      _oalRingBufferStop(handle->ringbuffer);
-      _oalRingBufferDelete(handle->ringbuffer);
-   }
    return handle;
 }
 

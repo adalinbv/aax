@@ -433,6 +433,10 @@ aaxDriverDestroy(aaxConfig config)
          free(handle->backend.driver);
       }
 
+      if (handle->ringbuffer) {
+         _oalRingBufferDelete(handle->ringbuffer);
+      }
+
       /* safeguard against using already destroyed handles */
       handle->id = 0xdeadbeef;
       free(handle);

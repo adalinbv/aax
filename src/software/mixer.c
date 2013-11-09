@@ -338,9 +338,8 @@ _aaxSoftwareMixerThread(void* config)
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
-      _oalRingBufferStop(handle->ringbuffer);
-      _oalRingBufferDelete(handle->ringbuffer);
       handle->ringbuffer = NULL;
+      _oalRingBufferDelete(handle->ringbuffer);
    }
 
    return handle;
