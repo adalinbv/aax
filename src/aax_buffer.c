@@ -833,6 +833,7 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
             }
          }
          xmlFree(xwid);
+         xmlFree(xsid);
       }
       xmlClose(xid);
    }
