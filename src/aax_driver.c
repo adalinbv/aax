@@ -411,6 +411,7 @@ aaxDriverDestroy(aaxConfig config)
 
    aaxMixerSetState(handle, AAX_STOPPED);
    aaxSensorSetState(handle, AAX_STOPPED);
+   aaxDriverClose(handle);
 
    if (handle && !handle->handle)
    {
@@ -459,7 +460,7 @@ aaxDriverClose(aaxConfig config)
    _handle_t *handle = get_handle(config);
    int rv = AAX_FALSE;
 
-   if (handle)
+   if (handle && handle->backend.handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
 
@@ -469,6 +470,7 @@ aaxDriverClose(aaxConfig config)
       if (be && handle->backend.handle) {
          be->disconnect(handle->backend.handle);
       }
+      handle->backend.handle = NULL;
       rv = AAX_TRUE;
    }
    else if (handle) {
