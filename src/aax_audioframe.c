@@ -123,7 +123,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
    _frame_t* handle = get_frame(frame);
    int rv = AAX_FALSE;
 
-   _aaxAudioFrameStop(handle);
+   aaxAudioFrameSetState(frame, AAX_STOPPED);
    if (handle)
    {
       if (!handle->handle)
