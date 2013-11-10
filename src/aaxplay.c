@@ -238,8 +238,17 @@ int main(int argc, char **argv)
 
     if (file)
     {
+        res = aaxMixerSetState(file, AAX_STOPPED);
+        testForState(res, "aaxMixerSetState");
+
+        res = aaxMixerDeregisterSensor(config, file);
+        testForState(res, "aaxMixerRegisterSensor file out");
+
         res = aaxDriverClose(file);
+        testForState(res, "aaxDriverClose");
+
         res = aaxDriverDestroy(file);
+        testForState(res, "aaxDriverDestroy");
     }
 
     res = aaxDriverClose(config);
