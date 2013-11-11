@@ -421,22 +421,21 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    int freq, rv = AAX_FALSE;
    unsigned int bufsize;
+   float period_ms;
 
    assert(handle);
 
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
-#if 0
-   if (!handle->frequency) {
-      handle->frequency = *speed;
-   }
-#else
    handle->frequency = *speed;
-#endif
    freq = (int)handle->frequency;
 
+   period_ms = cailf(1000.0f*(*frames)/(*speed));
+   if (period_ms < 4.0f) period_ms = 4.0f;
+   *frames = period_ms*(*speed)/1000.0f;
+
    handle->fmt->id = handle->fmt->setup(handle->mode, &bufsize, freq,
-                                          *tracks, *fmt, *frames, *bitrate);
+                                        *tracks, *fmt, *frames, *bitrate);
    if (handle->fmt->id)
    {
       handle->fd = open(handle->name, handle->fmode, 0644);
