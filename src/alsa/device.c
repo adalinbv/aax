@@ -206,6 +206,8 @@ DECL_FUNCTION(snd_mixer_open);
 DECL_FUNCTION(snd_mixer_close);
 DECL_FUNCTION(snd_mixer_attach);
 DECL_FUNCTION(snd_mixer_load);
+DECL_FUNCTION(snd_mixer_selem_id_malloc);
+DECL_FUNCTION(snd_mixer_selem_id_free);
 DECL_FUNCTION(snd_mixer_selem_register);
 DECL_FUNCTION(snd_mixer_first_elem);
 DECL_FUNCTION(snd_mixer_elem_next);
@@ -343,6 +345,8 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_mixer_close);					//
          TIE_FUNCTION(snd_mixer_attach);				//
          TIE_FUNCTION(snd_mixer_load);					//
+         TIE_FUNCTION(snd_mixer_selem_id_malloc);			//
+         TIE_FUNCTION(snd_mixer_selem_id_free);				//
          TIE_FUNCTION(snd_mixer_selem_register);			//
          TIE_FUNCTION(snd_mixer_first_elem);				//
          TIE_FUNCTION(snd_mixer_elem_next);				//
@@ -2142,9 +2146,10 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
 
       if (1) // fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
       {
-         snd_mixer_selem_id_t *sid = calloc(1,4096);
+         snd_mixer_selem_id_t *sid;
          snd_mixer_elem_t *elem;
 
+         psnd_mixer_selem_id_malloc(&sid);
          for (elem = psnd_mixer_first_elem(handle->mixer); elem;
               elem = psnd_mixer_elem_next(elem))
          {
@@ -2201,7 +2206,7 @@ _alsa_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, snd_pcm_sf
                }
             }             
          }
-         free(sid);
+         psnd_mixer_selem_id_free(sid);
 
          handle->volumeCur = hwgain;
       }

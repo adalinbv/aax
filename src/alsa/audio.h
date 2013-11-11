@@ -368,6 +368,8 @@ typedef int (*snd_mixer_load_proc)(snd_mixer_t *);
 typedef int (*snd_mixer_attach_proc)(snd_mixer_t *mixer, const char *name); 
 typedef snd_mixer_elem_t* (*snd_mixer_first_elem_proc)(snd_mixer_t*);
 typedef snd_mixer_elem_t* (*snd_mixer_elem_next_proc)(snd_mixer_elem_t *);
+typedef int (*snd_mixer_selem_id_malloc_proc)(snd_mixer_selem_id_t **);
+typedef void (*snd_mixer_selem_id_free_proc)(snd_mixer_selem_id_t *);
 typedef int (*snd_mixer_selem_register_proc)(snd_mixer_t*, struct snd_mixer_selem_regopt*, snd_mixer_class_t**);
 typedef int (*snd_mixer_selem_has_playback_volume_proc)(snd_mixer_elem_t*);
 typedef int (*snd_mixer_selem_get_playback_volume_proc)(snd_mixer_elem_t*,  	snd_mixer_selem_channel_id_t, long*);
