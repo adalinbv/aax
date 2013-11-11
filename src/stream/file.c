@@ -430,7 +430,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
    handle->frequency = *speed;
    freq = (int)handle->frequency;
 
-   period_ms = cailf(1000.0f*(*frames)/(*speed));
+   period_ms = ceilf(1000.0f*(*frames)/(*speed));
    if (period_ms < 4.0f) period_ms = 4.0f;
    *frames = period_ms*(*speed)/1000.0f;
 

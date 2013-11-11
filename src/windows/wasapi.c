@@ -1226,9 +1226,15 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
       {  
          char *pfname = detect_devname(handle->pDevice);
          char fname[1024];
+         char *ptr;
 
          if (!pfname) pfname = "AAXDriverLog";
          snprintf(fname, 1024, "%s\\%s.log", tmp, pfname);
+
+         ptr = strchr(fname, '(');
+         if (ptr) *ptr = '-';
+         ptr = strchr(fname, ')');
+         if (ptr) *ptr = ' ';
          handle->log_file = fopen(fname, "w");
       }
    }
