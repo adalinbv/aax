@@ -210,8 +210,8 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 
          tm->Period = (LONG)(sec*1000);
          tm->dueTime.QuadPart = -(LONGLONG)(sec*10000*1000);
-         hr= SetWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT],
-                              &tm->dueTime, 0, NULL, NULL, FALSE);
+         hr = SetWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT],
+                               &tm->dueTime, tm->Period, NULL, NULL, FALSE);
          if (hr)
          {
             setTimerResolution(1);
@@ -253,8 +253,10 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 
       _aaxMutexUnLock(mutex);
       hr = WaitForMultipleObjects(num, tm->Event, FALSE, tm->Period);
+#if 0
       SetWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT],
                        &tm->dueTime, 0, NULL, NULL, FALSE);
+#endif
       _aaxMutexLock(mutex);
 
       switch(hr)
