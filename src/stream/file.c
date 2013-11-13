@@ -493,11 +493,11 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             handle->thread.mutex = _aaxMutexCreate(handle->thread.mutex);
             handle->thread.condition = _aaxConditionCreate();
             if (handle->mode == AAX_MODE_READ) {
-               res =_aaxThreadStart(handle->thread.ptr,
-                                  _aaxFileDriverReadThread, handle, 20);
+               res = _aaxThreadStart(handle->thread.ptr,
+                                     _aaxFileDriverReadThread, handle, 20);
             } else {
-               res =_aaxThreadStart(handle->thread.ptr,
-                                  _aaxFileDriverWriteThread, handle, 20);
+               res = _aaxThreadStart(handle->thread.ptr,
+                                     _aaxFileDriverWriteThread, handle, 20);
             }
 
             if (res == 0)
@@ -950,6 +950,8 @@ _aaxFileDriverReadThread(void *id)
       _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
    }
    while(handle->thread.started);
+
+   _aaxMutexUnLock(handle->thread.mutex);
 
    return handle;
 }
