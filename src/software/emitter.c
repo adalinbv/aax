@@ -244,7 +244,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                if (buf3dq)
                {
                   sdp3d = _intBufGetDataPtr(buf3dq);
-                  free(buf3dq);
+                  _intBufDestroyDataNoLock(buf3dq);
                }
                --ep2d->bufpos3dq;
             }
