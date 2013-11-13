@@ -1234,7 +1234,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
          ptr = strchr(fname, '(');
          if (ptr) *ptr = '-';
          ptr = strchr(fname, ')');
-         if (ptr) *ptr = ' ';
+         if (ptr) *ptr = '-';
          handle->log_file = fopen(fname, "w");
       }
    }
@@ -1254,7 +1254,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
       type_ctr = 0;
    }
    else if ((type > WASAPI_NO_ERROR) && (type < WASAPI_MAX_ERROR) &&
-       (type != prev_type) && (type_ctr < 100))
+            (type != prev_type) && (type_ctr < 100))
    {
       if (type_ctr > 0)
       {
@@ -1275,19 +1275,21 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
       OutputDebugString(perr);
       _AAX_SYSLOG(perr);
 #if LOG_TO_FILE
-      if (handle && handle->log_file)
-      {
+      if (handle && handle->log_file) {
          fprintf(handle->log_file, "%s\n", perr);
-         if (handle->err_ctr++ == 25)
-         {
-            fseek(handle->log_file, 0L, SEEK_CUR);	// sync.
-            handle->err_ctr = 0;
-         }
       }
 #endif
       prev_type = type;
    }
    else type_ctr++;
+
+#if LOG_TO_FILE
+   if (handle && handle->log_file) //  && (++handle->err_ctr == 25))
+   {
+      fflush(handle->log_file);   
+      handle->err_ctr = 0;
+   }
+#endif
 
    if (handle)
    {
@@ -2536,7 +2538,6 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
          }
          else /* handle->Mode == eCapture */
          {
-//          if (frames) *frames = periodFrameCnt; /* accept what's requested */
             handle->threshold = *frames*5/4;            /* same as ALSA */
             handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
 
@@ -2843,7 +2844,7 @@ _aaxAudioSessionEvents_OnStateChanged(IAudioSessionEvents *event,
       pszState = "expired";
       break;
    }
-   _AAX_DRVLOG_VAR("State: %s", pszState);
+// _AAX_DRVLOG_VAR("State: %s", pszState);
 
    return S_OK;
 }
