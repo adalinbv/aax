@@ -1,10 +1,12 @@
 * Fri Oct 24 2013 - tech@adalin.org
 - AeonWave (2.3.1) stable; urgency=high
- * Add mp3 file output support if libmp3lame is found.
- * Add support for more WAV file types and fix mulaw and alaw decoding.
+ * Complete rewrite of the File backend
+  - Add mp3 file output support if libmp3lame is found.
+  - Add support for more WAV file types and fix mulaw and alaw decoding.
  * Add the option to register one sensor opened in write mode (file only) at
    the mixer to support a dedicated record to file option.
  * Fix a major registered-sensor bug (most noticeable on Windows).
+ * Fix an occasional deadlock when deregistering audio-frames.
 
 * Fri Oct 18 2013 - tech@adalin.org
 - AeonWave (2.3.0) stable; urgency=high
@@ -18,19 +20,19 @@
  * Add double precision 64-bit floating point matrix support functions.
  * Implement hardware volume support for ALSA and WASAPI.
    - hardware volume is adjusted within hardware boundaries, volume settings
-     outside the hardware range are adjusted using software fallback.
+     outside the hardware range are adjusted using software fall-back.
    - the volume filter now reports the hardware minimum and maximum.
  * Implement Auto-Gain Control with a user definable adjust-rate.
  * Add the option to select stereo, mono-left, mono-right or mono-mix for
    audio capturing.
- * Add an aaxMixerGetState function to retreive the state of the current
+ * Add an aaxMixerGetState function to retrieve the state of the current
    audio stream. This can for instance be used to reinitialize the device
    after the hardware audio format has changed.
  * Add the option to set the number of times to loop a buffer.
  * Fixed reported bugs.
    - Fix an issue that prevented ALSA from reporting new hardware while an
      application was running.
-   - Fix an issue with loopback capturing of the playback stream.
+   - Fix an issue with loop-back capturing of the playback stream.
    - Fix an issue with flanging for emitters registered at the final mixer.
    - Fix an issue that affected HRTF and Surround sound playback.
 
@@ -41,24 +43,24 @@
 - AeonWave (2.2.4) stable; urgency=low
  * Add an aaxFree function to free memory allocated by the library.
    This might be necessary when using different compilers.
- * Add support for a Reverb effect which anly applies to the final mixer.
+ * Add support for a Reverb effect which only applies to the final mixer.
  * Make the dynamic-gain envelope-following mode a proper audio-compressor and
    expander with noise gate. The offset property defines the threshold level.
  * Add the option to retrieve the compression level for every track.
- * Add an aaxAudioFrameGetSetup function to be able to retreive the above.
- * Add the ability to retreive peak and average audio levers for every track
+ * Add an aaxAudioFrameGetSetup function to be able to retrieve the above.
+ * Add the ability to retrieve peak and average audio levers for every track
    (final mixer only).
- * Fix distortion behavior, it was overcompressing for high distortion factors.
+ * Fix distortion behavior, it was over compressing for high distortion factors.
  * Add an envelope following option for the distortion effect.
- * Remove some dupplicate code, most code is now shared between the mixer and
+ * Remove some duplicate code, most code is now shared between the mixer and
    audio-(sub)frames which should lead to fewer case specific problems.
  * Fix LFO situations where changing the LFO values could become out of bounds.
  * Fix filters and effects for registered sensors.
- * Overhaul of the Windows backend en threads code.
+ * Overhaul of the Windows backend and threads code.
    - Fix a lot of corner case situations that failed before.
-   - Improve runtime performance conciderably.
+   - Improve runtime performance considerably.
    - Fix registered sensors.
- * Allow sensors to be registered at subframes.
+ * Allow sensors to be registered at sub-frames.
  * Expose the driver latency.
 
  -- Erik Hofman <tech@adalin.org>  Fri, 08 Mar 2013 12:32:00 +0200
