@@ -988,8 +988,10 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       {
          _intBuffers *hf = handle->submix->frames;
 
-			/* get_frame already locks the frame */
-         _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_TRUE);
+         /* Unlock the frame again to make sure locking is done in the proper */
+         /* order by _intBufRemove                                            */
+         _intBufRelease(hf, _AAX_FRAME, frame->pos);
+         _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
          frame->submix->refcount--;
          frame->handle = NULL;
          frame->pos = UINT_MAX;
