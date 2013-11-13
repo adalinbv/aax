@@ -857,8 +857,10 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
             he = fmixer->emitters_2d;
          }
 
-			/* get_emitter already locks the emitter */
-         _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_TRUE);
+         /* Unlock the frame again to make sure locking is done in the  */
+         /* proper order by _intBufRemove                               */
+         _intBufRelease(he, _AAX_EMITTER, emitter->pos);
+         _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
          _oalRingBufferPutSource();
          fmixer->no_registered--;
          emitter->handle = NULL;

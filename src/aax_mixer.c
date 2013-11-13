@@ -1060,8 +1060,10 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
                he = mixer->emitters_2d;
             }
 
-				/* get_emitter already locks the emitter */
-            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_TRUE);
+            /* Unlock the frame again to make sure locking is done in the  */
+            /* proper order by _intBufRemove                               */
+            _intBufRelease(he, _AAX_EMITTER, emitter->pos);
+            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
             if (ptr)
             {
                _oalRingBufferPutSource();

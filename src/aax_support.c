@@ -399,7 +399,7 @@ const char* _aaxErrorStrings[] =
    "No Error",
    "Invalid device",
    "Invalid device configuration",
-   "Invalid class handle",
+   "Invalid or NULL handle type",
    "Invalid internal state",
    "Invalid enumerated type",
    "Invalid parameter value",
