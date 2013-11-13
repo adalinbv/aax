@@ -419,9 +419,11 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                while ((fmixer->capturing == 1) && (++p < dt)) // 3ms is enough
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
+                  _intBufReleaseNum(hf, _AAX_FRAME);
 
                   msecSleep(1);
 
+                  _intBufGetMaxNum(hf, _AAX_FRAME);
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
                   if (!dptr) break;
 

@@ -1216,8 +1216,10 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _aaxAudioFrame *mixer = sensor->mixer;
             _intBuffers *hf = mixer->frames;
 
-			/* get_frame already locks the frame */
-            _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_TRUE);
+            /* Unlock the frame again to make sure locking is done in the */
+           /* proper order by _intBufRemove                               */
+            _intBufRelease(hf, _AAX_FRAME, frame->pos);
+            _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
 
