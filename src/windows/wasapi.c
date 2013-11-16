@@ -667,6 +667,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
             handle->cvt_from_intl(ptr, handle->scratch, offs, tracks, avail);
          }
 
+         if (fabs(gain) <= handle->volumeMin) gain = (gain<0.0f) ? -1.0f : 1.0f;
          _wasapi_set_volume(handle, (const int32_t**)ptr,
                             offs, avail, tracks, gain);
 
