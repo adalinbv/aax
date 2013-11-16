@@ -305,9 +305,6 @@ aaxFilterSetState(aaxFilter f, int state)
 
       switch(filter->type)
       {
-      case AAX_VOLUME_FILTER:
-         filter->slot[VOLUME_FILTER]->data = state;
-         break;
       case AAX_GRAPHIC_EQUALIZER:
 #if !ENABLE_LITE
          if EBF_VALID(filter)

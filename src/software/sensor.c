@@ -72,7 +72,7 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
          }
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
-         gain *= (float)(int)_FILTER_GET_DATA(smixer->props2d, VOLUME_FILTER);
+         gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
          rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, dest_track,
                                 curr_pos_sec, gain);
@@ -215,14 +215,14 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
       {
          float peak, rms, rms_rr, max, maxrms, maxpeak;
          unsigned int track, tracks;
-         int32_t **tptr, **otptr;
+         int32_t **ntptr, **otptr;
          _oalRingBuffer *nrb;
          double sum;
 
          nrb = _oalRingBufferDuplicate(dest_rb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
-         tptr = (int32_t **)nrb->sample->track;
+         ntptr = (int32_t **)nrb->sample->track;
          otptr = (int32_t **)rbd->track;
 
          rms_rr = _MINMAX(dt/0.2f, 0.0f, 1.0f);		// 200 ms RMS average
@@ -269,7 +269,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
 
          for (track=0; track<tracks; track++)
          {
-            int32_t *ptr = tptr[track];
+            int32_t *ptr = ntptr[track];
             int32_t *optr = otptr[track];
             unsigned int j;
 
