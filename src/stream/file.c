@@ -38,6 +38,7 @@
 
 #include <base/types.h>
 #include <base/threads.h>
+#include <base/logging.h>
 
 #include <api.h>
 #include <arch.h>
@@ -509,13 +510,13 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       }
       else
       {
-//       _AAX_FILEDRVLOG("File: Unable to open the requested file");
+         _aaxFileDriverLog(id, 0, 0, "Unable to open the file");
          free(handle->fmt->id);
          handle->fmt->id = 0;
       }
    }
    else {
-      _AAX_FILEDRVLOG("File: Unable to intiialize the handler");
+      _AAX_FILEDRVLOG("File: Unable to intialize the handler");
    }
 
    return rv;
@@ -837,9 +838,8 @@ char *
 _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
-   int len = _MIN(strlen(str)+1, 256);
 
-   memcpy(_errstr, str, len);
+   snprintf(_errstr, 256, "File: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
