@@ -294,6 +294,12 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
                }
             }
             while (ftype);
+
+            if (!ftype)
+            {
+               free(handle->fmt);
+               handle->fmt = NULL;
+            }
          }
       }
 
@@ -355,6 +361,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       }
       else
       {
+         _aaxFileDriverLog(id, 0, 0, "Unsupported file format");
          _aaxFileDriverDisconnect(handle);
          handle = 0;
       }
@@ -396,15 +403,18 @@ _aaxFileDriverDisconnect(void *id)
          free(handle->name);
       }
 
-      if (handle->fmt->update && handle->fmt->id) {
-         buf = handle->fmt->update(handle->fmt->id, &offs, &size, AAX_TRUE);
-      }
-      if (buf)
+      if (handle->fmt)
       {
-         lseek(handle->fd, offs, SEEK_SET);
-         ret = write(handle->fd, buf, size);
+         if (handle->fmt->update && handle->fmt->id) {
+            buf = handle->fmt->update(handle->fmt->id, &offs, &size, AAX_TRUE);
+         }
+         if (buf)
+         {
+            lseek(handle->fd, offs, SEEK_SET);
+            ret = write(handle->fd, buf, size);
+         }
+         handle->fmt->close(handle->fmt->id);
       }
-      handle->fmt->close(handle->fmt->id);
       close(handle->fd);
 
       free(handle->fmt);
@@ -507,6 +517,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                rv = AAX_TRUE;
             }
          }
+         _aaxFileDriverLog(id, 0, 0, "Incorrect header size");
       }
       else
       {
@@ -516,7 +527,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       }
    }
    else {
-      _AAX_FILEDRVLOG("File: Unable to intialize the handler");
+      _aaxFileDriverLog(id, 0, 0, " Unable to intialize the file format");
    }
 
    return rv;
