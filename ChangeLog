@@ -1,4 +1,12 @@
-* Fri Oct 24 2013 - tech@adalin.org
+* Wed Nov 20 2013 - tech@adalin.org
+- AeonWave (2.3.1-2) stable; urgency=medium
+ * Fix clipping during spoken text under certain conditions.
+ * Fix incorrect file-type handling for the Audio Files backend and add proper
+   error reporting to the calling program.
+
+ -- Erik Hofman <tech@adalin.org>  wed, 20 Nov 2013 10:21:00 +0100
+
+* Sun Nov 14 2013 - tech@adalin.org
 - AeonWave (2.3.1) stable; urgency=high
  * Complete rewrite of the File backend
   - Add mp3 file output support if libmp3lame is found.
@@ -7,6 +15,8 @@
    the mixer to support a dedicated record to file option.
  * Fix a major registered-sensor bug (most noticeable on Windows).
  * Fix an occasional deadlock when deregistering audio-frames.
+
+ -- Erik Hofman <tech@adalin.org>  Sun, 14 Nov 2013 15:14:00 +0200
 
 * Fri Oct 18 2013 - tech@adalin.org
 - AeonWave (2.3.0) stable; urgency=high
