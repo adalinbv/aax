@@ -1,10 +1,11 @@
-* Wed Nov 20 2013 - tech@adalin.org
-- AeonWave (2.3.1-2) stable; urgency=medium
+* Tue Nov 21 2013 - tech@adalin.org
+- AeonWave (2.3.2) stable; urgency=medium
  * Fix clipping during spoken text under certain conditions.
+ * Fix a problem where the equalizer was turned off under certain conditions.
  * Fix incorrect file-type handling for the Audio Files backend and add proper
    error reporting to the calling program.
 
- -- Erik Hofman <tech@adalin.org>  wed, 20 Nov 2013 10:21:00 +0100
+ -- Erik Hofman <tech@adalin.org>  Tue, 21 Nov 2013 13:21:00 +0100
 
 * Sun Nov 14 2013 - tech@adalin.org
 - AeonWave (2.3.1) stable; urgency=high
