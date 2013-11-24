@@ -1114,14 +1114,14 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
 }
 
 void
-_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delay, const float *gain, unsigned int num, float i_gain, float lb, float lb_gain)
+_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, unsigned int num, float igain, float lb_depth, float lb_gain)
 {
    _oalRingBufferReverbData **ptr = (_oalRingBufferReverbData**)data;
    _oalRingBufferReverbData *reverb;
 
    assert(ptr != 0);
-   assert(delay != 0);
-   assert(gain != 0);
+   assert(delays != 0);
+   assert(gains != 0);
 
    if (*ptr == NULL) {
       *ptr = calloc(1, sizeof(_oalRingBufferReverbData));
@@ -1142,16 +1142,16 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       {
          unsigned int i;
 
-         reverb->gain = i_gain;
+         reverb->gain = igain;
          reverb->no_delays = num;
          for (i=0; i<num; i++)
          {
-            if ((gain[i] > 0.001f) || (gain[i] < -0.001f))
+            if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
             {
                for (j=0; j<snum; j++) {
-                  reverb->delay[i].sample_offs[j] = (int)(delay[i] * fs);
+                  reverb->delay[i].sample_offs[j] = (int)(delays[i] * fs);
                }
-               reverb->delay[i].gain = gain[i];
+               reverb->delay[i].gain = gains[i];
             }
             else {
                reverb->no_delays--;
@@ -1160,7 +1160,7 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       }
 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      if ((num > 0) && (lb != 0) && (lb_gain != 0))
+      if ((num > 0) && (lb_depth != 0) && (lb_gain != 0))
       {
          static const float max_depth = REVERB_EFFECTS_TIME*0.6877777f;
          float dlb, dlbp;
@@ -1174,8 +1174,8 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          reverb->loopback[5].gain = lb_gain*0.73317f;
          reverb->loopback[6].gain = lb_gain*0.88317f;
 
-         dlb = 0.01f+lb*max_depth;
-         dlbp = (REVERB_EFFECTS_TIME-dlb)*lb;
+         dlb = 0.01f+lb_depth*max_depth;
+         dlbp = (REVERB_EFFECTS_TIME-dlb)*lb_depth;
          dlbp = _MINMAX(dlbp, 0.01f, REVERB_EFFECTS_TIME-0.01f);
 //       dlbp = 0;
 

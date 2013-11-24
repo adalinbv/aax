@@ -711,7 +711,7 @@ aaxEffectSetState(aaxEffect e, int state)
                static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
                unsigned int tracks = effect->info->no_tracks;
                float delays[8], gains[8];
-               float di, gi, dip, dlb, glb;
+               float idepth, igain, idepth_offs, lb_depth, lb_gain;
                float depth, fs = 48000.0f;
                int num;
 
@@ -724,35 +724,35 @@ aaxEffectSetState(aaxEffect e, int state)
                /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
 // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
                num = 3;
-               gi = 0.50f;
-               gains[0] = gi*0.9484f;	// conrete/brick = 0.95
-               gains[1] = gi*0.8935f;	// wood floor    = 0.90
-               gains[2] = gi*0.8254f;	// carpet        = 0.853
-               gains[3] = gi*0.8997f;
-               gains[4] = gi*0.8346f;
-               gains[5] = gi*0.7718f;
-               gains[6] = gi*0.7946f;
+               igain = 0.50f;
+               gains[0] = igain*0.9484f;	// conrete/brick = 0.95
+               gains[1] = igain*0.8935f;	// wood floor    = 0.90
+               gains[2] = igain*0.8254f;	// carpet        = 0.853
+               gains[3] = igain*0.8997f;
+               gains[4] = igain*0.8346f;
+               gains[5] = igain*0.7718f;
+               gains[6] = igain*0.7946f;
 
                depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
-               di = 0.005f+0.045f*depth;
-               dip = (max_depth-di)*depth;
-               dip = _MINMAX(dip, 0.01f, max_depth-0.05f);
-               assert(dip+di*0.9876543f <= REVERB_EFFECTS_TIME);
+               idepth = 0.005f+0.045f*depth;
+               idepth_offs = (max_depth-idepth)*depth;
+               idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
+               assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
 
-               delays[0] = dip + di*0.9876543f;
-               delays[2] = dip + di*0.5019726f;
-               delays[1] = dip + di*0.3333333f;
-               delays[6] = dip + di*0.1992736f;
-               delays[4] = dip + di*0.1428571f;
-               delays[5] = dip + di*0.0909091f;
-               delays[3] = dip + di*0.0769231f;
+               delays[0] = idepth_offs + idepth*0.9876543f;
+               delays[2] = idepth_offs + idepth*0.5019726f;
+               delays[1] = idepth_offs + idepth*0.3333333f;
+               delays[6] = idepth_offs + idepth*0.1992736f;
+               delays[4] = idepth_offs + idepth*0.1428571f;
+               delays[5] = idepth_offs + idepth*0.0909091f;
+               delays[3] = idepth_offs + idepth*0.0769231f;
 
-               /* calculate initial and loopback samples                       */
-               dlb = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
-               glb = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
+               /* calculate initial and loopback samples                      */
+               lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
+               lb_gain = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
                _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
-                                       delays, gains, num, 1.25f, dlb, glb);
-
+                                       delays, gains, num, 1.25f,
+                                       lb_depth, lb_gain);
                do
                {
                   _oalRingBufferReverbData *reverb = effect->slot[0]->data;
