@@ -305,7 +305,11 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
           * read the file information and set the file-pointer to
           * the start of the data section
           */
-         _aaxFileDriverReadHeader(handle, buf, bufsize);
+         if (_aaxFileDriverReadHeader(handle, buf, bufsize) < 0)
+         {
+             _AAX_FILEDRVLOG("WAVFile: Incorrect format");
+             return rv;
+         }
       }
 
       need_endian_swap = AAX_FALSE;
@@ -630,11 +634,13 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
    }
 
 #if 0
+{
+   char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
-   printf(" 0: %08x (ChunkID \"RIFF\")\n", header[0]);
+   printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
    printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
-   printf(" 2: %08x (Format \"WAVE\")\n", header[2]);
-   printf(" 3: %08x (Subchunk1ID \"fmt \")\n", header[3]);
+   printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
+   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
    printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", header[5], header[5] >> 16, header[5] & 0xFFFF);
    printf(" 6: %08x (SampleRate: %i)\n", header[6], header[6]);
@@ -663,68 +669,78 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
       printf("11: %08x (Subchunk2Size: %i)\n", header[11], header[11]);
       printf("12: %08x (nSamples: %i)\n", header[12], header[12]);
    }
+}
 #endif
 
-   handle->frequency = header[6];
-   handle->no_tracks = header[5] >> 16;
-   handle->bits_sample = extfmt ? (header[9] >> 16) : (header[8] >> 16);
-   handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
-
-   handle->blocksize = header[8] & 0xFFFF;
-   if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8)) {
-      handle->blocksize = 0;
-   }
-
-   bits = handle->bits_sample;
-   fmt = handle->io.read.format;
-   handle->format = getFormatFromWAVFileFormat(fmt, bits);
-   switch(handle->format)
+   if (header[0] == 0x46464952 && 		/* RIFF */
+       header[2] == 0x45564157 &&		/* WAVE */
+       header[3] == 0x20746d66) 		/* fmt  */
    {
-   case AAX_FORMAT_NONE:
-      return __F_EOF;
-      break;
- 
-   case AAX_IMA4_ADPCM:
-      free(handle->io.read.blockbuf);
-      handle->io.read.blockbuf = malloc(handle->blocksize);
-      break;
-   default: 
-      break;
-   }
+      handle->frequency = header[6];
+      handle->no_tracks = header[5] >> 16;
+      handle->bits_sample = extfmt ? (header[9] >> 16) : (header[8] >> 16);
 
-   /* search for the data chunk */
-   ptr = (char*)buffer;
-   ptr += size;
-   bufsize -= size;
-
-   if (ptr && (bufsize > 0))
-   {
-      unsigned int i = bufsize;
-      while (i-- > 4)
+      if ((4 <= handle->bits_sample && handle->bits_sample <= 64) &&
+          (4000 <= handle->frequency && handle->frequency <= 256000) &&
+          (1 <= handle->no_tracks && handle->no_tracks <= _AAX_MAX_SPEAKERS))
       {
-         int32_t *q = (int32_t*)ptr;
-         if (*q == 0x61746164)		/* "data" */
+         handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
+         handle->blocksize = header[8] & 0xFFFF;
+         if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8)) {
+            handle->blocksize = 0;
+         }
+
+         bits = handle->bits_sample;
+         fmt = handle->io.read.format;
+         handle->format = getFormatFromWAVFileFormat(fmt, bits);
+         switch(handle->format)
          {
-            q += 2;
-            res = ((char*)q - (char*)buffer);
-            *offs = res;
+         case AAX_FORMAT_NONE:
+            return __F_EOF;
+            break;
+         case AAX_IMA4_ADPCM:
+            free(handle->io.read.blockbuf);
+            handle->io.read.blockbuf = malloc(handle->blocksize);
+            break;
+         default: 
             break;
          }
-         else if (*q == 0x74636166)	/* "fact */
+
+         /* search for the data chunk */
+         ptr = (char*)buffer;
+         ptr += size;
+         bufsize -= size;
+
+         if (ptr && (bufsize > 0))
          {
-            unsigned int chunk_size = 8 + *(++q);
+            unsigned int i = bufsize;
+            while (i-- > 4)
+            {
+               int32_t *q = (int32_t*)ptr;
+               if (*q == 0x61746164)		/* "data" */
+               {
+                  q += 2;
+                  res = ((char*)q - (char*)buffer);
+                  *offs = res;
+                  break;
+               }
+               else if (*q == 0x74636166)	/* "fact */
+               {
+                  unsigned int chunk_size = 8 + *(++q);
 
-            ptr += chunk_size;
-            i -= chunk_size;
+                  ptr += chunk_size;
+                  i -= chunk_size;
 
-            handle->io.read.no_samples = *(++q);
+                  handle->io.read.no_samples = *(++q);
+               }
+               else ptr++;
+            }
+            if (!i) res = __F_EOF;
          }
-         else ptr++;
+         else {
+            res = __F_EOF;
+         }
       }
-      if (!i) res = __F_EOF;
-   }
-   else {
-      res = __F_EOF;
    }
 
    return res;

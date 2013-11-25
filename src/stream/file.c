@@ -453,7 +453,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       if (handle->fd >= 0)
       {
          unsigned int no_samples = *frames;
-         void *buf, *header = NULL;
+         void *buf = NULL, *header = NULL;
          int res = AAX_TRUE;
 
          if (bufsize) {
@@ -472,7 +472,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             buf = handle->fmt->open(handle->fmt->id, header, &bufsize);
             res = bufsize;
 
-            if (bufsize)
+            if (buf && bufsize)
             {
                if (handle->mode != AAX_MODE_READ && buf) {
                   res = write(handle->fd, buf, bufsize);
@@ -485,7 +485,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 
          free(header);
 
-         if (res == bufsize)
+         if (buf && res == bufsize)
          {
             freq = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
 
@@ -516,8 +516,21 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                handle->thread.started = AAX_TRUE;
                rv = AAX_TRUE;
             }
+            else {
+               _aaxFileDriverLog(id, 0, 0, "Internal error: thread fialed");
+            }
          }
-         _aaxFileDriverLog(id, 0, 0, "Incorrect header size");
+         else {
+            _aaxFileDriverLog(id, 0, 0, "Incorrect header");
+         }
+
+         if (!rv)
+         {
+            close(handle->fd);
+            handle->fd = -1;
+            free(handle->fmt->id);
+            handle->fmt->id = 0;
+         }
       }
       else
       {

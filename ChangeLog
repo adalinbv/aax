@@ -1,3 +1,7 @@
+* Mon Nov 35 2013 - tech@adalin.org
+- AeonWave (2.3.3) stable; urgency=medium
+ * Fix a pronlem with files with a .wav extension that aren't.
+
 * Tue Nov 21 2013 - tech@adalin.org
 - AeonWave (2.3.2) stable; urgency=medium
  * Fix clipping during spoken text under certain conditions.
