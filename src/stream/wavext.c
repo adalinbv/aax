@@ -680,9 +680,9 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
       handle->no_tracks = header[5] >> 16;
       handle->bits_sample = extfmt ? (header[9] >> 16) : (header[8] >> 16);
 
-      if ((4 <= handle->bits_sample && handle->bits_sample <= 64) &&
-          (4000 <= handle->frequency && handle->frequency <= 256000) &&
-          (1 <= handle->no_tracks && handle->no_tracks <= _AAX_MAX_SPEAKERS))
+      if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
+          (handle->frequency >= 4000 && handle->frequency <= 256000) &&
+          (handle->no_tracks >= 1 && handle->no_tracks <= _AAX_MAX_SPEAKERS))
       {
          handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
          handle->blocksize = header[8] & 0xFFFF;

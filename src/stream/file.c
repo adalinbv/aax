@@ -472,7 +472,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             buf = handle->fmt->open(handle->fmt->id, header, &bufsize);
             res = bufsize;
 
-            if (buf && bufsize)
+            if (bufsize)
             {
                if (handle->mode != AAX_MODE_READ && buf) {
                   res = write(handle->fd, buf, bufsize);
@@ -485,7 +485,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 
          free(header);
 
-         if (buf && res == bufsize)
+         if (bufsize && res == bufsize)
          {
             freq = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
 

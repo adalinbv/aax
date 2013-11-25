@@ -104,12 +104,11 @@ aaxEmitterDestroy(aaxEmitter emitter)
    int rv = AAX_FALSE;
    if (handle)
    {
-      if (!handle->handle)
+      _aaxEmitter *src = handle->source;
+      if (!handle->handle && _IS_PROCESSED(src->props3d))
       {
          _oalRingBufferDelayEffectData* effect;
-         _aaxEmitter *src = handle->source;
 
-         _SET_PROCESSED(src->props3d);
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
          free(_FILTER_GET2D_DATA(src, FREQUENCY_FILTER));

@@ -1,6 +1,9 @@
-* Mon Nov 35 2013 - tech@adalin.org
+* Mon Nov 25 2013 - tech@adalin.org
 - AeonWave (2.3.3) stable; urgency=medium
  * Fix a pronlem with files with a .wav extension that aren't.
+ * Prevent destroying of the emitter unless it is in the AAX_PROCESSED state.
+
+ -- Erik Hofman <tech@adalin.org>  Mon, 25 Nov 2013 12:34:00 +0100
 
 * Tue Nov 21 2013 - tech@adalin.org
 - AeonWave (2.3.2) stable; urgency=medium
