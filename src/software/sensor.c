@@ -225,7 +225,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          ntptr = (int32_t **)nrb->sample->track;
          otptr = (int32_t **)rbd->track;
 
-         rms_rr = _MINMAX(dt/0.2f, 0.0f, 1.0f);		// 200 ms RMS average
+         rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);		// 300 ms RMS average
          maxrms = maxpeak = 0;
          tracks = rbd->no_tracks;
          for (track=0; track<tracks; track++)
