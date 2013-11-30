@@ -2102,16 +2102,21 @@ _wasapi_open(_driver_t *handle, WAVEFORMATEXTENSIBLE *fmt)
                                                 &handle->pDevice);
          }
 
-         hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
-                                  CLSCTX_INPROC_SERVER, NULL,
-                                  (void**)&handle->pAudioClient);
-         if (hr == S_OK)
-         {
-            WAVEFORMATEX *wfmt = (WAVEFORMATEX*)fmt;
-            hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
-            if (hr == S_OK) {
-               exToExtensible(&handle->Fmt, wfmt, handle->setup);
+         if (handle->pDevice) {
+            hr = pIMMDevice_Activate(handle->pDevice, pIID_IAudioClient,
+                                     CLSCTX_INPROC_SERVER, NULL,
+                                     (void**)&handle->pAudioClient);
+            if (hr == S_OK)
+            {
+               WAVEFORMATEX *wfmt = (WAVEFORMATEX*)fmt;
+               hr = pIAudioClient_GetMixFormat(handle->pAudioClient, &wfmt);
+               if (hr == S_OK) {
+                  exToExtensible(&handle->Fmt, wfmt, handle->setup);
+               }
             }
+         }
+         else {
+            hr = S_FALSE; 
          }
       }
 
