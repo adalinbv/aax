@@ -15,6 +15,9 @@
 
 #include <stdio.h>
 #ifdef HAVE_RMALLOC_H
+# if HAVE_UNISTD_H
+#  include <unistd.h>
+# endif
 # include <rmalloc.h>
 #else
 # include <stdlib.h>
