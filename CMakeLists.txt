@@ -323,6 +323,7 @@ SET( AEONWAVE_OBJS
      src/aax_driver.c
      src/aax_effects.c
      src/aax_emitter.c
+     src/aax_eventmgr.c
      src/aax_filters.c
      src/aax_instrument.c
      src/aax_matrix.c

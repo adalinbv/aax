@@ -122,6 +122,8 @@ typedef struct
    /* parametric equalizer **/
    _oalRingBufferFilterInfo filter[EQUALIZER_MAX];
 
+   _aaxEventInfo *eventmgr;
+
 } _handle_t;
 
 _handle_t* new_handle();
@@ -326,6 +328,9 @@ enum
     _AAX_RINGBUFFER,
     _AAX_EXTENSION,
     _AAX_DELAYED3D,
+    _AAX_BUFFER_CACHE,
+    _AAX_EMITTER_CACHE,
+    _AAX_FRAME_CACHE,
 
     _AAX_MAX_ID
 };
