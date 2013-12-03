@@ -16,7 +16,7 @@
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
-# include <stdlib.h>
+# include <stdlib.h>	/* alloc and free */
 #endif
 
 #include <aax/eventmgr.h>
@@ -24,6 +24,28 @@
 #include <base/buffers.h>
 
 #include "api.h"
+
+enum _aaxEventType
+{
+   AAX_USER_EVENTS = 0,
+
+   /*
+    * user events are defined in
+    * enum aaxEventType in aax/eventmgr.h
+    */
+
+   AAX_SYSTEM_EVENTS = 0x8000,
+   AAX_EVENT_STREAM_FILE,
+   AAX_EVENT_PLAY_BUFFER,
+   AAX_EVENT_DESTORY_EMITTER,
+
+   AAX_SYSTEM_EVENT_MAX
+};
+
+typedef struct {
+   enum _aaxEventType event;
+   void *data;
+} _event_queue_t;
 
 typedef struct {
    aaxBuffer buffer;
@@ -47,6 +69,7 @@ static void _aaxFreeFrameCache(void*);
 static void _aaxFreeBufferCache(void*);
 static void _aaxFreeEmitterCache(void*);
 static aaxBuffer _aaxGetBufferFromCache(_aaxEventInfo*, const char*);
+
 
 AAX_API int AAX_APIENTRY
 aaxEventManagerCreate(aaxConfig config)
