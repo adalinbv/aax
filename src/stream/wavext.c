@@ -1143,3 +1143,71 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsig
 }
 
 
+/**
+ * Write a canonical WAVE file from memory to a file.
+ *
+ * @param a pointer to the exact ascii file location
+ * @param no_samples number of samples per audio track
+ * @param fs sample frequency of the audio tracks
+ * @param no_tracks number of audio tracks in the buffer
+ * @param format audio format
+ */
+#include <fcntl.h>		/* SEEK_*, O_* */
+void
+_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
+                          void *data, unsigned int no_samples,
+                          unsigned int freq, char no_tracks,
+                          enum aaxFormat format)
+{
+   _driver_t *handle;
+   unsigned int size;
+   int fd, oflag;
+   int res, mode;
+   off_t floc;
+
+   mode = AAX_MODE_WRITE_STEREO;
+   handle = _aaxWavSetup(mode, &size, freq, no_tracks, format, no_samples, 0);
+   if (!handle)
+   {
+      printf("Error: Unable to setup the file stream handler,\n");
+      return;
+   }
+
+   oflag = O_CREAT|O_WRONLY|O_BINARY;
+   if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
+// if (type == AAX_APPEND) oflag |= O_APPEND;
+   fd = open(file, oflag, 0644);
+   if (fd < 0)
+   {
+      printf("Error: Unable to write to file.\n");
+      return;
+   }
+
+   _aaxWavOpen(handle, NULL, &size);
+
+   floc = lseek(fd, 0L, SEEK_END);
+   lseek(fd, 0L, SEEK_SET);
+
+   res = write(fd, handle->io.write.header, handle->io.write.header_size);
+   if (res == -1) {
+      _AAX_FILEDRVLOG(strerror(errno));
+   }
+
+   if (type == AAX_APPEND) {
+      lseek(fd, floc, SEEK_SET);
+   }
+
+   if (handle->cvt_endianness) {
+      handle->cvt_endianness(data, no_tracks*no_samples);
+   }
+
+   size = no_samples * no_tracks * handle->bits_sample/8;
+   res = write(fd, data, size);
+   if (res == -1) {
+      _AAX_FILEDRVLOG(strerror(errno));
+   }
+
+   _aaxWavClose(handle);
+   close(fd);
+}
+

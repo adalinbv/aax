@@ -33,14 +33,14 @@ uint8_t _linear2alaw(int16_t);
 uint8_t _linear2mulaw(int16_t);
 int16_t _alaw2linear(uint8_t);
 int16_t _mulaw2linear(uint8_t);
-int16_t _adpcm2linear (uint8_t, int16_t *, uint8_t *);
-void    _linear2adpcm(int16_t *, int16_t, uint8_t *, uint8_t *);
+int16_t _adpcm2linear (uint8_t, int16_t*, uint8_t*);
+void    _linear2adpcm(int16_t*, int16_t, uint8_t*, uint8_t*);
 
-void  _sw_bufcpy_ima_adpcm(void *, const void *, unsigned char, unsigned int);
+void  _sw_bufcpy_ima_adpcm(void*, const void*, unsigned char, unsigned int);
 
 void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
-void _aaxFileDriverWrite(const char *, enum aaxProcessingType, void *, unsigned int, unsigned int, char, enum aaxFormat);
+void _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, unsigned int, unsigned int, char, enum aaxFormat);
 
 /* sensor */
 void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,

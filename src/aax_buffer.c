@@ -679,12 +679,16 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
    if (aaxIsValid(buffer, AAX_BUFFER))
    {
       enum aaxFormat format = aaxBufferGetSetup(buffer, AAX_FORMAT);
-      unsigned int no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+      unsigned int samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
       unsigned int freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-      char no_tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
+      char tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
       void **data = aaxBufferGetData(buffer);
 
-      _aaxFileDriverWrite(file, type, *data, no_samples,freq,no_tracks,format);
+      /*
+       * *data now holds the interleaved data, 16-byte aligned
+       * and converted to the proper format
+       */
+      _aaxFileDriverWrite(file, type, *data, samples, freq, tracks, format);
       free(data);
 
       rv = AAX_TRUE;
