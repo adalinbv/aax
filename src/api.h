@@ -122,7 +122,7 @@ typedef struct
    /* parametric equalizer **/
    _oalRingBufferFilterInfo filter[EQUALIZER_MAX];
 
-   _aaxEventInfo *eventmgr;
+   void *eventmgr;
 
 } _handle_t;
 
@@ -303,6 +303,19 @@ _filter_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _oalRingBuffer2
 _filter_t* get_effect(aaxEffect);
 _filter_t* get_effect(aaxEffect);
 
+/* --- Events --- */
+typedef struct
+{
+   _intBuffers *buffers;
+   _intBuffers *emitters;
+   _intBuffers *frames;
+
+   struct threat_t thread;
+
+} _event_t;
+
+void* _aaxEventThread(void*);
+
 /* --- WaveForms --- */
 void *_bufferWaveCreateWhiteNoise(float, int, float, unsigned int*);
 void *_bufferWaveCreatePinkNoise(float, int, float, unsigned int*);
@@ -331,6 +344,7 @@ enum
     _AAX_BUFFER_CACHE,
     _AAX_EMITTER_CACHE,
     _AAX_FRAME_CACHE,
+    _AAX_EVENT_QUEUE,
 
     _AAX_MAX_ID
 };

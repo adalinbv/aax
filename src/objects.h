@@ -120,14 +120,6 @@ typedef ALIGN16 struct
 
 typedef struct
 {
-   _intBuffers *buffers;
-   _intBuffers *emitters;
-   _intBuffers *frames;
-
-} _aaxEventInfo;
-
-typedef struct
-{
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;

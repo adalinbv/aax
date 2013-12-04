@@ -18,10 +18,12 @@
 #else
 # include <stdlib.h>	/* alloc and free */
 #endif
+#include <assert.h>
 
 #include <aax/eventmgr.h>
 
 #include <base/buffers.h>
+#include <base/threads.h>
 
 #include "api.h"
 
@@ -42,33 +44,41 @@ enum _aaxEventType
    AAX_SYSTEM_EVENT_MAX
 };
 
-typedef struct {
+typedef struct
+{
    enum _aaxEventType event;
    void *data;
+   aaxEventCallbackFn callback;
+   void *user_data;
 } _event_queue_t;
 
-typedef struct {
+typedef struct
+{
    aaxBuffer buffer;
    unsigned int ref_counter;
    char *fname;
 } _buffer_cache_t;
 
-typedef struct {
+typedef struct
+{
    aaxEmitter emitter;
    aaxFrame frame;		/* parent frame */
    unsigned int buffer_pos;
    unsigned int pos;
+   _intBuffers *event_queue;
 } _emitter_cache_t;
 
-typedef struct {
+typedef struct
+{
    aaxFrame frame;
    unsigned int pos;
+   _intBuffers *event_queue;
 } _frame_cache_t;
 
 static void _aaxFreeFrameCache(void*);
 static void _aaxFreeBufferCache(void*);
 static void _aaxFreeEmitterCache(void*);
-static aaxBuffer _aaxGetBufferFromCache(_aaxEventInfo*, const char*);
+static aaxBuffer _aaxGetBufferFromCache(_event_t*, const char*);
 
 
 AAX_API int AAX_APIENTRY
@@ -76,8 +86,37 @@ aaxEventManagerCreate(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
    int rv = AAX_FALSE;
-   if (handle && handle->eventmgr)
+   if (handle && !handle->eventmgr)
    {
+      handle->eventmgr = calloc(1, sizeof(_event_t));
+      if (handle->eventmgr)
+      {
+         _event_t *event = handle->eventmgr;
+         int r;
+
+         _intBufCreate(&event->frames, _AAX_FRAME_CACHE);
+         _intBufCreate(&event->buffers, _AAX_BUFFER_CACHE);
+         _intBufCreate(&event->emitters, _AAX_EMITTER_CACHE);
+
+         event->thread.ptr = _aaxThreadCreate();
+         assert(event->thread.ptr != 0);
+
+         event->thread.condition = _aaxConditionCreate();
+         assert(event->thread.condition != 0);
+
+         event->thread.started = AAX_TRUE;
+         r =_aaxThreadStart(event->thread.ptr, _aaxEventThread, event, 1000);
+         if (r == 0)
+         {
+            event->thread.mutex = _aaxMutexCreate(event->thread.mutex);
+            rv = AAX_TRUE;
+         }
+         else
+         {
+            aaxEventManagerDestory(config);
+            _aaxErrorSet(AAX_INVALID_STATE);
+         }
+      }
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
@@ -92,9 +131,20 @@ aaxEventManagerDestory(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
    int rv = AAX_FALSE;
-   if (handle && !handle->eventmgr)
+   if (handle && handle->eventmgr)
    {
-      _aaxEventInfo *event = handle->eventmgr;
+      _event_t *event = handle->eventmgr;
+
+      if TEST_FOR_TRUE(event->thread.started)
+      {
+         event->thread.started = AAX_FALSE;
+         _aaxConditionSignal(event->thread.condition);
+         _aaxThreadJoin(event->thread.ptr);
+
+         _aaxConditionDestroy(event->thread.condition);
+         _aaxMutexDestroy(event->thread.mutex);
+         _aaxThreadDestroy(event->thread.ptr);
+      }
 
       _intBufErase(&event->emitters, _AAX_EMITTER_CACHE, _aaxFreeEmitterCache);
       _intBufErase(&event->buffers, _AAX_BUFFER_CACHE, _aaxFreeBufferCache);
@@ -140,7 +190,7 @@ aaxEventManagerCreateAudioFrame(aaxConfig config)
          _frame_cache_t *fr = malloc(sizeof(_frame_cache_t));
          if (fr)
          {
-            _aaxEventInfo *event = handle->eventmgr;
+            _event_t *event = handle->eventmgr;
 
             aaxAudioFrameSetMode(rv, AAX_POSITION, AAX_RELATIVE);
 
@@ -176,7 +226,7 @@ aaxEventManagerRegisterEmitter(aaxFrame frame, const char *file)
       _handle_t *config = get_driver_handle(frame);
       if (config && config->eventmgr)
       {
-         _aaxEventInfo *event = config->eventmgr;
+         _event_t *event = config->eventmgr;
          aaxBuffer buffer = _aaxGetBufferFromCache(event, file);
          if (buffer)
          {
@@ -279,7 +329,7 @@ aaxEventManagerPlayFile(aaxConfig config, const char *file, float gain, float de
 /* -------------------------------------------------------------------------- */
 
 static aaxBuffer
-_aaxGetBufferFromCache(_aaxEventInfo *event, const char *fname)
+_aaxGetBufferFromCache(_event_t *event, const char *fname)
 {
    aaxBuffer rv = NULL;
    if (fname)
@@ -298,6 +348,7 @@ static void _aaxFreeFrameCache(void *ptr)
    aaxAudioFrameSetState(fr->frame, AAX_PROCESSED);
    aaxMixerDeregisterAudioFrame(handle, fr->frame);
    aaxAudioFrameDestroy(fr->frame);
+   _intBufErase(&fr->event_queue, _AAX_EVENT_QUEUE, free);
    free(fr);
 }
 
@@ -317,5 +368,12 @@ static void _aaxFreeEmitterCache(void *ptr)
    aaxEmitterSetState(em->emitter, AAX_PROCESSED);
    aaxAudioFrameDeregisterEmitter(em->frame, em->emitter);
    aaxEmitterDestroy(em->emitter);
+   _intBufErase(&em->event_queue, _AAX_EVENT_QUEUE, free);
    free(em);
+}
+
+void*
+_aaxEventThread(void *eventmgr)
+{
+   return NULL;
 }
