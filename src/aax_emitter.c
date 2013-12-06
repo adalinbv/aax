@@ -56,7 +56,7 @@ aaxEmitterCreate()
 
       src = (_aaxEmitter*)((char*)ptr1 + sizeof(_emitter_t));
       handle->source = src;
-      src->pos = -1;
+      src->pos = UINT_MAX;
 
       assert(((long int)ptr2 & 0xF) == 0);
       src->props2d = (_oalRingBuffer2dProps*)ptr2;
@@ -75,7 +75,8 @@ aaxEmitterCreate()
          if (src->buffers)
          {
             handle->id = EMITTER_ID;
-            handle->pos = UINT_MAX;
+            handle->cache_pos = UINT_MAX;
+            handle->mixer_pos = UINT_MAX;
             handle->looping = AAX_FALSE;
             _SET_INITIAL(src->props3d);
 
@@ -337,7 +338,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          }
          /* break not needed */
       case AAX_UPDATE:				/* update distance delay */
-         if (handle->pos != UINT_MAX)		/* emitter is registered */
+         if (handle->mixer_pos != UINT_MAX)	/* emitter is registered */
          {
             _handle_t *phandle = handle->handle;
             if (phandle->id == HANDLE_ID)
@@ -892,7 +893,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
             }
             if (dptr)
             {
-               handle->pos = pos;
+               handle->mixer_pos = pos;
                _oalRingBufferSetParami(rb, RB_OFFSET_SAMPLES, offs);
                rv = AAX_TRUE;
             }
@@ -915,7 +916,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
             }
             if (dptr)
             {
-               handle->pos = pos;
+               handle->mixer_pos = pos;
                _oalRingBufferSetParamf(rb, RB_OFFSET_SEC, fpos);
                rv = AAX_TRUE;
             }
@@ -976,7 +977,7 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
             }
             if (dptr)
             {
-               handle->pos = pos;
+               handle->mixer_pos = pos;
                _oalRingBufferSetParamf(rb, RB_OFFSET_SEC, offs);
                rv = AAX_TRUE;
             }
@@ -1123,7 +1124,7 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
          case AAX_FRAMES:
          case AAX_SAMPLES:
             _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-            for (i=0; i<handle->pos; i++)
+            for (i=0; i<handle->mixer_pos; i++)
             {
                rv += _oalRingBufferGetParami(embuf->ringbuffer, RB_NO_SAMPLES);
                _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
@@ -1212,7 +1213,7 @@ get_emitter(aaxEmitter em)
             } else {
                he = mixer->emitters_3d;
             }
-            dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->pos);
+            dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->mixer_pos);
             emitter = _intBufGetDataPtr(dptr_src);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -1228,7 +1229,7 @@ get_emitter(aaxEmitter em)
          } else {
             he = handle->submix->emitters_3d;
          }
-         dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->pos);
+         dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->mixer_pos);
          emitter = _intBufGetDataPtr(dptr_src);
       }
       rv = emitter;
@@ -1258,7 +1259,7 @@ put_emitter(aaxEmitter em)
             } else {
                he = mixer->emitters_3d;
             }
-            _intBufRelease(he, _AAX_EMITTER, emitter->pos);
+            _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
@@ -1272,7 +1273,7 @@ put_emitter(aaxEmitter em)
          } else {
             he = handle->submix->emitters_3d;
          }
-         _intBufRelease(he, _AAX_EMITTER, emitter->pos);
+         _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
       }
    }
 }

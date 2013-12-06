@@ -663,7 +663,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
       _handle_t* sframe = get_read_handle(s);
       if (sframe && !sframe->thread.started && (sframe != handle))
       {
-         if (sframe->pos == UINT_MAX)
+         if (sframe->mixer_pos == UINT_MAX)
          {
             unsigned int pos = UINT_MAX;
             _intBufferData *dptr;
@@ -745,7 +745,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      _intBufReleaseData(dptr, _AAX_SENSOR);
 
                      sframe->handle = handle;
-                     sframe->pos = pos;
+                     sframe->mixer_pos = pos;
                      submix->refcount++;
                      submix->thread = AAX_TRUE;
 
@@ -858,7 +858,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
    if (handle)
    {
       _handle_t* sframe = get_read_handle(s);
-      if (sframe && sframe->pos != UINT_MAX)
+      if (sframe && sframe->mixer_pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -868,7 +868,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             _intBuffers *hs = mixer->devices;
             _intBufferData *dptr_sframe;
 
-            _intBufRemove(hs, _AAX_DEVICE, sframe->pos, AAX_FALSE);
+            _intBufRemove(hs, _AAX_DEVICE, sframe->mixer_pos, AAX_FALSE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
 
@@ -880,7 +880,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
                _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
 
                sframe->handle = NULL;
-               sframe->pos = UINT_MAX;
+               sframe->mixer_pos = UINT_MAX;
                rv = AAX_TRUE;
             }
          }
@@ -919,7 +919,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
    if (handle)
    {
       _emitter_t* emitter = get_emitter_unregistered(em);
-      if (emitter && emitter->pos == UINT_MAX)
+      if (emitter && emitter->mixer_pos == UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
          unsigned int pos, positional;
@@ -958,7 +958,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             _intBufferData *dptr;
 
             emitter->handle = handle;
-            emitter->pos = pos;
+            emitter->mixer_pos = pos;
 
             /*
              * The mixer frequency is not know by the frequency filter
@@ -1038,7 +1038,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
    if (handle)
    {
       _emitter_t* emitter = get_emitter(em);
-      if (emitter && emitter->pos != UINT_MAX)
+      if (emitter && emitter->mixer_pos != UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
          _intBufferData *dptr;
@@ -1062,14 +1062,14 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 
             /* Unlock the frame again to make sure locking is done in the  */
             /* proper order by _intBufRemove                               */
-            _intBufRelease(he, _AAX_EMITTER, emitter->pos);
-            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->pos, AAX_FALSE);
+            _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
+            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos,AAX_FALSE);
             if (ptr)
             {
                _oalRingBufferPutSource();
                mixer->no_registered--;
                emitter->handle = NULL;
-               emitter->pos = UINT_MAX;
+               emitter->mixer_pos = UINT_MAX;
                rv = AAX_TRUE;
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
@@ -1096,7 +1096,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
       _frame_t* frame = get_frame(f);
       if (frame && !frame->handle && !frame->thread.started)
       {
-         if (frame->pos == UINT_MAX)
+         if (frame->mixer_pos == UINT_MAX)
          {
             unsigned int pos = UINT_MAX;
             _intBufferData *dptr;
@@ -1172,7 +1172,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 #endif
 
                   frame->handle = handle;
-                  frame->pos = pos;
+                  frame->mixer_pos = pos;
                }
             }
             else {
@@ -1208,7 +1208,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
    if (handle)
    {
       _frame_t* frame = get_frame(f);
-      if (frame && frame->pos != UINT_MAX)
+      if (frame && frame->mixer_pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -1220,15 +1220,15 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
             /* Unlock the frame again to make sure locking is done in the */
            /* proper order by _intBufRemove                               */
-            _intBufRelease(hf, _AAX_FRAME, frame->pos);
-            _intBufRemove(hf, _AAX_FRAME, frame->pos, AAX_FALSE);
+            _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
+            _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos, AAX_FALSE);
             mixer->no_registered--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
 
             submix->refcount--;
             submix->thread = AAX_FALSE;
             frame->handle = NULL;
-            frame->pos = UINT_MAX;
+            frame->mixer_pos = UINT_MAX;
             rv = AAX_TRUE;
          }
       }

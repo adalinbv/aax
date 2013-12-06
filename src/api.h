@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include <aax/aax.h>
+#include <aax/eventmgr.h>
 #include <aax/instrument.h>
 
 #include <driver.h>
@@ -101,10 +102,10 @@ typedef struct
 {
    unsigned int id;
 
-   int pos;
    int valid;
    int state;
    unsigned int be_pos;
+   unsigned int mixer_pos;
    void* handle;		/* assigned when registered to a (sub)mixer */
 
    char *devname[2];
@@ -140,8 +141,9 @@ typedef struct
    int id;
 
    int state;
-   unsigned int pos;
-   void* handle;	/* assigned when registered to a (sub)mixer */
+   unsigned int mixer_pos;
+   unsigned int cache_pos;	/* position in the eventmgr emitter cache   */
+   void* handle;		/* assigned when registered to a (sub)mixer */
 
    _aaxAudioFrame *submix;
 
@@ -251,8 +253,9 @@ typedef struct
 {
    unsigned int id;	/* always first */
 
-   unsigned int pos;	/* rigsitered emitter position                  */
-   unsigned char track;	/* specifies which track to use from the buffer */
+   unsigned int mixer_pos;	/* rigsitered emitter position            */
+   unsigned int cache_pos;	/* position in the eventmgr emitter cache */
+   unsigned char track;		/* which track to use from the buffer     */
    char looping;
 
    _aaxEmitter *source;
@@ -304,6 +307,18 @@ _filter_t* get_effect(aaxEffect);
 _filter_t* get_effect(aaxEffect);
 
 /* --- Events --- */
+#define EVENT_ID	0x9173652A
+
+typedef struct
+{
+   int id;
+   unsigned int emitter_pos;
+   enum aaxEventType event;
+   void *data;
+   aaxEventCallbackFn callback;
+   void *user_data;
+} _event_t;
+
 typedef struct
 {
    _intBuffers *buffers;
@@ -312,7 +327,7 @@ typedef struct
 
    struct threat_t thread;
 
-} _event_t;
+} _aaxEventMgr;
 
 void* _aaxEventThread(void*);
 
