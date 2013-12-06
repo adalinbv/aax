@@ -26,6 +26,7 @@ enum aaxEventType
 {
     AAX_EVENT_NONE = 0,
     AAX_EVENT_START,
+    AAX_EVENT_STOP,
     AAX_EVENT_PROCESS,
     AAX_EVENT_LOOP,
     AAX_EVENT_BUFFER_AVAIL,
@@ -33,7 +34,15 @@ enum aaxEventType
     AAX_EVENT_IN_RANGE,
     AAX_EVENT_OUT_OF_RANGE,
 
-    AAX_EVENT_MAX
+    AAX_EVENT_MAX,
+
+    AAX_EMITTER_EVENTS = 0x100,
+    AAX_SENSOR_EVENTS = 0x200,
+    AAX_FRAME_EVENTS = 0x400,
+    AAX_BUFFER_EVENTS = 0x800,
+    AAX_SPECIAL_EVENTS = 0x1000,
+
+    AAX_SYSTEM_EVENTS = 0x8000
 };
 
 typedef void* aaxEvent;
@@ -65,7 +74,7 @@ AAX_API int AAX_APIENTRY aaxEventManagerDestoryEmitter(aaxFrame, aaxEmitter);
 /*
  * Event setup
  */
-AAX_API aaxEvent AAX_APIENTRY aaxEventManagerRegisterEvent(aaxConfig, aaxEmitter, enum aaxEventType, aaxEventCallbackFn);
+AAX_API aaxEvent AAX_APIENTRY aaxEventManagerRegisterEvent(aaxConfig, aaxEmitter, enum aaxEventType, aaxEventCallbackFn, void*);
 AAX_API int AAX_APIENTRY aaxEventManagerDeregisterEvent(aaxConfig, aaxEvent);
 
 /*
