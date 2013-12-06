@@ -155,7 +155,7 @@ typedef struct
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
-   int pos;				/* audio buffer queue pos        */
+   int buffer_pos;			/* audio buffer queue pos        */
 
    int8_t update_rate;
    int8_t update_ctr;

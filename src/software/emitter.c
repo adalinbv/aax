@@ -72,7 +72,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
             assert(nbuf > 0);
 
             streaming = (nbuf > 1);
-            dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, src->pos);
+            dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
+                                                 src->buffer_pos);
             if (dptr_sbuf)
             {
                _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
@@ -135,14 +136,14 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                      if (streaming)
                      {
                         /* is there another buffer ready to play? */
-                        if (++src->pos == nbuf)
+                        if (++src->buffer_pos == nbuf)
                         {
                            /*
                             * The last buffer was processed, return to the
                             * first buffer or stop? 
                             */
                            if TEST_FOR_TRUE(emitter->looping) {
-                              src->pos = 0;
+                              src->buffer_pos = 0;
                            }
                            else
                            {
@@ -157,7 +158,8 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                         {
                            _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
                            dptr_sbuf = _intBufGet(src->buffers,
-                                              _AAX_EMITTER_BUFFER, src->pos);
+                                                  _AAX_EMITTER_BUFFER,
+                                                  src->buffer_pos);
                            embuf = _intBufGetDataPtr(dptr_sbuf);
                            src_rb = embuf->ringbuffer;
                         }

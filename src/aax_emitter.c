@@ -56,7 +56,7 @@ aaxEmitterCreate()
 
       src = (_aaxEmitter*)((char*)ptr1 + sizeof(_emitter_t));
       handle->source = src;
-      src->pos = UINT_MAX;
+      src->buffer_pos = UINT_MAX;
 
       assert(((long int)ptr2 & 0xF) == 0);
       src->props2d = (_oalRingBuffer2dProps*)ptr2;
@@ -204,7 +204,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
    if (handle)
    {
       _aaxEmitter *src = handle->source;
-      if (_IS_PROCESSED(src->props3d) || src->pos > 0)
+      if (_IS_PROCESSED(src->props3d) || src->buffer_pos > 0)
       {
          _intBufferData *buf;
 
@@ -224,8 +224,8 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
             }
             _intBufDestroyDataNoLock(buf);
 
-            if (src->pos > 0) {
-               src->pos--;
+            if (src->buffer_pos > 0) {
+               src->buffer_pos--;
             }
             rv = AAX_TRUE;
          }
@@ -288,14 +288,14 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
       case AAX_PROCESSED:
          if (_IS_PROCESSED(src->props3d)) {
             rv = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
-         } else if (src->pos > 0) {
-            rv = src->pos;
+         } else if (src->buffer_pos > 0) {
+            rv = src->buffer_pos;
          }
          break;
       case AAX_PLAYING:
          if (_IS_PLAYING(src->props3d)) {
             rv = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
-            rv -= src->pos;
+            rv -= src->buffer_pos;
          }
          break;
       case AAX_MAXIMUM:
@@ -329,7 +329,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             num = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
             if (num)
             {
-               src->pos = 0;
+               src->buffer_pos = 0;
                _SET_PLAYING(src->props3d);
             }
          }
@@ -368,7 +368,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             if (!_PROP_DISTDELAY_IS_DEFINED(src->props3d))
             {
                _SET_PROCESSED(src->props3d);
-               src->pos = -1;
+               src->buffer_pos = UINT_MAX;
             }
             else {
                _SET_STOPPED(src->props3d);
@@ -380,7 +380,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          if (_IS_PLAYING(src->props3d))
          {
             _SET_PROCESSED(src->props3d);
-            src->pos = -1;
+            src->buffer_pos = UINT_MAX;
          }
          rv = AAX_TRUE;
          break;
@@ -394,7 +394,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       {
          const _intBufferData* dptr;
 
-         src->pos = 0;
+         src->buffer_pos = 0;
          dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
@@ -402,7 +402,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _oalRingBufferRewind(embuf->ringbuffer);
-            src->pos = 0;
+            src->buffer_pos = 0;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
             env = _FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER);
