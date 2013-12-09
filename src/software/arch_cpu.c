@@ -522,7 +522,6 @@ _batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, uns
    if (num)
    {
       unsigned int t;
-
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;

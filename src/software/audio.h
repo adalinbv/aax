@@ -40,8 +40,6 @@ void  _sw_bufcpy_ima_adpcm(void*, const void*, unsigned char, unsigned int);
 
 void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
-void _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, unsigned int, unsigned int, char, enum aaxFormat);
-
 /* sensor */
 void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,
                         _oalRingBuffer2dProps*, int);

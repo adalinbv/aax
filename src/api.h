@@ -244,6 +244,11 @@ void _bufferMixTriangleWave(void**, float, char, unsigned int, int, float, float
 void _bufferMixSawtooth(void**, float, char, unsigned int, int, float, float);
 void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
 
+#if 1
+int _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, unsigned int, unsigned int, char, enum aaxFormat);
+#else
+int _aaxFileDriverWrite(const char*, enum aaxProcessingType, const int32_t**, unsigned int, unsigned int, char, enum aaxFormat);
+#endif
 
 /* --- Emitter --- */
 #define EMITTER_ID	0x17F533AA

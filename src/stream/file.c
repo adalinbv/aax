@@ -26,6 +26,7 @@
 # ifdef HAVE_UNISTD_H
 #  include <unistd.h>		/* read, write, close, lseek */
 # endif
+#include <string.h>
 #endif
 #ifdef HAVE_IO_H
 #include <io.h>
@@ -128,7 +129,7 @@ typedef struct
    struct threat_t thread;
    uint8_t buf[IOBUF_SIZE];
    unsigned int bufpos;
-   unsigned int no_samples;
+   unsigned int no_bytes;
 
    _aaxFmtHandle* fmt;
    char *interfaces;
@@ -136,6 +137,7 @@ typedef struct
 } _driver_t;
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
+static _aaxFmtHandle* _aaxGetFormat(const char*);
 static void* _aaxFileDriverWriteThread(void*);
 static void* _aaxFileDriverReadThread(void*);
 
@@ -165,8 +167,6 @@ _aaxFileDriverDetect(int mode)
 
    return rv;
 }
-
-
 
 static void *
 _aaxFileDriverNewHandle(enum aaxRenderMode mode)
@@ -269,40 +269,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       int m = (handle->mode > 0) ? 0 : 1;
 
       handle->fmode = _mode[m];
-
-      if (s)
-      {
-         char *ext = strrchr(s, '.');
-         if (ext)
-         {
-            _aaxExtensionDetect* ftype;
-            int i = 0;
-
-            ext++;
-            do
-            {
-               if ((ftype = _aaxFileTypes[i++]) != NULL)
-               {
-                  _aaxFmtHandle* type = ftype();
-                  if (type && type->detect(mode) && type->supported(ext))
-                  {
-                     free(handle->fmt);
-                     handle->fmt = type;
-                     break;
-                  }
-                  free(type);
-               }
-            }
-            while (ftype);
-
-            if (!ftype)
-            {
-               free(handle->fmt);
-               handle->fmt = NULL;
-            }
-         }
-      }
-
+      handle->fmt = _aaxGetFormat(s);
       if (handle->fmt)
       {
          handle->name = s;
@@ -599,7 +566,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
                                   offs, file_tracks, no_samples,
                                   scratch, handle->buf_len);
-   handle->no_samples = res;
+   handle->no_bytes = res;
 
    _aaxMutexUnLock(handle->thread.mutex);
    _aaxConditionSignal(handle->thread.condition);
@@ -874,29 +841,62 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 
 /*-------------------------------------------------------------------------- */
 
+static _aaxFmtHandle*
+_aaxGetFormat(const char *fname)
+{
+   char *ext = strrchr(fname, '.');
+   _aaxFmtHandle *rv = NULL;
+
+   if (ext)
+   {
+      _aaxExtensionDetect* ftype;
+      int i = 0;
+
+      ext++;
+      do
+      {
+         if ((ftype = _aaxFileTypes[i++]) != NULL)
+         {
+            _aaxFmtHandle* type = ftype();
+            if (type && type->detect(AAX_MODE_WRITE_STEREO)
+                     && type->supported(ext))
+            {
+               rv = type;
+               break;
+            }
+            free(type);
+         }
+      }
+      while (ftype);
+   }
+
+   return rv;
+}
+
 static void*
 _aaxFileDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   int res;
+   int bits,  res;
 
    _aaxThreadSetPriority(AAX_LOW_PRIORITY);
 
    _aaxMutexLock(handle->thread.mutex);
+   bits = handle->bits_sample;
    do
    {
       unsigned int usize, file_bufsize;
       char *data;
 
       _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
-      res = handle->no_samples;
       data = (char*)handle->scratch;
 
+      res = handle->no_bytes;
       if (handle->fmt->cvt_from_signed) {
-         handle->fmt->cvt_from_signed(handle->fmt->id, data, res);
+         handle->fmt->cvt_from_signed(handle->fmt->id, data, res*8/bits);
       }
       if (handle->fmt->cvt_endianness) {
-         handle->fmt->cvt_endianness(handle->fmt->id, data, res);
+         handle->fmt->cvt_endianness(handle->fmt->id, data, res*8/bits);
       }
 
       file_bufsize = res;
@@ -946,7 +946,7 @@ _aaxFileDriverWriteThread(void *id)
          }
       }
       while (file_bufsize);
-      handle->no_samples = 0;
+      handle->no_bytes = 0;
    }
    while(handle->thread.started);
 
@@ -979,4 +979,119 @@ _aaxFileDriverReadThread(void *id)
 
    return handle;
 }
+
+#if 0
+/**
+ * Write a canonical WAVE file from memory to a file.
+ *
+ * @param a pointer to the exact ascii file location
+ * @param no_samples number of samples per audio track
+ * @param fs sample frequency of the audio tracks
+ * @param no_tracks number of audio tracks in the buffer
+ * @param format audio format
+ */
+#include <fcntl.h>		/* SEEK_*, O_* */
+int
+_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
+                          const int32_t **sbuf, unsigned int no_samples,
+                          unsigned int freq, char no_tracks,
+                          enum aaxFormat format)
+{
+   _aaxFmtHandle *fmt = _aaxGetFormat(file);
+   int rv = AAX_FALSE;
+   if (fmt)
+   {
+      char *buf, *data, *scratch;
+      int res, mode, fd, oflag;
+      unsigned int bits, size;
+      unsigned int scratchlen;
+      off_t floc, offs;
+
+      mode = AAX_MODE_WRITE_STEREO;
+      fmt->id = fmt->setup(mode, &size, freq, no_tracks, format, no_samples, 256);
+      if (!fmt->id)
+      {
+         printf("Error: Unable to setup the file stream handler,\n");
+         return rv;
+      }
+
+      oflag = O_CREAT|O_WRONLY|O_BINARY;
+      if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
+      else if (type == AAX_APPEND) oflag |= O_APPEND;
+
+      fd = open(file, oflag, 0644);
+      if (fd < 0)
+      {
+         printf("Error: Unable to write to file.\n");
+         return rv;
+      }
+
+      floc = lseek(fd, 0L, SEEK_END);
+      lseek(fd, 0L, SEEK_SET);
+
+      buf = fmt->open(fmt->id, NULL, &size);
+      if (buf && size)
+      {
+         res = write(fd, buf, size);
+         if (res == -1) {
+            _AAX_FILEDRVLOG(strerror(errno));
+         }
+      }
+
+      if (type == AAX_APPEND) {
+         lseek(fd, floc, SEEK_SET);
+      }
+
+      offs = 0;
+      bits = fmt->get_param(fmt->id, __F_BITS);
+      no_tracks = fmt->get_param(fmt->id, __F_TRACKS);
+      size = (no_samples*no_tracks*bits)/8;
+
+      scratchlen = (IOBUF_SIZE*no_tracks*sizeof(int32_t)*8)/bits;
+      scratch = _aax_aligned_alloc16(scratchlen);
+
+      data = _aax_aligned_alloc16(IOBUF_SIZE);
+      do
+      {
+         int cvt = _MIN(size, IOBUF_SIZE)*8/(no_tracks*bits);
+
+         /* returns the no. bytes that are ready for writing */
+         res = fmt->cvt_to_intl(fmt->id, data, sbuf, offs, no_tracks, cvt,
+                                scratch, scratchlen);
+         size -= res;
+         offs += cvt;
+
+         if (fmt->cvt_from_signed) {
+            fmt->cvt_from_signed(fmt->id, data, res*8/bits);
+         }
+         if (fmt->cvt_endianness) {
+            fmt->cvt_endianness(fmt->id, data, res*8/bits);
+         }
+
+         res = write(fd, data, res);
+      }
+      while ((res > 0) && size);
+      _aax_aligned_free(scratch);
+      _aax_aligned_free(data);
+
+      if (res >= 0 && fmt->update)
+      {
+         unsigned int offs;
+         handle->io.write.no_samples = no_samples * no_tracks;
+         void *buf = fmt->update(fmt->id, &offs, &size, AAX_TRUE);
+         if (buf)
+         {
+            lseek(fd, offs, SEEK_SET);
+            res = write(fd, buf, size);
+         }
+      }
+      rv = (res >= 0) ? AAX_TRUE : AAX_FALSE;
+
+      close(fd);
+      fmt->close(fmt->id);
+      free(fmt);
+   }
+   return rv;
+}
+#endif
 

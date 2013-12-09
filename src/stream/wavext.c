@@ -1143,6 +1143,7 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsig
 }
 
 
+#if 1
 /**
  * Write a canonical WAVE file from memory to a file.
  *
@@ -1163,7 +1164,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    unsigned int size;
    int fd, oflag;
    int res, mode;
-   off_t floc;
+   char *buf;
 
    mode = AAX_MODE_WRITE_STEREO;
    handle = _aaxWavSetup(mode, &size, freq, no_tracks, format, no_samples, 0);
@@ -1175,7 +1176,6 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
 
    oflag = O_CREAT|O_WRONLY|O_BINARY;
    if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
-// if (type == AAX_APPEND) oflag |= O_APPEND;
    fd = open(file, oflag, 0644);
    if (fd < 0)
    {
@@ -1183,31 +1183,40 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       return;
    }
 
-   _aaxWavOpen(handle, NULL, &size);
+   buf = _aaxWavOpen(handle, NULL, &size);
 
-   floc = lseek(fd, 0L, SEEK_END);
-   lseek(fd, 0L, SEEK_SET);
-
-   res = write(fd, handle->io.write.header, handle->io.write.header_size);
+   res = write(fd, buf, size);
    if (res == -1) {
       _AAX_FILEDRVLOG(strerror(errno));
    }
 
-   if (type == AAX_APPEND) {
-      lseek(fd, floc, SEEK_SET);
+   if (handle->cvt_from_signed) {
+      handle->cvt_from_signed(data, no_tracks*no_samples);
    }
-
    if (handle->cvt_endianness) {
       handle->cvt_endianness(data, no_tracks*no_samples);
    }
 
    size = no_samples * no_tracks * handle->bits_sample/8;
    res = write(fd, data, size);
-   if (res == -1) {
+   if (res >= 0)
+   {
+      unsigned int offs;
+
+      handle->io.write.no_samples = no_samples * no_tracks;
+      buf = _aaxWavUpdate(handle, &offs, &size, AAX_TRUE);
+      if (buf)
+      {
+         lseek(fd, offs, SEEK_SET);
+         res = write(fd, buf, size);
+      }
+   }
+   else {
       _AAX_FILEDRVLOG(strerror(errno));
    }
 
-   _aaxWavClose(handle);
    close(fd);
+   _aaxWavClose(handle);
 }
+#endif
 

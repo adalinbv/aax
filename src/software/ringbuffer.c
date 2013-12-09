@@ -466,7 +466,7 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
 
    if (data)
    {
-      _oalRingBufferSample *rbd = rbd = rb->sample;
+      _oalRingBufferSample *rbd = rb->sample;
       unsigned int t, no_tracks = rbd->no_tracks;
       unsigned int no_samples = rbd->no_samples;
       unsigned char bps = rbd->bytes_sample;
@@ -578,7 +578,7 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int
 
    if (data)
    {
-      _oalRingBufferSample *rbd = rbd = rb->sample;
+      _oalRingBufferSample *rbd = rb->sample;
       unsigned int t, no_tracks = rbd->no_tracks;
       unsigned int no_samples = rbd->no_samples;
       unsigned char bps = rbd->bytes_sample;

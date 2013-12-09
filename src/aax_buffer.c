@@ -682,16 +682,20 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       unsigned int samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
       unsigned int freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       char tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
-      void **data = aaxBufferGetData(buffer);
+#if 0
+      _buffer_t* buf = get_buffer(buffer);
+      _oalRingBuffer* rb = buf->ringbuffer;
+      _oalRingBufferSample *rbd = rb->sample;
+      const int32_t **data;
 
-      /*
-       * *data now holds the interleaved data, 16-byte aligned
-       * and converted to the proper format
-       */
+      data = (const int32_t**)rbd->track;
+      rv = _aaxFileDriverWrite(file, type, data, samples, freq, tracks, format);
+#else
+      void **data = aaxBufferGetData(buffer);
       _aaxFileDriverWrite(file, type, *data, samples, freq, tracks, format);
       free(data);
-
       rv = AAX_TRUE;
+#endif
    }
    return rv;
 }
