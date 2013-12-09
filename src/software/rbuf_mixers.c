@@ -25,7 +25,7 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "arch_simd.h"
+#include "cpu/arch_simd.h"
 #include "audio.h"
 
 

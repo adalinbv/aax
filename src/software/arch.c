@@ -32,7 +32,7 @@
 #include <base/types.h>
 #include <base/geometry.h>
 
-#include "arch_simd.h"
+#include "cpu/arch_simd.h"
 
 
 enum cpuid_requests {

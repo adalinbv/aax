@@ -139,16 +139,16 @@ ENDIF()
 
 IF(MSVC)
     SET(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
-    SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch_sse.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
-    SET_PROPERTY(SOURCE src/software/arch_sse2.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch_sse2.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
     )
-    SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch_sse4.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
     )
 
@@ -200,24 +200,24 @@ ELSE(MSVC)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
-      SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch_sse3.c APPEND
                    PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse"
       )
-      SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch_sse4.c APPEND
                    PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse"
       )
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")
-      SET_PROPERTY(SOURCE src/software/arch_sse.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS  "-msse -mfpmath=sse -march=pentium3m"
       )
-      SET_PROPERTY(SOURCE src/software/arch_sse2.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch_sse2.c APPEND 
                    PROPERTY COMPILE_FLAGS  "-msse2 -mfpmath=sse -march=pentium-m"
       )
-      SET_PROPERTY(SOURCE src/software/arch_sse3.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch_sse3.c APPEND 
                    PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse -march=prescott"
       )
-      SET_PROPERTY(SOURCE src/software/arch_sse4.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch_sse4.c APPEND 
                    PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse -march=corei7"
       )
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -340,12 +340,12 @@ SET( AEONWAVE_OBJS
      src/stream/mp3ext.c
      src/software/device.c
      src/software/arch.c
-     src/software/arch_cpu.c
-     src/software/arch_neon.c
-     src/software/arch_sse.c
-     src/software/arch_sse2.c
-     src/software/arch_sse3.c
-     src/software/arch_sse4.c
+     src/software/cpu/arch_cpu.c
+     src/software/cpu/arch_neon.c
+     src/software/cpu/arch_sse.c
+     src/software/cpu/arch_sse2.c
+     src/software/cpu/arch_sse3.c
+     src/software/cpu/arch_sse4.c
      src/software/mixer.c
      src/software/frame.c
      src/software/sensor.c

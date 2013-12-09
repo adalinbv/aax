@@ -25,8 +25,8 @@
 #include <devices.h>
 #include <arch.h>
 
+#include "cpu/arch_simd.h"
 #include "audio.h"
-#include "arch_simd.h"
 
 static _aaxCodec _sw_bufcpy_8s;
 static _aaxCodec _sw_bufcpy_16s;
