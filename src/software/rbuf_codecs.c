@@ -233,6 +233,13 @@ _sw_bufcpy_mulaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
       uint8_t *s = (uint8_t *)src;
       unsigned int i = l;
       do {
+         /*
+          * Lookup tables for A-law and u-law look attractive, until you
+          * consider the impact on the CPU cache. If it causes a substantial
+          * area of your processor cache to get hit too often, cache sloshing
+          * will severely slow things down.
+          */
+//       *d++ = _mulaw2linear_table[*s++] << 8;
          *d++ = _mulaw2linear(*s++) << 8;
       }     
       while (--i);
@@ -265,6 +272,13 @@ _sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
       uint8_t *s = (uint8_t *)src;
       unsigned int i = l;
       do {
+         /*
+          * Lookup tables for A-law and u-law look attractive, until you
+          * consider the impact on the CPU cache. If it causes a substantial
+          * area of your processor cache to get hit too often, cache sloshing
+          * will severely slow things down.
+          */
+//       *d++ = _alaw2linear_table[*s++] << 8;
          *d++ = _alaw2linear(*s++) << 8;
       }
       while (--i);
@@ -308,14 +322,14 @@ top_bit(uint16_t bits)
 {
    int i = 0;
 
-#if 0 // defined(__i386__)
-   ASM ("movl $-1,%%edx;\n"		\
-            "bsfl %%eax, %%edx;\n"	\
+#if defined(__i386__)
+   ASM ("movl $-1, %%edx;\n"		\
+        "bsrl %%eax, %%edx;\n"		\
             : "=d" (i)			\
             : "a" (bits));
-#elif 0 // defined(__x86_64__)
-   ASM ("movq $-1,%%rdx;\n"		\
-            "bsrq %%rax, %%rdx;\n"	\
+#elif defined(__x86_64__)
+   ASM ("movq $-1, %%rdx;\n"		\
+        "bsrq %%rax, %%rdx;\n"		\
             : "=d" (i)			\
             : "a" (bits));
 #else
@@ -393,6 +407,30 @@ _linear2mulaw(int16_t linear)
    return u_val;
 }
 
+#define _BIAS           0x80
+#define _CLIP           32635
+uint8_t
+_linear2mulaw_using_table(int16_t sample)
+{
+   int sign, exponent, mantissa;
+   int rv;
+
+   sign = (sample >> 8) & _BIAS;
+   if (sign) {
+      sample = (int16_t)-sample;
+   }
+   if (sample > _CLIP) {
+      sample = _CLIP;
+   }
+   sample = (int16_t)(sample + 0x84);
+
+   exponent = (int)_linear2mulaw_table[(sample>>7) & 0xFF];
+   mantissa = (sample >> (exponent+3)) & 0x0F;
+   rv = ~ (sign | (exponent << 4) | mantissa);
+
+   return (uint8_t)rv;
+}
+
 /** http://docs.freeswitch.org/g711_8h-source.html */
 #define ALAW_AMI_MASK		0x55
 uint8_t
@@ -427,6 +465,34 @@ _linear2alaw(int16_t linear)
    }
    /* Combine the sign, segment, and quantization bits. */
    return (uint8_t)(((seg << 4) | ((linear >> ((seg) ? (seg+3) : 4)) & 0x0F))^ mask);
+}
+
+uint8_t
+_linear2alaw_using_table(int16_t sample)
+{
+     int sign, exponent, mantissa;
+     uint8_t rv;
+
+     sign = ((~sample) >> 8) & _BIAS;
+     if (!sign) {
+        sample = (int16_t)-sample;
+     }
+     if (sample > _CLIP) {
+        sample = _CLIP;
+     }
+     if (sample >= 256)
+     {
+          exponent = (int)_linear2alaw_table[(sample >> 8) & 0x7F];
+          mantissa = (sample >> (exponent + 3) ) & 0x0F;
+          rv = ((exponent << 4) | mantissa);
+     }
+     else
+     {
+          rv = (uint8_t)(sample >> 4);
+     }
+     rv ^= (sign ^ 0x55);
+
+     return rv;
 }
 
 /* single sample convert */
@@ -511,6 +577,7 @@ static void
 _aaxMuLaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 {
    do {
+//    *ndata++ = _mulaw2linear_table[*data++] << 8;
       *ndata++ = _mulaw2linear(*data++) << 8;
    } while (--i);
 }
@@ -519,6 +586,7 @@ static void
 _aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 {
    do {
+//    _alaw2linear_table[*data++] << 8;
       *ndata++ = _alaw2linear(*data++) << 8;
    } while (--i);
 }

@@ -25,7 +25,7 @@ extern "C" {
 #ifdef _MSC_VER
 # define ASM    __asm
 #else
-# define ASM    __asm volatile
+# define ASM    __asm __volatile
 #endif
 
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
