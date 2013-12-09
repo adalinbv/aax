@@ -33,7 +33,8 @@
 
 #include "arch.h"
 #include "ringbuffer.h"
-#include "cpu/arch_simd.h"
+#include "cpu2d/arch_simd.h"
+#include "cpu3d/arch_simd.h"
 
 
 enum cpuid_requests {

@@ -35,7 +35,7 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "cpu/arch_simd.h"
+#include "cpu2d/arch_simd.h"
 #include "ringbuffer.h"
 
 

@@ -23,7 +23,7 @@
 #include <base/types.h>
 #include <devices.h>
 
-#include "cpu/arch_simd.h"
+#include "cpu2d/arch_simd.h"
 #include "ringbuffer.h"
 #include "arch.h"
 #include "audio.h"

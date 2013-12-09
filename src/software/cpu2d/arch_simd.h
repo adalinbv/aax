@@ -9,8 +9,8 @@
  * permission of Adalin B.V.
  */
 
-#ifndef _AAX_SSE_H
-#define _AAX_SSE_H 1
+#ifndef _AAX_SIMD2D_H
+#define _AAX_SIMD2D_H 1
 
 #if defined(__cplusplus)
 extern "C" {
@@ -117,26 +117,10 @@ void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, u
 void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
 
 
-/* SSE*/
-void _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2);
-void _vec4Add_sse(vec4 d, const vec4 v);
-void _vec4Copy_sse(vec4 d, const vec4 v);
-void _vec4Devide_sse(vec4 d, float s);
-void _vec4Mulvec4_sse(vec4 r, const vec4 v1, const vec4 v2);
-void _vec4Sub_sse(vec4 d, const vec4 v);
-void _vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m);
-void _pt4Matrix4_sse(vec4 d, const vec4 p, mtx4 m);
-void _mtx4Mul_sse(mtx4 d, mtx4 m1, mtx4 m2);
-
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
 char* _aax_malloc_align16(char**, unsigned int);
 
 /* SSE2*/
-void _ivec4Add_sse2(ivec4 d, ivec4 v);
-void _ivec4Devide_sse2(ivec4 d, float s);
-void _ivec4Mulivec4_sse2(ivec4 r, const ivec4 v1, const ivec4 v2);
-void _ivec4Sub_sse2(ivec4 d, ivec4 v);
-
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
 void _batch_fmadd_sse2(int32_ptr, const_int32_ptr, unsigned int, float, float);
@@ -153,15 +137,7 @@ void _batch_cvt16_24_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
 
 /* SSE3 */
-void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
-void _pt4Matrix4_sse3(vec4 d, const vec4 p, mtx4 m);
 void _batch_mul_value_sse3(void*, unsigned, unsigned int, float);
-
-/* SSE4 */
-float _vec3Magnitude_sse4(const vec3);
-float _vec3MagnitudeSquared_sse4(const vec3);
-float _vec3DotProduct_sse4(const vec3, const vec3);
-float _vec3Normalize_sse4(vec3, const vec3);
 
 /* AVX */
 void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
@@ -169,19 +145,6 @@ void _batch_fma4_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
 
 
 /* NEON */
-void _vec4Add_neon(vec4 d, const vec4 v);
-void _vec4Copy_neon(vec4 d, const vec4 v);
-void _vec4Devide_neon(vec4 d, float s);
-void _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2);
-void _vec4Sub_neon(vec4 d, const vec4 v);
-void _vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m);
-void _pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m);
-void _mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2);
-void _ivec4Add_neon(ivec4 d, ivec4 v);
-void _ivec4Devide_neon(ivec4 d, float s);
-void _ivec4Mulivec4_neon(ivec4 r, const ivec4 v1, const ivec4 v2);
-void _ivec4Sub_neon(ivec4 d, ivec4 v);
-
 void _batch_fmadd_neon(int32_t*, const_int32_ptr, unsigned int, float, float);
 void _batch_freqfilter_neon(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
 void _aaxBufResampleCubic_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
@@ -197,5 +160,5 @@ void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, int, unsigned int, 
 }  /* extern "C" */
 #endif
 
-#endif /* !_AAX_SSE_H */
+#endif /* !_AAX_SIMD2D_H */
 
