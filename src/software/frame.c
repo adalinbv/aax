@@ -19,11 +19,12 @@
 #include <base/timer.h>		/* for gettimeofday */
 #include <base/threads.h>
 #include <base/buffers.h>
-#include <ringbuffer.h>
+
 #include <objects.h>
-#include <arch.h>
 #include <api.h>
 
+#include "arch.h"
+#include "ringbuffer.h"
 #include "audio.h"
 
 void*

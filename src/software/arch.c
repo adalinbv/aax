@@ -27,11 +27,12 @@
 #endif
 
 #include <api.h>
-#include <arch.h>
-#include <ringbuffer.h>
+
 #include <base/types.h>
 #include <base/geometry.h>
 
+#include "arch.h"
+#include "ringbuffer.h"
 #include "cpu/arch_simd.h"
 
 

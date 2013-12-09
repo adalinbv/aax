@@ -19,8 +19,9 @@
 #include <base/logging.h>
 
 #include <api.h>
-#include <arch.h>
-#include <ringbuffer.h>
+
+#include "arch.h"
+#include "ringbuffer.h"
 
 
 static void szxform(float *, float *, float *, float *, float *, float *,

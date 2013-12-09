@@ -26,7 +26,8 @@
 #include <base/types.h>
 
 #include <api.h>
-#include <arch.h>
+
+#include "arch.h"
 
 #define NONE_RENDERER		"None"
 #define DEFAULT_RENDERER	AAX_NAME_STR""

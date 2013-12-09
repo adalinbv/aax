@@ -15,8 +15,8 @@
 
 #include <math.h>	/* for floorf */
 
-#include <ringbuffer.h>
 
+#include "software/ringbuffer.h"
 #include "arch_simd.h"
 
 #ifdef __SSE2__

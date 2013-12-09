@@ -24,9 +24,10 @@
 
 #include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep */
+
 #include "api.h"
-#include "arch.h"
 #include "driver.h"
+#include "software/arch.h"
 
 static int _aaxAudioFrameStart(_frame_t*);
 static int _aaxAudioFrameUpdate(_frame_t*);

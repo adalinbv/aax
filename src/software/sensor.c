@@ -15,9 +15,10 @@
 
 #include <assert.h>
 
-#include <ringbuffer.h>
-#include <arch.h>
 #include <api.h>
+
+#include "arch.h"
+#include "ringbuffer.h"
 
 void
 _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,

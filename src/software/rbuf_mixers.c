@@ -19,13 +19,14 @@
 #include <assert.h>
 
 #include <api.h>
-#include <arch.h>
-#include <ringbuffer.h>
+
 #include <base/types.h>
 #include <base/geometry.h>
 #include <base/logging.h>
 
 #include "cpu/arch_simd.h"
+#include "ringbuffer.h"
+#include "arch.h"
 #include "audio.h"
 
 

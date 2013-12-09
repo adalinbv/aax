@@ -31,11 +31,12 @@
 
 #include <api.h>
 #include <objects.h>
-#include <ringbuffer.h>
+
 #include <base/geometry.h>
 #include <base/logging.h>
 
 #include "cpu/arch_simd.h"
+#include "ringbuffer.h"
 
 
 /* Forward declartations */

@@ -29,11 +29,12 @@
 #endif
 
 #include <api.h>
-#include <arch.h>
-#include <ringbuffer.h>
+
 #include <base/types.h>
 #include <base/logging.h>
 
+#include "arch.h"
+#include "ringbuffer.h"
 #include "audio.h"
 
 #ifndef _DEBUG

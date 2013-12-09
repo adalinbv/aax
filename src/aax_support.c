@@ -18,11 +18,11 @@
 #endif
 
 #include <aax/aax.h>
-#include <software/audio.h>
 
 #include "api.h"
-#include "arch.h"
 #include "copyright.h"
+#include "software/arch.h"
+#include "software/audio.h"
 
 typedef struct {
    char supported;

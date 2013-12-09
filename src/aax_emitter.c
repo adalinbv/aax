@@ -23,15 +23,14 @@
 #endif
 #include <math.h>		/* for fabs */
 #include <assert.h>
+#include <stdio.h>
 
 #include <base/gmath.h>
 
-#include <arch.h>
-#include <ringbuffer.h>
-#include <stdio.h>
-
-#include "devices.h"
 #include "api.h"
+#include "devices.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 static void _aaxFreeEmitterBuffer(void *);
 

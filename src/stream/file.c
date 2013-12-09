@@ -36,17 +36,16 @@
 #include <assert.h>		/* assert */
 
 #include <xml.h>
+#include <api.h>
 
 #include <base/types.h>
 #include <base/threads.h>
 #include <base/logging.h>
 
-#include <api.h>
-#include <arch.h>
-
 #include "file.h"
 #include "filetype.h"
 #include "audio.h"
+#include "software/arch.h"
 
 #define BACKEND_NAME_OLD	"File"
 #define BACKEND_NAME		"Audio Files"

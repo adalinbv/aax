@@ -15,9 +15,10 @@
 
 #include <assert.h>
 
-#include <ringbuffer.h>
 #include <objects.h>
 #include <api.h>
+
+#include "ringbuffer.h"
 
 /**
  * sv_m -> modified sensor velocity vector

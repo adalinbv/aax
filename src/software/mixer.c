@@ -22,9 +22,10 @@
 #include <assert.h>
 
 #include <base/threads.h>
-#include <ringbuffer.h>
-#include <arch.h>
 #include <api.h>
+
+#include "arch.h"
+#include "ringbuffer.h"
 
 
 void

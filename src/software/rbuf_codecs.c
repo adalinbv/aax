@@ -21,11 +21,11 @@
 #endif
 
 #include <base/types.h>
-#include <ringbuffer.h>
 #include <devices.h>
-#include <arch.h>
 
 #include "cpu/arch_simd.h"
+#include "ringbuffer.h"
+#include "arch.h"
 #include "audio.h"
 
 static _aaxCodec _sw_bufcpy_8s;

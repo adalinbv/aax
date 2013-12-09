@@ -22,9 +22,10 @@
 #include <assert.h>
 
 #include <api.h>
-#include <arch.h>
-#include <ringbuffer.h>
 #include <base/logging.h>
+
+#include "arch.h"
+#include "ringbuffer.h"
 
 
 /**

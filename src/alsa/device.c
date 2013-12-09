@@ -26,9 +26,8 @@
 #include <xml.h>
 
 #include <api.h>
-#include <arch.h>
 #include <devices.h>
-#include <ringbuffer.h>
+
 #include <base/timer.h>		/* for msecSleep */
 #include <base/dlsym.h>
 #include <base/logging.h>
@@ -38,6 +37,8 @@
 #include "alsa/audio.h"
 #include "device.h"
 #include "driver.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 #define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		32

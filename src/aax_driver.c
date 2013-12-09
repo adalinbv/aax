@@ -26,16 +26,15 @@
 #endif
 #include <math.h>		/* for INFINITY */
 #include <assert.h>
-
 #include <xml.h>
 
-#include <arch.h>
-#include <ringbuffer.h>
 #include <base/gmath.h>
 #include <base/logging.h>
 
 #include "api.h"
 #include "devices.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);

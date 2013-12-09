@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include <base/dlsym.h>
+#include <driver.h>
 
 #ifdef WIN32
 // TODO: Needs fixing # define WINXP

@@ -26,9 +26,9 @@
 
 #include <xml.h>
 
-#include <software/audio.h>
 #include "api.h"
-#include "arch.h"
+#include "software/arch.h"
+#include "software/audio.h"
 
 static int _bufProcessAAXS(_buffer_t*, const void*, float);
 

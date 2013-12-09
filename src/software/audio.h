@@ -21,7 +21,8 @@ extern "C" {
 #endif
 
 #include <base/types.h>
-#include <ringbuffer.h>
+
+#include "software/ringbuffer.h"
 
 extern const int16_t _ima4_step_table[89];
 extern const int16_t _ima4_index_table[16];

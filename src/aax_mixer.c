@@ -29,16 +29,14 @@
 # include <siginfo.h>
 #endif
 
-
-#include <arch.h>
-#include <ringbuffer.h>
-#include <stream/file.h>
-
 #include <base/gmath.h>
 #include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep, etc */
 
 #include "api.h"
+#include "stream/file.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 static int _aaxMixerInit(_handle_t*);
 static int _aaxMixerStart(_handle_t*);

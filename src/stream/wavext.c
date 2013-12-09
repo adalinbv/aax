@@ -36,13 +36,13 @@
 #endif
 
 #include <base/types.h>
-#include <software/audio.h>
-#include <ringbuffer.h>
 #include <devices.h>
-#include <arch.h>
 
 #include "filetype.h"
 #include "audio.h"
+#include "software/arch.h"
+#include "software/audio.h"
+#include "software/ringbuffer.h"
 
 static _detect_fn _aaxWavDetect;
 

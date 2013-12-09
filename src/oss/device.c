@@ -43,16 +43,17 @@
 #include <xml.h>
 
 #include <api.h>
-#include <arch.h>
 #include <driver.h>
 #include <devices.h>
-#include <ringbuffer.h>
+
 #include <base/types.h>
 #include <base/logging.h>
 #include <base/dlsym.h>
 
 #include "audio.h"
 #include "device.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 #define MAX_NAME		40
 #define NO_FRAGMENTS		2

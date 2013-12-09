@@ -25,8 +25,9 @@
 
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
-#include "arch.h"
+
 #include "api.h"
+#include "software/arch.h"
 
 #define WRITEFN		0
 #define EPS		1e-5

@@ -24,10 +24,9 @@ extern "C" {
 #include <aax/eventmgr.h>
 #include <aax/instrument.h>
 
-#include <driver.h>
-#include <objects.h>
-#include <ringbuffer.h>
-
+#include "driver.h"
+#include "objects.h"
+#include "software/ringbuffer.h"
 
 #define USE_SPATIAL_FOR_SURROUND AAX_TRUE
 #define THREADED_FRAMES		AAX_TRUE

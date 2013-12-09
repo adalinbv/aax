@@ -26,9 +26,9 @@
 #endif
 #include <math.h>		/* for MAXFLOAT */
 
-#include "objects.h"
-#include "arch.h"
 #include "api.h"
+#include "objects.h"
+#include "software/arch.h"
 
 void
 _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
