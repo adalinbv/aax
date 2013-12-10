@@ -29,7 +29,7 @@
 char
 _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                     float ssv, float sdf, _oalRingBuffer2dProps *fp2d,
-                    _oalRingBufferDelayed3dProps *fdp3d_m,
+                    _aaxDelayed3dProps *fdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
@@ -203,11 +203,11 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
  * fp3d:    parent frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _oalRingBufferDelayed3dProps* fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _aaxDelayed3dProps* fdp3d_m)
 {
    _oalRingBufferPitchShiftFunc* dopplerfn;
-   _oalRingBufferDelayed3dProps *edp3d, *edp3d_m;
-   _oalRingBuffer3dProps *ep3d;
+   _aaxDelayed3dProps *edp3d, *edp3d_m;
+   _aax3dProps *ep3d;
    _oalRingBuffer2dProps *ep2d;
    _oalRingBufferDistFunc* distfn;
 
@@ -228,7 +228,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    // _aaxEmitterProcessDelayQueue
    if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d))
    {
-      _oalRingBufferDelayed3dProps *sdp3d = NULL;
+      _aaxDelayed3dProps *sdp3d = NULL;
       _intBufferData *buf3dq;
       float pos3dq;
 

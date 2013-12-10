@@ -465,7 +465,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          }      
          case AAX_DISTANCE_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = src->props3d;
+            _aax3dProps *p3d = src->props3d;
             _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -477,7 +477,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          }
          case AAX_ANGULAR_FILTER:
          {
-            _oalRingBuffer3dProps *p3d = src->props3d;
+            _aax3dProps *p3d = src->props3d;
             float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
             float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
             float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
@@ -639,7 +639,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          }
          case AAX_VELOCITY_EFFECT:
          {
-            _oalRingBuffer3dProps *p3d = src->props3d;
+            _aax3dProps *p3d = src->props3d;
             _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -808,7 +808,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
    {
       if (velocity && !detect_nan_vec3(velocity))
       {
-         _oalRingBufferDelayed3dProps *dp3d;
+         _aaxDelayed3dProps *dp3d;
  
          dp3d = handle->source->props3d->dprops3d;
          vec3Copy(dp3d->velocity[VELOCITY], velocity);
@@ -1058,7 +1058,7 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
    {
       if (velocity)
       {
-         _oalRingBufferDelayed3dProps *dp3d;
+         _aaxDelayed3dProps *dp3d;
 
          dp3d = handle->source->props3d->dprops3d;
          vec3Copy(velocity, dp3d->velocity[VELOCITY]);
@@ -1290,11 +1290,11 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
    dist_delaying &= AAX_DISTANCE_DELAY;
    if (dist_delaying)
    {
-      _oalRingBuffer3dProps *fp3d = mixer->props3d;
-      _oalRingBufferDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
-      _oalRingBuffer3dProps *ep3d = src->props3d;
-      _oalRingBufferDelayed3dProps *edp3d_m = ep3d->m_dprops3d;
-      _oalRingBufferDelayed3dProps *edp3d = ep3d->dprops3d;
+      _aax3dProps *fp3d = mixer->props3d;
+      _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
+      _aax3dProps *ep3d = src->props3d;
+      _aaxDelayed3dProps *edp3d_m = ep3d->m_dprops3d;
+      _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
       _oalRingBuffer2dProps *ep2d = src->props2d;
       float dist, vs;
 

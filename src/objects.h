@@ -83,6 +83,126 @@ enum
 #define _TAS_RELATIVE(q,r)    _STATE_TAS((q)->state, (r), _STATE_RELATIVE)
 #define _TAS_POSITIONAL(q,r)  _STATE_TAS((q)->state, (r), _STATE_POSITIONAL)
 
+/* delayed 3d properties */
+#define _PROP_CLEAR(q)                  _PROP3D_CLEAR((q)->dprops3d)
+#define _PROP_PITCH_HAS_CHANGED(q)      _PROP3D_PITCH_HAS_CHANGED((q)->dprops3d)
+#define _PROP_GAIN_HAS_CHANGED(q)       _PROP3D_GAIN_HAS_CHANGED((q)->dprops3d)
+#define _PROP_DIST_HAS_CHANGED(q)       _PROP3D_DIST_HAS_CHANGED((q)->dprops3d)
+#define _PROP_MTX_HAS_CHANGED(q)        _PROP3D_MTX_HAS_CHANGED((q)->dprops3d)
+#define _PROP_SPEED_HAS_CHANGED(q)      _PROP3D_SPEED_HAS_CHANGED((q)->dprops3d)
+#define _PROP_CONE_IS_DEFINED(q)        _PROP3D_CONE_IS_DEFINED((q)->dprops3d)
+
+#define _PROP_PITCH_SET_CHANGED(q)      _PROP3D_PITCH_SET_CHANGED((q)->dprops3d)
+#define _PROP_GAIN_SET_CHANGED(q)       _PROP3D_GAIN_SET_CHANGED((q)->dprops3d)
+#define _PROP_DIST_SET_CHANGED(q)       _PROP3D_DIST_SET_CHANGED((q)->dprops3d)
+#define _PROP_MTX_SET_CHANGED(q)        _PROP3D_MTX_SET_CHANGED((q)->dprops3d)
+#define _PROP_SPEED_SET_CHANGED(q)      _PROP3D_SPEED_SET_CHANGED((q)->dprops3d)
+#define _PROP_CONE_SET_DEFINED(q)       _PROP3D_CONE_SET_DEFINED((q)->dprops3d)
+#define _PROP_DYNAMIC_PITCH_SET_DEFINED(q) _PROP3D_DYNAMIC_PITCH_SET_DEFINED((q)->dprops3d)
+
+#define _PROP_PITCH_CLEAR_CHANGED(q)    _PROP3D_PITCH_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_GAIN_CLEAR_CHANGED(q)     _PROP3D_GAIN_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_DIST_CLEAR_CHANGED(q)     _PROP3D_DIST_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_MTX_CLEAR_CHANGED(q)      _PROP3D_MTX_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_SPEED_CLEAR_CHANGED(q)    _PROP3D_SPEED_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_CONE_CLEAR_DEFINED(q)     _PROP3D_CONE_CLEAR_DEFINED((q)->dprops3d)
+#define _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(q) _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED((q)->dprops3d)
+
+/* delayed 3d properties: AAX Scene extension*/
+#define _PROP_SCENE_IS_DEFINED(q)       _PROP3D_SCENE_IS_DEFINED((q)->dprops3d)
+#define _PROP_REVERB_IS_DEFINED(q)      _PROP3D_REVERB_IS_DEFINED((q)->dprops3d)
+#define _PROP_DISTDELAY_IS_DEFINED(q)   _PROP3D_DISTDELAY_IS_DEFINED((q)->dprops3d)
+#define _PROP_DISTQUEUE_IS_DEFINED(q)   _PROP3D_DISTQUEUE_IS_DEFINED((q)->dprops3d)
+#define _PROP_WIND_IS_DEFINED(q)        _PROP3D_WIND_IS_DEFINED((q)->dprops3d)
+
+#define _PROP_SCENE_SET_CHANGED(q)      _PROP3D_SCENE_SET_CHANGED((q)->dprops3d)
+#define _PROP_REVERB_SET_CHANGED(q)     _PROP3D_REVERB_SET_CHANGED((q)->dprops3d)
+#define _PROP_DISTDELAY_SET_DEFINED(q)  _PROP3D_DISTDELAY_SET_DEFINED((q)->dprops3d)
+#define _PROP_DISTQUEUE_SET_DEFINED(q)  _PROP3D_DISTQUEUE_SET_DEFINED((q)->dprops3d)
+#define _PROP_WIND_SET_CHANGED(q)       _PROP3D_WIND_SET_CHANGED((q)->dprops3d)
+
+#define _PROP_SCENE_CLEAR_CHANGED(q)    _PROP3D_SCENE_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_REVERB_CLEAR_CHANGED(q)   _PROP3D_REVERB_CLEAR_CHANGED(((q)->dprops3d)
+#define _PROP_DISTDELAY_CLEAR_DEFINED(q) _PROP3D_DISTDELAY_CLEAR_DEFINED((q)->dprops3d)
+#define _PROP_DISTQUEUE_CLEAR_DEFINED(q) _PROP3D_DISTQUEUE_CLEAR_DEFINED((q)->dprops3d)
+#define _PROP_WIND_CLEAR_CHANGED(q)     _PROP3D_WIND_CLEAR_CHANGED((q)->dprops3d
+
+/* filters */
+#define _FILTER_GET_SLOT(F, s, p)       F->slot[s]->param[p]
+#define _FILTER_GET_SLOT_STATE(F)       F->slot[0]->state
+#define _FILTER_GET_SLOT_DATA(F, s)     F->slot[s]->data
+#define _FILTER_SET_SLOT(F, s, p, v)    F->slot[s]->param[p] = v
+#define _FILTER_SET_SLOT_DATA(F, s, v)  F->slot[s]->data = v
+
+#define _FILTER_GET(P, f, p)            P->filter[f].param[p]
+#define _FILTER_GET_STATE(P, f)         P->filter[f].state
+#define _FILTER_GET_DATA(P, f)          P->filter[f].data
+#define _FILTER_SET(P, f, p, v)         P->filter[f].param[p] = v
+#define _FILTER_SET_STATE(P, f, v)      P->filter[f].state = v;
+#define _FILTER_SET_DATA(P, f, v)       P->filter[f].data = v
+#define _FILTER_COPY(P1, P2, f, p)      P1->filter[f].param[p] = P2->filter[f].param[p]
+#define _FILTER_COPY_DATA(P1, P2, f)    P1->filter[f].data = P2->filter[f].data
+#define _FILTER_COPY_STATE(P1, P2, f)   P1->filter[f].state = P2->filter[f].state
+
+#define _FILTER_GET2D(G, f, p)          _FILTER_GET(G->props2d, f, p)
+#define _FILTER_GET2D_DATA(G, f)        _FILTER_GET_DATA(G->props2d, f)
+#define _FILTER_GET3D(G, f, p)          _FILTER_GET(G->dprops3d, f, p)
+#define _FILTER_GET3D_DATA(G, f)        _FILTER_GET_DATA(G->dprops3d, f)
+#define _FILTER_SET2D(G, f, p, v)       _FILTER_SET(G->props2d, f, p, v)
+#define _FILTER_SET2D_DATA(G, f, v)     _FILTER_SET_DATA(G->props2d, f, v)
+#define _FILTER_SET3D(G, f, p, v)       _FILTER_SET(G->dprops3d, f, p, v)
+#define _FILTER_SET3D_DATA(G, f, v)     _FILTER_SET_DATA(G->dprops3d, f, v)
+#define _FILTER_COPY2D_DATA(G1, G2, f)  _FILTER_COPY_DATA(G1->props2d, G2->props2d, f)
+#define _FILTER_COPY3D_DATA(G1, G2, f)  _FILTER_COPY_DATA(G1->dprops3d, G2->dprops3d, f)
+
+#define _FILTER_GETD3D(G, f, p)         _FILTER_GET(G->props3d, f, p)
+#define _FILTER_SETD3D_DATA(G, f, v)    _FILTER_SET_DATA(G->props3d, f, v)
+#define _FILTER_COPYD3D_DATA(G1, G2, f) _FILTER_COPY_DATA(G1->props3d, G2->props3d, f)
+
+#define _FILTER_SWAP_SLOT_DATA(P, f, F, s)                              \
+    do { void* ptr = P->filter[f].data;                                 \
+    P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr;       \
+    if (!s) aaxFilterSetState(F, P->filter[f].state); } while (0);
+
+/* effects */
+#define _EFFECT_GET_SLOT                _FILTER_GET_SLOT
+#define _EFFECT_GET_SLOT_STATE          _FILTER_GET_SLOT_STATE
+#define _EFFECT_GET_SLOT_DATA           _FILTER_GET_SLOT_DATA
+
+#define _EFFECT_GET(P, f, p)            P->effect[f].param[p]
+#define _EFFECT_GET_STATE(P, f)         P->effect[f].state
+#define _EFFECT_GET_DATA(P, f)          P->effect[f].data
+#define _EFFECT_SET(P, f, p, v)         P->effect[f].param[p] = v
+#define _EFFECT_SET_STATE(P, f, v)      P->effect[f].state = v;
+#define _EFFECT_SET_DATA(P, f, v)       P->effect[f].data = v
+#define _EFFECT_COPY(P1, P2, f, p)      \
+                                P1->effect[f].param[p] = P2->effect[f].param[p]
+#define _EFFECT_COPY_DATA(P1, P2, f)    P1->effect[f].data = P2->effect[f].data
+
+#define _EFFECT_GET2D(G, f, p)          _EFFECT_GET(G->props2d, f, p)
+#define _EFFECT_GET2D_DATA(G, f)        _EFFECT_GET_DATA(G->props2d, f)
+#define _EFFECT_GET3D(G, f, p)          _EFFECT_GET(G->dprops3d, f, p)
+#define _EFFECT_GET3D_DATA(G, f)        _EFFECT_GET_DATA(G->dprops3d, f)
+#define _EFFECT_SET2D(G, f, p, v)       _EFFECT_SET(G->props2d, f, p, v)
+#define _EFFECT_SET2D_DATA(G, f, v)     _EFFECT_SET_DATA(G->props2d, f, v)
+#define _EFFECT_SET3D(G, f, p, v)       _EFFECT_SET(G->dprops3d, f, p, v)
+#define _EFFECT_SET3D_DATA(G, f, v)     _EFFECT_SET_DATA(G->dprops3d, f, v)
+#define _EFFECT_COPY2D(G1, G2, f, p)    _EFFECT_COPY(G1->props2d, G2->props2d, f, p)
+#define _EFFECT_COPY3D(G1, G2, f, p)    _EFFECT_COPY(G1->dprops3d, G2->dprops3d, f, p)
+#define _EFFECT_COPY2D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props2d, G2->props2d, f)
+#define _EFFECT_COPY3D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->dprops3d, G2->dprops3d, f)
+
+#define _EFFECT_GETD3D(G, f, p)         _EFFECT_GET(G->props3d, f, p)
+#define _EFFECT_SETD3D_DATA(G, f, v)    _EFFECT_SET_DATA(G->props3d, f, v)
+#define _EFFECT_COPYD3D(G1, G2, f, p)   _EFFECT_COPY(G1->props3d, G2->props3d, f, p)
+#define _EFFECT_COPYD3D_DATA(G1, G2, f) _EFFECT_COPY_DATA(G1->props3d, G2->props3d, f)
+
+#define _EFFECT_SWAP_SLOT_DATA(P, f, F, s)                              \
+    do { void* ptr = P->effect[f].data;                                 \
+    P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr;       \
+    if (!s) aaxEffectSetState(F, P->effect[f].state); } while (0);
+
+
 enum
 {
    HRTF_FACTOR = 0,
@@ -118,12 +238,37 @@ typedef ALIGN16 struct
 
 } _aaxMixerInfo ALIGN16C;
 
+typedef ALIGN16 struct
+{
+   /* modelview matrix and velocity */
+   mtx4_t matrix;
+   mtx4_t velocity;
+
+   float pitch, gain;
+   int state3d;
+
+} _aaxDelayed3dProps ALIGN16C; 
+
+typedef struct
+{
+
+   _aaxDelayed3dProps* dprops3d;        /* current   */
+   _aaxDelayed3dProps* m_dprops3d;      /* modiefied */
+   float buf3dq_step;
+   int state;
+
+   /* 3d filters and effects */
+   _oalRingBufferFilterInfo filter[MAX_3D_FILTER];
+   _oalRingBufferFilterInfo effect[MAX_3D_EFFECT];
+
+} _aax3dProps;
+
 typedef struct
 {
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;
-   _oalRingBuffer3dProps *props3d;
+   _aax3dProps *props3d;
 
    _intBuffers *emitters_2d;	/* plain stereo emitters		*/
    _intBuffers *emitters_3d;	/* emitters with positional information	*/
@@ -151,7 +296,7 @@ typedef struct
    _aaxMixerInfo *info;
 
    _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
-   _oalRingBuffer3dProps *props3d;
+   _aax3dProps *props3d;
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
@@ -188,9 +333,9 @@ void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 void _aaxSetDefaultInfo(_aaxMixerInfo *, void *);
 
 void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
-_oalRingBuffer3dProps *_aax3dPropsCreate();
-_oalRingBufferDelayed3dProps *_aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps*);
-void _aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *);
+_aax3dProps *_aax3dPropsCreate();
+_aaxDelayed3dProps *_aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
+void _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *);
 
 void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);

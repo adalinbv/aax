@@ -705,7 +705,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                if (dptr_sframe)
                {
                   _sensor_t *sframe_sensor = _intBufGetDataPtr(dptr_sframe);
-                  _oalRingBuffer3dProps *mp3d, *sp3d;
+                  _aax3dProps *mp3d, *sp3d;
                   _aaxAudioFrame *mixer, *submix;
                   _oalRingBuffer *rb;
 
@@ -981,7 +981,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)
             {
-               _oalRingBuffer3dProps *mp3d, *ep3d = src->props3d;
+               _aax3dProps *mp3d, *ep3d = src->props3d;
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
 
@@ -1133,7 +1133,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             
             if (dptr && pos != UINT_MAX)
             {
-               _oalRingBuffer3dProps *mp3d, *fp3d;
+               _aax3dProps *mp3d, *fp3d;
                _aaxAudioFrame *mixer, *submix;
 
                dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

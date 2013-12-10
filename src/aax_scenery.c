@@ -137,7 +137,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
             }
             case AAX_DISTANCE_FILTER:
             {
-               _oalRingBuffer3dProps *p3d = mixer->props3d;
+               _aax3dProps *p3d = mixer->props3d;
                _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -216,7 +216,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
             {
             case AAX_VELOCITY_EFFECT:
             {
-               _oalRingBuffer3dProps *p3d = mixer->props3d;
+               _aax3dProps *p3d = mixer->props3d;
                _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));

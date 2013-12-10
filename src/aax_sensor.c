@@ -105,7 +105,7 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
          {
             mtx4_t mtx;
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _oalRingBufferDelayed3dProps *dp3d;
+            _aaxDelayed3dProps *dp3d;
 
             mtx4Copy(mtx, aaxIdentityMatrix);
             vec3Copy(mtx[VELOCITY], velocity);
@@ -143,7 +143,7 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
          {
             mtx4_t mtx;
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _oalRingBufferDelayed3dProps *dp3d;
+            _aaxDelayed3dProps *dp3d;
 
             dp3d = sensor->mixer->props3d->dprops3d;
             mtx4InverseSimple(mtx, dp3d->velocity);

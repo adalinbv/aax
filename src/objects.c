@@ -102,7 +102,7 @@ _aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
 }
 
 void
-_aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *dp3d)
+_aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
 {
    assert(dp3d);
 
@@ -118,25 +118,25 @@ _aaxSetDefaultDelayed3dProps(_oalRingBufferDelayed3dProps *dp3d)
    dp3d->gain = 1.0f;
 }
 
-_oalRingBuffer3dProps *
+_aax3dProps *
 _aax3dPropsCreate()
 {
-   _oalRingBuffer3dProps *rv = NULL;
+   _aax3dProps *rv = NULL;
    unsigned int size;
    char *ptr1, *ptr2;
 
-   size = sizeof(_oalRingBuffer3dProps);
+   size = sizeof(_aax3dProps);
    ptr2 = (char*)size;
-   size += sizeof(_oalRingBufferDelayed3dProps);
+   size += sizeof(_aaxDelayed3dProps);
    ptr1 = _aax_calloc(&ptr2, 1, size);
    if (ptr1)
    {
       unsigned int pos;
 
-      rv = (_oalRingBuffer3dProps*)ptr1;
-      rv->m_dprops3d = (_oalRingBufferDelayed3dProps*)ptr2;
+      rv = (_aax3dProps*)ptr1;
+      rv->m_dprops3d = (_aaxDelayed3dProps*)ptr2;
 
-      rv->dprops3d = _aax_aligned_alloc16(sizeof(_oalRingBufferDelayed3dProps));
+      rv->dprops3d = _aax_aligned_alloc16(sizeof(_aaxDelayed3dProps));
       if (rv->dprops3d)
       {
          _aaxSetDefaultDelayed3dProps(rv->dprops3d);
@@ -158,14 +158,14 @@ _aax3dPropsCreate()
    return rv;
 }
 
-_oalRingBufferDelayed3dProps *
-_aaxDelayed3dPropsDup(_oalRingBufferDelayed3dProps *dp3d)
+_aaxDelayed3dProps *
+_aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 {
-   _oalRingBufferDelayed3dProps *rv;
+   _aaxDelayed3dProps *rv;
 
-   rv = _aax_aligned_alloc16(sizeof(_oalRingBufferDelayed3dProps));
+   rv = _aax_aligned_alloc16(sizeof(_aaxDelayed3dProps));
    if (rv) {
-      _aax_memcpy(rv, dp3d, sizeof(_oalRingBufferDelayed3dProps));
+      _aax_memcpy(rv, dp3d, sizeof(_aaxDelayed3dProps));
    }
    return rv;
 }

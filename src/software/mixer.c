@@ -563,14 +563,14 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
             }
             else if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
-               _oalRingBufferDelayed3dProps *sdp3d, *sdp3d_m;
+               _aaxDelayed3dProps *sdp3d, *sdp3d_m;
                _oalRingBuffer2dProps sp2d;
                char fprocess = AAX_TRUE;
                unsigned int size;
                float ssv = 343.3f;
                float sdf = 1.0f;
 
-               size = sizeof(_oalRingBufferDelayed3dProps);
+               size = sizeof(_aaxDelayed3dProps);
                sdp3d = _aax_aligned_alloc16(size);
                sdp3d_m = _aax_aligned_alloc16(size);
 
@@ -590,7 +590,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
                   _aax_memcpy(&sp2d, smixer->props2d,
                                      sizeof(_oalRingBuffer2dProps));
                   _aax_memcpy(sdp3d, smixer->props3d->dprops3d,
-                                      sizeof(_oalRingBufferDelayed3dProps));
+                                      sizeof(_aaxDelayed3dProps));
                   sdp3d_m->state3d = sdp3d->state3d;
                   sdp3d_m->pitch = sdp3d->pitch;
                   sdp3d_m->gain = sdp3d->gain;
