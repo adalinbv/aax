@@ -783,7 +783,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                          * duration.
                          */
                         _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
-                        _oalRingBufferStart(rb);
+                        _oalRingBufferSetState(rb, RB_STARTED);
                      }
 
                      _intBufReleaseData(dptr_sframe, _AAX_SENSOR);

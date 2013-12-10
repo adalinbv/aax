@@ -51,10 +51,11 @@ static _oalRingBufferDistFunc _oalRingBufferALDistLinClamped;
 static _oalRingBufferDistFunc _oalRingBufferALDistExp;
 static _oalRingBufferDistFunc _oalRingBufferALDistExpClamped;
 
-static void _oalRingBufferMixMono16Stereo(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
-static void _oalRingBufferMixMono16Spatial(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
-static void _oalRingBufferMixMono16Surround(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
-static void _oalRingBufferMixMono16HRTF(_oalRingBuffer*, int32_t **sptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+static _oalRingBufferMix1NFunc _oalRingBufferMixMono16Stereo;
+static _oalRingBufferMix1NFunc _oalRingBufferMixMono16Spatial;
+static _oalRingBufferMix1NFunc _oalRingBufferMixMono16Surround;
+static _oalRingBufferMix1NFunc _oalRingBufferMixMono16HRTF;
+
 
 /**
  * Mix a single track source buffer into a multi track destination buffer.
@@ -248,7 +249,7 @@ _oalRingBufferPitchShiftFunc *_oalRingBufferDopplerFunc[] =
 };
 
 static void
-_oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, const int32_ptrptr sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _oalRingBufferSample *rbd;
    unsigned int t;
@@ -290,7 +291,7 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuff
 }
 
 static void
-_oalRingBufferMixMono16Surround(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_oalRingBufferMixMono16Surround(_oalRingBuffer *dest, const int32_ptrptr sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _oalRingBufferSample *rbd;
    unsigned int t;

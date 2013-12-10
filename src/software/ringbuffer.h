@@ -79,7 +79,16 @@ enum _oalRingBufferParam
    RB_BYTES_SAMPLE,
    RB_OFFSET_SAMPLES,
    RB_IS_PLAYING
+};
 
+enum _oalRingBufferState
+{
+   RB_CLEARED = 0,
+   RB_REWINDED,
+   RB_FORWARDED,
+   RB_STARTED,
+   RB_STOPPED,
+   RB_STARTED_STREAMING
 };
 
 typedef struct			/* static information about the sample*/
@@ -167,16 +176,6 @@ typedef ALIGN16 struct
 } _oalRingBuffer2dProps ALIGN16C;
 
 
-typedef int
-_oalRingBufferMix1NFunc(_oalRingBuffer*, _oalRingBuffer*, char,
-                        _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, 
-                        unsigned char, unsigned char, unsigned int);
-typedef int
-_oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
-                        _oalRingBuffer2dProps*, _oalRingBuffer2dProps*,
-                        unsigned char, unsigned int);
-
-
 /**
  * Initialize a new sound buffer that holds no data.
  * The default values are for a single, 16 bits per sample track at 44100Hz.
@@ -188,6 +187,16 @@ _oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*,
  */
 _oalRingBuffer*
 _oalRingBufferCreate(float);
+
+
+/**
+ * Remove the ringbuffer and all it's tracks from memory.
+ *
+ * @param rb the ringbuffer to delete
+ */
+void
+_oalRingBufferDelete(void*);
+
 
 /**
  * Test is a ringbuffer is ready for use or not
@@ -300,69 +309,15 @@ void*
 _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer*, int, float);
 
 /**
- * Clear the sound data of the ringbuffer
- *
- * @param rb the ringbuffer to clear
- */
-void
-_oalRingBufferClear(_oalRingBuffer*);
-
-/**
- * Remove the ringbuffer and all it's tracks from memory.
- *
- * @param rb the ringbuffer to delete
- */
-void
-_oalRingBufferDelete(void*);
-
-/**
- * Set the playback position of the ringbuffer to zero sec.
- *
- * @param rb the ringbuffer to rewind
- */
-void
-_oalRingBufferRewind(_oalRingBuffer*);
-
-/**
- * Set the playback position of the ringbuffer to the end of the buffer
- *
- * @param rb the ringbuffer to forward
- */
-void
-_oalRingBufferForward(_oalRingBuffer*);
-
-/**
- * Starts playback of the ringbuffer.
- *
- * @param rb the ringbuffer to stop
- */
-void
-_oalRingBufferStart(_oalRingBuffer*);
-
-/**
- * Stop playback of the ringbuffer.
- *
- * @param rb the ringbuffer to stop
- */
-void
-_oalRingBufferStop(_oalRingBuffer*);
-
-/**
- * Starts streaming playback of the ringbuffer.
- *
- * @param rb the ringbuffer to stop
- */
-void
-_oalRingBufferStartStreaming(_oalRingBuffer*);
-
-/**
  * Copy the delay effetcs buffers from one ringbuffer to the other.
  * 
  * @param dest destination ringbuffer
  * @param src source ringbuffer
  */
-void
-_oalRingBufferCopyDelyEffectsData(_oalRingBuffer*, const _oalRingBuffer*);
+typedef void
+_oalRingBufferCopyDelyEffectsDataFunc(_oalRingBuffer*, const _oalRingBuffer*);
+
+_oalRingBufferCopyDelyEffectsDataFunc _oalRingBufferCopyDelyEffectsData;
 
 /**
  * M:N channel ringbuffer mixer.
@@ -380,7 +335,10 @@ _oalRingBufferCopyDelyEffectsData(_oalRingBuffer*, const _oalRingBuffer*);
  *
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
-int _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *ep2d, _oalRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf);
+typedef int
+_oalRingBufferMixMNFunc(_oalRingBuffer*, _oalRingBuffer*, _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, unsigned char, unsigned int);
+
+_oalRingBufferMixMNFunc _oalRingBufferMixMulti16;
 
 
 /**
@@ -401,9 +359,23 @@ int _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRing
  *
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
-int _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRenderMode mode, _oalRingBuffer2dProps *ep2d, _oalRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf);
+typedef void
+_oalRingBufferMix1NFunc(_oalRingBuffer*, const int32_ptrptr, _oalRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+
+int
+_oalRingBufferMixMono16(_oalRingBuffer*, _oalRingBuffer*, enum aaxRenderMode, _oalRingBuffer2dProps*, _oalRingBuffer2dProps*, unsigned char, unsigned char, unsigned int);
 
 
+/**
+ *
+ */
+void
+_oalRingBufferSetState(_oalRingBuffer*, enum _oalRingBufferState);
+
+
+/**
+ *
+ */
 int _oalRingBufferSetParamf(_oalRingBuffer*, enum _oalRingBufferParam, float);
 int _oalRingBufferSetParami(_oalRingBuffer*, enum _oalRingBufferParam, unsigned int);
 float _oalRingBufferGetParamf(const _oalRingBuffer*, enum _oalRingBufferParam);

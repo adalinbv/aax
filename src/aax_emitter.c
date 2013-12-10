@@ -400,7 +400,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             _oalRingBufferEnvelopeInfo* env;
 
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _oalRingBufferRewind(embuf->ringbuffer);
+            _oalRingBufferSetState(embuf->ringbuffer, RB_REWINDED);
             src->buffer_pos = 0;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 

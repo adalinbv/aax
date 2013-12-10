@@ -106,8 +106,8 @@ _aaxSensorsProcess(_oalRingBuffer *dest_rb, const _intBuffers *devices,
              * This way pitch effects (< 1.0) can be processed safely.
              */
             _oalRingBufferSetParamf(src_rb, RB_FREQUENCY, device->info->frequency);
-            _oalRingBufferStart(src_rb);
-            _oalRingBufferRewind(src_rb);
+            _oalRingBufferSetState(src_rb, RB_STARTED);
+            _oalRingBufferSetState(src_rb, RB_REWINDED);
 
             _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
             smixer->ringbuffer = rv;
@@ -324,7 +324,7 @@ _aaxSensorCapture(_oalRingBuffer *dest_rb, const _aaxDriverBackend* be,
          rv = nrb;
       }
       else {
-         _oalRingBufferClear(dest_rb);
+         _oalRingBufferSetState(dest_rb, RB_CLEARED);
       }
       if (res <= 0) *delay = 0.0f;
    }

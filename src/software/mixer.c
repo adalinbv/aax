@@ -289,7 +289,7 @@ _aaxSoftwareMixerThread(void* config)
          _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, info->frequency);
          _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
-         _oalRingBufferStart(dest_rb);
+         _oalRingBufferSetState(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
@@ -487,7 +487,7 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
 
       new_rb = _oalRingBufferDuplicate(dest_rb, AAX_TRUE, AAX_FALSE);
 
-      _oalRingBufferRewind(new_rb);
+      _oalRingBufferSetState(new_rb, RB_REWINDED);
       _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
 
       dest_rb = new_rb;
@@ -615,8 +615,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *dest_rb)
  }
 #endif
                /* clear the buffer for use by the subframe */
-               _oalRingBufferClear(dest_rb);
-               _oalRingBufferStart(dest_rb);
+               _oalRingBufferSetState(dest_rb, RB_CLEARED);
+               _oalRingBufferSetState(dest_rb, RB_STARTED);
 
                /** signal threaded frames to update (if necessary) */
                /* thread == -1: mixer; attached frames are threads */

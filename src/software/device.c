@@ -459,9 +459,9 @@ _aaxNoneDriverProcessFrame(void* config)
                   if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        _oalRingBufferStartStreaming(src_rb);
+                        _oalRingBufferSetState(src_rb, RB_STARTED_STREAMING);
                      } else {
-                        _oalRingBufferStart(src_rb);
+                        _oalRingBufferSetState(src_rb, RB_STARTED);
                      }
                   }
 
@@ -492,7 +492,7 @@ _aaxNoneDriverProcessFrame(void* config)
                    */
                   if (rv)
                   {
-                     _oalRingBufferStop(src_rb);
+                     _oalRingBufferSetState(src_rb, RB_STOPPED);
                      if (streaming)
                      {
                         /* is there another buffer ready to play? */

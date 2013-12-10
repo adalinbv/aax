@@ -2710,7 +2710,7 @@ _aaxALSADriverThread(void* config)
          _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
          _oalRingBufferInit(dest_rb, AAX_TRUE);
-         _oalRingBufferStart(dest_rb);
+         _oalRingBufferSetState(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
       }

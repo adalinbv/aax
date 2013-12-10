@@ -74,7 +74,7 @@ _aaxAudioFrameThread(void* config)
       _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, info->frequency);
       _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
       _oalRingBufferInit(dest_rb, AAX_TRUE);
-      _oalRingBufferStart(dest_rb);
+      _oalRingBufferSetState(dest_rb, RB_STARTED);
       frame->thread.initialized = AAX_TRUE;
    }
 
@@ -156,7 +156,7 @@ _aaxAudioFrameThread(void* config)
    _aaxTimerDestroy(timer);
    frame->thread.initialized = AAX_FALSE;
    _aaxMutexUnLock(frame->thread.mutex);
-   _oalRingBufferStop(dest_rb);
+   _oalRingBufferSetState(dest_rb, RB_STOPPED);
    _oalRingBufferDelete(dest_rb);
 
    return frame;
@@ -420,8 +420,8 @@ _aaxAudioFrameRender(_oalRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _oalRingBu
       _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, 2*sizeof(vec4_t));
 
       /* clear the buffer for use by the subframe */
-      _oalRingBufferClear(frame_rb);
-      _oalRingBufferStart(frame_rb);
+      _oalRingBufferSetState(frame_rb, RB_CLEARED);
+      _oalRingBufferSetState(frame_rb, RB_STARTED);
 
       /*
        * frames render in the ringbuffer of their parent and mix with
@@ -588,8 +588,8 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _aax_memcpy(&fp2d.hrtf, &sp2d.hrtf, 2*sizeof(vec4_t));
 
    /* clear the buffer for use by the subframe */
-   _oalRingBufferClear(frame_rb);
-   _oalRingBufferStart(frame_rb);
+   _oalRingBufferSetState(frame_rb, RB_CLEARED);
+   _oalRingBufferSetState(frame_rb, RB_STARTED);
 
    _aaxAudioFrameProcess(frame_rb, NULL, mixer, ssv, sdf, &sp2d, sdp3d_m,
                          &fp2d, fdp3d, fdp3d_m, be, be_handle,AAX_TRUE);

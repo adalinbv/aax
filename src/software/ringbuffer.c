@@ -107,6 +107,36 @@ _oalRingBufferCreate(float dde)
    return rb;
 }
 
+void
+_oalRingBufferDelete(void *rbuf)
+{
+   _oalRingBuffer *rb = (_oalRingBuffer*)rbuf;
+   _oalRingBufferSample *rbd;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(rb != 0);
+   assert(rb->sample != 0);
+
+   rbd = rb->sample;
+
+   if (rbd && rbd->ref_counter > 0)
+   {
+      if (--rbd->ref_counter == 0)
+      {
+         free(rbd->track);
+         rbd->track = NULL;
+
+         free(rbd->scratch);
+         rbd->scratch = NULL;
+
+         free(rb->sample);
+         rb->sample = NULL;
+      }
+      free(rb);
+   }
+}
+
 static void
 _oalRingBufferInitTracks(_oalRingBuffer *rb)
 {
@@ -670,44 +700,8 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, int tracks, float 
 }
 
 void
-_oalRingBufferClear(_oalRingBuffer *rb)
+_oalRingBufferSetState(_oalRingBuffer* rb, enum _oalRingBufferState state)
 {
-   _oalRingBufferSample *rbd;
-   unsigned int i;
-
-   /* _AAX_LOG(LOG_DEBUG, __FUNCTION__); */
-
-   assert(rb != 0);
-
-   rbd = rb->sample;
-   assert(rbd != 0);
-   assert(rbd->track);
-
-   for (i=0; i<rbd->no_tracks; i++) {
-      memset((void *)rbd->track[i], 0, rbd->track_len_bytes);
-   }
-
-// rb->sample = rbd;
-// rb->reverb = reverb;
-
-   rb->elapsed_sec = 0.0f;
-   rb->pitch_norm = 1.0f;
-
-   rb->curr_pos_sec = 0.0f;
-   rb->curr_sample = 0;
-
-// rb->format = fmt;
-   rb->playing = 0;
-   rb->stopped = 1;
-   rb->looping = 0;
-   rb->streaming = 0;
-// rb->dde_sec = dde;
-}
-
-void
-_oalRingBufferDelete(void *rbuf)
-{
-   _oalRingBuffer *rb = (_oalRingBuffer*)rbuf;
    _oalRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -716,83 +710,53 @@ _oalRingBufferDelete(void *rbuf)
    assert(rb->sample != 0);
 
    rbd = rb->sample;
-   if (rbd && rbd->ref_counter > 0)
+
+   switch (state)
    {
-      if (--rbd->ref_counter == 0)
-      {
-         free(rbd->track);
-         rbd->track = NULL;
-
-         free(rbd->scratch);
-         rbd->scratch = NULL;
-
-         free(rb->sample);
-         rb->sample = NULL;
+   case RB_CLEARED:
+   {
+      unsigned int i;
+      for (i=0; i<rbd->no_tracks; i++) {
+         memset((void *)rbd->track[i], 0, rbd->track_len_bytes);
       }
-      free(rb);
+
+      rb->elapsed_sec = 0.0f;
+      rb->pitch_norm = 1.0f;
+      rb->curr_pos_sec = 0.0f;
+      rb->curr_sample = 0;
+
+      rb->playing = 0;
+      rb->stopped = 1;
+      rb->looping = 0;
+      rb->streaming = 0;
+      break;
    }
-}
-
-void
-_oalRingBufferRewind(_oalRingBuffer *rb)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-
-   rb->curr_pos_sec = 0.0f;
-   rb->curr_sample = 0;
-}
-
-
-void
-_oalRingBufferForward(_oalRingBuffer *rb)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-
-   rb->curr_pos_sec = rb->sample->duration_sec;
-   rb->curr_sample = rb->sample->no_samples;
-}
-
-
-void
-_oalRingBufferStart(_oalRingBuffer *rb)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-
-// rb->playing = 1;
-   rb->stopped = 0;
-   rb->streaming = 0;
-}
-
-
-void
-_oalRingBufferStop(_oalRingBuffer *rb)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-
-// rb->playing = 0;
-   rb->stopped = 1;
-   rb->streaming = 0;
-}
-
-
-void
-_oalRingBufferStartStreaming(_oalRingBuffer *rb)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rb != 0);
-
-// rb->playing = 1;
-   rb->stopped = 0;
-   rb->streaming = 1;
+   case RB_REWINDED:
+      rb->curr_pos_sec = 0.0f;
+      rb->curr_sample = 0;
+      break;
+   case RB_FORWARDED:
+      rb->curr_pos_sec = rb->sample->duration_sec;
+      rb->curr_sample = rb->sample->no_samples;
+      break;
+   case RB_STARTED:
+//    rb->playing = 1;
+      rb->stopped = 0;
+      rb->streaming = 0;
+      break;
+   case RB_STOPPED:
+//    rb->playing = 0;
+      rb->stopped = 1;
+      rb->streaming = 0;
+      break;
+   case RB_STARTED_STREAMING:
+//    rb->playing = 1;
+      rb->stopped = 0;
+      rb->streaming = 1;
+      break;
+   default:
+     break;
+   }
 }
 
 int

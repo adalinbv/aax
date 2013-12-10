@@ -457,7 +457,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
           * space since it is lower that the initial duration.
           */
          _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
-         _oalRingBufferStart(rb);
+         _oalRingBufferSetState(rb, RB_STARTED);
       }
       _intBufReleaseData(dptr, _AAX_SENSOR);
    }

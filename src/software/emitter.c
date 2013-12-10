@@ -85,14 +85,14 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                   _oalRingBuffer2dProps *ep2d = src->props2d;
 
                   if (_IS_STOPPED(src->props3d)) {
-                     _oalRingBufferStop(src_rb);
+                     _oalRingBufferSetState(src_rb, RB_STOPPED);
                   }
                   else if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        _oalRingBufferStartStreaming(src_rb);
+                        _oalRingBufferSetState(src_rb, RB_STARTED_STREAMING);
                      } else {
-                        _oalRingBufferStart(src_rb);
+                        _oalRingBufferSetState(src_rb, RB_STARTED);
                      }
                   }
 
@@ -176,7 +176,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-            _oalRingBufferStart(dest_rb);
+            _oalRingBufferSetState(dest_rb, RB_STARTED);
          }
          _intBufReleaseData(dptr_src, _AAX_EMITTER);
       }
