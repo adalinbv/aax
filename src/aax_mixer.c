@@ -56,7 +56,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          setup *= 2;
          /* break not needed */
       case AAX_MONO_EMITTERS:
-         rv = (setup <= _oalRingBufferGetParami(NULL, RB_NO_EMITTERS)) ? AAX_TRUE : AAX_FALSE;
+         rv = (setup <= _aaxGetNoEmitters()) ? AAX_TRUE : AAX_FALSE;
          break;
       default:
          break;
@@ -214,10 +214,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
       switch(type)
       {
       case AAX_MONO_EMITTERS:
-         rv = _oalRingBufferGetParami(NULL, RB_NO_EMITTERS);
+         rv = _aaxGetNoEmitters();
          break;
       case AAX_STEREO_EMITTERS:
-         rv = _oalRingBufferGetParami(NULL, RB_NO_EMITTERS)/2;
+         rv = _aaxGetNoEmitters()/2;
          break;
       case AAX_AUDIO_FRAMES:
          rv = 0;
@@ -941,7 +941,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 
             if (mixer->no_registered < mixer->info->max_registered)
             {
-               if (_oalRingBufferGetSource())
+               if (_aaxGetEmitter())
                {
                   mixer->no_registered++;
                   pos = _intBufAddData(he, _AAX_EMITTER, emitter);
@@ -1064,7 +1064,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos,AAX_FALSE);
             if (ptr)
             {
-               _oalRingBufferPutSource();
+               _aaxPutEmitter();
                mixer->no_registered--;
                emitter->handle = NULL;
                emitter->mixer_pos = UINT_MAX;

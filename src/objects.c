@@ -306,3 +306,55 @@ vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
    {-1.0f, 0.0f, 0.0f, 1.0f }		/* right side speaker    */
 };
 
+
+static unsigned int
+_aaxGetSetMonoSources(unsigned int max, int num)
+{
+   static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
+   static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
+   unsigned int abs_num = abs(num);
+   unsigned int ret = _sources;
+
+   if (max)
+   {
+      if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
+      _max_sources = max;
+      _sources = max;
+      ret = max;
+   }
+
+   if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
+   {
+      unsigned int _src = _sources - num;
+      if ((_sources >= (unsigned int)num) && (_src < _max_sources))
+      {
+         _sources = _src;
+         ret = abs_num;
+      }
+   }
+
+   return ret;
+}
+
+unsigned int
+_aaxGetNoEmitters() {
+   int rv = _aaxGetSetMonoSources(0, 0);
+   if (rv > _AAX_MAX_MIXER_REGISTERED) rv = _AAX_MAX_MIXER_REGISTERED;
+   return rv;
+}
+
+unsigned int
+_aaxSetNoEmitters(unsigned int max) {
+   return _aaxGetSetMonoSources(max, 0);
+}
+
+unsigned int
+_aaxGetEmitter() {
+   return _aaxGetSetMonoSources(0, 1);
+}
+
+unsigned int
+_aaxPutEmitter() {
+   return _aaxGetSetMonoSources(0, -1);
+}
+

@@ -78,8 +78,7 @@ enum _oalRingBufferParam
    RB_TRACKSIZE,
    RB_BYTES_SAMPLE,
    RB_OFFSET_SAMPLES,
-   RB_IS_PLAYING,
-   RB_NO_EMITTERS
+   RB_IS_PLAYING
 
 };
 
@@ -201,58 +200,14 @@ int
 _oalRingBufferIsValid(_oalRingBuffer*);
 
 
+/**
+ * Initialize the sound buffer
+ *
+ * @param rb the ringbuffer to reference
+ * @param add_scratchbuf set to something other than 0 to add scratchbuffers
+ */
 void
 _oalRingBufferInit(_oalRingBuffer*, char);
-
-#if 1
-/**
- * Initialize the sound buffer
- *
- * @param data pointer to previously defined ringbuffer sample (or NULL)
- * @param codecs pointer to an array of block conversion funcs; 0 use default
- * @param channels no. of supported tracks
- * @param frequency recording frequency
- * @param format recording format
- * @param duration playback duration of every track
- * @param keep_original 0 to allow for speed optimizations of the data
- *
- * returns the new ringbuffer
- */
-_oalRingBuffer*
-_oalRingBufferInitSec(_oalRingBufferSample*, _aaxCodec**, unsigned char, float, enum aaxFormat, float, char);
-
-/**
- * Initialize the sound buffer
- *
- * @param data pointer to previously defined ringbuffer sample (or NULL)
- * @param codecs pointer to an array of block conversion funcs; 0 use default
- * @param channels number of supported tracks
- * @param frequency recording frequency
- * @param format recording format
- * @param samples number of samples per channel to store in the buffer
- * @param keep_original 0 to allow for speed optimizations of the data
- *
- * return the new ringbuffer
- */
-_oalRingBuffer*
-_oalRingBufferInitSamples(_oalRingBufferSample*, _aaxCodec**, unsigned char, float, enum aaxFormat, unsigned int, char);
-
-/**
- * Initialize the sound buffer
- *
- * @param data pointer to previously defined ringbuffer sample (or NULL)
- * @param codecs pointer to an array of block conversion funcs; 0 use default
- * @param channels number of supported tracks
- * @param frequency recording frequency
- * @param format recording format
- * @param size number of bytes per channel to store in the buffer
- * @param keep_original 0 to allow for speed optimizations of the data
- *
- * returns the new ringbuffer
- */
-_oalRingBuffer*
-_oalRingBufferInitBytes(_oalRingBufferSample*, _aaxCodec**, unsigned char, float, enum aaxFormat, unsigned int, char);
-#endif
 
 /**
  * Reference another RingBuffer, possibly sharing it's sample data.
@@ -459,9 +414,6 @@ int _oalRingBufferSetFormat(_oalRingBuffer*, _aaxCodec **, enum aaxFormat);
     _oalRingBufferSetParamf(drb, param, _oalRingBufferGetParamf(srb, param))
 #define _oalRingBufferCopyParami(dbr, srb, param) \
     _oalRingBufferSetParami(drb, param, _oalRingBufferGetParami(srb, param))
-
-unsigned int _oalRingBufferGetSource();
-unsigned int _oalRingBufferPutSource();
 
 /* --------------------------------------------------------------------------*/
 

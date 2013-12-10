@@ -41,7 +41,6 @@
 # define _DEBUG		0
 #endif
 
-static unsigned int _oalGetSetMonoSources(unsigned int, int);
 static void _oalRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
 
 int
@@ -882,9 +881,6 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       else printf("Unable set the no. tracks rbd->track == NULL\n");
 #endif
       break;
-   case RB_NO_EMITTERS:
-      _oalGetSetMonoSources(val, 0);
-      break;
    case RB_LOOPING:
       rb->looping = val ? AAX_TRUE : AAX_FALSE;
       rb->loop_max = (val > AAX_TRUE) ? val : 0;
@@ -1041,10 +1037,6 @@ _oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param
    case RB_IS_PLAYING:
       rv = !(rb->playing == 0 && rb->stopped == 1);
       break;
-   case RB_NO_EMITTERS:
-      rv = _oalGetSetMonoSources(0, 0);
-      if (rv > _AAX_MAX_MIXER_REGISTERED) rv = _AAX_MAX_MIXER_REGISTERED;
-      break;
    default:
 #ifndef NDEBUG
       printf("UNKNOWN PARAMETER %i at line %i\n", param, __LINE__);
@@ -1083,16 +1075,6 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
    return rv;
 }
 
-unsigned int
-_oalRingBufferGetSource() {
-   return _oalGetSetMonoSources(0, 1);
-}
-
-unsigned int
-_oalRingBufferPutSource() {
-   return _oalGetSetMonoSources(0, -1);
-}
-
 /* -------------------------------------------------------------------------- */
 
 _oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX] =
@@ -1107,35 +1089,6 @@ _oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX] =
   {  8, AAX_ALAW },	/* a-law */
   { 16, AAX_PCM16S }	/* IMA4-ADPCM gets converted to 16-bit */
 };
-
-static unsigned int
-_oalGetSetMonoSources(unsigned int max, int num)
-{
-   static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
-   static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
-   unsigned int abs_num = abs(num);
-   unsigned int ret = _sources;
-
-   if (max)
-   {
-      if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
-      _max_sources = max;
-      _sources = max;
-      ret = max;
-   }
-
-   if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
-   {
-      unsigned int _src = _sources - num;
-      if ((_sources >= (unsigned int)num) && (_src < _max_sources))
-      {
-         _sources = _src;
-         ret = abs_num;
-      }
-   }
-
-   return ret;
-}
 
 /*
  * Convert 4-bit IMA to 16-bit PCM

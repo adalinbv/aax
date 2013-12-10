@@ -342,6 +342,11 @@ void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *, unsigned int);
 void _aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *, unsigned int);
 
+unsigned int _aaxGetNoEmitters();
+unsigned int _aaxSetNoEmitters(unsigned int);
+unsigned int _aaxGetEmitter();
+unsigned int _aaxPutEmitter();
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
