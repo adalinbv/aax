@@ -846,7 +846,7 @@ _open_handle(aaxConfig config)
 #else
                      sensor->mixer->thread = 0;
 #endif
-                     num = _oalRingBufferGetNoSources();
+                     num = _oalRingBufferGetParami(NULL, RB_NO_EMITTERS);
                      sensor->mixer->info->max_emitters = num;
                      num = _AAX_MAX_MIXER_REGISTERED;
                      sensor->mixer->info->max_registered = num;
@@ -966,12 +966,15 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          if (config->node[0].no_emitters)
          {
             unsigned int emitters = config->node[0].no_emitters;
-            unsigned int system_max = _oalRingBufferGetNoSources();
+            unsigned int system_max;
+
+            system_max = _oalRingBufferGetParami(NULL, RB_NO_EMITTERS);
             handle->info->max_emitters = _MINMAX(emitters, 4, system_max);
-            _oalRingBufferSetNoSources(handle->info->max_emitters);
+            _oalRingBufferSetParami(NULL, RB_NO_EMITTERS, handle->info->max_emitters);
          }
          else {
-            handle->info->max_emitters = _oalRingBufferGetNoSources();
+            handle->info->max_emitters =
+                                  _oalRingBufferGetParami(NULL, RB_NO_EMITTERS);
          }
 
          ptr = config->node[0].setup;
@@ -1058,7 +1061,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                 handle->info->max_emitters =  _AAX_MAX_MIXER_REGISTERED_LT;
             }
             handle->info->max_registered = _AAX_MAX_MIXER_REGISTERED_LT;
-            _oalRingBufferSetNoSources(handle->info->max_emitters);
+            _oalRingBufferSetParami(NULL, RB_NO_EMITTERS, handle->info->max_emitters);
 
             handle->valid = AAX_TRUE;
          }

@@ -882,6 +882,9 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       else printf("Unable set the no. tracks rbd->track == NULL\n");
 #endif
       break;
+   case RB_NO_EMITTERS:
+      _oalGetSetMonoSources(val, 0);
+      break;
    case RB_LOOPING:
       rb->looping = val ? AAX_TRUE : AAX_FALSE;
       rb->loop_max = (val > AAX_TRUE) ? val : 0;
@@ -1038,6 +1041,10 @@ _oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param
    case RB_IS_PLAYING:
       rv = !(rb->playing == 0 && rb->stopped == 1);
       break;
+   case RB_NO_EMITTERS:
+      rv = _oalGetSetMonoSources(0, 0);
+      if (rv > _AAX_MAX_MIXER_REGISTERED) rv = _AAX_MAX_MIXER_REGISTERED;
+      break;
    default:
 #ifndef NDEBUG
       printf("UNKNOWN PARAMETER %i at line %i\n", param, __LINE__);
@@ -1074,20 +1081,6 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
 #endif
 
    return rv;
-}
-
-unsigned int
-_oalRingBufferGetNoSources()
-{
-   int num = _oalGetSetMonoSources(0, 0);
-   if (num > _AAX_MAX_MIXER_REGISTERED) num = _AAX_MAX_MIXER_REGISTERED;
-   return num;
-}
-
-unsigned int
-_oalRingBufferSetNoSources(unsigned int max)
-{
-   return _oalGetSetMonoSources(max, 0);
 }
 
 unsigned int

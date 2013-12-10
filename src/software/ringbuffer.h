@@ -78,7 +78,8 @@ enum _oalRingBufferParam
    RB_TRACKSIZE,
    RB_BYTES_SAMPLE,
    RB_OFFSET_SAMPLES,
-   RB_IS_PLAYING
+   RB_IS_PLAYING,
+   RB_NO_EMITTERS
 
 };
 
@@ -461,9 +462,6 @@ int _oalRingBufferSetFormat(_oalRingBuffer*, _aaxCodec **, enum aaxFormat);
 
 unsigned int _oalRingBufferGetSource();
 unsigned int _oalRingBufferPutSource();
-unsigned int _oalRingBufferGetNoSources();
-unsigned int _oalRingBufferSetNoSources(unsigned int);
-
 
 /* --------------------------------------------------------------------------*/
 
