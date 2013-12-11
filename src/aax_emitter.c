@@ -46,7 +46,7 @@ aaxEmitterCreate()
    size = sizeof(_emitter_t) + sizeof(_aaxEmitter);
    ptr2 = (char*)size;
 
-   size += sizeof(_oalRingBuffer2dProps);
+   size += sizeof(_aaxRingBuffer2dProps);
    ptr1 = _aax_calloc(&ptr2, 1, size);
    if (ptr1)
    {
@@ -58,7 +58,7 @@ aaxEmitterCreate()
       src->buffer_pos = UINT_MAX;
 
       assert(((long int)ptr2 & 0xF) == 0);
-      src->props2d = (_oalRingBuffer2dProps*)ptr2;
+      src->props2d = (_aaxRingBuffer2dProps*)ptr2;
       _aaxSetDefault2dProps(src->props2d);
 
       /* unfortunatelly postponing the allocation of the 3d data info buffer
@@ -107,7 +107,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
       _aaxEmitter *src = handle->source;
       if (!handle->handle && _IS_PROCESSED(src->props3d))
       {
-         _oalRingBufferDelayEffectData* effect;
+         _aaxRingBufferDelayEffectData* effect;
 
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
@@ -151,20 +151,20 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    if (handle)
    {
       _buffer_t* buffer = get_buffer(buf);
-      if (buffer && _oalRingBufferIsValid(buffer->ringbuffer))
+      if (buffer && _aaxRingBufferGetState(buffer->ringbuffer, RB_IS_VALID))
       {
          const _aaxEmitter *src = handle->source;
          if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
             handle->track = 0;
          }
 
-         if (handle->track < _oalRingBufferGetParami(buffer->ringbuffer,
+         if (handle->track < _aaxRingBufferGetParami(buffer->ringbuffer,
                                                      RB_NO_TRACKS))
          {
             _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
             if (embuf)
             {
-               embuf->ringbuffer = _oalRingBufferReference(buffer->ringbuffer);
+               embuf->ringbuffer = _aaxRingBufferReference(buffer->ringbuffer);
                embuf->id = EMBUFFER_ID;
                embuf->buffer = buffer;
                buffer->ref_counter++;
@@ -216,7 +216,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
                assert(embuf->id == EMBUFFER_ID);
 
                free_buffer(embuf->buffer);
-               _oalRingBufferDelete(embuf->ringbuffer);
+               _aaxRingBufferDestroy(embuf->ringbuffer);
                embuf->ringbuffer = NULL;
                embuf->id = 0xdeadbeef;
                free(embuf);
@@ -397,10 +397,10 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
-            _oalRingBufferEnvelopeInfo* env;
+            _aaxRingBufferEnvelopeInfo* env;
 
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _oalRingBufferSetState(embuf->ringbuffer, RB_REWINDED);
+            _aaxRingBufferSetState(embuf->ringbuffer, RB_REWINDED);
             src->buffer_pos = 0;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
@@ -453,7 +453,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
          {
-            _oalRingBuffer2dProps *p2d = src->props2d;
+            _aaxRingBuffer2dProps *p2d = src->props2d;
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -565,7 +565,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             /* break not needed */
          case AAX_DISTORTION_EFFECT:
          {
-            _oalRingBuffer2dProps *p2d = src->props2d;
+            _aaxRingBuffer2dProps *p2d = src->props2d;
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -579,7 +579,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
          {
-            _oalRingBuffer2dProps *p2d = src->props2d;
+            _aaxRingBuffer2dProps *p2d = src->props2d;
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -588,13 +588,13 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
             if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) > 1)
             {
-               _oalRingBufferDelayEffectData* data;
+               _aaxRingBufferDelayEffectData* data;
                data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
                if (data && !data->history_ptr)
                {
                   unsigned int tracks = effect->info->no_tracks;
                   float frequency = effect->info->frequency;
-                  _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
+                  _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                     data->delay_history,
                                                     frequency, tracks,
                                                     DELAY_EFFECTS_TIME);
@@ -605,8 +605,8 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          }
          case AAX_DYNAMIC_PITCH_EFFECT:
          {
-            _oalRingBuffer2dProps *p2d = src->props2d;
-            _oalRingBufferLFOInfo *lfo;
+            _aaxRingBuffer2dProps *p2d = src->props2d;
+            _aaxRingBufferLFOInfo *lfo;
 
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
@@ -735,7 +735,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _oalRingBufferSetParami(embuf->ringbuffer, RB_LOOPING, mode);
+            _aaxRingBufferSetParami(embuf->ringbuffer, RB_LOOPING, mode);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
@@ -748,7 +748,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            if (mode < _oalRingBufferGetParami(embuf->buffer->ringbuffer, RB_NO_TRACKS))
+            if (mode < _aaxRingBufferGetParami(embuf->buffer->ringbuffer, RB_NO_TRACKS))
             {
                handle->track = mode;
                rv = AAX_TRUE;
@@ -866,17 +866,17 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
       if (dptr)
       {
          _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-         _oalRingBuffer *rb = embuf->ringbuffer;
+         _aaxRingBuffer *rb = embuf->ringbuffer;
          float duration, fpos = (float)offs*1e-6f;
          unsigned int samples, pos = 0;
 
          switch (type)
          {
          case AAX_BYTES:   
-            offs /= _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
+            offs /= _aaxRingBufferGetParami(rb, RB_BYTES_SAMPLE);
          case AAX_FRAMES:
          case AAX_SAMPLES:
-            samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES);
+            samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES);
             while (offs > samples)
             {
                pos++;
@@ -888,18 +888,18 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES);
+               samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               _oalRingBufferSetParami(rb, RB_OFFSET_SAMPLES, offs);
+               _aaxRingBufferSetParami(rb, RB_OFFSET_SAMPLES, offs);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_MICROSECONDS:
-            duration = _oalRingBufferGetParamf(rb, RB_DURATION_SEC);
+            duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
             while (fpos > duration)
             {
                pos++;
@@ -911,12 +911,12 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               duration = _oalRingBufferGetParamf(rb, RB_DURATION_SEC);
+               duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               _oalRingBufferSetParamf(rb, RB_OFFSET_SEC, fpos);
+               _aaxRingBufferSetParamf(rb, RB_OFFSET_SEC, fpos);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -956,11 +956,11 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _oalRingBuffer *rb = embuf->ringbuffer;
+            _aaxRingBuffer *rb = embuf->ringbuffer;
             unsigned int pos = 0;
             float duration;
 
-            duration = _oalRingBufferGetParamf(rb, RB_DURATION_SEC);
+            duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
             while (offs > duration)
             {
                pos++;
@@ -972,12 +972,12 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               duration = _oalRingBufferGetParamf(rb, RB_DURATION_SEC);
+               duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               _oalRingBufferSetParamf(rb, RB_OFFSET_SEC, offs);
+               _aaxRingBufferSetParamf(rb, RB_OFFSET_SEC, offs);
                rv = AAX_TRUE;
             }
             else {
@@ -1029,7 +1029,7 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            rv = _oalRingBufferGetParami(embuf->ringbuffer, RB_LOOPING);
+            rv = _aaxRingBufferGetParami(embuf->ringbuffer, RB_LOOPING);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          break;
@@ -1125,7 +1125,7 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
             _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
             for (i=0; i<handle->mixer_pos; i++)
             {
-               rv += _oalRingBufferGetParami(embuf->ringbuffer, RB_NO_SAMPLES);
+               rv += _aaxRingBufferGetParami(embuf->ringbuffer, RB_NO_SAMPLES);
                _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
                dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, i);
@@ -1133,9 +1133,9 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
 
-            rv += _oalRingBufferGetParami(embuf->ringbuffer, RB_OFFSET_SAMPLES);
+            rv += _aaxRingBufferGetParami(embuf->ringbuffer, RB_OFFSET_SAMPLES);
             if (type == AAX_BYTES) {
-               rv *= _oalRingBufferGetParami(embuf->ringbuffer, RB_BYTES_SAMPLE);
+               rv *= _aaxRingBufferGetParami(embuf->ringbuffer, RB_BYTES_SAMPLE);
             }
             break;
          case AAX_MICROSECONDS:
@@ -1295,7 +1295,7 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       _aax3dProps *ep3d = src->props3d;
       _aaxDelayed3dProps *edp3d_m = ep3d->m_dprops3d;
       _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
-      _oalRingBuffer2dProps *ep2d = src->props2d;
+      _aaxRingBuffer2dProps *ep2d = src->props2d;
       float dist, vs;
 
       vs = _EFFECT_GET(fp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
@@ -1333,7 +1333,7 @@ _aaxFreeEmitterBuffer(void *sbuf)
    _embuffer_t *embuf = (_embuffer_t*)sbuf;
 
    free_buffer(embuf->buffer);
-   _oalRingBufferDelete(embuf->ringbuffer);
+   _aaxRingBufferDestroy(embuf->ringbuffer);
    embuf->ringbuffer = NULL;
    embuf->id = 0xdeadbeef;
    free(embuf);

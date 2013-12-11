@@ -42,11 +42,11 @@
  * @fp2d mixer 2d properties
  */
 int
-_oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuffer2dProps *ep2d, _oalRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *dest, _aaxRingBuffer *src, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
 {
    unsigned int offs, dno_samples, track;
-   _oalRingBufferLFOInfo *lfo;
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferLFOInfo *lfo;
+   _aaxRingBufferSample *rbd;
    float svol, evol, max;
    float pitch, gain;
    int32_t **sptr;
@@ -81,7 +81,7 @@ _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuff
    }
 
    env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
+   pitch *= _aaxRingBufferEnvelopeGet(env, src->stopped);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.01f, max);
@@ -119,7 +119,7 @@ _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuff
    }
 
    /* apply envelope filter */
-   gain = _oalRingBufferEnvelopeGet(env, src->stopped);
+   gain = _aaxRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -164,7 +164,7 @@ _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuff
       g = 0.0f;
       for (track=0; track<rbd->no_tracks; track++)
       {
-         _oalRingBufferSample *rbs = src->sample;
+         _aaxRingBufferSample *rbs = src->sample;
          unsigned int rbs_track = track % rbs->no_tracks;
          float gain;
 
@@ -177,7 +177,7 @@ _oalRingBufferMixMulti16(_oalRingBuffer *dest, _oalRingBuffer *src, _oalRingBuff
 
    for (track=0; track<rbd->no_tracks; track++)
    {
-      _oalRingBufferSample *rbs = src->sample;
+      _aaxRingBufferSample *rbs = src->sample;
       unsigned int rbs_track = track % rbs->no_tracks;
       unsigned int rbd_track = track % rbd->no_tracks;
       int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;

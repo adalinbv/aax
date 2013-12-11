@@ -46,9 +46,9 @@ void  _sw_bufcpy_ima_adpcm(void*, const void*, unsigned char, unsigned int);
 void _aaxProcessResample(int32_ptr, const int32_ptr, unsigned int, unsigned int, float, float);
 
 /* sensor */
-void _aaxSensorsProcess(_oalRingBuffer*, const _intBuffers*,
-                        _oalRingBuffer2dProps*, int);
-void *_aaxSensorCapture(_oalRingBuffer*, const _aaxDriverBackend*, void*,
+void _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*,
+                        _aaxRingBuffer2dProps*, int);
+void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
                         float*, float, int, float, float);
 
 #if defined(__cplusplus)

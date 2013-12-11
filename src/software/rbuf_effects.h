@@ -148,9 +148,9 @@ enum
 
 
 typedef float _convert_fn(float, float);
-typedef float _oalRingBufferDistFunc(float, float, float, float, float, float);
-typedef float _oalRingBufferPitchShiftFunc(float, float, float);
-typedef float _oalRingBufferLFOGetFunc(void*, const void*, unsigned, unsigned int);
+typedef float _aaxRingBufferDistFn(float, float, float, float, float, float);
+typedef float _aaxRingBufferPitchShiftFn(float, float, float);
+typedef float _aaxRingBufferLFOGetFn(void*, const void*, unsigned, unsigned int);
 
 typedef struct
 {
@@ -161,10 +161,10 @@ typedef struct
    float value[_AAX_MAX_SPEAKERS];      /* current value                   */
    float average[_AAX_MAX_SPEAKERS];    /* average value over time         */
    float compression[_AAX_MAX_SPEAKERS]; /* compression level              */
-   _oalRingBufferLFOGetFunc *get;
+   _aaxRingBufferLFOGetFn *get;
    _convert_fn *convert;
    char inv, envelope, stereo_lnk;
-} _oalRingBufferLFOInfo;
+} _aaxRingBufferLFOInfo;
 
 typedef struct
 {
@@ -173,31 +173,31 @@ typedef struct
    unsigned int stage, max_stages;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
-} _oalRingBufferEnvelopeInfo;
+} _aaxRingBufferEnvelopeInfo;
 
 typedef struct
 {
    float gain;
    unsigned int sample_offs[_AAX_MAX_SPEAKERS];
-} _oalRingBufferDelayInfo;
+} _aaxRingBufferDelayInfo;
 
 typedef struct
 {
    float coeff[4];
    float Q, k, fs, lf_gain, hf_gain;
    float freqfilter_history[_AAX_MAX_SPEAKERS][2];
-   _oalRingBufferLFOInfo *lfo;
-} _oalRingBufferFreqFilterInfo;
+   _aaxRingBufferLFOInfo *lfo;
+} _aaxRingBufferFreqFilterInfo;
 
 typedef struct
 {
-   _oalRingBufferFreqFilterInfo band[_AAX_MAX_EQBANDS];
-} _oalRingBufferEqualizerInfo;
+   _aaxRingBufferFreqFilterInfo band[_AAX_MAX_EQBANDS];
+} _aaxRingBufferEqualizerInfo;
 
 typedef struct
 {
-   _oalRingBufferLFOInfo lfo;
-   _oalRingBufferDelayInfo delay;
+   _aaxRingBufferLFOInfo lfo;
+   _aaxRingBufferDelayInfo delay;
 
    int32_t* delay_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
@@ -208,23 +208,23 @@ typedef struct
    unsigned int curr_step[_AAX_MAX_SPEAKERS];
 
    char loopback;
-} _oalRingBufferDelayEffectData;
+} _aaxRingBufferDelayEffectData;
 
 typedef struct
 {
    /* reverb*/
    float gain;
    unsigned int no_delays;
-   _oalRingBufferDelayInfo delay[_AAX_MAX_DELAYS];
+   _aaxRingBufferDelayInfo delay[_AAX_MAX_DELAYS];
 
     unsigned int no_loopbacks;
-    _oalRingBufferDelayInfo loopback[_AAX_MAX_LOOPBACKS];
+    _aaxRingBufferDelayInfo loopback[_AAX_MAX_LOOPBACKS];
     int32_t* reverb_history[_AAX_MAX_SPEAKERS];
     void* history_ptr;
 
-    _oalRingBufferFreqFilterInfo *freq_filter;
+    _aaxRingBufferFreqFilterInfo *freq_filter;
 
-} _oalRingBufferReverbData;
+} _aaxRingBufferReverbData;
 
 
 typedef struct
@@ -232,17 +232,17 @@ typedef struct
    float param[4];
    void* data;          /* filter specific interal data structure */
    int state;
-} _oalRingBufferFilterInfo;
+} _aaxRingBufferFilterInfo;
 
-void _oalRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
-void _oalRingBufferDelaysRemove(void**);
-// void _oalRingBufferDelayRemoveNum(_oalRingBuffer*, unsigned int);
+void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
+void _aaxRingBufferDelaysRemove(void**);
+// void _aaxRingBufferDelayRemoveNum(_aaxRingBuffer*, unsigned int);
 
 /* -------------------------------------------------------------------------- */
 
-extern _oalRingBufferDistFunc* _oalRingBufferDistanceFunc[];
-extern _oalRingBufferDistFunc* _oalRingBufferALDistanceFunc[];
-extern _oalRingBufferPitchShiftFunc* _oalRingBufferDopplerFunc[];
+extern _aaxRingBufferDistFn* _aaxRingBufferDistanceFn[];
+extern _aaxRingBufferDistFn* _aaxRingBufferALDistanceFn[];
+extern _aaxRingBufferPitchShiftFn* _aaxRingBufferDopplerFn[];
 
 extern _aaxDriverCompress _aaxProcessCompression;
 
@@ -262,16 +262,16 @@ float _2acos(float v);
 float _linear(float v, float f);
 float _compress(float v, float f);
 
-float _oalRingBufferLFOGetSine(void*, const void*, unsigned, unsigned int);
-float _oalRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);
-float _oalRingBufferLFOGetTriangle(void*, const void*, unsigned, unsigned int);
-float _oalRingBufferLFOGetSawtooth(void*, const void*, unsigned, unsigned int);
-float _oalRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
-float _oalRingBufferLFOGetGainFollow(void*, const void*, unsigned, unsigned int);
-float _oalRingBufferLFOGetCompressor(void*, const void*, unsigned, unsigned int);
-float _oalRingBufferLFOGetPitchFollow(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetSine(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetTriangle(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetSawtooth(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
+float _aaxRingBufferLFOGetGainFollow(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetCompressor(void*, const void*, unsigned, unsigned int);
+float _aaxRingBufferLFOGetPitchFollow(void*, const void*, unsigned, unsigned int);
 
-float _oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo*, char);
+float _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeInfo*, char);
 
 
 void bufEffectsApply(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, void*, void*, void*);

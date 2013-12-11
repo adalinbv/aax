@@ -61,10 +61,10 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
       switch (type)
       {
       case AAX_TIMED_PITCH_EFFECT:
-         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_oalRingBufferFilterInfo);
+         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxRingBufferFilterInfo);
          break;
       default:
-         size += sizeof(_oalRingBufferFilterInfo);
+         size += sizeof(_aaxRingBufferFilterInfo);
          break;
       }
 
@@ -79,11 +79,11 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          if VALID_HANDLE(handle) eff->info = handle->info;
 
          ptr = (char*)eff + sizeof(_filter_t);
-         eff->slot[0] = (_oalRingBufferFilterInfo*)ptr;
+         eff->slot[0] = (_aaxRingBufferFilterInfo*)ptr;
          eff->pos = _eff_cvt_tbl[type].pos;
          eff->type = type;
 
-         size = sizeof(_oalRingBufferFilterInfo);
+         size = sizeof(_aaxRingBufferFilterInfo);
          switch (type)
          {
          case AAX_PITCH_EFFECT:
@@ -98,7 +98,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          case AAX_TIMED_PITCH_EFFECT:
             for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
             {
-               eff->slot[i] = (_oalRingBufferFilterInfo*)(ptr + i*size);
+               eff->slot[i] = (_aaxRingBufferFilterInfo*)(ptr + i*size);
                _aaxSetDefaultEffect2d(eff->slot[i], eff->pos);
             }
             break;
@@ -139,7 +139,7 @@ aaxEffectDestroy(aaxEffect f)
       {
       case AAX_REVERB_EFFECT:
       {
-         _oalRingBufferReverbData* data = effect->slot[0]->data;
+         _aaxRingBufferReverbData* data = effect->slot[0]->data;
          if (data) free(data->history_ptr);
          free(effect->slot[0]->data);
          effect->slot[0]->data = NULL;
@@ -147,7 +147,7 @@ aaxEffectDestroy(aaxEffect f)
       }
       case AAX_FLANGING_EFFECT:
       {
-         _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
+         _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
          if (data) free(data->history_ptr);
          /* break is not needed */
       }
@@ -300,10 +300,10 @@ aaxEffectSetState(aaxEffect e, int state)
          {
          case AAX_ENVELOPE_FOLLOW:
          {
-            _oalRingBufferLFOInfo* lfo = effect->slot[0]->data;
+            _aaxRingBufferLFOInfo* lfo = effect->slot[0]->data;
             if (lfo == NULL)
             {
-               lfo = malloc(sizeof(_oalRingBufferLFOInfo));
+               lfo = malloc(sizeof(_aaxRingBufferLFOInfo));
                effect->slot[0]->data = lfo;
             }
 
@@ -323,7 +323,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                }
 
-               lfo->get = _oalRingBufferLFOGetGainFollow;
+               lfo->get = _aaxRingBufferLFOGetGainFollow;
                lfo->envelope = AAX_TRUE;
             }
             break;
@@ -351,10 +351,10 @@ aaxEffectSetState(aaxEffect e, int state)
             case AAX_SAWTOOTH_WAVE:
             case AAX_ENVELOPE_FOLLOW:
             {
-               _oalRingBufferLFOInfo* lfo = effect->slot[0]->data;
+               _aaxRingBufferLFOInfo* lfo = effect->slot[0]->data;
                if (lfo == NULL)
                {
-                  lfo = malloc(sizeof(_oalRingBufferLFOInfo));
+                  lfo = malloc(sizeof(_aaxRingBufferLFOInfo));
                   effect->slot[0]->data = lfo;
                }
 
@@ -398,29 +398,29 @@ aaxEffectSetState(aaxEffect e, int state)
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
-                        lfo->get = _oalRingBufferLFOGetFixedValue;
+                        lfo->get = _aaxRingBufferLFOGetFixedValue;
                         break;
                      case AAX_TRIANGLE_WAVE:
-                        lfo->get = _oalRingBufferLFOGetTriangle;
+                        lfo->get = _aaxRingBufferLFOGetTriangle;
                         break;
                      case AAX_SINE_WAVE:
-                        lfo->get = _oalRingBufferLFOGetSine;
+                        lfo->get = _aaxRingBufferLFOGetSine;
                         break;
                      case AAX_SQUARE_WAVE:
-                        lfo->get = _oalRingBufferLFOGetSquare;
+                        lfo->get = _aaxRingBufferLFOGetSquare;
                         break;
                      case AAX_SAWTOOTH_WAVE:
-                        lfo->get = _oalRingBufferLFOGetSawtooth;
+                        lfo->get = _aaxRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         lfo->get = _oalRingBufferLFOGetGainFollow;
+                         lfo->get = _aaxRingBufferLFOGetGainFollow;
                          lfo->envelope = AAX_TRUE;
                         break;
                      default:
                         break;
                      }
                   } else {
-                     lfo->get = _oalRingBufferLFOGetFixedValue;
+                     lfo->get = _aaxRingBufferLFOGetFixedValue;
                   }
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -443,10 +443,10 @@ aaxEffectSetState(aaxEffect e, int state)
          {
             if TEST_FOR_TRUE(state)
             {
-               _oalRingBufferEnvelopeInfo* env = effect->slot[0]->data;
+               _aaxRingBufferEnvelopeInfo* env = effect->slot[0]->data;
                if (env == NULL)
                {
-                  env =  calloc(1, sizeof(_oalRingBufferEnvelopeInfo));
+                  env =  calloc(1, sizeof(_aaxRingBufferEnvelopeInfo));
                   effect->slot[0]->data = env;
                }
 
@@ -531,11 +531,11 @@ aaxEffectSetState(aaxEffect e, int state)
             case AAX_SAWTOOTH_WAVE:
             case AAX_ENVELOPE_FOLLOW:
             {
-               _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
+               _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
                if (data == NULL)
                {
                   int t;
-                  data  = malloc(sizeof(_oalRingBufferDelayEffectData));
+                  data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
                   effect->slot[0]->data = data;
                   data->history_ptr = 0;
                   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -590,7 +590,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      depth *= range * fs;		// convert to samples
                      data->lfo.min = (range * offset + 10e-3f)*fs;
                      data->loopback = AAX_TRUE;
-                     _oalRingBufferCreateHistoryBuffer(&data->history_ptr,
+                     _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                        data->delay_history,
                                                        fs, tracks,
                                                        DELAY_EFFECTS_TIME);
@@ -646,22 +646,22 @@ aaxEffectSetState(aaxEffect e, int state)
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
-                        data->lfo.get = _oalRingBufferLFOGetFixedValue;
+                        data->lfo.get = _aaxRingBufferLFOGetFixedValue;
                         break;
                      case AAX_TRIANGLE_WAVE:
-                        data->lfo.get = _oalRingBufferLFOGetTriangle;
+                        data->lfo.get = _aaxRingBufferLFOGetTriangle;
                         break;
                      case AAX_SINE_WAVE:
-                        data->lfo.get = _oalRingBufferLFOGetSine;
+                        data->lfo.get = _aaxRingBufferLFOGetSine;
                         break;
                      case AAX_SQUARE_WAVE:
-                        data->lfo.get = _oalRingBufferLFOGetSquare;
+                        data->lfo.get = _aaxRingBufferLFOGetSquare;
                         break;
                      case AAX_SAWTOOTH_WAVE:
-                        data->lfo.get = _oalRingBufferLFOGetSawtooth;
+                        data->lfo.get = _aaxRingBufferLFOGetSawtooth;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                         data->lfo.get = _oalRingBufferLFOGetGainFollow;
+                         data->lfo.get = _aaxRingBufferLFOGetGainFollow;
                          data->lfo.envelope = AAX_TRUE;
                         break;
                      default:
@@ -677,7 +677,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         data->lfo.value[t] = data->lfo.min;
                         data->delay.sample_offs[t] = (unsigned int)data->lfo.value[t];
                      }
-                     data->lfo.get = _oalRingBufferLFOGetFixedValue;
+                     data->lfo.get = _aaxRingBufferLFOGetFixedValue;
                   }
                }
                else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -685,7 +685,7 @@ aaxEffectSetState(aaxEffect e, int state)
             }
             case AAX_FALSE:
             {
-               _oalRingBufferDelayEffectData* data = effect->slot[0]->data;
+               _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
                if (data) data->lfo.envelope = AAX_FALSE;
 
 //             free(effect->slot[0]->data);
@@ -751,15 +751,15 @@ aaxEffectSetState(aaxEffect e, int state)
                /* calculate initial and loopback samples                      */
                lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
                lb_gain = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
-               _oalRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
+               _aaxRingBufferDelaysAdd(&effect->slot[0]->data, fs, tracks,
                                        delays, gains, num, 1.25f,
                                        lb_depth, lb_gain);
                do
                {
-                  _oalRingBufferReverbData *reverb = effect->slot[0]->data;
-                  _oalRingBufferFreqFilterInfo *flt = reverb->freq_filter;
+                  _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
+                  _aaxRingBufferFreqFilterInfo *flt = reverb->freq_filter;
                   if (!flt) {
-                     flt = calloc(1, sizeof(_oalRingBufferFreqFilterInfo));
+                     flt = calloc(1, sizeof(_aaxRingBufferFreqFilterInfo));
                   }
 
                   reverb->freq_filter = flt;
@@ -798,7 +798,7 @@ aaxEffectSetState(aaxEffect e, int state)
                break;
             }
             case AAX_FALSE:
-               _oalRingBufferDelaysRemove(&effect->slot[0]->data);
+               _aaxRingBufferDelaysRemove(&effect->slot[0]->data);
                effect->slot[0]->data = NULL;
                break;
             default:
@@ -1017,7 +1017,7 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
 }
 
 _filter_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2dProps* p2d, _aax3dProps* p3d)
+new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2dProps* p2d, _aax3dProps* p3d)
 {
    _filter_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
@@ -1027,10 +1027,10 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
       switch (type)
       {
       case AAX_TIMED_PITCH_EFFECT:
-         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_oalRingBufferFilterInfo);
+         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxRingBufferFilterInfo);
          break;
       default:
-         size += sizeof(_oalRingBufferFilterInfo);
+         size += sizeof(_aaxRingBufferFilterInfo);
          break;
       }
 
@@ -1041,12 +1041,12 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
 
          rv->id = EFFECT_ID;
          rv->info = info ? info : _info;
-         rv->slot[0] = (_oalRingBufferFilterInfo*)ptr;
+         rv->slot[0] = (_aaxRingBufferFilterInfo*)ptr;
          rv->pos = _eff_cvt_tbl[type].pos;
          rv->state = p2d->effect[rv->pos].state;
          rv->type = type;
 
-         size = sizeof(_oalRingBufferFilterInfo);
+         size = sizeof(_aaxRingBufferFilterInfo);
          switch (type)
          {
          case AAX_PITCH_EFFECT:
@@ -1061,12 +1061,12 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
             break;
          case AAX_TIMED_PITCH_EFFECT:
          {
-            _oalRingBufferEnvelopeInfo *env;
+            _aaxRingBufferEnvelopeInfo *env;
             unsigned int no_steps;
             float dt, value;
             int i, stages;
 
-            env = (_oalRingBufferEnvelopeInfo*)p2d->filter[rv->pos].data;
+            env = (_aaxRingBufferEnvelopeInfo*)p2d->filter[rv->pos].data;
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;
 
@@ -1081,9 +1081,9 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _oalRingBuffer2d
             stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
             for (i=1; i<stages; i++)
             {
-               _oalRingBufferFilterInfo* slot;
+               _aaxRingBufferFilterInfo* slot;
 
-               slot = (_oalRingBufferFilterInfo*)(ptr + i*size);
+               slot = (_aaxRingBufferFilterInfo*)(ptr + i*size);
                rv->slot[i] = slot;
 
                no_steps = env->max_pos[2*i];

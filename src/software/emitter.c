@@ -27,8 +27,8 @@
  * pos
  */
 char
-_aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _oalRingBuffer2dProps *fp2d,
+_aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
+                    float ssv, float sdf, _aaxRingBuffer2dProps *fp2d,
                     _aaxDelayed3dProps *fdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
@@ -40,7 +40,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
 
    num = 0;
    stage = 2;
-   dt = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
+   dt = _aaxRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
    do
    {
       unsigned int i, no_emitters;
@@ -78,21 +78,21 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
             if (dptr_sbuf)
             {
                _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
-               _oalRingBuffer *src_rb = embuf->ringbuffer;
+               _aaxRingBuffer *src_rb = embuf->ringbuffer;
                unsigned int res = 0;
                do
                {
-                  _oalRingBuffer2dProps *ep2d = src->props2d;
+                  _aaxRingBuffer2dProps *ep2d = src->props2d;
 
                   if (_IS_STOPPED(src->props3d)) {
-                     _oalRingBufferSetState(src_rb, RB_STOPPED);
+                     _aaxRingBufferSetState(src_rb, RB_STOPPED);
                   }
-                  else if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
+                  else if (_aaxRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        _oalRingBufferSetState(src_rb, RB_STARTED_STREAMING);
+                        _aaxRingBufferSetState(src_rb, RB_STARTED_STREAMING);
                      } else {
-                        _oalRingBufferSetState(src_rb, RB_STARTED);
+                        _aaxRingBufferSetState(src_rb, RB_STARTED);
                      }
                   }
 
@@ -154,7 +154,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                            }
                         }
 
-                        res &= _oalRingBufferGetParami(dest_rb, RB_IS_PLAYING);
+                        res &= _aaxRingBufferGetParami(dest_rb, RB_IS_PLAYING);
                         if (res)
                         {
                            _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
@@ -176,7 +176,7 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
                _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-            _oalRingBufferSetState(dest_rb, RB_STARTED);
+            _aaxRingBufferSetState(dest_rb, RB_STARTED);
          }
          _intBufReleaseData(dptr_src, _AAX_EMITTER);
       }
@@ -205,11 +205,11 @@ _aaxEmittersProcess(_oalRingBuffer *dest_rb, const _aaxMixerInfo *info,
 void
 _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _aaxDelayed3dProps* fdp3d_m)
 {
-   _oalRingBufferPitchShiftFunc* dopplerfn;
+   _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
    _aax3dProps *ep3d;
-   _oalRingBuffer2dProps *ep2d;
-   _oalRingBufferDistFunc* distfn;
+   _aaxRingBuffer2dProps *ep2d;
+   _aaxRingBufferDistFn* distfn;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 

@@ -62,7 +62,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    AAX_VENDOR_STR,
    NONE_RENDERER,
 
-   (_aaxCodec **)&_oalRingBufferCodecs,
+   (_aaxCodec **)&_aaxRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
    (_aaxDriverNewHandle *)&_aaxNoneDriverNewHandle,
@@ -117,7 +117,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    AAX_VENDOR_STR,
    (char *)&_loopback_default_renderer,
 
-   (_aaxCodec **)&_oalRingBufferCodecs,
+   (_aaxCodec **)&_aaxRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
    (_aaxDriverNewHandle *)&_aaxLoopbackDriverNewHandle,
@@ -336,7 +336,7 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
 int
 _aaxSoftwareDriver3dMixer(const void *id, void *dest, void *src, void *ep2d, void *fp2d, int ch, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
-   return _oalRingBufferMixMono16(dest, src, mode, ep2d, fp2d, ch, ctr, nbuf);
+   return _aaxRingBufferMixMono16(dest, src, mode, ep2d, fp2d, ch, ctr, nbuf);
 }
 
 void
@@ -358,7 +358,7 @@ _aaxSoftwareDriverStereoMixer(const void *id, void *dest, void *src, void *ep2d,
    assert(src);
    assert(dest);
 
-   ret = _oalRingBufferMixMulti16(dest, src, ep2d, fp2d, ctr, nbuf);
+   ret = _aaxRingBufferMixMulti16(dest, src, ep2d, fp2d, ctr, nbuf);
 
    return ret;
 }
@@ -449,27 +449,27 @@ _aaxNoneDriverProcessFrame(void* config)
             if (dptr_sbuf)
             {
                _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
-               _oalRingBuffer *src_rb = embuf->ringbuffer;
+               _aaxRingBuffer *src_rb = embuf->ringbuffer;
 
                do
                {
                   float s_offs, s_duration;
                   float d_offs = dt;
 
-                  if (_oalRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
+                  if (_aaxRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        _oalRingBufferSetState(src_rb, RB_STARTED_STREAMING);
+                        _aaxRingBufferSetState(src_rb, RB_STARTED_STREAMING);
                      } else {
-                        _oalRingBufferSetState(src_rb, RB_STARTED);
+                        _aaxRingBufferSetState(src_rb, RB_STARTED);
                      }
                   }
 
-                  s_duration = _oalRingBufferGetParamf(src_rb, RB_DURATION_SEC);
-                  s_offs = _oalRingBufferGetParamf(src_rb, RB_OFFSET_SEC);
+                  s_duration = _aaxRingBufferGetParamf(src_rb, RB_DURATION_SEC);
+                  s_offs = _aaxRingBufferGetParamf(src_rb, RB_OFFSET_SEC);
                   if ((s_offs+dt) > s_duration)
                   {
-                     if (!_oalRingBufferGetParami(src_rb, RB_LOOPING))
+                     if (!_aaxRingBufferGetParami(src_rb, RB_LOOPING))
                      {
                         d_offs = s_duration - s_offs;
                         s_offs = s_duration;
@@ -481,7 +481,7 @@ _aaxNoneDriverProcessFrame(void* config)
                   } else {
                      s_offs += dt;
                   }
-                  _oalRingBufferSetParamf(src_rb, RB_OFFSET_SEC, s_offs);
+                  _aaxRingBufferSetParamf(src_rb, RB_OFFSET_SEC, s_offs);
                   d_pos += d_offs;
 
                   src->curr_pos_sec += dt;
@@ -492,7 +492,7 @@ _aaxNoneDriverProcessFrame(void* config)
                    */
                   if (rv)
                   {
-                     _oalRingBufferSetState(src_rb, RB_STOPPED);
+                     _aaxRingBufferSetState(src_rb, RB_STOPPED);
                      if (streaming)
                      {
                         /* is there another buffer ready to play? */
@@ -552,7 +552,7 @@ _aaxNoneDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
    _intBufferData *dptr_sensor;
-   _oalRingBuffer *dest_rb;
+   _aaxRingBuffer *dest_rb;
    _aaxAudioFrame* mixer;
    _aaxTimer *timer;
    _sensor_t* sensor;
@@ -564,7 +564,7 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
+   dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME);
    if (!dest_rb) {
       return NULL;
    }
@@ -581,7 +581,7 @@ _aaxNoneDriverThread(void* config)
    }
    else
    {
-      _oalRingBufferDelete(dest_rb);
+      _aaxRingBufferDestroy(dest_rb);
       return NULL;
    }
 
@@ -608,7 +608,7 @@ _aaxNoneDriverThread(void* config)
    while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
 
    _aaxTimerDestroy(timer);
-   _oalRingBufferDelete(dest_rb);
+   _aaxRingBufferDestroy(dest_rb);
    handle->ringbuffer = NULL;
    _aaxMutexUnLock(handle->thread.mutex);
 

@@ -40,15 +40,15 @@ extern "C" {
 #endif
 
 #define DECL_FUNCTION(f)	f##_proc p##f = 0
-#define TIE_FUNCTION(f)		p##f = (f##_proc)_oalGetProcAddress(audio, #f)
+#define TIE_FUNCTION(f)		p##f = (f##_proc)_aaxGetProcAddress(audio, #f)
 
 #define DECL_VARIABLE(v)	void* p##v = 0
-#define TIE_VARIABLE(v)		p##v = _oalGetProcAddress(audio, #v)
+#define TIE_VARIABLE(v)		p##v = _aaxGetProcAddress(audio, #v)
 
-char *_oalGetSymError(const char *error);
-void *_oalIsLibraryPresent(const char *name, const char *version);
-DLL_RV _oalGetProcAddress(void *handle, const char *func);
-void *_oalGetGlobalProcAddress(const char *func);
+char *_aaxGetSymError(const char *error);
+void *_aaxIsLibraryPresent(const char *name, const char *version);
+DLL_RV _aaxGetProcAddress(void *handle, const char *func);
+void *_aaxGetGlobalProcAddress(const char *func);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

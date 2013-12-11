@@ -40,7 +40,7 @@ void (*_sys_free)(void*) = free;
 #include "logging.h"
 #include "types.h"
 
-void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level)
+void __aax_log(int level, int id, const char *s, const char *id_s[], int current_level)
 {
 #if HAVE_SYSLOG_H
    static char enabled = 0;
@@ -93,7 +93,7 @@ void __oal_log(int level, int id, const char *s, const char *id_s[], int current
 
 
 int
-_oal_getbool(const char *start)
+_aax_getbool(const char *start)
 {
    int rv = 0;
    if (start)

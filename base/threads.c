@@ -29,7 +29,7 @@ static char __threads_enabled = 0;
 #  include <string.h>	/* for memcpy */
 # endif
 
-#define _TH_SYSLOG(a) __oal_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
+#define _TH_SYSLOG(a) __aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
 
 void *
 _aaxThreadCreate()
@@ -434,7 +434,7 @@ _aaxThreadCreate()
 
    if (!pAvSetMmThreadCharacteristicsA)
    {
-      void *audio = _oalIsLibraryPresent("avrt", 0);
+      void *audio = _aaxIsLibraryPresent("avrt", 0);
       if (audio)
       {
          TIE_FUNCTION(AvSetMmThreadCharacteristicsA);

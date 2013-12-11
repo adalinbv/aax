@@ -258,8 +258,8 @@ typedef struct
    int state;
 
    /* 3d filters and effects */
-   _oalRingBufferFilterInfo filter[MAX_3D_FILTER];
-   _oalRingBufferFilterInfo effect[MAX_3D_EFFECT];
+   _aaxRingBufferFilterInfo filter[MAX_3D_FILTER];
+   _aaxRingBufferFilterInfo effect[MAX_3D_EFFECT];
 
 } _aax3dProps;
 
@@ -267,7 +267,7 @@ typedef struct
 {
    _aaxMixerInfo *info;
 
-   _oalRingBuffer2dProps *props2d;
+   _aaxRingBuffer2dProps *props2d;
    _aax3dProps *props3d;
 
    _intBuffers *emitters_2d;	/* plain stereo emitters		*/
@@ -276,7 +276,7 @@ typedef struct
    _intBuffers *devices;	/* registered input devices		*/
    _intBuffers *p3dq;		/* 3d properties delay queue            */
 
-   _oalRingBuffer *ringbuffer;
+   _aaxRingBuffer *ringbuffer;
    _intBuffers *frame_ringbuffers;	/* for audio frame rendering */
    _intBuffers *play_ringbuffers;		/* for loopback capture */
 
@@ -295,7 +295,7 @@ typedef struct
 {
    _aaxMixerInfo *info;
 
-   _oalRingBuffer2dProps *props2d;	/* 16 byte aligned */
+   _aaxRingBuffer2dProps *props2d;	/* 16 byte aligned */
    _aax3dProps *props3d;
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
@@ -332,15 +332,15 @@ void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
 
 void _aaxSetDefaultInfo(_aaxMixerInfo *, void *);
 
-void _aaxSetDefault2dProps(_oalRingBuffer2dProps *);
+void _aaxSetDefault2dProps(_aaxRingBuffer2dProps *);
 _aax3dProps *_aax3dPropsCreate();
 _aaxDelayed3dProps *_aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
 void _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *);
 
-void _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *, unsigned int);
-void _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *, unsigned int);
-void _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *, unsigned int);
-void _aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultFilter2d(_aaxRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultFilter3d(_aaxRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultEffect2d(_aaxRingBufferFilterInfo *, unsigned int);
+void _aaxSetDefaultEffect3d(_aaxRingBufferFilterInfo *, unsigned int);
 
 unsigned int _aaxGetNoEmitters();
 unsigned int _aaxSetNoEmitters(unsigned int);

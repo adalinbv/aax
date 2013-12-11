@@ -187,13 +187,13 @@ _aaxMP3Detect(int mode)
    else
    {
 #ifdef WINXP
-      _audio[m] = _oalIsLibraryPresent("msacm32", NULL);
+      _audio[m] = _aaxIsLibraryPresent("msacm32", NULL);
       if (_audio[m])
       {
          void *audio = _audio[m];
          char *error;
 
-         _oalGetSymError(0);
+         _aaxGetSymError(0);
 
          TIE_FUNCTION(acmDriverOpen);
          if (pacmDriverOpen)
@@ -209,7 +209,7 @@ _aaxMP3Detect(int mode)
             TIE_FUNCTION(acmStreamUnprepareHeader);
             TIE_FUNCTION(acmFormatTagDetailsA);
 
-            error = _oalGetSymError(0);
+            error = _aaxGetSymError(0);
             if (!error)
             {
                if (!acmMP3Support) {
@@ -234,9 +234,9 @@ _aaxMP3Detect(int mode)
       {
          if (mode == 0) /* read */
          {
-            _audio[m] = _oalIsLibraryPresent("mpg123", "0");
+            _audio[m] = _aaxIsLibraryPresent("mpg123", "0");
             if (!_audio[m]) {
-               _audio[m] = _oalIsLibraryPresent("libmpg123-0", "0");
+               _audio[m] = _aaxIsLibraryPresent("libmpg123-0", "0");
             }
 
             if (_audio[m])
@@ -244,7 +244,7 @@ _aaxMP3Detect(int mode)
                void *audio = _audio[m];
                char *error;
 
-               _oalGetSymError(0);
+               _aaxGetSymError(0);
 
                TIE_FUNCTION(mpg123_init);
                if (pmpg123_init)
@@ -258,7 +258,7 @@ _aaxMP3Detect(int mode)
                   TIE_FUNCTION(mpg123_format_none);
                   TIE_FUNCTION(mpg123_getformat);
 
-                  error = _oalGetSymError(0);
+                  error = _aaxGetSymError(0);
                   if (error) {
                      _audio[m] = NULL;
                   } else {
@@ -269,19 +269,19 @@ _aaxMP3Detect(int mode)
          }
          else /* write */
          {
-            _audio[m] = _oalIsLibraryPresent("mp3lame", "0");
+            _audio[m] = _aaxIsLibraryPresent("mp3lame", "0");
             if (!_audio[m]) {
-               _audio[m] = _oalIsLibraryPresent("libmp3lame", "0");
+               _audio[m] = _aaxIsLibraryPresent("libmp3lame", "0");
             }
 //          if (!_audio[m]) {
-//             _audio[m] = _oalIsLibraryPresent("lame_enc", "0");
+//             _audio[m] = _aaxIsLibraryPresent("lame_enc", "0");
 //          }
 
             if (_audio[m])
             {
                void *audio = _audio[m];
                char *error;
-               _oalGetSymError(0);
+               _aaxGetSymError(0);
 
                TIE_FUNCTION(lame_init);
                if (plame_init)
@@ -296,7 +296,7 @@ _aaxMP3Detect(int mode)
                   TIE_FUNCTION(lame_encode_buffer_interleaved);
                   TIE_FUNCTION(lame_encode_flush);
 
-                  error = _oalGetSymError(0);
+                  error = _aaxGetSymError(0);
                   if (error) {
                      _audio[m] = NULL;
                   } else {

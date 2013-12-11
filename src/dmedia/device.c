@@ -84,7 +84,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    AAX_VENDOR_STR,
    (char *)&_dmedia_id_str,
 
-   (_aaxCodec **)&_oalRingBufferCodecs,
+   (_aaxCodec **)&_aaxRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxDMediaDriverDetect,
    (_aaxDriverNewHandle *)&_aaxDMediaDriverNewHandle,
@@ -149,7 +149,7 @@ typedef struct
 
 } _driver_t;
 
-#define DM_TIE_FUNCTION(d, f)	p##f = (f##_proc)_oalGetProcAddress((d), #f)
+#define DM_TIE_FUNCTION(d, f)	p##f = (f##_proc)_aaxGetProcAddress((d), #f)
 
 DECL_FUNCTION(alSetParams);
 DECL_FUNCTION(alGetResourceByName);
@@ -208,7 +208,7 @@ _aaxDMediaDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    if TEST_FOR_FALSE(rv) {
-     audio = _oalIsLibraryPresent("audio", 0);
+     audio = _aaxIsLibraryPresent("audio", 0);
    }
 
    if (audio)
@@ -219,7 +219,7 @@ _aaxDMediaDriverDetect(int mode)
       snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s",
                DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr);
 
-      _oalGetSymError(0);
+      _aaxGetSymError(0);
 
       TIE_FUNCTION(alSetParams);
       if (palSetParams)
@@ -245,10 +245,10 @@ _aaxDMediaDriverDetect(int mode)
          TIE_FUNCTION(alGetErrorString);
       }
 
-      error = _oalGetSymError(0);
+      error = _aaxGetSymError(0);
       if (!error)
       {
-         void *dmedia = _oalIsLibraryPresent("dmedia", 0);
+         void *dmedia = _aaxIsLibraryPresent("dmedia", 0);
          if (dmedia)
          {
             DM_TIE_FUNCTION(dmedia, dmGetError);
@@ -257,7 +257,7 @@ _aaxDMediaDriverDetect(int mode)
             DM_TIE_FUNCTION(dmedia, dmDVIAudioDecoderCreate);
             DM_TIE_FUNCTION(dmedia, dmDVIAudioDecode);
 
-            error = _oalGetSymError(0);
+            error = _aaxGetSymError(0);
             if (!error) {
                rv = AAX_TRUE;
             }
@@ -684,11 +684,11 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
 #if MAX_PORTS > 1
    static int check_ = CHECK_FRAMES;
 #endif
-   _oalRingBuffer *rb = (_oalRingBuffer *)s;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    const int32_t **sbuf;
    int16_t *data;
 
@@ -702,9 +702,9 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
       return 0;
 
    rbd = rb->sample;
-   offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
-   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
+   offs = _aaxRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+   no_samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
+   no_tracks = _aaxRingBufferGetParami(rb, RB_NO_TRACKS);
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->scratch == 0)

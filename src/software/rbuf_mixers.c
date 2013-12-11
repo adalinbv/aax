@@ -47,9 +47,9 @@ _aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
  * DELAY_EFFECTS_TIME in samples for the mixer frequency)
  */
 int32_t **
-_aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
-   _oalRingBufferSample *srbd, *drbd;
+   _aaxRingBufferSample *srbd, *drbd;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
    float dfreq, dduration, drb_pos_sec, fact, eps;
    unsigned int ddesamps = *start;
@@ -179,8 +179,8 @@ _aaxProcessMixer(_oalRingBuffer *drb, _oalRingBuffer *srb, _oalRingBuffer2dProps
     */
    if (new_srb_pos_sec >= -dduration)
    {
-      _oalRingBufferDelayEffectData* delay_effect;
-      _oalRingBufferFreqFilterInfo* freq_filter;
+      _aaxRingBufferDelayEffectData* delay_effect;
+      _aaxRingBufferFreqFilterInfo* freq_filter;
       unsigned int sno_samples, sstart, sno_tracks;
       unsigned int dest_pos, dno_samples, dend;
       unsigned char sbps;

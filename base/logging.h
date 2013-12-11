@@ -79,12 +79,12 @@ extern "C" {
 
 extern void (*_sys_free)(void*);
 
-int _oal_getbool(const char*);
-void __oal_log(int level, int id, const char *s, const char *id_s[], int current_level);
+int _aax_getbool(const char*);
+void __aax_log(int level, int id, const char *s, const char *id_s[], int current_level);
 
 #if USE_LOGGING
 
-# define __OAL_LOG(a, b, c, d, e) __oal_log((a), (b), (c), (d), (e))
+# define __OAL_LOG(a, b, c, d, e) __aax_log((a), (b), (c), (d), (e))
 
 # define LOG_PREFIX_FL	"%s at %i\n\t\t\t\t\t"
 # define __THD_LOG_FL(str, m, n, f, l)                             \

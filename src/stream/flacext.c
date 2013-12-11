@@ -126,16 +126,16 @@ _aaxFLACFileDetect(int mode)
    int rv = AAX_FALSE;
 
    if (!audio) {
-      audio = _oalIsLibraryPresent("FLAC", "8");
+      audio = _aaxIsLibraryPresent("FLAC", "8");
    }
    if (!audio) {
-      audio = _oalIsLibraryPresent("libFLAC", "0");
+      audio = _aaxIsLibraryPresent("libFLAC", "0");
    }
 
    if (audio)
    {
       char *error;
-      _oalGetSymError(0);
+      _aaxGetSymError(0);
 
       TIE_FUNCTION(FLAC__stream_decoder_init_file);
       if (pFLAC__stream_decoder_init_file)
@@ -148,7 +148,7 @@ _aaxFLACFileDetect(int mode)
          TIE_FUNCTION(mpg123_format);
          TIE_FUNCTION(mpg123_getformat);
 
-         error = _oalGetSymError(0);
+         error = _aaxGetSymError(0);
          if (!error) {
             rv = AAX_TRUE;
          }

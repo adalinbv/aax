@@ -37,7 +37,7 @@ static _aaxCodec _sw_bufcpy_32s;
 static _aaxCodec _sw_bufcpy_mulaw;
 static _aaxCodec _sw_bufcpy_alaw;
 
-_aaxCodec *_oalRingBufferCodecs[AAX_FORMAT_MAX] =
+_aaxCodec *_aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 {
    &_sw_bufcpy_8s,
    &_sw_bufcpy_16s,

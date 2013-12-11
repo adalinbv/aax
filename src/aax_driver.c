@@ -45,7 +45,7 @@ static void _aaxFreeSensor(void *);
 static int _aaxCheckKeyValidity(void*);
 static int _aaxCheckKeyValidityStr(char*);
 
-static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
+static const _aaxRingBufferFilterInfo _aaxMixerDefaultEqualizer[2];
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
@@ -434,7 +434,7 @@ aaxDriverDestroy(aaxConfig config)
       }
 
       if (handle->ringbuffer) {
-         _oalRingBufferDelete(handle->ringbuffer);
+         _aaxRingBufferDestroy(handle->ringbuffer);
       }
 
       /* safeguard against using already destroyed handles */
@@ -654,7 +654,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 /* -------------------------------------------------------------------------- */
 
 static const char* _aax_default_devname = "None";
-static const _oalRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
+static const _aaxRingBufferFilterInfo _aaxMixerDefaultEqualizer[2] =
 {
   { { 22050.0f, 1.0f, 1.0f }, NULL },
   { { 22050.0f, 1.0f, 1.0f }, NULL }
@@ -792,7 +792,7 @@ _open_handle(aaxConfig config)
             size = sizeof(_sensor_t) + sizeof(_aaxAudioFrame);
             ptr2 = (char*)size;
 
-            size += sizeof(_oalRingBuffer2dProps);
+            size += sizeof(_aaxRingBuffer2dProps);
             ptr1 = _aax_calloc(&ptr2, 1, size);
 
             if (ptr1)
@@ -801,7 +801,7 @@ _open_handle(aaxConfig config)
                _aaxAudioFrame* smixer;
 
                sensor->filter = handle->filter;
-               size = EQUALIZER_MAX*sizeof(_oalRingBufferFilterInfo);
+               size = EQUALIZER_MAX*sizeof(_aaxRingBufferFilterInfo);
                memcpy(sensor->filter, &_aaxMixerDefaultEqualizer, size);
 
                size = sizeof(_sensor_t);
@@ -812,7 +812,7 @@ _open_handle(aaxConfig config)
 
                assert(((long int)ptr2 & 0xF) == 0);
 
-               smixer->props2d = (_oalRingBuffer2dProps*)ptr2;
+               smixer->props2d = (_aaxRingBuffer2dProps*)ptr2;
                _aaxSetDefault2dProps(smixer->props2d);
                _EFFECT_SET2D(smixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
 
@@ -821,9 +821,9 @@ _open_handle(aaxConfig config)
                {
                   smixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
                   _EFFECT_SETD3D_DATA(smixer, VELOCITY_EFFECT,
-                                            _oalRingBufferDopplerFunc[0]);
+                                            _aaxRingBufferDopplerFn[0]);
                   _FILTER_SETD3D_DATA(smixer, DISTANCE_FILTER,
-                          _oalRingBufferDistanceFunc[AAX_EXPONENTIAL_DISTANCE]);
+                          _aaxRingBufferDistanceFn[AAX_EXPONENTIAL_DISTANCE]);
                }
 
                res = _intBufCreate(&smixer->emitters_3d, _AAX_EMITTER);
@@ -1258,7 +1258,7 @@ static void
 _aaxFreeSensor(void *ssr)
 {
    _sensor_t *sensor = (_sensor_t*)ssr;
-   _oalRingBufferDelayEffectData* effect;
+   _aaxRingBufferDelayEffectData* effect;
    _aaxAudioFrame* smixer = sensor->mixer;
 
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
@@ -1278,15 +1278,15 @@ _aaxFreeSensor(void *ssr)
    free(smixer->props3d);
 
    if (smixer->ringbuffer) {
-      _oalRingBufferDelete(smixer->ringbuffer);
+      _aaxRingBufferDestroy(smixer->ringbuffer);
    }
    _intBufErase(&smixer->frames, _AAX_FRAME, free);
    _intBufErase(&smixer->devices, _AAX_DEVICE, free);
    _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, free);
    _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, free);
    _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER,
-                                           _oalRingBufferDelete);
+                                           _aaxRingBufferDestroy);
    _intBufErase(&smixer->frame_ringbuffers, _AAX_RINGBUFFER,
-                                            _oalRingBufferDelete);
+                                            _aaxRingBufferDestroy);
    free(sensor);
 }

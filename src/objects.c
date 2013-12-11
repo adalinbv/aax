@@ -63,7 +63,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 }
 
 void
-_aaxSetDefault2dProps(_oalRingBuffer2dProps *p2d)
+_aaxSetDefault2dProps(_aaxRingBuffer2dProps *p2d)
 {
    unsigned int pos, size;
 
@@ -171,11 +171,11 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 }
 
 void
-_aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *filter, unsigned int type)
+_aaxSetDefaultFilter2d(_aaxRingBufferFilterInfo *filter, unsigned int type)
 {
    assert(type < MAX_STEREO_FILTER);
 
-   memset(filter, 0, sizeof(_oalRingBufferFilterInfo));
+   memset(filter, 0, sizeof(_aaxRingBufferFilterInfo));
    switch(type)
    {
    case VOLUME_FILTER:
@@ -195,11 +195,11 @@ _aaxSetDefaultFilter2d(_oalRingBufferFilterInfo *filter, unsigned int type)
 }
 
 void
-_aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
+_aaxSetDefaultEffect2d(_aaxRingBufferFilterInfo *effect, unsigned int type)
 {
    assert(type < MAX_STEREO_EFFECT);
 
-   memset(effect, 0, sizeof(_oalRingBufferFilterInfo));
+   memset(effect, 0, sizeof(_aaxRingBufferFilterInfo));
    switch(type)
    {
    case PITCH_EFFECT:
@@ -227,11 +227,11 @@ _aaxSetDefaultEffect2d(_oalRingBufferFilterInfo *effect, unsigned int type)
 }
 
 void
-_aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *filter, unsigned int type)
+_aaxSetDefaultFilter3d(_aaxRingBufferFilterInfo *filter, unsigned int type)
 {
    assert(type < MAX_3D_FILTER);
 
-   memset(filter, 0, sizeof(_oalRingBufferFilterInfo));
+   memset(filter, 0, sizeof(_aaxRingBufferFilterInfo));
    switch(type)
    {
    case DISTANCE_FILTER:
@@ -252,11 +252,11 @@ _aaxSetDefaultFilter3d(_oalRingBufferFilterInfo *filter, unsigned int type)
 }
 
 void
-_aaxSetDefaultEffect3d(_oalRingBufferFilterInfo *effect, unsigned int type)
+_aaxSetDefaultEffect3d(_aaxRingBufferFilterInfo *effect, unsigned int type)
 {
    assert(type < MAX_3D_EFFECT);
 
-   memset(effect, 0, sizeof(_oalRingBufferFilterInfo));
+   memset(effect, 0, sizeof(_aaxRingBufferFilterInfo));
    switch(type)
    {
    case VELOCITY_EFFECT:

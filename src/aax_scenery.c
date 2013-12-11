@@ -125,7 +125,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
             {
             case AAX_FREQUENCY_FILTER:
             {
-               _oalRingBuffer2dProps *p2d = mixer->props2d;
+               _aaxRingBuffer2dProps *p2d = mixer->props2d;
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));

@@ -88,7 +88,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    AAX_VENDOR_STR,
    (char *)&_oss_default_renderer,
 
-   (_aaxCodec **)&_oalRingBufferCodecs,
+   (_aaxCodec **)&_aaxRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxOSSDriverDetect,
    (_aaxDriverNewHandle *)&_aaxOSSDriverNewHandle,
@@ -169,7 +169,7 @@ _aaxOSSDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
      
    if (TEST_FOR_FALSE(rv)) {
-      audio = _oalIsLibraryPresent(NULL, 0);
+      audio = _aaxIsLibraryPresent(NULL, 0);
       if (audio) {
          TIE_FUNCTION(ioctl);
       }
@@ -538,11 +538,11 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
 static int
 _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
-   _oalRingBuffer *rb = (_oalRingBuffer *)s;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    const int32_t** sbuf;
    audio_buf_info info;
    audio_errinfo err;
@@ -574,9 +574,9 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    rbd = rb->sample;
    sbuf = (const int32_t**)rbd->track;
-   offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_tracks = _oalRingBufferGetParami(rb, RB_NO_TRACKS);
-   no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
+   offs = _aaxRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+   no_tracks = _aaxRingBufferGetParami(rb, RB_NO_TRACKS);
+   no_samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
 
    _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 

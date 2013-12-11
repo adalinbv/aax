@@ -81,7 +81,7 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    AAX_VENDOR_STR,
    (char *)&_file_default_renderer,
 
-   (_aaxCodec **)&_oalRingBufferCodecs,
+   (_aaxCodec **)&_aaxRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxFileDriverDetect,
    (_aaxDriverNewHandle *)&_aaxFileDriverNewHandle,
@@ -516,10 +516,10 @@ static int
 _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;  
-   _oalRingBuffer *rb = (_oalRingBuffer *)s;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    unsigned int bps, no_samples, offs, bufsize;
    unsigned int file_bps, file_tracks;
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    const int32_t** sbuf;
    char *scratch, *data;
    int res;
@@ -529,9 +529,9 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(id != 0);
 
    rbd = rb->sample;
-   offs = _oalRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_samples = _oalRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
-   bps = _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
+   offs = _aaxRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
+   no_samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
+   bps = _aaxRingBufferGetParami(rb, RB_BYTES_SAMPLE);
 
    file_bps = handle->fmt->get_param(handle->fmt->id, __F_BITS)/8;
    file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);

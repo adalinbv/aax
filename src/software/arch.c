@@ -290,7 +290,7 @@ _aaxGetSSELevel()
       sse_level = 0;
 
       env = getenv("AAX_NO_SIMD_SUPPORT");
-      if (!_oal_getbool(env))
+      if (!_aax_getbool(env))
       {
          int res;
 

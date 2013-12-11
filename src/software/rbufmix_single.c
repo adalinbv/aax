@@ -38,23 +38,26 @@
 #include "cpu2d/arch_simd.h"
 #include "ringbuffer.h"
 
+typedef void
+_aaxRingBufferMixFn(_aaxRingBuffer*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+
 
 /* Forward declartations */
-static _oalRingBufferDistFunc _oalRingBufferDistNone;
-static _oalRingBufferDistFunc _oalRingBufferDistInvExp;
-static _oalRingBufferPitchShiftFunc _oalRingBufferDopplerShift;
+static _aaxRingBufferDistFn _aaxRingBufferDistNone;
+static _aaxRingBufferDistFn _aaxRingBufferDistInvExp;
+static _aaxRingBufferPitchShiftFn _aaxRingBufferDopplerShift;
 
-static _oalRingBufferDistFunc _oalRingBufferALDistInv;
-static _oalRingBufferDistFunc _oalRingBufferALDistInvClamped;
-static _oalRingBufferDistFunc _oalRingBufferALDistLin;
-static _oalRingBufferDistFunc _oalRingBufferALDistLinClamped;
-static _oalRingBufferDistFunc _oalRingBufferALDistExp;
-static _oalRingBufferDistFunc _oalRingBufferALDistExpClamped;
+static _aaxRingBufferDistFn _aaxRingBufferALDistInv;
+static _aaxRingBufferDistFn _aaxRingBufferALDistInvClamped;
+static _aaxRingBufferDistFn _aaxRingBufferALDistLin;
+static _aaxRingBufferDistFn _aaxRingBufferALDistLinClamped;
+static _aaxRingBufferDistFn _aaxRingBufferALDistExp;
+static _aaxRingBufferDistFn _aaxRingBufferALDistExpClamped;
 
-static _oalRingBufferMix1NFunc _oalRingBufferMixMono16Stereo;
-static _oalRingBufferMix1NFunc _oalRingBufferMixMono16Spatial;
-static _oalRingBufferMix1NFunc _oalRingBufferMixMono16Surround;
-static _oalRingBufferMix1NFunc _oalRingBufferMixMono16HRTF;
+static _aaxRingBufferMixFn _aaxRingBufferMixMono16Stereo;
+static _aaxRingBufferMixFn _aaxRingBufferMixMono16Spatial;
+static _aaxRingBufferMixFn _aaxRingBufferMixMono16Surround;
+static _aaxRingBufferMixFn _aaxRingBufferMixMono16HRTF;
 
 
 /**
@@ -79,10 +82,10 @@ static _oalRingBufferMix1NFunc _oalRingBufferMixMono16HRTF;
  * @param nbuf number of buffers in the source queue (>1 means streaming)
  */
 int
-_oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRenderMode mode, _oalRingBuffer2dProps *ep2d, _oalRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMono16(_aaxRingBuffer *dest, _aaxRingBuffer *src, enum aaxRenderMode mode, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
 {
    unsigned int offs, dno_samples;
-   _oalRingBufferLFOInfo *lfo;
+   _aaxRingBufferLFOInfo *lfo;
    float gain, svol, evol;
    float pitch, max;
    int32_t **sptr;
@@ -113,7 +116,7 @@ _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRende
    }
 
    env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   pitch *= _oalRingBufferEnvelopeGet(env, src->stopped);
+   pitch *= _aaxRingBufferEnvelopeGet(env, src->stopped);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
@@ -151,7 +154,7 @@ _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRende
    }
 
    /* apply envelope filter */
-   gain = _oalRingBufferEnvelopeGet(env, src->stopped);
+   gain = _aaxRingBufferEnvelopeGet(env, src->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -203,20 +206,20 @@ _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRende
    switch(mode)
    {
    case AAX_MODE_WRITE_SPATIAL:
-      _oalRingBufferMixMono16Spatial(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16Spatial(dest, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    case AAX_MODE_WRITE_SURROUND:
-      _oalRingBufferMixMono16Surround(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16Surround(dest, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    case AAX_MODE_WRITE_HRTF:
-      _oalRingBufferMixMono16HRTF(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16HRTF(dest, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    case AAX_MODE_WRITE_STEREO:
    default:
-      _oalRingBufferMixMono16Stereo(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16Stereo(dest, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    }
@@ -226,32 +229,32 @@ _oalRingBufferMixMono16(_oalRingBuffer *dest, _oalRingBuffer *src, enum aaxRende
 
 /* -------------------------------------------------------------------------- */
 
-_oalRingBufferDistFunc *_oalRingBufferDistanceFunc[AAX_DISTANCE_MODEL_MAX] =
+_aaxRingBufferDistFn *_aaxRingBufferDistanceFn[AAX_DISTANCE_MODEL_MAX] =
 {
-   (_oalRingBufferDistFunc *)&_oalRingBufferDistNone,
-   (_oalRingBufferDistFunc *)&_oalRingBufferDistInvExp
+   (_aaxRingBufferDistFn *)&_aaxRingBufferDistNone,
+   (_aaxRingBufferDistFn *)&_aaxRingBufferDistInvExp
 };
 
 #define AL_DISTANCE_MODEL_MAX AAX_AL_DISTANCE_MODEL_MAX-AAX_AL_INVERSE_DISTANCE
-_oalRingBufferDistFunc *_oalRingBufferALDistanceFunc[AL_DISTANCE_MODEL_MAX] =
+_aaxRingBufferDistFn *_aaxRingBufferALDistanceFn[AL_DISTANCE_MODEL_MAX] =
 {
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistInv,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistInvClamped,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistLin,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistLinClamped,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistExp,
-   (_oalRingBufferDistFunc *)&_oalRingBufferALDistExpClamped
+   (_aaxRingBufferDistFn *)&_aaxRingBufferALDistInv,
+   (_aaxRingBufferDistFn *)&_aaxRingBufferALDistInvClamped,
+   (_aaxRingBufferDistFn *)&_aaxRingBufferALDistLin,
+   (_aaxRingBufferDistFn *)&_aaxRingBufferALDistLinClamped,
+   (_aaxRingBufferDistFn *)&_aaxRingBufferALDistExp,
+   (_aaxRingBufferDistFn *)&_aaxRingBufferALDistExpClamped
 };
 
-_oalRingBufferPitchShiftFunc *_oalRingBufferDopplerFunc[] =
+_aaxRingBufferPitchShiftFn *_aaxRingBufferDopplerFn[] =
 {
-   (_oalRingBufferPitchShiftFunc *)&_oalRingBufferDopplerShift
+   (_aaxRingBufferPitchShiftFn *)&_aaxRingBufferDopplerShift
 };
 
 static void
-_oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, const int32_ptrptr sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBuffer *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -291,9 +294,9 @@ _oalRingBufferMixMono16Stereo(_oalRingBuffer *dest, const int32_ptrptr sptr, _oa
 }
 
 static void
-_oalRingBufferMixMono16Surround(_oalRingBuffer *dest, const int32_ptrptr sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBuffer *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -356,9 +359,9 @@ _oalRingBufferMixMono16Surround(_oalRingBuffer *dest, const int32_ptrptr sptr, _
 }
 
 static void
-_oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBuffer *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -390,9 +393,9 @@ _oalRingBufferMixMono16Spatial(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuf
 #define IDT_UD_OFFSET	p2d->head[3]
 
 static void
-_oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBuffer *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -464,7 +467,7 @@ _oalRingBufferMixMono16HRTF(_oalRingBuffer *dest, int32_t **sptr, _oalRingBuffer
 }
 
 static float
-_oalRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    return 1.0f;
 }
@@ -487,7 +490,7 @@ _oalRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff
  * R = room constant (m2)
  */
 static float
-_oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
 #if 1
    float fraction = 0.0f, gain = 1.0f;
@@ -500,7 +503,7 @@ _oalRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rollo
 }
 
 static float
-_oalRingBufferDopplerShift(float vs, float ve, float vsound)
+_aaxRingBufferDopplerShift(float vs, float ve, float vsound)
 {
 #if 1
    float vse, rv;
@@ -522,7 +525,7 @@ _oalRingBufferDopplerShift(float vs, float ve, float vsound)
 /* --- OpenAL support --- */
 
 static float
-_oalRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom = ref_dist + rolloff * (dist - ref_dist);
@@ -531,7 +534,7 @@ _oalRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_oalRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom;
@@ -543,7 +546,7 @@ _oalRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float
 }
 
 static float
-_oalRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -552,7 +555,7 @@ _oalRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_oalRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -563,7 +566,7 @@ _oalRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float
 }
 
 static float
-_oalRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float fraction = 0.0f, gain = 1.0f;
    if (ref_dist) fraction = dist / ref_dist;
@@ -572,7 +575,7 @@ _oalRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_oalRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float fraction = 0.0f, gain = 1.0f;
 

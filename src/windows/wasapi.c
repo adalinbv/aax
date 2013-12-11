@@ -97,7 +97,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    AAX_VENDOR_STR,
    (char*)&_wasapi_default_renderer,
 
-   (_aaxCodec **)&_oalRingBufferCodecs,
+   (_aaxCodec **)&_aaxRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxWASAPIDriverDetect,
    (_aaxDriverNewHandle *)&_aaxWASAPIDriverNewHandle,
@@ -311,7 +311,7 @@ _aaxWASAPIDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    if TEST_FOR_FALSE(rv) {
-     audio = _oalIsLibraryPresent("mmdevapi", 0);
+     audio = _aaxIsLibraryPresent("mmdevapi", 0);
    }
 
    if (audio)
@@ -712,9 +712,9 @@ static int
 _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   _oalRingBuffer *rbs = (_oalRingBuffer *)src;
+   _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
    unsigned int no_tracks, offs;
-   _oalRingBufferSample *rbsd;
+   _aaxRingBufferSample *rbsd;
    size_t no_frames;
    HRESULT hr;
 
@@ -725,11 +725,11 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
    assert(rbs->sample != 0);
 
    rbsd = rbs->sample;
-   offs = _oalRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
-   no_frames = _oalRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
-   no_tracks = _oalRingBufferGetParami(rbs, RB_NO_TRACKS);
+   offs = _aaxRingBufferGetParami(rbs, RB_OFFSET_SAMPLES);
+   no_frames = _aaxRingBufferGetParami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = _aaxRingBufferGetParami(rbs, RB_NO_TRACKS);
 
-   assert(_oalRingBufferGetParami(rbs, RB_NO_SAMPLES) >= offs);
+   assert(_aaxRingBufferGetParami(rbs, RB_NO_SAMPLES) >= offs);
 
    if (handle->status & DRIVER_INIT_MASK) {
       return _aaxWASAPIDriverState(handle, DRIVER_RESUME);
@@ -1711,7 +1711,7 @@ _aaxWASAPIDriverThread(void* config)
 #endif
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
-   _oalRingBuffer *dest_rb;
+   _aaxRingBuffer *dest_rb;
    int stdby_time_ms, state;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
@@ -1733,15 +1733,15 @@ _aaxWASAPIDriverThread(void* config)
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
 
       mixer = sensor->mixer;
-      dest_rb = _oalRingBufferCreate(REVERB_EFFECTS_TIME);
+      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME);
       if (dest_rb)
       {
-         _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
-         _oalRingBufferSetParami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
-         _oalRingBufferSetParamf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
-         _oalRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
-         _oalRingBufferInit(dest_rb, AAX_TRUE);
-         _oalRingBufferStart(dest_rb);
+         _aaxRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
+         _aaxRingBufferSetParami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
+         _aaxRingBufferSetParamf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         _aaxRingBufferSetParamf(dest_rb, RB_DURATION_SEC, delay_sec);
+         _aaxRingBufferInit(dest_rb, AAX_TRUE);
+         _aaxRingBufferStart(dest_rb);
 
          handle->ringbuffer = dest_rb;
       }
@@ -1760,7 +1760,7 @@ _aaxWASAPIDriverThread(void* config)
    state = AAX_SUSPENDED;
 
    /* get real duration, it might have been altered for better performance */
-   delay_sec = _oalRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
+   delay_sec = _aaxRingBufferGetParamf(dest_rb, RB_DURATION_SEC);
 
    _aaxMutexLock(handle->thread.mutex);
    stdby_time_ms = (int)(4*delay_sec*1000);
@@ -1855,7 +1855,7 @@ _AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
    _wasapi_close_event(be_handle);
 
    handle->ringbuffer = NULL;
-   _oalRingBufferDelete(dest_rb);
+   _aaxRingBufferDelete(dest_rb);
    _aaxMutexUnLock(handle->thread.mutex);
 
    return handle;

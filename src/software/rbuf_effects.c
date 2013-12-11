@@ -42,7 +42,7 @@ bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
           void *freq, void *delay, void *distort)
 {
    static const unsigned int bps = sizeof(int32_t);
-   _oalRingBufferDelayEffectData* effect = delay;
+   _aaxRingBufferDelayEffectData* effect = delay;
    unsigned int ds = effect ? ddesamps : 0;	/* 0 for frequency filtering */
    int32_t *psrc = src;
    int32_t *pdst = dst;
@@ -100,7 +100,7 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
                         unsigned int dmin, unsigned int dmax, unsigned int ds,
                         unsigned int track, const void *data)
 {
-   const _oalRingBufferReverbData *reverb = data;
+   const _aaxRingBufferReverbData *reverb = data;
    int snum;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -115,7 +115,7 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
    snum = reverb->no_delays;
    if (snum > 0)
    {
-      _oalRingBufferFreqFilterInfo* filter = reverb->freq_filter;
+      _aaxRingBufferFreqFilterInfo* filter = reverb->freq_filter;
       int32_t *scratch = sbuf + dmin;
       const int32_ptr sptr = s + dmin;
       int q;
@@ -146,7 +146,7 @@ bufEffectReverb(int32_t *s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, const void *data)
 {
-   const _oalRingBufferReverbData *reverb = data;
+   const _aaxRingBufferReverbData *reverb = data;
    int snum;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -192,7 +192,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
                unsigned int ds, void *data, unsigned int track)
 {
    static const unsigned int bps = sizeof(int32_t);
-   _oalRingBufferDelayEffectData* effect = data;
+   _aaxRingBufferDelayEffectData* effect = data;
    float volume;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -312,8 +312,8 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data)
 {
-   _oalRingBufferFilterInfo *dist_effect = (_oalRingBufferFilterInfo*)data;
-   _oalRingBufferLFOInfo* lfo = dist_effect->data;
+   _aaxRingBufferFilterInfo *dist_effect = (_aaxRingBufferFilterInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = dist_effect->data;
    float *params = dist_effect->param;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -380,7 +380,7 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data, unsigned char ctr)
 {
-   _oalRingBufferFreqFilterInfo *filter = data;
+   _aaxRingBufferFreqFilterInfo *filter = data;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -501,9 +501,9 @@ szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
 
 
 void
-_oalRingBufferCopyDelyEffectsData(_oalRingBuffer *d, const _oalRingBuffer *s)
+_aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *d, const _aaxRingBuffer *s)
 {
-   _oalRingBufferSample *srbd, *drbd;
+   _aaxRingBufferSample *srbd, *drbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -539,17 +539,17 @@ _oalRingBufferCopyDelyEffectsData(_oalRingBuffer *d, const _oalRingBuffer *s)
 
 
 void
-_oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, unsigned int num, float igain, float lb_depth, float lb_gain)
+_aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, unsigned int num, float igain, float lb_depth, float lb_gain)
 {
-   _oalRingBufferReverbData **ptr = (_oalRingBufferReverbData**)data;
-   _oalRingBufferReverbData *reverb;
+   _aaxRingBufferReverbData **ptr = (_aaxRingBufferReverbData**)data;
+   _aaxRingBufferReverbData *reverb;
 
    assert(ptr != 0);
    assert(delays != 0);
    assert(gains != 0);
 
    if (*ptr == NULL) {
-      *ptr = calloc(1, sizeof(_oalRingBufferReverbData));
+      *ptr = calloc(1, sizeof(_aaxRingBufferReverbData));
    }
 
    reverb = *ptr;
@@ -558,7 +558,7 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       unsigned int j, snum = _AAX_MAX_SPEAKERS;
 
       if (reverb->history_ptr == 0) {
-         _oalRingBufferCreateHistoryBuffer(&reverb->history_ptr,
+         _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
                                            reverb->reverb_history,
                                            fs, tracks, REVERB_EFFECTS_TIME);
       }
@@ -623,9 +623,9 @@ _oalRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
 }
 
 void
-_oalRingBufferDelaysRemove(void **data)
+_aaxRingBufferDelaysRemove(void **data)
 {
-   _oalRingBufferReverbData *reverb;
+   _aaxRingBufferReverbData *reverb;
 
    assert(data != 0);
 
@@ -644,7 +644,7 @@ _oalRingBufferDelaysRemove(void **data)
 
 #if 0
 void
-_oalRingBufferDelayRemoveNum(_oalRingBuffer *rb, unsigned int n)
+_aaxRingBufferDelayRemoveNum(_aaxRingBuffer *rb, unsigned int n)
 {
    unsigned int size;
 
@@ -656,14 +656,14 @@ _oalRingBufferDelayRemoveNum(_oalRingBuffer *rb, unsigned int n)
 
       rb->reverb->no_delays--;
       size = rb->reverb->no_delays - n;
-      size *= sizeof(_oalRingBufferDelayInfo);
+      size *= sizeof(_aaxRingBufferDelayInfo);
       memcpy(&rb->reverb->delay[n], &rb->reverb->delay[n+1], size);
    }
 }
 #endif
 
 void
-_oalRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
+_aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
 {
    unsigned int bps, size;
    char *ptr, *p;
@@ -710,9 +710,9 @@ _oalRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
  * (between lfo->min and lfo->max).
  */
 float
-_oalRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -724,9 +724,9 @@ _oalRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsi
 }
 
 float
-_oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -749,9 +749,9 @@ _oalRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
 
 
 float
-_oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -776,9 +776,9 @@ _oalRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
 }
 
 float
-_oalRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -801,9 +801,9 @@ _oalRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned
 
 
 float
-_oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -825,9 +825,9 @@ _oalRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
 }
 
 float
-_oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsigned int num)
+_aaxRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsigned int num)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    static const float div = 1.0f / (float)0x000fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)
@@ -862,9 +862,9 @@ _oalRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
 }
 
 float
-_oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsigned int num)
+_aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsigned int num)
 {
-   _oalRingBufferLFOInfo* lfo = (_oalRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
    static const float div = 1.0f / (float)0x007fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)
@@ -915,7 +915,7 @@ _oalRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
 }
 
 float
-_oalRingBufferEnvelopeGet(_oalRingBufferEnvelopeInfo* env, char stopped)
+_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeInfo* env, char stopped)
 {
    float rv = 1.0f;
    if (env)

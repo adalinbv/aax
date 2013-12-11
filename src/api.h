@@ -66,7 +66,7 @@ typedef struct
    size_t no_speakers;
 
    /* parametric equalizer, located at _handle_t **/
-   _oalRingBufferFilterInfo *filter;
+   _aaxRingBufferFilterInfo *filter;
 
 } _sensor_t;
 
@@ -116,11 +116,11 @@ typedef struct
    struct threat_t thread;
 
    /* destination ringbuffer */
-   _oalRingBuffer *ringbuffer;
+   _aaxRingBuffer *ringbuffer;
    float dt_ms;
  
    /* parametric equalizer **/
-   _oalRingBufferFilterInfo filter[EQUALIZER_MAX];
+   _aaxRingBufferFilterInfo filter[EQUALIZER_MAX];
 
    void *eventmgr;
 
@@ -157,11 +157,11 @@ int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
 void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
-char _aaxAudioFrameProcess(_oalRingBuffer*, void*, _aaxAudioFrame*, float, float, _oalRingBuffer2dProps*, _aaxDelayed3dProps*, _oalRingBuffer2dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char);
-char _aaxAudioFrameRender(_oalRingBuffer *, _aaxAudioFrame *, _oalRingBuffer2dProps*, _aaxDelayed3dProps *, _intBuffers *, unsigned int, float, float, const _aaxDriverBackend*, void*);
+char _aaxAudioFrameProcess(_aaxRingBuffer*, void*, _aaxAudioFrame*, float, float, _aaxRingBuffer2dProps*, _aaxDelayed3dProps*, _aaxRingBuffer2dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char);
+char _aaxAudioFrameRender(_aaxRingBuffer *, _aaxAudioFrame *, _aaxRingBuffer2dProps*, _aaxDelayed3dProps *, _intBuffers *, unsigned int, float, float, const _aaxDriverBackend*, void*);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
-void _aaxAudioFrameMix(_oalRingBuffer*, _intBuffers *, _oalRingBuffer2dProps*, const _aaxDriverBackend*, void*);
+void _aaxAudioFrameMix(_aaxRingBuffer*, _intBuffers *, _aaxRingBuffer2dProps*, const _aaxDriverBackend*, void*);
 
 /* --- Instrument --- */
 #define INSTRUMENT_ID	0x0EB9A645
@@ -224,7 +224,7 @@ typedef struct
 
    char mipmap;
 
-   _oalRingBuffer *ringbuffer;
+   _aaxRingBuffer *ringbuffer;
    _aaxMixerInfo *info;
    _aaxCodec** codecs;
 } _buffer_t;
@@ -272,7 +272,7 @@ typedef struct
    unsigned int id;	/* always first */
 
    _buffer_t *buffer;
-   _oalRingBuffer *ringbuffer;
+   _aaxRingBuffer *ringbuffer;
 } _embuffer_t;
 
 _emitter_t* get_emitter(aaxEmitter);
@@ -282,7 +282,7 @@ int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);
 
 void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4_t*, _aaxDelayed3dProps*);
-char _aaxEmittersProcess(_oalRingBuffer*, const _aaxMixerInfo*, float, float, _oalRingBuffer2dProps*, _aaxDelayed3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
+char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aaxRingBuffer2dProps*, _aaxDelayed3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
 void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 
 
@@ -297,16 +297,16 @@ typedef struct
    int pos;
    int state;
    enum aaxFilterType type;
-   _oalRingBufferFilterInfo* slot[_MAX_SLOTS];
+   _aaxRingBufferFilterInfo* slot[_MAX_SLOTS];
    _aaxMixerInfo* info;
 } _filter_t;
 
 _filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
-_filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _oalRingBuffer2dProps*, _aax3dProps*);
+_filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _aaxRingBuffer2dProps*, _aax3dProps*);
 _filter_t* get_filter(aaxFilter);
 
 _filter_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
-_filter_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _oalRingBuffer2dProps*, _aax3dProps*);
+_filter_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _aaxRingBuffer2dProps*, _aax3dProps*);
 _filter_t* get_effect(aaxEffect);
 _filter_t* get_effect(aaxEffect);
 
@@ -372,8 +372,8 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 
 #ifndef NDEBUG
 # define LOG_LEVEL	LOG_ERR
-# define _AAX_LOG(a, c)	__oal_log((a),0,(const char*)(c), _aax_id_s, LOG_LEVEL)
-# define _AAX_SYSLOG(c) __oal_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
+# define _AAX_LOG(a, c)	__aax_log((a),0,(const char*)(c), _aax_id_s, LOG_LEVEL)
+# define _AAX_SYSLOG(c) __aax_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
 #else
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
@@ -382,7 +382,7 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 # include <string.h>
 #endif
 # define _AAX_LOG(a, c)
-# define _AAX_SYSLOG(c) __oal_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
+# define _AAX_SYSLOG(c) __aax_log(LOG_SYSLOG, 0, (c), _aax_id_s, LOG_SYSLOG)
 #endif
 
 /* --- System Specific & Config file related  --- */

@@ -267,8 +267,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             break;
             case AAX_TRACKSIZE:
             {
-               _oalRingBuffer *rb = handle->ringbuffer;
-               int bps = _oalRingBufferGetParami(rb, RB_BYTES_SAMPLE);
+               _aaxRingBuffer *rb = handle->ringbuffer;
+               int bps = _aaxRingBufferGetParami(rb, RB_BYTES_SAMPLE);
 
                rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
                break;
@@ -288,7 +288,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             unsigned int track = type & 0x3F;
             if (track < _AAX_MAX_SPEAKERS)
             {
-               _oalRingBuffer *rb = handle->ringbuffer;
+               _aaxRingBuffer *rb = handle->ringbuffer;
                if (rb)
                {
                   if (type & AAX_TRACK_ALL) {
@@ -317,7 +317,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
-                  _oalRingBufferLFOInfo *lfo;
+                  _aaxRingBufferLFOInfo *lfo;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
                   if (lfo) {
@@ -339,7 +339,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
-                  _oalRingBufferLFOInfo *lfo;
+                  _aaxRingBufferLFOInfo *lfo;
                   int state;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
@@ -387,7 +387,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             case AAX_VOLUME_FILTER:
             {
                _aaxAudioFrame *mixer = sensor->mixer;
-               _oalRingBuffer2dProps *p2d = mixer->props2d;
+               _aaxRingBuffer2dProps *p2d = mixer->props2d;
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                    /* gain min and gain max are read-only for the mixer      */
                /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
@@ -403,7 +403,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             case AAX_TIMED_GAIN_FILTER:
             {
                _aaxAudioFrame *mixer = sensor->mixer;
-               _oalRingBuffer2dProps *p2d = mixer->props2d;
+               _aaxRingBuffer2dProps *p2d = mixer->props2d;
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -515,7 +515,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
-               _oalRingBuffer2dProps *p2d = mixer->props2d;
+               _aaxRingBuffer2dProps *p2d = mixer->props2d;
                int type = effect->pos;
                _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
@@ -707,7 +707,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   _sensor_t *sframe_sensor = _intBufGetDataPtr(dptr_sframe);
                   _aax3dProps *mp3d, *sp3d;
                   _aaxAudioFrame *mixer, *submix;
-                  _oalRingBuffer *rb;
+                  _aaxRingBuffer *rb;
 
                   dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                   if (dptr)
@@ -750,7 +750,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      rb = submix->ringbuffer;
                      if (!rb)
                      {
-                        rb = _oalRingBufferCreate(DELAY_EFFECTS_TIME);
+                        rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME);
                         submix->ringbuffer = rb;
                      }
 
@@ -764,17 +764,17 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                         be = _aaxGetDriverBackendLoopback(&pos);
                         delay_sec = 1.0f / info->refresh_rate;
 
-                        _oalRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
-                        _oalRingBufferSetParamf(rb, RB_FREQUENCY, info->frequency);
-                        _oalRingBufferSetParami(rb, RB_NO_TRACKS, info->no_tracks);
+                        _aaxRingBufferSetFormat(rb, be->codecs, AAX_PCM24S);
+                        _aaxRingBufferSetParamf(rb, RB_FREQUENCY, info->frequency);
+                        _aaxRingBufferSetParami(rb, RB_NO_TRACKS, info->no_tracks);
 
                         /* create a ringbuffer with a bit of overrun space */
-                        _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec*1.0f);
+                        _aaxRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec*1.0f);
 
                         /* Do not initialize the RinBuffer yet, this would
                          * assign memory to rb->tracks before the final
                          * ringbuffer setup is know 
-                        _oalRingBufferInit(rb, AAX_TRUE);
+                        _aaxRingBufferInit(rb, AAX_TRUE);
                          */
 
                         /* 
@@ -782,8 +782,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                          * allocated space since it is lower that the initial
                          * duration.
                          */
-                        _oalRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
-                        _oalRingBufferSetState(rb, RB_STARTED);
+                        _aaxRingBufferSetParamf(rb, RB_DURATION_SEC, delay_sec);
+                        _aaxRingBufferSetState(rb, RB_STARTED);
                      }
 
                      _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
@@ -989,7 +989,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                   _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
                }
 
-               if (_oalRingBufferIsValid(handle->ringbuffer)) {
+               if (_aaxRingBufferGetState(handle->ringbuffer, RB_IS_VALID)) {
                   src->props2d->dist_delay_sec = 0.0f;
                }
 
@@ -1290,7 +1290,7 @@ _aaxMixerInit(_handle_t *handle)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
-            _oalRingBuffer2dProps *p2d = mixer->props2d;
+            _aaxRingBuffer2dProps *p2d = mixer->props2d;
             float cur;
 
             cur = be->param(handle->backend.handle, DRIVER_VOLUME);

@@ -35,7 +35,7 @@
 
 
 char *
-_oalGetSymError(const char *err)
+_aaxGetSymError(const char *err)
 {
    static char *error = 0;
    char *rv = error;
@@ -47,19 +47,19 @@ _oalGetSymError(const char *err)
 #include <CoreFoundation/CoreFoundation.h>
 
 void*
-_oalIsLibraryPresent(const char *name, const char *version)
+_aaxIsLibraryPresent(const char *name, const char *version)
 {
    return 0;
 }
 
 DLL_RV
-_oalGetProcAddress(void *handle, const char *func)
+_aaxGetProcAddress(void *handle, const char *func)
 {
    return 0;
 }
 
 void*
-_oalGetGlobalProcAddress(const char *func)
+_aaxGetGlobalProcAddress(const char *func)
 {
    static CFBundleRef bundle = 0;
    void *function = 0;
@@ -94,7 +94,7 @@ _oalGetGlobalProcAddress(const char *func)
 #include <windows.h>
 
 void*
-_oalIsLibraryPresent(const char *name, const char *version)
+_aaxIsLibraryPresent(const char *name, const char *version)
 {
    HINSTANCE handle;
 
@@ -104,13 +104,13 @@ _oalIsLibraryPresent(const char *name, const char *version)
    else {
       handle = GetModuleHandle(name);
    }
-   if (!handle) _oalGetSymError("Library not found.");
+   if (!handle) _aaxGetSymError("Library not found.");
 
    return handle;
 }
 
 DLL_RV
-_oalGetProcAddress(void *handle, const char *func)
+_aaxGetProcAddress(void *handle, const char *func)
 {
    DLL_RV rv = NULL;
 
@@ -124,7 +124,7 @@ _oalGetProcAddress(void *handle, const char *func)
       DWORD err = GetLastError();
       FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, (LPTSTR)Error,
                     255, NULL);
-      _oalGetSymError((const char*)Error);
+      _aaxGetSymError((const char*)Error);
    }
 
    return rv;
@@ -132,7 +132,7 @@ _oalGetProcAddress(void *handle, const char *func)
 
 /* TODO */
 void*
-_oalGetGlobalProcAddress(const char *func)
+_aaxGetGlobalProcAddress(const char *func)
 {
    return 0;
 }
@@ -141,12 +141,12 @@ _oalGetGlobalProcAddress(const char *func)
 #include <dlfcn.h>
 
 void*
-_oalIsLibraryPresent(const char *name, const char *version)
+_aaxIsLibraryPresent(const char *name, const char *version)
 {
    const char *lib = name;
    char libname[255];
 
-   _oalGetSymError(dlerror());
+   _aaxGetSymError(dlerror());
 
    if (name)
    {
@@ -161,7 +161,7 @@ _oalIsLibraryPresent(const char *name, const char *version)
 }
 
 DLL_RV
-_oalGetProcAddress(void *handle, const char *func)
+_aaxGetProcAddress(void *handle, const char *func)
 {
    void *fptr;
    char *error;
@@ -173,7 +173,7 @@ _oalGetProcAddress(void *handle, const char *func)
    error = (char *)dlerror();
    if (error)
    {
-      _oalGetSymError(error);
+      _aaxGetSymError(error);
       return 0;
    }
 
@@ -181,12 +181,12 @@ _oalGetProcAddress(void *handle, const char *func)
 }
 
 void*
-_oalGetGlobalProcAddress(const char *func)
+_aaxGetGlobalProcAddress(const char *func)
 {
    static void *libHandle = 0;
    void *fptr = 0;
 
-   _oalGetSymError(dlerror());
+   _aaxGetSymError(dlerror());
 
    if (libHandle == 0)
       libHandle = dlopen(0, RTLD_LAZY);
@@ -197,7 +197,7 @@ _oalGetGlobalProcAddress(const char *func)
 
       fptr = dlsym(libHandle, func);
 
-      error = _oalGetSymError(dlerror());
+      error = _aaxGetSymError(dlerror());
       if (error) return 0;
    }
 

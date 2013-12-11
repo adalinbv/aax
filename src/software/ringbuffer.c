@@ -41,32 +41,21 @@
 # define _DEBUG		0
 #endif
 
-static void _oalRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
+static void _aaxRingBufferIMA4ToPCM16(int32_t **__restrict,const void *__restrict,int,int,unsigned int);
 
-int
-_oalRingBufferIsValid(_oalRingBuffer *rb)
+_aaxRingBuffer *
+_aaxRingBufferCreate(float dde)
 {
-   int rv = 0;
-   if (rb && rb->sample && rb->sample->track) {
-      rv = -1;
-   }
-   return rv;
-}
-
-
-_oalRingBuffer *
-_oalRingBufferCreate(float dde)
-{
-   _oalRingBuffer *rb;
+   _aaxRingBuffer *rb;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   rb = (_oalRingBuffer *)calloc(1, sizeof(_oalRingBuffer));
+   rb = (_aaxRingBuffer *)calloc(1, sizeof(_aaxRingBuffer));
    if (rb)
    {
-      _oalRingBufferSample *rbd;
+      _aaxRingBufferSample *rbd;
 
-      rbd = (_oalRingBufferSample *)calloc(1, sizeof(_oalRingBufferSample));
+      rbd = (_aaxRingBufferSample *)calloc(1, sizeof(_aaxRingBufferSample));
       if (rbd)
       {
          float ddesamps;
@@ -90,8 +79,8 @@ _oalRingBufferCreate(float dde)
          format = rb->format;
          rbd->no_tracks = 1;
          rbd->frequency_hz = 44100.0f;
-         rbd->codec = _oalRingBufferCodecs[format];
-         rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
+         rbd->codec = _aaxRingBufferCodecs[format];
+         rbd->bytes_sample = _aaxRingBufferFormat[format].bits/8;
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
          rbd->dde_samples = (unsigned int)ddesamps;
@@ -108,10 +97,10 @@ _oalRingBufferCreate(float dde)
 }
 
 void
-_oalRingBufferDelete(void *rbuf)
+_aaxRingBufferDestroy(void *rbuf)
 {
-   _oalRingBuffer *rb = (_oalRingBuffer*)rbuf;
-   _oalRingBufferSample *rbd;
+   _aaxRingBuffer *rb = (_aaxRingBuffer*)rbuf;
+   _aaxRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -138,9 +127,9 @@ _oalRingBufferDelete(void *rbuf)
 }
 
 static void
-_oalRingBufferInitTracks(_oalRingBuffer *rb)
+_aaxRingBufferInitTracks(_aaxRingBuffer *rb)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -204,16 +193,16 @@ _oalRingBufferInitTracks(_oalRingBuffer *rb)
 }
 
 void
-_oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
+_aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(rb != NULL);
 
    rbd = rb->sample;
-   _oalRingBufferInitTracks(rb);
+   _aaxRingBufferInitTracks(rb);
    rbd->no_samples = rbd->no_samples_avail;
 
    if (add_scratchbuf && rbd->scratch == NULL)
@@ -258,17 +247,17 @@ _oalRingBufferInit(_oalRingBuffer *rb, char add_scratchbuf)
 }
 
 
-_oalRingBuffer *
-_oalRingBufferReference(_oalRingBuffer *ringbuffer)
+_aaxRingBuffer *
+_aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
 {
-   _oalRingBuffer *rb;
+   _aaxRingBuffer *rb;
 
    assert(ringbuffer != 0);
 
-   rb = malloc(sizeof(_oalRingBuffer));
+   rb = malloc(sizeof(_aaxRingBuffer));
    if (rb)
    {
-      memcpy(rb, ringbuffer, sizeof(_oalRingBuffer));
+      memcpy(rb, ringbuffer, sizeof(_aaxRingBuffer));
       rb->sample->ref_counter++;
       // rb->looping = 0;
       rb->playing = 0;
@@ -284,31 +273,31 @@ _oalRingBufferReference(_oalRingBuffer *ringbuffer)
    return rb;
 }
 
-_oalRingBuffer *
-_oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
+_aaxRingBuffer *
+_aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 {
-   _oalRingBuffer *srb = ringbuffer;
-   _oalRingBuffer *drb;
+   _aaxRingBuffer *srb = ringbuffer;
+   _aaxRingBuffer *drb;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(ringbuffer != 0);
 
-   drb = _oalRingBufferCreate(srb->dde_sec);
+   drb = _aaxRingBufferCreate(srb->dde_sec);
    if (drb)
    {
-      _oalRingBufferSample *srbd, *drbd;
+      _aaxRingBufferSample *srbd, *drbd;
       char add_scratchbuf = AAX_FALSE;
       void *ptr;
 
       srbd = srb->sample;
       drbd = drb->sample;
 
-      _aax_memcpy(drb, srb, sizeof(_oalRingBuffer));
+      _aax_memcpy(drb, srb, sizeof(_aaxRingBuffer));
       drb->sample = drbd;
 
       ptr = drbd->track;
-      _aax_memcpy(drbd, srbd, sizeof(_oalRingBufferSample));
+      _aax_memcpy(drbd, srbd, sizeof(_aaxRingBufferSample));
       drbd->track = ptr;
       drbd->scratch = NULL;
 
@@ -323,14 +312,14 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
             add_scratchbuf = AAX_TRUE;
          }
       }
-      _oalRingBufferInit(drb, add_scratchbuf);
+      _aaxRingBufferInit(drb, add_scratchbuf);
 
       if (copy || dde)
       {
          unsigned int t, ds, tracksize;
 
-         tracksize = copy ? _oalRingBufferGetParami(srb, RB_NO_SAMPLES) : 0;
-         tracksize *= _oalRingBufferGetParami(srb, RB_BYTES_SAMPLE);
+         tracksize = copy ? _aaxRingBufferGetParami(srb, RB_NO_SAMPLES) : 0;
+         tracksize *= _aaxRingBufferGetParami(srb, RB_BYTES_SAMPLE);
          ds = dde ? srbd->dde_samples : 0;
          for (t=0; t<drbd->no_tracks; t++)
          {
@@ -347,10 +336,10 @@ _oalRingBufferDuplicate(_oalRingBuffer *ringbuffer, char copy, char dde)
 }
 
 void
-_oalRingBufferFillNonInterleaved(_oalRingBuffer *rb, const void *data, unsigned blocksize, char looping)
+_aaxRingBufferFillNonInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, char looping)
 {
    unsigned int t, tracksize;
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -366,14 +355,14 @@ _oalRingBufferFillNonInterleaved(_oalRingBuffer *rb, const void *data, unsigned 
    case AAX_IMA4_ADPCM:
    {
 #if 1
-      printf("WARNING: AAX_IMA4_ADPCM not implemented for _oalRingBufferFillNonInterleaved\n");
+      printf("WARNING: AAX_IMA4_ADPCM not implemented for _aaxRingBufferFillNonInterleaved\n");
       exit(-1);
 #else
       int t;
       for (t=0; t<no_tracks; t++)
       {
          int32_t **track = &tracks[t];
-         _oalRingBufferIMA4ToPCM16(track, data, 1, blocksize, no_samples);
+         _aaxRingBufferIMA4ToPCM16(track, data, 1, blocksize, no_samples);
       }
       rb->format = AAX_PCM16S;
 #endif
@@ -392,7 +381,7 @@ _oalRingBufferFillNonInterleaved(_oalRingBuffer *rb, const void *data, unsigned 
 
 #if 0
    if (looping) {
-      _oalRingBufferAddLooping(rb);
+      _aaxRingBufferAddLooping(rb);
    }
 #endif
 
@@ -406,10 +395,10 @@ _oalRingBufferFillNonInterleaved(_oalRingBuffer *rb, const void *data, unsigned 
 }
 
 void
-_oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blocksize, char looping)
+_aaxRingBufferFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, char looping)
 {
    unsigned int bps, no_samples, no_tracks, tracksize;
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    int32_t **tracks;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -430,7 +419,7 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
    switch (rb->format)
    {
    case AAX_IMA4_ADPCM:
-      _oalRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
+      _aaxRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
       break;
    case AAX_PCM32S:
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
@@ -472,7 +461,7 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
 
 #if 0
    if (looping) {
-      _oalRingBufferAddLooping(rb);
+      _aaxRingBufferAddLooping(rb);
    }
 #endif
 
@@ -487,7 +476,7 @@ _oalRingBufferFillInterleaved(_oalRingBuffer *rb, const void *data, unsigned blo
 
 
 void
-_oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int samples, int tracks, float fact)
+_aaxRingBufferGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int tracks, float fact)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -496,7 +485,7 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
 
    if (data)
    {
-      _oalRingBufferSample *rbd = rb->sample;
+      _aaxRingBufferSample *rbd = rb->sample;
       unsigned int t, no_tracks = rbd->no_tracks;
       unsigned int no_samples = rbd->no_samples;
       unsigned char bps = rbd->bytes_sample;
@@ -579,7 +568,7 @@ _oalRingBufferGetDataInterleaved(_oalRingBuffer *rb, void* data, unsigned int sa
 }
 
 void*
-_oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, int tracks, float fact)
+_aaxRingBufferGetDataInterleavedMalloc(_aaxRingBuffer *rb, int tracks, float fact)
 {
    unsigned int samples;
    void *data;
@@ -592,14 +581,14 @@ _oalRingBufferGetDataInterleavedMalloc(_oalRingBuffer *rb, int tracks, float fac
    samples = (unsigned int)(fact*rb->sample->no_samples);
    data = malloc(tracks * samples*rb->sample->bytes_sample);
    if (data) {
-      _oalRingBufferGetDataInterleaved(rb, data, samples, tracks, fact);
+      _aaxRingBufferGetDataInterleaved(rb, data, samples, tracks, fact);
    }
 
    return data;
 }
 
 void
-_oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int samples, int tracks, float fact)
+_aaxRingBufferGetDataNonInterleaved(_aaxRingBuffer *rb, void *data, unsigned int samples, int tracks, float fact)
 {
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -608,7 +597,7 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int
 
    if (data)
    {
-      _oalRingBufferSample *rbd = rb->sample;
+      _aaxRingBufferSample *rbd = rb->sample;
       unsigned int t, no_tracks = rbd->no_tracks;
       unsigned int no_samples = rbd->no_samples;
       unsigned char bps = rbd->bytes_sample;
@@ -680,7 +669,7 @@ _oalRingBufferGetDataNonInterleaved(_oalRingBuffer *rb, void *data, unsigned int
 }
 
 void*
-_oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, int tracks, float fact)
+_aaxRingBufferGetDataNonInterleavedMalloc(_aaxRingBuffer *rb, int tracks, float fact)
 {
    unsigned int samples;
    void *data;
@@ -693,16 +682,16 @@ _oalRingBufferGetDataNonInterleavedMalloc(_oalRingBuffer *rb, int tracks, float 
    samples = (unsigned int)(fact*rb->sample->no_samples);
    data = malloc(tracks * samples*rb->sample->bytes_sample);
    if (data) {
-      _oalRingBufferGetDataNonInterleaved(rb, data, samples, tracks, fact);
+      _aaxRingBufferGetDataNonInterleaved(rb, data, samples, tracks, fact);
    }
 
    return data;
 }
 
 void
-_oalRingBufferSetState(_oalRingBuffer* rb, enum _oalRingBufferState state)
+_aaxRingBufferSetState(_aaxRingBuffer* rb, enum _aaxRingBufferState state)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -760,9 +749,35 @@ _oalRingBufferSetState(_oalRingBuffer* rb, enum _oalRingBufferState state)
 }
 
 int
-_oalRingBufferSetParamf(_oalRingBuffer *rb, enum _oalRingBufferParam param, float fval)
+_aaxRingBufferGetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 {
-   _oalRingBufferSample *rbd = rb->sample;
+// _aaxRingBufferSample *rbd;
+   int rv = 0;
+
+   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+   assert(rb != 0);
+   assert(rb->sample != 0);
+
+// rbd = rb->sample;
+
+   switch (state)
+   {
+   case RB_IS_VALID:
+      if (rb && rb->sample && rb->sample->track) {
+         rv = -1;
+      }
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+int
+_aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, float fval)
+{
+   _aaxRingBufferSample *rbd = rb->sample;
    int rv = AAX_TRUE;
 
    switch(param)
@@ -788,20 +803,20 @@ _oalRingBufferSetParamf(_oalRingBuffer *rb, enum _oalRingBufferParam param, floa
    case RB_DURATION_SEC:
       rbd->duration_sec = fval;
       fval *= rbd->frequency_hz;
-      rv = _oalRingBufferSetParami(rb, RB_NO_SAMPLES, rintf(fval));
+      rv = _aaxRingBufferSetParami(rb, RB_NO_SAMPLES, rintf(fval));
       break;
    case RB_LOOPPOINT_START:
       if (fval < rbd->loop_end_sec)
       {
          rbd->loop_start_sec = fval;
-//       _oalRingBufferAddLooping(rb);
+//       _aaxRingBufferAddLooping(rb);
       }
       break;
    case RB_LOOPPOINT_END:
       if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec))
       {
          rbd->loop_end_sec = fval;
-//       _oalRingBufferAddLooping(rb);
+//       _aaxRingBufferAddLooping(rb);
       }
       break;
    case RB_OFFSET_SEC:
@@ -822,9 +837,9 @@ _oalRingBufferSetParamf(_oalRingBuffer *rb, enum _oalRingBufferParam param, floa
 }
 
 int
-_oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsigned int val)
+_aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsigned int val)
 {
-   _oalRingBufferSample *rbd = rb->sample;
+   _aaxRingBufferSample *rbd = rb->sample;
    int rv = AAX_TRUE;
 
    switch(param)
@@ -850,7 +865,7 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       rb->loop_max = (val > AAX_TRUE) ? val : 0;
 #if 0
       if (loops) {
-         _oalRingBufferAddLooping(rb);
+         _aaxRingBufferAddLooping(rb);
       }
 #endif
       break;
@@ -860,7 +875,7 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       if (fval < rbd->loop_end_sec)
       {
          rbd->loop_start_sec = fval;
-//       _oalRingBufferAddLooping(rb);
+//       _aaxRingBufferAddLooping(rb);
       }
       break;
    }
@@ -870,7 +885,7 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       if ((rbd->loop_start_sec < fval) && (val <= rbd->no_samples))
       {
          rbd->loop_end_sec = fval;
-//       _oalRingBufferAddLooping(rb);
+//       _aaxRingBufferAddLooping(rb);
       }
       break;
    }
@@ -905,7 +920,7 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
       else if (val > rbd->no_samples_avail)
       {
          rbd->no_samples_avail = val;
-         _oalRingBufferInitTracks(rb);
+         _aaxRingBufferInitTracks(rb);
          rv = AAX_TRUE;
       }
 #ifndef NDEBUG
@@ -929,9 +944,9 @@ _oalRingBufferSetParami(_oalRingBuffer *rb, enum _oalRingBufferParam param, unsi
 }
 
 float
-_oalRingBufferGetParamf(const _oalRingBuffer *rb, enum _oalRingBufferParam param)
+_aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
-// _oalRingBufferSample *rbd = rb->sample;
+// _aaxRingBufferSample *rbd = rb->sample;
    float rv = AAX_NONE;
 
    switch(param)
@@ -965,9 +980,9 @@ _oalRingBufferGetParamf(const _oalRingBuffer *rb, enum _oalRingBufferParam param
 }
 
 unsigned int
-_oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param)
+_aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
-   _oalRingBufferSample *rbd = rb->sample;
+   _aaxRingBufferSample *rbd = rb->sample;
    unsigned int rv = -1;
    switch(param)
    {
@@ -984,7 +999,7 @@ _oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param
       rv = rb->sample->bytes_sample;
       break;
    case RB_FORMAT:
-      rv = _oalRingBufferFormat[rb->format].format;
+      rv = _aaxRingBufferFormat[rb->format].format;
       break;
    case RB_LOOPING:
       rv = rb->loop_max ? rb->loop_max : rb->looping;
@@ -1012,9 +1027,9 @@ _oalRingBufferGetParami(const _oalRingBuffer *rb, enum _oalRingBufferParam param
 }
 
 int
-_oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat format)
+_aaxRingBufferSetFormat(_aaxRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat format)
 {
-   _oalRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    int rv = AAX_TRUE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -1026,11 +1041,11 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
    if (rbd->track == NULL)
    {
       if (codecs == 0) {
-         codecs = _oalRingBufferCodecs;
+         codecs = _aaxRingBufferCodecs;
       }
       rb->format = format;
       rbd->codec = codecs[format];
-      rbd->bytes_sample = _oalRingBufferFormat[format].bits/8;
+      rbd->bytes_sample = _aaxRingBufferFormat[format].bits/8;
    }
 #ifndef NDEBUG
    else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
@@ -1041,7 +1056,7 @@ _oalRingBufferSetFormat(_oalRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
 
 /* -------------------------------------------------------------------------- */
 
-_oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX] =
+_aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
 {
   {  8, AAX_PCM8S },	/* 8-bit  */
   { 16, AAX_PCM16S },	/* 16-bit */
@@ -1058,7 +1073,7 @@ _oalFormat_t _oalRingBufferFormat[AAX_FORMAT_MAX] =
  * Convert 4-bit IMA to 16-bit PCM
  */
 static void
-_oalRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, int tracks, int blocksize, unsigned int no_samples)
+_aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, int tracks, int blocksize, unsigned int no_samples)
 {
    unsigned int i, blocks, block_smp;
    int16_t *d[_AAX_MAX_SPEAKERS];

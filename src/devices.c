@@ -396,7 +396,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
             setup = getenv("AAX_TUBE_COMPRESSOR");
             if (setup) {
-               q = _oal_getbool(setup);
+               q = _aax_getbool(setup);
             } else {
                q = xmlNodeGetBool(xoid, "tube-compressor");
             }
