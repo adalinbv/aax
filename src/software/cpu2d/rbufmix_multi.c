@@ -36,13 +36,13 @@
  * first remaining source track will be mixed with the first destination 
  * buffer and so on.
  *
- * @dest single or multi track destination buffer
- * @src single or multi track source buffer
+ * @drbi single or multi track destination buffer
+ * @srbi single or multi track source buffer
  * @ep2d 2d emitter/sensor 2d properties
  * @fp2d mixer 2d properties
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMulti16(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
 {
    unsigned int offs, dno_samples, track;
    _aaxRingBufferLFOInfo *lfo;
@@ -56,10 +56,10 @@ _aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aax
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   assert(src != 0);
-   assert(dest != 0);
-   assert(src->sample != 0);
-   assert(dest->sample != 0);
+   assert(srbi != 0);
+   assert(drbi != 0);
+   assert(srbi->sample != 0);
+   assert(drbi->sample != 0);
 
    /** Pitch */
    pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
@@ -81,17 +81,17 @@ _aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aax
    }
 
    env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   pitch *= _aaxRingBufferEnvelopeGet(env, src->stopped);
+   pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.01f, max);
 
    /** Resample */
    offs = 0;
-   sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, nbuf);
+   sptr = _aaxProcessMixer(drbi, srbi, ep2d, pitch, &offs, &dno_samples, ctr, nbuf);
    if (sptr == NULL || dno_samples == 0)
    {
-      if (src->playing == 0 && src->stopped == 1) {
+      if (srbi->playing == 0 && srbi->stopped == 1) {
          return -1;
       } else {
          return 0;
@@ -100,26 +100,26 @@ _aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aax
 
    /** Volume */
    env = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
-   if (src->playing == 0 && src->stopped == 1)
+   if (srbi->playing == 0 && srbi->stopped == 1)
    {
       /* the emitter was already flagged as stopped */
       ret = -1;
    }
-   else if (!env && src->stopped == 1)
+   else if (!env && srbi->stopped == 1)
    {
       /*
        * Distance delay induced stopping of playback
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      ep2d->dist_delay_sec -= dest->sample->duration_sec;
+      ep2d->dist_delay_sec -= drbi->sample->duration_sec;
       if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
 
    /* apply envelope filter */
-   gain = _aaxRingBufferEnvelopeGet(env, src->stopped);
+   gain = _aaxRingBufferEnvelopeGet(env, srbi->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -148,23 +148,23 @@ _aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aax
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
-   if (!env && src->playing && src->stopped)
+   if (!env && srbi->playing && srbi->stopped)
    {
-      svol = (src->stopped || offs) ? 1.0f : 0.0f;
-      evol = (src->stopped) ? 0.0f : 1.0f;
-      src->playing = 0;
+      svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
+      evol = (srbi->stopped) ? 0.0f : 1.0f;
+      srbi->playing = 0;
    }
 
    /** Mix */
    g = 1.0f;
-   rbd = dest->sample;
+   rbd = drbi->sample;
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo && lfo->envelope)				// envelope follow
    {
       g = 0.0f;
       for (track=0; track<rbd->no_tracks; track++)
       {
-         _aaxRingBufferSample *rbs = src->sample;
+         _aaxRingBufferSample *rbs = srbi->sample;
          unsigned int rbs_track = track % rbs->no_tracks;
          float gain;
 
@@ -177,7 +177,7 @@ _aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aax
 
    for (track=0; track<rbd->no_tracks; track++)
    {
-      _aaxRingBufferSample *rbs = src->sample;
+      _aaxRingBufferSample *rbs = srbi->sample;
       unsigned int rbs_track = track % rbs->no_tracks;
       unsigned int rbd_track = track % rbd->no_tracks;
       int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;

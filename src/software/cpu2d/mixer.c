@@ -119,7 +119,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
    _sensor_t *sensor = (_sensor_t*)s;
    _aaxRingBufferReverbData *reverb;
-   _aaxRingBufferData *rbi = rb->id;
+   _aaxRingBufferData *rbi;
    unsigned int track, tracks;
    unsigned int peak, maxpeak;
    unsigned int rms, maxrms;
@@ -130,10 +130,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    char *p;
 
    assert(rb != 0);
+
+   rbi = rb->id;
    assert(rbi->sample != 0);
 
    rbd = rbi->sample;
-   dt = GMATH_E1 * rb->get_paramf(rb->id, RB_DURATION_SEC);
+   dt = GMATH_E1 * rb->get_paramf(rb, RB_DURATION_SEC);
    rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);	// 300 ms average
 
    reverb = 0;
@@ -233,18 +235,18 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       peak = dmax;
       _aaxProcessCompression(d1, &rms, &peak);
 
-      avg = rb->get_paramf(rb->id, RB_AVERAGE_VALUE+track);
+      avg = rb->get_paramf(rb, RB_AVERAGE_VALUE+track);
       avg = (rms_rr*avg + (1.0f-rms_rr)*rms);
-      rb->set_paramf(rb->id, RB_AVERAGE_VALUE+track, avg);
-      rb->set_paramf(rb->id, RB_PEAK_VALUE+track, peak);
+      rb->set_paramf(rb, RB_AVERAGE_VALUE+track, avg);
+      rb->set_paramf(rb, RB_PEAK_VALUE+track, peak);
 
       if (maxrms < rms) maxrms = rms;
       if (maxpeak < peak) maxpeak = peak;
    }
    free(ptr);
 
-   rb->set_paramf(rb->id, RB_AVERAGE_VALUE_MAX, maxrms);
-   rb->set_paramf(rb->id, RB_PEAK_VALUE_MAX, maxpeak);
+   rb->set_paramf(rb, RB_AVERAGE_VALUE_MAX, maxrms);
+   rb->set_paramf(rb, RB_PEAK_VALUE_MAX, maxpeak);
 }
 
 void*
@@ -283,12 +285,12 @@ _aaxSoftwareMixerThread(void* config)
          info = smixer->info;
 
          tracks = info->no_tracks;
-         dest_rb->set_parami(dest_rb->id, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb->id, be->codecs, AAX_PCM24S);
-         dest_rb->set_paramf(dest_rb->id, RB_FREQUENCY, info->frequency);
-         dest_rb->set_paramf(dest_rb->id, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb->id, AAX_TRUE);
-         dest_rb->set_state(dest_rb->id, RB_STARTED);
+         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
+         dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, info->frequency);
+         dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
+         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
@@ -301,7 +303,7 @@ _aaxSoftwareMixerThread(void* config)
    }
 
    /* get real duration, it might have been altered for better performance */
-   delay_sec = dest_rb->get_paramf(dest_rb->id, RB_DURATION_SEC);
+   delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
@@ -486,7 +488,7 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
 
       new_rb = dest_rb->duplicate(dest_rb, AAX_TRUE, AAX_FALSE);
 
-      dest_rb->set_state(new_rb->id, RB_REWINDED);
+      dest_rb->set_state(new_rb, RB_REWINDED);
       _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
 
       dest_rb = new_rb;
@@ -615,8 +617,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
  }
 #endif
                /* clear the buffer for use by the subframe */
-               rb->set_state(rb->id, RB_CLEARED);
-               rb->set_state(rb->id, RB_STARTED);
+               rb->set_state(rb, RB_CLEARED);
+               rb->set_state(rb, RB_STARTED);
 
                /** signal threaded frames to update (if necessary) */
                /* thread == -1: mixer; attached frames are threads */

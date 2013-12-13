@@ -53,8 +53,6 @@
 # include <sys/stat.h>
 # ifdef HAVE_RMALLOC_H
 #  include <rmalloc.h>
-# else
-#  include <unistd.h>
 # endif
 
 static void

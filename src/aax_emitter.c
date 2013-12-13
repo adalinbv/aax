@@ -154,14 +154,14 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       if (buffer)
       {
          _aaxRingBuffer *rb = buffer->ringbuffer;
-         if (rb->get_state(rb->id, RB_IS_VALID))
+         if (rb->get_state(rb, RB_IS_VALID))
          {
             const _aaxEmitter *src = handle->source;
             if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
                handle->track = 0;
             }
 
-            if (handle->track < rb->get_parami(rb->id, RB_NO_TRACKS))
+            if (handle->track < rb->get_parami(rb, RB_NO_TRACKS))
             {
                _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
                if (embuf)
@@ -404,7 +404,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             _aaxRingBuffer *rb = embuf->ringbuffer;
             _aaxRingBufferEnvelopeInfo* env;
 
-            rb->set_state(rb->id, RB_REWINDED);
+            rb->set_state(rb, RB_REWINDED);
             src->buffer_pos = 0;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
@@ -740,7 +740,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            rb->set_parami(rb->id, RB_LOOPING, mode);
+            rb->set_parami(rb, RB_LOOPING, mode);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
@@ -754,7 +754,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->buffer->ringbuffer;
-            if (mode < rb->get_parami(rb->id, RB_NO_TRACKS))
+            if (mode < rb->get_parami(rb, RB_NO_TRACKS))
             {
                handle->track = mode;
                rv = AAX_TRUE;
@@ -879,10 +879,10 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
          switch (type)
          {
          case AAX_BYTES:   
-            offs /= rb->get_parami(rb->id, RB_BYTES_SAMPLE);
+            offs /= rb->get_parami(rb, RB_BYTES_SAMPLE);
          case AAX_FRAMES:
          case AAX_SAMPLES:
-            samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+            samples = rb->get_parami(rb, RB_NO_SAMPLES);
             while (offs > samples)
             {
                pos++;
@@ -894,18 +894,18 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+               samples = rb->get_parami(rb, RB_NO_SAMPLES);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               rb->set_parami(rb->id, RB_OFFSET_SAMPLES, offs);
+               rb->set_parami(rb, RB_OFFSET_SAMPLES, offs);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_MICROSECONDS:
-            duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
+            duration = rb->get_paramf(rb, RB_DURATION_SEC);
             while (fpos > duration)
             {
                pos++;
@@ -917,12 +917,12 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
+               duration = rb->get_paramf(rb, RB_DURATION_SEC);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               rb->set_paramf(rb->id, RB_OFFSET_SEC, fpos);
+               rb->set_paramf(rb, RB_OFFSET_SEC, fpos);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -966,7 +966,7 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
             unsigned int pos = 0;
             float duration;
 
-            duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
+            duration = rb->get_paramf(rb, RB_DURATION_SEC);
             while (offs > duration)
             {
                pos++;
@@ -978,12 +978,12 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
+               duration = rb->get_paramf(rb, RB_DURATION_SEC);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               rb->set_paramf(rb->id, RB_OFFSET_SEC, offs);
+               rb->set_paramf(rb, RB_OFFSET_SEC, offs);
                rv = AAX_TRUE;
             }
             else {
@@ -1036,7 +1036,7 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            rv = rb->get_parami(rb->id, RB_LOOPING);
+            rv = rb->get_parami(rb, RB_LOOPING);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          break;
@@ -1133,7 +1133,7 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
             _aaxRingBuffer *rb = embuf->ringbuffer;
             for (i=0; i<handle->mixer_pos; i++)
             {
-               rv += rb->get_parami(rb->id, RB_NO_SAMPLES);
+               rv += rb->get_parami(rb, RB_NO_SAMPLES);
                _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
                dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, i);
@@ -1141,9 +1141,9 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
 
-            rv += rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
+            rv += rb->get_parami(rb, RB_OFFSET_SAMPLES);
             if (type == AAX_BYTES) {
-               rv *= rb->get_parami(rb->id, RB_BYTES_SAMPLE);
+               rv *= rb->get_parami(rb, RB_BYTES_SAMPLE);
             }
             break;
          case AAX_MICROSECONDS:

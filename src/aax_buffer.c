@@ -60,11 +60,11 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
             }
 
             /* initialize the ringbuffer in native format only */
-            rb->set_format(rb->id, buf->codecs, native_fmt);
-            rb->set_parami(rb->id, RB_NO_SAMPLES, samples);
-            rb->set_parami(rb->id, RB_NO_TRACKS, channels);
+            rb->set_format(rb, buf->codecs, native_fmt);
+            rb->set_parami(rb, RB_NO_SAMPLES, samples);
+            rb->set_parami(rb, RB_NO_TRACKS, channels);
             /* Postpone until aaxBufferSetData gets called
-             * rb->init(rb->id, AAX_FALSE);
+             * rb->init(rb, AAX_FALSE);
             */
 
             switch(native_fmt)
@@ -127,7 +127,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          if ((setup > 1000) && (setup < 96000))
          {
             if (!buf->frequency) {
-               rb->set_paramf(rb->id, RB_FREQUENCY, (float)setup);
+               rb->set_paramf(rb, RB_FREQUENCY, (float)setup);
             }
             buf->frequency = (float)setup;
             rv = AAX_TRUE;
@@ -135,7 +135,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_TRACKS:
-         rv = rb->set_parami(rb->id, RB_NO_TRACKS, setup);
+         rv = rb->set_parami(rb, RB_NO_TRACKS, setup);
          if (!rv) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
@@ -161,27 +161,27 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          break;
       }
       case AAX_TRACKSIZE:
-         rv = rb->set_parami(rb->id, RB_TRACKSIZE, setup);
+         rv = rb->set_parami(rb, RB_TRACKSIZE, setup);
          if (!rv) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
          break;
       case AAX_LOOP_START:
-         if (setup < rb->get_parami(rb->id, RB_NO_SAMPLES))
+         if (setup < rb->get_parami(rb, RB_NO_SAMPLES))
          {
-            unsigned int end = rb->get_parami(rb->id, RB_LOOPPOINT_END);
-            rb->set_parami(rb->id, RB_LOOPPOINT_START, setup);
-            rb->set_parami(rb->id, RB_LOOPING, (setup < end) ? AAX_TRUE : AAX_FALSE);
+            unsigned int end = rb->get_parami(rb, RB_LOOPPOINT_END);
+            rb->set_parami(rb, RB_LOOPPOINT_START, setup);
+            rb->set_parami(rb, RB_LOOPING, (setup < end) ? AAX_TRUE : AAX_FALSE);
             rv = AAX_TRUE;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_LOOP_END:
-         if (setup < rb->get_parami(rb->id, RB_NO_SAMPLES))
+         if (setup < rb->get_parami(rb, RB_NO_SAMPLES))
          {
-            unsigned int start = rb->get_parami(rb->id, RB_LOOPPOINT_START);
-            rb->set_parami(rb->id, RB_LOOPPOINT_END, setup);
-            rb->set_parami(rb->id, RB_LOOPING, (start < setup) ? AAX_TRUE : AAX_FALSE);
+            unsigned int start = rb->get_parami(rb, RB_LOOPPOINT_START);
+            rb->set_parami(rb, RB_LOOPPOINT_END, setup);
+            rb->set_parami(rb, RB_LOOPING, (start < setup) ? AAX_TRUE : AAX_FALSE);
             rv = AAX_TRUE;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -202,7 +202,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          }
          break;
       case AAX_POSITION:
-         if (setup <= rb->get_parami(rb->id, RB_NO_SAMPLES)) {
+         if (setup <= rb->get_parami(rb, RB_NO_SAMPLES)) {
             buf->pos = setup;
             rv = AAX_TRUE;
          }
@@ -232,33 +232,33 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = (unsigned int)buf->frequency;
          break;
       case AAX_TRACKS:
-         rv = rb->get_parami(rb->id, RB_NO_TRACKS);
+         rv = rb->get_parami(rb, RB_NO_TRACKS);
          break;
       case AAX_FORMAT:
-         rv = rb->get_parami(rb->id, RB_FORMAT);
+         rv = rb->get_parami(rb, RB_FORMAT);
          break;
       case AAX_TRACKSIZE:
          if (buf->frequency)
          {
-            float fact = buf->frequency/rb->get_paramf(rb->id, RB_FREQUENCY);
-            rv = rb->get_parami(rb->id, RB_NO_SAMPLES) - buf->pos;
-            rv *= (unsigned int)(fact*rb->get_parami(rb->id, RB_BYTES_SAMPLE));
+            float fact = buf->frequency/rb->get_paramf(rb, RB_FREQUENCY);
+            rv = rb->get_parami(rb, RB_NO_SAMPLES) - buf->pos;
+            rv *= (unsigned int)(fact*rb->get_parami(rb, RB_BYTES_SAMPLE));
          }
          else _aaxErrorSet(AAX_INVALID_STATE);
          break;
       case AAX_NO_SAMPLES:
           if (buf->frequency)
          {
-            float fact = buf->frequency/rb->get_paramf(rb->id, RB_FREQUENCY);
-            rv = (unsigned int)(fact*(rb->get_parami(rb->id, RB_NO_SAMPLES)-buf->pos));
+            float fact = buf->frequency/rb->get_paramf(rb, RB_FREQUENCY);
+            rv = (unsigned int)(fact*(rb->get_parami(rb, RB_NO_SAMPLES)-buf->pos));
          }
          else _aaxErrorSet(AAX_INVALID_STATE);
          break;
       case AAX_LOOP_START:
-         rv = rb->get_parami(rb->id, RB_LOOPPOINT_START);
+         rv = rb->get_parami(rb, RB_LOOPPOINT_START);
          break;
       case AAX_LOOP_END:
-         rv = rb->get_parami(rb->id, RB_LOOPPOINT_END);
+         rv = rb->get_parami(rb, RB_LOOPPOINT_END);
          break;
       case AAX_BLOCK_ALIGNMENT:
          rv = buf->blocksize;
@@ -299,9 +299,9 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       unsigned int tracks, no_samples, buf_samples;
       _aaxRingBuffer *rb = buf->ringbuffer;
 
-      rb->init(rb->id, AAX_FALSE);
-      tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
-      no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+      rb->init(rb, AAX_FALSE);
+      tracks = rb->get_parami(rb, RB_NO_TRACKS);
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
       buf_samples = tracks*no_samples;
       if (d && (buf_samples > 0))
@@ -408,29 +408,29 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(rate, 0.0f, 1.0f));
 
-      fs = rb->get_paramf(rb->id, RB_FREQUENCY);
-      no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+      fs = rb->get_paramf(rb, RB_FREQUENCY);
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-      if (rb->get_state(rb->id, RB_IS_VALID))
+      if (rb->get_state(rb, RB_IS_VALID))
       {
          float dt = no_samples/fs;
          fw = floorf((fw*dt)+0.5f)/dt;
       }
       else
       {
-         float dt = rb->get_parami(rb->id, RB_NO_SAMPLES_AVAIL)/fs;
+         float dt = rb->get_parami(rb, RB_NO_SAMPLES_AVAIL)/fs;
          float duration = floorf((fw*dt)+0.5f)/fw;
 
          no_samples = (unsigned int)ceilf(duration*fs);
-         rb->set_parami(rb->id, RB_NO_SAMPLES, no_samples);
-         rb->init(rb->id, AAX_FALSE);
+         rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+         rb->init(rb, AAX_FALSE);
       }
       f = fs/fw;
 
       switch (ptype)
       {
       case AAX_OVERWRITE:
-         rb->set_state(rb->id, RB_CLEARED);
+         rb->set_state(rb, RB_CLEARED);
          break;
       case AAX_MIX:
       {
@@ -503,12 +503,12 @@ aaxBufferGetData(const aaxBuffer buffer)
       float fact;
 
       rb = buf->ringbuffer;
-      fact = buf->frequency / rb->get_paramf(rb->id, RB_FREQUENCY);
+      fact = buf->frequency / rb->get_paramf(rb, RB_FREQUENCY);
       pos = (unsigned int)(fact*buf->pos);
 
-      no_samples = (unsigned int)(fact*rb->get_parami(rb->id, RB_NO_SAMPLES) - pos);
-      bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
-      tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
+      no_samples = (unsigned int)(fact*rb->get_parami(rb, RB_NO_SAMPLES) - pos);
+      bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+      tracks = rb->get_parami(rb, RB_NO_TRACKS);
       buf_samples = tracks*no_samples;
 
       ptr = (char*)sizeof(void*);
@@ -524,7 +524,7 @@ aaxBufferGetData(const aaxBuffer buffer)
 
       user_format = buf->format;
       native_fmt = user_format & AAX_FORMAT_NATIVE;
-      rb_format = rb->get_parami(rb->id, RB_FORMAT);
+      rb_format = rb->get_parami(rb, RB_FORMAT);
       if (rb_format != native_fmt)
       {
          if (rb_format != AAX_PCM24S) 	/* first convert to signed 24-bit */

@@ -188,15 +188,15 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
             case AAX_FRAMES:
             case AAX_SAMPLES:
                rv = _intBufGetNumNoLock(smixer->play_ringbuffers, _AAX_RINGBUFFER);
-               rv *= rb->get_parami(rb->id, RB_NO_SAMPLES);
-               rv += rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
+               rv *= rb->get_parami(rb, RB_NO_SAMPLES);
+               rv += rb->get_parami(rb, RB_OFFSET_SAMPLES);
                break;
             case AAX_BYTES:
             {
                rv = _intBufGetNumNoLock(smixer->play_ringbuffers, _AAX_RINGBUFFER);
-               rv *= rb->get_parami(rb->id, RB_NO_SAMPLES);
-               rv += rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
-               rv *= rb->get_parami(rb->id, RB_BYTES_SAMPLE);
+               rv *= rb->get_parami(rb, RB_NO_SAMPLES);
+               rv += rb->get_parami(rb, RB_OFFSET_SAMPLES);
+               rv *= rb->get_parami(rb, RB_BYTES_SAMPLE);
                break;
             }
             case AAX_MICROSECONDS:
@@ -245,8 +245,8 @@ aaxSensorGetBuffer(const aaxConfig config)
 
                buf->blocksize = 1;
                buf->pos = 0;
-               buf->format = rb->get_parami(rb->id, RB_FORMAT);
-               buf->frequency = rb->get_paramf(rb->id, RB_FREQUENCY);
+               buf->format = rb->get_parami(rb, RB_FORMAT);
+               buf->frequency = rb->get_paramf(rb, RB_FREQUENCY);
 
                buf->mipmap = AAX_FALSE;
 
@@ -433,31 +433,31 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          be = _aaxGetDriverBackendLoopback(&pos);
          delay_sec = 1.0f / info->refresh_rate;
 
-         rb->set_format(rb->id, be->codecs, AAX_PCM24S);
-         rb->set_parami(rb->id, RB_NO_TRACKS, info->no_tracks);
+         rb->set_format(rb, be->codecs, AAX_PCM24S);
+         rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
          be = handle->backend.ptr;
          min = be->param(handle->backend.handle, DRIVER_MIN_VOLUME);
          max = be->param(handle->backend.handle, DRIVER_MAX_VOLUME);
 
-         rb->set_paramf(rb->id, RB_VOLUME_MIN, min);
-         rb->set_paramf(rb->id, RB_VOLUME_MAX, max);
+         rb->set_paramf(rb, RB_VOLUME_MIN, min);
+         rb->set_paramf(rb, RB_VOLUME_MAX, max);
 
          /* Do not alter the frequency at this time, it has been set by
           * aaxMixerRegisterSensor and may have changed in the mean time
-*/       rb->set_paramf(rb->id, RB_FREQUENCY, info->frequency);
+*/       rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
 /*        */
 
          /* create a ringbuffer with a but of overrun space */
-         rb->set_paramf(rb->id, RB_DURATION_SEC, delay_sec*1.0f);
-         rb->init(rb->id, AAX_TRUE);
+         rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
+         rb->init(rb, AAX_TRUE);
 
          /* 
           * Now set the actual duration, this will not alter the allocated
           * space since it is lower that the initial duration.
           */
-         rb->set_paramf(rb->id, RB_DURATION_SEC, delay_sec);
-         rb->set_state(rb->id, RB_STARTED);
+         rb->set_paramf(rb, RB_DURATION_SEC, delay_sec);
+         rb->set_state(rb, RB_STARTED);
       }
       _intBufReleaseData(dptr, _AAX_SENSOR);
    }

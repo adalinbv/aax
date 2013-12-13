@@ -571,9 +571,9 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    if (handle->mode == 0)
       return 0;
 
-   offs = rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
-   no_tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES) - offs;
+   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
+   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
 
    sbuf = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
    _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);

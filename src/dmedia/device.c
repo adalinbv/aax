@@ -700,9 +700,9 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    if (handle->mode == 0)
       return 0;
 
-   offs = rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
-   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES) - offs;
-   no_tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
+   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
+   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->scratch == 0)

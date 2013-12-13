@@ -27,7 +27,7 @@
  * pos
  */
 char
-_aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
+_aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                     float ssv, float sdf, _aaxRingBuffer2dProps *fp2d,
                     _aaxDelayed3dProps *fdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
@@ -40,7 +40,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
 
    num = 0;
    stage = 2;
-   dt = dest_rb->get_paramf(dest_rb->id, RB_DURATION_SEC);
+   dt = drb->get_paramf(drb, RB_DURATION_SEC);
    do
    {
       unsigned int i, no_emitters;
@@ -57,7 +57,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
          dptr_src = _intBufGet(he, _AAX_EMITTER, i);
          if (!dptr_src) continue;
 
-         dest_rb->set_paramf(dest_rb->id, RB_OFFSET_SEC, 0.0f);
+         drb->set_paramf(drb, RB_OFFSET_SEC, 0.0f);
 
          emitter = _intBufGetDataPtr(dptr_src);
          src = emitter->source;
@@ -78,21 +78,21 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
             if (dptr_sbuf)
             {
                _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
-               _aaxRingBuffer *src_rb = embuf->ringbuffer;
+               _aaxRingBuffer *srb = embuf->ringbuffer;
                unsigned int res = 0;
                do
                {
                   _aaxRingBuffer2dProps *ep2d = src->props2d;
 
                   if (_IS_STOPPED(src->props3d)) {
-                     src_rb->set_state(src_rb->id, RB_STOPPED);
+                     srb->set_state(srb, RB_STOPPED);
                   }
-                  else if (src_rb->get_parami(src_rb->id, RB_IS_PLAYING) == 0)
+                  else if (srb->get_parami(srb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        src_rb->set_state(src_rb->id, RB_STARTED_STREAMING);
+                        srb->set_state(srb, RB_STARTED_STREAMING);
                      } else {
-                        src_rb->set_state(src_rb->id, RB_STARTED);
+                        srb->set_state(srb, RB_STARTED);
                      }
                   }
 
@@ -111,8 +111,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
                      res = AAX_FALSE;
                      if (src->curr_pos_sec >= ep2d->dist_delay_sec)
                      {
-                        res = be->mix3d(be_handle, dest_rb->id,
-                                       src_rb->id, ep2d,
+                        res = be->mix3d(be_handle, drb->id, srb->id, ep2d,
                                        fp2d, emitter->track, src->update_ctr,
                                        nbuf, info->mode);
                      }
@@ -120,7 +119,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
                   else
                   {
                      assert(!_IS_POSITIONAL(src->props3d));
-                     res = be->mix2d(be_handle, dest_rb->id, src_rb->id, ep2d,
+                     res = be->mix2d(be_handle, drb->id, srb->id, ep2d,
                                            fp2d, src->update_ctr, nbuf);
                   }
 
@@ -156,7 +155,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
                            }
                         }
 
-                        res &= dest_rb->get_parami(dest_rb->id, RB_IS_PLAYING);
+                        res &= drb->get_parami(drb, RB_IS_PLAYING);
                         if (res)
                         {
                            _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
@@ -164,7 +163,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
                                                   _AAX_EMITTER_BUFFER,
                                                   src->buffer_pos);
                            embuf = _intBufGetDataPtr(dptr_sbuf);
-                           src_rb = embuf->ringbuffer;
+                           srb = embuf->ringbuffer;
                         }
                      }
                      else /* !streaming */
@@ -178,7 +177,7 @@ _aaxEmittersProcess(_aaxRingBuffer *dest_rb, const _aaxMixerInfo *info,
                _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-            dest_rb->set_state(dest_rb->id, RB_STARTED);
+            drb->set_state(drb, RB_STARTED);
          }
          _intBufReleaseData(dptr_src, _AAX_EMITTER);
       }

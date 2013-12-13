@@ -661,21 +661,21 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                      be = _aaxGetDriverBackendLoopback(&pos);
                      delay_sec = 1.0f / info->refresh_rate;
 
-                     rb->set_format(rb->id, be->codecs, AAX_PCM24S);
-                     rb->set_paramf(rb->id, RB_FREQUENCY, info->frequency);
-                     rb->set_parami(rb->id, RB_NO_TRACKS, 2);
+                     rb->set_format(rb, be->codecs, AAX_PCM24S);
+                     rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
+                     rb->set_parami(rb, RB_NO_TRACKS, 2);
 
                      /* create a ringbuffer with a but of overrun space */
-                     rb->set_paramf(rb->id, RB_DURATION_SEC, delay_sec*1.0f);
-                     rb->init(rb->id, AAX_TRUE);
+                     rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
+                     rb->init(rb, AAX_TRUE);
 
                      /* 
                       * Now set the actual duration, this will not alter the
                       * allocated space since it is lower that the initial
                       * duration.
                       */
-                     rb->set_paramf(rb->id, RB_DURATION_SEC, delay_sec);
-                     rb->set_state(rb->id, RB_STARTED);
+                     rb->set_paramf(rb, RB_DURATION_SEC, delay_sec);
+                     rb->set_state(rb, RB_STARTED);
                   }
 
                   _intBufReleaseData(dptr, _AAX_SENSOR);
@@ -1115,7 +1115,7 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
          if (buf)
          {
             buf->ringbuffer = rb;
-            buf->format = rb->get_parami(rb->id, RB_FORMAT);
+            buf->format = rb->get_parami(rb, RB_FORMAT);
             buf->ref_counter = 1;
             buf->mipmap = AAX_FALSE;
             buf->id = BUFFER_ID;

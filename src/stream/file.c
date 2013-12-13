@@ -527,9 +527,9 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(rb->id->sample);
    assert(id != 0);
 
-   offs = rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
-   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES) - offs;
-   bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
+   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
+   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
 
    file_bps = handle->fmt->get_param(handle->fmt->id, __F_BITS)/8;
    file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);

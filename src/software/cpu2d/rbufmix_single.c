@@ -68,8 +68,8 @@ static _aaxRingBufferMixFn _aaxRingBufferMixMono16HRTF;
  * first remaining source track will be mixed with the first destination
  * buffer and so on.
  *
- * @param dest multi track destination buffer
- * @param src single track source buffer
+ * @param drbi multi track destination buffer
+ * @param srbi single track source buffer
  * @param mode requested mixing mode
  * @param ep2d 3d positioning information structure of the source
  * @param fp2f 3d positioning information structure of the parents frame
@@ -82,7 +82,7 @@ static _aaxRingBufferMixFn _aaxRingBufferMixMono16HRTF;
  * @param nbuf number of buffers in the source queue (>1 means streaming)
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBufferData *dest, _aaxRingBufferData *src, enum aaxRenderMode mode, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMono16(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, enum aaxRenderMode mode, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
 {
    unsigned int offs, dno_samples;
    _aaxRingBufferLFOInfo *lfo;
@@ -94,10 +94,10 @@ _aaxRingBufferMixMono16(_aaxRingBufferData *dest, _aaxRingBufferData *src, enum 
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   assert(src != 0);
-   assert(dest != 0);
-   assert(src->sample != 0);
-   assert(dest->sample != 0);
+   assert(srbi != 0);
+   assert(drbi != 0);
+   assert(srbi->sample != 0);
+   assert(drbi->sample != 0);
    assert(ep2d != 0);
 
    /** Pitch */
@@ -116,17 +116,17 @@ _aaxRingBufferMixMono16(_aaxRingBufferData *dest, _aaxRingBufferData *src, enum 
    }
 
    env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   pitch *= _aaxRingBufferEnvelopeGet(env, src->stopped);
+   pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
-   offs = (mode == AAX_MODE_WRITE_HRTF) ? dest->sample->dde_samples : 0;
-   sptr = _aaxProcessMixer(dest, src, ep2d, pitch, &offs, &dno_samples, ctr, nbuf);
+   offs = (mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
+   sptr = _aaxProcessMixer(drbi, srbi, ep2d, pitch, &offs, &dno_samples, ctr, nbuf);
    if (sptr == NULL || dno_samples == 0)
    {
-      if (src->playing == 0 && src->stopped == 1) {
+      if (srbi->playing == 0 && srbi->stopped == 1) {
          return -1;
       } else {
          return 0;
@@ -135,26 +135,26 @@ _aaxRingBufferMixMono16(_aaxRingBufferData *dest, _aaxRingBufferData *src, enum 
 
    /** Volume */
    env = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
-   if (src->playing == 0 && src->stopped == 1)
+   if (srbi->playing == 0 && srbi->stopped == 1)
    {
       /* the emitter was already flagged as stopped */
       ret = -1;
    }
-   else if (!env && src->stopped == 1)
+   else if (!env && srbi->stopped == 1)
    {
       /*
        * Distance delay induced stopping of playback
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      ep2d->dist_delay_sec -= dest->sample->duration_sec;
+      ep2d->dist_delay_sec -= drbi->sample->duration_sec;
       if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
    }
 
    /* apply envelope filter */
-   gain = _aaxRingBufferEnvelopeGet(env, src->stopped);
+   gain = _aaxRingBufferEnvelopeGet(env, srbi->stopped);
    if (gain < -1e-3f) {
       ret = -1;
    }
@@ -195,31 +195,31 @@ _aaxRingBufferMixMono16(_aaxRingBufferData *dest, _aaxRingBufferData *src, enum 
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
-   if (!env && (src->playing == src->stopped))
+   if (!env && (srbi->playing == srbi->stopped))
    {
-      svol = (src->stopped || offs) ? 1.0f : 0.0f;
-      evol = (src->stopped) ? 0.0f : 1.0f;
-      src->playing = !src->stopped;
+      svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
+      evol = (srbi->stopped) ? 0.0f : 1.0f;
+      srbi->playing = !srbi->stopped;
    }
 
    /* Mix */
    switch(mode)
    {
    case AAX_MODE_WRITE_SPATIAL:
-      _aaxRingBufferMixMono16Spatial(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16Spatial(drbi, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    case AAX_MODE_WRITE_SURROUND:
-      _aaxRingBufferMixMono16Surround(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16Surround(drbi, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    case AAX_MODE_WRITE_HRTF:
-      _aaxRingBufferMixMono16HRTF(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16HRTF(drbi, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    case AAX_MODE_WRITE_STEREO:
    default:
-      _aaxRingBufferMixMono16Stereo(dest, sptr, ep2d,
+      _aaxRingBufferMixMono16Stereo(drbi, sptr, ep2d,
                                        ch, offs, dno_samples, gain, svol, evol);
       break;
    }
@@ -252,7 +252,7 @@ _aaxRingBufferPitchShiftFn *_aaxRingBufferDopplerFn[] =
 };
 
 static void
-_aaxRingBufferMixMono16Stereo(_aaxRingBufferData *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBufferData *drbi, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
@@ -260,7 +260,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferData *dest, const int32_ptrptr sptr,
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   rbd = dest->sample;
+   rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
       int32_t *dptr = (int32_t *)rbd->track[t] + offs;
@@ -294,7 +294,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferData *dest, const int32_ptrptr sptr,
 }
 
 static void
-_aaxRingBufferMixMono16Surround(_aaxRingBufferData *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBufferData *drbi, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
@@ -302,7 +302,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferData *dest, const int32_ptrptr spt
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   rbd = dest->sample;
+   rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
       int32_t *dptr = (int32_t *)rbd->track[t] + offs;
@@ -359,7 +359,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferData *dest, const int32_ptrptr spt
 }
 
 static void
-_aaxRingBufferMixMono16Spatial(_aaxRingBufferData *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
@@ -367,7 +367,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferData *dest, int32_t **sptr, _aaxRin
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   rbd = dest->sample;
+   rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
       int32_t *dptr = (int32_t *)rbd->track[t] + offs;
@@ -393,14 +393,14 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferData *dest, int32_t **sptr, _aaxRin
 #define IDT_UD_OFFSET	p2d->head[3]
 
 static void
-_aaxRingBufferMixMono16HRTF(_aaxRingBufferData *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   rbd = dest->sample;
+   rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
       int32_t *track = (int32_t *)rbd->track[t];

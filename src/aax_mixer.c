@@ -268,7 +268,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_TRACKSIZE:
             {
                _aaxRingBuffer *rb = handle->ringbuffer;
-               int bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
+               int bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
 
                rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
                break;
@@ -296,9 +296,9 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   }
 
                   if (type & AAX_PEAK_VALUE) {
-                     rv = rb->get_parami(rb->id, RB_PEAK_VALUE+track);
+                     rv = rb->get_parami(rb, RB_PEAK_VALUE+track);
                   } else if (type & AAX_AVERAGE_VALUE) {
-                     rv = rb->get_parami(rb->id, RB_AVERAGE_VALUE+track);
+                     rv = rb->get_parami(rb, RB_AVERAGE_VALUE+track);
                   }
                }
             }
@@ -764,17 +764,17 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                         be = _aaxGetDriverBackendLoopback(&pos);
                         delay_sec = 1.0f / info->refresh_rate;
 
-                        rb->set_format(rb->id, be->codecs, AAX_PCM24S);
-                        rb->set_paramf(rb->id, RB_FREQUENCY, info->frequency);
-                        rb->set_parami(rb->id, RB_NO_TRACKS, info->no_tracks);
+                        rb->set_format(rb, be->codecs, AAX_PCM24S);
+                        rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
+                        rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
                         /* create a ringbuffer with a bit of overrun space */
-                        rb->set_paramf(rb->id, RB_DURATION_SEC, delay_sec*1.0f);
+                        rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
 
                         /* Do not initialize the RinBuffer yet, this would
                          * assign memory to rb->tracks before the final
                          * ringbuffer setup is know 
-                        rb->init(rb->id, AAX_TRUE);
+                        rb->init(rb, AAX_TRUE);
                          */
 
                         /* 
@@ -782,8 +782,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                          * allocated space since it is lower that the initial
                          * duration.
                          */
-                        rb->set_paramf(rb->id, RB_DURATION_SEC, delay_sec);
-                        rb->set_state(rb->id, RB_STARTED);
+                        rb->set_paramf(rb, RB_DURATION_SEC, delay_sec);
+                        rb->set_state(rb, RB_STARTED);
                      }
 
                      _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
@@ -990,7 +990,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                   _intBufCreate(&src->p3dq, _AAX_DELAYED3D);
                }
 
-               if (rb->get_state(rb->id, RB_IS_VALID)) {
+               if (rb && rb->get_state(rb, RB_IS_VALID)) {
                   src->props2d->dist_delay_sec = 0.0f;
                }
 

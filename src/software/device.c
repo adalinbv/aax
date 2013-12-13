@@ -334,9 +334,16 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
 }
 
 int
-_aaxSoftwareDriver3dMixer(const void *id, void *dest, void *src, void *ep2d, void *fp2d, int ch, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
+_aaxSoftwareDriver3dMixer(const void *id, void *drbi, void *srbi, void *ep2d, void *fp2d, int ch, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
 {
-   return _aaxRingBufferMixMono16(dest, src, mode, ep2d, fp2d, ch, ctr, nbuf);
+   int ret;
+
+   assert(srbi);
+   assert(drbi);
+
+   ret = _aaxRingBufferMixMono16(drbi, srbi, mode, ep2d, fp2d, ch, ctr, nbuf);
+
+   return ret;
 }
 
 void
@@ -351,14 +358,14 @@ _aaxSoftwareDriver3dPrepare(void* src, const void *info, float ssv, float sdf, v
 }
 
 int
-_aaxSoftwareDriverStereoMixer(const void *id, void *dest, void *src, void *ep2d, void *fp2d, unsigned char ctr, unsigned int nbuf)
+_aaxSoftwareDriverStereoMixer(const void *id, void *drbi, void *srbi, void *ep2d, void *fp2d, unsigned char ctr, unsigned int nbuf)
 {
    int ret;
 
-   assert(src);
-   assert(dest);
+   assert(srbi);
+   assert(drbi);
 
-   ret = _aaxRingBufferMixMulti16(dest, src, ep2d, fp2d, ctr, nbuf);
+   ret = _aaxRingBufferMixMulti16(drbi, srbi, ep2d, fp2d, ctr, nbuf);
 
    return ret;
 }
@@ -456,20 +463,20 @@ _aaxNoneDriverProcessFrame(void* config)
                   float s_offs, s_duration;
                   float d_offs = dt;
 
-                  if (src_rb->get_parami(src_rb->id, RB_IS_PLAYING) == 0)
+                  if (src_rb->get_parami(src_rb, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        src_rb->set_state(src_rb->id, RB_STARTED_STREAMING);
+                        src_rb->set_state(src_rb, RB_STARTED_STREAMING);
                      } else {
-                        src_rb->set_state(src_rb->id, RB_STARTED);
+                        src_rb->set_state(src_rb, RB_STARTED);
                      }
                   }
 
-                  s_duration = src_rb->get_paramf(src_rb->id, RB_DURATION_SEC);
-                  s_offs = src_rb->get_paramf(src_rb->id, RB_OFFSET_SEC);
+                  s_duration = src_rb->get_paramf(src_rb, RB_DURATION_SEC);
+                  s_offs = src_rb->get_paramf(src_rb, RB_OFFSET_SEC);
                   if ((s_offs+dt) > s_duration)
                   {
-                     if (!src_rb->get_parami(src_rb->id, RB_LOOPING))
+                     if (!src_rb->get_parami(src_rb, RB_LOOPING))
                      {
                         d_offs = s_duration - s_offs;
                         s_offs = s_duration;
@@ -481,7 +488,7 @@ _aaxNoneDriverProcessFrame(void* config)
                   } else {
                      s_offs += dt;
                   }
-                  src_rb->set_paramf(src_rb->id, RB_OFFSET_SEC, s_offs);
+                  src_rb->set_paramf(src_rb, RB_OFFSET_SEC, s_offs);
                   d_pos += d_offs;
 
                   src->curr_pos_sec += dt;
@@ -492,7 +499,7 @@ _aaxNoneDriverProcessFrame(void* config)
                    */
                   if (rv)
                   {
-                     src_rb->get_state(src_rb->id, RB_STOPPED);
+                     src_rb->set_state(src_rb, RB_STOPPED);
                      if (streaming)
                      {
                         /* is there another buffer ready to play? */

@@ -2295,9 +2295,9 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    assert(rbs != 0);
    assert(rbs->id->sample != 0);
 
-   offs = rbs->get_parami(rbs->id, RB_OFFSET_SAMPLES);
-   no_tracks = rbs->get_parami(rbs->id, RB_NO_TRACKS);
-   no_frames = rbs->get_parami(rbs->id, RB_NO_SAMPLES) - offs;
+   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
+   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
+   no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
 
    sbuf = (const int32_t **)rbs->get_dataptr_noninterleaved(rbs->id);
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
@@ -2399,9 +2399,9 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    assert(rbs != 0);
    assert(rbs->id->sample != 0);
 
-   offs = rbs->get_parami(rbs->id, RB_OFFSET_SAMPLES);
-   no_frames = rbs->get_parami(rbs->id, RB_NO_SAMPLES) - offs;
-   no_tracks = rbs->get_parami(rbs->id, RB_NO_TRACKS);
+   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
+   no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
 
    sbuf = (const int32_t **)rbs->get_dataptr_noninterleaved(rbs->id);
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
@@ -2500,9 +2500,9 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    assert(rbs != 0);
    assert(rbs->id->sample != 0);
 
-   offs = rbs->get_parami(rbs->id, RB_OFFSET_SAMPLES);
-   no_samples = rbs->get_parami(rbs->id, RB_NO_SAMPLES) - offs;
-   no_tracks = rbs->get_parami(rbs->id, RB_NO_TRACKS);
+   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
+   no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
    _alsa_set_volume(handle, rbs, offs, no_samples, no_tracks, gain);
@@ -2513,7 +2513,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       int16_t *ptr;
       char *p;
 
-      samples = rbs->get_parami(rbs->id, RB_NO_SAMPLES);
+      samples = rbs->get_parami(rbs, RB_NO_SAMPLES);
       outbuf_size = samples * hw_bps;
       if (outbuf_size & 0xF)
       {
@@ -2601,9 +2601,9 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    assert(rbs != 0);
    assert(rbs->id->sample != 0);
 
-   offs = rbs->get_parami(rbs->id, RB_OFFSET_SAMPLES);
-   no_samples = rbs->get_parami(rbs->id, RB_NO_SAMPLES) - offs;
-   no_tracks = rbs->get_parami(rbs->id, RB_NO_TRACKS);
+   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
+   no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
+   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
    _alsa_set_volume(handle, rbs, offs, no_samples, no_tracks, gain);
@@ -2699,12 +2699,12 @@ _aaxALSADriverThread(void* config)
       dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb->id, be->codecs, AAX_PCM24S);
-         dest_rb->set_parami(dest_rb->id, RB_NO_TRACKS, mixer->info->no_tracks);
-         dest_rb->set_paramf(dest_rb->id, RB_FREQUENCY, mixer->info->frequency);
-         dest_rb->set_paramf(dest_rb->id, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb->id, AAX_TRUE);
-         dest_rb->set_state(dest_rb->id, RB_STARTED);
+         dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);
+         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
+         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
       }

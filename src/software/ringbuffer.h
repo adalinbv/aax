@@ -221,7 +221,7 @@ _aaxRingBufferDestroy(void*);
  * @param add_scratchbuf set to something other than 0 to add scratchbuffers
  */
 typedef void
-_aaxRingBufferInitFn(_aaxRingBufferData*, char);
+_aaxRingBufferInitFn(_aaxRingBuffer*, char);
 
 
 /**
@@ -399,30 +399,23 @@ _aaxRingBufferMix1NFn(_aaxRingBufferData*, _aaxRingBufferData*, enum aaxRenderMo
 /**
  *
  */
-typedef void _aaxRingBufferSetStateFn(_aaxRingBufferData*, enum _aaxRingBufferState);
-typedef int _aaxRingBufferGetStateFn(_aaxRingBufferData*, enum _aaxRingBufferState);
+typedef void _aaxRingBufferSetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
+typedef int _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
 
 
 /**
  *
  */
-typedef int _aaxRingBufferSetParamfFn(_aaxRingBufferData*, enum _aaxRingBufferParam, float);
-typedef int _aaxRingBufferSetParamiFn(_aaxRingBufferData*, enum _aaxRingBufferParam, unsigned int);
-typedef float _aaxRingBufferGetParamfFn(const _aaxRingBufferData*, enum _aaxRingBufferParam);
-typedef unsigned int _aaxRingBufferGetParamiFn(const _aaxRingBufferData*, enum _aaxRingBufferParam);
+typedef int _aaxRingBufferSetParamfFn(_aaxRingBuffer*, enum _aaxRingBufferParam, float);
+typedef int _aaxRingBufferSetParamiFn(_aaxRingBuffer*, enum _aaxRingBufferParam, unsigned int);
+typedef float _aaxRingBufferGetParamfFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
+typedef unsigned int _aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
 
 
 /**
  *
  */
-typedef int _aaxRingBufferSetFormatFn(_aaxRingBufferData*, _aaxCodec **, enum aaxFormat);
-
-#if 0
-#define _aaxRingBufferCopyParamf(dbr, srb, param) \
-    _aaxRingBufferSetParamf(drb, param, _aaxRingBufferGetParamf(srb, param))
-#define _aaxRingBufferCopyParami(dbr, srb, param) \
-    _aaxRingBufferSetParami(drb, param, _aaxRingBufferGetParami(srb, param))
-#endif
+typedef int _aaxRingBufferSetFormatFn(_aaxRingBuffer*, _aaxCodec **, enum aaxFormat);
 
 /*
  *

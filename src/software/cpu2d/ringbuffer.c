@@ -210,12 +210,16 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 }
 
 void
-_aaxRingBufferInit(_aaxRingBufferData *rbi, char add_scratchbuf)
+_aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 {
    _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   assert(rb != NULL);
+
+   rbi = rb->id;
    assert(rbi != NULL);
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
@@ -344,14 +348,14 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
             add_scratchbuf = AAX_TRUE;
          }
       }
-      _aaxRingBufferInit(drb->id, add_scratchbuf);
+      _aaxRingBufferInit(drb, add_scratchbuf);
 
       if (copy || dde)
       {
          unsigned int t, ds, tracksize;
 
-         tracksize = copy ? srb->get_parami(srb->id, RB_NO_SAMPLES) : 0;
-         tracksize *= srb->get_parami(srb->id, RB_BYTES_SAMPLE);
+         tracksize = copy ? srb->get_parami(srb, RB_NO_SAMPLES) : 0;
+         tracksize *= srb->get_parami(srb, RB_BYTES_SAMPLE);
          ds = dde ? srbd->dde_samples : 0;
          for (t=0; t<drbd->no_tracks; t++)
          {
@@ -764,13 +768,18 @@ _aaxRingBufferGetScratchBufferPtr(_aaxRingBufferData *rbi)
 }
 
 void
-_aaxRingBufferSetState(_aaxRingBufferData *rbi, enum _aaxRingBufferState state)
+_aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 {
+   _aaxRingBufferData *rbi;
+
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   assert(rb != NULL);
+
+   rbi = rb->id;
    assert(rbi != 0);
    assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
    switch (state)
    {
@@ -816,23 +825,27 @@ _aaxRingBufferSetState(_aaxRingBufferData *rbi, enum _aaxRingBufferState state)
 }
 
 int
-_aaxRingBufferGetState(_aaxRingBufferData *rbi, enum _aaxRingBufferState state)
+_aaxRingBufferGetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 {
 // _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
    int rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   assert(rb != NULL);
+
+   rbi = rb->id;
    assert(rbi != 0);
    assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
 // rbd = rbi->sample;
 
    switch (state)
    {
    case RB_IS_VALID:
-      if (rbi && rbi->sample && rbi->sample->track) {
+      if (rb && rbi->sample && rbi->sample->track) {
          rv = -1;
       }
       break;
@@ -843,13 +856,20 @@ _aaxRingBufferGetState(_aaxRingBufferData *rbi, enum _aaxRingBufferState state)
 }
 
 int
-_aaxRingBufferSetParamf(_aaxRingBufferData *rbi, enum _aaxRingBufferParam param, float fval)
+_aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, float fval)
 {
-   _aaxRingBufferSample *rbd = rbi->sample;
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
    int rv = AAX_TRUE;
 
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rb != NULL);
 
+   rbi = rb->id;
+   assert(rbi != NULL);
+   assert(rbi->sample != 0);
+   assert(rbi->parent == rb);
+
+   rbd = rbi->sample;
    switch(param)
    {
    case RB_VOLUME:
@@ -953,13 +973,20 @@ _aaxRingBufferSetParamf(_aaxRingBufferData *rbi, enum _aaxRingBufferParam param,
 }
 
 int
-_aaxRingBufferSetParami(_aaxRingBufferData *rbi, enum _aaxRingBufferParam param, unsigned int val)
+_aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsigned int val)
 {
-   _aaxRingBufferSample *rbd = rbi->sample;
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
    int rv = AAX_TRUE;
 
+   assert(rb != NULL);
+
+   rbi = rb->id;
+   assert(rbi != NULL);
+   assert(rbi->sample != 0);
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
+   rbd = rbi->sample;
    switch(param)
    {
    case RB_BYTES_SAMPLE:
@@ -1062,12 +1089,17 @@ _aaxRingBufferSetParami(_aaxRingBufferData *rbi, enum _aaxRingBufferParam param,
 }
 
 float
-_aaxRingBufferGetParamf(const _aaxRingBufferData *rbi, enum _aaxRingBufferParam param)
+_aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
 // _aaxRingBufferSample *rbd = rbi->sample;
+   _aaxRingBufferData *rbi;
    float rv = AAX_NONE;
 
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rb != NULL);
+
+   rbi = rb->id;
+   assert(rbi != NULL);
+   assert(rbi->parent == rb);
 
    switch(param)
    {
@@ -1114,13 +1146,20 @@ _aaxRingBufferGetParamf(const _aaxRingBufferData *rbi, enum _aaxRingBufferParam 
 }
 
 unsigned int
-_aaxRingBufferGetParami(const _aaxRingBufferData *rbi, enum _aaxRingBufferParam param)
+_aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
-   _aaxRingBufferSample *rbd = rbi->sample;
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
    unsigned int rv = -1;
 
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rb != NULL);
 
+   rbi = rb->id;
+   assert(rbi != NULL);
+   assert(rbi->sample != 0);
+   assert(rbi->parent == rb);
+
+   rbd = rbi->sample;
    switch(param)
    {
    case RB_NO_TRACKS:
@@ -1170,16 +1209,21 @@ _aaxRingBufferGetParami(const _aaxRingBufferData *rbi, enum _aaxRingBufferParam 
 }
 
 int
-_aaxRingBufferSetFormat(_aaxRingBufferData *rbi, _aaxCodec **codecs, enum aaxFormat format)
+_aaxRingBufferSetFormat(_aaxRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat format)
 {
    _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
    int rv = AAX_TRUE;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   assert(rb != NULL);
+
+   rbi = rb->id;
    assert(rbi != 0);
+   assert(rbi->sample != 0);
    assert(format < AAX_FORMAT_MAX);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
    rbd = rbi->sample;
    if (rbd->track == NULL)
@@ -1206,9 +1250,9 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, enum aaxWaveformType type, flo
    int rv = AAX_FALSE;
    void *data;
 
-   bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
-   tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+   tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
    data = rb->id->sample->track;
    switch (type)
@@ -1247,9 +1291,9 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
    int rv = AAX_FALSE;
    void *data;
 
-   bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
-   tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+   tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
    data = rb->id->sample->track;
    switch (type)
@@ -1286,11 +1330,11 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
    unsigned char bps;
    int32_t *data;
 
-   bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
-   tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
+   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+   tracks = rb->get_parami(rb, RB_NO_TRACKS);
    if (!no_samples)
    {
-      no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       offs = 0;
    }
 
@@ -1309,8 +1353,8 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
    unsigned int dno_samples;
    float g = 1.0f;
 
-   dno_samples =  drb->get_parami(drb->id, RB_NO_SAMPLES);
-   tracks =  drb->get_parami(drb->id, RB_NO_TRACKS);
+   dno_samples =  drb->get_parami(drb, RB_NO_SAMPLES);
+   tracks =  drb->get_parami(drb, RB_NO_TRACKS);
 
    if (lfo && lfo->envelope)
    {

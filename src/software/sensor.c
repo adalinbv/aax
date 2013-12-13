@@ -21,7 +21,7 @@
 #include "ringbuffer.h"
 
 void
-_aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
+_aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                    _aaxRingBuffer2dProps *props2d, int dest_track)
 {
    _intBuffers *hd = (_intBuffers *)devices;
@@ -54,7 +54,7 @@ _aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
          _aaxRingBuffer2dProps *p2d = (_aaxRingBuffer2dProps*)props2d;
          float gain, dt, rr, curr_pos_sec;
          const _intBufferData* sptr_rb;
-         _aaxRingBuffer *src_rb;
+         _aaxRingBuffer *srb;
          _aaxAudioFrame *smixer;
          _sensor_t* sensor;
          _intBuffers *srbs;
@@ -62,7 +62,7 @@ _aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
 
          sensor = _intBufGetDataPtr(dptr_sensor);
          smixer = sensor->mixer;
-         src_rb = smixer->ringbuffer;
+         srb = smixer->ringbuffer;
          dt = 1.0f / smixer->info->refresh_rate;
          srbs = smixer->play_ringbuffers;
          curr_pos_sec = smixer->curr_pos_sec;
@@ -75,7 +75,7 @@ _aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
          gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
-         rv = _aaxSensorCapture(src_rb, be, be_handle, &dt, rr, dest_track,
+         rv = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
                                 curr_pos_sec, gain);
          if (dt == 0.0f)
          {
@@ -89,30 +89,30 @@ _aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
             _aaxRingBuffer *rb = rv;
             int track, tracks;
 
-            tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
+            tracks = rb->get_parami(rb, RB_NO_TRACKS);
             for (track=0; track<tracks; track++)
             {
-               float f = rb->get_paramf(rb->id, RB_AVERAGE_VALUE+track);
-               srb->set_paramf(srb->id, RB_AVERAGE_VALUE+track, f);
+               float f = rb->get_paramf(rb, RB_AVERAGE_VALUE+track);
+               srb->set_paramf(srb, RB_AVERAGE_VALUE+track, f);
 
-               f = rb->get_paramf(rb->id, RB_PEAK_VALUE+track);
-               srb->set_paramf(srb->id, RB_PEAK_VALUE+track, f);
+               f = rb->get_paramf(rb, RB_PEAK_VALUE+track);
+               srb->set_paramf(srb, RB_PEAK_VALUE+track, f);
             }
          }
 
          dptr_sensor = _intBufGetNoLock(device->sensors, _AAX_SENSOR, 0);
-         if (rv != src_rb)
+         if (rv != srb)
          {
             /**
              * Add the new buffer to the buffer queue and pop the
              * first buffer from the queue when needed (below).
              * This way pitch effects (< 1.0) can be processed safely.
              */
-            src_rb->set_paramf(src_rb->id, RB_FREQUENCY, device->info->frequency);
-            src_rb->set_state(src_rb->id, RB_STARTED);
-            src_rb->set_state(src_rb->id, RB_REWINDED);
+            srb->set_paramf(srb, RB_FREQUENCY, device->info->frequency);
+            srb->set_state(srb, RB_STARTED);
+            srb->set_state(srb, RB_REWINDED);
 
-            _intBufAddData(srbs, _AAX_RINGBUFFER, src_rb);
+            _intBufAddData(srbs, _AAX_RINGBUFFER, srb);
             smixer->ringbuffer = rv;
          }
          smixer->curr_pos_sec += dt;
@@ -139,7 +139,7 @@ _aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }
-               rv = be->mix2d(be_handle, dest_rb, ssr_rb,
+               rv = be->mix2d(be_handle, drb, ssr_rb,
                               smixer->props2d, props2d, 0, 0);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
@@ -179,27 +179,27 @@ _aaxSensorsProcess(_aaxRingBuffer *dest_rb, const _intBuffers *devices,
 }
 
 void*
-_aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
+_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                   void *be_handle, float *delay, float agc_rr, int dest_track,
                   float pos_sec, float gain)
 {
-   void *rv = dest_rb;
+   void *rv = drb;
    int32_t **scratch;
 
    /*
-    * dest_rb is thread specific and does not need a lock
+    * drb is thread specific and does not need a lock
     * Note:
     *  - The ringbuffer is singed 24-bit PCM, stereo or mono
     *  - capture functions should return the data in signed 24-bit
     */
-   assert(dest_rb->id->sample);
+   assert(drb->id->sample);
    assert(delay);
 
-   scratch = (int32_t**)dest_rb->get_scratch(dest_rb->id);
+   scratch = (int32_t**)drb->get_scratch(drb->id);
    if (scratch)
    {
-      unsigned int bps = dest_rb->get_parami(dest_rb->id, RB_BYTES_SAMPLE);
-      unsigned int ds = dest_rb->get_parami(dest_rb->id, RB_DDE_SAMPLES);
+      unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
+      unsigned int ds = drb->get_parami(drb, RB_DDE_SAMPLES);
       float dt = GMATH_E1 * *delay;
       size_t frames, nframes;
       void **sbuf;
@@ -208,11 +208,11 @@ _aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
       if (agc_rr > 0.0f)
       {
          agc_rr = _MINMAX(dt/agc_rr, 0.0f, 1.0f);
-         gain *= -dest_rb->get_paramf(dest_rb->id, RB_AGC_VALUE);
+         gain *= -drb->get_paramf(drb, RB_AGC_VALUE);
       }
 
-      sbuf = (void**)dest_rb->get_dataptr_noninterleaved(dest_rb->id);
-      nframes = frames = dest_rb->get_parami(dest_rb->id, RB_NO_SAMPLES);
+      sbuf = (void**)drb->get_dataptr_noninterleaved(drb->id);
+      nframes = frames = drb->get_parami(drb, RB_NO_SAMPLES);
       res = be->capture(be_handle, sbuf, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       if (res && nframes)
@@ -223,7 +223,7 @@ _aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
          _aaxRingBuffer *nrb;
          double sum;
 
-         nrb = dest_rb->duplicate(dest_rb, AAX_FALSE, AAX_FALSE);
+         nrb = drb->duplicate(drb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
          ntptr = (int32_t **)nrb->get_dataptr_noninterleaved(nrb->id);
@@ -231,7 +231,7 @@ _aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
 
          rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);		// 300 ms RMS average
          maxrms = maxpeak = 0;
-         tracks = dest_rb->get_parami(dest_rb->id, RB_NO_TRACKS);
+         tracks = drb->get_parami(drb, RB_NO_TRACKS);
          for (track=0; track<tracks; track++)
          {
             int32_t *optr = otptr[track];
@@ -304,13 +304,13 @@ _aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
             if (maxrms < rms) maxrms = rms;
             if (maxpeak < peak) maxpeak = peak;
 
-            avg = dest_rb->get_paramf(dest_rb->id, RB_AVERAGE_VALUE+track);
+            avg = drb->get_paramf(drb, RB_AVERAGE_VALUE+track);
             avg = (rms_rr*avg + (1.0f-rms_rr)*rms);
-            nrb->set_paramf(nrb->id, RB_AVERAGE_VALUE+track, avg);
-            nrb->set_paramf(nrb->id, RB_PEAK_VALUE+track, peak);
+            nrb->set_paramf(nrb, RB_AVERAGE_VALUE+track, avg);
+            nrb->set_paramf(nrb, RB_PEAK_VALUE+track, peak);
          }
-         nrb->set_paramf(nrb->id, RB_AVERAGE_VALUE_MAX, maxrms);
-         nrb->set_paramf(nrb->id, RB_PEAK_VALUE_MAX, maxpeak);
+         nrb->set_paramf(nrb, RB_AVERAGE_VALUE_MAX, maxrms);
+         nrb->set_paramf(nrb, RB_PEAK_VALUE_MAX, maxpeak);
 
          /** Automatic Gain Control */
          max = 0.0f;
@@ -318,18 +318,18 @@ _aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
             max = _MIN(0.707f*8388607.0f/maxrms, 128.0f);
          }
 
-         agc = dest_rb->get_paramf(dest_rb->id, RB_AGC_VALUE);
+         agc = drb->get_paramf(drb, RB_AGC_VALUE);
          if (max < agc) {
             agc = agc_rr*agc + (1.0f-agc_rr)*max;
          } else {
             agc =  (1.0f-agc_rr)*agc + (agc_rr)*max;
          }
-         nrb->set_paramf(dest_rb->id, RB_AGC_VALUE, _MINMAX(agc, 0.01f, 9.5f));
+         nrb->set_paramf(drb, RB_AGC_VALUE, _MINMAX(agc, 0.01f, 9.5f));
 
          rv = nrb;
       }
       else {
-         dest_rb->set_state(dest_rb->id, RB_CLEARED);
+         drb->set_state(drb, RB_CLEARED);
       }
       if (res <= 0) *delay = 0.0f;
    }
@@ -342,7 +342,7 @@ _aaxSensorCapture(_aaxRingBuffer *dest_rb, const _aaxDriverBackend* be,
 unsigned int
 _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 {
-   _aaxRingBuffer *dest_rb = (_aaxRingBuffer *)dest;
+   _aaxRingBuffer *drb = (_aaxRingBuffer *)dest;
    unsigned int i, num = 0;
 
    if (hs)
@@ -378,27 +378,27 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                if (nbuf)
                {
                   _intBufferData *buf;
-                  _aaxRingBuffer *src_rb;
+                  _aaxRingBuffer *srb;
                   unsigned int rv = 0;
 
                   buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
-                  src_rb = _intBufGetDataPtr(buf);
+                  srb = _intBufGetDataPtr(buf);
                   do
                   {
-                     rv = be->mix2d(be_handle, dest_rb, src_rb, smixer->props2d,
-                                               NULL, 0, 0);
+                     rv = be->mix2d(be_handle, drb, srb,
+                                    smixer->props2d, NULL, 0, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
                      {
                         buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
-                        _aaxRingBufferDestroy(src_rb);
+                        _aaxRingBufferDestroy(srb);
                         _intBufDestroyDataNoLock(buf);
 
                         buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
                         if (buf)
                         {
-                           src_rb = _intBufGetDataPtr(buf);
+                           srb = _intBufGetDataPtr(buf);
                            /* since rv == AAX_TRUE this will be unlocked 
                               after be->mix2d */
                         }
