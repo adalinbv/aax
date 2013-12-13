@@ -688,23 +688,21 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
-   _aaxRingBufferSample *rbd;
    const int32_t **sbuf;
    int16_t *data;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(rb);
-   assert(rb->sample);
+   assert(rb->id->sample);
    assert(id != 0);
 
    if (handle->mode == 0)
       return 0;
 
-   rbd = rb->sample;
-   offs = _aaxRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
-   no_tracks = _aaxRingBufferGetParami(rb, RB_NO_TRACKS);
+   offs = rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
+   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES) - offs;
+   no_tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
 
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->scratch == 0)
@@ -719,7 +717,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    data = (int16_t*)handle->data;
    assert(outbuf_size <= handle->buf_len);
 
-   sbuf = (const int32_t**)rbd->track;
+   sbuf = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
 // Software Volume, need to convert to Hardware Volume for gain < 1.0f
    if (gain < 0.99f)
    {

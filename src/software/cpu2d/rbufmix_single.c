@@ -35,11 +35,11 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "cpu2d/arch_simd.h"
-#include "ringbuffer.h"
+#include "arch_simd.h"
+#include "software/ringbuffer.h"
 
 typedef void
-_aaxRingBufferMixFn(_aaxRingBuffer*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+_aaxRingBufferMixFn(_aaxRingBufferData*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
 
 
 /* Forward declartations */
@@ -82,7 +82,7 @@ static _aaxRingBufferMixFn _aaxRingBufferMixMono16HRTF;
  * @param nbuf number of buffers in the source queue (>1 means streaming)
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *dest, _aaxRingBuffer *src, enum aaxRenderMode mode, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMono16(_aaxRingBufferData *dest, _aaxRingBufferData *src, enum aaxRenderMode mode, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
 {
    unsigned int offs, dno_samples;
    _aaxRingBufferLFOInfo *lfo;
@@ -252,7 +252,7 @@ _aaxRingBufferPitchShiftFn *_aaxRingBufferDopplerFn[] =
 };
 
 static void
-_aaxRingBufferMixMono16Stereo(_aaxRingBuffer *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBufferData *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
@@ -294,7 +294,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBuffer *dest, const int32_ptrptr sptr, _aa
 }
 
 static void
-_aaxRingBufferMixMono16Surround(_aaxRingBuffer *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBufferData *dest, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
@@ -359,7 +359,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBuffer *dest, const int32_ptrptr sptr, _
 }
 
 static void
-_aaxRingBufferMixMono16Spatial(_aaxRingBuffer *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBufferData *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;
@@ -393,7 +393,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBuffer *dest, int32_t **sptr, _aaxRingBuf
 #define IDT_UD_OFFSET	p2d->head[3]
 
 static void
-_aaxRingBufferMixMono16HRTF(_aaxRingBuffer *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferData *dest, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferSample *rbd;
    unsigned int t;

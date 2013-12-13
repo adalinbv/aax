@@ -542,7 +542,6 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
-   _aaxRingBufferSample *rbd;
    const int32_t** sbuf;
    audio_buf_info info;
    audio_errinfo err;
@@ -550,7 +549,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    int res;
 
    assert(rb);
-   assert(rb->sample);
+   assert(rb->id->sample);
    assert(id != 0);
 
    if (pioctl (handle->fd, SNDCTL_DSP_GETERROR, &err) >= 0)
@@ -572,15 +571,14 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    if (handle->mode == 0)
       return 0;
 
-   rbd = rb->sample;
-   sbuf = (const int32_t**)rbd->track;
-   offs = _aaxRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_tracks = _aaxRingBufferGetParami(rb, RB_NO_TRACKS);
-   no_samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
+   offs = rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
+   no_tracks = rb->get_parami(rb->id, RB_NO_TRACKS);
+   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES) - offs;
 
+   sbuf = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
    _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
-   outbuf_size = no_tracks * no_samples*sizeof(int16_t);
+   outbuf_size = no_tracks *no_samples*sizeof(int16_t);
    if (handle->ptr == 0)
    {
       char *p = 0;

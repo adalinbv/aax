@@ -66,6 +66,7 @@ enum _aaxRingBufferParam
    RB_VOLUME = 0,
    RB_VOLUME_MIN,
    RB_VOLUME_MAX,
+   RB_AGC_VALUE,
    RB_FREQUENCY,
    RB_DURATION_SEC,
    RB_OFFSET_SEC,
@@ -78,7 +79,14 @@ enum _aaxRingBufferParam
    RB_TRACKSIZE,
    RB_BYTES_SAMPLE,
    RB_OFFSET_SAMPLES,
-   RB_IS_PLAYING
+   RB_NO_SAMPLES_AVAIL,
+   RB_DDE_SAMPLES,
+   RB_IS_PLAYING,
+
+   RB_PEAK_VALUE = 0x1000,
+   RB_PEAK_VALUE_MAX = RB_PEAK_VALUE+_AAX_MAX_SPEAKERS,
+   RB_AVERAGE_VALUE,
+   RB_AVERAGE_VALUE_MAX = RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS
 };
 
 enum _aaxRingBufferState
@@ -141,9 +149,11 @@ typedef struct		/* playback related information about the sample*/
     char stopped;
     char streaming;
 
-} _aaxRingBufferData;
+#ifndef NDEBUG
+    void *parent;
+#endif
 
-typedef _aaxRingBufferData	_aaxRingBuffer;
+} _aaxRingBufferData;
 
 typedef ALIGN16 struct
 {
@@ -179,6 +189,8 @@ typedef ALIGN16 struct
 
 } _aaxRingBuffer2dProps ALIGN16C;
 
+/*forwrad declaration */
+typedef struct _aaxRingBuffer_t _aaxRingBuffer;
 
 /**
  * Initialize a new sound buffer that holds no data.
@@ -189,20 +201,17 @@ typedef ALIGN16 struct
  *
  * returns the new ringbuffer or NULL if an error occured.
  */
-typedef _aaxRingBuffer*
-_aaxRingBufferCreateFn(float);
+struct _aaxRingBuffer_t *
+_aaxRingBufferCreate(float);
 
-_aaxRingBufferCreateFn _aaxRingBufferCreate;
 
 /**
  * Remove the ringbuffer and all it's tracks from memory.
  *
  * @param rb the ringbuffer to delete
  */
-typedef void
-_aaxRingBufferDestroyFn(void*);
-
-_aaxRingBufferDestroyFn _aaxRingBufferDestroy;
+void
+_aaxRingBufferDestroy(void*);
 
 
 /**
@@ -214,7 +223,6 @@ _aaxRingBufferDestroyFn _aaxRingBufferDestroy;
 typedef void
 _aaxRingBufferInitFn(_aaxRingBufferData*, char);
 
-_aaxRingBufferInitFn _aaxRingBufferInit;
 
 /**
  * Reference another RingBuffer, possibly sharing it's sample data.
@@ -226,7 +234,6 @@ _aaxRingBufferInitFn _aaxRingBufferInit;
 typedef _aaxRingBuffer*
 _aaxRingBufferReferenceFn(_aaxRingBuffer*);
 
-_aaxRingBufferReferenceFn _aaxRingBufferReference;
 
 /**
  * Duplicate a RingBuffer based on another ringbuffer.
@@ -240,21 +247,6 @@ _aaxRingBufferReferenceFn _aaxRingBufferReference;
 typedef _aaxRingBuffer*
 _aaxRingBufferDuplicateFn(_aaxRingBuffer*, char, char);
 
-_aaxRingBufferDuplicateFn _aaxRingBufferDuplicate;
-
-/**
- * Fill the buffer with sound data.
- *
- * @param rb the ringbuffer which will hold the sound sample
- * @param track array of pointers to the separate sound tracks
- *              the number of tracks is defined within rb
- * @param blocksize Number of samples per block for each channel.
- * @param looping boolean value defining wether this sound should loop
- */
-typedef void
-_aaxRingBufferFillNonInterleavedFn(_aaxRingBufferData*, const void*, unsigned, char);
-
-_aaxRingBufferFillNonInterleavedFn _aaxRingBufferFillNonInterleaved;
 
 /**
  * Fill the buffer with sound data.
@@ -268,7 +260,6 @@ _aaxRingBufferFillNonInterleavedFn _aaxRingBufferFillNonInterleaved;
 typedef void
 _aaxRingBufferFillInterleavedFn(_aaxRingBufferData*, const void*, unsigned, char);
 
-_aaxRingBufferFillInterleavedFn _aaxRingBufferFillInterleaved;
 
 /**
  * Get the interleaved sound data.
@@ -280,7 +271,6 @@ _aaxRingBufferFillInterleavedFn _aaxRingBufferFillInterleaved;
 typedef void
 _aaxRingBufferGetDataInterleavedFn(_aaxRingBufferData*, void*, unsigned int, int, float);
 
-_aaxRingBufferGetDataInterleavedFn _aaxRingBufferGetDataInterleaved;
 
 /**
  * Get the interleaved sound data.
@@ -290,11 +280,34 @@ _aaxRingBufferGetDataInterleavedFn _aaxRingBufferGetDataInterleaved;
  *
  * returns a memory block containing the interleaved tracks.
  */
-
 typedef void*
 _aaxRingBufferGetDataInterleavedMallocFn(_aaxRingBufferData*, int, float);
 
-_aaxRingBufferGetDataInterleavedMallocFn _aaxRingBufferGetDataInterleavedMalloc;
+
+/**
+ * Get the pointer to the interleaved sound data.
+ *
+ * @param rb the ringbuffer which will hold the sound sample 
+ *
+ * returns a pointer to a memory block containing the interleaved tracks.
+ */
+
+typedef const void**
+_aaxRingBufferGetDataInterleavedPtrFn(_aaxRingBufferData*);
+
+
+/**
+ * Fill the buffer with sound data.
+ *
+ * @param rb the ringbuffer which will hold the sound sample
+ * @param track array of pointers to the separate sound tracks
+ *              the number of tracks is defined within rb
+ * @param blocksize Number of samples per block for each channel.
+ * @param looping boolean value defining wether this sound should loop
+ */
+typedef void
+_aaxRingBufferFillNonInterleavedFn(_aaxRingBufferData*, const void*, unsigned, char);
+
 
 /**
  * Get the non-interleaved sound data.
@@ -306,7 +319,6 @@ _aaxRingBufferGetDataInterleavedMallocFn _aaxRingBufferGetDataInterleavedMalloc;
 typedef void
 _aaxRingBufferGetDataNonInterleavedFn(_aaxRingBufferData*, void*, unsigned int, int, float);
 
-_aaxRingBufferGetDataNonInterleavedFn _aaxRingBufferGetDataNonInterleaved;
 
 /**
  * Get the interleaved sound data.
@@ -320,7 +332,17 @@ _aaxRingBufferGetDataNonInterleavedFn _aaxRingBufferGetDataNonInterleaved;
 typedef void*
 _aaxRingBufferGetDataNonInterleavedMallocFn(_aaxRingBufferData*, int, float);
 
-_aaxRingBufferGetDataNonInterleavedMallocFn _aaxRingBufferGetDataNonInterleavedMalloc;
+
+/**
+ * Get the pointer to the scratch buffer.
+ *
+ * @param rb the ringbuffer for the scratchbuffer.
+ *
+ * returns a pointer to a memory block containing scratch memory area.
+ */
+
+typedef void**
+_aaxRingBufferGetScratchBufferPtrFn(_aaxRingBufferData*);
 
 /**
  * Copy the delay effetcs buffers from one ringbuffer to the other.
@@ -331,7 +353,6 @@ _aaxRingBufferGetDataNonInterleavedMallocFn _aaxRingBufferGetDataNonInterleavedM
 typedef void
 _aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBufferData*, const _aaxRingBufferData*);
 
-_aaxRingBufferCopyDelyEffectsDataFn _aaxRingBufferCopyDelyEffectsData;
 
 /**
  * M:N channel ringbuffer mixer.
@@ -351,8 +372,6 @@ _aaxRingBufferCopyDelyEffectsDataFn _aaxRingBufferCopyDelyEffectsData;
  */
 typedef int
 _aaxRingBufferMixMNFn(_aaxRingBufferData*, _aaxRingBufferData*, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned int);
-
-_aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
 
 
 /**
@@ -376,17 +395,12 @@ _aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
 typedef int
 _aaxRingBufferMix1NFn(_aaxRingBufferData*, _aaxRingBufferData*, enum aaxRenderMode, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned char, unsigned int);
 
-_aaxRingBufferMix1NFn _aaxRingBufferMixMono16;
-
 
 /**
  *
  */
 typedef void _aaxRingBufferSetStateFn(_aaxRingBufferData*, enum _aaxRingBufferState);
 typedef int _aaxRingBufferGetStateFn(_aaxRingBufferData*, enum _aaxRingBufferState);
-
-_aaxRingBufferSetStateFn _aaxRingBufferSetState;
-_aaxRingBufferGetStateFn _aaxRingBufferGetState;
 
 
 /**
@@ -397,30 +411,39 @@ typedef int _aaxRingBufferSetParamiFn(_aaxRingBufferData*, enum _aaxRingBufferPa
 typedef float _aaxRingBufferGetParamfFn(const _aaxRingBufferData*, enum _aaxRingBufferParam);
 typedef unsigned int _aaxRingBufferGetParamiFn(const _aaxRingBufferData*, enum _aaxRingBufferParam);
 
-_aaxRingBufferSetParamfFn _aaxRingBufferSetParamf;
-_aaxRingBufferSetParamiFn _aaxRingBufferSetParami;
-_aaxRingBufferGetParamfFn _aaxRingBufferGetParamf;
-_aaxRingBufferGetParamiFn _aaxRingBufferGetParami;
 
 /**
  *
  */
 typedef int _aaxRingBufferSetFormatFn(_aaxRingBufferData*, _aaxCodec **, enum aaxFormat);
 
-_aaxRingBufferSetFormatFn _aaxRingBufferSetFormat;
-
+#if 0
 #define _aaxRingBufferCopyParamf(dbr, srb, param) \
     _aaxRingBufferSetParamf(drb, param, _aaxRingBufferGetParamf(srb, param))
 #define _aaxRingBufferCopyParami(dbr, srb, param) \
     _aaxRingBufferSetParami(drb, param, _aaxRingBufferGetParami(srb, param))
+#endif
+
+/*
+ *
+ */
+typedef int
+_aaxRingBufferDataClearFn(_aaxRingBuffer*);
+typedef int
+_aaxRingBufferDataMixDataFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBufferLFOInfo*);
+typedef int
+_aaxRingBufferDataMultiplyFn(_aaxRingBuffer*, size_t, size_t, float);
+typedef int
+_aaxRingBufferDataMixWaveformFn(_aaxRingBuffer*, enum aaxWaveformType, float, float, float);
+typedef int
+_aaxRingBufferDataMixNoiseFn(_aaxRingBuffer*, enum aaxWaveformType, float, float, float, char);
 
 
-typedef struct
+
+
+typedef struct _aaxRingBuffer_t
 {
    _aaxRingBufferData *id;
-
-   _aaxRingBufferCreateFn *create;
-   _aaxRingBufferDestroyFn *destroy;
 
    _aaxRingBufferInitFn *init;
    _aaxRingBufferReferenceFn *reference;
@@ -439,17 +462,26 @@ typedef struct
    _aaxRingBufferMixMNFn *mix_multi;
    _aaxRingBufferMix1NFn *mix_mono; 
 
-   _aaxRingBufferFillNonInterleavedFn *set_noninteleaved;
-   _aaxRingBufferGetDataNonInterleavedFn *get_noninteleaved;
-   _aaxRingBufferGetDataNonInterleavedMallocFn *get_noninteleaved_malloc;
+   _aaxRingBufferFillNonInterleavedFn *set_data_noninterleaved;
+   _aaxRingBufferGetDataNonInterleavedFn *get_data_noninterleaved;
+   _aaxRingBufferGetDataNonInterleavedMallocFn *get_data_noninterleaved_malloc;
+   _aaxRingBufferGetDataInterleavedPtrFn *get_dataptr_noninterleaved;
+   _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
 
-   _aaxRingBufferFillInterleavedFn *set_interleaved;
-   _aaxRingBufferGetDataInterleavedFn *get_interleaved;
-   _aaxRingBufferGetDataInterleavedMallocFn *get_inteleaved_malloc;  
+   _aaxRingBufferFillInterleavedFn *set_data_interleaved;
+   _aaxRingBufferGetDataInterleavedFn *get_data_interleaved;
+   _aaxRingBufferGetDataInterleavedMallocFn *get_data_interleaved_malloc;  
+
+   /* data mangling */
+   _aaxRingBufferDataClearFn *data_clear;
+   _aaxRingBufferDataMixDataFn *data_mix;
+   _aaxRingBufferDataMultiplyFn *data_multiply;
+   _aaxRingBufferDataMixWaveformFn *data_mix_waveform;
+   _aaxRingBufferDataMixNoiseFn *data_mix_noise;
 
    _aaxRingBufferCopyDelyEffectsDataFn *copy_effectsdata;
 
-} _aaxRingBufferXXX;
+} _aaxRingBuffer;
 
 /* --------------------------------------------------------------------------*/
 
@@ -470,6 +502,8 @@ void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 
 
+_aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16;
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 
 #if defined(__cplusplus)

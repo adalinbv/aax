@@ -24,10 +24,10 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "cpu2d/arch_simd.h"
-#include "ringbuffer.h"
-#include "arch.h"
-#include "audio.h"
+#include "arch_simd.h"
+#include "software/ringbuffer.h"
+#include "software/arch.h"
+#include "software/audio.h"
 
 
 /*
@@ -46,8 +46,9 @@ _aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
  * room prior to the playback position for delay effects (a maximum of
  * DELAY_EFFECTS_TIME in samples for the mixer frequency)
  */
+
 int32_t **
-_aaxProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxProcessMixer(_aaxRingBufferData *drb, _aaxRingBufferData *srb, _aaxRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;

@@ -519,19 +519,17 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    unsigned int bps, no_samples, offs, bufsize;
    unsigned int file_bps, file_tracks;
-   _aaxRingBufferSample *rbd;
    const int32_t** sbuf;
    char *scratch, *data;
    int res;
 
    assert(rb);
-   assert(rb->sample);
+   assert(rb->id->sample);
    assert(id != 0);
 
-   rbd = rb->sample;
-   offs = _aaxRingBufferGetParami(rb, RB_OFFSET_SAMPLES);
-   no_samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES) - offs;
-   bps = _aaxRingBufferGetParami(rb, RB_BYTES_SAMPLE);
+   offs = rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
+   no_samples = rb->get_parami(rb->id, RB_NO_SAMPLES) - offs;
+   bps = rb->get_parami(rb->id, RB_BYTES_SAMPLE);
 
    file_bps = handle->fmt->get_param(handle->fmt->id, __F_BITS)/8;
    file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
@@ -553,15 +551,14 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    scratch = data + bufsize;
    assert(bufsize <= handle->buf_len);
 
+   sbuf = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
    if (fabs(gain - 1.0f) > 0.05f)
    {
       int t;
       for (t=0; t<file_tracks; t++) {
-         _batch_mul_value(rbd->track[t]+offs, bps, no_samples, gain);
+         _batch_mul_value((void**)sbuf[t]+offs, bps, no_samples, gain);
       }
    }
-
-   sbuf = (const int32_t**)rbd->track;
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
                                   offs, file_tracks, no_samples,
                                   scratch, handle->buf_len);

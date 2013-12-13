@@ -151,38 +151,41 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    if (handle)
    {
       _buffer_t* buffer = get_buffer(buf);
-      if (buffer && _aaxRingBufferGetState(buffer->ringbuffer, RB_IS_VALID))
+      if (buffer)
       {
-         const _aaxEmitter *src = handle->source;
-         if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
-            handle->track = 0;
-         }
-
-         if (handle->track < _aaxRingBufferGetParami(buffer->ringbuffer,
-                                                     RB_NO_TRACKS))
+         _aaxRingBuffer *rb = buffer->ringbuffer;
+         if (rb->get_state(rb->id, RB_IS_VALID))
          {
-            _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
-            if (embuf)
+            const _aaxEmitter *src = handle->source;
+            if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
+               handle->track = 0;
+            }
+
+            if (handle->track < rb->get_parami(rb->id, RB_NO_TRACKS))
             {
-               embuf->ringbuffer = _aaxRingBufferReference(buffer->ringbuffer);
-               embuf->id = EMBUFFER_ID;
-               embuf->buffer = buffer;
-               buffer->ref_counter++;
+               _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
+               if (embuf)
+               {
+                  embuf->ringbuffer = rb->reference(rb);
+                  embuf->id = EMBUFFER_ID;
+                  embuf->buffer = buffer;
+                  buffer->ref_counter++;
 
-               _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
+                  _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
 
-               rv = AAX_TRUE;
+                  rv = AAX_TRUE;
+               }
+               else {
+                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+               }
             }
             else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+               _aaxErrorSet(AAX_INVALID_STATE);
             }
          }
          else {
             _aaxErrorSet(AAX_INVALID_STATE);
          }
-      }
-      else if (buffer) {
-         _aaxErrorSet(AAX_INVALID_STATE);
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -397,10 +400,11 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
+            _embuffer_t *embuf = _intBufGetDataPtr(dptr);
+            _aaxRingBuffer *rb = embuf->ringbuffer;
             _aaxRingBufferEnvelopeInfo* env;
 
-            _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _aaxRingBufferSetState(embuf->ringbuffer, RB_REWINDED);
+            rb->set_state(rb->id, RB_REWINDED);
             src->buffer_pos = 0;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
@@ -735,7 +739,8 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _aaxRingBufferSetParami(embuf->ringbuffer, RB_LOOPING, mode);
+            _aaxRingBuffer *rb = embuf->ringbuffer;
+            rb->set_parami(rb->id, RB_LOOPING, mode);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
@@ -748,7 +753,8 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            if (mode < _aaxRingBufferGetParami(embuf->buffer->ringbuffer, RB_NO_TRACKS))
+            _aaxRingBuffer *rb = embuf->buffer->ringbuffer;
+            if (mode < rb->get_parami(rb->id, RB_NO_TRACKS))
             {
                handle->track = mode;
                rv = AAX_TRUE;
@@ -873,10 +879,10 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
          switch (type)
          {
          case AAX_BYTES:   
-            offs /= _aaxRingBufferGetParami(rb, RB_BYTES_SAMPLE);
+            offs /= rb->get_parami(rb->id, RB_BYTES_SAMPLE);
          case AAX_FRAMES:
          case AAX_SAMPLES:
-            samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES);
+            samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
             while (offs > samples)
             {
                pos++;
@@ -888,18 +894,18 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               samples = _aaxRingBufferGetParami(rb, RB_NO_SAMPLES);
+               samples = rb->get_parami(rb->id, RB_NO_SAMPLES);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               _aaxRingBufferSetParami(rb, RB_OFFSET_SAMPLES, offs);
+               rb->set_parami(rb->id, RB_OFFSET_SAMPLES, offs);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_MICROSECONDS:
-            duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
+            duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
             while (fpos > duration)
             {
                pos++;
@@ -911,12 +917,12 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
+               duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               _aaxRingBufferSetParamf(rb, RB_OFFSET_SEC, fpos);
+               rb->set_paramf(rb->id, RB_OFFSET_SEC, fpos);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -960,7 +966,7 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
             unsigned int pos = 0;
             float duration;
 
-            duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
+            duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
             while (offs > duration)
             {
                pos++;
@@ -972,12 +978,12 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 
                embuf = _intBufGetDataPtr(dptr);
                rb = embuf->ringbuffer;
-               duration = _aaxRingBufferGetParamf(rb, RB_DURATION_SEC);
+               duration = rb->get_paramf(rb->id, RB_DURATION_SEC);
             }
             if (dptr)
             {
                handle->mixer_pos = pos;
-               _aaxRingBufferSetParamf(rb, RB_OFFSET_SEC, offs);
+               rb->set_paramf(rb->id, RB_OFFSET_SEC, offs);
                rv = AAX_TRUE;
             }
             else {
@@ -1029,7 +1035,8 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            rv = _aaxRingBufferGetParami(embuf->ringbuffer, RB_LOOPING);
+            _aaxRingBuffer *rb = embuf->ringbuffer;
+            rv = rb->get_parami(rb->id, RB_LOOPING);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          break;
@@ -1123,9 +1130,10 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
          case AAX_FRAMES:
          case AAX_SAMPLES:
             _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
+            _aaxRingBuffer *rb = embuf->ringbuffer;
             for (i=0; i<handle->mixer_pos; i++)
             {
-               rv += _aaxRingBufferGetParami(embuf->ringbuffer, RB_NO_SAMPLES);
+               rv += rb->get_parami(rb->id, RB_NO_SAMPLES);
                _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
                dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, i);
@@ -1133,9 +1141,9 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
 
-            rv += _aaxRingBufferGetParami(embuf->ringbuffer, RB_OFFSET_SAMPLES);
+            rv += rb->get_parami(rb->id, RB_OFFSET_SAMPLES);
             if (type == AAX_BYTES) {
-               rv *= _aaxRingBufferGetParami(embuf->ringbuffer, RB_BYTES_SAMPLE);
+               rv *= rb->get_parami(rb->id, RB_BYTES_SAMPLE);
             }
             break;
          case AAX_MICROSECONDS:

@@ -456,20 +456,20 @@ _aaxNoneDriverProcessFrame(void* config)
                   float s_offs, s_duration;
                   float d_offs = dt;
 
-                  if (_aaxRingBufferGetParami(src_rb, RB_IS_PLAYING) == 0)
+                  if (src_rb->get_parami(src_rb->id, RB_IS_PLAYING) == 0)
                   {
                      if (streaming) {
-                        _aaxRingBufferSetState(src_rb, RB_STARTED_STREAMING);
+                        src_rb->set_state(src_rb->id, RB_STARTED_STREAMING);
                      } else {
-                        _aaxRingBufferSetState(src_rb, RB_STARTED);
+                        src_rb->set_state(src_rb->id, RB_STARTED);
                      }
                   }
 
-                  s_duration = _aaxRingBufferGetParamf(src_rb, RB_DURATION_SEC);
-                  s_offs = _aaxRingBufferGetParamf(src_rb, RB_OFFSET_SEC);
+                  s_duration = src_rb->get_paramf(src_rb->id, RB_DURATION_SEC);
+                  s_offs = src_rb->get_paramf(src_rb->id, RB_OFFSET_SEC);
                   if ((s_offs+dt) > s_duration)
                   {
-                     if (!_aaxRingBufferGetParami(src_rb, RB_LOOPING))
+                     if (!src_rb->get_parami(src_rb->id, RB_LOOPING))
                      {
                         d_offs = s_duration - s_offs;
                         s_offs = s_duration;
@@ -481,7 +481,7 @@ _aaxNoneDriverProcessFrame(void* config)
                   } else {
                      s_offs += dt;
                   }
-                  _aaxRingBufferSetParamf(src_rb, RB_OFFSET_SEC, s_offs);
+                  src_rb->set_paramf(src_rb->id, RB_OFFSET_SEC, s_offs);
                   d_pos += d_offs;
 
                   src->curr_pos_sec += dt;
@@ -492,7 +492,7 @@ _aaxNoneDriverProcessFrame(void* config)
                    */
                   if (rv)
                   {
-                     _aaxRingBufferSetState(src_rb, RB_STOPPED);
+                     src_rb->get_state(src_rb->id, RB_STOPPED);
                      if (streaming)
                      {
                         /* is there another buffer ready to play? */

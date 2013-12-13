@@ -355,27 +355,27 @@ SET( AEONWAVE_OBJS
      src/stream/mp3ext.c
      src/software/device.c
      src/software/arch.c
-     src/software/cpu2d/arch_cpu.c
-     src/software/cpu2d/arch_neon.c
-     src/software/cpu2d/arch_sse2.c
-     src/software/cpu2d/arch_sse3.c
      src/software/cpu3d/arch_neon.c
      src/software/cpu3d/arch_sse.c
      src/software/cpu3d/arch_sse3.c
      src/software/cpu3d/arch_sse4.c
-     src/software/mixer.c
+     src/software/cpu2d/arch_cpu.c
+     src/software/cpu2d/arch_neon.c
+     src/software/cpu2d/arch_sse2.c
+     src/software/cpu2d/arch_sse3.c
+     src/software/cpu2d/rbuf_mixers.c
+     src/software/cpu2d/rbufmix_multi.c
+     src/software/cpu2d/rbufmix_single.c
+     src/software/cpu2d/ringbuffer.c
+     src/software/cpu2d/mixer.c
      src/software/frame.c
      src/software/sensor.c
      src/software/emitter.c
      src/software/rbuf_codecs.c
      src/software/rbuf_codec_tables.c
      src/software/rbuf_effects.c
-     src/software/rbuf_mixers.c
      src/software/rbuf_mixer_tables.c
-     src/software/rbufmix_multi.c
-     src/software/rbufmix_single.c
      src/software/waveforms.c
-     src/software/ringbuffer.c
    )
 
 #IF(SIZEOF_SIZE_T EQUAL 8)

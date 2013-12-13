@@ -24,8 +24,8 @@
 #include <api.h>
 #include <base/logging.h>
 
-#include "arch.h"
-#include "ringbuffer.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 
 /**
@@ -42,7 +42,7 @@
  * @fp2d mixer 2d properties
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *dest, _aaxRingBuffer *src, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMulti16(_aaxRingBufferData *dest, _aaxRingBufferData *src, _aaxRingBuffer2dProps *ep2d, _aaxRingBuffer2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
 {
    unsigned int offs, dno_samples, track;
    _aaxRingBufferLFOInfo *lfo;
