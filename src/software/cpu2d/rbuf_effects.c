@@ -20,8 +20,8 @@
 
 #include <api.h>
 
-#include "arch.h"
-#include "ringbuffer.h"
+#include "software/arch.h"
+#include "software/ringbuffer.h"
 
 
 static void szxform(float *, float *, float *, float *, float *, float *,

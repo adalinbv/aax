@@ -23,10 +23,10 @@
 #include <base/types.h>
 #include <devices.h>
 
-#include "cpu2d/arch_simd.h"
-#include "ringbuffer.h"
-#include "arch.h"
-#include "audio.h"
+#include "software/ringbuffer.h"
+#include "software/arch.h"
+#include "software/audio.h"
+#include "arch_simd.h"
 
 static _aaxCodec _sw_bufcpy_8s;
 static _aaxCodec _sw_bufcpy_16s;

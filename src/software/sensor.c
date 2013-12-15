@@ -139,8 +139,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }
-               rv = be->mix2d(be_handle, drb, ssr_rb,
-                              smixer->props2d, props2d, 0, 0);
+               drb->mix2d(drb->id, ssr_rb->id, smixer->props2d, props2d, 0, 0);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                if (rv) /* always streaming */
@@ -160,7 +159,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                   {
                      ssr_rb = _intBufGetDataPtr(sptr_rb);
                      /* since rv == AAX_TRUE this will be unlocked 
-                        after be->mix2d */
+                        after rb->mix2d */
                   }
                   else rv = 0;
                }
@@ -355,11 +354,6 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
          {
             _handle_t* config = _intBufGetDataPtr(dptr);
             const _intBufferData* dptr_sensor;
-            const _aaxDriverBackend* be;
-            void* be_handle;
-
-            be = config->backend.ptr;
-            be_handle = config->backend.handle;
 
             dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
@@ -385,8 +379,8 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                   srb = _intBufGetDataPtr(buf);
                   do
                   {
-                     rv = be->mix2d(be_handle, drb, srb,
-                                    smixer->props2d, NULL, 0, 0);
+                     rv = drb->mix2d(drb->id, srb->id, smixer->props2d,
+                                     NULL, 0, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */
@@ -400,7 +394,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                         {
                            srb = _intBufGetDataPtr(buf);
                            /* since rv == AAX_TRUE this will be unlocked 
-                              after be->mix2d */
+                              after drb->mix2d */
                         }
                         else rv = 0;
                      }

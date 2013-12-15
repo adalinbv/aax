@@ -1518,8 +1518,8 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->get_paramf = _aaxRingBufferGetParamf;
    rb->get_parami = _aaxRingBufferGetParami;
 
-   rb->mix_multi = _aaxRingBufferMixMulti16;
-   rb->mix_mono = _aaxRingBufferMixMono16;
+   rb->mix2d = _aaxRingBufferMixMulti16;
+   rb->mix3d = _aaxRingBufferMixMono16;
 
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
 

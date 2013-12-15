@@ -42,10 +42,7 @@ static _aaxDriverConnect _aaxNoneDriverConnect;
 static _aaxDriverDisconnect _aaxNoneDriverDisconnect;
 static _aaxDriverSetup _aaxNoneDriverSetup;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
-static _aaxDriver2dMixerCB _aaxNoneDriverStereoMixer;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
-static _aaxDriver2dMixerCB _aaxNoneDriverStereoMixer;
-static _aaxDriver3dMixerCB _aaxNoneDriver3dMixer;
 static _aaxDriverGetName _aaxNoneDriverGetName;
 static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
 static _aaxDriverPrepare _aaxNoneDriverPrepare;
@@ -78,8 +75,6 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    NULL,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxNoneDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxNoneDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxNoneDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxNoneDriverPostProcess,
    (_aaxDriverPrepare *)&_aaxNoneDriverPrepare,		/* effects */
@@ -133,8 +128,6 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    NULL,
    (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
@@ -186,12 +179,6 @@ _aaxNoneDriverPlayback(const void *id, void *s, float pitch, float volume)
    return 0;
 }
 
-static int
-_aaxNoneDriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
-{
-   return AAX_FALSE;
-}
-
 static void
 _aaxNoneDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
@@ -205,12 +192,6 @@ _aaxNoneDriverPrepare(const void *id, const void *hid, void *s, const void *l)
 static void
 _aaxNoneDriverPostProcess(const void *id, void *s, const void *l)
 {
-}
-
-static int
-_aaxNoneDriverStereoMixer(const void *id, void *d, void *s, void *p, void *m, unsigned char ctr, unsigned int nbuf)
-{
-   return AAX_FALSE;
 }
 
 static char *
@@ -333,19 +314,6 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
    return AAX_TRUE;
 }
 
-int
-_aaxSoftwareDriver3dMixer(const void *id, void *drbi, void *srbi, void *ep2d, void *fp2d, int ch, unsigned char ctr, unsigned int nbuf, enum aaxRenderMode mode)
-{
-   int ret;
-
-   assert(srbi);
-   assert(drbi);
-
-   ret = _aaxRingBufferMixMono16(drbi, srbi, mode, ep2d, fp2d, ch, ctr, nbuf);
-
-   return ret;
-}
-
 void
 _aaxSoftwareDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
 {
@@ -355,19 +323,6 @@ _aaxSoftwareDriver3dPrepare(void* src, const void *info, float ssv, float sdf, v
    assert(src);
 
    _aaxEmitterPrepare3d(src, info, ssv, sdf, fp2dpos, fp3d);
-}
-
-int
-_aaxSoftwareDriverStereoMixer(const void *id, void *drbi, void *srbi, void *ep2d, void *fp2d, unsigned char ctr, unsigned int nbuf)
-{
-   int ret;
-
-   assert(srbi);
-   assert(drbi);
-
-   ret = _aaxRingBufferMixMulti16(drbi, srbi, ep2d, fp2d, ctr, nbuf);
-
-   return ret;
 }
 
 static float

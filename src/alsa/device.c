@@ -93,8 +93,6 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
    (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,

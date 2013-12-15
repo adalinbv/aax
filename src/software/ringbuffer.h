@@ -24,7 +24,7 @@ extern "C" {
 #include <base/geometry.h>
 #include <base/types.h>
 
-#include "rbuf_effects.h"
+#include "cpu2d/rbuf_effects.h"
 #include "devices.h"
 #include "driver.h"
 
@@ -452,8 +452,8 @@ typedef struct _aaxRingBuffer_t
 
    _aaxRingBufferSetFormatFn *set_format;
 
-   _aaxRingBufferMixMNFn *mix_multi;
-   _aaxRingBufferMix1NFn *mix_mono; 
+   _aaxRingBufferMixMNFn *mix2d;
+   _aaxRingBufferMix1NFn *mix3d;
 
    _aaxRingBufferFillNonInterleavedFn *set_data_noninterleaved;
    _aaxRingBufferGetDataNonInterleavedFn *get_data_noninterleaved;

@@ -104,8 +104,6 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverCaptureCallback *)&_aaxOSSDriverCapture,
    (_aaxDriverCallback *)&_aaxOSSDriverPlayback,
 
-   (_aaxDriver2dMixerCB *)&_aaxSoftwareDriverStereoMixer,
-   (_aaxDriver3dMixerCB *)&_aaxSoftwareDriver3dMixer,
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
