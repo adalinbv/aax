@@ -442,6 +442,8 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferReferenceFn *reference;
    _aaxRingBufferDuplicateFn *duplicate;
 
+   _aaxRingBufferSetFormatFn *set_format;
+
    _aaxRingBufferSetStateFn *set_state;
    _aaxRingBufferGetStateFn *get_state;
 
@@ -450,20 +452,16 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferGetParamfFn *get_paramf;
    _aaxRingBufferGetParamiFn *get_parami;
 
-   _aaxRingBufferSetFormatFn *set_format;
-
    _aaxRingBufferMixMNFn *mix2d;
    _aaxRingBufferMix1NFn *mix3d;
 
    _aaxRingBufferFillNonInterleavedFn *set_data_noninterleaved;
-   _aaxRingBufferGetDataNonInterleavedFn *get_data_noninterleaved;
-   _aaxRingBufferGetDataNonInterleavedMallocFn *get_data_noninterleaved_malloc;
    _aaxRingBufferGetDataInterleavedPtrFn *get_dataptr_noninterleaved;
-   _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
 
    _aaxRingBufferFillInterleavedFn *set_data_interleaved;
    _aaxRingBufferGetDataInterleavedFn *get_data_interleaved;
-   _aaxRingBufferGetDataInterleavedMallocFn *get_data_interleaved_malloc;  
+
+   _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
 
    /* data mangling */
    _aaxRingBufferDataClearFn *data_clear;

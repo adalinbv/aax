@@ -606,129 +606,6 @@ _aaxRingBufferGetDataInterleaved(_aaxRingBufferData *rbi, void* data, unsigned i
    }
 }
 
-void*
-_aaxRingBufferGetDataInterleavedMalloc(_aaxRingBufferData *rbi, int tracks, float fact)
-{
-   unsigned int samples;
-   void *data;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rbi != 0);
-   assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
-  
-   samples = (unsigned int)(fact*rbi->sample->no_samples);
-   data = malloc(tracks * samples*rbi->sample->bytes_sample);
-   if (data) {
-      _aaxRingBufferGetDataInterleaved(rbi, data, samples, tracks, fact);
-   }
-
-   return data;
-}
-
-void
-_aaxRingBufferGetDataNonInterleaved(_aaxRingBufferData *rbi, void *data, unsigned int samples, int tracks, float fact)
-{
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rbi != 0);
-   assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
-
-   if (data)
-   {
-      _aaxRingBufferSample *rbd = rbi->sample;
-      unsigned int t, no_tracks = rbd->no_tracks;
-      unsigned int no_samples = rbd->no_samples;
-      unsigned char bps = rbd->bytes_sample;
-      void **ptr, **track = rbd->track;
-      char *p = data;
-
-      assert(samples >= (unsigned int)(fact*no_samples));
-
-      memset(data, 0, no_samples*no_tracks*bps);
-      if (no_tracks > tracks) no_tracks = tracks;
-
-      fact = 1.0f/fact;
-      ptr = track;
-      if (fact != 1.0f)
-      {
-         unsigned int size = samples*bps;
-         char *p;
-
-         if (bps == sizeof(int32_t))
-         {
-            p = (char*)(no_tracks*sizeof(void*));
-            track = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
-            for (t=0; t<no_tracks; t++)
-            {
-               track[t] = p;
-               _aaxProcessResample(track[t], ptr[t], 0, samples, 0, fact);
-               p += size;
-            }
-         }
-         else
-         {
-            unsigned int scratch_size;
-            int32_t **scratch;
-            char *sptr;
-
-            scratch_size = 2*sizeof(int32_t*);
-            sptr = (char*)scratch_size;
-
-            scratch_size += (no_samples+samples)*sizeof(int32_t);
-            scratch = (int32_t**)_aax_malloc(&sptr, scratch_size);
-            scratch[0] = (int32_t*)sptr;
-            scratch[1] = (int32_t*)(sptr + no_samples*sizeof(int32_t));
-
-            p = (char*)(no_tracks*sizeof(void*));
-            track = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
-            for (t=0; t<no_tracks; t++)
-            {
-               track[t] = p;
-               bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples,
-                                     rbi->format);
-               _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
-               bufConvertDataFromPCM24S(track[t], scratch[1], 1, samples,
-                                        rbi->format, 1);
-            }
-            free(scratch);
-         }
-      }
-
-      p = data;
-      for (t=0; t<no_tracks; t++)
-      {
-         _aax_memcpy(p, rbd->track[t], rbd->track_len_bytes);
-         p += rbd->track_len_bytes;
-      }
-
-      if (ptr != track) free(track);
-   }
-}
-
-void*
-_aaxRingBufferGetDataNonInterleavedMalloc(_aaxRingBufferData *rbi, int tracks, float fact)
-{
-   unsigned int samples;
-   void *data;
-
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
-
-   assert(rbi != 0);
-   assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
-
-   samples = (unsigned int)(fact*rbi->sample->no_samples);
-   data = malloc(tracks * samples*rbi->sample->bytes_sample);
-   if (data) {
-      _aaxRingBufferGetDataNonInterleaved(rbi, data, samples, tracks, fact);
-   }
-
-   return data;
-}
-
 const void**
 _aaxRingBufferGetDataInterleavedPtr(_aaxRingBufferData *rbi)
 {
@@ -1524,13 +1401,10 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
 
    rb->set_data_noninterleaved = _aaxRingBufferFillNonInterleaved;
-   rb->get_data_noninterleaved = _aaxRingBufferGetDataNonInterleaved;
-   rb->get_data_noninterleaved_malloc = _aaxRingBufferGetDataNonInterleavedMalloc;
    rb->get_dataptr_noninterleaved = _aaxRingBufferGetDataInterleavedPtr;
 
    rb->set_data_interleaved = _aaxRingBufferFillInterleaved;
    rb->get_data_interleaved = _aaxRingBufferGetDataInterleaved;
-   rb->get_data_interleaved_malloc = _aaxRingBufferGetDataInterleavedMalloc;
 
    rb->data_clear = _aaxRingBufferDataClear;
    rb->data_multiply = _aaxRingBufferDataMultiply;
