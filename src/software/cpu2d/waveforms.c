@@ -24,7 +24,7 @@
 #include <base/gmath.h>
 
 #include "api.h"
-#include "arch.h"
+#include "software/arch.h"
 
 /* -------------------------------------------------------------------------- */
 

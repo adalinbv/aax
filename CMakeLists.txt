@@ -359,7 +359,6 @@ SET( AEONWAVE_OBJS
      src/software/frame.c
      src/software/sensor.c
      src/software/emitter.c
-     src/software/waveforms.c
      src/software/cpu3d/arch_neon.c
      src/software/cpu3d/arch_sse.c
      src/software/cpu3d/arch_sse3.c
@@ -376,6 +375,7 @@ SET( AEONWAVE_OBJS
      src/software/cpu2d/rbuf_mixer_tables.c
      src/software/cpu2d/rbuf_codecs.c
      src/software/cpu2d/rbuf_codec_tables.c
+     src/software/cpu2d/waveforms.c
    )
 
 #IF(SIZEOF_SIZE_T EQUAL 8)

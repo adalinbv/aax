@@ -470,12 +470,14 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDataMixWaveformFn *data_mix_waveform;
    _aaxRingBufferDataMixNoiseFn *data_mix_noise;
 
+   // TODO: Get rid of this, it's used only once in sofwtare/frame.c
    _aaxRingBufferCopyDelyEffectsDataFn *copy_effectsdata;
 
 } _aaxRingBuffer;
 
 /* --------------------------------------------------------------------------*/
 
+/** CODECs */
 typedef struct {
    unsigned char bits;
    enum aaxFormat format;
@@ -487,15 +489,29 @@ extern _aaxCodec* _aaxRingBufferCodecs[];
 extern _aaxCodec* _aaxRingBufferCodecs_w8s[];
 
 void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
+
+
+/** MIXER */
+_aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16;
+
 int32_t**_aaxProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*,  _aaxRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 
+/** BUFFER */
 void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 
+void _bufferMixWhiteNoise(void**, unsigned int, char, int, float, float, unsigned char);
+void _bufferMixPinkNoise(void**, unsigned int, char, int, float, float, float, unsigned char);
+void _bufferMixBrownianNoise(void**, unsigned int, char, int, float, float, float, unsigned char);
+void _bufferMixSineWave(void**, float, char, unsigned int, int, float, float);
+void _bufferMixSquareWave(void**, float, char, unsigned int, int, float, float);
+void _bufferMixTriangleWave(void**, float, char, unsigned int, int, float, float);
+void _bufferMixSawtooth(void**, float, char, unsigned int, int, float, float);
+void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
 
-_aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
-_aaxRingBufferMix1NFn _aaxRingBufferMixMono16;
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
+
 
 #if defined(__cplusplus)
 }  /* extern "C" */

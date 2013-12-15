@@ -234,15 +234,6 @@ _buffer_t* get_buffer(aaxBuffer);
 int free_buffer(_buffer_t*);
 
 
-void _bufferMixWhiteNoise(void**, unsigned int, char, int, float, float, unsigned char);
-void _bufferMixPinkNoise(void**, unsigned int, char, int, float, float, float, unsigned char);
-void _bufferMixBrownianNoise(void**, unsigned int, char, int, float, float, float, unsigned char);
-void _bufferMixSineWave(void**, float, char, unsigned int, int, float, float);
-void _bufferMixSquareWave(void**, float, char, unsigned int, int, float, float);
-void _bufferMixTriangleWave(void**, float, char, unsigned int, int, float, float);
-void _bufferMixSawtooth(void**, float, char, unsigned int, int, float, float);
-void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
-
 #if 1
 int _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, unsigned int, unsigned int, char, enum aaxFormat);
 #else
