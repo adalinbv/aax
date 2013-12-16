@@ -725,6 +725,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
       }
    }
    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
+   rb->release_dataptr_noninterleaved(rb->id);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);

@@ -99,6 +99,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
       }
+      rb->release_dataptr_noninterleaved(rb->id);
    }
 
    /*
@@ -246,6 +247,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       if (maxrms < rms) maxrms = rms;
       if (maxpeak < peak) maxpeak = peak;
    }
+   rb->release_dataptr_noninterleaved(rb->id);
    free(ptr);
 
    rb->set_paramf(rb, RB_AVERAGE_VALUE_MAX, maxrms);

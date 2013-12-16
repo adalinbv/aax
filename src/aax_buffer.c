@@ -369,7 +369,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                }
             }
           }
-         rb->set_data_interleaved(rb->id, data, blocksize, 0);
+         _aaxRingBufferFillInterleaved(rb, data, blocksize, 0);
          rv = AAX_TRUE;
          free(m);
       }
@@ -519,7 +519,7 @@ aaxBufferGetData(const aaxBuffer buffer)
          return data;
       }
 
-      rb->get_data_interleaved(rb->id, ptr, no_samples, tracks, fact);
+      _aaxRingBufferGetDataInterleaved(rb, ptr, no_samples, tracks, fact);
       *data = (void*)(ptr + pos*tracks*bps);
 
       user_format = buf->format;

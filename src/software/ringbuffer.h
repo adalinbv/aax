@@ -25,6 +25,7 @@ extern "C" {
 #include <base/types.h>
 
 #include "cpu2d/rbuf_effects.h"
+#include "cpu3d/rbuf_effects.h"
 #include "devices.h"
 #include "driver.h"
 
@@ -292,45 +293,11 @@ _aaxRingBufferGetDataInterleavedMallocFn(_aaxRingBufferData*, int, float);
  * returns a pointer to a memory block containing the interleaved tracks.
  */
 
-typedef const void**
-_aaxRingBufferGetDataInterleavedPtrFn(_aaxRingBufferData*);
+typedef const int32_t**
+_aaxRingBufferGetDataNonInterleavedPtrFn(_aaxRingBufferData*);
 
-
-/**
- * Fill the buffer with sound data.
- *
- * @param rb the ringbuffer which will hold the sound sample
- * @param track array of pointers to the separate sound tracks
- *              the number of tracks is defined within rb
- * @param blocksize Number of samples per block for each channel.
- * @param looping boolean value defining wether this sound should loop
- */
-typedef void
-_aaxRingBufferFillNonInterleavedFn(_aaxRingBufferData*, const void*, unsigned, char);
-
-
-/**
- * Get the non-interleaved sound data.
- *
- * @param rb the ringbuffer which will hold the sound sample
- * @param data a memory block large enough for the non-interleaved tracks.
- * @param fact rersampling factor
- */
-typedef void
-_aaxRingBufferGetDataNonInterleavedFn(_aaxRingBufferData*, void*, unsigned int, int, float);
-
-
-/**
- * Get the interleaved sound data.
- *
- * @param rb the ringbuffer which will hold the sound sample 
- * @param fact rersampling factor
- *
- * returns a memory block containing the non-interleaved tracks.
- */
-
-typedef void*
-_aaxRingBufferGetDataNonInterleavedMallocFn(_aaxRingBufferData*, int, float);
+typedef int
+_aaxRingBufferReleaseDataNonInterleavedPtrFn(_aaxRingBufferData*);
 
 
 /**
@@ -455,11 +422,8 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferMixMNFn *mix2d;
    _aaxRingBufferMix1NFn *mix3d;
 
-   _aaxRingBufferFillNonInterleavedFn *set_data_noninterleaved;
-   _aaxRingBufferGetDataInterleavedPtrFn *get_dataptr_noninterleaved;
-
-   _aaxRingBufferFillInterleavedFn *set_data_interleaved;
-   _aaxRingBufferGetDataInterleavedFn *get_data_interleaved;
+   _aaxRingBufferGetDataNonInterleavedPtrFn *get_dataptr_noninterleaved;
+   _aaxRingBufferReleaseDataNonInterleavedPtrFn *release_dataptr_noninterleaved;
 
    _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
 
@@ -470,7 +434,7 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDataMixWaveformFn *data_mix_waveform;
    _aaxRingBufferDataMixNoiseFn *data_mix_noise;
 
-   // TODO: Get rid of this, it's used only once in sofwtare/frame.c
+// TODO: Get rid of this, it's used only once in sofwtare/frame.c
    _aaxRingBufferCopyDelyEffectsDataFn *copy_effectsdata;
 
 } _aaxRingBuffer;
@@ -511,6 +475,12 @@ void _bufferMixSawtooth(void**, float, char, unsigned int, int, float, float);
 void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
 
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
+
+
+/** SUpport */
+void _aaxRingBufferFillNonInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
+void _aaxRingBufferFillInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
+void _aaxRingBufferGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
 
 
 #if defined(__cplusplus)

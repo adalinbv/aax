@@ -210,8 +210,9 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          gain *= -drb->get_paramf(drb, RB_AGC_VALUE);
       }
 
-      sbuf = (void**)drb->get_dataptr_noninterleaved(drb->id);
       nframes = frames = drb->get_parami(drb, RB_NO_SAMPLES);
+
+      sbuf = (void**)drb->get_dataptr_noninterleaved(drb->id);
       res = be->capture(be_handle, sbuf, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       if (res && nframes)
@@ -225,9 +226,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          nrb = drb->duplicate(drb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
-         ntptr = (int32_t **)nrb->get_dataptr_noninterleaved(nrb->id);
          otptr = (int32_t **)sbuf;
-
          rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);		// 300 ms RMS average
          maxrms = maxpeak = 0;
          tracks = drb->get_parami(drb, RB_NO_TRACKS);
@@ -270,6 +269,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             dest_track = 0;
          }
 
+         ntptr = (int32_t **)nrb->get_dataptr_noninterleaved(nrb->id);
          for (track=0; track<tracks; track++)
          {
             int32_t *ptr = ntptr[track];
@@ -308,6 +308,8 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             nrb->set_paramf(nrb, RB_AVERAGE_VALUE+track, avg);
             nrb->set_paramf(nrb, RB_PEAK_VALUE+track, peak);
          }
+         nrb->release_dataptr_noninterleaved(nrb->id);
+
          nrb->set_paramf(nrb, RB_AVERAGE_VALUE_MAX, maxrms);
          nrb->set_paramf(nrb, RB_PEAK_VALUE_MAX, maxpeak);
 
@@ -330,6 +332,8 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       else {
          drb->set_state(drb, RB_CLEARED);
       }
+      drb->release_dataptr_noninterleaved(drb->id);
+
       if (res <= 0) *delay = 0.0f;
    }
 

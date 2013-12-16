@@ -560,6 +560,8 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
                                   offs, file_tracks, no_samples,
                                   scratch, handle->buf_len);
+   rb->release_dataptr_noninterleaved(rb->id);
+
    handle->no_bytes = res;
 
    _aaxMutexUnLock(handle->thread.mutex);

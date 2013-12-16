@@ -20,6 +20,10 @@ extern "C" {
 #include "config.h"
 #endif
 
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+
 #include <aax/aax.h>
 #include <aax/eventmgr.h>
 #include <aax/instrument.h>

@@ -2297,7 +2297,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
 
-   sbuf = (const int32_t **)rbs->get_dataptr_noninterleaved(rbs->id);
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    state = psnd_pcm_state(handle->pcm);
@@ -2334,6 +2333,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    else avail = no_frames;
 
    chunk = 10;
+   sbuf = (const int32_t **)rbs->get_dataptr_noninterleaved(rbs->id);
    do
    {
       const snd_pcm_channel_area_t *area;
@@ -2373,6 +2373,8 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       avail -= res;
    }
    while ((avail > 0) && --chunk);
+   rbs->release_dataptr_noninterleaved(rbs->id);
+
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
    return 0;
@@ -2401,7 +2403,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
 
-   sbuf = (const int32_t **)rbs->get_dataptr_noninterleaved(rbs->id);
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    state = psnd_pcm_state(handle->pcm);
@@ -2438,6 +2439,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    else avail = no_frames;
 
    chunk = 10;
+   sbuf = (const int32_t **)rbs->get_dataptr_noninterleaved(rbs->id);
    do
    {
       const snd_pcm_channel_area_t *area;
@@ -2473,6 +2475,8 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       avail -= res;
    }
    while ((avail > 0) && --chunk);
+   rbs->release_dataptr_noninterleaved(rbs->id);
+
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
    return 0;
@@ -2544,6 +2548,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       data[t] = handle->ptr[t];
       handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
    }
+   rbs->release_dataptr_noninterleaved(rbs->id);
 
    chunk = 10;
    do
@@ -2624,6 +2629,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    data = (char*)handle->scratch;
    sbuf = (const int32_t**)rbs->get_dataptr_noninterleaved(rbs->id);
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
+   rbs->release_dataptr_noninterleaved(rbs->id);
 
    chunk = 10;
    do
