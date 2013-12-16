@@ -44,7 +44,6 @@
 static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 static int _aaxRingBufferClear(_aaxRingBufferData*);
 
-
 _aaxRingBuffer *
 _aaxRingBufferCreate(float dde)
 {
@@ -824,8 +823,11 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_BYTES_SAMPLE:
       rv = rbi->sample->bytes_sample;
       break;
-   case RB_FORMAT:
+   case RB_INTERNAL_FORMAT:
       rv = _aaxRingBufferFormat[rbi->format].format;
+      break;
+   case RB_FORMAT:
+      rv = rbi->format;
       break;
    case RB_LOOPING:
       rv = rbi->loop_max ? rbi->loop_max : rbi->looping;
@@ -1087,6 +1089,9 @@ _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
   {  8, AAX_ALAW },	/* a-law */
   { 16, AAX_PCM16S }	/* IMA4-ADPCM gets converted to 16-bit */
 };
+
+_aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16;
 
 static int
 _aaxRingBufferClear(_aaxRingBufferData *rbi)

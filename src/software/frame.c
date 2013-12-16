@@ -206,7 +206,9 @@ _aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, char dde)
    {
       nrb = _intBufSetDataPtr(buf, rb);
       if (dde) {
-         rb->copy_effectsdata(nrb->id, rb->id);
+// TODO: don't copy dde data but audio-data instead, not only is it
+//       most often less data, but it would get rid of this function.
+         nrb->copy_effectsdata(nrb->id, rb->id);
       }
 
       _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);

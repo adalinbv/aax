@@ -80,6 +80,7 @@ enum _aaxRingBufferParam
    RB_TRACKSIZE,
    RB_BYTES_SAMPLE,
    RB_OFFSET_SAMPLES,
+   RB_INTERNAL_FORMAT,
    RB_NO_SAMPLES_AVAIL,
    RB_DDE_SAMPLES,
    RB_IS_PLAYING,
@@ -366,23 +367,30 @@ _aaxRingBufferMix1NFn(_aaxRingBufferData*, _aaxRingBufferData*, enum aaxRenderMo
 /**
  *
  */
-typedef void _aaxRingBufferSetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
-typedef int _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
+typedef void
+_aaxRingBufferSetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
+typedef int
+_aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
 
 
 /**
  *
  */
-typedef int _aaxRingBufferSetParamfFn(_aaxRingBuffer*, enum _aaxRingBufferParam, float);
-typedef int _aaxRingBufferSetParamiFn(_aaxRingBuffer*, enum _aaxRingBufferParam, unsigned int);
-typedef float _aaxRingBufferGetParamfFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
-typedef unsigned int _aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
+typedef int
+_aaxRingBufferSetParamfFn(_aaxRingBuffer*, enum _aaxRingBufferParam, float);
+typedef int
+_aaxRingBufferSetParamiFn(_aaxRingBuffer*, enum _aaxRingBufferParam, unsigned int);
+typedef float
+_aaxRingBufferGetParamfFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
+typedef unsigned int
+_aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
 
 
 /**
  *
  */
-typedef int _aaxRingBufferSetFormatFn(_aaxRingBuffer*, _aaxCodec **, enum aaxFormat);
+typedef int
+_aaxRingBufferSetFormatFn(_aaxRingBuffer*, _aaxCodec **, enum aaxFormat);
 
 /*
  *
@@ -456,8 +464,6 @@ void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, u
 
 
 /** MIXER */
-_aaxRingBufferMixMNFn _aaxRingBufferMixMulti16;
-_aaxRingBufferMix1NFn _aaxRingBufferMixMono16;
 
 int32_t**_aaxProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*,  _aaxRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 
@@ -477,7 +483,7 @@ void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 
 
-/** SUpport */
+/** SUPPORT */
 void _aaxRingBufferFillNonInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
 void _aaxRingBufferFillInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
 void _aaxRingBufferGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
