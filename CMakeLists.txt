@@ -359,7 +359,6 @@ SET( AEONWAVE_OBJS
      src/software/frame.c
      src/software/sensor.c
      src/software/emitter.c
-     src/software/ringbuffer.c
      src/software/cpu3d/arch_neon.c
      src/software/cpu3d/arch_sse.c
      src/software/cpu3d/arch_sse3.c

@@ -715,7 +715,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    data = (int16_t*)handle->data;
    assert(outbuf_size <= handle->buf_len);
 
-   sbuf = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
+   sbuf = (const int32_t**)rb->get_tracks_ptr(rb->id, RB_READ);
 // Software Volume, need to convert to Hardware Volume for gain < 1.0f
    if (gain < 0.99f)
    {
@@ -725,7 +725,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
       }
    }
    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
-   rb->release_dataptr_noninterleaved(rb->id);
+   rb->release_tracks_ptr(rb->id);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);

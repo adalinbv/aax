@@ -549,7 +549,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    scratch = data + bufsize;
    assert(bufsize <= handle->buf_len);
 
-   sbuf = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
+   sbuf = (const int32_t**)rb->get_tracks_ptr(rb->id, RB_READ);
    if (fabs(gain - 1.0f) > 0.05f)
    {
       int t;
@@ -560,7 +560,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
                                   offs, file_tracks, no_samples,
                                   scratch, handle->buf_len);
-   rb->release_dataptr_noninterleaved(rb->id);
+   rb->release_tracks_ptr(rb->id);
 
    handle->no_bytes = res;
 

@@ -369,11 +369,11 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
    return drb;
 }
 
-const int32_t**
-_aaxRingBufferGetDataNonInterleavedPtr(_aaxRingBufferData *rbi)
+int32_t**
+_aaxRingBufferGetTracksPtr(_aaxRingBufferData *rbi, enum _aaxRingBufferMode mode)
 {
    _aaxRingBufferSample *rbd;
-   const int32_t **rv = NULL;
+   int32_t **rv = NULL;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -383,13 +383,13 @@ _aaxRingBufferGetDataNonInterleavedPtr(_aaxRingBufferData *rbi)
 
    rbd = rbi->sample;
    if (rbd) {
-      rv  = (const int32_t**)rbd->track;
+      rv  = (int32_t**)rbd->track;
    }
    return rv;
 }
 
 int
-_aaxRingBufferReleaseDataNonInterleavedPtr(_aaxRingBufferData *rbi)
+_aaxRingBufferReleaseTracksPtr(_aaxRingBufferData *rbi)
 {
    return AAX_TRUE;
 }
@@ -721,6 +721,10 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
          printf("%s: Unknown error\n", __FUNCTION__);
       }
 #endif
+      break;
+   case RB_STATE:
+      _aaxRingBufferSetState(rb, val);
+      rv = AAX_TRUE;
       break;
    case RB_FORMAT:
    default:
@@ -1130,8 +1134,8 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
 
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
 
-   rb->get_dataptr_noninterleaved = _aaxRingBufferGetDataNonInterleavedPtr;
-   rb->release_dataptr_noninterleaved = _aaxRingBufferReleaseDataNonInterleavedPtr;
+   rb->get_tracks_ptr = _aaxRingBufferGetTracksPtr;
+   rb->release_tracks_ptr = _aaxRingBufferReleaseTracksPtr;
 
    rb->data_clear = _aaxRingBufferDataClear;
    rb->data_multiply = _aaxRingBufferDataMultiply;

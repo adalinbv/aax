@@ -75,7 +75,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      tracks = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
+      tracks = (const int32_t**)rb->get_tracks_ptr(rb->id, RB_READ);
       for (track=0; track<no_tracks; track++)
       {
          int32_t *dptr = (int32_t*)tracks[track];
@@ -99,7 +99,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
       }
-      rb->release_dataptr_noninterleaved(rb->id);
+      rb->release_tracks_ptr(rb->id);
    }
 
    /*
@@ -161,7 +161,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    /* set up this way because we always need to apply compression */
    maxrms = maxpeak = 0;
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   tracks = (const int32_t**)rb->get_dataptr_noninterleaved(rb->id);
+   tracks = (const int32_t**)rb->get_tracks_ptr(rb->id, RB_READ);
    for (track=0; track<no_tracks; track++)
    {
       unsigned int track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
@@ -247,7 +247,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       if (maxrms < rms) maxrms = rms;
       if (maxpeak < peak) maxpeak = peak;
    }
-   rb->release_dataptr_noninterleaved(rb->id);
+   rb->release_tracks_ptr(rb->id);
    free(ptr);
 
    rb->set_paramf(rb, RB_AVERAGE_VALUE_MAX, maxrms);

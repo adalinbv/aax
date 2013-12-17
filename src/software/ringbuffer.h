@@ -75,6 +75,7 @@ enum _aaxRingBufferParam
    RB_LOOPPOINT_END,
    RB_LOOPING,
    RB_FORMAT,
+   RB_STATE,
    RB_NO_TRACKS,
    RB_NO_SAMPLES,
    RB_TRACKSIZE,
@@ -101,6 +102,13 @@ enum _aaxRingBufferState
    RB_STARTED_STREAMING,
 
    RB_IS_VALID
+};
+
+enum _aaxRingBufferMode
+{
+   RB_READ = 0x01,
+   RB_WRITE = 0x02,
+   RB_RW = RB_READ | RB_WRITE
 };
 
 typedef struct			/* static information about the sample*/
@@ -294,11 +302,11 @@ _aaxRingBufferGetDataInterleavedMallocFn(_aaxRingBufferData*, int, float);
  * returns a pointer to a memory block containing the interleaved tracks.
  */
 
-typedef const int32_t**
-_aaxRingBufferGetDataNonInterleavedPtrFn(_aaxRingBufferData*);
+typedef int32_t**
+_aaxRingBufferGetTracksPtrFn(_aaxRingBufferData*, enum _aaxRingBufferMode);
 
 typedef int
-_aaxRingBufferReleaseDataNonInterleavedPtrFn(_aaxRingBufferData*);
+_aaxRingBufferReleaseTracksPtrFn(_aaxRingBufferData*);
 
 
 /**
@@ -411,6 +419,7 @@ _aaxRingBufferDataMixNoiseFn(_aaxRingBuffer*, enum aaxWaveformType, float, float
 
 typedef struct _aaxRingBuffer_t
 {
+// public:
    _aaxRingBufferData *id;
 
    _aaxRingBufferInitFn *init;
@@ -418,7 +427,6 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDuplicateFn *duplicate;
 
    _aaxRingBufferSetFormatFn *set_format;
-
    _aaxRingBufferSetStateFn *set_state;
    _aaxRingBufferGetStateFn *get_state;
 
@@ -430,19 +438,18 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferMixMNFn *mix2d;
    _aaxRingBufferMix1NFn *mix3d;
 
-   _aaxRingBufferGetDataNonInterleavedPtrFn *get_dataptr_noninterleaved;
-   _aaxRingBufferReleaseDataNonInterleavedPtrFn *release_dataptr_noninterleaved;
+   _aaxRingBufferGetTracksPtrFn *get_tracks_ptr;
+   _aaxRingBufferReleaseTracksPtrFn *release_tracks_ptr;
 
-   _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
-
-   /* data mangling */
+// protected:
    _aaxRingBufferDataClearFn *data_clear;
    _aaxRingBufferDataMixDataFn *data_mix;
-   _aaxRingBufferDataMultiplyFn *data_multiply;
    _aaxRingBufferDataMixWaveformFn *data_mix_waveform;
    _aaxRingBufferDataMixNoiseFn *data_mix_noise;
+   _aaxRingBufferDataMultiplyFn *data_multiply;
 
-// TODO: Get rid of this, it's used only once in sofwtare/frame.c
+// private:	/* TODO: Get rid of these */
+   _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
    _aaxRingBufferCopyDelyEffectsDataFn *copy_effectsdata;
 
 } _aaxRingBuffer;
@@ -481,12 +488,6 @@ void _bufferMixSawtooth(void**, float, char, unsigned int, int, float, float);
 void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
 
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
-
-
-/** SUPPORT */
-void _aaxRingBufferFillNonInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
-void _aaxRingBufferFillInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
-void _aaxRingBufferGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
 
 
 #if defined(__cplusplus)
