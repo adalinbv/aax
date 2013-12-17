@@ -44,6 +44,8 @@
 static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 static int _aaxRingBufferClear(_aaxRingBufferData*);
 
+static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX];
+
 _aaxRingBuffer *
 _aaxRingBufferCreate(float dde)
 {
@@ -1081,7 +1083,7 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBufferData *di, const _aaxRingBufferDa
 
 /* -------------------------------------------------------------------------- */
 
-_aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
+static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
 {
   {  8, AAX_PCM8S },	/* 8-bit  */
   { 16, AAX_PCM16S },	/* 16-bit */

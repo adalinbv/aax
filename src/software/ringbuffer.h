@@ -36,18 +36,6 @@ extern "C" {
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
 #define BLOCKSIZE_TO_SMP(a)		((a) > 1) ? (((a)-4)*2) : 1
 
-#ifndef NDEBUG
-# define DBG_MEMCLR(a, b, c, d)		if (a) memset((b), 0, (c)*(d))
-# define WRITE(a, b, dptr, ds, no_samples) \
-   if (a) { static int ct = 0; if (++ct > (b)) { \
-             WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }
-#else
-# define DBG_MEMCLR(a, b, c, d)
-# define WRITE(a, b, dptr, ds, no_samples) \
-	printf("Need to turn on debugging to use the WRITE macro\n")
-#endif
-
-
 enum
 {
     MODEL_MTX = 0,			/* 4x4 model view matrix*/
@@ -199,7 +187,7 @@ typedef ALIGN16 struct
 
 } _aaxRingBuffer2dProps ALIGN16C;
 
-/*forwrad declaration */
+/** forwrad declaration */
 typedef struct _aaxRingBuffer_t _aaxRingBuffer;
 
 /**
@@ -259,45 +247,18 @@ _aaxRingBufferDuplicateFn(_aaxRingBuffer*, char, char);
 
 
 /**
- * Fill the buffer with sound data.
+ * Request access to the ringbuffer track data.
  *
- * @param rb the ringbuffer which will hold the sound sample
- * @param data a block of memory holding the interleaved sound sample
- *             the number of tracks is defined within rb
- * @param blocksize Number of samples per block for each channel.
- * @param looping boolean value defining wether this sound should loop
- */
-typedef void
-_aaxRingBufferFillInterleavedFn(_aaxRingBufferData*, const void*, unsigned, char);
-
-
-/**
- * Get the interleaved sound data.
+ * The function is free to lock the memory area, so it is adviced to make
+ * access to the memory as short as possible.
  *
- * @param rb the ringbuffer which will hold the sound sample 
- * @param data a memory block large enough for the interleaved tracks.
- * @param fact rersampling factor
- */
-typedef void
-_aaxRingBufferGetDataInterleavedFn(_aaxRingBufferData*, void*, unsigned int, int, float);
-
-
-/**
- * Get the interleaved sound data.
+ * In cases where the actual ringbuffer data is located in dedicated hardware
+ * it could be possible the data needs to be copied to main memory when calling
+ * this function (RB_READ or RB_RW) or the data needs to be copied back to
+ * the dedicated hardware when releasing it again (RB_WRITE or RB_RW).
  *
- * @param rb the ringbuffer which will hold the sound sample 
- * @param fact rersampling factor
- *
- * returns a memory block containing the interleaved tracks.
- */
-typedef void*
-_aaxRingBufferGetDataInterleavedMallocFn(_aaxRingBufferData*, int, float);
-
-
-/**
- * Get the pointer to the interleaved sound data.
- *
- * @param rb the ringbuffer which will hold the sound sample 
+ * @param rb the ringbuffer which holds the sound data.
+ * @param mode the acces method required: read, write or rw.
  *
  * returns a pointer to a memory block containing the interleaved tracks.
  */
@@ -305,6 +266,17 @@ _aaxRingBufferGetDataInterleavedMallocFn(_aaxRingBufferData*, int, float);
 typedef int32_t**
 _aaxRingBufferGetTracksPtrFn(_aaxRingBufferData*, enum _aaxRingBufferMode);
 
+
+/**
+ * Release access to the ringbuffer track data gain.
+ *
+ * This will unlock the memory area again if the data was locked by the
+ * function that reqests access to the data.
+ *
+ * @param rb the ringbuffer which holds the sound data.
+ * 
+ * returns AAX_TRUE on success or AAX_FALSE otherwise.
+ */
 typedef int
 _aaxRingBufferReleaseTracksPtrFn(_aaxRingBufferData*);
 
@@ -373,8 +345,10 @@ _aaxRingBufferMix1NFn(_aaxRingBufferData*, _aaxRingBufferData*, enum aaxRenderMo
 
 
 /**
- *
+ * Functions to get or set the state of the ringbuffer.
  */
+typedef int
+_aaxRingBufferSetFormatFn(_aaxRingBuffer*, _aaxCodec **, enum aaxFormat);
 typedef void
 _aaxRingBufferSetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
 typedef int
@@ -382,7 +356,7 @@ _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
 
 
 /**
- *
+ * Functions to get or set internal ringbuffer parameters.
  */
 typedef int
 _aaxRingBufferSetParamfFn(_aaxRingBuffer*, enum _aaxRingBufferParam, float);
@@ -394,14 +368,8 @@ typedef unsigned int
 _aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
 
 
-/**
- *
- */
-typedef int
-_aaxRingBufferSetFormatFn(_aaxRingBuffer*, _aaxCodec **, enum aaxFormat);
-
 /*
- *
+ * Functions to let the ringbuffer alter the audio data in the tracks buffer.
  */
 typedef int
 _aaxRingBufferDataClearFn(_aaxRingBuffer*);
@@ -462,8 +430,6 @@ typedef struct {
    enum aaxFormat format;
 } _aaxFormat_t;
 
-extern _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX];
-
 extern _aaxCodec* _aaxRingBufferCodecs[];
 extern _aaxCodec* _aaxRingBufferCodecs_w8s[];
 
@@ -475,9 +441,6 @@ void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, u
 int32_t**_aaxProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*,  _aaxRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 
 /** BUFFER */
-void bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
-void bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
-
 void _bufferMixWhiteNoise(void**, unsigned int, char, int, float, float, unsigned char);
 void _bufferMixPinkNoise(void**, unsigned int, char, int, float, float, float, unsigned char);
 void _bufferMixBrownianNoise(void**, unsigned int, char, int, float, float, float, unsigned char);

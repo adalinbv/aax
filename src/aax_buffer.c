@@ -33,6 +33,9 @@
 static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static void _bufFillInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
+static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
+static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
+
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
 
@@ -539,7 +542,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             if (ndata)
             {
                *ndata = (void*)ptr;
-               bufConvertDataToPCM24S(*ndata, *data, buf_samples, rb_format);
+               _bufConvertDataToPCM24S(*ndata, *data, buf_samples, rb_format);
                free(data);
                data = ndata;
             }
@@ -558,7 +561,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             if (ndata)
             {
                *ndata = (void*)ptr;
-               bufConvertDataFromPCM24S(*ndata, *data, tracks, no_samples,
+               _bufConvertDataFromPCM24S(*ndata, *data, tracks, no_samples,
                                          native_fmt, buf->blocksize);
                free(data);
                data = ndata;
@@ -815,6 +818,284 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
 }
 
 /*
+ * Convert the buffer to 24-bit
+ */
+static void
+_aaxMuLaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
+{
+   do {
+//    *ndata++ = _mulaw2linear_table[*data++] << 8;
+      *ndata++ = _mulaw2linear(*data++) << 8;
+   } while (--i);
+}
+
+static void
+_aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
+{  
+   do {
+//    _alaw2linear_table[*data++] << 8;
+      *ndata++ = _alaw2linear(*data++) << 8;
+   } while (--i);
+}
+
+static void
+_bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxFormat format)
+{
+   if (ndata)
+   {
+      unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
+
+      if (format != native_fmt)
+      {
+                                /* then convert to proper signedness */
+         if (format & AAX_FORMAT_UNSIGNED)
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM8S:
+               _batch_cvt8u_8s(data, samples);
+               break;
+            case AAX_PCM16S:
+               _batch_cvt16u_16s(data, samples);
+               break;
+            case AAX_PCM24S:
+               _batch_cvt24u_24s(data, samples);
+               break;
+            case AAX_PCM32S:
+               _batch_cvt32u_32s(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+                                /* first convert to requested endianness */
+         if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
+              ((format & AAX_FORMAT_BE) && !is_bigendian()) )
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM16S:
+               _batch_endianswap16(data, samples);
+               break;
+            case AAX_PCM24S:
+            case AAX_PCM32S:
+            case AAX_FLOAT:
+               _batch_endianswap32(data, samples);
+               break;
+            case AAX_DOUBLE:
+               _batch_endianswap64(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+      }
+
+      switch(native_fmt)
+      {
+      case AAX_PCM8S:
+         _batch_cvt24_8(ndata, data, samples);
+         break;
+      case AAX_IMA4_ADPCM:
+         /* the ringbuffer uses AAX_PCM16S internally for AAX_IMA4_ADPCM */
+      case AAX_PCM16S:
+         _batch_cvt24_16(ndata, data, samples);
+         break;
+      case AAX_PCM32S:
+         _batch_cvt24_32(ndata, data, samples);
+         break;
+      case AAX_FLOAT:
+        _batch_cvt24_ps(ndata, data, samples);
+         break;
+      case AAX_DOUBLE:
+         _batch_cvt24_pd(ndata, data, samples);
+         break;
+      case AAX_MULAW:
+         _aaxMuLaw2Linear(ndata, data, samples);
+         break;
+      case AAX_ALAW:
+         _aaxALaw2Linear(ndata, data, samples);
+         break;
+      default:
+         break;
+      }
+   } /* ndata */
+}
+
+static void
+_aaxLinear2MuLaw(uint8_t* ndata, int32_t* data, unsigned int i)
+{
+   do {
+      *ndata++ = _linear2mulaw(*data++ >> 8);
+   } while (--i);
+}
+
+static void
+_aaxLinear2ALaw(uint8_t* ndata, int32_t* data, unsigned int i)
+{
+   do {
+      *ndata++ = _linear2alaw(*data++ >> 8);
+   } while (--i);
+}
+
+static void
+_aaxLinear2IMABlock(uint8_t* ndata, int32_t* data, unsigned block_smp,
+                   int16_t* sample, uint8_t* index, short step)
+{
+   unsigned int i;
+   int16_t header;
+   uint8_t nibble;
+
+   header = *sample;
+   *ndata++ = header & 0xff;
+   *ndata++ = header >> 8;
+   *ndata++ = *index;
+   *ndata++ = 0;
+
+   for (i=0; i<block_smp; i += 2)
+   {
+      int16_t nsample;
+
+      nsample = *data >> 8;
+      _linear2adpcm(sample, nsample, &nibble, index);
+      data += step;
+      *ndata = nibble;
+
+      nsample = *data >> 8;
+      _linear2adpcm(sample, nsample, &nibble, index);
+      data += step;
+      *ndata++ |= nibble << 4;
+   }
+}
+
+/*
+ * Incompatible with MS-IMA which specifies a different way of interleaving.
+ */
+static void
+_aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned block_smp, unsigned tracks)
+{
+   unsigned int i, no_blocks, blocksize;
+   int16_t sample = 0;
+   uint8_t index = 0;
+
+   no_blocks = samples/block_smp;
+   blocksize = IMA4_SMP_TO_BLOCKSIZE(block_smp);
+
+   for(i=0; i<no_blocks; i++)
+   {
+      _aaxLinear2IMABlock(ndata, data, block_smp, &sample, &index, tracks);
+      ndata += blocksize*tracks;
+      data += block_smp*tracks;
+   }
+
+   if (no_blocks*block_smp < samples)
+   {
+      unsigned int rest = (no_blocks+1)*block_smp - samples;
+
+      samples = block_smp - rest;
+      _aaxLinear2IMABlock(ndata, data, samples, &sample, &index, tracks);
+
+      ndata += IMA4_SMP_TO_BLOCKSIZE(samples);
+      memset(ndata, 0, rest/2);
+   }
+}
+
+void
+_bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned int no_samples, enum aaxFormat format, unsigned int blocksize)
+{
+   if (ndata)
+   {
+      unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
+      unsigned int samples = tracks*no_samples;
+
+      if (format != native_fmt)
+      {
+                                /* first convert to requested endianness */
+         if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
+              ((format & AAX_FORMAT_BE) && !is_bigendian()) )
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM16S:
+               _batch_endianswap16(data, samples);
+               break;
+            case AAX_PCM24S:
+            case AAX_PCM32S:
+            case AAX_FLOAT:
+               _batch_endianswap32(data, samples);
+               break;
+            case AAX_DOUBLE:
+               _batch_endianswap64(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+                                /* then convert to proper signedness */
+         if (format & AAX_FORMAT_UNSIGNED)
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM8S:
+               _batch_cvt8u_8s(data, samples);
+               break;
+            case AAX_PCM16S:
+               _batch_cvt16u_16s(data, samples);
+               break;
+            case AAX_PCM24S:
+               _batch_cvt24u_24s(data, samples);
+               break;
+            case AAX_PCM32S:
+               _batch_cvt32u_32s(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+      }
+
+      switch(native_fmt)
+      {
+      case AAX_PCM8S:
+         _batch_cvt8_24(ndata, data, samples);
+         break;
+      case AAX_PCM16S:
+         _batch_cvt16_24(ndata, data, samples);
+         break;
+      case AAX_PCM32S:
+         _batch_cvt32_24(ndata, data, samples);
+         break;
+      case AAX_FLOAT:
+         _batch_cvtps_24(ndata, data, samples);
+         break;
+      case AAX_DOUBLE:
+         _batch_cvtpd_24(ndata, data, samples);
+         break;
+      case AAX_MULAW:
+         _aaxLinear2MuLaw(ndata, data, samples);
+         break;
+      case AAX_ALAW:
+         _aaxLinear2ALaw(ndata, data, samples);
+         break;
+      case AAX_IMA4_ADPCM:
+      {
+         int block_smp = BLOCKSIZE_TO_SMP(blocksize);
+         unsigned t;
+         for (t=0; t<tracks; t++)
+         {
+            uint8_t *dst = (uint8_t *)ndata + t*blocksize;
+            int32_t *src = (int32_t *)data + t;
+            _aaxLinear2IMA4(dst, src, no_samples, block_smp, tracks);
+         }
+         break;
+      }
+      default:
+         break;
+      }
+   } /* ndata */
+}
+
+/*
  * Convert 4-bit IMA to 16-bit PCM
  */
 static void
@@ -984,9 +1265,9 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;
-            bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples, fmt);
+            _bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples, fmt);
             _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
-            bufConvertDataFromPCM24S(tracks[t], scratch[1], 1, samples, fmt, 1);
+            _bufConvertDataFromPCM24S(tracks[t], scratch[1], 1, samples, fmt,1);
             p += size;
          }
          free(scratch);
