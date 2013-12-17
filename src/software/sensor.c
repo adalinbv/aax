@@ -139,7 +139,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }
-               drb->mix2d(drb->id, ssr_rb->id, smixer->props2d, props2d, 0, 0);
+               rv=drb->mix2d(drb->id, ssr_rb->id, smixer->props2d, props2d,0,0);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                if (rv) /* always streaming */
@@ -325,7 +325,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          } else {
             agc =  (1.0f-agc_rr)*agc + (agc_rr)*max;
          }
-         nrb->set_paramf(drb, RB_AGC_VALUE, _MINMAX(agc, 0.01f, 9.5f));
+         nrb->set_paramf(nrb, RB_AGC_VALUE, _MINMAX(agc, 0.01f, 9.5f));
 
          rv = nrb;
       }

@@ -197,15 +197,6 @@ _sw_bufcpy_24s(void *dst, const void *src, unsigned char sbps, unsigned int l)
    _batch_cvt24_24(dst, src, l);
 }
 
-#if 0
-static void
-_sw_bufcpy_32s(void *dst, const void *src, unsigned char sbps, unsigned int l)
-{
-   assert (sbps == 4);
-   _batch_cvt24_32(dst, src, l);
-}
-#endif
-
 /** http://docs.freeswitch.org/g711_8h-source.html */
 #define ULAW_BIAS       0x84
 int16_t

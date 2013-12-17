@@ -529,6 +529,9 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
    case RB_VOLUME_MAX:
       rbi->volume_max = fval;
       break;
+   case RB_AGC_VALUE:
+      rbi->gain_agc = fval;
+      break;
    case RB_FREQUENCY:
       rbd->frequency_hz = fval;
       rbd->duration_sec = rbd->no_samples / fval;
@@ -625,7 +628,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = AAX_TRUE;
+   int rv = AAX_FALSE;
 
    assert(rb != NULL);
 
@@ -640,6 +643,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_BYTES_SAMPLE:
       if (rbd->track == NULL) {
          rbd->bytes_sample = val;
+         rv = AAX_TRUE;
       }
 #ifndef NDEBUG
       else printf("Unable set bytes/sample when rbd->track == NULL\n");
@@ -648,6 +652,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_NO_TRACKS:
       if ((rbd->track == NULL) || (val <= rbd->no_tracks)) {
          rbd->no_tracks = val;
+         rv = AAX_TRUE;
       }
 #ifndef NDEBUG
       else printf("Unable set the no. tracks rbd->track == NULL\n");
@@ -661,6 +666,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
          _aaxRingBufferAddLooping(rb);
       }
 #endif
+      rv = AAX_TRUE;
       break;
    case RB_LOOPPOINT_START:
    {
@@ -669,6 +675,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       {
          rbd->loop_start_sec = fval;
 //       _aaxRingBufferAddLooping(rb);
+         rv = AAX_TRUE;
       }
       break;
    }
@@ -679,6 +686,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       {
          rbd->loop_end_sec = fval;
 //       _aaxRingBufferAddLooping(rb);
+         rv = AAX_TRUE;
       }
       break;
    }
@@ -688,6 +696,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       }
       rbi->curr_sample = val;
       rbi->curr_pos_sec = (float)val / rbd->frequency_hz;
+      rv = AAX_TRUE;
       break;
    case RB_TRACKSIZE:
       val /= rbd->bytes_sample;
@@ -730,10 +739,21 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_FORMAT:
    default:
+      if ((param >= RB_PEAK_VALUE) &&
+          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+      {
+         rv = rbi->peak[param-RB_PEAK_VALUE];
+      }
+      else if ((param >= RB_AVERAGE_VALUE) &&
+               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+      {
+         rv = rbi->average[param-RB_AVERAGE_VALUE];
+      }
 #ifndef NDEBUG
-      printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+      else {
+         printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+      }
 #endif
-      rv = AAX_FALSE;
       break;
    }
 
@@ -777,12 +797,13 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbi->curr_pos_sec;
       break;
    default:
-      if ((param >= RB_PEAK_VALUE) && (param < RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+      if ((param >= RB_PEAK_VALUE) &&
+          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
       {
          rv = rbi->peak[param-RB_PEAK_VALUE];
       }
       else if ((param >= RB_AVERAGE_VALUE) &&
-               (param < RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
       {
          rv = rbi->average[param-RB_AVERAGE_VALUE];
       }
@@ -854,8 +875,20 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = !(rbi->playing == 0 && rbi->stopped == 1);
       break;
    default:
+      if ((param >= RB_PEAK_VALUE) &&
+          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+      {
+         rv = rbi->peak[param-RB_PEAK_VALUE];
+      }
+      else if ((param >= RB_AVERAGE_VALUE) &&
+               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+      {
+         rv = rbi->average[param-RB_AVERAGE_VALUE];
+      }
 #ifndef NDEBUG
-      printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+      else {
+         printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+      }
 #endif
       break;
    }
