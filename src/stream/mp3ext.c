@@ -471,7 +471,6 @@ _aaxMPG123Open(void *id, void *buf, unsigned int *bufsize)
                      handle->format = getFormatFromMP3FileFormat(enc);
                      handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
-                     *bufsize = 0;
                      rv = buf;
                   }
                }

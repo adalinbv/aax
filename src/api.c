@@ -13,6 +13,9 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <errno.h>
 #ifndef _WIN32
 # include <sys/time.h>

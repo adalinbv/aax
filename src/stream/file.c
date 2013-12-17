@@ -134,7 +134,7 @@ typedef struct
 } _driver_t;
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
-static _aaxFmtHandle* _aaxGetFormat(const char*);
+static _aaxFmtHandle* _aaxGetFormat(const char*, enum aaxRenderMode);
 static void* _aaxFileDriverWriteThread(void*);
 static void* _aaxFileDriverReadThread(void*);
 
@@ -266,7 +266,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       int m = (handle->mode > 0) ? 0 : 1;
 
       handle->fmode = _mode[m];
-      handle->fmt = _aaxGetFormat(s);
+      handle->fmt = _aaxGetFormat(s, mode);
       if (handle->fmt)
       {
          handle->name = s;
@@ -417,7 +417,8 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       if (handle->fd >= 0)
       {
          unsigned int no_samples = *frames;
-         void *buf = NULL, *header = NULL;
+         void *header = NULL;
+         void *buf = NULL;
          int res = AAX_TRUE;
 
          if (bufsize) {
@@ -436,13 +437,16 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             buf = handle->fmt->open(handle->fmt->id, header, &bufsize);
             res = bufsize;
 
-            if (bufsize)
+            if (buf)
             {
                if (handle->mode != AAX_MODE_READ && buf) {
                   res = write(handle->fd, buf, bufsize);
                } else if (handle->mode == AAX_MODE_READ && !buf) {
                   res = lseek(handle->fd, bufsize, SEEK_SET);
                }
+            }
+            else { 
+               break;
             }
          }
          while (handle->mode == AAX_MODE_READ && buf && bufsize);
@@ -838,7 +842,7 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static _aaxFmtHandle*
-_aaxGetFormat(const char *fname)
+_aaxGetFormat(const char *fname, enum aaxRenderMode mode)
 {
    char *ext = strrchr(fname, '.');
    _aaxFmtHandle *rv = NULL;
@@ -854,8 +858,7 @@ _aaxGetFormat(const char *fname)
          if ((ftype = _aaxFileTypes[i++]) != NULL)
          {
             _aaxFmtHandle* type = ftype();
-            if (type && type->detect(AAX_MODE_WRITE_STEREO)
-                     && type->supported(ext))
+            if (type && type->detect(mode) && type->supported(ext))
             {
                rv = type;
                break;
