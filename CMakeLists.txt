@@ -363,6 +363,7 @@ SET( AEONWAVE_OBJS
      src/software/cpu3d/arch_sse.c
      src/software/cpu3d/arch_sse3.c
      src/software/cpu3d/arch_sse4.c
+     src/software/cpu3d/rbuf_mixsingle.c
      src/software/cpu2d/arch_cpu.c
      src/software/cpu2d/arch_neon.c
      src/software/cpu2d/arch_sse2.c
