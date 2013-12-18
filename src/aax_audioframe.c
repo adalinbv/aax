@@ -186,6 +186,7 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
          _aaxAudioFrame* fmixer = handle->submix;
 
          mtx4Copy(fmixer->props3d->dprops3d->matrix, mtx);
+         mtx4Copy(fmixer->props3d->m_dprops3d->matrix, mtx);
          if (_IS_RELATIVE(handle))
          {
             fmixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;

@@ -44,6 +44,7 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* smixer = sensor->mixer;
             mtx4Copy(smixer->props3d->dprops3d->matrix, mtx);
+            mtx4Copy(smixer->props3d->m_dprops3d->matrix, mtx);
             _PROP_MTX_SET_CHANGED(smixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
