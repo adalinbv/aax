@@ -222,7 +222,7 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 
    rbi = rb->id;
    assert(rbi != NULL);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
    rbd = rbi->sample;
    _aaxRingBufferInitTracks(rbi);
@@ -289,9 +289,9 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
       rb->id->parent = rb;
 #endif
 
-      memcpy(rbi, ringbuffer->id, sizeof(_aaxRingBuffer));
+      memcpy(rbi, ringbuffer->id, sizeof(_aaxRingBufferData));
       rbi->sample->ref_counter++;
-      // rb->looping = 0;
+      // rbi->looping = 0;
       rbi->playing = 0;
       rbi->stopped = 1;
       rbi->streaming = 0;
@@ -327,7 +327,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       srbd = srb->id->sample;
       drbd = drb->id->sample;
 
-      _aax_memcpy(drb->id, srb->id, sizeof(_aaxRingBuffer));
+      _aax_memcpy(drb->id, srb->id, sizeof(_aaxRingBufferData));
       drb->id->sample = drbd;
 #ifndef NDEBUG
       drb->id->parent = drb;
@@ -386,7 +386,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    rbi = rb->id;
    assert(rbi != 0);
    assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
    rbd = rbi->sample;
    if (rbd) {
@@ -410,12 +410,12 @@ _aaxRingBufferGetScratchBufferPtr(_aaxRingBuffer *rb)
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   assert(rtb != NULL);
+   assert(rb != NULL);
 
    rbi = rb->id;
    assert(rbi != 0);
    assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
    rbd = rbi->sample;
    if (rbd) {
@@ -644,7 +644,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    rbi = rb->id;
    assert(rbi != NULL);
    assert(rbi->sample != 0);
-   assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
+   assert(rbi->parent == rb);
 
    rbd = rbi->sample;
    switch(param)
