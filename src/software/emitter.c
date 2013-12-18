@@ -111,16 +111,15 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                      res = AAX_FALSE;
                      if (src->curr_pos_sec >= ep2d->dist_delay_sec)
                      {
-                        res = drb->mix3d(drb->id, srb->id, info->mode,
-                                         ep2d, fp2d, emitter->track,
+                        res = drb->mix3d(drb, srb, ep2d, fp2d, emitter->track,
                                          src->update_ctr, nbuf);
                      }
                   }
                   else
                   {
                      assert(!_IS_POSITIONAL(src->props3d));
-                     res = drb->mix2d(drb->id, srb->id, ep2d,
-                                      fp2d, src->update_ctr, nbuf);
+                     res = drb->mix2d(drb, srb, ep2d, fp2d, src->update_ctr,
+                                      nbuf);
                   }
 
                   if (!src->update_ctr) {

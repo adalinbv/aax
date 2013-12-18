@@ -200,7 +200,7 @@ typedef struct _aaxRingBuffer_t _aaxRingBuffer;
  * returns the new ringbuffer or NULL if an error occured.
  */
 struct _aaxRingBuffer_t *
-_aaxRingBufferCreate(float);
+_aaxRingBufferCreate(float, enum aaxRenderMode);
 
 
 /**
@@ -264,7 +264,7 @@ _aaxRingBufferDuplicateFn(_aaxRingBuffer*, char, char);
  */
 
 typedef int32_t**
-_aaxRingBufferGetTracksPtrFn(_aaxRingBufferData*, enum _aaxRingBufferMode);
+_aaxRingBufferGetTracksPtrFn(_aaxRingBuffer*, enum _aaxRingBufferMode);
 
 
 /**
@@ -278,7 +278,7 @@ _aaxRingBufferGetTracksPtrFn(_aaxRingBufferData*, enum _aaxRingBufferMode);
  * returns AAX_TRUE on success or AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferReleaseTracksPtrFn(_aaxRingBufferData*);
+_aaxRingBufferReleaseTracksPtrFn(_aaxRingBuffer*);
 
 
 /**
@@ -290,7 +290,7 @@ _aaxRingBufferReleaseTracksPtrFn(_aaxRingBufferData*);
  */
 
 typedef void**
-_aaxRingBufferGetScratchBufferPtrFn(_aaxRingBufferData*);
+_aaxRingBufferGetScratchBufferPtrFn(_aaxRingBuffer*);
 
 /**
  * Copy the delay effetcs buffers from one ringbuffer to the other.
@@ -299,7 +299,7 @@ _aaxRingBufferGetScratchBufferPtrFn(_aaxRingBufferData*);
  * @param src source ringbuffer
  */
 typedef void
-_aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBufferData*, const _aaxRingBufferData*);
+_aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBuffer*, const _aaxRingBuffer*);
 
 
 /**
@@ -319,7 +319,11 @@ _aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBufferData*, const _aaxRingBufferDat
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMNFn(_aaxRingBufferData*, _aaxRingBufferData*, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned int);
+_aaxRingBufferMixStereoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned int);
+
+typedef void
+_aaxRingBufferMixMNFn(_aaxRingBufferData*, const _aaxRingBufferData*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned int, unsigned int, float, float, float);
+
 
 
 /**
@@ -327,7 +331,6 @@ _aaxRingBufferMixMNFn(_aaxRingBufferData*, _aaxRingBufferData*, _aaxRingBuffer2d
  *
  * @param dest multi track destination buffer
  * @param src single track source buffer
- * @param mode mixing mode (resembles enum aaxRenderMode)
  * @param ep2d 3d positioning information structure of the source
  * @param fp2f 3d positioning information structure of the parents frame
  * @param ch channel to use from the source buffer if it is multi-channel
@@ -341,7 +344,11 @@ _aaxRingBufferMixMNFn(_aaxRingBufferData*, _aaxRingBufferData*, _aaxRingBuffer2d
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMix1NFn(_aaxRingBufferData*, _aaxRingBufferData*, enum aaxRenderMode, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned char, unsigned int);
+_aaxRingBufferMixMonoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned char, unsigned int);
+
+typedef void
+_aaxRingBufferMix1NFn(_aaxRingBufferData*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+
 
 
 /**
@@ -389,6 +396,7 @@ typedef struct _aaxRingBuffer_t
 {
 // public:
    _aaxRingBufferData *id;
+   enum aaxRenderMode mode;
 
    _aaxRingBufferInitFn *init;
    _aaxRingBufferReferenceFn *reference;
@@ -403,8 +411,8 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferGetParamfFn *get_paramf;
    _aaxRingBufferGetParamiFn *get_parami;
 
-   _aaxRingBufferMixMNFn *mix2d;
-   _aaxRingBufferMix1NFn *mix3d;
+   _aaxRingBufferMixStereoFn *mix2d;
+   _aaxRingBufferMixMonoFn *mix3d;
 
    _aaxRingBufferGetTracksPtrFn *get_tracks_ptr;
    _aaxRingBufferReleaseTracksPtrFn *release_tracks_ptr;
@@ -419,6 +427,9 @@ typedef struct _aaxRingBuffer_t
 // private:	/* TODO: Get rid of these */
    _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
    _aaxRingBufferCopyDelyEffectsDataFn *copy_effectsdata;
+
+   _aaxRingBufferMix1NFn *mix1n;
+   _aaxRingBufferMixMNFn *mixmn;
 
 } _aaxRingBuffer;
 
@@ -439,6 +450,13 @@ void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, u
 /** MIXER */
 
 int32_t**_aaxProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*,  _aaxRingBuffer2dProps *, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
+
+_aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16Stereo;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16Spatial;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16Surround;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16HRTF;
+
 
 /** BUFFER */
 void _bufferMixWhiteNoise(void**, unsigned int, char, int, float, float, unsigned char);

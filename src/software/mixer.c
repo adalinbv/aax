@@ -50,7 +50,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
    if (delay_effect || freq_filter || dist_state)
    {
-      int32_t **scratch = (int32_t**)rb->get_scratch(rb->id);
+      int32_t **scratch = (int32_t**)rb->get_scratch(rb);
       int32_t *scratch0 = scratch[SCRATCH_BUFFER0];
       int32_t *scratch1 = scratch[SCRATCH_BUFFER1];
       void* distortion_effect = NULL;
@@ -75,7 +75,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      tracks = (const int32_t**)rb->get_tracks_ptr(rb->id, RB_READ);
+      tracks = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       for (track=0; track<no_tracks; track++)
       {
          int32_t *dptr = (int32_t*)tracks[track];
@@ -99,7 +99,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
       }
-      rb->release_tracks_ptr(rb->id);
+      rb->release_tracks_ptr(rb);
    }
 
    /*
@@ -161,7 +161,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    /* set up this way because we always need to apply compression */
    maxrms = maxpeak = 0;
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   tracks = (const int32_t**)rb->get_tracks_ptr(rb->id, RB_READ);
+   tracks = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
    for (track=0; track<no_tracks; track++)
    {
       unsigned int track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
@@ -247,7 +247,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       if (maxrms < rms) maxrms = rms;
       if (maxpeak < peak) maxpeak = peak;
    }
-   rb->release_tracks_ptr(rb->id);
+   rb->release_tracks_ptr(rb);
    free(ptr);
 
    rb->set_paramf(rb, RB_AVERAGE_VALUE_MAX, maxrms);
@@ -276,7 +276,7 @@ _aaxSoftwareMixerThread(void* config)
 
    tracks = 2;
    smixer = NULL;
-   dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME);
+   dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, handle->info->mode);
    if (dest_rb)
    {
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

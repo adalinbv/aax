@@ -647,7 +647,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   smixer->thread = AAX_TRUE;
 
                   if (!smixer->ringbuffer) {
-                     smixer->ringbuffer = _aaxRingBufferCreate(DELAY_EFFECTS_TIME);
+                     smixer->ringbuffer = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, fmixer->info->mode);
                   }
 
                   rb = smixer->ringbuffer;

@@ -69,7 +69,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
          if (!device->ringbuffer) {
-            device->ringbuffer = _aaxRingBufferCreate(0.0f);
+            device->ringbuffer = _aaxRingBufferCreate(0.0f, smixer->info->mode);
          }
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
@@ -139,7 +139,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }
-               rv=drb->mix2d(drb->id, ssr_rb->id, smixer->props2d, props2d,0,0);
+               rv = drb->mix2d(drb, ssr_rb, smixer->props2d, props2d, 0, 0);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                if (rv) /* always streaming */
@@ -194,7 +194,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
    assert(drb->id->sample);
    assert(delay);
 
-   scratch = (int32_t**)drb->get_scratch(drb->id);
+   scratch = (int32_t**)drb->get_scratch(drb);
    if (scratch)
    {
       unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
@@ -212,7 +212,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
 
       nframes = frames = drb->get_parami(drb, RB_NO_SAMPLES);
 
-      sbuf = (void**)drb->get_tracks_ptr(drb->id, RB_WRITE);
+      sbuf = (void**)drb->get_tracks_ptr(drb, RB_WRITE);
       res = be->capture(be_handle, sbuf, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       if (res && nframes)
@@ -269,7 +269,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             dest_track = 0;
          }
 
-         ntptr = (int32_t **)nrb->get_tracks_ptr(nrb->id, RB_WRITE);
+         ntptr = (int32_t **)nrb->get_tracks_ptr(nrb, RB_WRITE);
          for (track=0; track<tracks; track++)
          {
             int32_t *ptr = ntptr[track];
@@ -308,7 +308,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             nrb->set_paramf(nrb, RB_AVERAGE_VALUE+track, avg);
             nrb->set_paramf(nrb, RB_PEAK_VALUE+track, peak);
          }
-         nrb->release_tracks_ptr(nrb->id);
+         nrb->release_tracks_ptr(nrb);
 
          nrb->set_paramf(nrb, RB_AVERAGE_VALUE_MAX, maxrms);
          nrb->set_paramf(nrb, RB_PEAK_VALUE_MAX, maxpeak);
@@ -332,7 +332,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       else {
          drb->set_state(drb, RB_CLEARED);
       }
-      drb->release_tracks_ptr(drb->id);
+      drb->release_tracks_ptr(drb);
 
       if (res <= 0) *delay = 0.0f;
    }
@@ -383,8 +383,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                   srb = _intBufGetDataPtr(buf);
                   do
                   {
-                     rv = drb->mix2d(drb->id, srb->id, smixer->props2d,
-                                     NULL, 0, 0);
+                     rv = drb->mix2d(drb, srb, smixer->props2d, NULL, 0, 0);
                      _intBufReleaseData(buf, _AAX_RINGBUFFER);
 
                      if (rv) /* always streaming */

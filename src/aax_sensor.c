@@ -416,16 +416,16 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
    {
       _sensor_t *sensor = _intBufGetDataPtr(dptr);
       _aaxAudioFrame *submix = sensor->mixer;
+      _aaxMixerInfo* info = submix->info;
       _aaxRingBuffer *rb;
 
       if (!submix->ringbuffer) {
-         submix->ringbuffer = _aaxRingBufferCreate(DELAY_EFFECTS_TIME);
+         submix->ringbuffer = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, info->mode);
       }
 
       rb = submix->ringbuffer;
       if (rb)
       {
-         _aaxMixerInfo* info = submix->info;
          const _aaxDriverBackend *be;
          float min, max, delay_sec;
          unsigned int pos;

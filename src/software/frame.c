@@ -45,7 +45,7 @@ _aaxAudioFrameThread(void* config)
    }
    handle = frame->handle;
 
-   dest_rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME);
+   dest_rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, frame->submix->info->mode);
    if (!dest_rb) {
       return NULL;
    }
@@ -208,7 +208,7 @@ _aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, char dde)
       if (dde) {
 // TODO: don't copy dde data but audio-data instead, not only is it
 //       most often less data, but it would get rid of this function.
-         nrb->copy_effectsdata(nrb->id, rb->id);
+         nrb->copy_effectsdata(nrb, rb);
       }
 
       _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);
@@ -300,10 +300,10 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
        */
       if (!frame_rb)
       {
-         frame_rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME);
+         _aaxMixerInfo* info = fmixer->info;
+         frame_rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, info->mode);
          if (frame_rb)
          {
-            _aaxMixerInfo* info = fmixer->info;
             float dt = 1.0f/info->refresh_rate;
 
             dest_rb->set_parami(frame_rb, RB_NO_TRACKS, info->no_tracks);

@@ -51,10 +51,12 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
       _buffer_t* buf = calloc(1, sizeof(_buffer_t));
       if (buf)
       {
-         _aaxRingBuffer *rb = _aaxRingBufferCreate(0.0f);
+         _handle_t* handle = (_handle_t*)config;
+         enum aaxRenderMode mode = VALID_HANDLE(handle) ?
+                                   handle->info->mode : AAX_MODE_WRITE_STEREO;
+         _aaxRingBuffer *rb = _aaxRingBufferCreate(0.0f, mode);
          if (rb)
          {
-            _handle_t* handle = (_handle_t*)config;
             _aaxCodec** codecs;
             int blocksize;
 
@@ -1160,7 +1162,7 @@ _bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, ch
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    tracksize = no_samples * bps;
 
-   tracks = (int32_t**)rb->get_tracks_ptr(rb->id, RB_WRITE);
+   tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
    switch (fmt)
    {
    case AAX_IMA4_ADPCM:
@@ -1203,7 +1205,7 @@ _bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, ch
          }
       }
    } /* switch */
-   rb->release_tracks_ptr(rb->id);
+   rb->release_tracks_ptr(rb);
 }
 
 
@@ -1226,7 +1228,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
 
    assert(samples >= (unsigned int)(fact*no_samples));
 
-   tracks = (void**)rb->get_tracks_ptr(rb->id, RB_READ);
+   tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
 
    fact = 1.0f/fact;
    ptr = (void**)tracks;
@@ -1293,7 +1295,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          while (--i);
       }
    }
-   rb->release_tracks_ptr(rb->id);
+   rb->release_tracks_ptr(rb);
 
    if (ptr != tracks) free(tracks);
 }

@@ -2333,7 +2333,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    else avail = no_frames;
 
    chunk = 10;
-   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs->id, RB_READ);
+   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
    do
    {
       const snd_pcm_channel_area_t *area;
@@ -2373,7 +2373,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       avail -= res;
    }
    while ((avail > 0) && --chunk);
-   rbs->release_tracks_ptr(rbs->id);
+   rbs->release_tracks_ptr(rbs);
 
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
@@ -2439,7 +2439,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    else avail = no_frames;
 
    chunk = 10;
-   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs->id, RB_READ);
+   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
    do
    {
       const snd_pcm_channel_area_t *area;
@@ -2475,7 +2475,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       avail -= res;
    }
    while ((avail > 0) && --chunk);
-   rbs->release_tracks_ptr(rbs->id);
+   rbs->release_tracks_ptr(rbs);
 
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
@@ -2542,13 +2542,13 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    assert(no_samples*hw_bps <= handle->buf_len);
 
    data = handle->scratch;
-   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs->id, RB_READ);
+   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
    for (t=0; t<no_tracks; t++)
    {
       data[t] = handle->ptr[t];
       handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
    }
-   rbs->release_tracks_ptr(rbs->id);
+   rbs->release_tracks_ptr(rbs);
 
    chunk = 10;
    do
@@ -2627,9 +2627,9 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 #endif
 
    data = (char*)handle->scratch;
-   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs->id, RB_READ);
+   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
-   rbs->release_tracks_ptr(rbs->id);
+   rbs->release_tracks_ptr(rbs);
 
    chunk = 10;
    do
@@ -2700,7 +2700,7 @@ _aaxALSADriverThread(void* config)
 
       mixer = sensor->mixer;
 
-      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME);
+      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
          dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);

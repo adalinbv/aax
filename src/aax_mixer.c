@@ -713,18 +713,21 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   if (dptr)
                   {
                      _sensor_t *sensor = _intBufGetDataPtr(dptr);
+                     _aaxMixerInfo *info;
+
                      mixer = sensor->mixer;
                      submix = sframe_sensor->mixer;
+                     info = submix->info;
 
                      mp3d = mixer->props3d;
                      sp3d = submix->props3d;
 
-                     submix->info->frequency = mixer->info->frequency;
-                     while (submix->info->frequency > 48000.0f) {
-                        submix->info->frequency /= 2.0f;
+                     info->frequency = mixer->info->frequency;
+                     while (info->frequency > 48000.0f) {
+                        info->frequency /= 2.0f;
                      }
-                     submix->info->refresh_rate = mixer->info->refresh_rate;
-                     submix->info->update_rate = mixer->info->update_rate;
+                     info->refresh_rate = mixer->info->refresh_rate;
+                     info->update_rate = mixer->info->update_rate;
                      if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
                      {
                         _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
@@ -750,13 +753,12 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      rb = submix->ringbuffer;
                      if (!rb)
                      {
-                        rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME);
+                        rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, info->mode);
                         submix->ringbuffer = rb;
                      }
 
                      if (rb)
                      {
-                        _aaxMixerInfo* info = submix->info;
                         const _aaxDriverBackend *be;
                         unsigned int pos;
                         float delay_sec;
