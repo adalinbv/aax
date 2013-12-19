@@ -29,6 +29,10 @@ extern "C" {
 
 #include "software/arch.h"
 
+#ifdef __MMX__
+#include <mmintrin.h>
+#endif
+
 #ifdef __SSE__
 #include <xmmintrin.h>
 #endif
@@ -41,13 +45,15 @@ extern "C" {
 #include <pmmintrin.h>
 #endif
 
-#ifdef __SSE4__
+#ifdef __SSE4A__
+#include <ammintrin.h>
+#endif
+
+#if defined (__SSE4_2__) || defined (__SSE4_1__)
 #include <smmintrin.h>
 #endif
 
-#ifdef __AVX__
 #include <immintrin.h>
-#endif
 
 #include "base/types.h"
 #include "base/geometry.h"

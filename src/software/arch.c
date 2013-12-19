@@ -304,12 +304,10 @@ _aaxGetSSELevel()
             sse_level = MAX_SSE_LEVEL-1;
          }
 
-	// TODO: untested!
-#if 0
-         if (_aaxDetectAVX()) {
-            sse_level = AAX_AVX;
-         }
-#endif
+         // TODO: untested!
+//       if (_aaxDetectAVX()) {
+//          sse_level = AAX_AVX;
+//       }
       }
    }
 
@@ -409,11 +407,11 @@ _aaxGetSIMDSupportString()
 # if SIZEOF_SIZE_T == 8
       if (level >= AAX_AVX)
       {
-         if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-            _batch_fmadd = _batch_fma3_avx;
-         } else if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-            _batch_fmadd = _batch_fma4_avx;
-         }
+//       if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+//          _batch_fmadd = _batch_fma3_avx;
+//       } else if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+//          _batch_fmadd = _batch_fma4_avx;
+//       }
          _aaxBufResampleSkip = _aaxBufResampleSkip_avx;
          _aaxBufResampleNearest = _aaxBufResampleNearest_avx;
          _aaxBufResampleLinear = _aaxBufResampleLinear_avx;

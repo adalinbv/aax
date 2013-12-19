@@ -160,6 +160,12 @@ IF(MSVC)
     SET_PROPERTY(SOURCE src/software/cpu2d/arch_avx.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
+    SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma3.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__FMA__"
+    )
+    SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma4.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:XOP /fp:fast -D__FMA__"
+    )
 
     # don't use a /O[012x] flag if you want custom optimizations
     SET(SPEED_OPTIMIZATIONS "/Ob2 /Oi /Ot /Oy /GT /GF /GS-")
@@ -209,14 +215,29 @@ ELSE(MSVC)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
+      SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse.c APPEND
+                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
+      )
+      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse.c APPEND
+                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
+      )
       SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse3.c APPEND
-                   PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse"
+                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
       )
       SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse3.c APPEND
-                   PROPERTY COMPILE_FLAGS  "-msse3 -mfpmath=sse"
+                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
       )
       SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse4.c APPEND
-                   PROPERTY COMPILE_FLAGS  "-msse4 -mfpmath=sse"
+                   PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse"
+      )
+      SET_PROPERTY(SOURCE src/software/cpu2d/arch_avx.c APPEND
+                   PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=corei7-avx"
+      )
+      SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma3.c APPEND
+                   PROPERTY COMPILE_FLAGS "-mfma -mfpmath=sse -march=corei7-avx"
+      )
+      SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma4.c APPEND
+                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -march=corei7-avx"
       )
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")
@@ -237,9 +258,6 @@ ELSE(MSVC)
       )
       SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse4.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_avx.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-mavx -mfpmath=avx -march=corei7"
       )
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
@@ -384,11 +402,13 @@ SET( AEONWAVE_OBJS
      src/software/cpu2d/rbuf_codec_tables.c
      src/software/cpu2d/waveforms.c
 
-   )
+)
 IF(SIZEOF_SIZE_T EQUAL 8)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
      src/software/cpu2d/arch_avx.c
   )
+#     src/software/cpu2d/arch_fma4.c
+#    src/software/cpu2d/arch_fma3.c
 ENDIF(SIZEOF_SIZE_T EQUAL 8)
 
 IF(HAVE_WINDOWS_H)
