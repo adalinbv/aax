@@ -30,67 +30,6 @@
 # define CACHE_ADVANCE_FF	 32
 
 
-FN_PREALIGN void
-_ivec4Copy_sse2(ivec4_t d, ivec4_t v)
-{
-   const __m128i *sptr = (__m128i *)v;
-   __m128i *dptr = (__m128i*)d;
-
-   _mm_store_si128(dptr, _mm_load_si128(sptr));
-}
-
-FN_PREALIGN void
-_ivec4Add_sse2(ivec4_t d, ivec4_t v)
-{
-   const __m128i *sptr = (__m128i *)v;
-   __m128i *dptr = (__m128i*)d;
-   __m128i xmm1, xmm2;
-
-   
-   xmm1 = _mm_load_si128(dptr);
-   xmm2 = _mm_load_si128(sptr);
-   _mm_store_si128(dptr, _mm_add_epi32(xmm1, xmm2));
-}
-
-FN_PREALIGN void
-_ivec4Sub_sse2(ivec4_t d, ivec4_t v)
-{
-   const __m128i *sptr = (__m128i *)v;
-   __m128i *dptr = (__m128i*)d;
-   __m128i xmm1, xmm2;
-
-   xmm1 = _mm_load_si128(dptr);
-   xmm2 = _mm_load_si128(sptr);
-   _mm_store_si128(dptr, _mm_sub_epi32(xmm1, xmm2));
-}
-
-FN_PREALIGN void
-_ivec4Devide_sse2(ivec4_t d, float s)
-{
-   if (s)
-   {
-      __m128i *dptr = (__m128i *)d;
-      __m128 xmm1, xmm2;
-
-      xmm1 = _mm_cvtepi32_ps(_mm_load_si128(dptr));
-      xmm2 = _mm_set1_ps(s);
-      _mm_store_si128(dptr, _mm_cvtps_epi32(_mm_div_ps(xmm1, xmm2)));
-   }
-}
-
-FN_PREALIGN void
-_ivec4Mulivec4_sse2(ivec4_t d, const ivec4_t v1, const ivec4_t v2)
-{
-   const __m128i *sptr1 = (__m128i *)v1;
-   const __m128i *sptr2 = (__m128i *)v2;
-   __m128i *dptr = (__m128i *)d;
-   __m128 xmm1, xmm2;
-
-   xmm1 = _mm_cvtepi32_ps(_mm_load_si128(sptr1));
-   xmm2 = _mm_cvtepi32_ps(_mm_load_si128(sptr2));
-   _mm_store_si128(dptr, _mm_cvtps_epi32(_mm_mul_ps(xmm1, xmm2)));
-}
-
 void
 _batch_cvt24_ps_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 {

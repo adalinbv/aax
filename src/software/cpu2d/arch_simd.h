@@ -142,6 +142,10 @@ void _batch_mul_value_sse3(void*, unsigned, unsigned int, float);
 /* AVX */
 void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
 void _batch_fma4_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
+void _aaxBufResampleCubic_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _aaxBufResampleLinear_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _aaxBufResampleNearest_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _aaxBufResampleSkip_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 
 
 /* NEON */

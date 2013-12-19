@@ -1,3 +1,13 @@
+* Wed Dec 18 2013 - tech@adalin.org
+- AeonWave (2.3.4) stable; urgency=medium
+ * Fix a problem where distance delayed objects that where registered at
+   the mixer or an audio-frame in non-playing mode started with the wrong 
+   position and orientation matrix causing unwated delays.
+ * Fix an incorrect header problem while streaming mp3 files.
+ * Activate AVX instructions
+
+ -- Erik Hofman <tech@adalin.org>  Wed, !8 Dec 2013 15:21:00 +0100
+
 * Mon Nov 25 2013 - tech@adalin.org
 - AeonWave (2.3.3) stable; urgency=medium
  * Fix a pronlem with files with a .wav extension that aren't.

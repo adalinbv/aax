@@ -122,8 +122,8 @@ _aax3dProps *
 _aax3dPropsCreate()
 {
    _aax3dProps *rv = NULL;
-   unsigned int size;
    char *ptr1, *ptr2;
+   size_t size;
 
    size = sizeof(_aax3dProps);
    ptr2 = (char*)size;

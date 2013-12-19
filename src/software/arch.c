@@ -228,9 +228,6 @@ _aaxDetectSSE2()
 char
 _aaxDetectSSE3()
 {
-# ifdef __x86_64__
-   static char res = 1;
-#else
    static char res = (char)-1;
    if (res == (char)-1)
    {
@@ -239,16 +236,12 @@ _aaxDetectSSE3()
          res += check_cpuid_ecx(CPUID_FEAT_ECX_SSSE3);
       }
    }
-#endif
    return res;
 }
 
 char
 _aaxDetectSSE4()
 {
-# ifdef __x86_64__
-   static char res = CPUID_FEAT_ECX_SSE4_2;
-#else
    static char res = -1;
    if (res == (char)-1)
    {
@@ -264,7 +257,6 @@ _aaxDetectSSE4()
       ret = check_cpuid_ecx(CPUID_FEAT_ECX_SSE4_2);
       if (ret) res = AAX_SSE42;
    }
-#endif
    return res;
 }
 
@@ -355,10 +347,6 @@ _aaxGetSIMDSupportString()
       pt4Matrix4 = _pt4Matrix4_neon;
 
       mtx4Mul = _mtx4Mul_neon;
-      ivec4Add = _ivec4Add_neon;
-      ivec4Sub = _ivec4Sub_neon;
-      ivec4Devide = _ivec4Devide_neon;
-      ivec4Mulivec4 = _ivec4Mulivec4_neon;
 
       _batch_fmadd = _batch_fmadd_neon;
       _batch_cvt24_16 = _batch_cvt24_16_neon;
@@ -390,11 +378,6 @@ _aaxGetSIMDSupportString()
       }
       if (level >= AAX_SSE2)
       {
-         ivec4Add = _ivec4Add_sse2;
-         ivec4Devide = _ivec4Devide_sse2;
-         ivec4Mulivec4 = _ivec4Mulivec4_sse2;
-         ivec4Sub = _ivec4Sub_sse2;
-
 //       _aax_memcpy = _aax_memcpy_sse2;
          _batch_fmadd = _batch_fmadd_sse2;
          _batch_cvt24_16 = _batch_cvt24_16_sse2;
@@ -431,6 +414,10 @@ _aaxGetSIMDSupportString()
          } else if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
             _batch_fmadd = _batch_fma4_avx;
          }
+         _aaxBufResampleSkip = _aaxBufResampleSkip_avx;
+         _aaxBufResampleNearest = _aaxBufResampleNearest_avx;
+         _aaxBufResampleLinear = _aaxBufResampleLinear_avx;
+         _aaxBufResampleCubic = _aaxBufResampleCubic_avx;
       }
 # endif
 #endif

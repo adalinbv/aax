@@ -70,12 +70,6 @@ void _vec4Matrix4_sse(vec4 d, const vec4 v, mtx4 m);
 void _pt4Matrix4_sse(vec4 d, const vec4 p, mtx4 m);
 void _mtx4Mul_sse(mtx4 d, mtx4 m1, mtx4 m2);
 
-/* SSE2*/
-void _ivec4Add_sse2(ivec4 d, ivec4 v);
-void _ivec4Devide_sse2(ivec4 d, float s);
-void _ivec4Mulivec4_sse2(ivec4 r, const ivec4 v1, const ivec4 v2);
-void _ivec4Sub_sse2(ivec4 d, ivec4 v);
-
 /* SSE3 */
 void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
 void _pt4Matrix4_sse3(vec4 d, const vec4 p, mtx4 m);
@@ -96,10 +90,6 @@ void _vec4Sub_neon(vec4 d, const vec4 v);
 void _vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m);
 void _pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m);
 void _mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2);
-void _ivec4Add_neon(ivec4 d, ivec4 v);
-void _ivec4Devide_neon(ivec4 d, float s);
-void _ivec4Mulivec4_neon(ivec4 r, const ivec4 v1, const ivec4 v2);
-void _ivec4Sub_neon(ivec4 d, ivec4 v);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

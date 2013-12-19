@@ -86,60 +86,6 @@ _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2)
    vst1q_f32(dst, nfr1);
 }
 
-void
-_ivec4Copy_neon(ivec4 d, ivec4 v)
-{
-   int32x4_t nfr1 = vld1q_s32(v);
-   vst1q_s32(d, nfr1);
-}
-
-void
-_ivec4Add_neon(ivec4 d, ivec4 v)
-{
-   int32x4_t nfr1 = vld1q_s32(d);
-   int32x4_t nfr2 = vld1q_s32(v);
-
-   nfr1 = vaddq_s32(nfr1, nfr2);
-   vst1q_s32(d, nfr1);
-}
-
-void
-_ivec4Sub_neon(ivec4 d, ivec4 v)
-{
-   int32x4_t nfr1 = vld1q_s32(d);
-   int32x4_t nfr2 = vld1q_s32(v);
-
-   nfr1 = vsubq_s32(nfr1, nfr2);
-   vst1q_s32(d, nfr1);
-}
-
-void
-_ivec4Devide_neon(ivec4 d, float s)
-{
-   if (s)
-   {
-      int32x4_t vi = vld1q_s32(d);
-      float32x4_t num = vcvtq_f32_s32(vi);
-      float32x4_t den = vdupq_n_f32(s);
-      float32x4_t q_inv0 = vrecpeq_f32(den);
-      float32x4_t q_step0 = vrecpsq_f32(q_inv0, den);
-      float32x4_t q_inv1 = vmulq_f32(q_step0, q_inv0);
-
-      vi = vcvtq_s32_f32(vmulq_f32(num, q_inv1));
-      vst1q_s32(d, vi);
-   }
-}
-
-void
-_ivec4Mulivec4_neon(ivec4 d, const ivec4 v1, const ivec4 v2)
-{
-   int32x4_t nfr1 = vld1q_s32(v1);
-   int32x4_t nfr2 = vld1q_s32(v2);
-
-   nfr1 = vmulq_s32(nfr1, nfr2);
-   vst1q_s32(d, nfr1);
-}
-
 inline void
 __vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
 {

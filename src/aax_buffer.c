@@ -1250,7 +1250,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
       }
       else
       {
-         unsigned int scratch_size;
+         size_t scratch_size;
          int32_t **scratch;
          char *sptr;
 
