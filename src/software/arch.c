@@ -305,9 +305,9 @@ _aaxGetSSELevel()
          }
 
          // TODO: untested!
-//       if (_aaxDetectAVX()) {
-//          sse_level = AAX_AVX;
-//       }
+         if (_aaxDetectAVX()) {
+            sse_level = AAX_AVX;
+         }
       }
    }
 

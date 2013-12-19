@@ -4,6 +4,7 @@
    the mixer or an audio-frame in non-playing mode started with the wrong 
    position and orientation matrix causing unwated delays.
  * Fix an incorrect header problem while streaming mp3 files.
+ * Fix a stupid error where AeonWave-Lite didn't start correctly.
  * Activate AVX instructions
 
  -- Erik Hofman <tech@adalin.org>  Wed, !8 Dec 2013 15:21:00 +0100
