@@ -406,9 +406,9 @@ SET( AEONWAVE_OBJS
 IF(SIZEOF_SIZE_T EQUAL 8)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
      src/software/cpu2d/arch_avx.c
+     src/software/cpu2d/arch_fma3.c
+     src/software/cpu2d/arch_fma4.c
   )
-#     src/software/cpu2d/arch_fma4.c
-#    src/software/cpu2d/arch_fma3.c
 ENDIF(SIZEOF_SIZE_T EQUAL 8)
 
 IF(HAVE_WINDOWS_H)
