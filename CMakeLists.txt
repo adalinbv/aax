@@ -237,7 +237,7 @@ ELSE(MSVC)
                    PROPERTY COMPILE_FLAGS "-mfma -mfpmath=sse -march=corei7-avx"
       )
       SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -march=corei7-avx"
+                   PROPERTY COMPILE_FLAGS "-mfma4 -mfpmath=sse -march=corei7-avx"
       )
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")

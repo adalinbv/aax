@@ -31,7 +31,7 @@ _batch_fma3_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
    unsigned int i, size, step;
    long dtmp, stmp;
 
-
+printf("%s\n", __FUNCTION__);
    dtmp = (long)dptr & 0xF;
    stmp = (long)sptr & 0xF;
    if ((dtmp || stmp) && dtmp != stmp)
@@ -66,7 +66,7 @@ _batch_fma3_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
    i = size = num/step;
    if (i)
    {
-      __m256i ymm0i, ymm3i, ymm4i, ymm7i;
+      __m256i ymm0i, ymm4i;
       __m256 ymm1, ymm2, ymm5, ymm6;
 
       do
@@ -88,7 +88,7 @@ _batch_fma3_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
          ymm6 = _mm256_fmadd_ps(ymm6, ymm5, tv);
 
          ymm0i = _mm256_cvtps_epi32(ymm2);
-         ymm4i = _mm256_cvtps_epi32(ymm6)
+         ymm4i = _mm256_cvtps_epi32(ymm6);
 
          _mm256_store_si256(dptr, ymm0i);
          _mm256_store_si256(dptr+1, ymm4i);

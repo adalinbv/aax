@@ -16,7 +16,7 @@
 #include "software/ringbuffer.h"
 #include "arch_simd.h"
 
-#ifdef __XOP__
+#ifdef __FMA4__
 
 # define CACHE_ADVANCE_FMADD	 (2*16)
 # define CACHE_ADVANCE_FF	 (2*32)
@@ -31,7 +31,7 @@ _batch_fma4_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
    unsigned int i, size, step;
    long dtmp, stmp;
 
-
+printf("%s\n", __FUNCTION__);
    dtmp = (long)dptr & 0xF;
    stmp = (long)sptr & 0xF;
    if ((dtmp || stmp) && dtmp != stmp)
@@ -66,7 +66,7 @@ _batch_fma4_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
    i = size = num/step;
    if (i)
    {
-      __m256i ymm0i, ymm3i, ymm4i, ymm7i;
+      __m256i ymm0i, ymm4i;
       __m256 ymm1, ymm2, ymm5, ymm6;
 
       do
@@ -84,11 +84,11 @@ _batch_fma4_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
 
          v += vstep;
 
-         ymm2 = _mm256_fmacc_ps(ymm2, ymm1, tv);
-         ymm6 = _mm256_fmacc_ps(ymm6, ymm5, tv);
+         ymm2 = _mm256_macc_ps(ymm2, ymm1, tv);
+         ymm6 = _mm256_macc_ps(ymm6, ymm5, tv);
 
          ymm0i = _mm256_cvtps_epi32(ymm2);
-         ymm4i = _mm256_cvtps_epi32(ymm6)
+         ymm4i = _mm256_cvtps_epi32(ymm6);
 
          _mm256_store_si256(dptr, ymm0i);
          _mm256_store_si256(dptr+1, ymm4i);
@@ -111,5 +111,5 @@ _batch_fma4_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, flo
    }
 }
 
-#endif /* __XOP__ */
+#endif /* __FMA4__ */
 

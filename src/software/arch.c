@@ -92,7 +92,7 @@ enum {
 # define __x86_64__
 #endif
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(__x86_64__)
 static char check_cpuid_ecx(unsigned int);
 static char check_cpuid_edx(unsigned int);
 static char check_extcpuid_ecx(unsigned int);
@@ -304,7 +304,6 @@ _aaxGetSSELevel()
             sse_level = MAX_SSE_LEVEL-1;
          }
 
-         // TODO: untested!
          if (_aaxDetectAVX()) {
             sse_level = AAX_AVX;
          }
@@ -394,7 +393,8 @@ _aaxGetSIMDSupportString()
          pt4Matrix4 = _pt4Matrix4_sse3;
          _batch_mul_value = _batch_mul_value_sse3;
       }
-#if 0
+
+#ifdef __SSE4__
       if (level >= AAX_SSE41)
       {
          vec3Magnitude = _vec3Magnitude_sse4;
@@ -407,11 +407,19 @@ _aaxGetSIMDSupportString()
 # if SIZEOF_SIZE_T == 8
       if (level >= AAX_AVX)
       {
-//       if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-//          _batch_fmadd = _batch_fma3_avx;
-//       } else if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-//          _batch_fmadd = _batch_fma4_avx;
-//       }
+#if 0
+         /* Prefer FMA3 over FMA4 so detect FMA4 first */
+#ifdef __FMA4__
+         if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+            _batch_fmadd = _batch_fma4_avx;
+         }
+#endif
+#ifdef __FMA__
+         if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+            _batch_fmadd = _batch_fma3_avx;
+         }
+#endif
+#endif
          _aaxBufResampleSkip = _aaxBufResampleSkip_avx;
          _aaxBufResampleNearest = _aaxBufResampleNearest_avx;
          _aaxBufResampleLinear = _aaxBufResampleLinear_avx;
@@ -435,20 +443,17 @@ _aaxGetSIMDSupportString()
            "xchgl\t%%ebx, %1\n\t"			\
            : "=a" (regs[0]), "=r" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
            : "0" (level))
-#elif defined(__i386__) || defined(__x86_64__)
 
-# ifndef _MSC_VER
-#  define __cpuid(regs, level)				\
+#elif defined(__i386__) || defined(__x86_64__) && !defined(_MSC_VER)
+# define __cpuid(regs, level)				\
       ASM ("cpuid\n\t"					\
            : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
            : "0" (level))
-# endif
 #else
 #  define __cpuid(regs, level)
 #endif
 
-#if defined(__i386__)
-# ifndef _MSC_VER
+#if defined(__i386__) && !defined(_MSC_VER)
 static char
 detect_cpuid()
 {
@@ -457,6 +462,7 @@ detect_cpuid()
    if (res == -1)
    {
       int reg1, reg2;
+
 
      ASM ("pushfl; pushfl; popl %0; movl %0,%1; xorl %2,%0;"
           "pushl %0; popfl; pushfl; popl %0; popfl"
@@ -473,6 +479,7 @@ detect_cpuid()
 #define detect_cpuid()	1
 #endif
 
+#if defined(__i386__) || defined(__x86_64__)
 enum {
   EAX=0, EBX, ECX, EDX
 };
@@ -706,7 +713,7 @@ _aaxGetNoCores()
 # endif
 #endif
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(__x86_64__)
    do
    {
       int hyper_threading = check_cpuid_edx(CPUID_FEAT_EDX_MMX);

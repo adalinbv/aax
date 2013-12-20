@@ -54,6 +54,7 @@ extern "C" {
 #endif
 
 #include <immintrin.h>
+#include <x86intrin.h>
 
 #include "base/types.h"
 #include "base/geometry.h"
@@ -146,13 +147,13 @@ void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, int, unsigned int, 
 void _batch_mul_value_sse3(void*, unsigned, unsigned int, float);
 
 /* AVX */
-void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
-void _batch_fma4_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
 void _aaxBufResampleCubic_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleLinear_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleNearest_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleSkip_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 
+void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
+void _batch_fma4_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
 
 /* NEON */
 void _batch_fmadd_neon(int32_t*, const_int32_ptr, unsigned int, float, float);
