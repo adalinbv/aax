@@ -1683,12 +1683,13 @@ _alsa_error_handler(const char *file, int line, const char *function, int err,
    va_list ap;
 
 #ifndef NDEBUG
-   snprintf((char *)&s, 1024, "%s at line %i in function %s:", file, line, function);
+   snprintf(s, 1024, "%s at line %i in function %s:", file, line, function);
    _AAX_LOG(LOG_ERR, s);
 #endif
 
    va_start(ap, fmt);
-   snprintf((char *)&s, 1024, fmt, va_arg(ap, char *));
+// snprintf(s, 1024, fmt, va_arg(ap, char *));
+   vsnprintf(s, 1024, fmt, ap);
    va_end(ap);
 
    _AAX_DRVLOG(s);
