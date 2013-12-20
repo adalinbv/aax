@@ -77,7 +77,7 @@ typedef struct
 #define HANDLE_ID	0xFF2701E0
 
 #define VALID_HANDLE(h)		(h && (h->valid & ~AAX_TRUE) == HANDLE_ID)
-#define VALID_MIXER(h)		(h && (h->valid & AAX_TRUE))
+#define VALID_MIXER(h)		(VALID_HANDLE(h) && (h->valid & AAX_TRUE))
 
 extern _aaxMixerInfo* _info;
 

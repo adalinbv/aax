@@ -656,7 +656,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
-   if (handle && VALID_HANDLE(handle))
+   if (handle && VALID_MIXER(handle))
    {
       _handle_t* sframe = get_read_handle(s);
       if (sframe && !sframe->thread.started && (sframe != handle))
@@ -1313,7 +1313,7 @@ _aaxMixerStart(_handle_t *handle)
 {
    int rv = AAX_FALSE;
 
-   if (VALID_MIXER(handle) && TEST_FOR_FALSE(handle->thread.started)
+   if (handle && TEST_FOR_FALSE(handle->thread.started)
        && !handle->handle)
    {
       unsigned int ms;
