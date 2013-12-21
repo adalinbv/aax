@@ -184,9 +184,28 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
                  !detect_nan_vec4(mtx[2]) && !detect_nan_vec4(mtx[3]))
       {
          _aaxAudioFrame* fmixer = handle->submix;
+         _handle_t *parent = handle->handle;
+
+         if (parent && parent->id == HANDLE_ID)
+         {
+            const _intBufferData* dptr;
+            dptr = _intBufGet(parent->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
+                        sensor->mixer->props3d->m_dprops3d->matrix);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
+         }
+         else if (parent && parent->id == AUDIOFRAME_ID)
+         {
+            _frame_t *parent = (_frame_t*)handle->handle;
+            mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
+                     parent->submix->props3d->m_dprops3d->matrix);
+         }
 
          mtx4Copy(fmixer->props3d->dprops3d->matrix, mtx);
-         mtx4Copy(fmixer->props3d->m_dprops3d->matrix, mtx);
          if (_IS_RELATIVE(handle))
          {
             fmixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
