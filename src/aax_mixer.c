@@ -34,6 +34,7 @@
 #include <base/timer.h>		/* for msecSleep, etc */
 
 #include "api.h"
+#include "devices.h"
 #include "stream/file.h"
 #include "software/arch.h"
 #include "software/ringbuffer.h"
@@ -1297,6 +1298,7 @@ _aaxMixerInit(_handle_t *handle)
             float cur;
 
             cur = be->param(handle->backend.handle, DRIVER_VOLUME);
+            if (cur < 0.05f) cur = 1.0f;
             _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
