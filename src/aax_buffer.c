@@ -27,6 +27,7 @@
 #include <xml.h>
 
 #include "api.h"
+#include "devices.h"
 #include "software/arch.h"
 #include "software/audio.h"
 
@@ -57,17 +58,15 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
          _aaxRingBuffer *rb = _aaxRingBufferCreate(0.0f, mode);
          if (rb)
          {
-            _aaxCodec** codecs;
+            _aaxCodec** codecs = NULL;
             int blocksize;
 
             if (handle) {
                codecs = handle->backend.ptr->codecs;
-            } else {
-               codecs = _aaxRingBufferCodecs;
             }
 
             /* initialize the ringbuffer in native format only */
-            rb->set_format(rb, buf->codecs, native_fmt);
+            rb->set_format(rb, codecs, native_fmt);
             rb->set_parami(rb, RB_NO_SAMPLES, samples);
             rb->set_parami(rb, RB_NO_TRACKS, channels);
             /* Postpone until aaxBufferSetData gets called
@@ -95,7 +94,6 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned channels,
 
             buf->ringbuffer = rb;
             buf->info = VALID_HANDLE(handle) ? handle->info : NULL;
-            buf->codecs = codecs;
 
             rv = (aaxBuffer)buf;
          }
@@ -315,16 +313,17 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       {
          unsigned blocksize =  buf->blocksize;
          unsigned int format = buf->format;
-         void *data = (void*)d, *m = NULL;
+         void *data = (void*)d, *ptr = NULL;
          unsigned int native_fmt;
-         char fmt_bps;
+         char fmt_bps, *m = 0;
 
 				/* do we need to convert to native format? */
          native_fmt = format & AAX_FORMAT_NATIVE;
          if (format & ~AAX_FORMAT_NATIVE)
          {
             fmt_bps = _aaxFormatsBPS[native_fmt];
-            m = malloc(buf_samples*fmt_bps);
+
+            ptr = (void**)_aax_malloc(&m, buf_samples*fmt_bps);
             if (!m)
             {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -375,10 +374,10 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                   break;
                }
             }
-          }
+         }
          _bufFillInterleaved(rb, data, blocksize, 0);
          rv = AAX_TRUE;
-         free(m);
+         _aax_free(ptr);
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -662,6 +661,10 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       rv = _aaxFileDriverWrite(file, type, data, samples, freq, tracks, format);
 #else
       void **data = aaxBufferGetData(buffer);
+      _buffer_t *buf = (_buffer_t*)buffer;
+
+      format = buf->format;
+      freq = buf->frequency;
       _aaxFileDriverWrite(file, type, *data, samples, freq, tracks, format);
       free(data);
       rv = AAX_TRUE;
