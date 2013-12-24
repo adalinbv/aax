@@ -17,7 +17,7 @@
 
 
 #include "software/ringbuffer.h"
-#include "arch_simd.h"
+#include "arch2d_simd.h"
 
 #ifdef __SSE2__
 
@@ -33,6 +33,7 @@
 void
 _batch_cvt24_ps_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 {
+printf("_batch_cvt24_ps_sse2\n");
    if (num)
    {
       static const float mul = (float)(1<<24);
@@ -46,22 +47,24 @@ _batch_cvt24_ps_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_pd_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvtps_24_sse2(void_ptr dst, const_void_ptr sptr, unsigned int num)
 {
+printf("_batch_cvtps_24_sse2\n");
    if (num)
    {
-      static const double mul = (double)(1<<24);
-      int32_t *d = (int32_t*)dptr;
-      double* s = (double*)sptr;
+      static const float mul = 1.0f/(float)(1<<23);
+      int32_t* s = (int32_t*)sptr;
+      float* d = (float*)dst;
       unsigned int i = num;
+
       do {
-         *d++ = (int32_t)(*s++ * mul);
+         *d++ = (float)*s++ * mul;
       } while (--i);
    }
 }
 
 FN_PREALIGN void
-_batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, float vstep)
+_batch_imadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, float vstep)
 {
    __m128i *sptr = (__m128i *)src;
    __m128i *dptr = (__m128i*)d;
@@ -150,6 +153,86 @@ _batch_fmadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
       } while(--i);
    }
 }
+
+FN_PREALIGN void
+_batch_fmadd_sse2(float32_ptr d, const_float32_ptr src, unsigned int num, float v, float vstep)
+{
+   __m128 tv = _mm_set1_ps(v);
+   float32_ptr s = (float32_ptr)src;
+   unsigned int i, size, step;
+   long dtmp, stmp;
+
+   if (!num) return;
+
+   dtmp = (long)d & 0xF;
+   stmp = (long)s & 0xF;
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      i = num;				/* improperly aligned,            */
+      do				/* let the compiler figure it out */
+      {
+         *d++ += *s++ * v;
+         v += vstep;
+      }
+      while (--i);
+      return;
+   }
+
+   step = 2*sizeof(__m128)/sizeof(float);
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+   i = num/step;
+   if (dtmp && i)
+   {
+      i = (0x10 - dtmp)/sizeof(int32_t);
+      num -= i;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      } while(--i);
+   }
+
+   vstep *= step;				/* 8 samples at a time */
+   i = size = num/step;
+   if (i)
+   {
+      __m128 xmm0, xmm1, xmm2, xmm3; // xmm4, xmm5, xmm6, xmm7;
+
+      do
+      {
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+
+         xmm0 = _mm_load_ps(s);
+         xmm1 = _mm_load_ps(s+4);
+
+         xmm2 = _mm_load_ps(d);
+         xmm3 = _mm_load_ps(d+4);
+
+         s += step;
+         v += vstep;
+
+         xmm2 = _mm_add_ps(xmm2, _mm_mul_ps(xmm0, tv));
+         xmm3 = _mm_add_ps(xmm3, _mm_mul_ps(xmm1, tv));
+
+         _mm_store_ps(d, xmm2);
+         _mm_store_ps(d+4, xmm3);
+         d += step;
+
+         tv = _mm_set1_ps(v);
+      }
+      while(--i);
+   }
+
+   i = num - size*step;
+   if (i) {
+      vstep /= step;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      } while(--i);
+   }
+}
+
 
 FN_PREALIGN void
 _batch_cvt24_16_sse2(void_ptr dbuf, const_void_ptr sbuf, unsigned int num)

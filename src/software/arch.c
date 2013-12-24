@@ -33,8 +33,8 @@
 
 #include "arch.h"
 #include "ringbuffer.h"
-#include "cpu2d/arch_simd.h"
-#include "cpu3d/arch_simd.h"
+#include "cpu/arch2d_simd.h"
+#include "cpu/arch3d_simd.h"
 
 
 enum cpuid_requests {
@@ -151,8 +151,10 @@ _batch_cvt_to_intl_proc _batch_cvt32_intl_24 = _batch_cvt32_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvtps_intl_24 = _batch_cvtps_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_cpu;
 
-_batch_mul_value_proc _batch_mul_value = _batch_mul_value_cpu;
+_batch_imadd_proc _batch_imadd = _batch_imadd_cpu;
 _batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
+_batch_mul_value_proc _batch_imul_value = _batch_imul_value_cpu;
+_batch_mul_value_proc _batch_fmul_value = _batch_fmul_value_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
 _batch_resample_proc _aaxBufResampleCubic = _aaxBufResampleCubic_cpu;
 _batch_resample_proc _aaxBufResampleLinear = _aaxBufResampleLinear_cpu;
@@ -345,6 +347,7 @@ _aaxGetSIMDSupportString()
 
       mtx4Mul = _mtx4Mul_neon;
 
+      _batch_imadd = _batch_imadd_neon;
       _batch_fmadd = _batch_fmadd_neon;
       _batch_cvt24_16 = _batch_cvt24_16_neon;
       _batch_cvt16_24 = _batch_cvt16_24_neon;
@@ -376,7 +379,10 @@ _aaxGetSIMDSupportString()
       if (level >= AAX_SSE2)
       {
 //       _aax_memcpy = _aax_memcpy_sse2;
+         _batch_imadd = _batch_imadd_sse2;
          _batch_fmadd = _batch_fmadd_sse2;
+         _batch_cvtps_24 = _batch_cvtps_24_sse2;
+         _batch_cvt24_ps = _batch_cvt24_ps_sse2;
          _batch_cvt24_16 = _batch_cvt24_16_sse2;
          _batch_cvt16_24 = _batch_cvt16_24_sse2;
          _batch_freqfilter = _batch_freqfilter_sse2;
@@ -391,7 +397,8 @@ _aaxGetSIMDSupportString()
       {
          vec4Matrix4 = _vec4Matrix4_sse3;
          pt4Matrix4 = _pt4Matrix4_sse3;
-         _batch_mul_value = _batch_mul_value_sse3;
+         _batch_imul_value = _batch_imul_value_sse3;
+         _batch_fmul_value = _batch_fmul_value_sse3;
       }
 
 #ifdef __SSE4__

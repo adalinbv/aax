@@ -15,7 +15,7 @@
 
 #include <api.h>
 
-#include "arch_simd.h"
+#include "arch3d_simd.h"
 
 #ifdef __SSE__
 

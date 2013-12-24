@@ -24,8 +24,9 @@
 #include <base/threads.h>
 #include <api.h>
 
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include "arch.h"
+#include "ringbuffer.h"
+#include "cpu/ringbuffer.h"
 
 
 void
@@ -40,7 +41,6 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    int bps, dist_state;
 
    assert(rb != 0);
-   assert(rb->id->sample != 0);
 
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
    assert(bps == sizeof(int32_t));
@@ -121,20 +121,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _sensor_t *sensor = (_sensor_t*)s;
    _aaxRingBufferReverbData *reverb;
    unsigned int track, no_tracks;
-   unsigned int peak, maxpeak;
-   unsigned int rms, maxrms;
    char parametric, graphic;
    const int32_t **tracks;
-   float dt, rms_rr, avg;
    void *ptr = 0;
    char *p;
 
    assert(rb != 0);
 
-   assert(rb->id->sample != 0);
-
-   dt = GMATH_E1 * rb->get_paramf(rb, RB_DURATION_SEC);
-   rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);	// 300 ms average
+// dt = GMATH_E1 * rb->get_paramf(rb, RB_DURATION_SEC);
 
    reverb = 0;
    parametric = graphic = 0;
@@ -158,8 +152,11 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       }
    }
 
+   if (ptr && reverb) {
+      rb->compress(rb, RB_COMPRESS_ELECTRONIC);
+   }
+
    /* set up this way because we always need to apply compression */
-   maxrms = maxpeak = 0;
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    tracks = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
    for (track=0; track<no_tracks; track++)
@@ -175,9 +172,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int32_t *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
-         rms = 0;
-         peak = dmax;
-         _aaxProcessCompression(d1, &rms, &peak);
          bufEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
          bufEffectReverb(d1, 0, dmax, ds, track, reverb);
       }
@@ -194,7 +188,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
          bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
-         _batch_fmadd(d1, d2, dmax, 1.0, 0.0);
       }
       else if (ptr && graphic)
       {
@@ -215,43 +208,30 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
             if (filter->lf_gain || filter->hf_gain)
             {
                bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
-               _batch_fmadd(d1, d2, no_samples, 1.0f, 0.0f);
+               _batch_imadd(d1, d2, no_samples, 1.0f, 0.0f);
             }
 
             filter = &eq->band[b--];
             if (filter->lf_gain || filter->hf_gain) 
             {
                bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
-               _batch_fmadd(d1, d2, no_samples, 1.0f, 0.0f);
+               _batch_imadd(d1, d2, no_samples, 1.0f, 0.0f);
             }
 
             filter = &eq->band[b--];
             if (filter->lf_gain || filter->hf_gain) 
             {
                bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
-               _batch_fmadd(d1, d2, no_samples, 1.0f, 0.0f);
+               _batch_imadd(d1, d2, no_samples, 1.0f, 0.0f);
             }
          }
          while (b > 0);
       }
-
-      rms = 0;
-      peak = dmax;
-      _aaxProcessCompression(d1, &rms, &peak);
-
-      avg = rb->get_paramf(rb, RB_AVERAGE_VALUE+track);
-      avg = (rms_rr*avg + (1.0f-rms_rr)*rms);
-      rb->set_paramf(rb, RB_AVERAGE_VALUE+track, avg);
-      rb->set_paramf(rb, RB_PEAK_VALUE+track, peak);
-
-      if (maxrms < rms) maxrms = rms;
-      if (maxpeak < peak) maxpeak = peak;
    }
    rb->release_tracks_ptr(rb);
    free(ptr);
 
-   rb->set_paramf(rb, RB_AVERAGE_VALUE_MAX, maxrms);
-   rb->set_paramf(rb, RB_PEAK_VALUE_MAX, maxpeak);
+   rb->compress(rb, RB_COMPRESS_ELECTRONIC);
 }
 
 void*

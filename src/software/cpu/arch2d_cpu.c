@@ -15,10 +15,10 @@
 
 #include <math.h>	/* rinft */
 
-#include "arch_simd.h"
+#include "arch2d_simd.h"
 
 void
-_batch_fmadd_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int num, float f, float fstep)
+_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int num, float f, float fstep)
 {
    if (num)
    {
@@ -35,7 +35,24 @@ _batch_fmadd_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int num, float f
 }
 
 void
-_batch_mul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
+_batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int num, float v, float vstep)
+{
+   if (num)
+   {
+      float *s = (float*)sptr;
+      float *d = dptr;
+      unsigned int i = num;
+
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_imul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
 {
    unsigned int i = num;
    if (num)
@@ -63,6 +80,38 @@ _batch_mul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
       case 4:
       {
          int32_t* d = (int32_t*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+      }
+      default:
+         break;
+      }
+   }
+}
+
+void
+_batch_fmul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
+{
+   unsigned int i = num;
+   if (num)
+   {
+      switch (bps)
+      {
+      case 4:
+      {
+         float *d = (float*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+      }
+      case 8:
+      {
+         double *d = (double*)data;
          do {
             *d++ *= f;
          }

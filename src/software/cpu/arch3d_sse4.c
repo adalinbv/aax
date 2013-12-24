@@ -13,7 +13,7 @@
 #include "config.h"
 #endif
 
-#include "arch_simd.h"
+#include "arch3d_simd.h"
 
 #ifdef __SSE4__
 

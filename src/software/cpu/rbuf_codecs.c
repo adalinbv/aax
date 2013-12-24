@@ -26,7 +26,7 @@
 #include "software/ringbuffer.h"
 #include "software/arch.h"
 #include "software/audio.h"
-#include "arch_simd.h"
+#include "arch2d_simd.h"
 
 static _aaxCodec _sw_bufcpy_8s;
 static _aaxCodec _sw_bufcpy_16s;

@@ -35,8 +35,9 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "arch_simd.h"
 #include "software/ringbuffer.h"
+#include "arch2d_simd.h"
+#include "ringbuffer.h"
 
 /**
  * Mix a single track source buffer into a multi track destination buffer.
@@ -106,7 +107,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffer
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** Resample */
-   offs = (drb->mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
+   offs = (drbi->mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
    sptr = _aaxProcessMixer(drbi, srbi, ep2d, pitch, &offs, &dno_samples, ctr, nbuf);
    if (sptr == NULL || dno_samples == 0)
    {
@@ -187,7 +188,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffer
    }
 
    /* Mix */
-   drb->mix1n(drbi, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
+   drbi->mix1n(drb, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
 
    return ret;
 }
@@ -195,14 +196,16 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffer
 /* -------------------------------------------------------------------------- */
 
 void
-_aaxRingBufferMixMono16Stereo(_aaxRingBufferData *drbi, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
+   _aaxRingBufferData *drbi;
    _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
+   drbi = drb->id;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -230,21 +233,27 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferData *drbi, const int32_ptrptr sptr,
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+#if RB_FLOAT_DATA
       _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+#else
+      _batch_imadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+#endif
 
       ep2d->prev_gain[t] = gain;
    }
 }
 
 void
-_aaxRingBufferMixMono16Surround(_aaxRingBufferData *drbi, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
+   _aaxRingBufferData *drbi;
    _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
+   drbi = drb->id;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -267,7 +276,11 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferData *drbi, const int32_ptrptr spt
       vstep = (vend - vstart) / dno_samples;
 
       hrtf_volume[DIR_RIGHT] = dir_fact*vend;
+#if RB_FLOAT_DATA
       _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+#else
+      _batch_imadd(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+#endif
 
       ep2d->prev_gain[t] = vend;
 
@@ -296,19 +309,25 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferData *drbi, const int32_ptrptr spt
          v_step = 0.0f; // vstep * hrtf_volume[j];
 
 //       DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+#if RB_FLOAT_DATA
          _batch_fmadd(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
+#else
+         _batch_imadd(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
+#endif
       }
    }
 }
 
 void
-_aaxRingBufferMixMono16Spatial(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBuffer *drb, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
+   _aaxRingBufferData *drbi;
    _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
    /** Mix */
+   drbi = drb->id;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -322,7 +341,11 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRin
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+#if RB_FLOAT_DATA
       _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+#else
+      _batch_imadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+#endif
 
       ep2d->prev_gain[t] = gain;
    }
@@ -335,13 +358,15 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRin
 #define IDT_UD_OFFSET	p2d->head[3]
 
 void
-_aaxRingBufferMixMono16HRTF(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBuffer *drb, int32_t **sptr, _aaxRingBuffer2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
+   _aaxRingBufferData *drbi;
    _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   drbi = drb->id;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -403,7 +428,11 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferData *drbi, int32_t **sptr, _aaxRingBu
          v_step = 0.0f; // vstep * hrtf_volume[j];
 
 //       DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+#if RB_FLOAT_DATA
          _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
+#else
+         _batch_imadd(dptr, ptr-diff, dno_samples, v_start, v_step);
+#endif
       }
    }
 }

@@ -21,6 +21,7 @@
 #include <base/buffers.h>
 
 #include <objects.h>
+#include <devices.h>
 #include <api.h>
 
 #include "arch.h"

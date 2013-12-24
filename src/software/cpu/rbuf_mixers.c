@@ -24,10 +24,11 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "arch_simd.h"
 #include "software/ringbuffer.h"
 #include "software/arch.h"
 #include "software/audio.h"
+#include "ringbuffer.h"
+#include "arch2d_simd.h"
 
 
 /*
@@ -37,8 +38,6 @@
 #define NDEBUG 1
 
 #define CUBIC_TRESHOLD		0.25f
-
-_aaxDriverCompress _aaxProcessCompression = bufCompressElectronic;
 
 
 /**
@@ -358,37 +357,19 @@ _aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned 
    resamplefn(d, s, dmin, dmax, 0, smu, fact);
 }
 
-void
-bufCompressElectronic(void *d, unsigned int *dmin, unsigned int *dmax)
-{
-   bufCompress(d, dmin, dmax, 0.5f, 0.0f);
-}
-
-void
-bufCompressDigital(void *d, unsigned int *dmin, unsigned int *dmax)
-{
-   bufCompress(d, dmin, dmax, 0.9f, 0.0f);
-}
-
-void
-bufCompressValve(void *d, unsigned int *dmin, unsigned int *dmax)
-{
-   bufCompress(d, dmin, dmax, 0.2f, 0.9f);
-}
-
 #define BITS		11
 #define SHIFT		(31-BITS)
 #define START		((1<<SHIFT)-1)
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 #if 1
 void
-bufCompress(void *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
+bufCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
    static const float df = (float)(int32_t)0x7FFFFFFF;
    static const float rf = 1.0f/(65536.0f*12.0f);
-   int32_t *ptr = (int32_t*)d;
    float osamp, imix, mix;
    unsigned int j, max;
+   int32_t *ptr = d;
    int32_t iasym;
    float peak;
    double sum;

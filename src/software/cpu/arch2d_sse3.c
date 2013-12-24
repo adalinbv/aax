@@ -13,12 +13,12 @@
 #include "config.h"
 #endif
 
-#include "arch_simd.h"
+#include "arch2d_simd.h"
 
 #ifdef __SSE3__
 
 void
-_batch_mul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
+_batch_imul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
 {
    unsigned int i = num;
 
@@ -47,6 +47,39 @@ _batch_mul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
       case 4:
       {
          int32_t* d = (int32_t*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+      }
+      default:
+         break;
+      }
+   }
+}
+
+void
+_batch_fmul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
+{
+   unsigned int i = num;
+
+   if (num)
+   {
+      switch (bps)
+      {
+      case 4:
+      {
+         float *d = (float*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+      }
+      case 8:
+      {
+         double *d = (double*)data;
          do {
             *d++ *= f;
          }

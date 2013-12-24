@@ -19,6 +19,7 @@
 
 #include "arch.h"
 #include "ringbuffer.h"
+#include "cpu/ringbuffer.h"
 
 void
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
@@ -191,7 +192,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
     *  - The ringbuffer is singed 24-bit PCM, stereo or mono
     *  - capture functions should return the data in signed 24-bit
     */
-   assert(drb->id->sample);
    assert(delay);
 
    scratch = (int32_t**)drb->get_scratch(drb);
@@ -257,7 +257,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
 
             /* stereo downmix requested, add the tracks to track0 */
             if ((dest_track == AAX_TRACK_MIX) && track) {
-               _batch_fmadd(otptr[0], optr, frames, 1.0f, 0.0f);
+               _batch_imadd(otptr[0], optr, frames, 1.0f, 0.0f);
             }
          }
 
@@ -265,7 +265,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          if ((dest_track == AAX_TRACK_MIX) && tracks)
          {
             float fact = 1.0f/tracks;
-            _batch_mul_value(otptr[0], sizeof(int32_t), frames, fact);
+            _batch_imul_value(otptr[0], sizeof(int32_t), frames, fact);
             dest_track = 0;
          }
 

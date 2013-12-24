@@ -26,6 +26,7 @@
 
 #include "software/arch.h"
 #include "software/ringbuffer.h"
+#include "ringbuffer.h"
 
 
 /**
@@ -159,55 +160,64 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffe
       srbi->playing = 0;
    }
 
-   drb->mixmn(drbi, srbi, sptr, ep2d, offs, dno_samples, gain, svol, evol);
+   drbi->mixmn(drb, srb, sptr, ep2d, offs, dno_samples, gain, svol, evol);
 
    return ret;
 }
 
 void
-_aaxRingBufferMixStereo16(_aaxRingBufferData *drbi, const _aaxRingBufferData *srbi, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixStereo16(_aaxRingBuffer *drb, const _aaxRingBuffer *srb, const int32_ptrptr sptr, _aaxRingBuffer2dProps *ep2d, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
+   _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferLFOInfo *lfo;
-   _aaxRingBufferSample *rbd;
+   unsigned int rbd_tracks;
+   unsigned int rbs_tracks;
    unsigned int track;
+   void **tracks;
    float g;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   drbi = drb->id;
+   srbi = srb->id;
+   rbs_tracks = srbi->sample->no_tracks;
+   rbd_tracks = drbi->sample->no_tracks;
+
    /** Mix */
    g = 1.0f;
-   rbd = drbi->sample;
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo && lfo->envelope)				// envelope follow
    {
       g = 0.0f;
-      for (track=0; track<rbd->no_tracks; track++)
+      for (track=0; track<rbd_tracks; track++)
       {
-         _aaxRingBufferSample *rbs = srbi->sample;
-         unsigned int rbs_track = track % rbs->no_tracks;
+         unsigned int rbs_track = track % rbs_tracks;
          float gain;
 
          gain = 1.0f - lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
          if (lfo->inv) g = 1.0f/gain;
          g += gain;
       }
-      g /= rbd->no_tracks;
+      g /= rbd_tracks;
    }
 
-   for (track=0; track<rbd->no_tracks; track++)
+   tracks = drbi->sample->track;
+   for (track=0; track<rbd_tracks; track++)
    {
-      _aaxRingBufferSample *rbs = srbi->sample;
-      unsigned int rbs_track = track % rbs->no_tracks;
-      unsigned int rbd_track = track % rbd->no_tracks;
-      int32_t *dptr = (int32_t *)rbd->track[rbd_track]+offs;
+      unsigned int rbs_track = track % rbs_tracks;
+      unsigned int rbd_track = track % rbd_tracks;
+      int32_t *dptr = tracks[rbd_track]+offs;
       float vstart, vend, vstep;
 
       vstart = g*gain * svol * ep2d->prev_gain[track];
       vend = g*gain * evol * gain;
       vstep = (vend - vstart) / dno_samples;
 
-//    DBG_MEMCLR(!offs, rbd->track[track], rbd->no_samples, sizeof(int32_t));
+#if RB_FLOAT_DATA
       _batch_fmadd(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
+#else
+      _batch_imadd(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
+#endif
 
       ep2d->prev_gain[track] = gain;
    }

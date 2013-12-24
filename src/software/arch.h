@@ -40,8 +40,9 @@ typedef void (*_batch_cvt_to_proc)(void_ptr, const_void_ptr, unsigned int);
 typedef void (*_batch_cvt_to_intl_proc)(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
 
 
-typedef void (*_batch_fmadd_proc)(int32_ptr, const_int32_ptr, unsigned int, float, float);
-typedef void (*_batch_mul_value_proc)(void*,  unsigned, unsigned int, float);
+typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, unsigned int, float, float);
+typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, unsigned int, float, float);
+typedef void (*_batch_mul_value_proc)(void*, unsigned, unsigned int, float);
 typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 
@@ -56,7 +57,9 @@ extern _aax_memcpy_proc _aax_memcpy;
 extern _aax_memcpy_proc _batch_cvt24_24;
 extern char* _aax_strdup(const_char_ptr);
 
-extern _batch_mul_value_proc _batch_mul_value;
+extern _batch_mul_value_proc _batch_imul_value;
+extern _batch_mul_value_proc _batch_fmul_value;
+extern _batch_imadd_proc _batch_imadd;
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_fmadd_proc _batch_fma3;
 extern _batch_fmadd_proc _batch_fma4;

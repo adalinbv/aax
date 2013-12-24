@@ -22,6 +22,7 @@
 
 #include "software/arch.h"
 #include "software/ringbuffer.h"
+#include "rbuf2d_effects.h"
 
 
 static void szxform(float *, float *, float *, float *, float *, float *,
@@ -132,12 +133,12 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
             assert(offs < ds);
 //          if (samples >= ds) samples = ds-1;
 
-            _batch_fmadd(scratch, sptr-offs, dmax, volume, 0.0f);
+            _batch_imadd(scratch, sptr-offs, dmax, volume, 0.0f);
          }
       }
 
       bufFilterFrequency(sbuf2, scratch, 0, dmax, 0, track, filter, 0);
-      _batch_fmadd(sptr, sbuf2, dmax, 0.5f, 0.0f);
+      _batch_imadd(sptr, sbuf2, dmax, 0.5f, 0.0f);
    }
 }
 
@@ -172,7 +173,7 @@ bufEffectReverb(int32_t *s,
          assert(samples < ds);
          if (samples >= ds) samples = ds-1;
 
-         _batch_fmadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
+         _batch_imadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
@@ -254,7 +255,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 //          float diff;
             do
             {
-               _batch_fmadd(ptr, ptr-coffs, step, volume, 0.0f);
+               _batch_imadd(ptr, ptr-coffs, step, volume, 0.0f);
 #if 0
                /* gradually fade to the new value */
                diff = (float)*ptr - (float)*(ptr-1);
@@ -272,7 +273,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
             while(i >= step);
          }
          if (i) {
-            _batch_fmadd(ptr, ptr-coffs, i, volume, 0.0f);
+            _batch_imadd(ptr, ptr-coffs, i, volume, 0.0f);
          }
 
 //       DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
@@ -286,7 +287,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
          fact = _MAX((float)((int)end-doffs)/(float)(end), 0.0f);
          if (fact == 1.0f) {
-            _batch_fmadd(dptr, sptr-offs, no_samples, volume, 0.0f);
+            _batch_imadd(dptr, sptr-offs, no_samples, volume, 0.0f);
          }
          else
          {
@@ -300,7 +301,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
             DBG_MEMCLR(1, scratch-ds, ds+end, bps);
             resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
-            _batch_fmadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+            _batch_imadd(dptr, scratch-ds, no_samples, volume, 0.0f);
          }
       }
    }
@@ -352,7 +353,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
          /* make dptr the wet signal */
          if (fact > 0.0013f) {
-            _batch_mul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
+            _batch_imul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
          }
 
          if ((fact > 0.01f) || (asym > 0.01f))
@@ -364,9 +365,9 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 
          /* mix with the dry signal */
          mix_factor = mix/(0.5f+powf(fact, 0.25f));
-         _batch_mul_value(dptr, bps, no_samples, mix_factor);
+         _batch_imul_value(dptr, bps, no_samples, mix_factor);
          if (mix < 0.99f) {
-            _batch_fmadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+            _batch_imadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
          }
       }
    }
@@ -447,9 +448,6 @@ float _2acos_rad2deg(float v) { return 2*acosf(_rad2deg(v)); }
 float _cos_2(float v) { return cosf(v/2); }
 float _2acos(float v) { return 2*acosf(v); }
 
-float _linear(float v, float f) { return v*f; }
-float _compress(float v, float f) { return powf(f, 1.0f-v); }
-
 static float
 _fast_sin1(float x)
 {
@@ -457,6 +455,8 @@ _fast_sin1(float x)
    return 0.5f + 2.0f*(y - y*fabsf(y));
 }
 
+float _linear(float v, float f) { return v*f; }
+float _compress(float v, float f) { return powf(f, 1.0f-v); }
 
 /*
  * From: http://www.gamedev.net/reference/articles/article845.asp
