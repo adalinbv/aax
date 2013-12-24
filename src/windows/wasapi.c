@@ -118,7 +118,8 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
    (_aaxDriverState *)&_aaxWASAPIDriverState,
-   (_aaxDriverParam *)&_aaxWASAPIDriverParam
+   (_aaxDriverParam *)&_aaxWASAPIDriverParam,
+   (_aaxDriverLog *)&_aaxWASAPIDriverLog
 };
 
 typedef struct
@@ -603,15 +604,15 @@ static int
 _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int no_frames;
+   unsigned int no_samples;
    int rv = AAX_FALSE;
 
    if (!handle || !handle->scratch_ptr || !req_frames || !data) {
       return AAX_FALSE;
    }
 
-   no_frames = *req_frames;
-   if (no_frames == 0) {
+   no_samples = *req_frames;
+   if (no_samples == 0) {
       return AAX_TRUE;
    } 
 
@@ -623,7 +624,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
    {
       unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
       unsigned int tracks = handle->Fmt.Format.nChannels;
-      unsigned int corr, fetch = no_frames;
+      unsigned int corr, fetch = no_samples;
       float diff;
 
       if (handle->status & CAPTURE_INIT_MASK)
@@ -645,7 +646,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
 
       /* try to keep the buffer padding at the threshold level at all times */
       diff = (float)handle->scratch_offs - (float)handle->threshold;
-      handle->padding = (handle->padding + diff/(float)no_frames)/2;
+      handle->padding = (handle->padding + diff/(float)no_samples)/2;
       corr = _MINMAX(roundf(handle->padding), -1, 1);
       fetch += corr;
       offs -= corr;
@@ -710,85 +711,81 @@ static int
 _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, offs;
-   size_t no_frames;
-   HRESULT hr;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
+   unsigned int no_tracks, offs, frames;
+   size_t no_samples;
+   HRESULT hr = S_OK;
 
    assert(handle != 0);
    if (handle->status & DRIVER_PAUSE_MASK) return 0;
 
-   assert(rbs != 0);
+   assert(rb != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
-   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
+   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
+   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
+   frames = no_samples;
 
-   assert(rbs->get_parami(rbs, RB_NO_SAMPLES) >= offs);
+   assert(rb->get_parami(rb, RB_NO_SAMPLES) >= offs);
 
    if (handle->status & DRIVER_INIT_MASK) {
       return _aaxWASAPIDriverState(handle, DRIVER_RESUME);
    }
 
-   do
+   /*
+    * For an exclusive-mode rendering or capture stream that was initialized
+    * with the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag, the client typically
+    * has no use for the padding value reported by GetCurrentPadding. 
+    * Instead, the client accesses an entire buffer during each processing
+    * pass. 
+    */
+   if ((handle->status & (EXCLUSIVE_MODE_MASK | EVENT_DRIVEN_MASK)) == 0)
    {
-      unsigned int frames = no_frames;
+      UINT32 padding;
 
-      /*
-       * For an exclusive-mode rendering or capture stream that was initialized
-       * with the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag, the client typically
-       * has no use for the padding value reported by GetCurrentPadding. 
-       * Instead, the client accesses an entire buffer during each processing
-       * pass. 
-       */
-      if ((handle->status & (EXCLUSIVE_MODE_MASK | EVENT_DRIVEN_MASK)) == 0)
-      {
-         UINT32 padding;
-
-         frames = 0;
-         hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
-         if ((hr == S_OK) && (padding < no_frames)) {
-            frames = _MIN(handle->buffer_frames - padding, no_frames);
-         }
-         if (hr == AUDCLNT_E_DEVICE_INVALIDATED) {
-            break;
-         }
+      frames = 0;
+      hr = pIAudioClient_GetCurrentPadding(handle->pAudioClient, &padding);
+      if ((hr == S_OK) && (padding < no_samples)) {
+         frames = _MIN(handle->buffer_frames - padding, no_samples);
       }
-
-      assert((handle->status & DRIVER_INIT_MASK) == 0);
-      assert(frames <= no_frames);
-
-      if (frames >= no_frames)
-      {
-         IAudioRenderClient *pRender = handle->uType.pRender;
-         const int32_t **sbuf;
-         BYTE *data = NULL;
-
-         sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
-         _wasapi_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
-
-         hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
-         if (hr == S_OK)
-         {
-            handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
-
-            hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
-                                                   frames, 0);
-            if (hr != S_OK) {
-               _AAX_DRVLOG(WASAPI_RELEASE_BUFFER_FAILED);
-            }
-
-            assert(no_frames >= frames);
-            no_frames -= frames;
-         }
-         else {
-            _AAX_DRVLOG(WASAPI_GET_BUFFER_FAILED);
-         }
-         rbs->release_tracks_ptr(rbs);
+      if (hr == AUDCLNT_E_DEVICE_INVALIDATED) {
+         goto Exit;
       }
    }
-   while (0);
 
+   assert((handle->status & DRIVER_INIT_MASK) == 0);
+   assert(frames <= no_samples);
+
+   if (frames >= no_samples)
+   {
+      IAudioRenderClient *pRender = handle->uType.pRender;
+      const int32_t **sbuf;
+      BYTE *data = NULL;
+
+      sbuf = (const int32_t **)rb->get_tracks_ptr(rb, RB_READ);
+      _wasapi_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
+
+      hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
+      if (hr == S_OK)
+      {
+         handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
+
+         hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
+                                                frames, 0);
+         if (hr != S_OK) {
+            _AAX_DRVLOG(WASAPI_RELEASE_BUFFER_FAILED);
+         }
+
+         assert(no_samples >= frames);
+         no_samples -= frames;
+      }
+      else {
+         _AAX_DRVLOG(WASAPI_GET_BUFFER_FAILED);
+      }
+      rb->release_tracks_ptr(rb);
+   }
+
+Exit:
    if (hr == AUDCLNT_E_DEVICE_INVALIDATED) {
       InterlockedAnd(&handle->flags, ~DRIVER_CONNECTED_MASK);
    }
@@ -1724,13 +1721,16 @@ _aaxWASAPIDriverThread(void* config)
    delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
+   id = handle->backend.handle;		// Required for _AAX_DRVLOG
+
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
 
       mixer = sensor->mixer;
-      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, handle->info->mode);
+
+      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
          dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);
@@ -1752,17 +1752,13 @@ _aaxWASAPIDriverThread(void* config)
       return NULL;
    }
 
-   id = be_handle = (_driver_t *)handle->backend.handle;
+   be_handle = handle->backend.handle;
    be->state(be_handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   /* get real duration, it might have been altered for better performance */
-   delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
-
-   _aaxMutexLock(handle->thread.mutex);
    stdby_time_ms = (int)(4*delay_sec*1000);
+   _aaxMutexLock(handle->thread.mutex);
 
-   be_handle = (_driver_t *)handle->backend.handle;
    hr = _wasapi_setup_event(be_handle, delay_sec);
    if (!be_handle->Event || FAILED(hr)) {
       _AAX_DRVLOG(WASAPI_EVENT_SETUP_FAILED);
@@ -1830,8 +1826,6 @@ _aaxWASAPIDriverThread(void* config)
 #if ENABLE_TIMING
       _aaxTimerStart(timer);
 #endif
-      /* do all the mixing */
-//    if (!_IS_STOPPED(handle) && !_IS_PROCESSED(handle)) {
       if (_IS_PLAYING(handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
@@ -1963,7 +1957,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
  * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
  */
 static int
-_wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float volume)
+_wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_samples, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
@@ -1981,7 +1975,7 @@ _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned
        */
       if ((volume < 0.0f) && (handle->Mode == eCapture))
       {
-         float dt = no_frames/handle->Fmt.Format.nSamplesPerSec;
+         float dt = no_samples/handle->Fmt.Format.nSamplesPerSec;
          float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	/* 10 sec average */
 
          /* Quickly adjust for a very large step in volume */
@@ -2009,13 +2003,12 @@ _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned
       else gain = 0.0f;
    }
 
-   /* software volume fallback */
    if (fabsf(gain - 1.0f) > 0.05f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
-                          no_frames, gain);
+         _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
+                          no_samples, gain);
       }
    }
 
@@ -2069,7 +2062,7 @@ _wasapi_get_volume_range(_driver_t *handle)
 static int
 _wasapi_open(_driver_t *handle, WAVEFORMATEXTENSIBLE *fmt)
 {
-   _driver_t *id = handle;
+// _driver_t *id = handle;
    HRESULT hr = S_OK;
 
    if (handle)
@@ -2129,7 +2122,7 @@ _wasapi_open(_driver_t *handle, WAVEFORMATEXTENSIBLE *fmt)
 static int
 _wasapi_close(_driver_t *handle)
 {
-   _driver_t *id = handle;
+// _driver_t *id = handle;
    HRESULT hr = S_OK;
    if (handle)
    {
@@ -2705,7 +2698,7 @@ _wasapi_setup_event(_driver_t *handle, float delay_sec)
 static int
 _wasapi_close_event(_driver_t *handle)
 {
-   _driver_t *id = handle;
+// _driver_t *id = handle;
    HRESULT hr = S_OK;
 
    if ((handle->status & EVENT_DRIVEN_MASK) == 0)
@@ -2847,7 +2840,7 @@ _aaxAudioSessionEvents_OnStateChanged(IAudioSessionEvents *event,
       pszState = "expired";
       break;
    }
-// _AAX_DRVLOG_VAR("State: %s", pszState);
+   _AAX_DRVLOG_VAR("New State: %s", pszState);
 
    return S_OK;
 }

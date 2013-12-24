@@ -139,31 +139,31 @@ ENDIF()
 
 IF(MSVC)
     SET(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
-    SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse2.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse3.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse3.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse4.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu2d/arch_avx.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma3.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__FMA__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma4.c APPEND
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:XOP /fp:fast -D__FMA__"
     )
 
@@ -215,48 +215,48 @@ ELSE(MSVC)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
       )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
       )
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse3.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
       )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse3.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
       )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse4.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND
                    PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse"
       )
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_avx.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=corei7-avx"
       )
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma3.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                    PROPERTY COMPILE_FLAGS "-mfma -mfpmath=sse -march=corei7-avx"
       )
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_fma4.c APPEND
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                    PROPERTY COMPILE_FLAGS "-mfma4 -mfpmath=sse -march=corei7-avx"
       )
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
       SET(C_FLAGS "${C_FLAGS} -march=i586")
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
       )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
       )
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse2.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
       )
-      SET_PROPERTY(SOURCE src/software/cpu2d/arch_sse3.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
       )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse3.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
       )
-      SET_PROPERTY(SOURCE src/software/cpu3d/arch_sse4.c APPEND 
+      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
       )
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -383,25 +383,24 @@ SET( AEONWAVE_OBJS
      src/software/frame.c
      src/software/sensor.c
      src/software/emitter.c
-     src/software/cpu3d/arch_neon.c
-     src/software/cpu3d/arch_sse.c
-     src/software/cpu3d/arch_sse3.c
-     src/software/cpu3d/arch_sse4.c
-     src/software/cpu3d/rbuf_mixsingle.c
-     src/software/cpu2d/arch_cpu.c
-     src/software/cpu2d/arch_neon.c
-     src/software/cpu2d/arch_sse2.c
-     src/software/cpu2d/arch_sse3.c
-     src/software/cpu2d/ringbuffer.c
-     src/software/cpu2d/rbuf_mixmulti.c
-     src/software/cpu2d/rbuf_mixsingle.c
-     src/software/cpu2d/rbuf_effects.c
-     src/software/cpu2d/rbuf_mixers.c
-     src/software/cpu2d/rbuf_mixer_tables.c
-     src/software/cpu2d/rbuf_codecs.c
-     src/software/cpu2d/rbuf_codec_tables.c
-     src/software/cpu2d/waveforms.c
-
+     src/software/cpu/ringbuffer.c
+     src/software/cpu/waveforms.c
+     src/software/cpu/rbuf_effects.c
+     src/software/cpu/rbuf_mixers.c
+     src/software/cpu/rbuf_mixer_tables.c
+     src/software/cpu/rbuf_codecs.c
+     src/software/cpu/rbuf_codec_tables.c
+     src/software/cpu/rbuf_mixmulti.c
+     src/software/cpu/rbuf2d_mixsingle.c
+     src/software/cpu/rbuf3d_mixsingle.c
+     src/software/cpu/arch3d_neon.c
+     src/software/cpu/arch3d_sse.c
+     src/software/cpu/arch3d_sse3.c
+     src/software/cpu/arch3d_sse4.c
+     src/software/cpu/arch2d_cpu.c
+     src/software/cpu/arch2d_neon.c
+     src/software/cpu/arch2d_sse2.c
+     src/software/cpu/arch2d_sse3.c
 )
 IF(SIZEOF_SIZE_T EQUAL 8)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}

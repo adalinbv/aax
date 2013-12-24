@@ -668,8 +668,8 @@ _aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, v
    {
       int t;
       for (t=0; t<tracks; t++) {
-         _batch_mul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
-                          gain);
+         _batch_imul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
+                           gain);
       }
    }
    *frames = nframes;
@@ -692,7 +692,6 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(rb);
-   assert(rb->id->sample);
    assert(id != 0);
 
    if (handle->mode == 0)
@@ -721,7 +720,8 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_mul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples, gain);
+         _batch_imul_value((void*)(sbuf[t]+offs), sizeof(int32_t), no_samples,
+                           gain);
       }
    }
    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);

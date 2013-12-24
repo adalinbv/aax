@@ -380,7 +380,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
          if (n < _AAX_MAX_SLAVES)
          {
             char driver_name[255];
-            unsigned int i, q;
+            unsigned int i;
             char curlevel;
             char *setup;
             void *xbid;
@@ -394,17 +394,20 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                xmlFree(dev);
             }
 
+#if 0
             setup = getenv("AAX_TUBE_COMPRESSOR");
             if (setup) {
-               q = _aax_getbool(setup);
+               i = _aax_getbool(setup);
             } else {
-               q = xmlNodeGetBool(xoid, "tube-compressor");
+               i = xmlNodeGetBool(xoid, "tube-compressor");
             }
-            if (q) {
+            if (i) {
+               
                _aaxProcessCompression = bufCompressValve;
             } else {
                _aaxProcessCompression = bufCompressElectronic;
             }
+#endif
 
             setup = xmlNodeGetString(xoid, "setup");
             if (setup)

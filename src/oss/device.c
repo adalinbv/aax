@@ -547,7 +547,6 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    int res;
 
    assert(rb);
-   assert(rb->id->sample);
    assert(id != 0);
 
    if (pioctl (handle->fd, SNDCTL_DSP_GETERROR, &err) >= 0)
@@ -1082,8 +1081,8 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
-                          no_frames, gain);
+         _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
+                           no_frames, gain);
       }
    }
 

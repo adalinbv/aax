@@ -212,6 +212,10 @@ _instrument_t* get_valid_instrument(aaxInstrument);
 /* --- Buffer --- */
 #define BUFFER_ID       0x81ACFE07
 
+#define DEFAULT_IMA4_BLOCKSIZE		36
+#define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
+#define BLOCKSIZE_TO_SMP(a)		((a) > 1) ? (((a)-4)*2) : 1
+
 typedef struct
 {
    unsigned int id;	/* always first */
@@ -226,7 +230,6 @@ typedef struct
 
    _aaxRingBuffer *ringbuffer;
    _aaxMixerInfo *info;
-   _aaxCodec** codecs;
 } _buffer_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);

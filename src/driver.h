@@ -99,7 +99,6 @@ typedef int _aaxDriverCaptureCallback(const void*, void**, int, size_t*, void*, 
 typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*);
 typedef void _aaxDriverPostProcess(const void*, void*, const void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*);
-typedef void (*_aaxDriverCompress)(void*, unsigned int*, unsigned int*);
 
 typedef void *_aaxDriverThread(void*);
 
@@ -136,6 +135,8 @@ typedef struct
     _aaxDriverLog *log;
 
 } _aaxDriverBackend;
+
+extern _aaxCodec* _aaxRingBufferCodecs[];
 
 
 /* ---  software device helper functions --- */

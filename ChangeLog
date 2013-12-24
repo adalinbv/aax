@@ -5,6 +5,7 @@
    position and orientation matrix causing unwated delays.
  * Fix an incorrect header problem while streaming mp3 files.
  * Fix a stupid error where AeonWave-Lite didn't initialize correctly.
+ * Fix volume handling for windows devices without hardware volume support.
  * Activate AVX instruction support.
 
  -- Erik Hofman <tech@adalin.org>  Sat, 21 Dec 2013 11:21:00 +0100

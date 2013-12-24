@@ -1217,7 +1217,7 @@ if (corr)
       {
          unsigned int i;
          for (i=0; i<tracks; i++) {
-            _batch_mul_value(sbuf[i]+init_offs, sizeof(int32_t), offs, gain);
+            _batch_imul_value(sbuf[i]+init_offs, sizeof(int32_t), offs, gain);
          }
       }
    }
@@ -2292,7 +2292,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    if (handle->pause) return 0;
 
    assert(rbs != 0);
-   assert(rbs->id->sample != 0);
 
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
@@ -2398,7 +2397,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    assert(handle != 0);
 
    assert(rbs != 0);
-   assert(rbs->id->sample != 0);
 
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
@@ -2501,7 +2499,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    if (handle->pause) return 0;
 
    assert(rbs != 0);
-   assert(rbs->id->sample != 0);
 
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
@@ -2603,7 +2600,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    if (handle->pause) return 0;
 
    assert(rbs != 0);
-   assert(rbs->id->sample != 0);
 
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
@@ -2692,7 +2688,7 @@ _aaxALSADriverThread(void* config)
    delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
-   id = handle->backend.handle;
+   id = handle->backend.handle;		// Required for _AAX_DRVLOG
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)

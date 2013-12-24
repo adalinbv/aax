@@ -526,7 +526,6 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    int res;
 
    assert(rb);
-   assert(rb->id->sample);
    assert(id != 0);
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
@@ -558,7 +557,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
    {
       int t;
       for (t=0; t<file_tracks; t++) {
-         _batch_mul_value((void**)sbuf[t]+offs, bps, no_samples, gain);
+         _batch_imul_value((void**)sbuf[t]+offs, bps, no_samples, gain);
       }
    }
    res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
@@ -683,8 +682,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames,
          {
             int t;
             for (t=0; t<file_tracks; t++) {
-               _batch_mul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
-                                *frames, gain);
+               _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
+                                 *frames, gain);
             }
          }
       }

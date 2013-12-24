@@ -83,6 +83,72 @@ enum
 #define _TAS_RELATIVE(q,r)    _STATE_TAS((q)->state, (r), _STATE_RELATIVE)
 #define _TAS_POSITIONAL(q,r)  _STATE_TAS((q)->state, (r), _STATE_POSITIONAL)
 
+/* 3d properties */
+
+enum
+{
+    PITCH_CHANGED          = 0x00000001,
+    GAIN_CHANGED           = 0x00000002,
+    DIST_CHANGED           = 0x00000004,
+    MTX_CHANGED            = 0x00000008,
+    SPEED_CHANGED          = 0x00000010,
+
+    CONE_DEFINED           = 0x00010000,
+    DYNAMIC_PITCH_DEFINED  = 0x00020000,
+
+    /* SCENE*/
+    DISTQUEUE_CHANGED      = 0x08000000,
+    SCENE_CHANGED          = 0x10000000,
+    REVERB_CHANGED         = 0x20000000,
+    DISTDELAY_CHANGED      = 0x40000000,
+    WIND_CHANGED           = 0x80000000
+};
+#define PITCH_CHANGE            (PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
+
+#define _PROP3D_CLEAR(q)                ((q)->state3d &= (CONE_DEFINED|DYNAMIC_PITCH_DEFINED))
+#define _PROP3D_PITCH_HAS_CHANGED(q)    ((q)->state3d & PITCH_CHANGE)
+#define _PROP3D_GAIN_HAS_CHANGED(q)     ((q)->state3d & GAIN_CHANGED)
+#define _PROP3D_DIST_HAS_CHANGED(q)     ((q)->state3d & DIST_CHANGED)
+#define _PROP3D_MTX_HAS_CHANGED(q)      ((q)->state3d & MTX_CHANGED)
+#define _PROP3D_SPEED_HAS_CHANGED(q)    ((q)->state3d & SPEED_CHANGED)
+#define _PROP3D_MTXSPEED_HAS_CHANGED(q) ((q)->state3d & (SPEED_CHANGED|MTX_CHANGED))
+#define _PROP3D_CONE_IS_DEFINED(q)      ((q)->state3d & CONE_DEFINED)
+
+#define _PROP3D_PITCH_SET_CHANGED(q)    ((q)->state3d |= PITCH_CHANGED)
+#define _PROP3D_GAIN_SET_CHANGED(q)     ((q)->state3d |= GAIN_CHANGED)
+#define _PROP3D_DIST_SET_CHANGED(q)     ((q)->state3d |= DIST_CHANGED)
+#define _PROP3D_MTX_SET_CHANGED(q)      ((q)->state3d |= MTX_CHANGED)
+#define _PROP3D_SPEED_SET_CHANGED(q)    ((q)->state3d |= SPEED_CHANGED)
+#define _PROP3D_CONE_SET_DEFINED(q)     ((q)->state3d |= CONE_DEFINED)
+#define _PROP3D_DYNAMIC_PITCH_SET_DEFINED(q) ((q)->state3d |= DYNAMIC_PITCH_DEFINED)
+
+#define _PROP3D_PITCH_CLEAR_CHANGED(q)  ((q)->state3d &= ~PITCH_CHANGED)
+#define _PROP3D_GAIN_CLEAR_CHANGED(q)   ((q)->state3d &= ~GAIN_CHANGED)
+#define _PROP3D_DIST_CLEAR_CHANGED(q)   ((q)->state3d &= ~DIST_CHANGED)
+#define _PROP3D_MTX_CLEAR_CHANGED(q)    ((q)->state3d &= ~MTX_CHANGED)
+#define _PROP3D_SPEED_CLEAR_CHANGED(q)  ((q)->state3d &= ~SPEED_CHANGED)
+#define _PROP3D_CONE_CLEAR_DEFINED(q)   ((q)->state3d &= ~CONE_DEFINED)
+#define _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED(q) ((q)->state3d &= ~DYNAMIC_PITCH_DEFINED)
+
+/* 3d properties: AAX Scene extension*/
+#define _PROP3D_SCENE_IS_DEFINED(q)     ((q)->state3d & SCENE_CHANGED)
+#define _PROP3D_REVERB_IS_DEFINED(q)    ((q)->state3d & REVERB_CHANGED)
+#define _PROP3D_DISTDELAY_IS_DEFINED(q) ((q)->state3d & DISTDELAY_CHANGED)
+#define _PROP3D_DISTQUEUE_IS_DEFINED(q) ((q)->state3d & DISTQUEUE_CHANGED)
+#define _PROP3D_WIND_IS_DEFINED(q)      ((q)->state3d & WIND_CHANGED)
+
+#define _PROP3D_SCENE_SET_CHANGED(q)    ((q)->state3d |= SCENE_CHANGED)
+#define _PROP3D_REVERB_SET_CHANGED(q)   ((q)->state3d |= REVERB_CHANGED)
+#define _PROP3D_DISTDELAY_SET_DEFINED(q) ((q)->state3d |= DISTDELAY_CHANGED)
+#define _PROP3D_DISTQUEUE_SET_DEFINED(q) ((q)->state3d |= (DISTQUEUE_CHANGED|DISTDELAY_CHANGED))
+#define _PROP3D_WIND_SET_CHANGED(q)     ((q)->state3d |= WIND_CHANGED)
+
+#define _PROP3D_SCENE_CLEAR_CHANGED(q)  ((q)->state3d &= ~SCENE_CHANGED)
+#define _PROP3D_REVERB_CLEAR_CHANGED(q) ((q)->state3d &= ~REVERB_CHANGED)
+#define _PROP3D_DISTDELAY_CLEAR_DEFINED(q) ((q)->state3d &= ~DISTDELAY_CHANGED)
+#define _PROP3D_DISTQUEUE_CLEAR_DEFINED(q) ((q)->state3d &= ~(DISTQUEUE_CHANGED|DISTDELAY_CHANGED))
+#define _PROP3D_WIND_CLEAR_CHANGED(q)   ((q)->state3d &= ~WIND_CHANGED)
+
 /* delayed 3d properties */
 #define _PROP_CLEAR(q)                  _PROP3D_CLEAR((q)->dprops3d)
 #define _PROP_PITCH_HAS_CHANGED(q)      _PROP3D_PITCH_HAS_CHANGED((q)->dprops3d)

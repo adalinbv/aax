@@ -27,6 +27,7 @@
 
 #include "api.h"
 #include "driver.h"
+#include "devices.h"
 #include "software/arch.h"
 
 static int _aaxAudioFrameStart(_frame_t*);

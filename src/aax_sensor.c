@@ -22,6 +22,7 @@
 #include <base/timer.h>		/* for msecSleep */
 
 #include "api.h"
+#include "devices.h"
 
 static int _aaxSensorCreateRingBuffer(_handle_t *);
 static int _aaxSensorCaptureStart(_handle_t *);
@@ -253,7 +254,6 @@ aaxSensorGetBuffer(const aaxConfig config)
 
                buf->ringbuffer = rb;
                buf->info = handle->info;
-               buf->codecs = handle->backend.ptr->codecs;
 
                buffer = (aaxBuffer)buf;
             }
