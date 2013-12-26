@@ -76,8 +76,8 @@ typedef struct
  */
 #define HANDLE_ID	0xFF2701E0
 
-#define VALID_HANDLE(h)		(h && (h->valid & ~AAX_TRUE) == HANDLE_ID)
-#define VALID_MIXER(h)		(VALID_HANDLE(h) && (h->valid & AAX_TRUE))
+#define VALID_HANDLE(h)		((h) && ((h)->valid & ~AAX_TRUE) == HANDLE_ID)
+#define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
 
 extern _aaxMixerInfo* _info;
 
@@ -223,6 +223,8 @@ typedef struct
 
    int blocksize;
    unsigned int pos;
+   unsigned int no_tracks, no_samples;
+   unsigned int loop_start, loop_end;
    enum aaxFormat format;
    float frequency;
 

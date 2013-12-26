@@ -85,6 +85,8 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (char *)&_dmedia_id_str,
 
    (_aaxCodec **)&_aaxRingBufferCodecs,
+   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
    (_aaxDriverDetect *)&_aaxDMediaDriverDetect,
    (_aaxDriverNewHandle *)&_aaxDMediaDriverNewHandle,

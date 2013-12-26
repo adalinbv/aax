@@ -59,8 +59,8 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffe
    assert(drb != NULL);
    assert(srb != NULL);
 
-   drbi = drb->id;
-   srbi = srb->id;
+   drbi = drb->handle;
+   srbi = srb->handle;
    assert(srbi != 0);
    assert(drbi != 0);
    assert(srbi->sample != 0);
@@ -178,8 +178,8 @@ _aaxRingBufferMixStereo16(_aaxRingBuffer *drb, const _aaxRingBuffer *srb, const 
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   drbi = drb->id;
-   srbi = srb->id;
+   drbi = drb->handle;
+   srbi = srb->handle;
    rbs_tracks = srbi->sample->no_tracks;
    rbd_tracks = drbi->sample->no_tracks;
 

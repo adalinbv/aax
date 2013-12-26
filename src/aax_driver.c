@@ -434,7 +434,7 @@ aaxDriverDestroy(aaxConfig config)
       }
 
       if (handle->ringbuffer) {
-         _aaxRingBufferDestroy(handle->ringbuffer);
+         _aaxRingBufferFree(handle->ringbuffer);
       }
 
       /* safeguard against using already destroyed handles */
@@ -1278,15 +1278,15 @@ _aaxFreeSensor(void *ssr)
    free(smixer->props3d);
 
    if (smixer->ringbuffer) {
-      _aaxRingBufferDestroy(smixer->ringbuffer);
+      _aaxRingBufferFree(smixer->ringbuffer);
    }
    _intBufErase(&smixer->frames, _AAX_FRAME, free);
    _intBufErase(&smixer->devices, _AAX_DEVICE, free);
    _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, free);
    _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, free);
    _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER,
-                                           _aaxRingBufferDestroy);
+                                           _aaxRingBufferFree);
    _intBufErase(&smixer->frame_ringbuffers, _AAX_RINGBUFFER,
-                                            _aaxRingBufferDestroy);
+                                            _aaxRingBufferFree);
    free(sensor);
 }

@@ -83,15 +83,16 @@ typedef char *_aaxDriverLog(const void*, int, int, const char *);
 
 typedef int _aaxDriverDetect(int mode);
 typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
-typedef char *_aaxDriverGetDevices(const void*, int mode);
-typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
-
 typedef void *_aaxDriverConnect(const void*, void*, const char*, enum aaxRenderMode);
 typedef int _aaxDriverDisconnect(void*);
-typedef char *_aaxDriverGetName(const void*, int);
 typedef int _aaxDriverSetup(const void*, size_t*, int*, unsigned int*, float*, int*);
+
+typedef char *_aaxDriverGetName(const void*, int);
 typedef int _aaxDriverState(const void*, enum _aaxDriverState);
 typedef float _aaxDriverParam(const void*, enum _aaxDriverParam);
+
+typedef char *_aaxDriverGetDevices(const void*, int mode);
+typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
 
 typedef int _aaxDriverCallback(const void*, void*, float, float);
 typedef int _aaxDriverCaptureCallback(const void*, void**, int, size_t*, void*, size_t, float);
@@ -99,6 +100,10 @@ typedef int _aaxDriverCaptureCallback(const void*, void**, int, size_t*, void*, 
 typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*);
 typedef void _aaxDriverPostProcess(const void*, void*, const void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*);
+
+typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
+typedef void _aaxDriverRingBufferDestroy(void*);
+
 
 typedef void *_aaxDriverThread(void*);
 
@@ -111,6 +116,8 @@ typedef struct
     char *renderer;
 
     _aaxCodec **codecs;
+    _aaxDriverRingBufferCreate *get_ringbuffer;
+    _aaxDriverRingBufferDestroy *destroy_ringbuffer;
 
     _aaxDriverDetect *detect;
     _aaxDriverNewHandle *new_handle;

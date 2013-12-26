@@ -77,8 +77,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuffer
    assert(drb != NULL);
    assert(srb != NULL);
 
-   drbi = drb->id;
-   srbi = srb->id;
+   drbi = drb->handle;
+   srbi = srb->handle;
    assert(srbi != 0);
    assert(drbi != 0);
    assert(srbi->sample != 0);
@@ -205,7 +205,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aax
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   drbi = drb->id;
+   drbi = drb->handle;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -253,7 +253,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBuffer *drb, const int32_ptrptr sptr, _a
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   drbi = drb->id;
+   drbi = drb->handle;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -327,7 +327,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBuffer *drb, int32_t **sptr, _aaxRingBuff
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
    /** Mix */
-   drbi = drb->id;
+   drbi = drb->handle;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {
@@ -366,7 +366,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBuffer *drb, int32_t **sptr, _aaxRingBuffer2
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   drbi = drb->id;
+   drbi = drb->handle;
    rbd = drbi->sample;
    for (t=0; t<rbd->no_tracks; t++)
    {

@@ -78,6 +78,8 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (char *)&_alsa_id_str,
 
    (_aaxCodec **)&_aaxRingBufferCodecs,
+   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
    (_aaxDriverDetect *)&_aaxALSADriverDetect,
    (_aaxDriverNewHandle *)&_aaxALSADriverNewHandle,
@@ -2697,7 +2699,7 @@ _aaxALSADriverThread(void* config)
 
       mixer = sensor->mixer;
 
-      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, mixer->info->mode);
+      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
          dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);
@@ -2789,7 +2791,7 @@ if (elapsed > delay_sec)
    _aaxTimerDestroy(timer);
 #endif
    handle->ringbuffer = NULL;
-   _aaxRingBufferDestroy(dest_rb);
+   be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.mutex);
 
    return handle;

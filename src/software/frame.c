@@ -46,21 +46,22 @@ _aaxAudioFrameThread(void* config)
    }
    handle = frame->handle;
 
-   dest_rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, frame->submix->info->mode);
+   be =  handle->backend.ptr;
+   if (!be) {
+      return NULL;
+   }
+
+   dest_rb = be->get_ringbuffer(DELAY_EFFECTS_TIME, frame->submix->info->mode);
    if (!dest_rb) {
       return NULL;
    }
 
    fmixer = NULL;
    smixer = frame->submix;
-   be = _aaxGetDriverBackendLoopback(&pos);	/* be = handle->backend.ptr */
-   if (!be) {
-      return NULL;
-   }
 
    _aaxMutexLock(frame->thread.mutex);
    delay_sec = 1.0f / smixer->info->refresh_rate;
-   if (be)
+   if (dest_rb)
    {
       _aaxMixerInfo* info;
       int tracks;
@@ -78,6 +79,7 @@ _aaxAudioFrameThread(void* config)
       frame->thread.initialized = AAX_TRUE;
    }
 
+   be = _aaxGetDriverBackendLoopback(&pos);
    mixer = smixer;
    if (handle)  /* frame is registered */
    {
@@ -156,8 +158,10 @@ _aaxAudioFrameThread(void* config)
    _aaxTimerDestroy(timer);
    frame->thread.initialized = AAX_FALSE;
    _aaxMutexUnLock(frame->thread.mutex);
+
+   be =  handle->backend.ptr;
    dest_rb->set_state(dest_rb, RB_STOPPED);
-   _aaxRingBufferDestroy(dest_rb);
+   be->destroy_ringbuffer(dest_rb);
 
    return frame;
 }
@@ -302,7 +306,11 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
       if (!frame_rb)
       {
          _aaxMixerInfo* info = fmixer->info;
-         frame_rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, info->mode);
+
+         assert (be == sensor ? ((_sensor_t*)sensor)->mixer->info->backend
+                              : fmixer->info->backend);
+
+         frame_rb = be->get_ringbuffer(DELAY_EFFECTS_TIME, info->mode);
          if (frame_rb)
          {
             float dt = 1.0f/info->refresh_rate;

@@ -98,6 +98,8 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (char*)&_wasapi_default_renderer,
 
    (_aaxCodec **)&_aaxRingBufferCodecs,
+   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferDestroy,
 
    (_aaxDriverDetect *)&_aaxWASAPIDriverDetect,
    (_aaxDriverNewHandle *)&_aaxWASAPIDriverNewHandle,
@@ -1730,7 +1732,7 @@ _aaxWASAPIDriverThread(void* config)
 
       mixer = sensor->mixer;
 
-      dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, mixer->info->mode);
+      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
          dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);

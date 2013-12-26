@@ -754,7 +754,10 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      rb = submix->ringbuffer;
                      if (!rb)
                      {
-                        rb = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, info->mode);
+                        const _aaxDriverBackend *be = handle->backend.ptr;
+                        float dt = DELAY_EFFECTS_TIME;
+
+                        rb = be->get_ringbuffer(dt, info->mode);
                         submix->ringbuffer = rb;
                      }
 

@@ -65,7 +65,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
 
       ptr = (char*)rb;
       rbi = (_aaxRingBufferData*)(ptr + sizeof(_aaxRingBuffer));
-      rb->id = rbi;
+      rb->handle = rbi;
 
       rbd = (_aaxRingBufferSample *)calloc(1, sizeof(_aaxRingBufferSample));
       if (rbd)
@@ -135,9 +135,8 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
 }
 
 void
-_aaxRingBufferDestroy(void *rbuf)
+_aaxRingBufferDestroy(_aaxRingBuffer *rb)
 {
-   _aaxRingBuffer *rb = (_aaxRingBuffer*)rbuf;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
@@ -145,7 +144,7 @@ _aaxRingBufferDestroy(void *rbuf)
 
    assert(rb != 0);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi->sample != 0);
 
    rbd = rbi->sample;
@@ -165,6 +164,13 @@ _aaxRingBufferDestroy(void *rbuf)
       }
       free(rb);
    }
+}
+
+void
+_aaxRingBufferFree(void *ringbuffer)
+{
+   _aaxRingBuffer *rb = (_aaxRingBuffer*)ringbuffer;
+   rb->destroy(rb);
 }
 
 static void
@@ -244,7 +250,7 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != NULL);
    assert(rbi->parent == rb);
 
@@ -308,9 +314,9 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
       char *ptr = (char*)rb;
 
       rbi = (_aaxRingBufferData*)(ptr + sizeof(_aaxRingBuffer));
-      rb->id = rbi;
+      rb->handle = rbi;
 
-      memcpy(rbi, ringbuffer->id, sizeof(_aaxRingBufferData));
+      memcpy(rbi, ringbuffer->handle, sizeof(_aaxRingBufferData));
 
       rbi->sample->ref_counter++;
       // rbi->looping = 0;
@@ -343,7 +349,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 
    assert(ringbuffer != 0);
 
-   srbi = srb->id;
+   srbi = srb->handle;
    drb = _aaxRingBufferCreate(srbi->dde_sec, srbi->mode);
    if (drb)
    {
@@ -354,7 +360,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 
       srbd = srbi->sample;
 
-      drbi = drb->id;
+      drbi = drb->handle;
       drbd = drbi->sample;
 
       _aax_memcpy(drbi, srbi, sizeof(_aaxRingBufferData));
@@ -413,7 +419,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -448,7 +454,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -481,7 +487,7 @@ _aaxRingBufferGetScratchBufferPtr(_aaxRingBuffer *rb)
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -502,7 +508,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -561,7 +567,7 @@ _aaxRingBufferGetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -590,7 +596,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != NULL);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -710,7 +716,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != NULL);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -847,7 +853,7 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != NULL);
    assert(rbi->parent == rb);
 
@@ -905,7 +911,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != NULL);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
@@ -985,7 +991,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
 
    assert(rb != NULL);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(format < AAX_FORMAT_MAX);
@@ -1023,7 +1029,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, enum aaxWaveformType type, flo
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    data = rbi->sample->track;
    switch (type)
    {
@@ -1066,7 +1072,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   rbi = rb->id;
+   rbi = rb->handle;
    data = rbi->sample->track;
    switch (type)
    {
@@ -1097,7 +1103,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
 int
 _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, float ratio_orig)
 {
-   _aaxRingBufferData *rbi = rb->id;
+   _aaxRingBufferData *rbi = rb->handle;
    unsigned int t, tracks;
    unsigned char bps;
    int32_t *data;
@@ -1133,7 +1139,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
    dno_samples =  drb->get_parami(drb, RB_NO_SAMPLES);
    tracks =  drb->get_parami(drb, RB_NO_TRACKS);
 
-   srbi = srb->id;
+   srbi = srb->handle;
    if (lfo && lfo->envelope)
    {
        g = 0.0f;
@@ -1148,7 +1154,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
        g /= tracks;
    }
 
-   drbi = drb->id;
+   drbi = drb->handle;
    for (track=0; track<tracks; track++)
    {
       void *dptr = drbi->sample->track[track];
@@ -1167,7 +1173,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
 int
 _aaxRingBufferDataClear(_aaxRingBuffer *rb)
 {
-   _aaxRingBufferData *rbi = rb->id;
+   _aaxRingBufferData *rbi = rb->handle;
    return _aaxRingBufferClear(rbi);
 }
 
@@ -1182,8 +1188,8 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb
    assert(drb);
    assert(srb);
 
-   drbi = drb->id;
-   srbi = srb->id;
+   drbi = drb->handle;
+   srbi = srb->handle;
    assert(srbi);
    assert(drbi);
    assert(srbi->parent == srb);
@@ -1226,7 +1232,7 @@ _aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
       { 0.2f, 0.9f }		// Valve
    };
 
-   _aaxRingBufferData *rbi = rb->id;
+   _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int track, no_tracks = rbd->no_tracks;
    unsigned int no_samples = rbd->no_samples;
@@ -1301,6 +1307,7 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->init = _aaxRingBufferInit;
    rb->reference = _aaxRingBufferReference;
    rb->duplicate = _aaxRingBufferDuplicate;
+   rb->destroy = _aaxRingBufferDestroy;
 
    rb->set_state = _aaxRingBufferSetState;
    rb->get_state = _aaxRingBufferGetState;

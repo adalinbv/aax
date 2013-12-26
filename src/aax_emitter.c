@@ -219,7 +219,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
                assert(embuf->id == EMBUFFER_ID);
 
                free_buffer(embuf->buffer);
-               _aaxRingBufferDestroy(embuf->ringbuffer);
+               _aaxRingBufferFree(embuf->ringbuffer);
                embuf->ringbuffer = NULL;
                embuf->id = 0xdeadbeef;
                free(embuf);
@@ -1341,7 +1341,7 @@ _aaxFreeEmitterBuffer(void *sbuf)
    _embuffer_t *embuf = (_embuffer_t*)sbuf;
 
    free_buffer(embuf->buffer);
-   _aaxRingBufferDestroy(embuf->ringbuffer);
+   _aaxRingBufferFree(embuf->ringbuffer);
    embuf->ringbuffer = NULL;
    embuf->id = 0xdeadbeef;
    free(embuf);

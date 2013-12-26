@@ -148,15 +148,15 @@ aaxAudioFrameDestroy(aaxFrame frame)
          free(fmixer->props3d);
 
          /* handle->ringbuffer gets removed bij the frame thread */
-         /* _aaxRingBufferDestroy(handle->ringbuffer); */
+         /* be->destroy_ringbuffer(handle->ringbuffer); */
          _intBufErase(&fmixer->frames, _AAX_FRAME, free);
          _intBufErase(&fmixer->devices, _AAX_DEVICE, free);
          _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, free);
          _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, free);
          _intBufErase(&fmixer->play_ringbuffers, _AAX_RINGBUFFER,
-                      _aaxRingBufferDestroy);
+                      _aaxRingBufferFree);
          _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
-                      _aaxRingBufferDestroy);
+                      _aaxRingBufferFree);
 
          /* safeguard against using already destroyed handles */
          handle->id = 0xdeadbeef;
@@ -667,8 +667,14 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   smixer->refcount++;
                   smixer->thread = AAX_TRUE;
 
-                  if (!smixer->ringbuffer) {
-                     smixer->ringbuffer = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, fmixer->info->mode);
+                  if (!smixer->ringbuffer)
+                  {
+                     _handle_t *driver = get_driver_handle(frame);
+                     const _aaxDriverBackend *be = driver->backend.ptr;
+                     enum aaxRenderMode mode = driver->info->mode;
+                     float dt = DELAY_EFFECTS_TIME;
+
+                     smixer->ringbuffer = be->get_ringbuffer(dt, mode);
                   }
 
                   rb = smixer->ringbuffer;

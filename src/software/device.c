@@ -60,6 +60,8 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    NONE_RENDERER,
 
    (_aaxCodec **)&_aaxRingBufferCodecs,
+   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
    (_aaxDriverNewHandle *)&_aaxNoneDriverNewHandle,
@@ -113,6 +115,8 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (char *)&_loopback_default_renderer,
 
    (_aaxCodec **)&_aaxRingBufferCodecs,
+   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
    (_aaxDriverNewHandle *)&_aaxLoopbackDriverNewHandle,
@@ -513,6 +517,7 @@ void *
 _aaxNoneDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
+   const _aaxDriverBackend *be;
    _intBufferData *dptr_sensor;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame* mixer;
@@ -526,7 +531,8 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, handle->info->mode);
+   be = handle->backend.ptr;
+   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
    if (!dest_rb) {
       return NULL;
    }
@@ -543,7 +549,7 @@ _aaxNoneDriverThread(void* config)
    }
    else
    {
-      _aaxRingBufferDestroy(dest_rb);
+      be->destroy_ringbuffer(dest_rb);
       return NULL;
    }
 
@@ -570,7 +576,7 @@ _aaxNoneDriverThread(void* config)
    while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
 
    _aaxTimerDestroy(timer);
-   _aaxRingBufferDestroy(dest_rb);
+   be->destroy_ringbuffer(dest_rb);
    handle->ringbuffer = NULL;
    _aaxMutexUnLock(handle->thread.mutex);
 

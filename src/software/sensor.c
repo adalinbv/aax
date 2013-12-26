@@ -70,7 +70,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
          if (!device->ringbuffer) {
-            device->ringbuffer = _aaxRingBufferCreate(0.0f, smixer->info->mode);
+            be->get_ringbuffer(0.0f, smixer->info->mode);
          }
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
@@ -152,7 +152,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                   {
                      _aaxRingBuffer *rb = _intBufGetDataPtr(rbuf);
 
-                     _aaxRingBufferDestroy(rb);
+                     be->destroy_ringbuffer(rb);
                      _intBufDestroyDataNoLock(rbuf);
                   }
 
@@ -362,6 +362,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
             dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
             if (dptr_sensor)
             {
+               const _aaxDriverBackend *be = config->backend.ptr;
                _intBuffers *ringbuffers;
                _aaxAudioFrame *smixer;
                _sensor_t* sensor;
@@ -389,7 +390,7 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
                      if (rv) /* always streaming */
                      {
                         buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
-                        _aaxRingBufferDestroy(srb);
+                        be->destroy_ringbuffer(srb);
                         _intBufDestroyDataNoLock(buf);
 
                         buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);

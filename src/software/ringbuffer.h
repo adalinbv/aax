@@ -319,7 +319,6 @@ typedef ALIGN16 struct
 /** forwrad declaration */
 typedef struct _aaxRingBuffer_t _aaxRingBuffer;
 
-
 /**
  * Initialize a new sound buffer that holds no data.
  * The default values are for a single, 16 bits per sample track at 44100Hz.
@@ -338,8 +337,11 @@ _aaxRingBufferCreate(float, enum aaxRenderMode);
  *
  * @param rb the ringbuffer to delete
  */
+typedef void
+_aaxRingBufferDestroyFn(_aaxRingBuffer*);
+
 void
-_aaxRingBufferDestroy(void*);
+_aaxRingBufferFree(void*);
 
 
 /**
@@ -526,11 +528,12 @@ _aaxRingBufferDataCompressFn(_aaxRingBuffer*, enum _aaxCompressionType);
 typedef struct _aaxRingBuffer_t
 {
 // public:
-   void *id;
+   void *handle;
 
    _aaxRingBufferInitFn *init;
    _aaxRingBufferReferenceFn *reference;
    _aaxRingBufferDuplicateFn *duplicate;
+   _aaxRingBufferDestroyFn *destroy;
 
    _aaxRingBufferSetFormatFn *set_format;
    _aaxRingBufferSetStateFn *set_state;

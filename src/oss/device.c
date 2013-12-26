@@ -89,6 +89,8 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (char *)&_oss_default_renderer,
 
    (_aaxCodec **)&_aaxRingBufferCodecs,
+   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
    (_aaxDriverDetect *)&_aaxOSSDriverDetect,
    (_aaxDriverNewHandle *)&_aaxOSSDriverNewHandle,

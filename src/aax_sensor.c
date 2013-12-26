@@ -420,8 +420,13 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       _aaxMixerInfo* info = submix->info;
       _aaxRingBuffer *rb;
 
-      if (!submix->ringbuffer) {
-         submix->ringbuffer = _aaxRingBufferCreate(DELAY_EFFECTS_TIME, info->mode);
+      if (!submix->ringbuffer)
+      {
+         const _aaxDriverBackend *be = handle->backend.ptr;
+         enum aaxRenderMode mode = info->mode;
+         float dt = DELAY_EFFECTS_TIME;
+
+         submix->ringbuffer = be->get_ringbuffer(dt, mode);
       }
 
       rb = submix->ringbuffer;

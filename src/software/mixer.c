@@ -256,7 +256,7 @@ _aaxSoftwareMixerThread(void* config)
 
    tracks = 2;
    smixer = NULL;
-   dest_rb = _aaxRingBufferCreate(REVERB_EFFECTS_TIME, handle->info->mode);
+   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
    if (dest_rb)
    {
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -325,7 +325,7 @@ _aaxSoftwareMixerThread(void* config)
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
-      _aaxRingBufferDestroy(handle->ringbuffer);
+      be->destroy_ringbuffer(handle->ringbuffer);
       handle->ringbuffer = NULL;
    }
 
