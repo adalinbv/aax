@@ -1129,7 +1129,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
 }
 
 int
-_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBufferLFOInfo *lfo)
+_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBufferLFOData *lfo)
 {
    _aaxRingBufferData *srbi, *drbi;
    unsigned char track, tracks;

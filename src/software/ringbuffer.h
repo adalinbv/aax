@@ -21,7 +21,10 @@ extern "C" {
 #endif
 
 #include <base/geometry.h>
+
+#include <filters/effects.h>
 #include <driver.h>
+#include <objects.h>
 
 enum _aaxRingBufferParam
 {
@@ -106,7 +109,7 @@ typedef struct
    _aaxRingBufferLFOGetFn *get;
    _convert_fn *convert;
    char inv, envelope, stereo_lnk;
-} _aaxRingBufferLFOInfo;
+} _aaxRingBufferLFOData;
 
 typedef struct
 {
@@ -115,106 +118,38 @@ typedef struct
    unsigned int stage, max_stages;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
-} _aaxRingBufferEnvelopeInfo;
+} _aaxRingBufferEnvelopeData;
 
 
 /** Filtes and Effects */
-#define DELAY_EFFECTS_TIME	0.070f
-#define REVERB_EFFECTS_TIME	0.700f
 
 #define _AAX_MAX_DELAYS         8
 #define _AAX_MAX_LOOPBACKS      8
-#define _AAX_MAX_FILTERS        2
 #define _AAX_MAX_EQBANDS        8
-#if 0
-#define NO_DELAY_EFFECTS_TIME
-#undef DELAY_EFFECTS_TIME
-#define DELAY_EFFECTS_TIME      0.0f
-#endif
-
-typedef float _aaxRingBufferPitchShiftFn(float, float, float);
-extern _aaxRingBufferPitchShiftFn* _aaxRingBufferDopplerFn[];
-
-typedef float _aaxRingBufferDistFn(float, float, float, float, float, float);
-extern _aaxRingBufferDistFn* _aaxRingBufferDistanceFn[];
-extern _aaxRingBufferDistFn* _aaxRingBufferALDistanceFn[];
-
-
-enum _aax3dFiltersEffects
-{
-    /* 3d filters */
-    DISTANCE_FILTER = 0,        /* distance attennuation */
-    ANGULAR_FILTER,             /* audio cone support    */
-    MAX_3D_FILTER,
-
-    /* 3d effects */
-    VELOCITY_EFFECT = 0,        /* Doppler               */
-    MAX_3D_EFFECT,
-};
-
-enum _aax2dFiltersEffects
-{
-    /* final mixer stage */
-    EQUALIZER_LF = 0,
-    EQUALIZER_HF,
-    EQUALIZER_MAX,
-
-    /* stereo filters */
-    VOLUME_FILTER = 0,
-    DYNAMIC_GAIN_FILTER,
-    TIMED_GAIN_FILTER,
-    FREQUENCY_FILTER,
-    MAX_STEREO_FILTER,
-
-    /* stereo effects */
-    PITCH_EFFECT = 0,
-    REVERB_EFFECT,
-    DYNAMIC_PITCH_EFFECT,
-    TIMED_PITCH_EFFECT,
-    DISTORTION_EFFECT,
-    DELAY_EFFECT,               /* phasing, chorus, flanging  */
-    MAX_STEREO_EFFECT,
-};
-
-enum _aaxCompressionType
-{
-    RB_COMPRESS_ELECTRONIC = 0,
-    RB_COMPRESS_DIGITAL,
-    RB_COMPRESS_VALVE,
-
-    RB_COMPRESS_MAX
-};
-
-typedef struct
-{
-   float param[4];
-   void* data;          /* filter specific interal data structure */
-   int state;
-} _aaxRingBufferFilterInfo;
 
 typedef struct
 {
    float gain;
    unsigned int sample_offs[_AAX_MAX_SPEAKERS];
-} _aaxRingBufferDelayInfo;
+} _aaxRingBufferDelayData;
 
 typedef struct
 {
    float coeff[4];
    float Q, k, fs, lf_gain, hf_gain;
    float freqfilter_history[_AAX_MAX_SPEAKERS][2];
-   _aaxRingBufferLFOInfo *lfo;
-} _aaxRingBufferFreqFilterInfo;
+   _aaxRingBufferLFOData *lfo;
+} _aaxRingBufferFreqFilterData;
 
 typedef struct
 {
-   _aaxRingBufferFreqFilterInfo band[_AAX_MAX_EQBANDS];
-} _aaxRingBufferEqualizerInfo;
+   _aaxRingBufferFreqFilterData band[_AAX_MAX_EQBANDS];
+} _aaxRingBufferEqualizerData;
 
 typedef struct
 {
-   _aaxRingBufferLFOInfo lfo;
-   _aaxRingBufferDelayInfo delay;
+   _aaxRingBufferLFOData lfo;
+   _aaxRingBufferDelayData delay;
 
    int32_t* delay_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
@@ -232,58 +167,16 @@ typedef struct
    /* reverb*/
    float gain;
    unsigned int no_delays;
-   _aaxRingBufferDelayInfo delay[_AAX_MAX_DELAYS];
+   _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
 
     unsigned int no_loopbacks;
-    _aaxRingBufferDelayInfo loopback[_AAX_MAX_LOOPBACKS];
+    _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
     int32_t* reverb_history[_AAX_MAX_SPEAKERS];
     void* history_ptr;
 
-    _aaxRingBufferFreqFilterInfo *freq_filter;
+    _aaxRingBufferFreqFilterData *freq_filter;
 
 } _aaxRingBufferReverbData;
-
-void iir_compute_coefs(float, float, float*, float*, float);
-void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
-void _aaxRingBufferDelaysRemove(void**);
-void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
-
-
-/** 3d properties in 2d */
-typedef ALIGN16 struct
-{
-      /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
-      /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
-      /* pos[2] position; -1.0 front, 0.0 center, 1.0 back  */
-   vec4_t speaker[_AAX_MAX_SPEAKERS];
-
-      /* head[0] side delay sec    */
-      /* head[1] up delay sec      */
-      /* head[2] forward delay sec */
-      /* head[3] up offset sec     */
-   vec4_t head;
-   vec4_t hrtf[2];
-   vec4_t hrtf_prev[2];
-
-   /* stereo filters */
-   _aaxRingBufferFilterInfo filter[MAX_STEREO_FILTER];
-   _aaxRingBufferFilterInfo effect[MAX_STEREO_EFFECT];
-
-   float prev_gain[_AAX_MAX_SPEAKERS];
-   float prev_freq_fact;
-
-   float dist_delay_sec;        /* time to keep playing after a stop request */
-   float bufpos3dq;             /* distance delay queue buffer position      */
-
-   struct {
-      float pitch_lfo;
-      float pitch;
-      float gain_lfo;
-      float gain;
-   } final;
-
-} _aaxRingBuffer2dProps ALIGN16C;
-
 
 
 /** forwrad declaration */
@@ -421,10 +314,10 @@ _aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBuffer*, const _aaxRingBuffer*);
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixStereoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned int);
+_aaxRingBufferMixStereoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned int);
 
 typedef void
-_aaxRingBufferMixMNFn(_aaxRingBuffer*, const _aaxRingBuffer*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned int, unsigned int, float, float, float);
+_aaxRingBufferMixMNFn(_aaxRingBuffer*, const _aaxRingBuffer*, const int32_ptrptr, _aax2dProps*, unsigned int, unsigned int, float, float, float);
 
 
 
@@ -446,10 +339,10 @@ _aaxRingBufferMixMNFn(_aaxRingBuffer*, const _aaxRingBuffer*, const int32_ptrptr
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMonoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBuffer2dProps*, _aaxRingBuffer2dProps*, unsigned char, unsigned char, unsigned int);
+_aaxRingBufferMixMonoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, unsigned int);
 
 typedef void
-_aaxRingBufferMix1NFn(_aaxRingBuffer*, const int32_ptrptr, _aaxRingBuffer2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+_aaxRingBufferMix1NFn(_aaxRingBuffer*, const int32_ptrptr, _aax2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
 
 
 
@@ -483,7 +376,7 @@ _aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
 typedef int
 _aaxRingBufferDataClearFn(_aaxRingBuffer*);
 typedef int
-_aaxRingBufferDataMixDataFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBufferLFOInfo*);
+_aaxRingBufferDataMixDataFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBufferLFOData*);
 typedef int
 _aaxRingBufferDataMultiplyFn(_aaxRingBuffer*, size_t, size_t, float);
 typedef int

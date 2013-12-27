@@ -24,19 +24,20 @@
 #include <base/threads.h>
 #include <api.h>
 
-#include "arch.h"
-#include "ringbuffer.h"
 #include "cpu/ringbuffer.h"
+#include "ringbuffer.h"
+#include "audio.h"
+#include "arch.h"
 
 
 void
 _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d)
 {
    _aaxDriverBackend *be = (_aaxDriverBackend*)id;
-   _aaxRingBuffer2dProps *p2d = (_aaxRingBuffer2dProps*)props2d;
+   _aax2dProps *p2d = (_aax2dProps*)props2d;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)drb;
    _aaxRingBufferDelayEffectData* delay_effect;
-   _aaxRingBufferFreqFilterInfo* freq_filter;
+   _aaxRingBufferFreqFilterData* freq_filter;
    float maxgain, gain;
    int bps, dist_state;
 
@@ -178,7 +179,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
       if (ptr && parametric)
       {
-         _aaxRingBufferFreqFilterInfo* filter;
+         _aaxRingBufferFreqFilterData* filter;
          int32_t *d2 = (int32_t *)p;
          int32_t *d3 = d2 + dmax;
 
@@ -192,8 +193,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       else if (ptr && graphic)
       {
          unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-         _aaxRingBufferFreqFilterInfo* filter;
-         _aaxRingBufferEqualizerInfo *eq;
+         _aaxRingBufferFreqFilterData* filter;
+         _aaxRingBufferEqualizerData *eq;
          int32_t *d2 = (int32_t *)p;
          int32_t *d3 = d2 + dmax;
          int b = 6;
@@ -424,7 +425,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                 _handle_t *handle = frame->handle;
                 const _aaxDriverBackend *be = handle->backend.ptr;
                 void *be_handle = handle->backend.handle;
-                _aaxRingBuffer2dProps *p2d = fmixer->props2d;
+                _aax2dProps *p2d = fmixer->props2d;
 
                 _aaxAudioFrameMix(dest_rb, fmixer->play_ringbuffers,
                                   p2d, be, be_handle);
@@ -448,7 +449,7 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    const _aaxDriverBackend* fbe = (const _aaxDriverBackend*)fbackend;
-   _aaxRingBuffer2dProps *p2d = (_aaxRingBuffer2dProps*)props2d;
+   _aax2dProps *p2d = (_aax2dProps*)props2d;
    _aaxRingBuffer *dest_rb = (_aaxRingBuffer *)rb;
    float gain;
    int res;
@@ -551,7 +552,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             else if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
                _aaxDelayed3dProps *sdp3d, *sdp3d_m;
-               _aaxRingBuffer2dProps sp2d;
+               _aax2dProps sp2d;
                char fprocess = AAX_TRUE;
                unsigned int size;
                float ssv = 343.3f;
@@ -575,7 +576,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   sdf =_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
 
                   _aax_memcpy(&sp2d, smixer->props2d,
-                                     sizeof(_aaxRingBuffer2dProps));
+                                     sizeof(_aax2dProps));
                   _aax_memcpy(sdp3d, smixer->props3d->dprops3d,
                                       sizeof(_aaxDelayed3dProps));
                   sdp3d_m->state3d = sdp3d->state3d;

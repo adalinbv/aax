@@ -318,7 +318,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
-                  _aaxRingBufferLFOInfo *lfo;
+                  _aaxRingBufferLFOData *lfo;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
                   if (lfo) {
@@ -340,7 +340,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
-                  _aaxRingBufferLFOInfo *lfo;
+                  _aaxRingBufferLFOData *lfo;
                   int state;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
@@ -388,7 +388,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             case AAX_VOLUME_FILTER:
             {
                _aaxAudioFrame *mixer = sensor->mixer;
-               _aaxRingBuffer2dProps *p2d = mixer->props2d;
+               _aax2dProps *p2d = mixer->props2d;
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                    /* gain min and gain max are read-only for the mixer      */
                /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
@@ -404,7 +404,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             case AAX_TIMED_GAIN_FILTER:
             {
                _aaxAudioFrame *mixer = sensor->mixer;
-               _aaxRingBuffer2dProps *p2d = mixer->props2d;
+               _aax2dProps *p2d = mixer->props2d;
                _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
                _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -516,7 +516,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
-               _aaxRingBuffer2dProps *p2d = mixer->props2d;
+               _aax2dProps *p2d = mixer->props2d;
                int type = effect->pos;
                _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
@@ -1297,7 +1297,7 @@ _aaxMixerInit(_handle_t *handle)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame *mixer = sensor->mixer;
-            _aaxRingBuffer2dProps *p2d = mixer->props2d;
+            _aax2dProps *p2d = mixer->props2d;
             float cur;
 
             cur = be->param(handle->backend.handle, DRIVER_VOLUME);

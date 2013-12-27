@@ -30,15 +30,16 @@
 #include "devices.h"
 #include "base/logging.h"
 
-#include "stream/file.h"
-#include "dmedia/device.h"
-#include "alsa/device.h"
-#include "oss/device.h"
+#include <stream/file.h>
+#include <dmedia/device.h>
+#include <alsa/device.h>
+#include <oss/device.h>
 #ifdef HAVE_WINDOWS_H
-# include "windows/wasapi.h"
+# include <windows/wasapi.h>
 #endif
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include <software/arch.h>
+#include <software/ringbuffer.h>
+#include <filters/effects.h>
 
 static _intBuffers *_aaxIntDriverGetBackends();
 

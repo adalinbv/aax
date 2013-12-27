@@ -47,7 +47,7 @@
  */
 
 int32_t **
-_aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aaxRingBuffer2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
@@ -180,7 +180,7 @@ _aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aaxRingBuf
    if (new_srb_pos_sec >= -dduration)
    {
       _aaxRingBufferDelayEffectData* delay_effect;
-      _aaxRingBufferFreqFilterInfo* freq_filter;
+      _aaxRingBufferFreqFilterData* freq_filter;
       unsigned int sno_samples, sstart, sno_tracks;
       unsigned int dest_pos, dno_samples, dend;
       unsigned char sbps;

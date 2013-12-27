@@ -16,15 +16,22 @@
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
 #include <errno.h>
 #ifndef _WIN32
 # include <sys/time.h>
 # include <sys/resource.h>
 #endif
 
+#include <base/geometry.h>
 #include <base/threads.h>
 #include <base/types.h>
 
+#include <filters/effects.h>
 #include "api.h"
 
 

@@ -17,13 +17,14 @@
 
 #include <api.h>
 
-#include "arch.h"
-#include "ringbuffer.h"
 #include "cpu/ringbuffer.h"
+#include "ringbuffer.h"
+#include "audio.h"
+#include "arch.h"
 
 void
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
-                   _aaxRingBuffer2dProps *props2d, int dest_track)
+                   _aax2dProps *props2d, int dest_track)
 {
    _intBuffers *hd = (_intBuffers *)devices;
    unsigned int i, num;
@@ -52,7 +53,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 
       if (dptr_sensor)
       {
-         _aaxRingBuffer2dProps *p2d = (_aaxRingBuffer2dProps*)props2d;
+         _aax2dProps *p2d = (_aax2dProps*)props2d;
          float gain, dt, rr, curr_pos_sec;
          const _intBufferData* sptr_rb;
          _aaxRingBuffer *srb;
@@ -126,7 +127,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 
             do
             {
-               _aaxRingBufferLFOInfo *lfo;
+               _aaxRingBufferLFOData *lfo;
 
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
                if (lfo) {

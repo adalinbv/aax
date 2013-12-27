@@ -28,7 +28,7 @@
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aaxRingBuffer2dProps *fp2d,
+                    float ssv, float sdf, _aax2dProps *fp2d,
                     _aaxDelayed3dProps *fdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
@@ -82,7 +82,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                unsigned int res = 0;
                do
                {
-                  _aaxRingBuffer2dProps *ep2d = src->props2d;
+                  _aax2dProps *ep2d = src->props2d;
 
                   if (_IS_STOPPED(src->props3d)) {
                      srb->set_state(srb, RB_STOPPED);
@@ -208,7 +208,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
    _aax3dProps *ep3d;
-   _aaxRingBuffer2dProps *ep2d;
+   _aax2dProps *ep2d;
    _aaxRingBufferDistFn* distfn;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);

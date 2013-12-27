@@ -46,7 +46,7 @@ aaxEmitterCreate()
    size = sizeof(_emitter_t) + sizeof(_aaxEmitter);
    ptr2 = (char*)size;
 
-   size += sizeof(_aaxRingBuffer2dProps);
+   size += sizeof(_aax2dProps);
    ptr1 = _aax_calloc(&ptr2, 1, size);
    if (ptr1)
    {
@@ -58,7 +58,7 @@ aaxEmitterCreate()
       src->buffer_pos = UINT_MAX;
 
       assert(((long int)ptr2 & 0xF) == 0);
-      src->props2d = (_aaxRingBuffer2dProps*)ptr2;
+      src->props2d = (_aax2dProps*)ptr2;
       _aaxSetDefault2dProps(src->props2d);
 
       /* unfortunatelly postponing the allocation of the 3d data info buffer
@@ -402,7 +402,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            _aaxRingBufferEnvelopeInfo* env;
+            _aaxRingBufferEnvelopeData* env;
 
             rb->set_state(rb, RB_REWINDED);
             src->buffer_pos = 0;
@@ -457,7 +457,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
          {
-            _aaxRingBuffer2dProps *p2d = src->props2d;
+            _aax2dProps *p2d = src->props2d;
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -569,7 +569,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             /* break not needed */
          case AAX_DISTORTION_EFFECT:
          {
-            _aaxRingBuffer2dProps *p2d = src->props2d;
+            _aax2dProps *p2d = src->props2d;
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -583,7 +583,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          case AAX_PHASING_EFFECT:
          case AAX_CHORUS_EFFECT:
          {
-            _aaxRingBuffer2dProps *p2d = src->props2d;
+            _aax2dProps *p2d = src->props2d;
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -609,8 +609,8 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          }
          case AAX_DYNAMIC_PITCH_EFFECT:
          {
-            _aaxRingBuffer2dProps *p2d = src->props2d;
-            _aaxRingBufferLFOInfo *lfo;
+            _aax2dProps *p2d = src->props2d;
+            _aaxRingBufferLFOData *lfo;
 
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
@@ -1303,7 +1303,7 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       _aax3dProps *ep3d = src->props3d;
       _aaxDelayed3dProps *edp3d_m = ep3d->m_dprops3d;
       _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
-      _aaxRingBuffer2dProps *ep2d = src->props2d;
+      _aax2dProps *ep2d = src->props2d;
       float dist, vs;
 
       vs = _EFFECT_GET(fp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);

@@ -116,7 +116,7 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
    snum = reverb->no_delays;
    if (snum > 0)
    {
-      _aaxRingBufferFreqFilterInfo* filter = reverb->freq_filter;
+      _aaxRingBufferFreqFilterData* filter = reverb->freq_filter;
       int32_t *scratch = sbuf + dmin;
       const int32_ptr sptr = s + dmin;
       int q;
@@ -313,8 +313,8 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data)
 {
-   _aaxRingBufferFilterInfo *dist_effect = (_aaxRingBufferFilterInfo*)data;
-   _aaxRingBufferLFOInfo* lfo = dist_effect->data;
+   _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)data;
+   _aaxRingBufferLFOData* lfo = dist_effect->data;
    float *params = dist_effect->param;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -381,7 +381,7 @@ bufFilterFrequency(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data, unsigned char ctr)
 {
-   _aaxRingBufferFreqFilterInfo *filter = data;
+   _aaxRingBufferFreqFilterData *filter = data;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -651,7 +651,7 @@ _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
 float
 _aaxRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -665,7 +665,7 @@ _aaxRingBufferLFOGetFixedValue(void* data, const void *ptr, unsigned track, unsi
 float
 _aaxRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -697,7 +697,7 @@ _fast_sin1(float x)
 float
 _aaxRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -724,7 +724,7 @@ _aaxRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned i
 float
 _aaxRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -749,7 +749,7 @@ _aaxRingBufferLFOGetSquare(void* data, const void *ptr, unsigned track, unsigned
 float
 _aaxRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsigned int end)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -773,7 +773,7 @@ _aaxRingBufferLFOGetSawtooth(void* data, const void *ptr, unsigned track, unsign
 float
 _aaxRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsigned int num)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    static const float div = 1.0f / (float)0x000fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)
@@ -810,7 +810,7 @@ _aaxRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
 float
 _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsigned int num)
 {
-   _aaxRingBufferLFOInfo* lfo = (_aaxRingBufferLFOInfo*)data;
+   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    static const float div = 1.0f / (float)0x007fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)
@@ -861,7 +861,7 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
 }
 
 float
-_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeInfo* env, char stopped)
+_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData* env, char stopped)
 {
    float rv = 1.0f;
    if (env)

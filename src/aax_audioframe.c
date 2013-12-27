@@ -25,10 +25,11 @@
 #include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep */
 
-#include "api.h"
-#include "driver.h"
+#include <filters/effects.h>
+#include <software/ringbuffer.h>
+#include <software/arch.h>
 #include "devices.h"
-#include "software/arch.h"
+#include "api.h"
 
 static int _aaxAudioFrameStart(_frame_t*);
 static int _aaxAudioFrameUpdate(_frame_t*);
@@ -46,7 +47,7 @@ aaxAudioFrameCreate(aaxConfig config)
 
       size = sizeof(_frame_t) + sizeof(_aaxAudioFrame);
       ptr2 = (char*)size;
-      size += sizeof(_aaxRingBuffer2dProps);
+      size += sizeof(_aax2dProps);
       ptr1 = _aax_calloc(&ptr2, 1, size);
       if (ptr1)
       {
@@ -68,7 +69,7 @@ aaxAudioFrameCreate(aaxConfig config)
          submix = (_aaxAudioFrame*)((char*)frame + size);
          frame->submix = submix;
 
-         submix->props2d = (_aaxRingBuffer2dProps*)ptr2;
+         submix->props2d = (_aax2dProps*)ptr2;
          _aaxSetDefault2dProps(submix->props2d);
          _EFFECT_SET2D(submix, PITCH_EFFECT, AAX_PITCH, handle->info->pitch);
 
@@ -323,7 +324,7 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
          if (track < _AAX_MAX_SPEAKERS)
          {
             _aaxAudioFrame* fmixer = handle->submix;
-            _aaxRingBufferLFOInfo *lfo;
+            _aaxRingBufferLFOData *lfo;
 
             lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
             if (lfo) {
@@ -337,7 +338,7 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
          if (track < _AAX_MAX_SPEAKERS)
          {
             _aaxAudioFrame* fmixer = handle->submix;
-            _aaxRingBufferLFOInfo *lfo;
+            _aaxRingBufferLFOData *lfo;
 
             lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
             if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
@@ -373,7 +374,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          case AAX_GRAPHIC_EQUALIZER:
          case AAX_EQUALIZER:
          {
-            _aaxRingBuffer2dProps *p2d = handle->submix->props2d;
+            _aax2dProps *p2d = handle->submix->props2d;
             type = EQUALIZER_HF;
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
@@ -392,7 +393,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          case AAX_TIMED_GAIN_FILTER:
          case AAX_COMPRESSOR:
          {
-            _aaxRingBuffer2dProps *p2d = handle->submix->props2d;
+            _aax2dProps *p2d = handle->submix->props2d;
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
             _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
             _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
@@ -488,7 +489,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          case AAX_FLANGING_EFFECT:
          case AAX_PITCH_EFFECT:
          {
-            _aaxRingBuffer2dProps *p2d = fmixer->props2d;
+            _aax2dProps *p2d = fmixer->props2d;
             _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
             _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
             _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -1273,7 +1274,7 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
       _aax3dProps *fp3d = frame->props3d;
       _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
       _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
-      _aaxRingBuffer2dProps *fp2d = frame->props2d;
+      _aax2dProps *fp2d = frame->props2d;
       float dist, vs;
 
       vs = _EFFECT_GET(pp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);

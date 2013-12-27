@@ -63,7 +63,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 }
 
 void
-_aaxSetDefault2dProps(_aaxRingBuffer2dProps *p2d)
+_aaxSetDefault2dProps(_aax2dProps *p2d)
 {
    unsigned int pos, size;
 
@@ -168,104 +168,6 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
       _aax_memcpy(rv, dp3d, sizeof(_aaxDelayed3dProps));
    }
    return rv;
-}
-
-void
-_aaxSetDefaultFilter2d(_aaxRingBufferFilterInfo *filter, unsigned int type)
-{
-   assert(type < MAX_STEREO_FILTER);
-
-   memset(filter, 0, sizeof(_aaxRingBufferFilterInfo));
-   switch(type)
-   {
-   case VOLUME_FILTER:
-      filter->param[AAX_GAIN] = 1.0f;
-      filter->param[AAX_MAX_GAIN] = 1.0f;
-      filter->state = AAX_TRUE;
-      break;
-   case FREQUENCY_FILTER:
-      filter->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
-      filter->param[AAX_LF_GAIN] = 1.0f;
-      filter->param[AAX_HF_GAIN] = 1.0f;
-      filter->param[AAX_RESONANCE] = 1.0f;
-      break;
-   default:
-      break;
-   }
-}
-
-void
-_aaxSetDefaultEffect2d(_aaxRingBufferFilterInfo *effect, unsigned int type)
-{
-   assert(type < MAX_STEREO_EFFECT);
-
-   memset(effect, 0, sizeof(_aaxRingBufferFilterInfo));
-   switch(type)
-   {
-   case PITCH_EFFECT:
-      effect->param[AAX_PITCH] = 1.0f;
-      effect->param[AAX_MAX_PITCH] = 4.0f;
-      effect->state = AAX_TRUE;
-      break;
-   case TIMED_PITCH_EFFECT:
-      effect->param[AAX_LEVEL0] = 1.0f;
-      effect->param[AAX_LEVEL1] = 1.0f;
-      break;
-   case DISTORTION_EFFECT:
-      effect->param[AAX_CLIPPING_FACTOR] = 0.3f;
-      effect->param[AAX_ASYMMETRY] = 0.7f;
-      break;
-   case AAX_REVERB_EFFECT:
-      effect->param[AAX_CUTOFF_FREQUENCY] = 10000.0f;
-      effect->param[AAX_DELAY_DEPTH] = 0.27f;
-      effect->param[AAX_DECAY_LEVEL] = 0.3f;
-      effect->param[AAX_DECAY_DEPTH] = 0.7f;
-      break;
-   default:
-      break;
-   }
-}
-
-void
-_aaxSetDefaultFilter3d(_aaxRingBufferFilterInfo *filter, unsigned int type)
-{
-   assert(type < MAX_3D_FILTER);
-
-   memset(filter, 0, sizeof(_aaxRingBufferFilterInfo));
-   switch(type)
-   {
-   case DISTANCE_FILTER:
-      filter->param[AAX_REF_DISTANCE] = 1.0f;
-      filter->param[AAX_MAX_DISTANCE] = MAXFLOAT;
-      filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
-      filter->state = AAX_EXPONENTIAL_DISTANCE;
-      break;
-   case ANGULAR_FILTER:
-      filter->param[AAX_INNER_ANGLE] = 1.0f;
-      filter->param[AAX_OUTER_ANGLE] = 1.0f;
-      filter->param[AAX_OUTER_GAIN] = 1.0f;
-      filter->state = AAX_TRUE;
-      break;
-   default:
-      break;
-   }
-}
-
-void
-_aaxSetDefaultEffect3d(_aaxRingBufferFilterInfo *effect, unsigned int type)
-{
-   assert(type < MAX_3D_EFFECT);
-
-   memset(effect, 0, sizeof(_aaxRingBufferFilterInfo));
-   switch(type)
-   {
-   case VELOCITY_EFFECT:
-      effect->param[AAX_SOUND_VELOCITY] = 343.0f;
-      effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
-      effect->state = AAX_TRUE;
-   default:
-      break;
-   }
 }
 
 /* -------------------------------------------------------------------------- */

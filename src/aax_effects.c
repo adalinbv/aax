@@ -61,10 +61,10 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
       switch (type)
       {
       case AAX_TIMED_PITCH_EFFECT:
-         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxRingBufferFilterInfo);
+         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
          break;
       default:
-         size += sizeof(_aaxRingBufferFilterInfo);
+         size += sizeof(_aaxFilterInfo);
          break;
       }
 
@@ -79,11 +79,11 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          if VALID_HANDLE(handle) eff->info = handle->info;
 
          ptr = (char*)eff + sizeof(_effect_t);
-         eff->slot[0] = (_aaxRingBufferFilterInfo*)ptr;
+         eff->slot[0] = (_aaxFilterInfo*)ptr;
          eff->pos = _eff_cvt_tbl[type].pos;
          eff->type = type;
 
-         size = sizeof(_aaxRingBufferFilterInfo);
+         size = sizeof(_aaxFilterInfo);
          switch (type)
          {
          case AAX_PITCH_EFFECT:
@@ -98,7 +98,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          case AAX_TIMED_PITCH_EFFECT:
             for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
             {
-               eff->slot[i] = (_aaxRingBufferFilterInfo*)(ptr + i*size);
+               eff->slot[i] = (_aaxFilterInfo*)(ptr + i*size);
                _aaxSetDefaultEffect2d(eff->slot[i], eff->pos);
             }
             break;
@@ -300,10 +300,10 @@ aaxEffectSetState(aaxEffect e, int state)
          {
          case AAX_ENVELOPE_FOLLOW:
          {
-            _aaxRingBufferLFOInfo* lfo = effect->slot[0]->data;
+            _aaxRingBufferLFOData* lfo = effect->slot[0]->data;
             if (lfo == NULL)
             {
-               lfo = malloc(sizeof(_aaxRingBufferLFOInfo));
+               lfo = malloc(sizeof(_aaxRingBufferLFOData));
                effect->slot[0]->data = lfo;
             }
 
@@ -351,10 +351,10 @@ aaxEffectSetState(aaxEffect e, int state)
             case AAX_SAWTOOTH_WAVE:
             case AAX_ENVELOPE_FOLLOW:
             {
-               _aaxRingBufferLFOInfo* lfo = effect->slot[0]->data;
+               _aaxRingBufferLFOData* lfo = effect->slot[0]->data;
                if (lfo == NULL)
                {
-                  lfo = malloc(sizeof(_aaxRingBufferLFOInfo));
+                  lfo = malloc(sizeof(_aaxRingBufferLFOData));
                   effect->slot[0]->data = lfo;
                }
 
@@ -443,10 +443,10 @@ aaxEffectSetState(aaxEffect e, int state)
          {
             if TEST_FOR_TRUE(state)
             {
-               _aaxRingBufferEnvelopeInfo* env = effect->slot[0]->data;
+               _aaxRingBufferEnvelopeData* env = effect->slot[0]->data;
                if (env == NULL)
                {
-                  env =  calloc(1, sizeof(_aaxRingBufferEnvelopeInfo));
+                  env =  calloc(1, sizeof(_aaxRingBufferEnvelopeData));
                   effect->slot[0]->data = env;
                }
 
@@ -757,9 +757,9 @@ aaxEffectSetState(aaxEffect e, int state)
                do
                {
                   _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
-                  _aaxRingBufferFreqFilterInfo *flt = reverb->freq_filter;
+                  _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
                   if (!flt) {
-                     flt = calloc(1, sizeof(_aaxRingBufferFreqFilterInfo));
+                     flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
                   }
 
                   reverb->freq_filter = flt;
@@ -1017,7 +1017,7 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
 }
 
 _effect_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2dProps* p2d, _aax3dProps* p3d)
+new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _effect_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
@@ -1027,10 +1027,10 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2d
       switch (type)
       {
       case AAX_TIMED_PITCH_EFFECT:
-         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxRingBufferFilterInfo);
+         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
          break;
       default:
-         size += sizeof(_aaxRingBufferFilterInfo);
+         size += sizeof(_aaxFilterInfo);
          break;
       }
 
@@ -1041,12 +1041,12 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2d
 
          rv->id = EFFECT_ID;
          rv->info = info ? info : _info;
-         rv->slot[0] = (_aaxRingBufferFilterInfo*)ptr;
+         rv->slot[0] = (_aaxFilterInfo*)ptr;
          rv->pos = _eff_cvt_tbl[type].pos;
          rv->state = p2d->effect[rv->pos].state;
          rv->type = type;
 
-         size = sizeof(_aaxRingBufferFilterInfo);
+         size = sizeof(_aaxFilterInfo);
          switch (type)
          {
          case AAX_PITCH_EFFECT:
@@ -1061,12 +1061,12 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2d
             break;
          case AAX_TIMED_PITCH_EFFECT:
          {
-            _aaxRingBufferEnvelopeInfo *env;
+            _aaxRingBufferEnvelopeData *env;
             unsigned int no_steps;
             float dt, value;
             int i, stages;
 
-            env = (_aaxRingBufferEnvelopeInfo*)p2d->filter[rv->pos].data;
+            env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
             memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
             rv->slot[0]->data = NULL;
 
@@ -1081,9 +1081,9 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2d
             stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
             for (i=1; i<stages; i++)
             {
-               _aaxRingBufferFilterInfo* slot;
+               _aaxFilterInfo* slot;
 
-               slot = (_aaxRingBufferFilterInfo*)(ptr + i*size);
+               slot = (_aaxFilterInfo*)(ptr + i*size);
                rv->slot[i] = slot;
 
                no_steps = env->max_pos[2*i];
