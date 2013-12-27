@@ -435,29 +435,6 @@ iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q)
 
 /* -------------------------------------------------------------------------- */
 
-float _lin(float v) { return v; }
-float _square(float v) { return v*v; }
-float _lin2log(float v) { return log10f(v); }
-float _log2lin(float v) { return powf(10.0f,v); }
-float _lin2db(float v) { return 20.0f*log10f(v); }
-float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
-float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
-float _cos_deg2rad_2(float v) { return cosf(_deg2rad(v)/2); }
-float _2acos_rad2deg(float v) { return 2*acosf(_rad2deg(v)); }
-float _cos_2(float v) { return cosf(v/2); }
-float _2acos(float v) { return 2*acosf(v); }
-
-static float
-_fast_sin1(float x)
-{
-   float y = fmodf(x+0.5f, 2.0f) - 1.0f;
-   return 0.5f + 2.0f*(y - y*fabsf(y));
-}
-
-float _linear(float v, float f) { return v*f; }
-float _compress(float v, float f) { return powf(f, 1.0f-v); }
-
 /*
  * From: http://www.gamedev.net/reference/articles/article845.asp
  *       http://www.gamedev.net/reference/articles/article846.asp
@@ -709,6 +686,13 @@ _aaxRingBufferLFOGetTriangle(void* data, const void *ptr, unsigned track, unsign
    return rv;
 }
 
+
+static float
+_fast_sin1(float x)
+{
+   float y = fmodf(x+0.5f, 2.0f) - 1.0f;
+   return 0.5f + 2.0f*(y - y*fabsf(y));
+}
 
 float
 _aaxRingBufferLFOGetSine(void* data, const void *ptr, unsigned track, unsigned int end)

@@ -287,6 +287,19 @@ void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 #define FILTER_ID	0x887AFE21
 #define EFFECT_ID	0x21EFA788
 
+float _lin(float v);
+float _lin2db(float v);
+float _db2lin(float v);
+float _square(float v);
+float _lin2log(float v);
+float _log2lin(float v);
+float _rad2deg(float v);
+float _deg2rad(float v);
+float _cos_deg2rad_2(float v);
+float _2acos_rad2deg(float v);
+float _cos_2(float v);
+float _2acos(float v);
+
 #define _MAX_FE_SLOTS	3
 
 typedef struct

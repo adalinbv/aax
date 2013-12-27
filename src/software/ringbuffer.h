@@ -74,13 +74,25 @@ enum _aaxRingBufferMode
 };
 
 
-/** LFO */
+/**
+ * LFO: Low Frequency Oscillator
+ */
 #define _MAX_ENVELOPE_STAGES		6
 #define ENVELOPE_FOLLOW_STEP_CVT(a)	_MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
 
-typedef float
-_aaxRingBufferLFOGetFn(void*, const void*, unsigned, unsigned int);
+typedef float _aaxRingBufferLFOGetFn(void*, const void*, unsigned, unsigned int);
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSine;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSquare;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetTriangle;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSawtooth;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetFixedValue;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetGainFollow;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetCompressor;
+_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetPitchFollow;
+
 typedef float _convert_fn(float, float);
+_convert_fn _linear;
+_convert_fn _compress;
 
 typedef struct
 {
@@ -104,31 +116,6 @@ typedef struct
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
 } _aaxRingBufferEnvelopeInfo;
-
-float _lin(float v);
-float _lin2db(float v);
-float _db2lin(float v);
-float _square(float v);
-float _lin2log(float v);
-float _log2lin(float v);
-float _rad2deg(float v);
-float _deg2rad(float v);
-float _cos_deg2rad_2(float v);
-float _2acos_rad2deg(float v);
-float _cos_2(float v);
-float _2acos(float v);
-
-float _linear(float v, float f);
-float _compress(float v, float f);
-
-float _aaxRingBufferLFOGetSine(void*, const void*, unsigned, unsigned int);
-float _aaxRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);
-float _aaxRingBufferLFOGetTriangle(void*, const void*, unsigned, unsigned int);
-float _aaxRingBufferLFOGetSawtooth(void*, const void*, unsigned, unsigned int);
-float _aaxRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
-float _aaxRingBufferLFOGetGainFollow(void*, const void*, unsigned, unsigned int);
-float _aaxRingBufferLFOGetCompressor(void*, const void*, unsigned, unsigned int);
-float _aaxRingBufferLFOGetPitchFollow(void*, const void*, unsigned, unsigned int);
 
 
 /** Filtes and Effects */

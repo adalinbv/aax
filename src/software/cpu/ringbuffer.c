@@ -1285,6 +1285,10 @@ static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
 _aaxRingBufferMixStereoFn _aaxRingBufferMixMulti16;
 _aaxRingBufferMixMonoFn _aaxRingBufferMixMono16;
 
+float _linear(float v, float f) { return v*f; }
+float _compress(float v, float f) { return powf(f, 1.0f-v); }
+
+
 static int
 _aaxRingBufferClear(_aaxRingBufferData *rbi)
 {
