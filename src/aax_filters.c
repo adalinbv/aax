@@ -45,7 +45,7 @@ typedef float (*cvtfn_t)(float);
 static cvtfn_t get_cvtfn(enum aaxFilterType, int, int, char);
 
 static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
-static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX];
+static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
 
 AAX_API aaxFilter AAX_APIENTRY
 aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
@@ -198,7 +198,7 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
    aaxFilter rv = AAX_FALSE;
    if (filter && p)
    {
-      if ((slot < _MAX_SLOTS) && filter->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
          int i, type = filter->type;
          for (i=0; i<4; i++)
@@ -235,7 +235,7 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
    if (filter && !is_nan(value))
    {
       unsigned slot = param >> 4;
-      if ((slot < _MAX_SLOTS) && filter->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
          param &= 0xF;
          if ((param >= 0) && (param < 4))
@@ -286,7 +286,7 @@ aaxFilterSetState(aaxFilter f, int state)
        * Make sure parameters are actually within their expected boundaries.
        */
       slot = 0;
-      while ((slot < _MAX_SLOTS) && filter->slot[slot])
+      while ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
          int i, type = filter->type;
          for(i=0; i<4; i++)
@@ -879,7 +879,7 @@ aaxFilterGetParam(const aaxFilter f, int param, int ptype)
    if (filter)
    {
       int slot = param >> 4;
-      if ((slot < _MAX_SLOTS) && filter->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
          param &= 0xF;
          if ((param >= 0) && (param < 4))
@@ -920,7 +920,7 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
    _filter_t* filter = get_filter(f);
    if (filter && p)
    {
-      if ((slot < _MAX_SLOTS) && filter->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
          int i;
          for (i=0; i<4; i++)
@@ -957,7 +957,7 @@ static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
 };
 
 /* see above for the proper sequence */
-static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_SLOTS][AAX_FILTER_MAX] =
+static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX] =
 {   /* min[4] */	  /* max[4] */
   {
     /* AAX_FILTER_NONE      */

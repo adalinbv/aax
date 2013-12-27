@@ -556,7 +556,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
    int rv = AAX_FALSE;
    if (handle)
    {
-      _filter_t* effect = get_effect(e);
+      _effect_t* effect = get_effect(e);
       if (effect)
       {
          _aaxEmitter *src = handle->source;

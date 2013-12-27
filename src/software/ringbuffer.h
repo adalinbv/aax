@@ -23,22 +23,6 @@ extern "C" {
 #include <base/geometry.h>
 #include <driver.h>
 
-#define _MAX_SLOTS			3
-
-enum
-{
-    MODEL_MTX = 0,			/* 4x4 model view matrix*/
-    DIR_RIGHT = MODEL_MTX,		/* vec4*/
-    DIR_UPWD,				/* vec4*/
-    DIR_BACK,				/* vec4*/
-    LOCATION,				/* vec4*/
-    OFFSET = LOCATION,
-    VELOCITY = LOCATION,
-    GAIN = LOCATION,
-
-    MAX_OBJECT
-};
-
 enum _aaxRingBufferParam
 {
    RB_VOLUME = 0,
@@ -137,8 +121,6 @@ float _2acos(float v);
 float _linear(float v, float f);
 float _compress(float v, float f);
 
-void iir_compute_coefs(float, float, float*, float*, float);
-
 float _aaxRingBufferLFOGetSine(void*, const void*, unsigned, unsigned int);
 float _aaxRingBufferLFOGetSquare(void*, const void*, unsigned, unsigned int);
 float _aaxRingBufferLFOGetTriangle(void*, const void*, unsigned, unsigned int);
@@ -147,10 +129,6 @@ float _aaxRingBufferLFOGetFixedValue(void*, const void*, unsigned,unsigned int);
 float _aaxRingBufferLFOGetGainFollow(void*, const void*, unsigned, unsigned int);
 float _aaxRingBufferLFOGetCompressor(void*, const void*, unsigned, unsigned int);
 float _aaxRingBufferLFOGetPitchFollow(void*, const void*, unsigned, unsigned int);
-
-void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
-void _aaxRingBufferDelaysRemove(void**);
-void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 
 
 /** Filtes and Effects */
@@ -277,6 +255,11 @@ typedef struct
     _aaxRingBufferFreqFilterInfo *freq_filter;
 
 } _aaxRingBufferReverbData;
+
+void iir_compute_coefs(float, float, float*, float*, float);
+void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
+void _aaxRingBufferDelaysRemove(void**);
+void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 
 
 /** 3d properties in 2d */

@@ -87,6 +87,20 @@ enum
 
 enum
 {
+    MODEL_MTX = 0,		/* 4x4 model view matrix*/
+    DIR_RIGHT = MODEL_MTX,	/* vec4*/
+    DIR_UPWD,			/* vec4*/
+    DIR_BACK,			/* vec4*/
+    LOCATION,			/* vec4*/
+    OFFSET = LOCATION,
+    VELOCITY = LOCATION,
+    GAIN = LOCATION,
+
+    MAX_OBJECT
+};
+
+enum
+{
     PITCH_CHANGED          = 0x00000001,
     GAIN_CHANGED           = 0x00000002,
     DIST_CHANGED           = 0x00000004,

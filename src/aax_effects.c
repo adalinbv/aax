@@ -46,7 +46,7 @@ typedef float (*cvtfn_t)(float);
 static cvtfn_t get_cvtfn(enum aaxEffectType, int, int, char);
 
 static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
-static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX];
+static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
@@ -55,8 +55,8 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
    aaxEffect rv = NULL;
    if (handle)
    {
-      unsigned int size = sizeof(_filter_t);
-     _filter_t* eff;
+      unsigned int size = sizeof(_effect_t);
+     _effect_t* eff;
 
       switch (type)
       {
@@ -78,7 +78,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          eff->state = AAX_FALSE;
          if VALID_HANDLE(handle) eff->info = handle->info;
 
-         ptr = (char*)eff + sizeof(_filter_t);
+         ptr = (char*)eff + sizeof(_effect_t);
          eff->slot[0] = (_aaxRingBufferFilterInfo*)ptr;
          eff->pos = _eff_cvt_tbl[type].pos;
          eff->type = type;
@@ -127,7 +127,7 @@ AAX_API int AAX_APIENTRY
 aaxEffectDestroy(aaxEffect f)
 {
    int rv = AAX_FALSE;
-   _filter_t* effect = get_effect(f);
+   _effect_t* effect = get_effect(f);
    if (effect)
    {
       /*
@@ -181,10 +181,10 @@ AAX_API aaxEffect AAX_APIENTRY
 aaxEffectSetSlotParams(aaxEffect f, unsigned slot, int ptype, aaxVec4f p)
 {
    aaxEffect rv = AAX_FALSE;
-   _filter_t* effect = get_effect(f);
+   _effect_t* effect = get_effect(f);
    if (effect && p)
    {
-      if ((slot < _MAX_SLOTS) && effect->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
          int i, type = effect->type;
          for(i=0; i<4; i++)
@@ -216,12 +216,12 @@ aaxEffectSetSlotParams(aaxEffect f, unsigned slot, int ptype, aaxVec4f p)
 AAX_API int AAX_APIENTRY
 aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
 {
-   _filter_t* effect = get_effect(e);
+   _effect_t* effect = get_effect(e);
    int rv = AAX_FALSE;
    if (effect && !is_nan(value))
    {
       unsigned slot = param >> 4;
-      if ((slot < _MAX_SLOTS) && effect->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
          param &= 0xF;
          if ((param >= 0) && (param < 4))
@@ -251,7 +251,7 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectSetState(aaxEffect e, int state)
 {
-   _filter_t* effect = get_effect(e);
+   _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
 
    if (!effect) {
@@ -273,7 +273,7 @@ aaxEffectSetState(aaxEffect e, int state)
        * Make sure parameters are actually within their expected boundaries.
        */
       slot = 0;
-      while ((slot < _MAX_SLOTS) && effect->slot[slot])
+      while ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
          int i, type = effect->type;
          for(i=0; i<4; i++)
@@ -819,7 +819,7 @@ aaxEffectSetState(aaxEffect e, int state)
 AAX_API int AAX_APIENTRY
 aaxEffectGetState(aaxEffect e)
 {
-   _filter_t* effect = get_effect(e);
+   _effect_t* effect = get_effect(e);
    int rv = AAX_FALSE;
    if (effect) {
       rv = effect->state;
@@ -831,12 +831,12 @@ aaxEffectGetState(aaxEffect e)
 AAX_API float AAX_APIENTRY
 aaxEffectGetParam(const aaxEffect e, int param, int ptype)
 {
-   _filter_t* effect = get_effect(e);
+   _effect_t* effect = get_effect(e);
    float rv = 0.0f;
    if (effect)
    {
       unsigned slot = param >> 4;
-      if ((slot < _MAX_SLOTS) && effect->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
          param &= 0xF;
          if ((param >= 0) && (param < 4))
@@ -873,11 +873,11 @@ aaxEffectGetSlot(const aaxEffect e, unsigned slot, int ptype, float* p1, float* 
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 {
-   _filter_t* effect = get_effect(e);
+   _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
    if (effect && p)
    {
-      if ((slot < _MAX_SLOTS) && effect->slot[slot])
+      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
          int i;
          for (i=0; i<4; i++)
@@ -914,7 +914,7 @@ static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
 };
 
 
-static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_SLOTS][AAX_EFFECT_MAX] =
+static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX] =
 {    /* min[4] */		   /* max[4] */
   {
     /* AAX_EFFECT_NONE      */
@@ -1005,7 +1005,7 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
    float rv = 0.0f;
    if ((p >= 0) && (p < 4))
    {
-      _filter_t* effect = get_effect(f);
+      _effect_t* effect = get_effect(f);
       if (effect)
       {
          cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, READFN, p);
@@ -1016,13 +1016,13 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
    return rv;
 }
 
-_filter_t*
+_effect_t*
 new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2dProps* p2d, _aax3dProps* p3d)
 {
-   _filter_t* rv = NULL;
+   _effect_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
    {
-      unsigned int size = sizeof(_filter_t);
+      unsigned int size = sizeof(_effect_t);
 
       switch (type)
       {
@@ -1037,7 +1037,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2d
       rv = calloc(1, size);
       if (rv)
       {
-         char *ptr = (char*)rv + sizeof(_filter_t);
+         char *ptr = (char*)rv + sizeof(_effect_t);
 
          rv->id = EFFECT_ID;
          rv->info = info ? info : _info;
@@ -1119,10 +1119,10 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aaxRingBuffer2d
    return rv;
 }
 
-_filter_t*
+_effect_t*
 get_effect(const aaxEffect f)
 {
-   _filter_t* rv = (_filter_t*)f;
+   _effect_t* rv = (_effect_t*)f;
    if (rv && rv->id == EFFECT_ID) {
       return rv;
    }
