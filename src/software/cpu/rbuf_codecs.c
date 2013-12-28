@@ -28,16 +28,16 @@
 #include "software/audio.h"
 #include "arch2d_simd.h"
 
-static _aaxCodec _sw_bufcpy_8s;
-static _aaxCodec _sw_bufcpy_16s;
-static _aaxCodec _sw_bufcpy_24s;
+static _aaxRingBufferCodec _sw_bufcpy_8s;
+static _aaxRingBufferCodec _sw_bufcpy_16s;
+static _aaxRingBufferCodec _sw_bufcpy_24s;
 #if 0
-static _aaxCodec _sw_bufcpy_32s;
+static _aaxRingBufferCodec _sw_bufcpy_32s;
 #endif
-static _aaxCodec _sw_bufcpy_mulaw;
-static _aaxCodec _sw_bufcpy_alaw;
+static _aaxRingBufferCodec _sw_bufcpy_mulaw;
+static _aaxRingBufferCodec _sw_bufcpy_alaw;
 
-_aaxCodec *_aaxRingBufferCodecs[AAX_FORMAT_MAX] =
+_aaxRingBufferCodec *_aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 {
    &_sw_bufcpy_8s,
    &_sw_bufcpy_16s,
@@ -80,10 +80,10 @@ _aaxCodec *_aaxRingBufferCodecs[AAX_FORMAT_MAX] =
  * @src_loops boolean, 0 = no srource looping, otherwise the source loops.
  */
 void
-_aaxProcessCodec(int32_t* d, void *s, _aaxCodec *codecfn, unsigned int src_pos,
-                              unsigned int loop_start, unsigned int sno_samples,
-                              unsigned int ddesamps, unsigned int dno_samples,
-                              unsigned char sbps, char src_loops)
+_aaxProcessCodec(int32_t* d, void *s, _aaxRingBufferCodec *codecfn,
+                 unsigned int src_pos, unsigned int loop_start,
+                 unsigned int sno_samples, unsigned int ddesamps,
+                 unsigned int dno_samples, unsigned char sbps, char src_loops)
 {
    static const int dbps = sizeof(int32_t);
    const unsigned int sbuflen = sno_samples - loop_start;

@@ -432,14 +432,11 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       rb = submix->ringbuffer;
       if (rb)
       {
+         float delay_sec = 1.0f / info->refresh_rate;
          const _aaxDriverBackend *be;
-         float min, max, delay_sec;
-         unsigned int pos;
+         float min, max;
 
-         be = _aaxGetDriverBackendLoopback(&pos);
-         delay_sec = 1.0f / info->refresh_rate;
-
-         rb->set_format(rb, be->codecs, AAX_PCM24S);
+         rb->set_format(rb, AAX_PCM24S);
          rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
          be = handle->backend.ptr;

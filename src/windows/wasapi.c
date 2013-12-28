@@ -97,7 +97,6 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    AAX_VENDOR_STR,
    (char*)&_wasapi_default_renderer,
 
-   (_aaxCodec **)&_aaxRingBufferCodecs,
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferDestroy,
 

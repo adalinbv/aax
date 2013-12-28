@@ -77,8 +77,6 @@ enum _aaxDriverState {
    DRIVER_NEED_REINIT
 };
 
-typedef void _aaxCodec(void*, const void*, unsigned char, unsigned int);
-
 typedef char *_aaxDriverLog(const void*, int, int, const char *);
 
 typedef int _aaxDriverDetect(int mode);
@@ -115,7 +113,6 @@ typedef struct
     const char *vendor;
     char *renderer;
 
-    _aaxCodec **codecs;
     _aaxDriverRingBufferCreate *get_ringbuffer;
     _aaxDriverRingBufferDestroy *destroy_ringbuffer;
 
@@ -142,8 +139,6 @@ typedef struct
     _aaxDriverLog *log;
 
 } _aaxDriverBackend;
-
-extern _aaxCodec* _aaxRingBufferCodecs[];
 
 
 /* ---  software device helper functions --- */

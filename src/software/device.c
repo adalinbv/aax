@@ -59,7 +59,6 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    AAX_VENDOR_STR,
    NONE_RENDERER,
 
-   (_aaxCodec **)&_aaxRingBufferCodecs,
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
@@ -114,7 +113,6 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    AAX_VENDOR_STR,
    (char *)&_loopback_default_renderer,
 
-   (_aaxCodec **)&_aaxRingBufferCodecs,
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 

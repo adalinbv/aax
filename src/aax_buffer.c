@@ -753,10 +753,8 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
       rb = be->get_ringbuffer(0.0f, mode);
       if (rb)
       {
-         _aaxCodec** codecs = handle->backend.ptr->codecs;
-
          /* initialize the ringbuffer in native format only */
-         rb->set_format(rb, codecs, buf->format & AAX_FORMAT_NATIVE);
+         rb->set_format(rb, buf->format & AAX_FORMAT_NATIVE);
          rb->set_parami(rb, RB_NO_SAMPLES, buf->no_samples);
          rb->set_parami(rb, RB_NO_TRACKS, buf->no_tracks);
          /* Postpone until aaxBufferSetData gets called

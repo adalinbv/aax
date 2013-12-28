@@ -42,7 +42,7 @@ typedef struct			/* static information about the sample*/
 {
     void** track;
 
-    _aaxCodec* codec;
+    _aaxRingBufferCodec* codec;
     void** scratch;		/* resident scratch buffer*/
     unsigned char no_tracks;
     unsigned char bytes_sample;
@@ -106,9 +106,10 @@ typedef struct {
    enum aaxFormat format;
 } _aaxFormat_t;
 
-extern _aaxCodec* _aaxRingBufferCodecs_w8s[];
+extern _aaxRingBufferCodec* _aaxRingBufferCodecs[];
+extern _aaxRingBufferCodec* _aaxRingBufferCodecs_w8s[];
 
-void _aaxProcessCodec(int32_t*, void*, _aaxCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
+void _aaxProcessCodec(int32_t*, void*, _aaxRingBufferCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
 
 
 /** MIXER */

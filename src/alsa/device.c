@@ -77,7 +77,6 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    AAX_VENDOR_STR,
    (char *)&_alsa_id_str,
 
-   (_aaxCodec **)&_aaxRingBufferCodecs,
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
@@ -2702,7 +2701,7 @@ _aaxALSADriverThread(void* config)
       dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);
+         dest_rb->set_format(dest_rb, AAX_PCM24S);
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);

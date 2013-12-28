@@ -180,6 +180,13 @@ typedef struct
 
 } _aaxRingBufferReverbData;
 
+/**
+ * CODEC: COder/DECoder
+ */
+typedef void
+_aaxRingBufferCodec(void*, const void*, unsigned char, unsigned int);
+
+
 
 /**
  * Function type definitions
@@ -441,7 +448,7 @@ _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
  *       param set to RB_FORMAT
  */
 typedef int
-_aaxRingBufferSetFormatFn(_aaxRingBuffer*, _aaxCodec **, enum aaxFormat);
+_aaxRingBufferSetFormatFn(_aaxRingBuffer*, enum aaxFormat);
 
 /**
  * Set a single integer ringbuffer parameter

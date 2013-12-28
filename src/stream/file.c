@@ -81,7 +81,6 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    AAX_VENDOR_STR,
    (char *)&_file_default_renderer,
 
-   (_aaxCodec **)&_aaxRingBufferCodecs,
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 

@@ -682,14 +682,9 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   if (rb)
                   {
                      _aaxMixerInfo* info = smixer->info;
-                     const _aaxDriverBackend *be;
-                     unsigned int pos;
-                     float delay_sec;
+                     float delay_sec = 1.0f / info->refresh_rate;
 
-                     be = _aaxGetDriverBackendLoopback(&pos);
-                     delay_sec = 1.0f / info->refresh_rate;
-
-                     rb->set_format(rb, be->codecs, AAX_PCM24S);
+                     rb->set_format(rb, AAX_PCM24S);
                      rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
                      rb->set_parami(rb, RB_NO_TRACKS, 2);
 

@@ -981,7 +981,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
 }
 
 int
-_aaxRingBufferSetFormat(_aaxRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat format)
+_aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -997,16 +997,11 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, _aaxCodec **codecs, enum aaxFormat f
    assert(format < AAX_FORMAT_MAX);
    assert(rbi->parent == rb);
 
-   if (!codecs) codecs = _aaxRingBufferCodecs;
-
    rbd = rbi->sample;
    if (rbd->track == NULL)
    {
-      if (codecs == 0) {
-         codecs = _aaxRingBufferCodecs;
-      }
       rbi->format = format;
-      rbd->codec = codecs[format];
+      rbd->codec = _aaxRingBufferCodecs[format];
       rbd->bytes_sample = _aaxRingBufferFormat[format].bits/8;
    }
 #ifndef NDEBUG
