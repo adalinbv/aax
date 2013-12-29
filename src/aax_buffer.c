@@ -1308,7 +1308,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;
-            _aaxProcessResample(tracks[t], ptr[t], 0, samples, 0, fact);
+            _batch_resample(tracks[t], ptr[t], 0, samples, 0, fact);
             p += size;
          }
       }
@@ -1332,7 +1332,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          {
             tracks[t] = p;
             _bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples, fmt);
-            _aaxProcessResample(scratch[1], scratch[0], 0, samples, 0, fact);
+            _batch_resample(scratch[1], scratch[0], 0, samples, 0, fact);
             _bufConvertDataFromPCM24S(tracks[t], scratch[1], 1, samples, fmt,1);
             p += size;
          }

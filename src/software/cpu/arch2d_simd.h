@@ -66,6 +66,8 @@ extern "C" {
 # define FN_PREALIGN
 #endif
 
+#define CUBIC_TRESHOLD		0.25f
+
 /* CPU*/
 void _aax_free_align16(void*);
 char* _aax_calloc_align16(char**, unsigned int, unsigned int);
@@ -81,6 +83,7 @@ void _aaxBufResampleCubic_cpu(int32_ptr, const_int32_ptr, unsigned int, unsigned
 void _aaxBufResampleLinear_cpu(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleNearest_cpu(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleSkip_cpu(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _batch_resample_cpu(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
 
 void _batch_saturate24_cpu(void*, unsigned int);
 
@@ -139,6 +142,7 @@ void _aaxBufResampleCubic_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigne
 void _aaxBufResampleLinear_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleNearest_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleSkip_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _batch_resample_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
 
 void _batch_cvtps_24_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_ps_sse2(void_ptr, const_void_ptr, unsigned int);
@@ -149,12 +153,16 @@ void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, int, unsigned int, 
 /* SSE3 */
 void _batch_imul_value_sse3(void*, unsigned, unsigned int, float);
 void _batch_fmul_value_sse3(void*, unsigned, unsigned int, float);
+void _aaxBufResampleCubic_sse3(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _aaxBufResampleLinear_sse3(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _batch_resample_sse3(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
 
 /* AVX */
 void _aaxBufResampleCubic_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleLinear_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleNearest_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleSkip_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _batch_resample_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
 
 void _batch_fma3_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
 void _batch_fma4_avx(int32_ptr, const_int32_ptr, unsigned int, float, float);
@@ -167,6 +175,7 @@ void _aaxBufResampleCubic_neon(int32_ptr, const_int32_ptr, unsigned int, unsigne
 void _aaxBufResampleLinear_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleNearest_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _aaxBufResampleSkip_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _batch_resample_neon(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
 
 void _batch_cvt24_16_neon(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt16_24_neon(void_ptr, const_void_ptr, unsigned int);

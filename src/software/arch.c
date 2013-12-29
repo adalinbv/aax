@@ -156,10 +156,7 @@ _batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
 _batch_mul_value_proc _batch_imul_value = _batch_imul_value_cpu;
 _batch_mul_value_proc _batch_fmul_value = _batch_fmul_value_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
-_batch_resample_proc _aaxBufResampleCubic = _aaxBufResampleCubic_cpu;
-_batch_resample_proc _aaxBufResampleLinear = _aaxBufResampleLinear_cpu;
-_batch_resample_proc _aaxBufResampleNearest = _aaxBufResampleNearest_cpu;
-_batch_resample_proc _aaxBufResampleSkip = _aaxBufResampleSkip_cpu;
+_batch_resample_proc _batch_resample = _batch_resample_cpu;
 
 
 char
@@ -354,10 +351,7 @@ _aaxGetSIMDSupportString()
       _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
       _batch_freqfilter = _batch_freqfilter_neon;
 
-      _aaxBufResampleSkip = _aaxBufResampleSkip_neon;
-      _aaxBufResampleCubic = _aaxBufResampleCubic_neon;
-      _aaxBufResampleLinear = _aaxBufResampleLinear_neon;
-      _aaxBufResampleNearest = _aaxBufResampleNearest_neon;
+      _batch_resample = _batch_resample_neon;
 #endif
    }
    else
@@ -388,10 +382,7 @@ _aaxGetSIMDSupportString()
          _batch_freqfilter = _batch_freqfilter_sse2;
          _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
-         _aaxBufResampleSkip = _aaxBufResampleSkip_sse2;
-         _aaxBufResampleNearest = _aaxBufResampleNearest_sse2;
-         _aaxBufResampleLinear = _aaxBufResampleLinear_sse2;
-         _aaxBufResampleCubic = _aaxBufResampleCubic_sse2;
+         _batch_resample = _batch_resample_sse2;
       }
       if (level >= AAX_SSE3)
       {
@@ -399,6 +390,8 @@ _aaxGetSIMDSupportString()
          pt4Matrix4 = _pt4Matrix4_sse3;
          _batch_imul_value = _batch_imul_value_sse3;
          _batch_fmul_value = _batch_fmul_value_sse3;
+
+         _batch_resample = _batch_resample_sse3;
       }
 
 #ifdef __SSE4__
@@ -427,10 +420,7 @@ _aaxGetSIMDSupportString()
          }
 #endif
 #endif
-         _aaxBufResampleSkip = _aaxBufResampleSkip_avx;
-         _aaxBufResampleNearest = _aaxBufResampleNearest_avx;
-         _aaxBufResampleLinear = _aaxBufResampleLinear_avx;
-         _aaxBufResampleCubic = _aaxBufResampleCubic_avx;
+         _batch_resample = _batch_resample_avx;
       }
 # endif
 #endif

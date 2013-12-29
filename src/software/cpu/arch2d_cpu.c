@@ -1127,3 +1127,21 @@ _aaxBufResampleCubic_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin
    }
 }
 
+void
+_batch_resample_cpu(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_cpu(d, s, dmin, dmax, 0, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_cpu(d, s, dmin, dmax, 0, smu, fact);
+   }
+   else if (fact > 1.0f) {
+      _aaxBufResampleSkip_cpu(d, s, dmin, dmax, 0, smu, fact);
+   } else {
+      _aaxBufResampleNearest_cpu(d, s, dmin, dmax, 0, smu, fact);
+   }
+}
+

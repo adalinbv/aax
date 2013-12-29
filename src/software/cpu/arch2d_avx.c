@@ -183,3 +183,20 @@ _aaxBufResampleCubic_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    while (--i);
 }
 
+void
+_batch_resample_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_avx(d, s, dmin, dmax, 0, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_avx(d, s, dmin, dmax, 0, smu, fact);
+   }
+   else if (fact > 1.0f) {
+      _aaxBufResampleSkip_avx(d, s, dmin, dmax, 0, smu, fact);
+   } else {
+      _aaxBufResampleNearest_avx(d, s, dmin, dmax, 0, smu, fact);
+   }
+}

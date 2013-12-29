@@ -68,7 +68,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          float f = rb->get_paramf(rb, RB_FREQUENCY);
          /*
           * can not use drbd->dde_samples since it's 10 times as big for the
-          * fial mixer to accomodate for reverb
+          * final mixer to accomodate for reverb
           */
          // ddesamps = drbd->dde_samples;
          ddesamps = (unsigned int)ceilf(f * DELAY_EFFECTS_TIME);

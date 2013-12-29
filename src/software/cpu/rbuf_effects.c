@@ -291,16 +291,8 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          }
          else
          {
-            _batch_resample_proc resamplefn = _aaxBufResampleNearest;
-            if (fact < 1.0f) {
-               resamplefn = _aaxBufResampleLinear;
-            }
-            else if (fact > 1.0f) {
-               resamplefn = _aaxBufResampleSkip;
-            }
-
             DBG_MEMCLR(1, scratch-ds, ds+end, bps);
-            resamplefn(scratch-ds, sptr-offs, 0, no_samples, 0, 0.0f, fact);
+            _batch_resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, fact);
             _batch_imadd(dptr, scratch-ds, no_samples, volume, 0.0f);
          }
       }
@@ -786,14 +778,18 @@ _aaxRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
          int32_t *sptr = (int32_t *)ptr;
          unsigned int i = num;
          float lvl, fact;
-         uint64_t sum;
+         double rms, val;
 
-         sum = 0;
-         do {
-            sum += abs(*sptr++);
-         } while (--i);
-         sum /= num;
-         lvl = _MINMAX(sum*div, 0.0f, 1.0f);
+         rms = 0;
+         do
+         {
+            val = *sptr++;
+            rms += val*val;		// rms
+         }
+         while (--i);
+         rms = sqrt(rms/num);
+//       _batch_get_average_rms(ptr, num, &rms, &peak);
+         lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          olvl = lfo->value[track];
          fact = lfo->step[track];
@@ -829,14 +825,18 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          int32_t *sptr = (int32_t *)ptr;
          float lvl, fact = 1.0f;
          unsigned int i = num;
-         uint64_t sum;
+         double rms, val;
 
-         sum = 0;
-         do {
-            sum += abs(*sptr++);
-         } while (--i);
-         sum /= num;
-         lvl = _MINMAX(sum*div, 0.0f, 1.0f);
+         rms = 0;
+         do
+         {
+            val = *sptr++;
+            rms += val*val;		// rms
+         }
+         while (--i);
+         rms = sqrt(rms/num);
+//       _batch_get_average_rms(ptr, num, &rms, &peak);
+         lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          fact = lfo->gate_period;
          olvl = lfo->value[track];

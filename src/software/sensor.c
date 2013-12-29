@@ -218,11 +218,11 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       if (res && nframes)
       {
-         float avg, agc, peak, rms, rms_rr, max, maxrms, maxpeak;
+         float avg, agc, peak, rms_rr, max, maxrms, maxpeak;
          unsigned int track, tracks;
          int32_t **ntptr, **otptr;
          _aaxRingBuffer *nrb;
-         double sum;
+         double rms;
 
          nrb = drb->duplicate(drb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
@@ -286,20 +286,19 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             _aax_memcpy(ptr-ds, optr-ds+nframes, ds*bps);
 
             /** average RMS and peak values */
-            sum = peak = 0;
+            rms = peak = 0;
             j = nframes;
             do
             {
-               int32_t val = *optr++;
-               float samp = (float)val*val;	// RMS
-
-               sum += samp;
-               if (samp > peak) peak = samp;
+               double samp = *optr++;		// rms
+               double val = samp*samp;
+               rms += val;
+               if (val > peak) peak = samp;
             }
             while (--j);
-
-            rms = sqrt(sum/nframes);
+            rms = sqrt(rms/nframes);
             peak = sqrtf(peak);
+//          _batch_get_average_rms(otptr[track], nframes, &rms, &peak);
 
             if (maxrms < rms) maxrms = rms;
             if (maxpeak < peak) maxpeak = peak;

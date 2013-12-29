@@ -37,8 +37,6 @@
  */
 #define NDEBUG 1
 
-#define CUBIC_TRESHOLD		0.25f
-
 
 /**
  * returns a buffer containing pointers to the playback position, but reserves
@@ -280,7 +278,7 @@ _aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps
                                 sbps, src_loops);
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _aaxProcessResample(dptr-ddesamps, scratch0-cdesamps-offs,
+               _batch_resample(dptr-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
             }
@@ -314,7 +312,7 @@ _aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps
                                 sbps, src_loops);
 
                DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _aaxProcessResample(scratch1-ddesamps, scratch0-cdesamps-offs,
+               _batch_resample(scratch1-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
 
@@ -335,28 +333,6 @@ _aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps
 
 /* -------------------------------------------------------------------------- */
 
-void
-_aaxProcessResample(int32_ptr d, const int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
-{
-   _batch_resample_proc resamplefn;
-
-   assert(fact > 0.0f);
-
-   if (fact < CUBIC_TRESHOLD) {
-      resamplefn = _aaxBufResampleCubic;
-   }
-   else if (fact < 1.0f) {
-      resamplefn = _aaxBufResampleLinear;
-   }
-   else if (fact > 1.0f) {
-      resamplefn = _aaxBufResampleSkip;
-   } else {
-      resamplefn = _aaxBufResampleNearest;
-   }
-
-   resamplefn(d, s, dmin, dmax, 0, smu, fact);
-}
-
 #define BITS		11
 #define SHIFT		(31-BITS)
 #define START		((1<<SHIFT)-1)
@@ -372,10 +348,10 @@ bufCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, floa
    int32_t *ptr = d;
    int32_t iasym;
    float peak;
-   double sum;
+   double rms;
 
    osamp = 0.0f;
-   sum = peak = 0;
+   rms = peak = 0;
    mix = _MINMAX(clip, 0.0f, 1.0f);
    imix = (1.0f - mix);
    j = max = *dmax - *dmin;
@@ -388,7 +364,7 @@ bufCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, floa
 
       samp = *ptr;
       val = (float)samp*samp;	// RMS
-      sum += val;
+      rms += val;
       if (val > peak) peak = val;
 
       asamp = (samp < 0) ? abs(samp-iasym) : abs(samp);
@@ -410,7 +386,7 @@ bufCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, floa
    while (--j);
  
    *dmax = (unsigned int)sqrtf(peak);
-   *dmin = (unsigned int)sqrt(sum/max);
+   *dmin = (unsigned int)sqrt(rms/max);
 }
 
 #else

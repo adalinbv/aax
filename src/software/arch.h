@@ -44,7 +44,7 @@ typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, unsigned int, 
 typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, unsigned int, float, float);
 typedef void (*_batch_mul_value_proc)(void*, unsigned, unsigned int, float);
 typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
-typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
 
 typedef void (*_aax_aligned_free_proc)(void*);
 void* _aax_aligned_alloc16(size_t);
@@ -64,10 +64,7 @@ extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_fmadd_proc _batch_fma3;
 extern _batch_fmadd_proc _batch_fma4;
 extern _batch_freqfilter_proc _batch_freqfilter;
-extern _batch_resample_proc _aaxBufResampleCubic;
-extern _batch_resample_proc _aaxBufResampleLinear;
-extern _batch_resample_proc _aaxBufResampleNearest;
-extern _batch_resample_proc _aaxBufResampleSkip;
+extern _batch_resample_proc _batch_resample;
 
 extern _batch_cvt_proc _batch_saturate24;
 
