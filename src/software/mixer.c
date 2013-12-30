@@ -51,6 +51,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
    if (delay_effect || freq_filter || dist_state)
    {
+      _aaxRingBufferData *rbi = rb->handle;
       int32_t **scratch = (int32_t**)rb->get_scratch(rb);
       int32_t *scratch0 = scratch[SCRATCH_BUFFER0];
       int32_t *scratch1 = scratch[SCRATCH_BUFFER1];
@@ -89,9 +90,9 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
          /* mix the buffer and the delay buffer */
          DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
-         bufEffectsApply(scratch0, dptr, scratch1,
-                         0, no_samples, no_samples, ddesamps, track, 0,
-                         freq_filter, delay_effect, distortion_effect);
+         rbi->effects(scratch0, dptr, scratch1, 0, no_samples, no_samples,
+                     ddesamps, track, 0, freq_filter, delay_effect,
+                     distortion_effect);
 
          /* copy the unmodified next effects buffer back */
          DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);

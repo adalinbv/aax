@@ -273,12 +273,12 @@ _aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps
                }
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _aaxProcessCodec(scratch0, sptr, srbd->codec, src_pos,
+               srbi->codec(scratch0, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _batch_resample(dptr-ddesamps, scratch0-cdesamps-offs,
+               srbi->resample(dptr-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
             }
@@ -307,17 +307,17 @@ _aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps
                }
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _aaxProcessCodec(scratch0, sptr, srbd->codec, src_pos,
+               srbi->codec(scratch0, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 
                DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(int32_t));
-               _batch_resample(scratch1-ddesamps, scratch0-cdesamps-offs,
+               srbi->resample(scratch1-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
-               bufEffectsApply(dptr, scratch1, scratch0, dest_pos, dend,
+               srbi->effects(dptr, scratch1, scratch0, dest_pos, dend,
                                dno_samples, ddesamps, track, ctr,
                                freq_filter, delay_effect, distortion_effect);
             }

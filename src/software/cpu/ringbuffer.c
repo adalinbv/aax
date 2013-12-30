@@ -71,7 +71,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
       if (rbd)
       {
          float ddesamps;
-         int format;
+
          /*
           * fill in the defaults
           */
@@ -86,16 +86,17 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->pitch_norm = 1.0f;
          rbi->volume_min = 0.0f;
          rbi->volume_max = 1.0f;
-         rbi->format = AAX_PCM16S;
+         rbi->resample = _batch_resample;
+         rbi->codec = _aaxRingBufferProcessCodec;
 
          rbi->mode = mode;
          rbi->access = RB_NONE;
 
-         format = rbi->format;
          rbd->no_tracks = 1;
          rbd->frequency_hz = 44100.0f;
-         rbd->codec = _aaxRingBufferCodecs[format];
-         rbd->bytes_sample = _aaxRingBufferFormat[format].bits/8;
+         rbd->format = AAX_PCM16S;
+         rbd->codec = _aaxRingBufferCodecs[rbd->format];
+         rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
          rbd->dde_samples = (unsigned int)ddesamps;
@@ -935,13 +936,13 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbi->sample->bytes_sample;
       break;
    case RB_INTERNAL_FORMAT:
-      rv = _aaxRingBufferFormat[rbi->format].format;
-      break;
-   case RB_FORMAT:
-      rv = rbi->format;
+      rv = _aaxRingBufferFormat[rbd->format].format;
       break;
    case RB_LOOPING:
       rv = rbi->loop_max ? rbi->loop_max : rbi->looping;
+      break;
+   case RB_FORMAT:
+      rv = rbd->format;
       break;
    case RB_LOOPPOINT_START:
       rv = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);
@@ -1000,9 +1001,9 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format)
    rbd = rbi->sample;
    if (rbd->track == NULL)
    {
-      rbi->format = format;
-      rbd->codec = _aaxRingBufferCodecs[format];
-      rbd->bytes_sample = _aaxRingBufferFormat[format].bits/8;
+      rbd->format = format;
+      rbd->codec = _aaxRingBufferCodecs[rbd->format];
+      rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
    }
 #ifndef NDEBUG
    else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);

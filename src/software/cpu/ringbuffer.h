@@ -31,6 +31,9 @@ extern "C" {
 #define BYTE_ALIGN		1
 #define CUBIC_SAMPS		4
 
+typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
+typedef void _aaxEffectsApplyFn(int32_ptr, int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, void*, void*, void*);
+
 enum
 {
     SCRATCH_BUFFER0 = _AAX_MAX_SPEAKERS,
@@ -39,11 +42,11 @@ enum
     MAX_SCRATCH_BUFFERS
 };
 
-typedef struct			/* static information about the sample*/
+typedef struct			/* static information about the sample */
 {
     void** track;
 
-    void** scratch;		/* resident scratch buffer*/
+    void** scratch;		/* resident scratch buffer */
     unsigned char no_tracks;
     unsigned char bytes_sample;
     unsigned short ref_counter;
@@ -53,16 +56,17 @@ typedef struct			/* static information about the sample*/
     float loop_start_sec;
     float loop_end_sec;
 
-    unsigned int no_samples;		/* actual no. samples*/
-    unsigned int no_samples_avail;	/* maximum available no. samples*/
+    unsigned int no_samples;		/* actual no. samples */
+    unsigned int no_samples_avail;	/* maximum available no. samples */
     unsigned int track_len_bytes;
     unsigned int dde_samples;
 
+    enum aaxFormat format;
     _batch_codec_proc codec;
 
 } _aaxRingBufferSample;
 
-typedef struct		/* playback related information about the sample*/
+typedef struct		/* playback related information about the sample */
 {
     _aaxRingBufferSample* sample;		/* shared, constat settings */
 
@@ -78,8 +82,6 @@ typedef struct		/* playback related information about the sample*/
     float curr_pos_sec;
     unsigned int curr_sample;
 
-    int format;
-
     unsigned int loop_max;
     unsigned int loop_no;
     char looping;
@@ -92,11 +94,14 @@ typedef struct		/* playback related information about the sample*/
     void *parent;
 #endif
 
-   _aaxRingBufferMix1NFn *mix1n;
-   _aaxRingBufferMixMNFn *mixmn;
-
    enum aaxRenderMode mode;
    enum _aaxRingBufferMode access;
+
+   _aaxProcessCodecFn *codec;
+   _batch_resample_proc resample;
+   _aaxEffectsApplyFn *effects;
+   _aaxRingBufferMix1NFn *mix1n;
+   _aaxRingBufferMixMNFn *mixmn;
 
 } _aaxRingBufferData;
 
@@ -111,7 +116,8 @@ typedef struct {
 extern _batch_codec_proc _aaxRingBufferCodecs[];
 extern _batch_codec_proc _aaxRingBufferCodecs_w8s[];
 
-void _aaxProcessCodec(int32_t*, void*, _batch_codec_proc, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
+void _aaxRingBufferProcessCodec(int32_t*, void*, _batch_codec_proc, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
+void _aaxRingBufferEffectsApply(int32_ptr, int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, void*, void*, void*);
 
 
 /** MIXER */

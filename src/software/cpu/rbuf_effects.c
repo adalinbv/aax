@@ -37,10 +37,10 @@ static void szxform(float *, float *, float *, float *, float *, float *,
  */
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 void
-bufEffectsApply(int32_ptr dst, const int32_ptr src, int32_ptr scratch,
-          unsigned int start, unsigned int end, unsigned int no_samples,
-          unsigned int ddesamps, unsigned int track, unsigned char ctr,
-          void *freq, void *delay, void *distort)
+_aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
+          int32_ptr scratch, unsigned int start, unsigned int end,
+          unsigned int no_samples, unsigned int ddesamps, unsigned int track,
+          unsigned char ctr, void *freq, void *delay, void *distort)
 {
    static const unsigned int bps = sizeof(int32_t);
    _aaxRingBufferDelayEffectData* effect = delay;

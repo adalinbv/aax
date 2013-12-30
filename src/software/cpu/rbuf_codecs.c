@@ -80,7 +80,7 @@ _batch_codec_proc _aaxRingBufferCodecs[AAX_FORMAT_MAX] =
  * @src_loops boolean, 0 = no srource looping, otherwise the source loops.
  */
 void
-_aaxProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
+_aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
                  unsigned int src_pos, unsigned int loop_start,
                  unsigned int sno_samples, unsigned int ddesamps,
                  unsigned int dno_samples, unsigned char sbps, char src_loops)
