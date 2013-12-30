@@ -24,6 +24,7 @@ extern "C" {
 #include <base/geometry.h>
 #include <base/types.h>
 
+#include "software/arch.h"
 #include "rbuf2d_effects.h"
 
 #define RB_FLOAT_DATA		0
@@ -42,7 +43,6 @@ typedef struct			/* static information about the sample*/
 {
     void** track;
 
-    _aaxRingBufferCodec* codec;
     void** scratch;		/* resident scratch buffer*/
     unsigned char no_tracks;
     unsigned char bytes_sample;
@@ -57,6 +57,8 @@ typedef struct			/* static information about the sample*/
     unsigned int no_samples_avail;	/* maximum available no. samples*/
     unsigned int track_len_bytes;
     unsigned int dde_samples;
+
+    _batch_codec_proc codec;
 
 } _aaxRingBufferSample;
 
@@ -106,10 +108,10 @@ typedef struct {
    enum aaxFormat format;
 } _aaxFormat_t;
 
-extern _aaxRingBufferCodec* _aaxRingBufferCodecs[];
-extern _aaxRingBufferCodec* _aaxRingBufferCodecs_w8s[];
+extern _batch_codec_proc _aaxRingBufferCodecs[];
+extern _batch_codec_proc _aaxRingBufferCodecs_w8s[];
 
-void _aaxProcessCodec(int32_t*, void*, _aaxRingBufferCodec*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
+void _aaxProcessCodec(int32_t*, void*, _batch_codec_proc, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
 
 
 /** MIXER */

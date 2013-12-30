@@ -180,12 +180,6 @@ typedef struct
 
 } _aaxRingBufferReverbData;
 
-/**
- * CODEC: COder/DECoder
- */
-typedef void
-_aaxRingBufferCodec(void*, const void*, unsigned char, unsigned int);
-
 
 
 /**
@@ -439,7 +433,6 @@ _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
  * Set the required format for the ringbuffer
  *
  * @param rb ringbuffer to set
- * @param codecs set the backend codecs array, NULL for default for tingbuffer.
  * @param format internal fromat for the ringbuffer data.
  *
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.

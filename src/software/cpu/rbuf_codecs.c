@@ -28,16 +28,16 @@
 #include "software/audio.h"
 #include "arch2d_simd.h"
 
-static _aaxRingBufferCodec _sw_bufcpy_8s;
-static _aaxRingBufferCodec _sw_bufcpy_16s;
-static _aaxRingBufferCodec _sw_bufcpy_24s;
+static void _sw_bufcpy_8s(void_ptr, const_void_ptr, unsigned char, unsigned int);
+static void _sw_bufcpy_16s(void_ptr, const_void_ptr, unsigned char, unsigned int);
+static void _sw_bufcpy_24s(void_ptr, const_void_ptr, unsigned char, unsigned int);
 #if 0
-static _aaxRingBufferCodec _sw_bufcpy_32s;
+static void _sw_bufcpy_32a(void_ptr, const_void_ptr, unsigned char, unsigned int)s;
 #endif
-static _aaxRingBufferCodec _sw_bufcpy_mulaw;
-static _aaxRingBufferCodec _sw_bufcpy_alaw;
+static void _sw_bufcpy_mulaw(void_ptr, const_void_ptr, unsigned char, unsigned int);
+static void _sw_bufcpy_alaw(void_ptr, const_void_ptr, unsigned char, unsigned int);
 
-_aaxRingBufferCodec *_aaxRingBufferCodecs[AAX_FORMAT_MAX] =
+_batch_codec_proc _aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 {
    &_sw_bufcpy_8s,
    &_sw_bufcpy_16s,
@@ -80,7 +80,7 @@ _aaxRingBufferCodec *_aaxRingBufferCodecs[AAX_FORMAT_MAX] =
  * @src_loops boolean, 0 = no srource looping, otherwise the source loops.
  */
 void
-_aaxProcessCodec(int32_t* d, void *s, _aaxRingBufferCodec *codecfn,
+_aaxProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
                  unsigned int src_pos, unsigned int loop_start,
                  unsigned int sno_samples, unsigned int ddesamps,
                  unsigned int dno_samples, unsigned char sbps, char src_loops)
