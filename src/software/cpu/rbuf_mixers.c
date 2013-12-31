@@ -45,7 +45,7 @@
  */
 
 int32_t **
-_aaxProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
+_RingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;

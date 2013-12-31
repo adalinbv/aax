@@ -88,6 +88,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->volume_max = 1.0f;
          rbi->resample = _batch_resample;
          rbi->codec = _aaxRingBufferProcessCodec;
+         rbi->mix = _RingBufferProcessMixer;
 
          rbi->mode = mode;
          rbi->access = RB_NONE;

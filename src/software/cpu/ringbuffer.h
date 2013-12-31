@@ -31,6 +31,10 @@ extern "C" {
 #define BYTE_ALIGN		1
 #define CUBIC_SAMPS		4
 
+/** forwrad declaration */
+typedef struct _aaxRingBufferData_t _aaxRingBufferData;
+
+typedef int32_t**_aaxProcessMixerFn(struct _aaxRingBufferData_t*, struct _aaxRingBufferData_t*, _aax2dProps*, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
 typedef void _aaxEffectsApplyFn(int32_ptr, int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, void*, void*, void*);
 
@@ -66,7 +70,8 @@ typedef struct			/* static information about the sample */
 
 } _aaxRingBufferSample;
 
-typedef struct		/* playback related information about the sample */
+/* playback related information about the sample */
+typedef struct _aaxRingBufferData_t
 {
     _aaxRingBufferSample* sample;		/* shared, constat settings */
 
@@ -100,6 +105,9 @@ typedef struct		/* playback related information about the sample */
    _aaxProcessCodecFn *codec;
    _batch_resample_proc resample;
    _aaxEffectsApplyFn *effects;
+   _aaxProcessMixerFn *mix;
+
+   /* called by the mix function above */
    _aaxRingBufferMix1NFn *mix1n;
    _aaxRingBufferMixMNFn *mixmn;
 
@@ -122,7 +130,7 @@ void _aaxRingBufferEffectsApply(int32_ptr, int32_ptr, int32_ptr, unsigned int, u
 
 /** MIXER */
 
-int32_t**_aaxProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*, _aax2dProps*, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
+int32_t**_RingBufferProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*, _aax2dProps*, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 
 _aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Stereo;
