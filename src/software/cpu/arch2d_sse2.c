@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2012 by Erik Hofman.
- * Copyright 2009-2012 by Adalin B.V.
+ * Copyright 2005-2014 by Erik Hofman.
+ * Copyright 2009-2014 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -21,7 +21,6 @@
 
 #ifdef __SSE2__
 
-# define CACHE_ADVANCE_RSHFT	128
 # define CACHE_ADVANCE_FMADD	 16
 # define CACHE_ADVANCE_MUL	 32
 # define CACHE_ADVANCE_CPY	 16
