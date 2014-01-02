@@ -438,7 +438,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
          unsigned int no_samples = rbd->no_samples;
          void **tracks = rbd->track;
          for (track=0; track<no_tracks; track++) {
-            _batch_cvt24_ps(tracks[track], tracks[track], no_samples);
+            _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
          }
       }
 #endif
@@ -468,9 +468,8 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
       unsigned int track, no_tracks = rbd->no_tracks;
       unsigned int no_samples = rbd->no_samples;
       void **tracks = rbd->track;
-printf("tracks: %i\n", no_tracks);
       for (track=0; track<no_tracks; track++) {
-         _batch_cvtps_24(tracks[track], tracks[track], no_samples);
+         _batch_cvtps24_24(tracks[track], tracks[track], no_samples);
       }
    }
 #endif
@@ -1242,7 +1241,7 @@ _aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
    rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);       // 300 ms average
 
    maxrms = maxpeak = 0;
-   tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+   tracks = (int32_t**)rbd->track;
    for (track=0; track<no_tracks; track++)
    {
       rms = 0;
@@ -1257,7 +1256,6 @@ _aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
       if (maxrms < rms) maxrms = rms;
       if (maxpeak < peak) maxpeak = peak;
    }
-   rb->release_tracks_ptr(rb);
 
    rbi->average[_AAX_MAX_SPEAKERS] = maxrms;
    rbi->peak[_AAX_MAX_SPEAKERS] = maxpeak;

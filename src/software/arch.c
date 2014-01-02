@@ -112,6 +112,7 @@ _batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
 _batch_cvt_from_proc _batch_cvt24_16 = _batch_cvt24_16_cpu;
 _batch_cvt_from_proc _batch_cvt24_24_3 = _batch_cvt24_24_3_cpu;
 _batch_cvt_from_proc _batch_cvt24_32 = _batch_cvt24_32_cpu;
+_batch_cvt_from_proc _batch_cvt24_ps24 = _batch_cvt24_ps24_cpu;
 _batch_cvt_from_proc _batch_cvt24_ps = _batch_cvt24_ps_cpu;
 _batch_cvt_from_proc _batch_cvt24_pd = _batch_cvt24_pd_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_8_intl = _batch_cvt24_8_intl_cpu;
@@ -141,6 +142,7 @@ _batch_cvt_to_proc _batch_cvt8_24 = _batch_cvt8_24_cpu;
 _batch_cvt_to_proc _batch_cvt16_24 = _batch_cvt16_24_cpu;
 _batch_cvt_to_proc _batch_cvt24_3_24 = _batch_cvt24_3_24_cpu;
 _batch_cvt_to_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
+_batch_cvt_to_proc _batch_cvtps24_24 = _batch_cvtps24_24_cpu;
 _batch_cvt_to_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
 _batch_cvt_to_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt8_intl_24 = _batch_cvt8_intl_24_cpu;
@@ -372,9 +374,11 @@ _aaxGetSIMDSupportString()
       }
       if (level >= AAX_SSE2)
       {
-//       _aax_memcpy = _aax_memcpy_sse2;
+         _aax_memcpy = _aax_memcpy_sse2;
          _batch_imadd = _batch_imadd_sse2;
          _batch_fmadd = _batch_fmadd_sse2;
+         _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
          _batch_cvtps_24 = _batch_cvtps_24_sse2;
          _batch_cvt24_ps = _batch_cvt24_ps_sse2;
          _batch_cvt24_16 = _batch_cvt24_16_sse2;

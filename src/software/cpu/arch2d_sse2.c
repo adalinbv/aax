@@ -24,63 +24,274 @@
 # define CACHE_ADVANCE_RSHFT	128
 # define CACHE_ADVANCE_FMADD	 16
 # define CACHE_ADVANCE_MUL	 32
-# define CACHE_ADVANCE_CPY	256
+# define CACHE_ADVANCE_CPY	 16
 # define CACHE_ADVANCE_CVT	 32
 # define CACHE_ADVANCE_INTL	 16
 # define CACHE_ADVANCE_FF	 32
 
-
 void
-_batch_cvt24_ps_sse2(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
-printf("_batch_cvt24_ps_sse2\n");
+   int32_t *d = (int32_t*)dst;
+   float *s = (float*)src;
+
+   assert(((size_t)d & 0xF) == 0);
+   assert(((size_t)s & 0xF) == 0);
+
    if (num)
    {
-      static const float mul = (float)(1<<24);
-      int32_t *d = (int32_t*)dptr;
-      float* s = (float*)sptr;
-      unsigned int i = num;
-      do {
-         *d++ = (int32_t)(*s++ * mul);
-      } while (--i);
+      __m128i *dptr = (__m128i*)d;
+      __m128* sptr = (__m128*)s;
+      unsigned int i, step;
+
+      step = 4*sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      num -= i*step;
+      if (i)
+      {
+         __m128i xmm4i, xmm5i, xmm6i, xmm7i;
+         __m128 xmm0, xmm1, xmm2, xmm3;
+         __m128 mul = _mm_set1_ps((float)(1<<23));
+         do
+         {
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+
+            xmm0 = _mm_load_ps((const float*)sptr++);
+            xmm1 = _mm_load_ps((const float*)sptr++);
+            xmm2 = _mm_load_ps((const float*)sptr++);
+            xmm3 = _mm_load_ps((const float*)sptr++);
+
+            xmm0 = _mm_mul_ps(xmm0, mul);
+            xmm1 = _mm_mul_ps(xmm1, mul);
+            xmm2 = _mm_mul_ps(xmm2, mul);
+            xmm3 = _mm_mul_ps(xmm3, mul);
+
+            xmm4i = _mm_cvtps_epi32(xmm0);
+            xmm5i = _mm_cvtps_epi32(xmm1);
+            xmm6i = _mm_cvtps_epi32(xmm2);
+            xmm7i = _mm_cvtps_epi32(xmm3);
+
+            d += step;
+            s += step;
+
+            _mm_store_si128(dptr++, xmm4i);
+            _mm_store_si128(dptr++, xmm5i);
+            _mm_store_si128(dptr++, xmm6i);
+            _mm_store_si128(dptr++, xmm7i);;
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         float mul = (float)(1<<23);
+         i = num;
+         do {
+            *d++ = (int32_t)(*s++ * mul);
+         } while (--i);
+      }
+   }
+}
+
+
+void
+_batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+{
+   int32_t *d = (int32_t*)dst;
+   float *s = (float*)src;
+
+   assert(((size_t)d & 0xF) == 0);
+   assert(((size_t)s & 0xF) == 0);
+
+   if (num)
+   {
+      __m128i *dptr = (__m128i*)d;
+      __m128* sptr = (__m128*)s;
+      unsigned int i, step;
+
+      step = 4*sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      num -= i*step;
+      if (i)
+      {
+         __m128i xmm4i, xmm5i, xmm6i, xmm7i;
+         __m128 xmm0, xmm1, xmm2, xmm3;
+         do
+         {
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+
+            xmm0 = _mm_load_ps((const float*)sptr++);
+            xmm1 = _mm_load_ps((const float*)sptr++);
+            xmm2 = _mm_load_ps((const float*)sptr++);
+            xmm3 = _mm_load_ps((const float*)sptr++);
+
+            xmm4i = _mm_cvtps_epi32(xmm0);
+            xmm5i = _mm_cvtps_epi32(xmm1);
+            xmm6i = _mm_cvtps_epi32(xmm2);
+            xmm7i = _mm_cvtps_epi32(xmm3);
+
+            d += step;
+            s += step;
+
+            _mm_store_si128(dptr++, xmm4i);
+            _mm_store_si128(dptr++, xmm5i);
+            _mm_store_si128(dptr++, xmm6i);
+            _mm_store_si128(dptr++, xmm7i);
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (int32_t)*s++;
+         } while (--i);
+      }
    }
 }
 
 void
-_batch_cvtps_24_sse2(void_ptr dst, const_void_ptr sptr, unsigned int num)
+_batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
-printf("_batch_cvtps_24_sse2\n");
+   int32_t *s = (int32_t*)src;
+   float *d = (float*)dst;
+
+   assert(((size_t)d & 0xF) == 0);
+   assert(((size_t)s & 0xF) == 0);
+
    if (num)
    {
-      static const float mul = 1.0f/(float)(1<<23);
-      int32_t* s = (int32_t*)sptr;
-      float* d = (float*)dst;
-      unsigned int i = num;
+      __m128i* sptr = (__m128i*)s;
+      __m128 *dptr = (__m128*)d;
+      unsigned int i, step;
 
-      do {
-         *d++ = (float)*s++ * mul;
-      } while (--i);
+      step = 4*sizeof(__m128i)/sizeof(int32_t);
+
+      i = num/step;
+      num -= i*step;
+      if (i)
+      {
+         __m128i xmm0i, xmm1i, xmm2i, xmm3i;
+         __m128 xmm4, xmm5, xmm6, xmm7;
+         __m128 mul = _mm_set1_ps(1.0f/(float)(1<<23));
+         do
+         {
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+
+            xmm0i = _mm_load_si128(sptr++);
+            xmm1i = _mm_load_si128(sptr++);
+            xmm2i = _mm_load_si128(sptr++);
+            xmm3i = _mm_load_si128(sptr++);
+
+            xmm4 = _mm_cvtepi32_ps(xmm0i);
+            xmm5 = _mm_cvtepi32_ps(xmm1i);
+            xmm6 = _mm_cvtepi32_ps(xmm2i);
+            xmm7 = _mm_cvtepi32_ps(xmm3i);
+
+            xmm4 = _mm_mul_ps(xmm4, mul);
+            xmm5 = _mm_mul_ps(xmm5, mul);
+            xmm6 = _mm_mul_ps(xmm6, mul);
+            xmm7 = _mm_mul_ps(xmm7, mul);
+
+            s += step;
+            d += step;
+
+            _mm_store_ps((float*)dptr++, xmm4);
+            _mm_store_ps((float*)dptr++, xmm5);
+            _mm_store_ps((float*)dptr++, xmm6);
+            _mm_store_ps((float*)dptr++, xmm7);;
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         float mul = 1.0f/(float)(1<<23);
+         i = num;
+         do {
+            *d++ = (float)(*s++) * mul;
+         } while (--i);
+      }
    }
 }
 
-FN_PREALIGN void
-_batch_imadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, float vstep)
+void
+_batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
-   __m128i *sptr = (__m128i *)src;
-   __m128i *dptr = (__m128i*)d;
-   __m128 tv = _mm_set1_ps(v);
+   int32_t *s = (int32_t*)src;
+   float *d = (float*)dst;
+
+   assert(((size_t)d & 0xF) == 0);
+   assert(((size_t)s & 0xF) == 0);
+
+   if (num)
+   {
+      __m128i* sptr = (__m128i*)s;
+      __m128 *dptr = (__m128*)d;
+      unsigned int i, step;
+
+      step = 4*sizeof(__m128i)/sizeof(int32_t);
+
+      i = num/step;
+      num -= i*step;
+      if (i)
+      {
+         __m128i xmm0i, xmm1i, xmm2i, xmm3i;
+         __m128 xmm4, xmm5, xmm6, xmm7;
+         do
+         {
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+
+            xmm0i = _mm_load_si128(sptr++);
+            xmm1i = _mm_load_si128(sptr++);
+            xmm2i = _mm_load_si128(sptr++);
+            xmm3i = _mm_load_si128(sptr++);
+
+            xmm4 = _mm_cvtepi32_ps(xmm0i);
+            xmm5 = _mm_cvtepi32_ps(xmm1i);
+            xmm6 = _mm_cvtepi32_ps(xmm2i);
+            xmm7 = _mm_cvtepi32_ps(xmm3i);
+
+            s += step;
+            d += step;
+
+            _mm_store_ps((float*)dptr++, xmm4);
+            _mm_store_ps((float*)dptr++, xmm5);
+            _mm_store_ps((float*)dptr++, xmm6);
+            _mm_store_ps((float*)dptr++, xmm7);
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (float)*s++;
+         } while (--i);
+      }
+   }
+}
+
+void
+_batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, unsigned int num, float v, float vstep)
+{
+   int32_ptr d = (int32_ptr)dst;
    int32_ptr s = (int32_ptr)src;
-   unsigned int i, size, step;
-   long dtmp, stmp;
+   unsigned int i, step;
+   size_t dtmp, stmp;
 
    if (!num) return;
 
-   dtmp = (long)dptr & 0xF;
-   stmp = (long)sptr & 0xF;
-   if ((dtmp || stmp) && dtmp != stmp)
-   {
-      i = num;				/* improperly aligned,            */
-      do				/* let the compiler figure it out */
+   dtmp = (size_t)d & 0xF;
+   stmp = (size_t)s & 0xF;
+   if ((dtmp || stmp) && dtmp != stmp)	/* improperly aligned,            */
+   {					/* let the compiler figure it out */
+      i = num;
+      do
       {
          *d++ += (int32_t)((float)*s++ * v);
          v += vstep;
@@ -89,11 +300,8 @@ _batch_imadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
       return;
    }
 
-   step = 2*sizeof(__m128i)/sizeof(int32_t);
-
-   /* work towards a 16-byte aligned dptr (and hence 16-byte aligned sptr) */
-   i = num/step;
-   if (dtmp && i)
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+   if (dtmp && num)
    {
       i = (0x10 - dtmp)/sizeof(int32_t);
       num -= i;
@@ -101,52 +309,55 @@ _batch_imadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
          *d++ += (int32_t)((float)*s++ * v);
          v += vstep;
       } while(--i);
-      dptr = (__m128i *)d;
-      sptr = (__m128i *)s;
    }
 
+   step = 2*sizeof(__m128i)/sizeof(int32_t);
+
    vstep *= step;				/* 8 samples at a time */
-   i = size = num/step;
+   i = num/step;
+   num -= i*step;
    if (i)
    {
+      __m128i *sptr = (__m128i *)s;
+      __m128i *dptr = (__m128i *)d;
+      __m128 tv = _mm_set1_ps(v);
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
-      __m128 xmm1, xmm2, xmm5, xmm6;
+      __m128 xmm1, xmm5;
 
       do
       {
          _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
+
          xmm1 = _mm_cvtepi32_ps(xmm0i);
          xmm5 = _mm_cvtepi32_ps(xmm4i);
+
+         xmm1 = _mm_mul_ps(xmm1, tv);
+         xmm5 = _mm_mul_ps(xmm5, tv);
+
+         v += vstep;
+
+         xmm3i = _mm_cvtps_epi32(xmm1);
+         xmm7i = _mm_cvtps_epi32(xmm5);
 
          xmm0i = _mm_load_si128(dptr);
          xmm4i = _mm_load_si128(dptr+1);
 
-         v += vstep;
-
-         xmm2 = _mm_mul_ps(tv, xmm1);
-         xmm6 = _mm_mul_ps(tv, xmm5);
-         xmm3i = _mm_cvtps_epi32(xmm2);
-         xmm7i = _mm_cvtps_epi32(xmm6);
-
          xmm0i = _mm_add_epi32(xmm0i, xmm3i);
          xmm4i = _mm_add_epi32(xmm4i, xmm7i);
 
-         _mm_store_si128(dptr, xmm0i);
-         _mm_store_si128(dptr+1, xmm4i);
-         dptr += 2;
+         _mm_store_si128(dptr++, xmm0i);
+         _mm_store_si128(dptr++, xmm4i);
 
          tv = _mm_set1_ps(v);
       }
       while(--i);
    }
 
-   i = num - size*step;
-   if (i) {
-      d = (int32_t *)dptr;
-      s = (int32_t *)sptr;
+   if (num) {
       vstep /= step;
+      i = num;
       do {
          *d++ += (int32_t)((float)*s++ * v);
          v += vstep;
@@ -154,18 +365,18 @@ _batch_imadd_sse2(int32_ptr d, const_int32_ptr src, unsigned int num, float v, f
    }
 }
 
-FN_PREALIGN void
-_batch_fmadd_sse2(float32_ptr d, const_float32_ptr src, unsigned int num, float v, float vstep)
+void
+_batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, float v, float vstep)
 {
-   __m128 tv = _mm_set1_ps(v);
    float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
    unsigned int i, size, step;
-   long dtmp, stmp;
+   size_t dtmp, stmp;
 
    if (!num) return;
 
-   dtmp = (long)d & 0xF;
-   stmp = (long)s & 0xF;
+   dtmp = (size_t)d & 0xF;
+   stmp = (size_t)s & 0xF;
    if ((dtmp || stmp) && dtmp != stmp)
    {
       i = num;				/* improperly aligned,            */
@@ -178,7 +389,7 @@ _batch_fmadd_sse2(float32_ptr d, const_float32_ptr src, unsigned int num, float 
       return;
    }
 
-   step = 2*sizeof(__m128)/sizeof(float);
+   step = 4*sizeof(__m128)/sizeof(float);
 
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
    i = num/step;
@@ -196,27 +407,44 @@ _batch_fmadd_sse2(float32_ptr d, const_float32_ptr src, unsigned int num, float 
    i = size = num/step;
    if (i)
    {
-      __m128 xmm0, xmm1, xmm2, xmm3; // xmm4, xmm5, xmm6, xmm7;
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+      __m128 tv = _mm_set1_ps(v);
 
       do
       {
          _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
-         xmm0 = _mm_load_ps(s);
-         xmm1 = _mm_load_ps(s+4);
+         xmm0 = _mm_load_ps((const float*)sptr++);
+         xmm1 = _mm_load_ps((const float*)sptr++);
+         xmm4 = _mm_load_ps((const float*)sptr++);
+         xmm5 = _mm_load_ps((const float*)sptr++);
 
-         xmm2 = _mm_load_ps(d);
-         xmm3 = _mm_load_ps(d+4);
+         xmm0 = _mm_mul_ps(xmm0, tv);
+         xmm1 = _mm_mul_ps(xmm1, tv);
+         xmm4 = _mm_mul_ps(xmm4, tv);
+         xmm5 = _mm_mul_ps(xmm5, tv);
 
          s += step;
+         d += step;
+
+         xmm2 = _mm_load_ps((const float*)dptr);
+         xmm3 = _mm_load_ps((const float*)(dptr+1));
+         xmm6 = _mm_load_ps((const float*)(dptr+2));
+         xmm7 = _mm_load_ps((const float*)(dptr+3));
+
+         xmm2 = _mm_add_ps(xmm2, xmm0);
+         xmm3 = _mm_add_ps(xmm3, xmm1);
+         xmm6 = _mm_add_ps(xmm6, xmm4);
+         xmm7 = _mm_add_ps(xmm7, xmm5);
+
          v += vstep;
 
-         xmm2 = _mm_add_ps(xmm2, _mm_mul_ps(xmm0, tv));
-         xmm3 = _mm_add_ps(xmm3, _mm_mul_ps(xmm1, tv));
-
-         _mm_store_ps(d, xmm2);
-         _mm_store_ps(d+4, xmm3);
-         d += step;
+         _mm_store_ps((float*)dptr++, xmm2);
+         _mm_store_ps((float*)dptr++, xmm3);
+         _mm_store_ps((float*)dptr++, xmm6);
+         _mm_store_ps((float*)dptr++, xmm7);
 
          tv = _mm_set1_ps(v);
       }
@@ -234,74 +462,84 @@ _batch_fmadd_sse2(float32_ptr d, const_float32_ptr src, unsigned int num, float 
 }
 
 
-FN_PREALIGN void
-_batch_cvt24_16_sse2(void_ptr dbuf, const_void_ptr sbuf, unsigned int num)
+void
+_batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
-   __m128i *dptr = (__m128i*)dbuf;
-   int16_t *s = (int16_t *)sbuf;
-   int32_t *d = (int32_t*)dbuf;
-   unsigned int i, size, step, n;
-   long tmp;
+   int16_t *s = (int16_t *)src;
+   int32_t *d = (int32_t*)dst;
+   unsigned int i, step;
+   size_t tmp;
 
    if (!num) return;
 
-   n = num;
-   step = 2*sizeof(__m128i)/sizeof(int16_t);
-
    /*
-    * work towards 16-byte aligned dptr
+    * work towards 16-byte aligned d
     */
-   i = n/step;
-   tmp = (long)d & 0xF;
-   if (tmp && i)
+   tmp = (size_t)d & 0xF;
+   if (tmp && num)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
-      n -= i;
+      num -= i;
       do {
          *d++ = *s++ << 8;
       } while(--i);
-      dptr = (__m128i *)d;
    }
 
-   tmp = (long)s & 0xF;
-   i = size = n/step;
+   step = 2*sizeof(__m128i)/sizeof(int16_t);
+
+   tmp = (size_t)s & 0xF;
+   i = num/step;
+   num -= i*step;
    if (i)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i zero = _mm_setzero_si128();
+      __m128i *dptr = (__m128i *)d;
       __m128i *sptr = (__m128i *)s;
 
       do {
          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
-         if (tmp) {
-            xmm0 = _mm_loadu_si128(sptr);
-            xmm4 = _mm_loadu_si128(sptr+1);
-         } else {
-            xmm0 = _mm_load_si128(sptr);
-            xmm4 = _mm_load_si128(sptr+1);
+
+         if (tmp)
+         {
+            xmm0 = _mm_loadu_si128(sptr++);
+            xmm4 = _mm_loadu_si128(sptr++);
+
+            xmm1 = _mm_unpacklo_epi16(zero, xmm0);
+            xmm3 = _mm_unpackhi_epi16(zero, xmm0);
+            xmm5 = _mm_unpacklo_epi16(zero, xmm4);
+            xmm7 = _mm_unpackhi_epi16(zero, xmm4);
          }
-         xmm1 = _mm_unpacklo_epi16(zero, xmm0);
-         xmm3 = _mm_unpackhi_epi16(zero, xmm0);
-         xmm5 = _mm_unpacklo_epi16(zero, xmm4);
-         xmm7 = _mm_unpackhi_epi16(zero, xmm4);
+         else
+         {
+            xmm0 = _mm_load_si128(sptr++);
+            xmm4 = _mm_load_si128(sptr++);
+
+            xmm1 = _mm_unpacklo_epi16(zero, xmm0);
+            xmm3 = _mm_unpackhi_epi16(zero, xmm0);
+            xmm5 = _mm_unpacklo_epi16(zero, xmm4);
+            xmm7 = _mm_unpackhi_epi16(zero, xmm4);
+         }
+
          s += step;
+         d += step;
+
          xmm0 = _mm_srai_epi32(xmm1, 8);
          xmm2 = _mm_srai_epi32(xmm3, 8);
          xmm4 = _mm_srai_epi32(xmm5, 8);
          xmm6 = _mm_srai_epi32(xmm7, 8);
-         sptr = (__m128i *)s;
-         _mm_store_si128(dptr, xmm0);
-         _mm_store_si128(dptr+1, xmm2);
-         _mm_store_si128(dptr+2, xmm4);
-         _mm_store_si128(dptr+3, xmm6);
-         dptr += 4;
-      } while (--i);
+
+         _mm_store_si128(dptr++, xmm0);
+         _mm_store_si128(dptr++, xmm2);
+         _mm_store_si128(dptr++, xmm4);
+         _mm_store_si128(dptr++, xmm6);
+      }
+      while (--i);
    }
 
-   i = n - size*step;
-   if (i)
+   if (num)
    {
-      d = (int32_t *)dptr;
+      i = num;
       do {
          *d++ = *s++ << 8;
       } while (--i);
@@ -311,45 +549,16 @@ _batch_cvt24_16_sse2(void_ptr dbuf, const_void_ptr sbuf, unsigned int num)
 void
 _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
+   unsigned int i, dstep, sstep;
    int32_t* s = (int32_t*)src;
    int16_t* d = (int16_t*)dst;
-
-#if 1
-   unsigned int i = (num/4)*4;
-   unsigned int j = num-i;
-   if (i) {
-      do {
-         *d = *s >> 8;
-         *(d+1) = *(s+1) >> 8;
-         *(d+2) = *(s+2) >> 8;
-         *(d+3) = *(s+3) >> 8;
-         i -= 4;
-         d += 4;
-         s += 4;
-      }
-      while (i);
-   }
-   if (j)
-   {
-      do {
-         *d++ = *s++ >> 8;
-      }
-      while (--j);
-   }
-
-#else
-   /* somehow this doesn't work, no idea why? */
-   unsigned int i, size, step;
-   long tmp;
-
-   step = 4*sizeof(__m128i)/sizeof(int32_t);
+   size_t tmp;
 
    /*
     * work towards 16-byte aligned sptr
     */
-   i = num/step;
-   tmp = (long)s & 0xF;
-   if (tmp && i)
+   tmp = (size_t)s & 0xF;
+   if (tmp && num)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
       num -= i;
@@ -358,55 +567,63 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
       } while(--i);
    }
 
-   tmp = (long)d & 0xF;
-   i = size = num/step;
+   assert(((size_t)s & 0xF) == 0);
+   tmp = (size_t)d & 0xF;
+
+   sstep = 4*sizeof(__m128i)/sizeof(int32_t);
+   dstep = 4*sizeof(__m128i)/sizeof(int16_t);
+
+   i = num/sstep;
+   num -= i*sstep;
    if (i)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *dptr, *sptr;
 
       dptr = (__m128i *)d;
+      sptr = (__m128i *)s;
       do
       {
-         sptr = (__m128i *)s;
          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
-         xmm0 = _mm_load_si128(sptr);
-         xmm1 = _mm_load_si128(sptr+1);
-         xmm4 = _mm_load_si128(sptr+2);
-         xmm5 = _mm_load_si128(sptr+3);
 
-         xmm2 = _mm_srli_epi32(xmm0, 8);
-         xmm3 = _mm_slli_epi32(xmm1, 8);
-         xmm6 = _mm_srli_epi32(xmm4, 8);
-         xmm7 = _mm_slli_epi32(xmm5, 8);
-         s += step;
+         xmm0 = _mm_load_si128(sptr++);
+         xmm1 = _mm_load_si128(sptr++);
+         xmm4 = _mm_load_si128(sptr++);
+         xmm5 = _mm_load_si128(sptr++);
+
+         xmm2 = _mm_srai_epi32(xmm0, 8);
+         xmm3 = _mm_srai_epi32(xmm1, 8);
+         xmm6 = _mm_srai_epi32(xmm4, 8);
+         xmm7 = _mm_srai_epi32(xmm5, 8);
+
+         s += sstep;
 
          xmm4 = _mm_packs_epi32(xmm2, xmm3);
          xmm6 = _mm_packs_epi32(xmm6, xmm7);
 
+         d += dstep;
+
          if (tmp) {
-            _mm_storeu_si128(dptr, xmm4);
-            _mm_storeu_si128(dptr+1, xmm6);
+            _mm_storeu_si128(dptr++, xmm4);
+            _mm_storeu_si128(dptr++, xmm6);
          } else {
-            _mm_store_si128(dptr, xmm4);
-            _mm_store_si128(dptr+1, xmm6);
+            _mm_store_si128(dptr++, xmm4);
+            _mm_store_si128(dptr++, xmm6);
          }
-         dptr += 2;
-      } while (--i);
-      d = (int16_t *)dptr;
+      }
+      while (--i);
    }
 
-   i = num - size*step;
-   if (i)
+   if (num)
    {
+      i = num;
       do {
          *d++ = *s++ >> 8;
       } while (--i);
    }
-#endif
 }
 
-FN_PREALIGN void
+void
 _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
                                 int offset, unsigned int tracks,
                                 unsigned int num)
@@ -414,13 +631,26 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    unsigned int i, size, step;
    int16_t* d = (int16_t*)dst;
    int32_t *s1, *s2;
-   long tmp;
+   size_t tmp;
 
    if (!num) return;
 
    if (tracks != 2)
    {
-      _batch_cvt16_intl_24_cpu(d, src, offset, tracks, num);
+      unsigned int t;
+      for (t=0; t<tracks; t++)
+      {
+         int32_t *s = (int32_t *)src[t] + offset;
+         int16_t *d = (int16_t *)dst + t;
+         unsigned int i = num;
+
+         do
+         {
+            *d = *s++ >> 8;
+            d += tracks;
+         }
+         while (--i);
+      }
       return;
    }
 
@@ -433,8 +663,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
     * work towards 16-byte aligned sptr
     */
    i = num/step;
-   tmp = (long)s1 & 0xF;
-   assert(tmp == ((long)s2 & 0xF));
+   tmp = (size_t)s1 & 0xF;
+   assert(tmp == ((size_t)s2 & 0xF));
    if (tmp && i)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
@@ -447,7 +677,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
       while (--i);
    }
 
-   tmp = (long)d & 0xF;
+   tmp = (size_t)d & 0xF;
    i = size = num/step;
    if (i)
    {
@@ -513,7 +743,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
         smp -=  mpf[0]; h0 = smp - mpf[1];      \
         smp = h0 + mpf[2]; smp += mpf[3]
 
-FN_PREALIGN void
+void
 _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
                   float *hist, float lfgain, float hfgain, float k,
                   const float *cptr)
@@ -521,7 +751,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
    int32_ptr s = (int32_ptr)sptr;
    unsigned int i, size, step;
    float h0, h1;
-   long tmp;
+   size_t tmp;
 
    if (!num) return;
 
@@ -532,7 +762,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
 
    /* work towards 16-byte aligned dptr */
    i = num/step;
-   tmp = (long)d & 0xF;
+   tmp = (size_t)d & 0xF;
    if (tmp && i)
    {
       float smp, nsmp;
@@ -578,7 +808,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
       lf = _mm_set1_ps(lfgain);
       hf = _mm_set1_ps(hfgain);
 
-      tmp = (long)s & 0xF;
+      tmp = (size_t)s & 0xF;
       dptr = (__m128i *)d;
       do
       {
@@ -661,144 +891,100 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
  * optimized memcpy for 16-byte aligned destination buffer
  * fall back tobuildt-in  memcpy otherwise.
  */
-FN_PREALIGN void *
-_aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  bufsz)
+void *
+_aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  num)
 {
-   unsigned int step = 8*sizeof(__m128i)/sizeof(int8_t);
-   long tmp;
+   unsigned int i, step;
+   char *d = (char*)dst;
+   char *s = (char*)src;
+   size_t tmp;
 
-   tmp = (long)dst & 0xF;
-   if ((bufsz < step) || (tmp != ((long)src & 0xF))) {
-      memcpy(dst, src, bufsz);
-   }
-   else
+   if (!num) return dst;
+
+   /*
+    * work towards a 16-byte aligned dptr and possibly sptr
+    */
+   tmp = (size_t)d & 0xF;
+   if (tmp)
    {
-      __m128i *dptr = (__m128i *)dst;
-      __m128i *sptr = (__m128i *)src;
-      unsigned int i, num;
+      i = (0x10 - tmp);
+      num -= i;
 
-      /*
-       * work towards a 16-byte aligned dptr and possibly sptr
-       */
+      memcpy(d, s, i);
+      d += i;
+      s += i;
+   }
+
+   tmp = (size_t)s & 0xF;
+   step = 8*sizeof(__m128i)/sizeof(int8_t);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+      __m128i *sptr = (__m128i*)s;
+      __m128i *dptr = (__m128i*)d;
+
+      s += i*step;
+      d += i*step;
+
       if (tmp)
       {
-         i = (0x10 - tmp);
+         do
+         {
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
-         bufsz -= i;
-         memcpy(dptr, sptr, i);
+            xmm0 = _mm_loadu_si128(sptr++);
+            xmm1 = _mm_loadu_si128(sptr++);
+            xmm2 = _mm_loadu_si128(sptr++);
+            xmm3 = _mm_loadu_si128(sptr++);
+            xmm4 = _mm_loadu_si128(sptr++);
+            xmm5 = _mm_loadu_si128(sptr++);
+            xmm6 = _mm_loadu_si128(sptr++);
+            xmm7 = _mm_loadu_si128(sptr++);
 
-         sptr = (__m128i*)((char*)src+i);
-         dptr = (__m128i*)((char*)dst+i);
+            _mm_store_si128(dptr++, xmm0);
+            _mm_store_si128(dptr++, xmm1);
+            _mm_store_si128(dptr++, xmm2);
+            _mm_store_si128(dptr++, xmm3);
+            _mm_store_si128(dptr++, xmm4);
+            _mm_store_si128(dptr++, xmm5);
+            _mm_store_si128(dptr++, xmm6);
+            _mm_store_si128(dptr++, xmm7);
+         }
+         while(--i);
       }
-
-      num = bufsz/step;
-      if (num)
+      else	/* both buffers are 16-byte aligned */
       {
-         __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-
-         bufsz -= num*step;
-         i = num;
-         if (tmp)
+         do
          {
-            do
-            {
-               _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
-               xmm0 = _mm_loadu_si128(sptr);
-               xmm1 = _mm_loadu_si128(sptr+1);
-               xmm2 = _mm_loadu_si128(sptr+2);
-               xmm3 = _mm_loadu_si128(sptr+3);
-               xmm4 = _mm_loadu_si128(sptr+4);
-               xmm5 = _mm_loadu_si128(sptr+5);
-               xmm6 = _mm_loadu_si128(sptr+6);
-               xmm7 = _mm_loadu_si128(sptr+7);
-               sptr += 8;
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
-               _mm_store_si128(dptr, xmm0);
-               _mm_store_si128(dptr+1, xmm1);
-               _mm_store_si128(dptr+2, xmm2);
-               _mm_store_si128(dptr+3, xmm3);
-               _mm_store_si128(dptr+4, xmm4);
-               _mm_store_si128(dptr+5, xmm5);
-               _mm_store_si128(dptr+6, xmm6);
-               _mm_store_si128(dptr+7, xmm7);
-               dptr += 8;
-            }
-            while(--i);
-         }
-         else	/* both buffers are 16-byte aligned */
-         {
-            do
-            {
-               _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
-               xmm0 = _mm_load_si128(sptr);
-               xmm1 = _mm_load_si128(sptr+1);
-               xmm2 = _mm_load_si128(sptr+2);
-               xmm3 = _mm_load_si128(sptr+3);
-               xmm4 = _mm_load_si128(sptr+4);
-               xmm5 = _mm_load_si128(sptr+5);
-               xmm6 = _mm_load_si128(sptr+6);
-               xmm7 = _mm_load_si128(sptr+7);
-               sptr += 8;
+            xmm0 = _mm_load_si128(sptr++);
+            xmm1 = _mm_load_si128(sptr++);
+            xmm2 = _mm_load_si128(sptr++);
+            xmm3 = _mm_load_si128(sptr++);
+            xmm4 = _mm_load_si128(sptr++);
+            xmm5 = _mm_load_si128(sptr++);
+            xmm6 = _mm_load_si128(sptr++);
+            xmm7 = _mm_load_si128(sptr++);
 
-               _mm_store_si128(dptr, xmm0);
-               _mm_store_si128(dptr+1, xmm1);
-               _mm_store_si128(dptr+2, xmm2);
-               _mm_store_si128(dptr+3, xmm3);
-               _mm_store_si128(dptr+4, xmm4);
-               _mm_store_si128(dptr+5, xmm5);
-               _mm_store_si128(dptr+6, xmm6);
-               _mm_store_si128(dptr+7, xmm7);
-               dptr += 8;
-            }
-            while(--i);
+            _mm_store_si128(dptr++, xmm0);
+            _mm_store_si128(dptr++, xmm1);
+            _mm_store_si128(dptr++, xmm2);
+            _mm_store_si128(dptr++, xmm3);
+            _mm_store_si128(dptr++, xmm4);
+            _mm_store_si128(dptr++, xmm5);
+            _mm_store_si128(dptr++, xmm6);
+            _mm_store_si128(dptr++, xmm7);
          }
+         while(--i);
       }
+   }
 
-#if 0
-      step = 2*sizeof(__m128i)/sizeof(int8_t);
-      num = bufsz/step;
-      if (num)
-      {
-         __m128i xmm0, xmm1;
-
-         bufsz -= num*step;
-         i = num;
-         if (tmp)
-         {
-            do
-            {
-               _mm_prefetch(((char*)sptr)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
-               xmm0 = _mm_loadu_si128((__m128i *)sptr);
-               xmm1 = _mm_loadu_si128((__m128i *)sptr+1);
-               sptr += 2;
-
-               _mm_store_si128(dptr, xmm0);
-               _mm_store_si128(dptr+1, xmm1);
-               dptr += 2;
-            }
-            while(--i);
-         }
-         else
-         {
-            do
-            {
-               _mm_prefetch(((char*)sptr)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
-               xmm0 = _mm_load_si128((__m128i *)sptr);
-               xmm1 = _mm_load_si128((__m128i *)sptr+1);
-               sptr += 2;
-
-               _mm_store_si128(dptr, xmm0);
-               _mm_store_si128(dptr+1, xmm1);
-               dptr += 2;
-            }
-            while(--i);
-         }
-      }
-#endif
-
-      if (bufsz) {
-         memcpy(dptr, sptr, bufsz);
-      }
+   if (num) {
+      memcpy(d, s, num);
    }
 
    return dst;

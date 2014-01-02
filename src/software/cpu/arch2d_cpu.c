@@ -165,6 +165,36 @@ _batch_cvt32_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
+_batch_cvt24_ps24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+{
+   if (num)
+   {
+      int32_t* d = (int32_t*)dptr;
+      float* s = (float*)sptr;
+      unsigned int i = num;
+
+      do {
+         *d++ = (int32_t)*s++;
+      } while (--i);
+   }
+}
+
+void
+_batch_cvtps24_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
+{
+   if (num)
+   {
+      int32_t* s = (int32_t*)sptr;
+      float* d = (float*)dst;
+      unsigned int i = num;
+
+      do {
+         *d++ = (float)*s++;
+      } while (--i);
+   }
+}
+
+void
 _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 {
    if (num)
