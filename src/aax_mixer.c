@@ -287,7 +287,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
          else if ((type & AAX_PEAK_VALUE) || (type & AAX_AVERAGE_VALUE))
          {
             unsigned int track = type & 0x3F;
-            if (track < _AAX_MAX_SPEAKERS)
+            if (track <= _AAX_MAX_SPEAKERS)
             {
                _aaxRingBuffer *rb = handle->ringbuffer;
                if (rb)

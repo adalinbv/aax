@@ -71,7 +71,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
          if (!device->ringbuffer) {
-            be->get_ringbuffer(0.0f, smixer->info->mode);
+            device->ringbuffer = be->get_ringbuffer(0.0f, smixer->info->mode);
          }
 
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
@@ -218,7 +218,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       if (res && nframes)
       {
-         float avg, agc, peak, rms_rr, max, maxrms, maxpeak;
+         float avg, agc, rms_rr, max, maxrms, peak, maxpeak;
          unsigned int track, tracks;
          int32_t **ntptr, **otptr;
          _aaxRingBuffer *nrb;
@@ -290,10 +290,10 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             j = nframes;
             do
             {
-               double samp = *optr++;		// rms
-               double val = samp*samp;
+               float samp = *optr++;		// rms
+               float val = samp*samp;
                rms += val;
-               if (val > peak) peak = samp;
+               if (val > peak) peak = val;
             }
             while (--j);
             rms = sqrt(rms/nframes);

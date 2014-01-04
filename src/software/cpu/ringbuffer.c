@@ -688,12 +688,12 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
-          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+          (param <= RB_PEAK_VALUE_MAX))
       {
          rbi->peak[param-RB_PEAK_VALUE] = fval;
       }
       else if ((param >= RB_AVERAGE_VALUE) &&
-               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+               (param <= RB_AVERAGE_VALUE_MAX))
       {
          rbi->average[param-RB_AVERAGE_VALUE] = fval;
       }
@@ -825,12 +825,12 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_FORMAT:
    default:
       if ((param >= RB_PEAK_VALUE) &&
-          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+          (param <= RB_PEAK_VALUE_MAX))
       {
          rv = rbi->peak[param-RB_PEAK_VALUE];
       }
       else if ((param >= RB_AVERAGE_VALUE) &&
-               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+               (param <= RB_AVERAGE_VALUE_MAX))
       {
          rv = rbi->average[param-RB_AVERAGE_VALUE];
       }
@@ -883,12 +883,12 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
-          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+          (param <= RB_PEAK_VALUE_MAX))
       {
          rv = rbi->peak[param-RB_PEAK_VALUE];
       }
       else if ((param >= RB_AVERAGE_VALUE) &&
-               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+               (param <= RB_AVERAGE_VALUE_MAX))
       {
          rv = rbi->average[param-RB_AVERAGE_VALUE];
       }
@@ -961,12 +961,12 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
-          (param <= RB_PEAK_VALUE+_AAX_MAX_SPEAKERS))
+          (param <= RB_PEAK_VALUE_MAX))
       {
          rv = rbi->peak[param-RB_PEAK_VALUE];
       }
       else if ((param >= RB_AVERAGE_VALUE) &&
-               (param <= RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS))
+               (param <= RB_AVERAGE_VALUE_MAX))
       {
          rv = rbi->average[param-RB_AVERAGE_VALUE];
       }
