@@ -60,13 +60,13 @@ _aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
    /* Apply frequency filter first */
    if (freq)
    {
-      bufFilterFrequency(pdst, psrc, start, end, ds, track, freq, ctr);
+      _aaxRingBufferFilterFrequency(pdst, psrc, start, end, ds, track, freq, ctr);
       BUFSWAP(pdst, psrc);
    }
 
    if (distort)
    {
-      bufEffectDistort(pdst, psrc, start, end, ds, track, distort);
+      _aaxRingBufferEffectDistort(pdst, psrc, start, end, ds, track, distort);
       BUFSWAP(pdst, psrc);
    }
 
@@ -75,13 +75,13 @@ _aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
    {
       /* Apply delay effects */
       if (effect->loopback) {		/*    flanging     */
-         bufEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds,
+         _aaxRingBufferEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds,
                         delay, track);
       }
       else				/* phasing, chorus */
       {
          _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
-         bufEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds,
+         _aaxRingBufferEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds,
                         delay, track);
          BUFSWAP(pdst, psrc);
       }
@@ -97,7 +97,7 @@ _aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
 
 #if !ENABLE_LITE
 void
-bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
+_aaxRingBufferEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
                         unsigned int dmin, unsigned int dmax, unsigned int ds,
                         unsigned int track, const void *data)
 {
@@ -137,13 +137,13 @@ bufEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
          }
       }
 
-      bufFilterFrequency(sbuf2, scratch, 0, dmax, 0, track, filter, 0);
+      _aaxRingBufferFilterFrequency(sbuf2, scratch, 0, dmax, 0, track, filter, 0);
       _batch_imadd(sptr, sbuf2, dmax, 0.5f, 0.0f);
    }
 }
 
 void
-bufEffectReverb(int32_t *s,
+_aaxRingBufferEffectReverb(int32_t *s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, const void *data)
 {
@@ -188,7 +188,7 @@ bufEffectReverb(int32_t *s,
  * - dmax does not include ds
  */
 void
-bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
+_aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
                unsigned int start, unsigned int end, unsigned int no_samples,
                unsigned int ds, void *data, unsigned int track)
 {
@@ -301,7 +301,7 @@ bufEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 }
 
 void
-bufEffectDistort(int32_ptr d, const int32_ptr s,
+_aaxRingBufferEffectDistort(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data)
 {
@@ -352,7 +352,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
          {
             unsigned int average = 0;
             unsigned int peak = no_samples;
-            bufCompress(dptr, &average, &peak, clip, 4*asym);
+            _aaxRingBufferCompress(dptr, &average, &peak, clip, 4*asym);
          }
 
          /* mix with the dry signal */
@@ -369,7 +369,7 @@ bufEffectDistort(int32_ptr d, const int32_ptr s,
 #endif /* !ENABLE_LITE */
 
 void
-bufFilterFrequency(int32_ptr d, const int32_ptr s,
+_aaxRingBufferFilterFrequency(int32_ptr d, const int32_ptr s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data, unsigned char ctr)
 {

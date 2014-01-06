@@ -175,8 +175,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          int32_t *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
-         bufEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
-         bufEffectReverb(d1, 0, dmax, ds, track, reverb);
+         _aaxRingBufferEffectReflections(d1, sbuf, sbuf2, 0, dmax, ds, track, reverb);
+         _aaxRingBufferEffectReverb(d1, 0, dmax, ds, track, reverb);
       }
 
       if (ptr && parametric)
@@ -187,10 +187,10 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
          _aax_memcpy(d3, d1, track_len_bytes);
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         bufFilterFrequency(d1, d3, 0, dmax, 0, track, filter, 0);
+         _aaxRingBufferFilterFrequency(d1, d3, 0, dmax, 0, track, filter, 0);
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+         _aaxRingBufferFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
       }
       else if (ptr && graphic)
       {
@@ -204,27 +204,27 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
          filter = &eq->band[b--];
          _aax_memcpy(d3, d1, track_len_bytes);
-         bufFilterFrequency(d1, d3,  0, dmax, 0, track, filter, 0);
+         _aaxRingBufferFilterFrequency(d1, d3,  0, dmax, 0, track, filter, 0);
          do
          {
             filter = &eq->band[b--];
             if (filter->lf_gain || filter->hf_gain)
             {
-               bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+               _aaxRingBufferFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
                _batch_imadd(d1, d2, no_samples, 1.0f, 0.0f);
             }
 
             filter = &eq->band[b--];
             if (filter->lf_gain || filter->hf_gain) 
             {
-               bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+               _aaxRingBufferFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
                _batch_imadd(d1, d2, no_samples, 1.0f, 0.0f);
             }
 
             filter = &eq->band[b--];
             if (filter->lf_gain || filter->hf_gain) 
             {
-               bufFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
+               _aaxRingBufferFilterFrequency(d2, d3, 0, dmax, 0, track, filter, 0);
                _batch_imadd(d1, d2, no_samples, 1.0f, 0.0f);
             }
          }

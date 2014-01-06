@@ -1249,7 +1249,7 @@ _aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
    {
       rms = 0;
       peak = no_samples;
-      bufCompress(tracks[track], &rms, &peak, _val[type][0], _val[type][1]); 
+      _aaxRingBufferCompress(tracks[track], &rms, &peak, _val[type][0], _val[type][1]); 
 
       avg = rbi->average[track];
       avg = (rms_rr*avg + (1.0f-rms_rr)*rms);

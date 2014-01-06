@@ -43,7 +43,7 @@ extern const float _compress_tbl[2][2048];
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 #if 1
 void
-bufCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
+_aaxRingBufferCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
    static const float df = (float)(int32_t)0x7FFFFFFF;
    static const float rf = 1.0f/(65536.0f*12.0f);
