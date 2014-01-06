@@ -28,7 +28,7 @@
 
 #include "api.h"
 #include "devices.h"
-#include "software/arch.h"
+#include "arch.h"
 #include "software/audio.h"
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
@@ -136,7 +136,6 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          enum aaxFormat native_fmt = setup & AAX_FORMAT_NATIVE;
          if (native_fmt < AAX_FORMAT_MAX)
          {
-            enum aaxFormat native_fmt = setup & AAX_FORMAT_NATIVE;
             buf->format = setup;
             switch(native_fmt)
             {
@@ -169,9 +168,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          {
             if (rb)
             {
+               int looping = (setup < buf->loop_end) ? AAX_TRUE : AAX_FALSE;
                rb->set_parami(rb, RB_LOOPPOINT_START, setup);
-               rb->set_parami(rb, RB_LOOPING,
-                              (setup < buf->loop_end) ? AAX_TRUE : AAX_FALSE);
+               rb->set_parami(rb, RB_LOOPING, looping);
             }
             buf->loop_start = setup;
             rv = AAX_TRUE;
@@ -183,9 +182,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          {
             if (rb)
             {
+               int looping = (buf->loop_start < setup) ? AAX_TRUE : AAX_FALSE;
                rb->set_parami(rb, RB_LOOPPOINT_END, setup);
-               rb->set_parami(rb, RB_LOOPING,
-                              (buf->loop_start < setup) ? AAX_TRUE : AAX_FALSE);
+               rb->set_parami(rb, RB_LOOPING, looping);
             }
             buf->loop_end = setup;
             rv = AAX_TRUE;
@@ -333,9 +332,8 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             if (format & ~AAX_FORMAT_NATIVE)
             {
                fmt_bps = _aaxFormatsBPS[native_fmt];
-
                ptr = (void**)_aax_malloc(&m, buf_samples*fmt_bps);
-               if (!m)
+               if (!ptr)
                {
                   _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
                   return rv;
@@ -722,7 +720,7 @@ free_buffer(_buffer_t* buf)
    {
       if (--buf->ref_counter == 0)
       {
-         buf->ringbuffer = _bufDestroyRingBuffer( buf);
+         buf->ringbuffer = _bufDestroyRingBuffer(buf);
 
          /* safeguard against using already destroyed handles */
          buf->id = 0xdeadbeef;
@@ -755,8 +753,12 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
       {
          /* initialize the ringbuffer in native format only */
          rb->set_format(rb, buf->format & AAX_FORMAT_NATIVE);
-         rb->set_parami(rb, RB_NO_SAMPLES, buf->no_samples);
          rb->set_parami(rb, RB_NO_TRACKS, buf->no_tracks);
+         rb->set_parami(rb, RB_NO_SAMPLES, buf->no_samples);
+         rb->set_parami(rb, RB_LOOPPOINT_START, buf->loop_start);
+         rb->set_parami(rb, RB_LOOPPOINT_END, buf->loop_end);
+         rb->set_paramf(rb, RB_FREQUENCY, buf->frequency);
+//       rb->set_paramf(rb, RB_BLOCKSIZE, buf->blocksize);
          /* Postpone until aaxBufferSetData gets called
           * rb->init(rb, AAX_FALSE);
          */

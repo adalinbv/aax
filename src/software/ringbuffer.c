@@ -28,14 +28,14 @@
 # include <stdio.h>
 #endif
 
-#include <api.h>
-
 #include <base/types.h>
 #include <base/logging.h>
 
-#include "software/arch.h"
-#include "software/ringbuffer.h"
-#include "software/audio.h"
+#include <api.h>
+#include <arch.h>
+#include <ringbuffer.h>
+
+#include "audio.h"
 #include "ringbuffer.h"
 
 #ifndef _DEBUG
@@ -86,9 +86,10 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->pitch_norm = 1.0f;
          rbi->volume_min = 0.0f;
          rbi->volume_max = 1.0f;
+         rbi->codec = _aaxRingBufferProcessCodec;	// always cvt to 24-bit
          rbi->resample = _batch_resample;
-         rbi->codec = _aaxRingBufferProcessCodec;
-         rbi->mix = _RingBufferProcessMixer;
+         rbi->effects = _aaxRingBufferEffectsApply;
+         rbi->mix = _aaxRingBufferProcessMixer;		// uses the above funcs
 
          rbi->mode = mode;
          rbi->access = RB_NONE;
@@ -425,6 +426,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
+   assert(rbi->access == RB_NONE);
 
    rbd = rbi->sample;
    if (rbd)
@@ -460,6 +462,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
+   assert(rbi->access != RB_NONE);
 
 #if RB_FLOAT_DATA
    if (rbi->access & RB_WRITE)

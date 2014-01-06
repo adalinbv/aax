@@ -36,8 +36,8 @@
 #include "api.h"
 #include "devices.h"
 #include "stream/file.h"
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include "arch.h"
+#include "ringbuffer.h"
 
 static int _aaxMixerInit(_handle_t*);
 static int _aaxMixerStart(_handle_t*);

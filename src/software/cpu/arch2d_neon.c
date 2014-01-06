@@ -502,7 +502,7 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
    hist[1] = h1;
 }
 
-void
+static void
 _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
@@ -542,7 +542,7 @@ _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    }
 }
 
-void
+static void
 _aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
@@ -576,7 +576,7 @@ _aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
    }
 }
 
-void
+static void
 _aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
@@ -615,7 +615,7 @@ _aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    }
 }
 
-void
+static void
 _aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;

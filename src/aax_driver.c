@@ -33,8 +33,8 @@
 
 #include "api.h"
 #include "devices.h"
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include "arch.h"
+#include "ringbuffer.h"
 
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);

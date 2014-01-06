@@ -27,7 +27,7 @@ extern "C" {
 # include <string.h>
 #endif
 
-#include "software/arch.h"
+#include <arch.h>
 
 #ifdef __SSE__
 #include <xmmintrin.h>

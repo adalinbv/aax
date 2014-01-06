@@ -27,16 +27,17 @@
 #include <aax/aax.h>
 #include <xml.h>
 
-#include <api.h>
-#include <devices.h>
-
 #include <base/dlsym.h>
 #include <base/logging.h>
 
+#include <arch.h>
+#include <api.h>
+#include <devices.h>
+#include <ringbuffer.h>
+
 #include "audio.h"
 #include "device.h"
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+
 
 #ifndef _MIPS_SIM
 #define _MIPS_SIM	1

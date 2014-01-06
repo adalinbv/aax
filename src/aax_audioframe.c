@@ -26,8 +26,8 @@
 #include <base/timer.h>		/* for msecSleep */
 
 #include <filters/effects.h>
-#include <software/ringbuffer.h>
-#include <software/arch.h>
+#include "ringbuffer.h"
+#include "arch.h"
 #include "devices.h"
 #include "api.h"
 

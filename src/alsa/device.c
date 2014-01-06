@@ -25,20 +25,20 @@
 
 #include <xml.h>
 
-#include <api.h>
-#include <devices.h>
-
 #include <base/timer.h>		/* for msecSleep */
 #include <base/dlsym.h>
 #include <base/logging.h>
 #include <base/threads.h>
 #include <base/types.h>
 
-#include "alsa/audio.h"
+#include <arch.h>
+#include <api.h>
+#include <driver.h>
+#include <devices.h>
+#include <ringbuffer.h>
+
 #include "device.h"
-#include "driver.h"
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include "audio.h"
 
 #define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		32

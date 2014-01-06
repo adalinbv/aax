@@ -23,8 +23,8 @@
 
 #include <base/gmath.h>
 
-#include "api.h"
-#include "software/arch.h"
+#include <api.h>
+#include <arch.h>
 
 /* -------------------------------------------------------------------------- */
 

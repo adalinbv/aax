@@ -18,7 +18,7 @@
 #include "software/ringbuffer.h"
 #include "arch_simd.h"
 
-void
+static void
 _aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
@@ -57,7 +57,7 @@ _aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsig
    while (--i);
 }
 
-void
+static void
 _aaxBufResampleNearest_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
@@ -94,7 +94,7 @@ _aaxBufResampleNearest_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    }
 }
 
-void
+static void
 _aaxBufResampleLinear_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
@@ -131,7 +131,7 @@ _aaxBufResampleLinear_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
 }
 
 
-void
+static void
 _aaxBufResampleCubic_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;

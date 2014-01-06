@@ -27,7 +27,7 @@
 #include <base/gmath.h>
 
 #include "api.h"
-#include "software/arch.h"
+#include "arch.h"
 
 #define WRITEFN		0
 #define EPS		1e-5

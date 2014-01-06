@@ -22,12 +22,13 @@
 #include <assert.h>
 
 #include <base/threads.h>
-#include <api.h>
 
-#include "cpu/ringbuffer.h"
+#include <api.h>
+#include <arch.h>
+#include <ringbuffer.h>
+
 #include "ringbuffer.h"
 #include "audio.h"
-#include "arch.h"
 
 
 void

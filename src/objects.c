@@ -28,7 +28,7 @@
 
 #include "api.h"
 #include "objects.h"
-#include "software/arch.h"
+#include "arch.h"
 
 void
 _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)

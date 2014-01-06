@@ -19,9 +19,9 @@
 #include <base/logging.h>
 
 #include <api.h>
+#include <arch.h>
+#include <ringbuffer.h>
 
-#include "software/arch.h"
-#include "software/ringbuffer.h"
 #include "rbuf2d_effects.h"
 
 

@@ -20,7 +20,8 @@ extern "C" {
 #include "config.h"
 #endif
 
-#include "driver.h"
+#include <ringbuffer.h>
+#include <driver.h>
 
 float _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData*, char);
 

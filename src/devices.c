@@ -37,8 +37,8 @@
 #ifdef HAVE_WINDOWS_H
 # include <windows/wasapi.h>
 #endif
-#include <software/arch.h>
-#include <software/ringbuffer.h>
+#include <arch.h>
+#include <ringbuffer.h>
 #include <filters/effects.h>
 
 static _intBuffers *_aaxIntDriverGetBackends();

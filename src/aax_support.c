@@ -21,7 +21,7 @@
 
 #include "api.h"
 #include "copyright.h"
-#include "software/arch.h"
+#include "arch.h"
 #include "software/audio.h"
 
 typedef struct {

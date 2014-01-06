@@ -21,12 +21,13 @@
 #endif
 
 #include <base/types.h>
-#include <devices.h>
 
-#include "software/ringbuffer.h"
-#include "software/arch.h"
-#include "software/audio.h"
-#include "arch2d_simd.h"
+#include <arch.h>
+#include <devices.h>
+#include <ringbuffer.h>
+
+#include "audio.h"
+#include "cpu/arch2d_simd.h"
 
 static void _sw_bufcpy_8s(void_ptr, const_void_ptr, unsigned char, unsigned int);
 static void _sw_bufcpy_16s(void_ptr, const_void_ptr, unsigned char, unsigned int);

@@ -384,16 +384,18 @@ SET( AEONWAVE_OBJS
      src/software/frame.c
      src/software/sensor.c
      src/software/emitter.c
-     src/software/cpu/ringbuffer.c
+     src/software/ringbuffer.c
+     src/software/rbuf_codecs.c
+     src/software/rbuf_codec_tables.c
+     src/software/rbuf_mixers.c
+     src/software/rbuf_mixmulti.c
+     src/software/rbuf2d_mixsingle.c
+     src/software/rbuf3d_mixsingle.c
      src/software/cpu/waveforms.c
      src/software/cpu/rbuf_effects.c
-     src/software/cpu/rbuf_mixers.c
-     src/software/cpu/rbuf_mixer_tables.c
-     src/software/cpu/rbuf_codecs.c
-     src/software/cpu/rbuf_codec_tables.c
+     src/software/cpu/rbuf_compressor_tables.c
      src/software/cpu/rbuf_mixmulti.c
-     src/software/cpu/rbuf2d_mixsingle.c
-     src/software/cpu/rbuf3d_mixsingle.c
+     src/software/cpu/rbuf_mixsingle.c
      src/software/cpu/arch3d_neon.c
      src/software/cpu/arch3d_sse.c
      src/software/cpu/arch3d_sse3.c

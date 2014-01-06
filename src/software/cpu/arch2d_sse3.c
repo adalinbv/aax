@@ -93,7 +93,7 @@ _batch_fmul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
 }
 
 /** NOTE: instruction sequence is important for execution speed! */
-void
+static void
 _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
@@ -196,6 +196,10 @@ _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
       while (--i);
    }
 }
+
+void _aaxBufResampleLinear_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _aaxBufResampleNearest_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
+void _aaxBufResampleSkip_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 
 void
 _batch_resample_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)

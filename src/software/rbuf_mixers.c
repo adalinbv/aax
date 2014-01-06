@@ -24,11 +24,12 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
-#include "software/ringbuffer.h"
-#include "software/arch.h"
-#include "software/audio.h"
+#include <ringbuffer.h>
+#include <arch.h>
+
+#include "audio.h"
 #include "ringbuffer.h"
-#include "arch2d_simd.h"
+#include "cpu/arch2d_simd.h"
 
 
 /*
@@ -45,7 +46,7 @@
  */
 
 int32_t **
-_RingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;

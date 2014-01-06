@@ -962,6 +962,7 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, unsigned int num, float
  *
  * Note: smax is only used in the *Loop mixing functions
  */
+#if !RB_FLOAT_DATA
 void
 _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
@@ -1175,3 +1176,213 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned 
    }
 }
 
+#else /* !RB_FLOAT_DATA */
+
+static void
+_aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+{
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = dptr;
+   float samp, dsamp;
+   unsigned int i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor >= 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   s += sdesamps;
+   d += dmin;
+
+   samp = *s++;                 // n+(step-1)
+   dsamp = *s - samp;           // (n+1) - n
+
+   i=dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         int step;
+
+         *d++ = samp + (dsamp * smu);
+
+         smu += freq_factor;
+         step = (int)floorf(smu);
+
+         smu -= step;
+         s += step-1;
+         samp = *s++;
+         dsamp = *s - samp;
+      }
+      while (--i);
+   }
+}
+
+static void
+_aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+{
+   if (freq_factor == 1.0f) {
+      _aax_memcpy(dptr+dmin, sptr+sdesamps, (dmax-dmin)*sizeof(float));
+   }
+   else
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float32_ptr d = dptr;
+      unsigned int i;
+
+      assert(s != 0);
+      assert(d != 0);
+      assert(dmin < dmax);
+      assert(0.95f <= freq_factor && freq_factor <= 1.05f);
+      assert(0.0f <= smu && smu < 1.0f);
+
+      s += sdesamps;
+      d += dmin;
+
+      i = dmax-dmin;
+      if (i)
+      {
+         do
+         {
+            *d++ = *s;
+
+            smu += freq_factor;
+            if (smu > 0.5f)
+            {
+               s++;
+               smu -= 1.0f;
+            }
+         }
+         while (--i);
+      }
+   }
+}
+
+static void
+_aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+{
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = dptr;
+   int32_t samp, dsamp;
+   unsigned int i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor < 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   s += sdesamps;
+   d += dmin;
+
+   samp = *s++;         // n
+   dsamp = *s - samp;   // (n+1) - n
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         *d++ = samp + (dsamp * smu);
+
+         smu += freq_factor;
+         if (smu >= 1.0f)
+         {
+            smu -= 1.0f;
+            samp = *s++;
+            dsamp = *s - samp;
+         }
+      }
+      while (--i);
+   }
+}
+
+static void
+_aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+{
+   float y0, y1, y2, y3, a0, a1, a2;
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = dptr;
+   unsigned int i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(0.0f <= smu && smu < 1.0f);
+   assert(0.0f < freq_factor && freq_factor <= 1.0f);
+
+   s += sdesamps;
+   d += dmin;
+
+   y0 = *s++;
+   y1 = *s++;
+   y2 = *s++;
+   y3 = *s++;
+
+   a0 = y3 - y2 - y0 + y1;
+   a1 = y0 - y1 - a0;
+   a2 = y2 - y0;
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         float smu2, ftmp;
+
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *d++ = tmp;
+
+         smu += freq_factor;
+         if (smu >= 1.0f)
+         {
+            smu--;
+#if 0
+            /* original code */
+            /* original code */
+            s -= 3;
+            y0 = *s++;
+            y1 = *s++;
+            y2 = *s++;
+            y3 = *s++;
+
+            a0 = y3 - y2 - y0 + y1;
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+#else
+            /* optimized code */
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = *s++;
+            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+#endif
+         }
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_float_cpu(d, s, dmin, dmax, 0, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_float_cpu(d, s, dmin, dmax, 0, smu, fact);
+   }
+   else if (fact > 1.0f) {
+      _aaxBufResampleSkip_float_cpu(d, s, dmin, dmax, 0, smu, fact);
+   } else {
+      _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, 0, smu, fact);
+   }
+}
+#endif

@@ -45,7 +45,12 @@ typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, unsigned int, 
 typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, unsigned int, float, float);
 typedef void (*_batch_mul_value_proc)(void*, unsigned, unsigned int, float);
 typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
+#if RB_FLOAT_DATA
+typedef void (*_batch_resample_proc)(float32_ptr, const_float32_ptr, unsigned int, unsigned int, float, float);
+#else
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
+#endif
+
 
 typedef void (*_aax_aligned_free_proc)(void*);
 void* _aax_aligned_alloc16(size_t);
@@ -87,6 +92,7 @@ extern _batch_cvt_from_proc _batch_cvt24_16;
 extern _batch_cvt_from_proc _batch_cvt24_24_3;
 extern _batch_cvt_from_proc _batch_cvt24_32;
 extern _batch_cvt_from_proc _batch_cvt24_ps;
+extern _batch_cvt_from_proc _batch_cvt24_ps24;
 extern _batch_cvt_from_proc _batch_cvt24_pd;
 extern _batch_cvt_from_intl_proc _batch_cvt24_8_intl;
 extern _batch_cvt_from_intl_proc _batch_cvt24_16_intl;
@@ -101,6 +107,7 @@ extern _batch_cvt_to_proc _batch_cvt16_24;
 extern _batch_cvt_to_proc _batch_cvt24_3_24;
 extern _batch_cvt_to_proc _batch_cvt32_24;
 extern _batch_cvt_to_proc _batch_cvtps_24;
+extern _batch_cvt_to_proc _batch_cvtps24_24;
 extern _batch_cvt_to_proc _batch_cvtpd_24;
 extern _batch_cvt_to_intl_proc _batch_cvt8_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvt16_intl_24;

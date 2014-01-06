@@ -37,10 +37,11 @@
 
 #include <base/dlsym.h>
 
+#include <arch.h>
+#include <ringbuffer.h>
+
 #include "filetype.h"
 #include "audio.h"
-#include "software/arch.h"
-#include "software/ringbuffer.h"
 
         /** libmpg123: both Linux and Windows */
 static _open_fn _aaxMPG123Open;

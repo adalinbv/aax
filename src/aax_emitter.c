@@ -29,8 +29,8 @@
 
 #include "api.h"
 #include "devices.h"
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include "arch.h"
+#include "ringbuffer.h"
 
 static void _aaxFreeEmitterBuffer(void *);
 

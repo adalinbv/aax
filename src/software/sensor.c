@@ -16,11 +16,11 @@
 #include <assert.h>
 
 #include <api.h>
+#include <arch.h>
+#include <ringbuffer.h>
 
-#include "cpu/ringbuffer.h"
 #include "ringbuffer.h"
 #include "audio.h"
-#include "arch.h"
 
 void
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
