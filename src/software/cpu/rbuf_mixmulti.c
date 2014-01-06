@@ -20,12 +20,11 @@
 
 #include <api.h>
 #include <ringbuffer.h>
-
+#include "ringbuffer.h"
 
 void
-_aaxRingBufferMixStereo16(_aaxRingBuffer *drb, const _aaxRingBuffer *srb, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferLFOData *lfo;
    unsigned int rbd_tracks;
    unsigned int rbs_tracks;
@@ -35,10 +34,8 @@ _aaxRingBufferMixStereo16(_aaxRingBuffer *drb, const _aaxRingBuffer *srb, const 
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   drbi = drb->handle;
-   srbi = srb->handle;
-   rbs_tracks = srbi->sample->no_tracks;
-   rbd_tracks = drbi->sample->no_tracks;
+   rbs_tracks = srbd->no_tracks;
+   rbd_tracks = drbd->no_tracks;
 
    /** Mix */
    g = 1.0f;
@@ -58,7 +55,7 @@ _aaxRingBufferMixStereo16(_aaxRingBuffer *drb, const _aaxRingBuffer *srb, const 
       g /= rbd_tracks;
    }
 
-   tracks = drbi->sample->track;
+   tracks = drbd->track;
    for (track=0; track<rbd_tracks; track++)
    {
       unsigned int rbs_track = track % rbs_tracks;

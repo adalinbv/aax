@@ -70,6 +70,40 @@ typedef struct			/* static information about the sample */
 
 } _aaxRingBufferSample;
 
+
+/**
+ * M:N channel ringbuffer data manipulation
+ *
+ * @param drb multi track destination buffer
+ * @param srb multi track source buffer
+ * @param sptr multi track source audio data in mixer format and frequency
+ * @param ep2d 3d positioning information structure of the source
+ * @param offs starting offset in number of samples
+ * @param dno_samples total number of samples to mix
+ * @param gain multiplication factor for the data in the source buffer
+ * @param svol volume at the start of the mixing process (envelope following)
+ * @param evol volume at the end of the mixing process (envelope following)
+ */
+typedef void
+_aaxRingBufferMixMNFn(_aaxRingBufferSample*, const _aaxRingBufferSample*, const int32_ptrptr, _aax2dProps*, unsigned int, unsigned int, float, float, float);
+
+/**
+ * 1:N channel ringbuffer data manipulation
+ *
+ * @param drb multi track destination buffer
+ * @param sptr multi track source audio data in mixer format and frequency
+ * @param ep2d 3d positioning information structure of the source
+ * @param ch channel to use from the source buffer (if it is multi-channel)
+ * @param offs starting offset in number of samples
+ * @param dno_samples total number of samples to mix
+ * @param gain multiplication factor for the data in the source buffer
+ * @param svol volume at the start of the mixing process (envelope following)
+ * @param evol volume at the end of the mixing process (envelope following)
+ */
+typedef void
+_aaxRingBufferMix1NFn(_aaxRingBufferSample*, const int32_ptrptr, _aax2dProps*, unsigned char, unsigned int, unsigned int, float, float, float);
+
+
 /* playback related information about the sample */
 typedef struct _aaxRingBufferData_t
 {
@@ -112,6 +146,7 @@ typedef struct _aaxRingBufferData_t
    _aaxRingBufferMixMNFn *mixmn;
 
 } _aaxRingBufferData;
+
 
 /* --------------------------------------------------------------------------*/
 

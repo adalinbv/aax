@@ -158,7 +158,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
       srbi->playing = 0;
    }
 
-   drbi->mixmn(drb, srb, sptr, ep2d, offs, dno_samples, gain, svol, evol);
+   drbi->mixmn(drbi->sample, srbi->sample, sptr, ep2d, offs, dno_samples, gain, svol, evol);
 
    return ret;
 }

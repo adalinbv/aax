@@ -183,7 +183,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Mix */
-   drbi->mix1n(drb, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
+   drbi->mix1n(drbi->sample, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
 
    return ret;
 }

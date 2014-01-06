@@ -30,22 +30,19 @@
 
 #include <api.h>
 #include <ringbuffer.h>
+#include "ringbuffer.h"
 
 void
-_aaxRingBufferMixMono16Stereo(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _aaxRingBufferData *drbi;
-   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   drbi = drb->handle;
-   rbd = drbi->sample;
-   for (t=0; t<rbd->no_tracks; t++)
+   for (t=0; t<drbd->no_tracks; t++)
    {
-      int32_t *dptr = (int32_t *)rbd->track[t] + offs;
+      int32_t *dptr = (int32_t *)drbd->track[t] + offs;
       float vstart, vend, vstep;
       float dir_fact;
 
@@ -68,7 +65,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aax
       vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
 
-//    DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+//    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
 #if RB_FLOAT_DATA
       _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 #else
@@ -80,20 +77,16 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aax
 }
 
 void
-_aaxRingBufferMixMono16Surround(_aaxRingBuffer *drb, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _aaxRingBufferData *drbi;
-   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    /** Mix */
-   drbi = drb->handle;
-   rbd = drbi->sample;
-   for (t=0; t<rbd->no_tracks; t++)
+   for (t=0; t<drbd->no_tracks; t++)
    {
-      int32_t *dptr = (int32_t *)rbd->track[t] + offs;
+      int32_t *dptr = (int32_t *)drbd->track[t] + offs;
       float vstart, vend, vstep;
       float dir_fact;
       float hrtf_volume[3];
@@ -137,14 +130,14 @@ _aaxRingBufferMixMono16Surround(_aaxRingBuffer *drb, const int32_ptrptr sptr, _a
          int diff = (int)ep2d->hrtf[t][j];
          float v_start, v_step;
 
-         assert(diff < (int)rbd->dde_samples);
+         assert(diff < (int)drbd->dde_samples);
          assert(diff > -(int)dno_samples);
-         diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
+         diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
 
          v_start = vstart * hrtf_volume[j];
          v_step = 0.0f; // vstep * hrtf_volume[j];
 
-//       DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+//       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
 #if RB_FLOAT_DATA
          _batch_fmadd(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
 #else
@@ -155,19 +148,15 @@ _aaxRingBufferMixMono16Surround(_aaxRingBuffer *drb, const int32_ptrptr sptr, _a
 }
 
 void
-_aaxRingBufferMixMono16Spatial(_aaxRingBuffer *drb, int32_t **sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, int32_t **sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _aaxRingBufferData *drbi;
-   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
    /** Mix */
-   drbi = drb->handle;
-   rbd = drbi->sample;
-   for (t=0; t<rbd->no_tracks; t++)
+   for (t=0; t<drbd->no_tracks; t++)
    {
-      int32_t *dptr = (int32_t *)rbd->track[t] + offs;
+      int32_t *dptr = (int32_t *)drbd->track[t] + offs;
       float vstart, vend, vstep;
       float dir_fact;
 
@@ -176,7 +165,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBuffer *drb, int32_t **sptr, _aax2dProps 
       vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
 
-//    DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+//    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
 #if RB_FLOAT_DATA
       _batch_fmadd(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 #else
@@ -194,19 +183,15 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBuffer *drb, int32_t **sptr, _aax2dProps 
 #define IDT_UD_OFFSET	p2d->head[3]
 
 void
-_aaxRingBufferMixMono16HRTF(_aaxRingBuffer *drb, int32_t **sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, int32_t **sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
-   _aaxRingBufferData *drbi;
-   _aaxRingBufferSample *rbd;
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
-   drbi = drb->handle;
-   rbd = drbi->sample;
-   for (t=0; t<rbd->no_tracks; t++)
+   for (t=0; t<drbd->no_tracks; t++)
    {
-      int32_t *track = (int32_t *)rbd->track[t];
+      int32_t *track = (int32_t *)drbd->track[t];
       float vstart, vend, dir_fact; //, vstep;
       int32_t *dptr, *ptr;
       float hrtf_volume[3];
@@ -256,14 +241,14 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBuffer *drb, int32_t **sptr, _aax2dProps *ep
          int diff = (int)ep2d->hrtf[t][j];
          float v_start, v_step;
 
-         assert(diff < (int)rbd->dde_samples);
+         assert(diff < (int)drbd->dde_samples);
          assert(diff > -(int)dno_samples);
-         diff = _MINMAX(diff, -(int)dno_samples, (int)rbd->dde_samples);
+         diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
  
          v_start = vstart * hrtf_volume[j];
          v_step = 0.0f; // vstep * hrtf_volume[j];
 
-//       DBG_MEMCLR(!offs, rbd->track[t], rbd->no_samples, sizeof(int32_t));
+//       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
 #if RB_FLOAT_DATA
          _batch_fmadd(dptr, ptr-diff, dno_samples, v_start, v_step);
 #else
