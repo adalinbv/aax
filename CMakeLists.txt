@@ -385,6 +385,7 @@ SET( AEONWAVE_OBJS
      src/software/sensor.c
      src/software/emitter.c
      src/software/ringbuffer.c
+     src/software/rbuf_lfo.c
      src/software/rbuf_codecs.c
      src/software/rbuf_codec_tables.c
      src/software/rbuf_mixers.c
@@ -393,6 +394,7 @@ SET( AEONWAVE_OBJS
      src/software/rbuf3d_mixsingle.c
      src/software/cpu/waveforms.c
      src/software/cpu/rbuf_effects.c
+     src/software/cpu/rbuf_compressor.c
      src/software/cpu/rbuf_compressor_tables.c
      src/software/cpu/rbuf_mixmulti.c
      src/software/cpu/rbuf_mixsingle.c
