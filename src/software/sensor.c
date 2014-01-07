@@ -19,7 +19,7 @@
 #include <arch.h>
 #include <ringbuffer.h>
 
-#include "ringbuffer.h"
+#include "rbuf_int.h"
 #include "audio.h"
 
 void
