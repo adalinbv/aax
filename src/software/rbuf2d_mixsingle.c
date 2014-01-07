@@ -32,7 +32,7 @@
 
 #include <ringbuffer.h>
 
-#include "ringbuffer.h"
+#include "rbuf_int.h"
 
 /**
  * Mix a single track source buffer into a multi track destination buffer.
@@ -59,11 +59,12 @@ int
 _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferData *drbi, *srbi;
+   _aaxRingBufferSample *drbd;
    unsigned int offs, dno_samples;
    _aaxRingBufferLFOData *lfo;
+   CONST_MIX_PTRPTR_T sptr;
    float gain, svol, evol;
    float pitch, max;
-   int32_t **sptr;
    void *env;
    int ret = 0;
 
@@ -79,6 +80,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    assert(srbi->sample != 0);
    assert(drbi->sample != 0);
    assert(ep2d != 0);
+
+   drbd = drbi->sample;
 
    /** Pitch */
    pitch = ep2d->final.pitch; /* Doppler effect */
@@ -183,7 +186,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Mix */
-   drbi->mix1n(drbi->sample, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
+   drbd->mix1n(drbd, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
 
    return ret;
 }

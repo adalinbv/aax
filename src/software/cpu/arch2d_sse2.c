@@ -16,7 +16,7 @@
 #include <math.h>	/* for floorf */
 
 
-#include "software/ringbuffer.h"
+#include "software/rbuf_int.h"
 #include "arch2d_simd.h"
 
 #ifdef __SSE2__
@@ -886,6 +886,145 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
    hist[1] = h1;
 }
 
+void
+_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int num,
+                  float *hist, float lfgain, float hfgain, float k,
+                  const float *cptr)
+{
+   float32_ptr s = (float32_ptr)sptr;
+   unsigned int i, size, step;
+   float h0, h1;
+   size_t tmp;
+
+   if (!num) return;
+
+   h0 = hist[0];
+   h1 = hist[1];
+
+   step = 2*sizeof(__m128)/sizeof(float);
+
+   /* work towards 16-byte aligned dptr */
+   i = num/step;
+   tmp = (size_t)d & 0xF;
+   if (tmp && i)
+   {
+      float smp, nsmp;
+
+      i = (0x10 - tmp)/sizeof(float);
+      num -= i;
+      do
+      {
+         smp = *s * k;
+         smp = smp - h0 * cptr[0];
+         nsmp = smp - h1 * cptr[1];
+         smp = nsmp + h0 * cptr[2];
+         smp = smp + h1 * cptr[3];
+
+         h1 = h0;
+         h0 = nsmp;
+
+         *d++ = (smp*lfgain) + (*s-smp)*hfgain;
+         s++;
+      }
+      while (--i);
+   }
+
+   i = size = num/step;
+   if (i)   {
+      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+      __m128 osmp0, osmp1, fact, dhist, coeff, lf, hf;
+//    __m128i xmm0i, xmm1i;
+      __m128 tmp0, tmp1, tmp2;
+      __m128 *sptr, *dptr;
+      float *smp0, *smp1, *mpf;
+
+      /* 16-byte aligned */
+      smp0 = (float *)&tmp0;
+      smp1 = (float *)&tmp1;
+      mpf = (float *)&tmp2;
+
+      num -= size*step;
+
+      fact = _mm_set1_ps(k);
+      coeff = _mm_set_ps(cptr[3], cptr[2], cptr[1], cptr[0]);
+      lf = _mm_set1_ps(lfgain);
+      hf = _mm_set1_ps(hfgain);
+
+      tmp = (size_t)s & 0xF;
+      dptr = (__m128 *)d;
+      sptr = (__m128 *)s;
+      do
+      {
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FF, _MM_HINT_NTA);
+
+         if (tmp) {
+            osmp0 = _mm_loadu_ps((float*)sptr++);
+            osmp1 = _mm_loadu_ps((float*)sptr++);
+         } else {
+            osmp0 = _mm_load_ps((float*)sptr++);
+            osmp1 = _mm_load_ps((float*)sptr++);
+         }
+
+         xmm3 = _mm_mul_ps(osmp0, fact);        /* *s * k */
+         xmm7 = _mm_mul_ps(osmp1, fact);
+         _mm_store_ps(smp0, xmm3);
+         _mm_store_ps(smp1, xmm7);
+
+         s += step;
+         CALCULATE_NEW_SAMPLE(0, smp0[0]);
+         CALCULATE_NEW_SAMPLE(1, smp0[1]);
+         CALCULATE_NEW_SAMPLE(2, smp0[2]);
+         CALCULATE_NEW_SAMPLE(3, smp0[3]);
+         CALCULATE_NEW_SAMPLE(4, smp1[0]);
+         CALCULATE_NEW_SAMPLE(5, smp1[1]);
+         CALCULATE_NEW_SAMPLE(6, smp1[2]);
+         CALCULATE_NEW_SAMPLE(7, smp1[3]);
+
+         xmm0 = _mm_load_ps(smp0);              /* smp */
+         xmm4 = _mm_load_ps(smp1);
+         xmm1 = _mm_mul_ps(xmm0, lf);           /* smp * lfgain */
+         xmm5 = _mm_mul_ps(xmm4, lf);
+         xmm2 = _mm_sub_ps(osmp0, xmm0);        /* *s - smp */
+         xmm6 = _mm_sub_ps(osmp1, xmm4);
+         xmm3 = _mm_mul_ps(xmm2, hf);           /* (*s-smp) * hfgain */
+         xmm7 = _mm_mul_ps(xmm6, hf);
+         xmm2 = _mm_add_ps(xmm1, xmm3);       /* smp*lfgain + (*s-smp)*hfgain */
+         xmm6 = _mm_add_ps(xmm5, xmm7);
+
+         _mm_store_ps((float*)dptr++, xmm2);
+         _mm_store_ps((float*)dptr++, xmm6);
+      }
+      while (--i);
+
+      d = (float*)dptr;
+   }
+
+   i = num;
+   if (i)
+   {
+      float smp, nsmp;
+      do
+      {
+         smp = *s * k;
+         smp = smp - h0 * cptr[0];
+         nsmp = smp - h1 * cptr[1];
+         smp = nsmp + h0 * cptr[2];
+         smp = smp + h1 * cptr[3];
+
+         h1 = h0;
+         h0 = nsmp;
+
+         *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
+         s++;
+      }
+      while (--i);
+   }
+
+   hist[0] = h0;
+   hist[1] = h1;
+}
+
+
 /*
  * optimized memcpy for 16-byte aligned destination buffer
  * fall back tobuildt-in  memcpy otherwise.
@@ -989,7 +1128,6 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  num)
    return dst;
 }
 
-#if !RB_FLOAT_DATA
 void
 _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
@@ -1185,8 +1323,6 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
    }
 }
 
-#else	/* !RB_FLOAT_DATA */
-
 static void
 _aaxBufResampleSkip_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
@@ -1379,7 +1515,6 @@ _batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin
       _aaxBufResampleNearest_float_sse2(d, s, dmin, dmax, 0, smu, fact);
    }
 }
-#endif /* !RB_FLOAT_DATA */
 
 #endif /* SSE2 */
 

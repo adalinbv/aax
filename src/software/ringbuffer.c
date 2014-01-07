@@ -36,7 +36,7 @@
 #include <ringbuffer.h>
 
 #include "audio.h"
-#include "ringbuffer.h"
+#include "rbuf_int.h"
 
 #ifndef _DEBUG
 # define _DEBUG		0
@@ -87,44 +87,51 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->volume_min = 0.0f;
          rbi->volume_max = 1.0f;
          rbi->codec = _aaxRingBufferProcessCodec;	// always cvt to 24-bit
-         rbi->resample = _batch_resample;
          rbi->effects = _aaxRingBufferEffectsApply;
          rbi->mix = _aaxRingBufferProcessMixer;		// uses the above funcs
 
          rbi->mode = mode;
          rbi->access = RB_NONE;
+#ifndef NDEBUG
+         rbi->parent = rb;
+#endif
 
          rbd->no_tracks = 1;
          rbd->frequency_hz = 44100.0f;
          rbd->format = AAX_PCM16S;
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
          rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+#if RB_FLOAT_DATA
+         rbd->resample = _batch_resample_float;
+         rbd->multiply = _batch_fmul_value;
+         rbd->add = _batch_fmadd;
+#else
+         rbd->resample = _batch_resample;
+         rbd->multiply = _batch_imul_value;
+         rbd->add = _batch_imadd;
+#endif
+         rbd->mixmn = _aaxRingBufferMixStereo16;
+         switch(rbi->mode)
+         {
+         case AAX_MODE_WRITE_SPATIAL:
+           rbd->mix1n = _aaxRingBufferMixMono16Spatial;
+            break;
+         case AAX_MODE_WRITE_SURROUND:
+            rbd->mix1n = _aaxRingBufferMixMono16Surround;
+            break;
+         case AAX_MODE_WRITE_HRTF:
+            rbd->mix1n = _aaxRingBufferMixMono16HRTF;
+            break;
+         case AAX_MODE_WRITE_STEREO:
+         default:
+            rbd->mix1n = _aaxRingBufferMixMono16Stereo;
+            break;
+         }
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
          rbd->dde_samples = (unsigned int)ddesamps;
          rbd->scratch = NULL;
 
-#ifndef NDEBUG
-         rbi->parent = rb;
-#endif
-
-         rbi->mixmn = _aaxRingBufferMixStereo16;
-         switch(rbi->mode)
-         {
-         case AAX_MODE_WRITE_SPATIAL:
-           rbi->mix1n = _aaxRingBufferMixMono16Spatial;
-            break;
-         case AAX_MODE_WRITE_SURROUND:
-            rbi->mix1n = _aaxRingBufferMixMono16Surround;
-            break;
-         case AAX_MODE_WRITE_HRTF:
-            rbi->mix1n = _aaxRingBufferMixMono16HRTF;
-            break;
-         case AAX_MODE_WRITE_STEREO:
-         default:
-            rbi->mix1n = _aaxRingBufferMixMono16Stereo;
-            break;
-         }
          _aaxRingBufferInitFunctions(rb);
       }
       else
@@ -1103,9 +1110,10 @@ int
 _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, float ratio_orig)
 {
    _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int t, tracks;
    unsigned char bps;
-   int32_t *data;
+   MIX_T *data;
 
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -1117,12 +1125,8 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
 
    for (t=0; t<tracks; t++)
    {
-      data = rbi->sample->track[t];
-#if RB_FLOAT_DATA
-      _batch_fmul_value(data+offs, bps, no_samples, ratio_orig);
-#else
-      _batch_imul_value(data+offs, bps, no_samples, ratio_orig);
-#endif
+      data = rbd->track[t];
+      rbd->multiply(data+offs, bps, no_samples, ratio_orig);
    }
    return AAX_TRUE;
 }
@@ -1131,6 +1135,7 @@ int
 _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBufferLFOData *lfo)
 {
    _aaxRingBufferData *srbi, *drbi;
+   _aaxRingBufferSample *drbd;
    unsigned char track, tracks;
    unsigned int dno_samples;
    float g = 1.0f;
@@ -1144,7 +1149,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
        g = 0.0f;
        for (track=0; track<tracks; track++)
        {
-           int32_t *sptr = srbi->sample->track[track];
+           MIX_T *sptr = srbi->sample->track[track];
            float gain =  lfo->get(lfo, sptr, track, dno_samples);
 
            if (lfo->inv) gain = 1.0f/g;
@@ -1154,17 +1159,14 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
    }
 
    drbi = drb->handle;
+   drbd = drbi->sample;
    for (track=0; track<tracks; track++)
    {
-      void *dptr = drbi->sample->track[track];
       void *sptr = srbi->sample->track[track];
+      void *dptr = drbd->track[track];
       float gstep = 0.0f;
 
-#if RB_FLOAT_DATA
-      _batch_fmadd(dptr, sptr, dno_samples, g, gstep);
-#else
-      _batch_imadd(dptr, sptr, dno_samples, g, gstep);
-#endif
+      drbd->add(dptr, sptr, dno_samples, g, gstep);
    }
    return AAX_TRUE;
 }
@@ -1214,8 +1216,8 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb
       bps = srbd->bytes_sample;
       for (t=0; t<tracks; t++)
       {
-         int32_t *sptr = srbd->track[t];
-         int32_t *dptr = drbd->track[t];
+         MIX_T *sptr = srbd->track[t];
+         MIX_T *dptr = drbd->track[t];
          _aax_memcpy(dptr-ds, sptr-ds, ds*bps);
       }
    }
@@ -1238,13 +1240,13 @@ _aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
    unsigned int peak, maxpeak;
    unsigned int rms, maxrms;
    float dt, rms_rr, avg;
-   int32_t **tracks;
+   MIX_T **tracks;
 
    dt = GMATH_E1 * rbd->duration_sec;
    rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);       // 300 ms average
 
    maxrms = maxpeak = 0;
-   tracks = (int32_t**)rbd->track;
+   tracks = (MIX_T**)rbd->track;
    for (track=0; track<no_tracks; track++)
    {
       rms = 0;

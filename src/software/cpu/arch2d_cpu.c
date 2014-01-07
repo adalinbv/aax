@@ -945,6 +945,38 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, unsigned int num, float
    }
 }
 
+void
+_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, unsigned int num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, nsmp, h0, h1;
+      unsigned int i = num;
+
+      h0 = hist[0];
+      h1 = hist[1];
+      do
+      {
+         smp = *s * k;
+         smp = smp - h0 * cptr[0];
+         nsmp = smp - h1 * cptr[1];
+         smp = nsmp + h0 * cptr[2];
+         smp = smp + h1 * cptr[3];
+
+         h1 = h0;
+         h0 = nsmp;
+         *d++ = (smp*lfgain) + (*s-smp)*hfgain;
+         s++;
+      }
+      while (--i);
+
+      hist[0] = h0;
+      hist[1] = h1;
+   }
+}
+
+
 /**
  * A mixer callback function mixes the audio from one mono source track and
  * the already existing audio in the mono destination track. The result is
@@ -962,7 +994,6 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, unsigned int num, float
  *
  * Note: smax is only used in the *Loop mixing functions
  */
-#if !RB_FLOAT_DATA
 void
 _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
@@ -1176,7 +1207,6 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned 
    }
 }
 
-#else /* !RB_FLOAT_DATA */
 
 static void
 _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
@@ -1333,7 +1363,7 @@ _aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigne
 
          smu2 = smu*smu;
          ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
-         *d++ = tmp;
+         *d++ = ftmp;
 
          smu += freq_factor;
          if (smu >= 1.0f)
@@ -1385,4 +1415,3 @@ _batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, unsigned int dmin,
       _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, 0, smu, fact);
    }
 }
-#endif

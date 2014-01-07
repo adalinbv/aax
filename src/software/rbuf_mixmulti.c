@@ -25,7 +25,7 @@
 #include <api.h>
 #include <ringbuffer.h>
 
-#include "ringbuffer.h"
+#include "rbuf_int.h"
 
 /**
  * Mix a multi track source buffer into a multi track destination buffer.
@@ -43,12 +43,13 @@
 int
 _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
 {
+   _aaxRingBufferSample *drbd, *srbd;
    unsigned int offs, dno_samples;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferLFOData *lfo;
    float svol, evol, max;
    float pitch, gain;
-   int32_t **sptr;
+   CONST_MIX_PTRPTR_T sptr;
    void *env;
    int ret = 0;
 
@@ -63,6 +64,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
    assert(drbi != 0);
    assert(srbi->sample != 0);
    assert(drbi->sample != 0);
+
+   srbd = srbi->sample;
+   drbd = drbi->sample;
 
    /** Pitch */
    pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
@@ -115,7 +119,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
        * In the event that distance delay is not active dist_delay_sec equals
        * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
        */
-      ep2d->dist_delay_sec -= drbi->sample->duration_sec;
+      ep2d->dist_delay_sec -= drbd->duration_sec;
       if (ep2d->dist_delay_sec <= 0.0f) {
          ret = -1;
       }
@@ -158,7 +162,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
       srbi->playing = 0;
    }
 
-   drbi->mixmn(drbi->sample, srbi->sample, sptr, ep2d, offs, dno_samples, gain, svol, evol);
+   drbd->mixmn(drbd, srbd, sptr, ep2d, offs, dno_samples, gain, svol, evol);
 
    return ret;
 }

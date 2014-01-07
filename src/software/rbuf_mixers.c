@@ -28,7 +28,7 @@
 #include <arch.h>
 
 #include "audio.h"
-#include "ringbuffer.h"
+#include "rbuf_int.h"
 #include "cpu/arch2d_simd.h"
 
 
@@ -45,14 +45,14 @@
  * DELAY_EFFECTS_TIME in samples for the mixer frequency)
  */
 
-int32_t **
+CONST_MIX_PTRPTR_T
 _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
    float dfreq, dduration, drb_pos_sec, fact, eps;
    unsigned int ddesamps = *start;
-   int32_t **track_ptr;
+   MIX_T **track_ptr;
    char src_loops;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -62,7 +62,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 
    srbd = srbi->sample;
    drbd = drbi->sample;
-   track_ptr = (int32_t**)drbd->scratch;
+   track_ptr = (MIX_T**)drbd->scratch;
 
    assert(drbd->bytes_sample == 4);
    assert(srbd->no_tracks >= 1);
@@ -258,13 +258,13 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 
          if (!freq_filter && !delay_effect && !dist_state)
          {
-            int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
+            MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
             int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
 
             for (track=0; track<sno_tracks; track++)
             {
                char *sptr = (char*)srbd->track[track];
-               int32_t *dptr = track_ptr[track];
+               MIX_T *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
                if (!nbuf)
@@ -274,20 +274,24 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                }
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
-               srbi->codec(scratch0, sptr, srbd->codec, src_pos,
+               srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 
-               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
-               srbi->resample(dptr-ddesamps, scratch0-cdesamps-offs,
+#if RB_FLOAT_DATA
+               _batch_cvtps24_24(scratch0, 0, cno_samples);
+#endif
+
+               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
+               srbd->resample(dptr-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
             }
          }
          else
          {
-            int32_t *scratch0 = track_ptr[SCRATCH_BUFFER0];
-            int32_t *scratch1 = track_ptr[SCRATCH_BUFFER1];
+            MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
+            MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
             void* distortion_effect = NULL;
             int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
             
@@ -298,7 +302,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             for (track=0; track<sno_tracks; track++)
             {
                char *sptr = (char*)srbd->track[track];
-               int32_t *dptr = track_ptr[track];
+               MIX_T *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
                if (!nbuf)
@@ -308,19 +312,23 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                }
 
                DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
-               srbi->codec(scratch0, sptr, srbd->codec, src_pos,
+               srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 
-               DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(int32_t));
-               srbi->resample(scratch1-ddesamps, scratch0-cdesamps-offs,
+#if RB_FLOAT_DATA
+               _batch_cvtps24_24(scratch0, 0, cno_samples);
+#endif
+
+               DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(MIX_T));
+               srbd->resample(scratch1-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
 
-               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(int32_t));
-               srbi->effects(dptr, scratch1, scratch0, dest_pos, dend,
-                               dno_samples, ddesamps, track, ctr,
-                               freq_filter, delay_effect, distortion_effect);
+               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
+               srbi->effects(srbi->sample, dptr, scratch1, scratch0,
+                             dest_pos, dend, dno_samples, ddesamps, track, ctr,
+                             freq_filter, delay_effect, distortion_effect);
             }
          }
       }
@@ -329,6 +337,6 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       srbi->curr_pos_sec = new_srb_pos_sec;
    }
 
-   return track_ptr;
+   return (CONST_MIX_PTRPTR_T)track_ptr;
 }
 

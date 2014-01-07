@@ -79,7 +79,9 @@ void _batch_fmul_value_cpu(void*, unsigned, unsigned int, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, unsigned int, float, float);
 void _batch_fmadd_cpu(float32_ptr, const_float32_ptr, unsigned int, float, float);
 void _batch_freqfilter_cpu(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
+void _batch_freqfilter_float_cpu(float32_ptr, const_float32_ptr, unsigned int, float*, float, float, float, const float*);
 void _batch_resample_cpu(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
+void _batch_resample_float_cpu(float32_ptr, const_float32_ptr, unsigned int, unsigned int, float, float);
 
 void _batch_saturate24_cpu(void*, unsigned int);
 
@@ -136,7 +138,9 @@ void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_imadd_sse2(int32_ptr, const_int32_ptr, unsigned int, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, unsigned int, float, float);
 void _batch_freqfilter_sse2(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
+void _batch_freqfilter_float_sse2(float32_ptr, const_float32_ptr, unsigned int, float*, float, float, float, const float*);
 void _batch_resample_sse2(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
+void _batch_resample_float_sse2(float32_ptr, const_float32_ptr, unsigned int, unsigned int, float, float);
 
 void _batch_cvtps24_24_sse2(void_ptr, const_void_ptr, unsigned int);
 void _batch_cvt24_ps24_sse2(void_ptr, const_void_ptr, unsigned int);

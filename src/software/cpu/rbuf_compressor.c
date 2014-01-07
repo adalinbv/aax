@@ -35,6 +35,8 @@
 
 #include <base/types.h>
 
+#include "software/rbuf_int.h"
+
 extern const float _compress_tbl[2][2048];
 
 #define BITS		11
@@ -43,14 +45,14 @@ extern const float _compress_tbl[2][2048];
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 #if 1
 void
-_aaxRingBufferCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
+_aaxRingBufferCompress(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
    static const float df = (float)(int32_t)0x7FFFFFFF;
    static const float rf = 1.0f/(65536.0f*12.0f);
    float osamp, imix, mix;
    unsigned int j, max;
-   int32_t *ptr = d;
-   int32_t iasym;
+   MIX_T *ptr = d;
+   MIX_T iasym;
    float peak;
    double rms;
 
@@ -63,7 +65,7 @@ _aaxRingBufferCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float
    do
    {
       float val, fact1, fact2, sdf, rise;
-      int32_t asamp, samp;
+      MIX_T asamp, samp;
       unsigned int pos;
 
       samp = *ptr;
@@ -72,7 +74,7 @@ _aaxRingBufferCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float
       if (val > peak) peak = val;
 
       asamp = (samp < 0) ? abs(samp-iasym) : abs(samp);
-      pos = (asamp >> SHIFT);
+      pos = ((int32_t)asamp >> SHIFT);
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
       rise = _MINMAX((osamp-samp)*rf, 0.3f, 303.3f);
@@ -85,7 +87,7 @@ _aaxRingBufferCompress(int32_t *d, unsigned int *dmin, unsigned int *dmax, float
       fact2 = (1.0f-sdf)*_compress_tbl[1][pos-1];
       fact2 += sdf*_compress_tbl[1][pos];
 
-      *ptr++ = (int32_t)((imix*fact1 + mix*fact2)*samp);
+      *ptr++ = (MIX_T)((imix*fact1 + mix*fact2)*samp);
    }
    while (--j);
  

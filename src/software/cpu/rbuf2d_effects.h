@@ -23,16 +23,13 @@ extern "C" {
 #include <ringbuffer.h>
 #include <driver.h>
 
-float _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData*, char);
+#include "software/rbuf_int.h"
 
-
-void _aaxRingBufferFilterFrequency(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned char);
-void _aaxRingBufferEffectDistort(int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*);
-void _aaxRingBufferEffectDelay(int32_ptr, const int32_ptr, int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned int);
-void _aaxRingBufferEffectReflections(int32_t*, const int32_ptr, const int32_ptr, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
-void _aaxRingBufferEffectReverb(int32_t*, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
-
-void _aaxRingBufferCompress(int32_t*, unsigned int*, unsigned int*, float, float);
+void _aaxRingBufferFilterFrequency(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned char);
+void _aaxRingBufferEffectDistort(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, unsigned int, unsigned int, unsigned int, unsigned int, void*);
+void _aaxRingBufferEffectDelay(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, unsigned int, unsigned int, unsigned int, unsigned int, void*, unsigned int);
+void _aaxRingBufferEffectReflections(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
+void _aaxRingBufferEffectReverb(_aaxRingBufferSample*, MIX_PTR_T, unsigned int, unsigned int, unsigned int, unsigned int, const void*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

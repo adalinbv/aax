@@ -36,17 +36,19 @@ static void szxform(float *, float *, float *, float *, float *, float *,
  * - dmax does not include ds
  */
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
+
 void
-_aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
-          int32_ptr scratch, unsigned int start, unsigned int end,
-          unsigned int no_samples, unsigned int ddesamps, unsigned int track,
-          unsigned char ctr, void *freq, void *delay, void *distort)
+_aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
+          MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
+          unsigned int start, unsigned int end, unsigned int no_samples,
+          unsigned int ddesamps, unsigned int track, unsigned char ctr,
+          void *freq, void *delay, void *distort)
 {
-   static const unsigned int bps = sizeof(int32_t);
+   static const unsigned int bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = delay;
    unsigned int ds = effect ? ddesamps : 0;	/* 0 for frequency filtering */
-   int32_t *psrc = src;
-   int32_t *pdst = dst;
+   MIX_T *psrc = src;
+   MIX_T *pdst = dst;
 
    if (effect && !effect->loopback && effect->history_ptr)	/* streaming */
    {
@@ -60,13 +62,13 @@ _aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
    /* Apply frequency filter first */
    if (freq)
    {
-      _aaxRingBufferFilterFrequency(pdst, psrc, start, end, ds, track, freq, ctr);
+      _aaxRingBufferFilterFrequency(rbd, pdst, psrc, start, end, ds, track, freq, ctr);
       BUFSWAP(pdst, psrc);
    }
 
    if (distort)
    {
-      _aaxRingBufferEffectDistort(pdst, psrc, start, end, ds, track, distort);
+      _aaxRingBufferEffectDistort(rbd, pdst, psrc, start, end, ds, track, distort);
       BUFSWAP(pdst, psrc);
    }
 
@@ -75,13 +77,13 @@ _aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
    {
       /* Apply delay effects */
       if (effect->loopback) {		/*    flanging     */
-         _aaxRingBufferEffectDelay(psrc, psrc, scratch, start, end, no_samples, ds,
+         _aaxRingBufferEffectDelay(rbd, psrc, psrc, scratch, start, end, no_samples, ds,
                         delay, track);
       }
       else				/* phasing, chorus */
       {
          _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
-         _aaxRingBufferEffectDelay(pdst, psrc, scratch, start, end, no_samples, ds,
+         _aaxRingBufferEffectDelay(rbd, pdst, psrc, scratch, start, end, no_samples, ds,
                         delay, track);
          BUFSWAP(pdst, psrc);
       }
@@ -97,7 +99,8 @@ _aaxRingBufferEffectsApply(int32_ptr dst, int32_ptr src,
 
 #if !ENABLE_LITE
 void
-_aaxRingBufferEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_ptr sbuf2,
+_aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
+                        MIX_PTR_T s, CONST_MIX_PTR_T sbuf, MIX_PTR_T sbuf2,
                         unsigned int dmin, unsigned int dmax, unsigned int ds,
                         unsigned int track, const void *data)
 {
@@ -117,12 +120,12 @@ _aaxRingBufferEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_pt
    if (snum > 0)
    {
       _aaxRingBufferFreqFilterData* filter = reverb->freq_filter;
-      int32_t *scratch = sbuf + dmin;
-      const int32_ptr sptr = s + dmin;
+      MIX_T *scratch = (MIX_T*)sbuf + dmin;
+      MIX_PTR_T sptr = s + dmin;
       int q;
 
       dmax -= dmin;
-      _aax_memcpy(scratch, sptr, dmax*sizeof(int32_t));
+      _aax_memcpy(scratch, sptr, dmax*sizeof(MIX_T));
       for(q=0; q<snum; q++)
       {
          float volume = reverb->delay[q].gain / (snum+1);
@@ -133,17 +136,17 @@ _aaxRingBufferEffectReflections(int32_t* s, const int32_ptr sbuf, const int32_pt
             assert(offs < ds);
 //          if (samples >= ds) samples = ds-1;
 
-            _batch_imadd(scratch, sptr-offs, dmax, volume, 0.0f);
+            rbd->add(scratch, sptr-offs, dmax, volume, 0.0f);
          }
       }
 
-      _aaxRingBufferFilterFrequency(sbuf2, scratch, 0, dmax, 0, track, filter, 0);
-      _batch_imadd(sptr, sbuf2, dmax, 0.5f, 0.0f);
+      _aaxRingBufferFilterFrequency(rbd, sbuf2, scratch, 0, dmax, 0, track, filter, 0);
+      rbd->add(sptr, sbuf2, dmax, 0.5f, 0.0f);
    }
 }
 
 void
-_aaxRingBufferEffectReverb(int32_t *s,
+_aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, const void *data)
 {
@@ -160,8 +163,8 @@ _aaxRingBufferEffectReverb(int32_t *s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
-      unsigned int bytes = ds*sizeof(int32_t);
-      int32_t *sptr = s + dmin;
+      unsigned int bytes = ds*sizeof(MIX_T);
+      MIX_T *sptr = s + dmin;
       int q;
 
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
@@ -173,7 +176,7 @@ _aaxRingBufferEffectReverb(int32_t *s,
          assert(samples < ds);
          if (samples >= ds) samples = ds-1;
 
-         _batch_imadd(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
+         rbd->add(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
       }
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
@@ -188,11 +191,12 @@ _aaxRingBufferEffectReverb(int32_t *s,
  * - dmax does not include ds
  */
 void
-_aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
+_aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
+               MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
                unsigned int start, unsigned int end, unsigned int no_samples,
                unsigned int ds, void *data, unsigned int track)
 {
-   static const unsigned int bps = sizeof(int32_t);
+   static const unsigned int bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = data;
    float volume;
 
@@ -207,8 +211,8 @@ _aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
    do
    {
       unsigned int offs, noffs;
-      int32_t *sptr = s + start;
-      int32_t *dptr = d + start;
+      MIX_T *sptr = (MIX_T*)s + start;
+      MIX_T *dptr = d + start;
 
       offs = effect->delay.sample_offs[track];
       assert(offs < ds);
@@ -231,7 +235,7 @@ _aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
          unsigned int i = no_samples;
          unsigned int coffs = offs;
          unsigned int step = end;
-         int32_t *ptr = dptr;
+         MIX_T *ptr = dptr;
 
          if (start)
          {
@@ -255,7 +259,7 @@ _aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 //          float diff;
             do
             {
-               _batch_imadd(ptr, ptr-coffs, step, volume, 0.0f);
+               rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
 #if 0
                /* gradually fade to the new value */
                diff = (float)*ptr - (float)*(ptr-1);
@@ -273,7 +277,7 @@ _aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
             while(i >= step);
          }
          if (i) {
-            _batch_imadd(ptr, ptr-coffs, i, volume, 0.0f);
+            rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
          }
 
 //       DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
@@ -287,13 +291,13 @@ _aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 
          fact = _MAX((float)((int)end-doffs)/(float)(end), 0.0f);
          if (fact == 1.0f) {
-            _batch_imadd(dptr, sptr-offs, no_samples, volume, 0.0f);
+            rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
          }
          else
          {
             DBG_MEMCLR(1, scratch-ds, ds+end, bps);
-            _batch_resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, fact);
-            _batch_imadd(dptr, scratch-ds, no_samples, volume, 0.0f);
+            rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, fact);
+            rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
          }
       }
    }
@@ -301,7 +305,8 @@ _aaxRingBufferEffectDelay(int32_ptr d, const int32_ptr s, int32_ptr scratch,
 }
 
 void
-_aaxRingBufferEffectDistort(int32_ptr d, const int32_ptr s,
+_aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
+                   MIX_PTR_T d, CONST_MIX_PTR_T s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data)
 {
@@ -320,9 +325,9 @@ _aaxRingBufferEffectDistort(int32_ptr d, const int32_ptr s,
 
    do
    {
-      static const unsigned int bps = sizeof(int32_t);
-      const int32_ptr sptr = s - ds + dmin;
-      int32_t *dptr = d - ds + dmin;
+      static const unsigned int bps = sizeof(MIX_T);
+      CONST_MIX_PTR_T sptr = s - ds + dmin;
+      MIX_T *dptr = d - ds + dmin;
       float clip, asym, fact, mix;
       unsigned int no_samples;
       float lfo_fact = 1.0;
@@ -345,7 +350,7 @@ _aaxRingBufferEffectDistort(int32_ptr d, const int32_ptr s,
 
          /* make dptr the wet signal */
          if (fact > 0.0013f) {
-            _batch_imul_value(dptr, bps, no_samples, 1.0f+64.0f*fact);
+            rbd->multiply(dptr, bps, no_samples, 1.0f+64.0f*fact);
          }
 
          if ((fact > 0.01f) || (asym > 0.01f))
@@ -357,9 +362,9 @@ _aaxRingBufferEffectDistort(int32_ptr d, const int32_ptr s,
 
          /* mix with the dry signal */
          mix_factor = mix/(0.5f+powf(fact, 0.25f));
-         _batch_imul_value(dptr, bps, no_samples, mix_factor);
+         rbd->multiply(dptr, bps, no_samples, mix_factor);
          if (mix < 0.99f) {
-            _batch_imadd(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+            rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
          }
       }
    }
@@ -369,7 +374,8 @@ _aaxRingBufferEffectDistort(int32_ptr d, const int32_ptr s,
 #endif /* !ENABLE_LITE */
 
 void
-_aaxRingBufferFilterFrequency(int32_ptr d, const int32_ptr s,
+_aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
+                   MIX_PTR_T d, CONST_MIX_PTR_T s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
                    unsigned int track, void *data, unsigned char ctr)
 {
@@ -386,8 +392,8 @@ _aaxRingBufferFilterFrequency(int32_ptr d, const int32_ptr s,
 
    if (filter->k)
    {
-      const int32_ptr sptr = s - ds + dmin;
-      int32_t *dptr = d - ds + dmin;
+      CONST_MIX_PTR_T sptr = s - ds + dmin;
+      MIX_T *dptr = d - ds + dmin;
       float *hist = filter->freqfilter_history[track];
       float *cptr = filter->coeff;
       float lf = filter->lf_gain;
@@ -404,7 +410,7 @@ _aaxRingBufferFilterFrequency(int32_ptr d, const int32_ptr s,
          filter->k = k;
       }
 
-      _batch_freqfilter(dptr, sptr, dmax+ds-dmin, hist, lf, hf, k, cptr);
+      rbd->freqfilter(dptr, sptr, dmax+ds-dmin, hist, lf, hf, k, cptr);
    }
 }
 
@@ -600,7 +606,7 @@ _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
    char *ptr, *p;
    int i;
 
-   bps = sizeof(int32_t);
+   bps = sizeof(MIX_T);
    size = (unsigned int)ceilf(dde * frequency);
    size *= bps;
 #if BYTE_ALIGN

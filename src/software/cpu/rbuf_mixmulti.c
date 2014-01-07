@@ -20,16 +20,16 @@
 
 #include <api.h>
 #include <ringbuffer.h>
-#include "ringbuffer.h"
+
+#include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, const int32_ptrptr sptr, _aax2dProps *ep2d, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferLFOData *lfo;
    unsigned int rbd_tracks;
    unsigned int rbs_tracks;
    unsigned int track;
-   void **tracks;
    float g;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -55,23 +55,18 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
       g /= rbd_tracks;
    }
 
-   tracks = drbd->track;
    for (track=0; track<rbd_tracks; track++)
    {
       unsigned int rbs_track = track % rbs_tracks;
       unsigned int rbd_track = track % rbd_tracks;
-      int32_t *dptr = tracks[rbd_track]+offs;
+      MIX_T *dptr = (MIX_T*)drbd->track[rbd_track] + offs;
       float vstart, vend, vstep;
 
       vstart = g*gain * svol * ep2d->prev_gain[track];
       vend = g*gain * evol * gain;
       vstep = (vend - vstart) / dno_samples;
 
-#if RB_FLOAT_DATA
-      _batch_fmadd(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
-#else
-      _batch_imadd(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
-#endif
+      drbd->add(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
 
       ep2d->prev_gain[track] = gain;
    }
