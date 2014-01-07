@@ -24,8 +24,8 @@ extern "C" {
 #include <aax/eventmgr.h>
 #include <aax/instrument.h>
 
-#include <software/ringbuffer.h>
-#include <filters/effects.h>
+#include "filters/effects.h"
+#include "ringbuffer.h"
 #include "objects.h"
 
 #define USE_SPATIAL_FOR_SURROUND AAX_TRUE
