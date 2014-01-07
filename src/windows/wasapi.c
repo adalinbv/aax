@@ -30,15 +30,15 @@
 #include <aax/aax.h>
 #include <xml.h>
 
-#include <api.h>
-#include <driver.h>
 #include <base/dlsym.h>
 #include <base/timer.h>
 #include <base/logging.h>
 #include <base/threads.h>
 
-#include "software/arch.h"
-#include "software/ringbuffer.h"
+#include "api.h"
+#include "arch.h"
+#include "driver.h"
+#include "ringbuffer.h"
 #include "audio.h"
 #include "wasapi.h"
 
