@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#include "software/ringbuffer.h"
+#include "rbuf_int.h"
 
 /* Forward declartations */
 static _aaxRingBufferDistFn _aaxRingBufferDistNone;
