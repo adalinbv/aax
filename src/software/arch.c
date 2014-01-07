@@ -157,15 +157,13 @@ _batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
 _batch_mul_value_proc _batch_imul_value = _batch_imul_value_cpu;
 _batch_mul_value_proc _batch_fmul_value = _batch_fmul_value_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
+_batch_freqfilter_float_proc _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
 
 _batch_cvt_from_proc _batch_cvt24_ps24 = _batch_cvt24_ps24_cpu;
 _batch_cvt_to_proc _batch_cvtps24_24 = _batch_cvtps24_24_cpu;
-#if RB_FLOAT_DATA
-_batch_resample_proc _batch_resample = _batch_resample_float_cpu;
-#else
+_batch_resample_float_proc _batch_resample_float = _batch_resample_float_cpu;
 _batch_resample_proc _batch_resample = _batch_resample_cpu;
-#endif
 
 
 char
@@ -389,15 +387,13 @@ _aaxGetSIMDSupportString()
          _batch_cvt24_16 = _batch_cvt24_16_sse2;
          _batch_cvt16_24 = _batch_cvt16_24_sse2;
          _batch_freqfilter = _batch_freqfilter_sse2;
+         _batch_freqfilter_float = _batch_freqfilter_float_sse2;
          _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
-#if RB_FLOAT_DATA
-         _batch_resample = _batch_resample_float_sse2;
-#else
+         _batch_resample_float = _batch_resample_float_sse2;
          _batch_resample = _batch_resample_sse2;
-#endif
       }
       if (level >= AAX_SSE3)
       {
