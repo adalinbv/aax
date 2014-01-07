@@ -21,8 +21,8 @@ extern "C" {
 #endif
 
 #include <base/types.h>
+#include <ringbuffer.h>
 #include <objects.h>
-#include <software/ringbuffer.h>
 
 uint8_t _linear2alaw(int16_t);
 uint8_t _linear2mulaw(int16_t);
