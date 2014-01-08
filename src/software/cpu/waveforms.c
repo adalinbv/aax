@@ -87,7 +87,7 @@ typedef void (*_mix_fn)(void*, unsigned int, float, float, unsigned char, float,
 
 static float _rand_sample(float *s, float g)
 {
-   return g*_aax_random();
+   return g*(-1.0f + 2*_aax_random());
 }
 
 static float _sin_sample(float *s, float g)
