@@ -26,6 +26,19 @@
 #include <api.h>
 #include <arch.h>
 
+/** MT199367                                                                  *
+ * "Cleaned up" and simplified Mersenne Twister implementation.               *
+ * Vastly smaller and more easily understood and embedded.  Stores the        *
+ * state in a user-maintained structure instead of static memory, so          *
+ * you can have more than one, or save snapshots of the RNG state.            *
+ * Lacks the "init_by_array()" feature of the original code in favor          *
+ * of the simpler 32 bit seed initialization.                                 *
+ * Verified to be identical to the original MT199367ar code through           *
+ * the first 10M generated numbers.                                           *
+ *                                                                            *
+ * Note: Code Taken from SimGear.                                             *
+ *       The original Mersenne Twister implementation is in public domain.    *
+ */
 #define MT_N 624
 #define MT_M 397
 #define MT(i) mt->array[i]
@@ -36,47 +49,79 @@ static mt random_seed;
 static void
 mt_init(mt *mt, unsigned int seed)
 {
-    int i;
-    MT(0)= seed;
-    for(i=1; i<MT_N; i++)
-        MT(i) = (1812433253 * (MT(i-1) ^ (MT(i-1) >> 30)) + i);
-    mt->index = MT_N+1;
+   int i;
+   MT(0)= seed;
+   for(i=1; i<MT_N; i++) {
+      MT(i) = (1812433253 * (MT(i-1) ^ (MT(i-1) >> 30)) + i);
+   }
+   mt->index = MT_N+1;
 }
 
 static unsigned int
 mt_rand32(mt *mt)
 {
-    unsigned int i, y;
-    if(mt->index >= MT_N) {
-        for(i=0; i<MT_N; i++) {
-            y = (MT(i) & 0x80000000) | (MT((i+1)%MT_N) & 0x7fffffff);
-            MT(i) = MT((i+MT_M)%MT_N) ^ (y>>1) ^ (y&1 ? 0x9908b0df : 0);
-        }
-        mt->index = 0;
-    }
-    y = MT(mt->index++);
-    y ^= (y >> 11);
-    y ^= (y << 7) & 0x9d2c5680;
-    y ^= (y << 15) & 0xefc60000;
-    y ^= (y >> 18);
-    return y;
+   unsigned int i, y;
+   if(mt->index >= MT_N)
+   {
+      for(i=0; i<MT_N; i++)
+      {
+         y = (MT(i) & 0x80000000) | (MT((i+1)%MT_N) & 0x7fffffff);
+         MT(i) = MT((i+MT_M)%MT_N) ^ (y>>1) ^ (y&1 ? 0x9908b0df : 0);
+      }
+      mt->index = 0;
+   }
+   y = MT(mt->index++);
+   y ^= (y >> 11);
+   y ^= (y << 7) & 0x9d2c5680;
+   y ^= (y << 15) & 0xefc60000;
+   y ^= (y >> 18);
+   return y;
 }
 
-static float
-mt_rand(mt *mt)
+/** WELL 512, Note: also in Public Domain */
+static unsigned long state[16];
+static unsigned int idx = 0;
+
+unsigned int WELLRNG512(void)
 {
-    /* divided by 2^32-1 */
-    return (float)mt_rand32(mt) * (1.0f/4294967295.0f);
+   unsigned int a, b, c, d;
+   a = state[idx];
+   c = state[(idx+13) & 15];
+   b = a^c^(a<<16)^(c<<15);
+   c = state[(idx+9) & 15];
+   c ^= (c>>11);
+   a = state[idx] = b^c;
+   d = a^((a<<5) & 0xDA442D24UL);
+   idx = (idx + 15) & 15;
+   a = state[idx];
+   state[idx] = a^b^d^(a<<2)^(b<<18)^(c<<28);
+
+   return state[idx];
 }
 
 static void
-_aax_srandom(unsigned int seed) {
-    mt_init(&random_seed, seed);
+_aax_srandom()
+{
+   static int init = -1;
+   if (init < 0)
+   {
+      unsigned int i, num;
+
+      mt_init(&random_seed, time(NULL));
+      num = 100 + (mt_rand32(&random_seed) & 255);
+      for (i=0; i<num; i++) {
+          mt_rand32(&random_seed);
+      }
+ 
+      for (i=0; i<15; i++) {
+         state[i] = mt_rand32(&random_seed);
+      }
+   }
 }
 
 static float
 _aax_random() {
-  return mt_rand(&random_seed);
+  return  (float)WELLRNG512() * (1.0f/4294967295.0f);
 }
 
 
@@ -301,13 +346,9 @@ _bufferMixWhiteNoise(void** data, unsigned int no_samples, char bps, int tracks,
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      int track, stime;
-      time_t ltime;
+      int track;
 
-      ltime = time(NULL);
-      stime = (unsigned) ltime/2;
       _aax_srandom(stime);
-
       for(track=0; track<tracks; track++) {
          mixfn(data[track], no_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
       }
@@ -321,13 +362,9 @@ _bufferMixPinkNoise(void** data, unsigned int no_samples, char bps, int tracks, 
    int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
    if (data && scratch)
    {
-      int track, stime;
-      time_t ltime;
+      int track;
 
-      ltime = time(NULL);
-      stime = (unsigned) ltime/2;
       _aax_srandom(stime);
-
       for(track=0; track<tracks; track++)
       {
          unsigned int i;
@@ -374,13 +411,9 @@ _bufferMixBrownianNoise(void** data, unsigned int no_samples, char bps, int trac
    int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
    if (data && scratch)
    {
-      int track, stime;
-      time_t ltime;
+      int track;
 
-      ltime = time(NULL);
-      stime = (unsigned) ltime/2;
       _aax_srandom(stime);
-
       for(track=0; track<tracks; track++)
       {
          unsigned int i;
