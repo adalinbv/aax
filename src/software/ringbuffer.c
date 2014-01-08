@@ -101,6 +101,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->format = AAX_PCM16S;
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
          rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+         rbd->freqfilter = _batch_freqfilter;
 #if RB_FLOAT_DATA
          rbd->resample = _batch_resample_float;
          rbd->multiply = _batch_fmul_value;

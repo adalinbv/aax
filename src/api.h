@@ -385,7 +385,7 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 #endif
 
 #ifndef NDEBUG
-# define DBG_MEMCLR(a, b, c, d)         if (a) memset((b), 0, (c)*(d))
+# define DBG_MEMCLR(a, b, c, d)         if (a) memset((void*)(b), 0, (c)*(d))
 # define WRITE(a, b, dptr, ds, no_samples) \
    if (a) { static int ct = 0; if (++ct > (b)) { \
              WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }

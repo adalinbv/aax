@@ -134,7 +134,10 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    assert(rb != 0);
    assert(rb->handle != 0);
-   assert(rb->handle->sample != 0);
+
+   rbi = rb->handle;
+
+   assert(rbi->sample != 0);
 
    rbi = rb->handle;
    rbd = rbi->sample;
