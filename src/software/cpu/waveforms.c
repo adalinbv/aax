@@ -26,16 +26,68 @@
 #include <api.h>
 #include <arch.h>
 
-/* -------------------------------------------------------------------------- */
+#define MT_N 624
+#define MT_M 397
+#define MT(i) mt->array[i]
 
-#define GET_RANDOM(a,b)		((a) + ((b)*rand()/(RAND_MAX+(a))))
+typedef struct {unsigned int array[MT_N]; int index; } mt;
+static mt random_seed;
+
+static void
+mt_init(mt *mt, unsigned int seed)
+{
+    int i;
+    MT(0)= seed;
+    for(i=1; i<MT_N; i++)
+        MT(i) = (1812433253 * (MT(i-1) ^ (MT(i-1) >> 30)) + i);
+    mt->index = MT_N+1;
+}
+
+static unsigned int
+mt_rand32(mt *mt)
+{
+    unsigned int i, y;
+    if(mt->index >= MT_N) {
+        for(i=0; i<MT_N; i++) {
+            y = (MT(i) & 0x80000000) | (MT((i+1)%MT_N) & 0x7fffffff);
+            MT(i) = MT((i+MT_M)%MT_N) ^ (y>>1) ^ (y&1 ? 0x9908b0df : 0);
+        }
+        mt->index = 0;
+    }
+    y = MT(mt->index++);
+    y ^= (y >> 11);
+    y ^= (y << 7) & 0x9d2c5680;
+    y ^= (y << 15) & 0xefc60000;
+    y ^= (y >> 18);
+    return y;
+}
+
+static float
+mt_rand(mt *mt)
+{
+    /* divided by 2^32-1 */
+    return (float)mt_rand32(mt) * (1.0f/4294967295.0f);
+}
+
+static void
+_aax_srandom(unsigned int seed) {
+    mt_init(&random_seed, seed);
+}
+
+static float
+_aax_random() {
+  return mt_rand(&random_seed);
+}
+
+
+/* -------------------------------------------------------------------------- */
 
 typedef float (*_calc_sample)(float *s, float g);
 typedef void (*_mix_fn)(void*, unsigned int, float, float, unsigned char, float, float, _calc_sample);
 
 static float _rand_sample(float *s, float g)
 {
-   return g*(-1.0f + GET_RANDOM(0.0f, 2.0f));
+   return g*_aax_random();
 }
 
 static float _sin_sample(float *s, float g)
@@ -75,7 +127,7 @@ void _mul_8bps(void* data, unsigned int samples, float dt, float phase, unsigned
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
-      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*(rand()/(RAND_MAX+1.0f));
+      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
    } while (i>=rnd_skip);
 }
 
@@ -99,7 +151,7 @@ void _mix_8bps(void* data, unsigned int samples, float dt, float phase, unsigned
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
-      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*(rand()/(RAND_MAX+1.0f));
+      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
    } while (i>=rnd_skip);
 }
 
@@ -123,7 +175,7 @@ void _mul_16bps(void* data, unsigned int samples, float dt, float phase, unsigne
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
-      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*(rand()/(RAND_MAX+1.0f));
+      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
    } while (i>=rnd_skip);
 }
 
@@ -147,7 +199,7 @@ void _mix_16bps(void* data, unsigned int samples, float dt, float phase, unsigne
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
-      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*(rand()/(RAND_MAX+1.0f));
+      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
    } while (i>=rnd_skip);
 }
 
@@ -171,7 +223,7 @@ void _mul_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
-      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*(rand()/(RAND_MAX+1.0f));
+      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
    } while (i>=rnd_skip);
 }
 
@@ -195,7 +247,7 @@ void _mix_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
 
       ptr += (int)rnd_skip;
       i -= (int)rnd_skip;
-      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*(rand()/(RAND_MAX+1.0f));
+      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
    } while (i>=skip);
 }
 
@@ -254,7 +306,7 @@ _bufferMixWhiteNoise(void** data, unsigned int no_samples, char bps, int tracks,
 
       ltime = time(NULL);
       stime = (unsigned) ltime/2;
-      srand(stime);
+      _aax_srandom(stime);
 
       for(track=0; track<tracks; track++) {
          mixfn(data[track], no_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
@@ -274,7 +326,7 @@ _bufferMixPinkNoise(void** data, unsigned int no_samples, char bps, int tracks, 
 
       ltime = time(NULL);
       stime = (unsigned) ltime/2;
-      srand(stime);
+      _aax_srandom(stime);
 
       for(track=0; track<tracks; track++)
       {
@@ -327,7 +379,7 @@ _bufferMixBrownianNoise(void** data, unsigned int no_samples, char bps, int trac
 
       ltime = time(NULL);
       stime = (unsigned) ltime/2;
-      srand(stime);
+      _aax_srandom(stime);
 
       for(track=0; track<tracks; track++)
       {
