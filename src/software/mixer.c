@@ -286,7 +286,7 @@ _aaxSoftwareMixerThread(void* config)
 
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb, AAX_PCM24S);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
          dest_rb->init(dest_rb, AAX_TRUE);

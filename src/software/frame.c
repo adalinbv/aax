@@ -71,7 +71,7 @@ _aaxAudioFrameThread(void* config)
       /* unregistered frames that are positional are mono */
       tracks = (!handle && _IS_POSITIONAL(frame)) ? 1 : info->no_tracks;
       dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-      dest_rb->set_format(dest_rb, AAX_PCM24S);
+      dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
       dest_rb->set_paramf(dest_rb, RB_FREQUENCY, info->frequency);
       dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
       dest_rb->init(dest_rb, AAX_TRUE);
@@ -316,7 +316,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
             float dt = 1.0f/info->refresh_rate;
 
             dest_rb->set_parami(frame_rb, RB_NO_TRACKS, info->no_tracks);
-            dest_rb->set_format(frame_rb, AAX_PCM24S);
+            dest_rb->set_format(frame_rb, AAX_PCM24S, AAX_TRUE);
             dest_rb->set_paramf(frame_rb, RB_FREQUENCY, info->frequency);
             dest_rb->set_paramf(frame_rb, RB_DURATION_SEC, dt);
             dest_rb->init(frame_rb, AAX_TRUE);

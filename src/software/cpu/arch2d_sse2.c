@@ -223,6 +223,8 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
    int32_t *s = (int32_t*)src;
    float *d = (float*)dst;
 
+   assert(s != 0);
+   assert(d != 0); 
    assert(((size_t)d & 0xF) == 0);
    assert(((size_t)s & 0xF) == 0);
 

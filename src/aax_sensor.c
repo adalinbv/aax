@@ -436,7 +436,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          const _aaxDriverBackend *be;
          float min, max;
 
-         rb->set_format(rb, AAX_PCM24S);
+         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
          rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
          be = handle->backend.ptr;

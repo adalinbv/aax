@@ -101,12 +101,13 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->format = AAX_PCM16S;
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
          rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
-         rbd->freqfilter = _batch_freqfilter;
 #if RB_FLOAT_DATA
+         rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
          rbd->multiply = _batch_fmul_value;
          rbd->add = _batch_fmadd;
 #else
+         rbd->freqfilter = _batch_freqfilter;
          rbd->resample = _batch_resample;
          rbd->multiply = _batch_imul_value;
          rbd->add = _batch_imadd;
@@ -441,7 +442,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    {
       rbi->access = mode;
 #if RB_FLOAT_DATA
-      if (rbi->access & RB_READ)
+      if (rbd->mixer && rbi->access & RB_READ)
       {
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int track, no_tracks = rbd->no_tracks;
@@ -461,6 +462,9 @@ int
 _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
 {
    _aaxRingBufferData *rbi;
+#if RB_FLOAT_DATA
+   _aaxRingBufferSample *rbd;
+#endif
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -473,7 +477,8 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
    assert(rbi->access != RB_NONE);
 
 #if RB_FLOAT_DATA
-   if (rbi->access & RB_WRITE)
+   rbd = rbi->sample;
+   if (rbd->mixer && rbi->access & RB_WRITE)
    {
       _aaxRingBufferSample *rbd = rbi->sample;
       unsigned int track, no_tracks = rbd->no_tracks;
@@ -993,7 +998,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
 }
 
 int
-_aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format)
+_aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -1010,6 +1015,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format)
    assert(rbi->parent == rb);
 
    rbd = rbi->sample;
+   rbd->mixer = mixer;
    if (rbd->track == NULL)
    {
       rbd->format = format;

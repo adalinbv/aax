@@ -765,7 +765,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      {
                         float delay_sec = 1.0f / info->refresh_rate;
 
-                        rb->set_format(rb, AAX_PCM24S);
+                        rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
                         rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
                         rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 

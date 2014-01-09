@@ -408,7 +408,7 @@ _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
  *       param set to RB_FORMAT
  */
 typedef int
-_aaxRingBufferSetFormatFn(_aaxRingBuffer*, enum aaxFormat);
+_aaxRingBufferSetFormatFn(_aaxRingBuffer*, enum aaxFormat, int);
 
 /**
  * Set a single integer ringbuffer parameter

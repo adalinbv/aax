@@ -752,7 +752,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
       if (rb)
       {
          /* initialize the ringbuffer in native format only */
-         rb->set_format(rb, buf->format & AAX_FORMAT_NATIVE);
+         rb->set_format(rb, buf->format & AAX_FORMAT_NATIVE, AAX_FALSE);
          rb->set_parami(rb, RB_NO_TRACKS, buf->no_tracks);
          rb->set_parami(rb, RB_NO_SAMPLES, buf->no_samples);
          rb->set_parami(rb, RB_LOOPPOINT_START, buf->loop_start);

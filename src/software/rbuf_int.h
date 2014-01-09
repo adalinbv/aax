@@ -97,8 +97,8 @@ enum
 typedef struct _aaxRingBufferSample_t  /* static information about the sample */
 {
     void** track;
-
     void** scratch;		/* resident scratch buffer */
+
     unsigned char no_tracks;
     unsigned char bytes_sample;
     unsigned short ref_counter;
@@ -130,6 +130,8 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
    /* called by the mix function above */
    _aaxRingBufferMix1NFn *mix1n;
    _aaxRingBufferMixMNFn *mixmn;
+
+   char mixer;			/* 1 if the ringbuffer is part of the mixer */
 
 } _aaxRingBufferSample;
 
