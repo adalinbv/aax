@@ -128,7 +128,7 @@ typedef struct
    struct threat_t thread;
    uint8_t buf[IOBUF_SIZE];
    unsigned int bufpos;
-   unsigned int no_bytes;
+   unsigned int bytes_avail;
 
    _aaxFmtHandle* fmt;
    char *interfaces;
@@ -517,14 +517,14 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 }
 
 static int
-_aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
+_aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;  
-   _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
-   unsigned int bps, no_samples, offs, bufsize;
-   unsigned int file_bps, file_tracks;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
+   unsigned int no_samples, offs, outbuf_size;
+   unsigned int rb_bps, file_bps, file_tracks;
    const int32_t** sbuf;
-   char *scratch, *data;
+   char *scratch;
    int res;
 
    assert(rb);
@@ -532,7 +532,7 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
-   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+   rb_bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
 
    file_bps = handle->fmt->get_param(handle->fmt->id, __F_BITS)/8;
    file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
@@ -540,34 +540,30 @@ _aaxFileDriverPlayback(const void *id, void *s, float pitch, float gain)
 
    _aaxMutexLock(handle->thread.mutex);
 
-   bufsize = no_samples * (file_tracks*_MAX(file_bps, bps));
-   if ((handle->ptr == 0) || (handle->buf_len < bufsize))
+   outbuf_size = file_tracks * no_samples*_MAX(file_bps, rb_bps);
+   if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
 
       _aax_free(handle->ptr);
-      handle->ptr = (char *)_aax_malloc(&p, 2*bufsize);
+      handle->ptr = (char *)_aax_malloc(&p, 2*outbuf_size);
       handle->scratch = (char *)p;
-      handle->buf_len = bufsize;
+      handle->buf_len = outbuf_size;
    }
-   data = (char *)handle->scratch;
-   scratch = data + bufsize;
-   assert(bufsize <= handle->buf_len);
+   scratch = (char*)handle->scratch + outbuf_size;
+
+   assert(outbuf_size <= handle->buf_len);
+
+   if (fabs(gain - 1.0f) > 0.05f) {
+       rb->data_multiply(rb, offs, no_samples, gain);
+   }
 
    sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-   if (fabs(gain - 1.0f) > 0.05f)
-   {
-      int t;
-      for (t=0; t<file_tracks; t++) {
-         _batch_imul_value((void**)sbuf[t]+offs, bps, no_samples, gain);
-      }
-   }
-   res = handle->fmt->cvt_to_intl(handle->fmt->id, data, sbuf,
+   res = handle->fmt->cvt_to_intl(handle->fmt->id, handle->scratch, sbuf,
                                   offs, file_tracks, no_samples,
                                   scratch, handle->buf_len);
    rb->release_tracks_ptr(rb);
-
-   handle->no_bytes = res;
+   handle->bytes_avail = res;
 
    _aaxMutexUnLock(handle->thread.mutex);
    _aaxConditionSignal(handle->thread.condition);
@@ -877,7 +873,7 @@ static void*
 _aaxFileDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   int bits,  res;
+   int bits, avail;
 
    _aaxThreadSetPriority(AAX_LOW_PRIORITY);
 
@@ -885,34 +881,38 @@ _aaxFileDriverWriteThread(void *id)
    bits = handle->bits_sample;
    do
    {
-      unsigned int usize, file_bufsize;
+      unsigned int usize, buffer_avail;
       char *data;
 
       _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
       data = (char*)handle->scratch;
+      avail = handle->bytes_avail;
 
-      res = handle->no_bytes;
       if (handle->fmt->cvt_from_signed) {
-         handle->fmt->cvt_from_signed(handle->fmt->id, data, res*8/bits);
+         handle->fmt->cvt_from_signed(handle->fmt->id, data, avail*8/bits);
       }
       if (handle->fmt->cvt_endianness) {
-         handle->fmt->cvt_endianness(handle->fmt->id, data, res*8/bits);
+         handle->fmt->cvt_endianness(handle->fmt->id, data, avail*8/bits);
       }
 
-      file_bufsize = res;
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+      if (!avail) continue;
+
+      buffer_avail = avail;
       do
       {
-         usize = file_bufsize;
-
-         if (handle->bufpos+usize >= IOBUF_SIZE) {
-            usize = IOBUF_SIZE - handle->bufpos;
-         }
-         memcpy(handle->buf+handle->bufpos, data, usize);
+         usize = _MIN(buffer_avail, IOBUF_SIZE);
+         memcpy((char*)handle->buf+handle->bufpos, data, usize);
+         buffer_avail -= usize;
+         data += usize;
 
          handle->bufpos += usize;
          if (handle->bufpos >= PERIOD_SIZE)
          {
             unsigned int wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+            int res;
 
             res = write(handle->fd, handle->buf, wsize);
             if (res > 0)
@@ -921,7 +921,6 @@ _aaxFileDriverWriteThread(void *id)
 
                memcpy(handle->buf, handle->buf+res, handle->bufpos-res);
                handle->bufpos -= res;
-               file_bufsize -= _MIN(res, usize);
 
                if (handle->fmt->update)
                {
@@ -945,12 +944,13 @@ _aaxFileDriverWriteThread(void *id)
             break;
          }
       }
-      while (file_bufsize);
-      handle->no_bytes = 0;
+      while (buffer_avail >= 0);
+      handle->bytes_avail = 0;
    }
    while(handle->thread.started);
 
-   res = write(handle->fd, handle->buf, handle->bufpos);
+   avail = write(handle->fd, handle->buf, handle->bufpos);
+   handle->bufpos -= avail;
    _aaxMutexUnLock(handle->thread.mutex);
 
    return handle; 
