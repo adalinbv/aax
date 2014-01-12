@@ -371,7 +371,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
 {
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
-   unsigned int i, size, step;
+   unsigned int i, step;
    size_t dtmp, stmp;
 
    if (!num) return;
@@ -393,8 +393,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
    step = 4*sizeof(__m128)/sizeof(float);
 
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
-   i = num/step;
-   if (dtmp && i)
+   if (dtmp && num)
    {
       i = (0x10 - dtmp)/sizeof(int32_t);
       num -= i;
@@ -405,7 +404,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
    }
 
    vstep *= step;				/* 8 samples at a time */
-   i = size = num/step;
+   i = num/step;
+   num -= i*step;
    if (i)
    {
       __m128 *dptr = (__m128*)d;
@@ -422,18 +422,19 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
          xmm4 = _mm_load_ps((const float*)sptr++);
          xmm5 = _mm_load_ps((const float*)sptr++);
 
+         s += step;
+
          xmm0 = _mm_mul_ps(xmm0, tv);
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm4 = _mm_mul_ps(xmm4, tv);
          xmm5 = _mm_mul_ps(xmm5, tv);
 
-         s += step;
-         d += step;
-
          xmm2 = _mm_load_ps((const float*)dptr);
          xmm3 = _mm_load_ps((const float*)(dptr+1));
          xmm6 = _mm_load_ps((const float*)(dptr+2));
          xmm7 = _mm_load_ps((const float*)(dptr+3));
+
+         d += step;
 
          xmm2 = _mm_add_ps(xmm2, xmm0);
          xmm3 = _mm_add_ps(xmm3, xmm1);
@@ -452,9 +453,10 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
       while(--i);
    }
 
-   i = num - size*step;
-   if (i) {
+   if (num)
+   {
       vstep /= step;
+      i = num;
       do {
          *d++ += *s++ * v;
          v += vstep;
