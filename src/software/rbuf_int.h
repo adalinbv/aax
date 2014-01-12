@@ -107,11 +107,12 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     float duration_sec;
     float loop_start_sec;
     float loop_end_sec;
+    float dde_sec;
 
+    unsigned int dde_samples;
     unsigned int no_samples;		/* actual no. samples */
     unsigned int no_samples_avail;	/* maximum available no. samples */
     unsigned int track_len_bytes;
-    unsigned int dde_samples;
 
     enum aaxFormat format;
     _batch_codec_proc codec;
@@ -149,7 +150,6 @@ typedef struct _aaxRingBufferData_t
     float volume_norm, gain_agc;
     float volume_min, volume_max;
 
-    float dde_sec;
     float curr_pos_sec;
     unsigned int curr_sample;
 

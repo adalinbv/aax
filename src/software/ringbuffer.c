@@ -81,7 +81,6 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->playing = 0;
          rbi->stopped = 1;
          rbi->streaming = 0;
-         rbi->dde_sec = dde;
          rbi->gain_agc = 1.0f;
          rbi->pitch_norm = 1.0f;
          rbi->volume_min = 0.0f;
@@ -96,6 +95,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->parent = rb;
 #endif
 
+         rbd->dde_sec = dde;
          rbd->no_tracks = 1;
          rbd->frequency_hz = 44100.0f;
          rbd->format = AAX_PCM16S;
@@ -205,7 +205,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rbi->dde_sec) ? (rbd->dde_samples * bps) : 0;
+      dde_bytes = TEST_FOR_TRUE(rbd->dde_sec) ? (rbd->dde_samples * bps) : 0;
       if (dde_bytes & 0xF)
       {
          dde_bytes |= 0xF;
@@ -355,6 +355,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 {
    _aaxRingBuffer *srb = ringbuffer;
    _aaxRingBufferData *srbi;
+   _aaxRingBufferSample *srbd;
    _aaxRingBuffer *drb;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -362,7 +363,8 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
    assert(ringbuffer != 0);
 
    srbi = srb->handle;
-   drb = _aaxRingBufferCreate(srbi->dde_sec, srbi->mode);
+   srbd = srbi->sample;
+   drb = _aaxRingBufferCreate(srbd->dde_sec, srbi->mode);
    if (drb)
    {
       _aaxRingBufferSample *srbd, *drbd;
@@ -635,12 +637,8 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    case RB_FREQUENCY:
       rbd->frequency_hz = fval;
-      rbd->duration_sec = rbd->no_samples / fval;
-      rbd->dde_samples = (unsigned int)ceilf(fval * rbi->dde_sec);
-
-      fval = rbd->frequency_hz / fval;
-      rbd->loop_start_sec *= fval;
-      rbd->loop_end_sec *= fval;
+      rbd->duration_sec = (float)rbd->no_samples / rbd->frequency_hz;
+      rbd->dde_samples = (unsigned int)ceilf(rbd->dde_sec * rbd->frequency_hz);
       break;
    case RB_DURATION_SEC:
    {
@@ -741,6 +739,9 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    rbd = rbi->sample;
    switch(param)
    {
+   case RB_IS_MIXER_BUFFER:
+      rbd->mixer = (val != 0) ? AAX_TRUE : AAX_FALSE;
+      break;
    case RB_BYTES_SAMPLE:
       if (rbd->track == NULL) {
          rbd->bytes_sample = val;
@@ -973,7 +974,10 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbd->dde_samples;
       break;
    case RB_IS_PLAYING:
-      rv = !(rbi->playing == 0 && rbi->stopped == 1);
+      rv = (rbi->playing == 0 && rbi->stopped == 1) ? AAX_FALSE : AAX_TRUE;
+      break;
+   case RB_IS_MIXER_BUFFER:
+      rv = (rbd->mixer != AAX_FALSE) ? AAX_TRUE : AAX_FALSE;
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
