@@ -44,7 +44,7 @@ extern "C" {
 #define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
 
 #define INFO_ID			0xFEDCBA98
-#define EBF_VALID(a)		(a->info && a->info->id == INFO_ID)
+#define EBF_VALID(a)		((a)->info && ((a)->info)->id == INFO_ID)
 
 
 /* --- Error support -- */
@@ -231,7 +231,7 @@ typedef struct
    char mipmap;
 
    _aaxRingBuffer *ringbuffer;
-   _aaxMixerInfo *info;
+   _aaxMixerInfo **info;
 } _buffer_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);

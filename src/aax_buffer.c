@@ -76,7 +76,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->pos = 0;
          buf->format = format;
          buf->frequency = 0.0f;
-         buf->info = VALID_HANDLE(handle) ? handle->info : NULL;
+         buf->info = VALID_HANDLE(handle) ? &handle->info : &_info;
          buf->ringbuffer = _bufGetRingBuffer(buf, handle);
          rv = (aaxBuffer)buf;
       }
@@ -415,7 +415,7 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
    } else if (ptype >= AAX_PROCESSING_MAX) {
       _aaxErrorSet(AAX_INVALID_PARAMETER + 5);
    }
-   else if (buf && EBF_VALID(buf))
+   else if (buf && (*buf->info && ((*buf->info)->id == INFO_ID)))
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
       float phase = (ratio < 0.0f) ? GMATH_PI : 0.0f;
@@ -492,8 +492,8 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
          case AAX_PINK_NOISE:
          case AAX_BROWNIAN_NOISE:
             rv = rb->data_mix_noise(rb, wtype & bit,
-                             buf->info->frequency ? buf->info->frequency : 0.0f,
-                             ratio, dc, skip);
+                       (*buf->info)->frequency ? (*buf->info)->frequency : 0.0f,
+                       ratio, dc, skip);
             break;
          default:
             break;
@@ -736,7 +736,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
 {
    _aaxRingBuffer *rb = buf->ringbuffer;
    if (!rb && (VALID_HANDLE(handle) ||
-               (buf->info && VALID_HANDLE((_handle_t*)(buf->info->backend))))
+              (*buf->info && VALID_HANDLE((_handle_t*)((*buf->info)->backend))))
       )
    {
       enum aaxRenderMode mode = handle->info->mode;
@@ -745,7 +745,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
       if VALID_HANDLE(handle) {
          be = handle->backend.ptr;
       } else {
-         be = ((_handle_t*)(buf->info->backend))->backend.ptr;
+         be = ((_handle_t*)((*buf->info)->backend))->backend.ptr;
       }
  
       rb = be->get_ringbuffer(0.0f, mode);
@@ -771,9 +771,9 @@ static _aaxRingBuffer*
 _bufDestroyRingBuffer(_buffer_t* buf)
 {
    _aaxRingBuffer *rb = buf->ringbuffer;
-   if (rb && (buf->info && VALID_HANDLE((_handle_t*)(buf->info->backend))))
+   if (rb && (*buf->info && VALID_HANDLE((_handle_t*)((*buf->info)->backend))))
    {
-      _handle_t *handle = (_handle_t*)buf->info->backend;
+      _handle_t *handle = (_handle_t*)(*buf->info)->backend;
       const _aaxDriverBackend *be = handle->backend.ptr;
 
       be->destroy_ringbuffer(rb);

@@ -49,8 +49,8 @@ static _aaxFilterInfo _aaxMixerDefaultEqualizer[2];
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
-_intBuffers* _backends = NULL;
 _aaxMixerInfo* _info = NULL;
+_intBuffers* _backends = NULL;
 time_t _tvnow = 0;
 
 
@@ -316,7 +316,9 @@ aaxDriverOpen(aaxConfig config)
             }
             renderer = be->name(handle->backend.handle, mode);
             handle->backend.driver = renderer ? renderer : _default_renderer;
-            _info =  handle->info;
+            if (_info == NULL) {
+               _info =  handle->info;
+            }
          }
          _aaxDriverBackendClearConfigSettings(cfg);
       }
@@ -375,7 +377,9 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
                   }
                   renderer = be->name(handle->backend.handle, mode);
                   handle->backend.driver=renderer? renderer : _default_renderer;
-                  _info =  handle->info;
+                  if (_info == NULL) {
+                     _info =  handle->info;
+                  }
                }
                _aaxDriverBackendClearConfigSettings(cfg);
             }

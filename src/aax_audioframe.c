@@ -1137,11 +1137,20 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
          _buffer_t *buf = calloc(1, sizeof(_buffer_t));
          if (buf)
          {
-            buf->ringbuffer = rb;
-            buf->format = rb->get_parami(rb, RB_FORMAT);
-            buf->ref_counter = 1;
-            buf->mipmap = AAX_FALSE;
             buf->id = BUFFER_ID;
+            buf->ref_counter = 1;
+
+            buf->blocksize = 1;
+            buf->pos = 0;
+            buf->format = rb->get_parami(rb, RB_FORMAT);
+            buf->frequency = rb->get_paramf(rb, RB_FREQUENCY);
+
+            buf->mipmap = AAX_FALSE;
+
+            buf->info = &_info;
+            rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_FALSE);
+            buf->ringbuffer = rb;
+
             buffer = (aaxBuffer)buf;
          }
          else {
