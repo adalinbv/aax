@@ -142,6 +142,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
    unsigned int t;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
    /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
    {

@@ -334,19 +334,23 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, unsigned int num, float v,
          xmm1 = _mm_cvtepi32_ps(xmm0i);
          xmm5 = _mm_cvtepi32_ps(xmm4i);
 
+         s += step;
+
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm5 = _mm_mul_ps(xmm5, tv);
-
-         v += vstep;
-
-         xmm3i = _mm_cvtps_epi32(xmm1);
-         xmm7i = _mm_cvtps_epi32(xmm5);
 
          xmm0i = _mm_load_si128(dptr);
          xmm4i = _mm_load_si128(dptr+1);
 
+         xmm3i = _mm_cvtps_epi32(xmm1);
+         xmm7i = _mm_cvtps_epi32(xmm5);
+
+         d += step;
+
          xmm0i = _mm_add_epi32(xmm0i, xmm3i);
          xmm4i = _mm_add_epi32(xmm4i, xmm7i);
+
+         v += vstep;
 
          _mm_store_si128(dptr++, xmm0i);
          _mm_store_si128(dptr++, xmm4i);
@@ -356,7 +360,8 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, unsigned int num, float v,
       while(--i);
    }
 
-   if (num) {
+   if (num)
+   {
       vstep /= step;
       i = num;
       do {
@@ -631,8 +636,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
                                 int offset, unsigned int tracks,
                                 unsigned int num)
 {
-   unsigned int i, size, step;
-   int16_t* d = (int16_t*)dst;
+   unsigned int i, step;
+   int16_t *d = (int16_t*)dst;
    int32_t *s1, *s2;
    size_t tmp;
 
@@ -665,9 +670,10 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    /*
     * work towards 16-byte aligned sptr
     */
-   i = num/step;
    tmp = (size_t)s1 & 0xF;
    assert(tmp == ((size_t)s2 & 0xF));
+
+   i = num/step;
    if (tmp && i)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
@@ -681,54 +687,59 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    }
 
    tmp = (size_t)d & 0xF;
-   i = size = num/step;
+   i = num/step;
+   num -= i*step;
    if (i)
    {
       __m128i mask, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *dptr, *sptr1, *sptr2;
 
+      sptr1 = (__m128i*)s1;
+      sptr2 = (__m128i*)s2;
+
       mask = _mm_set_epi32(0x00FFFF00, 0x00FFFF00, 0x00FFFF00, 0x00FFFF00);
       dptr = (__m128i *)d;
       do
       {
-         sptr1 = (__m128i*)s1;
-         sptr2 = (__m128i*)s2;
          _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
          _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
 
-         xmm0 = _mm_load_si128(sptr1);
-         xmm1 = _mm_load_si128(sptr2);
-         xmm4 = _mm_load_si128(sptr1+1);
-         xmm5 = _mm_load_si128(sptr2+1);
+         xmm0 = _mm_load_si128(sptr1++);
+         xmm4 = _mm_load_si128(sptr1++);
+         xmm1 = _mm_load_si128(sptr2++);
+         xmm5 = _mm_load_si128(sptr2++);
 
          xmm2 = _mm_and_si128(xmm0, mask);
          xmm3 = _mm_and_si128(xmm1, mask);
          xmm6 = _mm_and_si128(xmm4, mask);
          xmm7 = _mm_and_si128(xmm5, mask);
+
+         s1 += step;
+         s2 += step;
+
          xmm0 = _mm_srli_epi32(xmm2, 8);
          xmm1 = _mm_slli_epi32(xmm3, 8);
          xmm4 = _mm_srli_epi32(xmm6, 8);
          xmm5 = _mm_slli_epi32(xmm7, 8);
-         s1 += step;
-         s2 += step;
 
          xmm0 = _mm_or_si128(xmm1, xmm0);
          xmm4 = _mm_or_si128(xmm5, xmm4);
+
+         d += 2*step;
+
          if (tmp) {
-            _mm_storeu_si128(dptr, xmm0);
-            _mm_storeu_si128(dptr+1, xmm4);
+            _mm_storeu_si128(dptr++, xmm0);
+            _mm_storeu_si128(dptr++, xmm4);
          } else {
-            _mm_store_si128(dptr, xmm0);
-            _mm_store_si128(dptr+1, xmm4);
+            _mm_store_si128(dptr++, xmm0);
+            _mm_store_si128(dptr++, xmm4);
          }
-         dptr += 2;
       } while (--i);
-      d = (int16_t *)dptr;
    }
 
-   i = num - size*step;
-   if (i)
+   if (num)
    {
+      i = num;
       do
       {
          *d++ = *s1++ >> 8;

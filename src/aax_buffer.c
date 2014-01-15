@@ -1076,7 +1076,7 @@ _aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned bl
    }
 }
 
-void
+static void
 _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned int no_samples, enum aaxFormat format, unsigned int blocksize)
 {
    if (ndata)
