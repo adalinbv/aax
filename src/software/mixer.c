@@ -46,7 +46,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    assert(rb != 0);
 
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
-   assert(bps == sizeof(MIX_T));
+   assert(bps == sizeof(int32_t));
 
    delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
@@ -54,13 +54,13 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    if (delay_effect || freq_filter || dist_state)
    {
       _aaxRingBufferData *rbi = rb->handle;
-      MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
-      MIX_T *scratch0 = scratch[SCRATCH_BUFFER0];
-      MIX_T *scratch1 = scratch[SCRATCH_BUFFER1];
+      int32_t **scratch = (int32_t**)rb->get_scratch(rb);
+      int32_t *scratch0 = scratch[SCRATCH_BUFFER0];
+      int32_t *scratch1 = scratch[SCRATCH_BUFFER1];
       void* distortion_effect = NULL;
       unsigned int no_samples, ddesamps = 0;
       unsigned int track, no_tracks;
-      MIX_PTR_T **tracks;
+      int32_t **tracks;
 
       if (dist_state) {
          distortion_effect = &p2d->effect[DISTORTION_EFFECT];
@@ -79,11 +79,11 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      tracks = (MIX_PTR_T**)rb->get_tracks_ptr(rb, RB_READ);
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       for (track=0; track<no_tracks; track++)
       {
-         MIX_T *dptr = (MIX_T*)tracks[track];
-         MIX_T *ddeptr = dptr - ddesamps;
+         int32_t *dptr = (int32_t*)tracks[track];
+         int32_t *ddeptr = dptr - ddesamps;
 
          /* save the unmodified next effects buffer for later use          */
          /* (scratch buffers have a leading and a trailing effects buffer) */
@@ -128,7 +128,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _aaxRingBufferReverbData *reverb;
    unsigned int track, no_tracks;
    char parametric, graphic;
-   MIX_PTR_T **tracks;
+   float **tracks;
    void *ptr = 0;
    char *p;
 
@@ -172,18 +172,18 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
    /* set up this way because we always need to apply compression */
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   tracks = (MIX_PTR_T**)rb->get_tracks_ptr(rb, RB_READ);
+   tracks = (float**)rbd->track;
    for (track=0; track<no_tracks; track++)
    {
       unsigned int track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
       unsigned int dmax = rb->get_parami(rb, RB_NO_SAMPLES);
-      MIX_T *d1 = (MIX_T*)tracks[track];
+      int32_t *d1 = (int32_t*)tracks[track];
 
       if (ptr && reverb)
       {
          unsigned int ds = rb->get_parami(rb, RB_DDE_SAMPLES);
-         MIX_T *sbuf = (MIX_T*)p + ds;
-         MIX_T *sbuf2 = sbuf + dmax;
+         int32_t *sbuf = (int32_t*)p + ds;
+         int32_t *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
          _aaxRingBufferEffectReflections(rbd, d1, sbuf, sbuf2,
@@ -194,8 +194,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       if (ptr && parametric)
       {
          _aaxRingBufferFreqFilterData* filter;
-         MIX_T *d2 = (MIX_T*)p;
-         MIX_T *d3 = d2 + dmax;
+         int32_t *d2 = (int32_t*)p;
+         int32_t *d3 = d2 + dmax;
 
          _aax_memcpy(d3, d1, track_len_bytes);
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
@@ -209,8 +209,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
-         MIX_T *d2 = (MIX_T*)p;
-         MIX_T *d3 = d2 + dmax;
+         int32_t *d2 = (int32_t*)p;
+         int32_t *d3 = d2 + dmax;
          int b = 6;
 
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
@@ -243,7 +243,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          while (b > 0);
       }
    }
-   rb->release_tracks_ptr(rb);
    free(ptr);
 
    rb->compress(rb, RB_COMPRESS_ELECTRONIC);

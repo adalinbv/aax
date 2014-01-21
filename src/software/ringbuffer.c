@@ -454,6 +454,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
             _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
          }
       }
+
 #endif
       rv  = (int32_t**)rbd->track;
    }

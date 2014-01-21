@@ -27,7 +27,7 @@ extern "C" {
 #include <ringbuffer.h>
 #include <arch.h>
 
-#define RB_FLOAT_DATA		0
+#define RB_FLOAT_DATA		1
 #define BYTE_ALIGN		1
 #define CUBIC_SAMPS		4
 
