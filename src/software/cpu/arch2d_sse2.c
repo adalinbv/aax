@@ -21,6 +21,7 @@
 
 #ifdef __SSE2__
 
+# define CACHE_ADVANCE_IMADD     16
 # define CACHE_ADVANCE_FMADD	 16
 # define CACHE_ADVANCE_MUL	 32
 # define CACHE_ADVANCE_CPY	 16
@@ -327,7 +328,7 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, unsigned int num, float v,
 
       do
       {
-         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
@@ -395,8 +396,6 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
       return;
    }
 
-   step = 4*sizeof(__m128)/sizeof(float);
-
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
    if (dtmp && num)
    {
@@ -408,38 +407,40 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
       } while(--i);
    }
 
+   step = 4*sizeof(__m128)/sizeof(float);
+
    vstep *= step;				/* 8 samples at a time */
    i = num/step;
    num -= i*step;
    if (i)
    {
-      __m128 *dptr = (__m128*)d;
       __m128* sptr = (__m128*)s;
+      __m128 *dptr = (__m128*)d;
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128 tv = _mm_set1_ps(v);
 
       do
       {
          _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          xmm0 = _mm_load_ps((const float*)sptr++);
          xmm1 = _mm_load_ps((const float*)sptr++);
          xmm4 = _mm_load_ps((const float*)sptr++);
          xmm5 = _mm_load_ps((const float*)sptr++);
 
-         s += step;
-
          xmm0 = _mm_mul_ps(xmm0, tv);
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm4 = _mm_mul_ps(xmm4, tv);
          xmm5 = _mm_mul_ps(xmm5, tv);
 
+         s += step;
+         d += step;
+
          xmm2 = _mm_load_ps((const float*)dptr);
          xmm3 = _mm_load_ps((const float*)(dptr+1));
          xmm6 = _mm_load_ps((const float*)(dptr+2));
          xmm7 = _mm_load_ps((const float*)(dptr+3));
-
-         d += step;
 
          xmm2 = _mm_add_ps(xmm2, xmm0);
          xmm3 = _mm_add_ps(xmm3, xmm1);
@@ -763,7 +764,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
                   const float *cptr)
 {
    int32_ptr s = (int32_ptr)sptr;
-   unsigned int i, size, step;
+   unsigned int i, step;
    float h0, h1;
    size_t tmp;
 
@@ -775,9 +776,8 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
    step = 2*sizeof(__m128i)/sizeof(int32_t);
 
    /* work towards 16-byte aligned dptr */
-   i = num/step;
    tmp = (size_t)d & 0xF;
-   if (tmp && i)
+   if (tmp && num)
    {
       float smp, nsmp;
 
@@ -800,7 +800,8 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
       while (--i);
    }
 
-   i = size = num/step;
+   i = num/step;
+   num -= i*step;
    if (i)
    {
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -815,8 +816,6 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
       smp1 = (float *)&tmp1;
       mpf = (float *)&tmp2;
 
-      num -= size*step;
-
       fact = _mm_set1_ps(k);
       coeff = _mm_set_ps(cptr[3], cptr[2], cptr[1], cptr[0]);
       lf = _mm_set1_ps(lfgain);
@@ -824,17 +823,17 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
 
       tmp = (size_t)s & 0xF;
       dptr = (__m128i *)d;
+      sptr = (__m128i *)s;
       do
       {
-         sptr = (__m128i *)s;
          _mm_prefetch(((char *)s)+CACHE_ADVANCE_FF, _MM_HINT_NTA);
 
          if (tmp) {
-            xmm0i = _mm_loadu_si128(sptr);
-            xmm1i = _mm_loadu_si128(sptr+1);
+            xmm0i = _mm_loadu_si128(sptr++);
+            xmm1i = _mm_loadu_si128(sptr++);
          } else {
-            xmm0i = _mm_load_si128(sptr);
-            xmm1i = _mm_load_si128(sptr+1);
+            xmm0i = _mm_load_si128(sptr++);
+            xmm1i = _mm_load_si128(sptr++);
          }
 
          osmp0 = _mm_cvtepi32_ps(xmm0i);
@@ -843,7 +842,9 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
          xmm7 = _mm_mul_ps(osmp1, fact);
          _mm_store_ps(smp0, xmm3);
          _mm_store_ps(smp1, xmm7);
+
          s += step;
+         d += step;
 
          CALCULATE_NEW_SAMPLE(0, smp0[0]);
          CALCULATE_NEW_SAMPLE(1, smp0[1]);
@@ -867,19 +868,16 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
          xmm0i = _mm_cvtps_epi32(xmm2);
          xmm1i = _mm_cvtps_epi32(xmm6);
 
-         _mm_store_si128(dptr, xmm0i);
-         _mm_store_si128(dptr+1, xmm1i);
-         dptr += 2;
+         _mm_store_si128(dptr++, xmm0i);
+         _mm_store_si128(dptr++, xmm1i);
       }
       while (--i);
-
-      d = (int32_t *)dptr;
    }
 
-   i = num;
-   if (i)
+   if (num)
    {
       float smp, nsmp;
+      i = num;
       do
       {
          smp = *s * k;
@@ -902,12 +900,10 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
 }
 
 void
-_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int num,
-                  float *hist, float lfgain, float hfgain, float k,
-                  const float *cptr)
+_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
-   unsigned int i, size, step;
+   unsigned int i, step;
    float h0, h1;
    size_t tmp;
 
@@ -919,9 +915,8 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
    step = 2*sizeof(__m128)/sizeof(float);
 
    /* work towards 16-byte aligned dptr */
-   i = num/step;
    tmp = (size_t)d & 0xF;
-   if (tmp && i)
+   if (tmp && num)
    {
       float smp, nsmp;
 
@@ -937,18 +932,18 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
 
          h1 = h0;
          h0 = nsmp;
-
          *d++ = (smp*lfgain) + (*s-smp)*hfgain;
          s++;
       }
       while (--i);
    }
 
-   i = size = num/step;
-   if (i)   {
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128 osmp0, osmp1, fact, dhist, coeff, lf, hf;
-//    __m128i xmm0i, xmm1i;
       __m128 tmp0, tmp1, tmp2;
       __m128 *sptr, *dptr;
       float *smp0, *smp1, *mpf;
@@ -957,8 +952,6 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
       smp0 = (float *)&tmp0;
       smp1 = (float *)&tmp1;
       mpf = (float *)&tmp2;
-
-      num -= size*step;
 
       fact = _mm_set1_ps(k);
       coeff = _mm_set_ps(cptr[3], cptr[2], cptr[1], cptr[0]);
@@ -986,6 +979,8 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
          _mm_store_ps(smp1, xmm7);
 
          s += step;
+         d += step;
+
          CALCULATE_NEW_SAMPLE(0, smp0[0]);
          CALCULATE_NEW_SAMPLE(1, smp0[1]);
          CALCULATE_NEW_SAMPLE(2, smp0[2]);
@@ -1010,14 +1005,12 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
          _mm_store_ps((float*)dptr++, xmm6);
       }
       while (--i);
-
-      d = (float*)dptr;
    }
 
-   i = num;
-   if (i)
+   if (num)
    {
       float smp, nsmp;
+      i = num;
       do
       {
          smp = *s * k;
@@ -1028,8 +1021,7 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
 
          h1 = h0;
          h0 = nsmp;
-
-         *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
+         *d++ = smp*lfgain + (*s-smp)*hfgain;
          s++;
       }
       while (--i);
