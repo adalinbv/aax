@@ -127,10 +127,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _sensor_t *sensor = (_sensor_t*)s;
    _aaxRingBufferReverbData *reverb;
    unsigned int track, no_tracks;
+   unsigned int track_len_bytes;
+   unsigned int no_samples;
    char parametric, graphic;
-   MIX_T **tracks;
-   void *ptr = 0;
-   char *p;
+   MIX_T **tracks, **scratch;
+// void *ptr = 0;
+// char *p;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -142,9 +144,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    rbi = rb->handle;
    rbd = rbi->sample;
 
-// dt = GMATH_E1 * rb->get_paramf(rb, RB_DURATION_SEC);
-
-   reverb = 0;
+   reverb = NULL;
    parametric = graphic = 0;
    if (sensor)
    {
@@ -152,98 +152,87 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
       parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
       graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
-
-      if (parametric || graphic || reverb)
-      {
-         unsigned int size = 2*rb->get_parami(rb, RB_TRACKSIZE);
-         if (reverb) {
-            size += rb->get_parami(rb, RB_DDE_SAMPLES)*
-                    rb->get_parami(rb, RB_BYTES_SAMPLE);
-         }
-         p = 0;
-         ptr = _aax_malloc(&p, size);
-         // TODO: create only once
-      }
    }
 
-   if (ptr && reverb) {
+   if (reverb) {
       rb->compress(rb, RB_COMPRESS_ELECTRONIC);
    }
 
    /* set up this way because we always need to apply compression */
+   track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+
    tracks = (MIX_T**)rbd->track;
+   scratch = (MIX_T**)rb->get_scratch(rb);
    for (track=0; track<no_tracks; track++)
    {
-      unsigned int track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
-      unsigned int dmax = rb->get_parami(rb, RB_NO_SAMPLES);
-      MIX_T *d1 = (MIX_T*)tracks[track];
-
-      if (ptr && reverb)
+      if (reverb)
       {
          unsigned int ds = rb->get_parami(rb, RB_DDE_SAMPLES);
-         MIX_T *sbuf = (MIX_T*)p + ds;
-         MIX_T *sbuf2 = sbuf + dmax;
 
          /* level out previous filters and effects */
-         _aaxRingBufferEffectReflections(rbd, d1, sbuf, sbuf2,
-                                         0, dmax, ds, track, reverb);
-         _aaxRingBufferEffectReverb(rbd, d1, 0, dmax, ds, track, reverb);
+         _aaxRingBufferEffectReflections(rbd, tracks[track],
+                                         scratch[0], scratch[1], 
+                                         0, no_samples, ds, track, reverb);
+         _aaxRingBufferEffectReverb(rbd, tracks[track], 0, no_samples,
+                                    ds, track, reverb);
       }
 
-      if (ptr && parametric)
+      if (parametric)
       {
          _aaxRingBufferFreqFilterData* filter;
-         MIX_T *d2 = (MIX_T*)p;
-         MIX_T *d3 = d2 + dmax;
 
-         _aax_memcpy(d3, d1, track_len_bytes);
+         _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         _aaxRingBufferFilterFrequency(rbd, d1, d3, 0, dmax, 0, track, filter, 0);
+         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
+                                       0, no_samples, 0, track, filter, 0);
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         _aaxRingBufferFilterFrequency(rbd, d2, d3, 0, dmax, 0, track, filter, 0);
+         _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
+                                       0, no_samples, 0, track, filter, 0);
+         rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
       }
-      else if (ptr && graphic)
+      else if (graphic)
       {
-         unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
-         MIX_T *d2 = (MIX_T*)p;
-         MIX_T *d3 = d2 + dmax;
          int b = 6;
 
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         filter = &eq->band[b--];
-         _aax_memcpy(d3, d1, track_len_bytes);
-         _aaxRingBufferFilterFrequency(rbd, d1, d3,  0, dmax, 0, track, filter, 0);
+         filter = &eq->band[b];
+         _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
+         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
+                                       0, no_samples, 0, track, filter, 0);
          do
          {
-            filter = &eq->band[b--];
+            filter = &eq->band[--b];
             if (filter->lf_gain || filter->hf_gain)
             {
-               _aaxRingBufferFilterFrequency(rbd, d2, d3, 0, dmax, 0, track, filter, 0);
-               rbd->add(d1, d2, no_samples, 1.0f, 0.0f);
+               _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
+                                            0, no_samples, 0, track, filter, 0);
+               rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
 
-            filter = &eq->band[b--];
+            filter = &eq->band[--b];
             if (filter->lf_gain || filter->hf_gain) 
             {
-               _aaxRingBufferFilterFrequency(rbd, d2, d3, 0, dmax, 0, track, filter, 0);
-               rbd->add(d1, d2, no_samples, 1.0f, 0.0f);
+               _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
+                                            0, no_samples, 0, track, filter, 0);
+               rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
 
-            filter = &eq->band[b--];
+            filter = &eq->band[--b];
             if (filter->lf_gain || filter->hf_gain) 
             {
-               _aaxRingBufferFilterFrequency(rbd, d2, d3, 0, dmax, 0, track, filter, 0);
-               rbd->add(d1, d2, no_samples, 1.0f, 0.0f);
+               _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
+                                            0, no_samples, 0, track, filter, 0);
+               rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
          }
-         while (b > 0);
+         while (b);
       }
    }
-   free(ptr);
 
    rb->compress(rb, RB_COMPRESS_ELECTRONIC);
 }
