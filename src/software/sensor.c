@@ -216,24 +216,31 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       sbuf = (void**)drb->get_tracks_ptr(drb, RB_WRITE);
       res = be->capture(be_handle, sbuf, 0, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
+      drb->release_tracks_ptr(drb);	// convert to mixer format
+
       if (res && nframes)
       {
+         _aaxRingBufferData *nrbi, *drbi = drb->handle;
+         _aaxRingBufferSample *nrbd, *drbd = drbi->sample;
          float avg, agc, rms_rr, max, maxrms, peak, maxpeak;
          unsigned int track, tracks;
-         int32_t **ntptr, **otptr;
+         MIX_T **ntptr, **otptr;
          _aaxRingBuffer *nrb;
          double rms;
 
          nrb = drb->duplicate(drb, AAX_FALSE, AAX_FALSE);
          assert(nrb != 0);
 
-         otptr = (int32_t **)sbuf;
+         nrbi = nrb->handle;
+         nrbd = nrbi->sample;
+
+         otptr = (MIX_T **)sbuf;
          rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);		// 300 ms RMS average
          maxrms = maxpeak = 0;
          tracks = drb->get_parami(drb, RB_NO_TRACKS);
          for (track=0; track<tracks; track++)
          {
-            int32_t *optr = otptr[track];
+            MIX_T *optr = otptr[track];
 
             if (frames != nframes)
             {
@@ -258,7 +265,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
 
             /* stereo downmix requested, add the tracks to track0 */
             if ((dest_track == AAX_TRACK_MIX) && track) {
-               _batch_imadd(otptr[0], optr, frames, 1.0f, 0.0f);
+               drbd->add(otptr[0], optr, frames, 1.0f, 0.0f);
             }
          }
 
@@ -266,20 +273,20 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          if ((dest_track == AAX_TRACK_MIX) && tracks)
          {
             float fact = 1.0f/tracks;
-            _batch_imul_value(otptr[0], sizeof(int32_t), frames, fact);
+            drbd->multiply(otptr[0], sizeof(MIX_T), frames, fact);
             dest_track = 0;
          }
 
-         ntptr = (int32_t **)nrb->get_tracks_ptr(nrb, RB_WRITE);
+         ntptr = (MIX_T**)nrbd->track;
          for (track=0; track<tracks; track++)
          {
-            int32_t *ptr = ntptr[track];
-            int32_t *optr = otptr[track];
+            MIX_T *ptr = ntptr[track];
+            MIX_T *optr = otptr[track];
             unsigned int j;
 
             /* single channel requested, copy to the other channels */
             if ((dest_track != AAX_TRACK_ALL) && (track != dest_track)) {
-               _aax_memcpy(optr, otptr[dest_track], frames*sizeof(int32_t));
+               _aax_memcpy(optr, otptr[dest_track], frames*sizeof(MIX_T));
             }
 
             /* copy the delay effects buffer */
@@ -308,7 +315,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             nrb->set_paramf(nrb, RB_AVERAGE_VALUE+track, avg);
             nrb->set_paramf(nrb, RB_PEAK_VALUE+track, peak);
          }
-         nrb->release_tracks_ptr(nrb);
 
          nrb->set_paramf(nrb, RB_AVERAGE_VALUE_MAX, maxrms);
          nrb->set_paramf(nrb, RB_PEAK_VALUE_MAX, maxpeak);
@@ -332,7 +338,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       else {
          drb->set_state(drb, RB_CLEARED);
       }
-      drb->release_tracks_ptr(drb);
 
       if (res <= 0) *delay = 0.0f;
    }

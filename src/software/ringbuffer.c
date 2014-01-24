@@ -378,6 +378,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       drbd = drbi->sample;
 
       _aax_memcpy(drbi, srbi, sizeof(_aaxRingBufferData));
+      drbi->access = RB_NONE;
       drbi->sample = drbd;
 #ifndef NDEBUG
       drbi->parent = drb;
@@ -454,7 +455,6 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
             _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
          }
       }
-
 #endif
       rv  = (int32_t**)rbd->track;
    }
