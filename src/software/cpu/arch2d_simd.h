@@ -155,6 +155,7 @@ void _batch_imul_value_sse3(void*, unsigned, unsigned int, float);
 void _batch_fmul_value_sse3(void*, unsigned, unsigned int, float);
 void _aaxBufResampleLinear_sse3(int32_ptr, const_int32_ptr, unsigned int, unsigned int, unsigned int, float, float);
 void _batch_resample_sse3(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
+void _batch_resample_float_sse3(float32_ptr, const_float32_ptr, unsigned int, unsigned int, float, float);
 
 /* AVX */
 void _batch_resample_avx(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
