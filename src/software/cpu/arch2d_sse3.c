@@ -146,8 +146,7 @@ _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
    xsmu = _mm_set_ps(smu*smu*smu, smu*smu, smu, 1.0f);
 
    a0123 = _mm_hadd_ps(xtmp, xtmp1);
-   y0123 = _mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(y0123),
-                                                    sizeof(float)));
+   y0123 = _mm_shuffle_ps(y0123, y0123, _MM_SHUFFLE(2, 1, 0, 0));
    i = dmax-dmin;
    if (i)
    {
@@ -185,8 +184,7 @@ _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
             xsmu = _mm_set_ps(smu*smu2, smu2, smu, 1.0f);
 
             a0123 = _mm_hadd_ps(xtmp1, xtmp2);
-            y0123 = _mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(y0123),
-                                                    sizeof(float)));
+            y0123 = _mm_shuffle_ps(y0123, y0123, _MM_SHUFFLE(2, 1, 0, 3));
          }
 
          xsmu = _mm_set_ps(smu*smu2, smu2, smu, 1.0f);
