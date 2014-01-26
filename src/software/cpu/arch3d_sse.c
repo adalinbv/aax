@@ -20,19 +20,19 @@
 #ifdef __SSE__
 
 #if 0
-// Doesn't work properly!
+// http://fastcpp.blogspot.nl/2011/04/vector-cross-product-using-sse-code.html
 FN_PREALIGN void 
 _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
 {
-   __m128 xmm1 = _mm_set_ps(v1[0], v1[1], v1[2], 0);
-   __m128 xmm2 = _mm_set_ps(v2[0], v2[1], v2[2], 0);
-   __m128 xmm5 = _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 0, 2, 1));
-   __m128 xmm0 = _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 1, 0, 2));
-   __m128 xmm4 = _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 1, 0, 2));
-   __m128 xmm3 = _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1));
+   __m128 xmm1 = _mm_setr_ps(v1[0], v1[1], v1[2], 0);
+   __m128 xmm2 = _mm_setr_ps(v2[0], v2[1], v2[2], 0);
+   __m128 result = _mm_sub_ps(
+         _mm_mul_ps(xmm2, _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 0, 2, 1))),
+         _mm_mul_ps(xmm1, _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1)))
+      );
    vec4_t r;
 
-   _mm_store_ps(r, _mm_sub_ps(_mm_mul_ps(xmm5, xmm0), _mm_mul_ps(xmm4, xmm3)));
+   _mm_store_ps(r, _mm_shuffle_ps(result, result, _MM_SHUFFLE(3, 0, 2, 1 )));
    _aax_memcpy(d, r, 3*sizeof(float));
 }
 #else
