@@ -280,7 +280,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 
 #if RB_FLOAT_DATA
                if (drbd->mixer) {
-                  _batch_cvtps24_24(scratch0, scratch0, dno_samples);
+                  _batch_cvtps24_24(scratch0, scratch0, cno_samples+cdesamps);
                }
 #endif
 
@@ -320,7 +320,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 
 #if RB_FLOAT_DATA
                if (drbd->mixer) {
-                  _batch_cvtps24_24(scratch0, scratch0, dno_samples);
+                  _batch_cvtps24_24(scratch0, scratch0, cno_samples+cdesamps);
                }
 #endif
 
