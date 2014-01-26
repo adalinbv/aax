@@ -1330,7 +1330,7 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
    }
 }
 
-static void
+void
 _aaxBufResampleSkip_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
@@ -1372,7 +1372,7 @@ _aaxBufResampleSkip_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int 
    }
 }
 
-static void
+void
 _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
@@ -1412,7 +1412,7 @@ _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, unsigned i
    }
 }
 
-static void
+void
 _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
@@ -1451,7 +1451,7 @@ _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, unsigned in
    }
 }
 
-static void
+void
 _aaxBufResampleCubic_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
