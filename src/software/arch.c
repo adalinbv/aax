@@ -13,11 +13,14 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>	/* fopen, fclose */
 #if HAVE_UNISTD_H
 # include <unistd.h>    /* sysconf */
 #endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
+#else
+# include <string.h>	/* strstr, strchr */
 #endif
 #if defined(__MINGW32__)
 # include <mm_malloc.h>
@@ -81,7 +84,8 @@ enum {
     AAX_NEON
 };
 
-#define MAX_SSE_LEVEL	10	
+#define MAX_SSE_LEVEL		10
+#define MAX_CPUINFO		1024
 #define DMAc			0x444d4163 
 #define htuA			0x68747541
 #define itne			0x69746e65
@@ -182,6 +186,40 @@ _aaxDetectNeon()
                && (features & ANDROID_CPU_ARM_FEATURE_NEON) )
          {
             res = 1;
+         }
+      }
+
+#elif defined(__linux__)
+// Reading /proc/self/auxv doesn't work reliably on Android.
+// cat /proc/cpuinfo | grep "^Features"
+// Features        : swp half thumb fastmult vfp edsp thumbee neon vfpv3 tls
+      FILE *fp = fopen("/proc/cpuinfo", "r");
+      if (fp)
+      {
+         char cpuinfo[MAX_CPUINFO];
+         int rv;
+
+         memset(cpuinfo, 0, MAX_CPUINFO); 
+         rv = fread(cpuinfo, 1, MAX_CPUINFO, fp);
+         fclose(fp);
+
+         if (rv > 0 && rv < MAX_CPUINFO)
+         {
+            char *features, *ptr;
+
+            cpuinfo[MAX_CPUINFO-1] = '\0';
+            features = strstr(cpuinfo, "Features");
+            if (features)
+            {
+               ptr = strchr(features, '\n');
+               if (ptr) *ptr = '\0';
+
+               ptr = strstr(features, " neon");
+               if (ptr && (*(ptr+5) == ' ' || *(ptr+5) == '\0'))
+               {
+                  res = 1;
+               }
+            }
          }
       }
 #endif
