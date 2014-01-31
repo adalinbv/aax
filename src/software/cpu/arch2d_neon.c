@@ -20,6 +20,21 @@
 
 #include "arch_simd.h"
 
+/*
+ * http://gcc.gnu.org/projects/prefetch.html
+ *
+ * ARMv7 has (from ARM Architecture Reference Manual):
+ *  PLD data preload with intent to read
+ *  PLDW data preload with intent to write
+ *  PLI instruction preload
+ *
+ * ARMv8 AArch64 has a PRFM instruction with the following hints
+ * (from LLVM and binutils code):
+ *  PLD (data load), PLI (instruction), PST (data store)
+ *  Level l1, l2, l3
+ *  KEEP (retained), STRM (streaming)
+ */
+
 void
 _batch_fmadd_neon(int32_ptr d, const_int32_ptr src, unsigned int num, float f, float fstep)
 {
