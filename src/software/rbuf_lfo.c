@@ -14,7 +14,7 @@
 #endif
 
 #include <ringbuffer.h>
-
+#include "rbuf_int.h"
 
 /*
  * Low Frequency Oscilator funtions
@@ -166,7 +166,7 @@ _aaxRingBufferLFOGetGainFollow(void* data, const void *ptr, unsigned track, unsi
       /* In stereo-link mode the left track (0) provides the data */
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         int32_t *sptr = (int32_t *)ptr;
+         MIX_T *sptr = (MIX_T *)ptr;
          unsigned int i = num;
          float lvl, fact;
          double rms, val;
@@ -213,7 +213,7 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
       gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         int32_t *sptr = (int32_t *)ptr;
+         MIX_T *sptr = (MIX_T *)ptr;
          float lvl, fact = 1.0f;
          unsigned int i = num;
          double rms, val;
