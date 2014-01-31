@@ -180,12 +180,12 @@ _batch_cvt24_ps24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvtps24_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
+_batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 {
    if (num)
    {
+      float* d = (float*)dptr;
       int32_t* s = (int32_t*)sptr;
-      float* d = (float*)dst;
       unsigned int i = num;
 
       do {

@@ -326,7 +326,6 @@ void
 _batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
-
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_float_sse3(d, s, dmin, dmax, 0, smu, fact);
    }

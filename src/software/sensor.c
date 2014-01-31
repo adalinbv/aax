@@ -87,7 +87,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 
          if (device->ringbuffer)
          {
-            _aaxRingBuffer *srb = device->ringbuffer;
+            _aaxRingBuffer *drb = device->ringbuffer;
             _aaxRingBuffer *rb = rv;
             int track, tracks;
 
@@ -95,10 +95,10 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
             for (track=0; track<tracks; track++)
             {
                float f = rb->get_paramf(rb, RB_AVERAGE_VALUE+track);
-               srb->set_paramf(srb, RB_AVERAGE_VALUE+track, f);
+               drb->set_paramf(drb, RB_AVERAGE_VALUE+track, f);
 
                f = rb->get_paramf(rb, RB_PEAK_VALUE+track);
-               srb->set_paramf(srb, RB_PEAK_VALUE+track, f);
+               drb->set_paramf(drb, RB_PEAK_VALUE+track, f);
             }
          }
 
@@ -153,6 +153,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                   {
                      _aaxRingBuffer *rb = _intBufGetDataPtr(rbuf);
 
+                     // TODO: store in a reasuable ringbuffer queue
                      be->destroy_ringbuffer(rb);
                      _intBufDestroyDataNoLock(rbuf);
                   }
