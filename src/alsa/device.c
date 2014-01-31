@@ -277,7 +277,7 @@ static int _alsa_pcm_open(_driver_t*, int);
 static int _alsa_pcm_close(_driver_t*);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
-static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, int, snd_pcm_sframes_t, unsigned int, float);
+static void _alsa_set_volume(_driver_t*, int32_t**, int, snd_pcm_sframes_t, unsigned int, float);
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
 static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
@@ -1213,14 +1213,7 @@ if (corr)
       if (!chunk) _AAX_DRVLOG("alsa; too many capture tries\n");
       *req_frames = offs;
 
-      gain = _alsa_set_volume(handle, NULL, init_offs, offs, tracks, gain);
-      if (gain > 0)
-      {
-         unsigned int i;
-         for (i=0; i<tracks; i++) {
-            _batch_imul_value(sbuf[i]+init_offs, sizeof(int32_t), offs, gain);
-         }
-      }
+      _alsa_set_volume(handle, NULL, init_offs, offs, tracks, gain);
    }
    else rv = AAX_TRUE;
 
@@ -2123,12 +2116,11 @@ _alsa_get_volume_range(_driver_t *handle)
    return rv;
 }
 
-static float
-_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
+static void
+_alsa_set_volume(_driver_t *handle, int32_t **sbuf, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
-   float rv = 0;
 
    if (handle && handle->mixer && !handle->shared && handle->volumeMax)
    {
@@ -2220,15 +2212,16 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, int offset, snd_pcm_sfra
 
       if (hwgain) gain /= hwgain;
       else gain = 0.0f;
-      rv = gain;
    }
 
-   /* software volume fallback */
-   if (rb && fabsf(gain - 1.0f) > 0.05f) {
-      rb->data_multiply(rb, offset, no_frames, gain);
+   /* software volume fallback, always uses int32_t** */
+   if (sbuf && fabsf(gain - 1.0f) > 0.05f)
+   {
+      unsigned int i;
+      for (i=0; i<no_tracks; i++) {
+         _batch_imul_value(sbuf[i]+offset, sizeof(int32_t), no_frames, gain);
+      }
    }
-
-   return rv;
 }
 
 static int
@@ -2285,7 +2278,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   const int32_t **sbuf;
+   int32_t **sbuf;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2297,8 +2290,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
-
-   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    state = psnd_pcm_state(handle->pcm);
    if (state != SND_PCM_STATE_RUNNING)
@@ -2334,7 +2325,8 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    else avail = no_frames;
 
    chunk = 10;
-   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
+   sbuf = (int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
+   _alsa_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
    do
    {
       const snd_pcm_channel_area_t *area;
@@ -2391,7 +2383,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   const int32_t **sbuf;
+   int32_t **sbuf;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2402,8 +2394,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
-
-   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    state = psnd_pcm_state(handle->pcm);
    if (state != SND_PCM_STATE_RUNNING)
@@ -2439,7 +2429,8 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    else avail = no_frames;
 
    chunk = 10;
-   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
+   sbuf = (int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
+   _alsa_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
    do
    {
       const snd_pcm_channel_area_t *area;
@@ -2462,7 +2453,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       }
 
       p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
-      handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
+      handle->cvt_to_intl(p, (const int32_t**)sbuf, offs, no_tracks, frames);
 
       res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
       if (res < 0 || (snd_pcm_uframes_t)res != frames)
@@ -2490,7 +2481,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
    unsigned int no_samples, no_tracks, chunk;
    unsigned int offs, t, hw_bps;
-   const int32_t **sbuf;
+   int32_t **sbuf;
    char **data;
    int err;
 
@@ -2505,8 +2496,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
-
-   _alsa_set_volume(handle, rbs, offs, no_samples, no_tracks, gain);
 
    if (handle->ptr == 0)
    {
@@ -2541,7 +2530,8 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    assert(no_samples*hw_bps <= handle->buf_len);
 
    data = handle->scratch;
-   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
+   sbuf = (int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
    for (t=0; t<no_tracks; t++)
    {
       data[t] = handle->ptr[t];
@@ -2591,7 +2581,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
    unsigned int no_samples, no_tracks, offs, hw_bps;
    unsigned int outbuf_size, chunk;
-   const int32_t **sbuf;
+   int32_t **sbuf;
    char *data;
    int err;
     
@@ -2606,8 +2596,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
-
-   _alsa_set_volume(handle, rbs, offs, no_samples, no_tracks, gain);
 
    outbuf_size = no_tracks * no_samples*hw_bps;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
@@ -2625,8 +2613,9 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 #endif
 
    data = (char*)handle->scratch;
-   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
-   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
+   sbuf = (int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
+   handle->cvt_to_intl(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
    rbs->release_tracks_ptr(rbs);
 
    chunk = 10;
