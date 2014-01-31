@@ -760,16 +760,16 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
    if (frames >= no_samples)
    {
       IAudioRenderClient *pRender = handle->uType.pRender;
-      const int32_t **sbuf;
       BYTE *data = NULL;
+      int32_t **sbuf;
 
-      sbuf = (const int32_t **)rb->get_tracks_ptr(rb, RB_READ);
+      sbuf = (int32_t **)rb->get_tracks_ptr(rb, RB_READ);
       _wasapi_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
       hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
       if (hr == S_OK)
       {
-         handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
+         handle->cvt_to_intl(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
 
          hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
                                                 frames, 0);
@@ -1958,7 +1958,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
  * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
  */
 static int
-_wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_samples, unsigned int no_tracks, float volume)
+_wasapi_set_volume(_driver_t *handle, int32_t **sbuf, int offset, unsigned int no_samples, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
@@ -2008,8 +2008,7 @@ _wasapi_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
-                          no_samples, gain);
+         _batch_imul_value(sbuf[t]+offset, sizeof(int32_t), no_samples, gain);
       }
    }
 
