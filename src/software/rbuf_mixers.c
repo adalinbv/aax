@@ -273,13 +273,13 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                   sno_samples += CUBIC_SAMPS;
                }
 
-               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
+               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 
 #if RB_FLOAT_DATA
-               if (drbd->mixer) {
+               if (!srbd->mixer) {
                   _batch_cvtps24_24(scratch0, scratch0, cno_samples+cdesamps);
                }
 #endif
@@ -313,13 +313,13 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                   sno_samples += CUBIC_SAMPS;
                }
 
-               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(int32_t));
+               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 
 #if RB_FLOAT_DATA
-               if (drbd->mixer) {
+               if (!srbd->mixer) {
                   _batch_cvtps24_24(scratch0, scratch0, cno_samples+cdesamps);
                }
 #endif
