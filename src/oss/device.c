@@ -152,7 +152,7 @@ static int get_oss_version();
 static int detect_devnode(_driver_t*, char);
 static int detect_nodenum(const char *);
 static int _oss_get_volume(_driver_t *);
-static int _oss_set_volume(_driver_t*, const int32_t**, int, unsigned int, unsigned int, float);
+static void _oss_set_volume(_driver_t*, int32_t**, int, unsigned int, unsigned int, float);
 
 static const int _mode[] = { O_RDONLY, O_WRONLY };
 static const char *_const_oss_default_name = DEFAULT_DEVNAME;
@@ -515,13 +515,12 @@ _aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void
       res = read(handle->fd, scratch, buflen);
       if (res > 0)
       {
-         const int32_t **sptr = (const int32_t**)data;
          int32_t **sbuf = (int32_t**)data;
 
          res /= frame_size;
 
          _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, res);
-         _oss_set_volume(handle, sptr, offs, res, tracks, gain);
+         _oss_set_volume(handle, sbuf, offs, res, tracks, gain);
          *frames = res;
 
          rv = AAX_TRUE;
@@ -541,9 +540,9 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_tracks, no_samples;
    unsigned int offs, outbuf_size;
-   const int32_t** sbuf;
    audio_buf_info info;
    audio_errinfo err;
+   int32_t **sbuf;
    int16_t *data;
    int res;
 
@@ -586,10 +585,10 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
    data = handle->scratch;
    assert(outbuf_size <= handle->buf_len);
 
-   sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+   sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
    _oss_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
 
-   _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
+   _batch_cvt16_intl_24(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
    rb->release_tracks_ptr(rb);
 
    if (is_bigendian()) {
@@ -1006,12 +1005,11 @@ _oss_get_volume(_driver_t *handle)
    return rv;
 }
 
-static int
-_oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float volume)
+static void
+_oss_set_volume(_driver_t *handle, int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
-   int rv = 0;
 
    if (handle && HW_VOLUME_SUPPORT(handle))
    {
@@ -1041,6 +1039,7 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
       if (volume != handle->volumeCur)
       {
          int vlr = volume | (volume << 8);
+         int rv;
 
          handle->volumeCur = volume;
          if (handle->oss_version >= OSS_VERSION_4)
@@ -1074,7 +1073,6 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
       hwgain = (float)volume/handle->volumeMax;
       if (hwgain) gain /= hwgain;
       else gain = 0.0f;
-      rv = AAX_TRUE;
    }
 
    /* software volume fallback */
@@ -1086,8 +1084,6 @@ _oss_set_volume(_driver_t *handle, const int32_t **sbuf, int offset, unsigned in
                            no_frames, gain);
       }
    }
-
-   return rv;
 }
 
 
