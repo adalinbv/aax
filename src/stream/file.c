@@ -523,7 +523,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
    unsigned int no_samples, offs, outbuf_size;
    unsigned int rb_bps, file_bps, file_tracks;
-   const int32_t** sbuf;
+   int32_t** sbuf;
    char *scratch;
    int res;
 
@@ -554,14 +554,17 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 
    assert(outbuf_size <= handle->buf_len);
 
-   if (fabs(gain - 1.0f) > 0.05f) {
-       rb->data_multiply(rb, offs, no_samples, gain);
+   sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+   if (fabs(gain - 1.0f) > 0.05f)
+   {
+      int t;
+      for (t=0; t<file_tracks; t++) {
+         _batch_imul_value(sbuf[t]+offs, sizeof(int32_t), no_samples, gain);
+      }
    }
-
-   sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-   res = handle->fmt->cvt_to_intl(handle->fmt->id, handle->scratch, sbuf,
-                                  offs, file_tracks, no_samples,
-                                  scratch, handle->buf_len);
+   res = handle->fmt->cvt_to_intl(handle->fmt->id, handle->scratch,
+                                  (const int32_t**)sbuf, offs, file_tracks,
+                                  no_samples, scratch, handle->buf_len);
    rb->release_tracks_ptr(rb);
    handle->bytes_avail = res;
 
@@ -680,8 +683,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames,
          {
             int t;
             for (t=0; t<file_tracks; t++) {
-               _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
-                                 *frames, gain);
+               _batch_imul_value(sbuf[t]+offset, sizeof(int32_t), *frames, gain);
             }
          }
       }
