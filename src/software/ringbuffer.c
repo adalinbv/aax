@@ -445,7 +445,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    {
       rbi->access = mode;
 #if RB_FLOAT_DATA
-      if (rbd->mixer && rbi->access & RB_READ)
+      if (rbd->mixer && (rbi->access & RB_READ))
       {
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int track, no_tracks = rbd->no_tracks;
@@ -481,7 +481,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
 
 #if RB_FLOAT_DATA
    rbd = rbi->sample;
-   if (rbd->mixer && rbi->access & RB_WRITE)
+   if (rbd->mixer && (rbi->access & RB_WRITE))
    {
       _aaxRingBufferSample *rbd = rbi->sample;
       unsigned int track, no_tracks = rbd->no_tracks;
