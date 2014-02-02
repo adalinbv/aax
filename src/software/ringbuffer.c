@@ -445,7 +445,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    {
       rbi->access = mode;
 #if RB_FLOAT_DATA
-      if (rbd->mixer && (rbi->access & RB_READ))
+      if (rbd->mixer_fmt && (rbi->access & RB_READ))
       {
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int track, no_tracks = rbd->no_tracks;
@@ -481,7 +481,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
 
 #if RB_FLOAT_DATA
    rbd = rbi->sample;
-   if (rbd->mixer && (rbi->access & RB_WRITE))
+   if (rbd->mixer_fmt && (rbi->access & RB_WRITE))
    {
       _aaxRingBufferSample *rbd = rbi->sample;
       unsigned int track, no_tracks = rbd->no_tracks;
@@ -741,7 +741,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    switch(param)
    {
    case RB_IS_MIXER_BUFFER:
-      rbd->mixer = (val != 0) ? AAX_TRUE : AAX_FALSE;
+      rbd->mixer_fmt = (val != 0) ? AAX_TRUE : AAX_FALSE;
       break;
    case RB_BYTES_SAMPLE:
       if (rbd->track == NULL) {
@@ -978,7 +978,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = (rbi->playing == 0 && rbi->stopped == 1) ? AAX_FALSE : AAX_TRUE;
       break;
    case RB_IS_MIXER_BUFFER:
-      rv = (rbd->mixer != AAX_FALSE) ? AAX_TRUE : AAX_FALSE;
+      rv = (rbd->mixer_fmt != AAX_FALSE) ? AAX_TRUE : AAX_FALSE;
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
@@ -1020,7 +1020,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
    assert(rbi->parent == rb);
 
    rbd = rbi->sample;
-   rbd->mixer = mixer;
+   rbd->mixer_fmt = mixer;
    if (rbd->track == NULL)
    {
       rbd->format = format;

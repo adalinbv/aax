@@ -29,7 +29,11 @@ extern "C" {
 #include "objects.h"
 
 #define USE_SPATIAL_FOR_SURROUND AAX_TRUE
-#define THREADED_FRAMES		AAX_TRUE
+#ifndef NDEBUG
+# define THREADED_FRAMES		AAX_TRUE
+#else
+# define THREADED_FRAMES		AAX_FALSE
+#endif
 
 #if _WIN32
 # undef THREADED_FRAMES

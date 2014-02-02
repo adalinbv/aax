@@ -240,7 +240,7 @@ ELSE(MSVC)
                    PROPERTY COMPILE_FLAGS "-mfma4 -mfpmath=sse -march=corei7-avx"
       )
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
-      SET(C_FLAGS "${C_FLAGS} -march=i586")
+      SET(C_FLAGS "${C_FLAGS} -march=i686")
       SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
       )
