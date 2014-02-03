@@ -1049,6 +1049,7 @@ _oss_set_volume(_driver_t *handle, int32_t **sbuf, int offset, unsigned int no_f
             } else {
                rv = pioctl(handle->fd, SNDCTL_DSP_SETPLAYVOL, &vlr);
             }
+            if (rv < 0) volume = handle->volumeMax;
          }
          else
          {
