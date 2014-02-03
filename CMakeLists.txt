@@ -360,9 +360,7 @@ SET( AEONWAVE_OBJS
      src/aax_audioframe.c
      src/aax_buffer.c
      src/aax_driver.c
-     src/aax_eventmgr.c
      src/aax_filters.c
-     src/aax_instrument.c
      src/aax_matrix.c
      src/aax_mixer.c
      src/aax_scenery.c
@@ -370,6 +368,9 @@ SET( AEONWAVE_OBJS
      src/aax_support.c
      src/aax_effects.c
      src/aax_emitter.c
+     src/aax_eventmgr.c
+     src/aax_instrument.c
+     src/aax_midi.c
      src/filters/effects.c
      src/alsa/device.c
      src/dmedia/device.c
