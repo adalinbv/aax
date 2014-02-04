@@ -207,10 +207,10 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
       float gf = 1.0f;
 
       /* In stereo-link mode the left track (0) provides the data        */
-      /* If the left track nears 0.0f also calculate the orher trakcs    */
+      /* If the left track nears 0.0f also calculate the orher tracks    */
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
-      gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
+      gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          MIX_T *sptr = (MIX_T *)ptr;
@@ -218,6 +218,7 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          unsigned int i = num;
          double rms, val;
 
+//       _batch_get_average_rms(ptr, num, &rms, &peak);
          rms = 0;
          do
          {
@@ -226,14 +227,13 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
          }
          while (--i);
          rms = sqrt(rms/num);
-//       _batch_get_average_rms(ptr, num, &rms, &peak);
          lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          fact = lfo->gate_period;
          olvl = lfo->value[track];
          oavg = lfo->average[track];
          lfo->average[track] = (fact*oavg + (1.0f-fact)*lvl);
-         gf = _MIN(pow(oavg/lfo->gate_threshold, 10.0f), 1.0f);
+         gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
 
          fact = (lvl > olvl) ? lfo->step[track] : lfo->down[track];
          lfo->value[track] = gf*_MINMAX(olvl + fact*(lvl - olvl), 0.0f, 1.0f);

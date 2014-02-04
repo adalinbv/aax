@@ -145,7 +145,7 @@ static float _sin_sample(float *s, float g)
 static float _powsin_sample(float *s, float g)
 {
    *s = fmodf(*s, GMATH_2PI);
-   return floor(pow(fast_sin(*s), 143.0f) * g);
+   return floor(powf(fast_sin(*s), 143.0f) * g);
 }
 #endif
 
