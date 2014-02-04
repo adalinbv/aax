@@ -13,10 +13,12 @@
 #include "config.h"
 #endif
 
+#include <base/types.h>
+
 /* -------------------------------------------------------------------------- */
 
 struct _midi_note_t {
-   uint32_t note;	// node code in hex
+   int32_t note;	// node code in hex
    float freq;		// frequency in Hz
    char code_us[5];	// American notation
    char code_de[4];	// German notation

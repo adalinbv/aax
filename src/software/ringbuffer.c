@@ -1236,9 +1236,9 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb
 }
 
 void
-_aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
+_aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
 {
-   static const float _val[RB_COMPRESS_MAX][2] = 
+   static const float _val[RB_LIMITER_MAX][2] = 
    {
       { 0.5f, 0.0f },		// Electronic
       { 0.9f, 0.0f }, 		// Digital
@@ -1263,7 +1263,7 @@ _aaxRingBufferDataCompress(_aaxRingBuffer *rb, enum _aaxCompressionType type)
    {
       rms = 0;
       peak = no_samples;
-      _aaxRingBufferCompress(tracks[track], &rms, &peak, _val[type][0], _val[type][1]); 
+      _aaxRingBufferLimiter(tracks[track], &rms, &peak, _val[type][0], _val[type][1]); 
 
       avg = rbi->average[track];
       avg = (rms_rr*avg + (1.0f-rms_rr)*rms);
@@ -1345,7 +1345,7 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->data_mix_waveform = _aaxRingBufferDataMixWaveform;
    rb->data_mix_noise = _aaxRingBufferDataMixNoise;
    rb->data_mix = _aaxRingBufferDataMixData;
-   rb->compress = _aaxRingBufferDataCompress;
+   rb->limit = _aaxRingBufferDataLimiter;
 
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
    rb->copy_effectsdata = _aaxRingBufferCopyDelyEffectsData;

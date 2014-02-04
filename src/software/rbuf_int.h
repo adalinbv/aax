@@ -200,7 +200,7 @@ _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Spatial;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Surround;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16HRTF;
 
-void _aaxRingBufferCompress(MIX_PTR_T, unsigned int*, unsigned int*, float, float);
+void _aaxRingBufferLimiter(MIX_PTR_T, unsigned int*, unsigned int*, float, float);
 
 
 /** BUFFER */

@@ -395,8 +395,8 @@ SET( AEONWAVE_OBJS
      src/software/rbuf3d_mixsingle.c
      src/software/cpu/waveforms.c
      src/software/cpu/rbuf_effects.c
-     src/software/cpu/rbuf_compressor.c
-     src/software/cpu/rbuf_compressor_tables.c
+     src/software/cpu/rbuf_limiter.c
+     src/software/cpu/rbuf_limiter_tables.c
      src/software/cpu/rbuf_mixmulti.c
      src/software/cpu/rbuf_mixsingle.c
      src/software/cpu/arch3d_neon.c

@@ -37,7 +37,7 @@
 
 #include "software/rbuf_int.h"
 
-extern const float _compress_tbl[2][2048];
+extern const float _limiter_tbl[2][2048];
 
 #define BITS		11
 #define SHIFT		(31-BITS)
@@ -45,7 +45,7 @@ extern const float _compress_tbl[2][2048];
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 #if 1
 void
-_aaxRingBufferCompress(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
+_aaxRingBufferLimiter(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
 {
    static const float df = (float)(int32_t)0x7FFFFFFF;
    static const float rf = 1.0f/(65536.0f*12.0f);
@@ -81,11 +81,11 @@ _aaxRingBufferCompress(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, floa
       pos = (unsigned int)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
       osamp = samp;
 
-      fact1 = (1.0f-sdf)*_compress_tbl[0][pos-1];
-      fact1 += sdf*_compress_tbl[0][pos];
+      fact1 = (1.0f-sdf)*_limiter_tbl[0][pos-1];
+      fact1 += sdf*_limiter_tbl[0][pos];
 
-      fact2 = (1.0f-sdf)*_compress_tbl[1][pos-1];
-      fact2 += sdf*_compress_tbl[1][pos];
+      fact2 = (1.0f-sdf)*_limiter_tbl[1][pos-1];
+      fact2 += sdf*_limiter_tbl[1][pos];
 
       *ptr++ = (MIX_T)((imix*fact1 + mix*fact2)*samp);
    }
@@ -98,7 +98,7 @@ _aaxRingBufferCompress(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, floa
 #else
 /* arctan */
 void
-bufCompress(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
+bufLimiter(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
 {
    static const float df = 1.0f/2147483648.0f;
    int32_t *ptr = (int32_t*)d;

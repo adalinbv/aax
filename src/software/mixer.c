@@ -155,7 +155,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    }
 
    if (reverb) {
-      rb->compress(rb, RB_COMPRESS_ELECTRONIC);
+      rb->limit(rb, RB_LIMITER_ELECTRONIC);
    }
 
    /* set up this way because we always need to apply compression */
@@ -234,7 +234,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       }
    }
 
-   rb->compress(rb, RB_COMPRESS_ELECTRONIC);
+   rb->limit(rb, RB_LIMITER_ELECTRONIC);
 }
 
 void*

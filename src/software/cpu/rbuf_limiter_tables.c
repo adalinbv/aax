@@ -13,7 +13,7 @@
 // MAXBITS24:   0x007FFFFF
 // SHIFTBITS:   20
 // DIFFBITS:    3
-const float _compress_tbl[2][2048] = {
+const float _limiter_tbl[2][2048] = {
  {
    0.5000000f, 0.5000000f, 0.5000000f, 0.5000000f, 0.5000000f, 0.4690476f, 
    0.4282594f, 0.3949261f, 0.3670808f, 0.3434072f, 0.3229882f, 0.3051635f, 

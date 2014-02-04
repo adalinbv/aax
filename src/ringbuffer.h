@@ -527,13 +527,13 @@ typedef int
 _aaxRingBufferDataMixNoiseFn(_aaxRingBuffer*, enum aaxWaveformType, float, float, float, char);
 
 /**
- * Compress the audio data in the ringbuffer
+ * Limit the audio data in the ringbuffer
  *
- * @param rb ringbuffer to compress
- * @param type type of compression to use
+ * @param rb ringbuffer to limit
+ * @param type type of limiter/compressor to use
  */
 typedef void
-_aaxRingBufferDataCompressFn(_aaxRingBuffer*, enum _aaxCompressionType);
+_aaxRingBufferDataLimiterFn(_aaxRingBuffer*, enum _aaxLimiterType);
 
 
 
@@ -568,7 +568,7 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDataMixWaveformFn *data_mix_waveform;
    _aaxRingBufferDataMixNoiseFn *data_mix_noise;
    _aaxRingBufferDataMultiplyFn *data_multiply;
-   _aaxRingBufferDataCompressFn *compress;
+   _aaxRingBufferDataLimiterFn *limit;
 
 // private:	/* TODO: Get rid of these */
    _aaxRingBufferGetScratchBufferPtrFn *get_scratch;

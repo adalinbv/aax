@@ -357,7 +357,7 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
          {
             unsigned int average = 0;
             unsigned int peak = no_samples;
-            _aaxRingBufferCompress(dptr, &average, &peak, clip, 4*asym);
+            _aaxRingBufferLimiter(dptr, &average, &peak, clip, 4*asym);
          }
 
          /* mix with the dry signal */

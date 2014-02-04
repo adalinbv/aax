@@ -68,13 +68,13 @@ enum _aax2dFiltersEffects
     MAX_STEREO_EFFECT,
 };
 
-enum _aaxCompressionType
+enum _aaxLimiterType
 {
-    RB_COMPRESS_ELECTRONIC = 0,
-    RB_COMPRESS_DIGITAL,
-    RB_COMPRESS_VALVE,
+    RB_LIMITER_ELECTRONIC = 0,
+    RB_LIMITER_DIGITAL,
+    RB_LIMITER_VALVE,
 
-    RB_COMPRESS_MAX
+    RB_LIMITER_MAX
 };
 
 typedef struct
