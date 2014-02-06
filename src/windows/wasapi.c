@@ -602,10 +602,11 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 }
 
 static int
-_aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+_aaxWASAPIDriverCapture(const void *id, void **data, int *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int no_samples;
+   int offs = *offset;
    int rv = AAX_FALSE;
 
    if (!handle || !handle->scratch_ptr || !req_frames || !data) {
@@ -651,6 +652,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int offs, size_t *req_frame
       corr = _MINMAX(roundf(handle->padding), -1, 1);
       fetch += corr;
       offs -= corr;
+      *offset = -corr;
 
       if (!handle->cthread) { 		/* fetch any new data packates */
          _aaxWASAPIDriverCaptureFromHardware(handle);

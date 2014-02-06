@@ -32,13 +32,6 @@
 #include "cpu/arch2d_simd.h"
 
 
-/*
- * Note: The NDEBUG tests in this file may fail for registered sensors but will
- *       work in release mode
- */
-#define NDEBUG 1
-
-
 /**
  * returns a buffer containing pointers to the playback position, but reserves
  * room prior to the playback position for delay effects (a maximum of
@@ -237,9 +230,19 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          ddesamps = (unsigned int)ceilf(DELAY_EFFECTS_TIME*dfreq);
       }
 
+#ifdef NDEBUG
+#if 0
+      if (srbd->mixer_fmt && (fact > 0.99f && fact < 1.01f) &&
+          !freq_filter && !delay_effect && !dist_state)
+      {
+            track_ptr = (MIX_T**)srbd->track;
+      }
+      else
+#endif
+#endif
       if (track_ptr)
       {
-         unsigned int cdesamps, cno_samples;
+         unsigned int cno_samples, cdesamps = 0;
          unsigned int track, smin, src_pos;
          float ftmp, smu;
 
@@ -273,23 +276,30 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                   sno_samples += CUBIC_SAMPS;
                }
 
-               if (srbd->mixer_fmt) {
-                  scratch0 = (MIX_T*)sptr;
-               }
-               else
+               if (!srbd->mixer_fmt)
                {
+                  DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
                   srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
                                    sstart, sno_samples, cdesamps, cno_samples,
                                    sbps, src_loops);
 #if RB_FLOAT_DATA
                   _batch_cvtps24_24(scratch0, scratch0, cno_samples+cdesamps);
 #endif
+               } else {
+                  scratch0 = (MIX_T*)sptr;
                }
+#if RB_FLOAT_DATA
+               DBG_TESTNAN(scratch0, cno_samples);
+               DBG_TESTNAN(scratch0-cdesamps-offs, cno_samples+cdesamps);
+#endif
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                drbd->resample(dptr-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
+#if RB_FLOAT_DATA
+               DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
+#endif
             }
          }
          else
@@ -315,29 +325,35 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                   sno_samples += CUBIC_SAMPS;
                }
 
-               DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               if (srbd->mixer_fmt) {
-                  scratch0 = (MIX_T*)sptr;
-               }
-               else
+               if (!srbd->mixer_fmt)
                {
+                  DBG_MEMCLR(1, scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
                   srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
                                    sstart, sno_samples, cdesamps, cno_samples,
                                    sbps, src_loops);
 #if RB_FLOAT_DATA
                   _batch_cvtps24_24(scratch0, scratch0, cno_samples+cdesamps);
+                  DBG_TESTNAN(scratch0, cno_samples+cdesamps);
 #endif
+               } else {
+                  scratch0 = (MIX_T*)sptr;
                }
 
                DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(MIX_T));
                drbd->resample(scratch1-ddesamps, scratch0-cdesamps-offs,
                                    dest_pos, dest_pos+dno_samples+ddesamps,
                                    smu, fact);
+#if RB_FLOAT_DATA
+               DBG_TESTNAN(scratch1-ddesamps+dest_pos, dno_samples+ddesamps);
+#endif
 
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->effects(srbi->sample, dptr, scratch1, scratch0,
                              dest_pos, dend, dno_samples, ddesamps, track, ctr,
                              freq_filter, delay_effect, distortion_effect);
+#if RB_FLOAT_DATA
+               DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
+#endif
             }
          }
       }

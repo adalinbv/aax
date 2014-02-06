@@ -492,13 +492,15 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 
 
 static int
-_aaxOSSDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxOSSDriverCapture(const void *id, void **data, int *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
+   int offs = *offset;
    int rv = AAX_FALSE;
  
    assert(handle->mode == O_RDONLY);
 
+   *offset = 0;
    if ((frames == 0) || (data == 0))
       return rv;
 

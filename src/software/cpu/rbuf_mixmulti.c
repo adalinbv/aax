@@ -48,6 +48,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
          unsigned int rbs_track = track % rbs_tracks;
          float gain;
 
+         DBG_TESTNAN(sptr[rbs_track]+offs, dno_samples);
          gain = 1.0f - lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
          if (lfo->inv) g = 1.0f/gain;
          g += gain;

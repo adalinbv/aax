@@ -1011,7 +1011,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 #undef TRUN
 
 static int
-_aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+_aaxALSADriverCapture(const void *id, void **data, int *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int tracks, no_frames;
@@ -1019,6 +1019,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    int res, rv = AAX_FALSE;
+   int offs = *offset;
    int init_offs = offs;
 
    if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
@@ -1084,6 +1085,7 @@ _aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames,
       corr = _MINMAX(roundf(handle->padding), -1, 1);
       fetch += corr;
       offs -= corr;
+      *offset = -corr;
 #if 0
 if (corr)
  printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);

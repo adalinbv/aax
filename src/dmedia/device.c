@@ -644,12 +644,14 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
 }
 
 static int
-_aaxDMediaDriverCapture(const void *id, void **data, int offs, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxDMediaDriverCapture(const void *id, void **data, int *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int nframes = *frames;
+   int offs = *offset;
    int tracks;
 
+   *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
      return AAX_FALSE;
    }

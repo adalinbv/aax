@@ -575,13 +575,15 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 }
 
 static int
-_aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxFileDriverCapture(const void *id, void **tracks, int *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
+   int offs = *offset;
    int bytes = 0;
 
    assert(*frames);
 
+   *offset = 0;
    if (frames && tracks)
    {
       int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
@@ -590,7 +592,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames,
       unsigned int frame_bits = file_tracks*file_bits;
       int32_t **sbuf = (int32_t**)tracks;
       unsigned int no_samples, bufsize;
-      int res, samples, offs = offset;
+      int res, samples;
       void *data;
 
       no_samples = *frames;
@@ -683,7 +685,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int offset, size_t *frames,
          {
             int t;
             for (t=0; t<file_tracks; t++) {
-               _batch_imul_value(sbuf[t]+offset, sizeof(int32_t), *frames, gain);
+               _batch_imul_value(sbuf[t] + *offset, sizeof(int32_t), *frames, gain);
             }
          }
       }

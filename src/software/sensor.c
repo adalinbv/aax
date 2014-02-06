@@ -19,6 +19,7 @@
 #include <arch.h>
 #include <ringbuffer.h>
 
+#include "cpu/arch2d_simd.h"
 #include "rbuf_int.h"
 #include "audio.h"
 
@@ -199,12 +200,13 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
    scratch = (int32_t**)drb->get_scratch(drb);
    if (scratch)
    {
+      unsigned int track, no_tracks = drb->get_parami(drb, RB_NO_TRACKS);
       unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
       unsigned int ds = drb->get_parami(drb, RB_DDE_SAMPLES);
       float dt = GMATH_E1 * *delay;
       size_t frames, nframes;
+      int res, offs;
       void **sbuf;
-      int res;
 
       if (agc_rr > 0.0f)
       {
@@ -212,19 +214,33 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          gain *= -drb->get_paramf(drb, RB_AGC_VALUE);
       }
 
+      offs = 0;
       nframes = frames = drb->get_parami(drb, RB_NO_SAMPLES);
 
       sbuf = (void**)drb->get_tracks_ptr(drb, RB_WRITE);
-      res = be->capture(be_handle, sbuf, 0, &nframes,
+      res = be->capture(be_handle, sbuf, &offs, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
       drb->release_tracks_ptr(drb);	// convert to mixer format
+
+      // be->capture can capture one extra sample to keep synchronised with
+      // the capture buffer but it is in int32_t format while the mixer format
+      // might be float. By setting those possible extra samples to zero here
+      // we prevent reinterpreting an int32_t as a float which may cause a NaN.
+      if (offs < 0)
+      {
+         assert (offs == -1);
+         for (track=0; track<no_tracks; track++)
+         {
+            MIX_T *ptr = (MIX_T*)sbuf[track];
+            *(ptr-1) = 0;
+         }
+      }
 
       if (res && nframes)
       {
          _aaxRingBufferData *nrbi, *drbi = drb->handle;
          _aaxRingBufferSample *nrbd, *drbd = drbi->sample;
          float avg, agc, rms_rr, max, maxrms, peak, maxpeak;
-         unsigned int track, tracks;
          MIX_T **ntptr, **otptr;
          _aaxRingBuffer *nrb;
          double rms;
@@ -238,8 +254,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          otptr = (MIX_T **)sbuf;
          rms_rr = _MINMAX(dt/0.3f, 0.0f, 1.0f);		// 300 ms RMS average
          maxrms = maxpeak = 0;
-         tracks = drb->get_parami(drb, RB_NO_TRACKS);
-         for (track=0; track<tracks; track++)
+         for (track=0; track<no_tracks; track++)
          {
             MIX_T *optr = otptr[track];
 
@@ -271,15 +286,15 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          }
 
          /* if downmix requested devide track0 by the number of tracks */
-         if ((dest_track == AAX_TRACK_MIX) && tracks)
+         if ((dest_track == AAX_TRACK_MIX) && no_tracks)
          {
-            float fact = 1.0f/tracks;
+            float fact = 1.0f/no_tracks;
             drbd->multiply(otptr[0], sizeof(MIX_T), frames, fact);
             dest_track = 0;
          }
 
          ntptr = (MIX_T**)nrbd->track;
-         for (track=0; track<tracks; track++)
+         for (track=0; track<no_tracks; track++)
          {
             MIX_T *ptr = ntptr[track];
             MIX_T *optr = otptr[track];
