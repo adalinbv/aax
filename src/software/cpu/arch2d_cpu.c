@@ -994,7 +994,7 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, unsigned int 
  *
  * Note: smax is only used in the *Loop mixing functions
  */
-void
+static inline void
 _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
@@ -1035,7 +1035,7 @@ _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin,
    }
 }
 
-void
+static inline void
 _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
@@ -1075,7 +1075,7 @@ _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dm
    }
 }
 
-void
+static inline void
 _aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
@@ -1120,7 +1120,7 @@ _aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmi
 #endif
 }
 
-void
+static inline void
 _aaxBufResampleCubic_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
@@ -1208,7 +1208,7 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned 
 }
 
 
-static void
+static inline void
 _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
@@ -1249,7 +1249,7 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned
    }
 }
 
-static void
+static inline void
 _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
@@ -1289,7 +1289,7 @@ _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsig
    }
 }
 
-static void
+static inline void
 _aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
@@ -1328,7 +1328,7 @@ _aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsign
    }
 }
 
-static void
+static inline void
 _aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
