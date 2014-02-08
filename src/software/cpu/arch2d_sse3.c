@@ -460,7 +460,7 @@ _aaxBufResampleLinear_float_sse3(float32_ptr d, const_float32_ptr s, unsigned in
 static inline void
 _aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
-const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
+   const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
    const __m128 y1m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
    const __m128 y2m = _mm_set_ps( 2.0f,-2.0f, 1.0f,-1.0f);
    const __m128 y3m = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);
@@ -495,16 +495,18 @@ const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
     */
    vm0 = _mm_mul_ps(y0123, y0m);
    vm1 = _mm_mul_ps(y0123, y1m);
+   vm2 = _mm_mul_ps(y0123, y2m);
+   vm3 = _mm_mul_ps(y0123, y3m);
+
+   sptr += 4;
+   smu2 = smu*smu;
+
    xtmp = _mm_hadd_ps(vm0, vm1);
+   xtmp1 = _mm_hadd_ps(vm2, vm3);
 
    sptr += 4;
 
-   vm2 = _mm_mul_ps(y0123, y2m);
-   vm3 = _mm_mul_ps(y0123, y3m);
-   xtmp1 = _mm_hadd_ps(vm2, vm3);
-
    /* work in advance */
-   smu2 = smu*smu;
    xsmu = _mm_set_ps(smu*smu*smu, smu*smu, smu, 1.0f);
 
    a0123 = _mm_hadd_ps(xtmp, xtmp1);
@@ -533,11 +535,12 @@ const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
              */
             vm0 = _mm_mul_ps(y0123, y0m);
             vm1 = _mm_mul_ps(y0123, y1m);
-            xtmp1 = _mm_hadd_ps(vm0, vm1);
-            smu--;
-
             vm2 = _mm_mul_ps(y0123, y2m);
             vm3 = _mm_mul_ps(y0123, y3m);
+
+            smu--;
+
+            xtmp1 = _mm_hadd_ps(vm0, vm1);
             xtmp2 = _mm_hadd_ps(vm2, vm3);
 
             /* work in advance */
