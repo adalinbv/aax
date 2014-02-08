@@ -38,46 +38,12 @@
 void
 _batch_fmadd_neon(int32_ptr d, const_int32_ptr src, unsigned int num, float f, float fstep)
 {
-   if (!num) return;
-
-#if 0
-   unsigned int i = (num/4)*4;
-   do
-   {
-      *d++ += *s++ * f;
-      f += fstep;
-   }
-   while (--i);
-#else
    int32_t *s = (int32_t *)src;
    unsigned int i, size, step;
-   long dtmp, stmp;
 
-   dtmp = (long)d & 0xF;
-   stmp = (long)s & 0xF;
-#if 0
-   if ((dtmp || stmp) && dtmp != stmp)
-   {
-      _batch_fmadd_cpu(d, s, num, f, fstep);
-      return;
-   }
-#endif
+   if (!num) return;
 
    step = 2*sizeof(int32x4_t)/sizeof(int32_t);
-
-#if 0
-   /* work towards a 16-byte aligned dptr (and hence 16-byte aligned sptr) */
-   i = num/step;
-   if (dtmp && i)
-   {
-      i = (0x10 - dtmp)/4; // sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ += *s++ * f;
-         f += fstep;
-      } while(--i);
-   }
-#endif
 
    fstep *= 4*4;                                  /* 8 samples at a time */
    i = size = num/step;
@@ -130,7 +96,60 @@ _batch_fmadd_neon(int32_ptr d, const_int32_ptr src, unsigned int num, float f, f
          f += fstep;
       } while(--i);
    }
-#endif
+}
+
+void
+_batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, unsigned int num, float v, float vstep)
+{
+   float *s = (float *)src;
+   unsigned int i, step;
+
+   step = sizeof(float32x4x4_t)/sizeof(float);
+
+   vstep *= step;
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      float32x4_t tv = vdupq_n_f32(v);	// set (v,v,v,v)
+      float32x4x4_t sfr4, dfr4;
+
+      do
+      {
+         sfr4 = vld4q_f32(s);	// load s
+         dfr4 = vld4q_f32(d);	// load d
+
+         s += step;
+
+         sfr4[0] = vmulq_f32(sfr4[0], tv);	// multiply
+         sfr4[1] = vmulq_f32(sfr4[1], tv);
+         sfr4[2] = vmulq_f32(sfr4[2], tv);
+         sfr4[3] = vmulq_f32(sfr4[3], tv);
+
+         d += step;
+
+         dfr4[0] = vaddq_f32(dfr4[0], sfr4[0]);	// add
+         dfr4[1] = vaddq_f32(dfr4[1], sfr4[1]);
+         dfr4[2] = vaddq_f32(dfr4[2], sfr4[2]);
+         dfr4[3] = vaddq_f32(dfr4[3], sfr4[3]);
+
+         v += vstep;
+
+         vst4q_s32(d, drf4);	// store d
+         tv = vdupq_n_f32(v);	// set (v,v,v,v)
+      }
+      while(--i);
+   }
+
+   if (num) {
+      vstep /= step;
+      i = num;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      } while(--i);
+   }
+
 }
 
 void
@@ -139,31 +158,14 @@ _batch_cvt24_16_neon(void_ptr d, const_void_ptr src, unsigned int num)
    // int32x4_t  vshlq_n_s32(int32x4_t a, __constrange(0,31) int b);
    int32x4_t *sptr = (int32x4_t*)src;
    int16_t* s = (int16_t*)src;
-   unsigned int i, size, step;
-   long tmp;
+   unsigned int i, step;
 
    if (!num) return;
 
-   step = 2*4*sizeof(int32x4_t)/sizeof(int32_t);
+   step = sizeof(int32x4x2_t)/sizeof(int32_t);
    
-#if 0
-   /*
-    * work towards 16-byte aligned sptr
-    */
    i = num/step;
-   tmp = (long)s & 0xF;
-   if (tmp && i)
-   {
-      i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ = *s++ >> 8;
-      } while(--i);
-      sptr = (int32x4_t*)s;
-   }
-#endif
-
-   i = size = num/step;
+   num -= i*step;
    if (i)
    {
       int32x4_t nfr0, nfr1, nfr2, nfr3;
@@ -172,9 +174,6 @@ _batch_cvt24_16_neon(void_ptr d, const_void_ptr src, unsigned int num)
 
       do
       {
-//       _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-
          nfr2x4 = vld4_s16(s);
 
          /* widen 16-bit to 32-bit */
@@ -183,13 +182,13 @@ _batch_cvt24_16_neon(void_ptr d, const_void_ptr src, unsigned int num)
          nfr2 = vmovl_s16(nfr2x4.val[2]);
          nfr3 = vmovl_s16(nfr2x4.val[3]);
 
+         s += step;
+
          /* shift from 16-bit to 24-bit */
          nfr2x0.val[0] = vshlq_n_s32(nfr0, 8);
          nfr2x0.val[1] = vshlq_n_s32(nfr1, 8);
          nfr2x1.val[0] = vshlq_n_s32(nfr2, 8);
          nfr2x1.val[1] = vshlq_n_s32(nfr3, 8);
-
-         s += step;
 
          vst2q_s32(d, nfr2x0);
          vst2q_s32(d+step/2, nfr2x1);
@@ -198,9 +197,9 @@ _batch_cvt24_16_neon(void_ptr d, const_void_ptr src, unsigned int num)
       } while (--i);
    }
 
-   i = num - size*16;
-   if (i)
+   if (num)
    {
+      i = num;
       do {
          *d++ = *s++ >> 8;
       } while (--i);
@@ -213,31 +212,14 @@ _batch_cvt16_24_neon(void_ptr dst, const_void_ptr s, unsigned int num)
    // int32x4_t  vshrq_n_s32(int32x4_t a, __constrange(1,32) int b);
    int32x4_t *sptr = (int32x4_t*)s;
    int16_t* d = (int16_t*)dst;
-   unsigned int i, size, step;
-   long tmp;
+   unsigned int i, step;
 
    if (!num) return;
 
-   step = 2*4*sizeof(int32x4_t)/sizeof(int32_t);
+   step = sizeof(int32x4_2_t)/sizeof(int32_t);
 
-#if 0
-   /*
-    * work towards 16-byte aligned sptr
-    */
    i = num/step;
-   tmp = (long)s & 0xF;
-   if (tmp && i)
-   {
-      i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ = *s++ >> 8;
-      } while(--i);
-      sptr = (int32x4_t*)s;
-   }
-#endif
-
-   i = size = num/step;
+   num -= i*step;
    if (i)
    {
       int32x4_t nfr0, nfr1, nfr2, nfr3;
@@ -246,9 +228,6 @@ _batch_cvt16_24_neon(void_ptr dst, const_void_ptr s, unsigned int num)
 
       do
       {
-//       _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-
          nfr2x0 = vld2q_s32(s);
          nfr2x1 = vld2q_s32(s+step/2);
 
@@ -272,10 +251,9 @@ _batch_cvt16_24_neon(void_ptr dst, const_void_ptr s, unsigned int num)
       } while (--i);
    }
 
-   i = num - size*16;
-   if (i)
+   if (num)
    {
-      s = (int32_t *)sptr;
+      i = num;
       do {
          *d++ = *s++ >> 8;
       } while (--i);
@@ -287,48 +265,19 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
                                 int offset, unsigned int tracks,
                                 unsigned int num)
 {
-   unsigned int i, size, step;
    int16_t* d = (int16_t*)dst;
+   unsigned int i, step;
    int32_t *s1, *s2;
-   long tmp;
 
    if (!num) return;
-
-#if 0
-   if (tracks != 2)
-   {
-      _batch_cvt24_intl_16_cpu(d, src, offset, tracks, num);
-      return;
-   }
-#endif
 
    s1 = (int32_t *)src[0] + offset;
    s2 = (int32_t *)src[1] + offset;
 
-   step = 2*sizeof(int32x4_t)/sizeof(int32_t);
+   step = sizeof(int32x4_2_t)/sizeof(int32_t);
 
-#if 0
-   /*
-    * work towards 16-byte aligned sptr
-    */
    i = num/step;
-   tmp = (long)s1 & 0xF;
-   assert(tmp == ((long)s2 & 0xF));
-   if (tmp && i)
-   {
-      i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do
-      {
-         *d++ = *s1++ >> 8;
-         *d++ = *s2++ >> 8;
-      }
-      while (--i);
-   }
-#endif
-
-   tmp = (long)d & 0xF;
-   i = size = num/step;
+   num -= i*step;
    if (i)
    {
       int32x4x2_t nfr2x0, nfr2x1, nfr2x2, nfr2x3;
@@ -337,9 +286,6 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
 
       do
       {
-//       _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-
          nfr2x0 = vld2q_s32(s1);
          nfr2x1 = vld2q_s32(s2);
 
@@ -348,13 +294,14 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
          nfr2x3 = vzipq_s32(nfr2x0.val[1], nfr2x1.val[1]);
 
          s1 += step;
-         s2 += step;
 
          /* shift from 24-bit to 16-bit */
          nfr0 = vshrq_n_s32(nfr2x2.val[0], 8);
          nfr1 = vshrq_n_s32(nfr2x2.val[1], 8);
          nfr2 = vshrq_n_s32(nfr2x3.val[0], 8);
          nfr3 = vshrq_n_s32(nfr2x3.val[1], 8);
+
+         s2 += step;
 
          /* extract lower part */
          nfr2x4.val[0] = vmovn_s32(nfr0);
@@ -368,9 +315,9 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
       } while (--i);
    }
 
-   i = num - size*step;
-   if (i)
+   if (num)
    {
+      i = num;
       do
       {
          *d++ = *s1++ >> 8;
@@ -396,44 +343,17 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
                   const float *cptr)
 {
    int32_t *s = (int32_t *)src;
-   unsigned int i, size, step;
+   unsigned int i, step;
    float h0, h1;
-   long tmp;
 
    if (!num) return;
 
    h0 = hist[0];
    h1 = hist[1];
 
-#if 0
-   /* work towards 16-byte aligned dptr */
-   tmp = (long)d & 0xF;
-   if (tmp)
-   {
-      float smp, nsmp;
-
-      i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do
-      {
-         smp = *s * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
-
-         h1 = h0;
-         h0 = nsmp;
-
-         *d++ = smp*lfgain + (*s-smp)*hfgain;
-         s++;
-      }
-      while (--i);
-   }
-#endif
-
-   step = 2*sizeof(int32x4_t)/sizeof(int32_t);
-   i = size = num/step;
+   step = sizeof(int32x4_2_t)/sizeof(int32_t);
+   i = num/step;
+   num -= i*step;
    if (i)
    {
       float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
@@ -456,8 +376,6 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
          int32x4x2_t nir2_1;
          float32x4x2_t nfr2d;
 
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FF, _MM_HINT_NTA);
-
          nir2_1 = vld2q_s32(s);
 
          osmp0 = vcvtq_f32_s32(nir2_1.val[0]);
@@ -465,6 +383,7 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
          nfr2d.val[0] = vmulq_f32(osmp0, fact);	/* *s * k */
          nfr2d.val[1] = vmulq_f32(osmp1, fact);
          vst2q_f32(smp0, nfr2d);
+
          s += step;
 
          CALCULATE_NEW_SAMPLE(0, smp0[0]);
@@ -492,10 +411,10 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
       while (--i);
    }
 
-   i = num - size*step;
-   if (i)
+   if (num)
    {
       float smp, nsmp;
+      i = num;
       do
       {
          smp = *s * k;
@@ -517,7 +436,96 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, unsigned int num,
    hist[1] = h1;
 }
 
-static void
+void
+_batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, unsigned int num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+{
+   float32_ptr s = (float32_ptr)sptr;
+   unsigned int i, size, step;
+   float h0, h1;
+
+   if (!num) return;
+
+   h0 = hist[0];
+   h1 = hist[1];
+
+   step = sizeof(float32x4_2_t)/sizeof(float32_t);
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
+      float32x4_t fact, dhist, coeff, lf, hf, tmp2;
+      float32_t *cfp = (float32_t *)cptr;
+      float32_t smp0, mpf;
+
+      fact = vdupq_n_f32(k);
+      coeff = vrev64q_f32( vld1q_dup_f32(cfp) );
+      lf = vdupq_n_f32(lfgain);
+      hf = vdupq_n_f32(hfgain);
+
+      do
+      {
+         float32x4x2_t nfr2_1;
+         float32x4x2_t nfr2d;
+
+         nfr2_1 = vld2q_f32(s);
+
+         nfr2d.val[0] = vmulq_f32(nfr2_1.val[0], fact); /* *s * k */
+         nfr2d.val[1] = vmulq_f32(nfr2_1.val[1], fact);
+         vst2q_f32(smp0, nfr2d);
+         s += step;
+
+         CALCULATE_NEW_SAMPLE(0, smp0[0]);
+         CALCULATE_NEW_SAMPLE(1, smp0[1]);
+         CALCULATE_NEW_SAMPLE(2, smp0[2]);
+         CALCULATE_NEW_SAMPLE(3, smp0[3]);
+         CALCULATE_NEW_SAMPLE(4, smp0[4]);
+         CALCULATE_NEW_SAMPLE(5, smp0[5]);
+         CALCULATE_NEW_SAMPLE(6, smp0[6]);
+         CALCULATE_NEW_SAMPLE(7, smp0[7]);
+
+         nfr2d = vld2q_f32(smp0);               /* smp */
+         nfr1 = vmulq_f32(nfr2d.val[0], lf);    /* smp * lfgain */
+         nfr5 = vmulq_f32(nfr2d.val[1], lf);
+         nfr3 = vsubq_f32(nfr2_1.val[0], nfr2d.val[0]); /* *s - smp */
+         nfr7 = vsubq_f32(nfr2_1.val[1], nfr2d.val[1]);
+         nfr2 = vmlaq_f32(nfr1, nfr3, hf);    /* smp*lfgain + (*s-smp)*hfgain */
+         nfr6 = vmlaq_f32(nfr5, nfr7, hf);
+         nfr2_1.val[0] = nfr2;
+         nir2_1.val[1] = nfr6;
+
+         vst2q_s32(d, nfr2_1);
+         d += step;
+      }
+      while (--i);
+   }
+
+   if (num)
+   {
+      float smp, nsmp;
+      i = num;
+      do
+      {
+         smp = *s * k;
+         smp = smp - h0 * cptr[0];
+         nsmp = smp - h1 * cptr[1];
+         smp = nsmp + h0 * cptr[2];
+         smp = smp + h1 * cptr[3];
+
+         h1 = h0;
+         h0 = nsmp;
+
+         *d++ = smp*lfgain + (*s-smp)*hfgain;
+         s++;
+      }
+      while (--i);
+   }
+
+   hist[0] = h0;
+   hist[1] = h1;
+}
+
+static inline void
 _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
