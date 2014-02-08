@@ -92,6 +92,7 @@ _batch_fmul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
    }
 }
 
+#if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleSkip_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
@@ -334,7 +335,7 @@ _batch_resample_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
       _aaxBufResampleNearest_sse3(d, s, dmin, dmax, 0, smu, fact);
    }
 } 
-
+#else
 
 static inline void
 _aaxBufResampleSkip_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
@@ -575,6 +576,7 @@ _batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin
       _aaxBufResampleNearest_float_sse3(d, s, dmin, dmax, 0, smu, fact);
    }
 }
+#endif // RB_FLOAT_DATA
 
 #endif /* SSE3 */
 

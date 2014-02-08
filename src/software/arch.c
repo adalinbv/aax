@@ -37,6 +37,7 @@
 #include <arch.h>
 #include <ringbuffer.h>
 
+#include "rbuf_int.h"
 #include "cpu/arch2d_simd.h"
 #include "cpu/arch3d_simd.h"
 
@@ -164,10 +165,13 @@ _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
 _batch_freqfilter_float_proc _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
 
+#if RB_FLOAT_DATA
 _batch_cvt_from_proc _batch_cvt24_ps24 = _batch_cvt24_ps24_cpu;
 _batch_cvt_to_proc _batch_cvtps24_24 = _batch_cvtps24_24_cpu;
 _batch_resample_float_proc _batch_resample_float = _batch_resample_float_cpu;
+#else
 _batch_resample_proc _batch_resample = _batch_resample_cpu;
+#endif
 
 
 char
@@ -396,7 +400,13 @@ _aaxGetSIMDSupportString()
       _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
       _batch_freqfilter = _batch_freqfilter_neon;
 
+#if RB_FLOAT_DATA
+      _batch_cvtps24_24 = _batch_cvtps24_24_neon;
+      _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
+      _batch_resample_float = _batch_resample_float_neon;
+#else
       _batch_resample = _batch_resample_neon;
+#endif
 #endif
    }
    else
@@ -424,14 +434,17 @@ _aaxGetSIMDSupportString()
          _batch_cvt24_ps = _batch_cvt24_ps_sse2;
          _batch_cvt24_16 = _batch_cvt24_16_sse2;
          _batch_cvt16_24 = _batch_cvt16_24_sse2;
-         _batch_freqfilter = _batch_freqfilter_sse2;
-         _batch_freqfilter_float = _batch_freqfilter_float_sse2;
          _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
+#if RB_FLOAT_DATA
          _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
+         _batch_freqfilter_float = _batch_freqfilter_float_sse2;
          _batch_resample_float = _batch_resample_float_sse2;
+#else
+         _batch_freqfilter = _batch_freqfilter_sse2;
          _batch_resample = _batch_resample_sse2;
+#endif
       }
       if (level >= AAX_SSE3)
       {
@@ -440,8 +453,11 @@ _aaxGetSIMDSupportString()
          _batch_imul_value = _batch_imul_value_sse3;
          _batch_fmul_value = _batch_fmul_value_sse3;
 
+#if RB_FLOAT_DATA
 //       _batch_resample_float = _batch_resample_float_sse3;
+#else
          _batch_resample = _batch_resample_sse3;
+#endif
       }
 
 #ifdef __SSE4__
@@ -470,7 +486,11 @@ _aaxGetSIMDSupportString()
          }
 #endif
 #endif
+#if RB_FLOAT_DATA
+         _batch_resample_float = _batch_resample_float_avx;
+#else
          _batch_resample = _batch_resample_avx;
+#endif
       }
 # endif
 #endif

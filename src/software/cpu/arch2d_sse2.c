@@ -1135,6 +1135,7 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  num)
    return dst;
 }
 
+#if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
@@ -1328,6 +1329,7 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
       _aaxBufResampleNearest_sse2(d, s, dmin, dmax, 0, smu, fact);
    }
 }
+#else
 
 static inline void
 _aaxBufResampleSkip_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
@@ -1521,6 +1523,7 @@ _batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin
       _aaxBufResampleNearest_float_sse2(d, s, dmin, dmax, 0, smu, fact);
    }
 }
+#endif // RB_FLOAT_DATA
 
 #endif /* SSE2 */
 
