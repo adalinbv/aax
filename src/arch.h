@@ -28,6 +28,8 @@ extern "C" {
 # define ASM    __asm __volatile
 #endif
 
+#define SIZETO16(a)	((a) & 0xF) ? ((a)|0xF)+1 : (a)
+
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, unsigned int, unsigned int);
 typedef char* (*_aax_malloc_proc)(char**, unsigned int);
