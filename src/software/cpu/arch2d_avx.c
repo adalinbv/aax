@@ -15,8 +15,8 @@
 
 #include <math.h>	/* for floorf */
 
-#include "software/ringbuffer.h"
-#include "arch_simd.h"
+#include "software/rbuf_int.h"
+#include "software/cpu/arch2d_simd.h"
 
 static void
 _aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)

@@ -13,8 +13,8 @@
 #include "config.h"
 #endif
 
-#include "software/ringbuffer.h"
-#include "arch_simd.h"
+#include "software/rbuf_int.h"
+#include "software/cpu/arch2d_simd.h"
 
 #ifdef __FMA__
 
