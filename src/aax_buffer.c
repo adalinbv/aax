@@ -30,6 +30,7 @@
 #include "devices.h"
 #include "arch.h"
 #include "software/audio.h"
+#include "software/rbuf_int.h"
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
@@ -1302,7 +1303,8 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
 
    assert(samples >= (unsigned int)(fact*no_samples));
 
-   tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
+   // do not alter the data, we convert to and from float24 when required
+   tracks = (void**)rb->get_tracks_ptr(rb, RB_NONE);
 
    fact = 1.0f/fact;
    ptr = (void**)tracks;
@@ -1318,23 +1320,34 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;
+#if RB_FLOAT_DATA
+            if (rb->get_parami(rb, RB_IS_MIXER_BUFFER) == AAX_FALSE) {
+               _batch_cvtps24_24(tracks[t], tracks[t], samples);
+            }
+            _batch_resample_float(tracks[t], ptr[t], 0, samples, 0, fact);
+            _batch_cvt24_ps24(tracks[t], tracks[t], samples*fact);
+#else
             _batch_resample(tracks[t], ptr[t], 0, samples, 0, fact);
+#endif
             p += size;
          }
       }
       else
       {
-         size_t scratch_size;
-         int32_t **scratch;
+         size_t scratch_size, len;
+         MIX_T **scratch;
          char *sptr;
 
-         scratch_size = 2*sizeof(int32_t*);
+         scratch_size = 2*sizeof(MIX_T*);
          sptr = (char*)scratch_size;
         
-         scratch_size += (no_samples+samples)*sizeof(int32_t);
-         scratch = (int32_t**)_aax_malloc(&sptr, scratch_size);
-         scratch[0] = (int32_t*)sptr;
-         scratch[1] = (int32_t*)(sptr + no_samples*sizeof(int32_t));
+         scratch_size += SIZETO16(samples*sizeof(MIX_T));
+         len = SIZETO16(no_samples*sizeof(MIX_T));
+         scratch_size += len;
+
+         scratch = (MIX_T**)_aax_malloc(&sptr, scratch_size);
+         scratch[0] = (MIX_T*)sptr;
+         scratch[1] = (MIX_T*)(sptr + len);
 
          p = (char*)(no_tracks*sizeof(void*));
          tracks = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
@@ -1342,7 +1355,14 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          {
             tracks[t] = p;
             _bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples, fmt);
+
+#if RB_FLOAT_DATA
+            _batch_cvtps24_24(scratch[0], scratch[0], no_samples);
+            _batch_resample_float(scratch[1], scratch[0], 0, samples, 0, fact);
+            _batch_cvt24_ps24(scratch[1], scratch[1], samples);
+#else
             _batch_resample(scratch[1], scratch[0], 0, samples, 0, fact);
+#endif
             _bufConvertDataFromPCM24S(tracks[t], scratch[1], 1, samples, fmt,1);
             p += size;
          }
