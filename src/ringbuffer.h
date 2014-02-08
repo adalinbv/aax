@@ -75,6 +75,8 @@ enum _aaxRingBufferMode
    RB_READ = 0x01,
    RB_WRITE = 0x02,
    RB_RW = RB_READ | RB_WRITE,
+
+   RB_RW_MAX 
 };
 
 

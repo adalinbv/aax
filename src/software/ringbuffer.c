@@ -90,7 +90,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->mix = _aaxRingBufferProcessMixer;		// uses the above funcs
 
          rbi->mode = mode;
-         rbi->access = RB_NONE;
+         rbi->access = RB_RW_MAX;
 #ifndef NDEBUG
          rbi->parent = rb;
 #endif
@@ -206,24 +206,16 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
       dde_bytes = TEST_FOR_TRUE(rbd->dde_sec) ? (rbd->dde_samples * bps) : 0;
-      if (dde_bytes & 0xF)
-      {
-         dde_bytes |= 0xF;
-         dde_bytes++;
-      }
-      tracksize = dde_bytes + (no_samples + 0xF) * bps;
+      dde_bytes = SIZETO16(dde_bytes);
 
       /*
        * Create one buffer that can hold the data for all channels.
        * The first bytes are reserved for the track pointers
        */
+      tracksize = dde_bytes + (no_samples + 0xF) * bps;
 #if BYTE_ALIGN
       /* 16-byte align every buffer */
-      if (tracksize & 0xF)
-      {
-         tracksize |= 0xF;
-         tracksize++;
-      }
+      tracksize = SIZETO16(tracksize);
 
       tracks = rbd->no_tracks;
       ptr2 = (char*)(tracks * sizeof(void*));
@@ -279,21 +271,15 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
       dde_bytes = rbd->dde_samples*bps;
-      if (dde_bytes & 0xF)
-      {
-         dde_bytes |= 0xF;
-         dde_bytes++;
-      }
+      dde_bytes = SIZETO16(dde_bytes);
+
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
 #if BYTE_ALIGN
       /* 16-byte align every buffer */
-      if (tracksize & 0xF)
-      {
-         tracksize |= 0xF;
-         tracksize++;
-      }
+      tracksize = SIZETO16(tracksize);
+
       ptr2 = (char*)(tracks * sizeof(void*));
       ptr = _aax_calloc(&ptr2, tracks, sizeof(void*) + tracksize);
 #else
@@ -378,7 +364,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       drbd = drbi->sample;
 
       _aax_memcpy(drbi, srbi, sizeof(_aaxRingBufferData));
-      drbi->access = RB_NONE;
+      drbi->access = RB_RW_MAX;
       drbi->sample = drbd;
 #ifndef NDEBUG
       drbi->parent = drb;
@@ -438,7 +424,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
-   assert(rbi->access == RB_NONE);
+   assert(rbi->access == RB_RW_MAX);
 
    rbd = rbi->sample;
    if (rbd)
@@ -477,7 +463,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
-   assert(rbi->access != RB_NONE);
+   assert(rbi->access != RB_RW_MAX);
 
 #if RB_FLOAT_DATA
    rbd = rbi->sample;
@@ -492,7 +478,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
       }
    }
 #endif
-   rbi->access = RB_NONE;
+   rbi->access = RB_RW_MAX;
    return AAX_TRUE;
 }
 
