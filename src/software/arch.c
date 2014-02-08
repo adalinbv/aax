@@ -440,7 +440,7 @@ _aaxGetSIMDSupportString()
          _batch_imul_value = _batch_imul_value_sse3;
          _batch_fmul_value = _batch_fmul_value_sse3;
 
-         _batch_resample_float = _batch_resample_float_sse3;
+//       _batch_resample_float = _batch_resample_float_sse3;
          _batch_resample = _batch_resample_sse3;
       }
 
