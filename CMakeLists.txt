@@ -34,6 +34,8 @@ ELSE(WIN32)
   SET(LIBAEONWAVE aax)
 ENDIF(WIN32)
 
+message("Architecure: ${CMAKE_SYSTEM_PROCESSOR}")
+
 IF(NOT LIBTYPE)
   SET(LIBTYPE SHARED)
 ENDIF(NOT LIBTYPE)
@@ -214,51 +216,64 @@ ELSE(MSVC)
     ENDIF(NOT MINGW)
 
     IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-      SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
+      IF (CMAKE_SYSTEM_PROCESSOR EQUAL i686)
+        SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
+                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
+                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
+                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
+                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND
+                     PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=corei7-avx"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                    PROPERTY COMPILE_FLAGS "-mfma -mfpmath=sse -march=corei7-avx"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mfma4 -mfpmath=sse -march=corei7-avx"
-      )
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
+                  PROPERTY COMPILE_FLAGS "-mfma4 -mfpmath=sse -march=corei7-avx"
+        )
+      ENDIF (CMAKE_SYSTEM_PROCESSOR EQUAL i686)
     ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
-      SET(C_FLAGS "${C_FLAGS} -march=i686")
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
+      IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
+        SET(C_FLAGS "${C_FLAGS} -march=i686")
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND 
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
-      )
-      SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
-      )
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND 
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND 
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND 
+                     PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
+        )
+      ENDIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
+      IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
+        SET(C_FLAGS "${C_FLAGS} -march=arm")
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND 
+                     PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfp"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND 
+                     PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfp"
+        )
+      ENDIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
     SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops -fomit-frame-pointer" CACHE STRING
@@ -410,9 +425,9 @@ SET( AEONWAVE_OBJS
 )
 IF(SIZEOF_SIZE_T EQUAL 8)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
-     src/software/cpu2d/arch_avx.c
-     src/software/cpu2d/arch_fma3.c
-     src/software/cpu2d/arch_fma4.c
+     src/software/cpu/arch2d_avx.c
+     src/software/cpu/arch2d_fma3.c
+     src/software/cpu/arch2d_fma4.c
   )
 ENDIF(SIZEOF_SIZE_T EQUAL 8)
 
