@@ -13,7 +13,113 @@
 #include "config.h"
 #endif
 
+#include <aax/aax.h>
+#include <aax/midi.h>
+
 #include <base/types.h>
+
+
+int aaxMIDINoteOn(aaxConfig config, char channel, char note, char velocity);
+int aaxMIDINoteOff(aaxConfig config, char channel, char note, char velocity);
+int aaxMIDIPitchBend(aaxConfig config, char channel, char data1, char data2);
+int aaxMIDIControlChange(aaxConfig config, char channel, char data1);
+int aaxMIDIProgramChange(aaxConfig config, char channel, char data1);
+int aaxMIDISystemExclusive(aaxConfig config, int32_t *stream);
+
+int
+aaxMIDIStream(aaxConfig config, int32_t *stream)
+{
+   int rv = AAX_FALSE;
+
+   if (stream)
+   {
+      int32_t mvalue = *stream;
+      int32_t status = (mvalue & 0xF0000000);
+      char channel = ((mvalue & 0x0F000000) >> 24);
+      char data1 = ((mvalue & 0x00FF0000) >> 16);
+      char data2 = ((mvalue & 0x0000FF00) >> 8);
+//    char data3 = (mvalue & 0x000000FF);
+
+      switch(status)
+      {
+         case AAX_MIDI_NOTE_ON:
+         case AAX_MIDI_NOTE_OFF:
+            if (status == AAX_MIDI_NOTE_OFF ||
+                ((status == AAX_MIDI_NOTE_ON) && data2 == 0))
+            {
+               rv = aaxMIDINoteOff(config, channel, data1, data2);
+            } else { 
+               rv = aaxMIDINoteOn(config, channel, data1, data2);
+            }
+            break;
+         case AAX_MIDI_PITCH_BEND:
+            rv = aaxMIDIPitchBend(config, channel, data1, data2);
+            break;
+         case AAX_MIDI_CONTROL_CHANGE:
+            rv = aaxMIDIControlChange(config, channel, data1);
+            break;
+         case AAX_MIDI_PROGRAM_CHANGE:
+            rv = aaxMIDIProgramChange(config, channel, data1);
+            break;
+         case AAX_MIDI_CHANNEL_AFTERTOUCH:
+         case AAX_MIDI_POLYPHONIC_AFTERTOUCH:
+            rv = AAX_TRUE;
+            break;
+         case AAX_MIDI_SYSTEM_EXCLUSIVE:
+            rv = aaxMIDISystemExclusive(config, stream);
+            break;
+         default:
+            break;
+      }
+   }
+   else {
+   }
+
+   return rv;
+}
+
+
+int
+aaxMIDINoteOn(aaxConfig config, char channel, char note, char velocity)
+{
+    int rv = AAX_FALSE;
+    return rv;
+}
+
+int
+aaxMIDINoteOff(aaxConfig config, char channel, char note, char velocity)
+{
+    int rv = AAX_FALSE;
+    return rv;
+}
+
+int
+aaxMIDIPitchBend(aaxConfig config, char channel, char data1, char data2)
+{
+    int rv = AAX_FALSE;
+    return rv;
+}
+
+int
+aaxMIDIControlChange(aaxConfig config, char channel, char data1)
+{
+    int rv = AAX_FALSE;
+    return rv;
+}
+
+int
+aaxMIDIProgramChange(aaxConfig config, char channel, char data1)
+{
+    int rv = AAX_FALSE;
+    return rv;
+}
+
+int
+aaxMIDISystemExclusive(aaxConfig config, int32_t *stream)
+{
+    int rv = AAX_FALSE;
+    return rv;
+}
 
 /* -------------------------------------------------------------------------- */
 
