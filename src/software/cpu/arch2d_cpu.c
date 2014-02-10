@@ -1228,7 +1228,7 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned
    samp = *s++;                 // n+(step-1)
    dsamp = *s - samp;           // (n+1) - n
 
-   i=dmax-dmin;
+   i = dmax-dmin;
    if (i)
    {
       do

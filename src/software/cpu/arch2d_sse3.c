@@ -13,6 +13,7 @@
 #include "config.h"
 #endif
 
+#include <software/rbuf_int.h>
 #include "arch2d_simd.h"
 
 #ifdef __SSE3__

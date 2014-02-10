@@ -558,7 +558,7 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 void
 _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
-   unsigned int i, dstep, sstep;
+   unsigned int i, step;
    int32_t* s = (int32_t*)src;
    int16_t* d = (int16_t*)dst;
    size_t tmp;
@@ -579,11 +579,10 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
    assert(((size_t)s & 0xF) == 0);
    tmp = (size_t)d & 0xF;
 
-   sstep = 4*sizeof(__m128i)/sizeof(int32_t);
-   dstep = 4*sizeof(__m128i)/sizeof(int16_t);
+   step = 4*sizeof(__m128i)/sizeof(int32_t);
 
-   i = num/sstep;
-   num -= i*sstep;
+   i = num/step;
+   num -= i*step;
    if (i)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -605,12 +604,12 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
          xmm6 = _mm_srai_epi32(xmm4, 8);
          xmm7 = _mm_srai_epi32(xmm5, 8);
 
-         s += sstep;
+         s += step;
 
          xmm4 = _mm_packs_epi32(xmm2, xmm3);
          xmm6 = _mm_packs_epi32(xmm6, xmm7);
 
-         d += dstep;
+         d += step;
 
          if (tmp) {
             _mm_storeu_si128(dptr++, xmm4);
@@ -1332,10 +1331,10 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
 #else
 
 static inline void
-_aaxBufResampleSkip_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleSkip_float_sse2(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
 {
-   float32_ptr sptr = (float32_ptr)s;
-   float32_ptr dptr = d;
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = dptr;
    float samp, dsamp;
    unsigned int i;
 
@@ -1345,29 +1344,28 @@ _aaxBufResampleSkip_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int 
    assert(freq_factor >= 1.0f);
    assert(0.0f <= smu && smu < 1.0f);
 
-   sptr += sdesamps;
-   dptr += dmin;
+   s += sdesamps;
+   d += dmin;
 
-   samp = *sptr++;              // n+(step-1)
-   dsamp = *sptr - samp;        // (n+1) - n
+   samp = *s++;			// n+(step-1)
+   dsamp = *s - samp;		// (n+1) - n
 
-
-   i=dmax-dmin;
+   i = dmax-dmin;
    if (i)
    {
       do
       {
          int step;
 
-         *dptr++ = samp + (dsamp * smu);
+         *d++ = samp + (dsamp * smu);
 
          smu += freq_factor;
          step = (int)floorf(smu);
 
          smu -= step;
-         sptr += step-1;
-         samp = *sptr++;
-         dsamp = *sptr - samp;
+         s += step-1;
+         samp = *s++;
+         dsamp = *s - samp;
       }
       while (--i);
    }
