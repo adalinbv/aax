@@ -1171,7 +1171,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    handle = _aaxWavSetup(mode, &size, freq, no_tracks, format, no_samples, 0);
    if (!handle)
    {
-      printf("Error: Unable to setup the file stream handler,\n");
+      printf("Error: Unable to setup the file stream handler.\n");
       return;
    }
 
