@@ -100,15 +100,37 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
    int32_t *d = (int32_t*)dst;
    float *s = (float*)src;
+   unsigned int i, step;
+   size_t dtmp, stmp;
 
-   assert(((size_t)d & 0xF) == 0);
-   assert(((size_t)s & 0xF) == 0);
+   if (!num) return;
+
+   dtmp = (size_t)d & 0xF;
+   stmp = (size_t)s & 0xF;
+   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      i = num;
+      do {
+         *d++ += (int32_t)*s++;
+      }
+      while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+   if (dtmp && num)
+   {
+      i = (0x10 - dtmp)/sizeof(int32_t);
+      num -= i;
+      do {
+         *d++ += (int32_t)*s++;
+      } while(--i);
+   }
 
    if (num)
    {
       __m128i *dptr = (__m128i*)d;
       __m128* sptr = (__m128*)s;
-      unsigned int i, step;
 
       step = 4*sizeof(__m128)/sizeof(float);
 
@@ -223,17 +245,40 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 {
    int32_t *s = (int32_t*)src;
    float *d = (float*)dst;
+   unsigned int i, step;
+   size_t dtmp, stmp;
 
    assert(s != 0);
-   assert(d != 0); 
-   assert(((size_t)d & 0xF) == 0);
-   assert(((size_t)s & 0xF) == 0);
+   assert(d != 0);
+
+   if (!num) return;
+
+   dtmp = (size_t)d & 0xF;
+   stmp = (size_t)s & 0xF;
+   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      i = num;
+      do {
+         *d++ += (float)*s++;
+      }
+      while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+   if (dtmp && num)
+   {
+      i = (0x10 - dtmp)/sizeof(int32_t);
+      num -= i;
+      do {
+         *d++ += (float)*s++;
+      } while(--i);
+   }
 
    if (num)
    {
       __m128i* sptr = (__m128i*)s;
       __m128 *dptr = (__m128*)d;
-      unsigned int i, step;
 
       step = 4*sizeof(__m128i)/sizeof(int32_t);
 
