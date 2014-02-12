@@ -121,6 +121,7 @@ typedef struct
    unsigned int stage, max_stages;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
+   float ctr;
 } _aaxRingBufferEnvelopeData;
 
 

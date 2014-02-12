@@ -252,7 +252,7 @@ _aaxRingBufferLFOGetCompressor(void* data, const void *ptr, unsigned track, unsi
 }
 
 float
-_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData* env, char stopped)
+_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData* env, char stopped, float velocity)
 {
    float rv = 1.0f;
    if (env)
@@ -262,7 +262,21 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData* env, char stopped)
       if (stage < env->max_stages)
       {
          env->value += env->step[stage];
-         if ((++env->pos == env->max_pos[stage])
+
+         if (stage > 3) {
+            env->pos++;
+         }
+         else
+         {
+            env->ctr += velocity;
+            if (env->ctr >= 1.0f)
+            {
+               env->pos++;
+               env->ctr -= 1.0f;
+            }
+         }
+
+         if ((env->pos == env->max_pos[stage])
              || (env->max_pos[stage] == (uint32_t)-1 && stopped))
          {
             env->pos = 0;

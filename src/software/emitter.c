@@ -96,6 +96,8 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                      }
                   }
 
+                  ep2d->curr_pos_sec = src->curr_pos_sec;
+                  src->curr_pos_sec += dt;
                   --src->update_ctr;
                    
                   /* 3d mixing */
@@ -109,7 +111,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                      }
 
                      res = AAX_FALSE;
-                     if (src->curr_pos_sec >= ep2d->dist_delay_sec)
+                     if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
                      {
                         res = drb->mix3d(drb, srb, ep2d, fp2d, emitter->track,
                                          src->update_ctr, nbuf);
@@ -125,8 +127,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                   if (!src->update_ctr) {
                      src->update_ctr = src->update_rate;
                   }
-
-                  src->curr_pos_sec += dt;
 
                   /*
                    * The current buffer of the source has finished playing.

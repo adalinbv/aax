@@ -56,7 +56,7 @@
  * @param nbuf number of buffers in the source queue (>1 means streaming)
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf, float pos_sec)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
@@ -64,7 +64,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxRingBufferLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    float gain, svol, evol;
-   float pitch, max;
+   float pitch, max, nvel;
    void *env;
    int ret = 0;
 
@@ -99,7 +99,9 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped);
+   nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
+   pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
+   pitch *= ep2d->note.pressure;
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
@@ -137,7 +139,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* apply envelope filter */
-   gain = _aaxRingBufferEnvelopeGet(env, srbi->stopped);
+   gain = _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
+   gain *= ep2d->note.pressure;
    if (gain < -1e-3f) {
       ret = -1;
    }
