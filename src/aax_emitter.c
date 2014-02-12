@@ -406,6 +406,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 
             rb->set_state(rb, RB_REWINDED);
             src->buffer_pos = 0;
+            src->curr_pos_sec = 0.0f;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
             env = _FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER);
