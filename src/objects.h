@@ -299,7 +299,7 @@ typedef ALIGN16 struct
       float pressure;
    } note;
 
-   struct {			/*  LFO */
+   struct {
       float pitch_lfo;
       float pitch;
       float gain_lfo;

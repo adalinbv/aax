@@ -42,6 +42,8 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo && lfo->envelope)				// envelope follow
    {
+      void *env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
+
       g = 0.0f;
       for (track=0; track<rbd_tracks; track++)
       {
@@ -49,7 +51,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
          float gain;
 
          DBG_TESTNAN(sptr[rbs_track]+offs, dno_samples);
-         gain = 1.0f - lfo->get(lfo, sptr[rbs_track]+offs, track, dno_samples);
+         gain = 1.0f-lfo->get(lfo, env, sptr[rbs_track]+offs, track, dno_samples);
          if (lfo->inv) g = 1.0f/gain;
          g += gain;
       }

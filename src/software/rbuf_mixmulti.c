@@ -46,11 +46,11 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
    _aaxRingBufferSample *drbd, *srbd;
    unsigned int offs, dno_samples;
    _aaxRingBufferData *drbi, *srbi;
+   _aaxRingBufferEnvelopeData* env;
    _aaxRingBufferLFOData *lfo;
    float svol, evol, max;
    float pitch, gain, nvel;
    CONST_MIX_PTRPTR_T sptr;
-   void *env;
    int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -70,9 +70,11 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
 
    /** Pitch */
    pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+
+   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, NULL, 0, 0);
+      pitch *= lfo->get(lfo, env, NULL, 0, 0);
    }
 
    if (fp2d)
@@ -87,7 +89,6 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
 //    if (pitch > 1.1f) pitch *= 1.3333333f;
    }
 
-   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
    pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
    pitch *= ep2d->note.pressure;
@@ -154,7 +155,7 @@ printf("%i | %x: mix, no_samples: %i\n", t, srbd->track[t], samps);
    /* tremolo, envelope following gain filter is applied below! */
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
-      max *= lfo->get(lfo, NULL, 0, 0);
+      max *= lfo->get(lfo, env, NULL, 0, 0);
    }
 
    /* tremolo was defined */

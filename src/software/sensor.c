@@ -132,13 +132,13 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
                if (lfo) {
-                  p2d->final.pitch_lfo = lfo->get(lfo, NULL, 0, 0);
+                  p2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
                } else {
                   p2d->final.pitch_lfo = 1.0f;
                }
                lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
                if (lfo && !lfo->envelope) {
-                  p2d->final.gain_lfo = lfo->get(lfo, NULL, 0, 0);
+                  p2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }

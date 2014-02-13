@@ -62,6 +62,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       unsigned int no_samples, ddesamps = 0;
       unsigned int track, no_tracks;
       MIX_T **tracks;
+      void *env;
 
       if (dist_state) {
          distortion_effect = &p2d->effect[DISTORTION_EFFECT];
@@ -77,6 +78,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          // ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
          ddesamps = (unsigned int)ceilf(f * DELAY_EFFECTS_TIME);
       }
+
+      env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
@@ -95,7 +98,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
          rbi->effects(rbi->sample, scratch0, dptr, scratch1,
                       0, no_samples, no_samples, ddesamps, track, 0,
-                      freq_filter, delay_effect, distortion_effect);
+                      freq_filter, delay_effect, distortion_effect, env);
 
          /* copy the unmodified next effects buffer back */
          DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
@@ -186,11 +189,11 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
          _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                       0, no_samples, 0, track, filter, 0);
+                                      0, no_samples, 0, track, filter, NULL, 0);
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
          _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                       0, no_samples, 0, track, filter, 0);
+                                      0, no_samples, 0, track, filter, NULL, 0);
          rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
       }
       else if (graphic)
@@ -203,14 +206,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          filter = &eq->band[b];
          _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
          _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                       0, no_samples, 0, track, filter, 0);
+                                      0, no_samples, 0, track, filter, NULL, 0);
          do
          {
             filter = &eq->band[--b];
             if (filter->lf_gain || filter->hf_gain)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                            0, no_samples, 0, track, filter, 0);
+                                      0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
 
@@ -218,7 +221,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
             if (filter->lf_gain || filter->hf_gain) 
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                            0, no_samples, 0, track, filter, 0);
+                                      0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
 
@@ -226,7 +229,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
             if (filter->lf_gain || filter->hf_gain) 
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                            0, no_samples, 0, track, filter, 0);
+                                      0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
          }

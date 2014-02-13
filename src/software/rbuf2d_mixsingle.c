@@ -61,11 +61,11 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
    unsigned int offs, dno_samples;
+   _aaxRingBufferEnvelopeData* env;
    _aaxRingBufferLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    float gain, svol, evol;
    float pitch, max, nvel;
-   void *env;
    int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -86,9 +86,11 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /** Pitch */
    pitch = ep2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+
+   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
-      pitch *= lfo->get(lfo, NULL, 0, 0);
+      pitch *= lfo->get(lfo, env, NULL, 0, 0);
    }
 
    if (fp2d)
@@ -98,7 +100,6 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch = 1.0f+((pitch-1.0f)*lfo);
    }
 
-   env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
    pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
    pitch *= ep2d->note.pressure;
@@ -162,12 +163,12 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    {
       if (lfo->envelope)
       {
-         float g = lfo->get(lfo, sptr[ch]+offs, 0, dno_samples);
+         float g = lfo->get(lfo, env, sptr[ch]+offs, 0, dno_samples);
          if (lfo->inv) g = 1.0f/g;
          gain *= g;
       }
       else {
-         max *= lfo->get(lfo, NULL, 0, 0);
+         max *= lfo->get(lfo, env, NULL, 0, 0);
       }
    }
 

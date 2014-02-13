@@ -86,7 +86,7 @@ enum _aaxRingBufferMode
 #define _MAX_ENVELOPE_STAGES		6
 #define ENVELOPE_FOLLOW_STEP_CVT(a)	_MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
 
-typedef float _aaxRingBufferLFOGetFn(void*, const void*, unsigned, unsigned int);
+typedef float _aaxRingBufferLFOGetFn(void *, void*, const void*, unsigned, unsigned int);
 _aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSine;
 _aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSquare;
 _aaxRingBufferLFOGetFn _aaxRingBufferLFOGetTriangle;

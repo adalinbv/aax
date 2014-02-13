@@ -42,7 +42,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
           unsigned int start, unsigned int end, unsigned int no_samples,
           unsigned int ddesamps, unsigned int track, unsigned char ctr,
-          void *freq, void *delay, void *distort)
+          void *freq, void *delay, void *distort, void *env)
 {
    static const unsigned int bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = delay;
@@ -62,13 +62,13 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
    /* Apply frequency filter first */
    if (freq)
    {
-      _aaxRingBufferFilterFrequency(rbd, pdst, psrc, start, end, ds, track, freq, ctr);
+      _aaxRingBufferFilterFrequency(rbd, pdst, psrc, start, end, ds, track, freq, env, ctr);
       BUFSWAP(pdst, psrc);
    }
 
    if (distort)
    {
-      _aaxRingBufferEffectDistort(rbd, pdst, psrc, start, end, ds, track, distort);
+      _aaxRingBufferEffectDistort(rbd, pdst, psrc, start, end, ds, track, distort, env);
       BUFSWAP(pdst, psrc);
    }
 
@@ -77,14 +77,14 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
    {
       /* Apply delay effects */
       if (effect->loopback) {		/*    flanging     */
-         _aaxRingBufferEffectDelay(rbd, psrc, psrc, scratch, start, end, no_samples, ds,
-                        delay, track);
+         _aaxRingBufferEffectDelay(rbd, psrc, psrc, scratch, start, end,
+                                   no_samples, ds, delay, env, track);
       }
       else				/* phasing, chorus */
       {
          _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
-         _aaxRingBufferEffectDelay(rbd, pdst, psrc, scratch, start, end, no_samples, ds,
-                        delay, track);
+         _aaxRingBufferEffectDelay(rbd, pdst, psrc, scratch, start, end,
+                                   no_samples, ds, delay, env, track);
          BUFSWAP(pdst, psrc);
       }
    }
@@ -140,7 +140,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          }
       }
 
-      _aaxRingBufferFilterFrequency(rbd, sbuf2, scratch, 0, dmax, 0, track, filter, 0);
+      _aaxRingBufferFilterFrequency(rbd, sbuf2, scratch, 0, dmax, 0, track, filter, NULL, 0);
       rbd->add(sptr, sbuf2, dmax, 0.5f, 0.0f);
    }
 }
@@ -194,7 +194,7 @@ void
 _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
                MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
                unsigned int start, unsigned int end, unsigned int no_samples,
-               unsigned int ds, void *data, unsigned int track)
+               unsigned int ds, void *data, void *env, unsigned int track)
 {
    static const unsigned int bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = data;
@@ -223,7 +223,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       }
       else
       {
-         noffs = (unsigned int)effect->lfo.get(&effect->lfo, s, track, end);
+         noffs = (unsigned int)effect->lfo.get(&effect->lfo, env, s, track, end);
          effect->delay.sample_offs[track] = noffs;
          effect->curr_noffs[track] = noffs;
       }
@@ -308,7 +308,7 @@ void
 _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
                    MIX_PTR_T d, CONST_MIX_PTR_T s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
-                   unsigned int track, void *data)
+                   unsigned int track, void *data, void *env)
 {
    _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)data;
    _aaxRingBufferLFOData* lfo = dist_effect->data;
@@ -336,7 +336,7 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
       DBG_MEMCLR(1, d-ds, ds+dmax, bps);
 
       if (lfo) {
-         lfo_fact = lfo->get(lfo, sptr, track, no_samples);
+         lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
       }
       fact = params[AAX_DISTORTION_FACTOR]*lfo_fact;
       clip = params[AAX_CLIPPING_FACTOR];
@@ -377,7 +377,7 @@ void
 _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
                    MIX_PTR_T d, CONST_MIX_PTR_T s,
                    unsigned int dmin, unsigned int dmax, unsigned int ds,
-                   unsigned int track, void *data, unsigned char ctr)
+                   unsigned int track, void *data, void *env, unsigned char ctr)
 {
    _aaxRingBufferFreqFilterData *filter = data;
 
@@ -402,7 +402,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
 
       if (filter->lfo && !ctr)
       {
-         float fc = _MAX(filter->lfo->get(filter->lfo, s, track, dmax), 1.0f);
+         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1.0f);
          float Q = filter->Q;
 
          k = 1.0f;
