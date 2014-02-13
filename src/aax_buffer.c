@@ -420,8 +420,8 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
       float phase = (ratio < 0.0f) ? GMATH_PI : 0.0f;
-      unsigned int no_samples, i, bit = 1;
-      float f, fs, fw, fs_mixer;
+      float f, dt, fs, fw, fs_mixer;
+      unsigned int i, bit = 1;
       unsigned skip;
 
       ratio = fabsf(ratio);
@@ -429,20 +429,12 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(rate, 0.0f, 1.0f));
 
       fs = rb->get_paramf(rb, RB_FREQUENCY);
-      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      dt = rb->get_paramf(rb, RB_DURATION_SEC);
 
-      if (rb->get_state(rb, RB_IS_VALID))
-      {
-         float dt = no_samples/fs;
+      if (rb->get_state(rb, RB_IS_VALID)) {
          fw = floorf((fw*dt)+0.5f)/dt;
       }
-      else
-      {
-         float dt = rb->get_parami(rb, RB_NO_SAMPLES_AVAIL)/fs;
-         float duration = floorf((fw*dt)+0.5f)/fw;
-
-         no_samples = (unsigned int)ceilf(duration*fs);
-         rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+      else {
          rb->init(rb, AAX_FALSE);
       }
       f = fs/fw;
@@ -807,6 +799,7 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
       {
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xwid = xmlMarkId(xsid);
+         _aaxRingBuffer* rb;
 
          if (!freq) freq = xmlAttributeGetDouble(xsid, "freq_hz");
          if (!freq) freq = 1000.0f;
@@ -887,6 +880,9 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
          }
          xmlFree(xwid);
          xmlFree(xsid);
+
+         rb = _bufGetRingBuffer(buf, NULL);
+//       rb->limit(rb, RB_LIMITER_ELECTRONIC);
       }
       xmlClose(xid);
    }
