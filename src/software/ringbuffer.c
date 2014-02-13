@@ -639,6 +639,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       if (rbd->track == NULL)
       {
          rbd->no_samples_avail = val;
+         rbd->no_samples = val;
          rv = AAX_TRUE;
       }
       else if (val <= rbd->no_samples_avail)
@@ -654,6 +655,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       else if (val > rbd->no_samples_avail)
       {
          rbd->no_samples_avail = val;
+         rbd->no_samples = val;
          _aaxRingBufferInitTracks(rbi);
          rv = AAX_TRUE;
       }
@@ -794,6 +796,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       if (rbd->track == NULL)
       {
          rbd->no_samples_avail = val;
+         rbd->no_samples = val;
          rbd->duration_sec = (float)val / rbd->frequency_hz;
          rv = AAX_TRUE;
       }
@@ -811,6 +814,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       else if (val > rbd->no_samples_avail)
       {
          rbd->no_samples_avail = val;
+         rbd->no_samples = val;
          _aaxRingBufferInitTracks(rbi);
          rv = AAX_TRUE;
       }
@@ -1148,7 +1152,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
        for (track=0; track<tracks; track++)
        {
            MIX_T *sptr = srbi->sample->track[track];
-           float gain =  lfo->get(lfo, sptr, track, dno_samples);
+           float gain =  lfo->get(lfo, NULL, sptr, track, dno_samples);
 
            if (lfo->inv) gain = 1.0f/g;
            g += gain;
