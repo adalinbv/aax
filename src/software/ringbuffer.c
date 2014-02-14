@@ -260,7 +260,6 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 
    rbd = rbi->sample;
    _aaxRingBufferInitTracks(rbi);
-   rbd->no_samples = rbd->no_samples_avail;
 
    if (add_scratchbuf && rbd->scratch == NULL)
    {
@@ -1036,6 +1035,8 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, enum aaxWaveformType type, flo
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+
+   f = rb->get_paramf(rb, RB_FREQUENCY)/f;
 
    rbi = rb->handle;
    data = rbi->sample->track;

@@ -420,8 +420,8 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
       float phase = (ratio < 0.0f) ? GMATH_PI : 0.0f;
-      float f, dt, fs, fw, fs_mixer;
-      unsigned int i, bit = 1;
+      float f, samps_period, fs, fw, fs_mixer;
+      unsigned int no_samples, i, bit = 1;
       unsigned skip;
 
       ratio = fabsf(ratio);
@@ -429,15 +429,17 @@ aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtyp
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(rate, 0.0f, 1.0f));
 
       fs = rb->get_paramf(rb, RB_FREQUENCY);
-      dt = rb->get_paramf(rb, RB_DURATION_SEC);
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      samps_period = fs/fw;
 
-      if (rb->get_state(rb, RB_IS_VALID)) {
-         fw = floorf((fw*dt)+0.5f)/dt;
-      }
-      else {
-         rb->init(rb, AAX_FALSE);
-      }
-      f = fs/fw;
+      if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
+      {
+          no_samples = floorf(no_samples/samps_period)*samps_period;
+          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+          rb->init(rb, AAX_FALSE);
+       }
+       f = (float)no_samples/(float)samps_period;
+       f = fw*ceilf(f)/f;
 
       switch (ptype)
       {
