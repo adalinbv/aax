@@ -728,6 +728,20 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    switch(param)
    {
    case RB_IS_MIXER_BUFFER:
+      if (rbd->mixer_fmt  != val)
+      {
+         _aaxRingBufferSample *rbd = rbi->sample;
+         unsigned int track, no_tracks = rbd->no_tracks;
+         unsigned int no_samples = rbd->no_samples;
+         void **tracks = rbd->track;
+         for (track=0; track<no_tracks; track++) {
+            if (val) {
+               _batch_cvtps24_24(tracks[track], tracks[track], no_samples);
+            } else {
+               _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
+            }
+         }
+      }
       rbd->mixer_fmt = (val != 0) ? AAX_TRUE : AAX_FALSE;
       break;
    case RB_BYTES_SAMPLE:
