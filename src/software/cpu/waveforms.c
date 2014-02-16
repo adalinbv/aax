@@ -20,6 +20,7 @@
 #endif
 #include <math.h>	/* for floorf() */
 #include <time.h>	/* for time() */
+#include <assert.h>
 
 #include <base/gmath.h>
 
@@ -115,6 +116,11 @@ _aax_srandom()
  
       for (i=0; i<15; i++) {
          state[i] = mt_rand32(&random_seed);
+      }
+
+      num = 1024+(WELLRNG512()>>22);
+      for (i=0; i<num; i++) {
+         WELLRNG512();
       }
    }
 }
@@ -253,7 +259,7 @@ void _mul_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
    static const float max = 255.0f*32765.0f;
    float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
    float rnd_skip = skip ? skip : 1.0f;
-   unsigned int i = samples/skip;
+   unsigned int i = samples;
    int32_t* ptr = data;
    float s = phase;
    do
@@ -276,8 +282,8 @@ void _mix_24bps(void* data, unsigned int samples, float dt, float phase, unsigne
 {
    static const float max = 255.0f*32765.0f;
    float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
-   unsigned int i = samples/skip;
    float rnd_skip = skip ? skip : 1.0f;
+   unsigned int i = samples;
    int32_t* ptr = data;
    float s = phase;
    do
@@ -311,6 +317,47 @@ _mix_fn _get_mixfn(char bps, float *gain)
    return NULL;
 }
 
+#define AVERAGE_SAMPS		8
+void _resample_32bps(int32_t *dptr, const int32_t *sptr, unsigned int dmax, float freq_factor)
+{
+   unsigned int smax = floorf(dmax * freq_factor);
+   int32_t *s = (int32_t*)sptr;
+   int32_t *d = dptr;
+   float smu = 0.0f;
+   unsigned int i;
+   int32_t samp, dsamp;
+
+   samp = *(s+smax-1);
+   dsamp = *(++s) - samp;
+   i = dmax;
+   if (i)
+   {
+      do
+      {
+         *d++ = samp + (int32_t)(dsamp * smu);
+         smu += freq_factor;
+         if (smu >= 1.0f)
+         {
+            smu -= 1.0f;
+            samp = *s++;
+            dsamp = *s - samp;
+         }
+      }
+      while (--i);
+
+      for (i=0; i<AVERAGE_SAMPS; i++)
+      {
+         float fact = 0.5f - (float)i/(4.0f*AVERAGE_SAMPS);
+         int32_t dst = dptr[dmax-i-1];
+         int32_t src = dptr[i];
+
+         dptr[dmax-i-1] = fact*src + (1.0f - fact)*dst;
+         dptr[i] = (1.0f - fact)*src + fact*dst;
+      }
+   }
+}
+
+
 #define NO_FILTER_STEPS         6
 void
 __bufferPinkNoiseFilter(int32_t *data, unsigned int no_samples, float fs)
@@ -341,41 +388,79 @@ __bufferPinkNoiseFilter(int32_t *data, unsigned int no_samples, float fs)
 }
 
 void
-_bufferMixWhiteNoise(void** data, unsigned int no_samples, char bps, int tracks, float gain, float dc, unsigned char skip)
-{
-   _mix_fn mixfn = _get_mixfn(bps, &gain);
-   if (data && mixfn)
-   {
-      int track;
-
-      _aax_srandom(stime);
-      for(track=0; track<tracks; track++) {
-         mixfn(data[track], no_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
-      }
-   }
-}
-
-void
-_bufferMixPinkNoise(void** data, unsigned int no_samples, char bps, int tracks, float gain, float fs, float dc, unsigned char skip)
+_bufferMixWhiteNoise(void** data, void *scratch0, unsigned int no_samples, char bps, int tracks, float pitch, float gain, float dc, unsigned char skip)
 {
    _mix_fn mixfn = _get_mixfn(3, &gain);
-   int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
+   unsigned int noise_samples = pitch*no_samples;
+   int32_t* scratch = malloc((noise_samples+no_samples)*sizeof(int32_t));
    if (data && scratch)
    {
       int track;
 
-      _aax_srandom(stime);
+      _aax_srandom();
       for(track=0; track<tracks; track++)
       {
+         int32_t *ptr, *ptr2;
          unsigned int i;
-         int32_t *ptr;
 
          ptr = scratch;
-         memset(ptr, 0, no_samples*sizeof(int32_t));
-         mixfn(ptr, no_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
+         ptr2 = ptr + no_samples;
+         memset(ptr2, 0, noise_samples*sizeof(int32_t));
+         mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
 
-         __bufferPinkNoiseFilter(ptr, no_samples, fs);
-         // _batch_saturate24(ptr, no_samples);
+         _resample_32bps(ptr, ptr2, no_samples, pitch);
+
+         i = no_samples;
+         if (bps == 1)
+         {
+            uint8_t* p = data[track];
+            do {
+               *p++ += (*ptr++ >> 16);
+            } while (--i);
+         }
+         else if (bps == 2)
+         {
+            int16_t* p = data[track];
+            do {
+               *p++ += *ptr++ >> 8;
+            } while (--i);
+         }
+         else if (bps == 3 || bps == 4)
+         {
+            int32_t* p = data[track];
+            do {
+               *p++ += *ptr++;
+            } while (--i);
+         }
+      }
+
+      free(scratch);
+   }
+}
+
+void
+_bufferMixPinkNoise(void** data, void *scratch0, unsigned int no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
+{
+   _mix_fn mixfn = _get_mixfn(3, &gain);
+   unsigned int noise_samples = pitch*no_samples;
+   int32_t* scratch = malloc((noise_samples+2*no_samples)*sizeof(int32_t));
+   if (data && scratch)
+   {
+      int track;
+
+      _aax_srandom();
+      for(track=0; track<tracks; track++)
+      {
+         int32_t *ptr, *ptr2;
+         unsigned int i;
+
+         ptr = scratch;
+         ptr2 = ptr + no_samples;
+         memset(ptr2, 0, noise_samples*sizeof(int32_t));
+         mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
+
+         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+         _resample_32bps(ptr, ptr2, no_samples, pitch);
 
          i = no_samples;
          if (bps == 1)
@@ -405,27 +490,29 @@ _bufferMixPinkNoise(void** data, unsigned int no_samples, char bps, int tracks, 
 }
 
 void
-_bufferMixBrownianNoise(void** data, unsigned int no_samples, char bps, int tracks, float gain, float fs, float dc, unsigned char skip)
+_bufferMixBrownianNoise(void** data, void *scratch0, unsigned int no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
 {
    _mix_fn mixfn = _get_mixfn(3, &gain);
-   int32_t* scratch = malloc(2*no_samples*sizeof(int32_t));
+   unsigned int noise_samples = pitch*no_samples;
+   int32_t* scratch = malloc((noise_samples+2*no_samples)*sizeof(int32_t));
    if (data && scratch)
    {
       int track;
 
-      _aax_srandom(stime);
+      _aax_srandom();
       for(track=0; track<tracks; track++)
       {
+         int32_t *ptr, *ptr2;
          unsigned int i;
-         int32_t *ptr;
 
          ptr = scratch;
-         memset(ptr, 0, no_samples*sizeof(int32_t));
-         mixfn(ptr, no_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
+         ptr2 = ptr + no_samples;
+         memset(ptr2, 0, noise_samples*sizeof(int32_t));
+         mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
 
-         __bufferPinkNoiseFilter(ptr, no_samples, fs);
-         __bufferPinkNoiseFilter(ptr, no_samples, fs);
-         _batch_saturate24(ptr, no_samples);
+         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+         _resample_32bps(ptr, ptr2, no_samples, pitch);
 
          i = no_samples;		/* convert and add */
          if (bps == 1) {

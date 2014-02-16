@@ -617,6 +617,7 @@ _aaxWavGetParam(void *id, int type)
    return rv;
 }
 
+// http://wiki.audacityteam.org/wiki/WAV
 int
 _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
 {
@@ -637,7 +638,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
       }
    }
 
-#if 0
+#if 2
 {
    char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
@@ -718,7 +719,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
          if (ptr && (bufsize > 0))
          {
             unsigned int i = bufsize;
-            while (i-- > 4)
+            while (--i > 4)
             {
                int32_t *q = (int32_t*)ptr;
                if (*q == 0x61746164)		/* "data" */
@@ -728,7 +729,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
                   *offs = res;
                   break;
                }
-               else if (*q == 0x74636166)	/* "fact */
+               else if (*q == 0x74636166)	/* "fact" */
                {
                   unsigned int chunk_size = 8 + *(++q);
 
@@ -736,6 +737,37 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
                   i -= chunk_size;
 
                   handle->io.read.no_samples = *(++q);
+               }
+               else if (*q == 0x5453494c)	/* "LIST" */
+               {
+/* http://www.daubnet.com/en/file-format-riff */
+                  unsigned int chunk_size = 8 + *(++q);
+                  ptr += chunk_size;
+                  i -= chunk_size;
+printf("- Next: '%c%c%c%c'\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
+               }
+               else if (*q == 0x4c424f47 ||	/* "GOBL" */
+                        *q == 0x4f464e49 ||	/* "INFO" */
+                        *q == 0x4d414e49 ||     /* "INAM" */
+                        *q == 0x544d4349)	/* "ICMT" */
+               {
+                  unsigned int chunk_size = 4;
+
+printf("Found: '%c%c%c%c'\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
+printf("Chunk size: %i (%i)\n", chunk_size, *(q+1));
+
+                  ptr += chunk_size;
+                  i -= chunk_size;
+
+                  if (*q == 0x544d4349 ||	/* "ICMT" */
+                      *q == 0x4d414e49) {	/* "INAM" */
+printf("String: '%s'\n", ptr);
+printf("String len: %i\n", strlen(ptr));
+                     ptr += strlen(ptr)+1;
+                     i -= strlen(ptr)+1;
+                  }
+
+printf("- Next: '%c%c%c%c'\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
                }
                else ptr++;
             }
