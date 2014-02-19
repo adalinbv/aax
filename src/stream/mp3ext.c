@@ -482,6 +482,7 @@ _aaxMPG123Open(void *id, void *buf, unsigned int *bufsize)
             else if (ret == MPG123_NEED_MORE) {
                rv = buf;
             }
+            // else we're done decoding, return NULL
          }
          else {
             _AAX_FILEDRVLOG("MP3File: Unable to create a handler");
@@ -568,18 +569,17 @@ static int
 _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int bytes, bufsize;
    int bps, ret, rv = __F_EOF;
-   unsigned char *buf;
+   unsigned int bytes;
    size_t size = 0;
-
-   buf = (unsigned char*)handle->mp3Buffer;
-   bufsize = handle->mp3BufSize;
 
    bps = handle->bits_sample/8;
    bytes = num*tracks*bps;
    if (!sptr)
    {
+      unsigned char *buf = (unsigned char*)handle->mp3Buffer;
+      unsigned int bufsize = handle->mp3BufSize;
+
       if (bytes > bufsize) {
          bytes = bufsize;
       }
