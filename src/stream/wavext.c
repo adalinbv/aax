@@ -172,8 +172,12 @@ typedef struct
          int16_t format;
          uint32_t no_samples;
 
-         void *blockbuf;
-         unsigned int blockstart_smp;
+         unsigned int wavBufSize;
+         unsigned int wavBufPos;
+         unsigned int blockbufpos;
+         void *wavBuffer;
+         void *wavptr;
+
          int16_t predictor[_AAX_MAX_SPEAKERS];
          uint8_t index[_AAX_MAX_SPEAKERS];
       } read;
@@ -187,11 +191,11 @@ typedef struct
 
 } _driver_t;
 
-static int _aaxFileDriverReadHeader(_driver_t*, void*, unsigned int *);
+static int _aaxFileDriverReadHeader(_driver_t*, unsigned int*);
 static void* _aaxFileDriverUpdateHeader(_driver_t*, unsigned int *);
 static unsigned int getFileFormatFromFormat(enum aaxFormat);
 
-unsigned int _batch_cvt24_adpcm_intl(void*, int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+unsigned int _batch_cvt24_adpcm_intl(void*, int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int*);
 void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
 void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
 
@@ -208,7 +212,6 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
 
    assert(bufsize);
 
-   *bufsize = 0;
    if (handle)
    {
       int need_endian_swap, need_sign_swap;
@@ -303,16 +306,80 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
             _AAX_FILEDRVLOG("WAVFile: Insufficient memory");
          }
       }
-      else
+      else /* handle->capturing */
       {
-         /*
-          * read the file information and set the file-pointer to
-          * the start of the data section
-          */
-         if (_aaxFileDriverReadHeader(handle, buf, bufsize) < 0)
+         if (!handle->io.read.wavptr)
          {
-             _AAX_FILEDRVLOG("WAVFile: Incorrect format");
-             return rv;
+            char *ptr = 0;
+
+            handle->io.read.wavBufPos = 0;
+            handle->io.read.wavBufSize = 16384;
+            handle->io.read.wavptr = _aax_malloc(&ptr, handle->io.read.wavBufSize);
+            handle->io.read.wavBuffer = ptr;
+         }
+
+         if (handle->io.read.wavptr)
+         {
+            size_t size = *bufsize;
+            size_t avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
+            unsigned int step;
+            int res;
+
+            avail =  _MIN(size, avail);
+            memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos,
+                   buf, avail);
+            handle->io.read.wavBufPos += avail;
+            size -= avail;
+
+            /*
+             * read the file information and set the file-pointer to
+             * the start of the data section
+             */
+            
+            do
+            {
+               while ((res = _aaxFileDriverReadHeader(handle, &step)) >= 0)
+               {
+                  memcpy(handle->io.read.wavBuffer,
+                         handle->io.read.wavBuffer+step,
+                         handle->io.read.wavBufPos-step);
+                  handle->io.read.wavBufPos -= step;
+
+                  if (res == 0) break;
+               }
+
+               if (size)	// There's still some data left
+               {
+                  avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
+                  if (!avail) break;
+
+                  avail = _MIN(size, avail);
+
+                  memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos,
+                         buf, avail);
+                  handle->io.read.wavBufPos += avail;
+                  size -= avail;
+               }
+               else if (res < 0) {
+                  break;
+               }
+            }
+            while (res != 0);
+
+            if (res < 0)
+            {
+               if (size)
+               {
+                  _AAX_FILEDRVLOG("WAVFile: Incorrect format");
+                  return rv;
+               }
+            }
+            else if (res > 0)
+            {
+               *bufsize = 0;
+                return buf;
+            }
+            // else we're done decoding, return NULL
          }
       }
 
@@ -396,8 +463,6 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
          handle->cvt_from_intl = _batch_cvt24_mulaw_intl;
          break;
       case AAX_IMA4_ADPCM:
-         assert(handle->io.read.blockbuf != NULL);
-         handle->io.read.blockstart_smp = -1;
          break;
       default:
          _AAX_FILEDRVLOG("File: Unsupported format");
@@ -421,7 +486,7 @@ _aaxWavClose(void *id)
    if (handle)
    {
       if (handle->capturing) {
-         free(handle->io.read.blockbuf);
+         free(handle->io.read.wavptr);
       }
       else {
          free(handle->io.write.header);
@@ -496,31 +561,56 @@ static int
 _aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = __F_EOF;
+   unsigned int bufsize, bytes = 0;
+   int bits, rv = __F_EOF;
+   unsigned char *buf;
 
-   if (handle->io.read.no_samples < num) {
-      num = handle->io.read.no_samples;
-   }
-
-   if (num)
+   buf = (unsigned char*)handle->io.read.wavBuffer;
+   bits = handle->bits_sample;
+   if (sptr)
    {
-      if (handle->format == AAX_IMA4_ADPCM) {
-         rv = _batch_cvt24_adpcm_intl(id, dptr, sptr, offset, tracks, num);
+      bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
+      bytes = _MIN(num*tracks*bits/8, bufsize);
+
+      memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos, sptr, bytes);
+      handle->io.read.wavBufPos += bytes;
+
+      rv = __F_PROCESS;
+   }
+   else
+   {
+      if (handle->io.read.no_samples < num) {
+         num = handle->io.read.no_samples;
       }
-      else if (sptr)
+
+      bufsize = handle->io.read.wavBufPos*8/(tracks*bits);
+      if (num > bufsize) {
+         num = bufsize;
+      }
+      if (handle->format == AAX_IMA4_ADPCM) {
+         bytes = _batch_cvt24_adpcm_intl(id, dptr, buf, offset, tracks, &num);
+         rv = num;
+         num /= tracks;
+      }
+      else
       {
          if (handle->cvt_from_intl)
          {
-            handle->cvt_from_intl(dptr, sptr, offset, tracks, num);
+            handle->cvt_from_intl(dptr, buf, offset, tracks, num);
+            bytes = num*tracks*bits/8;
             rv = num;
          }
       }
-      else {
-         rv = 0;
+
+      if (bytes > 0)
+      {
+         memcpy(handle->io.read.wavBuffer, handle->io.read.wavBuffer+bytes,
+                handle->io.read.wavBufPos - bytes);
+         handle->io.read.wavBufPos -= bytes;
       }
 
-      if (handle->io.read.no_samples >= rv) {
-         handle->io.read.no_samples -= rv;
+      if (handle->io.read.no_samples >= num) {
+         handle->io.read.no_samples -= num;
       } else {
          handle->io.read.no_samples = 0;
       }
@@ -619,26 +709,52 @@ _aaxWavGetParam(void *id, int type)
 
 // http://wiki.audacityteam.org/wiki/WAV
 int
-_aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
+_aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
 {
-   uint32_t *header = (uint32_t*)buffer;
-   unsigned int size, bufsize = *offs;
+   uint32_t *header = handle->io.read.wavBuffer;
+   unsigned int size, bufsize = handle->io.read.wavBufPos;
    int fmt, bits, res = -1;
-   char extfmt, *ptr;
+   int32_t curr;
+   char extfmt;
 
-   extfmt = (header[5] & 0xFFFF) == EXTENSIBLE_WAVE_FORMAT;
-   size = 4*sizeof(int32_t) + header[4];
-
-   *offs = 0;
-   if (is_bigendian())
-   {
-      int i;
-      for (i=0; i<size/sizeof(int32_t); i++) {
-         header[i] = _bswap32(header[i]);
-      }
+   *step = 0;
+   curr = header[0];
+   if (is_bigendian()) {
+      _bswap32(curr);
    }
+   if (curr == 0x46464952)		/* RIFF */
+   {
+      if (bufsize < WAVE_HEADER_SIZE) {
+         return res;
+      }
 
-#if 2
+      curr = header[5] & 0xFFFF;
+      if (is_bigendian()) {
+         _bswap32h(curr);
+      }
+
+      extfmt = (curr == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
+      if (extfmt && (bufsize < WAVE_EXT_HEADER_SIZE)) {
+         return res;
+      }
+
+      curr = header[4];
+      if (is_bigendian()) {
+         _bswap32(curr);
+      }
+
+      size = 4*sizeof(int32_t) + curr;
+      *step = res = size;
+      if (is_bigendian())
+      {
+         int i;
+          
+         for (i=0; i<size/sizeof(int32_t); i++) {
+            header[i] = _bswap32(header[i]);
+         }
+      }
+
+#if 1
 {
    char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
@@ -677,106 +793,66 @@ _aaxFileDriverReadHeader(_driver_t *handle, void *buffer, unsigned int *offs)
 }
 #endif
 
-   if (header[0] == 0x46464952 && 		/* RIFF */
-       header[2] == 0x45564157 &&		/* WAVE */
-       header[3] == 0x20746d66) 		/* fmt  */
-   {
-      handle->frequency = header[6];
-      handle->no_tracks = header[5] >> 16;
-      handle->bits_sample = extfmt ? (header[9] >> 16) : (header[8] >> 16);
-
-      if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
-          (handle->frequency >= 4000 && handle->frequency <= 256000) &&
-          (handle->no_tracks >= 1 && handle->no_tracks <= _AAX_MAX_SPEAKERS))
+      if (header[2] == 0x45564157 &&		/* WAVE */
+          header[3] == 0x20746d66) 		/* fmt  */
       {
-         handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
-         handle->blocksize = header[8] & 0xFFFF;
-         if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8)) {
-            handle->blocksize = 0;
-         }
+         handle->frequency = header[6];
+         handle->no_tracks = header[5] >> 16;
+         handle->bits_sample = extfmt ? (header[9] >> 16) : (header[8] >> 16);
 
-         bits = handle->bits_sample;
-         fmt = handle->io.read.format;
-         handle->format = getFormatFromWAVFileFormat(fmt, bits);
-         switch(handle->format)
+         if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
+             (handle->frequency >= 4000 && handle->frequency <= 256000) &&
+             (handle->no_tracks >= 1 && handle->no_tracks <= _AAX_MAX_SPEAKERS))
          {
-         case AAX_FORMAT_NONE:
-            return __F_EOF;
-            break;
-         case AAX_IMA4_ADPCM:
-            free(handle->io.read.blockbuf);
-            handle->io.read.blockbuf = malloc(handle->blocksize);
-            break;
-         default: 
-            break;
-         }
-
-         /* search for the data chunk */
-         ptr = (char*)buffer;
-         ptr += size;
-         bufsize -= size;
-
-         if (ptr && (bufsize > 0))
-         {
-            unsigned int i = bufsize;
-            while (--i > 4)
-            {
-               int32_t *q = (int32_t*)ptr;
-               if (*q == 0x61746164)		/* "data" */
-               {
-                  q += 2;
-                  res = ((char*)q - (char*)buffer);
-                  *offs = res;
-                  break;
-               }
-               else if (*q == 0x74636166)	/* "fact" */
-               {
-                  unsigned int chunk_size = 8 + *(++q);
-
-                  ptr += chunk_size;
-                  i -= chunk_size;
-
-                  handle->io.read.no_samples = *(++q);
-               }
-               else if (*q == 0x5453494c)	/* "LIST" */
-               {
-/* http://www.daubnet.com/en/file-format-riff */
-                  unsigned int chunk_size = 8 + *(++q);
-                  ptr += chunk_size;
-                  i -= chunk_size;
-printf("- Next: '%c%c%c%c'\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
-               }
-               else if (*q == 0x4c424f47 ||	/* "GOBL" */
-                        *q == 0x4f464e49 ||	/* "INFO" */
-                        *q == 0x4d414e49 ||     /* "INAM" */
-                        *q == 0x544d4349)	/* "ICMT" */
-               {
-                  unsigned int chunk_size = 4;
-
-printf("Found: '%c%c%c%c'\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
-printf("Chunk size: %i (%i)\n", chunk_size, *(q+1));
-
-                  ptr += chunk_size;
-                  i -= chunk_size;
-
-                  if (*q == 0x544d4349 ||	/* "ICMT" */
-                      *q == 0x4d414e49) {	/* "INAM" */
-printf("String: '%s'\n", ptr);
-printf("String len: %i\n", strlen(ptr));
-                     ptr += strlen(ptr)+1;
-                     i -= strlen(ptr)+1;
-                  }
-
-printf("- Next: '%c%c%c%c'\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
-               }
-               else ptr++;
+            handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
+            handle->blocksize = header[8] & 0xFFFF;
+            if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8)) {
+               handle->blocksize = 0;
             }
-            if (!i) res = __F_EOF;
-         }
-         else {
-            res = __F_EOF;
+
+            bits = handle->bits_sample;
+            fmt = handle->io.read.format;
+            handle->format = getFormatFromWAVFileFormat(fmt, bits);
+            switch(handle->format)
+            {
+            case AAX_FORMAT_NONE:
+               return __F_EOF;
+               break;
+            case AAX_IMA4_ADPCM:
+               break;
+            default: 
+               break;
+            }
          }
       }
+      else {
+         return -1;
+      }
+   }
+   else if (curr == 0x5453494c)		/* "LIST" */
+   {
+      curr = header[1];
+      if (is_bigendian()) {
+         _bswap32(curr);
+      }
+      *step = res = 2*sizeof(int32_t) + curr;	/* skip LIST, for now */
+   }
+   else if (curr == 0x74636166)		/* "fact" */
+   {
+      curr = header[2];
+      if (is_bigendian()) {
+         _bswap32(curr);
+      }
+      handle->io.read.no_samples = curr;
+      *step = res = 3*sizeof(int32_t);
+   }
+   else if (curr == 0x61746164)		/* "data" */
+   {
+      *step = 2*sizeof(int32_t);
+      res = 0;				/* we're done processing the header */
+   }
+   else {				/* instect the next 4-byte chunk */
+      *step = res = sizeof(int32_t);
    }
 
    return res;
@@ -1004,7 +1080,7 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
 
    if (num)
    {
-      int32_t *src = handle->io.read.blockbuf;
+      int32_t *src = handle->io.read.wavBuffer;
       unsigned t, tracks = handle->no_tracks;
 
       for (t=0; t<tracks; t++)
@@ -1097,35 +1173,33 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
 }
 
 unsigned int
-_batch_cvt24_adpcm_intl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offs, unsigned int tracks, unsigned int num)
+_batch_cvt24_adpcm_intl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offs, unsigned int tracks, unsigned int *n)
 {
    _driver_t *handle = (_driver_t*)id;
+   unsigned int num = *n;
    int rv = 0;
 
-   if (sptr)
-   {
-      unsigned int blocksize = SMP_TO_MSBLOCKSIZE(num, tracks);
-      if (blocksize >= handle->blocksize)
-      {
-         _aax_memcpy(handle->io.read.blockbuf, sptr, handle->blocksize);
-         handle->io.read.blockstart_smp = 0;
-         rv = __F_PROCESS;
-      }
-      else {
-         rv = __F_EOF;
-      }
-   }
-   else if (num && handle->io.read.blockstart_smp != -1)
+   if (handle->io.read.wavBufPos >= handle->blocksize)
    {
       unsigned int block_smp, decode_smp, offs_smp;
+      int r;
 
-      offs_smp = handle->io.read.blockstart_smp;
+      offs_smp = handle->io.read.blockbufpos;
       block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks);
       decode_smp = _MIN(block_smp-offs_smp, num);
 
-      rv = _aaxWavMSADPCMBlockDecode(handle, dptr, offs_smp, decode_smp, offs);
+      r = _aaxWavMSADPCMBlockDecode(handle, dptr, offs_smp, decode_smp, offs);
+      handle->io.read.blockbufpos += r;
+      *n = r;
 
-      handle->io.read.blockstart_smp += rv;
+      if (handle->io.read.blockbufpos >= block_smp)
+      {
+         handle->io.read.blockbufpos = 0;
+         rv = handle->blocksize;
+      }
+   }
+   else {
+      *n = rv = 0;
    }
 
    return rv;
