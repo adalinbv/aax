@@ -1,9 +1,10 @@
 * Fri Feb 14 2014 - tech@adalin.org
 - AeonWave (2.3.5) stable; urgency=low
+ * Support WAV files with a LIST section.
  * Fix Auto generated waveform loop-points.
  * Reorganized the code to support different hardware rendering schemes in
-   the future. As a result the current implementation also renders
-   25% to 66% faster (depending of the computer hardware, older hardware
+   the future. As a result the current implementation also renders 25% to 66%
+   faster than before (depending of the computer hardware, older hardware
    tends to profit most).
 
  -- Erik Hofman <tech@adalin.org>  Fri, 14 Feb 2014 13:27:00 +0100

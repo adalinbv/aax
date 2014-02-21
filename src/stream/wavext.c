@@ -23,7 +23,7 @@
 # include <stdlib.h>
 # include <string.h>
 # if HAVE_STRINGS_H
-#  include <strings.h>   /* strcasecmp */
+#  include <strings.h>		/* strcasecmp */
 # endif
 # if HAVE_UNISTD_H
 #  include <unistd.h>
@@ -44,6 +44,15 @@
 #include "filetype.h"
 #include "audio.h"
 #include "software/audio.h"
+
+#if 0
+do             
+{              
+   char *ch = (char*)&header[2]; 
+   printf("%8x: %c%c%c%c\n", header[2], ch[0], ch[1], ch[2], ch[3]);
+} while(0);    
+#endif
+
 
 static _detect_fn _aaxWavDetect;
 
@@ -97,6 +106,9 @@ _aaxDetectWavFile()
 #define DEFAULT_OUTPUT_RATE		22050
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 #define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
+
+#define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
+#define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
 
 static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE] =
 {
@@ -172,6 +184,7 @@ typedef struct
          int16_t format;
          uint32_t no_samples;
 
+         uint32_t last_tag;
          unsigned int wavBufSize;
          unsigned int wavBufPos;
          unsigned int blockbufpos;
@@ -326,6 +339,8 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
             int res;
 
             avail =  _MIN(size, avail);
+if (avail == 0)
+exit(-1);
             memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos,
                    buf, avail);
             handle->io.read.wavBufPos += avail;
@@ -338,14 +353,13 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
             
             do
             {
-               while ((res = _aaxFileDriverReadHeader(handle, &step)) >= 0)
+               while ((res = _aaxFileDriverReadHeader(handle,&step)) != __F_EOF)
                {
                   memcpy(handle->io.read.wavBuffer,
                          handle->io.read.wavBuffer+step,
                          handle->io.read.wavBufPos-step);
                   handle->io.read.wavBufPos -= step;
-
-                  if (res == 0) break;
+                  if (res <= 0) break;
                }
 
                if (size)	// There's still some data left
@@ -360,15 +374,15 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
                   handle->io.read.wavBufPos += avail;
                   size -= avail;
                }
-               else if (res < 0) {
-                  break;
-               }
             }
-            while (res != 0);
+            while (res > 0);
 
             if (res < 0)
             {
-               if (size)
+               if (res == __F_PROCESS) {
+                  return buf;
+               }
+               else if (size)
                {
                   _AAX_FILEDRVLOG("WAVFile: Incorrect format");
                   return rv;
@@ -714,36 +728,37 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
    uint32_t *header = handle->io.read.wavBuffer;
    unsigned int size, bufsize = handle->io.read.wavBufPos;
    int fmt, bits, res = -1;
-   int32_t curr;
+   int32_t curr, init_tag;
    char extfmt;
 
    *step = 0;
-   curr = header[0];
-   if (is_bigendian()) {
-      _bswap32(curr);
+
+   init_tag = curr = handle->io.read.last_tag;
+   if (curr == 0) {
+      curr = BSWAP(header[0]);
    }
+   handle->io.read.last_tag = 0;
+
+   /* Is it a RIFF file? */
    if (curr == 0x46464952)		/* RIFF */
    {
       if (bufsize < WAVE_HEADER_SIZE) {
          return res;
       }
 
-      curr = header[5] & 0xFFFF;
-      if (is_bigendian()) {
-         _bswap32h(curr);
-      }
+      /* normal or extended format header? */
+      curr = BSWAPH(header[5] & 0xFFFF);
 
       extfmt = (curr == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
       if (extfmt && (bufsize < WAVE_EXT_HEADER_SIZE)) {
          return res;
       }
 
-      curr = header[4];
-      if (is_bigendian()) {
-         _bswap32(curr);
-      }
+      /* actual file size */
+      curr = BSWAP(header[4]);
 
-      size = 4*sizeof(int32_t) + curr;
+      /* fmt chunk size */
+      size = 5*sizeof(int32_t) + curr;
       *step = res = size;
       if (is_bigendian())
       {
@@ -753,8 +768,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
             header[i] = _bswap32(header[i]);
          }
       }
-
-#if 1
+#if 0
 {
    char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
@@ -829,30 +843,95 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
          return -1;
       }
    }
-   else if (curr == 0x5453494c)		/* "LIST" */
-   {
-      curr = header[1];
-      if (is_bigendian()) {
-         _bswap32(curr);
+   else if (curr == 0x5453494c)		/* LIST */
+   {				// http://www.daubnet.com/en/file-format-riff
+      int size = bufsize;
+
+      *step = 0;
+      if (!init_tag)
+      {
+         curr = BSWAP(header[1]);
+         handle->io.read.blockbufpos = curr;
+         size = _MIN(curr, bufsize);
       }
-      *step = res = 2*sizeof(int32_t) + curr;	/* skip LIST, for now */
+
+      /*
+       * if handle->io.read.last_tag != 0 we know this is an INFO tag because
+       * the last run couldn't finish due to lack of data and we did set
+       * handle->io.read.last_tag to "LIST" ourselves.
+       */
+      if (init_tag || header[2] == 0x4f464e49)	/* INFO */
+      {
+         size_t chunklen = 0;
+
+         if (!init_tag)
+         {
+            header += 3;
+            size -= 3*sizeof(int32_t);
+            *step += 2*sizeof(int32_t);
+         }
+         *step += sizeof(int32_t);
+         res = *step + size;
+
+         do
+         {
+            curr = BSWAP(header[0]);
+            switch(curr)
+            {
+            case 0x54524149:	/* IART: Artist              */
+            case 0x44525049: 	/* IPRD: Album Title/Product */
+            case 0x4b525449:	/* ITRK: Track Number        */
+            case 0x44524349:	/* ICRD: Date Created        */
+            case 0x524e4749:	/* IGNR: Genre               */
+            case 0x504f4349:	/* ICOP: Copyright           */
+            case 0x54465349:	/* ISFT: Software            */
+            case 0x4d414e49:	/* INAM: Track Title         */
+            case 0x544d4349:	/* ICMT: Comments            */
+
+               curr = BSWAP(header[1]);
+               chunklen = curr/sizeof(int32_t);
+               if (chunklen*sizeof(int32_t) < curr) {
+                  chunklen++;
+               }
+
+               size -= (2 + chunklen)*sizeof(int32_t);
+               if (size < 0) break;
+
+               *step += (2 + chunklen)*sizeof(int32_t);
+               header += 2 + chunklen;
+               break;
+            default:		// we're done
+               size = 0;
+               *step -= sizeof(int32_t);
+               if (curr == 0x61746164) {	 /* data */
+                  res = *step;
+               } else {
+                  res = __F_EOF;
+               }
+               break;
+            }
+         }
+         while (size > 0);
+
+         if (size < 0)
+         {
+            handle->io.read.last_tag = 0x5453494c; /* LIST */
+            res = __F_PROCESS;
+         }
+         else {
+            handle->io.read.blockbufpos = 0;
+         }
+      }
    }
-   else if (curr == 0x74636166)		/* "fact" */
+   else if (curr == 0x74636166)		/* fact */
    {
-      curr = header[2];
-      if (is_bigendian()) {
-         _bswap32(curr);
-      }
+      curr = BSWAP(header[2]);
       handle->io.read.no_samples = curr;
       *step = res = 3*sizeof(int32_t);
    }
-   else if (curr == 0x61746164)		/* "data" */
+   else if (curr == 0x61746164)		/* data */
    {
-      *step = 2*sizeof(int32_t);
-      res = 0;				/* we're done processing the header */
-   }
-   else {				/* instect the next 4-byte chunk */
-      *step = res = sizeof(int32_t);
+      *step = res = 2*sizeof(int32_t);
    }
 
    return res;

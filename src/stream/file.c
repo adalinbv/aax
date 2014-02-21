@@ -447,9 +447,9 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                   res = lseek(handle->fd, bufsize, SEEK_SET);
                }
             }
-            else { 
-               break;
-            }
+//          else { 
+//             break;
+//          }
          }
          while (handle->mode == AAX_MODE_READ && buf && bufsize);
 
