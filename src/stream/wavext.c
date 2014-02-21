@@ -860,7 +860,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
        * the last run couldn't finish due to lack of data and we did set
        * handle->io.read.last_tag to "LIST" ourselves.
        */
-      if (init_tag || header[2] == 0x4f464e49)	/* INFO */
+      if (init_tag || BSWAP(header[2]) == 0x4f464e49)	/* INFO */
       {
          size_t chunklen = 0;
 
@@ -889,21 +889,17 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
             case 0x544d4349:	/* ICMT: Comments            */
 
                curr = BSWAP(header[1]);
-               chunklen = curr/sizeof(int32_t);
-               if (chunklen*sizeof(int32_t) < curr) {
-                  chunklen++;
-               }
-
-               size -= (2 + chunklen)*sizeof(int32_t);
+               size -= 2*sizeof(int32_t) + curr;
                if (size < 0) break;
 
-               *step += (2 + chunklen)*sizeof(int32_t);
-               header += 2 + chunklen;
+               *step += 2*sizeof(int32_t) + curr;
+               header = ((char*)header + 2*sizeof(int32_t) + curr);
                break;
             default:		// we're done
                size = 0;
                *step -= sizeof(int32_t);
                if (curr == 0x61746164) {	 /* data */
+                  
                   res = *step;
                } else {
                   res = __F_EOF;
