@@ -704,7 +704,7 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
       {
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xwid = xmlMarkId(xsid);
-         _aaxRingBuffer* rb;
+//       _aaxRingBuffer* rb;
 
          if (!freq) freq = xmlAttributeGetDouble(xsid, "freq_hz");
          if (!freq) freq = 1000.0f;
@@ -786,7 +786,7 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
          xmlFree(xwid);
          xmlFree(xsid);
 
-         rb = _bufGetRingBuffer(buf, NULL);
+//       rb = _bufGetRingBuffer(buf, NULL);
 //       rb->limit(rb, RB_LIMITER_ELECTRONIC);
       }
       else {

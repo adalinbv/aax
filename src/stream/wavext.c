@@ -234,7 +234,7 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
          char extfmt = AAX_FALSE;
          unsigned int size;
 
-         if (handle->bits_sample> 16) extfmt = AAX_TRUE;
+         if (handle->bits_sample > 16) extfmt = AAX_TRUE;
          else if (handle->no_tracks > 2) extfmt = AAX_TRUE;
          else if (handle->bits_sample < 8) extfmt = AAX_TRUE;
 
@@ -339,8 +339,8 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
             int res;
 
             avail =  _MIN(size, avail);
-if (avail == 0)
-exit(-1);
+            if (!avail) return NULL;
+
             memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos,
                    buf, avail);
             handle->io.read.wavBufPos += avail;
@@ -862,8 +862,6 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
        */
       if (init_tag || BSWAP(header[2]) == 0x4f464e49)	/* INFO */
       {
-         size_t chunklen = 0;
-
          if (!init_tag)
          {
             header += 3;
@@ -893,7 +891,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
                if (size < 0) break;
 
                *step += 2*sizeof(int32_t) + curr;
-               header = ((char*)header + 2*sizeof(int32_t) + curr);
+               header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
                break;
             default:		// we're done
                size = 0;
