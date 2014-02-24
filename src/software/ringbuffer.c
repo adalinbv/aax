@@ -728,6 +728,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    switch(param)
    {
    case RB_IS_MIXER_BUFFER:
+#if RB_FLOAT_DATA
       if (rbd->mixer_fmt  != val)
       {
          _aaxRingBufferSample *rbd = rbi->sample;
@@ -746,6 +747,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
             }
          }
       }
+#endif
       rbd->mixer_fmt = (val != 0) ? AAX_TRUE : AAX_FALSE;
       break;
    case RB_BYTES_SAMPLE:
