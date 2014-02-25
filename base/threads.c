@@ -68,18 +68,23 @@ _aaxThreadDestroy(void *t)
    t = 0;
 }
 
+#define POLICY		SCHED_RR
 int
 _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
 {
    struct sched_param sched_param;
    pthread_attr_t attr;
-   int ret;
+   int ret, min, max;
 
    assert(t != 0);
    assert(handler != 0);
 
    pthread_attr_init(&attr);
-   sched_param.sched_priority = 0;
+
+   min = sched_get_priority_min(POLICY);
+   max = sched_get_priority_max(POLICY);
+   
+   sched_param.sched_priority = min + (max-min)/10;
    pthread_attr_setschedparam(&attr, &sched_param);
 
    ret = pthread_create(t, &attr, handler, arg);
@@ -88,7 +93,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
       int rv;
       pthread_t *id = t;
 
-      rv = pthread_setschedparam(*id, SCHED_OTHER, &sched_param);
+      rv = pthread_setschedparam(*id, POLICY, &sched_param);
       if (rv != 0) {
          _TH_SYSLOG("no thread scheduling privilege");
       } else {
