@@ -999,6 +999,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN( psnd_pcm_sw_params(hid, swparams),
             "unable to configure software" );
+
+      TRUN( psnd_pcm_prepare(hid),
+            "unable to prepare" );
    }
 
    if (swparams) free(swparams);
@@ -1035,20 +1038,12 @@ _aaxALSADriverCapture(const void *id, void **data, int *offset, size_t *req_fram
    }
 
    state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING)
-   {
-      if (state <= SND_PCM_STATE_PREPARED)
-      {
-         if (handle->playing == 0)
-         {
-            psnd_pcm_prepare(handle->pcm);
-            psnd_pcm_start(handle->pcm);
-         }
-      }
-      else if (state == SND_PCM_STATE_XRUN) {
-//       _AAX_DRVLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
-         xrun_recovery(handle->pcm, -EPIPE);
-      }
+   if (state != SND_PCM_STATE_RUNNING) {
+      psnd_pcm_start(handle->pcm);
+   }
+   else if (state == SND_PCM_STATE_XRUN) {
+//    _AAX_DRVLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
+      xrun_recovery(handle->pcm, -EPIPE);
    }
 
    tracks = handle->hw_channels;
@@ -2247,7 +2242,7 @@ _xrun_recovery(snd_pcm_t *handle, int err)
    if (res != 0) {
       _AAX_DRVLOG("alsa; Unable to recover from xrun situation");
    }
-   else if (err == -EPIPE)
+   else if (res == -EPIPE)
    {
       if (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE)
       {
@@ -2300,25 +2295,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
 
-   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
-
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING)
-   {
-      if (state == SND_PCM_STATE_PREPARED)
-      {
-         if (handle->playing++ < 1) {
-            psnd_pcm_prepare(handle->pcm);
-         } else {
-            psnd_pcm_start(handle->pcm);
-         }
-      }
-      else if (state == SND_PCM_STATE_XRUN) {
-         _AAX_DRVLOG("alsa (mmap_ni): state = SND_PCM_STATE_XRUN.");
-         xrun_recovery(handle->pcm, -EPIPE);
-      }
-   }
-
    avail = psnd_pcm_avail_update(handle->pcm);
    if (avail < 0)
    {
@@ -2334,6 +2310,15 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 
    if (avail < no_frames) avail = 0;
    else avail = no_frames;
+
+   state = psnd_pcm_state(handle->pcm);
+   if ((state != SND_PCM_STATE_RUNNING) &&
+       (avail > 0) && (avail <= handle->threshold))
+   {
+      psnd_pcm_start(handle->pcm);
+   }
+
+   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    chunk = 10;
    sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
@@ -2405,30 +2390,11 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
 
-   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
-
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING)
-   {
-      if (state == SND_PCM_STATE_PREPARED)
-      {
-         if (handle->playing++ < 1) {
-            psnd_pcm_prepare(handle->pcm);
-         } else {
-            psnd_pcm_start(handle->pcm);
-         }
-      }
-      else if (state == SND_PCM_STATE_XRUN) {
-         _AAX_DRVLOG("alsa (mmap_il): state = SND_PCM_STATE_XRUN.");
-         xrun_recovery(handle->pcm, -EPIPE);
-      }
-   }
-
    avail = psnd_pcm_avail_update(handle->pcm);
    if (avail < 0)
    {
       int err;
-      if ((err = xrun_recovery(handle->pcm, avail)) < 0) 
+      if ((err = xrun_recovery(handle->pcm, avail)) < 0)
       {
          char s[255];
          snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
@@ -2436,9 +2402,18 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
          return 0;
       }
    }
-   
+
    if (avail < no_frames) avail = 0;
    else avail = no_frames;
+
+   state = psnd_pcm_state(handle->pcm);
+   if ((state != SND_PCM_STATE_RUNNING) &&
+       (avail > 0) && (avail <= handle->threshold))  
+   {
+      psnd_pcm_start(handle->pcm);
+   }
+
+   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    chunk = 10;
    sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
