@@ -53,8 +53,10 @@ extern "C" {
 #include <smmintrin.h>
 #endif
 
+#if defined(__AVX__)
 #include <immintrin.h>
 #include <x86intrin.h>
+#endif
 
 #include "base/types.h"
 #include "base/geometry.h"
