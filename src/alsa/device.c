@@ -891,10 +891,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          no_frames = rate/25;
       }
 
-      // Compensate for the required 3 periods instead of 2
-      no_frames*=2;
-      no_frames/=3;
-
+      // Compensate for no. periods larger than 2.
+      if (handle->mode)
+      {
+         no_frames *= 2;
+         no_frames /= PLAYBACK_PERIODS;
+      }
 
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
@@ -917,8 +919,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          rate = (unsigned int)handle->frequency_hz;
       }
       *speed = handle->frequency_hz = (float)rate;
-//    handle->latency = (float)no_frames*(float)periods/(float)rate;
-      handle->latency = (float)no_frames/(float)rate;
+
+      handle->latency = (float)(no_frames*(periods-1))/(float)rate;
 
       do
       {
@@ -1007,6 +1009,31 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN( psnd_pcm_prepare(hid),
             "unable to prepare" );
+
+      // Now fill the playback buffer with handle->no_periods periods of
+      // silence for lowest latency.
+      if (handle->mode)
+      {
+         _aaxRingBuffer *rb;
+         int i;
+
+         rb = _aaxRingBufferCreate(0.0f, handle->mode);
+         if (rb)
+         {
+            rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+            rb->set_parami(rb, RB_NO_TRACKS, handle->no_channels);
+            rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
+            rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
+            rb->init(rb, AAX_TRUE);
+            rb->set_state(rb, RB_STARTED);
+
+            for (i=0; i<handle->no_periods; i++) {
+               handle->play(handle, rb, 1.0f, 0.0f);
+            }
+            _aaxRingBufferFree(rb);
+            handle->latency = (float)no_frames/(float)rate;
+         }
+      }
    }
 
    if (swparams) free(swparams);
