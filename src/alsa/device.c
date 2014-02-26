@@ -891,6 +891,11 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          no_frames = rate/25;
       }
 
+      // Compensate for the required 3 periods instead of 2
+      no_frames*=2;
+      no_frames/=3;
+
+
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
       no_frames *= periods;
@@ -2308,15 +2313,15 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       }
    }
 
-   if (avail < no_frames) avail = 0;
-   else avail = no_frames;
-
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
        (avail > 0) && (avail <= handle->threshold))
    {
       psnd_pcm_start(handle->pcm);
    }
+
+   if (avail < no_frames) avail = 0;
+   else avail = no_frames;
 
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
@@ -2403,15 +2408,15 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       }
    }
 
-   if (avail < no_frames) avail = 0;
-   else avail = no_frames;
-
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
        (avail > 0) && (avail <= handle->threshold))  
    {
       psnd_pcm_start(handle->pcm);
    }
+
+   if (avail < no_frames) avail = 0;
+   else avail = no_frames;
 
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
