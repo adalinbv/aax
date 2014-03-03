@@ -361,21 +361,27 @@ _aaxGetSSELevel()
    return sse_level;
 }
 
+#if RB_FLOAT_DATA
+# define SIMD_PREFIX "FP "
+#else
+# define SIMD_PREFIX
+#endif
+
 const char *
 _aaxGetSIMDSupportString()
 {
    static const char *_aaxSSESupportString[MAX_SSE_LEVEL+1] = {
-      "", 
-      "MMX",
-      "MMX/SSE",
-      "MMX/SSE2",
-      "MMX/SSE3",
-      "MMX/SSSE3",
-      "MMX/SSE4a",
-      "MMX/SSE4.1",
-      "MMX/SSE4.2",
-      "SSE/AVX",
-      "NEON"
+      SIMD_PREFIX"", 
+      SIMD_PREFIX"MMX",
+      SIMD_PREFIX"MMX/SSE",
+      SIMD_PREFIX"MMX/SSE2",
+      SIMD_PREFIX"MMX/SSE3",
+      SIMD_PREFIX"MMX/SSSE3",
+      SIMD_PREFIX"MMX/SSE4a",
+      SIMD_PREFIX"MMX/SSE4.1",
+      SIMD_PREFIX"MMX/SSE4.2",
+      SIMD_PREFIX"SSE/AVX",
+      SIMD_PREFIX"NEON"
    };
    int level = 0;
 
