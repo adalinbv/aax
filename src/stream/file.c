@@ -554,7 +554,9 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 
    assert(outbuf_size <= handle->buf_len);
 
-   sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+   // NOTE: Need RB_RW in case it is used as a slaved file-backend
+   //       See _aaxSoftwareMixerPlay
+   sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    if (fabs(gain - 1.0f) > 0.05f)
    {
       int t;

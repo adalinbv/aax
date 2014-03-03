@@ -485,10 +485,12 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
       dest_rb = new_rb;
    }
 
-   res = be->play(be_handle, dest_rb, 1.0f, gain);
+   // NOTE: File backend must be first, it's the only backend that
+   //       converts the buffer back to floats when done!
    if (fbe) {	/* slaved file-out backend */
       fbe->play(fbe_handle, dest_rb, 1.0f, gain);
    }
+   res = be->play(be_handle, dest_rb, 1.0f, gain);
 
    return res;
 }
