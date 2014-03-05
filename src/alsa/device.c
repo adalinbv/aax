@@ -2690,6 +2690,7 @@ _aaxALSADriverThread(void* config)
    int stdby_time;
    char state;
 
+printf("_aaxALSADriverThread\n");
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
       return NULL;

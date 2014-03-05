@@ -36,10 +36,10 @@ void
 _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d)
 {
    _aaxDriverBackend *be = (_aaxDriverBackend*)id;
-   _aax2dProps *p2d = (_aax2dProps*)props2d;
-   _aaxRingBuffer *rb = (_aaxRingBuffer *)drb;
    _aaxRingBufferDelayEffectData* delay_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)drb;
+   _aax2dProps *p2d = (_aax2dProps*)props2d;
    float maxgain, gain;
    int bps, dist_state;
 
@@ -321,7 +321,7 @@ _aaxSoftwareMixerThread(void* config)
       }
 
       /* do all the mixing */
-      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
    }
    while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
 
@@ -513,6 +513,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {
       fbe = handle->file.ptr;
    }
+
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor && (_IS_PLAYING(handle) || _IS_STANDBY(handle)))
    {
@@ -534,6 +535,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                void *rv;
 
                gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
+               gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
                rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
                                       smixer->info->track,
@@ -547,9 +549,13 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)
                {
+                  _intBuffers *rbs = smixer->play_ringbuffers;
                   if (rb != rv)
                   {
-                     _intBufAddData(smixer->play_ringbuffers, _AAX_RINGBUFFER, rb);
+                     rb->set_state(rb, RB_STARTED);
+                     rb->set_state(rb, RB_REWINDED);
+
+                     _intBufAddData(rbs, _AAX_RINGBUFFER, rb);
                      handle->ringbuffer = rv;
                   }
                   smixer->curr_pos_sec += dt;

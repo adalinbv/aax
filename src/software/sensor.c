@@ -363,6 +363,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
 
 /*-------------------------------------------------------------------------- */
 
+#if 0
 unsigned int
 _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
 {
@@ -434,4 +435,4 @@ _aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
    }
    return num;
 }
-
+#endif

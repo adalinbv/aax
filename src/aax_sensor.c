@@ -474,7 +474,6 @@ int
 _aaxSensorCaptureStart(_handle_t *handle)
 {
    int rv = AAX_FALSE;
-
    assert(handle);
    assert(handle->info->mode == AAX_MODE_READ);
    assert(handle->thread.started == AAX_FALSE);
@@ -487,10 +486,9 @@ _aaxSensorCaptureStart(_handle_t *handle)
          _sensor_t *sensor = _intBufGetDataPtr(dptr);
          char thread = sensor->mixer->thread;
          _intBufReleaseData(dptr, _AAX_SENSOR);
-         if (thread)
+         if (1) // thread)
          {
             const _aaxDriverBackend *be = handle->backend.ptr;
-
             if (be->thread)
             {
                unsigned int ms;
@@ -524,7 +522,8 @@ _aaxSensorCaptureStart(_handle_t *handle)
                      if (dptr)
                      {
                         sensor = _intBufGetDataPtr(dptr);
-                        r = (sensor->mixer->ringbuffer != 0);
+//                      r = (sensor->mixer->ringbuffer != 0);
+                        r = (handle->ringbuffer != 0);
                         _intBufReleaseData(dptr, _AAX_SENSOR);
                      }
                      if (p++ > 500) break;
