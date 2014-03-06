@@ -1,0 +1,434 @@
+<?xml version="1.0"?>
+
+<soundbank>
+
+  <copyright>
+    Copyright 2011-214 by Adalin B.V.
+    All Rights Reserved.
+   
+    This is UNPUBLISHED PROPRIETARY CODE of Adalin B.V.;
+    the contents of this file may not be disclosed to third parties, copied or
+    duplicated in any form, in whole or in part, without the prior written
+    permission of Adalin B.V.
+  </copyright>
+
+<!--
+  <bank n="0" name="bank1">
+    <controller n="0" name="controller1">
+      <polyphony>1</polyphony>
+      <note min="20" max="108" step="12" src="timbre1">
+        <pitch>1.0</pitch>
+        <filter src="envelope|tremolo">
+          <state>enabled</state>
+          <slot n="0">
+            <p1>1.0</p1>
+            <p2>0.0</p2>
+            <p3>0.0</p3>
+            <p4>0.0</p4>
+          </slot>
+          <slot> .. </slot>
+        </filter>
+        <filter src="envelope|tremolo">
+          <state>enabled|triangle|sine|square|sawtooth</state>
+        </filter>
+        <effect src="envelope|vibrato">
+          <state>enabled</state>
+          <slot n="0">
+            <p1>1.0</p1>
+            <p2>0.0</p2>
+            <p3>0.0</p3>
+            <p4>0.0</p4>
+          </slot>
+          <slot src="envelope|vibrato">
+            <state>enabled|triangle|sine|square|sawtooth</state>
+          </slot>
+        </effect>
+      </note>
+      <note> .. </note>
+    </controller>
+    <controller> .. </controller>
+  </bank>
+  <bank> .. </bank>
+-->
+
+  <bank n="0" name="General Midi" include="timbres.xml">
+
+    <controller n="0" name="Acoustic Grand Piano">
+      <polyphony>16</polyphony>
+      <note min="21" max="108" step="1" src="Acoustic Grand Piano">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2 factor="velocity">0.01</p2>
+            <p1 factor="soften">1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.70</p1>
+            <p2>0.10</p2>
+            <p1>0.60</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="2">
+            <p1>0.45</p1>
+            <p2 factor="sustain">1.50</p2>
+            <p1>0.00</p1>
+            <p2>0.00</p2>
+          </slot>
+        </filter>
+      </note>
+    </controller>
+
+    <controller n="1" name="Bright Acoustic Piano">
+      <polyphony>88</polyphony>
+      <note min="21" max="108" step="1" src="Bright Acoustic Piano">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.01</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.70</p1>
+            <p2>0.10</p2>
+            <p1>0.60</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="2">
+            <p1>0.45</p1>
+            <p2>1.50</p2>
+            <p1>0.00</p1>
+            <p2>0.00</p2>
+          </slot>
+        </filter>
+      </note>
+    </controller>
+
+    <controller n="15" name="Tubular Bells">
+      <polyphony>17</polyphony>
+      <note min="60" max="77" step="1" src="Tubular Bells">
+        <filter src="tremolo">
+          <state>sine</state>
+          <slot>
+            <p1>2.8</p1>
+            <p2>0.4</p2>
+          </slot>
+        </filter>
+      </note>
+    </controller>
+
+    <controller n="17" name="Draw Bar Organ">
+      <polyphony>6</polyphony>
+      <note min="36" max="96" src="Draw Bar Organ">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2 factor="velocity">0.05</p2>
+            <p1 factor="soften">1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2 factor="sustain">inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+      </note>
+    </controller>
+
+    <controller n="19" name="Rock Organ">
+      <polyphony>6</polyphony>
+      <note min="36" max="96" src="Rock Organ">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2 factor="velocity">0.05</p2>
+            <p1 factor="soften">1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2 factor="sustain">inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <filter src="tremolo">
+          <state>sine</state>
+          <slot>
+            <p1>15.0</p1>
+            <p2>0.15</p2>
+          </slot>
+        </filter>
+        <effect src="vibrato">
+          <state>sine</state>
+            <slot>
+            <p1>15.0</p1>
+            <p2>0.03</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <controller n="20" name="Church Organ">
+      <polyphony>6</polyphony>
+      <note min="36" max="96" src="Church Organ">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2 factor="velocity">0.05</p2>
+            <p1 factor="soften">1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2 factor="sustain">inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+      </note>
+    </controller>
+
+    <controller n="21" name="Reed Organ">
+      <polyphony>5</polyphony>
+      <note min="36" max="96" src="Draw Bar Organ"/>
+    </controller>
+
+    <controller n="75" name="Recorder">
+      <notes min="60" max="96" src="Draw Bar Organ"/>
+    </controller>
+
+    <controller n="0" name="Woodwind">
+      <note min="60" max="96" src="Woodwind"/>
+    </controller>
+
+    <controller n="41" name="Violin">
+      <polyphony>6</polyphony>
+      <note min="60" max="96" src="Violin"/>
+    </controller>
+
+    <controller n="68" name="Baritone Sax">
+      <polyphony>6</polyphony>
+      <note min="37" max="68" src="Saxophone">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.05</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2>inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <effect src="envelope">
+          <slot n="0">
+            <p1>0.995</p1>
+            <p2>0.05</p2>
+            <p1>1.05</p1>
+            <p2>0.08</p2>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.10</p2>
+            <p1>0.99</p1>
+            <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <controller n="65" name="Soprano Sax">
+      <polyphony>6</polyphony>
+      <note min="54" max="87" src="Saxophone">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.05</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2>inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <effect src="envelope">
+          <slot n="0">
+            <p1>0.995</p1>
+            <p2>0.05</p2>
+            <p1>1.05</p1>
+            <p2>0.08</p2>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.10</p2>
+            <p1>0.99</p1>
+            <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <controller n="66" name="Alto Sax">
+      <polyphony>6</polyphony>
+      <note min="49" max="80" src="Saxophone">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.05</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2>inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <effect src="envelope">
+          <slot n="0">
+            <p1>0.995</p1>
+            <p2>0.05</p2>
+            <p1>1.05</p1>
+            <p2>0.08</p2>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.10</p2>
+            <p1>0.99</p1>
+            <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <controller n="67" name="Tenor Sax">
+      <polyphony>6</polyphony>
+      <note min="42" max="75" src="Saxophone">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.05</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2>inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <effect src="envelope">
+          <slot n="0">
+            <p1>0.995</p1>
+            <p2>0.05</p2>
+            <p1>1.05</p1>
+            <p2>0.08</p2>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.10</p2>
+            <p1>0.99</p1>
+            <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <controller n="69" name="Oboe">
+      <polyphony>6</polyphony>
+      <note min="58" max="91" src="Oboe"/>
+    </controller>
+
+    <controller n="22" name="Accordion">
+      <polyphony>6</polyphony>
+      <note min="53" max="89" src="Accordion"/>
+    </controller>
+
+    <controller n="71" name="Clarinet">
+      <polyphony>6</polyphony>
+      <note min="50" max="91" src="Clarinet"/>
+    </controller>
+
+    <controller n="74" name="Flute">
+      <polyphony>6</polyphony>
+      <note min="37" max="68" src="Flute">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.05</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2>inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <effect src="envelope">
+          <slot n="0">
+            <p1>0.995</p1>
+            <p2>0.05</p2>
+            <p1>1.05</p1>
+            <p2>0.08</p2>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.10</p2>
+            <p1>0.99</p1>
+            <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <controller n="76" name="Pan Flute">
+      <polyphony>1</polyphony>
+      <note min="37" max="68" src="Pan Flute">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2>0.05</p2>
+            <p1>1.00</p1>
+            <p2>0.05</p2>
+          </slot>
+          <slot n="1">
+            <p1>0.90</p1>
+            <p2>inf</p2>
+            <p1>0.80</p1>
+            <p2>0.20</p2>
+          </slot>
+        </filter>
+        <effect src="envelope">
+          <slot n="0">
+            <p1>0.995</p1>
+            <p2>0.05</p2>
+            <p1>1.15</p1>
+            <p2>0.08</p2>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.10</p2>
+            <p1>0.99</p1>
+            <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+  </bank>
+
+</soundbank>
