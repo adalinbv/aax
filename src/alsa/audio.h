@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#define PLAYBACK_PERIODS	2
+#define PLAYBACK_PERIODS	3
 #define CAPTURE_PERIODS		4
 
 typedef enum
@@ -310,6 +310,8 @@ typedef int (*snd_pcm_hw_params_can_mmap_sample_resolution_proc)(const snd_pcm_h
 typedef int (*snd_pcm_hw_params_get_rate_numden_proc)(const snd_pcm_hw_params_t *, unsigned int *, unsigned int *);
 typedef int (*snd_pcm_hw_params_get_buffer_size_proc)(const snd_pcm_hw_params_t *, snd_pcm_uframes_t *);
 typedef int (*snd_pcm_hw_params_get_periods_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);
+typedef int (*snd_pcm_hw_params_get_periods_min_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);
+typedef int (*snd_pcm_hw_params_get_periods_max_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_get_period_size_proc)(const snd_pcm_hw_params_t *,  	snd_pcm_uframes_t *, int*);
 typedef snd_pcm_sframes_t (*snd_pcm_avail_update_proc)(snd_pcm_t *);
 typedef snd_pcm_sframes_t (*snd_pcm_avail_proc)(snd_pcm_t *);

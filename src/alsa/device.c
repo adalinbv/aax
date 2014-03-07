@@ -178,6 +178,8 @@ DECL_FUNCTION(snd_pcm_hw_params_set_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_period_size_near);
+DECL_FUNCTION(snd_pcm_hw_params_get_periods_min);
+DECL_FUNCTION(snd_pcm_hw_params_get_periods_max);
 DECL_FUNCTION(snd_pcm_sw_params_sizeof);
 DECL_FUNCTION(snd_pcm_sw_params_current);
 DECL_FUNCTION(snd_pcm_sw_params);
@@ -382,6 +384,8 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_hw_params_set_channels);			//
          TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);		//
          TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);		//
+         TIE_FUNCTION(snd_pcm_hw_params_get_periods_min);		//
+         TIE_FUNCTION(snd_pcm_hw_params_get_periods_max);		//
          TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);		//
          TIE_FUNCTION(snd_pcm_sw_params_sizeof);			//
          TIE_FUNCTION(snd_pcm_sw_params_current);			//
@@ -876,6 +880,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
 
+      TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
+             "unable to get the minimum no. periods" );
+      TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
+             "unable to get the maximum no. periods" );
+      periods = _MINMAX(periods, val1, val2);
+
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" );
       period_fact = handle->no_periods/periods;
@@ -910,6 +920,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
       *frames = no_frames;
+      no_frames *= periods;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -920,7 +931,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       *speed = handle->frequency_hz = (float)rate;
 
-      handle->latency = (float)(no_frames*(periods-1))/(float)rate;
+      handle->latency = (float)no_frames/(float)rate;
 
       do
       {
