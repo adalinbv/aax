@@ -1282,8 +1282,12 @@ _aaxMixerInit(_handle_t *handle)
          info->format = fmt;
 
          /* only alter the refresh rate when not registered */
-         if (!handle->handle) {
+         if (!handle->handle)
+         {
+            float old_rate = info->refresh_rate/info->update_rate;
+
             info->refresh_rate = freq/frames;
+            info->update_rate = rintf(handle->info->refresh_rate/old_rate);
          }
 
          /* copy the hardware volume from the backend */
