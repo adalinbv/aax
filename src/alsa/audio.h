@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#define PLAYBACK_PERIODS	3
+#define PLAYBACK_PERIODS	2
 #define CAPTURE_PERIODS		4
 
 typedef enum

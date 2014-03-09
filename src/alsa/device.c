@@ -693,6 +693,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    snd_pcm_hw_params_t *hwparams;
    snd_pcm_sw_params_t *swparams;
    unsigned int channels, rate;
+   float refresh;
    int err = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -700,6 +701,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    assert(handle != 0);
 
    rate = (unsigned int)*speed;
+   refresh = (float)*frames/(float)rate;
 
    channels = *tracks;
    if (channels > handle->no_channels) {
@@ -880,6 +882,16 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
 
+      val1 = val2 = 0;
+      err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
+      if (val1 && val2)
+      {
+         handle->frequency_hz = (float)val1/(float)val2;
+         rate = (unsigned int)handle->frequency_hz;
+      }
+      *speed = handle->frequency_hz = (float)rate;
+
+
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
       TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
@@ -901,16 +913,11 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          no_frames = rate/25;
       }
 
-      // Compensate for no. periods larger than 2.
-      if (handle->mode)
-      {
-         no_frames *= 2;
-         no_frames /= PLAYBACK_PERIODS;
-      }
-
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-      no_frames *= periods;
+
+// printf("\n!! old: refresh: %f, rate: %f, no_fames: %i, mode: %i, periods: %i\n", refresh, (float)rate, no_frames, handle->mode, periods);
+//    no_frames *= periods;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
             "invalid buffer size" );
 
@@ -922,14 +929,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       *frames = no_frames;
       no_frames *= periods;
 
-      val1 = val2 = 0;
-      err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
-      if (val1 && val2)
-      {
-         handle->frequency_hz = (float)val1/(float)val2;
-         rate = (unsigned int)handle->frequency_hz;
-      }
-      *speed = handle->frequency_hz = (float)rate;
+// refresh = (float)no_frames/(float)rate;
+// printf("!! new: refresh: %f, rate: %f, no_fames: %i, period: %i, periods: %i\n\n", refresh, (float)rate, no_frames, no_frames/periods, periods);
 
       handle->latency = (float)no_frames/(float)rate;
 
@@ -1042,7 +1043,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                handle->play(handle, rb, 1.0f, 0.0f);
             }
             _aaxRingBufferFree(rb);
-            handle->latency = (float)no_frames/(float)rate;
          }
       }
    }

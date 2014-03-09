@@ -1286,7 +1286,7 @@ _aaxMixerInit(_handle_t *handle)
          {
             float old_rate = info->refresh_rate/info->update_rate;
 
-            info->refresh_rate = freq/frames;
+            info->refresh_rate = (float)freq/frames;
             info->update_rate = rintf(handle->info->refresh_rate/old_rate);
          }
 
