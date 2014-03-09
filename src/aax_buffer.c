@@ -706,6 +706,8 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
          void *xwid = xmlMarkId(xsid);
 //       _aaxRingBuffer* rb;
 
+         if (!freq) freq = xmlAttributeGetDouble(xsid, "frequency");
+         /* for backwards combatibility, remove with version 3.0 */
          if (!freq) freq = xmlAttributeGetDouble(xsid, "freq_hz");
          if (!freq) freq = 1000.0f;
 

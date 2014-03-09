@@ -12,6 +12,208 @@
     permission of Adalin B.V.
   </copyright>
 
+  <!--
+    <sound name="timbre1">
+      <waveform src="sine">
+        <processing>set</processing>
+        <pitch>1.0</pitch>
+        <ratio>1.0</ratio>
+      </waveform>
+      <waveform src="sine|square|triangle|sawtooth|impulse|white-noise|pink-noise|brownian-noise|'url'">
+        <processing>set|add|mix|modulate|load</processing>
+        <pitch>1.0</pitch>
+        <ratio>1.0</ratio>
+      </waveform>
+    </sound>
+-->
+
+  <timbres>
+
+    <sound name="Acoustic Grand Piano" frequency="220">
+      <waveform src="triangle"/>
+      <waveform src="sine">
+        <processing>add</processing>
+        <pitch>4.0</pitch>
+        <ratio>-0.2</ratio>
+      </waveform>
+      <waveform src="triangle">
+        <processing>mix</processing>
+        <pitch>2.0</pitch>
+        <ratio>0.333</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Bright Acoustic Piano" frequency="220">
+      <waveform src="triangle"/>
+      <waveform src="sine">
+        <processing>add</processing>
+        <pitch>4.0</pitch>
+        <ratio>-0.2</ratio>
+      </waveform>
+      <waveform src="sawtooth">
+        <processing>mix</processing>
+        <pitch>2.0</pitch>
+        <ratio>0.333</ratio>
+      </waveform>
+    </sound>
+    <sound name="Tubular Bells" frequency="220">
+      <waveform src="square">
+        <pitch>2.5</pitch>
+      </waveform>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>3.0</pitch>
+        <ratio>0.6</ratio>
+      </waveform>
+      <waveform src="sine">
+        <processing>modulate</processing>
+        <pitch>1.0</pitch>
+        <ratio>0.6</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Draw Bar Organ" frequency="220">
+      <waveform src="triangle"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>4.0</pitch>
+        <ratio>0.4</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Rock Organ" frequency="220">
+      <waveform src="triangle"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>3.5</pitch>
+        <ratio>0.5</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Church Organ" frequency="220">
+      <waveform src="square"/>
+      <waveform src="impulse">
+        <processing>mix</processing>
+        <pitch>2.0</pitch>
+        <ratio>0.2</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Reed Organ" frequency="220">
+      <waveform src="sine"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>3.5</pitch>
+        <ratio>0.2</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Recorder" frequency="220">
+      <waveform src="sine"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>2.0</pitch>
+        <ratio>-0.2</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Woodwind" frequency="220">
+      <waveform src="sine"/>
+      <waveform src="triangle">
+        <processing>mix</processing>
+        <pitch>2.0</pitch>
+        <ratio>0.4</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Violin" frequency="220">
+      <waveform src="sawtooth"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>1.0</pitch>
+        <ratio>-0.6</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Saxophone" frequency="220">
+      <waveform src="sawtooth"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>3.535</pitch>
+        <ratio>0.2</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Oboe" frequency="220">
+      <waveform src="sine"/>
+      <waveform src="square">
+        <processing>mix</processing>
+        <pitch>1.137</pitch>
+        <ratio>-0.5</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Accordion" frequency="220">
+      <waveform src="sawtooth"/>
+      <waveform src="sine">
+        <processing>mix</processing>
+        <pitch>3.0</pitch>
+        <ratio>0.33</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Clarinet" frequency="220">
+      <waveform src="square"/>
+      <waveform src="triangle">
+        <processing>add</processing>
+        <pitch>2.0</pitch>
+        <ratio>-0.5</ratio>
+      </waveform>
+      <waveform src="triangle">
+        <processing>mix</processing>
+        <pitch>1.0</pitch>
+        <ratio>0.3</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Flute" frequency="220">
+      <waveform src="brownian-noise">
+         <pitch>0.50</pitch>
+         <ratio>0.10</ratio>
+       </waveform>
+       <waveform src="sine">
+         <processing>mix</processing>
+       </waveform>
+    </sound>
+
+    <sound name="Pan Flute" frequency="220">
+      <waveform src="brownian-noise">
+         <pitch>0.50</pitch>
+         <ratio>0.30</ratio>
+       </waveform>
+       <waveform src="triangle">
+         <processing>mix</processing>
+       </waveform>
+    </sound>
+
+    <sound name="Helicopter" frequency="20">
+      <waveform src="brownian-noise">
+         <pitch>0.3</pitch>
+         <ratio>0.73</ratio>
+       </waveform>
+      <waveform src="sawtooth">
+        <processing>mix</processing>
+        <ratio>0.73</ratio>
+      </waveform>
+      <waveform src="sine">
+        <processing>modulate</processing>
+        <pitch>2.9</pitch>
+        <ratio>1.0</ratio>
+       </waveform>
+    </sound>
+
+  </timbres>
+
 <!--
   <bank n="0" name="bank1">
     <controller n="0" name="controller1">
@@ -51,7 +253,7 @@
   <bank> .. </bank>
 -->
 
-  <bank n="0" name="General Midi" include="timbres.xml">
+  <bank n="0" name="General Midi">
 
     <controller n="0" name="Acoustic Grand Piano">
       <polyphony>16</polyphony>
