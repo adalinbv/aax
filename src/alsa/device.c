@@ -891,7 +891,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       *speed = handle->frequency_hz = (float)rate;
 
-
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
       TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
@@ -915,8 +914,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-
-// printf("\n!! old: refresh: %f, rate: %f, no_fames: %i, mode: %i, periods: %i\n", refresh, (float)rate, no_frames, handle->mode, periods);
 //    no_frames *= periods;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
             "invalid buffer size" );
@@ -927,11 +924,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
       *frames = no_frames;
+
       no_frames *= periods;
-
-// refresh = (float)no_frames/(float)rate;
-// printf("!! new: refresh: %f, rate: %f, no_fames: %i, period: %i, periods: %i\n\n", refresh, (float)rate, no_frames, no_frames/periods, periods);
-
       handle->latency = (float)no_frames/(float)rate;
 
       do
@@ -990,11 +984,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (handle->mode == 0)	/* record */
       {
          snd_pcm_uframes_t period_frames = handle->period_frames;
-//       int dir;
-//       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_frames, &dir),
-//             "unable to get period size" );
-//       handle->period_frames = period_frames;
-
          TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,0x7fffffff),
                "improper interrupt treshold" );
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
@@ -1003,16 +992,13 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       else			/* playback */
       {
          snd_pcm_uframes_t period_frames = handle->period_frames;
-//       int dir;
-//       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_frames, &dir),
-//             "unable to get period size" );
-//       handle->period_frames = period_frames;
-
+#if 0
          TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
                                        (no_frames/period_frames)*period_frames),
                "improper interrupt treshold" );
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
                "wakeup treshold unsupported" );
+#endif
       }
       handle->threshold = 5*handle->period_frames/4;
 
@@ -1302,20 +1288,20 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_PAUSE:
+      handle->pause = 1;
       if (handle && psnd_pcm_state(handle->pcm) == SND_PCM_STATE_RUNNING &&
           !handle->pause)
       {
-         handle->pause = 1;
          if (handle->can_pause) {
             rv = psnd_pcm_pause(handle->pcm, 1);
          }
       }
       break;
    case DRIVER_RESUME:
+      handle->pause = 0;
       if (handle && psnd_pcm_state(handle->pcm) == SND_PCM_STATE_PAUSED &&
           handle->pause)
       {
-         handle->pause = 0;
          if (handle->can_pause) {
             rv = psnd_pcm_pause(handle->pcm, 0);
          }
@@ -2426,6 +2412,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(handle != 0);
+   if (handle->pause) return 0;
 
    assert(rbs != 0);
 
