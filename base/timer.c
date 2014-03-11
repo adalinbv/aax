@@ -301,6 +301,25 @@ int msecSleep(unsigned int dt_ms)
    return 0;
 }
 
+int usecSleep(unsigned int dt_us)
+{
+   static struct timespec s;
+   if (dt_us > 0)
+   {
+      s.tv_sec = (dt_us/1000000);
+      s.tv_nsec = (dt_us % 1000000)*1000L;
+      while(nanosleep(&s,&s)==-1 && errno == EINTR)
+         continue;
+   }
+   else
+   {
+      s.tv_sec = 0;
+      s.tv_nsec = 500000L;
+      return nanosleep(&s, 0);
+   }
+   return 0;
+}
+
 unsigned int
 getTimerResolution() {
    return 0;

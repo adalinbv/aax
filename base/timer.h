@@ -73,6 +73,7 @@ typedef INT64   ssize_t;
 # endif
 #endif	/* _WIN32 */
 
+int usecSleep(unsigned int);
 int msecSleep(unsigned int);
 unsigned int getTimerResolution();
 int setTimerResolution(unsigned int);
