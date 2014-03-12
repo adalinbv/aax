@@ -17,7 +17,9 @@
 #include <aax/midi.h>
 
 #include <base/types.h>
+#include <api.h>
 
+#if USE_MIDI
 
 int aaxMIDINoteOn(aaxConfig config, char channel, char note, char velocity);
 int aaxMIDINoteOff(aaxConfig config, char channel, char note, char velocity);
@@ -457,3 +459,5 @@ static const char* _midi_gm_percussion[] =
    "Mute Triangle",
    "Open Triangle"
 };
+
+#endif

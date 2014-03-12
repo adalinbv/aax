@@ -30,7 +30,8 @@ extern "C" {
 #include "ringbuffer.h"
 #include "objects.h"
 
-#define USE_SPATIAL_FOR_SURROUND AAX_TRUE
+#define USE_MIDI			AAX_FALSE
+#define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
 #ifndef NDEBUG
 # define THREADED_FRAMES		AAX_TRUE
 #else
@@ -175,8 +176,11 @@ void _aaxAudioFrameMix(_aaxRingBuffer*, _intBuffers *, _aax2dProps*, const _aaxD
 typedef struct
 {
     aaxBuffer buffer;
-    float pitch;
-} _inst_sound_t;
+    struct {
+       unsigned int min;
+       unsigned int max;
+    } note;
+} _timbre_t;
 
 typedef struct
 {
@@ -187,33 +191,32 @@ typedef struct
     float displacement;
 //  float sustain;
 //  float soften;
-} _inst_note_t;
+} _note_t;
 
 typedef struct
 {
     int id;
     void *handle;
-    enum aaxFormat format;
-    unsigned int frequency_hz;
-
-    unsigned int sound_min;
-    unsigned int sound_max;
-    unsigned int sound_step;
-    _inst_sound_t **sound;
+    aaxFrame frame;
 
     float soften;
     float sustain;
     unsigned int polyphony;
-    _inst_note_t **note;
+    _intBuffers *note;
+//  enum aaxFormat format;
+//  unsigned int frequency_hz;
+//  aaxFilter filter[AAX_FILTER_MAX];
+//  aaxEffect effect[AAX_EFFECT_MAX];
+} _controller_t;
 
-    aaxFilter filter[AAX_FILTER_MAX];
-    aaxEffect effect[AAX_EFFECT_MAX];
-    aaxFrame frame;
+typedef struct
+{
+    _intBuffers *timbres;
+    _intBuffers *controllers;
+} _soundbank_t;
 
-} _instrument_t;
-
-_instrument_t* get_instrument(aaxInstrument);
-_instrument_t* get_valid_instrument(aaxInstrument);
+_controller_t *get_controller(aaxController);
+_controller_t *get_valid_controller(aaxController);
 
 /* --- Buffer --- */
 #define BUFFER_ID       0x81ACFE07
@@ -369,6 +372,8 @@ enum
     _AAX_EMITTER_CACHE,
     _AAX_FRAME_CACHE,
     _AAX_EVENT_QUEUE,
+
+    _AAX_NOTE,
 
     _AAX_MAX_ID
 };

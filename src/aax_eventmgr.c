@@ -27,6 +27,8 @@
 
 #include "api.h"
 
+#if USE_MIDI
+
 enum _aaxEventType
 {
    /*
@@ -481,3 +483,5 @@ _aaxEventThread(void *eventmgr)
 {
    return NULL;
 }
+
+#endif

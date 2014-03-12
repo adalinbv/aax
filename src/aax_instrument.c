@@ -34,55 +34,45 @@
 
 #define SYNTHCONFIG_PATH		"/home/erik/.aaxsynth.xml"
 
-#if 0
+#if USE_MIDI
 static int _get_bank_num(const char*);
 static int _get_inst_num(const char*);
 
-AAX_API aaxInstrument AAX_APIENTRY
-aaxInstrumentCeate(aaxConfig config)
+AAX_API aaxController AAX_APIENTRY
+aaxControllerCeate(aaxConfig config)
 {
-    _instrument_t* inst = calloc(1, sizeof(_instrument_t));
+    _controller_t* inst = calloc(1, sizeof(_controller_t));
     if (inst)
     {
         inst->id = INSTRUMENT_ID;
         inst->handle = config;
+#if 0
         inst->frequency_hz = 44100;
         inst->format = AAX_PCM16S;
         inst->sound_min = 3;
         inst->sound_max = 87;
         inst->sound_step = 12;		/* one octave */
+#endif
         inst->frame = aaxAudioFrameCreate(config);
         aaxAudioFrameSetState(inst->frame, AAX_PLAYING);
         aaxMixerRegisterAudioFrame(config, inst->frame);
     }
-    return (aaxInstrument)inst;
+    return (aaxController)inst;
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentDestroy(aaxInstrument instrument)
+aaxControllerDestroy(aaxController controller)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
-        unsigned int i;
-
         aaxAudioFrameSetState(inst->frame, AAX_STOPPED);
         aaxMixerDeregisterAudioFrame(inst->handle, inst->frame);
-
-        for (i=0; i<inst->polyphony; i++)
-        {
-            aaxEmitterRemoveBuffer(inst->note[i]->emitter);
-            aaxEmitterDestroy(inst->note[i]->emitter);
-        }
-        free(inst->note);
-
-        for (i=inst->sound_min; i<inst->sound_max; i += inst->sound_step) {
-            aaxBufferDestroy(inst->sound[i]->buffer);
-        }
-        free(inst->sound);
-
         aaxAudioFrameDestroy(inst->frame);
+
+        _intBufErase(&inst->note, _AAX_NOTE, free);
+
         inst->id = 0xdeadbeaf;
         free(inst);
     }
@@ -90,14 +80,15 @@ aaxInstrumentDestroy(aaxInstrument instrument)
 }
 
 int
-AAX_APIENTRY aaxInstrumentSetup(aaxInstrument instrument, enum aaxSetupType type, int setup)
+AAX_APIENTRY aaxControllerSetup(aaxController controller, enum aaxSetupType type, int setup)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
         switch(type)
         {
+#if 0
         case AAX_FREQUENCY:
             inst->frequency_hz = setup;
             rv = AAX_TRUE;
@@ -106,6 +97,7 @@ AAX_APIENTRY aaxInstrumentSetup(aaxInstrument instrument, enum aaxSetupType type
             inst->format = setup;
             rv = AAX_TRUE;
             break;
+#endif
         default:
             break;
         }
@@ -114,20 +106,22 @@ AAX_APIENTRY aaxInstrumentSetup(aaxInstrument instrument, enum aaxSetupType type
 }
 
 int
-AAX_APIENTRY aaxInstrumentGetSetup(aaxInstrument instrument, enum aaxSetupType type)
+AAX_APIENTRY aaxControllerGetSetup(aaxController controller, enum aaxSetupType type)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
         switch(type)
         {
+#if 0
         case AAX_FREQUENCY:
             rv = inst->frequency_hz;
             break;
         case AAX_FORMAT:
             rv = inst->format;
             break;
+#endif
         default:
             break;
        }
@@ -137,9 +131,9 @@ AAX_APIENTRY aaxInstrumentGetSetup(aaxInstrument instrument, enum aaxSetupType t
 
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentLoad(aaxInstrument instrument, const char* path, unsigned int bank, unsigned int num)
+aaxControllerLoad(aaxController controller, const char* path, unsigned int bank, unsigned int num)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -148,17 +142,17 @@ aaxInstrumentLoad(aaxInstrument instrument, const char* path, unsigned int bank,
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentLoadByName(aaxInstrument instrument, const char* path, const char* name)
+aaxControllerLoadByName(aaxController controller, const char* path, const char* name)
 {
    unsigned int bank = _get_bank_num(name);
    unsigned int inst_num = _get_inst_num(name);
-   return aaxInstrumentLoad(instrument, path, bank, inst_num);
+   return aaxControllerLoad(controller, path, bank, inst_num);
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentRegister(aaxInstrument instrument)
+aaxControllerRegister(aaxController controller)
 {
-    _instrument_t* inst = get_valid_instrument(instrument);
+    _controller_t* inst = get_valid_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -168,9 +162,9 @@ aaxInstrumentRegister(aaxInstrument instrument)
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentDeregister(aaxInstrument instrument)
+aaxControllerDeregister(aaxController controller)
 {
-    _instrument_t* inst = get_valid_instrument(instrument);
+    _controller_t* inst = get_valid_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -180,10 +174,10 @@ aaxInstrumentDeregister(aaxInstrument instrument)
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentSetParam(aaxInstrument instrument,
-                      enum aaxInstrumentParameter param, float value)
+aaxControllerSetParam(aaxController controller,
+                      enum aaxControllerParameter param, float value)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -205,10 +199,10 @@ aaxInstrumentSetParam(aaxInstrument instrument,
 }
 
 AAX_API float AAX_APIENTRY
-aaxInstrumentGetParam(aaxInstrument instrument,
-                      enum aaxInstrumentParameter param)
+aaxControllerGetParam(aaxController controller,
+                      enum aaxControllerParameter param)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     float rv = 0.0f;
     if (inst)
     {
@@ -229,9 +223,9 @@ aaxInstrumentGetParam(aaxInstrument instrument,
 
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentNoteOn(aaxInstrument instrument, unsigned int note)
+aaxControllerNoteOn(aaxController controller, unsigned int note)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -241,9 +235,9 @@ aaxInstrumentNoteOn(aaxInstrument instrument, unsigned int note)
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentNoteOff(aaxInstrument instrument, unsigned int note)
+aaxControllerNoteOff(aaxController controller, unsigned int note)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -253,10 +247,10 @@ aaxInstrumentNoteOff(aaxInstrument instrument, unsigned int note)
 }
 
 AAX_API int AAX_APIENTRY
-aaxInstrumentNoteSetParam(aaxInstrument instrument, unsigned int note_no,
-                         enum aaxInstrumentParameter param, float value)
+aaxControllerNoteSetParam(aaxController controller, unsigned int note_no,
+                         enum aaxControllerParameter param, float value)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     int rv = AAX_FALSE;
     if (inst)
     {
@@ -265,25 +259,27 @@ aaxInstrumentNoteSetParam(aaxInstrument instrument, unsigned int note_no,
             if (note_no <= 128)
             {
                 unsigned int pos = note_no % inst->polyphony;
+                _note_t *note;
+// TODO: Find the proper note in the buffer list
                 switch (param)
                 {
                 case AAX_NOTE_PITCHBEND:
-                    inst->note[pos]->pitchbend = _MINMAX(value, 0.0f, 1.0f);
+                    note->pitchbend = _MINMAX(value, 0.0f, 1.0f);
                     break;
                 case AAX_NOTE_VELOCITY:
-                    inst->note[pos]->velocity = _MINMAX(value, 0.0f, 1.0f);
+                    note->velocity = _MINMAX(value, 0.0f, 1.0f);
                     break;
                 case AAX_NOTE_AFTERTOUCH:
-                    inst->note[pos]->aftertouch = _MINMAX(value, 0.0f, 1.0f);
+                    note->aftertouch = _MINMAX(value, 0.0f, 1.0f);
                     break;
                 case AAX_NOTE_DISPLACEMENT:
-                    inst->note[pos]->displacement = _MINMAX(value, 0.0f, 1.0f);
+                    note->displacement = _MINMAX(value, 0.0f, 1.0f);
                     break;
                 case AAX_NOTE_SUSTAIN:
-//                  inst->sound[pos]->sustain = _MINMAX(value, 0.0f, 1.0f);
+//                  note->sustain = _MINMAX(value, 0.0f, 1.0f);
 //                  break;
                 case AAX_NOTE_SOFTEN:
-//                  inst->sound[pos]->soften = _MINMAX(value, 0.0f, 1.0f);
+//                  note->soften = _MINMAX(value, 0.0f, 1.0f);
 //                  break;
                 default:
                     break;
@@ -295,36 +291,38 @@ aaxInstrumentNoteSetParam(aaxInstrument instrument, unsigned int note_no,
 }
 
 AAX_API float AAX_APIENTRY
-aaxInstrumentNoteGetParam(aaxInstrument instrument, unsigned int note_no,
-                         enum aaxInstrumentParameter param)
+aaxControllerNoteGetParam(aaxController controller, unsigned int note_no,
+                         enum aaxControllerParameter param)
 {
-    _instrument_t* inst = get_instrument(instrument);
+    _controller_t* inst = get_controller(controller);
     float rv = 0.0f;
     if (inst)
     {
         if (note_no <= 128)
         {
             unsigned int pos = note_no % inst->polyphony;
+            _note_t *note;
+// TODO: Find the proper note in the buffer list
             switch (param)
             {
             case AAX_NOTE_PITCHBEND:
-                rv = inst->note[pos]->pitchbend;
+                rv = note->pitchbend;
                 break;
             case AAX_NOTE_VELOCITY:
-                rv = inst->note[pos]->velocity;
+                rv = note->velocity;
                 break;
             case AAX_NOTE_AFTERTOUCH:
-                rv = inst->note[pos]->aftertouch;
+                rv = note->aftertouch;
                 break;
             case AAX_NOTE_DISPLACEMENT:
-                rv = inst->note[pos]->displacement;
+                rv = note->displacement;
                 break;
             case AAX_NOTE_SUSTAIN:
-//              rv = inst->note[pos]->sustain;
+//              rv = note->sustain;
                 rv = inst->sustain;
                 break;
             case AAX_NOTE_SOFTEN:
-//              rv = inst->note[pos]->soften;
+//              rv = note->soften;
                 rv = inst->soften;
                 break;
             default:
@@ -345,30 +343,30 @@ typedef struct
     float gain_ratio;
 } _waveform_t;
 
-static void _add_buffers(_instrument_t*, void *);
-static void _add_filters(_instrument_t*, void *);
-static void _add_effects(_instrument_t*, void *);
+static void _add_buffers(_controller_t*, void *);
+static void _add_filters(_controller_t*, void *);
+static void _add_effects(_controller_t*, void *);
 
-_instrument_t*
-get_instrument(aaxInstrument inst)
+_controller_t*
+get_controller(aaxController inst)
 {
-   _instrument_t *instrument = (_instrument_t *)inst;
-   _instrument_t *rv = NULL;
+   _controller_t *controller = (_controller_t *)inst;
+   _controller_t *rv = NULL;
 
-   if (instrument && instrument->id == INSTRUMENT_ID) {
-      rv = instrument;
+   if (controller && controller->id == INSTRUMENT_ID) {
+      rv = controller;
    }
    return rv;
 }
 
-_instrument_t*
-get_valid_instrument(aaxInstrument inst)
+_controller_t*
+get_valid_controller(aaxController inst)
 {
-   _instrument_t *instrument = (_instrument_t *)inst;
-   _instrument_t *rv = NULL;
+   _controller_t *controller = (_controller_t *)inst;
+   _controller_t *rv = NULL;
 
-   if (instrument && instrument->id == INSTRUMENT_ID && instrument->handle) {
-      rv = instrument;
+   if (controller && controller->id == INSTRUMENT_ID && controller->handle) {
+      rv = controller;
    }
    return rv;
 }
@@ -381,16 +379,16 @@ _note_to_frequency(float n)
 }
 
 static int
-_construct_instrument(void* xid, aaxInstrument instrument)
+_construct_controller(void* xid, aaxController controller)
 {
-    _instrument_t *inst = (_instrument_t*)instrument;
+    _controller_t *inst = (_controller_t*)controller;
     int rv = AAX_FALSE;
     void *xbid, *xeid;
 
-    inst->sound_min = xmlNodeGetInt(xid, "note-min");
-    inst->sound_max = xmlNodeGetInt(xid, "note-max");
-    if (inst->sound_max <= inst->sound_min) inst->sound_max = 128;
-    inst->sound_step = _MINMAX(xmlNodeGetInt(xid, "note-step"), 1, 128);
+//  inst->sound_min = xmlNodeGetInt(xid, "note-min");
+//  inst->sound_max = xmlNodeGetInt(xid, "note-max");
+//  if (inst->sound_max <= inst->sound_min) inst->sound_max = 128;
+//  inst->sound_step = _MINMAX(xmlNodeGetInt(xid, "note-step"), 1, 128);
     inst->polyphony = xmlNodeGetInt(xid, "polyphony");	/* no emitters */
 
     xbid = xmlNodeGet(xid, "buffer");
@@ -411,21 +409,23 @@ _construct_instrument(void* xid, aaxInstrument instrument)
 }
 
 static void
-_add_buffers(_instrument_t* inst, void *xbid)
+_add_buffers(_controller_t* inst, void *xbid)
 {
     _waveform_t waveform[16];
     unsigned int i, j, num;
     void *xwid;
     char *ptr;
 
+#if 0
     num = (inst->sound_max-inst->sound_min);
-    inst->sound = malloc(num*(sizeof(_inst_sound_t*)+sizeof(_inst_sound_t)));
+    inst->sound = malloc(num*(sizeof(_timbre_t*)+sizeof(_timbre_t)));
     ptr = (char*)(inst->sound + num);
     for (i=0; i<num; i++)
     {
-        inst->sound[i] = (_inst_sound_t*)ptr;
-        ptr += sizeof(_inst_sound_t);
+        inst->sound[i] = (_timbre_t*)ptr;
+        ptr += sizeof(_timbre_t);
     }
+#endif
 
     xwid = xmlMarkId(xbid);
     num = xmlNodeGetNum(xwid, "waveform");
@@ -485,6 +485,8 @@ _add_buffers(_instrument_t* inst, void *xbid)
         }
     }
 
+#if 0
+// TIMBRES
     for (j=inst->sound_min; j<inst->sound_max; j += inst->sound_step)
     {
         enum aaxFormat format = AAX_PCM16S;
@@ -516,11 +518,12 @@ _add_buffers(_instrument_t* inst, void *xbid)
            inst->sound[k+n]->buffer = buf;
         }
     }
+#endif
     free(xwid);
 }
 
 static void
-_add_filters(_instrument_t* inst, void *xbid)
+_add_filters(_controller_t* inst, void *xbid)
 {
     aaxConfig config = inst->handle;
     unsigned int i, num;
@@ -528,12 +531,12 @@ _add_filters(_instrument_t* inst, void *xbid)
     char *ptr;
 
     num = inst->polyphony;
-    inst->note = malloc(num*(sizeof(_inst_note_t*)+sizeof(_inst_note_t)));
+    inst->note = malloc(num*(sizeof(_note_t*)+sizeof(_note_t)));
     for (i=0; i<num; i++)
     {
-        inst->note[i] = (_inst_note_t*)ptr;
+        inst->note[i] = (_note_t*)ptr;
         inst->note[i]->emitter = aaxEmitterCreate();
-        ptr += sizeof(_inst_note_t);
+        ptr += sizeof(_note_t);
     }
 
     xefid = xmlMarkId(xbid);
@@ -585,7 +588,7 @@ _add_filters(_instrument_t* inst, void *xbid)
 }
 
 static void
-_add_effects(_instrument_t* inst, void *xbid)
+_add_effects(_controller_t* inst, void *xbid)
 {
     aaxConfig config = inst->handle;
     unsigned int i, num;
@@ -707,7 +710,7 @@ _get_bank_num(const char* name)
     }
     else if (rid)
     {
-        void *xsid = xmlNodeGet(rid, "synthesizer");
+        void *xsid = xmlNodeGet(rid, "soundbank");
         if (xsid)
         {
             unsigned int bank, numbanks;
@@ -721,10 +724,10 @@ _get_bank_num(const char* name)
                 {
                     unsigned int i, num;
                     void *xiid = xmlMarkId(xbid);
-                    num = xmlNodeGetNum(xiid, "instrument");
+                    num = xmlNodeGetNum(xiid, "controller");
                     for (i=0; i<num; i++)
                     {
-                        if (xmlNodeGetPos(xbid, xiid, "instrument", i)  != 0)
+                        if (xmlNodeGetPos(xbid, xiid, "controller", i)  != 0)
                         {
                             if (!xmlNodeCompareString(xiid, "name", name))
                             {
