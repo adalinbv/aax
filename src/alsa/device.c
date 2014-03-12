@@ -154,6 +154,8 @@ typedef struct
 
     char *ifname[2];
 
+    float PID[3];
+
 } _driver_t;
 
 
@@ -290,7 +292,7 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
-#define FILL_FACTOR		1.65f
+#define FILL_FACTOR		1.5f
 #define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
 
 static const char* _alsa_type[2];
@@ -2351,6 +2353,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    const int32_t **sbuf;
+   int res = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2363,7 +2366,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
 
-   avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail_update(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2433,7 +2436,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
-   return 0;
+   return res;
 }
 
 
@@ -2447,6 +2450,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    const int32_t **sbuf;
+   int res = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2459,7 +2463,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
 
-   avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail_update(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2525,7 +2529,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
 
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
-   return 0;
+   return res;
 }
 
 
@@ -2717,6 +2721,11 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
 
    // return the current buffer fill level
    avail = psnd_pcm_avail(handle->pcm);
+   if (avail < 0)
+   {
+      xrun_recovery(handle->pcm, avail);
+      avail = _MAX(psnd_pcm_avail(handle->pcm), 0);
+   }
    res = handle->max_frames - avail;
 
    return res;
@@ -2836,12 +2845,19 @@ _aaxALSADriverThread(void* config)
       if (_IS_PLAYING(handle))
       {
          int res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
-         float diff_sec, diff_smp = (res - FILL_FACTOR*no_samples);
+         float diff;
 
-         diff_sec = diff_smp/mixer->info->frequency;
-         wait_us = _MAX((delay_sec + diff_sec)*1000000.0f, 10.0f);
-#if 1
-if (wait_us*1000 < delay_sec/1000) {
+         be_handle->PID[0] = (res - FILL_FACTOR*no_samples);		 // P
+         be_handle->PID[1] = 0.4f*(be_handle->PID[0]+be_handle->PID[1]); // I
+
+         diff = be_handle->PID[0];
+         diff += be_handle->PID[1];
+         diff /= mixer->info->frequency;
+         wait_us = _MAX((delay_sec + diff)*1000000.0f, 10.0f);
+#if 0
+// if ((wait_us*1000 < delay_sec/1000) || (res == be_handle->max_frames))
+{
+printf("P: % -3.1f, I: % -3.1f, D: % -3.1f, ", be_handle->PID[0], be_handle->PID[1], be_handle->PID[2]);
 printf("no_samples: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", no_samples, res, wait_us/1000.0f, delay_sec*1000.0f);
 }
 #endif
