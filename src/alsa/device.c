@@ -142,6 +142,7 @@ typedef struct
     char playing;
     char shared;
     char sse_level;
+    char use_timer;
 
     _batch_cvt_to_proc cvt_to;
     _batch_cvt_from_proc cvt_from;
@@ -472,6 +473,9 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
       handle->mode = (mode > 0) ? 1 : 0;
+      if (handle->mode) { // Always interupt based for capture
+         handle->use_timer = TIMER_BASED;
+      }
    }
 
    return handle;
@@ -520,6 +524,10 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
                xmlFree(s); /* 'default' */
                handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
             }
+         }
+
+         if (xmlNodeGetBool(xid, "timer-driven")) {
+            handle->use_timer = AAX_TRUE;
          }
 
          if (xmlNodeGetBool(xid, "virtual-mixer") ||
@@ -895,13 +903,17 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
-#if TIMER_BASED
-      periods = val1;
-#else
-      TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
-             "unable to get the maximum no. periods" );
-      periods = _MINMAX(periods, val1, val2);
-#endif
+
+      // TIMER_BASED
+      if (handle->use_timer) {
+         periods = val1;
+      }
+      else
+      {
+         TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
+                "unable to get the maximum no. periods" );
+         periods = _MINMAX(periods, val1, val2);
+      }
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" );
@@ -920,18 +932,21 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-#if TIMER_BASED
-      TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &no_frames),
-            "unable to fetch the mx., buffer size" );
-#endif
+      // TIMER_BASED
+      if (handle->use_timer) {
+         TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &no_frames),
+               "unable to fetch the mx., buffer size" );
+      }
       handle->max_frames = no_frames;
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &no_frames),
             "invalid buffer size" );
 
-#if TIMER_BASED
-      no_frames = *frames;
-      handle->no_periods = periods = 2;
-#endif
+      // TIMER_BASED
+      if (handle->use_timer)
+      {
+         no_frames = *frames;
+         handle->no_periods = periods = 2;
+      }
 
       no_frames /= periods;
       if (!handle->mode) no_frames = (no_frames/period_fact);
@@ -967,6 +982,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
          _AAX_SYSLOG(str);
+         snprintf(str,255,"  timer based: %s",handle->use_timer?"yes":"no");
+         _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
          _AAX_SYSLOG(str);
 #if 0
@@ -996,13 +1013,17 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             "unable to set software config" );
       TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,0x7fffffff),
             "improper interrupt treshold" );
-#if TIMER_BASED
-      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, handle->max_frames),
-            "wakeup treshold unsupported" );
-#else
-      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, handle->period_frames),
-            "wakeup treshold unsupported" );
-#endif
+
+      // TIMER_BASED
+      if (handle->use_timer) {
+         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams,
+                                                     handle->max_frames),
+               "wakeup treshold unsupported" );
+      } else {
+         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams,
+                                                     handle->period_frames),
+               "wakeup treshold unsupported" );
+      }
       handle->threshold = 5*handle->period_frames/4;
 
       TRUN( psnd_pcm_sw_params(hid, swparams),
@@ -1013,8 +1034,11 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       // Now fill the playback buffer with handle->no_periods periods of
       // silence for lowest latency.
-#if !TIMER_BASED
-      if (handle->mode)
+      // TIMER_BASED
+      if (handle->use_timer) {
+         handle->latency = FILL_FACTOR*handle->period_frames/(float)rate;
+      }
+      else if (handle->mode)
       {
          _aaxRingBuffer *rb;
          int i;
@@ -1034,15 +1058,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             }
             _aaxRingBufferFree(rb);
          }
-      }
 
-      err = psnd_pcm_delay(hid, &delay);
-      if (err >= 0) {
-         handle->latency = (float)delay/(float)rate;
+         err = psnd_pcm_delay(hid, &delay);
+         if (err >= 0) {
+            handle->latency = (float)delay/(float)rate;
+         }
       }
-#else
-      handle->latency = FILL_FACTOR*handle->period_frames/(float)rate;
-#endif
    }
 
    if (swparams) free(swparams);
@@ -2773,16 +2794,16 @@ _aaxALSADriverThread(void* config)
 
       if (_IS_PLAYING(handle))
       {
-#if TIMER_BASED
-         usecSleep(wait_us);
-#else
+         // TIMER_BASED
+         if (be_handle->use_timer) {
+            usecSleep(wait_us);
+         }
 				/* timeout is in ms */
-         if ((err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time)) < 0)
+         else if ((err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time)) < 0)
          {
             xrun_recovery(be_handle->pcm, err);
             _AAX_DRVLOG("alsa; snd_pcm_wait polling error");
          }
-#endif
       }
       else {
          msecSleep(stdby_time);
@@ -2819,8 +2840,10 @@ _aaxALSADriverThread(void* config)
 
          diff_sec = diff_smp/mixer->info->frequency;
          wait_us = _MAX((delay_sec + diff_sec)*1000000.0f, 10.0f);
-#if 0
+#if 1
+if (wait_us*1000 < delay_sec/1000) {
 printf("no_samples: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", no_samples, res, wait_us/1000.0f, delay_sec*1000.0f);
+}
 #endif
       }
 #if ENABLE_TIMING
