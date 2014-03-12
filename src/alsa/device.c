@@ -2853,7 +2853,7 @@ _aaxALSADriverThread(void* config)
          diff = be_handle->PID[0];
          diff += be_handle->PID[1];
          diff /= mixer->info->frequency;
-         wait_us = _MAX((delay_sec + diff)*1000000.0f, 10.0f);
+         wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
 #if 0
 // if ((wait_us*1000 < delay_sec/1000) || (res == be_handle->max_frames))
 {
