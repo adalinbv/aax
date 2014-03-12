@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 
-enum aaxInstrumentParameter
+enum aaxControllerParameter
 {
    AAX_NOTEPARAM_NONE = 0,
 
@@ -50,26 +50,26 @@ enum aaxInstrumentParameter
    AAX_NOTEPARAM_MAX
 };
 
-typedef void* aaxInstrument;
+typedef void* aaxController;
 
 /*
  * Instrument support (version 3.0 and later)
  */
-AAX_INST_API aaxInstrument AAX_INST_APIENTRY aaxInstrumentCeate(aaxConfig);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentDestroy(aaxInstrument);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentLoad(aaxInstrument, const char*, unsigned int, unsigned int);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentLoadByName(aaxInstrument, const char*, const char*);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentSetSetup(aaxInstrument, enum aaxSetupType, int);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentRegister(aaxInstrument);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentDeregister(aaxInstrument);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentSetParam(aaxInstrument, enum aaxInstrumentParameter, float);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentNoteOn(aaxInstrument, unsigned int);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentNoteOff(aaxInstrument, unsigned int);
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentNoteSetParam(aaxInstrument, unsigned int, enum aaxInstrumentParameter, float);
+AAX_INST_API aaxController AAX_INST_APIENTRY aaxControllerCeate(aaxConfig);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerDestroy(aaxController);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerLoad(aaxController, const char*, unsigned int, unsigned int);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerLoadByName(aaxController, const char*, const char*);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerSetSetup(aaxController, enum aaxSetupType, int);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerRegister(aaxController);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerDeregister(aaxController);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerSetParam(aaxController, enum aaxControllerParameter, float);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerNoteOn(aaxController, unsigned int);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerNoteOff(aaxController, unsigned int);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerNoteSetParam(aaxController, unsigned int, enum aaxControllerParameter, float);
 
-AAX_INST_API int AAX_INST_APIENTRY aaxInstrumentGetSetup(aaxInstrument, enum aaxSetupType);
-AAX_INST_API float AAX_INST_APIENTRY aaxInstrumentGetParam(aaxInstrument, enum aaxInstrumentParameter);
-AAX_INST_API float AAX_INST_APIENTRY aaxInstrumentNoteGetParam(aaxInstrument, unsigned int, enum aaxInstrumentParameter);
+AAX_INST_API int AAX_INST_APIENTRY aaxControllerGetSetup(aaxController, enum aaxSetupType);
+AAX_INST_API float AAX_INST_APIENTRY aaxControllerGetParam(aaxController, enum aaxControllerParameter);
+AAX_INST_API float AAX_INST_APIENTRY aaxControllerNoteGetParam(aaxController, unsigned int, enum aaxControllerParameter);
 
 
 #if defined(TARGET_OS_MAC) && TARGET_OS_MAC
