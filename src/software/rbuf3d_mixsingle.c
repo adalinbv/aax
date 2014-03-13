@@ -172,7 +172,6 @@ static float
 _aaxRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
 {
    float fraction = 0.0f, gain = 1.0f;
-
    dist = _MAX(dist, ref_dist);
    dist = _MIN(dist, max_dist);
    if (ref_dist) fraction = dist / ref_dist;

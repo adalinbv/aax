@@ -837,16 +837,12 @@ aaxFilterSetState(aaxFilter f, int state)
             {
                pos -= AAX_AL_INVERSE_DISTANCE;
                filter->slot[0]->state = state;
-               if (filter->slot[0]->data) {
-                  filter->slot[0]->data = _aaxRingBufferALDistanceFn[pos];
-               }
+               filter->slot[0]->data = _aaxRingBufferALDistanceFn[pos];
             }
             else if (pos < AAX_DISTANCE_MODEL_MAX)
             {
                filter->slot[0]->state = state;
-               if (filter->slot[0]->data) {
-                  filter->slot[0]->data = _aaxRingBufferDistanceFn[pos];
-               }
+               filter->slot[0]->data = _aaxRingBufferDistanceFn[pos];
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
