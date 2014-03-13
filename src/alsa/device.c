@@ -528,13 +528,15 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
          }
 
-         if (xmlNodeGetBool(xid, "timer-driven")) {
-            handle->use_timer = AAX_TRUE;
+         if (xmlNodeTest(xid, "timer-driven")) {
+            handle->use_timer = xmlNodeGetBool(xid, "timer-driven");
          }
 
-         if (xmlNodeGetBool(xid, "virtual-mixer") ||
-             xmlNodeGetBool(xid, "shared")) {
-            handle->shared = AAX_TRUE;
+         if (xmlNodeTest(xid, "shared")) {
+            handle->shared = xmlNodeGetBool(xid, "shared");
+         }
+         else if (xmlNodeTest(xid, "virtual-mixer")) {
+            handle->shared = xmlNodeGetBool(xid, "virtual-mixer");
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");

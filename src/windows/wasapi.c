@@ -456,7 +456,9 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             }
          }
 
-         if (xmlNodeGetBool(xid, "virtual-mixer")) {
+         if (xmlNodeGetBool(xid, "shared")) {
+            handle->status &= ~EXCLUSIVE_MODE_MASK;
+         } else if (xmlNodeGetBool(xid, "virtual-mixer")) {
             handle->status &= ~EXCLUSIVE_MODE_MASK;
          }
       }
