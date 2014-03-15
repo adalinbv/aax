@@ -22,6 +22,18 @@ extern "C" {
 #define TIMED_MUTEX	1
 #endif
 
+enum {
+   AAX_TIME_CRITICAL_PRIORITY = -20,
+   AAX_HIGHEST_PRIORITY = -16,
+   AAX_HIGH_PRIORITY = -8,
+   AAX_NORMAL_RPIORITY = 0,
+   AAX_LOW_PRIORITY = 8,
+   AAX_LOWEST_PRIORITY = 16,
+   AAX_IDLE_PRIORITY = 19
+};
+
+int _aaxProcessSetPriority(int);
+
 
 #if HAVE_PTHREAD_H
 # include <pthread.h>			/* UNIX */
@@ -83,6 +95,7 @@ extern "C" {
 
 void *_aaxThreadCreate();
 int _aaxThreadSetAffinity(void *, int);
+int _aaxThreadSetPriority(void *, int);
 void _aaxThreadDestroy(void *);
 int _aaxThreadStart(void *,  void *(*handler)(void*), void*, unsigned int);
 // int _aaxThreadCancel(void *);

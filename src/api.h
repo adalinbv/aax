@@ -410,18 +410,6 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 
 
 /* --- System Specific & Config file related  --- */
-enum {
-   AAX_TIME_CRITICAL_PRIORITY = -20,
-   AAX_HIGHEST_PRIORITY = -16,
-   AAX_HIGH_PRIORITY = -8,
-   AAX_NORMAL_RPIORITY = 0,
-   AAX_LOW_PRIORITY = 8,
-   AAX_LOWEST_PRIORITY = 16,
-   AAX_IDLE_PRIORITY = 19
-};
-
-int _aaxProcessSetPriority(int);
-int _aaxThreadSetPriority(int);
 
 const char* userHomeDir();
 char* systemConfigFile();

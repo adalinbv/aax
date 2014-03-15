@@ -292,7 +292,7 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
-#define FILL_FACTOR		1.5f
+#define FILL_FACTOR		1.65f
 #define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
 
 static const char* _alsa_type[2];
@@ -478,6 +478,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       if (handle->mode) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
       }
+      handle->PID[0] = FILL_FACTOR;
    }
 
    return handle;
@@ -956,6 +957,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
       *frames = no_frames;
+      handle->PID[0] = ((float)no_frames/(float)rate);
+      if (handle->PID[0] > 0.02f) {
+         handle->PID[0] += 0.01f; // add 10ms
+      } else {
+         handle->PID[0] *= FILL_FACTOR;
+      }
       no_frames *= periods;
 
       handle->latency = (float)no_frames/(float)rate;
@@ -1040,7 +1047,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // silence for lowest latency.
       // TIMER_BASED
       if (handle->use_timer) {
-         handle->latency = FILL_FACTOR*handle->period_frames/(float)rate;
+         handle->latency = handle->PID[0]; // FILL_FACTOR*handle->period_frames/(float)rate;
       }
       else if (handle->mode)
       {
@@ -2847,20 +2854,35 @@ _aaxALSADriverThread(void* config)
       if (_IS_PLAYING(handle))
       {
          int res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
-         float diff;
+         float diff, target, input, err, P, I, D;
+         float freq = mixer->info->frequency;
 
-         be_handle->PID[0] = (res - FILL_FACTOR*no_samples);		 // P
-         be_handle->PID[1] = 0.4f*(be_handle->PID[0]+be_handle->PID[1]); // I
+         target = be_handle->PID[0];
+         input = (float)res/freq;
+         err = input - target;
 
-         diff = be_handle->PID[0];
-         diff += be_handle->PID[1];
-         diff /= mixer->info->frequency;
+         P = err;
+         I = err*delay_sec;
+         D = (err - be_handle->PID[2])*delay_sec;
+
+         be_handle->PID[1] += I;
+         be_handle->PID[2] = err;
+         I = be_handle->PID[1];
+
+         diff = 1.85f*P + 0.9f*I; // + 2.5f*D;
          wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
+
+#if 0
+         if (res < FILL_FACTOR*no_samples) {
+            be_handle->PID[0] += 16;
+         }
+#endif
+//       else if (res > 8*no_samples) be_handle->PID[0] -= 0.1f;
 #if 0
 // if ((wait_us*1000 < delay_sec/1000) || (res == be_handle->max_frames))
 {
-printf("P: % -3.1f, I: % -3.1f, D: % -3.1f, ", be_handle->PID[0], be_handle->PID[1], be_handle->PID[2]);
-printf("no_samples: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", no_samples, res, wait_us/1000.0f, delay_sec*1000.0f);
+//printf("%i: P: %3.1f, I: %3.1f, D: %3.1f, ", be_handle->use_timer, P*freq, err*delay_sec*freq, D*freq);
+printf("target: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", be_handle->PID[0]*freq, res, wait_us/1000.0f, delay_sec*1000.0f);
 }
 #endif
       }

@@ -1361,7 +1361,15 @@ _aaxMixerStart(_handle_t *handle)
             _aaxErrorSet(AAX_TIMEOUT);
             handle->thread.started = AAX_FALSE;
          }
-         else {
+         else
+         {
+            if (ms < 5) {
+               _aaxThreadSetPriority(handle->thread.ptr, AAX_HIGHEST_PRIORITY);
+            } else if (ms < 11) {
+               _aaxThreadSetPriority(handle->thread.ptr, AAX_HIGH_PRIORITY);
+            } else {
+               _aaxThreadSetPriority(handle->thread.ptr, AAX_NORMAL_RPIORITY);
+            }
             rv = AAX_TRUE;
          }
       }   

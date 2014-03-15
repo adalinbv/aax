@@ -881,7 +881,7 @@ _aaxFileDriverWriteThread(void *id)
    _driver_t *handle = (_driver_t*)id;
    int bits, avail;
 
-   _aaxThreadSetPriority(AAX_LOW_PRIORITY);
+   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
    _aaxMutexLock(handle->thread.mutex);
    bits = handle->bits_sample;
@@ -967,7 +967,7 @@ _aaxFileDriverReadThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
 
-   _aaxThreadSetPriority(AAX_LOW_PRIORITY);
+   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
    _aaxMutexLock(handle->thread.mutex);
    do

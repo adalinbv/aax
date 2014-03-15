@@ -23,13 +23,37 @@
 static char __threads_enabled = 0;
 
 #if HAVE_PTHREAD_H
+# include <sys/time.h>
+# include <sys/resource.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 # ifdef HAVE_RMALLOC_H
 #  include <rmalloc.h>
 # else
 #  include <string.h>	/* for memcpy */
 # endif
 
-#define _TH_SYSLOG(a) __aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
+int                     /* Prio is a value in the range -20 to 19 */
+_aaxProcessSetPriority(int prio)
+{
+   int rv = 0;
+   int curr_prio = getpriority(PRIO_PROCESS, getpid());
+   if (curr_prio < prio)
+   {
+      errno = 0;
+      rv = setpriority(PRIO_PROCESS, getpid(), prio);
+      if (rv < 0) {
+         rv = errno;
+     }
+   }
+
+   return rv;
+}
+
+
+#define _TH_SYSLOG(a)	__aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
+#define POLICY		SCHED_RR
 
 void *
 _aaxThreadCreate()
@@ -59,6 +83,35 @@ _aaxThreadSetAffinity(void *t, int core)
 #endif
 }
 
+int
+_aaxThreadSetPriority(void *t, int prio)
+{
+   pthread_t *id = t;
+   int min, max;
+   int rv = 0;
+
+   min = sched_get_priority_min(POLICY);
+   max = sched_get_priority_max(POLICY);
+   if (min >= 0 && max >= 0)
+   {
+   /*
+    * The range of scheduling priorities may vary on other POSIX systems, thus
+    * it is a good idea for portable applications to use a virtual priority
+    * range and map it to the interval given by sched_get_priority_max() and
+    * sched_get_priority_min().  POSIX.1-2001 requires a spread of at least 32
+    * between the maximum and the minimum values for SCHED_FIFO and SCHED_RR
+    */
+      prio = (prio-AAX_TIME_CRITICAL_PRIORITY);
+      prio *= abs(max-min)/abs(AAX_TIME_CRITICAL_PRIORITY-AAX_IDLE_PRIORITY);
+      prio += min;
+
+      rv = pthread_setschedprio(*id, prio);
+   }
+
+   return rv;
+}
+
+
 void
 _aaxThreadDestroy(void *t)
 {
@@ -68,23 +121,19 @@ _aaxThreadDestroy(void *t)
    t = 0;
 }
 
-#define POLICY		SCHED_RR
 int
 _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
 {
    struct sched_param sched_param;
    pthread_attr_t attr;
-   int ret, min, max;
+   int ret;
 
    assert(t != 0);
    assert(handler != 0);
 
    pthread_attr_init(&attr);
 
-   min = sched_get_priority_min(POLICY);
-   max = sched_get_priority_max(POLICY);
-   
-   sched_param.sched_priority = min + (max-min)/10;
+   sched_param.sched_priority = 0;
    pthread_attr_setschedparam(&attr, &sched_param);
 
    ret = pthread_create(t, &attr, handler, arg);
@@ -423,6 +472,38 @@ _aaxConditionSignal(void *c)
 
 #include <base/dlsym.h> 
 							/* --- WINDOWS --- */
+int                     /* Prio is a value in the range -20 to 19 */
+_aaxProcessSetPriority(int prio)
+{
+   int rv = 0;
+
+   DWORD curr_priority = GetPriorityClass(GetCurrentProcess());
+   DWORD new_priority;
+
+   if (prio <= AAX_HIGHEST_PRIORITY) {
+      new_priority = HIGH_PRIORITY_CLASS;
+   } else if (prio <= AAX_HIGH_PRIORITY) {
+      new_priority = ABOVE_NORMAL_PRIORITY_CLASS;
+   } else if (prio >= AAX_LOWEST_PRIORITY) {
+      new_priority = IDLE_PRIORITY_CLASS;
+   } else if (prio >= AAX_LOW_PRIORITY) {
+      new_priority = BELOW_NORMAL_PRIORITY_CLASS;
+   } else {
+      new_priority = NORMAL_PRIORITY_CLASS;
+   }
+
+   if (new_priority > curr_priority)
+   {
+      rv = SetPriorityClass(GetCurrentProcess(), new_priority);
+      if (!rv) {
+         rv = GetLastError();
+      }
+   }
+
+   return rv;
+}
+
+
 #define _TH_SYSLOG(a)
 
 /* http://www.slideshare.net/abufayez/pthreads-vs-win32-threads */
@@ -459,6 +540,39 @@ _aaxThreadSetAffinity(void *t, int core)
 
    rv = SetThreadAffinityMask(thread->handle, 1<<core);
    return rv ? 0 : EINVAL;
+}
+
+int
+_aaxThreadSetPriority(void *t, int prio)
+{
+   _aaxThread *thread = t;
+   int rv = 0;
+
+   DWORD curr_priority = GetThreadPriority(GetCurrentThread());
+   DWORD new_priority;
+
+   if (prio == AAX_TIME_CRITICAL_PRIORITY) {
+      new_priority = THREAD_PRIORITY_TIME_CRITICAL;
+   } else if (prio == AAX_IDLE_PRIORITY) {
+      new_priority = THREAD_PRIORITY_IDLE;
+   } else if (prio <= AAX_HIGHEST_PRIORITY) {
+      new_priority = THREAD_PRIORITY_HIGHEST;
+   } else if (prio <= AAX_HIGH_PRIORITY) {
+      new_priority = THREAD_PRIORITY_ABOVE_NORMAL;
+   } else if (prio >= AAX_LOWEST_PRIORITY) {
+      new_priority = THREAD_PRIORITY_LOWEST;
+   } else if (prio >= AAX_LOW_PRIORITY) {
+      new_priority = THREAD_PRIORITY_BELOW_NORMAL;
+   } else {
+      new_priority = THREAD_PRIORITY_NORMAL;
+   }
+
+   SetThreadPriority(thread, new_priority);
+   if (!rv) {
+      rv = GetLastError();
+   }
+
+   return rv;
 }
 
 void
