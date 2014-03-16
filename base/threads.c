@@ -53,7 +53,7 @@ _aaxProcessSetPriority(int prio)
 
 
 #define _TH_SYSLOG(a)	__aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
-#define POLICY		SCHED_RR
+#define POLICY		SCHED_OTHER
 
 void *
 _aaxThreadCreate()
@@ -87,25 +87,38 @@ int
 _aaxThreadSetPriority(void *t, int prio)
 {
    pthread_t *id = t;
-   int min, max;
+   int min, max, policy;
    int rv = 0;
 
-   min = sched_get_priority_min(POLICY);
-   max = sched_get_priority_max(POLICY);
+   if (prio < AAX_HIGH_PRIORITY) {
+      policy = SCHED_OTHER;
+   } else if (prio == AAX_HIGH_PRIORITY) {
+      policy = SCHED_RR;
+   } else {
+      policy = SCHED_FIFO;
+   }
+
+   min = sched_get_priority_min(policy);
+   max = sched_get_priority_max(policy);
    if (min >= 0 && max >= 0)
    {
-   /*
-    * The range of scheduling priorities may vary on other POSIX systems, thus
-    * it is a good idea for portable applications to use a virtual priority
-    * range and map it to the interval given by sched_get_priority_max() and
-    * sched_get_priority_min().  POSIX.1-2001 requires a spread of at least 32
-    * between the maximum and the minimum values for SCHED_FIFO and SCHED_RR
-    */
+      struct sched_param sched_param;
+
+      /*
+       * The range of scheduling priorities may vary on other POSIX systems,
+       * thus it is a good idea for portable applications to use a virtual
+       * priority range and map it to the interval given by
+       * sched_get_priority_max() and sched_get_priority_min().
+       * POSIX.1-2001 requires a spread of at least 32 between the maximum and
+       * the minimum values for SCHED_FIFO and SCHED_RR
+       */
       prio = (prio-AAX_TIME_CRITICAL_PRIORITY);
       prio *= abs(max-min)/abs(AAX_TIME_CRITICAL_PRIORITY-AAX_IDLE_PRIORITY);
       prio += min;
 
-      rv = pthread_setschedprio(*id, prio);
+      sched_param.sched_priority = prio;
+//    rv = sched_setparam(*id, &sched_param);
+      rv = pthread_setschedparam(*id, policy, &sched_param);
    }
 
    return rv;
@@ -135,19 +148,15 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
 
    sched_param.sched_priority = 0;
    pthread_attr_setschedparam(&attr, &sched_param);
+   ret = pthread_attr_setschedpolicy(&attr, POLICY);
+   if (ret != 0) {
+      _TH_SYSLOG("no thread scheduling privilege");
+   } else {
+      _TH_SYSLOG("using thread scheduling privilege");
+   }
 
    ret = pthread_create(t, &attr, handler, arg);
-   if (ret == 0)
-   {
-      int rv;
-      pthread_t *id = t;
-
-      rv = pthread_setschedparam(*id, POLICY, &sched_param);
-      if (rv != 0) {
-         _TH_SYSLOG("no thread scheduling privilege");
-      } else {
-         _TH_SYSLOG("using thread scheduling privilege");
-      }
+   if (ret == 0) {
       __threads_enabled = 1;
    }
 
