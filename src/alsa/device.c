@@ -914,7 +914,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (frames && (*frames > 0))
       {
          no_frames = *frames;
-         if (!handle->mode) no_frames *= period_fact;
       } else {
          no_frames = rate/25;
       }
@@ -941,6 +940,14 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       period_fact = handle->no_periods/periods;
       if (err >= 0) {
          handle->no_periods = periods;
+      }
+
+      if (frames && (*frames > 0))
+      {
+         no_frames = *frames;
+         if (!handle->mode) no_frames *= period_fact;
+      } else {
+         no_frames = rate/25;
       }
 
       /* Set buffer size (in frames). The resulting latency is given by */
@@ -2885,8 +2892,7 @@ _aaxALSADriverThread(void* config)
             be_handle->PID[0] += 0.001f/be_handle->PID[3];
             be_handle->PID[3] = 0.0f;
          }
-#endif
-//       else if (res > 8*no_samples) be_handle->PID[0] -= 0.1f;
+
 #if 0
 // if ((wait_us*1000 < delay_sec/1000) || (res == be_handle->max_frames))
 {
