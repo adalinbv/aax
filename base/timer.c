@@ -301,8 +301,15 @@ int msecSleep(unsigned int dt_ms)
    return 0;
 }
 
+#include <poll.h>
 int usecSleep(unsigned int dt_us)
 {
+#if 1
+   struct timeval delay;
+    delay.tv_sec = 0;
+    delay.tv_usec = dt_us;
+    (void) select(0, NULL, NULL, NULL, &delay);
+#else
    static struct timespec s;
    if (dt_us > 0)
    {
@@ -318,6 +325,7 @@ int usecSleep(unsigned int dt_us)
       return nanosleep(&s, 0);
    }
    return 0;
+#endif
 }
 
 unsigned int
