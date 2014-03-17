@@ -154,7 +154,7 @@ typedef struct
 
     char *ifname[2];
 
-    float PID[3];
+    float PID[4];
 
 } _driver_t;
 
@@ -478,7 +478,9 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       if (handle->mode) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
       }
+
       handle->PID[0] = FILL_FACTOR;
+      handle->PID[3] = AAX_FPINFINITE;
    }
 
    return handle;
@@ -909,6 +911,20 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
 
+      if (frames && (*frames > 0))
+      {
+         no_frames = *frames;
+         if (!handle->mode) no_frames *= period_fact;
+      } else {
+         no_frames = rate/25;
+      }
+
+      // Always use interupts for low latency.
+      handle->latency = (float)no_frames/(float)rate;
+      if (handle->latency < 0.012f) {
+         handle->use_timer = AAX_FALSE;
+      }
+
       // TIMER_BASED
       if (handle->use_timer) {
          periods = val1;
@@ -925,14 +941,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       period_fact = handle->no_periods/periods;
       if (err >= 0) {
          handle->no_periods = periods;
-      }
-
-      if (frames && (*frames > 0))
-      {
-         no_frames = *frames;
-         if (!handle->mode) no_frames *= period_fact;
-      } else {
-         no_frames = rate/25;
       }
 
       /* Set buffer size (in frames). The resulting latency is given by */
@@ -2872,9 +2880,10 @@ _aaxALSADriverThread(void* config)
          diff = 1.85f*P + 0.9f*I; // + 2.5f*D;
          wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
 
-#if 0
+         be_handle->PID[3] += delay_sec*1000.0f;
          if (res < FILL_FACTOR*no_samples) {
-            be_handle->PID[0] += 16;
+            be_handle->PID[0] += 0.001f/be_handle->PID[3];
+            be_handle->PID[3] = 0.0f;
          }
 #endif
 //       else if (res > 8*no_samples) be_handle->PID[0] -= 0.1f;
