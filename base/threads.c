@@ -26,7 +26,7 @@ static char __threads_enabled = 0;
 # include <sys/time.h>
 # include <sys/resource.h>
 #ifdef HAVE_UNISTD_H
-# include <unistd.h>
+// # include <unistd.h>
 #endif
 # ifdef HAVE_RMALLOC_H
 #  include <rmalloc.h>
@@ -90,6 +90,7 @@ _aaxThreadSetPriority(void *t, int prio)
    int min, max, policy;
    int rv = 0;
 
+#if 0
    if (prio < AAX_HIGH_PRIORITY) {
       policy = SCHED_OTHER;
    } else if (prio == AAX_HIGH_PRIORITY) {
@@ -97,6 +98,9 @@ _aaxThreadSetPriority(void *t, int prio)
    } else {
       policy = SCHED_FIFO;
    }
+#else
+   policy = SCHED_OTHER;
+#endif
 
    min = sched_get_priority_min(policy);
    max = sched_get_priority_max(policy);
