@@ -22,6 +22,7 @@
 # include <string.h>
 #endif
 #include <errno.h>
+#include <assert.h>
 
 #include <base/geometry.h>
 #include <base/threads.h>
@@ -165,7 +166,7 @@ systemConfigFile()
 
 #ifdef WIN32
 char*
-aaxGetEnv(const char*name)
+_aaxGetEnv(const char*name)
 {
    static char _key[256] = "";
    char *rv = NULL;
@@ -181,15 +182,78 @@ aaxGetEnv(const char*name)
 }
 
 int
-aaxSetEnv(const char *name, const char *value, int overwrite)
+_aaxSetEnv(const char *name, const char *value, int overwrite)
 {
    return (SetEnvironmentVariable(name, value) == 0) ? AAX_TRUE : AAX_FALSE;
 }
 
 int
-aaxUnsetEnv(const char *name)
+_aaxUnsetEnv(const char *name)
 {
    return (SetEnvironmentVariable(name, NULL) == 0) ? AAX_TRUE : AAX_FALSE;
 }
 #endif
+
+
+/*
+ * Input: Backend (ALSA/WASAP/OSS) and driver (<card>: <interface>)
+ * Output: Device (<backend> on <card>) and interface
+ */
+void
+_aaxBackendDriverToDeviceInterface(char **backend, char **driver)
+{
+   char _str[2048], *ptr;
+   size_t len;
+
+   assert(backend && *backend);
+   assert(driver && *driver);
+
+   snprintf(_str, 2048, "%s on %s", *backend, *driver);
+   ptr = strstr(_str, ": ");
+
+   len = ptr - _str;
+   if (len > strlen(*backend))
+   {
+      char *tmp = realloc(*backend, len+1);
+      if (!tmp) return;
+
+      *backend = tmp;
+   }
+
+   *ptr++ = 0;
+   memcpy(*backend, _str, ptr - _str);
+   memcpy(*driver, (ptr+1), strlen(ptr));
+}
+
+/*
+ * Input: Device (<backend> on <card>) and interface
+ * Output: Backend (ALSA/WASAP/OSS) and driver (<card>: <interface>)
+ */
+void
+_aaxDeviceInterfaceToBackendDriver(char **device, char **interface)
+{
+   char _str[2048], *ptr;
+   size_t len;
+
+   assert(device && *device);
+   assert(interface && *interface);
+
+   snprintf(_str, 2048, "%s: %s", *device, *interface);
+   ptr = strstr(_str, " on ");
+
+   len = strlen(ptr)-strlen(" on ");
+   if (len > strlen(*interface))
+   {
+      char *tmp = realloc(*interface, len+1);
+      if (!tmp) return;
+
+      *interface = tmp;
+   }
+
+   *ptr = 0;
+   memcpy(*device, _str, ptr - _str);
+
+   ptr += strlen(" on ");
+   memcpy(*interface, ptr, strlen(ptr));
+}
 

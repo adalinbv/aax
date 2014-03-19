@@ -411,18 +411,22 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 
 /* --- System Specific & Config file related  --- */
 
+void _aaxBackendDriverToDeviceInterface(char **, char **);
+void _aaxDeviceInterfaceToBackendDriver(char **, char **);
+
 const char* userHomeDir();
 char* systemConfigFile();
 char* userConfigFile();
 
+
 #ifdef WIN32
-char* aaxGetEnv(const char*);
-int aaxSetEnv(const char*, const char*, int);
-int aaxUnsetEnv(const char*);
+char* _aaxGetEnv(const char*);
+int _aaxSetEnv(const char*, const char*, int);
+int _aaxUnsetEnv(const char*);
 #else
-# define aaxGetEnv(a)			getenv(a)
-# define aaxSetEnv(a,b,c)		setenv((a),(b),(c))
-# define aaxUnsetEnv(a)			unsetenv(a)
+# define _aaxGetEnv(a)			getenv(a)
+# define _aaxSetEnv(a,b,c)		setenv((a),(b),(c))
+# define _aaxUnsetEnv(a)		unsetenv(a)
 #endif
 
 #if defined(__cplusplus)

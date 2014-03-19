@@ -923,11 +923,11 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
        * must be after reading aax's own configuration file to be abke to
        * invalidate the key for other products
        */
-      name = aaxGetEnv("EKYAXA23VBDOLANI");
+      name = _aaxGetEnv("EKYAXA23VBDOLANI");
       if (name) 
       {
          key = _aaxCheckKeyValidityStr(name);
-         aaxUnsetEnv("EKYAXA23VBDOLANI");
+         _aaxUnsetEnv("EKYAXA23VBDOLANI");
       }
 
       if (key)
