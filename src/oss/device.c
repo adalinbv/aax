@@ -229,7 +229,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 
          if (!handle->devnode)
          {
-            s = xmlNodeGetString(xid, "renderer");
+            s = xmlAttributeGetString(xid, "name");
             if (s)
             {
                handle->nodenum = detect_nodenum(s);
@@ -237,6 +237,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
                   free(handle->name);
                }
                handle->name = _aax_strdup(s);
+               xmlFree(s);
             }
          }
 
@@ -285,8 +286,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
             }
          }
 
-         if (xmlNodeGetBool(xid, "virtual-mixer") ||
-             xmlNodeGetBool(xid, "shared")) {
+         if (xmlNodeGetBool(xid, "shared")) {
             handle->exclusive = 0;
          }
       }

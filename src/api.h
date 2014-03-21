@@ -411,8 +411,8 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 
 /* --- System Specific & Config file related  --- */
 
-void _aaxBackendDriverToDeviceInterface(char **, char **);
-void _aaxDeviceInterfaceToBackendDriver(char **, char **);
+void _aaxBackendDriverToDeviceConnecttor(char **, char **);
+void _aaxDeviceConnecttorToBackendDriver(char **, char **);
 
 const char* userHomeDir();
 char* systemConfigFile();

@@ -208,6 +208,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 
    if (xid || renderer)
    {
+      s = (char *)default_renderer;
       if (renderer)
       {
          unsigned int devlenold = 5; /* strlen(BACKEND_NAME_OLD":"); */
@@ -223,15 +224,18 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
             while (*renderer == ' ' && *renderer != '\0') renderer++;
          }
 
-         if (!strcasecmp(renderer, "default")) {
-            s = (char *)default_renderer;
-         }
-         else {
+         if (strcasecmp(renderer, "default")) {
             s = _aax_strdup(renderer);
          }
       }
-      else if (xid) {
-         s = xmlNodeGetString(xid, "renderer");
+      else if (xid)
+      {
+         char *ptr = xmlAttributeGetString(xid, "name");
+         if (ptr)
+         {
+            s = _aax_strdup(ptr);
+            xmlFree(ptr);
+         }
       }
 
       if (s && (*s == '~'))

@@ -200,7 +200,7 @@ _aaxUnsetEnv(const char *name)
  * Output: Device (<backend> on <card>) and interface
  */
 void
-_aaxBackendDriverToDeviceInterface(char **backend, char **driver)
+_aaxBackendDriverToDeviceConnector(char **backend, char **driver)
 {
    char _str[2048], *ptr;
    size_t len;
@@ -230,7 +230,7 @@ _aaxBackendDriverToDeviceInterface(char **backend, char **driver)
  * Output: Backend (ALSA/WASAP/OSS) and driver (<card>: <interface>)
  */
 void
-_aaxDeviceInterfaceToBackendDriver(char **device, char **interface)
+_aaxDeviceConnectorToBackendDriver(char **device, char **interface)
 {
    char _str[2048], *ptr;
    size_t len;

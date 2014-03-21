@@ -324,8 +324,14 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
 
          if (!handle->port[0].name)
          {
-            s = xmlNodeGetString(xid, "renderer");
-            if (s && strcmp(s, "default")) handle->port[0].name = s;
+            s = xmlAttributeGetString(xid, "name");
+            if (s)
+            {
+               if (strcmp(s, "default")) {
+                  handle->port[0].name = _aax_strdup(s);
+               }
+               xmlFree(s);
+            }
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");

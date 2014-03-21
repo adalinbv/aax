@@ -400,7 +400,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
 
          if (!handle->devname)
          {
-            s = xmlNodeGetString(xid, "renderer");
+            s = xmlAttributeGetString(xid, "name");
             if (s)
             {
                if (strcmp(s, "default"))  {
@@ -408,6 +408,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
                } else {
                   handle->devname = NULL;
                }
+               xmlFree(s);
             }
          }
 
@@ -457,8 +458,6 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
          }
 
          if (xmlNodeGetBool(xid, "shared")) {
-            handle->status &= ~EXCLUSIVE_MODE_MASK;
-         } else if (xmlNodeGetBool(xid, "virtual-mixer")) {
             handle->status &= ~EXCLUSIVE_MODE_MASK;
          }
       }

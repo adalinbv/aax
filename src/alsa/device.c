@@ -506,7 +506,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
-      if (strcasecmp(renderer, "default")) {
+      if (renderer && strcasecmp(renderer, "default")) {
          handle->name = _aax_strdup((char*)renderer);
       }
       else {
@@ -521,26 +521,24 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
          if (!handle->name)
          {
-            s = xmlNodeGetString(xid, "renderer");
-            if (s && strcmp(s, "default")) {
-               handle->name = _aax_strdup(s);
-            }
-            else
+            s = xmlAttributeGetString(xid, "name");
+            if (s)
             {
-               xmlFree(s); /* 'default' */
-               handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
+               if (strcmp(s, "default")) {
+                  handle->name = _aax_strdup(s);
+               } else {						/* 'default' */
+                  handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
+               }
+               xmlFree(s);
             }
          }
 
-         if (xmlNodeTest(xid, "timer-driven")) {
-            handle->use_timer = xmlNodeGetBool(xid, "timer-driven");
+         if (xmlNodeTest(xid, "interupts")) {
+            handle->use_timer = ~xmlNodeGetBool(xid, "interupts");
          }
 
          if (xmlNodeTest(xid, "shared")) {
             handle->shared = xmlNodeGetBool(xid, "shared");
-         }
-         else if (xmlNodeTest(xid, "virtual-mixer")) {
-            handle->shared = xmlNodeGetBool(xid, "virtual-mixer");
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -967,7 +965,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // TIMER_BASED
       if (handle->use_timer)
       {
-         no_frames = *frames;
+         no_frames = *frames; // * *tracks/2;
          handle->no_periods = periods = 2;
       }
 
@@ -1015,7 +1013,22 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
          _AAX_SYSLOG(str);
 #if 0
-// printf("\tformat: %X", *fmt);
+ printf("alsa; driver settings:\n");
+ if (handle->mode != 0) {
+    printf("  output renderer: '%s'\n", handle->name);
+ } else {
+    printf("  input renderer: '%s'\n", handle->name);
+ }
+ printf( "  devname: '%s'\n", handle->devname);
+ printf( "  playback rate: %u hz\n",  rate);
+ printf( "  buffer size: %u bytes\n", (unsigned int)*frames*channels*bps);
+ printf( "  latency: %3.2f ms\n",  1e3*handle->latency);
+ printf( "  no. periods: %i\n", handle->no_periods);
+ printf("  use mmap: %s\n", handle->use_mmap?"yes":"no");
+ printf("  interleaved: %s\n",handle->interleaved?"yes":"no");
+ printf("  timer based: %s\n",handle->use_timer?"yes":"no");
+ printf("  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
+ printf("\tformat: %x\n", *fmt);
 #endif
       } while (0);
 
@@ -2903,8 +2916,8 @@ _aaxALSADriverThread(void* config)
             {
                be_handle->PID[0] += 0.001f/be_handle->PID[3];
                be_handle->PID[3] = 0.0f;
-#if 1
-printf("target: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", be_handle->PID[0]*freq, res, wait_us/1000.0f, delay_sec*1000.0f);
+#if 0
+ printf("target: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", be_handle->PID[0]*freq, res, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
          }
