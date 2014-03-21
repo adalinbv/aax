@@ -324,8 +324,8 @@ int usecSleep(unsigned int dt_us)
       s.tv_nsec = 500000L;
       return nanosleep(&s, 0);
    }
-   return 0;
 #endif
+   return 0;
 }
 
 unsigned int
