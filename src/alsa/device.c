@@ -533,8 +533,8 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
          }
 
-         if (xmlNodeTest(xid, "interupts")) {
-            handle->use_timer = ~xmlNodeGetBool(xid, "interupts");
+         if (xmlNodeTest(xid, "timed")) {
+            handle->use_timer = xmlNodeGetBool(xid, "timed");
          }
 
          if (xmlNodeTest(xid, "shared")) {
@@ -2446,7 +2446,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
          if ((err = xrun_recovery(handle->pcm, err)) < 0)
          {
             char s[255];
-            snprintf(s, 255, "MMAP begin avail error: %s\n",psnd_strerror(err));
+            snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(err));
             _AAX_DRVLOG(s);
             res = 0;
             break;
@@ -2583,11 +2583,14 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_samples, no_tracks, chunk;
-   unsigned int offs, t, hw_bps;
+   unsigned int no_tracks, offs, chunk;
+   unsigned int t, outbuf_size, hw_bps;
+   snd_pcm_sframes_t no_frames;
+   snd_pcm_sframes_t avail;
+   snd_pcm_state_t state;
    const int32_t **sbuf;
    char **data;
-   int err;
+   int res = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2596,79 +2599,107 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 
    assert(rbs != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
+   no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES);
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
-   _alsa_set_volume(handle, rbs, offs, no_samples, no_tracks, gain);
-
-   if (handle->ptr == 0)
+   outbuf_size = no_tracks * no_frames*hw_bps;
+   if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
-      unsigned int samples, outbuf_size, size;
-      int16_t *ptr;
+      size_t size;
       char *p;
 
-      samples = rbs->get_parami(rbs, RB_NO_SAMPLES);
-      outbuf_size = samples * hw_bps;
-      if (outbuf_size & 0xF)
-      {
-         outbuf_size|= 0xF;
-         outbuf_size++;
-      }
+      outbuf_size = SIZETO16(no_frames*hw_bps);
 
-      size = no_tracks * (2*sizeof(void*));
+      size = no_tracks * sizeof(void*);
+      p = (char *)size;
+
       size += no_tracks * outbuf_size;
-
-      p = (char *)(no_tracks * 2*sizeof(void*));
       handle->ptr = (void**)_aax_malloc(&p, size);
-      handle->scratch = (char**)handle->ptr + no_tracks;
+      handle->scratch = (char**)(handle->ptr + no_tracks);
+      handle->buf_len = outbuf_size;
 
-      ptr = (int16_t*)p;
       for (t=0; t<no_tracks; t++)
       {
-         handle->ptr[t] = ptr;
-         ptr += samples;
+         handle->ptr[t] = p;
+         p += outbuf_size;
       }
-      handle->buf_len = outbuf_size;
    }
 
-   assert(no_samples*hw_bps <= handle->buf_len);
+   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
+   no_frames -= offs;
 
-   data = handle->scratch;
+   res = avail = psnd_pcm_avail_update(handle->pcm);
+   if (avail < 0)
+   {
+      int err;
+      if ((err = xrun_recovery(handle->pcm, avail)) < 0)
+      {
+         char s[255];
+         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+         _AAX_DRVLOG(s);
+         return 0;
+      }
+   }
+
+   state = psnd_pcm_state(handle->pcm);
+   if ((state != SND_PCM_STATE_RUNNING) &&
+       (avail > 0) && (avail <= handle->threshold))
+   {
+      psnd_pcm_start(handle->pcm);
+   }
+
+   if (avail < no_frames) avail = 0;
+   else avail = no_frames;
+
+   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
+
+   data = (char**)handle->ptr;
    sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
    for (t=0; t<no_tracks; t++)
    {
       data[t] = handle->ptr[t];
-      handle->cvt_to(data[t], sbuf[t]+offs, no_samples);
+      handle->cvt_to(data[t], sbuf[t]+offs, no_frames);
    }
    rbs->release_tracks_ptr(rbs);
 
    chunk = 10;
    do
    {
+      int err, try = 0;
+
       do {
-         err = psnd_pcm_writen(handle->pcm, (void**)data, no_samples);
+         err = res = psnd_pcm_writen(handle->pcm, (void**)data, avail);
       }
       while (err == -EAGAIN);
 
       if (err < 0)
       {
-         if (xrun_recovery(handle->pcm, err) < 0) {
-            return 0;
+         if (xrun_recovery(handle->pcm, err) < 0)
+         {
+            _AAX_DRVLOG("alsa; unable to run xrun_recovery");
+            res = 0;
+            break;
          }
-         break; /* skip one period */
+         if (try++ > 2)
+         {
+            _AAX_DRVLOG("alsa; unable to recover from pcm write error");
+            res = 0;
+            break;
+         }
+         continue;
       }
 
       for (t=0; t<no_tracks; t++) {
-         data[t] += err;
+         data[t] += res*hw_bps;
       }
-      no_samples -= err;
+      offs += res;
+      avail -= res;
    }
-   while ((no_samples > 0) && --chunk);
+   while ((avail > 0) && --chunk);
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
-   return 0;
+   return res;
 }
 
 
@@ -2677,11 +2708,14 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_samples, no_tracks, offs, hw_bps;
-   unsigned int outbuf_size, chunk;
+   unsigned int no_tracks, offs, chunk;
+   unsigned int outbuf_size, hw_bps;
+   snd_pcm_sframes_t no_frames;
+   snd_pcm_sframes_t avail;
+   snd_pcm_state_t state;
    const int32_t **sbuf;
    char *data;
-   int err;
+   int res = 0;
     
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2690,14 +2724,11 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 
    assert(rbs != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   no_samples = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
+   no_frames = rbs->get_parami(rbs, RB_NO_SAMPLES);
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    hw_bps = handle->bytes_sample;
 
-   _alsa_set_volume(handle, rbs, offs, no_samples, no_tracks, gain);
-
-   outbuf_size = no_tracks * no_samples*hw_bps;
+   outbuf_size = no_tracks * no_frames*hw_bps;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
@@ -2708,22 +2739,46 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
       handle->buf_len = outbuf_size;
    }
 
-#if 0
-   assert(outbuf_size <= handle->buf_len);
-#endif
+   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
+   no_frames -= offs;
+
+   res = avail = psnd_pcm_avail_update(handle->pcm);
+   if (avail < 0)
+   {
+      int err;
+      if ((err = xrun_recovery(handle->pcm, avail)) < 0)
+      {
+         char s[255];
+         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+         _AAX_DRVLOG(s);
+         return 0;
+      }
+   }
+
+   state = psnd_pcm_state(handle->pcm);
+   if ((state != SND_PCM_STATE_RUNNING) &&
+       (avail > 0) && (avail <= handle->threshold))
+   {
+      psnd_pcm_start(handle->pcm);
+   }
+
+   if (avail < no_frames) avail = 0;
+   else avail = no_frames;
+
+   _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
    data = (char*)handle->scratch;
    sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
-   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_samples);
+   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
    rbs->release_tracks_ptr(rbs);
 
    chunk = 10;
    do
    {
-      int try = 0;
+      int err, try = 0;
 
       do {
-         err = psnd_pcm_writei(handle->pcm, data, no_samples);
+         err = res = psnd_pcm_writei(handle->pcm, data, avail);
       }
       while (err == -EAGAIN);
 
@@ -2732,24 +2787,27 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
          if (xrun_recovery(handle->pcm, err) < 0)
          {
             _AAX_DRVLOG("alsa; unable to run xrun_recovery");
-            return 0;
+            res = 0;
+            break;
          }
          if (try++ > 2) 
          {
             _AAX_DRVLOG("alsa; unable to recover from pcm write error");
+            res = 0;
             break;
          }
 //       _AAX_DRVLOG("alsa; warning: pcm write error");
          continue;
       }
 
-      data += err * no_tracks;
-      no_samples -= err;
+      data += res * no_tracks*hw_bps;
+      offs += res;
+      avail -= res;
    }
-   while ((no_samples > 0) && --chunk);
+   while ((avail > 0) && --chunk);
    if (!chunk) _AAX_DRVLOG("alsa; too many playback tries\n");
 
-   return 0;
+   return res;
 }
 
 static int
