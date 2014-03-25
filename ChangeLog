@@ -1,5 +1,5 @@
-* Fri Feb 14 2014 - tech@adalin.org
-- AeonWave (2.3.5) stable; urgency=low
+* Sun Mar 23 2014 - tech@adalin.org
+- AeonWave (2.4.0) stable; urgency=low
  * Reorganized the code to support different hardware rendering schemes in
    the future. As a result the current implementation also renders 25% to 75%
    faster than before (depending of the computer hardware, older hardware
@@ -7,12 +7,14 @@
  * Switch to timer-based rendering instead of interupt-based rendering for ALSA.
    This not only saves powerconsumption but is also more reliable for low
    latency operations for a broader range of audio devices.
+ * Switched to a new xml configuration file format.
+   Both formats will be supported until version 3.0.0
  * Support WAV files with a LIST section.
  * Fix Auto generated waveform loop-points.
  * Fix a problem with capture-only backends
    
 
- -- Erik Hofman <tech@adalin.org>  Fri, 14 Feb 2014 13:27:00 +0100
+ -- Erik Hofman <tech@adalin.org>  Sun, 23 Mar 2014 10:45:00 +0200
 
 * Sat Dec 21 2013 - tech@adalin.org
 - AeonWave (2.3.4) stable; urgency=high

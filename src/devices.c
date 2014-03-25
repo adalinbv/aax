@@ -397,6 +397,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       }
       else if (v < AAX_NEW_CONFIG_VERSION)
       {
+         xmlFree(xcid);
          _aaxDriverOldBackendReadConfigSettings(xid, devname, config, path, m);
          return;
       }
@@ -426,9 +427,18 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
          unsigned int con, con_num;
          char level;
          void *xiid;
+         char *ptr;
 
          xmlNodeGetPos(xcid, xdid, "device", dev);
          if (xmlAttributeCompareString(xdid, "backend", device_name)) {
+            continue;
+         }
+
+         ptr = strstr(devname[1], ": ");
+         if (ptr) *ptr = 0;
+         level = xmlAttributeCompareString(xdid, "name", devname[1]);
+         *ptr = ':';
+         if (level) {
             continue;
          }
 
