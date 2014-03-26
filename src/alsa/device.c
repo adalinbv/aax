@@ -40,7 +40,6 @@
 #include "device.h"
 #include "audio.h"
 
-#undef NDEBUG
 #define TIMER_BASED		AAX_TRUE
 #define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		32
@@ -746,7 +745,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    if (hwparams && swparams)
    {
       unsigned int bps = handle->bytes_sample;
-      unsigned int periods = handle->no_periods;
+      unsigned int no_periods = handle->no_periods;
       unsigned int val1, val2, period_fact;
       snd_pcm_t *hid = handle->pcm;
       snd_pcm_format_t data_format;
@@ -910,48 +909,41 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
 
-      if (frames && (*frames > 0))
-      {
-         no_frames = *frames;
-      } else {
-         no_frames = rate/25;
-      }
-
-      // Always use interupts for low latency.
-      handle->latency = (float)no_frames/(float)rate;
-      if (handle->latency < 0.012f) {
-         handle->use_timer = AAX_FALSE;
-      }
-
       // TIMER_BASED
       if (handle->use_timer) {
-         periods = val1;
+         no_periods = val1;
       }
       else
       {
          TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
                 "unable to get the maximum no. periods" );
-         periods = _MINMAX(periods, val1, val2);
+         no_periods = _MINMAX(no_periods, val1, val2);
       }
 
-      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
+      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &no_periods, 0),
             "unsupported no. periods" );
-      period_fact = handle->no_periods/periods;
+      period_fact = handle->no_periods/no_periods;
       if (err >= 0) {
-         handle->no_periods = periods;
+         handle->no_periods = no_periods;
       }
 
       if (frames && (*frames > 0))
       {
-         no_frames = *frames;
+         no_frames = *frames * channels / (2*no_periods);
          if (!handle->mode) no_frames *= period_fact;
       } else {
          no_frames = rate/25;
       }
 
+      // Always use interupts for low latency.
+      handle->latency = no_frames/(float)rate;
+      if (handle->latency < 0.012f) {
+         handle->use_timer = AAX_FALSE;
+      }
+
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-      no_frames *= periods;
+      no_frames *= no_periods;
 
       // TIMER_BASED
       if (handle->use_timer) {
@@ -965,14 +957,15 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // TIMER_BASED
       if (handle->use_timer)
       {
-         no_frames = *frames; // * *tracks/2;
-         handle->no_periods = periods = 2;
+         no_frames = *frames * channels/2;
+         handle->no_periods = no_periods = 2;
       }
 
-      no_frames /= periods;
+      no_frames /= no_periods;
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
       *frames = no_frames;
+
       handle->PID[0] = ((float)no_frames/(float)rate);
       if (handle->PID[0] > 0.02f) {
          handle->PID[0] += 0.01f; // add 10ms
@@ -980,7 +973,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->PID[0] *= FILL_FACTOR;
       }
 
-      handle->latency = (float)no_frames/(float)rate;
+      if (handle->use_timer) {
+         handle->latency = handle->PID[0]; // FILL_FACTOR*handle->period_frames/(float)rate;
+      }
+      else {
+          handle->latency = 2.0f*no_frames/(float)(rate*channels);
+      }
 
       do
       {
@@ -1076,10 +1074,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // Now fill the playback buffer with handle->no_periods periods of
       // silence for lowest latency.
       // TIMER_BASED
-      if (handle->use_timer) {
-         handle->latency = handle->PID[0]; // FILL_FACTOR*handle->period_frames/(float)rate;
-      }
-      else if (handle->mode)
+      if (handle->mode)
       {
          _aaxRingBuffer *rb;
          int i;
@@ -1102,7 +1097,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          err = psnd_pcm_delay(hid, &delay);
          if (err >= 0) {
-            handle->latency = (float)delay/(float)rate;
+            handle->latency = 2.0f*delay/(float)(rate*channels);
          }
       }
    }
