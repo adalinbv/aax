@@ -677,7 +677,7 @@ _aaxALSADriverDisconnect(void *id)
       if (handle->pcm) {
          psnd_pcm_close(handle->pcm);
       }
-      free(handle->ptr);
+      _aax_free(handle->ptr);
       handle->ptr = 0;
       handle->pcm = 0;
       free(handle);
@@ -2583,13 +2583,13 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
+   char **data[_AAX_MAX_SPEAKERS];
    unsigned int no_tracks, offs, chunk;
    unsigned int t, outbuf_size, hw_bps;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    const int32_t **sbuf;
-   char **data;
    int res = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -2609,6 +2609,9 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       size_t size;
       char *p;
 
+      _aax_free(handle->ptr);
+      handle->buf_len = outbuf_size;
+      
       outbuf_size = SIZETO16(no_frames*hw_bps);
 
       size = no_tracks * sizeof(void*);
@@ -2616,8 +2619,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 
       size += no_tracks * outbuf_size;
       handle->ptr = (void**)_aax_malloc(&p, size);
-      handle->scratch = (char**)(handle->ptr + no_tracks);
-      handle->buf_len = outbuf_size;
+      handle->scratch = (char**)p;
 
       for (t=0; t<no_tracks; t++)
       {
@@ -2654,7 +2656,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 
    _alsa_set_volume(handle, rbs, offs, no_frames, no_tracks, gain);
 
-   data = (char**)handle->ptr;
    sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
    for (t=0; t<no_tracks; t++)
    {
@@ -2734,9 +2735,10 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
       char *p = 0;
 
       _aax_free(handle->ptr);
+      handle->buf_len = outbuf_size;
+
       handle->ptr = (void**)_aax_malloc(&p, outbuf_size);
       handle->scratch = (char**)p;
-      handle->buf_len = outbuf_size;
    }
 
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
