@@ -299,6 +299,7 @@ static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
 static const char *_const_alsa_default_name[2];
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
+static const char* ifname_prefix[];
 
 char *_alsa_default_name[2] = { NULL, NULL };
 int _default_devnum = DEFAULT_DEVNUM;
@@ -757,7 +758,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-#if 0
+#if 1
       /* for testing purposes */
       if (err >= 0)
       {
@@ -922,6 +923,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &no_periods, 0),
             "unsupported no. periods" );
+      if (no_periods == 0) no_periods = 1;
+
       period_fact = handle->no_periods/no_periods;
       if (err >= 0) {
          handle->no_periods = no_periods;
@@ -977,7 +980,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->latency = handle->PID[0]; // FILL_FACTOR*handle->period_frames/(float)rate;
       }
       else {
-          handle->latency = 2.0f*no_frames/(float)(rate*channels);
+          handle->latency = (float)no_frames/(float)rate;
       }
 
       do
@@ -1074,7 +1077,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // Now fill the playback buffer with handle->no_periods periods of
       // silence for lowest latency.
       // TIMER_BASED
-      if (handle->mode)
+      if (!handle->use_timer && handle->mode)
       {
          _aaxRingBuffer *rb;
          int i;
@@ -1097,9 +1100,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          err = psnd_pcm_delay(hid, &delay);
          if (err >= 0) {
-            handle->latency = 2.0f*delay/(float)(rate*channels);
+            handle->latency = (float)delay/(float)rate;
          }
       }
+      handle->latency = 2.0f*handle->latency/(float)channels;
    }
 
    if (swparams) free(swparams);
@@ -1522,14 +1526,19 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && (!strncmp(name, "front:", strlen("front:"))
-                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
-                         || !strncmp(name, "rear:", strlen("rear:"))
-                         || !strncmp(name, "side:", strlen("side:"))
-                         || !strncmp(name, "iec958:", strlen("iec958:"))))
+               if (name)
                {
-                  if (m || (!strncmp(name, "front:", strlen("front:")) ||
-                            !strncmp(name, "iec958:", strlen("iec958:"))))
+                  int i = 0;
+                  while (ifname_prefix[i] &&
+                         strncmp(name, ifname_prefix[i],
+                                       strlen(ifname_prefix[i]))
+                        ) {
+                     i++;
+                  }
+
+                  if ((m && ifname_prefix[i]) ||
+                       (!strncmp(name, "front:", strlen("front:")) ||
+                        !strncmp(name, "iec958:", strlen("iec958:"))))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
@@ -1698,6 +1707,10 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 
 /*-------------------------------------------------------------------------- */
 
+static const char* ifname_prefix[] = {
+   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL
+};
+
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
 {
    {2, SND_PCM_FORMAT_S16_LE},
@@ -1807,20 +1820,22 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
 
    if (devname && (tracks <= _AAX_MAX_SPEAKERS))
    {
+      unsigned int tracks_2 = tracks /= 2;
       void **hints;
       int res;
 
-      tracks /= 2;
       res = psnd_device_name_hint(-1, "pcm", &hints);
       if (!res && hints)
       {
          void **lst = hints;
-         char *ptr;
-         int len;
+         char *ifname;
 
-         ptr = strstr(devname, ": ");
-         if (ptr) len = ptr-devname;
-         else len = strlen(devname);
+         ifname = strstr(devname, ": ");
+         if (ifname)
+         {
+             *ifname = 0;
+            ifname += 2;
+         }
 
          do
          {
@@ -1828,44 +1843,48 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && !strncmp(name, "front:", strlen("front:")))
+               if (name)
                {
-                  if (!strcmp(devname, name))
+                  int i = 0;
+                  while (ifname_prefix[i] &&
+                         strncmp(name, ifname_prefix[i],
+                                       strlen(ifname_prefix[i]))
+                        ) {
+                     i++;
+                  }
+
+                  if (ifname_prefix[i] && !strcmp(devname, name))
                   {
                      int dlen = strlen(name)+1;
                      if (vmix)
                      {
-                         dlen -= strlen("front:");
                          dlen += strlen("plug:''");
                          if (m) dlen += strlen("dmix:");
                          else dlen += strlen("dsnoop:");
                      }
+
                      rv = malloc(dlen);
                      if (rv)
                      {
                         if (vmix)
                         {
-                            char *ptr =  name+strlen("front:");
                             snprintf(rv, dlen, "plug:'%s%s'",
-                                         m ? "dmix:" : "dsnoop:", ptr);
+                                         m ? "dmix:" : "dsnoop:", name);
                         }
                         else {
                             snprintf(rv, dlen, "%s", name);
                         }
-                     } else {
-                        rv = _aax_strdup(name);
                      }
                      break;
                   }
-                  else if ((tracks <= 4)
-                            || (strncmp(name, dev_prefix[m ? tracks : 0],
-                                    strlen(dev_prefix[m ? tracks : 0])) == 0))
+                  else if ((tracks_2 <= (_AAX_MAX_SPEAKERS/2))
+                            || (strncmp(name, dev_prefix[m ? tracks_2 : 0],
+                                    strlen(dev_prefix[m ? tracks_2 : 0])) == 0))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface, *description = 0;
 
                      if (!desc) desc = name;
-
                      iface = strstr(desc, ", ");
                      if (iface)
                      {
@@ -1875,73 +1894,56 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         else description = iface;
                      }
 
-                     if (!strncmp(devname, desc, len))
+                     if (!strcmp(devname, desc))
                      {
-                        char *devptr = strstr(devname, ": ");
-                        if (devptr)
+                        if (ifname)
                         {
-                           devptr += 2;
-                           if (!strcmp(devptr, iface) ||
-                               (description && !strcmp(devptr, description)))
+                           if (!strcmp(ifname, iface) ||
+                               (description && !strcmp(ifname, description)))
                            {
-                              int dlen = strlen(name)-strlen("front:")+1;
+                              int dlen = strlen(name)+1;
                               if (vmix)
                               {
                                  dlen += strlen("plug:''");
                                  if (m) dlen += strlen("dmix:");
                                  else dlen += strlen("dsnoop:");
                               }
-                              else dlen += strlen(dev_prefix[m ? tracks : 0]);
+
                               rv = malloc(dlen);
                               if (rv)
                               {
-                                 char *ptr = name+strlen("front:");
-                                 if (vmix)
-                                 {
+                                 if (vmix) {
                                     snprintf(rv, dlen, "plug:'%s%s'",
-                                                 m ? "dmix:" : "dsnoop:", ptr);
+                                                 m ? "dmix:" : "dsnoop:", name);
                                  }
-                                 else if (ptr)
-                                 {
-                                    snprintf(rv, dlen, "%s%s",
-                                               dev_prefix[m ? tracks : 0], ptr);
-                                 } else {
+                                 else {
                                     snprintf(rv, dlen, "%s", name);
                                  }
-                              } else {
-                                 rv = _aax_strdup(name);
                               }
                               break;
                            }
                         }
                         else
                         {
-                           int dlen = strlen(name)-strlen("front:")+1;
+                           int dlen = strlen(name)+1;
                            if (vmix)
                            {
                               dlen += strlen("plug:''");
                               if (m) dlen += strlen("dmix:");
                               else dlen += strlen("dsnoop:");
                            }
-                           else dlen += strlen(dev_prefix[m ? tracks : 0]);
+                           else dlen += strlen(dev_prefix[m ? tracks_2 : 0]);
+
                            rv = malloc(dlen);
                            if (rv)
                            {
-                              char *ptr = name+strlen("front:");
-                              if (vmix)
-                              {
+                              if (vmix) {
                                  snprintf(rv, dlen, "plug:'%s%s'",
-                                                 m ? "dmix:" : "dsnoop:", ptr);
+                                                 m ? "dmix:" : "dsnoop:", name);
                               }
-                              else if (ptr)
-                              {
-                                    snprintf(rv, dlen, "%s%s",
-                                               dev_prefix[m ? tracks : 0], ptr);
-                              } else {
+                              else {
                                  snprintf(rv, dlen, "%s", name);
                               }
-                           } else {
-                              rv = _aax_strdup(name);
                            }
                            break;
                         }
@@ -1955,6 +1957,12 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
             ++lst;
          }
          while (*lst != NULL);
+
+         if (ifname)
+         {
+            *ifname-- = ' ';
+            *ifname = ':';
+         }
       }
 
       res = psnd_device_name_free_hint(hints);
@@ -2775,7 +2783,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
       int err, try = 0;
 
       do {
-         err = res = psnd_pcm_writei(handle->pcm, data, avail);
+         err = psnd_pcm_writei(handle->pcm, data, avail);
       }
       while (err == -EAGAIN);
 
@@ -2853,7 +2861,7 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 1.0f/handle->info->refresh_rate;
+   delay_sec = 2.0f/(handle->info->refresh_rate*handle->info->no_tracks);
 
    be = handle->backend.ptr;
    id = handle->backend.handle;		// Required for _AAX_DRVLOG

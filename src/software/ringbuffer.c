@@ -634,7 +634,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       fval *= rbd->frequency_hz;
       val = rintf(fval);
 
-      // same code as for _aaxRingBufferSetParami with RN_NO_SAMPLES
+      // same code as for _aaxRingBufferSetParami with RB_NO_SAMPLES
       if (rbd->track == NULL)
       {
          rbd->no_samples_avail = val;
