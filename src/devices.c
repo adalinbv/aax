@@ -437,7 +437,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
          ptr = strstr(devname[1], ": ");
          if (ptr) *ptr = 0;
          level = xmlAttributeCompareString(xdid, "name", devname[1]);
-         *ptr = ':';
+         if (ptr) *ptr = ':';
          if (level) {
             continue;
          }
