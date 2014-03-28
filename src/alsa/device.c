@@ -1708,7 +1708,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static const char* ifname_prefix[] = {
-   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL
+   "front:", "rear:", "center_lfe:", "side:", "iec958:", "sysdefault:", NULL
 };
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
@@ -1869,7 +1869,8 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         if (vmix)
                         {
                             snprintf(rv, dlen, "plug:'%s%s'",
-                                         m ? "dmix:" : "dsnoop:", name);
+                                         m ? "dmix:" : "dsnoop:",
+                                         name + strlen(ifname_prefix[i]));
                         }
                         else {
                             snprintf(rv, dlen, "%s", name);
@@ -1914,7 +1915,8 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                               {
                                  if (vmix) {
                                     snprintf(rv, dlen, "plug:'%s%s'",
-                                                 m ? "dmix:" : "dsnoop:", name);
+                                                 m ? "dmix:" : "dsnoop:",
+                                                 name+strlen(ifname_prefix[i]));
                                  }
                                  else {
                                     snprintf(rv, dlen, "%s", name);
@@ -1923,28 +1925,9 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                               break;
                            }
                         }
-                        else
+                        else	// no interface specified, use sysdefault
                         {
-                           int dlen = strlen(name)+1;
-                           if (vmix)
-                           {
-                              dlen += strlen("plug:''");
-                              if (m) dlen += strlen("dmix:");
-                              else dlen += strlen("dsnoop:");
-                           }
-                           else dlen += strlen(dev_prefix[m ? tracks_2 : 0]);
-
-                           rv = malloc(dlen);
-                           if (rv)
-                           {
-                              if (vmix) {
-                                 snprintf(rv, dlen, "plug:'%s%s'",
-                                                 m ? "dmix:" : "dsnoop:", name);
-                              }
-                              else {
-                                 snprintf(rv, dlen, "%s", name);
-                              }
-                           }
+                           rv = strdup(name);
                            break;
                         }
                      }
