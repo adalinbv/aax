@@ -1903,6 +1903,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                (description && !strcmp(ifname, description)))
                            {
                               int dlen = strlen(name)+1;
+                              dlen += strlen(dev_prefix[m ? tracks_2 : 0]);
                               if (vmix)
                               {
                                  dlen += strlen("plug:''");
@@ -1919,7 +1920,9 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                                  name+strlen(ifname_prefix[i]));
                                  }
                                  else {
-                                    snprintf(rv, dlen, "%s", name);
+                                    snprintf(rv, dlen, "%s%s",
+                                                 dev_prefix[m ? tracks_2 : 0],
+                                                 name+strlen(ifname_prefix[i]));
                                  }
                               }
                               break;
