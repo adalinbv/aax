@@ -758,7 +758,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-#if 1
+#if 0
       /* for testing purposes */
       if (err >= 0)
       {
@@ -932,7 +932,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       if (frames && (*frames > 0))
       {
-         no_frames = *frames * channels / (2*no_periods);
+         no_frames = *frames / no_periods;
          if (!handle->mode) no_frames *= period_fact;
       } else {
          no_frames = rate/25;
@@ -960,7 +960,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // TIMER_BASED
       if (handle->use_timer)
       {
-         no_frames = *frames * channels/2;
+         no_frames = *frames;
          handle->no_periods = no_periods = 2;
       }
 
@@ -1077,7 +1077,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // Now fill the playback buffer with handle->no_periods periods of
       // silence for lowest latency.
       // TIMER_BASED
-      if (!handle->use_timer && handle->mode)
+      if (handle->mode) // && !handle->use_timer)
       {
          _aaxRingBuffer *rb;
          int i;
@@ -1103,7 +1103,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             handle->latency = (float)delay/(float)rate;
          }
       }
-      handle->latency = 2.0f*handle->latency/(float)channels;
    }
 
    if (swparams) free(swparams);
@@ -2847,7 +2846,7 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 2.0f/(handle->info->refresh_rate*handle->info->no_tracks);
+   delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
    id = handle->backend.handle;		// Required for _AAX_DRVLOG
