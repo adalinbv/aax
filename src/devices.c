@@ -434,12 +434,15 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             continue;
          }
 
-         ptr = strstr(devname[1], ": ");
-         if (ptr) *ptr = 0;
-         level = xmlAttributeCompareString(xdid, "name", devname[1]);
-         if (ptr) *ptr = ':';
-         if (level) {
-            continue;
+         if (devname[1])
+         {
+            ptr = strstr(devname[1], ": ");
+            if (ptr) *ptr = 0;
+            level = xmlAttributeCompareString(xdid, "name", devname[1]);
+            if (ptr) *ptr = ':';
+            if (level) {
+               continue;
+            }
          }
 
          xiid = xmlMarkId(xdid);
