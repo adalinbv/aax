@@ -932,7 +932,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       if (frames && (*frames > 0))
       {
-         no_frames = *frames / no_periods;
+         no_frames = *frames/2; // / no_periods;
          if (!handle->mode) no_frames *= period_fact;
       } else {
          no_frames = rate/25;

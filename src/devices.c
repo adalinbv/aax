@@ -498,6 +498,9 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                   config->backend.input = xmlNodeCopyPos(xdid, xiid, "connector", con);
                }
 
+               i = xmlNodeGetInt(xiid, "bitrate");
+               if (i) config->node[0].bitrate = i;
+
                f = (float)xmlNodeGetDouble(xiid, "frequency-hz");
                if (f) config->node[0].frequency = f;
 

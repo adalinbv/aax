@@ -35,6 +35,7 @@ typedef struct
       void *hrtf;
       int no_speakers;
       int no_emitters;
+      int bitrate;
       void *speaker[_AAX_MAX_SPEAKERS];
       float frequency;
       float interval;
