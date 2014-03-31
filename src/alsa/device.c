@@ -154,7 +154,8 @@ typedef struct
 
     char *ifname[2];
 
-    float PID[4];
+    float PID[1];
+    float target[3];
 
 } _driver_t;
 
@@ -480,8 +481,9 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
          handle->use_timer = TIMER_BASED;
       }
 
-      handle->PID[0] = FILL_FACTOR;
-      handle->PID[3] = AAX_FPINFINITE;
+      handle->target[0] = FILL_FACTOR;
+      handle->target[1] = FILL_FACTOR;
+      handle->target[2] = AAX_FPINFINITE;
    }
 
    return handle;
@@ -907,6 +909,18 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       *speed = handle->frequency_hz = (float)rate;
 
+      if (frames && (*frames > 0)) {
+         no_frames = *frames/2;
+      } else {
+         no_frames = rate/25;
+      }
+
+      // Always use interupts for low latency.
+      handle->latency = no_frames/(float)rate;
+      if (handle->latency < 0.010f) {
+         handle->use_timer = AAX_FALSE;
+      }
+
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
 
@@ -930,19 +944,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->no_periods = no_periods;
       }
 
-      if (frames && (*frames > 0))
-      {
-         no_frames = *frames/2; // / no_periods;
-         if (!handle->mode) no_frames *= period_fact;
-      } else {
-         no_frames = rate/25;
-      }
-
-      // Always use interupts for low latency.
-      handle->latency = no_frames/(float)rate;
-      if (handle->latency < 0.012f) {
-         handle->use_timer = AAX_FALSE;
-      }
+      if (!handle->mode) no_frames *= period_fact;
 
       /* Set buffer size (in frames). The resulting latency is given by */
       /* latency = periodsize * periods / (rate * bytes_per_frame))     */
@@ -969,15 +971,16 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       handle->period_frames = no_frames;
       *frames = no_frames;
 
-      handle->PID[0] = ((float)no_frames/(float)rate);
-      if (handle->PID[0] > 0.02f) {
-         handle->PID[0] += 0.01f; // add 10ms
+      handle->target[0] = ((float)no_frames/(float)rate);
+      if (handle->target[0] > 0.02f) {
+         handle->target[0] += 0.01f; // add 10ms
       } else {
-         handle->PID[0] *= FILL_FACTOR;
+         handle->target[0] *= FILL_FACTOR;
       }
+      handle->target[1] = handle->target[0];
 
       if (handle->use_timer) {
-         handle->latency = handle->PID[0]; // FILL_FACTOR*handle->period_frames/(float)rate;
+         handle->latency = handle->target[0];
       }
       else {
           handle->latency = (float)no_frames/(float)rate;
@@ -2941,31 +2944,37 @@ _aaxALSADriverThread(void* config)
 
          if (be_handle->use_timer)
          {
-            float diff, target, input, err, P, I; // , D;
+            float diff, target, input, err, P, I;
             float freq = mixer->info->frequency;
 
-            target = be_handle->PID[0];
+            target = be_handle->target[1];
             input = (float)res/freq;
             err = input - target;
 
             P = err;
             I = err*delay_sec;
-//          D = (err - be_handle->PID[2])*delay_sec;
 
-            be_handle->PID[1] += I;
-            be_handle->PID[2] = err;
-            I = be_handle->PID[1];
+            be_handle->PID[0] += I;
+            I = be_handle->PID[0];
 
-            diff = 1.85f*P + 0.9f*I; // + 2.5f*D;
+            diff = 1.85f*P + 0.9f*I;
             wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
 
-            be_handle->PID[3] += delay_sec*1000.0f;
-            if (res < FILL_FACTOR*no_samples)
+            be_handle->target[2] += delay_sec*1000.0f;	// ms
+            if (res < be_handle->target[0]*freq)
             {
-               be_handle->PID[0] += 0.001f/be_handle->PID[3];
-               be_handle->PID[3] = 0.0f;
+               be_handle->target[1] += 0.001f/be_handle->target[2];
+               be_handle->target[2] = 0.0f;
 #if 0
- printf("target: %5.1f (%i), wait: %5.3f (%5.3f) ms\n", be_handle->PID[0]*freq, res, wait_us/1000.0f, delay_sec*1000.0f);
+ printf("increase, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+#endif
+            }
+            else if (be_handle->target[2] >= 10.0f*1000.0f)	// 10 sec
+            {
+               be_handle->target[1] *= 0.995f;
+               be_handle->target[2] = 0.0f;
+#if 0
+ printf("reduce, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
          }
