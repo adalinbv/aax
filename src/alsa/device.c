@@ -192,6 +192,7 @@ DECL_FUNCTION(snd_pcm_sw_params_current);
 DECL_FUNCTION(snd_pcm_sw_params);
 DECL_FUNCTION(snd_pcm_sw_params_set_avail_min);
 DECL_FUNCTION(snd_pcm_sw_params_set_start_threshold);
+DECL_FUNCTION(snd_pcm_sw_params_set_stop_threshold);
 DECL_FUNCTION(snd_pcm_mmap_begin);
 DECL_FUNCTION(snd_pcm_mmap_commit);
 DECL_FUNCTION(snd_pcm_writen);
@@ -401,6 +402,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_sw_params_current);			//
          TIE_FUNCTION(snd_pcm_sw_params_set_avail_min);			//
          TIE_FUNCTION(snd_pcm_sw_params_set_start_threshold);		//
+         TIE_FUNCTION(snd_pcm_sw_params_set_stop_threshold);		//
          TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);	//
          TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);		//
          TIE_FUNCTION(snd_pcm_state);					//
@@ -895,7 +897,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             "unsupported no. channels" );
       if (channels > handle->no_channels) handle->no_channels = channels;
       handle->hw_channels = channels;
-      *tracks = channels;
 
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
@@ -907,10 +908,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->frequency_hz = (float)val1/(float)val2;
          rate = (unsigned int)handle->frequency_hz;
       }
-      *speed = handle->frequency_hz = (float)rate;
+      handle->frequency_hz = (float)rate;
 
       if (frames && (*frames > 0)) {
-         no_frames = *frames/2;
+         no_frames = (*frames * rate)/(*speed * 2);
       } else {
          no_frames = rate/25;
       }
@@ -969,6 +970,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       no_frames /= no_periods;
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
+
+      *speed = rate;
+      *tracks = channels;
       *frames = no_frames;
 
       handle->target[0] = ((float)no_frames/(float)rate);
@@ -1016,7 +1020,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
          _AAX_SYSLOG(str);
-#if 0
+#if 1
  printf("alsa; driver settings:\n");
  if (handle->mode != 0) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -1056,14 +1060,17 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
             "unable to set software config" );
-      TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,0x7fffffff),
+      TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 0x7fffffff),
             "improper interrupt treshold" );
 
       // TIMER_BASED
-      if (handle->use_timer) {
+      if (handle->use_timer)
+      {
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams,
                                                      handle->max_frames),
                "wakeup treshold unsupported" );
+         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams, -1),
+               "set_stop_threshold unsupported" );
       } else {
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams,
                                                      handle->period_frames),
@@ -1822,7 +1829,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
 
    if (devname && (tracks <= _AAX_MAX_SPEAKERS))
    {
-      unsigned int tracks_2 = tracks /= 2;
+      unsigned int tracks_2 = tracks/2;
       void **hints;
       int res;
 
@@ -2426,7 +2433,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    do
    {
       const snd_pcm_channel_area_t *area;
-      snd_pcm_uframes_t frames = avail;
+      snd_pcm_uframes_t frames = no_frames;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
       int err;
@@ -2526,7 +2533,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    do
    {
       const snd_pcm_channel_area_t *area;
-      snd_pcm_uframes_t frames = avail;
+      snd_pcm_uframes_t frames = no_frames;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
       char *p;
@@ -2661,7 +2668,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       int err, try = 0;
 
       do {
-         err = res = psnd_pcm_writen(handle->pcm, (void**)data, avail);
+         err = res = psnd_pcm_writen(handle->pcm, (void**)data, no_frames);
       }
       while (err == -EAGAIN);
 
@@ -2771,7 +2778,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
       int err, try = 0;
 
       do {
-         err = psnd_pcm_writei(handle->pcm, data, avail);
+         err = psnd_pcm_writei(handle->pcm, data, no_frames);
       }
       while (err == -EAGAIN);
 

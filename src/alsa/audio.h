@@ -290,6 +290,7 @@ typedef int (*snd_pcm_sw_params_current_proc)(snd_pcm_t *, snd_pcm_sw_params_t *
 typedef int (*snd_pcm_sw_params_proc)(snd_pcm_t *, snd_pcm_sw_params_t *);
 typedef int (*snd_pcm_sw_params_set_avail_min_proc)(snd_pcm_t *, snd_pcm_sw_params_t *, snd_pcm_uframes_t);
 typedef int (*snd_pcm_sw_params_set_start_threshold_proc)(snd_pcm_t *, snd_pcm_sw_params_t *, snd_pcm_uframes_t);
+typedef int (*snd_pcm_sw_params_set_stop_threshold_proc)(snd_pcm_t *, snd_pcm_sw_params_t *, snd_pcm_uframes_t);
 
 typedef snd_pcm_sframes_t(*snd_pcm_writei_proc)(snd_pcm_t *, const void *, snd_pcm_uframes_t);
 typedef snd_pcm_sframes_t(*snd_pcm_mmap_writei_proc)(snd_pcm_t *, const void *, snd_pcm_uframes_t);
