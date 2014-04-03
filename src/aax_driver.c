@@ -1097,9 +1097,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                _aaxContextSetupSpeakers(config->node[0].speaker,info->no_tracks);
                for (t=0; t<handle->info->no_tracks; t++)
                {
-                  vec3Normalize(info->speaker[t],
-                                _aaxContextDefaultSpeakers[t]);
-                  info->speaker[t][3] = _aaxContextDefaultSpeakers[t][3];
+                  float gain = vec3Normalize(info->speaker[t],
+                                             _aaxContextDefaultSpeakers[t]);
+                  info->speaker[t][3] = 1.0f/gain;
                }
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
