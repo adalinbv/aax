@@ -1092,8 +1092,15 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             }
             else
             {
+               int t;
+
                _aaxContextSetupSpeakers(config->node[0].speaker,info->no_tracks);
-               _aax_memcpy(&info->speaker,&_aaxContextDefaultSpeakers, size);
+               for (t=0; t<handle->info->no_tracks; t++)
+               {
+                  vec3Normalize(info->speaker[t],
+                                _aaxContextDefaultSpeakers[t]);
+                  info->speaker[t][3] = _aaxContextDefaultSpeakers[t][3];
+               }
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -1187,7 +1194,11 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
          _aaxContextDefaultRouter[i] = channel;
 
          f = (float)xmlNodeGetDouble(xsid, "volume-norm");
-         _aaxContextDefaultSpeakers[channel][GAIN] = f;
+         if (f) {
+            _aaxContextDefaultSpeakers[channel][GAIN] = f;
+         } else {
+            _aaxContextDefaultSpeakers[channel][GAIN] = 1.0f;
+         }
 
          v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
          v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
