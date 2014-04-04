@@ -403,7 +403,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcmp(s, "default"))  {
+               if (strcasecmp(s, "default"))  {
                   handle->devname = charToWChar(_aaxNametoMMDevciceName(s));
                } else {
                   handle->devname = NULL;
@@ -488,7 +488,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
 
       if (SUCCEEDED(hr))
       {
-         if (renderer && strcmp(renderer, "default")) {
+         if (renderer && strcasecmp(renderer, "default")) {
             handle->devname = charToWChar(_aaxNametoMMDevciceName(renderer));
          }
 
@@ -990,7 +990,7 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
 
             slen = len;
             devname = wcharToChar(ptr, &slen, name.pwszVal);
-            if (devname && strcmp(devname, prev))
+            if (devname && strcasecmp(devname, prev))
             {		// devname doesn't match the previous device
                slen++;
                len -= slen;
