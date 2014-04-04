@@ -528,7 +528,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcmp(s, "default")) {
+               if (strcasecmp(s, "default")) {
                   handle->name = _aax_strdup(s);
                } else {						/* 'default' */
                   handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
@@ -1020,7 +1020,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
          _AAX_SYSLOG(str);
-#if 1
+#if 0
  printf("alsa; driver settings:\n");
  if (handle->mode != 0) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -1465,10 +1465,10 @@ _aaxALSADriverGetDevices(const void *id, int mode)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _alsa_type[m])))
+            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && !strncmp(name, "hw:", strlen("hw:")) && 
+               if (name && !strncasecmp(name, "hw:", strlen("hw:")) && 
                    strstr(name, ",DEV=0"))
                {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -1532,22 +1532,22 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _alsa_type[m])))
+            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
                   int i = 0;
                   while (ifname_prefix[i] &&
-                         strncmp(name, ifname_prefix[i],
+                         strncasecmp(name, ifname_prefix[i],
                                        strlen(ifname_prefix[i]))
                         ) {
                      i++;
                   }
 
                   if ((m && ifname_prefix[i]) ||
-                       (!strncmp(name, "front:", strlen("front:")) ||
-                        !strncmp(name, "iec958:", strlen("iec958:"))))
+                       (!strncasecmp(name, "front:", strlen("front:")) ||
+                        !strncasecmp(name, "iec958:", strlen("iec958:"))))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
@@ -1556,11 +1556,11 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      iface = strstr(desc, ", ");
 
                      if (iface) *iface = 0;
-                     if (iface && !strcmp(devname, desc))
+                     if (iface && !strcasecmp(devname, desc))
                      {
                         int slen;
 
-                        if (m || strncmp(name, "front:", strlen("front:")))
+                        if (m || strncasecmp(name, "front:", strlen("front:")))
                         {
                            if (iface != desc) {
                               iface = strchr(iface+2, '\n')+1;
@@ -1630,14 +1630,14 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _alsa_type[m])))
+         if (!type || (type && !strcasecmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name)
             {
-               if ((!m && (!strncmp(name, "default:", strlen("default:")) ||
-                          !strncmp(name, "sysdefault:", strlen("sysdefault:"))))
-                    || !strncmp(name, "front:", strlen("front:"))
+               if ((!m && (!strncasecmp(name, "default:", strlen("default:")) ||
+                          !strncasecmp(name, "sysdefault:", strlen("sysdefault:"))))
+                    || !strncasecmp(name, "front:", strlen("front:"))
                   )
                {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -1849,20 +1849,20 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _alsa_type[m])))
+            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
                   int i = 0;
                   while (ifname_prefix[i] &&
-                         strncmp(name, ifname_prefix[i],
+                         strncasecmp(name, ifname_prefix[i],
                                        strlen(ifname_prefix[i]))
                         ) {
                      i++;
                   }
 
-                  if (ifname_prefix[i] && !strcmp(devname, name))
+                  if (ifname_prefix[i] && !strcasecmp(devname, name))
                   {
                      int dlen = strlen(name)+1;
                      if (vmix)
@@ -1888,7 +1888,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                      break;
                   }
                   else if ((tracks_2 <= (_AAX_MAX_SPEAKERS/2))
-                            || (strncmp(name, dev_prefix[m ? tracks_2 : 0],
+                            || (strncasecmp(name, dev_prefix[m ? tracks_2 : 0],
                                     strlen(dev_prefix[m ? tracks_2 : 0])) == 0))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -1904,12 +1904,12 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                         else description = iface;
                      }
 
-                     if (!strcmp(devname, desc))
+                     if (!strcasecmp(devname, desc))
                      {
                         if (ifname)
                         {
-                           if (!strcmp(ifname, iface) ||
-                               (description && !strcmp(ifname, description)))
+                           if (!strcasecmp(ifname, iface) ||
+                               (description && !strcasecmp(ifname, description)))
                            {
                               int dlen = strlen(name)+1;
                               dlen += strlen(dev_prefix[m ? tracks_2 : 0]);
@@ -1990,21 +1990,21 @@ detect_devnum(const char *devname, int m)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _alsa_type[m])))
+            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
-                  if (!strcmp(devname, name))
+                  if (!strcasecmp(devname, name))
                   {
                      _sys_free(name);
                      devnum = ctr;
                      break;
                   }
 
-                  if (!strncmp(name, "front:", strlen("front:")))
+                  if (!strncasecmp(name, "front:", strlen("front:")))
                   {
-                     if (!strcmp(devname, "default"))
+                     if (!strcasecmp(devname, "default"))
                      {
                         _sys_free(name);
                         devnum = ctr;
@@ -2020,7 +2020,7 @@ detect_devnum(const char *devname, int m)
                         iface = strstr(desc, ", ");
                         if (iface) *iface = 0;
    
-                        if (!strncmp(devname, desc, len))
+                        if (!strncasecmp(devname, desc, len))
                         {
                            _sys_free(desc);
                            _sys_free(name);
@@ -2060,10 +2060,10 @@ get_devices_avail(int m)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _alsa_type[m])))
+         if (!type || (type && !strcasecmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && !strncmp(name, "front:", strlen("front:"))) rv++;
+            if (name && !strncasecmp(name, "front:", strlen("front:"))) rv++;
          }
          _sys_free(type);
          ++lst;
@@ -2093,7 +2093,7 @@ _alsa_get_volume_range(_driver_t *handle)
          psnd_mixer_selem_get_id(elem, sid);
          name = psnd_mixer_selem_id_get_name(sid);
 
-         if (!strcmp(name, "Capture"))
+         if (!strcasecmp(name, "Capture"))
          {
             if (psnd_mixer_selem_has_capture_volume(elem))
             {
@@ -2127,7 +2127,7 @@ _alsa_get_volume_range(_driver_t *handle)
          psnd_mixer_selem_get_id(elem, sid);
          name = psnd_mixer_selem_id_get_name(sid);
 
-         if (!strcmp(name, "Front") || !strcmp(name, "Speaker"))
+         if (!strcasecmp(name, "Front") || !strcasecmp(name, "Speaker"))
          {
             handle->outMixer = _aax_strdup(name);
             if (psnd_mixer_selem_has_playback_volume(elem))
@@ -2161,7 +2161,7 @@ _alsa_get_volume_range(_driver_t *handle)
             psnd_mixer_selem_get_id(elem, sid);
             name = psnd_mixer_selem_id_get_name(sid);
 
-            if (!strcmp(name, "PCM"))
+            if (!strcasecmp(name, "PCM"))
             {
                handle->outMixer = _aax_strdup(name);
                if (psnd_mixer_selem_has_playback_volume(elem))
@@ -2196,7 +2196,7 @@ _alsa_get_volume_range(_driver_t *handle)
             psnd_mixer_selem_get_id(elem, sid);
             name = psnd_mixer_selem_id_get_name(sid);
 
-            if (!strcmp(name, "Master"))
+            if (!strcasecmp(name, "Master"))
             {
                handle->outMixer = _aax_strdup(name);
                if (psnd_mixer_selem_has_playback_volume(elem))
@@ -2273,7 +2273,7 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, int offset, snd_pcm_sfra
                  psnd_mixer_selem_has_capture_volume(elem))
             {
                name = psnd_mixer_selem_id_get_name(sid);
-               if (!strcmp(name, "Capture"))
+               if (!strcasecmp(name, "Capture"))
                {
                   long volumeDB;
 #if 0
@@ -2302,9 +2302,9 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, int offset, snd_pcm_sfra
 
                name = psnd_mixer_selem_id_get_name(sid);
                if ((fabsf(hwgain - handle->volumeCur) >= handle->volumeStep) &&
-                   (!strcmp(name, handle->outMixer) || !strcmp(name, "Center")
-                    || !strcmp(name, "Surround") || !strcmp(name, "LFE")
-                    || !strcmp(name, "Side")))
+                   (!strcasecmp(name, handle->outMixer) || !strcasecmp(name, "Center")
+                    || !strcasecmp(name, "Surround") || !strcasecmp(name, "LFE")
+                    || !strcasecmp(name, "Side")))
                {
                   int dir = 0;
 
@@ -2823,13 +2823,14 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
    }
 
    // return the current buffer fill level
-   avail = psnd_pcm_avail(handle->pcm);
+// avail = psnd_pcm_avail(handle->pcm);
+   psnd_pcm_delay(handle->pcm, &avail);
    if (avail < 0)
    {
       xrun_recovery(handle->pcm, avail);
       avail = _MAX(psnd_pcm_avail(handle->pcm), 0);
    }
-   res = handle->max_frames - avail;
+   res = avail; // handle->max_frames - avail;
 
    return res;
 }
@@ -2842,7 +2843,7 @@ _aaxALSADriverThread(void* config)
 #if ENABLE_TIMING
    _aaxTimer *timer = _aaxTimerCreate();
 #endif
-   float no_samples, delay_sec, wait_us;
+   float delay_sec, wait_us; // no_samples
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
@@ -2894,7 +2895,7 @@ _aaxALSADriverThread(void* config)
    state = AAX_SUSPENDED;
 
    wait_us = delay_sec*1000000.0f;
-   no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
+// no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
    stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
