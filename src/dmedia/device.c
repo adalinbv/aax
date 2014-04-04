@@ -327,7 +327,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcmp(s, "default")) {
+               if (strcasecmp(s, "default")) {
                   handle->port[0].name = _aax_strdup(s);
                }
                xmlFree(s);

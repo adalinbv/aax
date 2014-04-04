@@ -809,7 +809,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
                       ((ainfo.caps & PCM_CAP_INPUT) && m)) continue;
 
                   slen = strlen(name);
-                  if (slen && !strncmp(name, ainfo.name, slen)) continue;
+                  if (slen && !strncasecmp(name, ainfo.name, slen)) continue;
 
                   strcpy(name, ainfo.name);
                   p = strstr(name, " rec");
@@ -1180,7 +1180,7 @@ detect_nodenum(const char *devname)
    int version = get_oss_version();
    int rv = _oss_default_nodenum;
 
-   if (!strncmp(devname, "/dev/dsp", 8) ) {
+   if (!strncasecmp(devname, "/dev/dsp", 8) ) {
        rv = atoi(devname+8);
    }
    else if (devname && strcasecmp(devname, "OSS") &&
