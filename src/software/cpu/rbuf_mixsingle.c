@@ -101,7 +101,6 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       vend = evol * gain;
       vstep = (vend - vstart) / dno_samples;
 
-      hrtf_volume[DIR_RIGHT] = dir_fact*vend;
       drbd->add(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
 
       ep2d->prev_gain[t] = vend;
@@ -110,18 +109,17 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
        * vertical positioning
        **/
       dir_fact = ep2d->speaker[t][DIR_UPWD];
-      hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
+      hrtf_volume[DIR_UPWD] = _MAX(dir_fact*vend, 0.0f);
 
-      /**
-       * horizontal positioning, back-front
-       **/
-      dir_fact = ep2d->speaker[t][DIR_BACK];
-      hrtf_volume[DIR_BACK] = gain * (0.25f + 0.5f*dir_fact)*vend;
-
-      for (j=1; j<2; j++)	/* skip left-right and back-front */
+      j = DIR_UPWD;			/* skip left-right and back-front */
+      do
       {
          int diff = (int)ep2d->hrtf[t][j];
          float v_start, v_step;
+
+         if (hrtf_volume[j] < 1e-3f || (j > 0 && diff == 0)) {
+            continue;
+         }
 
          assert(diff < (int)drbd->dde_samples);
          assert(diff > -(int)dno_samples);
@@ -133,6 +131,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
          drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
       }
+      while(0);
    }
 }
 
@@ -178,11 +177,11 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
    for (t=0; t<drbd->no_tracks; t++)
    {
       MIX_T *track = drbd->track[t];
-      const MIX_T *ptr;
-      MIX_T *dptr;
       float vstart, vend, dir_fact; //, vstep;
       float hrtf_volume[3];
-      int j;
+      const MIX_T *ptr;
+      MIX_T *dptr;
+      int i;
 
       vstart = svol * ep2d->prev_gain[t];
       vend = gain * evol;
@@ -198,41 +197,36 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
        **/
       dir_fact = ep2d->speaker[t][DIR_RIGHT];
       hrtf_volume[DIR_RIGHT] = 0.5f + dir_fact*vend;
-#if 0
- printf("l-r: %i, volume %f, delay: %f, dir_fact: %f, f_gain: %f\n", t, hrtf_volume[DIR_RIGHT], ep2d->hrtf[t][DIR_RIGHT]/48000.0, dir_fact, vend);
-#endif
 
       /**
        * vertical positioning
        **/
       dir_fact = (ep2d->speaker[t][DIR_UPWD]);
-      hrtf_volume[DIR_UPWD] = (0.25f + dir_fact)*vend;
-#if 0
- printf("u-d: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_UPWD], ep2d->hrtf[t][DIR_UPWD]/48000.0, dir_fact);
-#endif
+      hrtf_volume[DIR_UPWD] = _MAX(dir_fact*vend, 0.0f);
 
       /**
        * horizontal positioning, back-front
        **/
       dir_fact = (ep2d->speaker[t][DIR_BACK]);
-      hrtf_volume[DIR_BACK] = (0.25f + 0.5f*dir_fact)*vend;
-#if 0
- printf("f-b: %i, volume %f, delay: %f, dir_fact: %f\n", t, hrtf_volume[DIR_BACK], ep2d->hrtf[t][DIR_BACK]/48000.0, dir_fact);
-#endif
+      hrtf_volume[DIR_BACK] = _MAX(dir_fact*vend, 0.0f);
 
       dptr = track+offs;
       ptr = sptr[ch]+offs;
       // vstep = (vend - vstart) / dno_samples;
-      for (j=0; j<3; j++)
+      for (i=0; i<3; i++)
       {
-         int diff = (int)ep2d->hrtf[t][j];
+         int diff = (int)ep2d->hrtf[t][i];
          float v_start, v_step;
+
+         if (hrtf_volume[i] < 1e-3f || (i > 0 && diff == 0)) {
+            continue;
+         }
 
          assert(diff < (int)drbd->dde_samples);
          assert(diff > -(int)dno_samples);
          diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
  
-         v_start = vstart * hrtf_volume[j];
+         v_start = vstart * hrtf_volume[i];
          v_step = 0.0f; // vstep * hrtf_volume[j];
 
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));

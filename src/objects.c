@@ -186,20 +186,38 @@ vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
    /* left headphone shell */
    {-1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
    { 0.0f,-1.0f, 0.0f, 1.0f },     /* up-down               */
-   { 0.0f, 0.0f, 1.0f, 1.0f },     /* back-front            */
+   {-1.0f, 0.0f, 0.0f, 1.0f },     /* back-front            */
    /* right headphone shell */
    { 1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
    { 0.0f,-1.0f, 0.0f, 1.0f },     /* up-down               */
-   { 0.0f, 0.0f, 1.0f, 1.0f },     /* back-front            */
+   { 1.0f, 0.0f, 0.0f, 1.0f },     /* back-front            */
    /* unused */
    { 0.0f, 0.0f, 0.0f, 0.0f },
    { 0.0f, 0.0f, 0.0f, 0.0f }
 };
 
+/* HRTF
+ *
+ * Angle from ahead (azimuth, front = 0deg):
+ *     0 deg =  0.00 ms,				-- ahead --
+ *    90 deg =  0.64 ms,
+ *   180 deg =  0.00 ms (back)
+ *
+ * Angle from right (azimuth, front = 0deg): (inner pinna ridge)
+ *     0 deg =  0.080 ms,					-- ahead --
+ *    90 deg =  0.015 ms,
+ *   180 deg =  0.000 ms (back)
+ *
+ * Angle from above (0deg = below, 180deg = above): (outer pinna rim)
+ *     0 deg = 0.400 ms,
+ *    90 deg = 0.175 ms,				-- ahead --
+ *   180 deg = 0.100 ms (above)
+ */
 vec4_t _aaxContextDefaultHead[2] = 
 {
-   {-0.00128f,-0.00025f, 0.00009f, 0.000f },	/* head delay factors */
-   { 0.00064f, 0.00035f, 0.00000f, 0.000f }	/* head delay offsets */
+//     RIGHT     UP        BACK	    GAIN	/* samples at 48kHz   */
+   { 0.00064f, 0.00025f, 0.00009f, 0.000f },	/* head delay factors */
+   { 0.00000f, 0.00010f, 0.000000, 0.000f }	/* head delay offsets */
 };
 
 vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =

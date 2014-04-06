@@ -1158,19 +1158,23 @@ _aaxContextSetupHRTF(void *xid, unsigned int n)
       float f = (float)xmlNodeGetDouble(xid, "gain");
       _aaxContextDefaultHead[HRTF_FACTOR][GAIN] = f;
 
-      /* need to adjust for a range of 0.0 .. +1.0 where 0.5 is the center */
       f = (float)xmlNodeGetDouble(xid, "side-delay-sec");
-      _aaxContextDefaultHead[HRTF_FACTOR][DIR_RIGHT] = -f*2.0f;
+      _aaxContextDefaultHead[HRTF_FACTOR][DIR_RIGHT] = f;
+
+      f = (float)xmlNodeGetDouble(xid, "side-offset-sec");
       _aaxContextDefaultHead[HRTF_OFFSET][DIR_RIGHT] = f;
+
+      f = (float)xmlNodeGetDouble(xid, "up-delay-sec");
+      _aaxContextDefaultHead[HRTF_FACTOR][DIR_UPWD] = f;
+
+      f = (float)xmlNodeGetDouble(xid, "up-offset-sec");
+      _aaxContextDefaultHead[HRTF_OFFSET][DIR_UPWD] = f;
 
       f = (float)xmlNodeGetDouble(xid, "forward-delay-sec");
       _aaxContextDefaultHead[HRTF_FACTOR][DIR_BACK] = f;
 
-      f = (float)xmlNodeGetDouble(xid, "up-delay-sec");
-      _aaxContextDefaultHead[HRTF_FACTOR][DIR_UPWD] = -f;
-
-      f += (float)xmlNodeGetDouble(xid, "up-offset-sec");
-      _aaxContextDefaultHead[HRTF_OFFSET][DIR_UPWD] = f;
+      f = (float)xmlNodeGetDouble(xid, "forward-offset-sec");
+      _aaxContextDefaultHead[HRTF_OFFSET][DIR_BACK] = f;
    }
 }
 
