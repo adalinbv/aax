@@ -9,6 +9,7 @@
    latency operations for a broader range of audio devices.
  * Switched to a new xml configuration file format.
    Both formats will be supported until version 3.0.0
+ * Tweaked Surround Sound, Spatial and HRTF playback.
  * Support WAV files with a LIST section.
  * Fix Auto generated waveform loop-points.
  * Fix a problem with capture-only backends

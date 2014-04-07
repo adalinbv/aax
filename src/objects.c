@@ -183,17 +183,17 @@ char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
 
 vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
 {
-   /* left headphone shell */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
-   { 0.0f,-1.0f, 0.0f, 1.0f },     /* up-down               */
-   {-1.0f, 0.0f, 0.0f, 1.0f },     /* back-front            */
-   /* right headphone shell */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* left-right            */
-   { 0.0f,-1.0f, 0.0f, 1.0f },     /* up-down               */
-   { 1.0f, 0.0f, 0.0f, 1.0f },     /* back-front            */
-   /* unused */
-   { 0.0f, 0.0f, 0.0f, 0.0f },
-   { 0.0f, 0.0f, 0.0f, 0.0f }
+   /* left headphone shell (volume and delay)               */
+   {-1.0f, 0.0f, 0.0f, 1.0f },	/* left-right volume     */
+   { 0.0f,-1.0f, 0.0f, 1.0f },	/* up-down               */
+   {-1.0f, 0.0f, 0.0f, 1.0f },	/* back-front            */
+   /* right headphone shell (volume and delay)              */
+   { 1.0f, 0.0f, 0.0f, 1.0f },	/* left-right volume     */
+   { 0.0f,-1.0f, 0.0f, 1.0f },	/* up-down               */
+   { 1.0f, 0.0f, 0.0f, 1.0f },	/* back-front            */
+   /* delay vector for left-right                           */
+   {-0.2f, 0.0f, 0.98f, 0.0f },	/* left delays           */
+   { 0.2f, 0.0f, 0.98f, 0.0f }	/* right delays          */
 };
 
 /* HRTF
@@ -209,7 +209,7 @@ vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
  *   180 deg =  0.000 ms (back)
  *
  * Angle from above (0deg = below, 180deg = above): (outer pinna rim)
- *     0 deg = 0.400 ms,
+ *     0 deg = 0.325 ms,				-- below --
  *    90 deg = 0.175 ms,				-- ahead --
  *   180 deg = 0.100 ms (above)
  */

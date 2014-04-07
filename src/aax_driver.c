@@ -1020,9 +1020,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->info->refresh_rate = iv;
             handle->info->frequency = fq;
             if (config->node[0].update) {
-               handle->info->update_rate = (uint8_t)(iv/config->node[0].update);
+               handle->info->update_rate = (uint8_t)ceilf(iv/config->node[0].update);
             } else {
-               handle->info->update_rate = 1;
+               handle->info->update_rate = (uint8_t)ceilf(iv/50);
             }
             if (handle->info->update_rate < 1) {
                handle->info->update_rate = 1;
@@ -1049,7 +1049,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->info->refresh_rate = iv;
             handle->info->frequency = fq;
             if (config->node[0].update) {
-               handle->info->update_rate = (uint8_t)(iv/config->node[0].update);
+               handle->info->update_rate = (uint8_t)ceilf(iv/config->node[0].update);
             } else {
                handle->info->update_rate = 0;
             }
