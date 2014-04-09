@@ -520,6 +520,12 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                      xmlFree(ptr);
                   }
 
+                  if (xmlNodeTest(xiid, "hrtf"))
+                  {
+                      xmlFree(config->node[0].hrtf);
+                      config->node[0].hrtf = xmlNodeCopy(xiid, "hrtf");
+                  }
+
                   /* setup speakers */
                   xsid = xmlMarkId(xiid);
                   i = xmlNodeGetNum(xiid, "speaker");
