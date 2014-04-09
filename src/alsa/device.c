@@ -1717,7 +1717,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static const char* ifname_prefix[] = {
-   "front:", "rear:", "center_lfe:", "side:", "iec958:", "sysdefault:", NULL
+   "front:", "rear:", "center_lfe:", "side:", "iec958:", "default:", "sysdefault:", NULL
 };
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =

@@ -399,7 +399,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
 
       /* read-only data */           
       _aax_memcpy(&sfp2d.speaker, fp2d->speaker,
-                                  _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+                                  2*_AAX_MAX_SPEAKERS*sizeof(vec4_t));
       _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, 2*sizeof(vec4_t));
 
       /* clear the buffer for use by the subframe */
@@ -497,7 +497,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
           const _aaxDriverBackend *be)
 {
   _aaxRingBuffer *frb = (_aaxRingBuffer*)frame_rb;
-   void *be_handle = NULL;
+   void *res, *be_handle = NULL;
    _aaxDelayed3dProps *sdp3d, *sdp3d_m;
    _aaxDelayed3dProps *fdp3d, *fdp3d_m;
    _aax2dProps sp2d, fp2d;
@@ -543,7 +543,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
 
    /* read-only data */
    _aax_memcpy(&sp2d.speaker, handle->info->speaker,
-                          _AAX_MAX_SPEAKERS*sizeof(vec4_t));
+                              2*_AAX_MAX_SPEAKERS*sizeof(vec4_t));
    _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
 
    /* update the modified properties */
@@ -564,8 +564,6 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    fdp3d_m->state3d = fdp3d->state3d;
    fdp3d_m->pitch = fdp3d->pitch;
    fdp3d_m->gain = fdp3d->gain;
-// TODO: (test with kx, 4 channel)
-// _PROP_CLEAR(fmixer->props3d);
 
    /* frame read-only data */
    _aax_memcpy(&fp2d.speaker, &sp2d.speaker, _AAX_MAX_SPEAKERS*sizeof(vec4_t));
@@ -586,6 +584,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    if (!_PROP_SPEED_HAS_CHANGED(fmixer->props3d)) {
       mtx4Copy(fmixer->props3d->m_dprops3d->velocity, fdp3d_m->velocity);
    }
+   _PROP_CLEAR(fmixer->props3d);
 
    _aax_aligned_free(sdp3d);
    _aax_aligned_free(sdp3d_m);
@@ -593,6 +592,8 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _aax_aligned_free(fdp3d_m);
 
    dde = (_EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT) != NULL);
-   return _aaxAudioFrameSwapBuffers(frame_rb, fmixer->play_ringbuffers, dde);
+   res =  _aaxAudioFrameSwapBuffers(frame_rb, fmixer->play_ringbuffers, dde);
+
+   return res;
 }
 

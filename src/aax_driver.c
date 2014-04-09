@@ -1077,7 +1077,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (handle->info->mode == AAX_MODE_WRITE_HRTF)
             {
                handle->info->no_tracks = 2;
-               _aax_memcpy(&info->speaker,&_aaxContextDefaultSpeakersHRTF,size);
+               _aax_memcpy(&info->speaker,&_aaxContextDefaultHRTFVolume, size);
+               _aax_memcpy(info->delay, &_aaxContextDefaultHRTFDelay, size);
 
                /*
                 * By mulitplying the delays with the sample frequency the delays
@@ -1098,9 +1099,10 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                for (t=0; t<handle->info->no_tracks; t++)
                {
                   float gain = vec3Normalize(info->speaker[t],
-                                             _aaxContextDefaultSpeakers[t]);
+                                           _aaxContextDefaultSpeakersVolume[t]);
                   info->speaker[t][3] = 1.0f/gain;
                }
+               _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -1199,16 +1201,15 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
 
          f = (float)xmlNodeGetDouble(xsid, "volume-norm");
          if (f) {
-            _aaxContextDefaultSpeakers[channel][GAIN] = f;
+            _aaxContextDefaultSpeakersVolume[channel][GAIN] = f;
          } else {
-            _aaxContextDefaultSpeakers[channel][GAIN] = 1.0f;
+            _aaxContextDefaultSpeakersVolume[channel][GAIN] = 1.0f;
          }
 
          v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
          v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
-         v[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
-         /* vec3Normalize(_aaxContextDefaultSpeakers[channel], v); */
-         vec3Copy(_aaxContextDefaultSpeakers[channel], v);
+         v[2] = -(float)xmlNodeGetDouble(xsid, "pos-z");
+         vec3Copy(_aaxContextDefaultSpeakersVolume[channel], v);
       }
    }
 }

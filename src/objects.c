@@ -39,7 +39,10 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
 
    size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
-   _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakers, size);
+   _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakersVolume, size);
+
+   info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
+   _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
 
    size = _AAX_MAX_SPEAKERS;
    memcpy(&info->router, &_aaxContextDefaultRouter, size);
@@ -71,7 +74,7 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
 
    /* normalized  directions */
    size = _AAX_MAX_SPEAKERS*sizeof(vec4_t);
-   memset(p2d->speaker, 0, size);
+   memset(p2d->speaker, 0, 2*size);
 
    /* heade setup, unused for emitters */
    size = sizeof(vec4_t);
@@ -181,37 +184,34 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
  { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-vec4_t _aaxContextDefaultSpeakersHRTF[_AAX_MAX_SPEAKERS] =
-{
-   /* left headphone shell (volume and delay)               */
-   {-1.0f, 0.0f, 0.0f, 1.0f },	/* left-right volume     */
-   { 0.0f,-1.0f, 0.0f, 1.0f },	/* up-down               */
-   {-1.0f, 0.0f, 0.0f, 1.0f },	/* back-front            */
-   /* right headphone shell (volume and delay)              */
-   { 1.0f, 0.0f, 0.0f, 1.0f },	/* left-right volume     */
-   { 0.0f,-1.0f, 0.0f, 1.0f },	/* up-down               */
-   { 1.0f, 0.0f, 0.0f, 1.0f },	/* back-front            */
-   /* delay vector for left-right                           */
-   {-0.2f, 0.0f, 0.98f, 0.0f },	/* left delays           */
-   { 0.2f, 0.0f, 0.98f, 0.0f }	/* right delays          */
-};
-
 /* HRTF
  *
- * Angle from ahead (azimuth, front = 0deg):
- *     0 deg =  0.00 ms,				-- ahead --
- *    90 deg =  0.64 ms,
- *   180 deg =  0.00 ms (back)
- *
+ * The inner pinna ridge which determine front-back directions
+ * in the horizontal plane:
  * Angle from right (azimuth, front = 0deg): (inner pinna ridge)
  *     0 deg =  0.080 ms,					-- ahead --
  *    90 deg =  0.015 ms,
- *   180 deg =  0.000 ms (back)
+ *   135+deg =  0.000 ms (back)
  *
+ * The outer pinna rim which is important in determining elevation
+ * in the vertical plane
  * Angle from above (0deg = below, 180deg = above): (outer pinna rim)
  *     0 deg = 0.325 ms,				-- below --
  *    90 deg = 0.175 ms,				-- ahead --
  *   180 deg = 0.100 ms (above)
+ *
+ * Front-back distinctions are not uniquely determined by time differences
+ * Angle from ahead (azimuth, front = 0deg): (frequency comb filter)
+ *     0 deg =  0.00 ms,                                -- ahead --
+ *    90 deg =  0.64 ms,
+ *   180 deg =  0.00 ms (back)
+ *
+ * ahead: 0.080 ms, 0.175 ms, 0.00 ms
+ * left:  0.015 ms, 0.175 ms, 0.64 ms
+ * right: 0.015 ms, 0.175 ms, 0.64 ms
+ * back:  0.000 ms, 0.175 ms, 0.00 ms
+ * up:    0.015 ms, 0.100 ms, 0.64 ms
+ * down:  0.015 ms, 0.325 ms, 0.64 ms
  */
 vec4_t _aaxContextDefaultHead[2] = 
 {
@@ -220,16 +220,58 @@ vec4_t _aaxContextDefaultHead[2] =
    { 0.00000f, 0.00010f, 0.000000, 0.000f }	/* head delay offsets */
 };
 
-vec4_t _aaxContextDefaultSpeakers[_AAX_MAX_SPEAKERS] =
+vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 {
-   { 1.0f, 0.0f, 1.0f, 1.0f },		/* front left speaker    */
-   {-1.0f, 0.0f, 1.0f, 1.0f },		/* front right speaker   */
-   { 1.0f, 0.0f,-1.0f, 1.0f },		/* rear left speaker     */
-   {-1.0f, 0.0f,-1.0f, 1.0f },		/* rear right speaker    */
-   { 0.0f, 0.0f, 1.0f, 1.0f },		 /* front center speaker  */
-   { 0.0f, 0.0f, 1.0f, 1.0f },		/* low frequency emitter */
-   { 1.0f, 0.0f, 0.0f, 1.0f },		/* left side speaker     */
-   {-1.0f, 0.0f, 0.0f, 1.0f }		/* right side speaker    */
+   /* left headphone shell (volume)                          --- */
+   {-1.20f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
+   { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
+   {-0.98f, 0.00f, 0.20f, 1.0f }, 	 /* back-front           */
+   /* right headphone shell (volume)                         --- */
+   { 1.20f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
+   { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
+   { 0.98f, 0.00f, 0.20f, 1.0f }, 	 /* back-front           */
+   /* unused                                                     */
+   { 0.00f, 0.00f, 0.00f, 0.0f },
+   { 0.00f, 0.00f, 0.000, 0.0f }
+};
+
+vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
+{
+   /* left headphone shell (delay)                           --- */
+   {-0.20f, 0.00f, 0.98f, 0.0f },        /* left-right           */
+   { 0.00f,-1.00f, 0.00f, 1.0f },        /* up-down              */
+   {-1.00f, 0.00f, 0.00f, 1.0f },        /* back-front           */
+   /* right headphone shell (delay)                          --- */
+   { 0.20f, 0.00f, 0.98f, 0.0f },        /* left-right           */
+   { 0.00f,-1.00f, 0.00f, 1.0f },        /* up-down              */
+   { 1.00f, 0.00f, 0.00f, 1.0f },        /* back-front           */
+   /* unused                                                     */
+   { 0.00f, 0.00f, 0.00f, 0.0f },        
+   { 0.00f, 0.00f, 0.000, 0.0f }
+};
+
+vec4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
+{
+   {-1.00f, 0.00f,-1.00f, 1.0f },	/* front left speaker    */
+   { 1.00f, 0.00f,-1.00f, 1.0f },	/* front right speaker   */
+   {-1.00f, 0.00f, 1.00f, 1.0f },	/* rear left speaker     */
+   { 1.00f, 0.00f, 1.00f, 1.0f },	/* rear right speaker    */
+   { 0.00f, 0.00f,-1.00f, 1.0f },	/* front center speaker  */
+   { 0.00f, 0.00f,-1.00f, 1.0f },	/* low frequency emitter */
+   {-1.00f, 0.00f, 0.00f, 1.0f },	/* left side speaker     */
+   { 1.00f, 0.00f, 0.00f, 1.0f }	/* right side speaker    */
+};
+
+vec4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS] =
+{
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* front left speaker    */
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* front right speaker   */
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* rear left speaker     */
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* rear right speaker    */
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* front center speaker  */
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* low frequency emitter */
+   { 0.00f, 0.00f, 0.00f, 1.0f },       /* left side speaker     */
+   { 0.00f, 0.00f, 0.00f, 1.0f }        /* right side speaker    */
 };
 
 

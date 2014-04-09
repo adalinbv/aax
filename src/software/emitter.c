@@ -353,15 +353,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          {
             for (i=0; i<3; i++)
             {
-               float dp = vec3DotProduct(speaker[3*t+i], epos) * speaker[t][3];
-               float offs = info->hrtf[HRTF_OFFSET][i];
-               float fact = info->hrtf[HRTF_FACTOR][i];
+               float dp, offs, fact;
 
+               dp = vec3DotProduct(speaker[3*t+i], epos) * speaker[t][3];
                ep2d->speaker[t][i] = dp * dist_fact;		/* -1 .. +1 */
 
-               if (i == DIR_RIGHT) {
-                  dp = vec3DotProduct(speaker[3*2 + t], epos); // delay vector
-               }
+               offs = info->hrtf[HRTF_OFFSET][i];
+               fact = info->hrtf[HRTF_FACTOR][i];
+               dp = vec3DotProduct(speaker[_AAX_MAX_SPEAKERS + 3*t+i], epos);
                ep2d->hrtf[t][i] = _MAX(offs + dp*fact, 0.0f);
             }
          }
@@ -379,12 +378,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             i = DIR_UPWD;
             do				/* skip left-right and back-front */
             {
-               float dp = vec3DotProduct(speaker[3*t+i], epos) * speaker[t][3];
-               float offs = info->hrtf[HRTF_OFFSET][i];
-               float fact = info->hrtf[HRTF_FACTOR][i];
+               float dp, offs, fact;
 
-               ep2d->hrtf[t][i] = _MAX(offs+dp*fact, 0.0f);
-               ep2d->speaker[t][i] = dp * dist_fact;		/* -1 .. +1 */
+               offs = info->hrtf[HRTF_OFFSET][i];
+               fact = info->hrtf[HRTF_FACTOR][i];
+               dp = vec3DotProduct(speaker[_AAX_MAX_SPEAKERS + 3*t+i], epos);
+               ep2d->hrtf[t][i] = _MAX(offs + dp*fact, 0.0f);
             }
             while(0);
          }
