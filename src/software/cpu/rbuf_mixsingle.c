@@ -87,7 +87,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       float vstart, vend, vstep;
       float dir_fact;
       float hrtf_volume[3];
-      int j;
+      int i;
 
       /**
        * horizontal positioning, left-right
@@ -109,26 +109,24 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
        * vertical positioning
        **/
       dir_fact = ep2d->speaker[t][DIR_UPWD];
-      hrtf_volume[DIR_UPWD] = 0.3f; // _MAX(dir_fact*vend, 0.0f);
+      hrtf_volume[DIR_UPWD] = 0.3f;
 
-      j = DIR_UPWD;			/* skip left-right and back-front */
+      i = DIR_UPWD;			/* skip left-right and back-front */
       do
       {
-         int diff = (int)ep2d->hrtf[t][j];
+         int diff = (int)ep2d->hrtf[t][i];
          float v_start, v_step;
 
-#if 0
-         if (hrtf_volume[j] < 1e-3f || (j > 0 && diff == 0)) {
+         if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0)) {
             continue;
          }
-#endif
 
          assert(diff < (int)drbd->dde_samples);
          assert(diff > -(int)dno_samples);
          diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
 
-         v_start = vstart * hrtf_volume[j];
-         v_step = 0.0f; // vstep * hrtf_volume[j];
+         v_start = vstart * hrtf_volume[i];
+         v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
 
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
          drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
@@ -163,12 +161,6 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
    }
 }
 
-/* the time delay from ear to ear, in seconds */
-#define HEAD_DELAY	p2d->head[0]
-#define IDT_FB_DEVIDER	(ep2d->head[0] / ep2d->head[1])
-#define IDT_UD_DEVIDER	(ep2d->head[0] / ep2d->head[2])
-#define IDT_UD_OFFSET	p2d->head[3]
-
 void
 _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
 {
@@ -198,42 +190,39 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
        * horizontal positioning, left-right
        **/
       dir_fact = ep2d->speaker[t][DIR_RIGHT];
-      hrtf_volume[DIR_RIGHT] = 0.5f + dir_fact*vend;
+      hrtf_volume[DIR_RIGHT] = 0.5f + dir_fact;
 
       /**
        * vertical positioning
        **/
       dir_fact = (ep2d->speaker[t][DIR_UPWD]);
-      hrtf_volume[DIR_UPWD] = 0.3f; // _MAX(dir_fact*vend, 0.0f);
+      hrtf_volume[DIR_UPWD] = 0.3f;
 
       /**
        * horizontal positioning, back-front
        **/
       dir_fact = (ep2d->speaker[t][DIR_BACK]);
-      hrtf_volume[DIR_BACK] = _MAX(dir_fact*vend, 0.0f);
+      hrtf_volume[DIR_BACK] = 0.33f + dir_fact;
 #if 0
-printf("t: %i, lr: %3.2f (%5.4f), ud: %3.2f (%5.4f), bf: %3.2f (%5.4f)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t][0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t][1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t][2]/44100.0f);
+printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t][0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t][1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t][2]/44100.0f);
 #endif
       dptr = track+offs;
       ptr = sptr[ch]+offs;
-      // vstep = (vend - vstart) / dno_samples;
       for (i=0; i<3; i++)
       {
          int diff = (int)ep2d->hrtf[t][i];
          float v_start, v_step;
 
-#if 0
-         if (hrtf_volume[i] < 1e-3f || (i > 0 && diff == 0)) {
+         if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0))
             continue;
          }
-#endif
 
          assert(diff < (int)drbd->dde_samples);
          assert(diff > -(int)dno_samples);
          diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
  
          v_start = vstart * hrtf_volume[i];
-         v_step = 0.0f; // vstep * hrtf_volume[j];
+         v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
 
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
          drbd->add(dptr, ptr-diff, dno_samples, v_start, v_step);
