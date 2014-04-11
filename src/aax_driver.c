@@ -1206,9 +1206,9 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
             _aaxContextDefaultSpeakersVolume[channel][GAIN] = 1.0f;
          }
 
-         v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
+         v[0] = (float)xmlNodeGetDouble(xsid, "pos-x");
          v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
-         v[2] = -(float)xmlNodeGetDouble(xsid, "pos-z");
+         v[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          vec3Copy(_aaxContextDefaultSpeakersVolume[channel], v);
       }
    }

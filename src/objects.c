@@ -215,7 +215,7 @@ char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
  */
 vec4_t _aaxContextDefaultHead[2] = 
 {
-//     RIGHT     UP        BACK	    GAIN	/* samples at 48kHz   */
+//     RIGHT     UP        BACK
    { 0.00064f, 0.00025f, 0.00009f, 0.000f },	/* head delay factors */
    { 0.00000f, 0.00010f, 0.000000, 0.000f }	/* head delay offsets */
 };
@@ -223,13 +223,13 @@ vec4_t _aaxContextDefaultHead[2] =
 vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (volume)                          --- */
-   {-1.20f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
+   { 0.00f, 0.00f, 0.50f, 1.0f }, 	 /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
-   {-0.98f, 0.00f, 0.20f, 1.0f }, 	 /* back-front           */
+   { 0.65f, 0.00f,-0.20f, 1.0f }, 	 /* back-front           */
    /* right headphone shell (volume)                         --- */
-   { 1.20f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
+   { 0.00f, 0.00f, 0.50f, 1.0f }, 	 /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
-   { 0.98f, 0.00f, 0.20f, 1.0f }, 	 /* back-front           */
+   {-0.65f, 0.00f,-0.20f, 1.0f }, 	 /* back-front           */
    /* unused                                                     */
    { 0.00f, 0.00f, 0.00f, 0.0f },
    { 0.00f, 0.00f, 0.000, 0.0f }
@@ -238,11 +238,11 @@ vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (delay)                           --- */
-   {-0.20f, 0.00f, 0.98f, 0.0f },        /* left-right           */
+   { 0.00f, 0.00f, 1.00f, 1.0f },        /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f },        /* up-down              */
    {-1.00f, 0.00f, 0.00f, 1.0f },        /* back-front           */
    /* right headphone shell (delay)                          --- */
-   { 0.20f, 0.00f, 0.98f, 0.0f },        /* left-right           */
+   { 0.00f, 0.00f, 1.00f, 1.0f },        /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f },        /* up-down              */
    { 1.00f, 0.00f, 0.00f, 1.0f },        /* back-front           */
    /* unused                                                     */
@@ -252,14 +252,14 @@ vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
 
 vec4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
 {
-   {-1.00f, 0.00f,-1.00f, 1.0f },	/* front left speaker    */
-   { 1.00f, 0.00f,-1.00f, 1.0f },	/* front right speaker   */
-   {-1.00f, 0.00f, 1.00f, 1.0f },	/* rear left speaker     */
-   { 1.00f, 0.00f, 1.00f, 1.0f },	/* rear right speaker    */
-   { 0.00f, 0.00f,-1.00f, 1.0f },	/* front center speaker  */
-   { 0.00f, 0.00f,-1.00f, 1.0f },	/* low frequency emitter */
-   {-1.00f, 0.00f, 0.00f, 1.0f },	/* left side speaker     */
-   { 1.00f, 0.00f, 0.00f, 1.0f }	/* right side speaker    */
+   { 1.00f, 0.00f, 1.00f, 1.0f },	/* front left speaker    */
+   {-1.00f, 0.00f, 1.00f, 1.0f },	/* front right speaker   */
+   { 1.00f, 0.00f,-1.00f, 1.0f },	/* rear left speaker     */
+   {-1.00f, 0.00f,-1.00f, 1.0f },	/* rear right speaker    */
+   { 0.00f, 0.00f, 1.00f, 1.0f },	/* front center speaker  */
+   { 0.00f, 0.00f, 1.00f, 1.0f },	/* low frequency emitter */
+   { 1.00f, 0.00f, 0.00f, 1.0f },	/* left side speaker     */
+   {-1.00f, 0.00f, 0.00f, 1.0f }	/* right side speaker    */
 };
 
 vec4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS] =
