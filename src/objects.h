@@ -348,6 +348,7 @@ typedef struct
    _intBuffers *buffers;		/* audio buffer queue            */
    int buffer_pos;			/* audio buffer queue pos        */
 
+   int state3d;	/* backup of parent's state needed inbetween update_ctr  */
    int8_t update_rate;
    int8_t update_ctr;
 

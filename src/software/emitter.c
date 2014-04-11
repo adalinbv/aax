@@ -105,6 +105,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                   {
                      assert(_IS_POSITIONAL(src->props3d));
 
+                     src->state3d |= fdp3d_m->state3d;
                      if (!src->update_ctr) {
                         be->prepare3d(src, info, ssv, sdf, 
                                       fp2d->speaker, fdp3d_m);
@@ -270,7 +271,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
    /* only update when the matrix and/or the velocity vector has changed */
    if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
-       _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
+       _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m) || 
+       _PROP3D_MTXSPEED_HAS_CHANGED(src))
    {
       vec4_t epos;
       float refdist, dist_fact, maxdist, rolloff;
@@ -281,6 +283,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
       _PROP3D_MTX_CLEAR_CHANGED(edp3d);
+
+      _PROP3D_SPEED_CLEAR_CHANGED(src);
+      _PROP3D_MTX_CLEAR_CHANGED(src);
 
       /**
        * align the emitter with the parent frame.
