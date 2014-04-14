@@ -186,50 +186,52 @@ char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
 
 /* HRTF
  *
- * The inner pinna ridge which determine front-back directions
- * in the horizontal plane:
- * Angle from right (azimuth, front = 0deg): (inner pinna ridge)
- *     0 deg =  0.080 ms,					-- ahead --
- *    90 deg =  0.015 ms,
- *   135+deg =  0.000 ms (back)
+ * Left-right time difference (delay):
+ * Angle from ahead (azimuth, front = 0deg): (ear-distance)
+ *     0 deg =  0.00 ms,                                -- ahead      --
+ *    90 deg =  0.64 ms,				-- right/left --
+ *   180 deg =  0.00 ms 				-- back       --
  *
  * The outer pinna rim which is important in determining elevation
- * in the vertical plane
+ * in the vertical plane:
  * Angle from above (0deg = below, 180deg = above): (outer pinna rim)
- *     0 deg = 0.325 ms,				-- below --
- *    90 deg = 0.175 ms,				-- ahead --
- *   180 deg = 0.100 ms (above)
+ *     0 deg = 0.325 ms,                                -- below  --
+ *    90 deg = 0.175 ms,                                -- center --
+ *   180 deg = 0.100 ms                                 -- above  --
  *
- * Front-back distinctions are not uniquely determined by time differences
- * Angle from ahead (azimuth, front = 0deg): (frequency comb filter)
- *     0 deg =  0.00 ms,                                -- ahead --
- *    90 deg =  0.64 ms,
- *   180 deg =  0.00 ms (back)
+ * The inner pinna ridge which determine front-back directions in the
+ * horizontal plane. Front-back istinctions are not uniquely determined
+ * by time differences:
+ * Angle from right (azimuth, front = 0deg): (inner pinna ridge)
+ *     0 deg =  0.080 ms,				-- ahead  --
+ *    90 deg =  0.015 ms,				-- center --
+ *   135+deg =  0.000 ms				-- back   --
  *
- * ahead: 0.080 ms, 0.175 ms, 0.00 ms
- * left:  0.015 ms, 0.175 ms, 0.64 ms
- * right: 0.015 ms, 0.175 ms, 0.64 ms
- * back:  0.000 ms, 0.175 ms, 0.00 ms
- * up:    0.015 ms, 0.100 ms, 0.64 ms
- * down:  0.015 ms, 0.325 ms, 0.64 ms
+ *        RIGHT   UP        BACK
+ * ahead: 0.00ms, 0.175 ms, 0.080 ms
+ * left:  0.64ms, 0.175 ms, 0.015 ms
+ * right: 0.64ms, 0.175 ms, 0.015 ms
+ * back:  0.00ms, 0.175 ms, 0.000 ms
+ * up:    0.00ms, 0.100 ms, 0.015 ms
+ * down:  0.00ms, 0.325 ms, 0.015 ms
  */
 vec4_t _aaxContextDefaultHead[2] = 
 {
 //     RIGHT     UP        BACK
-   { 0.00064f, 0.00025f, 0.00009f, 0.000f },	/* head delay factors */
-   { 0.00000f, 0.00010f, 0.000000, 0.000f }	/* head delay offsets */
+   { 0.00032f,-0.00011f, 0.000065f, 0.000f },	/* head delay factors */
+   { 0.00032f, 0.00020f, 0.000015f, 0.000f }	/* head delay offsets */
 };
 
 vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (volume)                          --- */
-   { 0.00f, 0.00f, 0.50f, 1.0f }, 	 /* left-right           */
+   { 0.33f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
-   { 0.65f, 0.00f,-0.20f, 1.0f }, 	 /* back-front           */
+   { 0.00f, 0.00f, 0.33f, 1.0f }, 	 /* back-front           */
    /* right headphone shell (volume)                         --- */
-   { 0.00f, 0.00f, 0.50f, 1.0f }, 	 /* left-right           */
+   {-0.33f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
-   {-0.65f, 0.00f,-0.20f, 1.0f }, 	 /* back-front           */
+   { 0.00f, 0.00f, 0.33f, 1.0f }, 	 /* back-front           */
    /* unused                                                     */
    { 0.00f, 0.00f, 0.00f, 0.0f },
    { 0.00f, 0.00f, 0.000, 0.0f }
@@ -238,13 +240,13 @@ vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (delay)                           --- */
-   { 0.00f, 0.00f, 1.00f, 1.0f },        /* left-right           */
-   { 0.00f,-1.00f, 0.00f, 1.0f },        /* up-down              */
-   {-1.00f, 0.00f, 0.00f, 1.0f },        /* back-front           */
+   {-1.00f, 0.00f, 0.00f, 0.0f },        /* left-right           */
+   { 0.00f,-1.00f, 0.00f, 0.0f },        /* up-down              */
+   { 0.00f, 0.00f, 1.00f, 0.0f },        /* back-front           */
    /* right headphone shell (delay)                          --- */
-   { 0.00f, 0.00f, 1.00f, 1.0f },        /* left-right           */
-   { 0.00f,-1.00f, 0.00f, 1.0f },        /* up-down              */
-   { 1.00f, 0.00f, 0.00f, 1.0f },        /* back-front           */
+   { 1.00f, 0.00f, 0.00f, 0.0f },        /* left-right           */
+   { 0.00f,-1.00f, 0.00f, 0.0f },        /* up-down              */
+   { 0.00f, 0.00f, 1.00f, 0.0f },        /* back-front           */
    /* unused                                                     */
    { 0.00f, 0.00f, 0.00f, 0.0f },        
    { 0.00f, 0.00f, 0.000, 0.0f }
