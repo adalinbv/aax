@@ -171,15 +171,10 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
    for (t=0; t<drbd->no_tracks; t++)
    {
       MIX_T *track = drbd->track[t];
-      float vstart, vend, dir_fact; //, vstep;
-      float hrtf_volume[3];
+      float dir_fact, hrtf_volume[3];
       const MIX_T *ptr;
       MIX_T *dptr;
       int i;
-
-      vstart = svol * ep2d->prev_gain[t];
-      vend = gain * evol;
-      ep2d->prev_gain[t] = vend;
 
       /*
        * IID; Interaural Intensitive Differenc
@@ -207,12 +202,14 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 #if 0
 printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t][0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t][1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t][2]/44100.0f);
 #endif
+      gain = _MIN(gain, 0.69f);	// compensate for a combined gain of 1.45 below
+
       dptr = track+offs;
       ptr = sptr[ch]+offs;
       for (i=0; i<3; i++)
       {
          int diff = (int)ep2d->hrtf[t][i];
-         float v_start, v_step;
+         float v_start, v_end, v_step;
 
          if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0))
             continue;
@@ -222,11 +219,14 @@ printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\
          assert(diff > -(int)dno_samples);
          diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
  
-         v_start = vstart * hrtf_volume[i];
-         v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
+         v_start = ep2d->prev_gain[3*t+i] * svol;
+         v_end = hrtf_volume[i] * gain * evol;
+         v_step = (v_end - v_start)/dno_samples;
 
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
          drbd->add(dptr, ptr-diff, dno_samples, v_start, v_step);
+
+         ep2d->prev_gain[3*t+i] = hrtf_volume[i] * gain;
       }
    }
 }

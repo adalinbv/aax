@@ -1545,9 +1545,9 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      i++;
                   }
 
-                  if ((m && ifname_prefix[i]) ||
+                  if (ifname_prefix[i] && (m ||
                        (!strncasecmp(name, "front:", strlen("front:")) ||
-                        !strncasecmp(name, "iec958:", strlen("iec958:"))))
+                        !strncasecmp(name, "iec958:", strlen("iec958:")))))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
@@ -1717,7 +1717,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static const char* ifname_prefix[] = {
-   "front:", "rear:", "center_lfe:", "side:", "iec958:", "default:", "sysdefault:", NULL
+   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL, "default:", "sysdefault:", NULL
 };
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
