@@ -408,7 +408,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
    {
       unsigned int dev, dev_num;
       char device_name[255];
-      char curlevel;
+      int curlevel;
       void *xdid;
 
       /*
@@ -425,7 +425,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       for (dev=0; dev<dev_num; dev++)
       {
          unsigned int con, con_num;
-         char level;
+         int level;
          void *xiid;
          char *ptr;
 
@@ -461,7 +461,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             _aaxDriverDetectConfigConnector(xiid, devname,
                                              (char *)&level,
                                              (char *)&curlevel);
-            if (level > curlevel)
+            if (level >= curlevel)
             {
                unsigned int q, i, l, index = -1;
                char *ptr, *tmp;
