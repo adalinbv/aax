@@ -1887,9 +1887,11 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                      }
                      break;
                   }
-                  else if ((tracks_2 <= (_AAX_MAX_SPEAKERS/2))
+                  else if (ifname_prefix[i] &&
+                           ((tracks_2 <= (_AAX_MAX_SPEAKERS/2))
                             || (strncasecmp(name, dev_prefix[m ? tracks_2 : 0],
                                     strlen(dev_prefix[m ? tracks_2 : 0])) == 0))
+                           )
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface, *description = 0;
@@ -1928,7 +1930,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                                  m ? "dmix:" : "dsnoop:",
                                                  name+strlen(ifname_prefix[i]));
                                  }
-                                 else {
+                                 else if (ifname_prefix[i]) {
                                     snprintf(rv, dlen, "%s%s",
                                                  dev_prefix[m ? tracks_2 : 0],
                                                  name+strlen(ifname_prefix[i]));
