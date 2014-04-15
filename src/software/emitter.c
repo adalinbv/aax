@@ -366,7 +366,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                offs = info->hrtf[HRTF_OFFSET][i];
                fact = info->hrtf[HRTF_FACTOR][i];
                dp = vec3DotProduct(speaker[_AAX_MAX_SPEAKERS + 3*t+i], epos);
-               ep2d->hrtf[t][i] = offs + dp*fact;
+               ep2d->hrtf[t][i] = _MAX(offs + dp*fact, 0.0f);
             }
          }
          break;

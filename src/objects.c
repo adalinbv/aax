@@ -218,8 +218,8 @@ char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
 vec4_t _aaxContextDefaultHead[2] = 
 {
 //     RIGHT     UP        BACK
-   { 0.00032f,-0.00011f, 0.000065f, 0.000f },	/* head delay factors */
-   { 0.00032f, 0.00020f, 0.000015f, 0.000f }	/* head delay offsets */
+   { 0.000640f,-0.000110f, 0.000065f, 0.0f },	/* head delay factors */
+   { 0.000000f, 0.000200f, 0.000015f, 0.0f }	/* head delay offsets */
 };
 
 vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
