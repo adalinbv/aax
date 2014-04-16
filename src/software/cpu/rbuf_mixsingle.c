@@ -110,6 +110,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
        **/
       dir_fact = ep2d->speaker[t][DIR_UPWD];
       hrtf_volume[DIR_UPWD] = 0.3f;
+      gain *= 0.76923f; 		/* 1.0f/0.3f */
 
       i = DIR_UPWD;			/* skip left-right and back-front */
       do
