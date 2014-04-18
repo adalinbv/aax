@@ -1294,7 +1294,7 @@ _aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsign
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
-   int32_t samp, dsamp;
+   float samp, dsamp;
    unsigned int i;
 
    assert(s != 0);
@@ -1326,6 +1326,10 @@ _aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsign
       }
       while (--i);
    }
+
+#if 0
+ printf("dptr: %x, d+dmax: %x, dptr-d: %i (%f)\n", d, dptr+dmax, d-dptr, samp);
+#endif
 }
 
 static inline void
