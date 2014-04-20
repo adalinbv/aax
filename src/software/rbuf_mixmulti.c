@@ -79,14 +79,13 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
 
    if (fp2d)
    {
-      float lfo = 1.5f-fp2d->final.pitch_lfo;
-      float opitch = pitch-0.5f;
+      if (fp2d->final.pitch_lfo != 1.0f)
+      {
+         float lfo = 1.5f-fp2d->final.pitch_lfo;
+         float opitch = pitch-0.5f;
+         pitch = lfo*opitch + (1.0f-lfo)*0.5f + 0.5f;
+      }
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
-      pitch = lfo*opitch + (1.0f-lfo)*0.5f + 0.5f;
-
-      /* pitch (factor) moves around 1.0. But 1.0/0.5 equals to 2.0 */
-      /* instead to 1.5, so we have to correct for that             */
-//    if (pitch > 1.1f) pitch *= 1.3333333f;
    }
 
    nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);

@@ -308,7 +308,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Doppler
        */
-      pitch = edp3d->pitch;
+      pitch = 1.0f;
       if (dist > 1.0f)
       {
          float ve, vf, df;

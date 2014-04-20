@@ -266,13 +266,13 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 
             for (track=0; track<sno_tracks; track++)
             {
-               char *sptr = (char*)srbd->track[track];
+               MIX_T *sptr = (MIX_T*)srbd->track[track];
                MIX_T *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
                if (!nbuf)
                {
-                  sptr -= CUBIC_SAMPS*sbps;
+                  sptr -= CUBIC_SAMPS;
                   sno_samples += CUBIC_SAMPS;
                }
 
@@ -321,13 +321,13 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 
             for (track=0; track<sno_tracks; track++)
             {
-               char *sptr = (char*)srbd->track[track];
+               MIX_T *sptr = (MIX_T*)srbd->track[track];
                MIX_T *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
                if (!nbuf)
                {
-                  sptr -= CUBIC_SAMPS*sbps;
+                  sptr -= CUBIC_SAMPS;
                   sno_samples += CUBIC_SAMPS;
                }
 
