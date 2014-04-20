@@ -252,6 +252,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
                       const _aaxDriverBackend *be, void *be_handle,
                       char fprocess)
 {
+   _aaxRingBufferLFOData *lfo;
    char process;
 
    /* update the model-view matrix based on our own and that of out parent */
@@ -287,6 +288,19 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
          _PROP3D_SPEED_CLEAR_CHANGED(pdp3d_m);
          _PROP3D_SPEED_SET_CHANGED(fdp3d_m);
       }
+   }
+
+   lfo = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
+   if (lfo) {
+      fp2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+   } else {
+      fp2d->final.pitch_lfo = 1.0f;
+   }
+   lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
+   if (lfo && !lfo->envelope) {
+      fp2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+   } else {
+      fp2d->final.gain_lfo = 1.0f;
    }
 
    /** process possible registered emitters */
