@@ -289,7 +289,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                                     cno_samples+cdesamps+CUBIC_SAMPS);
 #endif
                } else {
-                  scratch0 = (MIX_T*)sptr;
+                  scratch0 = sptr+src_pos;
                }
 #if RB_FLOAT_DATA
                DBG_TESTNAN(scratch0, cno_samples);
