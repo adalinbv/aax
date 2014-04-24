@@ -478,13 +478,15 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                if (tmp) q = tmp-ptr;
                else q = strlen(ptr);
 
-               l = ++q + strlen(rr[0]) +strlen(rr[1]) + strlen(" on : \0");
+               l = ++q + strlen(rr[0]) + strlen(rr[1]) + strlen(" on : \0");
                config->backend.driver = malloc(l);
-               snprintf(config->backend.driver, q, "%s", ptr);
+
+               // copy the backend name (might be a part of the renderer string)
+               snprintf(config->backend.driver, q, "%s", ptr);	
                strcat(config->backend.driver, " on ");
-               strcat(config->backend.driver, rr[0]);
+               strcat(config->backend.driver, rr[0]);	/* device name    */
                strcat(config->backend.driver, ": ");
-               strcat(config->backend.driver, rr[1]);
+               strcat(config->backend.driver, rr[1]);	/* interface name */
                free(ptr);
 
                if (m)
