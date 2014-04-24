@@ -363,11 +363,13 @@ aaxEffectSetState(aaxEffect e, int state)
                   float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
                   int t;
 
-                  lfo->min = 1.0f - depth/2.0f;
-                  lfo->max = 1.0f + depth/2.0f;
+                  lfo->min = 1.0f - 0.5f*depth;
+                  lfo->max = 1.0f + 0.5f*depth;
+
+                  lfo->envelope = AAX_FALSE;
+                  lfo->stereo_lnk = AAX_TRUE;
                   lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
                   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->envelope = AAX_FALSE;
                   lfo->convert = _linear;
 
                   for(t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -375,7 +377,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      lfo->step[t] = -2.0f*depth * lfo->f;
                      lfo->step[t] *= (lfo->max - lfo->min);
                      lfo->step[t] /= effect->info->refresh_rate;
-                     lfo->value[t] = lfo->min;
+                     lfo->value[t] = 1.0f; // 0.5f*(lfo->min+lfo->max);
                      switch (state & ~AAX_INVERSE)
                      {
                      case AAX_CONSTANT_VALUE:
@@ -385,7 +387,7 @@ aaxEffectSetState(aaxEffect e, int state)
                         lfo->step[t] *= 0.5f;
                         break;
                      case AAX_ENVELOPE_FOLLOW:
-                        lfo->value[t] /= lfo->max;
+                        lfo->value[t] = lfo->min/lfo->max;
                         lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
                         break;
                      default:
