@@ -131,8 +131,10 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                _aaxRingBufferLFOData *lfo;
 
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
-               if (lfo) {
+               if (lfo)
+               {
                   p2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+                  p2d->final.pitch_lfo -= lfo->min;
                } else {
                   p2d->final.pitch_lfo = 1.0f;
                }
@@ -145,7 +147,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                rv = drb->mix2d(drb, ssr_rb, smixer->props2d, props2d, 0, 0);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
-               if (rv) /* always streaming */
+               if (rv) /* true if a new buffer is required */
                {
                   _intBufferData *rbuf;
 

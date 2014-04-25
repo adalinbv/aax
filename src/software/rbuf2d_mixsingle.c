@@ -89,18 +89,14 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
    env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
-   if (lfo) {
-      pitch *= lfo->get(lfo, env, NULL, 0, 0);
+   if (lfo) 
+   {
+      float pval = lfo->get(lfo, env, NULL, 0, 0)-1.0f;
+      if (fp2d) pval *= fp2d->final.pitch_lfo;
+      pitch *= NORM_TO_PITCH(pval+1.0f);
    }
 
-   if (fp2d)
-   {
-      if (fp2d->final.pitch_lfo != 1.0f)
-      {
-         float lfo = 1.5f-fp2d->final.pitch_lfo;
-         float opitch = pitch-0.5f;
-         pitch = lfo*opitch + (1.0f-lfo)*0.5f + 0.5f;
-      } 
+   if (fp2d) {
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 

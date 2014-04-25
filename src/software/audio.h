@@ -24,6 +24,11 @@ extern "C" {
 #include <ringbuffer.h>
 #include <objects.h>
 
+// y = 1x^2 + 0.5x + 0.5
+// #define NORM_TO_PITCH(a)	(0.5f + 0.5f*(a) + (a)*(a))
+#define NORM_TO_PITCH(a)        ((a)<1.0f) ? (a) : ((a)*1.04f)
+
+
 uint8_t _linear2alaw(int16_t);
 uint8_t _linear2mulaw(int16_t);
 int16_t _alaw2linear(uint8_t);
