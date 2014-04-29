@@ -526,7 +526,7 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, unsigned int
 }
 
 static inline void
-_aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
    int32_t *dptr = d;
@@ -540,7 +540,7 @@ _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    assert(freq_factor >= 1.0f);
    assert(0.0f <= smu && smu < 1.0f);
 
-   pos = sdesamps + smu + 1;
+   pos = smu + 1;
    sptr = s + (unsigned int)pos;
    dptr += dmin;
    samp = *sptr;
@@ -566,7 +566,7 @@ _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
 }
 
 static void
-_aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
    int32_t *dptr = d;
@@ -578,7 +578,6 @@ _aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
    assert(0.95f <= freq_factor && freq_factor <= 1.05f);
    assert(0.0f <= smu && smu < 1.0f);
 
-   sptr += sdesamps;
    dptr += dmin;
 
    i = dmax-dmin;
@@ -600,7 +599,7 @@ _aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
 }
 
 static void
-_aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
 {
    const int32_t *sptr = s;
    int32_t *dptr = d;
@@ -613,7 +612,6 @@ _aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    assert(freq_factor < 1.0f);
    assert(0.0f <= smu && smu < 1.0f);
 
-   sptr += sdesamps;
    dptr += dmin;
 
    samp = *sptr++;              // n
@@ -639,7 +637,7 @@ _aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
 }
 
 static void
-_aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    const int32_t *sptr = s;
@@ -652,7 +650,6 @@ _aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
    assert(0.0f <= smu && smu < 1.0f);
    assert(0.0f < freq_factor && freq_factor <= 1.0f);
 
-   sptr += sdesamps;
    dptr += dmin;
 
    y0 = *sptr++;
