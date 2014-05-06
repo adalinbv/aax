@@ -26,7 +26,8 @@ extern "C" {
 
 // y = 1x^2 + 0.5x + 0.5
 // #define NORM_TO_PITCH(a)	(0.5f + 0.5f*(a) + (a)*(a))
-#define NORM_TO_PITCH(a)        ((a)<1.0f) ? (a) : ((a)*1.04f)
+// #define NORM_TO_PITCH(a)	((a)<=1.0f) ? (a) : ((a)*1.027f)
+#define NORM_TO_PITCH(a)        (a)
 
 
 uint8_t _linear2alaw(int16_t);

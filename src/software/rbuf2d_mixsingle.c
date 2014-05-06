@@ -33,6 +33,7 @@
 #include <ringbuffer.h>
 
 #include "rbuf_int.h"
+#include "audio.h"
 
 /**
  * Mix a single track source buffer into a multi track destination buffer.

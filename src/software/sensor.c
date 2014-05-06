@@ -167,7 +167,9 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                      /* since rv == AAX_TRUE this will be unlocked 
                         after rb->mix2d */
                   }
-                  else rv = 0;
+                  else {
+                     rv = 0;
+                  }
                }
             }
             while(rv);

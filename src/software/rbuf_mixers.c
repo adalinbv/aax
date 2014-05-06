@@ -42,8 +42,8 @@ CONST_MIX_PTRPTR_T
 _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
-   float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
-   float dfreq, dduration, drb_pos_sec, fact, eps;
+   float dfreq, dduration, drb_pos_sec, new_drb_pos_sec, fact;
+   float sfreq, sduration, srb_pos_sec, new_srb_pos_sec, eps;
    unsigned int ddesamps = *start;
    MIX_T **track_ptr;
    char src_loops;
@@ -102,14 +102,15 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    /* destination */
    dfreq = drbd->frequency_hz;
    drb_pos_sec = drbi->curr_pos_sec;
+   new_drb_pos_sec = drb_pos_sec;
    dduration = drbd->duration_sec - drb_pos_sec;
-   if (dduration < (1.1f/dfreq))
+   if (dduration == 0)
    {
       _AAX_SYSLOG("remaining duration of the destination buffer = 0.0.");
       return NULL;
    }
 
-   /* conversion */
+   /* sample conversion factor */
    fact = (sfreq * pitch_norm*srbi->pitch_norm) / dfreq;
    if (fact < 0.01f) fact = 0.01f;
 // else if (fact > 2.0f) fact = 2.0f;
@@ -131,20 +132,21 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             new_srb_pos_sec -= srbd->loop_start_sec;
             new_srb_pos_sec = fmodf(new_srb_pos_sec, loop_length_sec);
             new_srb_pos_sec += srbd->loop_start_sec;
-            drbi->curr_pos_sec = 0.0f;
+            new_drb_pos_sec = 0.0f;
          }
       }  
       else if (new_srb_pos_sec >= (srbd->duration_sec-eps))	/* streaming */
       {  
          float dt = (sduration - srb_pos_sec)/pitch_norm;
 
+         eps = 0; // 1.1f/dfreq;
 #ifndef NDEBUG
          /*
           * Note: This may happen for a registered sensor but it will work in
           *       non debugging mode.
           * TODO: Fix this behaviour
           */
-         if (dt < (1.1f/dfreq) )
+         if (dt < eps)
          {
             _AAX_SYSLOG("Remaining duration of the buffer is too small.");
             return NULL;
@@ -154,10 +156,10 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          srbi->stopped = 1;
          new_srb_pos_sec = sduration;
 
-         drbi->curr_pos_sec += dt;
-         if (drbi->curr_pos_sec >= (drbd->duration_sec-(1.1f/dfreq)))
+         new_drb_pos_sec = drbi->curr_pos_sec + dt;
+         if (new_drb_pos_sec >= (drbd->duration_sec - eps))
          {
-            drbi->curr_pos_sec = 0.0f;
+            new_drb_pos_sec = 0.0f;
             drbi->playing = 0;
             drbi->stopped = 1;
          }
@@ -196,22 +198,14 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       dno_samples = rintf(dduration*dfreq);
       if (srb_pos_sec >= 0) {
          dest_pos = rintf(drb_pos_sec * dfreq);
-      } else {						/* distance delay */
+      } else {					/* distance delay ended */
          dest_pos = rintf((drb_pos_sec + srb_pos_sec)*dfreq);
       }
 
       *start = dest_pos;
-      *no_samples = dno_samples; // dend - dest_pos;
+      *no_samples = dno_samples;
       if (!(srbi->streaming && (sno_samples < dend)))
       {
-#if 0
-         if (dest_pos)
-         {
-            // TODO: Why??
-            *no_samples += 1; //  = dno_samples - (dest_pos-1);
-            *start -= 1; // = (dest_pos-1);
-         }
-#endif
          if (!ddesamps) {
             ddesamps = (unsigned int)ceilf(CUBIC_SAMPS/fact);
          }
@@ -243,7 +237,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       if (track_ptr)
       {
          unsigned int cno_samples, cdesamps = 0;
-         unsigned int track, smin, src_pos;
+         unsigned int track, smin, src_pos, offs;
          float ftmp, smu;
 
          ftmp = srb_pos_sec * sfreq;
@@ -259,10 +253,14 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             cdesamps = CUBIC_SAMPS;
          }
 
+         offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
+         if (dest_pos) {
+            ddesamps = cdesamps = offs = 0;
+         }
+
          if (!freq_filter && !delay_effect && !dist_state)
          {
             MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
-            int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
 
             for (track=0; track<sno_tracks; track++)
             {
@@ -270,7 +268,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                MIX_T *dptr = track_ptr[track];
 
                /* needed for automatic file streaming with registered sensors */
-               if (!nbuf)
+               if (!nbuf) // srbi->streaming
                {
                   sptr -= CUBIC_SAMPS;
                   sno_samples += CUBIC_SAMPS;
@@ -310,7 +308,6 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
             MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
             void* distortion_effect = NULL;
-            int offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
             void *env;
             
             if (dist_state) {
@@ -370,8 +367,11 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          }
       }
 
-      srbi->curr_sample = (unsigned int)floorf(new_srb_pos_sec * sfreq);
       srbi->curr_pos_sec = new_srb_pos_sec;
+      srbi->curr_sample = floorf(new_srb_pos_sec * sfreq);
+
+      drbi->curr_pos_sec = new_drb_pos_sec;
+//    drbi->curr_sample = rintf(drbi->curr_pos_sec * drbd->frequency_hz);
    }
 
    return (CONST_MIX_PTRPTR_T)track_ptr;
