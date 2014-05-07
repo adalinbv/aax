@@ -18,13 +18,17 @@ Use of ADALIN's products requires two elements: the SOFTWARE and a personal comp
 
 2.1 Rights and Limitations of Grant. ADALIN hereby grants Customer the following non-exclusive, non-transferable right to use the SOFTWARE, with the following limitations:
 
-2.1.1 Rights. Customer may install and use one copy of the SOFTWARE on a single computer, and except for making one back-up copy of the Software, may not otherwise copy the SOFTWARE. This LICENSE of SOFTWARE may not be shared or used concurrently on different computers.
+2.1.1 Rights. Redistribution and use in binary form is permitted for both commercial and non commercial purposes provided that the following conditions are met:
 
-2.1.2 Linux/FreeBSD Exception. Notwithstanding the foregoing terms of Section 2.1.1, SOFTWARE designed exclusively for use on the Linux or FreeBSD operating systems, or other operating systems derived from the source code to these operating systems, may be copied and redistributed, provided that the binary files thereof are not modified in any way.
+2.1.1.1 The binary files may not be modified in any way.
 
-2.1.3 Personal Product-Key. The Product-Key is personal and is not transferable. The Product-Key may not be shared or used concurrently on different computers and Customer is responsible to keep their Product-Key safe. Product-Key's are provided by ADALIN and by ADALIN only. Use of a Product-Key provided by a third party is prohibited.
+2.1.1.2 Redistributions in binary form must reproduce the copyright notice and this list of conditions in the documentation and/or other materials provided with the distribution.
 
-2.1.4 Limitations.
+2.1.1.3 Redistributions in binary form that include the unlicensed Lite version of the SOFTWARE should provide the Customer with the option to (and provide the instructions on how to) unlock the advanced features of the HD version of the SOFTWARE.
+
+2.1.2 Personal Product-Key. The Product-Key is personal and is not transferable. The Product-Key may not be shared or used concurrently on different computers and Customer is responsible to keep their Product-Key safe. Product-Key's are only provided by ADALIN. Customer is not allowed to use a product key that was provided by a third party.
+
+2.1.3 Limitations.
 
 No Reverse Engineering. Customer may not reverse engineer, decompile, or disassemble the SOFTWARE, nor attempt in any other manner to obtain the source code.
 
@@ -61,5 +65,5 @@ Customer agrees not to pursue any Software Patent infringement proceeding agains
 If any provision of this LICENSE is inconsistent with, or cannot be fully enforced under, the law, such provision will be construed as limited to the extent necessary to be consistent with and fully enforceable under the law. This LICENSE is the final, complete and exclusive agreement between the parties relating to the subject matter hereof, and supersedes all prior or contemporaneous understandings and agreements relating to such subject matter, whether oral or written. This LICENSE may only be modified in writing signed by an authorized officer of ADALIN.  Customer agrees that it will not ship, transfer or export the SOFTWARE into any country, or use the SOFTWARE in any manner, prohibited by any export laws, restrictions or regulations.
 
  
-Copyright 2005-2013 Adalin B.V. <tech@adalin.org>
+Copyright 2005-2014 Adalin B.V. <tech@adalin.org>
 
