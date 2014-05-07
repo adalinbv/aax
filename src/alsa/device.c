@@ -21,6 +21,7 @@
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <string.h>		/* strstr */
 #include <stdarg.h>		/* va_start */
 
 #include <xml.h>
@@ -512,7 +513,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
-      if (!rdr_aax_fmt) {
+      if (rdr_aax_fmt) {
          handle->name = _aax_strdup((char*)renderer);
       }
       else {
@@ -632,7 +633,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          handle->devname = detect_devname(handle->name, handle->devnum,
                                        handle->no_channels, m, handle->shared);
       } else {
-         handle->devname = _aax_strdup(handle->name);
+         handle->devname = _aax_strdup(renderer ? renderer : "default");
       }
     
       err = _alsa_pcm_open(handle, m);
