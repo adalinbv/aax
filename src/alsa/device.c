@@ -495,6 +495,7 @@ static void *
 _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rdr_aax_fmt;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -504,13 +505,14 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       handle = _aaxALSADriverNewHandle(mode);
    }
 
+   rdr_aax_fmt = (renderer && strstr(renderer, ": ")) ? 1 : 0;
    if (handle)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
-      if (renderer) { //  && strcasecmp(renderer, "default")) {
+      if (!rdr_aax_fmt) {
          handle->name = _aax_strdup((char*)renderer);
       }
       else {
@@ -626,7 +628,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
       m = (handle->mode > 0) ? 1 : 0;
       handle->devnum = detect_devnum(handle->name, m);
-      if (!renderer) { 
+      if (rdr_aax_fmt) {
          handle->devname = detect_devname(handle->name, handle->devnum,
                                        handle->no_channels, m, handle->shared);
       } else {
