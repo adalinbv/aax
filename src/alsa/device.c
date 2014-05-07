@@ -510,7 +510,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
 
-      if (renderer && strcasecmp(renderer, "default")) {
+      if (renderer) { //  && strcasecmp(renderer, "default")) {
          handle->name = _aax_strdup((char*)renderer);
       }
       else {
@@ -626,8 +626,13 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
       m = (handle->mode > 0) ? 1 : 0;
       handle->devnum = detect_devnum(handle->name, m);
-      handle->devname = detect_devname(handle->name, handle->devnum,
+      if (!renderer) { 
+         handle->devname = detect_devname(handle->name, handle->devnum,
                                        handle->no_channels, m, handle->shared);
+      } else {
+         handle->devname = _aax_strdup(handle->name);
+      }
+    
       err = _alsa_pcm_open(handle, m);
       if (err >= 0) {
          _alsa_get_volume_range(handle);
