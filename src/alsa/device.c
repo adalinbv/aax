@@ -297,6 +297,7 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 #define MAX_FORMATS		6
 #define FILL_FACTOR		1.65f
 #define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
+#define STRCMP(a, b)		strncmp((a), (b), strlen(b))
 
 static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
@@ -1473,31 +1474,40 @@ _aaxALSADriverGetDevices(const void *id, int mode)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && !strncasecmp(name, "hw:", strlen("hw:")) && 
-                   strstr(name, ",DEV=0"))
+               if (name)
                {
-                  char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *iface;
-                  int slen;
+                  if ((!strchr(name, ':') &&
+                       (strcmp(name, "null") && !strstr(name, "default")))
+                      || (!STRCMP(name, "hw:") && strstr(name, ",DEV=0"))
+                     )
+                  {
+                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                     char *iface;
+                     int slen;
 
-                  if (!desc) desc = name;
+                     if (!desc) desc = name;
 
-                  iface = strstr(desc, ", ");
-                  if (iface) *iface = 0;
+                     iface = strstr(desc, ", ");
+                     if (iface) *iface = 0;
 
-                  snprintf(ptr, len, "%s", desc);
-                  slen = strlen(ptr)+1;	/* skip the trailing 0 */
-                  if (slen > (len-1)) break;
+                     if (!strchr(name, ':') && (!desc || strcmp(name, desc))) {
+                        snprintf(ptr, len, "%s: %s", name, desc);
+                     } else {
+                        snprintf(ptr, len, "%s", desc);
+                     }
+                     slen = strlen(ptr)+1;	/* skip the trailing 0 */
+                     if (slen > (len-1)) break;
 
-                  len -= slen;
-                  ptr += slen;
+                     len -= slen;
+                     ptr += slen;
 
-                  if (desc != name) _sys_free(desc);
+                     if (desc != name) _sys_free(desc);
+                  }
+                  _sys_free(name);
                }
-               _sys_free(name);
             }
             _sys_free(type);
             ++lst;
@@ -1540,22 +1550,23 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
+                  char *p = strchr(name, ':');
                   int i = 0;
-                  while (ifname_prefix[i] &&
-                         strncasecmp(name, ifname_prefix[i],
-                                       strlen(ifname_prefix[i]))
-                        ) {
+
+                  if (p) *(++p) = 0;
+                  while (ifname_prefix[i] && strcmp(name, ifname_prefix[i])) {
                      i++;
                   }
 
                   if (ifname_prefix[i] && (m ||
-                       (!strncasecmp(name, "front:", strlen("front:")) ||
-                        !strncasecmp(name, "iec958:", strlen("iec958:")))))
+                       (!strcmp(name, "pulse:") || !strcmp(name, "front:") ||
+                        !strcmp(name, "iec958:")))
+                     )
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
@@ -1568,7 +1579,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      {
                         int slen;
 
-                        if (m || strncasecmp(name, "front:", strlen("front:")))
+                        if (m || strcmp(name, "front:"))
                         {
                            if (iface != desc) {
                               iface = strchr(iface+2, '\n')+1;
@@ -1638,14 +1649,14 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcasecmp(type, _alsa_type[m])))
+         if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name)
             {
-               if ((!m && (!strncasecmp(name, "default:", strlen("default:")) ||
-                          !strncasecmp(name, "sysdefault:", strlen("sysdefault:"))))
-                    || !strncasecmp(name, "front:", strlen("front:"))
+               if ((!m && (!strcmp(name, "default:") ||
+                          !strcmp(name, "sysdefault:")))
+                    || !strcmp(name, "front:")
                   )
                {
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -1725,7 +1736,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static const char* ifname_prefix[] = {
-   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL, "default:", "sysdefault:", NULL
+   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL
 };
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
@@ -1857,20 +1868,20 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
                   int i = 0;
-                  while (ifname_prefix[i] &&
-                         strncasecmp(name, ifname_prefix[i],
-                                       strlen(ifname_prefix[i]))
-                        ) {
+                  while (ifname_prefix[i] && STRCMP(name, ifname_prefix[i])) {
                      i++;
                   }
 
-                  if (ifname_prefix[i] && !strcasecmp(devname, name))
+                  if (!strcmp(devname, "pulse")) {
+                     rv = strdup(devname);
+                  }
+                  else if (ifname_prefix[i] && !STRCMP(devname, name))
                   {
                      int dlen = strlen(name)+1;
                      if (vmix)
@@ -1896,10 +1907,9 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                      break;
                   }
                   else if (ifname_prefix[i] &&
-                           ((tracks_2 <= (_AAX_MAX_SPEAKERS/2))
-                            || (strncasecmp(name, dev_prefix[m ? tracks_2 : 0],
-                                    strlen(dev_prefix[m ? tracks_2 : 0])) == 0))
-                           )
+                           ((tracks_2 <= (_AAX_MAX_SPEAKERS/2)) ||
+                            (STRCMP(name, dev_prefix[m ? tracks_2 : 0]) == 0))
+                          )
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface, *description = 0;
@@ -1940,7 +1950,9 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                                  }
                                  else if (ifname_prefix[i]) {
                                     snprintf(rv, dlen, "%s%s",
-                                                 dev_prefix[m ? tracks_2 : 0],
+                                                 (tracks_2 > 1)
+                                                 ? dev_prefix[m ? tracks_2 : 0]
+                                                 : ifname_prefix[i],
                                                  name+strlen(ifname_prefix[i]));
                                  }
                               }
@@ -2000,7 +2012,7 @@ detect_devnum(const char *devname, int m)
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcasecmp(type, _alsa_type[m])))
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
@@ -2012,7 +2024,7 @@ detect_devnum(const char *devname, int m)
                      break;
                   }
 
-                  if (!strncasecmp(name, "front:", strlen("front:")))
+                  if (!STRCMP(name, "front:"))
                   {
                      if (!strcasecmp(devname, "default"))
                      {
@@ -2070,10 +2082,10 @@ get_devices_avail(int m)
       do
       {
          char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcasecmp(type, _alsa_type[m])))
+         if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && !strncasecmp(name, "front:", strlen("front:"))) rv++;
+            if (name && !STRCMP(name, "front:")) rv++;
          }
          _sys_free(type);
          ++lst;
