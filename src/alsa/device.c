@@ -41,7 +41,7 @@
 #include "device.h"
 #include "audio.h"
 
-#define TIMER_BASED		AAX_TRUE
+#define TIMER_BASED		AAX_FALSE
 #define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		32
 
@@ -1121,6 +1121,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          if (err >= 0) {
             handle->latency = (float)delay/(float)rate;
          }
+         err = 0;
       }
    }
 
