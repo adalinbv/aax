@@ -193,6 +193,10 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /* Mix */
    drbd->mix1n(drbd, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
 
+   if (drbi->playing == 0 && drbi->stopped == 1) {
+      ret = 0;
+   }
+
    return ret;
 }
 

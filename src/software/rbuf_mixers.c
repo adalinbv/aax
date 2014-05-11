@@ -93,6 +93,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    sduration = srbd->duration_sec;
    if (srb_pos_sec >= sduration)
    {
+      // This can (only) happen if there's just one buffer in the stream-queue
       srbi->curr_pos_sec = srbd->duration_sec;
       srbi->playing = 0;
       srbi->stopped = 1;
@@ -139,32 +140,24 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       {  
          float dt = (sduration - srb_pos_sec)/pitch_norm;
 
-         eps = 0; // 1.1f/dfreq;
-#ifndef NDEBUG
-         /*
-          * Note: This may happen for a registered sensor but it will work in
-          *       non debugging mode.
-          * TODO: Fix this behaviour
-          */
-         if (dt < eps)
-         {
-            _AAX_SYSLOG("Remaining duration of the buffer is too small.");
-            return NULL;
-         }
-#endif
          srbi->playing = 0;
          srbi->stopped = 1;
          new_srb_pos_sec = sduration;
 
          new_drb_pos_sec = drbi->curr_pos_sec + dt;
-         if (new_drb_pos_sec >= (drbd->duration_sec - eps))
+         if (new_drb_pos_sec >= (drbd->duration_sec-(1.1f/dfreq)))
          {
             new_drb_pos_sec = 0.0f;
             drbi->playing = 0;
             drbi->stopped = 1;
          }
-         else dduration = dt;
+         else {
+            dduration = dt;
+         }
       }
+   }
+   else {
+      new_drb_pos_sec += (sduration - srb_pos_sec)/pitch_norm;
    }
 
    /*
@@ -234,8 +227,13 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       else
 #endif
 #endif
+
       if (track_ptr)
       {
+         char eff = (!freq_filter && !delay_effect && !dist_state) ? 0 : 1;
+         MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
+         MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
+         void *env, *distortion_effect = NULL;
          unsigned int cno_samples, cdesamps = 0;
          unsigned int track, smin, src_pos, offs;
          float ftmp, smu;
@@ -253,111 +251,59 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             cdesamps = CUBIC_SAMPS;
          }
 
+         env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+         if (dist_state) {
+             distortion_effect = &p2d->effect[DISTORTION_EFFECT];
+         }
+
          offs = (fact < CUBIC_TRESHOLD) ? 1 : 0;
          if (dest_pos) {
             ddesamps = cdesamps = offs = 0;
          }
 
-         if (!freq_filter && !delay_effect && !dist_state)
+         for (track=0; track<sno_tracks; track++)
          {
-            MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
+            MIX_T *sptr = (MIX_T*)srbd->track[track];
+            MIX_T *dst, *dptr = track_ptr[track];
 
-            for (track=0; track<sno_tracks; track++)
+            /* needed for automatic file streaming with registered sensors */
+            if (!srbd->mixer_fmt)
             {
-               MIX_T *sptr = (MIX_T*)srbd->track[track];
-               MIX_T *dptr = track_ptr[track];
-
-               /* needed for automatic file streaming with registered sensors */
                if (!nbuf) // srbi->streaming
                {
                   sptr -= CUBIC_SAMPS;
                   sno_samples += CUBIC_SAMPS;
                }
 
-               if (!srbd->mixer_fmt)
-               {
-                  DBG_MEMCLR(1,scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
-                  srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
-                                   sstart, sno_samples, cdesamps, cno_samples,
-                                   sbps, src_loops);
+               DBG_MEMCLR(1,scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
+               srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
+                                sstart, sno_samples, cdesamps, cno_samples,
+                                sbps, src_loops);
 #if RB_FLOAT_DATA
-                  // rbd->resample needs a few samples more for low fact values.
-                  _batch_cvtps24_24(scratch0-cdesamps-offs,
-                                    scratch0-cdesamps-offs,
-                                    cno_samples+cdesamps+CUBIC_SAMPS);
+               // rbd->resample needs a few samples more for low fact values.
+               _batch_cvtps24_24(scratch0-cdesamps-offs-CUBIC_SAMPS,
+                                 scratch0-cdesamps-offs-CUBIC_SAMPS,
+                                 cno_samples+cdesamps+2*CUBIC_SAMPS);
 #endif
-               } else {
-                  scratch0 = sptr+src_pos;
-               }
-#if RB_FLOAT_DATA
-               DBG_TESTNAN(scratch0, cno_samples);
-               DBG_TESTNAN(scratch0-cdesamps-offs, cno_samples+cdesamps);
-#endif
-
-               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               drbd->resample(dptr-ddesamps, scratch0-cdesamps-offs,
-                                   dest_pos, dest_pos+dno_samples+ddesamps,
-                                   smu, fact);
-#if RB_FLOAT_DATA
-               DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
-#endif
+            } else {
+               scratch0 = sptr+src_pos-1;
             }
-         }
-         else
-         {
-            MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
-            MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
-            void* distortion_effect = NULL;
-            void *env;
-            
-            if (dist_state) {
-                distortion_effect = &p2d->effect[DISTORTION_EFFECT];
-            }
+#if RB_FLOAT_DATA
+            DBG_TESTNAN(scratch0, cno_samples);
+            DBG_TESTNAN(scratch0-cdesamps-offs, cno_samples+cdesamps);
+#endif
+            dst = eff ? scratch1 : dptr;
+            DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
+            drbd->resample(dst-ddesamps, scratch0-cdesamps-offs,
+                           dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
+#if RB_FLOAT_DATA
+            DBG_TESTNAN(dst-ddesamps+dest_pos, dno_samples+ddesamps);
+#endif
 
-            env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-
-            for (track=0; track<sno_tracks; track++)
+            if (eff)
             {
-               MIX_T *sptr = (MIX_T*)srbd->track[track];
-               MIX_T *dptr = track_ptr[track];
-
-               /* needed for automatic file streaming with registered sensors */
-               if (!nbuf)
-               {
-                  sptr -= CUBIC_SAMPS;
-                  sno_samples += CUBIC_SAMPS;
-               }
-
-               if (!srbd->mixer_fmt)
-               {
-                  DBG_MEMCLR(1,scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
-                  srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
-                                   sstart, sno_samples, cdesamps, cno_samples,
-                                   sbps, src_loops);
-#if RB_FLOAT_DATA
-                  // rbd->resample needs a few samples more for low fact values.
-                  _batch_cvtps24_24(scratch0-cdesamps-offs-CUBIC_SAMPS,
-                                    scratch0-cdesamps-offs-CUBIC_SAMPS,
-                                    cno_samples+cdesamps+2*CUBIC_SAMPS);
-#endif
-               } else {
-                  scratch0 = (MIX_T*)sptr;
-               }
-#if RB_FLOAT_DATA
-               DBG_TESTNAN(scratch0, cno_samples);
-               DBG_TESTNAN(scratch0-cdesamps-offs, cno_samples+cdesamps);
-#endif
-
-               DBG_MEMCLR(1, scratch1-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               drbd->resample(scratch1-ddesamps, scratch0-cdesamps-offs,
-                                   dest_pos, dest_pos+dno_samples+ddesamps,
-                                   smu, fact);
-#if RB_FLOAT_DATA
-               DBG_TESTNAN(scratch1-ddesamps+dest_pos, dno_samples+ddesamps);
-#endif
-
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               srbi->effects(srbi->sample, dptr, scratch1, scratch0,
+               srbi->effects(srbi->sample, dptr, dst, scratch0,
                              dest_pos, dend, dno_samples, ddesamps, track, ctr,
                              freq_filter, delay_effect, distortion_effect, env);
 #if RB_FLOAT_DATA
@@ -367,6 +313,12 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          }
       }
 
+      if (new_srb_pos_sec >= (sduration-eps))
+      {
+         new_srb_pos_sec = sduration;
+         srbi->playing = 0;
+         srbi->stopped = 1;
+      }
       srbi->curr_pos_sec = new_srb_pos_sec;
       srbi->curr_sample = floorf(new_srb_pos_sec * sfreq);
 
