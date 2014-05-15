@@ -32,10 +32,11 @@ extern "C" {
 
 #define USE_MIDI			AAX_FALSE
 #define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
+
 #ifndef NDEBUG
-# define THREADED_FRAMES		AAX_TRUE
-#else
 # define THREADED_FRAMES		AAX_FALSE
+#else
+# define THREADED_FRAMES		AAX_TRUE
 #endif
 
 #if _WIN32

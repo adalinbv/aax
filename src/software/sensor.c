@@ -48,6 +48,10 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
       be = device->backend.ptr;
       be_handle = device->backend.handle;
 
+      // It's tempting to test if the device is processed and then continue
+      // but the device might still have several unprocessed ringbuffers
+      // in the queue. We have to process them first.
+
       if (be->state(be_handle, DRIVER_AVAILABLE) != AAX_FALSE) {
          dptr_sensor = _intBufGet(device->sensors, _AAX_SENSOR, 0);
       }
@@ -207,7 +211,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       unsigned int track, no_tracks = drb->get_parami(drb, RB_NO_TRACKS);
       unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
       unsigned int ds = drb->get_parami(drb, RB_DDE_SAMPLES);
-      float dt = GMATH_E1 * *delay;
+      float dt = GMATH_E1 * (*delay);
       size_t frames, nframes;
       int res, offs;
       void **sbuf;
@@ -365,78 +369,3 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
    return rv;
 }
 
-/*-------------------------------------------------------------------------- */
-
-#if 0
-unsigned int
-_aaxSoftwareMixerMixSensorsThreaded(void *dest, _intBuffers *hs)
-{
-   _aaxRingBuffer *drb = (_aaxRingBuffer *)dest;
-   unsigned int i, num = 0;
-
-   if (hs)
-   {
-      num = _intBufGetMaxNum(hs, _AAX_DEVICE);
-      for (i=0; i<num; i++)
-      {
-         _intBufferData *dptr = _intBufGet(hs, _AAX_DEVICE, i);
-         if (dptr)
-         {
-            _handle_t* config = _intBufGetDataPtr(dptr);
-            const _intBufferData* dptr_sensor;
-
-            dptr_sensor = _intBufGet(config->sensors, _AAX_SENSOR, 0);
-            if (dptr_sensor)
-            {
-               const _aaxDriverBackend *be = config->backend.ptr;
-               _intBuffers *ringbuffers;
-               _aaxAudioFrame *smixer;
-               _sensor_t* sensor;
-               unsigned int nbuf;
-
-               sensor = _intBufGetDataPtr(dptr_sensor);
-               smixer = sensor->mixer;
-               ringbuffers = smixer->play_ringbuffers;
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-
-               nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
-               if (nbuf)
-               {
-                  _intBufferData *buf;
-                  _aaxRingBuffer *srb;
-                  unsigned int rv = 0;
-
-                  buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
-                  srb = _intBufGetDataPtr(buf);
-                  do
-                  {
-                     rv = drb->mix2d(drb, srb, smixer->props2d, NULL, 0, 0);
-                     _intBufReleaseData(buf, _AAX_RINGBUFFER);
-
-                     if (rv) /* always streaming */
-                     {
-                        buf = _intBufPop(ringbuffers, _AAX_RINGBUFFER);
-                        be->destroy_ringbuffer(srb);
-                        _intBufDestroyDataNoLock(buf);
-
-                        buf = _intBufGet(ringbuffers, _AAX_RINGBUFFER, 0);
-                        if (buf)
-                        {
-                           srb = _intBufGetDataPtr(buf);
-                           /* since rv == AAX_TRUE this will be unlocked 
-                              after drb->mix2d */
-                        }
-                        else rv = 0;
-                     }
-                  }
-                  while(rv);
-               }
-            }
-            _intBufReleaseData(dptr, _AAX_DEVICE);
-         }
-      }
-      _intBufReleaseNum(hs, _AAX_DEVICE);
-   }
-   return num;
-}
-#endif
