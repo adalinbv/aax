@@ -13,6 +13,9 @@
 #if HAVE_MATH_H
 # include <math.h>
 #endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <errno.h>
 
 #include "threads.h"
@@ -25,9 +28,6 @@ static char __threads_enabled = 0;
 #if HAVE_PTHREAD_H
 # include <sys/time.h>
 # include <sys/resource.h>
-#ifdef HAVE_UNISTD_H
-// # include <unistd.h>
-#endif
 # ifdef HAVE_RMALLOC_H
 #  include <rmalloc.h>
 # else
