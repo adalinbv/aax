@@ -191,7 +191,7 @@ typedef struct
  */
 
 /** forwrad declaration */
-typedef struct _aaxRingBuffer_t _aaxRingBuffer;
+typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
 /**
  * Initialize a new audio ringbuffer that holds no data.
@@ -213,7 +213,7 @@ _aaxRingBufferCreate(float, enum aaxRenderMode);
  * @param rb the ringbuffer to delete
  */
 typedef void
-_aaxRingBufferDestroyFn(_aaxRingBuffer*);
+_aaxRingBufferDestroyFn(struct _aaxRingBuffer_t*);
 
 void
 _aaxRingBufferFree(void*);
@@ -226,7 +226,7 @@ _aaxRingBufferFree(void*);
  * @param add_scratchbuf set to something other than 0 to add scratchbuffers
  */
 typedef void
-_aaxRingBufferInitFn(_aaxRingBuffer*, char);
+_aaxRingBufferInitFn(struct _aaxRingBuffer_t*, char);
 
 
 /**
@@ -236,8 +236,8 @@ _aaxRingBufferInitFn(_aaxRingBuffer*, char);
  *
  * returns the newly created referencing ringbuffer
  */
-typedef _aaxRingBuffer*
-_aaxRingBufferReferenceFn(_aaxRingBuffer*);
+typedef struct _aaxRingBuffer_t*
+_aaxRingBufferReferenceFn(struct _aaxRingBuffer_t*);
 
 
 /**
@@ -249,8 +249,8 @@ _aaxRingBufferReferenceFn(_aaxRingBuffer*);
  *
  * returns the newly created ringbuffer
  */
-typedef _aaxRingBuffer*
-_aaxRingBufferDuplicateFn(_aaxRingBuffer*, char, char);
+typedef struct _aaxRingBuffer_t*
+_aaxRingBufferDuplicateFn(struct _aaxRingBuffer_t*, char, char);
 
 
 /**
@@ -276,7 +276,7 @@ _aaxRingBufferDuplicateFn(_aaxRingBuffer*, char, char);
  */
 
 typedef int32_t**
-_aaxRingBufferGetTracksPtrFn(_aaxRingBuffer*, enum _aaxRingBufferMode);
+_aaxRingBufferGetTracksPtrFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferMode);
 
 
 /**
@@ -293,7 +293,7 @@ _aaxRingBufferGetTracksPtrFn(_aaxRingBuffer*, enum _aaxRingBufferMode);
  * returns AAX_TRUE on success or AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferReleaseTracksPtrFn(_aaxRingBuffer*);
+_aaxRingBufferReleaseTracksPtrFn(struct _aaxRingBuffer_t*);
 
 
 /**
@@ -309,7 +309,7 @@ _aaxRingBufferReleaseTracksPtrFn(_aaxRingBuffer*);
  */
 
 typedef void**
-_aaxRingBufferGetScratchBufferPtrFn(_aaxRingBuffer*);
+_aaxRingBufferGetScratchBufferPtrFn(struct _aaxRingBuffer_t*);
 
 /**
  * Copy the delay effetcs data from one ringbuffer to another.
@@ -318,7 +318,7 @@ _aaxRingBufferGetScratchBufferPtrFn(_aaxRingBuffer*);
  * @param src source ringbuffer
  */
 typedef void
-_aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBuffer*, const _aaxRingBuffer*);
+_aaxRingBufferCopyDelyEffectsDataFn(struct _aaxRingBuffer_t*, const struct _aaxRingBuffer_t*);
 
 
 /**
@@ -327,7 +327,7 @@ _aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBuffer*, const _aaxRingBuffer*);
  * This function does all the preparations like audio format conversion to the
  * internal format of the mixer, resampling in case of different frequences or
  * pitch settings, gain and pitch calculation and status updates.
- * Actual rendering is done in the _aaxRingBufferMixMNFn* call;
+ * Actual rendering is done in the struct _aaxRingBuffer_tMixMNFn* call;
  *
  * @param drb multi track destination buffer
  * @param srb multi track source buffer
@@ -343,7 +343,7 @@ _aaxRingBufferCopyDelyEffectsDataFn(_aaxRingBuffer*, const _aaxRingBuffer*);
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixStereoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned int);
+_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned int);
 
 /**
  * Single channel ringbuffer mixer.
@@ -368,7 +368,7 @@ _aaxRingBufferMixStereoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, _aax2d
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMonoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, unsigned int);
+_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, unsigned int);
 
 
 /**
@@ -382,7 +382,7 @@ _aaxRingBufferMixMonoFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, _aax2dPr
  * @param state new ringbuffer state
  */
 typedef void
-_aaxRingBufferSetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
+_aaxRingBufferSetStateFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferState);
 
 /**
  * Get the ringbuffer state
@@ -393,7 +393,7 @@ _aaxRingBufferSetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
  * returns the state if valid or 0 otherwise.
  */
 typedef int
-_aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
+_aaxRingBufferGetStateFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferState);
 
 
 /**
@@ -412,7 +412,7 @@ _aaxRingBufferGetStateFn(_aaxRingBuffer*, enum _aaxRingBufferState);
  *       param set to RB_FORMAT
  */
 typedef int
-_aaxRingBufferSetFormatFn(_aaxRingBuffer*, enum aaxFormat, int);
+_aaxRingBufferSetFormatFn(struct _aaxRingBuffer_t*, enum aaxFormat, int);
 
 /**
  * Set a single integer ringbuffer parameter
@@ -424,7 +424,7 @@ _aaxRingBufferSetFormatFn(_aaxRingBuffer*, enum aaxFormat, int);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferSetParamiFn(_aaxRingBuffer*, enum _aaxRingBufferParam, unsigned int);
+_aaxRingBufferSetParamiFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, unsigned int);
 
 /**
  * Set a single floating-point ringbuffer parameter
@@ -436,7 +436,7 @@ _aaxRingBufferSetParamiFn(_aaxRingBuffer*, enum _aaxRingBufferParam, unsigned in
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferSetParamfFn(_aaxRingBuffer*, enum _aaxRingBufferParam, float);
+_aaxRingBufferSetParamfFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, float);
 
 /**
  * Get the value of an integer ringbuffer parameter
@@ -447,7 +447,7 @@ _aaxRingBufferSetParamfFn(_aaxRingBuffer*, enum _aaxRingBufferParam, float);
  * returns the value of the parameter.
  */
 typedef unsigned int
-_aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
+_aaxRingBufferGetParamiFn(const struct _aaxRingBuffer_t*, enum _aaxRingBufferParam);
 
 /**
  * Get the value of a floating-point ringbuffer parameter
@@ -458,7 +458,7 @@ _aaxRingBufferGetParamiFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
  * returns the value of the parameter.
  */
 typedef float
-_aaxRingBufferGetParamfFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
+_aaxRingBufferGetParamfFn(const struct _aaxRingBuffer_t*, enum _aaxRingBufferParam);
 
 
 /*
@@ -473,7 +473,7 @@ _aaxRingBufferGetParamfFn(const _aaxRingBuffer*, enum _aaxRingBufferParam);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataClearFn(_aaxRingBuffer*);
+_aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*);
 
 /**
  * Mix the audio data of two ringbuffers
@@ -485,7 +485,7 @@ _aaxRingBufferDataClearFn(_aaxRingBuffer*);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixDataFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBufferLFOData*);
+_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aaxRingBufferLFOData*);
 
 /**
  * Alter the gain of the ringbuffer audio data
@@ -498,7 +498,7 @@ _aaxRingBufferDataMixDataFn(_aaxRingBuffer*, _aaxRingBuffer*, _aaxRingBufferLFOD
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMultiplyFn(_aaxRingBuffer*, size_t, size_t, float);
+_aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
 
 /**
  * Mix a waveform type from the waveform generator with existing data
@@ -512,7 +512,7 @@ _aaxRingBufferDataMultiplyFn(_aaxRingBuffer*, size_t, size_t, float);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixWaveformFn(_aaxRingBuffer*, enum aaxWaveformType, float, float, float);
+_aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, enum aaxWaveformType, float, float, float);
 
 /**
  * Mix a noise type from the waveform generator with existing data
@@ -527,7 +527,7 @@ _aaxRingBufferDataMixWaveformFn(_aaxRingBuffer*, enum aaxWaveformType, float, fl
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixNoiseFn(_aaxRingBuffer*, enum aaxWaveformType, float, float, float, float, char);
+_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, enum aaxWaveformType, float, float, float, float, char);
 
 /**
  * Limit the audio data in the ringbuffer
@@ -536,7 +536,7 @@ _aaxRingBufferDataMixNoiseFn(_aaxRingBuffer*, enum aaxWaveformType, float, float
  * @param type type of limiter/compressor to use
  */
 typedef void
-_aaxRingBufferDataLimiterFn(_aaxRingBuffer*, enum _aaxLimiterType);
+_aaxRingBufferDataLimiterFn(struct _aaxRingBuffer_t*, enum _aaxLimiterType);
 
 
 

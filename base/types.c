@@ -41,9 +41,15 @@ uint32_t _mem_size(void *p)
 
 uint16_t _bswap16(uint16_t x)
 {
-#if defined(__llvm__) || \
- (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && !defined(__ICC)
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && !defined(__ICC)
    return __builtin_bswap16(x);
+
+#elif defined(__llvm__)
+# if __has_builtin(__builtin_bswap16)
+   return __builtin_bswap16(x);
+# else
+   return (x >> 8) | (x << 8);
+# endif
 
 #elif defined(_MSC_VER) && !defined(_DEBUG)
    // The DLL version of the runtime lacks these functions (bug!?), but in a

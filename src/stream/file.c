@@ -891,7 +891,8 @@ _aaxFileDriverWriteThread(void *id)
    bits = handle->bits_sample;
    do
    {
-      unsigned int usize, buffer_avail;
+      unsigned int usize;
+      int buffer_avail;
       char *data;
 
       _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
@@ -977,7 +978,7 @@ _aaxFileDriverReadThread(void *id)
    do
    {
       unsigned int size = IOBUF_SIZE - handle->bufpos;
-      unsigned int res = read(handle->fd, handle->buf+handle->bufpos, size);
+      int res = read(handle->fd, handle->buf+handle->bufpos, size);
       if (res < 0) break;
 
       handle->bufpos += res;

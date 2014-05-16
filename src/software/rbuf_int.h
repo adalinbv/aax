@@ -44,8 +44,8 @@ extern "C" {
 #endif
 
 /** forwrad declaration */
-typedef struct _aaxRingBufferData_t _aaxRingBufferData;
-typedef struct _aaxRingBufferSample_t _aaxRingBufferSample;
+typedef struct _aaxRingBufferData_t __aaxRingBufferData;
+typedef struct _aaxRingBufferSample_t __aaxRingBufferSample;
 
 typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(struct _aaxRingBufferData_t*, struct _aaxRingBufferData_t*, _aax2dProps*, float, unsigned int*, unsigned int*, unsigned char, unsigned int);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned char, char);
@@ -67,7 +67,7 @@ _aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR
  * @param evol volume at the end of the mixing process (envelope following)
  */
 typedef void
-_aaxRingBufferMixMNFn(struct _aaxRingBufferSample_t*, const _aaxRingBufferSample*, CONST_MIX_PTRPTR_T, _aax2dProps*, unsigned int, unsigned int, float, float, float);
+_aaxRingBufferMixMNFn(struct _aaxRingBufferSample_t*, const struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, _aax2dProps*, unsigned int, unsigned int, float, float, float);
 
 /**
  * 1:N channel ringbuffer data manipulation
