@@ -1063,7 +1063,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->info->max_registered = _AAX_MAX_MIXER_REGISTERED_LT;
             _aaxSetNoEmitters(handle->info->max_emitters);
 
-            handle->valid = AAX_TRUE;
+            handle->valid = LITE_HANDLE_ID;
          }
 
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

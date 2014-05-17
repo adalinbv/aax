@@ -266,6 +266,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          {
             MIX_T *optr = otptr[track];
 
+#if 0
             if (frames != nframes)
             {
                /*
@@ -286,6 +287,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                   *optr     = (*(optr-2) + *(optr+1)*2)/3;
                }
             }
+#endif
 
             /* stereo downmix requested, add the tracks to track0 */
             if ((dest_track == AAX_TRACK_MIX) && track) {

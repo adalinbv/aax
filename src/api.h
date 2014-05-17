@@ -83,7 +83,9 @@ typedef struct
  *       be sure before changing.
  */
 #define HANDLE_ID	0xFF2701E0
+#define LITE_HANDLE_ID	0xFF270800
 
+#define VALID_LITE_HANDLE(h)	((h)&&((h)->valid & ~AAX_TRUE)==LITE_HANDLE_ID)
 #define VALID_HANDLE(h)		((h) && ((h)->valid & ~AAX_TRUE) == HANDLE_ID)
 #define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
 
