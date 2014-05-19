@@ -276,6 +276,12 @@ ELSE()
 message("Other: ${CMAKE_SYSTEM_PROCESSOR}")
     ENDIF()
 
+    IF ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+      SET(C_FLAGS "${C_FLAGS} -Qunused-arguments" CACHE STRING
+          "Hide unised clang options"
+          FORCE)
+    ENDIF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+
     SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)

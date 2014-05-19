@@ -306,7 +306,7 @@ typedef struct
    int id;
    int pos;
    int state;
-   enum aaxFilterType type;
+   int type;	// enum aaxFilterType or enum aaxEffectType
    _aaxFilterInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;
 } _filter_t;
