@@ -52,7 +52,8 @@ extern "C" {
 #define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
 
 #define INFO_ID			0xFEDCBA98
-#define EBF_VALID(a)		((a)->info && ((a)->info)->id == INFO_ID)
+//#define EBF_VALID(a)		((a)->info && ((a)->info)->id == INFO_ID)
+#define EBF_VALID(a)		((a)->info && VALID_HANDLE((_handle_t*)((a)->info)->backend))
 
 
 /* --- Error support -- */

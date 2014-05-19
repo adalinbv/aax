@@ -694,7 +694,7 @@ aaxFilterSetState(aaxFilter f, int state)
 #endif
          break;
       case AAX_FREQUENCY_FILTER:
-         if (filter) // EBF_VALID(filter)
+         if (filter) // EBF_VALID(filter) -- freqfilter is supported for Lite
          {
             switch (state & ~AAX_INVERSE)
             {
