@@ -2456,7 +2456,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    do
    {
       const snd_pcm_channel_area_t *area;
-      snd_pcm_uframes_t frames = no_frames;
+      snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
       int err;
@@ -2556,7 +2556,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    do
    {
       const snd_pcm_channel_area_t *area;
-      snd_pcm_uframes_t frames = no_frames;
+      snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
       snd_pcm_sframes_t res;
       char *p;
