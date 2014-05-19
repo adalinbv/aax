@@ -237,7 +237,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          float smu;
 
          src_pos = srbi->curr_sample;
-         smu = (srb_pos_sec*sfreq) - src_pos;
+         smu = _MAX((srb_pos_sec*sfreq) - src_pos, 0.0f);
 
          cdesamps = (unsigned int)floorf(ddesamps*fact);
          cno_samples = (unsigned int)ceilf(dno_samples*fact);
