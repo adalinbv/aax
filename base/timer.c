@@ -76,6 +76,12 @@ int msecSleep(unsigned int dt_ms)
    return (res != 0) ? -1 : 0;
 }
 
+int usecSleep(unsigned int dt_us)
+{
+   DWORD res = SleepEx((DWORD)dt_us*1000, 0);
+   return (res != 0) ? -1 : 0;
+}
+
 unsigned int
 getTimerResolution()
 {

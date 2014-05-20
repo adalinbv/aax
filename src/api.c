@@ -230,30 +230,30 @@ _aaxBackendDriverToDeviceConnector(char **backend, char **driver)
  * Output: Backend (ALSA/WASAP/OSS) and driver (<card>: <interface>)
  */
 void
-_aaxDeviceConnectorToBackendDriver(char **device, char **interface)
+_aaxDeviceConnectorToBackendDriver(char **device, char **iface)
 {
    char _str[2048], *ptr;
    size_t len;
 
    assert(device && *device);
-   assert(interface && *interface);
+   assert(iface && *iface);
 
-   snprintf(_str, 2048, "%s: %s", *device, *interface);
+   snprintf(_str, 2048, "%s: %s", *device, *iface);
    ptr = strstr(_str, " on ");
 
    len = strlen(ptr)-strlen(" on ");
-   if (len > strlen(*interface))
+   if (len > strlen(*iface))
    {
-      char *tmp = realloc(*interface, len+1);
+      char *tmp = realloc(*iface, len+1);
       if (!tmp) return;
 
-      *interface = tmp;
+      *iface = tmp;
    }
 
    *ptr = 0;
    memcpy(*device, _str, ptr - _str);
 
    ptr += strlen(" on ");
-   memcpy(*interface, ptr, strlen(ptr));
+   memcpy(*iface, ptr, strlen(ptr));
 }
 

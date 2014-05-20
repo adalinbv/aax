@@ -98,7 +98,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (char*)&_wasapi_default_renderer,
 
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
-   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferDestroy,
+   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
    (_aaxDriverDetect *)&_aaxWASAPIDriverDetect,
    (_aaxDriverNewHandle *)&_aaxWASAPIDriverNewHandle,
@@ -300,7 +300,7 @@ static int _wasapi_close(_driver_t *);
 static int _wasapi_setup_event(_driver_t *, float);
 static int _wasapi_close_event(_driver_t *);
 static int _wasapi_get_volume_range(_driver_t *);
-static int _wasapi_set_volume(_driver_t*, const int32_t**, int, unsigned int, unsigned int, float);
+static int _wasapi_set_volume(_driver_t*, int32_t**, int, unsigned int, unsigned int, float);
 
 static int
 _aaxWASAPIDriverDetect(int mode)
@@ -671,8 +671,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int *offset, size_t *req_fr
          }
 
          if (fabs(gain) <= handle->volumeMin) gain = (gain<0.0f) ? -1.0f : 1.0f;
-         _wasapi_set_volume(handle, (const int32_t**)ptr,
-                            offs, avail, tracks, gain);
+         _wasapi_set_volume(handle, ptr, offs, avail, tracks, gain);
 
          if (avail < fetch)
          {
@@ -772,7 +771,8 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
       hr = pIAudioRenderClient_GetBuffer(pRender, frames, &data);
       if (hr == S_OK)
       {
-         handle->cvt_to_intl(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
+         handle->cvt_to_intl(data, (const int32_t**)sbuf,
+                                   offs, no_tracks, no_samples);
 
          hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
                                                 frames, 0);
@@ -1737,7 +1737,7 @@ _aaxWASAPIDriverThread(void* config)
       dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb, be->codecs, AAX_PCM24S);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
@@ -1850,7 +1850,7 @@ _AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
    _wasapi_close_event(be_handle);
 
    handle->ringbuffer = NULL;
-   _aaxRingBufferDestroy(dest_rb);
+   be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.mutex);
 
    return handle;
