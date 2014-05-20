@@ -1,13 +1,13 @@
 * Sun Mar 23 2014 - tech@adalin.org
 - AeonWave (2.4.0) stable; urgency=low
- * Changed the conditions for binary distribtion;
+ * Changed the conditions for binary distribution;
    The library may now be included in commercial and non commercial projects
    provided the user is made aware of the option to upgrade to the HD version.
    See Copyright section 2.1; Rights and Limitations of Grant.
  * Reorganized the code to support different hardware rendering schemes in
    the future. As a result the current rendering speed has increased 25% to 75%
    (depending of the computer hardware, older hardware profit the most).
- * Add the option to use timer-based rendering instead of interupt-based
+ * Add the option to use timer-based rendering instead of interrupt-based
    rendering for ALSA (experimental).
  * Switched to a new xml configuration file format.
    Both the old and the new formats will be supported up to version 3.0.0
@@ -24,7 +24,7 @@
 - AeonWave (2.3.4) stable; urgency=high
  * Fix a problem where distance delayed objects that where registered at
    the mixer or an audio-frame in non-playing mode started with the wrong 
-   position and orientation matrix causing unwated delays.
+   position and orientation matrix causing unwanted delays.
  * Fix an incorrect header problem while streaming mp3 files.
  * Fix a stupid error where AeonWave-Lite didn't initialize correctly.
  * Fix volume handling for windows devices without hardware volume support.
@@ -34,7 +34,7 @@
 
 * Mon Nov 25 2013 - tech@adalin.org
 - AeonWave (2.3.3) stable; urgency=medium
- * Fix a pronlem with files with a .wav extension that aren't.
+ * Fix a problem with files with a .wav extension that aren't.
  * Prevent destroying of the emitter unless it is in the AAX_PROCESSED state.
 
  -- Erik Hofman <tech@adalin.org>  Mon, 25 Nov 2013 12:34:00 +0100
