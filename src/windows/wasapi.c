@@ -25,7 +25,7 @@
 
 #include <assert.h>
 #include <stdarg.h>		/* va_start */
-#include <math.h>		/* roundf    */
+#include <math.h>		/* roundf, rintf */
 
 #include <aax/aax.h>
 #include <xml.h>
@@ -559,15 +559,16 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int sample_frames = 1024;
-   int channels, bps, frame_sz;
-   float freq;
+   int channels, bps, frame_sz, rate;
    int rv = AAX_FALSE;
 
    assert(handle);
 
-   freq = (float)*speed;
-   if (frames && *frames) {
-      sample_frames = *frames;
+   rate = *speed;
+   if (frames && (*frames > 0)) {
+      sample_frames = *frames/2; // *frames;
+   } else {
+      sample_frames = rate/25;
    }
 
    channels = *tracks;
@@ -579,7 +580,7 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    frame_sz = channels * bps;
 
    handle->Fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-   handle->Fmt.Format.nSamplesPerSec = (unsigned int)freq;
+   handle->Fmt.Format.nSamplesPerSec = rate;
    handle->Fmt.Format.nChannels = channels;
    handle->Fmt.Format.wBitsPerSample = bps*8;
    handle->Fmt.Format.nBlockAlign = frame_sz;
@@ -959,10 +960,14 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
          hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
                                      DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
                                      &collection);
-         if (FAILED(hr)) goto ExitGetDevices;
+         if (FAILED(hr)) {
+            goto ExitGetDevices;
+         }
 
          hr = pIMMDeviceCollection_GetCount(collection, &count);
-         if (FAILED(hr)) goto ExitGetDevices;
+         if (FAILED(hr)) {
+            goto ExitGetDevices;
+         }
 
          prev = "";
          for(i=0; i<count; i++)
@@ -972,21 +977,29 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
             int slen;
 
             hr = pIMMDeviceCollection_Item(collection, i, &device);
-            if (hr != S_OK) goto NextGetDevices;
+            if (hr != S_OK) {
+               goto NextGetDevices;
+            }
 
 #if USE_GETID
             hr = pIMMDevice_GetId(device, &pwszID);
-            if (hr != S_OK) goto NextGetDevices;
+            if (hr != S_OK) {
+               goto NextGetDevices;
+            }
 #endif
 
             hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
-            if (hr != S_OK) goto NextGetDevices;
+            if (hr != S_OK) {
+               goto NextGetDevices;
+            }
 
             pPropVariantInit(&name);
             hr = pIPropertyStore_GetValue(props,
                          (const PROPERTYKEY*)pPKEY_DeviceInterface_FriendlyName,
                          &name);
-            if (!SUCCEEDED(hr)) goto NextGetDevices;
+            if (!SUCCEEDED(hr)) {
+               goto NextGetDevices;
+            }
 
             slen = len;
             devname = wcharToChar(ptr, &slen, name.pwszVal);
@@ -1080,10 +1093,14 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
          hr = pIMMDeviceEnumerator_EnumAudioEndpoints(enumerator, _mode[m],
                                      DEVICE_STATE_ACTIVE|DEVICE_STATE_UNPLUGGED,
                                      &collection);
-         if (hr != S_OK) goto ExitGetInterfaces;
+         if (hr != S_OK) {
+            goto ExitGetInterfaces;
+         }
 
          hr = pIMMDeviceCollection_GetCount(collection, &count);
-         if (FAILED(hr)) goto ExitGetInterfaces;
+         if (FAILED(hr)) {
+            goto ExitGetInterfaces;
+         }
 
          for (i=0; i<count; i++)
          {
@@ -1091,21 +1108,29 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
             char *device_name;
 
             hr = pIMMDeviceCollection_Item(collection, i, &device);
-            if (hr != S_OK) goto NextGetInterfaces;
+            if (hr != S_OK) {
+               goto NextGetInterfaces;
+            }
 
 #if USE_GETID
             hr = pIMMDevice_GetId(device, &pwszID);
-            if (hr != S_OK) goto NextGetInterfaces;
+            if (hr != S_OK) {
+               goto NextGetInterfaces;
+            }
 #endif
 
             hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
-            if (hr != S_OK) goto NextGetInterfaces;
+            if (hr != S_OK) {
+               goto NextGetInterfaces;
+            }
 
             pPropVariantInit(&name);
             hr = pIPropertyStore_GetValue(props,
                          (const PROPERTYKEY*)pPKEY_DeviceInterface_FriendlyName,
                                &name);
-            if (FAILED(hr)) goto NextGetInterfaces;
+            if (FAILED(hr)) {
+               goto NextGetInterfaces;
+            }
 
             device_name = wcharToChar(NULL, 0, name.pwszVal);
             if (device_name && !strcasecmp(device_name, devname)) /* found */
@@ -1653,7 +1678,9 @@ name_to_id(const WCHAR* dname, unsigned char m)
       UINT i, count;
 
       hr = pIMMDeviceCollection_GetCount(collection, &count);
-      if (FAILED(hr)) goto ExitNameId;
+      if (FAILED(hr)) {
+         goto ExitNameId;
+      }
 
       for(i=0; i<count; i++)
       {
@@ -1661,19 +1688,27 @@ name_to_id(const WCHAR* dname, unsigned char m)
          PROPVARIANT name;
 
          hr = pIMMDeviceCollection_Item(collection, i, &device);
-         if (hr != S_OK) goto NextNameId;
+         if (hr != S_OK) {
+            goto NextNameId;
+         }
 
          hr = pIMMDevice_GetId(device, &pwszID);
-         if (hr != S_OK) goto NextNameId;
+         if (hr != S_OK) {
+            goto NextNameId;
+         }
 
          hr = pIMMDevice_OpenPropertyStore(device, STGM_READ, &props);
-         if (hr != S_OK) goto NextNameId;
+         if (hr != S_OK) {
+            goto NextNameId;
+         }
 
          pPropVariantInit(&name);
          hr = pIPropertyStore_GetValue(props,
                                (const PROPERTYKEY*)pPKEY_Device_FriendlyName,
                                &name);
-         if (!SUCCEEDED(hr)) goto NextNameId;
+         if (!SUCCEEDED(hr)) {
+            goto NextNameId;
+         }
 
          if (!wcsncmp(name.pwszVal, dname, wcslen(dname)))
          {
@@ -2359,11 +2394,9 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
        */
       stream = 0;
       freq = (float)handle->Fmt.Format.nSamplesPerSec;
-      hnsBufferDuration = (REFERENCE_TIME)rintf(10000000.0f/freq*sample_frames);
+      hnsBufferDuration = (REFERENCE_TIME)rintf(sample_frames*(10000000.0f/freq));
       hnsPeriodicity = hnsBufferDuration;
 
-#if USE_CAPTURE_THREAD 
-# if CAPTURE_USE_MIN_PERIOD
       if (handle->Mode == eCapture)
       {                         /* use the minimum period size for capturing */
          REFERENCE_TIME hnsMinPeriodicity;
@@ -2373,8 +2406,6 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
             hnsPeriodicity = hnsMinPeriodicity;
          }
       }
-# endif
-#endif
 
       if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
          hnsBufferDuration = 3*hnsBufferDuration/2;
@@ -2388,7 +2419,14 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
             hnsBufferDuration = 0;
             hnsPeriodicity = 0;
          }
-         else {
+         else
+         {
+            REFERENCE_TIME hnsMinPeriodicity;
+            hr = pIAudioClient_GetDevicePeriod(handle->pAudioClient, NULL,
+                                               &hnsMinPeriodicity);
+            if ((hr == S_OK) && (hnsPeriodicity < hnsMinPeriodicity)) {
+               hnsPeriodicity = hnsMinPeriodicity;
+            }
             hnsBufferDuration = hnsPeriodicity;
          }
       }
@@ -2420,6 +2458,23 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
       hr = pIAudioClient_Initialize(handle->pAudioClient, mode, stream,
                                     hnsBufferDuration, hnsPeriodicity,
                                     &handle->Fmt.Format, NULL);
+#if 0
+ printf("AeonWave version %i.%i.%i-%i\n", AAX_MAJOR_VERSION, AAX_MINOR_VERSION, AAX_MICRO_VERSION, AAX_PATCH_LEVEL);
+ printf("Device: %s\n", _aaxMMDeviceNameToName(detect_devname(handle->pDevice)));     
+ printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
+ printf("- event driven: %s, exclusive: %s\n", (handle->status & EVENT_DRIVEN_MASK)?"true":"false", (handle->status & EXCLUSIVE_MODE_MASK)?"true":"false");
+ printf("- frequency: %i\n", (int)handle->Fmt.Format.nSamplesPerSec);
+ printf("- no. tracks: %i\n", handle->Fmt.Format.nChannels);
+ printf("- block size: %i (cb: %i)\n", handle->Fmt.Format.nBlockAlign, handle->Fmt.Format.cbSize);
+ printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
+ printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
+ printf("- subformat: float: %x - pcm: %x\n",
+          IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
+          IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
+ printf("- hnsBufferDuration: %4.3f ms, hnsPeriodicity: %4.3f ms\n", hnsBufferDuration/10000.0f, hnsPeriodicity/10000.0f);
+ printf("\nhr: %x\n", hr);
+#endif
+
       if (hr == S_OK) break;
 
       /*
@@ -2588,7 +2643,7 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
          handle->hnsLatency = latency;
       }
 
-#if 1
+#if 0
  _AAX_DRVLOG_VAR("AeonWave version %i.%i.%i-%i", AAX_MAJOR_VERSION, AAX_MINOR_VERSION, AAX_MICRO_VERSION, AAX_PATCH_LEVEL);
  _AAX_DRVLOG_VAR("Device: %s", _aaxMMDeviceNameToName(detect_devname(handle->pDevice)));
  _AAX_DRVLOG_VAR("Format for %s", (handle->Mode == eRender) ? "Playback" : "Capture");
@@ -2606,6 +2661,25 @@ _wasapi_setup(_driver_t *handle, unsigned int *frames)
  _AAX_DRVLOG_VAR("- buffers: %i frames, total: %i frames, periods: %i", periodFrameCnt, bufferFrameCnt, rintf((float)bufferFrameCnt/(float)periodFrameCnt));
  _AAX_DRVLOG_VAR("- speaker mask: 0x%x", (int)handle->Fmt.dwChannelMask);
  _AAX_DRVLOG_VAR("- volume: %5.4f (%3.1f dB), min: %5.4f (%3.1f dB), max: %5.4f (%3.1f dB)", handle->volumeCur, _lin2db(handle->volumeCur), handle->volumeMin, _lin2db(handle->volumeMin), handle->volumeMax, _lin2db(handle->volumeMax));
+#endif
+#if 0
+ printf("AeonWave version %i.%i.%i-%i\n", AAX_MAJOR_VERSION, AAX_MINOR_VERSION, AAX_MICRO_VERSION, AAX_PATCH_LEVEL);
+ printf("Device: %s\n", _aaxMMDeviceNameToName(detect_devname(handle->pDevice)));
+ printf("Format for %s\n", (handle->Mode == eRender) ? "Playback" : "Capture");
+ printf("- event driven: %s, exclusive: %s\n", (handle->status & EVENT_DRIVEN_MASK)?"true":"false", (handle->status & EXCLUSIVE_MODE_MASK)?"true":"false");
+ printf("- frequency: %i\n", (int)handle->Fmt.Format.nSamplesPerSec);
+ printf("- no. tracks: %i\n", handle->Fmt.Format.nChannels);
+ printf("- block size: %i (cb: %i)\n", handle->Fmt.Format.nBlockAlign, handle->Fmt.Format.cbSize);
+ printf("- bits/sample: %i\n", handle->Fmt.Format.wBitsPerSample);
+ printf("- valid bits/sample: %i\n", handle->Fmt.Samples.wValidBitsPerSample);
+ printf("- subformat: float: %x - pcm: %x\n",
+          IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT),
+          IsEqualGUID(&handle->Fmt.SubFormat, pKSDATAFORMAT_SUBTYPE_PCM));
+ printf("- periods: default: %4.2f ms, minimum: %4.2f ms\n", defPeriod/10000.0f, minPeriod/10000.0f);
+ printf("- latency: %5.3f ms\n", handle->hnsLatency/10000.0f);
+ printf("- buffers: %i frames, total: %i frames, periods: %i\n", periodFrameCnt, bufferFrameCnt, rintf((float)bufferFrameCnt/(float)periodFrameCnt));
+ printf("- speaker mask: 0x%x\n", (int)handle->Fmt.dwChannelMask);
+ printf("- volume: %5.4f (%3.1f dB), min: %5.4f (%3.1f dB), max: %5.4f (%3.1f dB)\n", handle->volumeCur, _lin2db(handle->volumeCur), handle->volumeMin, _lin2db(handle->volumeMin), handle->volumeMax, _lin2db(handle->volumeMax));
 #endif
 
    }
