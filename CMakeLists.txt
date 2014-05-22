@@ -217,48 +217,51 @@ ELSE(MSVC)
 
     IF(X86_64)
 message("X86_64")
-        SET(C_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse")
-        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
-        )
-        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
-        )
+        SET(C_FLAGS "${C_FLAGS} -m64 -msse2 -mfpmath=sse")
+#       SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
+#                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
+#       )
+#       SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
+#                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
+#       )
+#       SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
+#                  PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
+#       )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
+                     PROPERTY COMPILE_FLAGS "-msse3"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse"
+                     PROPERTY COMPILE_FLAGS "-msse3"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse"
+                     PROPERTY COMPILE_FLAGS "-msse4"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=corei7-avx"
+                   PROPERTY COMPILE_FLAGS "-mavx -march=corei7-avx"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mfma -mfpmath=sse -march=corei7-avx"
+                   PROPERTY COMPILE_FLAGS "-mfma -march=corei7-avx"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                  PROPERTY COMPILE_FLAGS "-mfma4 -mfpmath=sse -march=corei7-avx"
+                  PROPERTY COMPILE_FLAGS "-mfma4 -march=corei7-avx"
         )
     ELSEIF(X86)
 message("X86")
         SET(C_FLAGS "${C_FLAGS} -march=i686")
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND 
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                   PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
-                   PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
+                  PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND 
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
+                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND 
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
+                   PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND 
                      PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
@@ -288,7 +291,7 @@ message("Other: ${CMAKE_SYSTEM_PROCESSOR}")
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
         "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -DNDEBUG" CACHE STRING
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -DNDEBUG" CACHE STRING
         "Flags used by the compiler during release minsize builds."
         FORCE)
     SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"

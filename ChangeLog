@@ -9,6 +9,8 @@
    (depending of the computer hardware, older hardware profit the most).
  * Add the option to use timer-based rendering instead of interrupt-based
    rendering for ALSA (experimental).
+ * Fix a problem where the WASAPI device period could become lower than the 
+   minimum allowed period for that particular device.
  * Switched to a new xml configuration file format.
    Both the old and the new formats will be supported up to version 3.0.0
  * Allow custom pcm devices (defined in .asoundrc) for ALSA.
