@@ -565,9 +565,12 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    assert(handle);
 
    rate = *speed;
-   if (frames && (*frames > 0)) {
-      sample_frames = *frames/2; // *frames;
-   } else {
+   if (frames && (*frames > 0))
+   {
+      sample_frames = *frames;
+      if (handle->Mode == eRender) sample_frames /= 2;
+   }
+   else {
       sample_frames = rate/25;
    }
 

@@ -919,10 +919,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       handle->frequency_hz = (float)rate;
 
-      if (frames && (*frames > 0)) {
+      if (frames && (*frames > 0))
+      {
          no_frames = (*frames * rate)/(*speed);
          if (handle->mode) no_frames /= 2;
-      } else {
+      }
+      else {
          no_frames = rate/25;
       }
 
