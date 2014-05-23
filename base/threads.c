@@ -90,17 +90,13 @@ _aaxThreadSetPriority(void *t, int prio)
    int min, max, policy;
    int rv = 0;
 
-#if 0
-   if (prio < AAX_HIGH_PRIORITY) {
-      policy = SCHED_OTHER;
+   if (prio >= AAX_HIGHEST_PRIORITY) {
+      policy = SCHED_FIFO;
    } else if (prio == AAX_HIGH_PRIORITY) {
       policy = SCHED_RR;
    } else {
-      policy = SCHED_FIFO;
+      policy = SCHED_OTHER;
    }
-#else
-   policy = SCHED_OTHER;
-#endif
 
    min = sched_get_priority_min(policy);
    max = sched_get_priority_max(policy);
@@ -123,6 +119,11 @@ _aaxThreadSetPriority(void *t, int prio)
       sched_param.sched_priority = prio;
 //    rv = sched_setparam(*id, &sched_param);
       rv = pthread_setschedparam(*id, policy, &sched_param);
+      if (rv != 0) {
+         _TH_SYSLOG("no thread scheduling privilege");
+      } else {
+         _TH_SYSLOG("using thread scheduling privilege");
+      }
    }
 
    return rv;
@@ -152,12 +153,14 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
 
    sched_param.sched_priority = 0;
    pthread_attr_setschedparam(&attr, &sched_param);
+#if 0
    ret = pthread_attr_setschedpolicy(&attr, POLICY);
    if (ret != 0) {
       _TH_SYSLOG("no thread scheduling privilege");
    } else {
       _TH_SYSLOG("using thread scheduling privilege");
    }
+#endif
 
    ret = pthread_create(t, &attr, handler, arg);
    if (ret == 0) {
