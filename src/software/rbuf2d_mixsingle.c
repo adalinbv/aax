@@ -61,7 +61,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
-   unsigned int offs, dno_samples;
+   size_t offs, dno_samples;
    _aaxRingBufferEnvelopeData* env;
    _aaxRingBufferLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;

@@ -243,7 +243,7 @@ _batch_cvt24_pd_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -271,7 +271,7 @@ _batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, s
 }
 
 void
-_batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -299,7 +299,7 @@ _batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
 }
 
 void
-_batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -326,7 +326,7 @@ _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
 }
 
 void
-_batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -363,7 +363,7 @@ _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset,
 }
 
 void
-_batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -390,7 +390,7 @@ _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
 }
 
 void
-_batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -419,7 +419,7 @@ _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
 }
 
 void
-_batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -573,7 +573,7 @@ _batch_cvt24_3_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -596,7 +596,7 @@ _batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, s
 }
 
 void
-_batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -618,7 +618,7 @@ _batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
-_batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -642,7 +642,7 @@ _batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset,
 } 
 
 void
-_batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -665,7 +665,7 @@ _batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
-_batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -688,7 +688,7 @@ _batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
-_batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -712,7 +712,7 @@ _batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
-_batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
+_batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {

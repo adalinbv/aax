@@ -34,7 +34,7 @@
 #include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -74,7 +74,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 }
 
 void
-_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -137,7 +137,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 }
 
 void
-_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -163,7 +163,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 }
 
 void
-_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, unsigned int offs, unsigned int dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 

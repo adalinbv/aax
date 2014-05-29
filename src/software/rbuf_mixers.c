@@ -39,12 +39,12 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, unsigned int *start, unsigned int *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float dfreq, dduration, drb_pos_sec, new_drb_pos_sec, fact;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec, eps;
-   unsigned int ddesamps = *start;
+   size_t ddesamps = *start;
    MIX_T **track_ptr;
    char src_loops;
 
@@ -168,8 +168,9 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    {
       _aaxRingBufferDelayEffectData* delay_effect;
       _aaxRingBufferFreqFilterData* freq_filter;
-      unsigned int sno_samples, sstart, sno_tracks;
-      unsigned int dest_pos, dno_samples, dend;
+      size_t dest_pos, dno_samples, dend;
+      size_t sno_samples, sstart;
+      unsigned int sno_tracks;
       unsigned char sbps;
       int dist_state;
 
@@ -198,7 +199,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       if (!(srbi->streaming && (sno_samples < dend)))
       {
          if (!ddesamps) {
-            ddesamps = (unsigned int)ceilf(CUBIC_SAMPS/fact);
+            ddesamps = (size_t)ceilf(CUBIC_SAMPS/fact);
          }
       }
 
@@ -212,7 +213,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
           * fial mixer to accomodate for reverb
           */
          // ddesamps = drbd->dde_samples;
-         ddesamps = (unsigned int)ceilf(DELAY_EFFECTS_TIME*dfreq);
+         ddesamps = (size_t)ceilf(DELAY_EFFECTS_TIME*dfreq);
       }
 
 #ifdef NDEBUG
@@ -232,18 +233,18 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
          void *env, *distortion_effect = NULL;
-         unsigned int cno_samples, cdesamps = 0;
-         unsigned int track, src_pos, offs;
+         size_t src_pos, offs, cno_samples, cdesamps = 0;
+         unsigned int track;
          float smu;
 
          src_pos = srbi->curr_sample;
          smu = _MAX((srb_pos_sec*sfreq) - src_pos, 0.0f);
 
-         cdesamps = (unsigned int)floorf(ddesamps*fact);
-         cno_samples = (unsigned int)ceilf(dno_samples*fact);
+         cdesamps = (size_t)floorf(ddesamps*fact);
+         cno_samples = (size_t)ceilf(dno_samples*fact);
          if (!src_loops && (cno_samples > (sno_samples-src_pos)))
          {
-            unsigned int new_dno_samples;
+            size_t new_dno_samples;
 
             cno_samples = sno_samples-src_pos;
             new_dno_samples = rintf(cno_samples/fact);

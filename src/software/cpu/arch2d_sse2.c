@@ -21,6 +21,12 @@
 
 #ifdef __SSE2__
 
+#if defined(__x86_64__) || defined(_M_X64)
+# define SSE_16BUFFERS 1
+#else
+# define SSE_16BUFFERS 0
+#endif
+
 # define CACHE_ADVANCE_IMADD     16
 # define CACHE_ADVANCE_FMADD	 16
 # define CACHE_ADVANCE_MUL	 32
@@ -28,6 +34,7 @@
 # define CACHE_ADVANCE_CVT	 32
 # define CACHE_ADVANCE_INTL	 16
 # define CACHE_ADVANCE_FF	 32
+
 
 void
 _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
@@ -44,13 +51,21 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128* sptr = (__m128*)s;
       size_t i, step;
 
+#if !SSE_16BUFFERS
       step = 4*sizeof(__m128)/sizeof(float);
+#else
+      step = 8*sizeof(__m128)/sizeof(float);
+#endif
 
       i = num/step;
       num -= i*step;
       if (i)
       {
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
+#if SSE_16BUFFERS
+         __m128i xmm12i, xmm13i, xmm14i, xmm15i;
+         __m128 xmm8, xmm9, xmm10, xmm11;
+#endif
          __m128 xmm0, xmm1, xmm2, xmm3;
          __m128 mul = _mm_set1_ps((float)(1<<23));
          do
@@ -61,16 +76,34 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm1 = _mm_load_ps((const float*)sptr++);
             xmm2 = _mm_load_ps((const float*)sptr++);
             xmm3 = _mm_load_ps((const float*)sptr++);
+#if SSE_16BUFFERS
+            xmm8 = _mm_load_ps((const float*)sptr++);
+            xmm9 = _mm_load_ps((const float*)sptr++);
+            xmm10 = _mm_load_ps((const float*)sptr++);
+            xmm11 = _mm_load_ps((const float*)sptr++);
+#endif
 
             xmm0 = _mm_mul_ps(xmm0, mul);
             xmm1 = _mm_mul_ps(xmm1, mul);
             xmm2 = _mm_mul_ps(xmm2, mul);
             xmm3 = _mm_mul_ps(xmm3, mul);
+#if SSE_16BUFFERS
+            xmm8 = _mm_mul_ps(xmm8, mul);
+            xmm9 = _mm_mul_ps(xmm9, mul);
+            xmm10 = _mm_mul_ps(xmm10, mul);
+            xmm11 = _mm_mul_ps(xmm11, mul);
+#endif
 
             xmm4i = _mm_cvtps_epi32(xmm0);
             xmm5i = _mm_cvtps_epi32(xmm1);
             xmm6i = _mm_cvtps_epi32(xmm2);
             xmm7i = _mm_cvtps_epi32(xmm3);
+#if SSE_16BUFFERS
+            xmm12i = _mm_cvtps_epi32(xmm8);
+            xmm13i = _mm_cvtps_epi32(xmm9);
+            xmm14i = _mm_cvtps_epi32(xmm10);
+            xmm15i = _mm_cvtps_epi32(xmm11);
+#endif
 
             d += step;
             s += step;
@@ -78,7 +111,13 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
             _mm_store_si128(dptr++, xmm4i);
             _mm_store_si128(dptr++, xmm5i);
             _mm_store_si128(dptr++, xmm6i);
-            _mm_store_si128(dptr++, xmm7i);;
+            _mm_store_si128(dptr++, xmm7i);
+#if SSE_16BUFFERS
+            _mm_store_si128(dptr++, xmm12i);
+            _mm_store_si128(dptr++, xmm13i);
+            _mm_store_si128(dptr++, xmm14i);
+            _mm_store_si128(dptr++, xmm15i);
+#endif
          }
          while(--i);
       }
@@ -93,7 +132,6 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       }
    }
 }
-
 
 void
 _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
@@ -132,13 +170,21 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128i *dptr = (__m128i*)d;
       __m128* sptr = (__m128*)s;
 
+#if !SSE_16BUFFERS
       step = 4*sizeof(__m128)/sizeof(float);
+#else
+      step = 8*sizeof(__m128)/sizeof(float);
+#endif
 
       i = num/step;
       num -= i*step;
       if (i)
       {
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
+#if SSE_16BUFFERS
+         __m128i xmm12i, xmm13i, xmm14i, xmm15i;
+         __m128 xmm8, xmm9, xmm10, xmm11;
+#endif
          __m128 xmm0, xmm1, xmm2, xmm3;
          do
          {
@@ -148,11 +194,23 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm1 = _mm_load_ps((const float*)sptr++);
             xmm2 = _mm_load_ps((const float*)sptr++);
             xmm3 = _mm_load_ps((const float*)sptr++);
+#if SSE_16BUFFERS
+            xmm8 = _mm_load_ps((const float*)sptr++);
+            xmm9 = _mm_load_ps((const float*)sptr++);
+            xmm10 = _mm_load_ps((const float*)sptr++);
+            xmm11 = _mm_load_ps((const float*)sptr++);
+#endif
 
             xmm4i = _mm_cvtps_epi32(xmm0);
             xmm5i = _mm_cvtps_epi32(xmm1);
             xmm6i = _mm_cvtps_epi32(xmm2);
             xmm7i = _mm_cvtps_epi32(xmm3);
+#if SSE_16BUFFERS
+            xmm12i = _mm_cvtps_epi32(xmm8);
+            xmm13i = _mm_cvtps_epi32(xmm9);
+            xmm14i = _mm_cvtps_epi32(xmm10);
+            xmm15i = _mm_cvtps_epi32(xmm11);
+#endif
 
             d += step;
             s += step;
@@ -161,6 +219,12 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             _mm_store_si128(dptr++, xmm5i);
             _mm_store_si128(dptr++, xmm6i);
             _mm_store_si128(dptr++, xmm7i);
+#if SSE_16BUFFERS
+            _mm_store_si128(dptr++, xmm12i);
+            _mm_store_si128(dptr++, xmm13i);
+            _mm_store_si128(dptr++, xmm14i);
+            _mm_store_si128(dptr++, xmm15i);
+#endif
          }
          while(--i);
       }
@@ -280,13 +344,21 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128i* sptr = (__m128i*)s;
       __m128 *dptr = (__m128*)d;
 
+#if !SSE_16BUFFERS
       step = 4*sizeof(__m128i)/sizeof(int32_t);
+#else
+      step = 8*sizeof(__m128i)/sizeof(int32_t);
+#endif
 
       i = num/step;
       num -= i*step;
       if (i)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
+#if SSE_16BUFFERS
+         __m128i xmm8i, xmm9i, xmm10i, xmm11i;
+         __m128 xmm12, xmm13, xmm14, xmm15;
+#endif
          __m128 xmm4, xmm5, xmm6, xmm7;
          do
          {
@@ -296,11 +368,23 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm1i = _mm_load_si128(sptr++);
             xmm2i = _mm_load_si128(sptr++);
             xmm3i = _mm_load_si128(sptr++);
+#if SSE_16BUFFERS
+            xmm8i = _mm_load_si128(sptr++);
+            xmm9i = _mm_load_si128(sptr++);
+            xmm10i = _mm_load_si128(sptr++);
+            xmm11i = _mm_load_si128(sptr++);
+#endif
 
             xmm4 = _mm_cvtepi32_ps(xmm0i);
             xmm5 = _mm_cvtepi32_ps(xmm1i);
             xmm6 = _mm_cvtepi32_ps(xmm2i);
             xmm7 = _mm_cvtepi32_ps(xmm3i);
+#if SSE_16BUFFERS
+            xmm12 = _mm_cvtepi32_ps(xmm8i);
+            xmm13 = _mm_cvtepi32_ps(xmm9i);
+            xmm14 = _mm_cvtepi32_ps(xmm10i);
+            xmm15 = _mm_cvtepi32_ps(xmm11i);
+#endif
 
             s += step;
             d += step;
@@ -309,6 +393,12 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             _mm_store_ps((float*)dptr++, xmm5);
             _mm_store_ps((float*)dptr++, xmm6);
             _mm_store_ps((float*)dptr++, xmm7);
+#if SSE_16BUFFERS
+            _mm_store_ps((float*)dptr++, xmm12);
+            _mm_store_ps((float*)dptr++, xmm13);
+            _mm_store_ps((float*)dptr++, xmm14);
+            _mm_store_ps((float*)dptr++, xmm15);
+#endif
          }
          while(--i);
       }
@@ -452,7 +542,11 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       } while(--i);
    }
 
+#if !SSE_16BUFFERS
    step = 4*sizeof(__m128)/sizeof(float);
+#else
+   step = 8*sizeof(__m128)/sizeof(float);
+#endif
 
    vstep *= step;				/* 8 samples at a time */
    i = num/step;
@@ -462,6 +556,9 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+#if SSE_16BUFFERS
+      __m128 xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
+#endif
       __m128 tv = _mm_set1_ps(v);
 
       do
@@ -473,11 +570,23 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          xmm1 = _mm_load_ps((const float*)sptr++);
          xmm4 = _mm_load_ps((const float*)sptr++);
          xmm5 = _mm_load_ps((const float*)sptr++);
+#if SSE_16BUFFERS
+         xmm10 = _mm_load_ps((const float*)sptr++);
+         xmm11 = _mm_load_ps((const float*)sptr++);
+         xmm14 = _mm_load_ps((const float*)sptr++);
+         xmm15 = _mm_load_ps((const float*)sptr++);
+#endif
 
          xmm0 = _mm_mul_ps(xmm0, tv);
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm4 = _mm_mul_ps(xmm4, tv);
          xmm5 = _mm_mul_ps(xmm5, tv);
+#if SSE_16BUFFERS
+         xmm10 = _mm_mul_ps(xmm10, tv);
+         xmm11 = _mm_mul_ps(xmm11, tv);
+         xmm14 = _mm_mul_ps(xmm14, tv);
+         xmm15 = _mm_mul_ps(xmm15, tv);
+#endif
 
          s += step;
          d += step;
@@ -486,11 +595,23 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          xmm3 = _mm_load_ps((const float*)(dptr+1));
          xmm6 = _mm_load_ps((const float*)(dptr+2));
          xmm7 = _mm_load_ps((const float*)(dptr+3));
+#if SSE_16BUFFERS
+         xmm8 = _mm_load_ps((const float*)dptr+4);
+         xmm9 = _mm_load_ps((const float*)(dptr+5));
+         xmm12 = _mm_load_ps((const float*)(dptr+6));
+         xmm13 = _mm_load_ps((const float*)(dptr+7));
+#endif
 
          xmm2 = _mm_add_ps(xmm2, xmm0);
          xmm3 = _mm_add_ps(xmm3, xmm1);
          xmm6 = _mm_add_ps(xmm6, xmm4);
          xmm7 = _mm_add_ps(xmm7, xmm5);
+#if SSE_16BUFFERS
+         xmm8 = _mm_add_ps(xmm8, xmm10);
+         xmm9 = _mm_add_ps(xmm9, xmm11);
+         xmm12 = _mm_add_ps(xmm12, xmm14);
+         xmm13 = _mm_add_ps(xmm13, xmm15);
+#endif
 
          v += vstep;
 
@@ -498,6 +619,12 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          _mm_store_ps((float*)dptr++, xmm3);
          _mm_store_ps((float*)dptr++, xmm6);
          _mm_store_ps((float*)dptr++, xmm7);
+#if SSE_16BUFFERS
+         _mm_store_ps((float*)dptr++, xmm8);
+         _mm_store_ps((float*)dptr++, xmm9);
+         _mm_store_ps((float*)dptr++, xmm12);
+         _mm_store_ps((float*)dptr++, xmm13);
+#endif
 
          tv = _mm_set1_ps(v);
       }
@@ -678,7 +805,7 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 
 void
 _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
-                                size_t offset, size_t tracks,
+                                size_t offset, unsigned int tracks,
                                 size_t num)
 {
    size_t i, step;

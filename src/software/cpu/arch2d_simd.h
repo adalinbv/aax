@@ -111,13 +111,13 @@ void _batch_cvt24_24_3_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_pd_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_32_cpu(void_ptr, const_void_ptr, size_t);
-void _batch_cvt24_8_intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
-void _batch_cvt24_16_intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
-void _batch_cvt24_24_3intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
-void _batch_cvt24_24_intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
-void _batch_cvt24_32_intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
-void _batch_cvt24_ps_intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
-void _batch_cvt24_pd_intl_cpu(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
+void _batch_cvt24_8_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_16_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_3intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_32_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_ps_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_pd_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
 void _batch_cvt8_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_cpu(void_ptr, const_void_ptr, size_t);
@@ -125,13 +125,13 @@ void _batch_cvt24_3_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt32_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtpd_24_cpu(void_ptr, const_void_ptr, size_t);
-void _batch_cvt8_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
-void _batch_cvt16_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
-void _batch_cvt24_3intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
-void _batch_cvt24_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
-void _batch_cvt32_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
-void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
-void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
+void _batch_cvt8_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt16_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_3intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt32_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 
 char* _aax_calloc_align16(char**, size_t, size_t);
@@ -156,7 +156,7 @@ void _batch_cvtps_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_16_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_sse2(void_ptr, const_void_ptr, size_t);
-void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
+void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* SSE3 */
 void _batch_imul_value_sse3(void*, unsigned, size_t, float);
@@ -191,7 +191,7 @@ void _batch_resample_neon(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 
 void _batch_cvt24_16_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_neon(void_ptr, const_void_ptr, size_t);
-void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
+void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

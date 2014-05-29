@@ -45,7 +45,7 @@ int
 _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, unsigned int nbuf)
 {
    _aaxRingBufferSample *drbd, *srbd;
-   unsigned int offs, dno_samples;
+   size_t offs, dno_samples;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferEnvelopeData* env;
    _aaxRingBufferLFOData *lfo;

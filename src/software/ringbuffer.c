@@ -1265,8 +1265,8 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int track, no_tracks = rbd->no_tracks;
    unsigned int no_samples = rbd->no_samples;
-   unsigned int peak, maxpeak;
-   unsigned int rms, maxrms;
+   unsigned int maxpeak, maxrms;
+   size_t peak, rms;
    float dt, rms_rr, avg;
    MIX_T **tracks;
 

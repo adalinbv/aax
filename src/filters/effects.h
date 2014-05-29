@@ -101,7 +101,7 @@ extern _aaxRingBufferDistFn* _aaxRingBufferDistanceFn[];
 extern _aaxRingBufferDistFn* _aaxRingBufferALDistanceFn[];
 
 void iir_compute_coefs(float, float, float*, float*, float);
-void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, unsigned int, float, float, float);
+void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 void _aaxRingBufferDelaysRemove(void**);
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);
 

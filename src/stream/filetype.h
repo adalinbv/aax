@@ -34,14 +34,14 @@ enum _aaxFileParam
 };
 
 typedef int (_detect_fn)(int);
-typedef void* (_new_handle_fn)(int, unsigned int*, int, int, int, int, int);
-typedef void* (_open_fn)(void*, void*, unsigned int*);
+typedef void* (_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
+typedef void* (_open_fn)(void*, void*, size_t*);
 typedef int (_close_fn)(void*);
-typedef void* (_update_fn)(void*, unsigned int*, unsigned int*, char);
+typedef void* (_update_fn)(void*, size_t*, size_t*, char);
 
-typedef void (_cvt_fn)(void*, void_ptr, unsigned int);
-typedef int (_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
-typedef int (_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int, void*, unsigned int);
+typedef void (_cvt_fn)(void*, void_ptr, size_t);
+typedef size_t (_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+typedef size_t (_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
 
 typedef char* (_default_fname_fn)(int);
 typedef int (_extension_fn)(char*);

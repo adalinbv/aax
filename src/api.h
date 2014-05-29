@@ -36,7 +36,7 @@ extern "C" {
 #ifndef NDEBUG
 # define THREADED_FRAMES		AAX_FALSE
 #else
-# define THREADED_FRAMES		AAX_TRUE
+# define THREADED_FRAMES		AAX_FALSE
 #endif
 
 #if _WIN32

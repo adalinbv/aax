@@ -45,12 +45,12 @@ extern const float _limiter_tbl[2][2048];
 #define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
 #if 1
 void
-_aaxRingBufferLimiter(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float clip, float asym)
+_aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float asym)
 {
    static const float df = (float)(int32_t)0x7FFFFFFF;
    static const float rf = 1.0f/(65536.0f*12.0f);
    float osamp, imix, mix;
-   unsigned int j, max;
+   size_t j, max;
    MIX_T *ptr = d;
    MIX_T iasym;
    float peak;
@@ -66,7 +66,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float
    {
       float val, fact1, fact2, sdf, rise;
       MIX_T asamp, samp;
-      unsigned int pos;
+      size_t pos;
 
       samp = *ptr;
       val = (float)samp*samp;	// RMS
@@ -78,7 +78,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
       rise = _MINMAX((osamp-samp)*rf, 0.3f, 303.3f);
-      pos = (unsigned int)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
+      pos = (size_t)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
       osamp = samp;
 
       fact1 = (1.0f-sdf)*_limiter_tbl[0][pos-1];
@@ -91,18 +91,18 @@ _aaxRingBufferLimiter(MIX_PTR_T d, unsigned int *dmin, unsigned int *dmax, float
    }
    while (--j);
  
-   *dmax = (unsigned int)sqrtf(peak);
-   *dmin = (unsigned int)sqrt(rms/max);
+   *dmax = (size_t)sqrtf(peak);
+   *dmin = (size_t)sqrt(rms/max);
 }
 
 #else
 /* arctan */
 void
-bufLimiter(void *d, unsigned int dmin, unsigned int dmax, float clip, float asym)
+bufLimiter(void *d, size_t dmin, size_t dmax, float clip, float asym)
 {
    static const float df = 1.0f/2147483648.0f;
    int32_t *ptr = (int32_t*)d;
-   unsigned int j;
+   size_t j;
    float mix;
 
    mix = 256.0f; // * _MINMAX(clip, 0.0, 1.0);

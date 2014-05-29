@@ -40,13 +40,13 @@ static void szxform(float *, float *, float *, float *, float *, float *,
 void
 _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
-          unsigned int start, unsigned int end, unsigned int no_samples,
-          unsigned int ddesamps, unsigned int track, unsigned char ctr,
+          size_t start, size_t end, size_t no_samples,
+          size_t ddesamps, unsigned int track, unsigned char ctr,
           void *freq, void *delay, void *distort, void *env)
 {
-   static const unsigned int bps = sizeof(MIX_T);
+   static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = delay;
-   unsigned int ds = effect ? ddesamps : 0;	/* 0 for frequency filtering */
+   size_t ds = effect ? ddesamps : 0;	/* 0 for frequency filtering */
    MIX_T *psrc = src;
    MIX_T *pdst = dst;
 
@@ -101,7 +101,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
 void
 _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
                         MIX_PTR_T s, CONST_MIX_PTR_T sbuf, MIX_PTR_T sbuf2,
-                        unsigned int dmin, unsigned int dmax, unsigned int ds,
+                        size_t dmin, size_t dmax, size_t ds,
                         unsigned int track, const void *data)
 {
    const _aaxRingBufferReverbData *reverb = data;
@@ -131,7 +131,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            unsigned int offs = reverb->delay[q].sample_offs[track];
+            size_t offs = reverb->delay[q].sample_offs[track];
 
             assert(offs < ds);
 //          if (samples >= ds) samples = ds-1;
@@ -147,7 +147,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
 
 void
 _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
-                   unsigned int dmin, unsigned int dmax, unsigned int ds,
+                   size_t dmin, size_t dmax, size_t ds,
                    unsigned int track, const void *data)
 {
    const _aaxRingBufferReverbData *reverb = data;
@@ -163,14 +163,14 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
-      unsigned int bytes = ds*sizeof(MIX_T);
+      size_t bytes = ds*sizeof(MIX_T);
       MIX_T *sptr = s + dmin;
       int q;
 
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
       for(q=0; q<snum; q++)
       {
-         unsigned int samples = reverb->loopback[q].sample_offs[track];
+         size_t samples = reverb->loopback[q].sample_offs[track];
          float volume = reverb->loopback[q].gain / (snum+1);
 
          assert(samples < ds);
@@ -193,10 +193,10 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
 void
 _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
                MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
-               unsigned int start, unsigned int end, unsigned int no_samples,
-               unsigned int ds, void *data, void *env, unsigned int track)
+               size_t start, size_t end, size_t no_samples,
+               size_t ds, void *data, void *env, unsigned int track)
 {
-   static const unsigned int bps = sizeof(MIX_T);
+   static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = data;
    float volume;
 
@@ -210,7 +210,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
    volume =  effect->delay.gain;
    do
    {
-      unsigned int offs, noffs;
+      size_t offs, noffs;
       MIX_T *sptr = (MIX_T*)s + start;
       MIX_T *dptr = d + start;
 
@@ -223,18 +223,18 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       }
       else
       {
-         noffs = (unsigned int)effect->lfo.get(&effect->lfo, env, s, track, end);
+         noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
          effect->delay.sample_offs[track] = noffs;
          effect->curr_noffs[track] = noffs;
       }
 
       if (s == d)	/*  flanging */
       {
-         unsigned int sign = (noffs < offs) ? -1 : 1;
-         unsigned int doffs = abs(noffs - offs);
-         unsigned int i = no_samples;
-         unsigned int coffs = offs;
-         unsigned int step = end;
+         size_t sign = (noffs < offs) ? -1 : 1;
+         size_t doffs = abs(noffs - offs);
+         size_t i = no_samples;
+         size_t coffs = offs;
+         size_t step = end;
          MIX_T *ptr = dptr;
 
          if (start)
@@ -286,10 +286,10 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       }
       else	/* chorus, phasing */
       {
-         int doffs = noffs - offs;
+         size_t doffs = noffs - offs;
          float fact;
 
-         fact = _MAX((float)((int)end-doffs)/(float)(end), 0.0f);
+         fact = _MAX((float)((size_t)end-doffs)/(float)(end), 0.0f);
          if (fact == 1.0f) {
             rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
          }
@@ -307,7 +307,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
 void
 _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
                    MIX_PTR_T d, CONST_MIX_PTR_T s,
-                   unsigned int dmin, unsigned int dmax, unsigned int ds,
+                   size_t dmin, size_t dmax, size_t ds,
                    unsigned int track, void *data, void *env)
 {
    _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)data;
@@ -325,11 +325,11 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
 
    do
    {
-      static const unsigned int bps = sizeof(MIX_T);
+      static const size_t bps = sizeof(MIX_T);
       CONST_MIX_PTR_T sptr = s - ds + dmin;
       MIX_T *dptr = d - ds + dmin;
       float clip, asym, fact, mix;
-      unsigned int no_samples;
+      size_t no_samples;
       float lfo_fact = 1.0;
 
       no_samples = dmax+ds-dmin;
@@ -355,8 +355,8 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
 
          if ((fact > 0.01f) || (asym > 0.01f))
          {
-            unsigned int average = 0;
-            unsigned int peak = no_samples;
+            size_t average = 0;
+            size_t peak = no_samples;
             _aaxRingBufferLimiter(dptr, &average, &peak, clip, 4*asym);
          }
 
@@ -376,7 +376,7 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
 void
 _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
                    MIX_PTR_T d, CONST_MIX_PTR_T s,
-                   unsigned int dmin, unsigned int dmax, unsigned int ds,
+                   size_t dmin, size_t dmax, size_t ds,
                    unsigned int track, void *data, void *env, unsigned char ctr)
 {
    _aaxRingBufferFreqFilterData *filter = data;
@@ -476,7 +476,7 @@ szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
 
 
 void
-_aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, unsigned int num, float igain, float lb_depth, float lb_gain)
+_aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, size_t num, float igain, float lb_depth, float lb_gain)
 {
    _aaxRingBufferReverbData **ptr = (_aaxRingBufferReverbData**)data;
    _aaxRingBufferReverbData *reverb;
@@ -492,7 +492,7 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
    reverb = *ptr;
    if (reverb)
    {
-      unsigned int j, snum = _AAX_MAX_SPEAKERS;
+      size_t j, snum = _AAX_MAX_SPEAKERS;
 
       if (reverb->history_ptr == 0) {
          _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
@@ -502,7 +502,7 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
 
       if (num < _AAX_MAX_DELAYS)
       {
-         unsigned int i;
+         size_t i;
 
          reverb->gain = igain;
          reverb->no_delays = num;
@@ -581,9 +581,9 @@ _aaxRingBufferDelaysRemove(void **data)
 
 #if 0
 void
-_aaxRingBufferDelayRemoveNum(_aaxRingBuffer *rb, unsigned int n)
+_aaxRingBufferDelayRemoveNum(_aaxRingBuffer *rb, size_t n)
 {
-   unsigned int size;
+   size_t size;
 
    assert(rb);
 
@@ -602,12 +602,12 @@ _aaxRingBufferDelayRemoveNum(_aaxRingBuffer *rb, unsigned int n)
 void
 _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
 {
-   unsigned int bps, size;
+   size_t bps, size;
    char *ptr, *p;
    int i;
 
    bps = sizeof(MIX_T);
-   size = (unsigned int)ceilf(dde * frequency);
+   size = (size_t)ceilf(dde * frequency);
    size *= bps;
 #if BYTE_ALIGN
    if (size & 0xF)

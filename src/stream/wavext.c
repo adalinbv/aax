@@ -163,7 +163,7 @@ typedef struct
 
    int frequency;
    enum aaxFormat format;
-   int blocksize;
+   size_t blocksize;
    int no_tracks;
    int bits_sample;
 
@@ -175,7 +175,7 @@ typedef struct
          uint32_t no_samples;
 
          uint32_t *header;
-         unsigned int header_size;
+         size_t header_size;
          float update_dt;
       } write;
 
@@ -185,9 +185,9 @@ typedef struct
          uint32_t no_samples;
 
          uint32_t last_tag;
-         unsigned int wavBufSize;
-         unsigned int wavBufPos;
-         unsigned int blockbufpos;
+         size_t wavBufSize;
+         size_t wavBufPos;
+         size_t blockbufpos;
          void *wavBuffer;
          void *wavptr;
 
@@ -204,13 +204,13 @@ typedef struct
 
 } _driver_t;
 
-static int _aaxFileDriverReadHeader(_driver_t*, unsigned int*);
-static void* _aaxFileDriverUpdateHeader(_driver_t*, unsigned int *);
-static unsigned int getFileFormatFromFormat(enum aaxFormat);
+static int _aaxFileDriverReadHeader(_driver_t*, size_t*);
+static void* _aaxFileDriverUpdateHeader(_driver_t*, size_t *);
+static size_t getFileFormatFromFormat(enum aaxFormat);
 
-unsigned int _batch_cvt24_adpcm_intl(void*, int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int*);
-void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
-void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
+size_t _batch_cvt24_adpcm_intl(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t*);
+void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
 static int
 _aaxWavDetect(int mode) {
@@ -218,7 +218,7 @@ _aaxWavDetect(int mode) {
 }
 
 static void*
-_aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
+_aaxWavOpen(void *id, void *buf, size_t *bufsize)
 {
    _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
@@ -232,7 +232,7 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
       if (!handle->capturing)
       {
          char extfmt = AAX_FALSE;
-         unsigned int size;
+         size_t size;
 
          if (handle->bits_sample > 16) extfmt = AAX_TRUE;
          else if (handle->no_tracks > 2) extfmt = AAX_TRUE;
@@ -289,7 +289,7 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
 
             if (is_bigendian())
             {
-               int i;
+               size_t i;
                for (i=0; i<handle->io.write.header_size; i++)
                {
                   uint32_t tmp = _bswap32(handle->io.write.header[i]);
@@ -335,8 +335,8 @@ _aaxWavOpen(void *id, void *buf, unsigned int *bufsize)
          {
             size_t size = *bufsize;
             size_t avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
-            unsigned int step;
-            int res;
+            size_t step;
+            size_t res;
 
             avail =  _MIN(size, avail);
             if (!avail) return NULL;
@@ -512,7 +512,7 @@ _aaxWavClose(void *id)
 }
 
 static void*
-_aaxWavSetup(int mode, unsigned int *bufsize, int freq, int tracks, int format, int no_samples, int bitrate)
+_aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
    _driver_t *handle = NULL;
@@ -552,7 +552,7 @@ _aaxWavSetup(int mode, unsigned int *bufsize, int freq, int tracks, int format, 
 }
 
 static void*
-_aaxWavUpdate(void *id, unsigned int *offs, unsigned int *size, char close)
+_aaxWavUpdate(void *id, size_t *offs, size_t *size, char close)
 {
    _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
@@ -571,13 +571,14 @@ _aaxWavUpdate(void *id, unsigned int *offs, unsigned int *size, char close)
    return rv;
 }
 
-static int
-_aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+static size_t
+_aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int bufsize, bytes = 0;
-   int bits, rv = __F_EOF;
+   size_t bufsize, bytes = 0;
    unsigned char *buf;
+   size_t rv = __F_EOF;
+   int bits;
 
    buf = (unsigned char*)handle->io.read.wavBuffer;
    bits = handle->bits_sample;
@@ -633,14 +634,14 @@ _aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset,
    return rv;
 }
 
-static int
-_aaxWavCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num, void *scratch, unsigned int scratchlen)
+static size_t
+_aaxWavCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = 0;
+   size_t rv = 0;
    if (handle->cvt_to_intl)
    {
-      unsigned int bytes = (num*tracks*handle->bits_sample)/8;
+      size_t bytes = (num*tracks*handle->bits_sample)/8;
 
       handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
 
@@ -653,7 +654,7 @@ _aaxWavCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, u
 }
 
 static void
-_aaxWavCvtEndianness(void *id, void_ptr dptr, unsigned int num)
+_aaxWavCvtEndianness(void *id, void_ptr dptr, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
    if (dptr && handle->cvt_endianness) {
@@ -662,7 +663,7 @@ _aaxWavCvtEndianness(void *id, void_ptr dptr, unsigned int num)
 }
 
 static void
-_aaxWavCvtToSigned(void *id, void_ptr dptr, unsigned int num)
+_aaxWavCvtToSigned(void *id, void_ptr dptr, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
    if (dptr && handle->cvt_to_signed) {
@@ -671,7 +672,7 @@ _aaxWavCvtToSigned(void *id, void_ptr dptr, unsigned int num)
 }
 
 static void
-_aaxWavCvtFromSigned(void *id, void_ptr dptr, unsigned int num)
+_aaxWavCvtFromSigned(void *id, void_ptr dptr, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
    if (dptr && handle->cvt_from_signed) {
@@ -696,7 +697,7 @@ _aaxWavGetParam(void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
 
-   unsigned int rv = 0;
+   size_t rv = 0;
 
    switch(type)
    {
@@ -723,10 +724,10 @@ _aaxWavGetParam(void *id, int type)
 
 // http://wiki.audacityteam.org/wiki/WAV
 int
-_aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
+_aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
 {
    uint32_t *header = handle->io.read.wavBuffer;
-   unsigned int size, bufsize = handle->io.read.wavBufPos;
+   size_t size, bufsize = handle->io.read.wavBufPos;
    int fmt, bits, res = -1;
    int32_t curr, init_tag;
    char extfmt;
@@ -762,8 +763,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
       *step = res = size;
       if (is_bigendian())
       {
-         int i;
-          
+         size_t i;
          for (i=0; i<size/sizeof(int32_t); i++) {
             header[i] = _bswap32(header[i]);
          }
@@ -845,7 +845,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
    }
    else if (curr == 0x5453494c)		/* LIST */
    {				// http://www.daubnet.com/en/file-format-riff
-      int size = bufsize;
+      size_t size = bufsize;
 
       *step = 0;
       if (!init_tag)
@@ -932,14 +932,14 @@ _aaxFileDriverReadHeader(_driver_t *handle, unsigned int *step)
 }
 
 static void*
-_aaxFileDriverUpdateHeader(_driver_t *handle, unsigned int *bufsize)
+_aaxFileDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
 {
    void *res = NULL;
 
    if (handle->io.write.no_samples != 0)
    {
       char extfmt = (handle->io.write.header_size == WAVE_HEADER_SIZE) ? 0 : 1;
-      unsigned int size;
+      size_t size;
       uint32_t s;
 
       size = (handle->io.write.no_samples*handle->no_tracks*handle->bits_sample)/8;
@@ -1075,10 +1075,10 @@ getFormatFromWAVFileFormat(unsigned int format, int bits_sample)
    return rv;
 }
 
-static unsigned int
+static size_t
 getFileFormatFromFormat(enum aaxFormat format)
 {
-   unsigned int rv = UNSUPPORTED;
+   size_t rv = UNSUPPORTED;
    switch (format & AAX_FORMAT_NATIVE)
    {
    case AAX_PCM8U:
@@ -1107,9 +1107,9 @@ getFileFormatFromFormat(enum aaxFormat format)
 }
 
 void *
-_aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, int *size)
+_aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, size_t *size)
 {
-   int blocksize = *size;
+   size_t blocksize = *size;
    *size /= tracks;
    if (tracks > 1)
    {
@@ -1117,8 +1117,8 @@ _aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, int *size)
       if (buf)
       {
          int32_t* dptr = (int32_t*)data;
-         unsigned int numBlocks, numChunks;
-         unsigned int blockNum;
+         size_t numBlocks, numChunks;
+         size_t blockNum;
 
          numBlocks = bufsize/blocksize;
          numChunks = blocksize/4;
@@ -1145,11 +1145,11 @@ _aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, int *size)
    return data;
 }
 
-static unsigned int
-_aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsigned int num, unsigned int offset)
+static size_t
+_aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, size_t smp_offs, size_t num, size_t offset)
 {
    _driver_t *handle = (_driver_t*)id;
-   unsigned int offs_smp, rv = 0;
+   size_t offs_smp, rv = 0;
 
    if (num)
    {
@@ -1160,7 +1160,7 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
       {
          int16_t predictor = handle->io.read.predictor[t];
          uint8_t index = handle->io.read.index[t];
-         unsigned int l, ctr = 4;
+         size_t l, ctr = 4;
          int32_t *d = dptr[t]+offset;
          int32_t *s = src+t;
          uint8_t *sptr;
@@ -1180,8 +1180,8 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
          else
          {
             /* 8 samples per chunk of 4 bytes (int32_t) */
-            unsigned int offs_chunks = offs_smp/8;
-            int offs_bytes;
+            size_t offs_chunks = offs_smp/8;
+            size_t offs_bytes;
 
             s += tracks;			/* skip the header      */
             s += tracks*offs_chunks;		/* skip the data chunks */
@@ -1245,17 +1245,17 @@ _aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, unsigned int smp_offs, unsig
    return rv;
 }
 
-unsigned int
-_batch_cvt24_adpcm_intl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offs, unsigned int tracks, unsigned int *n)
+size_t
+_batch_cvt24_adpcm_intl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offs, unsigned int tracks, size_t *n)
 {
    _driver_t *handle = (_driver_t*)id;
-   unsigned int num = *n;
-   int rv = 0;
+   size_t num = *n;
+   size_t rv = 0;
 
    if (handle->io.read.wavBufPos >= handle->blocksize)
    {
-      unsigned int block_smp, decode_smp, offs_smp;
-      int r;
+      size_t block_smp, decode_smp, offs_smp;
+      size_t r;
 
       offs_smp = handle->io.read.blockbufpos;
       block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks);
@@ -1279,16 +1279,16 @@ _batch_cvt24_adpcm_intl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int of
 }
 
 void
-_batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
       for (t=0; t<tracks; t++)
       {
          int8_t *s = (int8_t *)sptr + t;
          int32_t *d = dptr[t] + offset;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -1301,16 +1301,16 @@ _batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsi
 }
 
 void
-_batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
       for (t=0; t<tracks; t++)
       {
          int8_t *s = (int8_t *)sptr + t;
          int32_t *d = dptr[t] + offset;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -1336,12 +1336,12 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsig
 #include <fcntl.h>		/* SEEK_*, O_* */
 void
 _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
-                          void *data, unsigned int no_samples,
-                          unsigned int freq, char no_tracks,
+                          void *data, size_t no_samples,
+                          size_t freq, char no_tracks,
                           enum aaxFormat format)
 {
    _driver_t *handle;
-   unsigned int size;
+   size_t size;
    int fd, oflag;
    int res, mode;
    char *buf;
@@ -1381,7 +1381,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    res = write(fd, data, size);
    if (res >= 0)
    {
-      unsigned int offs;
+      size_t offs;
 
       handle->io.write.no_samples = no_samples * no_tracks;
       buf = _aaxWavUpdate(handle, &offs, &size, AAX_TRUE);

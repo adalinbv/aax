@@ -123,12 +123,12 @@ typedef struct
    char sse_level;
 
    char *ptr, *scratch;
-   unsigned int buf_len;
+   size_t buf_len;
 
    struct threat_t thread;
    uint8_t buf[IOBUF_SIZE];
-   unsigned int bufpos;
-   unsigned int bytes_avail;
+   size_t bufpos;
+   size_t bytes_avail;
 
    _aaxFmtHandle* fmt;
    char *interfaces;
@@ -348,7 +348,7 @@ _aaxFileDriverDisconnect(void *id)
 
    if (handle)
    {
-      unsigned int offs, size;
+      size_t offs, size;
       void *buf = NULL;
 
       if (handle->thread.started)
@@ -401,7 +401,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    int freq, rv = AAX_FALSE;
-   unsigned int bufsize;
+   size_t bufsize;
    float period_ms;
 
    assert(handle);
@@ -422,7 +422,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
       handle->fd = open(handle->name, handle->fmode, 0644);
       if (handle->fd >= 0)
       {
-         unsigned int no_samples = *frames;
+         size_t no_samples = *frames;
          void *header = NULL;
          void *buf = NULL;
          int res = AAX_TRUE;
@@ -525,7 +525,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;  
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
-   unsigned int no_samples, offs, outbuf_size;
+   size_t no_samples, offs, outbuf_size;
    unsigned int rb_bps, file_bps, file_tracks;
    int32_t** sbuf;
    char *scratch;
@@ -597,7 +597,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int *offset, size_t *frames
       int file_block = handle->fmt->get_param(handle->fmt->id, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
       int32_t **sbuf = (int32_t**)tracks;
-      unsigned int no_samples, bufsize;
+      size_t no_samples, bufsize;
       int res, samples;
       void *data;
 
@@ -638,7 +638,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int *offset, size_t *frames
          }
          else if (samples > 0)
          {
-            unsigned int res_bytes = res*frame_bits/8;
+            size_t res_bytes = res*frame_bits/8;
 
             offs += res;
             no_samples -= res;
@@ -784,7 +784,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
    {
       _aaxExtensionDetect* ftype;
       char interfaces[2048];
-      unsigned int buflen;
+      size_t buflen;
       char *ptr;
       int i = 0;
 
@@ -891,7 +891,7 @@ _aaxFileDriverWriteThread(void *id)
    bits = handle->bits_sample;
    do
    {
-      unsigned int usize;
+      size_t usize;
       int buffer_avail;
       char *data;
 
@@ -922,7 +922,7 @@ _aaxFileDriverWriteThread(void *id)
          handle->bufpos += usize;
          if (handle->bufpos >= PERIOD_SIZE)
          {
-            unsigned int wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+            size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
             int res;
 
             res = write(handle->fd, handle->buf, wsize);
@@ -935,7 +935,7 @@ _aaxFileDriverWriteThread(void *id)
 
                if (handle->fmt->update)
                {
-                  unsigned int spos = 0;
+                  size_t spos = 0;
                   buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
                                             AAX_FALSE);
                   if (buf)
@@ -977,7 +977,7 @@ _aaxFileDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.mutex);
    do
    {
-      unsigned int size = IOBUF_SIZE - handle->bufpos;
+      size_t size = IOBUF_SIZE - handle->bufpos;
       int res = read(handle->fd, handle->buf+handle->bufpos, size);
       if (res < 0) break;
 

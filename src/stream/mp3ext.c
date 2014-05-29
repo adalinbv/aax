@@ -153,13 +153,13 @@ typedef struct
 
    int frequency;
    int bitrate;
-   unsigned int no_samples;
+   size_t no_samples;
    enum aaxFormat format;
    int blocksize;
    uint8_t no_tracks;
    uint8_t bits_sample;
 
-   unsigned int mp3BufSize;
+   size_t mp3BufSize;
    void *mp3Buffer;
    void *mp3ptr;
 
@@ -312,7 +312,7 @@ _aaxMP3Detect(int mode)
 }
 
 static void*
-_aaxMP3Setup(int mode, unsigned int *bufsize, int freq, int tracks, int format, int no_samples, int bitrate)
+_aaxMP3Setup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    _driver_t *handle = NULL;
    
@@ -362,7 +362,7 @@ static unsigned int
 _aaxMP3GetParam(void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int rv = 0;
+   size_t rv = 0;
 
    switch(type)
    {
@@ -418,7 +418,7 @@ getFormatFromMP3FileFormat(int enc)
 }
 
 static void*
-_aaxMPG123Open(void *id, void *buf, unsigned int *bufsize)
+_aaxMPG123Open(void *id, void *buf, size_t *bufsize)
 {
    _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
@@ -565,12 +565,12 @@ _aaxMPG123Close(void *id)
    return ret;
 }
 
-static int
-_aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+static size_t
+_aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
    int bps, ret, rv = __F_EOF;
-   unsigned int bytes;
+   size_t bytes;
    size_t size = 0;
 
    bps = handle->bits_sample/8;
@@ -578,7 +578,7 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offs
    if (!sptr)
    {
       unsigned char *buf = (unsigned char*)handle->mp3Buffer;
-      unsigned int bufsize = handle->mp3BufSize;
+      size_t bufsize = handle->mp3BufSize;
 
       if (bytes > bufsize) {
          bytes = bufsize;
@@ -601,8 +601,8 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, int offs
    return rv;
 }
 
-static int
-_aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num, void *scratch, unsigned int scratchlen)
+static size_t
+_aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = (_driver_t *)id;
    int res;
@@ -773,11 +773,11 @@ _aaxMSACMFileClose(void *id)
 }
 
 static int
-_aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
+_aaxMSACMFileCvtTo(void *id, void *data, size_t no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int frame_sz = handle->no_tracks*handle->bits_sample/8;
-   unsigned int avail_bytes;
+   size_t frame_sz = handle->no_tracks*handle->bits_sample/8;
+   size_t avail_bytes;
    char *ptr = data;
    int rv = 0;
 
@@ -842,7 +842,7 @@ _aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
 }
 
 static int
-_aaxMSACMFileCvtTo(void *id, void *data, unsigned int no_frames)
+_aaxMSACMFileCvtTo(void *id, void *data, size_t no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = __F_EOF;
