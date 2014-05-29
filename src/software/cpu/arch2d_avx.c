@@ -20,12 +20,12 @@
 
 #if !RB_FLOAT_DATA
 static void
-_aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, size_t sdesamps, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -43,12 +43,12 @@ _aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsig
    i=dmax-dmin;
    do
    {
-      int step;
+      size_t step;
 
       *dptr++ = samp + (int32_t)(dsamp * smu);
 
       smu += freq_factor;
-      step = (int)floorf(smu);
+      step = (size_t)floorf(smu);
 
       smu -= step;
       sptr += step-1;
@@ -59,7 +59,7 @@ _aaxBufResampleSkip_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsig
 }
 
 static void
-_aaxBufResampleNearest_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleNearest_avx(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, size_t sdesamps, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s+sdesamps, (dmax-dmin)*sizeof(int32_t));
@@ -68,7 +68,7 @@ _aaxBufResampleNearest_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
    {
       int32_ptr sptr = (int32_ptr)s;
       int32_ptr dptr = d;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -96,12 +96,12 @@ _aaxBufResampleNearest_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
 }
 
 static void
-_aaxBufResampleLinear_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleLinear_avx(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, size_t sdesamps, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -133,12 +133,12 @@ _aaxBufResampleLinear_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
 
 
 static void
-_aaxBufResampleCubic_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, unsigned int sdesamps, float smu, float freq_factor)
+_aaxBufResampleCubic_avx(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, size_t sdesamps, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -185,7 +185,7 @@ _aaxBufResampleCubic_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
 }
 
 void
-_batch_resample_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_avx(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 
@@ -207,12 +207,12 @@ _batch_resample_avx(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned 
 
 
 static inline void
-_aaxBufResampleSkip_float_avx(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_float_avx(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -230,12 +230,12 @@ _aaxBufResampleSkip_float_avx(float32_ptr dptr, const_float32_ptr sptr, unsigned
    {
       do
       {
-         int step;
+         size_t step;
 
          *d++ = samp + (dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          s += step-1;
@@ -247,7 +247,7 @@ _aaxBufResampleSkip_float_avx(float32_ptr dptr, const_float32_ptr sptr, unsigned
 }
 
 static inline void
-_aaxBufResampleNearest_float_avx(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_float_avx(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
@@ -256,7 +256,7 @@ _aaxBufResampleNearest_float_avx(float32_ptr d, const_float32_ptr s, unsigned in
    {
       float32_ptr sptr = (float32_ptr)s;
       float32_ptr dptr = d;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -286,12 +286,12 @@ _aaxBufResampleNearest_float_avx(float32_ptr d, const_float32_ptr s, unsigned in
 }
 
 static inline void
-_aaxBufResampleLinear_float_avx(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_float_avx(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -324,12 +324,12 @@ _aaxBufResampleLinear_float_avx(float32_ptr d, const_float32_ptr s, unsigned int
 }
 
 static inline void
-_aaxBufResampleCubic_float_avx(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_float_avx(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -377,7 +377,7 @@ _aaxBufResampleCubic_float_avx(float32_ptr d, const_float32_ptr s, unsigned int 
 }
 
 void
-_batch_resample_float_avx(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_float_avx(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 

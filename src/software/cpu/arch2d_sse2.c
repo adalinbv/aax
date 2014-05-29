@@ -30,7 +30,7 @@
 # define CACHE_ADVANCE_FF	 32
 
 void
-_batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+_batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *d = (int32_t*)dst;
    float *s = (float*)src;
@@ -42,7 +42,7 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
    {
       __m128i *dptr = (__m128i*)d;
       __m128* sptr = (__m128*)s;
-      unsigned int i, step;
+      size_t i, step;
 
       step = 4*sizeof(__m128)/sizeof(float);
 
@@ -96,11 +96,11 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 
 
 void
-_batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+_batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *d = (int32_t*)dst;
    float *s = (float*)src;
-   unsigned int i, step;
+   size_t i, step;
    size_t dtmp, stmp;
 
    if (!num) return;
@@ -176,7 +176,7 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 }
 
 void
-_batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+_batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *s = (int32_t*)src;
    float *d = (float*)dst;
@@ -188,7 +188,7 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
    {
       __m128i* sptr = (__m128i*)s;
       __m128 *dptr = (__m128*)d;
-      unsigned int i, step;
+      size_t i, step;
 
       step = 4*sizeof(__m128i)/sizeof(int32_t);
 
@@ -241,11 +241,11 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 }
 
 void
-_batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+_batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *s = (int32_t*)src;
    float *d = (float*)dst;
-   unsigned int i, step;
+   size_t i, step;
    size_t dtmp, stmp;
 
    assert(s != 0);
@@ -324,11 +324,11 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 }
 
 void
-_batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, unsigned int num, float v, float vstep)
+_batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float vstep)
 {
    int32_ptr d = (int32_ptr)dst;
    int32_ptr s = (int32_ptr)src;
-   unsigned int i, step;
+   size_t i, step;
    size_t dtmp, stmp;
 
    if (!num) return;
@@ -418,11 +418,11 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, unsigned int num, float v,
 }
 
 void
-_batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, float v, float vstep)
+_batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
-   unsigned int i, step;
+   size_t i, step;
    size_t dtmp, stmp;
 
    if (!num) return;
@@ -517,11 +517,11 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, unsigned int num, floa
 
 
 void
-_batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+_batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
    int16_t *s = (int16_t *)src;
    int32_t *d = (int32_t*)dst;
-   unsigned int i, step;
+   size_t i, step;
    size_t tmp;
 
    if (!num) return;
@@ -601,9 +601,9 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 }
 
 void
-_batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
+_batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
-   unsigned int i, step;
+   size_t i, step;
    int32_t* s = (int32_t*)src;
    int16_t* d = (int16_t*)dst;
    size_t tmp;
@@ -678,10 +678,10 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, unsigned int num)
 
 void
 _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
-                                int offset, unsigned int tracks,
-                                unsigned int num)
+                                size_t offset, size_t tracks,
+                                size_t num)
 {
-   unsigned int i, step;
+   size_t i, step;
    int16_t *d = (int16_t*)dst;
    int32_t *s1, *s2;
    size_t tmp;
@@ -690,12 +690,12 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 
    if (tracks != 2)
    {
-      unsigned int t;
+      size_t t;
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)src[t] + offset;
          int16_t *d = (int16_t *)dst + t;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -803,12 +803,12 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
         smp = h0 + mpf[2]; smp += mpf[3]
 
 void
-_batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
+_batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
                   float *hist, float lfgain, float hfgain, float k,
                   const float *cptr)
 {
    int32_ptr s = (int32_ptr)sptr;
-   unsigned int i, step;
+   size_t i, step;
    float h0, h1;
    size_t tmp;
 
@@ -944,10 +944,10 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, unsigned int num,
 }
 
 void
-_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
-   unsigned int i, step;
+   size_t i, step;
    float h0, h1;
    size_t tmp;
 
@@ -1081,9 +1081,9 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, unsigned int
  * fall back tobuildt-in  memcpy otherwise.
  */
 void *
-_aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  num)
+_aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
-   unsigned int i, step;
+   size_t i, step;
    char *d = (char*)dst;
    char *s = (char*)src;
    size_t tmp;
@@ -1181,12 +1181,12 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t  num)
 
 #if !RB_FLOAT_DATA
 static inline void
-_aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1205,12 +1205,12 @@ _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    {
       do
       {
-         int step;
+         size_t step;
 
          *dptr++ = samp + (int32_t)(dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          sptr += step-1;
@@ -1222,7 +1222,7 @@ _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
 }
 
 static inline void
-_aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, size_t min, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
@@ -1231,7 +1231,7 @@ _aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
    {
       int32_ptr sptr = (int32_ptr)s;
       int32_ptr dptr = d;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -1261,12 +1261,12 @@ _aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
 }
 
 static inline void
-_aaxBufResampleLinear_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1299,12 +1299,12 @@ _aaxBufResampleLinear_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
 }
 
 static inline void
-_aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1353,7 +1353,7 @@ _aaxBufResampleCubic_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
 }
 
 void
-_batch_resample_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 
@@ -1372,12 +1372,12 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
 #else
 
 static inline void
-_aaxBufResampleSkip_float_sse2(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_float_sse2(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1395,12 +1395,12 @@ _aaxBufResampleSkip_float_sse2(float32_ptr dptr, const_float32_ptr sptr, unsigne
    {
       do
       {
-         int step;
+         size_t step;
 
          *d++ = samp + (dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          s += step-1;
@@ -1412,7 +1412,7 @@ _aaxBufResampleSkip_float_sse2(float32_ptr dptr, const_float32_ptr sptr, unsigne
 }
 
 static inline void
-_aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
@@ -1421,7 +1421,7 @@ _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, unsigned i
    {
       float32_ptr sptr = (float32_ptr)s;
       float32_ptr dptr = d;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -1451,12 +1451,12 @@ _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, unsigned i
 }
 
 static inline void
-_aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1489,12 +1489,12 @@ _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, unsigned in
 }
 
 static inline void
-_aaxBufResampleCubic_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1542,7 +1542,7 @@ _aaxBufResampleCubic_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int
 }
 
 void
-_batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 

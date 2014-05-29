@@ -640,12 +640,12 @@ _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #endif
 
 char *
-_aax_malloc_align16(char **start, unsigned int size)
+_aax_malloc_align16(char **start, size_t size)
 {
    int ctr = 3;
    char *ptr;
 
-   assert((unsigned int)*start < size);
+   assert((size_t)*start < size);
 
    /* 16-byte align */
    size += 16;		/* save room for a pointer shift to 16-byte align */
@@ -660,10 +660,10 @@ _aax_malloc_align16(char **start, unsigned int size)
       ptr = (char *)(int64_t *)malloc(size);
       if (ptr)
       {
-         char *s = ptr + (unsigned long)*start;
-         unsigned int tmp;
+         char *s = ptr + (size_t)*start;
+         size_t tmp;
 
-         tmp = (long)s & 0xF;
+         tmp = (size_t)s & 0xF;
          if (tmp)
          {
             tmp = 0x10 - tmp;
@@ -682,12 +682,12 @@ _aax_malloc_align16(char **start, unsigned int size)
 }
 
 char *
-_aax_calloc_align16(char **start, unsigned int num, unsigned int size)
+_aax_calloc_align16(char **start, size_t num, size_t size)
 {
    int ctr = 3;
    char *ptr;
 
-   assert((unsigned int)*start < num*size);
+   assert((size_t)*start < num*size);
 
    /* 16-byte align */
    size += 16;		 /* save room for a pointer shift to 16-byte align */
@@ -702,10 +702,10 @@ _aax_calloc_align16(char **start, unsigned int num, unsigned int size)
       ptr = (char *)malloc(num*size);
       if (ptr)
       {
-         char *s = ptr + (unsigned long)*start;
-         unsigned long tmp;
+         char *s = ptr + (size_t)*start;
+         size_t tmp;
 
-         tmp = (long)s & 0xF;
+         tmp = (size_t)s & 0xF;
          if (tmp)
          {
             tmp = 0x10 - tmp;
@@ -789,7 +789,7 @@ _aaxGetNoCores()
 #if defined(__i386__) || defined(__x86_64__)
    do
    {
-      int hyper_threading = check_cpuid_edx(CPUID_FEAT_EDX_MMX);
+      int hyper_threading = check_cpuid_edx(CPUID_FEAT_EDX_HT);
       char vendor_str[13];
 
       __cpuid(regs, CPUID_GETVENDORSTRING);
@@ -803,8 +803,8 @@ _aaxGetNoCores()
          int logical;
 
          __cpuid(regs, CPUID_GETFEATURES);
-         logical = (regs[EBX] >> 16) & 0x7;
-         cores /= logical;
+         logical = (regs[EBX] >> 16) & 0xFF;	// EBX[23:16]
+         if (logical) cores /= logical;
       }
    }
    while (0);

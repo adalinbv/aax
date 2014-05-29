@@ -31,25 +31,25 @@ extern "C" {
 #define SIZETO16(a)	((a) & 0xF) ? ((a)|0xF)+1 : (a)
 
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
-typedef char* (*_aax_calloc_proc)(char**, unsigned int, unsigned int);
-typedef char* (*_aax_malloc_proc)(char**, unsigned int);
+typedef char* (*_aax_calloc_proc)(char**, size_t, size_t);
+typedef char* (*_aax_malloc_proc)(char**, size_t);
 typedef void (*_aax_free_proc)(void*);
 
-typedef void (*_batch_cvt_proc)(void*, unsigned int);
-typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, unsigned int);
-typedef void (*_batch_cvt_from_intl_proc)(int32_ptrptr, const_void_ptr, int, unsigned int, unsigned int);
-typedef void (*_batch_cvt_to_proc)(void_ptr, const_void_ptr, unsigned int);
-typedef void (*_batch_cvt_to_intl_proc)(void_ptr, const_int32_ptrptr, int, unsigned int, unsigned int);
-typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, unsigned char, unsigned int);
+typedef void (*_batch_cvt_proc)(void*, size_t);
+typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, size_t);
+typedef void (*_batch_cvt_from_intl_proc)(int32_ptrptr, const_void_ptr, size_t, size_t, size_t);
+typedef void (*_batch_cvt_to_proc)(void_ptr, const_void_ptr, size_t);
+typedef void (*_batch_cvt_to_intl_proc)(void_ptr, const_int32_ptrptr, size_t, size_t, size_t);
+typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, unsigned char, size_t);
 
 
-typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, unsigned int, float, float);
-typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, unsigned int, float, float);
-typedef void (*_batch_mul_value_proc)(void*, unsigned, unsigned int, float);
-typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, unsigned int, float*, float, float, float, const float*);
-typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, unsigned int, float*, float, float, float, const float*);
-typedef void (*_batch_resample_float_proc)(float32_ptr, const_float32_ptr, unsigned int, unsigned int, float, float);
-typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, unsigned int, unsigned int, float, float);
+typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, size_t, float, float);
+typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, size_t, float, float);
+typedef void (*_batch_mul_value_proc)(void*, unsigned, size_t, float);
+typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, size_t, float*, float, float, float, const float*);
+typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float, float, float, const float*);
+typedef void (*_batch_resample_float_proc)(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 
 
 typedef void (*_aax_aligned_free_proc)(void*);

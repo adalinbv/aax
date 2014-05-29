@@ -22,16 +22,15 @@
 # define CACHE_ADVANCE_FF	 (2*32)
 
 FN_PREALIGN void
-_batch_fma4_avx(int32_ptr d, const_int32_ptr src, unsigned int num, float v, float vstep)
+_batch_fma4_avx(int32_ptr d, const_int32_ptr src, size_t num, float v, float vstep)
 {
    __m256i *sptr = (__m256i *)src;
    __m256i *dptr = (__m256i*)d;
    __m256 tv = _mm256_set1_ps(v);
    int32_ptr s = (int32_ptr)src;
-   unsigned int i, size, step;
+   size_t i, size, step;
    long dtmp, stmp;
 
-printf("%s\n", __FUNCTION__);
    dtmp = (long)dptr & 0xF;
    stmp = (long)sptr & 0xF;
    if ((dtmp || stmp) && dtmp != stmp)

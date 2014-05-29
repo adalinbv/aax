@@ -29,14 +29,14 @@
 #include "audio.h"
 #include "cpu/arch2d_simd.h"
 
-static void _sw_bufcpy_8s(void_ptr, const_void_ptr, unsigned char, unsigned int);
-static void _sw_bufcpy_16s(void_ptr, const_void_ptr, unsigned char, unsigned int);
-static void _sw_bufcpy_24s(void_ptr, const_void_ptr, unsigned char, unsigned int);
+static void _sw_bufcpy_8s(void_ptr, const_void_ptr, unsigned char, size_t);
+static void _sw_bufcpy_16s(void_ptr, const_void_ptr, unsigned char, size_t);
+static void _sw_bufcpy_24s(void_ptr, const_void_ptr, unsigned char, size_t);
 #if 0
-static void _sw_bufcpy_32a(void_ptr, const_void_ptr, unsigned char, unsigned int)s;
+static void _sw_bufcpy_32a(void_ptr, const_void_ptr, unsigned char, size_t)s;
 #endif
-static void _sw_bufcpy_mulaw(void_ptr, const_void_ptr, unsigned char, unsigned int);
-static void _sw_bufcpy_alaw(void_ptr, const_void_ptr, unsigned char, unsigned int);
+static void _sw_bufcpy_mulaw(void_ptr, const_void_ptr, unsigned char, size_t);
+static void _sw_bufcpy_alaw(void_ptr, const_void_ptr, unsigned char, size_t);
 
 _batch_codec_proc _aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 {
@@ -90,14 +90,14 @@ extern const int8_t _linear2mulaw_table[256];
  */
 void
 _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
-                 unsigned int src_pos, unsigned int loop_start,
-                 unsigned int sno_samples, unsigned int ddesamps,
-                 unsigned int dno_samples, unsigned char sbps, char src_loops)
+                 size_t src_pos, size_t loop_start,
+                 size_t sno_samples, size_t ddesamps,
+                 size_t dno_samples, unsigned char sbps, char src_loops)
 {
    static const int dbps = sizeof(int32_t);
-   const unsigned int sbuflen = sno_samples - loop_start;
-   const unsigned int dbuf_len = dno_samples;
-   unsigned int dbuflen, new_len;
+   const size_t sbuflen = sno_samples - loop_start;
+   const size_t dbuf_len = dno_samples;
+   size_t dbuflen, new_len;
    int32_t *dptr = d;
    char *sptr;
 
@@ -186,21 +186,21 @@ _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
 /* -------------------------------------------------------------------------- */
 
 static void
-_sw_bufcpy_8s(void *dst, const void *src, unsigned char sbps, unsigned int l)
+_sw_bufcpy_8s(void *dst, const void *src, unsigned char sbps, size_t l)
 {
    assert(sbps == 1);
    _batch_cvt24_8(dst, src, l);
 }
 
 static void
-_sw_bufcpy_16s(void *dst, const void *src, unsigned char sbps, unsigned int l)
+_sw_bufcpy_16s(void *dst, const void *src, unsigned char sbps, size_t l)
 {
    assert(sbps == 2);
    _batch_cvt24_16(dst, src, l);
 }
 
 static void
-_sw_bufcpy_24s(void *dst, const void *src, unsigned char sbps, unsigned int l)
+_sw_bufcpy_24s(void *dst, const void *src, unsigned char sbps, size_t l)
 {
    assert (sbps == 4);
    _batch_cvt24_24(dst, src, l);
@@ -225,13 +225,13 @@ _mulaw2linear(uint8_t ulaw)
 }
 
 static void
-_sw_bufcpy_mulaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
+_sw_bufcpy_mulaw(void *dst, const void *src, unsigned char sbps, size_t l)
 {
    if (sbps == 1)
    {
       int32_t *d = (int32_t *)dst;
       uint8_t *s = (uint8_t *)src;
-      unsigned int i = l;
+      size_t i = l;
       do {
          /*
           * Lookup tables for A-law and u-law look attractive, until you
@@ -264,13 +264,13 @@ _alaw2linear(uint8_t alaw)
 }
 
 static void
-_sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
+_sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, size_t l)
 {
    if (sbps == 1)
    {
       int32_t *d = (int32_t *)dst;
       uint8_t *s = (uint8_t *)src;
-      unsigned int i = l;
+      size_t i = l;
       do {
          /*
           * Lookup tables for A-law and u-law look attractive, until you
@@ -291,13 +291,13 @@ _sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, unsigned int l)
  * l is the block length in samples;
  */
 void
-_sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, unsigned int l)
+_sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, size_t l)
 {
    uint8_t *s = (uint8_t *)src;
    int16_t *d = (int16_t *)dst;
    int16_t predictor;
    uint8_t index;
-   unsigned int i;
+   size_t i;
 
    predictor = *s++;
    predictor |= *s++ << 8;

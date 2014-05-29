@@ -18,14 +18,14 @@
 #include "arch2d_simd.h"
 
 void
-_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int num, float f, float fstep)
+_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, float fstep)
 {
    if (num)
    {
       int32_t* s = (int32_t* )sptr;
       int32_t* d = dptr;
-      unsigned int i = num;
-      int v = (int)(f*1024.0f);
+      size_t i = num;
+      int32_t v = (int32_t)(f*1024.0f);
 
       do {
          *d++ += ((*s++ >> 2) * v) >> 8;
@@ -35,13 +35,13 @@ _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int num, float f
 }
 
 void
-_batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int num, float v, float vstep)
+_batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
    if (num)
    {
       float *s = (float*)sptr;
       float *d = dptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ += *s++ * v;
@@ -52,9 +52,9 @@ _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int num, flo
 }
 
 void
-_batch_imul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
+_batch_imul_value_cpu(void* data, unsigned bps, size_t num, float f)
 {
-   unsigned int i = num;
+   size_t i = num;
    if (num)
    {
       switch (bps)
@@ -93,9 +93,9 @@ _batch_imul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
 }
 
 void
-_batch_fmul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
+_batch_fmul_value_cpu(void* data, unsigned bps, size_t num, float f)
 {
-   unsigned int i = num;
+   size_t i = num;
    if (num)
    {
       switch (bps)
@@ -125,7 +125,7 @@ _batch_fmul_value_cpu(void* data, unsigned bps, unsigned int num, float f)
 }
 
 void
-_batch_cvt24_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num) {
       _aax_memcpy(dptr, sptr, num*sizeof(int32_t));
@@ -133,13 +133,13 @@ _batch_cvt24_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_32_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_32_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int32_t *s = (int32_t *)sptr;
       int32_t *d = dptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = *s++ >> 8;
@@ -149,13 +149,13 @@ _batch_cvt24_32_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt32_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt32_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int32_t *d = (int32_t *)dptr;
       int32_t *s = (int32_t *)sptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = *s++ << 8;
@@ -165,13 +165,13 @@ _batch_cvt32_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_ps24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_ps24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int32_t* d = (int32_t*)dptr;
       float* s = (float*)sptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (int32_t)*s++;
@@ -180,13 +180,13 @@ _batch_cvt24_ps24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       float* d = (float*)dptr;
       int32_t* s = (int32_t*)sptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (float)*s++;
@@ -195,14 +195,14 @@ _batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       static const float mul = (float)(1<<23);
       int32_t* d = (int32_t*)dptr;
       float* s = (float*)sptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (int32_t)(*s++ * mul);
@@ -211,14 +211,14 @@ _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvtps_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
+_batch_cvtps_24_cpu(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       static const float mul = 1.0f/(float)(1<<23);
       int32_t* s = (int32_t*)sptr;
       float* d = (float*)dst;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (float)*s++ * mul;
@@ -227,14 +227,14 @@ _batch_cvtps_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_pd_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_pd_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       static const double mul = (double)(1<<23);
       int32_t* d = (int32_t*)dptr;
       double* s = (double*)sptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (int32_t)(*s++ * mul);
@@ -243,7 +243,7 @@ _batch_cvt24_pd_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -252,12 +252,12 @@ _batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsi
       }
       else if (tracks)
       {
-         unsigned int t;
+         size_t t;
          for (t=0; t<tracks; t++)
          {
             int8_t *s = (int8_t *)sptr + t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
 
             do
             {
@@ -271,7 +271,7 @@ _batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsi
 }
 
 void
-_batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -280,12 +280,12 @@ _batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
       }
       else if (tracks)
       {
-         unsigned int t;
+         size_t t;
          for (t=0; t<tracks; t++)
          {
             int16_t *s = (int16_t *)sptr + t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
 
             do
             {
@@ -299,7 +299,7 @@ _batch_cvt24_16_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
 }
 
 void
-_batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -308,12 +308,12 @@ _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
       }
       else if (tracks)
       {
-         unsigned int t;
+         size_t t;
          for (t=0; t<tracks; t++)
          {
             int32_t *s = (int32_t *)sptr + t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
 
             do {
                *d++ = *s;
@@ -326,7 +326,7 @@ _batch_cvt24_24_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
 }
 
 void
-_batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -335,12 +335,12 @@ _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, un
       }
       else if (tracks)
       {
-         unsigned int t;
+         size_t t;
          for (t=0; t<tracks; t++)
          {
             uint8_t *s = (uint8_t*)sptr + 3*t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
             union {
                 int32_t s32;
                 uint8_t b[4];
@@ -363,7 +363,7 @@ _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, un
 }
 
 void
-_batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -372,12 +372,12 @@ _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
       }
       else if (tracks)
       {
-         unsigned int t;
+         size_t t;
          for (t=0; t<tracks; t++)
          {
             int32_t *s = (int32_t *)sptr + t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
 
             do {
                *d++ = *s >> 8;
@@ -390,7 +390,7 @@ _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
 }
 
 void
-_batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -400,13 +400,13 @@ _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
       else if (tracks)
       {
          static const float mul = (float)(1<<23);
-         unsigned int t;
+         size_t t;
 
          for (t=0; t<tracks; t++)
          {
             float *s = (float*)sptr + t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
 
             do {
                *d++ = (int32_t)(*s * mul);
@@ -419,7 +419,7 @@ _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
 }
 
 void
-_batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
@@ -429,12 +429,12 @@ _batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
       else if (tracks)
       {
          static const double mul = (double)(1<<23);
-         unsigned int t;
+         size_t t;
          for (t=0; t<tracks; t++)
          {
             double *s = (double*)sptr + t;
             int32_t *d = dptr[t] + offset;
-            unsigned int i = num;
+            size_t i = num;
 
             do {
                *d++ = (int32_t)(*s * mul);
@@ -447,14 +447,14 @@ _batch_cvt24_pd_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, int offset, uns
 }
 
 void
-_batch_cvtpd_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
+_batch_cvtpd_24_cpu(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       static const double mul = 1.0/(double)(1<<23);
       int32_t* s = (int32_t*)sptr;
       double* d = (double*)dst;
-      unsigned int i = num;
+      size_t i = num;
       do {
          *d++ = (double)*s++ * mul;
       } while (--i);
@@ -462,13 +462,13 @@ _batch_cvtpd_24_cpu(void_ptr dst, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_8_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_8_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int8_t* s = (int8_t*)sptr;
       int32_t* d = dptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (int32_t)*s++ << 16;
@@ -478,13 +478,13 @@ _batch_cvt24_8_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_16_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_16_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int16_t* s = (int16_t*)sptr;
       int32_t* d = dptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = (int32_t)*s++ << 8;
@@ -494,13 +494,13 @@ _batch_cvt24_16_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       uint8_t *s = (uint8_t *)sptr;
       int32_t *d = dptr;
-      unsigned int i = num;
+      size_t i = num;
       union {
          int32_t s32;
          uint8_t b[4];
@@ -522,13 +522,13 @@ _batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 
 
 void
-_batch_cvt8_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt8_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int32_t* s = (int32_t*)sptr;
       int8_t* d = (int8_t*)dptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = *s++ >> 16;
@@ -538,13 +538,13 @@ _batch_cvt8_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt16_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt16_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       int32_t* s = (int32_t*)sptr;
       int16_t* d = (int16_t*)dptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *d++ = *s++ >> 8;
@@ -554,13 +554,13 @@ _batch_cvt16_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt24_3_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
+_batch_cvt24_3_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
       uint8_t *d = (uint8_t *)dptr;
       int32_t *s = (int32_t*)sptr;
-      unsigned int i = num;
+      size_t i = num;
 
       do
       {
@@ -573,17 +573,17 @@ _batch_cvt24_3_24_cpu(void_ptr dptr, const_void_ptr sptr, unsigned int num)
 }
 
 void
-_batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
 
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          int8_t *d = (int8_t *)dptr + t;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -596,16 +596,16 @@ _batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsi
 }
 
 void
-_batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          int16_t *d = (int16_t *)dptr + t;
-         unsigned int i = num;
+         size_t i = num;
        
          do
          {
@@ -618,17 +618,17 @@ _batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, uns
 }
 
 void
-_batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
 
       for (t=0; t<tracks; t++) 
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          int8_t *d = (int8_t *)dptr + 3*t;
-         unsigned int i = num;
+         size_t i = num;
       
          do
          {
@@ -642,17 +642,17 @@ _batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, un
 } 
 
 void
-_batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
 
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          int32_t *d = (int32_t *)dptr + t;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -665,17 +665,17 @@ _batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, uns
 }
 
 void
-_batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
-      unsigned int t;
+      size_t t;
 
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          int32_t *d = (int32_t *)dptr + t;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -688,18 +688,18 @@ _batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, uns
 }
 
 void
-_batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
       static const float mul = 1.0/(float)(1<<23);
-      unsigned int t;
+      size_t t;
 
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t*)sptr[t] + offset;
          float *d = (float*)dptr + t;
-         unsigned int i = num;
+         size_t i = num;
 
          do
          {
@@ -712,18 +712,18 @@ _batch_cvtps_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, uns
 }
 
 void
-_batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, unsigned int tracks, unsigned int num)
+_batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t tracks, size_t num)
 {
    if (num)
    {
       static const double mul = 1.0/(double)(1<<23);
-      unsigned int t;
+      size_t t;
 
       for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          double *d = (double*)dptr + t;
-         unsigned int i = num;
+         size_t i = num;
 
          do 
          {
@@ -736,12 +736,12 @@ _batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, int offset, uns
 }
 
 void
-_batch_saturate24_cpu(void *data, unsigned int num)
+_batch_saturate24_cpu(void *data, size_t num)
 {
    if (num)
    {
       int32_t* p = (int32_t*)data;
-      unsigned int i = num;
+      size_t i = num;
       do
       {
          int32_t samp = _MINMAX(*p, -8388607, 8388607);
@@ -752,12 +752,12 @@ _batch_saturate24_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt8u_8s_cpu(void *data, unsigned int num)
+_batch_cvt8u_8s_cpu(void *data, size_t num)
 {
    if (num)
    {
       int8_t* p = (int8_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ -= 128;
@@ -766,12 +766,12 @@ _batch_cvt8u_8s_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt8s_8u_cpu(void *data, unsigned int num)
+_batch_cvt8s_8u_cpu(void *data, size_t num)
 {
    if (num)
    {
       uint8_t* p = (uint8_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ += 128;
@@ -780,12 +780,12 @@ _batch_cvt8s_8u_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt16u_16s_cpu(void *data, unsigned int num)
+_batch_cvt16u_16s_cpu(void *data, size_t num)
 {
    if (num)
    {
       int16_t* p = (int16_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ -= (int16_t)32768;
@@ -794,12 +794,12 @@ _batch_cvt16u_16s_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt16s_16u_cpu(void *data, unsigned int num)
+_batch_cvt16s_16u_cpu(void *data, size_t num)
 {
    if (num)
    {
       uint16_t* p = (uint16_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ += (uint16_t)32768;
@@ -808,12 +808,12 @@ _batch_cvt16s_16u_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt24u_24s_cpu(void *data, unsigned int num)
+_batch_cvt24u_24s_cpu(void *data, size_t num)
 {
    if (num)
    {
       int32_t* p = (int32_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ -= (int32_t)8388608;
@@ -822,12 +822,12 @@ _batch_cvt24u_24s_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt24s_24u_cpu(void *data, unsigned int num)
+_batch_cvt24s_24u_cpu(void *data, size_t num)
 {
    if (num)
    {
       uint32_t* p = (uint32_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ += (uint32_t)8388608;
@@ -836,12 +836,12 @@ _batch_cvt24s_24u_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt32u_32s_cpu(void *data, unsigned int num)
+_batch_cvt32u_32s_cpu(void *data, size_t num)
 {
    if (num)
    {
       int32_t* p = (int32_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ -= (int32_t)2147483648;
@@ -850,12 +850,12 @@ _batch_cvt32u_32s_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_cvt32s_32u_cpu(void *data, unsigned int num)
+_batch_cvt32s_32u_cpu(void *data, size_t num)
 {
    if (num)
    {
       uint32_t* p = (uint32_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do {
          *p++ += (uint32_t)2147483648;
@@ -864,12 +864,12 @@ _batch_cvt32s_32u_cpu(void *data, unsigned int num)
 }
 
 void
-_batch_endianswap16_cpu(void* data, unsigned int num)
+_batch_endianswap16_cpu(void* data, size_t num)
 {
    if (num)
    {
       int16_t* p = (int16_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do
       {
@@ -881,12 +881,12 @@ _batch_endianswap16_cpu(void* data, unsigned int num)
 }
 
 void
-_batch_endianswap32_cpu(void* data, unsigned int num)
+_batch_endianswap32_cpu(void* data, size_t num)
 {
    if (num)
    {
       int32_t* p = (int32_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do
       {
@@ -898,12 +898,12 @@ _batch_endianswap32_cpu(void* data, unsigned int num)
 }
 
 void
-_batch_endianswap64_cpu(void* data, unsigned int num)
+_batch_endianswap64_cpu(void* data, size_t num)
 {
    if (num)
    {
       int64_t* p = (int64_t*)data;
-      unsigned int i = num;
+      size_t i = num;
 
       do
       {
@@ -915,13 +915,13 @@ _batch_endianswap64_cpu(void* data, unsigned int num)
 }
 
 void
-_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, unsigned int num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    if (num)
    {
       int32_ptr s = (int32_ptr)sptr;
       float smp, nsmp, h0, h1;
-      unsigned int i = num;
+      size_t i = num;
 
       h0 = hist[0];
       h1 = hist[1];
@@ -946,13 +946,13 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, unsigned int num, float
 }
 
 void
-_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, unsigned int num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    if (num)
    {
       float32_ptr s = (float32_ptr)sptr;
       float smp, nsmp, h0, h1;
-      unsigned int i = num;
+      size_t i = num;
 
       h0 = hist[0];
       h1 = hist[1];
@@ -994,12 +994,12 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, unsigned int 
  * Note: smax is only used in the *Loop mixing functions
  */
 static inline void
-_aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
    int32_ptr d = dptr;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1017,12 +1017,12 @@ _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin,
    {
       do
       {
-         int step;
+         size_t step;
 
          *d++ = samp + (int32_t)(dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          s += step-1;
@@ -1034,7 +1034,7 @@ _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin,
 }
 
 static inline void
-_aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
@@ -1043,7 +1043,7 @@ _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dm
    {
       int32_ptr s = (int32_ptr)sptr;
       int32_ptr d = dptr;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -1073,12 +1073,12 @@ _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dm
 }
 
 static inline void
-_aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
    int32_ptr d = dptr;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1117,12 +1117,12 @@ _aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmi
 }
 
 static inline void
-_aaxBufResampleCubic_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    int32_ptr s = (int32_ptr)sptr;
    int32_ptr d = dptr;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1185,7 +1185,7 @@ _aaxBufResampleCubic_cpu(int32_ptr dptr, const_int32_ptr sptr, unsigned int dmin
 }
 
 void
-_batch_resample_cpu(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 
@@ -1204,12 +1204,12 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned 
 
 
 static inline void
-_aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1227,12 +1227,12 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned
    {
       do
       {
-         int step;
+         size_t step;
 
          *d++ = samp + (dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          s += step-1;
@@ -1244,7 +1244,7 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned
 }
 
 static inline void
-_aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
@@ -1253,7 +1253,7 @@ _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsig
    {
       float32_ptr s = (float32_ptr)sptr;
       float32_ptr d = dptr;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -1283,12 +1283,12 @@ _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsig
 }
 
 static inline void
-_aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1325,12 +1325,12 @@ _aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsign
 }
 
 static inline void
-_aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -1394,7 +1394,7 @@ _aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, unsigne
 }
 
 void
-_batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 

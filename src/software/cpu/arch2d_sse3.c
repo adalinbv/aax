@@ -19,9 +19,9 @@
 #ifdef __SSE3__
 
 void
-_batch_imul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
+_batch_imul_value_sse3(void* data, unsigned bps, size_t num, float f)
 {
-   unsigned int i = num;
+   size_t i = num;
 
    if (num)
    {
@@ -61,9 +61,9 @@ _batch_imul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
 }
 
 void
-_batch_fmul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
+_batch_fmul_value_sse3(void* data, unsigned bps, size_t num, float f)
 {
-   unsigned int i = num;
+   size_t i = num;
 
    if (num)
    {
@@ -95,12 +95,12 @@ _batch_fmul_value_sse3(void* data, unsigned bps, unsigned int num, float f)
 
 #if !RB_FLOAT_DATA
 static inline void
-_aaxBufResampleSkip_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -119,12 +119,12 @@ _aaxBufResampleSkip_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
    {
       do
       {
-         int step;
+         size_t step;
 
          *dptr++ = samp + (int32_t)(dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          sptr += step-1;
@@ -136,7 +136,7 @@ _aaxBufResampleSkip_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsi
 }
 
 static inline void
-_aaxBufResampleNearest_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
@@ -145,7 +145,7 @@ _aaxBufResampleNearest_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
    {
       int32_ptr sptr = (int32_ptr)s;
       int32_ptr dptr = d;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -175,12 +175,12 @@ _aaxBufResampleNearest_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, u
 }
 
 static inline void
-_aaxBufResampleLinear_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
    int32_t samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -215,7 +215,7 @@ _aaxBufResampleLinear_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, un
 
 /** NOTE: instruction sequence is important for execution speed! */
 static inline void
-_aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
    const __m128 y1m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
@@ -227,7 +227,7 @@ _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
    __m128i xmm0i;
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
-   unsigned int i;
+   size_t i;
    float smu2;
 
    assert(s != 0);
@@ -316,7 +316,7 @@ _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, uns
 }
 
 void
-_batch_resample_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 
@@ -335,12 +335,12 @@ _batch_resample_sse3(int32_ptr d, const_int32_ptr s, unsigned int dmin, unsigned
 #else
 
 static inline void
-_aaxBufResampleSkip_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -359,12 +359,12 @@ _aaxBufResampleSkip_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int 
    {
       do
       {
-         int step;
+         size_t step;
 
          *dptr++ = samp + (dsamp * smu);
 
          smu += freq_factor;
-         step = (int)floorf(smu);
+         step = (size_t)floorf(smu);
 
          smu -= step;
          sptr += step-1;
@@ -376,7 +376,7 @@ _aaxBufResampleSkip_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int 
 }
 
 static inline void
-_aaxBufResampleNearest_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
@@ -385,7 +385,7 @@ _aaxBufResampleNearest_float_sse3(float32_ptr d, const_float32_ptr s, unsigned i
    {
       float32_ptr sptr = (float32_ptr)s;
       float32_ptr dptr = d;
-      unsigned int i;
+      size_t i;
 
       assert(s != 0);
       assert(d != 0);
@@ -415,12 +415,12 @@ _aaxBufResampleNearest_float_sse3(float32_ptr d, const_float32_ptr s, unsigned i
 }
 
 static inline void
-_aaxBufResampleLinear_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    float samp, dsamp;
-   unsigned int i;
+   size_t i;
 
    assert(s != 0);
    assert(d != 0);
@@ -453,7 +453,7 @@ _aaxBufResampleLinear_float_sse3(float32_ptr d, const_float32_ptr s, unsigned in
 }
 
 static inline void
-_aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
    const __m128 y1m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
@@ -464,7 +464,7 @@ _aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int
    __m128 xtmp, xtmp1, xtmp2;
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
-   unsigned int i;
+   size_t i;
    float smu2;
 
    assert(s != 0);
@@ -554,7 +554,7 @@ _aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int
 }
 
 void
-_batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, unsigned int dmin, unsigned int dmax, float smu, float fact)
+_batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
    if (fact < CUBIC_TRESHOLD) {
