@@ -32,7 +32,7 @@
  * (between lfo->min and lfo->max).
  */
 float
-_aaxRingBufferLFOGetFixedValue(void* data, void *env, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetFixedValue(void* data, void *env, const void *ptr, unsigned track, size_t end)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
@@ -46,7 +46,7 @@ _aaxRingBufferLFOGetFixedValue(void* data, void *env, const void *ptr, unsigned 
 }
 
 float
-_aaxRingBufferLFOGetTriangle(void* data, void *env, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetTriangle(void* data, void *env, const void *ptr, unsigned track, size_t end)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
@@ -78,7 +78,7 @@ _fast_sin1(float x)
 }
 
 float
-_aaxRingBufferLFOGetSine(void* data, void *env, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetSine(void* data, void *env, const void *ptr, unsigned track, size_t end)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
@@ -105,7 +105,7 @@ _aaxRingBufferLFOGetSine(void* data, void *env, const void *ptr, unsigned track,
 }
 
 float
-_aaxRingBufferLFOGetSquare(void* data, void *env, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetSquare(void* data, void *env, const void *ptr, unsigned track, size_t end)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
@@ -130,7 +130,7 @@ _aaxRingBufferLFOGetSquare(void* data, void *env, const void *ptr, unsigned trac
 
 
 float
-_aaxRingBufferLFOGetSawtooth(void* data, void *emv, const void *ptr, unsigned track, unsigned int end)
+_aaxRingBufferLFOGetSawtooth(void* data, void *emv, const void *ptr, unsigned track, size_t end)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    float rv = 1.0f;
@@ -154,7 +154,7 @@ _aaxRingBufferLFOGetSawtooth(void* data, void *emv, const void *ptr, unsigned tr
 }
 
 float
-_aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, unsigned int num)
+_aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, size_t num)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    static const float div = 1.0f / (float)0x000fffff;
@@ -167,7 +167,7 @@ _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned 
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          MIX_T *sptr = (MIX_T *)ptr;
-         unsigned int i = num;
+         size_t i = num;
          float lvl, fact;
          double rms, val;
 
@@ -195,7 +195,7 @@ _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned 
 }
 
 float
-_aaxRingBufferLFOGetCompressor(void* data, void *env, const void *ptr, unsigned track, unsigned int num)
+_aaxRingBufferLFOGetCompressor(void* data, void *env, const void *ptr, unsigned track, size_t num)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    static const float div = 1.0f / (float)0x007fffff;
@@ -215,7 +215,7 @@ _aaxRingBufferLFOGetCompressor(void* data, void *env, const void *ptr, unsigned 
       {
          MIX_T *sptr = (MIX_T *)ptr;
          float lvl, fact = 1.0f;
-         unsigned int i = num;
+         size_t i = num;
          double rms, val;
 
 //       _batch_get_average_rms(ptr, num, &rms, &peak);

@@ -59,7 +59,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       MIX_T *scratch0 = scratch[SCRATCH_BUFFER0];
       MIX_T *scratch1 = scratch[SCRATCH_BUFFER1];
       void* distortion_effect = NULL;
-      unsigned int no_samples, ddesamps = 0;
+      size_t no_samples, ddesamps = 0;
       unsigned int track, no_tracks;
       MIX_T **tracks;
       void *env;
@@ -76,7 +76,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
           * final mixer to accomodate for reverb
           */
          // ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
-         ddesamps = (unsigned int)ceilf(f * DELAY_EFFECTS_TIME);
+         ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
       }
 
       env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
@@ -130,8 +130,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    _sensor_t *sensor = (_sensor_t*)s;
    _aaxRingBufferReverbData *reverb;
    unsigned int track, no_tracks;
-   unsigned int track_len_bytes;
-   unsigned int no_samples;
+   size_t track_len_bytes;
+   size_t no_samples;
    char parametric, graphic;
    MIX_T **tracks, **scratch;
 // void *ptr = 0;
@@ -172,7 +172,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    {
       if (reverb)
       {
-         unsigned int ds = rb->get_parami(rb, RB_DDE_SAMPLES);
+         size_t ds = rb->get_parami(rb, RB_DDE_SAMPLES);
 
          /* level out previous filters and effects */
          _aaxRingBufferEffectReflections(rbd, tracks[track],
@@ -338,15 +338,15 @@ _aaxSoftwareMixerThread(void* config)
    return handle;
 }
 
-unsigned int
+size_t
 _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 {
    _intBuffers *hf = (_intBuffers*)frames;
-   unsigned int num = 0;
+   size_t num = 0;
 
    if (hf)
    {
-      unsigned int i;
+      size_t i;
 
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
@@ -359,7 +359,7 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 
             if TEST_FOR_TRUE(fmixer->capturing)
             {
-               unsigned int nbuf;
+               size_t nbuf;
                nbuf = _intBufGetNumNoLock(fmixer->play_ringbuffers, _AAX_RINGBUFFER);
                if (nbuf < 2 && frame->thread.condition)  {
                   _aaxConditionSignal(frame->thread.condition);
@@ -378,11 +378,11 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 
 /*-------------------------------------------------------------------------- */
 
-unsigned int
+size_t
 _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 {
    _aaxRingBuffer *dest_rb = (_aaxRingBuffer *)dest;
-   unsigned int i, num = 0;
+   size_t i, num = 0;
    if (hf)
    {
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
@@ -401,8 +401,8 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
              */
             if (fmixer->thread)
             {
-//             unsigned int dt = 1.5f*1000.0f/fmixer->info->refresh_rate; // ms
-               unsigned int dt = 5000;
+//             size_t dt = 1.5f*1000.0f/fmixer->info->refresh_rate; // ms
+               size_t dt = 5000;
                int p = 0;
 
                /*
@@ -567,7 +567,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                _aaxDelayed3dProps *sdp3d, *sdp3d_m;
                _aax2dProps sp2d;
                char fprocess = AAX_TRUE;
-               unsigned int size;
+               size_t size;
                float ssv = 343.3f;
                float sdf = 1.0f;
 

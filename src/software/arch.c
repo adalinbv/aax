@@ -736,7 +736,7 @@ _aax_strdup(const_char_ptr s)
 {
    char *ret = 0;
    if (s) {
-      unsigned int len = strlen(s);
+      size_t len = strlen(s);
       ret = malloc(len+1);
       if (ret) {
          memcpy(ret, s, len+1);

@@ -22,7 +22,7 @@
 #ifdef __SSE2__
 
 #if defined(__x86_64__) || defined(_M_X64)
-# define SSE_16BUFFERS 1
+# define SSE_16BUFFERS 0
 #else
 # define SSE_16BUFFERS 0
 #endif

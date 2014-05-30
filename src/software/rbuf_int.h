@@ -204,14 +204,14 @@ void _aaxRingBufferLimiter(MIX_PTR_T, size_t*, size_t*, float, float);
 
 
 /** BUFFER */
-void _bufferMixWhiteNoise(void**, void*, unsigned int, char, int, float, float, float, unsigned char);
-void _bufferMixPinkNoise(void**, void*, unsigned int, char, int, float, float, float, float, unsigned char);
-void _bufferMixBrownianNoise(void**, void*, unsigned int, char, int, float, float, float, float, unsigned char);
-void _bufferMixSineWave(void**, float, char, unsigned int, int, float, float);
-void _bufferMixSquareWave(void**, float, char, unsigned int, int, float, float);
-void _bufferMixTriangleWave(void**, float, char, unsigned int, int, float, float);
-void _bufferMixSawtooth(void**, float, char, unsigned int, int, float, float);
-void _bufferMixImpulse(void**, float, char, unsigned int, int, float, float);
+void _bufferMixWhiteNoise(void**, void*, size_t, char, int, float, float, float, unsigned char);
+void _bufferMixPinkNoise(void**, void*, size_t, char, int, float, float, float, float, unsigned char);
+void _bufferMixBrownianNoise(void**, void*, size_t, char, int, float, float, float, float, unsigned char);
+void _bufferMixSineWave(void**, float, char, size_t, int, float, float);
+void _bufferMixSquareWave(void**, float, char, size_t, int, float, float);
+void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float);
+void _bufferMixSawtooth(void**, float, char, size_t, int, float, float);
+void _bufferMixImpulse(void**, float, char, size_t, int, float, float);
 
 /** LFO */
 float _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData*, char, float);

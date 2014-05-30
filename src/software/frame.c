@@ -391,7 +391,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
       _aaxDelayed3dProps *sfdp3d_m;
       _aaxDelayed3dProps *sfdp3d;
       _aax2dProps sfp2d;
-      unsigned int size;
+      size_t size;
       int res;
 
       size = sizeof(_aaxDelayed3dProps);
@@ -518,7 +518,7 @@ _aaxAudioFrameProcessThreadedFrame(_handle_t* handle, void *frame_rb,
    _aaxDelayed3dProps *fdp3d, *fdp3d_m;
    _aax2dProps sp2d, fp2d;
    _intBufferData *dptr;
-   unsigned int size;
+   size_t size;
    float ssv = 343.3f;
    float sdf = 1.0f;
    char dde;

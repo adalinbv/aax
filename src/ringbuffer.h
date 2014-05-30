@@ -86,7 +86,7 @@ enum _aaxRingBufferMode
 #define _MAX_ENVELOPE_STAGES		6
 #define ENVELOPE_FOLLOW_STEP_CVT(a)	_MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
 
-typedef float _aaxRingBufferLFOGetFn(void *, void*, const void*, unsigned, unsigned int);
+typedef float _aaxRingBufferLFOGetFn(void *, void*, const void*, unsigned, size_t);
 _aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSine;
 _aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSquare;
 _aaxRingBufferLFOGetFn _aaxRingBufferLFOGetTriangle;
@@ -136,7 +136,7 @@ typedef struct
 typedef struct
 {
    float gain;
-   unsigned int sample_offs[_AAX_MAX_SPEAKERS];
+   size_t sample_offs[_AAX_MAX_SPEAKERS];
 } _aaxRingBufferDelayData;
 
 typedef struct
@@ -161,9 +161,9 @@ typedef struct
    void* history_ptr;
 
    /* temporary storage, track specific. */
-   unsigned int curr_noffs[_AAX_MAX_SPEAKERS];
-   unsigned int curr_coffs[_AAX_MAX_SPEAKERS];
-   unsigned int curr_step[_AAX_MAX_SPEAKERS];
+   size_t curr_noffs[_AAX_MAX_SPEAKERS];
+   size_t curr_coffs[_AAX_MAX_SPEAKERS];
+   size_t curr_step[_AAX_MAX_SPEAKERS];
 
    char loopback;
 } _aaxRingBufferDelayEffectData;

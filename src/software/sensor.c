@@ -28,7 +28,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                    _aax2dProps *props2d, int dest_track)
 {
    _intBuffers *hd = (_intBuffers *)devices;
-   unsigned int i, num;
+   size_t i, num;
 
    assert(devices);
 
@@ -128,7 +128,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          if (sptr_rb)
          {
             _aaxRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
-            unsigned int rv = 0;
+            size_t rv = 0;
 
             do
             {
@@ -210,7 +210,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
    {
       unsigned int track, no_tracks = drb->get_parami(drb, RB_NO_TRACKS);
       unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
-      unsigned int ds = drb->get_parami(drb, RB_DDE_SAMPLES);
+      size_t ds = drb->get_parami(drb, RB_DDE_SAMPLES);
       float dt = GMATH_E1 * (*delay);
       size_t frames, nframes;
       int res, offs;
@@ -308,7 +308,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          {
             MIX_T *ptr = ntptr[track];
             MIX_T *optr = otptr[track];
-            unsigned int j;
+            size_t j;
 
             /* single channel requested, copy to the other channels */
             if ((dest_track != AAX_TRACK_ALL) && (track != dest_track)) {

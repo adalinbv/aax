@@ -51,7 +51,7 @@ _aaxRingBuffer *
 _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
 {
    _aaxRingBuffer *rb;
-   unsigned int size;
+   size_t size;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -131,7 +131,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          }
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
-         rbd->dde_samples = (unsigned int)ddesamps;
+         rbd->dde_samples = (size_t)ddesamps;
          rbd->scratch = NULL;
 
          _aaxRingBufferInitFunctions(rb);
@@ -199,7 +199,8 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
    if (!rbd->track)
    {
-      unsigned int tracks, no_samples, tracksize, dde_bytes;
+      unsigned int tracks;
+      size_t no_samples, tracksize, dde_bytes;
       char *ptr, *ptr2;
       char bps;
 
@@ -225,7 +226,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 #endif
       if (ptr)
       {
-         unsigned int i;
+         size_t i;
 
          rbd->track_len_bytes = no_samples * bps;
          rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
@@ -263,7 +264,7 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 
    if (add_scratchbuf && rbd->scratch == NULL)
    {
-      unsigned int i, tracks, no_samples, tracksize, dde_bytes;
+      size_t i, tracks, no_samples, tracksize, dde_bytes;
       char *ptr, *ptr2;
       char bps;
 
@@ -389,7 +390,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 
       if (copy || dde)
       {
-         unsigned int t, ds, tracksize;
+         size_t t, ds, tracksize;
 
          tracksize = copy ? srb->get_parami(srb, RB_NO_SAMPLES) : 0;
          tracksize *= srb->get_parami(srb, RB_BYTES_SAMPLE);
@@ -434,7 +435,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
       {
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int track, no_tracks = rbd->no_tracks;
-         unsigned int no_samples = rbd->no_samples;
+         size_t no_samples = rbd->no_samples;
          void **tracks = rbd->track;
          for (track=0; track<no_tracks; track++) {
             _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
@@ -470,7 +471,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
    {
       _aaxRingBufferSample *rbd = rbi->sample;
       unsigned int track, no_tracks = rbd->no_tracks;
-      unsigned int no_samples = rbd->no_samples;
+      size_t no_samples = rbd->no_samples;
       void **tracks = rbd->track;
       for (track=0; track<no_tracks; track++) {
          _batch_cvtps24_24(tracks[track], tracks[track], no_samples);
@@ -624,7 +625,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
    case RB_FREQUENCY:
       rbd->frequency_hz = fval;
       rbd->duration_sec = (float)rbd->no_samples / rbd->frequency_hz;
-      rbd->dde_samples = (unsigned int)ceilf(rbd->dde_sec * rbd->frequency_hz);
+      rbd->dde_samples = (size_t)ceilf(rbd->dde_sec * rbd->frequency_hz);
       break;
    case RB_DURATION_SEC:
    {
@@ -733,7 +734,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       {
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int track, no_tracks = rbd->no_tracks;
-         unsigned int no_samples = rbd->no_samples;
+         size_t no_samples = rbd->no_samples;
          void **tracks = rbd->track;
          if (tracks)
          {
@@ -935,7 +936,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   unsigned int rv = -1;
+   size_t rv = -1;
 
    assert(rb != NULL);
 
@@ -972,10 +973,10 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbd->format;
       break;
    case RB_LOOPPOINT_START:
-      rv = (unsigned int)(rbd->loop_start_sec * rbd->frequency_hz);
+      rv = (size_t)(rbd->loop_start_sec * rbd->frequency_hz);
       break;
    case RB_LOOPPOINT_END:
-      rv = (unsigned int)(rbd->loop_end_sec * rbd->frequency_hz);
+      rv = (size_t)(rbd->loop_end_sec * rbd->frequency_hz);
       break;
    case RB_OFFSET_SAMPLES:
       rv = rbi->curr_sample;
@@ -1047,8 +1048,9 @@ int
 _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, enum aaxWaveformType type, float f, float ratio, float phase)
 {
    _aaxRingBufferData *rbi;
-   unsigned int tracks, no_samples;
+   unsigned int tracks;
    unsigned char bps;
+   size_t no_samples;
    int rv = AAX_FALSE;
    void *data;
 
@@ -1092,9 +1094,10 @@ int
 _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float f, float rate, float ratio, float dc, char skip)
 {
    _aaxRingBufferData *rbi;
-   unsigned int tracks, no_samples;
    void *data, *scratch;
+   unsigned int tracks;
    unsigned char bps;
+   size_t no_samples;
    int rv = AAX_FALSE;
    float pitch;
 
@@ -1139,7 +1142,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
-   unsigned int t, tracks;
+   size_t t, tracks;
    unsigned char bps;
    MIX_T *data;
 
@@ -1165,7 +1168,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBuff
    _aaxRingBufferData *srbi, *drbi;
    _aaxRingBufferSample *drbd;
    unsigned char track, tracks;
-   unsigned int dno_samples;
+   size_t dno_samples;
    float g = 1.0f;
 
    dno_samples =  drb->get_parami(drb, RB_NO_SAMPLES);
@@ -1229,7 +1232,7 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb
 
    if (srbd->bytes_sample == drbd->bytes_sample)
    {
-      unsigned int t, tracks, ds, bps;
+      size_t t, tracks, ds, bps;
 
       ds = srbd->dde_samples;
       if (ds > drbd->dde_samples) {
@@ -1264,8 +1267,8 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int track, no_tracks = rbd->no_tracks;
-   unsigned int no_samples = rbd->no_samples;
-   unsigned int maxpeak, maxrms;
+   size_t no_samples = rbd->no_samples;
+   size_t maxpeak, maxrms;
    size_t peak, rms;
    float dt, rms_rr, avg;
    MIX_T **tracks;

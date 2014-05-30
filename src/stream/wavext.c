@@ -336,7 +336,7 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize)
             size_t size = *bufsize;
             size_t avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
             size_t step;
-            size_t res;
+            int res;
 
             avail =  _MIN(size, avail);
             if (!avail) return NULL;
@@ -845,7 +845,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
    }
    else if (curr == 0x5453494c)		/* LIST */
    {				// http://www.daubnet.com/en/file-format-riff
-      size_t size = bufsize;
+      ssize_t size = bufsize;
 
       *step = 0;
       if (!init_tag)
