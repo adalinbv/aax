@@ -216,24 +216,24 @@ ELSE(MSVC)
     ENDIF(NOT MINGW)
 
     IF(X86_64)
-message("X86_64")
-        SET(C_FLAGS "${C_FLAGS} -m64 -msse2 -mfpmath=sse")
-#       SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
-#                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
-#       )
-#       SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
-#                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
-#       )
-#       SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
-#                  PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
-#       )
-        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse3"
+        message("Build environment: X86_64")
+        SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse")
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
+                   PROPERTY COMPILE_FLAGS "-msse2"
         )
-        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-msse3"
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND 
+                   PROPERTY COMPILE_FLAGS "-msse2"
         )
-        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND 
+                  PROPERTY COMPILE_FLAGS "-msse2"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND 
+                   PROPERTY COMPILE_FLAGS "-msse3"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND 
+                   PROPERTY COMPILE_FLAGS "-msse3"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse4.c APPEND 
                      PROPERTY COMPILE_FLAGS "-msse4"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
@@ -246,7 +246,7 @@ message("X86_64")
                   PROPERTY COMPILE_FLAGS "-mfma4 -march=corei7-avx"
         )
     ELSEIF(X86)
-message("X86")
+        message("Build environment: X86")
         SET(C_FLAGS "${C_FLAGS} -march=i686")
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
@@ -267,16 +267,16 @@ message("X86")
                      PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
         )
     ELSEIF(ARM)
-message("ARM")
-#        SET(C_FLAGS "${C_FLAGS} -march=arm")
+        message("Build environment: ARM")
+#       SET(C_FLAGS "${C_FLAGS} -march=arm")
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND 
                      PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfp"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND 
                      PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfp"
         )
-ELSE()
-message("Other: ${CMAKE_SYSTEM_PROCESSOR}")
+    ELSE()
+        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
     ENDIF()
 
     IF ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
@@ -285,13 +285,15 @@ message("Other: ${CMAKE_SYSTEM_PROCESSOR}")
           FORCE)
     ENDIF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
-    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops -fomit-frame-pointer" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops" CACHE STRING
         "Flags used by al build types."
         FORCE)
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -O2 -D_DEBUG" CACHE STRING
+
+    # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
+    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -Os -DNDEBUG" CACHE STRING
         "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -DNDEBUG" CACHE STRING
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
         "Flags used by the compiler during release minsize builds."
         FORCE)
     SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
@@ -300,6 +302,10 @@ message("Other: ${CMAKE_SYSTEM_PROCESSOR}")
     SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
         "Flags used by the compiler during debug builds."
         FORCE)
+
+    message("Build type: ${CMAKE_BUILD_TYPE}")
+    message("Compiler flags: ${C_FLAGS}")
+    message("Linker flags: ${CMAKE_SHARED_LINKER_FLAGS}")
 ENDIF(MSVC)
 
 # Check for the dlopen API (for alGetProcAddress)

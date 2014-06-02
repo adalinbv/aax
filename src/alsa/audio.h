@@ -242,7 +242,6 @@ typedef int (*snd_pcm_drop_proc)(snd_pcm_t *);
 
 typedef int (*snd_pcm_info_malloc_proc)(snd_pcm_info_t **);
 typedef void (*snd_pcm_info_free_proc)(snd_pcm_info_t *);
-typedef size_t(*snd_pcm_info_sizeof_proc)(void);
 typedef int (*snd_pcm_info_proc)(snd_pcm_t *, snd_pcm_info_t *);
 typedef const char *(*snd_pcm_info_get_subdevice_name_proc)(const snd_pcm_info_t *);
 typedef unsigned int (*snd_pcm_info_get_subdevice_proc)(const snd_pcm_info_t *);
@@ -264,7 +263,6 @@ typedef int (*snd_device_name_free_hint_proc)(void**);
 
 typedef int (*snd_pcm_hw_params_malloc_proc)(snd_pcm_hw_params_t **);
 typedef void (*snd_pcm_hw_params_free_proc)(snd_pcm_hw_params_t *);
-typedef size_t (*snd_pcm_hw_params_sizeof_proc)(void);
 typedef int (*snd_pcm_hw_params_proc)(snd_pcm_t *, snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_any_proc)(snd_pcm_t *, snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_set_access_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_access_t);
@@ -285,7 +283,8 @@ typedef int (*snd_pcm_hw_params_can_pause_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_can_resume_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_can_drain_proc)(const snd_pcm_hw_params_t *);
 
-typedef size_t (*snd_pcm_sw_params_sizeof_proc)(void);
+typedef int (*snd_pcm_sw_params_malloc_proc)(snd_pcm_sw_params_t **);
+typedef void (*snd_pcm_sw_params_free_proc)(snd_pcm_sw_params_t *);
 typedef int (*snd_pcm_sw_params_current_proc)(snd_pcm_t *, snd_pcm_sw_params_t *);
 typedef int (*snd_pcm_sw_params_proc)(snd_pcm_t *, snd_pcm_sw_params_t *);
 typedef int (*snd_pcm_sw_params_set_avail_min_proc)(snd_pcm_t *, snd_pcm_sw_params_t *, snd_pcm_uframes_t);
@@ -338,8 +337,6 @@ typedef int (*snd_ctl_open_proc)(snd_ctl_t **, const char *, int);
 typedef int (*snd_ctl_close_proc)(snd_ctl_t *);
 typedef int (*snd_ctl_pcm_info_proc)(snd_ctl_t *, snd_pcm_info_t *);
 typedef void (*snd_ctl_elem_info_clear_proc)(snd_ctl_elem_info_t *);
-typedef size_t (*snd_ctl_elem_info_sizeof_proc)(void);
-typedef size_t (*snd_ctl_elem_value_sizeof_proc)(void);
 typedef unsigned int (*snd_ctl_elem_info_get_count_proc)(const snd_ctl_elem_info_t *);
 typedef int (*snd_ctl_pcm_next_device_proc)(snd_ctl_t *, int *);
 typedef int (*snd_ctl_elem_list_malloc_proc)(snd_ctl_elem_list_t **);
@@ -350,7 +347,6 @@ typedef void (*snd_ctl_elem_value_set_name_proc)(snd_ctl_elem_value_t *, const c
 typedef void (*snd_ctl_elem_value_set_index_proc)(snd_ctl_elem_value_t *, unsigned int);
 typedef void (*snd_ctl_elem_value_set_integer_proc)(snd_ctl_elem_value_t *, unsigned int, long);
 typedef int (*snd_ctl_elem_value_get_integer_proc)(const snd_ctl_elem_value_t *, unsigned int);
-typedef size_t (*snd_ctl_elem_id_sizeof_proc)(void);
 typedef void (*snd_ctl_elem_id_set_name_proc)(snd_ctl_elem_id_t *, const char *);
 typedef void (*snd_ctl_elem_id_set_interface_proc)(snd_ctl_elem_id_t *, snd_ctl_elem_iface_t);
 
