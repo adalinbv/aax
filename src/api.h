@@ -34,7 +34,7 @@ extern "C" {
 #define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
 
 #ifndef NDEBUG
-# define THREADED_FRAMES		AAX_FALSE
+# define THREADED_FRAMES		AAX_TRUE
 #else
 # define THREADED_FRAMES		AAX_FALSE
 #endif

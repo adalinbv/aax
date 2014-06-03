@@ -90,14 +90,13 @@ extern const int8_t _linear2mulaw_table[256];
  */
 void
 _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
-                 size_t src_pos, size_t loop_start,
-                 size_t sno_samples, size_t ddesamps,
-                 size_t dno_samples, unsigned char sbps, char src_loops)
+                 size_t src_pos, size_t loop_start, size_t sno_samples,
+                 size_t ddesamps, size_t dno_samples, unsigned char sbps,
+                 char src_loops)
 {
    static const int dbps = sizeof(int32_t);
    const size_t sbuflen = sno_samples - loop_start;
-   const size_t dbuf_len = dno_samples;
-   size_t dbuflen, new_len;
+   size_t new_len, dbuflen = dno_samples;
    int32_t *dptr = d;
    char *sptr;
 
@@ -105,7 +104,6 @@ _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
     * calculate the actual starting position in the src and dst buffer
     * and fill dde samples of the source buffer
     */
-   dbuflen = dbuf_len + ddesamps;
    if (src_loops)
    {
       if(src_pos > loop_start) 

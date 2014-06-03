@@ -213,7 +213,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       size_t ds = drb->get_parami(drb, RB_DDE_SAMPLES);
       float dt = GMATH_E1 * (*delay);
       size_t frames, nframes;
-      int res, offs;
+      ssize_t res, offs;
       void **sbuf;
 
       if (agc_rr > 0.0f)

@@ -175,7 +175,7 @@ _aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tra
    return AAX_TRUE;
 }
 
-static int
+static size_t
 _aaxNoneDriverPlayback(const void *id, void *s, float pitch, float volume)
 {
    return 0;
@@ -358,7 +358,7 @@ static char *
 _aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
-   int len = _MIN(strlen(str)+1, 256);
+   size_t len = _MIN(strlen(str)+1, 256);
 
    memcpy(_errstr, str, len);
    _errstr[255] = '\0';  /* always null terminated */

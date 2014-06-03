@@ -144,7 +144,7 @@ typedef struct
    void **scratch;
    int16_t **data;
 #ifndef NDEBUG
-   unsigned int buf_len;
+   size_t buf_len;
 #endif
 
 } _driver_t;
@@ -585,7 +585,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
 
    if (handle->port[0].port == NULL)   /* Only if port not initialized */
     {
-      unsigned int queuesize;
+      size_t queuesize;
 
       handle->port[0].no_channels = channels/handle->noPorts;
       if (handle->port[0].no_channels <= 1) {
@@ -649,12 +649,12 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
    return AAX_TRUE;
 }
 
-static int
-_aaxDMediaDriverCapture(const void *id, void **data, int *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+static size_t
+_aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int nframes = *frames;
-   int offs = *offset;
+   size_t nframes = *frames;
+   ssize_t offs = *offset;
    int tracks;
 
    *offset = 0;
@@ -686,7 +686,7 @@ _aaxDMediaDriverCapture(const void *id, void **data, int *offset, size_t *frames
    return AAX_TRUE;
 }
 
-static int
+static size_t
 _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
 #if MAX_PORTS > 1
@@ -694,8 +694,8 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
 #endif
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   unsigned int no_tracks, no_samples;
-   unsigned int offs, outbuf_size;
+   ssize_t offs, outbuf_size, no_samples;
+   unsigned int no_tracks;
    const int32_t **sbuf;
    int16_t *data;
 
@@ -925,7 +925,7 @@ static char *
 _aaxDMediaDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
-   int len = _MIN(strlen(str)+1, 256);
+   size_t len = _MIN(strlen(str)+1, 256);
 
    memcpy(_errstr, str, len);
    _errstr[255] = '\0';  /* always null terminated */

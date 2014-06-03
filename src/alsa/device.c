@@ -125,13 +125,13 @@ typedef struct
     float frequency_hz;
 
     float padding;		/* for sensor clock drift correction   */
-    unsigned int threshold;	/* sensor buffer threshold for padding */
+    size_t threshold;		/* sensor buffer threshold for padding */
 
     unsigned int no_channels;
     unsigned int no_periods;
-    unsigned int period_frames;
-    unsigned int max_frames;
-    unsigned int buf_len;
+    size_t period_frames;
+    size_t max_frames;
+    size_t buf_len;
     int mode;
 
     char pause;
@@ -262,7 +262,7 @@ static int _alsa_pcm_open(_driver_t*, int);
 static int _alsa_pcm_close(_driver_t*);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
-static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, int, snd_pcm_sframes_t, unsigned int, float);
+static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
 static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
@@ -1085,17 +1085,18 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 }
 #undef TRUN
 
-static int
-_aaxALSADriverCapture(const void *id, void **data, int *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+static size_t
+_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int tracks, no_frames;
-   unsigned int frame_size;
+   unsigned int tracks, frame_size;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   int res, rv = AAX_FALSE;
-   int offs = *offset;
-   int init_offs = offs;
+   size_t offs = *offset;
+   size_t init_offs = offs;
+   size_t no_frames;
+   size_t rv = 0;
+   int res;
 
    if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
@@ -1138,7 +1139,7 @@ _aaxALSADriverCapture(const void *id, void **data, int *offset, size_t *req_fram
    *req_frames = 0;
    if (no_frames && avail)
    {
-      unsigned int corr, fetch = no_frames;
+      size_t corr, fetch = no_frames;
       unsigned int chunk, try = 0;
       snd_pcm_uframes_t size;
       int32_t **sbuf;
@@ -1418,7 +1419,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
       if (!res && hints)
       {
          void **lst = hints;
-         int len = 1024;
+         size_t len = 1024;
          char *ptr;
 
          ptr = (char *)&names[m];
@@ -1438,7 +1439,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
-                     int slen;
+                     size_t slen;
 
                      if (!desc) desc = name;
 
@@ -1488,7 +1489,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    if (!rv)
    {
       char devlist[1024] = "\0\0";
-      int len = 1024;
+      size_t len = 1024;
       void **hints;
       int res;
 
@@ -1529,7 +1530,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      if (iface) *iface = 0;
                      if (iface && !strcasecmp(devname, desc))
                      {
-                        int slen;
+                        size_t slen;
 
                         if (m || strcmp(name, "front:"))
                         {
@@ -1588,7 +1589,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
 // _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
    char rv[1024]  = "default";
-   int len = 1024;
+   size_t len = 1024;
    void **hints;
    int res;
 
@@ -1674,7 +1675,7 @@ static char *
 _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
-   int len = _MIN(strlen(str)+1, 256);
+   size_t len = _MIN(strlen(str)+1, 256);
 
    memcpy(_errstr, str, len);
    _errstr[255] = '\0';  /* always null terminated */
@@ -1835,7 +1836,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                   }
                   else if (ifname_prefix[i] && !STRCMP(devname, name))
                   {
-                     int dlen = strlen(name)+1;
+                     size_t dlen = strlen(name)+1;
                      if (vmix)
                      {
                          dlen += strlen("plug:''");
@@ -1883,7 +1884,7 @@ detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char
                            if (!strcasecmp(ifname, iface) ||
                                (description && !strcasecmp(ifname, description)))
                            {
-                              int dlen = strlen(name)+1;
+                              size_t dlen = strlen(name)+1;
                               dlen += strlen(dev_prefix[m ? tracks_2 : 0]);
                               if (vmix)
                               {
@@ -1954,7 +1955,8 @@ detect_devnum(const char *devname, int m)
       if (!res && hints)
       {
          void **lst = hints;
-         int len, ctr = 0;
+         size_t len;
+         int ctr = 0;
          char *ptr;
 
          ptr = strstr(devname, ": ");
@@ -2203,7 +2205,7 @@ _alsa_get_volume_range(_driver_t *handle)
 }
 
 static float
-_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, int offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
+_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
@@ -2355,18 +2357,18 @@ _xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
 #endif
 
 
-static int
+static size_t
 _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, offs, t, chunk;
+   unsigned int no_tracks, t, chunk;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
-   int rv = 0;
+   size_t offs, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2456,7 +2458,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 }
 
 
-static int
+static size_t
 _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -2466,9 +2468,8 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
    snd_pcm_sframes_t res;
-   size_t offs;
    const int32_t **sbuf;
-   int rv = 0;
+   size_t offs, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2554,19 +2555,21 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
 }
 
 
-static int
+static size_t
 _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
    char **data[_AAX_MAX_SPEAKERS];
-   unsigned int no_tracks, offs, chunk;
-   unsigned int t, outbuf_size, hw_bps;
+   unsigned int t, no_tracks;
+   unsigned int hw_bps, chunk;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
+   snd_pcm_sframes_t res;
    const int32_t **sbuf;
-   int res, rv = 0;
+   ssize_t outbuf_size;
+   size_t offs, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2681,19 +2684,20 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 }
 
 
-static int
+static size_t
 _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, offs, chunk;
-   unsigned int outbuf_size, hw_bps;
+   unsigned int no_tracks, chunk, hw_bps;
    snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
+   snd_pcm_sframes_t res;
    const int32_t **sbuf;
+   size_t outbuf_size;
+   size_t offs, rv = 0;
    char *data;
-   int res, rv = 0;
     
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2790,12 +2794,12 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    return rv;
 }
 
-static int
+static size_t
 _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_sframes_t avail;
-   int res;
+   size_t res;
 
    res = handle->play(id, src, pitch, gain);
    if (psnd_pcm_state(handle->pcm) == SND_PCM_STATE_PREPARED) {

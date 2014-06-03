@@ -511,7 +511,7 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
             if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
             {
                for (j=0; j<snum; j++) {
-                  reverb->delay[i].sample_offs[j] = (int)(delays[i] * fs);
+                  reverb->delay[i].sample_offs[j] = (ssize_t)(delays[i] * fs);
                }
                reverb->delay[i].gain = gains[i];
             }

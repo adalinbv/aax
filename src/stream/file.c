@@ -243,8 +243,8 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
          const char *home = userHomeDir();
          if (home)
          {
-            int hlen = strlen(home);
-            int slen = strlen(s);
+            size_t hlen = strlen(home);
+            size_t slen = strlen(s);
             char *ptr;
 
             ptr = realloc(s, slen+hlen);
@@ -520,7 +520,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
    return rv;
 }
 
-static int
+static size_t
 _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;  
@@ -529,7 +529,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
    unsigned int rb_bps, file_bps, file_tracks;
    int32_t** sbuf;
    char *scratch;
-   int res;
+   size_t res;
 
    assert(rb);
    assert(id != 0);
@@ -577,15 +577,15 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
    _aaxMutexUnLock(handle->thread.mutex);
    _aaxConditionSignal(handle->thread.condition);
 
-   return (res >= 0) ? (res-res) : INT_MAX; // (res - no_samples);
+   return (res >= 0) ? (res-res) : -1; // (res - no_samples);
 }
 
-static int
-_aaxFileDriverCapture(const void *id, void **tracks, int *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+static size_t
+_aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   int offs = *offset;
-   int bytes = 0;
+   ssize_t offs = *offset;
+   size_t bytes = 0;
 
    assert(*frames);
 
@@ -598,7 +598,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int *offset, size_t *frames
       unsigned int frame_bits = file_tracks*file_bits;
       int32_t **sbuf = (int32_t**)tracks;
       size_t no_samples, bufsize;
-      int res, samples;
+      ssize_t res, samples;
       void *data;
 
       no_samples = *frames;
@@ -646,7 +646,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, int *offset, size_t *frames
 
             if (no_samples)
             {
-               int ret;
+               ssize_t ret;
 
                if (!file_block)
                {
@@ -801,7 +801,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
                if (type->detect(mode))
                {
                   char *ifs = type->interfaces(mode);
-                  unsigned int len = strlen(ifs);
+                  size_t len = strlen(ifs);
                   if (ifs && len)
                   {
                      snprintf(ptr, buflen, "%s ", ifs);
@@ -883,7 +883,8 @@ static void*
 _aaxFileDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   int bits, avail;
+   ssize_t avail;
+   int bits;
 
    _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
@@ -892,7 +893,7 @@ _aaxFileDriverWriteThread(void *id)
    do
    {
       size_t usize;
-      int buffer_avail;
+      size_t buffer_avail;
       char *data;
 
       _aaxConditionWait(handle->thread.condition, handle->thread.mutex);
@@ -923,7 +924,7 @@ _aaxFileDriverWriteThread(void *id)
          if (handle->bufpos >= PERIOD_SIZE)
          {
             size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
-            int res;
+            ssize_t res;
 
             res = write(handle->fd, handle->buf, wsize);
             if (res > 0)
@@ -978,7 +979,7 @@ _aaxFileDriverReadThread(void *id)
    do
    {
       size_t size = IOBUF_SIZE - handle->bufpos;
-      int res = read(handle->fd, handle->buf+handle->bufpos, size);
+      ssize_t res = read(handle->fd, handle->buf+handle->bufpos, size);
       if (res < 0) break;
 
       handle->bufpos += res;
@@ -1004,18 +1005,18 @@ _aaxFileDriverReadThread(void *id)
 #include <fcntl.h>		/* SEEK_*, O_* */
 int
 _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
-                          const int32_t **sbuf, unsigned int no_samples,
+                          const int32_t **sbuf, size_t no_samples,
                           unsigned int freq, char no_tracks,
                           enum aaxFormat format)
 {
    _aaxFmtHandle *fmt = _aaxGetFormat(file);
-   int rv = AAX_FALSE;
+   size_t rv = AAX_FALSE;
    if (fmt)
    {
       char *buf, *data, *scratch;
-      int res, mode, fd, oflag;
-      unsigned int bits, size;
-      unsigned int scratchlen;
+      size_t res, size, scratchlen;
+      int mode, fd, oflag;
+      unsigned int bits;
       off_t floc, offs;
 
       mode = AAX_MODE_WRITE_STEREO;
@@ -1064,7 +1065,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       data = _aax_aligned_alloc16(IOBUF_SIZE);
       do
       {
-         int cvt = _MIN(size, IOBUF_SIZE)*8/(no_tracks*bits);
+         ssize_t cvt = _MIN(size, IOBUF_SIZE)*8/(no_tracks*bits);
 
          /* returns the no. bytes that are ready for writing */
          res = fmt->cvt_to_intl(fmt->id, data, sbuf, offs, no_tracks, cvt,
@@ -1087,7 +1088,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
 
       if (res >= 0 && fmt->update)
       {
-         unsigned int offs;
+         size_t offs;
          handle->io.write.no_samples = no_samples * no_tracks;
          void *buf = fmt->update(fmt->id, &offs, &size, AAX_TRUE);
          if (buf)

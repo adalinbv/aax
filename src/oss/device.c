@@ -126,7 +126,7 @@ typedef struct
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
-   unsigned int buffer_size;
+   size_t buffer_size;
 
    int mode;
    int oss_version;
@@ -136,7 +136,7 @@ typedef struct
 
    int16_t *ptr, *scratch;
 #ifndef NDEBUG
-   unsigned int buf_len;
+   size_t buf_len;
 #endif
 
    /* initial values, reset them wehn exiting */
@@ -152,7 +152,7 @@ static int get_oss_version();
 static int detect_devnode(_driver_t*, char);
 static int detect_nodenum(const char *);
 static int _oss_get_volume(_driver_t *);
-static void _oss_set_volume(_driver_t*, int32_t**, int, unsigned int, unsigned int, float);
+static void _oss_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
 
 static const int _mode[] = { O_RDONLY, O_WRONLY };
 static const char *_const_oss_default_name = DEFAULT_DEVNAME;
@@ -394,7 +394,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, format, freq;
-   int frag, no_samples = 1024;
+   ssize_t frag, no_samples = 1024;
    audio_buf_info info;
    int fd, err;
 
@@ -491,12 +491,12 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 }
 
 
-static int
-_aaxOSSDriverCapture(const void *id, void **data, int *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+static size_t
+_aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   int offs = *offset;
-   int rv = AAX_FALSE;
+   ssize_t offs = *offset;
+   size_t rv = AAX_FALSE;
  
    assert(handle->mode == O_RDONLY);
 
@@ -506,10 +506,10 @@ _aaxOSSDriverCapture(const void *id, void **data, int *offset, size_t *frames, v
 
    if (*frames)
    {
-      size_t tracks = handle->no_tracks;
-      size_t frame_size = handle->bytes_sample * tracks;
-      unsigned int no_frames, buflen;
-      int res;
+      unsigned int tracks = handle->no_tracks;
+      unsigned int frame_size = handle->bytes_sample * tracks;
+      size_t no_frames, buflen;
+      size_t res;
 
       no_frames = *frames;
       buflen = no_frames * frame_size;
@@ -535,18 +535,18 @@ _aaxOSSDriverCapture(const void *id, void **data, int *offset, size_t *frames, v
    return AAX_FALSE;
 }
 
-static int
+static size_t
 _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   unsigned int no_tracks, no_samples;
-   unsigned int offs, outbuf_size;
+   ssize_t offs, outbuf_size, no_samples;
+   unsigned int no_tracks;
    audio_buf_info info;
    audio_errinfo err;
    int32_t **sbuf;
    int16_t *data;
-   int res;
+   size_t res;
 
    assert(rb);
    assert(id != 0);
@@ -788,14 +788,15 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
             {
                oss_audioinfo ainfo;
 	       char name[64] = "";
-               int i, j, len;
+               size_t len;
+               int i, j;
                char *ptr;
 
                len = 1024;
                ptr = (char *)&names[mode];
                for (i = 0; i < info.numcards; i++)
                {
-                  int slen;
+                  size_t slen;
                   char *p;
 
                   ainfo.dev = i;
@@ -883,7 +884,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
             if (err >= 0)
             {
                char interfaces[2048];
-               unsigned int buflen;
+               size_t buflen;
                oss_audioinfo ainfo;
                char *ptr;
                int i = 0;
@@ -893,7 +894,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 
                for (i=0; i<info.numcards; i++)
                {
-                  unsigned int len;
+                  size_t len;
                   char name[128];
                   char *p;
 
@@ -944,7 +945,7 @@ static char *
 _aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
-   int len = _MIN(strlen(str)+1, 256);
+   size_t len = _MIN(strlen(str)+1, 256);
 
    memcpy(_errstr, str, len);
    _errstr[255] = '\0';  /* always null terminated */
@@ -1008,7 +1009,7 @@ _oss_get_volume(_driver_t *handle)
 }
 
 static void
-_oss_set_volume(_driver_t *handle, int32_t **sbuf, int offset, unsigned int no_frames, unsigned int no_tracks, float volume)
+_oss_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_frames, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
@@ -1156,7 +1157,7 @@ detect_devnode(_driver_t *handle, char mode)
    }
    else if (handle->nodenum > 0)
    {
-      int len = strlen(_const_oss_default_name)+4;
+      size_t len = strlen(_const_oss_default_name)+4;
       char *name = malloc(len);
       if (name)
       {
@@ -1209,7 +1210,7 @@ detect_nodenum(const char *devname)
             snprintf(name, 255, "%s", devname);
             ptr = strstr(name, ": ");
             if (ptr) {
-               int slen = strlen(ptr+1);
+               size_t slen = strlen(ptr+1);
                memmove(ptr, ptr+1, slen);
                *(ptr+slen) = 0;
             }

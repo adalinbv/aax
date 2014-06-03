@@ -115,16 +115,16 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       i = DIR_UPWD;			/* skip left-right and back-front */
       do
       {
-         int diff = (int)ep2d->hrtf[t][i];
+         ssize_t diff = (ssize_t)ep2d->hrtf[t][i];
          float v_start, v_step;
 
          if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0)) {
             continue;
          }
 
-         assert(diff < (int)drbd->dde_samples);
-         assert(diff > -(int)dno_samples);
-         diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
+         assert(diff < (ssize_t)drbd->dde_samples);
+         assert(diff > -(ssize_t)dno_samples);
+         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
 
          v_start = vstart * hrtf_volume[i];
          v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
@@ -209,16 +209,16 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       ptr = sptr[ch]+offs;
       for (i=0; i<3; i++)
       {
-         int diff = (int)ep2d->hrtf[t][i];
+         ssize_t diff = (ssize_t)ep2d->hrtf[t][i];
          float v_start, v_end, v_step;
 
          if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0))
             continue;
          }
 
-         assert(diff < (int)drbd->dde_samples);
-         assert(diff > -(int)dno_samples);
-         diff = _MINMAX(diff, -(int)dno_samples, (int)drbd->dde_samples);
+         assert(diff < (ssize_t)drbd->dde_samples);
+         assert(diff > -(ssize_t)dno_samples);
+         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
  
          v_start = ep2d->prev_gain[3*t+i] * svol;
          v_end = hrtf_volume[i] * gain * evol;

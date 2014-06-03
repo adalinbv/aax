@@ -96,7 +96,8 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
    offs = 0;
 #if 0
 {
- int t, samps = srb->get_parami(srb, RB_NO_SAMPLES);
+ size_t samps = srb->get_parami(srb, RB_NO_SAMPLES);
+ int t;
  for(t=0; t<srb->get_parami(srb, RB_NO_TRACKS); t++) {
   DBG_TESTNAN((MIX_T*)srbd->track[t], samps);
   printf("%i | %x: mix, no_samples: %i\n", t, srbd->track[t], samps);

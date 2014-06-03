@@ -172,8 +172,8 @@ typedef struct
 
    char *scratch;
    void *scratch_ptr;
-   unsigned int scratch_offs;	/* current offset in the scratch buffer  */
-   unsigned int threshold;	/* sensor buffer threshold for padding   */
+   size_t scratch_offs;		/* current offset in the scratch buffer  */
+   size_t threshold;		/* sensor buffer threshold for padding   */
    unsigned int packet_sz;	/* number of audio frames per time-frame */
    float padding;		/* for sensor clock drift correction     */
 
@@ -281,26 +281,26 @@ static char* _aaxMMDeviceNameToName(char *);
 static char *_aaxWASAPIDriverLogVar(const void *, const char *fmt, ...);
 static HRESULT _aaxCaptureThreadStart(_driver_t*);
 static HRESULT _aaxCaptureThreadStop(_driver_t*);
-static int _aaxWASAPIDriverCaptureFromHardware(_driver_t*);
+static ssize_t _aaxWASAPIDriverCaptureFromHardware(_driver_t*);
 #if USE_CAPTURE_THREAD
 static DWORD _aaxWASAPIDriverCaptureThread(LPVOID);
 #endif
 
 static LPWSTR name_to_id(const WCHAR*, unsigned char);
 static char* detect_devname(IMMDevice*);
-static char* wcharToChar(char*, int*, const WCHAR*);
+static char* wcharToChar(char*, size_t*, const WCHAR*);
 static WCHAR* charToWChar(const char*);
 static int copyFmtEx(WAVEFORMATEX*, WAVEFORMATEX*);
 static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
 static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
 
 static int _wasapi_open(_driver_t *, WAVEFORMATEXTENSIBLE *);
-static int _wasapi_setup(_driver_t *, unsigned int*);
+static int _wasapi_setup(_driver_t *, size_t*);
 static int _wasapi_close(_driver_t *);
 static int _wasapi_setup_event(_driver_t *, float);
 static int _wasapi_close_event(_driver_t *);
 static int _wasapi_get_volume_range(_driver_t *);
-static int _wasapi_set_volume(_driver_t*, int32_t**, int, unsigned int, unsigned int, float);
+static int _wasapi_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
 
 static int
 _aaxWASAPIDriverDetect(int mode)
@@ -558,8 +558,8 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
                    unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int sample_frames = 1024;
    int channels, bps, frame_sz, rate;
+   size_t sample_frames = 1024;
    int rv = AAX_FALSE;
 
    assert(handle);
@@ -606,13 +606,13 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    return rv;
 }
 
-static int
-_aaxWASAPIDriverCapture(const void *id, void **data, int *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+static size_t
+_aaxWASAPIDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int no_samples;
-   int offs = *offset;
-   int rv = AAX_FALSE;
+   size_t no_samples;
+   ssize_t offs = *offset;
+   size_t rv = AAX_FALSE;
 
    if (!handle || !handle->scratch_ptr || !req_frames || !data) {
       return AAX_FALSE;
@@ -631,7 +631,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int *offset, size_t *req_fr
    {
       unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
       unsigned int tracks = handle->Fmt.Format.nChannels;
-      unsigned int corr, fetch = no_samples;
+      size_t corr, fetch = no_samples;
       float diff;
 
       if (handle->status & CAPTURE_INIT_MASK)
@@ -667,7 +667,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int *offset, size_t *req_fr
       *req_frames = fetch;
       if (fetch)
       {
-         unsigned int avail = _MIN(handle->scratch_offs, fetch);
+         size_t avail = _MIN(handle->scratch_offs, fetch);
          int32_t **ptr = (int32_t**)data;
 
          if (avail && handle->cvt_from_intl) {
@@ -714,13 +714,13 @@ _aaxWASAPIDriverCapture(const void *id, void **data, int *offset, size_t *req_fr
 }
 
 
-static int
+static size_t
 _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, offs, frames;
-   size_t no_samples;
+   size_t no_samples, offs, frames;
+   unsigned int no_tracks;
    HRESULT hr = S_OK;
 
    assert(handle != 0);
@@ -954,7 +954,7 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
 #endif
          char *ptr, *prev;
          UINT i, count;
-         int len;
+         size_t len;
 
          len = 1023;
          ptr = (char *)&names[m];
@@ -977,7 +977,7 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
          {
             PROPVARIANT name;
             char *devname;
-            int slen;
+            size_t slen;
 
             hr = pIMMDeviceCollection_Item(collection, i, &device);
             if (hr != S_OK) {
@@ -1068,7 +1068,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
       IMMDeviceEnumerator *enumerator = NULL;
       int co_init = AAX_FALSE;
       char interfaces[1024];
-      int len = 1024;
+      size_t len = 1024;
       HRESULT hr;
 
       memset(interfaces, 0, 1024);
@@ -1145,7 +1145,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
                                     &iface);
                if (SUCCEEDED(hr))
                {
-                  int slen = len;
+                  size_t slen = len;
                   char *if_name = wcharToChar(ptr, &slen, iface.pwszVal);
                   if (if_name)
                   {
@@ -1467,7 +1467,7 @@ _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
    {
       unsigned int frame_sz = handle->Fmt.Format.nBlockAlign;
       size_t offs_bytes = handle->scratch_offs * frame_sz;
-      unsigned int new_scratch_offs;
+      size_t new_scratch_offs;
       BYTE* buf = NULL;
       DWORD flags = 0;
       HRESULT res;
@@ -1566,7 +1566,7 @@ _aaxMMDeviceNameToName(char *devname)
       ptr =  strstr(dev, " (");
       if (ptr && (strlen(ptr) > 3))
       {
-         unsigned int len;
+         size_t len;
 
          *ptr = 0;
          ptr += 2;			/* skip " ("         */
@@ -1609,10 +1609,10 @@ detect_devname(IMMDevice *device)
 }
 
 static char*
-wcharToChar(char *dst, int *dlen, const WCHAR* wstr)
+wcharToChar(char *dst, size_t *dlen, const WCHAR* wstr)
 {
    char *rv = dst;
-   int alen, wlen;
+   size_t alen, wlen;
 
    wlen = lstrlenW(wstr);
    alen = pWideCharToMultiByte(CP_ACP, 0, wstr, wlen, 0, 0, NULL, NULL);
@@ -1638,7 +1638,7 @@ static WCHAR*
 charToWChar(const char* str)
 {
    WCHAR *rv = NULL;
-   int alen, wlen;
+   size_t alen, wlen;
 
    alen = lstrlenA(str);
    wlen = pMultiByteToWideChar(CP_ACP, 0, str, alen, NULL, 0);
@@ -1999,7 +1999,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
  * http://blogs.msdn.com/b/larryosterman/default.aspx?PageIndex=1&PostSortBy=MostViewed
  */
 static int
-_wasapi_set_volume(_driver_t *handle, int32_t **sbuf, int offset, unsigned int no_samples, unsigned int no_tracks, float volume)
+_wasapi_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_samples, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
@@ -2238,13 +2238,13 @@ _wasapi_close(_driver_t *handle)
 }
 
 static int
-_wasapi_setup(_driver_t *handle, unsigned int *frames)
+_wasapi_setup(_driver_t *handle, size_t *frames)
 {
    _driver_t *id = handle;
    int co_init, rv = AAX_FALSE;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
-   unsigned int sample_frames;
+   size_t sample_frames;
    AUDCLNT_SHAREMODE mode;
    WAVEFORMATEX *wfx;
    HRESULT hr, init;
