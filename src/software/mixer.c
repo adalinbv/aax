@@ -342,11 +342,11 @@ size_t
 _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 {
    _intBuffers *hf = (_intBuffers*)frames;
-   size_t num = 0;
+   unsigned int num = 0;
 
    if (hf)
    {
-      size_t i;
+      unsigned int i;
 
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
       for (i=0; i<num; i++)
@@ -359,7 +359,7 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 
             if TEST_FOR_TRUE(fmixer->capturing)
             {
-               size_t nbuf;
+               unsigned int nbuf;
                nbuf = _intBufGetNumNoLock(fmixer->play_ringbuffers, _AAX_RINGBUFFER);
                if (nbuf < 2 && frame->thread.condition)  {
                   _aaxConditionSignal(frame->thread.condition);
@@ -382,7 +382,7 @@ size_t
 _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 {
    _aaxRingBuffer *dest_rb = (_aaxRingBuffer *)dest;
-   size_t i, num = 0;
+   unsigned int i, num = 0;
    if (hf)
    {
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
@@ -402,7 +402,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
             if (fmixer->thread)
             {
 //             size_t dt = 1.5f*1000.0f/fmixer->info->refresh_rate; // ms
-               size_t dt = 5000;
+               unsigned int dt = 5000;
                int p = 0;
 
                /*

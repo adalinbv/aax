@@ -1092,8 +1092,8 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    unsigned int tracks, frame_size;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   size_t offs = *offset;
-   size_t init_offs = offs;
+   ssize_t offs = *offset;
+   ssize_t init_offs = offs;
    size_t no_frames;
    size_t rv = 0;
    int res;

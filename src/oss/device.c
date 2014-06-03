@@ -139,7 +139,7 @@ typedef struct
    size_t buf_len;
 #endif
 
-   /* initial values, reset them wehn exiting */
+   /* initial values, reset them when exiting */
    int mixfd;
    long volumeCur, volumeMin, volumeMax;
    float volumeInit, hwgain;

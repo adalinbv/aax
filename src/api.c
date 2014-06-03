@@ -124,7 +124,7 @@ userConfigFile()
 
    if (app_path)
    {
-      int len;
+      size_t len;
 
       len = strlen(app_path);
       len += strlen(USER_AAX_DIR);
@@ -148,7 +148,7 @@ systemConfigFile()
 
    if (global_path)
    {
-      int len;
+      size_t len;
 
       len = strlen(global_path);
       len += strlen(AAX_DIR);

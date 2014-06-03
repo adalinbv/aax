@@ -463,7 +463,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                                              (char *)&curlevel);
             if (level >= curlevel)
             {
-               unsigned int q, i, l, index = -1;
+               ssize_t q, i, l, index = -1;
                char *ptr, *tmp;
                char rr[2][255];
                float f;
@@ -628,7 +628,7 @@ _aaxIntDriverGetBackends()
 static char*
 _aaxDriverDetectConfigConnector(char *xid, char **devname, char *l, char *cl)
 {
-   unsigned int size;
+   size_t size;
    char curlevel = *cl;
    char level = 0;
    char rr[255];
@@ -668,7 +668,7 @@ _aaxDriverDetectConfigConnector(char *xid, char **devname, char *l, char *cl)
 static char*
 _aaxDriverOldDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
 {
-   unsigned int size;
+   size_t size;
    char curlevel = *cl;
    char level = 0;
    char rr[255];
@@ -747,7 +747,7 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
                                                 (char *)&curlevel);
                if (level > curlevel)
                {
-                  unsigned int q, i, l, index = -1;
+                  ssize_t q, i, l, index = -1;
                   char *ptr, *tmp;
                   char rr[255];
                   void *xsid;
@@ -832,7 +832,7 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
                                                 (char *)&curlevel);
                if (level >= curlevel)
                {
-                  unsigned int q, l;
+                  size_t q, l;
                   char *ptr, *tmp;
                   char rr[255];
 
