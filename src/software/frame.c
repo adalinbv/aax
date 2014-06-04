@@ -59,7 +59,7 @@ _aaxAudioFrameThread(void* config)
    fmixer = NULL;
    smixer = frame->submix;
 
-   _aaxMutexLock(frame->thread.mutex);
+   _aaxMutexLock(frame->thread.signal.mutex);
    delay_sec = 1.0f / smixer->info->refresh_rate;
    if (dest_rb)
    {
@@ -114,7 +114,7 @@ _aaxAudioFrameThread(void* config)
    delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
 
    timer = _aaxTimerCreate();
-   _aaxTimerSetCondition(timer, frame->thread.condition);
+   _aaxTimerSetCondition(timer, frame->thread.signal.condition);
    _aaxTimerStartRepeatable(timer, delay_sec);
 
    do
@@ -151,13 +151,13 @@ _aaxAudioFrameThread(void* config)
        * Note: the thread will not be signaled to start mixing if there's
        *       already a buffer in it's buffer queue.
        */
-      res = _aaxTimerWait(timer, frame->thread.mutex);
+      res = _aaxTimerWait(timer, frame->thread.signal.mutex);
    }
    while ((res == AAX_TIMEOUT) || (res == AAX_TRUE));
 
    _aaxTimerDestroy(timer);
    frame->thread.initialized = AAX_FALSE;
-   _aaxMutexUnLock(frame->thread.mutex);
+   _aaxMutexUnLock(frame->thread.signal.mutex);
 
    be =  handle->backend.ptr;
    dest_rb->set_state(dest_rb, RB_STOPPED);

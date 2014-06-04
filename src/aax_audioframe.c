@@ -60,10 +60,10 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->mixer_pos = UINT_MAX;
          _SET_INITIAL(frame);
 
-         frame->thread.mutex = _aaxMutexCreate(frame->thread.mutex);
-         assert(frame->thread.mutex != 0);
+         frame->thread.signal.mutex=_aaxMutexCreate(frame->thread.signal.mutex);
+         assert(frame->thread.signal.mutex != 0);
 
-         _aaxMutexLock(frame->thread.mutex);
+         _aaxMutexLock(frame->thread.signal.mutex);
 
          size = sizeof(_frame_t);
          submix = (_aaxAudioFrame*)((char*)frame + size);
@@ -1328,8 +1328,8 @@ _aaxAudioFrameStart(_frame_t *frame)
          frame->thread.ptr = _aaxThreadCreate();
          assert(frame->thread.ptr != 0);
 
-         frame->thread.condition = _aaxConditionCreate();
-         assert(frame->thread.condition != 0);
+         frame->thread.signal.condition = _aaxConditionCreate();
+         assert(frame->thread.signal.condition != 0);
 
          frame->thread.started = AAX_TRUE;
          ms = rintf(1000/frame->submix->info->refresh_rate);
@@ -1409,11 +1409,11 @@ _aaxAudioFrameStop(_frame_t *frame)
       _aaxAudioFrame* fmixer = frame->submix;
 
       frame->thread.started = AAX_FALSE;
-      _aaxConditionSignal(frame->thread.condition);
+      _aaxConditionSignal(frame->thread.signal.condition);
       _aaxThreadJoin(frame->thread.ptr);
 
-      _aaxConditionDestroy(frame->thread.condition);
-      _aaxMutexDestroy(frame->thread.mutex);
+      _aaxConditionDestroy(frame->thread.signal.condition);
+      _aaxMutexDestroy(frame->thread.signal.mutex);
       _aaxThreadDestroy(frame->thread.ptr);
 
       _aaxConditionDestroy(fmixer->frame_ready);
@@ -1431,7 +1431,7 @@ _aaxAudioFrameUpdate(_frame_t *frame)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(frame->thread.started)
    {
-      _aaxConditionSignal(frame->thread.condition);
+      _aaxConditionSignal(frame->thread.signal.condition);
       rv = AAX_TRUE;
    }
    return rv;

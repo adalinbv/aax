@@ -554,7 +554,7 @@ _aaxNoneDriverThread(void* config)
    timer = _aaxTimerCreate();
    _aaxTimerStartRepeatable(timer, delay_sec);
 
-   _aaxMutexLock(handle->thread.mutex);
+   _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
       if TEST_FOR_FALSE(handle->thread.started) {
@@ -571,12 +571,12 @@ _aaxNoneDriverThread(void* config)
          }
       }
    }
-   while (_aaxTimerWait(timer, handle->thread.mutex) == AAX_TIMEOUT);
+   while (_aaxTimerWait(timer, handle->thread.signal.mutex) == AAX_TIMEOUT);
 
    _aaxTimerDestroy(timer);
    be->destroy_ringbuffer(dest_rb);
    handle->ringbuffer = NULL;
-   _aaxMutexUnLock(handle->thread.mutex);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle;
 }

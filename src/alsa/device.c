@@ -2881,13 +2881,13 @@ _aaxALSADriverThread(void* config)
    wait_us = delay_sec*1000000.0f;
 // no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
    stdby_time = (int)(delay_sec*1000);
-   _aaxMutexLock(handle->thread.mutex);
+   _aaxMutexLock(handle->thread.signal.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
    {
       _driver_t *be_handle = (_driver_t *)handle->backend.handle;
       int err;
 
-      _aaxMutexUnLock(handle->thread.mutex);
+      _aaxMutexUnLock(handle->thread.signal.mutex);
 
       if (_IS_PLAYING(handle))
       {
@@ -2910,7 +2910,7 @@ _aaxALSADriverThread(void* config)
          _SET_PROCESSED(handle);
       }
 
-      _aaxMutexLock(handle->thread.mutex);
+      _aaxMutexLock(handle->thread.signal.mutex);
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -2990,7 +2990,7 @@ if (elapsed > delay_sec)
 #endif
    handle->ringbuffer = NULL;
    be->destroy_ringbuffer(dest_rb);
-   _aaxMutexUnLock(handle->thread.mutex);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle;
 }

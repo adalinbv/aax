@@ -99,11 +99,16 @@ struct backend_t
    const _aaxDriverBackend *ptr;
 };
 
-struct threat_t
+struct signal_t
 {
-   void *ptr;
    void *mutex;
    void *condition;
+};
+
+struct threat_t
+{
+   struct signal_t signal;
+   void *ptr;
    char started;
    char initialized;
 };
@@ -125,6 +130,7 @@ typedef struct
    struct backend_t backend;
    struct backend_t file;		/* file recording backend */
    struct threat_t thread;
+   struct signal_t signal;		/* signal there's a buffer ready */
 
    /* destination ringbuffer */
    _aaxRingBuffer *ringbuffer;
@@ -157,7 +163,8 @@ typedef struct
 
    _aaxAudioFrame *submix;
 
-   struct threat_t thread;
+   struct threat_t thread;	/* for threaded frames           */
+// struct signal_t signal;	/* signal there's a buffer ready */
 
 } _frame_t;
 

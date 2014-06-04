@@ -1122,7 +1122,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   while ((buf = aaxAudioFrameGetBuffer(frame)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
-                  _aaxMutexUnLock(frame->thread.mutex);
+                  _aaxMutexUnLock(frame->thread.signal.mutex);
 
                   pos = _intBufAddData(hf, _AAX_FRAME, frame);
                   mixer->no_registered++;
@@ -1325,11 +1325,11 @@ _aaxMixerStart(_handle_t *handle)
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);
 
-      handle->thread.condition = _aaxConditionCreate();
-      assert(handle->thread.condition != 0);
+      handle->thread.signal.condition = _aaxConditionCreate();
+      assert(handle->thread.signal.condition != 0);
 
-      handle->thread.mutex = _aaxMutexCreate(handle->thread.mutex);
-      assert(handle->thread.mutex != 0);
+      handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
+      assert(handle->thread.signal.mutex != 0);
 
       handle->thread.started = AAX_TRUE;
       ms = rintf(1000/handle->info->refresh_rate);
@@ -1389,11 +1389,11 @@ _aaxMixerStop(_handle_t *handle)
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
       handle->thread.started = AAX_FALSE;
-      _aaxConditionSignal(handle->thread.condition);
+      _aaxConditionSignal(handle->thread.signal.condition);
       _aaxThreadJoin(handle->thread.ptr);
 
-      _aaxConditionDestroy(handle->thread.condition);
-      _aaxMutexDestroy(handle->thread.mutex);
+      _aaxConditionDestroy(handle->thread.signal.condition);
+      _aaxMutexDestroy(handle->thread.signal.mutex);
       _aaxThreadDestroy(handle->thread.ptr);
 
       rv = AAX_TRUE;
@@ -1411,7 +1411,7 @@ _aaxMixerUpdate(_handle_t *handle)
    int rv = AAX_FALSE;
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
-      _aaxConditionSignal(handle->thread.condition);
+      _aaxConditionSignal(handle->thread.signal.condition);
       rv = AAX_TRUE;
    }
    else if (handle->handle) {
