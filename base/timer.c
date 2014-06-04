@@ -409,8 +409,7 @@ _aaxTimerCreate()
 
          rv->condition = NULL;
          rv->user_condition = AAX_FALSE;
-         rv->timeStep.tv_nsec = 0;
-         rv->timeStep.tv_sec = 0;
+         rv->dt = 0.0f;
       }
       
       if (res == -1)
@@ -496,19 +495,7 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 
       if (tm->condition)
       {
-         clock_gettime(CLOCK_REALTIME, &tm->ts);
-
-         tm->timeStep.tv_sec = (time_t)floorf(sec);
-         tm->timeStep.tv_nsec = (long)(1e9f*sec - 1e9f*floorf(sec));
-
-         tm->ts.tv_sec += tm->timeStep.tv_sec;
-         tm->ts.tv_nsec += tm->timeStep.tv_nsec;
-         if (tm->ts.tv_nsec >= 1000000000L)
-         {
-            tm->ts.tv_sec++;
-            tm->ts.tv_nsec -= 1000000000L;
-         }
-
+         tm->dt = sec;
          rv = AAX_TRUE;
       }
    }
@@ -530,7 +517,7 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 
    if (tm->condition)
    {
-      int res = _aaxConditionWaitTimed(tm->condition, mutex, &tm->ts);
+      int res = _aaxConditionWaitTimed(tm->condition, mutex, tm->dt);
       switch(res)
       {
       case ETIMEDOUT:
@@ -542,14 +529,6 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
       default:
          rv = AAX_FALSE;
          break;
-      }
-
-      tm->ts.tv_sec += tm->timeStep.tv_sec;
-      tm->ts.tv_nsec += tm->timeStep.tv_nsec;
-      if (tm->ts.tv_nsec >= 1000000000L)
-      {
-         tm->ts.tv_sec++;
-         tm->ts.tv_nsec -= 1000000000L;
       }
    }
 

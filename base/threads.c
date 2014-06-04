@@ -463,15 +463,32 @@ _aaxConditionWait(void *c, void *mutex)
 }
 
 int
-_aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
+_aaxConditionWaitTimed(void *c, void *mutex, float timeout)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    _aaxCondition *condition = c;
+   struct timespec ts, ts_now;
+   int secs;
+
    assert(condition);
    assert(mutex);
    assert(ts);
 /* printf("*: %x/%x\n", m, m->mutex); */
-   return pthread_cond_timedwait(condition, &m->mutex, ts);
+
+   clock_gettime(CLOCK_REALTIME, &ts_now);
+
+   secs = (time_t)floorf(timeout);
+   timeout -= secs;
+
+   ts.tv_sec = ts_now.tv_sec + secs;
+   ts.tv_nsec = ts_now.tv_nsec + timeout*1000000*1000;
+   if (ts.tv_nsec >= 1000000000L)
+   {
+      ts.tv_sec++;
+      ts.tv_nsec -= 1000000000L;
+   }
+   
+   return pthread_cond_timedwait(condition, &m->mutex, &ts);
 }
 
 int
@@ -887,27 +904,21 @@ _aaxConditionWait(void *c, void *mutex)
 }
 
 int
-_aaxConditionWaitTimed(void *c, void *mutex, struct timespec *ts)
+_aaxConditionWaitTimed(void *c, void *mutex, float timeout)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    struct timeval now_tv;
-   double dt_ms;
    DWORD hr;
    int r=0;
 
    assert(mutex);
    assert(ts);
 
-   /* some time in the future (hopefuly) */
-   dt_ms = (1000.0*ts->tv_sec + ts->tv_nsec/1000000.0);
-
-   gettimeofday(&now_tv, 0);
-   dt_ms -= (1000.0*now_tv.tv_sec + now_tv.tv_usec/1000.0);
-
-   if (dt_ms > 0.0)
+   timeout *= 1000.0f; 		/* from seconds to ms */
+   if (timeout > 0.0f)	
    {
       _aaxMutexUnLock(m);
-      hr = WaitForSingleObject(c, (DWORD)rint(dt_ms));
+      hr = WaitForSingleObject(c, (DWORD)rint(timeout));
       _aaxMutexLock(m);
 
       switch (hr)

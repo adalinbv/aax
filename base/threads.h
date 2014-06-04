@@ -125,7 +125,7 @@ void _aaxMutexDestroy(void *);
 void *_aaxConditionCreate();
 void _aaxConditionDestroy(void *);
 int _aaxConditionWait(void *, void *);
-int _aaxConditionWaitTimed(void *, void *, struct timespec *);
+int _aaxConditionWaitTimed(void *, void *, float);
 int _aaxConditionSignal(void *);
 
 #if defined(__cplusplus)

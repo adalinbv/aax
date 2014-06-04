@@ -105,8 +105,7 @@ typedef struct
 
    /* repeatable */
    void *condition;	/* if condition!= NULL the timer is repeatable */
-   struct timespec timeStep;
-   struct timespec ts;
+   float dt;
 
    char user_condition;
 
