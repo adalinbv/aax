@@ -104,9 +104,8 @@ typedef struct
    struct timespec timerCount;
 
    /* repeatable */
-   void *condition;	/* if condition!= NULL the timer is repeatable */
    float dt;
-
+   void *signal;		/* repeatable when signal->condition != NULL */
    char user_condition;
 
 } _aaxTimer;

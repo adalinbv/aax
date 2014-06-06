@@ -18,6 +18,7 @@
 #endif
 #include <errno.h>
 
+#include <aax/aax.h>
 #include "threads.h"
 #include "logging.h"
 #include "types.h"
@@ -422,83 +423,110 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 #endif
 
 
-void *
-_aaxConditionCreate()
+_aaxSignal*
+_aaxSignalCreate()
 {
-   _aaxCondition condition;
-   void *p = malloc(sizeof(_aaxCondition));
-   if (!p) return 0;
-   memcpy(p, &condition, sizeof(_aaxCondition));
-#ifndef NDEBUG
-   do
-   {
-      int status = pthread_cond_init(p, 0);
-      assert(status == 0);
-   }
-   while(0);
-#else
-   pthread_cond_init(p, 0);
-#endif
-   return p;
+   _aaxSignal *s = calloc(1, sizeof(_aaxSignal));
+   if (s) _aaxSignalInit(s);
+   return s;
 }
 
 void
-_aaxConditionDestroy(void *c)
+_aaxSignalInit(_aaxSignal *signal)
 {
-   _aaxCondition *condition = c;
-   assert(condition);
-   pthread_cond_destroy(condition);
-   free(condition);
-   c = 0;
+   signal->condition = calloc(1, sizeof(_aaxCondition));
+   if (!signal->condition) return;
+
+   pthread_cond_init(signal->condition, 0);
+   
+   signal->mutex = _aaxMutexCreate(signal->mutex);
+}
+
+void
+_aaxSignalFree(_aaxSignal *signal)
+{
+  _aaxMutexDestroy(signal->mutex);
+
+   if (signal->condition) 
+   {
+      pthread_cond_destroy(signal->condition);
+      free(signal->condition);
+   }
+}
+
+void
+_aaxSignalDestroy(_aaxSignal *signal)
+{
+   _aaxSignalFree(signal);
+   free(signal);
 }
 
 int
-_aaxConditionWait(void *c, void *mutex)
+_aaxSignalWait(_aaxSignal *signal)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
-   _aaxCondition *condition = c;
-   assert(condition);
-   assert(mutex);
-   return pthread_cond_wait(condition, &m->mutex);
+   _aaxMutex *m = (_aaxMutex *)signal->mutex;
+   int rv;
+
+   rv = pthread_cond_wait(signal->condition, &m->mutex);
+   if (!rv) signal->triggered = 0;
+
+   return rv;
 }
 
 int
-_aaxConditionWaitTimed(void *c, void *mutex, float timeout)
+_aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
-   _aaxCondition *condition = c;
-   struct timespec ts, ts_now;
-   int secs;
+   _aaxMutex *m = (_aaxMutex *)signal->mutex;
+   struct timespec ts;
+   time_t secs;
+   int rv;
 
-   assert(condition);
-   assert(mutex);
-   assert(ts);
-/* printf("*: %x/%x\n", m, m->mutex); */
-
-   clock_gettime(CLOCK_REALTIME, &ts_now);
+   clock_gettime(CLOCK_REALTIME, &ts);
 
    secs = (time_t)floorf(timeout);
    timeout -= secs;
 
-   ts.tv_sec = ts_now.tv_sec + secs;
-   ts.tv_nsec = ts_now.tv_nsec + timeout*1000000*1000;
+   ts.tv_sec += secs;
+   ts.tv_nsec += (long)rintf(timeout*1e9f);
    if (ts.tv_nsec >= 1000000000L)
    {
       ts.tv_sec++;
       ts.tv_nsec -= 1000000000L;
    }
    
-   return pthread_cond_timedwait(condition, &m->mutex, &ts);
+   rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
+   switch(rv)
+   {
+   case ETIMEDOUT:
+      signal->triggered = 0;
+      rv = AAX_TIMEOUT;
+      break;
+   case 0:
+      signal->triggered = 0;
+      rv = AAX_TRUE;
+      break;
+   default:
+      rv = AAX_FALSE;
+      break;
+   }
+
+   return rv;
 }
 
 int
-_aaxConditionSignal(void *c)
+_aaxSignalTrigger(_aaxSignal *signal)
 {
-  _aaxCondition *condition = c;
+  int rv = 0;
 
-   assert(condition);
+   _aaxMutexLock(signal->mutex);
+   if (!signal->triggered)
+   {
+      rv =  pthread_cond_signal(signal->condition);
+      signal->triggered = rv ? 0 : 1;
+   }
+   _aaxMutexUnLock(signal->mutex);
 
-   return pthread_cond_signal(condition);
+   return rv;
 }
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */

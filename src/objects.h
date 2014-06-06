@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include <base/geometry.h>
+#include <base/threads.h>
 
 #include <filters/effects.h>
 
@@ -333,7 +334,7 @@ typedef struct
 
    unsigned char capturing;
    signed char thread;
-   void *frame_ready;		/* condition for when te frame is reeady */
+   _aaxSignal frame_ready;	/* signel for when the frame is ready */
  
 } _aaxAudioFrame;
 

@@ -389,7 +389,7 @@ __aaxTimerAdd(struct timespec *tso,
 _aaxTimer*
 _aaxTimerCreate()
 {
-   _aaxTimer *rv = malloc(sizeof(_aaxTimer));
+   _aaxTimer *rv = calloc(1, sizeof(_aaxTimer));
    if (rv)
    {
       int res = clock_getres(CLOCK_MONOTONIC, &rv->timerCount);
@@ -407,7 +407,7 @@ _aaxTimerCreate()
                            &rv->timerCount, &rv->prevTimerCount);
          }
 
-         rv->condition = NULL;
+         rv->signal = _aaxSignalCreate();
          rv->user_condition = AAX_FALSE;
          rv->dt = 0.0f;
       }
@@ -463,8 +463,14 @@ void
 _aaxTimerDestroy(_aaxTimer *tm)
 {
    _aaxTimerStop(tm);
-   if (tm && tm->condition && !tm->user_condition) {
-      _aaxConditionDestroy(tm->condition);
+   if (tm)
+   {
+      if (tm->user_condition)
+      {
+         _aaxSignal *signal = tm->signal;
+         signal->condition = NULL;
+      }
+      _aaxSignalDestroy(tm->signal);
    }
    free(tm);
 }
@@ -474,11 +480,15 @@ int
 _aaxTimerSetCondition(_aaxTimer *tm, void *condition)
 {
     int rv = AAX_FALSE;
-    if(tm && !tm->condition)
+    if(tm)
     {
-       tm->condition = condition;
-       tm->user_condition = AAX_TRUE;
-       rv = AAX_TRUE;
+       _aaxSignal *signal = tm->signal;
+       if (!signal->condition)
+       {
+          signal->condition = condition;
+          tm->user_condition = AAX_TRUE;
+          rv = AAX_TRUE;
+       }
     }
     return rv;
 }
@@ -489,11 +499,13 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
    int rv = AAX_FALSE;
    if (tm && sec > 1e-6f)
    {
-      if (tm->condition == NULL) {
-         tm->condition = _aaxConditionCreate();
+      _aaxSignal *signal = tm->signal;
+
+      if (signal->condition == NULL) {
+         _aaxSignalInit(tm->signal);
       }
 
-      if (tm->condition)
+      if (signal->condition)
       {
          tm->dt = sec;
          rv = AAX_TRUE;
@@ -513,11 +525,18 @@ _aaxTimerStop(_aaxTimer* tm) {
 int
 _aaxTimerWait(_aaxTimer* tm, void* mutex)
 {
+   _aaxSignal *signal = tm->signal;
    int rv = AAX_TRUE;
 
-   if (tm->condition)
+   if (signal->condition)
    {
-      int res = _aaxConditionWaitTimed(tm->condition, mutex, tm->dt);
+      void *mtx = signal->mutex;
+      int res;
+
+      signal->mutex = mutex;
+      res = _aaxSignalWaitTimed(signal, tm->dt);
+      signal->mutex = mtx;
+
       switch(res)
       {
       case ETIMEDOUT:

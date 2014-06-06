@@ -32,6 +32,13 @@ enum {
    AAX_IDLE_PRIORITY = 19
 };
 
+typedef struct
+{
+   void *mutex;
+   void *condition;
+   char triggered;
+} _aaxSignal;
+
 int _aaxProcessSetPriority(int);
 
 
@@ -122,11 +129,13 @@ int _aaxMutexLockDebug(void *, char *, int);
 void _aaxMutexDestroy(void *);
 
 
-void *_aaxConditionCreate();
-void _aaxConditionDestroy(void *);
-int _aaxConditionWait(void *, void *);
-int _aaxConditionWaitTimed(void *, void *, float);
-int _aaxConditionSignal(void *);
+_aaxSignal *_aaxSignalCreate();
+void _aaxSignalInit(_aaxSignal *);
+void _aaxSignalDestroy(_aaxSignal*);
+void _aaxSignalFree(_aaxSignal*);
+int _aaxSignalWait(_aaxSignal*);
+int _aaxSignalWaitTimed(_aaxSignal*, float);
+int _aaxSignalTrigger(_aaxSignal*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

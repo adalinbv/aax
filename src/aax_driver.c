@@ -420,6 +420,8 @@ aaxDriverDestroy(aaxConfig config)
    {
       assert(handle->backends != NULL);
 
+      _aaxSignalFree(&handle->buffer_ready);
+
       handle->info->id = 0xdeadbeef;
       if (_info == handle->info) {
          _info = NULL;
@@ -851,6 +853,8 @@ _open_handle(aaxConfig config)
 
                      _PROP_PITCH_SET_CHANGED(smixer->props3d);
                      _PROP_MTX_SET_CHANGED(smixer->props3d);
+
+                     _aaxSignalInit(&handle->buffer_ready);
 
                      return handle;
                   }

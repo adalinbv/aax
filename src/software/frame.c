@@ -16,7 +16,6 @@
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 
-#include <base/timer.h>		/* for gettimeofday */
 #include <base/threads.h>
 #include <base/buffers.h>
 
@@ -35,7 +34,6 @@ _aaxAudioFrameThread(void* config)
    _aaxAudioFrame *smixer, *fmixer, *mixer;
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
-   _aaxTimer *timer;
    _handle_t* handle;
    unsigned int pos;
    float delay_sec;
@@ -113,10 +111,6 @@ _aaxAudioFrameThread(void* config)
    /* get real duration, it might have been altered for better performance */
    delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
 
-   timer = _aaxTimerCreate();
-   _aaxTimerSetCondition(timer, frame->thread.signal.condition);
-   _aaxTimerStartRepeatable(timer, delay_sec);
-
    do
    {
       if TEST_FOR_FALSE(frame->thread.started) {
@@ -141,21 +135,20 @@ _aaxAudioFrameThread(void* config)
       mixer->capturing++;
 
       /**
-       * _aaxSoftwareMixerSignalFrames uses _aaxConditionSignal to let the
+       * _aaxSoftwareMixerSignalFrames uses _aaxSignalTrigger to let the
        * frame procede in advance, before the main thread starts mixing so
        * threads will be finished soon after the main thread.
-       * As a result _aaxTimerWait may return AAX_TRUE instead, which is
+       * As a result _aaxSignalWaitTimed may return AAX_TRUE instead, which is
        * not a problem since earlier in the loop there is a test to see if
        * the thread really is finished and then breaks the loop.
        *
        * Note: the thread will not be signaled to start mixing if there's
        *       already a buffer in it's buffer queue.
        */
-      res = _aaxTimerWait(timer, frame->thread.signal.mutex);
+      res = _aaxSignalWaitTimed(&frame->thread.signal, delay_sec);
    }
    while ((res == AAX_TIMEOUT) || (res == AAX_TRUE));
 
-   _aaxTimerDestroy(timer);
    frame->thread.initialized = AAX_FALSE;
    _aaxMutexUnLock(frame->thread.signal.mutex);
 

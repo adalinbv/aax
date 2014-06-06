@@ -24,6 +24,7 @@ extern "C" {
 #include <aax/eventmgr.h>
 #include <aax/instrument.h>
 
+#include <base/threads.h>
 #include <base/gmath.h>
 
 #include "filters/effects.h"
@@ -99,16 +100,10 @@ struct backend_t
    const _aaxDriverBackend *ptr;
 };
 
-struct signal_t
-{
-   void *mutex;
-   void *condition;
-};
-
 struct threat_t
 {
-   struct signal_t signal;
    void *ptr;
+   _aaxSignal signal;
    char started;
    char initialized;
 };
@@ -130,7 +125,7 @@ typedef struct
    struct backend_t backend;
    struct backend_t file;		/* file recording backend */
    struct threat_t thread;
-   struct signal_t signal;		/* signal there's a buffer ready */
+   _aaxSignal buffer_ready;
 
    /* destination ringbuffer */
    _aaxRingBuffer *ringbuffer;
@@ -164,7 +159,7 @@ typedef struct
    _aaxAudioFrame *submix;
 
    struct threat_t thread;	/* for threaded frames           */
-// struct signal_t signal;	/* signal there's a buffer ready */
+// _aaxSignal buffer_ready;
 
 } _frame_t;
 

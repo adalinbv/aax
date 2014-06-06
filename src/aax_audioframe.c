@@ -60,11 +60,6 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->mixer_pos = UINT_MAX;
          _SET_INITIAL(frame);
 
-         frame->thread.signal.mutex=_aaxMutexCreate(frame->thread.signal.mutex);
-         assert(frame->thread.signal.mutex != 0);
-
-         _aaxMutexLock(frame->thread.signal.mutex);
-
          size = sizeof(_frame_t);
          submix = (_aaxAudioFrame*)((char*)frame + size);
          frame->submix = submix;
@@ -1328,7 +1323,7 @@ _aaxAudioFrameStart(_frame_t *frame)
          frame->thread.ptr = _aaxThreadCreate();
          assert(frame->thread.ptr != 0);
 
-         frame->thread.signal.condition = _aaxConditionCreate();
+         _aaxSignalInit(&frame->thread.signal);
          assert(frame->thread.signal.condition != 0);
 
          frame->thread.started = AAX_TRUE;
@@ -1353,8 +1348,8 @@ _aaxAudioFrameStart(_frame_t *frame)
             else
             {
                _aaxAudioFrame* fmixer = frame->submix;
-               fmixer->frame_ready = _aaxConditionCreate();
-               if (fmixer->frame_ready)
+               _aaxSignalInit(&fmixer->frame_ready);
+               if (fmixer->frame_ready.condition)
                {
                   _handle_t *phandle = frame->handle;
                   if (phandle->id == HANDLE_ID)
@@ -1409,14 +1404,13 @@ _aaxAudioFrameStop(_frame_t *frame)
       _aaxAudioFrame* fmixer = frame->submix;
 
       frame->thread.started = AAX_FALSE;
-      _aaxConditionSignal(frame->thread.signal.condition);
+      _aaxSignalTrigger(&frame->thread.signal);
       _aaxThreadJoin(frame->thread.ptr);
 
-      _aaxConditionDestroy(frame->thread.signal.condition);
-      _aaxMutexDestroy(frame->thread.signal.mutex);
+      _aaxSignalFree(&frame->thread.signal);
       _aaxThreadDestroy(frame->thread.ptr);
 
-      _aaxConditionDestroy(fmixer->frame_ready);
+      _aaxSignalFree(&fmixer->frame_ready);
       rv = AAX_TRUE;
    }
    else if (!frame->submix->thread) {
@@ -1431,7 +1425,7 @@ _aaxAudioFrameUpdate(_frame_t *frame)
    int rv = AAX_FALSE;
    if TEST_FOR_TRUE(frame->thread.started)
    {
-      _aaxConditionSignal(frame->thread.signal.condition);
+      _aaxSignalTrigger(&frame->thread.signal);
       rv = AAX_TRUE;
    }
    return rv;

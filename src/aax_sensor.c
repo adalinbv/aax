@@ -282,66 +282,31 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
-#if 1
-      handle->signal.mutex = _aaxMutexCreate(handle->signal.mutex);
-      _aaxMutexLock(handle->signal.mutex);
-
-      handle->signal.condition = _aaxConditionCreate();
-      rv = _aaxConditionWaitTimed(handle->signal.condition,
-                                  handle->signal.mutex, timeout);
-
-      _aaxConditionDestroy(handle->signal.condition);
-      handle->signal.condition = NULL;
-
-      _aaxMutexDestroy(handle->signal.mutex);
-      handle->signal.mutex = NULL;
-
-      if (!rv) {
-         rv = AAX_TRUE;
-      }
-      else
-      {
-         rv = AAX_FALSE;
-         _aaxErrorSet(AAX_TIMEOUT);
-      }
-
-#else
-      float refrate = handle->info->refresh_rate;
       const _intBufferData* dptr;
-      float duration = 0.0f;
-      unsigned int sleep_ms;
-      unsigned int nbuf;
 
-      sleep_ms = (unsigned int)_MAX(1000/(10.0f*refrate), 1);
-      do
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
       {
-         nbuf = 0;
-         duration += sleep_ms*0.001f;	// ms to sec.
-         if (duration >= timeout) break;
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _intBuffers *ringbuffers = sensor->mixer->play_ringbuffers;
+         int nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+         if (nbuf) rv = AAX_TRUE;
+      }
 
-         handle = get_handle(config);	/* handle could be invalid by now */
-         if (!handle) break;
+      if (!rv)
+      {
+         rv = _aaxSignalWaitTimed(&handle->buffer_ready, timeout);
 
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _intBuffers *ringbuffers = sensor->mixer->play_ringbuffers;
-            nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+         if (!rv) {
+            rv = AAX_TRUE;
          }
-
-         if (!nbuf)
+         else
          {
-            int err = msecSleep(sleep_ms);
-            if (err < 0) break;
+            rv = AAX_FALSE;
+            _aaxErrorSet(AAX_TIMEOUT);
          }
       }
-      while (!nbuf);
-
-      if (nbuf) rv = AAX_TRUE;
-      else _aaxErrorSet(AAX_TIMEOUT);
-#endif
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
@@ -514,10 +479,8 @@ _aaxSensorCaptureStart(_handle_t *handle)
          handle->thread.ptr = _aaxThreadCreate();
          assert(handle->thread.ptr != 0);
 
-         handle->thread.signal.condition = _aaxConditionCreate();
+         _aaxSignalInit(&handle->thread.signal);
          assert(handle->thread.signal.condition != 0);
-
-         handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
          assert(handle->thread.signal.mutex != 0);
 
          handle->thread.started = AAX_TRUE;
@@ -582,11 +545,11 @@ _aaxSensorCaptureStop(_handle_t *handle)
          const _intBufferData* dptr;
 
          handle->thread.started = AAX_FALSE;
-         _aaxConditionSignal(handle->thread.signal.condition);
+
+         _aaxSignalTrigger(&handle->thread.signal);
          _aaxThreadJoin(handle->thread.ptr);
 
-         _aaxConditionDestroy(handle->thread.signal.condition);
-         _aaxMutexDestroy(handle->thread.signal.mutex);
+         _aaxSignalFree(&handle->thread.signal);
          _aaxThreadDestroy(handle->thread.ptr);
 
          dptr = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);

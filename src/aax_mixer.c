@@ -1325,10 +1325,8 @@ _aaxMixerStart(_handle_t *handle)
       handle->thread.ptr = _aaxThreadCreate();
       assert(handle->thread.ptr != 0);
 
-      handle->thread.signal.condition = _aaxConditionCreate();
+      _aaxSignalInit(&handle->thread.signal);
       assert(handle->thread.signal.condition != 0);
-
-      handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
       assert(handle->thread.signal.mutex != 0);
 
       handle->thread.started = AAX_TRUE;
@@ -1389,11 +1387,11 @@ _aaxMixerStop(_handle_t *handle)
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
       handle->thread.started = AAX_FALSE;
-      _aaxConditionSignal(handle->thread.signal.condition);
+
+      _aaxSignalTrigger(&handle->thread.signal);
       _aaxThreadJoin(handle->thread.ptr);
 
-      _aaxConditionDestroy(handle->thread.signal.condition);
-      _aaxMutexDestroy(handle->thread.signal.mutex);
+      _aaxSignalFree(&handle->thread.signal);
       _aaxThreadDestroy(handle->thread.ptr);
 
       rv = AAX_TRUE;
@@ -1411,7 +1409,7 @@ _aaxMixerUpdate(_handle_t *handle)
    int rv = AAX_FALSE;
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
-      _aaxConditionSignal(handle->thread.signal.condition);
+      _aaxSignalTrigger(&handle->thread.signal);
       rv = AAX_TRUE;
    }
    else if (handle->handle) {

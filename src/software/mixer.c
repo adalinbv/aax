@@ -248,7 +248,6 @@ _aaxSoftwareMixerThread(void* config)
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame *smixer;
-   _aaxTimer *timer;
    int state, tracks;
    float delay_sec;
 
@@ -299,9 +298,6 @@ _aaxSoftwareMixerThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   timer = _aaxTimerCreate();
-   _aaxTimerStartRepeatable(timer, delay_sec);
-
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
@@ -323,9 +319,8 @@ _aaxSoftwareMixerThread(void* config)
       /* do all the mixing */
       _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
    }
-   while (_aaxTimerWait(timer, handle->thread.signal.mutex) == AAX_TIMEOUT);
+   while (_aaxSignalWaitTimed(&handle->thread.signal,delay_sec) == AAX_TIMEOUT);
 
-   _aaxTimerDestroy(timer);
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
@@ -359,10 +354,10 @@ _aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
 
             if TEST_FOR_TRUE(fmixer->capturing)
             {
-               unsigned int nbuf;
-               nbuf = _intBufGetNumNoLock(fmixer->play_ringbuffers, _AAX_RINGBUFFER);
-               if (nbuf < 2 && frame->thread.signal.condition) {
-                  _aaxConditionSignal(frame->thread.signal.condition);
+               unsigned int nbuf = _intBufGetNumNoLock(fmixer->play_ringbuffers,
+                                                        _AAX_RINGBUFFER);
+               if (nbuf < 2) {
+                  _aaxSignalTrigger(&frame->thread.signal);
                }
             }
 //          _intBufReleaseData(dptr, _AAX_FRAME);
@@ -558,11 +553,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                      _intBufAddData(rbs, _AAX_RINGBUFFER, rb);
                      handle->ringbuffer = rv;
 
-                     if (smixer->capturing && handle->signal.condition)
-                     {
-                        _aaxMutexLock(handle->signal.mutex);
-                        _aaxConditionSignal(handle->signal.condition);
-                        _aaxMutexUnLock(handle->signal.mutex);
+                     if (smixer->capturing) {
+                        _aaxSignalTrigger(&handle->buffer_ready);
                      }
                   }
                   smixer->curr_pos_sec += dt;
@@ -652,11 +644,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                _aax_aligned_free(sdp3d);
                _aax_aligned_free(sdp3d_m);
 
-               if (smixer->capturing && handle->signal.condition)
-               {
-                  _aaxMutexLock(handle->signal.mutex);
-                  _aaxConditionSignal(handle->signal.condition);
-                  _aaxMutexUnLock(handle->signal.mutex);
+               if (smixer->capturing) {
+                  _aaxSignalTrigger(&handle->buffer_ready);
                }
             }
          }

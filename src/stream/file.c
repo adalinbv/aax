@@ -354,16 +354,11 @@ _aaxFileDriverDisconnect(void *id)
       if (handle->thread.started)
       {
          handle->thread.started = AAX_FALSE;
-         _aaxConditionSignal(handle->thread.signal.condition);
+         _aaxSignalTrigger(&handle->thread.signal);
          _aaxThreadJoin(handle->thread.ptr);
       }
 
-      if (handle->thread.signal.condition) {
-         _aaxConditionDestroy(handle->thread.signal.condition);
-      }
-      if (handle->thread.signal.mutex) {
-         _aaxMutexDestroy(handle->thread.signal.mutex);
-      }
+      _aaxSignalFree(&handle->thread.signal);
       if (handle->thread.ptr) {
          _aaxThreadDestroy(handle->thread.ptr);
       }
@@ -476,7 +471,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 
             handle->thread.ptr = _aaxThreadCreate();
             handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
-            handle->thread.signal.condition = _aaxConditionCreate();
+            _aaxSignalInit(&handle->thread.signal);
             if (handle->mode == AAX_MODE_READ) {
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxFileDriverReadThread, handle, 20);
@@ -529,7 +524,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
    unsigned int rb_bps, file_bps, file_tracks;
    int32_t** sbuf;
    char *scratch;
-   size_t res;
+   ssize_t res;
 
    assert(rb);
    assert(id != 0);
@@ -575,7 +570,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
    handle->bytes_avail = res;
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
-   _aaxConditionSignal(handle->thread.signal.condition);
+   _aaxSignalTrigger(&handle->thread.signal);
 
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
 }
@@ -664,9 +659,9 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
                memcpy(data, handle->buf, ret);
                memcpy(handle->buf, handle->buf+ret, handle->bufpos-ret);
                handle->bufpos -= ret;
-               _aaxMutexUnLock(handle->thread.signal.mutex);
 
-               _aaxConditionSignal(handle->thread.signal.condition);
+               _aaxMutexUnLock(handle->thread.signal.mutex);
+               _aaxSignalTrigger(&handle->thread.signal);
 
                if (ret <= 0)
                {
@@ -892,11 +887,11 @@ _aaxFileDriverWriteThread(void *id)
    bits = handle->bits_sample;
    do
    {
+      ssize_t buffer_avail;
       size_t usize;
-      size_t buffer_avail;
       char *data;
 
-      _aaxConditionWait(handle->thread.signal.condition, handle->thread.signal.mutex);
+      _aaxSignalWait(&handle->thread.signal);
       data = (char*)handle->scratch;
       avail = handle->bytes_avail;
 
@@ -983,7 +978,7 @@ _aaxFileDriverReadThread(void *id)
       if (res < 0) break;
 
       handle->bufpos += res;
-      _aaxConditionWait(handle->thread.signal.condition, handle->thread.signal.mutex);
+      _aaxSignalWait(&handle->thread.signal);
    }
    while(handle->thread.started);
 

@@ -423,10 +423,10 @@ _aaxEventStop(_aaxEventMgr *eventmgr)
    if TEST_FOR_TRUE(eventmgr->thread.started)
    {
       eventmgr->thread.started = AAX_FALSE;
-      _aaxConditionSignal(eventmgr->thread.condition);
+      _aaxConditionSignal(eventmgr->thread.signal);
       _aaxThreadJoin(eventmgr->thread.ptr);
 
-      _aaxConditionDestroy(eventmgr->thread.condition);
+      _aaxConditionDestroy(eventmgr->thread.signal.condition);
       _aaxMutexDestroy(eventmgr->thread.mutex);
       _aaxThreadDestroy(eventmgr->thread.ptr);
    }

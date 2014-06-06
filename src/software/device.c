@@ -519,7 +519,6 @@ _aaxNoneDriverThread(void* config)
    _intBufferData *dptr_sensor;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame* mixer;
-   _aaxTimer *timer;
    _sensor_t* sensor;
    float delay_sec;
 
@@ -551,9 +550,6 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   timer = _aaxTimerCreate();
-   _aaxTimerStartRepeatable(timer, delay_sec);
-
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
@@ -571,9 +567,8 @@ _aaxNoneDriverThread(void* config)
          }
       }
    }
-   while (_aaxTimerWait(timer, handle->thread.signal.mutex) == AAX_TIMEOUT);
+   while (_aaxSignalWaitTimed(&handle->thread.signal,delay_sec) == AAX_TIMEOUT);
 
-   _aaxTimerDestroy(timer);
    be->destroy_ringbuffer(dest_rb);
    handle->ringbuffer = NULL;
    _aaxMutexUnLock(handle->thread.signal.mutex);
