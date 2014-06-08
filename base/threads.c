@@ -464,11 +464,29 @@ _aaxSignalDestroy(_aaxSignal *signal)
 int
 _aaxSignalWait(_aaxSignal *signal)
 {
-   _aaxMutex *m = (_aaxMutex *)signal->mutex;
    int rv;
 
-   rv = pthread_cond_wait(signal->condition, &m->mutex);
-   if (!rv) signal->triggered = 0;
+   if (!signal->triggered)
+   {
+      _aaxMutex *m = (_aaxMutex *)signal->mutex;
+
+      rv = pthread_cond_wait(signal->condition, &m->mutex);
+      switch(rv)
+      {
+      case 0:
+         signal->triggered = 0;
+         rv = AAX_TRUE;
+         break;
+      default:
+         rv = AAX_FALSE;
+         break;
+      }
+   }
+   else
+   {
+      signal->triggered = 0;
+      rv = AAX_TRUE;
+   }
 
    return rv;
 }
@@ -476,38 +494,47 @@ _aaxSignalWait(_aaxSignal *signal)
 int
 _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
-   _aaxMutex *m = (_aaxMutex *)signal->mutex;
-   struct timespec ts;
-   time_t secs;
    int rv;
 
-   clock_gettime(CLOCK_REALTIME, &ts);
-
-   secs = (time_t)floorf(timeout);
-   timeout -= secs;
-
-   ts.tv_sec += secs;
-   ts.tv_nsec += (long)rintf(timeout*1e9f);
-   if (ts.tv_nsec >= 1000000000L)
+   if (!signal->triggered)
    {
-      ts.tv_sec++;
-      ts.tv_nsec -= 1000000000L;
-   }
+      _aaxMutex *m = (_aaxMutex *)signal->mutex;
+      struct timespec ts;
+      time_t secs;
+
+      clock_gettime(CLOCK_REALTIME, &ts);
+
+      secs = (time_t)floorf(timeout);
+      timeout -= secs;
+
+      ts.tv_sec += secs;
+      ts.tv_nsec += (long)rintf(timeout*1e9f);
+      if (ts.tv_nsec >= 1000000000L)
+      {
+         ts.tv_sec++;
+         ts.tv_nsec -= 1000000000L;
+      }
    
-   rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
-   switch(rv)
+      rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
+      switch(rv)
+      {
+      case ETIMEDOUT:
+         signal->triggered = 0;
+         rv = AAX_TIMEOUT;
+         break;
+      case 0:
+         signal->triggered = 0;
+         rv = AAX_TRUE;
+         break;
+      default:
+         rv = AAX_FALSE;
+         break;
+      }
+   }
+   else
    {
-   case ETIMEDOUT:
-      signal->triggered = 0;
-      rv = AAX_TIMEOUT;
-      break;
-   case 0:
       signal->triggered = 0;
       rv = AAX_TRUE;
-      break;
-   default:
-      rv = AAX_FALSE;
-      break;
    }
 
    return rv;
