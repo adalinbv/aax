@@ -85,7 +85,11 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 
-   nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
+   if (ep2d->note.velocity == 1.0f) {
+      nvel = 1.0f;
+   } else {
+      nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
+   }
    pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
    pitch *= ep2d->note.pressure;
 
