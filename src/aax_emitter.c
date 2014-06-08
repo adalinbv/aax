@@ -147,21 +147,24 @@ AAX_API int AAX_APIENTRY
 aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 {
    _emitter_t* handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
    if (handle)
    {
       _buffer_t* buffer = get_buffer(buf);
       if (buffer)
       {
          _aaxRingBuffer *rb = buffer->ringbuffer;
+         const _aaxEmitter *src = handle->source;
+
+         if (_client_release_mode) goto finish;
+
          if (rb->get_state(rb, RB_IS_VALID))
          {
-            const _aaxEmitter *src = handle->source;
             if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
                handle->track = 0;
             }
 
             if (handle->track < rb->get_parami(rb, RB_NO_TRACKS))
+finish:
             {
                _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
                if (embuf)
@@ -173,7 +176,8 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 
                   _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
 
-                  rv = AAX_TRUE;
+                  put_emitter(handle);
+                  return AAX_TRUE;
                }
                else {
                   _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -195,7 +199,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_emitter(handle);
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
@@ -779,11 +783,12 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
 {
    _emitter_t *handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
    if (handle)
    {
-      if (mtx && !detect_nan_vec4(mtx[0]) && !detect_nan_vec4(mtx[1]) &&
-                 !detect_nan_vec4(mtx[2]) && !detect_nan_vec4(mtx[3]))
+      if (_client_release_mode) goto finish;
+
+      if (mtx && !detect_nan_mtx4((const float(*)[4])mtx))
+finish:
       {
          _aaxEmitter *src = handle->source;
          mtx4Copy(src->props3d->dprops3d->matrix, mtx);
@@ -793,7 +798,9 @@ aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
             src->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
          }
          _PROP_MTX_SET_CHANGED(src->props3d);
-         rv = AAX_TRUE;
+ 
+         put_emitter(handle);
+         return AAX_TRUE;
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -803,17 +810,19 @@ aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_emitter(handle);
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
 aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
    if (handle)
    {
+      if (_client_release_mode) goto finish;
+
       if (velocity && !detect_nan_vec3(velocity))
+finish:
       {
          _aaxDelayed3dProps *dp3d;
  
@@ -821,7 +830,8 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
          vec3Copy(dp3d->velocity[VELOCITY], velocity);
          _PROP_SPEED_SET_CHANGED(handle->source->props3d);
 
-         rv = AAX_TRUE;
+         put_emitter(handle);
+         return AAX_TRUE;
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -831,7 +841,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_emitter(handle);
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY

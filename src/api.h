@@ -91,6 +91,7 @@ typedef struct
 #define VALID_HANDLE(h)		((h) && ((h)->valid & ~AAX_TRUE) == HANDLE_ID)
 #define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
 
+extern int _client_release_mode;
 extern _aaxMixerInfo* _info;
 
 struct backend_t

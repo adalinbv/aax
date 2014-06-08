@@ -174,11 +174,13 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
+
+   if (_client_release_mode) goto finish;
+
    if (handle)
    {
-      if (mtx && !detect_nan_vec4(mtx[0]) && !detect_nan_vec4(mtx[1]) &&
-                 !detect_nan_vec4(mtx[2]) && !detect_nan_vec4(mtx[3]))
+      if (mtx && !detect_nan_mtx4((const float(*)[4])mtx))
+finish:
       {
          _aaxAudioFrame* fmixer = handle->submix;
          _handle_t *parent = handle->handle;
@@ -214,7 +216,9 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
             fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
          }
          _PROP_MTX_SET_CHANGED(fmixer->props3d);
-         rv = AAX_TRUE;
+
+         put_frame(frame);
+         return AAX_TRUE;
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -224,7 +228,7 @@ aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_frame(frame);
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
@@ -254,10 +258,13 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
+
+   if (_client_release_mode) goto finish;
+
    if (handle)
    {
       if (velocity && !detect_nan_vec3(velocity))
+finish:
       {
          _aaxDelayed3dProps *dp3d;
 
@@ -265,7 +272,8 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
          vec3Copy(dp3d->velocity[VELOCITY], velocity);
          _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
 
-         rv = AAX_TRUE;
+         put_frame(frame);
+         return AAX_TRUE;
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -275,7 +283,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_frame(frame);
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
@@ -313,10 +321,10 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
    
    if (handle)
    {
-      if (type & AAX_COMPRESSION_VALUE)
+      unsigned int track = type & 0x3F;
+      if (track < _AAX_MAX_SPEAKERS)
       {
-         unsigned int track = type & 0x3F;
-         if (track < _AAX_MAX_SPEAKERS)
+         if (type & AAX_COMPRESSION_VALUE)
          {
             _aaxAudioFrame* fmixer = handle->submix;
             _aaxRingBufferLFOData *lfo;
@@ -326,11 +334,7 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
                rv = 256*32768*lfo->compression[track];
             }
          }
-      }
-      else if (type & AAX_GATE_ENABLED)
-      {
-         unsigned int track = type & 0x3F;
-         if (track < _AAX_MAX_SPEAKERS)
+         else if (type & AAX_GATE_ENABLED)
          {
             _aaxAudioFrame* fmixer = handle->submix;
             _aaxRingBufferLFOData *lfo;
@@ -339,6 +343,9 @@ aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
             if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
                rv = AAX_TRUE;
             }
+         }
+         else {
+            _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
       else {

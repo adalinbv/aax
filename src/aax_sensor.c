@@ -31,9 +31,10 @@ static int _aaxSensorCaptureStop(_handle_t *);
 AAX_API int AAX_APIENTRY
 aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
 {
-   int rv = AAX_FALSE;
-   if (mtx && !detect_nan_vec4(mtx[0]) && !detect_nan_vec4(mtx[1]) &&
-              !detect_nan_vec4(mtx[2]) && !detect_nan_vec4(mtx[3]))
+   if (_client_release_mode) goto finish;
+
+   if (mtx && !detect_nan_mtx4((const float (*)[4])mtx))
+finish:
    {
       _handle_t *handle = get_handle(config);
       if (handle)
@@ -48,7 +49,7 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
             mtx4Copy(smixer->props3d->m_dprops3d->matrix, mtx);
             _PROP_MTX_SET_CHANGED(smixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
+            return AAX_TRUE;
          }
       }
       else {
@@ -58,7 +59,7 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
@@ -95,8 +96,10 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
 AAX_API int AAX_APIENTRY
 aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
 {
-   int rv = AAX_FALSE;
+   if (_client_release_mode) goto finish;
+
    if (velocity && !detect_nan_vec3(velocity))
+finish:
    {
       _handle_t *handle = get_handle(config);
       if (handle)
@@ -117,7 +120,7 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
             mtx4InverseSimple(dp3d->velocity, mtx);
             _PROP_SPEED_SET_CHANGED(sensor->mixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
+            return AAX_TRUE;
          }
       }
       else {
@@ -127,7 +130,7 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
-   return rv;
+   return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
