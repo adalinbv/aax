@@ -132,7 +132,11 @@ _aaxAudioFrameThread(void* config)
             }
          }
       }
+
       mixer->capturing++;
+      if (fmixer->frame_ready.condition) {
+         _aaxSignalTrigger(&fmixer->frame_ready);
+      }
 
       /**
        * _aaxSoftwareMixerSignalFrames uses _aaxSignalTrigger to let the

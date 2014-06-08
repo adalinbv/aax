@@ -380,7 +380,13 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
    unsigned int i, num = 0;
    if (hf)
    {
+      _aaxTimer *timer = _aaxTimerCreate();
+      float p, dt = 0.9f * dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
+
+      /* First make sure all frames are ready */
+      p = 0;
+      _aaxTimerStart(timer);
       for (i=0; i<num; i++)
       {
          _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
@@ -394,22 +400,34 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
              * fmixer->thread  =  1: threaded frame
              * fmixer->thread  =  0: non threaded frame, call update ourselves.
              */
-            if (fmixer->thread)
+            if (!fmixer->thread)
             {
-//             size_t dt = 1.5f*1000.0f/fmixer->info->refresh_rate; // ms
-               unsigned int dt = 5000;
-               int p = 0;
+               /* If one of the audio-frames is non-threaded, they all are. */
+               _intBufReleaseData(dptr, _AAX_FRAME);
+               break;
+            }
 
+            if (fmixer->frame_ready.condition)
+            {
+#if 0
+               _aaxMutexLock(fmixer->frame_ready.mutex);
+               _aaxSignalWaitTimed(&fmixer->frame_ready, dt-p);
+               _aaxMutexUnLock(fmixer->frame_ready.mutex);
+
+               p += _aaxTimerElapsed(timer);
+               if (p >= dt) break;
+#else
                /*
                 * Wait for the frame's buffer te be available.
                 * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
                 */
-               while ((fmixer->capturing == 1) && (++p < dt)) // 3ms is enough
+               while ((fmixer->capturing == 1) && (p < dt)) // 3ms is enough
                {
                   _intBufReleaseData(dptr, _AAX_FRAME);
                   _intBufReleaseNum(hf, _AAX_FRAME);
 
                   msecSleep(1);
+                  p += _aaxTimerElapsed(timer);
 
                   _intBufGetMaxNum(hf, _AAX_FRAME);
                   dptr = _intBufGet(hf, _AAX_FRAME, i);
@@ -417,10 +435,23 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 
                   frame = _intBufGetDataPtr(dptr);
                }
+#endif
             } /* fmixer->thread */
-//          else { // non registered frames }
+            if (dptr) _intBufReleaseData(dptr, _AAX_FRAME);
+         }
+      }
+      _aaxTimerDestroy(timer);
 
-            if (dptr && fmixer->capturing > 1)
+      /* Then mix all frames */
+      for (i=0; i<num; i++)
+      {
+         _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
+         if (dptr)
+         {
+            _frame_t* frame = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *fmixer = frame->submix;
+
+            if (fmixer->capturing > 1)
             {
                 _handle_t *handle = frame->handle;
                 const _aaxDriverBackend *be = handle->backend.ptr;
@@ -431,12 +462,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
                                   p2d, be, be_handle);
                 fmixer->capturing = 1;
             }
-
-            /*
-             * dptr could be zero if it was removed while waiting for a new
-             * buffer
-             */
-            if (dptr) _intBufReleaseData(dptr, _AAX_FRAME);
+            _intBufReleaseData(dptr, _AAX_FRAME);
          }
       }
       _intBufReleaseNum(hf, _AAX_FRAME);

@@ -334,7 +334,7 @@ typedef struct
 
    unsigned char capturing;
    signed char thread;
-   _aaxSignal frame_ready;	/* signel for when the frame is ready */
+   _aaxSignal frame_ready;	/* signal for when the frame is ready */
  
 } _aaxAudioFrame;
 
