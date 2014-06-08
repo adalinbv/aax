@@ -104,21 +104,34 @@ is_nan64(double x)
 }
 
 int
-detect_nan_vec3(const float *vec)
+detect_nan_vec3(const float vec[3])
 {
    return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]);
 }
 
 int
-detect_nan_vec4(const float *vec)
+detect_nan_vec4(const float vec[4])
 {
    return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]) || is_nan(vec[3]);
 }
 
 int
-detect_nan_vec4d(const double *vec)
+detect_nan_vec4d(const double vec[4])
 {
    return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]) || is_nan(vec[3]);
+}
+
+int
+detect_nan_mtx4(const float mtx[4][4]){
+   return detect_nan_vec4(mtx[0]) || detect_nan_vec4(mtx[1]) ||
+          detect_nan_vec4(mtx[2]) || detect_nan_vec4(mtx[3]);
+}
+
+int
+detect_nan_mtx4d(const double mtx[4][4])
+{
+   return detect_nan_vec4d(mtx[0]) || detect_nan_vec4d(mtx[1]) ||
+          detect_nan_vec4d(mtx[2]) || detect_nan_vec4d(mtx[3]);
 }
 
 int
@@ -132,13 +145,13 @@ is_inf(float x)
 }
 
 int
-detect_inf_vec3(const float *vec)
+detect_inf_vec3(const float vec[3])
 {
    return !(is_inf(vec[0]) || is_inf(vec[1]) || is_inf(vec[2]));
 }
 
 int
-detect_zero_vec3(const float *vec)
+detect_zero_vec3(const float vec[3])
 {
    return ((fabs(vec[0]) + fabs(vec[1]) + fabs(vec[2])) < 0.05);
 }

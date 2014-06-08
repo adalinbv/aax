@@ -24,11 +24,13 @@ extern "C" {
 int is_nan(float);
 int is_nan64(double);
 int is_inf(float);
-int detect_nan_vec3(const float *);
-int detect_nan_vec4(const float *);
-int detect_nan_vec4d(const double *);
-int detect_inf_vec3(const float *);
-int detect_zero_vec3(const float *);
+int detect_nan_vec3(const float[3]);
+int detect_nan_vec4(const float[4]);
+int detect_nan_vec4d(const double[4]);
+int detect_nan_mtx4(const float[4][4]);
+int detect_nan_mtx4d(const double[4][4]);
+int detect_inf_vec3(const float[3]);
+int detect_zero_vec3(const float[3]);
 
 #if 0
 #define fast_abs(a)            ((a) > 0) ? (a) : -(a)
