@@ -844,7 +844,7 @@ _batch_cvt32u_32s_cpu(void *data, size_t num)
       size_t i = num;
 
       do {
-         *p++ -= (int32_t)2147483648;
+         *p++ -= (int32_t)2147483647;
       } while (--i);
    }
 }
@@ -858,7 +858,7 @@ _batch_cvt32s_32u_cpu(void *data, size_t num)
       size_t i = num;
 
       do {
-         *p++ += (uint32_t)2147483648;
+         *p++ += (uint32_t)2147483647;
       } while (--i);
    }
 }
