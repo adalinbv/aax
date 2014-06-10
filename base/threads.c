@@ -451,6 +451,7 @@ _aaxSignalFree(_aaxSignal *signal)
    {
       pthread_cond_destroy(signal->condition);
       free(signal->condition);
+      signal->condition = 0;
    }
 }
 
@@ -908,20 +909,40 @@ _aaxMutexUnLock(void *mutex)
 }
 #endif
 
-void *
-_aaxConditionCreate()
+_aaxSignal*
+_aaxSignalCreate()
 {
-   void *p = CreateEvent(NULL, FALSE, FALSE, NULL);
-   return p;
+   _aaxSignal *s = calloc(1, sizeof(_aaxSignal));
+   if (s) _aaxSignalInit(s);
+   return s;
 }
 
 void
-_aaxConditionDestroy(void *c)
+_aaxSignalInit(_aaxSignal *signal)
 {
-   assert(c);
+   signal->condition = CreateEvent(NULL, FALSE, FALSE, NULL);
+   if (!signal->condition) return;
 
-   CloseHandle(c);
-   c = 0;
+   signal->mutex = _aaxMutexCreate(signal->mutex);
+}
+
+void
+_aaxSignalFree(_aaxSignal *signal)
+{
+   _aaxMutexDestroy(signal->mutex);
+
+   if (signal->condition)
+   {
+      CloseHandle(signal->condition);
+      signal->condition = 0;
+   }
+}
+
+void
+_aaxSignalDestroy(_aaxSignal *signal)
+{
+   _aaxSignalFree(signal);
+   free(signal);
 }
 
 
@@ -930,78 +951,96 @@ _aaxConditionDestroy(void *c)
  * http://www.codeproject.com/Articles/18371/Fast-critical-sections-with-timeout
  */
 int
-_aaxConditionWait(void *c, void *mutex)
+_aaxConditionWait(_aaxSignal *signal)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
-   DWORD hr;
-   int r = 0;
+   int rv;
 
-   assert(mutex);
-   
-   _aaxMutexUnLock(m);
-   hr = WaitForSingleObject(c, INFINITE);
-   _aaxMutexLock(m);
-
-   switch (hr)
+   if (!signal->triggered)
    {
-   case WAIT_OBJECT_0:	/* condiiton is signalled */
-      r = 0;
-      break;
-   case WAIT_TIMEOUT:	/* time-out ocurred */
-      r = ETIMEDOUT;
-      break;
-   default:
-      r = EINVAL;
-      break;
-   }
+      _aaxMutex *mtx = (_aaxMutex *)signal->mutex;
+      DWORD hr;
 
-   return r;
-}
-
-int
-_aaxConditionWaitTimed(void *c, void *mutex, float timeout)
-{
-   _aaxMutex *m = (_aaxMutex *)mutex;
-   struct timeval now_tv;
-   DWORD hr;
-   int r=0;
-
-   assert(mutex);
-   assert(ts);
-
-   timeout *= 1000.0f; 		/* from seconds to ms */
-   if (timeout > 0.0f)	
-   {
-      _aaxMutexUnLock(m);
-      hr = WaitForSingleObject(c, (DWORD)rint(timeout));
-      _aaxMutexLock(m);
+      _aaxMutexUnLock(mtx);
+      hr = WaitForSingleObject(signal->condition, INFINITE);
+      _aaxMutexLock(mtx);
 
       switch (hr)
       {
-      case WAIT_OBJECT_0:	/* condiiton is signalled */
-         r = 0;
-         break;
-      case WAIT_TIMEOUT:	/* time-out ocurred */
-         r = ETIMEDOUT;
+      case WAIT_OBJECT_0:
+         signal->triggered = 0;
+         rv = AAX_TRUE;
          break;
       default:
-          r = EINVAL;
+         rv = AAX_FALSE;
          break;
       }
-   } else {		/* timeout */
-      r = ETIMEDOUT;
+   else
+   {
+      signal->triggered = 0;
+      rv = AAX_TRUE;
    }
-   return r;
+
+   return rv;
 }
 
 int
-_aaxConditionSignal(void *c)
+_aaxConditionWaitTimed(_aaxSignal *signal, float timeout)
 {
-   BOOL rv;
+   int rv;
 
-   assert(c);
+   if (!signal->triggered)
+   {
+      _aaxMutex *mtx = (_aaxMutex *)signal->mutex;
+      DWORD hr;
 
-   rv = SetEvent(c);
+      timeout *= 1000.0f; 		/* from seconds to ms */
+      if (timeout > 0.0f)	
+      {
+         _aaxMutexUnLock(mtx);
+         hr = WaitForSingleObject(c, (DWORD)floorf(timeout));
+         _aaxMutexLock(mtx);
+
+         switch (hr)
+         {
+         case WAIT_TIMEOUT:
+            signal->triggered = 0;
+            rv = AAX_TIMEOUT;
+            break;
+         case WAIT_OBJECT_0:
+            signal->triggered = 0;
+            rv = AAX_TRUE;
+            break;
+         default:
+            rv = AAX_FALSE;
+            break;
+         }
+      } else {		/* timeout */
+         signal->triggered = 0;
+         rv = AAX_TIMEOUT;
+      }
+   }
+   else
+   {
+      signal->triggered = 0;
+      rv = AAX_TRUE;
+   }
+
+   return rv;
+}
+
+int
+_aaxSignalTrigger(_aaxSignal *signal)
+{
+   BOOL rv = 0;
+
+   _aaxMutexLock(signal->mutex);
+   if (!signal->triggered)
+   {
+      rv = SetEvent(c);
+      signal->triggered = rv ? 0 : 1;
+   }
+   _aaxMutexUnLock(signal->mutex);
+
    return rv;
 }
 
