@@ -321,15 +321,15 @@ _batch_resample_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
    assert(fact > 0.0f);
 
    if (fact < CUBIC_TRESHOLD) {
-      _aaxBufResampleCubic_sse3(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleCubic_sse3(d, s, dmin, dmax, smu, fact);
    }
    else if (fact < 1.0f) {
-      _aaxBufResampleLinear_sse3(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleLinear_sse3(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_sse3(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleSkip_sse3(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_sse3(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleNearest_sse3(d, s, dmin, dmax, smu, fact);
    }
 } 
 #else

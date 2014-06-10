@@ -1349,7 +1349,7 @@ _aaxBufResampleSkip_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dma
 }
 
 static inline void
-_aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, size_t min, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
@@ -1485,15 +1485,15 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
    assert(fact > 0.0f);
 
    if (fact < CUBIC_TRESHOLD) {
-      _aaxBufResampleCubic_sse2(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleCubic_sse2(d, s, dmin, dmax, smu, fact);
    }
    else if (fact < 1.0f) {
-      _aaxBufResampleLinear_sse2(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleLinear_sse2(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_sse2(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleSkip_sse2(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_sse2(d, s, dmin, dmax, 0, smu, fact);
+      _aaxBufResampleNearest_sse2(d, s, dmin, dmax, smu, fact);
    }
 }
 #else
