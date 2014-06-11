@@ -1,9 +1,9 @@
-* Mon Jun 02 2014 - tech@adalin.org
+* Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low
  * Fixed a possible segmentation fault with certain ALSA drivers.
  * Fixed a possible segmentation fault for looping emitters.
 
- -- Erik Hofman <tech@adalin.org>  Mon, 02 Jun 2014 12:53:00 + 0100
+ -- Erik Hofman <tech@adalin.org>  Tue, 10 Jun 2014 12:58:00 + 0100
 
 * Wed May 21 2014 - tech@adalin.org
 - AeonWave (2.4.0) stable; urgency=low
