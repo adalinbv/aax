@@ -668,7 +668,6 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   ssr_config->handle = fhandle;
                   ssr_config->mixer_pos = pos;
                   smixer->refcount++;
-                  smixer->thread = AAX_TRUE;
 
                   if (!smixer->ringbuffer)
                   {
@@ -914,7 +913,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    if (handle)
    {
       _frame_t* sframe = get_frame(subframe);
-      if (sframe && !sframe->handle && !sframe->thread.started)
+      if (sframe && !sframe->handle)
       {
          if (sframe->mixer_pos == UINT_MAX)
          {
@@ -973,7 +972,6 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
                   }
                   rv = AAX_TRUE;
 
-                  submix->thread = AAX_FALSE;
                   submix->refcount++;
                   sframe->handle = handle;
                   sframe->mixer_pos = pos;
@@ -1322,81 +1320,10 @@ _aaxAudioFrameStart(_frame_t *frame)
 
    if (_IS_INITIAL(frame) || _IS_PROCESSED(frame))
    {
-      if  (frame->submix->thread)	/* threaded frame */
-      {	
-         unsigned int ms;
-         int r;
-
-         frame->thread.ptr = _aaxThreadCreate();
-         assert(frame->thread.ptr != 0);
-
-         _aaxSignalInit(&frame->thread.signal);
-         assert(frame->thread.signal.condition != 0);
-
-         frame->thread.started = AAX_TRUE;
-         ms = rintf(1000/frame->submix->info->refresh_rate);
-         r =_aaxThreadStart(frame->thread.ptr, _aaxAudioFrameThread, frame, ms);
-         if (r == 0)
-         {
-            int p = 0;
-            do
-            {
-               msecSleep(100);
-               r = frame->thread.initialized;
-               if (p++ > 5000) break;
-            }
-            while (r == 0);
-
-            if (r == 0)
-            {
-               _aaxErrorSet(AAX_TIMEOUT);
-               frame->thread.started = AAX_FALSE;
-            }
-            else
-            {
-               _aaxAudioFrame* fmixer = frame->submix;
-               _aaxSignalInit(&fmixer->frame_ready);
-               if (fmixer->frame_ready.condition)
-               {
-                  _handle_t *phandle = frame->handle;
-                  if (phandle->id == HANDLE_ID)
-                  {
-                     _intBufferData *dptr;
-                     dptr = _intBufGet(phandle->sensors, _AAX_SENSOR, 0);
-                     if (dptr)
-                     {
-                        _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                        _aaxAudioFrame *smixer = sensor->mixer;
-
-                        _aaxAudioFrameResetDistDelay(fmixer, smixer);
-                        _intBufReleaseData(dptr, _AAX_SENSOR);
-                     }
-                  }
-                  else if (phandle->id == AUDIOFRAME_ID)
-                  {
-                     _aaxAudioFrame *smixer = ((_frame_t*)phandle)->submix;
-                     _aaxAudioFrameResetDistDelay(fmixer, smixer);
-                  }
-
-                  fmixer->capturing = AAX_TRUE;
-                  rv = AAX_TRUE;
-               }
-               else {
-                  _aaxAudioFrameStop(frame);
-               }
-            }
-         }   
-         else {
-            _aaxErrorSet(AAX_INVALID_STATE);
-         }
-      }
-      else				/* unthreaded frame */
-      {
-         frame->submix->capturing = AAX_TRUE;
-         rv = AAX_TRUE;
-      }
+      frame->submix->capturing = AAX_TRUE;
+      rv = AAX_TRUE;
    }
-   else if (_IS_STANDBY(frame) || !frame->submix->thread) {
+   else if _IS_STANDBY(frame) {
       rv = AAX_TRUE;
    }
    return rv;
@@ -1405,36 +1332,14 @@ _aaxAudioFrameStart(_frame_t *frame)
 int
 _aaxAudioFrameStop(_frame_t *frame)
 {
-   int rv = AAX_FALSE;
-   if TEST_FOR_TRUE(frame->thread.started)
-   {
-      _aaxAudioFrame* fmixer = frame->submix;
-
-      frame->thread.started = AAX_FALSE;
-      _aaxSignalTrigger(&frame->thread.signal);
-      _aaxThreadJoin(frame->thread.ptr);
-
-      _aaxSignalFree(&frame->thread.signal);
-      _aaxThreadDestroy(frame->thread.ptr);
-
-      _aaxSignalFree(&fmixer->frame_ready);
-      rv = AAX_TRUE;
-   }
-   else if (!frame->submix->thread) {
-      rv = AAX_TRUE;
-   }
+   int rv = AAX_TRUE;
    return rv;
 }
 
 static int
 _aaxAudioFrameUpdate(_frame_t *frame)
 {
-   int rv = AAX_FALSE;
-   if TEST_FOR_TRUE(frame->thread.started)
-   {
-      _aaxSignalTrigger(&frame->thread.signal);
-      rv = AAX_TRUE;
-   }
+   int rv = AAX_TRUE;
    return rv;
 }
 

@@ -34,15 +34,7 @@ extern "C" {
 #define USE_MIDI			AAX_FALSE
 #define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
 
-#ifndef NDEBUG
-# define THREADED_FRAMES		AAX_TRUE
-#else
-# define THREADED_FRAMES		AAX_FALSE
-#endif
-
 #if _WIN32
-# undef THREADED_FRAMES
-# define THREADED_FRAMES	AAX_FALSE
 # ifndef WIN32
 #  pragma waring _WIN32 defined but not WIN32
 #  define WIN32			_WIN32
@@ -158,9 +150,6 @@ typedef struct
    void* handle;		/* assigned when registered to a (sub)mixer */
 
    _aaxAudioFrame *submix;
-
-   struct threat_t thread;	/* for threaded frames           */
-// _aaxSignal buffer_ready;
 
 } _frame_t;
 

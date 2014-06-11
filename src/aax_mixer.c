@@ -749,7 +749,6 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      sframe->handle = handle;
                      sframe->mixer_pos = pos;
                      submix->refcount++;
-                     submix->thread = AAX_TRUE;
 
                      rb = submix->ringbuffer;
                      if (!rb)
@@ -1094,7 +1093,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
    if (handle && VALID_MIXER(handle))
    {
       _frame_t* frame = get_frame(f);
-      if (frame && !frame->handle && !frame->thread.started)
+      if (frame && !frame->handle)
       {
          if (frame->mixer_pos == UINT_MAX)
          {
@@ -1122,7 +1121,6 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   while ((buf = aaxAudioFrameGetBuffer(frame)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
-                  _aaxMutexUnLock(frame->thread.signal.mutex);
 
                   pos = _intBufAddData(hf, _AAX_FRAME, frame);
                   mixer->no_registered++;
@@ -1165,11 +1163,6 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   rv = AAX_TRUE;
 
                   submix->refcount++;
-#if THREADED_FRAMES
-                  submix->thread = AAX_TRUE;
-#else
-                  submix->thread = AAX_FALSE;
-#endif
 
                   frame->handle = handle;
                   frame->mixer_pos = pos;
@@ -1226,7 +1219,6 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBufReleaseData(dptr, _AAX_SENSOR);
 
             submix->refcount--;
-            submix->thread = AAX_FALSE;
             frame->handle = NULL;
             frame->mixer_pos = UINT_MAX;
             rv = AAX_TRUE;

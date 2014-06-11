@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 #include <base/geometry.h>
-#include <base/threads.h>
+// #include <base/threads.h>
 
 #include <filters/effects.h>
 
@@ -333,8 +333,6 @@ typedef struct
    unsigned char refcount;
 
    unsigned char capturing;
-   signed char thread;
-   _aaxSignal frame_ready;	/* signal for when the frame is ready */
  
 } _aaxAudioFrame;
 

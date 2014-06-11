@@ -333,44 +333,6 @@ _aaxSoftwareMixerThread(void* config)
    return handle;
 }
 
-size_t
-_aaxSoftwareMixerSignalFrames(void *frames, float refresh_rate)
-{
-   _intBuffers *hf = (_intBuffers*)frames;
-   unsigned int num = 0;
-
-   if (hf)
-   {
-      unsigned int i;
-
-      num = _intBufGetMaxNum(hf, _AAX_FRAME);
-      for (i=0; i<num; i++)
-      {
-         _intBufferData *dptr = _intBufGetNoLock(hf, _AAX_FRAME, i);
-         if (dptr)
-         {
-            _frame_t* frame = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* fmixer = frame->submix;
-
-            if TEST_FOR_TRUE(fmixer->capturing)
-            {
-               unsigned int nbuf = _intBufGetNumNoLock(fmixer->play_ringbuffers,
-                                                        _AAX_RINGBUFFER);
-               if (nbuf < 2) {
-                  _aaxSignalTrigger(&frame->thread.signal);
-               }
-            }
-//          _intBufReleaseData(dptr, _AAX_FRAME);
-         }
-      }
-      _intBufReleaseNum(hf, _AAX_FRAME);
-
-      /* give the remainder of the threads time slice to other threads */
-//    _aaxThreadSwitch();
-   }
-   return num;
-}
-
 /*-------------------------------------------------------------------------- */
 
 size_t
@@ -380,69 +342,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
    unsigned int i, num = 0;
    if (hf)
    {
-      _aaxTimer *timer = _aaxTimerCreate();
-      float p, dt = 0.9f * dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
       num = _intBufGetMaxNum(hf, _AAX_FRAME);
-
-      /* First make sure all frames are ready */
-      p = 0;
-      _aaxTimerStart(timer);
-      for (i=0; i<num; i++)
-      {
-         _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
-         if (dptr)
-         {
-            _frame_t* frame = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *fmixer = frame->submix;
-
-            /*
-             * fmixer->thread  = -1: mixer
-             * fmixer->thread  =  1: threaded frame
-             * fmixer->thread  =  0: non threaded frame, call update ourselves.
-             */
-            if (!fmixer->thread)
-            {
-               /* If one of the audio-frames is non-threaded, they all are. */
-               _intBufReleaseData(dptr, _AAX_FRAME);
-               break;
-            }
-
-            if (fmixer->frame_ready.condition)
-            {
-#if 0
-               _aaxMutexLock(fmixer->frame_ready.mutex);
-               _aaxSignalWaitTimed(&fmixer->frame_ready, dt-p);
-               _aaxMutexUnLock(fmixer->frame_ready.mutex);
-
-               p += _aaxTimerElapsed(timer);
-               if (p >= dt) break;
-#else
-               /*
-                * Wait for the frame's buffer te be available.
-                * Can't call aaxAudioFrameWaitForBuffer because of a dead-lock
-                */
-               while ((fmixer->capturing == 1) && (p < dt)) // 3ms is enough
-               {
-                  _intBufReleaseData(dptr, _AAX_FRAME);
-                  _intBufReleaseNum(hf, _AAX_FRAME);
-
-                  msecSleep(1);
-                  p += _aaxTimerElapsed(timer);
-
-                  _intBufGetMaxNum(hf, _AAX_FRAME);
-                  dptr = _intBufGet(hf, _AAX_FRAME, i);
-                  if (!dptr) break;
-
-                  frame = _intBufGetDataPtr(dptr);
-               }
-#endif
-            } /* fmixer->thread */
-            if (dptr) _intBufReleaseData(dptr, _AAX_FRAME);
-         }
-      }
-      _aaxTimerDestroy(timer);
-
-      /* Then mix all frames */
       for (i=0; i<num; i++)
       {
          _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
@@ -479,17 +379,6 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    _aaxRingBuffer *dest_rb = (_aaxRingBuffer *)rb;
    float gain;
    int res;
-
-   /* mix all threaded frame ringbuffers to the final mixer ringbuffer */
-# if THREADED_FRAMES
-   if (frames)
-   {
-      _intBuffers *mixer_frames = (_intBuffers*)frames;
-      _aaxSoftwareMixerMixFrames(dest_rb, mixer_frames);
-   }
-   be->effects(be, be_handle, dest_rb, props2d);
-   be->postprocess(be_handle, dest_rb, sensor);
-#endif
 
    /** play back all mixed audio */
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
@@ -603,8 +492,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /**
                 * copying here prevents locking the listener the whole time
                 * it's used for just one time-frame anyhow
-                * Note: modifications here should also be made to
-                *       _aaxAudioFrameProcessThreadedFrame
                 */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)
@@ -643,16 +530,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /* clear the buffer for use by the subframe */
                rb->set_state(rb, RB_CLEARED);
                rb->set_state(rb, RB_STARTED);
-
-               /** signal threaded frames to update (if necessary) */
-               /* thread == -1: mixer; attached frames are threads */
-               /* thread >=  0: frame; call updates manually       */
-               if (smixer->thread < 0)
-               {
-                  _aaxSoftwareMixerSignalFrames(smixer->frames,
-                                                smixer->info->refresh_rate);
-                  fprocess = AAX_FALSE;
-               }
 
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, sensor, smixer, ssv, sdf,
