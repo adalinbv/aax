@@ -782,7 +782,9 @@ _intBufRemoveNormal(_intBuffers *buffer, unsigned int id, unsigned int n,
         }
     }
 
+#ifndef _AL_NOTHREADS
     _intBufReleaseNumNormal(buffer, id, 1);
+#endif
     if (num_locked) {
         _intBufGetNum(buffer, id);
     }

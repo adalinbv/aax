@@ -637,7 +637,7 @@ _aaxThreadSetPriority(void *t, int prio)
    _aaxThread *thread = t;
    int rv = 0;
 
-   DWORD curr_priority = GetThreadPriority(GetCurrentThread());
+// DWORD curr_priority = GetThreadPriority(GetCurrentThread());
    DWORD new_priority;
 
    if (prio == AAX_TIME_CRITICAL_PRIORITY) {
@@ -974,6 +974,7 @@ _aaxConditionWait(_aaxSignal *signal)
          rv = AAX_FALSE;
          break;
       }
+   }
    else
    {
       signal->triggered = 0;
@@ -997,7 +998,7 @@ _aaxConditionWaitTimed(_aaxSignal *signal, float timeout)
       if (timeout > 0.0f)	
       {
          _aaxMutexUnLock(mtx);
-         hr = WaitForSingleObject(c, (DWORD)floorf(timeout));
+         hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
          _aaxMutexLock(mtx);
 
          switch (hr)
@@ -1036,7 +1037,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
    _aaxMutexLock(signal->mutex);
    if (!signal->triggered)
    {
-      rv = SetEvent(c);
+      rv = SetEvent(signal->condition);
       signal->triggered = rv ? 0 : 1;
    }
    _aaxMutexUnLock(signal->mutex);
