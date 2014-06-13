@@ -1799,7 +1799,7 @@ _aaxWASAPIDriverThread(void* config)
    state = AAX_SUSPENDED;
 
    stdby_time_ms = (int)(4*delay_sec*1000);
-   _aaxMutexLock(handle->thread.mutex);
+   _aaxMutexLock(handle->thread.signal.mutex);
 
    hr = _wasapi_setup_event(be_handle, delay_sec);
    if (!be_handle->Event || FAILED(hr)) {
@@ -1809,7 +1809,7 @@ _aaxWASAPIDriverThread(void* config)
    /* playback loop */
    while ((hr == S_OK) && TEST_FOR_TRUE(handle->thread.started))
    {
-      _aaxMutexUnLock(handle->thread.mutex);
+      _aaxMutexUnLock(handle->thread.signal.mutex);
       if (_IS_PLAYING(handle))
       {
          hr = WaitForSingleObject(be_handle->Event, stdby_time_ms);
@@ -1833,7 +1833,7 @@ _aaxWASAPIDriverThread(void* config)
       else {
          msecSleep(stdby_time_ms);
       }
-      _aaxMutexLock(handle->thread.mutex);
+      _aaxMutexLock(handle->thread.signal.mutex);
 
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
@@ -1889,7 +1889,7 @@ _AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
 
    handle->ringbuffer = NULL;
    be->destroy_ringbuffer(dest_rb);
-   _aaxMutexUnLock(handle->thread.mutex);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle;
 }

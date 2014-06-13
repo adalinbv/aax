@@ -627,7 +627,8 @@ _aax_aligned_alloc16(size_t size)
 }
 
 #if defined(__MINGW32__)
-_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_mm_free;
+void _xmm_free(void *ptr) { _mm_free(ptr); }
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_xmm_free;
 #elif ISOC11_SOURCE 
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
@@ -776,14 +777,10 @@ _aaxGetNoCores()
    cores = mpctl(MPC_GETNUMSPUS, NULL, NULL);
 
 #elif defined( WIN32 )
-// AeonWave does not use threads for audio-frames since it's thread model
-// can't handle it.
-# if 0
    SYSTEM_INFO sysinfo;
 
    GetSystemInfo( &sysinfo );
    cores = sysinfo.dwNumberOfProcessors;
-# endif
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)

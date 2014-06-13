@@ -51,12 +51,6 @@ enum {
     CONDITION_EVENT = 1
 } _Event_e;
 
-struct timespec
-{
-  time_t tv_sec; /* seconds */
-  long tv_nsec;  /* nanoseconds */
-};
-
 int gettimeofday(struct timeval*, void*);
 int clock_gettime(int, struct timespec*);
 

@@ -20,6 +20,7 @@ extern "C" {
 #include "config.h"
 #endif
 
+
 enum _wasapi_log
 {
    WASAPI_VARLOG = -1,
@@ -113,12 +114,12 @@ static char *_wasapi_errors[WASAPI_MAX_ERROR] =
 #  define COBJMACROS
 # endif
 
-
 # ifndef NTDDI_VERSION
 #  undef WINVER
 #  undef _WIN32_WINNT
 #  define WINVER       0x0600 // VISTA
 #  define _WIN32_WINNT WINVER
+# endif
 
 #  include <basetyps.h> // << for IID/CLSID
 #  include <rpcsal.h>
@@ -146,11 +147,6 @@ typedef LONG NTSTATUS;
 #   include <oleidl.h>
 #   include <objidl.h>
 #  else
-typedef struct _BYTE_BLOB
-{
-    unsigned long clSize;
-    unsigned char abData[ 1 ];
-} BYTE_BLOB;
 typedef LONGLONG REFERENCE_TIME;
 #  endif
 
@@ -192,7 +188,7 @@ LONG InterlockedOr_Inline(LONG volatile *, LONG);
 
 # ifndef GUID_SECT
 #  define GUID_SECT
-# endif
+// # endif
 
 
 #define AAX_DEFINE_CLSID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const CLSID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
