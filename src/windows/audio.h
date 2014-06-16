@@ -184,11 +184,10 @@ LONG InterlockedAnd_Inline(LONG volatile *, LONG);
 LONG InterlockedOr_Inline(LONG volatile *, LONG);
 # endif
 
-# endif // NTDDI_VERSION
 
 # ifndef GUID_SECT
 #  define GUID_SECT
-// # endif
+# endif
 
 
 #define AAX_DEFINE_CLSID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const CLSID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
