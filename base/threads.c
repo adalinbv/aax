@@ -951,7 +951,7 @@ _aaxSignalDestroy(_aaxSignal *signal)
  * http://www.codeproject.com/Articles/18371/Fast-critical-sections-with-timeout
  */
 int
-_aaxConditionWait(_aaxSignal *signal)
+_aaxSignalWait(_aaxSignal *signal)
 {
    int rv;
 
@@ -985,7 +985,7 @@ _aaxConditionWait(_aaxSignal *signal)
 }
 
 int
-_aaxConditionWaitTimed(_aaxSignal *signal, float timeout)
+_aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
    int rv;
 
