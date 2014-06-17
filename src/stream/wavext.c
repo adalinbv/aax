@@ -54,23 +54,23 @@ do
 #endif
 
 
-static _detect_fn _aaxWavDetect;
+static _file_detect_fn _aaxWavDetect;
 
-static _new_handle_fn _aaxWavSetup;
-static _open_fn _aaxWavOpen;
-static _close_fn _aaxWavClose;
-static _update_fn _aaxWavUpdate;
+static _file_new_handle_fn _aaxWavSetup;
+static _file_open_fn _aaxWavOpen;
+static _file_close_fn _aaxWavClose;
+static _file_update_fn _aaxWavUpdate;
 
-static _cvt_to_fn _aaxWavCvtToIntl;
-static _cvt_from_fn _aaxWavCvtFromIntl;
-static _cvt_fn _aaxWavCvtEndianness;
-static _cvt_fn _aaxWavCvtToSigned;
-static _cvt_fn _aaxWavCvtFromSigned;
+static _file_cvt_to_fn _aaxWavCvtToIntl;
+static _file_cvt_from_fn _aaxWavCvtFromIntl;
+static _file_cvt_fn _aaxWavCvtEndianness;
+static _file_cvt_fn _aaxWavCvtToSigned;
+static _file_cvt_fn _aaxWavCvtFromSigned;
 
-static _default_fname_fn _aaxWavInterfaces;
-static _extension_fn _aaxWavExtension;
+static _file_default_fname_fn _aaxWavInterfaces;
+static _file_extension_fn _aaxWavExtension;
 
-static _get_param_fn _aaxWavGetParam;
+static _file_get_param_fn _aaxWavGetParam;
 
 _aaxFmtHandle*
 _aaxDetectWavFile()

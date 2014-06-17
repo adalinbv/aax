@@ -44,29 +44,29 @@
 #include "audio.h"
 
         /** libmpg123: both Linux and Windows */
-static _open_fn _aaxMPG123Open;
-static _close_fn _aaxMPG123Close;
-static _cvt_to_fn _aaxMPG123CvtToIntl;
-static _cvt_from_fn _aaxMPG123CvtFromIntl;
+static _file_open_fn _aaxMPG123Open;
+static _file_close_fn _aaxMPG123Close;
+static _file_cvt_to_fn _aaxMPG123CvtToIntl;
+static _file_cvt_from_fn _aaxMPG123CvtFromIntl;
 	/** libmpg123 */
 
-static _detect_fn _aaxMP3Detect;
-static _new_handle_fn _aaxMP3Setup;
-static _default_fname_fn _aaxMP3Interfaces;
-static _extension_fn _aaxMP3Extension;
-static _get_param_fn _aaxMP3GetParam;
+static _file_detect_fn _aaxMP3Detect;
+static _file_new_handle_fn _aaxMP3Setup;
+static _file_default_fname_fn _aaxMP3Interfaces;
+static _file_extension_fn _aaxMP3Extension;
+static _file_get_param_fn _aaxMP3GetParam;
 
 #ifdef WINXP
 	/** windows (xp and later) native */
-static _open_fn _aaxMSACMFileOpen;
-static _close_fn _aaxMSACMFileClose;
-static _update_fn _aaxMSACMFileCvtFrom;
-static _update_fn _aaxMSACMFileCvtTo;
+static _file_open_fn _aaxMSACMFileOpen;
+static _file_close_fn _aaxMSACMFileClose;
+static _file_update_fn _aaxMSACMFileCvtFrom;
+static _file_update_fn _aaxMSACMFileCvtTo;
 
-static _open_fn *_aaxMP3Open = _aaxMSACMFileOpen;
-static _close_fn *_aaxMP3Close = _aaxMSACMFileClose;
-static _update_fn *_aaxMP3CvtFrom = _aaxMSACMFileCvtFrom;
-static _update_fn *_aaxMP3CvtTo = _aaxMSACMFileCvtTo;
+static _file_open_fn *_aaxMP3Open = _aaxMSACMFileOpen;
+static _file_close_fn *_aaxMP3Close = _aaxMSACMFileClose;
+static _file_update_fn *_aaxMP3CvtFrom = _aaxMSACMFileCvtFrom;
+static _file_update_fn *_aaxMP3CvtTo = _aaxMSACMFileCvtTo;
 
 DECL_FUNCTION(acmDriverOpen);
 DECL_FUNCTION(acmDriverClose);
@@ -85,10 +85,10 @@ static BOOL CALLBACK acmDriverEnumCallback(HACMDRIVERID, DWORD, DWORD);
 
 #else
 
-static _open_fn *_aaxMP3Open = _aaxMPG123Open;
-static _close_fn *_aaxMP3Close = _aaxMPG123Close;
-static _cvt_to_fn *_aaxMP3CvtToIntl = _aaxMPG123CvtToIntl;
-static _cvt_from_fn *_aaxMP3CvtFromIntl = _aaxMPG123CvtFromIntl;
+static _file_open_fn *_aaxMP3Open = _aaxMPG123Open;
+static _file_close_fn *_aaxMP3Close = _aaxMPG123Close;
+static _file_cvt_to_fn *_aaxMP3CvtToIntl = _aaxMPG123CvtToIntl;
+static _file_cvt_from_fn *_aaxMP3CvtFromIntl = _aaxMPG123CvtFromIntl;
 #endif
 
 	/** libmpg123: both Linxu and Windows */

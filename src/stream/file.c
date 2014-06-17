@@ -486,7 +486,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                rv = AAX_TRUE;
             }
             else {
-               _aaxFileDriverLog(id, 0, 0, "Internal error: thread fialed");
+               _aaxFileDriverLog(id, 0, 0, "Internal error: thread failed");
             }
          }
          else {
