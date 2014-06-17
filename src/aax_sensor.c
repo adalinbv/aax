@@ -300,11 +300,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
       if (!rv)
       {
          rv = _aaxSignalWaitTimed(&handle->buffer_ready, timeout);
-
-         if (!rv) {
-            rv = AAX_TRUE;
-         }
-         else
+         if (rv = AAX_TIMEOUT)
          {
             rv = AAX_FALSE;
             _aaxErrorSet(AAX_TIMEOUT);
