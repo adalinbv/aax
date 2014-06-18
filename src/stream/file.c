@@ -149,17 +149,14 @@ _aaxFileDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    i = 0;
-   do
+   while ((ftype = _aaxFileTypes[i++]) != NULL)
    {
-      if ((ftype = _aaxFileTypes[i++]) != NULL)
+      _aaxFmtHandle* type = ftype();
+      if (type)
       {
-         _aaxFmtHandle* type = ftype();
-         if (type)
-         {
-            rv = type->detect(mode);
-            free(type);
-            if (rv) break;
-         }
+         rv = type->detect(mode);
+         free(type);
+         if (rv) break;
       }
    }
    while (ftype);
@@ -786,26 +783,23 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
       ptr = interfaces;
       buflen = 2048;
 
-      do
+      while ((ftype = _aaxFileTypes[i++]) != NULL)
       {
-         if ((ftype = _aaxFileTypes[i++]) != NULL)
+         _aaxFmtHandle* type = ftype();
+         if (type)
          {
-            _aaxFmtHandle* type = ftype();
-            if (type)
+            if (type->detect(mode))
             {
-               if (type->detect(mode))
+               char *ifs = type->interfaces(mode);
+               size_t len = strlen(ifs);
+               if (ifs && len)
                {
-                  char *ifs = type->interfaces(mode);
-                  size_t len = strlen(ifs);
-                  if (ifs && len)
-                  {
-                     snprintf(ptr, buflen, "%s ", ifs);
-                     buflen -= len+1;
-                     ptr += len+1;
-                  }
+                  snprintf(ptr, buflen, "%s ", ifs);
+                  buflen -= len+1;
+                  ptr += len+1;
                }
-               free(type);
             }
+            free(type);
          }
       }
       while (ftype);
@@ -855,20 +849,16 @@ _aaxGetFormat(const char *fname, enum aaxRenderMode mode)
       int i = 0;
 
       ext++;
-      do
+      while ((ftype = _aaxFileTypes[i++]) != NULL)
       {
-         if ((ftype = _aaxFileTypes[i++]) != NULL)
+         _aaxFmtHandle* type = ftype();
+         if (type && type->detect(mode) && type->supported(ext))
          {
-            _aaxFmtHandle* type = ftype();
-            if (type && type->detect(mode) && type->supported(ext))
-            {
-               rv = type;
-               break;
-            }
-            free(type);
+            rv = type;
+            break;
          }
+         free(type);
       }
-      while (ftype);
    }
 
    return rv;
