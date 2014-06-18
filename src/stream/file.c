@@ -159,7 +159,6 @@ _aaxFileDriverDetect(int mode)
          if (rv) break;
       }
    }
-   while (ftype);
 
    return rv;
 }
@@ -802,7 +801,6 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
             free(type);
          }
       }
-      while (ftype);
       
       if (ptr != interfaces)
       {
