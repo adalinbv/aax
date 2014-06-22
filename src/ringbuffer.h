@@ -26,6 +26,9 @@ extern "C" {
 #include <driver.h>
 #include <objects.h>
 
+/* forward declaration */
+struct _aaxRenderer_t;
+
 enum _aaxRingBufferParam
 {
    RB_VOLUME = 0,
@@ -343,7 +346,7 @@ _aaxRingBufferCopyDelyEffectsDataFn(struct _aaxRingBuffer_t*, const struct _aaxR
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned int);
+_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned int, void*);
 
 /**
  * Single channel ringbuffer mixer.
@@ -368,7 +371,7 @@ _aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _a
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, unsigned int);
+_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, unsigned int, void*);
 
 
 /**
@@ -562,8 +565,7 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferGetTracksPtrFn *get_tracks_ptr;
    _aaxRingBufferReleaseTracksPtrFn *release_tracks_ptr;
 
-   _aaxRingBufferMixMonoFn *mix3d;
-   _aaxRingBufferMixStereoFn *mix2d;
+   struct _aaxRenderer_t *render;
 
 // protected:
    _aaxRingBufferDataClearFn *data_clear;
@@ -574,6 +576,8 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDataLimiterFn *limit;
 
 // private:	/* TODO: Get rid of these */
+   _aaxRingBufferMixMonoFn *mix3d;
+   _aaxRingBufferMixStereoFn *mix2d;
    _aaxRingBufferGetScratchBufferPtrFn *get_scratch;
    _aaxRingBufferCopyDelyEffectsDataFn *copy_effectsdata;
 

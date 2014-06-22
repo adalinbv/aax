@@ -37,6 +37,7 @@
 
 #include "audio.h"
 #include "rbuf_int.h"
+#include "rendertype.h"
 
 #ifndef _DEBUG
 # define _DEBUG		0
@@ -330,6 +331,7 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
 #ifndef NDEBUG
       rbi->parent = rb;
 #endif
+
       _aaxRingBufferInitFunctions(rb);
    }
 
@@ -1336,6 +1338,42 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi)
    return AAX_TRUE;
 }
 
+static _aaxRenderer*
+_aaxRingBufferInitRenderer(float dt)
+{
+   static _aaxRenderer *rv = NULL;
+
+   if (!rv)
+   {
+      _aaxRendererDetect* rtype;
+      int i = -1, found = -1;
+
+      /* first find the last available renderer */
+      while ((rtype = _aaxRenderTypes[++i]) != NULL)
+      {
+         _aaxRenderer* type = rtype();
+         if (type && type->detect()) {
+            found = i;
+         }
+         free(type);
+      }
+
+      if (found >= 0)
+      {
+         _aaxRendererDetect* rtype = _aaxRenderTypes[found];
+         _aaxRenderer* type = rtype();
+         if (type && type->detect())
+         {
+            type->id = type->setup(floorf(1000.0f * dt));
+            type->open(type->id);
+            rv = type;
+         }
+      }
+   }
+
+   return rv;
+}
+
 static void
 _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
 {
@@ -1353,12 +1391,12 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->get_paramf = _aaxRingBufferGetParamf;
    rb->get_parami = _aaxRingBufferGetParami;
 
-   rb->mix2d = _aaxRingBufferMixMulti16;
-   rb->mix3d = _aaxRingBufferMixMono16;
-
    rb->get_tracks_ptr = _aaxRingBufferGetTracksPtr;
    rb->release_tracks_ptr = _aaxRingBufferReleaseTracksPtr;
 
+   rb->render = _aaxRingBufferInitRenderer(rb->get_paramf(rb, RB_DURATION_SEC));
+
+   /* protected */
    rb->data_clear = _aaxRingBufferDataClear;
    rb->data_multiply = _aaxRingBufferDataMultiply;
    rb->data_mix_waveform = _aaxRingBufferDataMixWaveform;
@@ -1366,6 +1404,9 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->data_mix = _aaxRingBufferDataMixData;
    rb->limit = _aaxRingBufferDataLimiter;
 
+   /* private */
+   rb->mix2d = _aaxRingBufferMixMulti16;
+   rb->mix3d = _aaxRingBufferMixMono16;
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
    rb->copy_effectsdata = _aaxRingBufferCopyDelyEffectsData;
 }
