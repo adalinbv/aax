@@ -475,7 +475,7 @@ _aaxSignalWait(_aaxSignal *signal)
       switch(rv)
       {
       case 0:
-         signal->triggered = 0;
+         signal->triggered--;
          rv = AAX_TRUE;
          break;
       default:
@@ -485,7 +485,7 @@ _aaxSignalWait(_aaxSignal *signal)
    }
    else
    {
-      signal->triggered = 0;
+      signal->triggered--;
       rv = AAX_TRUE;
    }
 
@@ -520,11 +520,10 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
       switch(rv)
       {
       case ETIMEDOUT:
-         signal->triggered = 0;
          rv = AAX_TIMEOUT;
          break;
       case 0:
-         signal->triggered = 0;
+         signal->triggered--;
          rv = AAX_TRUE;
          break;
       default:
@@ -534,7 +533,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    }
    else
    {
-      signal->triggered = 0;
+      signal->triggered--;
       rv = AAX_TRUE;
    }
 
@@ -552,6 +551,9 @@ _aaxSignalTrigger(_aaxSignal *signal)
       rv =  pthread_cond_signal(signal->condition);
       signal->triggered = rv ? 0 : 1;
    }
+   else {
+      signal->triggered++;
+   } 
    _aaxMutexUnLock(signal->mutex);
 
    return rv;
@@ -967,7 +969,7 @@ _aaxSignalWait(_aaxSignal *signal)
       switch (hr)
       {
       case WAIT_OBJECT_0:
-         signal->triggered = 0;
+         signal->triggered--;
          rv = AAX_TRUE;
          break;
       default:
@@ -977,7 +979,7 @@ _aaxSignalWait(_aaxSignal *signal)
    }
    else
    {
-      signal->triggered = 0;
+      signal->triggered--;
       rv = AAX_TRUE;
    }
 
@@ -1004,11 +1006,10 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          switch (hr)
          {
          case WAIT_TIMEOUT:
-            signal->triggered = 0;
             rv = AAX_TIMEOUT;
             break;
          case WAIT_OBJECT_0:
-            signal->triggered = 0;
+            signal->triggered--;
             rv = AAX_TRUE;
             break;
          default:
@@ -1016,13 +1017,13 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
             break;
          }
       } else {		/* timeout */
-         signal->triggered = 0;
+         signal->triggered--;
          rv = AAX_TIMEOUT;
       }
    }
    else
    {
-      signal->triggered = 0;
+      signal->triggered--;
       rv = AAX_TRUE;
    }
 
@@ -1039,6 +1040,9 @@ _aaxSignalTrigger(_aaxSignal *signal)
    {
       rv = SetEvent(signal->condition);
       signal->triggered = rv ? 0 : 1;
+   }
+   else {
+      signal->triggered++;
    }
    _aaxMutexUnLock(signal->mutex);
 
