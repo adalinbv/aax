@@ -27,7 +27,7 @@ typedef int (_renderer_detect_fn)();
 typedef void* (_renderer_new_handle_fn)(int);
 typedef void* (_renderer_open_fn)(void*);
 typedef int (_renderer_close_fn)(void*);
-typedef int (_render_apply_fn)(struct _aaxRenderer_t*, _aaxRingBuffer*, _aax2dProps*, _aaxDelayed3dProps*, _aaxEmitter*, int, int, int, const _aaxDriverBackend*, void*);
+typedef int (_render_apply_fn)(struct _aaxRenderer_t*, _aaxRingBuffer*, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, int, int, int, const _aaxDriverBackend*, void*);
 typedef void (_render_wait_fn)(struct _aaxRenderer_t *);
 
 typedef struct _aaxRenderer_t

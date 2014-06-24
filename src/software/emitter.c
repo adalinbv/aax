@@ -19,6 +19,9 @@
 #include <api.h>
 
 #include "ringbuffer.h"
+#include "rendertype.h"
+
+#define  USE_THREADPOOL			1
 
 /**
  * sv_m -> modified sensor velocity vector
@@ -57,6 +60,28 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
          dptr_src = _intBufGet(he, _AAX_EMITTER, i);
          if (!dptr_src) continue;
 
+#if USE_THREADPOOL
+         emitter = _intBufGetDataPtr(dptr_src);
+         src = emitter->source;
+         if (_IS_PLAYING(src->props3d))
+         {
+            _aaxRenderer *render = drb->render;
+            int ctr = --src->update_ctr;
+            
+            if ((stage == 2) && (ctr == 0))
+            {
+               src->state3d |= fdp3d_m->state3d;
+               be->prepare3d(src, info, ssv, sdf, fp2d->speaker, fdp3d_m);
+               src->update_ctr = src->update_rate;
+
+            }
+            _intBufReleaseData(dptr_src, _AAX_EMITTER);
+            
+            render->update(render, drb, fp2d, fdp3d_m, he, i, ctr, stage,
+                           be, be_handle);
+         }
+#else
+
          drb->set_paramf(drb, RB_OFFSET_SEC, 0.0f);
 
          emitter = _intBufGetDataPtr(dptr_src);
@@ -80,6 +105,13 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
                _aaxRingBuffer *srb = embuf->ringbuffer;
                unsigned int res = 0;
+
+               if ((stage == 2) && (--src->update_ctr == 0))
+               {
+                  src->state3d |= fdp3d_m->state3d;
+                  be->prepare3d(src, info, ssv, sdf, fp2d->speaker, fdp3d_m);
+               }
+
                do
                {
                   _aax2dProps *ep2d = src->props2d;
@@ -98,35 +130,24 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
                   ep2d->curr_pos_sec = src->curr_pos_sec;
                   src->curr_pos_sec += dt;
-                  --src->update_ctr;
                    
                   /* 3d mixing */
                   if (stage == 2)
                   {
                      assert(_IS_POSITIONAL(src->props3d));
 
-                     src->state3d |= fdp3d_m->state3d;
-                     if (!src->update_ctr) {
-                        be->prepare3d(src, info, ssv, sdf, 
-                                      fp2d->speaker, fdp3d_m);
-                     }
-
                      res = AAX_FALSE;
                      if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
                      {
                         res = drb->mix3d(drb, srb, ep2d, fp2d, emitter->track,
-                                         src->update_ctr, nbuf);
+                                         src->update_ctr, nbuf, NULL);
                      }
                   }
                   else
                   {
                      assert(!_IS_POSITIONAL(src->props3d));
                      res = drb->mix2d(drb, srb, ep2d, fp2d, src->update_ctr,
-                                      nbuf);
-                  }
-
-                  if (!src->update_ctr) {
-                     src->update_ctr = src->update_rate;
+                                      nbuf, NULL);
                   }
 
                   /*
@@ -175,11 +196,17 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                }
                while (res);
                _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
+
+               if (!src->update_ctr) {
+                  src->update_ctr = src->update_rate;
+               }
+
             }
             _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
             drb->set_state(drb, RB_STARTED);
          }
          _intBufReleaseData(dptr_src, _AAX_EMITTER);
+#endif
       }
       _intBufReleaseNum(he, _AAX_EMITTER);
 
@@ -192,6 +219,15 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
       }
    }
    while (--stage); /* process 3d positional and stereo emitters */
+
+#if USE_THREADPOOL
+   do
+   {
+      _aaxRenderer *render = drb->render;
+      render->wait(render);
+   }
+   while (0);
+#endif
 
    return rv;
 }
