@@ -60,7 +60,7 @@
  * @param nbuf number of buffers in the source queue (>1 means streaming)
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf, float pos_sec, void *mutex)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int nbuf, float pos_sec)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
@@ -198,9 +198,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Mix */
-   if (mutex) _aaxMutexLock(mutex);
    drbd->mix1n(drbd, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
-   if (mutex) _aaxMutexUnLock(mutex);
 
    if (drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;

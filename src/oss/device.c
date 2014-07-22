@@ -52,6 +52,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
+#include <software/rendertype.h>
 #include "audio.h"
 #include "device.h"
 
@@ -76,11 +77,12 @@ static _aaxDriverSetup _aaxOSSDriverSetup;
 static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
 static _aaxDriverCallback _aaxOSSDriverPlayback;
 static _aaxDriverGetName _aaxOSSDriverGetName;
+static _aaxDriverRender _aaxOSSDriverRender;
 static _aaxDriverState _aaxOSSDriverState;
 static _aaxDriverParam _aaxOSSDriverParam;
 static _aaxDriverLog _aaxOSSDriverLog;
 
-char _oss_default_renderer[100] = DEFAULT_RENDERER;
+static char _oss_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
 {
    AAX_VERSION_STR,
@@ -97,6 +99,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxOSSDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxOSSDriverGetName,
+   (_aaxDriverRender *)&_aaxOSSDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
    (_aaxDriverConnect *)&_aaxOSSDriverConnect,
@@ -117,6 +120,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 typedef struct
 {
    char *name;
+   _aaxRenderer *render;
    char *devnode;
    char *ifname[2];
    int nodenum;
@@ -379,6 +383,12 @@ _aaxOSSDriverDisconnect(void *id)
          close(handle->mixfd);
       }
 
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
       close(handle->fd);
       free(handle->ptr);
       free(handle);
@@ -485,6 +495,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
          handle->latency /= (float)(freq*channels*handle->bytes_sample);
       }
       err = 0;
+      handle->render = _aaxSoftwareInitRenderer(handle->latency);
    }
 
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
@@ -629,6 +640,13 @@ _aaxOSSDriverGetName(const void *id, int playback)
       ret = _aax_strdup(handle->name);
 
    return ret;
+}
+
+_aaxRenderer*
+_aaxOSSDriverRender(const void* config)
+{
+   _driver_t *handle = (_driver_t *)config;
+   return handle->render;
 }
 
 static int

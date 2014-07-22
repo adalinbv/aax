@@ -282,10 +282,7 @@ void put_emitter(aaxEmitter);
 int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);
 
-void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4_t*, _aaxDelayed3dProps*);
-char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
 void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
-
 
 /* -- Filters and Effects -- */
 

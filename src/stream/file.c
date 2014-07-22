@@ -44,6 +44,7 @@
 #include <api.h>
 #include <arch.h>
 
+#include <software/rendertype.h>
 #include "file.h"
 #include "filetype.h"
 #include "audio.h"
@@ -71,10 +72,11 @@ static _aaxDriverSetup _aaxFileDriverSetup;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
 static _aaxDriverCallback _aaxFileDriverPlayback;
 static _aaxDriverGetName _aaxFileDriverGetName;
+static _aaxDriverRender _aaxFileDriverRender;
 static _aaxDriverState _aaxFileDriverState;
 static _aaxDriverParam _aaxFileDriverParam;
 
-char _file_default_renderer[100] = DEFAULT_RENDERER;
+static char _file_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
 {
    AAX_VERSION_STR,
@@ -91,6 +93,7 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxFileDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxFileDriverGetName,
+   (_aaxDriverRender *)&_aaxFileDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
    (_aaxDriverConnect *)&_aaxFileDriverConnect,
@@ -132,6 +135,7 @@ typedef struct
 
    _aaxFmtHandle* fmt;
    char *interfaces;
+   _aaxRenderer *render;
 
 } _driver_t;
 
@@ -378,6 +382,12 @@ _aaxFileDriverDisconnect(void *id)
       }
       close(handle->fd);
 
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
       free(handle->fmt);
       free(handle->interfaces);
       free(handle);
@@ -479,6 +489,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             if (res == 0)
             {
                handle->thread.started = AAX_TRUE;
+               handle->render = _aaxSoftwareInitRenderer(handle->latency);
                rv = AAX_TRUE;
             }
             else {
@@ -708,6 +719,14 @@ _aaxFileDriverGetName(const void *id, int playback)
 
    return ret;
 }
+
+_aaxRenderer*
+_aaxFileDriverRender(const void* config)
+{
+   _driver_t *handle = (_driver_t *)config;
+   return handle->render;
+}
+
 
 static int
 _aaxFileDriverState(const void *id, enum _aaxDriverState state)

@@ -17,8 +17,31 @@ extern "C" {
 #endif
 
 #include "ringbuffer.h"
+#include "arch.h"
 
 #define _AAX_RENDER_BACKENDS	1
+
+typedef struct
+{
+   _aaxRingBuffer *drb;
+   _aaxRingBuffer *srb;
+   _aaxEmitter *src;
+   _aax2dProps *fp2d;
+   _intBufferData *dptr_src;
+   _intBufferData *dptr_sbuf;
+
+   char looping;
+   char track;
+   char ctr;
+   char stage;
+   char working;
+
+   int nbuf;
+   int pos;
+   int next;
+   int thread_no;
+
+} _aaxRendererData;
 
 /* forward declaration */
 struct _aaxRenderer_t;
@@ -27,20 +50,24 @@ typedef int (_renderer_detect_fn)();
 typedef void* (_renderer_new_handle_fn)(int);
 typedef void* (_renderer_open_fn)(void*);
 typedef int (_renderer_close_fn)(void*);
-typedef int (_render_apply_fn)(struct _aaxRenderer_t*, _aaxRingBuffer*, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, int, int, int, const _aaxDriverBackend*, void*);
-typedef void (_render_wait_fn)(struct _aaxRenderer_t *);
+typedef int (_render_apply_fn)(struct _aaxRenderer_t*, _aaxRendererData*);
+typedef int (_render_wait_fn)(struct _aaxRenderer_t *, _aaxRendererData*, int);
+typedef int (_render_finish_fn)(struct _aaxRenderer_t *);
 
 typedef struct _aaxRenderer_t
 {
    void *id;
+   unsigned int refctr;
+
    _renderer_detect_fn *detect;
    _renderer_new_handle_fn *setup;
 
    _renderer_open_fn *open;
    _renderer_close_fn *close;
 
-   _render_apply_fn *update;
    _render_wait_fn *wait;
+   _render_apply_fn *update;
+   _render_finish_fn *finish;
 
 } _aaxRenderer;
 
@@ -49,6 +76,7 @@ typedef _aaxRenderer* (_aaxRendererDetect)(void);
 extern _aaxRendererDetect* _aaxRenderTypes[];
 
 _aaxRendererDetect _aaxDetectCPURenderer;
+_aaxRenderer* _aaxSoftwareInitRenderer(float);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

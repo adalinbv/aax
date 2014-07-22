@@ -78,6 +78,9 @@ enum _aaxDriverState {
    DRIVER_NEED_REINIT
 };
 
+/* forward declaration */
+struct _aaxRenderer_t;
+
 typedef char *_aaxDriverLog(const void*, int, int, const char *);
 
 typedef int _aaxDriverDetect(int mode);
@@ -104,6 +107,7 @@ typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
 typedef void _aaxDriverRingBufferDestroy(void*);
 
 
+typedef struct _aaxRenderer_t *_aaxDriverRender(const void*);
 typedef void *_aaxDriverThread(void*);
 
 
@@ -123,6 +127,7 @@ typedef struct
     _aaxDriverGetInterfaces *get_interfaces;
  
     _aaxDriverGetName *name;
+    _aaxDriverRender *render;
     _aaxDriverThread *thread;
 
     _aaxDriverConnect *connect;

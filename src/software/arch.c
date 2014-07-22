@@ -40,7 +40,7 @@
 #include "rbuf_int.h"
 #include "cpu/arch2d_simd.h"
 #include "cpu/arch3d_simd.h"
-
+#include "audio.h"
 
 enum cpuid_requests {
   CPUID_GETVENDORSTRING = 0,
@@ -355,6 +355,11 @@ _aaxGetSSELevel()
          if (_aaxDetectAVX()) {
             sse_level = AAX_AVX;
          }
+      }
+
+      env = getenv("AAX_USE_THREADS");
+      if (_aax_getbool(env)) {
+         _aaxEmittersProcess = _aaxEmittersProcessThreads;
       }
    }
 

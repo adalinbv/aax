@@ -28,7 +28,7 @@
 #include <api.h>
 
 #include "software/rendertype.h"
-#include "arch.h"
+
 
 /*
  * The CPU renderer uses a thread pool with one thread tied to every
@@ -41,8 +41,10 @@ static _renderer_detect_fn _aaxCPUDetect;
 static _renderer_new_handle_fn _aaxCPUSetup;
 static _renderer_open_fn _aaxCPUOpen;
 static _renderer_close_fn _aaxCPUClose;
-static _render_apply_fn _aaxCPUUpdate;
+
 static _render_wait_fn _aaxCPUWait;
+static _render_apply_fn _aaxCPUUpdate;
+static _render_finish_fn _aaxCPUFinish;
 
 
 _aaxRenderer*
@@ -55,8 +57,10 @@ _aaxDetectCPURenderer()
       rv->setup = _aaxCPUSetup;
       rv->open = _aaxCPUOpen;
       rv->close = _aaxCPUClose;
-      rv->update = _aaxCPUUpdate;
+
       rv->wait = _aaxCPUWait;
+      rv->update = _aaxCPUUpdate;
+      rv->finish = _aaxCPUFinish;
    }
    return rv;
 }
@@ -67,31 +71,19 @@ _aaxDetectCPURenderer()
 
 typedef struct
 {
-   const _aaxDriverBackend* be;
-   void *be_handle;
-
-   _aaxRingBuffer *drb;
-   _aaxDelayed3dProps *fdp3d_m;
-   _aax2dProps *fp2d;
-   _intBuffers *he;
-   int ctr;
-   int stage;
-
-   int pos;
-   int res;
-
-} _render_data_t;
-
-typedef struct
-{
    int thread_no;
    int no_threads;
 
    _aaxSignal signal;
+   _aaxSignal thread_active[_AAX_MAX_THREADS_POOL];
 
    char avail[_AAX_MAX_THREADS_POOL];
    struct threat_t thread[_AAX_MAX_THREADS_POOL];
-   _render_data_t data[_AAX_MAX_THREADS_POOL];
+   _aaxRendererData data[_AAX_MAX_THREADS_POOL];
+
+   _aaxRingBuffer *drb;
+   char working;
+   char finish;
 
 } _render_t;
 
@@ -115,7 +107,6 @@ _aaxCPUClose(void* id)
    _render_t *handle = (_render_t*)id;
    int i;
 
-   _aaxMutexLock(handle->signal.mutex);
    for (i=0; i<handle->no_threads; i++)
    {
       if (handle->thread[i].started)
@@ -129,8 +120,14 @@ _aaxCPUClose(void* id)
       if (handle->thread[i].ptr) {
          _aaxThreadDestroy(handle->thread[i].ptr);
       }
+
+      _aaxSignalFree(&handle->thread_active[i]);
    }
    _aaxSignalFree(&handle->signal);
+
+   if (handle->drb) {
+      handle->drb->destroy(handle->drb);
+   }
    free(handle);
 
    return AAX_TRUE;
@@ -145,15 +142,16 @@ _aaxCPUSetup(int dt)
       int i, res;
 
       _aaxSignalInit(&handle->signal);
-      _aaxMutexLock(handle->signal.mutex);
+      _aaxSignalLock(&handle->signal);
 
       handle->no_threads = _MIN(_aaxGetNoCores(), _AAX_MAX_THREADS_POOL);
       for (i=0; i<handle->no_threads; i++)
       {
          handle->avail[i] = AAX_FALSE;
 
+         _aaxSignalInit(&handle->thread_active[i]);
+
          handle->thread[i].ptr = _aaxThreadCreate();
-         handle->thread[i].signal.mutex = _aaxMutexCreate(NULL);
          _aaxSignalInit(&handle->thread[i].signal);
 
          handle->thread_no = i;
@@ -171,7 +169,7 @@ _aaxCPUSetup(int dt)
          }
       }
       handle->thread_no = 0;
-      _aaxMutexUnLock(handle->signal.mutex);
+      _aaxSignalUnLock(&handle->signal);
    }
    else {
       _AAX_LOG(LOG_WARNING, "CPU renderer: Insufficient memory");
@@ -181,234 +179,201 @@ _aaxCPUSetup(int dt)
 }
 
 static int
-_aaxCPUUpdate(struct _aaxRenderer_t *renderer, _aaxRingBuffer *drb, _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m, _intBuffers *he, int pos, int ctr, int stage, const _aaxDriverBackend *be, void *be_handle)
+_aaxCPUUpdate(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 {
    _render_t *handle = (_render_t*)renderer->id;
-   int i, thread_no = handle->no_threads;
+   int thread_no = handle->no_threads;
    int res = AAX_FALSE;
 
-   _aaxMutexLock(handle->signal.mutex);
-   while (1)
+   if (!data->src)
    {
-      res = _aaxSignalWait(&handle->signal);
-      if (res == AAX_FALSE) {
-         break;
-      }
- 
-      for (i=0; i<handle->no_threads; i++)
-      {
-         thread_no = handle->thread_no;		/* round-robin */
-         handle->thread_no = (handle->thread_no+1) % handle->no_threads;
-
-         if (handle->avail[thread_no] == AAX_TRUE)
-         {
-            handle->avail[thread_no] = AAX_FALSE;
-            break;
-         }
-      }
-      if (i != handle->no_threads) {
-         break;
-      }
+      _aaxSignalTrigger(&handle->signal);
    }
-   _aaxMutexUnLock(handle->signal.mutex);
-
-   if (thread_no < handle->no_threads)
+   else 
    {
-      handle->data[thread_no].drb = drb;
-      handle->data[thread_no].fp2d = fp2d;
-      handle->data[thread_no].fdp3d_m = fdp3d_m;
-      handle->data[thread_no].he = he;
-      handle->data[thread_no].pos = pos;
-      handle->data[thread_no].ctr = ctr;
-      handle->data[thread_no].stage = stage;
-      handle->data[thread_no].be = be;
-      handle->data[thread_no].be_handle = be_handle;
+      int thread, next;
+
+      thread_no = data->thread_no;
+
+      assert(thread_no >= 0);
+      assert(thread_no < handle->no_threads);
+
+      thread = handle->data[thread_no].thread_no;
+      next = handle->data[thread_no].next;
+
+      memcpy(&handle->data[thread_no], data, sizeof(_aaxRendererData));
+
+      data->next = next;
+      data->thread_no = thread;
 
       _aaxSignalTrigger(&handle->thread[thread_no].signal);
-      _aaxThreadSwitch();
+//    _aaxThreadSwitch();
    }
 
    return res;
 }
 
-static void
-_aaxCPUWait(struct _aaxRenderer_t *renderer)
+static int
+_aaxCPUWait(struct _aaxRenderer_t *renderer, _aaxRendererData *data, int finish)
 {
    _render_t *handle = (_render_t*)renderer->id;
-   int i;
+   int thread_no = handle->thread_no;
+   int i, rv = AAX_FALSE;
 
-   _aaxMutexLock(handle->signal.mutex);
-   for (i=0; i<handle->no_threads; i++)
+   if (!finish)
    {
-      while (handle->avail[i] == AAX_FALSE) {
-#if 0
+      if (data->working)
+      {
+         data->working = AAX_FALSE;
+
+         _aaxSignalLock(&handle->signal);
          _aaxSignalWait(&handle->signal);
-#else
-         _aaxMutexUnLock(handle->signal.mutex);
-         msecSleep(1);
-         _aaxMutexLock(handle->signal.mutex);
-#endif
+
+         thread_no = handle->thread_no;
+         for (i=0; i<handle->no_threads; i++)
+         {
+            thread_no = (thread_no+1) % handle->no_threads;
+
+            if (handle->avail[thread_no] == AAX_TRUE)
+            {
+               handle->thread_no = thread_no;
+               if (!data->next) {
+                  handle->avail[thread_no] = AAX_FALSE;
+               }
+
+               memcpy(data, &handle->data[i], sizeof(_aaxRendererData));
+               data->thread_no = thread_no;
+               rv = AAX_TRUE;
+            }
+
+            if (rv == AAX_TRUE) break;
+         }
+         _aaxSignalUnLock(&handle->signal);
+      }
+      else {
+         rv = AAX_TRUE;
       }
    }
-   _aaxMutexUnLock(handle->signal.mutex);
+   else	// finish the last remaining threads
+   {
+      for (i=0; i<handle->no_threads; i++)
+      {
+         if (handle->avail[i] == AAX_FALSE)
+         {
+            // Wait until the thread is actually started
+            _aaxSignalLock(&handle->thread_active[i]);
+            _aaxSignalWait(&handle->thread_active[i]);
+            _aaxSignalUnLock(&handle->thread_active[i]);
+
+            // Wait until the thread is finished
+            _aaxSignalLock(&handle->thread[i].signal);
+            memcpy(data, &handle->data[i], sizeof(_aaxRendererData));
+            _aaxSignalUnLock(&handle->thread[i].signal);
+
+            rv = AAX_TRUE;
+            break;
+         }
+      }
+   }
+
+   return rv;
 }
+
+static int
+_aaxCPUFinish(struct _aaxRenderer_t *renderer)
+{
+   _render_t *handle = (_render_t*)renderer->id;
+
+   return AAX_TRUE;
+}
+
+/* ------------------------------------------------------------------------- */
 
 static void*
 _aaxCPUThread(void *id)
 {
    _render_t *handle = (_render_t*)id;
-   int thread_no = handle->thread_no;
    struct threat_t *thread;
-   _render_data_t *data;
- 
+   _aaxRendererData *data;
+   int thread_no;
+
+   thread_no = handle->thread_no;
    thread = &handle->thread[thread_no];
    data = &handle->data[thread_no];
 
    _aaxThreadSetAffinity(thread->ptr, thread_no);
 
-   _aaxMutexLock(thread->signal.mutex);
+   _aaxSignalLock(&thread->signal);
+   handle->avail[thread_no] = AAX_TRUE;
+
    do
    {
-      /* signal there's a thread ready for action */
-      _aaxMutexLock(handle->signal.mutex);
-      handle->avail[thread_no] = AAX_TRUE;
-      _aaxMutexUnLock(handle->signal.mutex);
-
       _aaxSignalTrigger(&handle->signal);
       _aaxSignalWait(&thread->signal);
-
-      _aaxMutexLock(handle->signal.mutex);
-      handle->avail[thread_no] = AAX_FALSE;
-      _aaxMutexUnLock(handle->signal.mutex);
-
-      if TEST_FOR_TRUE(thread->started)
-      {
-         _intBuffers *he = data->he;
-         _intBufferData *dptr_src;
-
-         dptr_src = _intBufGet(he, _AAX_EMITTER, data->pos);
-         if (dptr_src)
-         {
-            _aaxRingBuffer *drb = data->drb;
-            _emitter_t *emitter;
-            _aaxEmitter *src;
-
-            drb->set_paramf(drb, RB_OFFSET_SEC, 0.0f);
-
-            emitter = _intBufGetDataPtr(dptr_src);
-            src = emitter->source;
-            if (_IS_PLAYING(src->props3d))
-            {
-               _aaxRingBuffer *drb = data->drb;
-               _intBufferData *dptr_sbuf;
-               unsigned int nbuf;
-               int streaming;
-
-               nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-               assert(nbuf > 0);
-
-               streaming = (nbuf > 1);
-               dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
-                                                 src->buffer_pos);
-               if (dptr_sbuf)
-               {
-                  _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
-                  _aaxRingBuffer *srb = embuf->ringbuffer;
-                  unsigned int res = 0;
-
-                  do
-                  {
-                     _aax2dProps *ep2d = src->props2d;
-   
-                     if (_IS_STOPPED(src->props3d)) {
-                        srb->set_state(srb, RB_STOPPED);
-                     }
-                     else if (srb->get_parami(srb, RB_IS_PLAYING) == 0)
-                     {
-                        if (streaming) {
-                           srb->set_state(srb, RB_STARTED_STREAMING);
-                        } else {
-                           srb->set_state(srb, RB_STARTED);
-                        }
-                     }
-
-                     ep2d->curr_pos_sec = src->curr_pos_sec;
-                     src->curr_pos_sec += drb->get_paramf(drb, RB_DURATION_SEC);
-
-                     /* 3d mixing */
-                     if (data->stage == 2)
-                     {
-                        res = AAX_FALSE;
-                        if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
-                        {
-                           res = drb->mix3d(drb, srb, ep2d, data->fp2d,
-                                            emitter->track, data->ctr,
-                                            nbuf, NULL); // handle->signal.mutex);
-                        }
-                     }
-                     else
-                     {
-                        assert(!_IS_POSITIONAL(src->props3d));
-                        res = drb->mix2d(drb, srb, ep2d, data->fp2d,
-                                         data->ctr, nbuf, NULL); // handle->signal.mutex);
-                     }
-
-                     /*
-                      * The current buffer of the source has finished playing.
-                      * Decide what to do next.
-                      */
-                     if (res)
-                     {
-                        if (streaming)
-                        {
-                           /* is there another buffer ready to play? */
-                           if (++src->buffer_pos == nbuf)
-                           {
-                              /*
-                               * The last buffer was processed, return to the
-                               * first buffer or stop? 
-                               */
-                              if TEST_FOR_TRUE(emitter->looping) {
-                                 src->buffer_pos = 0;
-                              }
-                              else
-                              {
-                                 _SET_STOPPED(src->props3d);
-                                 _SET_PROCESSED(src->props3d);
-                                 break;
-                              }
-                           }
-
-                           res &= drb->get_parami(drb, RB_IS_PLAYING);
-                           if (res)
-                           {
-                              _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
-                              dptr_sbuf = _intBufGet(src->buffers,
-                                                     _AAX_EMITTER_BUFFER,
-                                                     src->buffer_pos);
-                              embuf = _intBufGetDataPtr(dptr_sbuf);
-                              srb = embuf->ringbuffer;
-                           }
-                        }
-                        else /* !streaming */
-                        {
-                           _SET_PROCESSED(src->props3d);
-                           break;
-                        }
-                     }
-                  }
-                  while (res);
-                  _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
-               }
-                  _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-               drb->set_state(drb, RB_STARTED);
-            }
-            _intBufReleaseData(dptr_src, _AAX_EMITTER);
-         }
-      }
    }
-   while(thread->started);
-   _aaxMutexUnLock(thread->signal.mutex);
+   while (!data->drb && TEST_FOR_TRUE(thread->started));
+
+   if TEST_FOR_TRUE(thread->started)
+   {
+      assert(data->drb != NULL);
+      handle->drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_FALSE);
+      handle->drb->set_state(handle->drb, RB_STARTED);
+      do
+      {
+         /* signal there's a thread ready for action */
+         handle->avail[thread_no] = AAX_FALSE;
+
+         /* let _aaxCPUWait know the thread was active */
+         data->working = AAX_TRUE;
+         _aaxSignalTrigger(&handle->thread_active[thread_no]);
+
+         if TEST_FOR_FALSE(thread->started) {
+            break;
+         }
+
+         if (handle->finish)
+         {
+            _aaxSignalLock(&handle->signal);
+            data->drb->data_mix(data->drb, handle->drb, NULL);
+            _aaxSignalUnLock(&handle->signal);
+
+            handle->drb->data_clear(handle->drb);
+            handle->drb->set_state(handle->drb, RB_REWINDED);
+         }
+         else
+         {
+            _aax2dProps *ep2d = data->src->props2d;
+
+            /* 2d/3d mixing to our own ringbuffer*/
+            if (data->stage == 2)
+            {
+               data->next = data->drb->mix3d(handle->drb, data->srb, ep2d,
+                                             data->fp2d, data->track, data->ctr,
+                                             data->nbuf);
+            }
+            else
+            {
+               data->next = data->drb->mix2d(handle->drb, data->srb, ep2d,
+                                             data->fp2d, data->ctr, data->nbuf);
+            }
+
+#if 1
+            /* mix our own ringbuffer with the mixer ringbuffer */
+            _aaxSignalLock(&handle->signal);
+            data->drb->data_mix(data->drb, handle->drb, NULL);
+            _aaxSignalUnLock(&handle->signal);
+
+            handle->drb->data_clear(handle->drb);
+#endif
+            handle->drb->set_state(handle->drb, RB_REWINDED);
+         }
+
+         handle->avail[thread_no] = AAX_TRUE;
+         _aaxSignalTrigger(&handle->signal);
+      }
+      while(_aaxSignalWait(&thread->signal));
+   }
+   _aaxSignalUnLock(&thread->signal);
 
    return handle;
 }

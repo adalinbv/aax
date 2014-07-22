@@ -35,6 +35,7 @@
 #include <base/logging.h>
 #include <base/threads.h>
 
+#include <software/rendertype.h>
 #include "api.h"
 #include "arch.h"
 #include "driver.h"
@@ -82,6 +83,7 @@ static _aaxDriverSetup _aaxWASAPIDriverSetup;
 static _aaxDriverCaptureCallback _aaxWASAPIDriverCapture;
 static _aaxDriverCallback _aaxWASAPIDriverPlayback;
 static _aaxDriverGetName _aaxWASAPIDriverGetName;
+static _aaxDriverRender _aaxWASAPIDriverRender;
 static _aaxDriverThread _aaxWASAPIDriverThread;
 static _aaxDriverState _aaxWASAPIDriverState;
 static _aaxDriverParam _aaxWASAPIDriverParam;
@@ -106,6 +108,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxWASAPIDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxWASAPIDriverGetName,
+   (_aaxDriverRender *)&_aaxWASAPIDriverRender,
    (_aaxDriverThread *)&_aaxWASAPIDriverThread,
 
    (_aaxDriverConnect *)&_aaxWASAPIDriverConnect,
@@ -546,8 +549,15 @@ _aaxWASAPIDriverDisconnect(void *id)
       if (handle->status & CO_INIT_MASK) {
          pCoUninitialize();
       }
+
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
       free(handle);
- 
+
       return AAX_TRUE;
    }
    return AAX_FALSE;
@@ -2727,6 +2737,8 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
 
       break;
    }
+
+   handle->render = _aaxSoftwareInitRenderer(handle->latency);
 
    if (co_init) {
       pCoUninitialize();

@@ -15,6 +15,44 @@
 
 #include "rendertype.h"
 
+_aaxRenderer*
+_aaxSoftwareInitRenderer(float dt)
+{
+   static _aaxRenderer *rv = NULL;
+
+   if (!rv)
+   {
+      _aaxRendererDetect* rtype;
+      int i = -1, found = -1;
+
+      /* first find the last available renderer */
+      while ((rtype = _aaxRenderTypes[++i]) != NULL)
+      {
+         _aaxRenderer* type = rtype();
+         if (type && type->detect()) {
+            found = i;
+         }
+         free(type);
+      }
+
+      if (found >= 0)
+      {
+         _aaxRendererDetect* rtype = _aaxRenderTypes[found];
+         _aaxRenderer* type = rtype();
+         if (type && type->detect())
+         {
+            type->id = type->setup(floorf(1000.0f * dt));
+            type->open(type->id);
+            rv = type;
+         }
+      }
+   }
+
+   return rv;
+}
+
+/* -------------------------------------------------------------------------- */
+
 _aaxRendererDetect* _aaxRenderTypes[] =
 {
    _aaxDetectCPURenderer,

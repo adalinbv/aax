@@ -1338,42 +1338,6 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi)
    return AAX_TRUE;
 }
 
-static _aaxRenderer*
-_aaxRingBufferInitRenderer(float dt)
-{
-   static _aaxRenderer *rv = NULL;
-
-   if (!rv)
-   {
-      _aaxRendererDetect* rtype;
-      int i = -1, found = -1;
-
-      /* first find the last available renderer */
-      while ((rtype = _aaxRenderTypes[++i]) != NULL)
-      {
-         _aaxRenderer* type = rtype();
-         if (type && type->detect()) {
-            found = i;
-         }
-         free(type);
-      }
-
-      if (found >= 0)
-      {
-         _aaxRendererDetect* rtype = _aaxRenderTypes[found];
-         _aaxRenderer* type = rtype();
-         if (type && type->detect())
-         {
-            type->id = type->setup(floorf(1000.0f * dt));
-            type->open(type->id);
-            rv = type;
-         }
-      }
-   }
-
-   return rv;
-}
-
 static void
 _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
 {
@@ -1393,8 +1357,6 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
 
    rb->get_tracks_ptr = _aaxRingBufferGetTracksPtr;
    rb->release_tracks_ptr = _aaxRingBufferReleaseTracksPtr;
-
-   rb->render = _aaxRingBufferInitRenderer(rb->get_paramf(rb, RB_DURATION_SEC));
 
    /* protected */
    rb->data_clear = _aaxRingBufferDataClear;

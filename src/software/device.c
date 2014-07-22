@@ -28,6 +28,8 @@
 #include <api.h>
 
 #include "arch.h"
+#include "audio.h"
+#include "rendertype.h"
 
 #define NONE_RENDERER		"None"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
@@ -44,6 +46,7 @@ static _aaxDriverSetup _aaxNoneDriverSetup;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
 static _aaxDriverCallback _aaxNoneDriverPlayback;
 static _aaxDriverGetName _aaxNoneDriverGetName;
+static _aaxDriverRender _aaxNoneDriverRender;
 static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
 static _aaxDriverPrepare _aaxNoneDriverPrepare;
 static _aaxDriverPostProcess _aaxNoneDriverPostProcess;
@@ -68,6 +71,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxNoneDriverGetName,
+   (_aaxDriverRender *)&_aaxNoneDriverRender,
    (_aaxDriverThread *)&_aaxNoneDriverThread,
 
    (_aaxDriverConnect *)&_aaxNoneDriverConnect,
@@ -90,6 +94,7 @@ static _aaxDriverNewHandle _aaxLoopbackDriverNewHandle;
 static _aaxDriverConnect _aaxLoopbackDriverConnect;
 static _aaxDriverDisconnect _aaxLoopbackDriverDisconnect;
 
+static _aaxDriverRender _aaxLoopbackDriverRender;
 static _aaxDriverSetup _aaxLoopbackDriverSetup;
 static _aaxDriverParam _aaxLoopbackDriverParam;
 static _aaxDriverLog _aaxLoopbackDriverLog;
@@ -103,9 +108,11 @@ typedef struct
    uint8_t bits_sample;
    char sse_level;
 
+   _aaxRenderer *render;
+
 } _driver_t;
 
-char _loopback_default_renderer[100] = DEFAULT_RENDERER;
+static char _loopback_default_renderer[100] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
    AAX_VERSION_STR,
@@ -122,6 +129,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxNoneDriverGetName,
+   (_aaxDriverRender *)&_aaxLoopbackDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
    (_aaxDriverConnect *)&_aaxLoopbackDriverConnect,
@@ -201,6 +209,13 @@ _aaxNoneDriverGetName(const void *id, int playback)
 {
    return NULL;
 }
+
+_aaxRenderer*
+_aaxNoneDriverRender(const void* config)
+{
+   return NULL;
+}
+
 
 static int
 _aaxNoneDriverState(const void *id, enum _aaxDriverState state)
@@ -292,7 +307,15 @@ _aaxLoopbackDriverConnect(const void *id, void *xid, const char *renderer, enum 
 static int
 _aaxLoopbackDriverDisconnect(void *id)
 {
+   _driver_t *handle = (_driver_t *)id;
+
+   if (handle->render)
+   {
+      handle->render->close(handle->render->id);
+      free(handle->render);
+   }
    free(id);
+
    return AAX_TRUE;
 }
 
@@ -312,6 +335,7 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
       } else {
          handle->latency = 0.0f;
       }
+      handle->render = _aaxSoftwareInitRenderer(handle->latency);
    }
    return AAX_TRUE;
 }
@@ -367,6 +391,13 @@ _aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
    _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;
+}
+
+_aaxRenderer*
+_aaxLoopbackDriverRender(const void* config)
+{
+   _driver_t *handle = (_driver_t *)config;
+   return handle->render;
 }
 
 void

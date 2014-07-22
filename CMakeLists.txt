@@ -290,7 +290,7 @@ ELSE(MSVC)
         FORCE)
 
     # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g -Os -DNDEBUG" CACHE STRING
+    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -g -DNDEBUG" CACHE STRING
         "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
     SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING

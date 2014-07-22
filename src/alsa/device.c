@@ -38,6 +38,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
+#include <software/rendertype.h>
 #include "device.h"
 #include "audio.h"
 
@@ -66,6 +67,7 @@ static _aaxDriverSetup _aaxALSADriverSetup;
 static _aaxDriverCallback _aaxALSADriverPlayback;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverGetName _aaxALSADriverGetName;
+static _aaxDriverRender _aaxALSADriverRender;
 static _aaxDriverThread _aaxALSADriverThread;
 static _aaxDriverState _aaxALSADriverState;
 static _aaxDriverParam _aaxALSADriverParam;
@@ -88,6 +90,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxALSADriverGetName,
+   (_aaxDriverRender *)&_aaxALSADriverRender,
    (_aaxDriverThread *)&_aaxALSADriverThread,
 
    (_aaxDriverConnect *)&_aaxALSADriverConnect,
@@ -112,6 +115,7 @@ typedef struct
     int devnum;
 
     _aaxDriverCallback *play;
+    _aaxRenderer *render;
     snd_mixer_t *mixer;
     snd_pcm_t *pcm;
 
@@ -636,6 +640,12 @@ _aaxALSADriverDisconnect(void *id)
       _aax_free(handle->outMixer);
       handle->outMixer = NULL;
 
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
       if (handle->pcm) {
          psnd_pcm_close(handle->pcm);
       }
@@ -950,6 +960,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       else {
           handle->latency = (float)no_frames/(float)rate;
       }
+      handle->render = _aaxSoftwareInitRenderer(handle->latency);
 
       handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
       handle->can_pause &= psnd_pcm_hw_params_can_resume(hwparams);
@@ -2819,6 +2830,12 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
    return res;
 }
 
+_aaxRenderer*
+_aaxALSADriverRender(const void* config)
+{
+   _driver_t *handle = (_driver_t *)config;
+   return handle->render;
+}
 
 void *
 _aaxALSADriverThread(void* config)

@@ -35,6 +35,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
+#include <software/rendertype.h>
 #include "audio.h"
 #include "device.h"
 
@@ -73,11 +74,12 @@ static _aaxDriverSetup _aaxDMediaDriverSetup;
 static _aaxDriverCaptureCallback _aaxDMediaDriverCapture;
 static _aaxDriverCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
+static _aaxDriverRender _aaxDMediaDriverRender;
 static _aaxDriverState _aaxDMediaDriverState;
 static _aaxDriverParam _aaxDMediaDriverParam;
 static _aaxDriverLog _aaxDMediaDriverLog;
 
-char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
+static char _dmedia_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxDMediaDriverBackend =
 {
    AAX_VERSION_STR,
@@ -94,6 +96,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxDMediaDriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxDMediaGetName,
+   (_aaxDriverRender *)&_aaxDMediaDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
    (_aaxDriverConnect *)&_aaxDMediaDriverConnect,
@@ -140,6 +143,7 @@ typedef struct
    int mode;
    unsigned int noPorts;
    _port_t *port;
+   _aaxRenderer *render;
 
    void **scratch;
    int16_t **data;
@@ -511,6 +515,12 @@ _aaxDMediaDriverDisconnect(void *id)
          }
       }
 
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
       free(handle->scratch);
 
       if (handle->port != NULL)
@@ -622,6 +632,8 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
          handle->port[0].latency = 2.0f*(float)*frames;
          handle->port[0].latency /= (float)handle->port[0].frequency_hz;
       }
+
+      handle->render = _aaxSoftwareInitRenderer(handle->port[0].latency);
    }
 
    palSetSampFmt(handle->port[0].config, AL_SAMPFMT_TWOSCOMP);
@@ -822,6 +834,14 @@ _aaxDMediaGetName(const void *id, int playback)
    return ret;
 #endif
 }
+
+_aaxRenderer*
+_aaxDMediaDriverRender(const void* config)
+{
+   _driver_t *handle = (_driver_t *)config;
+   return handle->render;
+}
+
 
 static int
 _aaxDMediaDriverState(const void *id, enum _aaxDriverState state)
