@@ -337,8 +337,9 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
  
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 0 && mtx != 1) {
-            printf("1. lock mutex = %i in %s line %i, for: %s in %s\n",
-                                         mtx, file, line, m->name, m->function);
+            printf("1. lock mutex = %i in %s line %i, for: %s in %s\n"
+                   "last called from: %s line %i\n", mtx, file, line, 
+                   m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
             abort();
          }
@@ -349,8 +350,11 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          to.tv_nsec = 0;
          r = pthread_mutex_timedlock(&m->mutex, &to);
 
+#ifndef NDEBUG
          if (r == ETIMEDOUT) {
-            printf("mutex timed out in %s line %i\n", file, line);
+            printf("mutex timed out in %s line %i\n"
+                   "  last call from %s line %i\n", file, line,
+                      m->last_file, m->last_line);
             abort();
          } else if (r == EDEADLK) {
             printf("dealock in %s line %i\n", file, line);
@@ -359,7 +363,6 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
             printf("mutex lock error %i in %s line %i\n", r, file, line);
          }
 
-#ifndef NDEBUG
 # ifdef __GNUC__
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 1) {
@@ -368,6 +371,8 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
             abort();
          }
 # endif
+         m->last_file = file;
+         m->last_line = line;
 #endif
       }
    }
@@ -463,6 +468,18 @@ _aaxSignalDestroy(_aaxSignal *signal)
 }
 
 int
+_aaxSignalLock(_aaxSignal *signal)
+{
+   return _aaxMutexLock(signal->mutex);
+};
+
+int
+_aaxSignalUnLock(_aaxSignal *signal)
+{
+   return _aaxMutexUnLock(signal->mutex);
+};
+
+int
 _aaxSignalWait(_aaxSignal *signal)
 {
    int rv;
@@ -471,7 +488,12 @@ _aaxSignalWait(_aaxSignal *signal)
    {
       _aaxMutex *m = (_aaxMutex *)signal->mutex;
 
-      rv = pthread_cond_wait(signal->condition, &m->mutex);
+      signal->waiting = AAX_TRUE;
+      do {	// wait for _aaxSignalTrigger to set signal->waiting = AAX_FALSE
+         rv = pthread_cond_wait(signal->condition, &m->mutex);
+      }
+      while (signal->waiting == AAX_TRUE);
+
       switch(rv)
       {
       case 0:
@@ -516,7 +538,12 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          ts.tv_nsec -= 1000000000L;
       }
    
-      rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
+      signal->waiting = AAX_TRUE;
+      do {
+         rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
+      }
+      while (signal->waiting == AAX_TRUE);
+
       switch(rv)
       {
       case ETIMEDOUT:
@@ -546,14 +573,19 @@ _aaxSignalTrigger(_aaxSignal *signal)
   int rv = 0;
 
    _aaxMutexLock(signal->mutex);
-   if (!signal->triggered)
+   if (!signal->triggered) //  && signal->waiting)
    {
+      /* signaling a condition which isn't waiting gets lost */
+      /* try to prevent this situation anyhow.               */
+      signal->triggered = 1;
+      signal->waiting = AAX_FALSE;
       rv =  pthread_cond_signal(signal->condition);
-      signal->triggered = rv ? 0 : 1;
    }
-   else {
+#if 0
+   else if (!signal->triggered) {
       signal->triggered++;
    } 
+#endif
    _aaxMutexUnLock(signal->mutex);
 
    return rv;

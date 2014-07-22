@@ -36,7 +36,8 @@ typedef struct
 {
    void *mutex;
    void *condition;
-   char triggered;
+   char waiting;
+   int triggered;
 } _aaxSignal;
 
 int _aaxProcessSetPriority(int);
@@ -52,8 +53,12 @@ int _aaxProcessSetPriority(int);
  { 
    char initialized;
    pthread_mutex_t mutex;
+#ifndef NDEBUG
    const char *name;
    const char *function;
+   const char *last_file;
+   size_t last_line;
+#endif
  } _aaxMutex;
 
 #elif defined( WIN32 )
@@ -133,9 +138,11 @@ _aaxSignal *_aaxSignalCreate();
 void _aaxSignalInit(_aaxSignal *);
 void _aaxSignalDestroy(_aaxSignal*);
 void _aaxSignalFree(_aaxSignal*);
+int _aaxSignalTrigger(_aaxSignal*);
 int _aaxSignalWait(_aaxSignal*);
 int _aaxSignalWaitTimed(_aaxSignal*, float);
-int _aaxSignalTrigger(_aaxSignal*);
+int _aaxSignalLock(_aaxSignal*);
+int _aaxSignalUnLock(_aaxSignal*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
