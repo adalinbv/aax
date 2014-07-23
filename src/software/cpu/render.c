@@ -283,6 +283,13 @@ static int
 _aaxCPUFinish(struct _aaxRenderer_t *renderer)
 {
    _render_t *handle = (_render_t*)renderer->id;
+   int i;
+
+   for (i=0; i<handle->no_threads; i++)
+   {
+      handle->data[i].next = 0;
+      handle->data[i].src = NULL;
+   }
 
    return AAX_TRUE;
 }
@@ -356,7 +363,6 @@ _aaxCPUThread(void *id)
                data->next = data->drb->mix2d(handle->drb, data->srb, ep2d,
                                              data->fp2d, data->ctr, data->nbuf);
             }
-
 #if 1
             /* mix our own ringbuffer with the mixer ringbuffer */
             _aaxSignalLock(&handle->signal);
