@@ -366,7 +366,9 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 # ifdef __GNUC__
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 1) {
-            printf("2. lock mutex != 1 (%i) in %s line %i, for: %s in %s\n", mtx, file, line, m->name, m->function);
+            printf("2. lock mutex != 1 (%i) in %s line %i, for: %s in %s\n"
+                    "last called from: %s line %i\n", mtx, file, line,
+                    m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
             abort();
          }
@@ -408,11 +410,14 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
       mtx = m->mutex.__data.__count;
       if (mtx != 1) {
          if (mtx == 0)
-            printf("mutex already unlocked in %s line %i, for: %s\n",
-                                              file, line, m->name);
+            printf("mutex already unlocked in %s line %i, for: %s\n"
+                    "last called from: %s line %i\n",
+                     file, line, m->name, m->last_file, m->last_line);
          else
             printf("unlock mutex != 1 (%i) in %s line %i, for: %s in %s\n",
-                                       mtx, file, line, m->name, m->function);
+                    "last called from: %s line %i\n",
+                    mtx, file, line, m->name, m->function,
+                    m->last_file, m->last_line);
          r = -mtx;
          abort();
       }
@@ -422,6 +427,9 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
       r = pthread_mutex_unlock(&m->mutex);
 #ifndef NDEBUG
 #endif
+
+      m->last_file = file;
+      m->last_line = line;
    }
    return r;
 }
@@ -590,6 +598,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
 
    return rv;
 }
+
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
 
