@@ -25,20 +25,21 @@ typedef struct
 {
    _aaxRingBuffer *drb;
    _aaxRingBuffer *srb;
+
    _aaxEmitter *src;
    _aax2dProps *fp2d;
    _intBufferData *dptr_src;
    _intBufferData *dptr_sbuf;
 
-   char looping;
-   char track;
-   char ctr;
-   char stage;
-   char working;
+   unsigned int ctr;
+   unsigned int nbuf;
+   unsigned char track;
+   unsigned char looping;
 
-   int nbuf;
-   int pos;
-   int next;
+   unsigned char stage;
+   unsigned char next;
+
+   unsigned char valid;
    int thread_no;
 
 } _aaxRendererData;
