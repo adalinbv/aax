@@ -338,7 +338,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 0 && mtx != 1) {
             printf("1. lock mutex = %i in %s line %i, for: %s in %s\n"
-                   "last called from: %s line %i\n", mtx, file, line, 
+                   "last called from: %s line %zu\n", mtx, file, line, 
                    m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
             abort();
@@ -353,7 +353,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 #ifndef NDEBUG
          if (r == ETIMEDOUT) {
             printf("mutex timed out in %s line %i\n"
-                   "  last call from %s line %i\n", file, line,
+                   "  last call from %s line %zu\n", file, line,
                       m->last_file, m->last_line);
             abort();
          } else if (r == EDEADLK) {
@@ -367,7 +367,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 1) {
             printf("2. lock mutex != 1 (%i) in %s line %i, for: %s in %s\n"
-                    "last called from: %s line %i\n", mtx, file, line,
+                    "last called from: %s line %zu\n", mtx, file, line,
                     m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
             abort();
@@ -411,11 +411,11 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
       if (mtx != 1) {
          if (mtx == 0)
             printf("mutex already unlocked in %s line %i, for: %s\n"
-                    "last called from: %s line %i\n",
+                    "last called from: %s line %zu\n",
                      file, line, m->name, m->last_file, m->last_line);
          else
-            printf("unlock mutex != 1 (%i) in %s line %i, for: %s in %s\n",
-                    "last called from: %s line %i\n",
+            printf("unlock mutex != 1 (%i) in %s line %i, for: %s in %s\n"
+                    "last called from: %s line %zu\n",
                     mtx, file, line, m->name, m->function,
                     m->last_file, m->last_line);
          r = -mtx;

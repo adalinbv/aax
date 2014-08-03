@@ -622,7 +622,7 @@ _intBufPopDebug(_intBuffers *buffer, unsigned int id, char locked, char *file, i
             printf("buffer->data[%i] == 0 in file '%s' at line %i\n",
                     start, file, line);
             for(i=0; i<buffer->max_allocations; i++)
-                printf("%x ", (unsigned int)buffer->data[i]);
+                printf("%zx ", (size_t)buffer->data[i]);
             printf("\n");
           //return NULL;
         }
@@ -965,7 +965,7 @@ __intBufFreeSpace(_intBuffers *buffer, int id, char locked)
 
         printf("add, buffer->first_free: %i\n", buffer->first_free);
         for(i=0; i<buffer->max_allocations; i++)
-            printf("%x ", (unsigned int)buffer->data[i]);
+            printf("%zx ", (size_t)buffer->data[i]);
         printf("\n");
     }
 
