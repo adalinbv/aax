@@ -356,11 +356,6 @@ _aaxGetSSELevel()
             sse_level = AAX_AVX;
          }
       }
-
-      env = getenv("AAX_USE_THREADS");
-      if (_aax_getbool(env)) {
-         _aaxEmittersProcess = _aaxEmittersProcessThreads;
-      }
    }
 
    return sse_level;
