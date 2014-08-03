@@ -497,8 +497,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                if (dptr_sensor)
                {
                   _aaxAudioFrameProcessDelayQueue(smixer);
-                  ssv =_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-                  sdf =_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+                  ssv=_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
+                  sdf=_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
 
                   _aax_memcpy(&sp2d, smixer->props2d,
                                      sizeof(_aax2dProps));
