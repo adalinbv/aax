@@ -31,7 +31,7 @@
 
 
 /*
- * The CPU renderer uses a thread worker with one thread tied to every
+ * The Pool renderer uses a thread worker with one thread tied to every
  * physical CPU core. This wil get the optimum rendering speed since it
  * can utilize the SSE registeres for every core simultaniously without
  * the possibility of choking the CPU caches.
@@ -42,25 +42,29 @@ static _renderer_new_handle_fn _aaxWorkerSetup;
 static _renderer_open_fn _aaxWorkerOpen;
 static _renderer_close_fn _aaxWorkerClose;
 
-static _render_wait_fn _aaxWorkerWait;
-static _render_apply_fn _aaxWorkerUpdate;
+static _render_process_fn _aaxWorkerProcess;
 static _render_finish_fn _aaxWorkerFinish;
 
 
 _aaxRenderer*
-_aaxDetectCPURenderer()
+_aaxDetectPoolRenderer()
 {
-   _aaxRenderer* rv = calloc(1, sizeof(_aaxRenderer));
-   if (rv)
-   {
-      rv->detect = _aaxWorkerDetect;
-      rv->setup = _aaxWorkerSetup;
-      rv->open = _aaxWorkerOpen;
-      rv->close = _aaxWorkerClose;
+   const char *env = getenv("AAX_USE_THREADPOOL");
+   _aaxRenderer* rv = NULL;
 
-      rv->wait = _aaxWorkerWait;
-      rv->update = _aaxWorkerUpdate;
-      rv->finish = _aaxWorkerFinish;
+   if (_aax_getbool(env))
+   {
+      rv = calloc(1, sizeof(_aaxRenderer));
+      if (rv)
+      {
+         rv->detect = _aaxWorkerDetect;
+         rv->setup = _aaxWorkerSetup;
+         rv->open = _aaxWorkerOpen;
+         rv->close = _aaxWorkerClose;
+
+         rv->process = _aaxWorkerProcess;
+         rv->finish = _aaxWorkerFinish;
+      }
    }
    return rv;
 }
@@ -76,6 +80,7 @@ typedef struct worker_data
    struct threat_t thread;
    _aaxSignal active;
    unsigned char state;
+   int finish;
 
 } worker_data_t;
 
@@ -88,8 +93,6 @@ typedef struct
    _aaxSignal signal;
    struct worker_data pool[_AAX_MAX_NO_WORKERS];
 
-   unsigned char finish;
-
 } _render_t;
 
 static void* _aaxWorkerThread(void*);
@@ -98,7 +101,8 @@ enum _aaxWorkerThreadState
 {
    AAX_WORKER_AVAILABLE = 0,
    AAX_WORKER_RESERVED,
-   AAX_WORKER_BUSY
+   AAX_WORKER_BUSY,
+   AAX_WORKER_FINISHED
 };
 
 
@@ -179,135 +183,64 @@ _aaxWorkerSetup(int dt)
             worker->thread.started = AAX_TRUE;
          }
          else {
-            _AAX_LOG(LOG_WARNING,  "CPU renderer: thread failed");
+            _AAX_LOG(LOG_WARNING,  "Thread Pool renderer: thread failed");
          }
       }
       handle->worker_no = 0;
       _aaxSignalUnLock(&handle->signal);
    }
    else {
-      _AAX_LOG(LOG_WARNING, "CPU renderer: Insufficient memory");
+      _AAX_LOG(LOG_WARNING, "Thread Pool renderer: Insufficient memory");
    }
 
    return (void*)handle;
 }
 
 /*
- * Set up the data structure for the appropriate worker thread,
- * and return the data provided by the previous run of the worker thread.
- * Then signal the thread to start operating.
- */
-static int
-_aaxWorkerUpdate(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
-{
-   _render_t *handle = (_render_t*)renderer->id;
-   int worker_no, res = AAX_FALSE;
-
-   worker_no = data->thread_no;
-
-   assert(worker_no >= 0);
-   assert(worker_no < handle->no_workers);
-
-   // signal the tread to start working
-   res = _aaxSignalTrigger(&handle->pool[worker_no].thread.signal);
-
-   return res;
-}
-
-/*
  * Wait for a worker thread to become ready.
- * - sets data->thread_no so _aaxWorkerUpdate knows which thread to use.
  */
 static int
-_aaxWorkerWait(struct _aaxRenderer_t *renderer, _aaxRendererData *data, int finish)
+_aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 {
    _render_t *handle = (_render_t*)renderer->id;
    int worker_no = handle->worker_no;
    struct worker_data *worker;
    int i, rv = AAX_FALSE;
 
-   if (!finish || data->next)
+   // wait for the next free worker thread
+   _aaxSignalLock(&handle->signal);
+   _aaxSignalWait(&handle->signal);
+
+   // find the next free worker thread
+   worker_no = handle->worker_no;
+   for (i=0; i<handle->no_workers; i++)
    {
-      // wait for the next free worker thread
-      _aaxSignalLock(&handle->signal);
-      _aaxSignalWait(&handle->signal);
+      worker_no = (worker_no+1) % handle->no_workers;
 
-      // find the next free worker thread
-      worker_no = handle->worker_no;
-      for (i=0; i<handle->no_workers; i++)
+      worker = &handle->pool[worker_no];
+      if ((worker->state == AAX_WORKER_AVAILABLE) ||
+          (worker->state == AAX_WORKER_FINISHED))
       {
-         worker_no = (worker_no+1) % handle->no_cpu_cores;
+         // Mark the worker-thread to be in use.
+         // This prevents the next call to _aaxWorkerProcess from claiming
+         // it again in case the scheduler did not assign any time to
+         // the thread.
+         worker->state = AAX_WORKER_RESERVED;
 
-         worker = &handle->pool[worker_no];
-         if (worker->state == AAX_WORKER_AVAILABLE)
-         {
-            _aaxRendererData cdata;
+         // save the thread number for the next call
+         handle->worker_no = worker_no;
 
-            // Mark the worker-thread to be in use.
-            // This prevents the next call to _aaxWorkerWait from claiming
-            // it again in case the scheduler did not assign any time to
-            // the thread.
-            worker->state = AAX_WORKER_RESERVED;
+         // set the new data for this worker thread.
+         memcpy(&worker->data, data, sizeof(_aaxRendererData));
 
-            // save the thread number for the next call
-            handle->worker_no = worker_no;
+         // signal the tread to start working
+         _aaxSignalTrigger(&worker->thread.signal);
 
-            // keep a backup of the data of the previous run
-            memcpy(&cdata, &worker->data, sizeof(_aaxRendererData));
-
-            // set the new data for this worker thread.
-            memcpy(&worker->data, data, sizeof(_aaxRendererData));
-            worker->data.valid = AAX_TRUE;
-
-            // copy the backup data to the caller
-            memcpy(data, &cdata,sizeof(_aaxRendererData));
-
-            // save the thread number for _aaxWorkerUpdate
-            data->thread_no = worker_no;
-
-            rv = AAX_TRUE;
-            break;
-         }
-      }
-      _aaxSignalUnLock(&handle->signal);
-   }
-   else	// finish the active emitters
-   {
-      worker_no = handle->worker_no;
-      for (i=0; i<handle->no_workers; i++)
-      {
-         worker_no = (worker_no+1) % handle->no_cpu_cores;
-
-         worker = &handle->pool[worker_no];
-         if (worker->data.valid)
-         {
-            if (worker->state != AAX_WORKER_AVAILABLE)
-            {
-               while (worker->state == AAX_WORKER_RESERVED) {
-                  _aaxThreadSwitch();
-               }
-            
-               // Wait until the thread is actually started
-               _aaxSignalLock(&worker->active);
-               _aaxSignalWait(&worker->active);
-               _aaxSignalUnLock(&worker->active);
-            }
-
-            // Wait until the thread is finished
-            _aaxSignalLock(&worker->thread.signal);
-
-            memcpy(data, &worker->data, sizeof(_aaxRendererData));
-            worker->data.valid = AAX_FALSE;
-
-            _aaxSignalUnLock(&worker->thread.signal);
-
-            assert(worker->state == AAX_WORKER_AVAILABLE);
-
-            rv = AAX_TRUE;
-            break;
-         }
+         rv = AAX_TRUE;
+         break;
       }
    }
+   _aaxSignalUnLock(&handle->signal);
 
    return rv;
 }
@@ -318,31 +251,48 @@ _aaxWorkerFinish(struct _aaxRenderer_t *renderer)
    _render_t *handle = (_render_t*)renderer->id;
    int i;
 
-   handle->finish = AAX_TRUE;
+// _aaxThreadSwitch();
+
+   // First make sure all threads did run in the mean time.
    for (i=0; i<handle->no_workers; i++)
    {
       struct worker_data *worker = &handle->pool[i];
 
-      assert(worker->state == AAX_WORKER_AVAILABLE);
-
-      worker->data.next = 0;
-      worker->data.src = NULL;
-
-      if (worker->data.drb)
+      if (worker->data.drb && worker->state != AAX_WORKER_AVAILABLE)
       {
-         _aaxSignalTrigger(&worker->thread.signal);
-
          // Wait until the thread is actually started
          _aaxSignalLock(&worker->active);
          _aaxSignalWait(&worker->active);
          _aaxSignalUnLock(&worker->active);
 
-         // Wait until the thread is finished
+         // Wait until the thread is waiting
+         _aaxSignalLock(&worker->thread.signal);
+         _aaxSignalUnLock(&worker->thread.signal);
+
+         // Now trigger the thread to mix it's own ringbuffer
+         worker->finish = AAX_TRUE;
+         _aaxSignalTrigger(&worker->thread.signal);
+      }
+   }
+
+   // Now wait until the worker ringbuffers are alle mixed.
+   for (i=0; i<handle->no_workers; i++)
+   {
+      struct worker_data *worker = &handle->pool[i];
+
+      if (worker->data.drb && worker->state != AAX_WORKER_AVAILABLE)
+      {
+         // Wait until the thread is actually started
+         _aaxSignalLock(&worker->active);
+         _aaxSignalWait(&worker->active);
+         _aaxSignalUnLock(&worker->active);
+
+         // Wait until the thread is waiting
          _aaxSignalLock(&worker->thread.signal);
          _aaxSignalUnLock(&worker->thread.signal);
       }
+      worker->state = AAX_WORKER_AVAILABLE;
    }
-   handle->finish = AAX_FALSE;
 
    return AAX_TRUE;
 }
@@ -384,15 +334,14 @@ _aaxWorkerThread(void *id)
          // signal there's a thread ready for action
          worker->state = AAX_WORKER_BUSY;
 
-         // let _aaxWorkerWait know the thread was active
-         _aaxSignalTrigger(&worker->active);
-
          if TEST_FOR_FALSE(worker->thread.started) {
             break;
          }
 
-         if (handle->finish)
+         if (worker->finish)
          {
+            worker->finish = AAX_FALSE;
+
             _aaxSignalLock(&handle->signal);
             data->drb->data_mix(data->drb, worker->drb, NULL);
             _aaxSignalUnLock(&handle->signal);
@@ -400,28 +349,55 @@ _aaxWorkerThread(void *id)
             worker->drb->data_clear(worker->drb);
             worker->drb->set_state(worker->drb, RB_REWINDED);
          }
-         else if (data->src)
+         else // if (data->src)
          {
-            _aax2dProps *ep2d = data->src->props2d;
-
-            // 2d/3d mixing to our own ringbuffer
-            if (data->stage == 2)
-            {
-               data->next = data->drb->mix3d(worker->drb, data->srb,
-                                             ep2d, data->fp2d, data->track,
-                                             data->ctr,data->nbuf);
-            }
-            else
-            {
-               data->next = data->drb->mix2d(worker->drb, data->srb,
-                                             ep2d, data->fp2d, data->ctr,
-                                             data->nbuf);
-            }
             worker->drb->set_state(worker->drb, RB_REWINDED);
+
+            data->preprocess(data);
+            do
+            {
+               _aaxEmitter *src = data->src;
+               _aax2dProps *ep2d = src->props2d;
+
+               if (_IS_STOPPED(src->props3d)) {
+                  data->srb->set_state(data->srb, RB_STOPPED);
+               }
+               else if (data->srb->get_parami(data->srb, RB_IS_PLAYING) == 0)
+               {
+                  if (data->nbuf > 1) {
+                     data->srb->set_state(data->srb, RB_STARTED_STREAMING);
+                  } else {
+                     data->srb->set_state(data->srb, RB_STARTED);
+                  }
+               }
+
+               ep2d->curr_pos_sec = src->curr_pos_sec;
+               src->curr_pos_sec += data->dt;
+
+               if (data->stage == 2)
+               {
+                  if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
+                     data->next = data->drb->mix3d(worker->drb, data->srb, ep2d,
+                                                   data->fp2d, data->track,
+                                                   data->ctr,data->nbuf);
+                  }
+               }
+               else
+               {
+                  data->next = data->drb->mix2d(worker->drb, data->srb,
+                                                ep2d, data->fp2d, data->ctr,
+                                                data->nbuf);
+               }
+               data->postprocess(data);
+            }
+            while (data->next);
          }
 
-         worker->state = AAX_WORKER_AVAILABLE;
+         // let _aaxWorkerProcess know the thread was active
+         _aaxSignalTrigger(&worker->active);
+
          _aaxSignalTrigger(&handle->signal);
+         worker->state = AAX_WORKER_FINISHED;
       }
       while(_aaxSignalWait(&worker->thread.signal));
       worker->drb->destroy(worker->drb);

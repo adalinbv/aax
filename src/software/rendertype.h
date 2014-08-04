@@ -21,38 +21,47 @@ extern "C" {
 
 #define _AAX_RENDER_BACKENDS	1
 
-typedef struct
+/* forward declaration */
+struct _aaxRenderer_t;
+struct _aaxRendererData_t;
+typedef int (_aaxRendererCallback)(struct _aaxRendererData_t*);
+
+typedef struct _aaxRendererData_t
 {
+   _aaxRendererCallback *preprocess;
+   _aaxRendererCallback *postprocess;
+
+   _intBuffers *he;
    _aaxRingBuffer *drb;
    _aaxRingBuffer *srb;
-
-   _aaxEmitter *src;
    _aax2dProps *fp2d;
+
+   // these will be filled in by data->preprocess
+   // and updated by data->postprocess
+   _aaxEmitter *src;
    _intBufferData *dptr_src;
    _intBufferData *dptr_sbuf;
-
-   unsigned int ctr;
    unsigned int nbuf;
+   // -----------------
+
+   unsigned int pos;
+   unsigned int ctr;
    unsigned char track;
    unsigned char looping;
 
    unsigned char stage;
    unsigned char next;
 
-   unsigned char valid;
-   int thread_no;
+   float dt;
 
 } _aaxRendererData;
 
-/* forward declaration */
-struct _aaxRenderer_t;
 
 typedef int (_renderer_detect_fn)();
 typedef void* (_renderer_new_handle_fn)(int);
 typedef void* (_renderer_open_fn)(void*);
 typedef int (_renderer_close_fn)(void*);
-typedef int (_render_apply_fn)(struct _aaxRenderer_t*, _aaxRendererData*);
-typedef int (_render_wait_fn)(struct _aaxRenderer_t *, _aaxRendererData*, int);
+typedef int (_render_process_fn)(struct _aaxRenderer_t *, _aaxRendererData*);
 typedef int (_render_finish_fn)(struct _aaxRenderer_t *);
 
 typedef struct _aaxRenderer_t
@@ -66,8 +75,7 @@ typedef struct _aaxRenderer_t
    _renderer_open_fn *open;
    _renderer_close_fn *close;
 
-   _render_wait_fn *wait;
-   _render_apply_fn *update;
+   _render_process_fn *process;
    _render_finish_fn *finish;
 
 } _aaxRenderer;
@@ -77,6 +85,7 @@ typedef _aaxRenderer* (_aaxRendererDetect)(void);
 extern _aaxRendererDetect* _aaxRenderTypes[];
 
 _aaxRendererDetect _aaxDetectCPURenderer;
+_aaxRendererDetect _aaxDetectPoolRenderer;
 _aaxRenderer* _aaxSoftwareInitRenderer(float);
 
 #if defined(__cplusplus)

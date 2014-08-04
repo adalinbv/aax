@@ -44,14 +44,9 @@ void _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*, _aax2dProps*, int);
 void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
                         float*, float, int, float, float);
 
+char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
 void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4_t*, _aaxDelayed3dProps*);
 
-
-typedef char (_aaxEmittersProcessFn)(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
-
-_aaxEmittersProcessFn _aaxEmittersProcessThreads;
-_aaxEmittersProcessFn _aaxEmittersProcessNoThreads;
-_aaxEmittersProcessFn *_aaxEmittersProcess;
 
 
 #if defined(__cplusplus)

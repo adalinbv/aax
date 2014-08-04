@@ -56,6 +56,7 @@ _aaxSoftwareInitRenderer(float dt)
 _aaxRendererDetect* _aaxRenderTypes[] =
 {
    _aaxDetectCPURenderer,
+   _aaxDetectPoolRenderer,
 
    0            /* Must be last */
 };
