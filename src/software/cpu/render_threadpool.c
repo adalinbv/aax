@@ -359,21 +359,6 @@ _aaxWorkerThread(void *id)
                _aaxEmitter *src = data->src;
                _aax2dProps *ep2d = src->props2d;
 
-               if (_IS_STOPPED(src->props3d)) {
-                  data->srb->set_state(data->srb, RB_STOPPED);
-               }
-               else if (data->srb->get_parami(data->srb, RB_IS_PLAYING) == 0)
-               {
-                  if (data->nbuf > 1) {
-                     data->srb->set_state(data->srb, RB_STARTED_STREAMING);
-                  } else {
-                     data->srb->set_state(data->srb, RB_STARTED);
-                  }
-               }
-
-               ep2d->curr_pos_sec = src->curr_pos_sec;
-               src->curr_pos_sec += data->dt;
-
                if (data->stage == 2)
                {
                   if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
