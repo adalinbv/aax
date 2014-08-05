@@ -31,25 +31,20 @@ typedef struct _aaxRendererData_t
    _aaxRendererCallback *preprocess;
    _aaxRendererCallback *postprocess;
 
-   _intBuffers *he;
    _aaxRingBuffer *drb;
    _aaxRingBuffer *srb;
    _aax2dProps *fp2d;
+   _aax2dProps *ep2d;
 
-   // these will be filled in by data->preprocess
-   // and updated by data->postprocess
-   _aaxEmitter *src;
-   _intBufferData *dptr_src;
-   _intBufferData *dptr_sbuf;
-   unsigned int nbuf;
-   // -----------------
-
+   _intBuffers *he;
    unsigned int pos;
-   unsigned int ctr;
-   unsigned char track;
-   unsigned char looping;
 
+   unsigned int ctr;
+   unsigned char streaming;
+   unsigned char looping;
+   unsigned char track;
    unsigned char stage;
+
    unsigned char next;
 
    float dt;

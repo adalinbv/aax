@@ -91,8 +91,7 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
    data->preprocess(data);
    do
    {
-      _aaxEmitter *src = data->src;
-      _aax2dProps *ep2d = src->props2d;
+      _aax2dProps *ep2d = data->ep2d;
 
       if (data->stage == 2)
       {
@@ -100,13 +99,13 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
          if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
             data->next = data->drb->mix3d(data->drb, data->srb, ep2d,
                                           data->fp2d, data->track, data->ctr,
-                                          data->nbuf);
+                                          data->streaming);
          }
       }
       else
       {
          data->next = data->drb->mix2d(data->drb, data->srb, ep2d, data->fp2d,
-                                       data->ctr, data->nbuf);
+                                       data->ctr, data->streaming);
       }
       data->postprocess(data);
    }

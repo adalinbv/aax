@@ -349,29 +349,28 @@ _aaxWorkerThread(void *id)
             worker->drb->data_clear(worker->drb);
             worker->drb->set_state(worker->drb, RB_REWINDED);
          }
-         else // if (data->src)
+         else
          {
             worker->drb->set_state(worker->drb, RB_REWINDED);
 
             data->preprocess(data);
             do
             {
-               _aaxEmitter *src = data->src;
-               _aax2dProps *ep2d = src->props2d;
+               _aax2dProps *ep2d = data->ep2d;
 
                if (data->stage == 2)
                {
                   if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
                      data->next = data->drb->mix3d(worker->drb, data->srb, ep2d,
                                                    data->fp2d, data->track,
-                                                   data->ctr,data->nbuf);
+                                                   data->ctr, data->streaming);
                   }
                }
                else
                {
                   data->next = data->drb->mix2d(worker->drb, data->srb,
                                                 ep2d, data->fp2d, data->ctr,
-                                                data->nbuf);
+                                                data->streaming);
                }
                data->postprocess(data);
             }

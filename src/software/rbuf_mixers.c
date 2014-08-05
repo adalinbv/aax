@@ -39,7 +39,7 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, unsigned int streaming)
 {
    _aaxRingBufferSample *srbd, *drbd;
    float dfreq, dduration, drb_pos_sec, new_drb_pos_sec, fact;
@@ -274,7 +274,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             /* needed for automatic file streaming with registered sensors */
             if (!srbd->mixer_fmt)
             {
-               if (!nbuf) // srbi->streaming
+               if (!streaming)
                {
                   sptr -= CUBIC_SAMPS;
                   sno_samples += CUBIC_SAMPS;
