@@ -174,6 +174,7 @@ DECL_FUNCTION(snd_pcm_pause);
 DECL_FUNCTION(snd_pcm_hw_params_can_pause);
 DECL_FUNCTION(snd_pcm_hw_params_can_resume);
 DECL_FUNCTION(snd_asoundlib_version);
+DECL_FUNCTION(snd_config_update);
 DECL_FUNCTION(snd_device_name_hint);
 DECL_FUNCTION(snd_device_name_get_hint);
 DECL_FUNCTION(snd_device_name_free_hint);
@@ -362,6 +363,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_pause);					//
          TIE_FUNCTION(snd_pcm_hw_params_can_pause);			//
          TIE_FUNCTION(snd_pcm_hw_params_can_resume);			//
+         TIE_FUNCTION(snd_config_update);				//
          TIE_FUNCTION(snd_device_name_hint);				//
          TIE_FUNCTION(snd_device_name_get_hint);			//
          TIE_FUNCTION(snd_device_name_free_hint);			//
@@ -401,7 +403,9 @@ _aaxALSADriverDetect(int mode)
       error = _aaxGetSymError(0);
       if (!error)
       {
-         if (get_devices_avail(mode) != 0) {
+         if (get_devices_avail(mode) != 0)
+         {
+            psnd_config_update();
             rv = AAX_TRUE;
          }
       }
@@ -579,7 +583,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    {
       int err, m;
 
-      psnd_lib_error_set_handler(_alsa_error_handler);
+//    psnd_lib_error_set_handler(_alsa_error_handler);
 
       m = (handle->mode > 0) ? 1 : 0;
       handle->devnum = detect_devnum(handle->name, m);

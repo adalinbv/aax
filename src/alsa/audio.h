@@ -252,6 +252,7 @@ typedef void (*snd_pcm_info_set_device_proc)(snd_pcm_info_t *, unsigned int);
 typedef void (*snd_pcm_info_set_stream_proc)(snd_pcm_info_t *, snd_pcm_stream_t);
 typedef const char *(*snd_pcm_info_get_name_proc)(const snd_pcm_info_t *);
 typedef const char *(*snd_asoundlib_version_proc)(void);
+typedef int (*snd_config_update_proc)(void);
 
 typedef int (*snd_card_get_name_proc)(int, char **);
 typedef int (*snd_card_get_longname_proc)(int, char **);
