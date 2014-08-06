@@ -549,6 +549,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
       signal->waiting = AAX_TRUE;
       do {
          rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
+         if (rv == ETIMEDOUT) break;
       }
       while (signal->waiting == AAX_TRUE);
 
