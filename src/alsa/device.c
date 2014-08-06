@@ -266,6 +266,7 @@ static char *_aaxALSADriverGetDefaultInterface(const void *, int);
 static int _alsa_pcm_open(_driver_t*, int);
 static int _alsa_pcm_close(_driver_t*);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
+static void _alsa_error_handler_none(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
 static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
@@ -405,6 +406,7 @@ _aaxALSADriverDetect(int mode)
       {
          if (get_devices_avail(mode) != 0)
          {
+            psnd_lib_error_set_handler(_alsa_error_handler_none);
             psnd_config_update();
             rv = AAX_TRUE;
          }
@@ -582,8 +584,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    if (handle)
    {
       int err, m;
-
-//    psnd_lib_error_set_handler(_alsa_error_handler);
 
       m = (handle->mode > 0) ? 1 : 0;
       handle->devnum = detect_devnum(handle->name, m);
@@ -1783,6 +1783,12 @@ _alsa_pcm_close(_driver_t *handle)
       err = psnd_pcm_close(handle->pcm);
    }
    return err;
+}
+
+static void
+_alsa_error_handler_none(const char *file, int line, const char *function,
+                         int err, const char *fmt, ...)
+{
 }
 
 static void
