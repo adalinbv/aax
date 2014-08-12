@@ -52,6 +52,7 @@
 #define BACKEND_NAME_OLD	"File"
 #define BACKEND_NAME		"Audio Files"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
+#define MAX_ID_STRLEN		64
 
 #define PERIOD_SIZE		4096
 #define IOBUF_SIZE		4*PERIOD_SIZE
@@ -76,7 +77,7 @@ static _aaxDriverRender _aaxFileDriverRender;
 static _aaxDriverState _aaxFileDriverState;
 static _aaxDriverParam _aaxFileDriverParam;
 
-static char _file_default_renderer[100] = DEFAULT_RENDERER;
+static char _file_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxFileDriverBackend =
 {
    AAX_VERSION_STR,
@@ -278,7 +279,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
          handle->name = s;
 
          s = (char*)_aaxGetSIMDSupportString();
-         snprintf(_file_default_renderer, 99, "%s %s", DEFAULT_RENDERER, s);
+         snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, s);
 
          if (xid)
          {
@@ -490,6 +491,13 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             {
                handle->thread.started = AAX_TRUE;
                handle->render = _aaxSoftwareInitRenderer(handle->latency);
+               if (handle->render)
+               {
+                  const char *rstr = handle->render->info(handle->render->id);
+                  char *s = (char*)_aaxGetSIMDSupportString();
+                  snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s %s %s",
+                                                   DEFAULT_RENDERER, s, rstr);
+               }
                rv = AAX_TRUE;
             }
             else {

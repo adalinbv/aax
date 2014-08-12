@@ -32,9 +32,9 @@
 
 static _renderer_detect_fn _aaxCPUDetect;
 static _renderer_new_handle_fn _aaxCPUSetup;
+static _render_get_info_fn _aaxCPUInfo;
 static _renderer_open_fn _aaxCPUOpen;
 static _renderer_close_fn _aaxCPUClose;
-
 static _render_process_fn _aaxCPUProcess;
 
 
@@ -46,6 +46,7 @@ _aaxDetectCPURenderer()
    {
       rv->detect = _aaxCPUDetect;
       rv->setup = _aaxCPUSetup;
+      rv->info = _aaxCPUInfo;
 
       rv->open = _aaxCPUOpen;
       rv->close = _aaxCPUClose;
@@ -79,6 +80,12 @@ static void*
 _aaxCPUSetup(int dt)
 {
    return NULL;
+}
+
+static char*
+_aaxCPUInfo(void *id)
+{
+   return "";
 }
 
 static int

@@ -63,7 +63,7 @@
 #endif
 #define PLAYBACK_PERIODS	2
 #define CAPTURE_PERIODS		4
-#define MAX_ID_STRLEN		32
+#define MAX_ID_STRLEN		64
 #define DEFAULT_RENDERER	"WASAPI"
 #define DEFAULT_DEVNAME		NULL
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
@@ -89,7 +89,7 @@ static _aaxDriverState _aaxWASAPIDriverState;
 static _aaxDriverParam _aaxWASAPIDriverParam;
 static _aaxDriverLog _aaxWASAPIDriverLog;
 
-static char _wasapi_default_renderer[100] = DEFAULT_RENDERER;
+static char _wasapi_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
 static const EDataFlow _mode[] = { eCapture, eRender };
 
 const _aaxDriverBackend _aaxWASAPIDriverBackend =
@@ -2739,6 +2739,14 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
    }
 
    handle->render = _aaxSoftwareInitRenderer(handle->latency);
+   if (handle->render)
+   {
+      const char *rstr = handle->render->info(handle->render->id);
+      const char *hwstr = _aaxGetSIMDSupportString();
+
+      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s %s %s",
+                                         DEFAULT_RENDERER, hwstr, rstr);
+   }
 
    if (co_init) {
       pCoUninitialize();

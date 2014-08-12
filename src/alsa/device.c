@@ -44,7 +44,7 @@
 
 #define TIMER_BASED		AAX_FALSE
 #define ENABLE_TIMING		AAX_FALSE
-#define MAX_ID_STRLEN		32
+#define MAX_ID_STRLEN		64
 
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_IFNUM		0
@@ -965,6 +965,13 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
           handle->latency = (float)no_frames/(float)rate;
       }
       handle->render = _aaxSoftwareInitRenderer(handle->latency);
+      if (handle->render)
+      {
+         const char *rstr = handle->render->info(handle->render->id);
+         const char *hwstr = _aaxGetSIMDSupportString();
+         snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s %s",
+                       DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr, rstr);
+      }
 
       handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
       handle->can_pause &= psnd_pcm_hw_params_can_resume(hwparams);

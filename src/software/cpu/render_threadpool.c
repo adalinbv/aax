@@ -45,6 +45,7 @@
 
 static _renderer_detect_fn _aaxWorkerDetect;
 static _renderer_new_handle_fn _aaxWorkerSetup;
+static _render_get_info_fn _aaxWorkerInfo;
 static _renderer_open_fn _aaxWorkerOpen;
 static _renderer_close_fn _aaxWorkerClose;
 static _render_process_fn _aaxWorkerProcess;
@@ -63,6 +64,7 @@ _aaxDetectPoolRenderer()
       {
          rv->detect = _aaxWorkerDetect;
          rv->setup = _aaxWorkerSetup;
+         rv->info = _aaxWorkerInfo;
 
          rv->open = _aaxWorkerOpen;
          rv->close = _aaxWorkerClose;
@@ -184,6 +186,19 @@ _aaxWorkerSetup(int dt)
    }
 
    return (void*)handle;
+}
+
+static char*
+_aaxWorkerInfo(void *id)
+{
+   _render_t *handle = id;
+   static char info[32] = "";
+
+   if (handle && strlen(info) == 0) {
+      snprintf(info, 32, "using %i cores", handle->no_workers);
+   }
+
+   return info;
 }
 
 /*

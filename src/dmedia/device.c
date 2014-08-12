@@ -221,7 +221,7 @@ _aaxDMediaDriverDetect(int mode)
       char *error;
 
       snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s",
-               DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr);
+                               DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr);
 
       _aaxGetSymError(0);
 
@@ -634,6 +634,14 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       }
 
       handle->render = _aaxSoftwareInitRenderer(handle->port[0].latency);
+      if (handle->render)
+      {
+         const char *rstr = handle->render->info(handle->render->id);
+         const char *hwstr = _aaxGetSIMDSupportString();
+
+         snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s %s",
+                               DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr, rstr);
+      }
    }
 
    palSetSampFmt(handle->port[0].config, AL_SAMPFMT_TWOSCOMP);

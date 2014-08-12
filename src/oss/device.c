@@ -63,6 +63,7 @@
 #define DEFAULT_MIXER		"/dev/mixer0"
 #define DEFAULT_RENDERER	"OSS"
 #define OSS_VERSION_4		0x040002
+#define MAX_ID_STRLEN		64
 
 #define _AAX_DRVLOG(a)         _aaxOSSDriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
@@ -82,7 +83,7 @@ static _aaxDriverState _aaxOSSDriverState;
 static _aaxDriverParam _aaxOSSDriverParam;
 static _aaxDriverLog _aaxOSSDriverLog;
 
-static char _oss_default_renderer[100] = DEFAULT_RENDERER;
+static char _oss_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
 {
    AAX_VERSION_STR,
@@ -328,7 +329,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_oss_default_renderer, 99,"%s %x.%x.%x %s %s",
+         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
                    (version & 0xFF), os_name, hwstr);
 
@@ -496,6 +497,23 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
       }
       err = 0;
       handle->render = _aaxSoftwareInitRenderer(handle->latency);
+      if (handle->render)
+      {
+         const char *rstr = handle->render->info(handle->render->id);
+         const char *hwstr = _aaxGetSIMDSupportString();
+         int version = get_oss_version();
+         char *os_name = "";
+#if HAVE_SYS_UTSNAME_H
+         struct utsname utsname;
+
+         uname(&utsname);
+         os_name = utsname.sysname;
+#endif
+         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s %s",
+                   DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
+                   (version & 0xFF), os_name, hwstr, rstr);
+
+      }
    }
 
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
