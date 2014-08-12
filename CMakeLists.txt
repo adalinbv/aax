@@ -425,7 +425,7 @@ SET( AEONWAVE_OBJS
      src/software/rbuf_mixmulti.c
      src/software/rbuf2d_mixsingle.c
      src/software/rbuf3d_mixsingle.c
-     src/software/rendertype.c
+     src/software/renderer.c
      src/software/cpu/render_monolithic.c
      src/software/cpu/render_threadpool.c
      src/software/cpu/waveforms.c
