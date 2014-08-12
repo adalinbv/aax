@@ -13,7 +13,7 @@
 # include "config.h"
 #endif
 
-#include "rendertype.h"
+#include "renderer.h"
 
 _aaxRenderer*
 _aaxSoftwareInitRenderer(float dt)

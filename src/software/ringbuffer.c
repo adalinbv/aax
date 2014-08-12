@@ -37,7 +37,7 @@
 
 #include "audio.h"
 #include "rbuf_int.h"
-#include "rendertype.h"
+#include "renderer.h"
 
 #ifndef _DEBUG
 # define _DEBUG		0

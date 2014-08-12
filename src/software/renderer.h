@@ -19,45 +19,38 @@ extern "C" {
 #include "ringbuffer.h"
 #include "arch.h"
 
-#define _AAX_RENDER_BACKENDS	1
-
 /* forward declaration */
-struct _aaxRenderer_t;
 struct _aaxRendererData_t;
-typedef int (_aaxRendererCallback)(struct _aaxRendererData_t*);
+typedef int (_aaxRendererCallback)(_aaxRingBuffer*, struct _aaxRendererData_t*, _intBufferData*, unsigned int);
 
 typedef struct _aaxRendererData_t
 {
-   _aaxRendererCallback *preprocess;
-   _aaxRendererCallback *postprocess;
+   _aaxRendererCallback *mix_emitter;
 
    _aaxRingBuffer *drb;
-   _aaxRingBuffer *srb;
+   const _aaxMixerInfo *info;
+   _aaxDelayed3dProps *fdp3d_m;
    _aax2dProps *fp2d;
-   _aax2dProps *ep2d;
+   _intBuffers *e2d;
+   _intBuffers *e3d;
+   const _aaxDriverBackend *be;
+   void *be_handle;
 
-   _intBuffers *he;
-   unsigned int pos;
-
-   unsigned int ctr;
-   unsigned char streaming;
-   unsigned char looping;
-   unsigned char track;
-   unsigned char stage;
-
-   unsigned char next;
-
+   float ssv;
+   float sdf;
    float dt;
 
 } _aaxRendererData;
 
+
+/* forward declaration */
+struct _aaxRenderer_t;
 
 typedef int (_renderer_detect_fn)();
 typedef void* (_renderer_new_handle_fn)(int);
 typedef void* (_renderer_open_fn)(void*);
 typedef int (_renderer_close_fn)(void*);
 typedef int (_render_process_fn)(struct _aaxRenderer_t *, _aaxRendererData*);
-typedef int (_render_finish_fn)(struct _aaxRenderer_t *);
 
 typedef struct _aaxRenderer_t
 {
@@ -69,9 +62,7 @@ typedef struct _aaxRenderer_t
 
    _renderer_open_fn *open;
    _renderer_close_fn *close;
-
    _render_process_fn *process;
-   _render_finish_fn *finish;
 
 } _aaxRenderer;
 

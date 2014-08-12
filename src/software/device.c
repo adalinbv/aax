@@ -29,7 +29,7 @@
 
 #include "arch.h"
 #include "audio.h"
-#include "rendertype.h"
+#include "renderer.h"
 
 #define NONE_RENDERER		"None"
 #define DEFAULT_RENDERER	AAX_NAME_STR""

@@ -44,7 +44,7 @@
 #include <api.h>
 #include <arch.h>
 
-#include <software/rendertype.h>
+#include <software/renderer.h>
 #include "file.h"
 #include "filetype.h"
 #include "audio.h"

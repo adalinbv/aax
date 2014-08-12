@@ -35,7 +35,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
-#include <software/rendertype.h>
+#include <software/renderer.h>
 #include "audio.h"
 #include "device.h"
 

@@ -27,7 +27,7 @@
 
 #include <api.h>
 
-#include "software/rendertype.h"
+#include "software/renderer.h"
 
 
 static _renderer_detect_fn _aaxCPUDetect;
@@ -36,7 +36,6 @@ static _renderer_open_fn _aaxCPUOpen;
 static _renderer_close_fn _aaxCPUClose;
 
 static _render_process_fn _aaxCPUProcess;
-static _render_finish_fn _aaxCPUFinish;
 
 
 _aaxRenderer*
@@ -47,11 +46,10 @@ _aaxDetectCPURenderer()
    {
       rv->detect = _aaxCPUDetect;
       rv->setup = _aaxCPUSetup;
+
       rv->open = _aaxCPUOpen;
       rv->close = _aaxCPUClose;
-
       rv->process = _aaxCPUProcess;
-      rv->finish = _aaxCPUFinish;
 
    }
    return rv;
@@ -86,36 +84,46 @@ _aaxCPUSetup(int dt)
 static int
 _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
 {
+   _intBuffers *he = data->e3d;
+   unsigned int stage;
    int rv = AAX_TRUE;
 
-   data->preprocess(data);
+   stage = 2;
    do
    {
-      _aax2dProps *ep2d = data->ep2d;
+      unsigned int no_emitters;
 
-      if (data->stage == 2)
+      no_emitters = _intBufGetNum(he, _AAX_EMITTER);
+      if (no_emitters)
       {
-         data->next = AAX_FALSE;
-         if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
-            data->next = data->drb->mix3d(data->drb, data->srb, ep2d,
-                                          data->fp2d, data->track, data->ctr,
-                                          data->streaming);
+         unsigned int pos = 0;
+         do
+         {
+            _intBufferData *dptr_src;
+
+            if ((dptr_src = _intBufGet(he, _AAX_EMITTER, pos++)) != NULL)
+            {
+               // _aaxProcessEmitter calls
+               // _intBufReleaseData(dptr_src, _AAX_EMITTER);
+               data->mix_emitter(data->drb, data, dptr_src, stage);
+            }
          }
+         while (--no_emitters);
+
+         rv = AAX_TRUE;
       }
-      else
-      {
-         data->next = data->drb->mix2d(data->drb, data->srb, ep2d, data->fp2d,
-                                       data->ctr, data->streaming);
+      _intBufReleaseNum(he, _AAX_EMITTER);
+
+      /*
+       * stage == 2 is 3d positional audio
+       * stage == 1 is stereo audio
+       */
+      if (stage == 2) {
+         he = data->e2d;	/* switch to stereo */
       }
-      data->postprocess(data);
    }
-   while (data->next);
+   while (--stage); /* process 3d positional and stereo emitters */
 
    return rv;
 }
 
-static int
-_aaxCPUFinish(struct _aaxRenderer_t *renderer)
-{
-   return AAX_TRUE;
-}

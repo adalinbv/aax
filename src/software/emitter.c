@@ -19,11 +19,8 @@
 #include <api.h>
 
 #include "ringbuffer.h"
-#include "rendertype.h"
+#include "renderer.h"
 #include "audio.h"
-
-static _aaxRendererCallback _aaxEmittersPreProcess;
-static _aaxRendererCallback _aaxEmittersPostProcess;
 
 /**
  * sv_m -> modified sensor velocity vector
@@ -31,6 +28,8 @@ static _aaxRendererCallback _aaxEmittersPostProcess;
  * sdf -> sensor doppler factor
  * pos
  */
+_aaxRendererCallback _aaxProcessEmitter;
+
 
 #if 1
 /*
@@ -45,15 +44,57 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                     const _aaxDriverBackend* be, void *be_handle)
 {
    _aaxRenderer *render = be->render(be_handle);
+   _aaxRendererData data;
+   char rv = AAX_TRUE;
+
+   data.mix_emitter = _aaxProcessEmitter;
+   data.drb = drb;
+   data.info = info;
+   data.fdp3d_m = fdp3d_m;
+   data.fp2d = fp2d;
+   data.e2d = e2d;
+   data.e3d = e3d;
+   data.be = be;
+   data.be_handle = be_handle;
+
+   data.ssv = ssv;
+   data.sdf = sdf;
+   data.dt = drb->get_paramf(drb, RB_DURATION_SEC);
+
+   render->process(render, &data);
+
+   return rv;
+}
+
+#else
+char
+_aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
+                    float ssv, float sdf, _aax2dProps *fp2d,
+                    _aaxDelayed3dProps *fdp3d_m,
+                    _intBuffers *e2d, _intBuffers *e3d,
+                    const _aaxDriverBackend* be, void *be_handle)
+{
+   _aaxRendererData data;
    unsigned int num, stage;
    _intBuffers *he = e3d;
    char rv = AAX_FALSE;
-   float dt;
+
+   data.mix_emitter = _aaxProcessEmitter;
+   data.drb = drb;
+   data.info = info;
+   data.fdp3d_m = fdp3d_m;
+   data.fp2d = fp2d;
+   data.e2d = e2d;
+   data.e3d = e3d;
+   data.be = be;
+   data.be_handle = be_handle;
+
+   data.ssv = ssv;
+   data.sdf = sdf;
+   data.dt = drb->get_paramf(drb, RB_DURATION_SEC);
 
    num = 0;
    stage = 2;
-   dt = drb->get_paramf(drb, RB_DURATION_SEC);
-
    do
    {
       unsigned int i, no_emitters;
@@ -64,98 +105,18 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
       for (i=0; num && i<no_emitters; i++)
       {
          _intBufferData *dptr_src;
-         _emitter_t *emitter;
-         _aaxEmitter *src;
 
          dptr_src = _intBufGet(he, _AAX_EMITTER, i);
          if (!dptr_src) continue;
 
          num--;
-         drb->set_state(drb, RB_REWINDED);
 
-         /* process the emitter */
-         emitter = _intBufGetDataPtr(dptr_src);
-         src = emitter->source;
-         if (_IS_PLAYING(src->props3d))
-         {
-            _intBufferData *dptr_sbuf;
-            unsigned int nbuf;
-
-            nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-            assert(nbuf > 0);
-
-            dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
-                                                 src->buffer_pos);
-            if (dptr_sbuf)
-            {
-               _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
-               _aaxRingBuffer *srb = embuf->ringbuffer;
-               int ctr, looping, track;
-               _aaxRendererData data;
-               _aax2dProps *ep2d;
-
-               ep2d = src->props2d;
-               looping = emitter->looping;
-               track = emitter->track;
-
-               ctr = --src->update_ctr;
-               if ((stage == 2) && (ctr == 0))
-               {
-                  src->state3d |= fdp3d_m->state3d;
-                  be->prepare3d(src, info, ssv, sdf, fp2d->speaker, fdp3d_m);
-                  src->update_ctr = src->update_rate;
-               }
-
-               if (_IS_STOPPED(src->props3d)) {
-                  srb->set_state(srb, RB_STOPPED);
-               }
-               else if (srb->get_parami(srb, RB_IS_PLAYING) == 0)
-               {
-                  if (nbuf > 1) {
-                     srb->set_state(srb, RB_STARTED_STREAMING);
-                  } else {
-                     srb->set_state(srb, RB_STARTED);
-                  }
-               }
-
-               src->props2d->curr_pos_sec = src->curr_pos_sec;
-               src->curr_pos_sec += dt;
-
-               /*
-                * _aaxEmittersPreProcesss will lock them again
-                * but now in it's own thread.
-                */
-               _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
-               _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-               _intBufReleaseData(dptr_src, _AAX_EMITTER);
-
-               /* Add the next emitter to the rendering queue. */
-               data.preprocess = &_aaxEmittersPreProcess;
-               data.postprocess = &_aaxEmittersPostProcess;
-               data.he = he;
-               data.pos = i;
-               data.drb = drb;
-               data.srb = srb;
-               data.fp2d = fp2d;
-               data.ep2d = ep2d;
-               data.streaming = (nbuf > 1) ? AAX_TRUE : AAX_FALSE;
-               data.looping = looping;
-               data.track = track;
-               data.ctr = ctr;
-               data.stage = stage;
-               data.dt = dt;
-
-               render->process(render, &data);
-               rv = AAX_TRUE;
-            }
-         }
-         else	// _IS_PLAYING(src->props3d)
-         {
-            _intBufReleaseData(dptr_src, _AAX_EMITTER);
-         }
-      }	// for (i=0; i<no_emitters; i++)
+         // _aaxProcessEmitter calls
+         // _intBufReleaseData(dptr_src, _AAX_EMITTER);
+         rv = data.mix_emitter(&data, dptr_src, stage);
+      }
       _intBufReleaseNum(he, _AAX_EMITTER);
-      
+
       /*
        * stage == 2 is 3d positional audio
        * stage == 1 is stereo audio
@@ -166,186 +127,141 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    }
    while (--stage); /* process 3d positional and stereo emitters */
 
-   render->finish(render);
-// drb->set_state(drb, RB_STARTED);
-
    return rv;
 }
+#endif
 
-#else
-/* Non-threaded emitter rendering code: DEFAULT */
-char
-_aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aax2dProps *fp2d,
-                    _aaxDelayed3dProps *fdp3d_m,
-                    _intBuffers *e2d, _intBuffers *e3d,
-                    const _aaxDriverBackend* be, void *be_handle)
+int
+_aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *dptr_src, unsigned int stage)
 {
-   unsigned int num, stage;
-   _intBuffers *he = e3d;
-   char rv = AAX_FALSE;
-   float dt;
+   _emitter_t *emitter;
+   _aaxEmitter *src;
+   int rv = AAX_FALSE;
 
-   num = 0;
-   stage = 2;
-   dt = drb->get_paramf(drb, RB_DURATION_SEC);
-   do
+   drb->set_state(drb, RB_REWINDED);
+
+   emitter = _intBufGetDataPtr(dptr_src);
+   src = emitter->source;
+   if (_IS_PLAYING(src->props3d))
    {
-      unsigned int i, no_emitters;
+      _intBufferData *dptr_sbuf;
+      unsigned int nbuf;
+      int streaming;
 
-      no_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
-      num = _intBufGetNumNoLock(he, _AAX_EMITTER);
+      rv = AAX_TRUE;
 
-      for (i=0; num && i<no_emitters; i++)
+      nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
+      assert(nbuf > 0);
+
+      streaming = (nbuf > 1);
+      dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
+                                           src->buffer_pos);
+      if (dptr_sbuf)
       {
-         _intBufferData *dptr_src;
-         _emitter_t *emitter;
-         _aaxEmitter *src;
+         _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
+         _aaxRingBuffer *srb = embuf->ringbuffer;
+         unsigned int res = 0;
+         int ctr;
 
-         dptr_src = _intBufGet(he, _AAX_EMITTER, i);
-         if (!dptr_src) continue;
-
-         num--;
-         drb->set_paramf(drb, RB_OFFSET_SEC, 0.0f);
-
-         emitter = _intBufGetDataPtr(dptr_src);
-         src = emitter->source;
-         if (_IS_PLAYING(src->props3d))
+         ctr = --src->update_ctr;
+         if ((stage == 2) && (ctr == 0))
          {
-            _intBufferData *dptr_sbuf;
-            unsigned int nbuf;
-            int streaming;
+            src->state3d |= data->fdp3d_m->state3d;
+            data->be->prepare3d(src, data->info, data->ssv, data->sdf,
+                                data->fp2d->speaker, data->fdp3d_m);
+            src->update_ctr = src->update_rate;
+         }
 
-            rv = AAX_TRUE;
+         do
+         {
+            _aax2dProps *ep2d = src->props2d;
 
-            nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-            assert(nbuf > 0);
-
-            streaming = (nbuf > 1);
-            dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
-                                                 src->buffer_pos);
-            if (dptr_sbuf)
+            if (_IS_STOPPED(src->props3d)) {
+               srb->set_state(srb, RB_STOPPED);
+            }
+            else if (srb->get_parami(srb, RB_IS_PLAYING) == 0)
             {
-               _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
-               _aaxRingBuffer *srb = embuf->ringbuffer;
-               unsigned int res = 0;
-
-               if ((stage == 2) && (--src->update_ctr == 0))
-               {
-                  src->state3d |= fdp3d_m->state3d;
-                  be->prepare3d(src, info, ssv, sdf, fp2d->speaker, fdp3d_m);
+               if (streaming) {
+                  srb->set_state(srb, RB_STARTED_STREAMING);
+               } else {
+                  srb->set_state(srb, RB_STARTED);
                }
+            }
 
-               do
+            ep2d->curr_pos_sec = src->curr_pos_sec;
+            src->curr_pos_sec += data->dt;
+             
+            /* 3d mixing */
+            if (stage == 2)
+            {
+               assert(_IS_POSITIONAL(src->props3d));
+
+               res = AAX_FALSE;
+               if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
                {
-                  _aax2dProps *ep2d = src->props2d;
+                  res = drb->mix3d(drb, srb, ep2d, data->fp2d, emitter->track,
+                                   ctr, nbuf);
+               }
+            }
+            else
+            {
+               assert(!_IS_POSITIONAL(src->props3d));
+               res = drb->mix2d(drb, srb, ep2d, data->fp2d, ctr, nbuf);
+            }
 
-                  if (_IS_STOPPED(src->props3d)) {
-                     srb->set_state(srb, RB_STOPPED);
-                  }
-                  else if (srb->get_parami(srb, RB_IS_PLAYING) == 0)
+            /*
+             * The current buffer of the source has finished playing.
+             * Decide what to do next.
+             */
+            if (res)
+            {
+               if (streaming)
+               {
+                  /* is there another buffer ready to play? */
+                  if (++src->buffer_pos == nbuf)
                   {
-                     if (streaming) {
-                        srb->set_state(srb, RB_STARTED_STREAMING);
-                     } else {
-                        srb->set_state(srb, RB_STARTED);
+                     /*
+                      * The last buffer was processed, return to the
+                      * first buffer or stop? 
+                      */
+                     if TEST_FOR_TRUE(emitter->looping) {
+                        src->buffer_pos = 0;
                      }
-                  }
-
-                  ep2d->curr_pos_sec = src->curr_pos_sec;
-                  src->curr_pos_sec += dt;
-                   
-                  /* 3d mixing */
-                  if (stage == 2)
-                  {
-                     assert(_IS_POSITIONAL(src->props3d));
-
-                     res = AAX_FALSE;
-                     if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
+                     else
                      {
-                        res = drb->mix3d(drb, srb, ep2d, fp2d, emitter->track,
-                                         src->update_ctr, nbuf);
-                     }
-                  }
-                  else
-                  {
-                     assert(!_IS_POSITIONAL(src->props3d));
-                     res = drb->mix2d(drb, srb, ep2d, fp2d, src->update_ctr,
-                                      nbuf);
-                  }
-
-                  /*
-                   * The current buffer of the source has finished playing.
-                   * Decide what to do next.
-                   */
-                  if (res)
-                  {
-                     if (streaming)
-                     {
-                        /* is there another buffer ready to play? */
-                        if (++src->buffer_pos == nbuf)
-                        {
-                           /*
-                            * The last buffer was processed, return to the
-                            * first buffer or stop? 
-                            */
-                           if TEST_FOR_TRUE(emitter->looping) {
-                              src->buffer_pos = 0;
-                           }
-                           else
-                           {
-                              _SET_STOPPED(src->props3d);
-                              _SET_PROCESSED(src->props3d);
-                              break;
-                           }
-                        }
-
-                        res &= drb->get_parami(drb, RB_IS_PLAYING);
-                        if (res)
-                        {
-                           _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
-                           dptr_sbuf = _intBufGet(src->buffers,
-                                                  _AAX_EMITTER_BUFFER,
-                                                  src->buffer_pos);
-                           embuf = _intBufGetDataPtr(dptr_sbuf);
-                           srb = embuf->ringbuffer;
-                        }
-                     }
-                     else /* !streaming */
-                     {
+                        _SET_STOPPED(src->props3d);
                         _SET_PROCESSED(src->props3d);
                         break;
                      }
                   }
-               }
-               while (res);
-               _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
 
-               if (!src->update_ctr) {
-                  src->update_ctr = src->update_rate;
+                  res &= drb->get_parami(drb, RB_IS_PLAYING);
+                  if (res)
+                  {
+                     _intBufReleaseData(dptr_sbuf,_AAX_EMITTER_BUFFER);
+                     dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
+                                            src->buffer_pos);
+                     embuf = _intBufGetDataPtr(dptr_sbuf);
+                     srb = embuf->ringbuffer;
+                  }
                }
-
+               else /* !streaming */
+               {
+                  _SET_PROCESSED(src->props3d);
+                  break;
+               }
             }
-            _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-            drb->set_state(drb, RB_STARTED);
          }
-         _intBufReleaseData(dptr_src, _AAX_EMITTER);
+         while (res);
+         _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
       }
-      _intBufReleaseNum(he, _AAX_EMITTER);
-
-      /*
-       * stage == 2 is 3d positional audio
-       * stage == 1 is stereo audio
-       */
-      if (stage == 2) {
-         he = e2d;	/* switch to stereo */
-      }
+      _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
+      drb->set_state(drb, RB_STARTED);
    }
-   while (--stage); /* process 3d positional and stereo emitters */
+   _intBufReleaseData(dptr_src, _AAX_EMITTER);
 
    return rv;
 }
-#endif
 
 /**
  * ssv:     sensor velocity vector
@@ -590,110 +506,5 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
       ep2d->final.gain = _MINMAX(gain, min, max);
    }
-}
-
-/* -------------------------------------------------------------------------- */
-
-static int
-_aaxEmittersPreProcess(struct _aaxRendererData_t *data)
-{
-   return AAX_TRUE;
-}
-
-static int
-_aaxEmittersPostProcess(struct _aaxRendererData_t *data)
-{
-   _intBufferData *dptr_src;
-   _emitter_t *emitter;
-   _aaxEmitter *src;
-   int res = data->next;
-   int rv = AAX_FALSE;
-   int nbuf;
-
-   dptr_src = _intBufGet(data->he, _AAX_EMITTER, data->pos);
-   if (!dptr_src) return rv;
-
-   emitter = _intBufGetDataPtr(dptr_src);
-   src = emitter->source;
-
-   nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-   data->streaming = (nbuf > 1) ? AAX_TRUE : AAX_FALSE;
-   assert(nbuf > 0);
-
-   /*
-    * the data associated with the thread is returned but 
-    * if there was no previous trun this frame src == NULL
-    */
-   if (res)
-   {
-      if (data->streaming)
-      {
-         /* is there another buffer ready to play? */
-         if (++src->buffer_pos == nbuf)
-         {
-            /*
-             * The last buffer was processed, return to the
-             * first buffer or stop? 
-             */
-            if TEST_FOR_TRUE(data->looping) {
-               src->buffer_pos = 0;
-            }
-            else
-            {
-               _SET_STOPPED(src->props3d);
-               _SET_PROCESSED(src->props3d);
-               res = AAX_FALSE;
-            }
-         }
-
-         res &= data->drb->get_parami(data->drb, RB_IS_PLAYING);
-         if (res) // get the next buffer from the queue
-         {
-            _intBufferData *dptr_sbuf;
-            _embuffer_t *embuf;
-
-            dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
-                                   src->buffer_pos);
-            assert(dptr_sbuf);
-
-            embuf = _intBufGetDataPtr(dptr_sbuf);
-            data->srb = embuf->ringbuffer;
-            _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
-         }
-      }
-      else /* !streaming */
-      {
-         _SET_PROCESSED(src->props3d);
-         res = AAX_FALSE;
-      }
-
-      data->next = res;
-   }
-
-   if (res)
-   {
-       if (_IS_STOPPED(src->props3d)) {
-         data->srb->set_state(data->srb, RB_STOPPED);
-      }
-      else if (data->srb->get_parami(data->srb, RB_IS_PLAYING) == 0)
-      {
-         if (data->streaming) {
-            data->srb->set_state(data->srb, RB_STARTED_STREAMING);
-         } else {
-            data->srb->set_state(data->srb, RB_STARTED);
-         }
-      }
-
-      src->props2d->curr_pos_sec = src->curr_pos_sec;
-      src->curr_pos_sec += data->dt;
-   }
-   else {
-      data->drb->set_state(data->drb, RB_STARTED);
-   }
-
-   _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
-   _intBufReleaseData(dptr_src, _AAX_EMITTER);
-
-   return rv;
 }
 
