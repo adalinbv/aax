@@ -601,6 +601,58 @@ _aaxSignalTrigger(_aaxSignal *signal)
 }
 
 
+_aaxSemaphore *
+_aaxSemaphoreCreate(unsigned initial)
+{
+   sem_t *rv = NULL;
+
+   if (initial < SEM_VALUE_MAX)
+   {
+      rv = malloc(sizeof(sem_t));
+      if (rv) {
+         sem_init(rv, 0, initial);
+      }
+   }
+   return rv;
+}
+
+int
+_aaxSemaphoreDestroy(_aaxSemaphore *sem)
+{
+   int rv = sem_destroy(sem) ? AAX_FALSE : AAX_TRUE;
+   if (rv) {
+      free(sem);
+   }
+   return rv;
+}
+
+int
+_aaxSemaphoreWait(_aaxSemaphore *sem)
+{
+   return sem_wait(sem) ? AAX_FALSE : AAX_TRUE;
+}
+
+int
+_aaxSemaphoreRelease(_aaxSemaphore *sem)
+{
+   return sem_post(sem) ? AAX_FALSE : AAX_TRUE;
+}
+
+
+int
+_aaxAtomicIntAdd(int *ptr, int val)
+{
+   return __sync_add_and_fetch(ptr, val);
+}
+
+int
+_aaxAtomicIntSub(int *ptr, int val)
+{
+   return __sync_sub_and_fetch(ptr, val);
+}
+
+
+
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
 
 #include <base/dlsym.h> 

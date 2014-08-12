@@ -45,9 +45,11 @@ int _aaxProcessSetPriority(int);
 
 #if HAVE_PTHREAD_H
 # include <pthread.h>			/* UNIX */
+# include <semaphore.h>
 
  typedef pthread_t	_aaxThread;
  typedef pthread_cond_t	_aaxCondition;
+ typedef sem_t		_aaxSemaphore;
 
  typedef struct _aaxMutex
  { 
@@ -87,6 +89,7 @@ int _aaxProcessSetPriority(int);
  } _aaxThread;
 
  typedef HANDLE _aaxCondition;
+ typedef HANDLE _aaxSemaphore;
 
  typedef struct _aaxMutex
  {
@@ -105,6 +108,7 @@ int _aaxProcessSetPriority(int);
 #endif
 
 
+/* -- Threads ---------------------------------------------------------- */
 void *_aaxThreadCreate();
 int _aaxThreadSetAffinity(void *, int);
 int _aaxThreadSetPriority(void *, int);
@@ -115,6 +119,7 @@ int _aaxThreadJoin(void *);
 int _aaxThreadSwitch();
 
 
+/* -- Mutexes ---------------------------------------------------------- */
 #ifndef NDEBUG
 #define _aaxMutexCreate(a) _aaxMutexCreateDebug(a, __FILE__, __FUNCTION__)
 #define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
@@ -134,6 +139,7 @@ int _aaxMutexLockDebug(void *, char *, int);
 void _aaxMutexDestroy(void *);
 
 
+/* -- Signals ---------------------------------------------------------- */
 _aaxSignal *_aaxSignalCreate();
 void _aaxSignalInit(_aaxSignal *);
 void _aaxSignalDestroy(_aaxSignal*);
@@ -143,6 +149,17 @@ int _aaxSignalWait(_aaxSignal*);
 int _aaxSignalWaitTimed(_aaxSignal*, float);
 int _aaxSignalLock(_aaxSignal*);
 int _aaxSignalUnLock(_aaxSignal*);
+
+/* -- Semaphores ------------------------------------------------------- */
+_aaxSemaphore *_aaxSemaphoreCreate(unsigned);
+int _aaxSemaphoreDestroy(_aaxSemaphore*);
+int _aaxSemaphoreWait(_aaxSemaphore*);
+int _aaxSemaphoreRelease(_aaxSemaphore*);
+
+/* -- Atomic integer operations ---------------------------------------- */
+int _aaxAtomicIntAdd(int*, int);
+int _aaxAtomicIntSub(int*, int);
+
 
 #if defined(__cplusplus)
 }  /* extern "C" */
