@@ -74,8 +74,8 @@ _aaxDetectPoolRenderer()
 
 /* -------------------------------------------------------------------------- */
 
-#define _AAX_MAX_NO_WORKERS		4
-#define _AAX_MIN_EMITTERS_PER_WORKER	1
+#define _AAX_MAX_NO_WORKERS		8
+#define _AAX_MIN_EMITTERS_PER_WORKER	32
 
 typedef struct
 {
