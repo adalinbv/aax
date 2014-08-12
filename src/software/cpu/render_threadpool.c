@@ -262,11 +262,11 @@ _aaxWorkerThread(void *id)
    {
       _aaxSemaphoreWait(handle->worker_start);
       data = handle->data;
-      if (!data->drb) {
+      if (data && !data->drb) {
          _aaxSemaphoreRelease(handle->worker_ready);
       }
    }
-   while (!data->drb && TEST_FOR_TRUE(thread->started));
+   while (data && !data->drb && TEST_FOR_TRUE(thread->started));
       
    if TEST_FOR_TRUE(thread->started)
    {
