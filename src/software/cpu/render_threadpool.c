@@ -56,7 +56,7 @@ _aaxDetectPoolRenderer()
    const char *env = getenv("AAX_USE_THREADPOOL");
    _aaxRenderer* rv = NULL;
 
-   if (_aax_getbool(env) && (_aaxGetNoCores() > 1))
+   if ((!env || _aax_getbool(env)) && (_aaxGetNoCores() > 1))
    {
       rv = calloc(1, sizeof(_aaxRenderer));
       if (rv)
