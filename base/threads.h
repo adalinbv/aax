@@ -63,6 +63,11 @@ int _aaxProcessSetPriority(int);
 #endif
  } _aaxMutex;
 
+# define _aaxAtomicIntIncrement(a)	__sync_add_and_fetch(a,1)
+# define _aaxAtomicIntDecrement(a)	__sync_sub_and_fetch(a,1)
+# define _aaxAtomicIntAdd(a,b)		__sync_add_and_fetch(a,b)
+# define _aaxAtomicIntSub(a,b)		__sync_sub_and_fetch(a,b);
+
 #elif defined( WIN32 )
 # include <Windows.h>			/* WINDOWS */
 
@@ -93,17 +98,22 @@ int _aaxProcessSetPriority(int);
 
  typedef struct _aaxMutex
  {
-#ifndef NDEBUG
+# ifndef NDEBUG
    HANDLE mutex;
-#else
+# else
    CRITICAL_SECTION mutex;
    char ready;
-#endif
+# endif
  } _aaxMutex;
 
  AvSetMmThreadCharacteristicsA_proc pAvSetMmThreadCharacteristicsA;
  AvRevertMmThreadCharacteristics_proc pAvRevertMmThreadCharacteristics;
  AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
+
+# define _aaxAtomicIntIncrement(a)	InterlockedIncrement(a)
+# define _aaxAtomicIntDecrement(a)	 InterlockedDecrement(a)
+# define _aaxAtomicIntAdd(a,b)          InterlockedAdd(a,b)
+# define _aaxAtomicIntSub(a,b)          InterlockedAdd(a,-(b))
 
 #endif
 
@@ -155,11 +165,6 @@ _aaxSemaphore *_aaxSemaphoreCreate(unsigned);
 int _aaxSemaphoreDestroy(_aaxSemaphore*);
 int _aaxSemaphoreWait(_aaxSemaphore*);
 int _aaxSemaphoreRelease(_aaxSemaphore*);
-
-/* -- Atomic integer operations ---------------------------------------- */
-int _aaxAtomicIntAdd(int*, int);
-int _aaxAtomicIntSub(int*, int);
-
 
 #if defined(__cplusplus)
 }  /* extern "C" */
