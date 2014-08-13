@@ -1129,6 +1129,32 @@ _aaxSignalTrigger(_aaxSignal *signal)
    return rv;
 }
 
+inline _aaxSemaphore *
+_aaxSemaphoreCreate(unsigned initial)
+{
+   _aaxSemaphore *rv = CreateSemaphore(NULL, initial, 32765, NULL);
+   return rv;
+}
+
+inline int
+_aaxSemaphoreDestroy(_aaxSemaphore *sem)
+{
+   CloseHandle(sem);
+   return AAX_TRUE;
+}
+
+inline int
+_aaxSemaphoreWait(_aaxSemaphore *sem)
+{
+   DWORD r = WaitForSingleObject(sem, INFINITE);
+   return (r == WAIT_OBJECT_0) ? AAX_TRUE : AAX_FALSE;
+}
+
+inline int
+_aaxSemaphoreRelease(_aaxSemaphore *sem)
+{
+   return ReleaseSemaphore(sem, 1, NULL) ? AAX_TRUE : AAX_FALSE;
+}
 
 #else
 # error "threads not implemented for this platform"
