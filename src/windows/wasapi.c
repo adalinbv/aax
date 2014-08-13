@@ -319,10 +319,7 @@ _aaxWASAPIDriverDetect(int mode)
 
    if (audio)
    {
-      const char *hwstr = _aaxGetSIMDSupportString();
-
-      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s %s",
-               DEFAULT_RENDERER, hwstr);
+      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
       rv = AAX_TRUE;
    }
 
@@ -2742,10 +2739,9 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
    if (handle->render)
    {
       const char *rstr = handle->render->info(handle->render->id);
-      const char *hwstr = _aaxGetSIMDSupportString();
 
-      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s %s %s",
-                                         DEFAULT_RENDERER, hwstr, rstr);
+      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s %s",
+                                         DEFAULT_RENDERER, rstr);
    }
 
    if (co_init) {

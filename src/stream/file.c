@@ -278,8 +278,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       {
          handle->name = s;
 
-         s = (char*)_aaxGetSIMDSupportString();
-         snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, s);
+         snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
 
          if (xid)
          {
@@ -494,9 +493,8 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
                if (handle->render)
                {
                   const char *rstr = handle->render->info(handle->render->id);
-                  char *s = (char*)_aaxGetSIMDSupportString();
-                  snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s %s %s",
-                                                   DEFAULT_RENDERER, s, rstr);
+                  snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s %s",
+                                                   DEFAULT_RENDERER, rstr);
                }
                rv = AAX_TRUE;
             }

@@ -82,10 +82,10 @@ _aaxCPUSetup(int dt)
    return NULL;
 }
 
-static char*
+static const char*
 _aaxCPUInfo(void *id)
 {
-   return "";
+   return _aaxGetSIMDSupportString();
 }
 
 static int

@@ -217,11 +217,10 @@ _aaxDMediaDriverDetect(int mode)
 
    if (audio)
    {
-      const char *hwstr = _aaxGetSIMDSupportString();
       char *error;
 
-      snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s",
-                               DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr);
+      snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s",
+                               DEFAULT_RENDERER, DMEDIA_ID_STRING);
 
       _aaxGetSymError(0);
 
@@ -637,10 +636,9 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);
-         const char *hwstr = _aaxGetSIMDSupportString();
 
-         snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s %s",
-                               DEFAULT_RENDERER, DMEDIA_ID_STRING, hwstr, rstr);
+         snprintf(_dmedia_id_str, MAX_ID_STRLEN, "%s %s %s",
+                               DEFAULT_RENDERER, DMEDIA_ID_STRING, rstr);
       }
    }
 

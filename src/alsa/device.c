@@ -313,9 +313,6 @@ _aaxALSADriverDetect(int mode)
 
    if (audio)
    {
-      const char *hwstr = _aaxGetSIMDSupportString();
-
-      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, hwstr);
       _aaxGetSymError(0);
 
       TIE_FUNCTION(snd_pcm_open);					//
@@ -406,6 +403,9 @@ _aaxALSADriverDetect(int mode)
       {
          if (get_devices_avail(mode) != 0)
          {
+            snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
+                             DEFAULT_RENDERER, psnd_asoundlib_version());
+
             psnd_lib_error_set_handler(_alsa_error_handler_none);
             psnd_config_update();
             rv = AAX_TRUE;
@@ -469,10 +469,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    rdr_aax_fmt = (renderer && strstr(renderer, ": ")) ? 1 : 0;
    if (handle)
    {
-      const char *hwstr = _aaxGetSIMDSupportString();
-      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
-                             DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
-
       if (rdr_aax_fmt) {
          handle->name = _aax_strdup((char*)renderer);
       }
@@ -968,9 +964,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);
-         const char *hwstr = _aaxGetSIMDSupportString();
-         snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s %s",
-                       DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr, rstr);
+         snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
+                       DEFAULT_RENDERER, psnd_asoundlib_version(), rstr);
       }
 
       handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);

@@ -188,14 +188,16 @@ _aaxWorkerSetup(int dt)
    return (void*)handle;
 }
 
-static char*
+static const char*
 _aaxWorkerInfo(void *id)
 {
    _render_t *handle = id;
    static char info[32] = "";
 
-   if (handle && strlen(info) == 0) {
-      snprintf(info, 32, "using %i cores", handle->no_workers);
+   if (handle && strlen(info) == 0)
+   {
+      const char *hwstr = _aaxGetSIMDSupportString();
+      snprintf(info, 32, "%s using %i cores", hwstr, handle->no_workers);
    }
 
    return info;

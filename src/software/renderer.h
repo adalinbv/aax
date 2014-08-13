@@ -48,7 +48,7 @@ struct _aaxRenderer_t;
 
 typedef int (_renderer_detect_fn)();
 typedef void* (_renderer_new_handle_fn)(int);
-typedef char* (_render_get_info_fn)(void*);
+typedef const char* (_render_get_info_fn)(void*);
 typedef void* (_renderer_open_fn)(void*);
 typedef int (_renderer_close_fn)(void*);
 typedef int (_render_process_fn)(struct _aaxRenderer_t *, _aaxRendererData*);

@@ -320,7 +320,6 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
       fd = open(handle->devnode, handle->mode|handle->exclusive);
       if (fd)
       {
-         const char *hwstr = _aaxGetSIMDSupportString();
          int version = get_oss_version();
          char *os_name = "";
 #if HAVE_SYS_UTSNAME_H
@@ -329,9 +328,10 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
+         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
-                   (version & 0xFF), os_name, hwstr);
+                   (version & 0xFF), os_name);
+
 
          if (version > 0) handle->oss_version = version;
          handle->fd = fd;
@@ -500,7 +500,6 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);
-         const char *hwstr = _aaxGetSIMDSupportString();
          int version = get_oss_version();
          char *os_name = "";
 #if HAVE_SYS_UTSNAME_H
@@ -509,9 +508,9 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s %s",
+         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
-                   (version & 0xFF), os_name, hwstr, rstr);
+                   (version & 0xFF), os_name, rstr);
 
       }
    }
