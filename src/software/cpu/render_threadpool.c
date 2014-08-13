@@ -229,8 +229,8 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
          handle->data = data;
 
          // wake up the worker threads
-         num = no_emitters/_AAX_MIN_EMITTERS_PER_WORKER;
-         num = _MINMAX(num, 1, handle->no_workers);
+         num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);
+         num = _MIN(handle->no_workers, num);
          do {
             _aaxSemaphoreRelease(handle->worker_start);
          }
@@ -273,18 +273,14 @@ _aaxWorkerThread(void *id)
    _aaxThreadSetAffinity(thread->ptr, worker_no % _aaxGetNoCores());
    thread->started = AAX_TRUE;
 
-   do
+   // wait for our first job
+   _aaxSemaphoreWait(handle->worker_start);
+   data = handle->data;
+
+   if (thread->started == AAX_TRUE)
    {
-      _aaxSemaphoreWait(handle->worker_start);
-      data = handle->data;
-      if (data && !data->drb) {
-         _aaxSemaphoreRelease(handle->worker_ready);
-      }
-   }
-   while (data && !data->drb && TEST_FOR_TRUE(thread->started));
-      
-   if TEST_FOR_TRUE(thread->started)
-   {
+      int *busy = &handle->workers_busy;
+      int *num = &handle->max_emitters;
       _aaxRingBuffer *drb;
 
       drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_FALSE);
@@ -292,7 +288,7 @@ _aaxWorkerThread(void *id)
 
       do
       {
-         int pos = _aaxAtomicIntSub(&handle->max_emitters, 1);
+         int pos = _aaxAtomicIntDecrement(num);
 
          /*
           * It might be possible that other threads aleady processed
@@ -300,19 +296,18 @@ _aaxWorkerThread(void *id)
           */
          if (pos >= 0)
          {
-            _aaxAtomicIntAdd(&handle->workers_busy, 1);
+            _aaxAtomicIntIncrement(busy);
             do
             {
                _intBufferData *dptr_src;
 
-               dptr_src = _intBufGet(handle->he, _AAX_EMITTER, pos);
-               if (dptr_src)
+               if ((dptr_src =_intBufGet(handle->he,_AAX_EMITTER, pos)) != NULL)
                {
                   // _aaxProcessEmitter calls
                   // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-                  data->mix_emitter(drb, data, dptr_src, handle->stage);
+                  _aaxProcessEmitter(drb, data, dptr_src, handle->stage);
                }
-               pos = _aaxAtomicIntSub(&handle->max_emitters, 1);
+               pos = _aaxAtomicIntDecrement(num);
             }
             while(pos >= 0);
 
@@ -326,14 +321,14 @@ _aaxWorkerThread(void *id)
             drb->set_state(drb, RB_REWINDED);
 
             /* if we're the last active worker trigger the signal */
-            if (_aaxAtomicIntSub(&handle->workers_busy, 1) == 0) {
+            if (_aaxAtomicIntDecrement(busy) == 0) {
                 _aaxSemaphoreRelease(handle->worker_ready);
             }
          }
 
          _aaxSemaphoreWait(handle->worker_start);
       }
-      while TEST_FOR_TRUE(thread->started);
+      while (thread->started == AAX_TRUE);
 
       drb->destroy(drb);
    }

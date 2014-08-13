@@ -1,3 +1,11 @@
+* Tue Aug 12 2014 - tech@adalin.org
+- AeonWave (2.4.2) stable; urgency=low
+ * Changed the threading model from one thread per mixer-registered audio-frame
+   to a load-balancing threadpool model. This slightly increases the work the
+   CPU has to do but devides the wall time spent on rendering by the number of
+   physical cores. Threading is now always active on multi-core systems except
+   when the environment variable AAX_USE_THREADPOOL is set to 0.
+
 * Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low
  * Fixed a possible segmentation fault with certain ALSA drivers.

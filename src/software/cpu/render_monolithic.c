@@ -112,7 +112,7 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
             {
                // _aaxProcessEmitter calls
                // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-               data->mix_emitter(data->drb, data, dptr_src, stage);
+               _aaxProcessEmitter(data->drb, data, dptr_src, stage);
             }
          }
          while (--no_emitters);

@@ -23,10 +23,10 @@ extern "C" {
 struct _aaxRendererData_t;
 typedef int (_aaxRendererCallback)(_aaxRingBuffer*, struct _aaxRendererData_t*, _intBufferData*, unsigned int);
 
+_aaxRendererCallback _aaxProcessEmitter;
+
 typedef struct _aaxRendererData_t
 {
-   _aaxRendererCallback *mix_emitter;
-
    _aaxRingBuffer *drb;
    const _aaxMixerInfo *info;
    _aaxDelayed3dProps *fdp3d_m;

@@ -28,7 +28,6 @@
  * sdf -> sensor doppler factor
  * pos
  */
-_aaxRendererCallback _aaxProcessEmitter;
 
 
 #if 1
@@ -47,7 +46,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    _aaxRendererData data;
    char rv = AAX_TRUE;
 
-   data.mix_emitter = _aaxProcessEmitter;
    data.drb = drb;
    data.info = info;
    data.fdp3d_m = fdp3d_m;
@@ -79,7 +77,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    _intBuffers *he = e3d;
    char rv = AAX_FALSE;
 
-   data.mix_emitter = _aaxProcessEmitter;
    data.drb = drb;
    data.info = info;
    data.fdp3d_m = fdp3d_m;
@@ -113,7 +110,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
          // _aaxProcessEmitter calls
          // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-         rv = data.mix_emitter(&data, dptr_src, stage);
+         rv = _aaxProcessEmitter(data.drb, &data, dptr_src, stage);
       }
       _intBufReleaseNum(he, _AAX_EMITTER);
 
