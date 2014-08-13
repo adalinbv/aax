@@ -626,11 +626,29 @@ _aaxSemaphoreDestroy(_aaxSemaphore *sem)
    return rv;
 }
 
+#ifndef NDEBUG
+inline int
+_aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
+{
+   struct timespec to;
+   int rv;
+
+   to.tv_sec = time(NULL) + DEBUG_TIMEOUT;
+   to.tv_nsec = 0;
+
+   rv = sem_timedwait(sem, &to);
+   if (rv != 0) {
+      printf("semaphore error %i: %s\n  in %s line %i", errno, strerror(errno), file, line);
+   }
+   return rv ? AAX_FALSE : AAX_TRUE;
+}
+#else
 inline int
 _aaxSemaphoreWait(_aaxSemaphore *sem)
 {
    return sem_wait(sem) ? AAX_FALSE : AAX_TRUE;
 }
+#endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)

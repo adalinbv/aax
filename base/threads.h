@@ -163,7 +163,12 @@ int _aaxSignalUnLock(_aaxSignal*);
 /* -- Semaphores ------------------------------------------------------- */
 _aaxSemaphore *_aaxSemaphoreCreate(unsigned);
 int _aaxSemaphoreDestroy(_aaxSemaphore*);
+#ifndef NDEBUG
+int _aaxSemaphoreWaitDebug(_aaxSemaphore*, char *, int);
+#define _aaxSemaphoreWait(a)	_aaxSemaphoreWaitDebug(a, __FILE__, __LINE__)
+#else
 int _aaxSemaphoreWait(_aaxSemaphore*);
+#endif
 int _aaxSemaphoreRelease(_aaxSemaphore*);
 
 #if defined(__cplusplus)
