@@ -119,16 +119,21 @@ _aaxWorkerClose(void* id)
    _render_t *handle = (_render_t*)id;
    int i;
 
-   // signall all the worker-threads to quit
+   // set all worker-threads to inactive
    for (i=0; i<handle->no_workers; i++)
    {
       struct threat_t *thread = &handle->thread[i];
-
       thread->started = AAX_FALSE;
-      _aaxSemaphoreRelease(handle->worker_start);
    }
 
-   // wait until all worker-threads are finished
+   // signal and wait for the worker-threads to quit
+   for (i=0; i<handle->no_workers; i++)
+   {
+      _aaxSemaphoreRelease(handle->worker_start);
+      _aaxSemaphoreWait(handle->worker_ready);
+   }
+
+   // Wait until al worker threads are finished
    for (i=0; i<handle->no_workers; i++)
    {
       struct threat_t *thread = &handle->thread[i];
@@ -333,6 +338,7 @@ _aaxWorkerThread(void *id)
       while (thread->started == AAX_TRUE);
 
       drb->destroy(drb);
+      _aaxSemaphoreRelease(handle->worker_ready);
    }
 
    return handle;
