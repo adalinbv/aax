@@ -159,10 +159,13 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    if (dtmp && num)
    {
       i = (0x10 - dtmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ += (int32_t)*s++;
-      } while(--i);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += (int32_t)*s++;
+         } while(--i);
+      }
    }
 
    if (num)
@@ -333,10 +336,13 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    if (dtmp && num)
    {
       i = (0x10 - dtmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ += (float)*s++;
-      } while(--i);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += (float)*s++;
+         } while(--i);
+      }
    }
 
    if (num)
@@ -441,11 +447,15 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    if (dtmp && num)
    {
       i = (0x10 - dtmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ += (int32_t)((float)*s++ * v);
-         v += vstep;
-      } while(--i);
+      if (i <= num)
+      {
+         num -= i;
+         do
+         {
+            *d++ += (int32_t)((float)*s++ * v);
+            v += vstep;
+         } while(--i);
+      }
    }
 
    step = 2*sizeof(__m128i)/sizeof(int32_t);
@@ -535,11 +545,14 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    if (dtmp && num)
    {
       i = (0x10 - dtmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ += *s++ * v;
-         v += vstep;
-      } while(--i);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += *s++ * v;
+            v += vstep;
+         } while(--i);
+      }
    }
 
 #if !SSE_16BUFFERS
@@ -660,10 +673,13 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
    if (tmp && num)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ = *s++ << 8;
-      } while(--i);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ = *s++ << 8;
+         } while(--i);
+      }
    }
 
    step = 2*sizeof(__m128i)/sizeof(int16_t);
@@ -742,10 +758,13 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    if (tmp && num)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ = *s++ >> 8;
-      } while(--i);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ = *s++ >> 8;
+         } while(--i);
+      }
    }
 
    assert(((size_t)s & 0xF) == 0);
@@ -953,22 +972,25 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
       float smp, nsmp;
 
       i = (0x10 - tmp)/sizeof(int32_t);
-      num -= i;
-      do
+      if (i <= num)
       {
-         smp = *s * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         num -= i;
+         do
+         {
+            smp = *s * k;
+            smp = smp - h0 * cptr[0];
+            nsmp = smp - h1 * cptr[1];
+            smp = nsmp + h0 * cptr[2];
+            smp = smp + h1 * cptr[3];
 
-         h1 = h0;
-         h0 = nsmp;
+            h1 = h0;
+            h0 = nsmp;
 
-         *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
-         s++;
+            *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
+            s++;
+         }
+         while (--i);
       }
-      while (--i);
    }
 
    i = num/step;
@@ -1092,21 +1114,24 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
       float smp, nsmp;
 
       i = (0x10 - tmp)/sizeof(float);
-      num -= i;
-      do
+      if (i <= num)
       {
-         smp = *s * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         num -= i;
+         do
+         {
+            smp = *s * k;
+            smp = smp - h0 * cptr[0];
+            nsmp = smp - h1 * cptr[1];
+            smp = nsmp + h0 * cptr[2];
+            smp = smp + h1 * cptr[3];
 
-         h1 = h0;
-         h0 = nsmp;
-         *d++ = (smp*lfgain) + (*s-smp)*hfgain;
-         s++;
+            h1 = h0;
+            h0 = nsmp;
+            *d++ = (smp*lfgain) + (*s-smp)*hfgain;
+            s++;
+         }
+         while (--i);
       }
-      while (--i);
    }
 
    i = num/step;
