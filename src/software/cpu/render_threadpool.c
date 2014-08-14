@@ -338,8 +338,9 @@ _aaxWorkerThread(void *id)
       while (thread->started == AAX_TRUE);
 
       drb->destroy(drb);
-      _aaxSemaphoreRelease(handle->worker_ready);
    }
+
+   _aaxSemaphoreRelease(handle->worker_ready);
 
    return handle;
 }
