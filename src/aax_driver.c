@@ -444,6 +444,10 @@ aaxDriverDestroy(aaxConfig config)
          _aaxRingBufferFree(handle->ringbuffer);
       }
 
+      if (handle->timer) {
+         _aaxTimerDestroy(handle->timer);
+      }
+
       /* safeguard against using already destroyed handles */
       handle->id = 0xdeadbeef;
       free(handle);
@@ -697,6 +701,8 @@ new_handle()
 
       handle->info = (_aaxMixerInfo*)ptr2;
       _aaxSetDefaultInfo(handle->info, handle);
+
+      handle->timer = _aaxTimerCreate();
 
       rv = handle;
    }

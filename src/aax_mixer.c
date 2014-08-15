@@ -263,6 +263,9 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   rv = (int)(ltc*1e6);
                }
                break;
+            case AAX_FRAME_TIMING:
+               rv = (int)(handle->elapsed*1000000.0f);
+               break;
             case AAX_BITRATE:
                rv = info->bitrate;
             break;

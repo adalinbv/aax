@@ -43,7 +43,6 @@
 #include "audio.h"
 
 #define TIMER_BASED		AAX_FALSE
-#define ENABLE_TIMING		AAX_FALSE
 #define MAX_ID_STRLEN		64
 
 #define DEFAULT_DEVNUM		0
@@ -2853,9 +2852,6 @@ void *
 _aaxALSADriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-#if ENABLE_TIMING
-   _aaxTimer *timer = _aaxTimerCreate();
-#endif
    float delay_sec, wait_us; // no_samples
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
@@ -2956,9 +2952,6 @@ _aaxALSADriverThread(void* config)
          state = handle->state;
       }
 
-#if ENABLE_TIMING
-       _aaxTimerStart(timer);
-#endif
       if (_IS_PLAYING(handle))
       {
          int res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
@@ -3000,23 +2993,12 @@ _aaxALSADriverThread(void* config)
             }
          }
       }
-#if ENABLE_TIMING
-{
-float elapsed = _aaxTimerElapsed(timer);
-if (elapsed > delay_sec)
- printf("elapsed: %f ms\n", elapsed*1000.0f);
-}
-#endif
-
 #if 0
  printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
  printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
    }
 
-#if ENABLE_TIMING
-   _aaxTimerDestroy(timer);
-#endif
    handle->ringbuffer = NULL;
    be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.signal.mutex);

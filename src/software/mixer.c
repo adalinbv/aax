@@ -419,6 +419,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    assert(handle->backend.ptr);
    assert(handle->info->no_tracks);
 
+   _aaxTimerStart(handle->timer);
+
    be = handle->backend.ptr;
    if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {
       fbe = handle->file.ptr;
@@ -571,6 +573,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
          }
       }
    }
+
+   handle->elapsed = _aaxTimerElapsed(handle->timer);
+   _aaxTimerStop(handle->timer);
 
    return res;
 }

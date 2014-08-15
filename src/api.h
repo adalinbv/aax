@@ -123,6 +123,10 @@ typedef struct
    /* destination ringbuffer */
    _aaxRingBuffer *ringbuffer;
    float dt_ms;
+
+   /* timing */
+   _aaxTimer *timer;
+   float elapsed;
  
    /* parametric equalizer **/
    _aaxFilterInfo filter[EQUALIZER_MAX];

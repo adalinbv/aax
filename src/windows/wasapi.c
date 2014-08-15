@@ -51,7 +51,6 @@
 #define EXCLUSIVE_MODE		AAX_TRUE
 #define EVENT_DRIVEN		AAX_TRUE
 #define USE_EVENT_SESSION	AAX_TRUE
-#define ENABLE_TIMING		AAX_FALSE
 #define LOG_TO_FILE		AAX_TRUE
 #define USE_GETID		AAX_FALSE
 #define USE_CAPTURE_THREAD	AAX_FALSE
@@ -1749,9 +1748,6 @@ void *
 _aaxWASAPIDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-#if ENABLE_TIMING
-   _aaxTimer *timer = _aaxTimerCreate();
-#endif
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
@@ -1872,26 +1868,13 @@ _aaxWASAPIDriverThread(void* config)
          state = handle->state;
       }
 
-#if ENABLE_TIMING
-      _aaxTimerStart(timer);
-#endif
       if (_IS_PLAYING(handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
-#if ENABLE_TIMING
-{
-float elapsed = _aaxTimerElapsed(timer);
-if (elapsed > delay_sec)
-_AAX_DRVLOG_VAR("elapsed: %f ms (%f)\n", elapsed*1000.0f, delay_sec*1000.0f);
-}
-#endif
 
       hr = S_OK;
    }
 
-#if ENABLE_TIMING
-   _aaxTimerDestroy(timer);
-#endif
    _wasapi_close_event(be_handle);
 
    handle->ringbuffer = NULL;
