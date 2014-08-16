@@ -63,10 +63,10 @@ int _aaxProcessSetPriority(int);
 #endif
  } _aaxMutex;
 
-# define _aaxAtomicIntIncrement(a)	__sync_add_and_fetch(a,1)
-# define _aaxAtomicIntDecrement(a)	__sync_sub_and_fetch(a,1)
-# define _aaxAtomicIntAdd(a,b)		__sync_add_and_fetch(a,b)
-# define _aaxAtomicIntSub(a,b)		__sync_sub_and_fetch(a,b);
+# define _aaxAtomicIntIncrement(a)	__sync_add_and_fetch((a),1)
+# define _aaxAtomicIntDecrement(a)	__sync_sub_and_fetch((a),1)
+# define _aaxAtomicIntAdd(a,b)		__sync_add_and_fetch((a),(b))
+# define _aaxAtomicIntSub(a,b)		__sync_sub_and_fetch((a),(b))
 
 #elif defined( WIN32 )
 # include <Windows.h>			/* WINDOWS */
@@ -111,7 +111,7 @@ int _aaxProcessSetPriority(int);
  AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
 
 # define _aaxAtomicIntIncrement(a)	InterlockedIncrement(a)
-# define _aaxAtomicIntDecrement(a)	 InterlockedDecrement(a)
+# define _aaxAtomicIntDecrement(a)	InterlockedDecrement(a)
 # define _aaxAtomicIntAdd(a,b)          InterlockedAdd(a,b)
 # define _aaxAtomicIntSub(a,b)          InterlockedAdd(a,-(b))
 
