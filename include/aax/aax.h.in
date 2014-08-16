@@ -216,6 +216,7 @@ enum aaxSetupType
    AAX_LATENCY,
    AAX_TRACK_LAYOUT,
    AAX_BITRATE,
+   AAX_FRAME_TIMING,
    AAX_SETUP_TYPE_MAX,
 
    AAX_PEAK_VALUE             = 0x0100,
