@@ -238,7 +238,6 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
          // wake up the worker threads
          num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);
          num = _MIN(handle->no_workers, num);
-         _aaxAtomicIntAdd(&handle->workers_busy, num);
          do {
             _aaxSemaphoreRelease(handle->worker_start);
          }
@@ -295,48 +294,43 @@ _aaxWorkerThread(void *id)
       drb->set_state(drb, RB_STARTED);
 
       do
-      {		// process up to 32 emitters at a time
-         int pos, min, max;
-         do
+      {
+         int pos = _aaxAtomicIntDecrement(num);
+
+         /*
+          * It might be possible that other threads aleady processed
+          * all emitters which causes pos to turn negative here.
+          */
+         if (pos >= 0)
          {
-            pos = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
-            max = pos + _AAX_MIN_EMITTERS_PER_WORKER;
-            min = _MAX(pos, 0);
-
-            /*
-             * It might be possible that other threads aleady processed
-             * all emitters which causes max to turn negative here.
-             */
-            if (max > 0)
+            _aaxAtomicIntIncrement(busy);
+            do
             {
-               for(pos=min; pos<max; pos++)
+               _intBufferData *dptr_src;
+
+               if ((dptr_src =_intBufGet(handle->he,_AAX_EMITTER, pos)) != NULL)
                {
-                  _intBufferData *dptr_src;
-
-                  dptr_src =_intBufGet(handle->he, _AAX_EMITTER, pos);
-                  if (dptr_src != NULL)
-                  {
-                     // _aaxProcessEmitter calls
-                     // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-                     _aaxProcessEmitter(drb, data, dptr_src, handle->stage);
-                  }
+                  // _aaxProcessEmitter calls
+                  // _intBufReleaseData(dptr_src, _AAX_EMITTER);
+                  _aaxProcessEmitter(drb, data, dptr_src, handle->stage);
                }
+               pos = _aaxAtomicIntDecrement(num);
             }
-         }
-         while(max > 0);
+            while(pos >= 0);
 
-         /* mix our own ringbuffer with that of the mixer */
-         _aaxMutexLock(handle->mutex);
-         data->drb->data_mix(data->drb, drb, NULL);
-         _aaxMutexUnLock(handle->mutex);
+            /* mix our own ringbuffer with that of the mixer */
+            _aaxMutexLock(handle->mutex);
+            data->drb->data_mix(data->drb, drb, NULL);
+            _aaxMutexUnLock(handle->mutex);
 
-         /* clear our own ringbuffer for future use */
-         drb->data_clear(drb);
-         drb->set_state(drb, RB_REWINDED);
+            /* clear our own ringbuffer for future use */
+            drb->data_clear(drb);
+            drb->set_state(drb, RB_REWINDED);
 
-         /* if we're the last active worker trigger the signal */
-         if (_aaxAtomicIntDecrement(busy) == 0) {
-             _aaxSemaphoreRelease(handle->worker_ready);
+            /* if we're the last active worker trigger the signal */
+            if (_aaxAtomicIntDecrement(busy) == 0) {
+                _aaxSemaphoreRelease(handle->worker_ready);
+            }
          }
 
          _aaxSemaphoreWait(handle->worker_start);
