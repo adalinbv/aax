@@ -187,6 +187,15 @@ int main(int argc, char **argv)
             res = aaxEmitterSetState(emitter, AAX_STOPPED);
             testForState(res, "aaxEmitterStop");
 
+            /*
+             * We need to wait until the emitter has been processed.
+             * This is necessary because the sound could still be playing
+             * due to distance delay.
+             */
+            while (aaxEmitterGetState(emitter) != AAX_PROCESSED) {
+               msecSleep(100);
+            }
+
             if (!fparam)
             {
                 res = aaxMixerDeregisterEmitter(config, emitter);

@@ -42,22 +42,58 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#define SAX	1
 #define ENABLE_TIMED_GAIN_FILTER	1
-#define ENABLE_TIMED_PITCH_EFFECT	1
+#define ENABLE_TIMED_PITCH_EFFECT	SAX
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
 #define ENABLE_EMITTER_DYNAMIC_PITCH	0
 #define ENABLE_MIXER_DYNAMIC_GAIN	0
 #define SAMPLE_FREQUENCY		22050
 
-static const char* aaxs_data_sax = 
-"    <sound freq_hz=\"220\">			\
+static const char* aaxs_data_sax =   // A2, 200Hz
+#if SAX
+#if 1
+"    <sound frequency=\"220\">			\
        <waveform src=\"sawtooth\"/>		\
        <waveform src=\"sine\">			\
          <processing>mix</processing>		\
-         <pitch>4.0</pitch>			\
-         <ratio>0.2</ratio>			\
+         <pitch>3.535</pitch>			\
+         <ratio>-0.4</ratio>			\
        </waveform>				\
      </sound>";
+#else
+"    <sound frequency=\"23\">                    \
+       <waveform src=\"brownian-noise\">        \
+         <pitch>0.3</pitch>                    \
+         <ratio>0.73</ratio>                    \
+         <staticity>0.1</staticity> 		\
+       </waveform>                              \
+       <waveform src=\"sawtooth\">		\
+         <processing>mix</processing>		\
+         <ratio>0.73</ratio>			\
+       </waveform>				\
+       <waveform src=\"sine\">                  \
+         <processing>modulate</processing>      \
+         <pitch>2.9</pitch>			\
+         <ratio>1.0</ratio>			\
+       </waveform>                              \
+     </sound>";
+#endif
+#else
+"    <sound frequency=\"110\">			\
+      <waveform src=\"triangle\"/>		\
+      <waveform src=\"sine\">			\
+        <processing>mix</processing>		\
+        <pitch>4.0</pitch>			\
+        <ratio>-0.2</ratio>			\
+      </waveform>				\
+      <waveform src=\"triangle\">		\
+        <processing>mix</processing>		\
+        <pitch>2.0</pitch>			\
+        <ratio>0.333</ratio>>			\
+      </waveform>				\
+    </sound>";
+#endif
 
 int main(int argc, char **argv)
 {
@@ -88,7 +124,7 @@ int main(int argc, char **argv)
         aaxEffect effect;
         int i;
 
-        no_samples = (unsigned int)(0.3f*SAMPLE_FREQUENCY);
+        no_samples = (unsigned int)(1.0f*SAMPLE_FREQUENCY);
         buffer = aaxBufferCreate(config, no_samples, 1, AAX_AAXS16S);
         testForError(buffer, "Unable to generate buffer\n");
 
@@ -113,15 +149,27 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
         testForError(filter, "aaxFilterCreate");
 
+#if SAX
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                           0.0f, 0.05f, 1.0f, 0.05f);
         testForError(filter, "aaxFilterSetSlot 0");
         filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                          0.9f, 1.0f, 0.8f, 0.2f);
+                                          0.9f, 9.0f, 0.8f, 0.2f);
         testForError(filter, "aaxFilterSetSlot 1");
         filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR,
                                           0.0f, 0.0f, 0.0f, 0.0f);
         testForError(filter, "aaxFilterSetSlot 2");
+#else
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                          0.0f, 0.01f, 1.0f, 0.05f);
+        testForError(filter, "aaxFilterSetSlot 0");
+        filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                          0.7f, 0.1f, 0.6f, 0.05f);
+        testForError(filter, "aaxFilterSetSlot 1");
+        filter = aaxFilterSetSlot(filter, 2, AAX_LINEAR,
+                                          0.45f, 1.5f, 0.0f, 0.0f);
+        testForError(filter, "aaxFilterSetSlot 2");
+#endif
 
         filter = aaxFilterSetState(filter, AAX_TRUE);
         testForError(filter, "aaxFilterSetState");
@@ -166,10 +214,10 @@ int main(int argc, char **argv)
         testForError(filter, "aaxFilterCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.0f, 4.0f, 0.1f, 0.0f);
+                                              0.0f, 15.0f, 0.15f, 0.0f);
         testForError(filter, "aaxFilterSetSlot");
 
-        filter = aaxFilterSetState(filter, AAX_TRIANGLE_WAVE);
+        filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
         testForError(filter, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
@@ -185,7 +233,7 @@ int main(int argc, char **argv)
         testForError(filter, "aaxEffectCreate");
 
         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              0.0f, 4.0f, 0.08f, 0.0f);
+                                              0.0f, 15.0f, 0.03f, 0.0f);
         testForError(filter, "aaxEffectSetSlot");
 
         effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
@@ -241,14 +289,14 @@ int main(int argc, char **argv)
             {
                 res = aaxEmitterStop(emitter);
                 res = aaxEmitterRewind(emitter);
-                res = aaxEmitterSetPitch(emitter, 0.87f);
+                res = aaxEmitterSetPitch(emitter, 0.8909f);	// G2
                 res = aaxEmitterStart(emitter);
             }
             else if (i == 27)
             {
                 res = aaxEmitterStop(emitter);
                 res = aaxEmitterRewind(emitter);
-                res = aaxEmitterSetPitch(emitter, 0.31f);
+                res = aaxEmitterSetPitch(emitter, 0.2973f);	// C1
                 res = aaxEmitterStart(emitter);
             }
             i++;

@@ -244,8 +244,17 @@ int main(int argc, char **argv)
         res = aaxEmitterRemoveBuffer(emitter);
         testForState(res, "aaxEmitterRemoveBuffer");
 
+        res = aaxAudioFrameDeregisterEmitter(frame[1], emitter);
         res = aaxBufferDestroy(buffer);
         testForState(res, "aaxBufferDestroy");
+
+        res = aaxAudioFrameSetState(frame[1], AAX_STOPPED);
+        res = aaxAudioFrameDeregisterAudioFrame(frame[0], frame[1]);
+        aaxAudioFrameDestroy(frame[1]);
+
+        res = aaxAudioFrameSetState(frame[0], AAX_STOPPED);
+        res = aaxMixerDeregisterAudioFrame(config, frame[0]);
+        aaxAudioFrameDestroy(frame[0]);
 
         res = aaxMixerDeregisterEmitter(config, emitter);
         res = aaxMixerSetState(config, AAX_STOPPED);

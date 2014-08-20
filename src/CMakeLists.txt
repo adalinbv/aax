@@ -33,6 +33,10 @@ CREATE_TEST(aaxplay)
 INSTALL(TARGETS aaxplay
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Applications
 )
+CREATE_TEST(aaxcvt)
+INSTALL(TARGETS aaxcvt
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Applications
+)
 
 CREATE_TEST(testcapture)
 CREATE_TEST(testcone)
@@ -46,6 +50,7 @@ CREATE_TEST(testloop)
 CREATE_TEST(testlowpass)
 CREATE_TEST(testlst_rotation)
 CREATE_TEST(testmono3d)
+CREATE_TEST(testmono3d_updown)
 CREATE_TEST(testmono3d_frame)
 CREATE_TEST(testmono3d_oneshot)
 CREATE_TEST(testmono3d_phasing)

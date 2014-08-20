@@ -79,7 +79,6 @@ int main(int argc, char **argv)
         {
             aaxEmitter emitter[256];
             float pitch, anglestep;
-            int frame_timing;
             int i, deg = 0;
             aaxMtx4f mtx;
 
@@ -151,12 +150,9 @@ int main(int argc, char **argv)
                 res = aaxEmitterSetState(emitter[i], AAX_PLAYING);
                 testForState(res, "aaxEmitterStart");
 
-                msecSleep(15);
+                msecSleep(750);
             }
             while (++i < num);
-
-            frame_timing = aaxMixerGetSetup(config, AAX_FRAME_TIMING);
-            printf("frame rendering time: %f ms\n", frame_timing/1000.0f);
 
             deg = 0;
             while(deg < 360)
@@ -165,9 +161,9 @@ int main(int argc, char **argv)
 
                 msecSleep(50);
 
-                EmitterPos[0] = XEPOS + RADIUS * sinf(ang);
-                EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
- //             EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
+                EmitterPos[0] = XEPOS + RADIUS * cosf(ang);
+//              EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
+                EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
 
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);

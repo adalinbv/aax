@@ -88,11 +88,17 @@ int main(int argc, char **argv)
     if (!config || !aaxIsValid(config, AAX_CONFIG_HD))
     {
     // TODO: fall back to buffer streaming mode
-        printf("Warning:\n");
-        printf("  %s requires a registered version of AeonWave\n", argv[0]);
-        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
-        printf("obtain\n  a product-key.\n\n");
-        rv = -2;
+        if (!config) {
+           printf("Warning: %s\n", aaxGetErrorString(aaxGetErrorNo()));
+        }
+        else
+        {
+            printf("Warning:\n");
+            printf("  %s requires a registered version of AeonWave\n", argv[0]);
+            printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
+            printf("obtain\n  a product-key.\n\n");
+        }
+        exit(-2);
     }
     else
     {
@@ -118,11 +124,16 @@ int main(int argc, char **argv)
     if (config && record && (rv >= 0))
     {
         char *fparam = getCommandLineOption(argc, argv, "-f");
+        float pitch = getPitch(argc, argv);
         aaxFrame frame = NULL;
+        aaxEffect effect;
         aaxFilter filter;
         int state;
 
         /** mixer */
+        res = aaxMixerSetSetup(config, AAX_REFRESHRATE, 500);
+        testForState(res, "aaxMixerSetSetup");
+
         res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
@@ -144,15 +155,72 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetState(frame, AAX_PLAYING);
             testForState(res, "aaxAudioFrameSetState");
 
+            if (pitch != 1.0f)
+            {
+#if 0
+                effect = aaxAudioFrameGetEffect(frame, AAX_PITCH_EFFECT);
+                testForError(effect, "aaxEffectCreate");
+
+                aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+#else
+                effect = aaxAudioFrameGetEffect(frame,AAX_DYNAMIC_PITCH_EFFECT);
+                testForError(effect, "aaxEffectCreate");
+
+                effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                          0.0f, 0.025f, pitch, 0.0f);
+                testForError(effect, "aaxEffectSetSlot");
+
+                effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
+                testForError(effect, "aaxEffectSetState");
+#endif
+                res = aaxAudioFrameSetEffect(frame, effect);
+                testForState(res, " aaxAudioFrameSetEffect");
+
+                aaxEffectDestroy(effect);
+                testForState(res, "aaxEffectDestroy");
+            }
+
             /** sensor */
             res = aaxAudioFrameRegisterSensor(frame, record);
             testForState(res, "aaxAudioFrameRegisterSensor");
         }
         else
         {
+#if 0
+            effect = aaxMixerGetEffect(config, AAX_PITCH_EFFECT);
+            testForError(effect, "aaxEffectCreate");
+
+            aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+
+            res = aaxMixerSetEffect(record, effect);
+            testForState(res, "aaxEmitterSetEffect");
+
+            res = aaxEffectDestroy(effect);
+            testForState(res, "aaxEffectDestroy");
+#endif
+
             /** sensor */
             res = aaxMixerRegisterSensor(config, record);
             testForState(res, "aaxMixerRegisterSensor");
+        }
+
+        if (pitch != 1.0f)
+        {
+            effect = aaxMixerGetEffect(record, AAX_DYNAMIC_PITCH_EFFECT);
+            testForError(effect, "aaxEffectCreate");
+
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                      0.0f, frame ? 0.5f : 0.06f, pitch, 0.0f);
+            testForError(effect, "aaxEffectSetSlot");
+
+            effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
+            testForError(effect, "aaxEffectSetState");
+
+            res = aaxMixerSetEffect(record, effect);
+            testForState(res, "aaxEmitterSetEffect");
+
+            res = aaxEffectDestroy(effect);
+            testForState(res, "aaxEffectDestroy");
         }
 
         if (file)

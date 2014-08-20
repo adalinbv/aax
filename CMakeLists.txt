@@ -93,9 +93,12 @@ ELSE(MSVC)
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
     ENDIF(MINGW)
 
-    IF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    IF(X86_64)
+    ELSEIF(X86)
        SET(C_FLAGS "${C_FLAGS} -march=i586")
-    ENDIF(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    ELSEIF(ARM)
+    ENDIF()
+
     SET(C_FLAGS "${C_FLAGS} -Os -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops -fomit-frame-pointer" CACHE STRING
         "Flags used by al build types."
         FORCE)

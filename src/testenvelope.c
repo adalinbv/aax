@@ -42,7 +42,10 @@
 #include "wavfile.h"
 
 #define ENABLE_MIXER_DYNAMIC_GAIN	1
-#define ENABLE_MIXER_DYNAMIC_PITCHA	1
+#define ENABLE_MIXER_DYNAMIC_PITCH	1
+#define ENABLE_EMITTER_DYNAMIC_GAIN	1
+#define ENABLE_EMITTER_DYNAMIC_PITCH	0
+
 #define SAMPLE_FREQUENCY		22050
 
 int main(int argc, char **argv)
@@ -143,6 +146,7 @@ int main(int argc, char **argv)
         testForState(res, "aaxEffectDestroy");
 
         /* tremolo filter for emitter */
+#if ENABLE_EMITTER_DYNAMIC_GAIN
         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
         testForError(filter, "aaxFilterCreate");
 
@@ -158,6 +162,27 @@ int main(int argc, char **argv)
 
         res = aaxFilterDestroy(filter);
         testForState(res, "aaxFilterDestroy");
+#endif
+
+#if ENABLE_EMITTER_DYNAMIC_PITCH
+        /* vibrato effect for emitter */
+        effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
+        testForError(effect, "aaxEffectCreate");
+
+        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                          0.0f, 10.0f, 1.0f, 0.0f);
+        testForError(effect, "aaxEffectSetSlot");
+
+        effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
+        testForError(effect, "aaxEffectSetState");
+
+        res = aaxEmitterSetEffect(emitter, effect);
+        testForState(res, "aaxEmitterSetEffect");
+
+        res = aaxEffectDestroy(effect);
+        testForState(res, "aaxEffectDestroy");
+#endif
+
 
         /** mixer */
         res = aaxMixerInit(config);
@@ -182,7 +207,7 @@ int main(int argc, char **argv)
         testForError(effect, "aaxEffectCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                          0.0f, 0.9f, 1.0f, 0.0f);
+                                          0.0f, 2.0f, 1.0f, 0.0f);
         testForError(effect, "aaxEffectSetSlot");
 
         filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -201,13 +226,13 @@ int main(int argc, char **argv)
         testForError(effect, "aaxEffectCreate");
 
         effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                          0.0f, 4.0f, 0.4f, 0.0f);
+                                          0.0f, 4.0f, 1.0f, 0.0f);
         testForError(effect, "aaxEffectSetSlot");
 
         effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
         testForError(effect, "aaxEffectSetState");
 
-        res = aaxEmitterSetEffect(emitter, effect);
+        res = aaxMixerSetEffect(config, effect);
         testForState(res, "aaxEmitterSetEffect");
 
         res = aaxEffectDestroy(effect);

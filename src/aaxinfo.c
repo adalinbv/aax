@@ -196,7 +196,9 @@ int main(int argc, char **argv)
 
         if (cfg)
         {
-            int res =  aaxMixerInit(cfg);
+            int res;
+
+            res = aaxMixerInit(cfg);
             testForState(res, "aaxMixerInit");
 
             s = aaxDriverGetVendor(cfg);

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2013 by Erik Hofman.
- * Copyright (C) 2009-2013 by Adalin B.V.
+ * Copyright (C) 2014 by Erik Hofman.
+ * Copyright (C) 2014 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,55 +29,68 @@
  * policies, either expressed or implied, of Adalin B.V.
  */
 
-#ifndef __DRIVER_H_
-#define __DRIVER_H_
-
 #if HAVE_CONFIG_H
-# include "config.h"
+#include "config.h"
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <aax/aax.h>
 
-#ifdef NDEBUG
-# include <malloc.h>
-#else
-# include <base/logging.h>
-#endif
-#include <base/types.h>
+#include "base/types.h"
+#include "driver.h"
+#include "wavfile.h"
 
-void set_mode(int want_key);
-int get_key();
+void
+help()
+{
+    printf("Usage:\n");
+    printf("  aaxcvt -i <filename> -o <filename> -f <format>)\n\n");
+    exit(-1);
+}
 
-char *getDeviceName(int, char **);
-char *getCaptureName(int, char **);
-char *getCommandLineOption(int, char **, char *);
-char *getInputFile(int, char **, const char *);
-char *getOutputFile(int, char**, const char *);
-enum aaxFormat getAudioFormat(int, char **, enum aaxFormat);
-int getNumEmitters(int, char **);
-float getPitch(int, char **);
-float getGain(int, char **);
-int getMode(int, char **);
-char *getRenderer(int, char **);
-int printCopyright(int, char **);
-char *strDup(const char *);
+int main(int argc, char **argv)
+{
+    enum aaxFormat format;
+    char *infile, *outfile;
+    int rv = 0;
 
-void testForError(void *, char *);
-void testForState(int, const char *);
-void testForALCError(void *);
-void testForALError();
+    if (argc != 7) {
+        help();
+    }
 
-/* geometry */
-float _vec3Magnitude(const aaxVec3f v);
+    infile = getInputFile(argc, argv, NULL);
+    if (!infile)
+    {
+        printf("Input file not specified or unable to access.\n");
+        help();
+        exit(-2);
+    }
+    outfile = getOutputFile(argc, argv, NULL);
+    if (!outfile) {
+       help();
+    }
 
+    format = getAudioFormat(argc, argv, AAX_FORMAT_NONE);
+    if (format != AAX_FORMAT_NONE)
+    {
+        aaxConfig config;
+        config= aaxDriverOpenByName("AeonWave Loopback", AAX_MODE_WRITE_STEREO);
+        aaxBuffer buffer = bufferFromFile(config, infile);
+        if (buffer)
+        {
+            aaxBufferSetSetup(buffer, AAX_FORMAT, format);
+            aaxBufferWriteToFile(buffer, outfile, AAX_OVERWRITE);
+            aaxBufferDestroy(buffer);
+        }
+        aaxDriverDestroy(config);
+    }
+    else {
+        printf("Unsupported audio format.\n");
+        rv = -2;
+    }
 
-#ifdef _WIN32
-# include <windef.h>
-DWORD __attribute__((__stdcall__)) SleepEx(DWORD,BOOL);
-# define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
-#else
-int msecSleep(unsigned long);
-#endif
-
-#endif
+    return rv;
+}
 
