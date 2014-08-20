@@ -267,13 +267,16 @@ ELSE(MSVC)
                      PROPERTY COMPILE_FLAGS "-msse4 -mfpmath=sse -march=corei7"
         )
     ELSEIF(ARM)
-        message("Build environment: ARM")
-#       SET(C_FLAGS "${C_FLAGS} -march=arm")
+        message("Build environment: ARM-HF")
+# In Debian Linux and derivatives armhf (ARM hard float) refers to the ARMv7
+# architecture including the additional VFP3-D16 floating-point hardware
+# extension (and Thumb-2) above.
+        SET(C_FLAGS "${C_FLAGS} -march=armv7")
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND 
-                     PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfp"
+                     PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfpv3-d16"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND 
-                     PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfp"
+                     PROPERTY COMPILE_FLAGS "-mfloat-abi=hard -mfpu=vfpv3-d16"
         )
     ELSE()
         message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
