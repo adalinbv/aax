@@ -159,7 +159,17 @@ int main(int argc, char **argv)
                     testForState(res, "aaxBufferSetup(AAX_FORMAT)");
 
                     blocksz = aaxBufferGetSetup(buf, AAX_BLOCK_ALIGNMENT);
-
+#if 0
+{
+char s[256];	
+snprintf(s, 256,"/tmp/%s.wav", (nfmt & AAX_FORMAT_UNSIGNED)
+                                       ? _format_us[fmt & AAX_FORMAT_NATIVE]
+                                       : _format_s[fmt & AAX_FORMAT_NATIVE]);
+aaxBufferWriteToFile(buf, s, AAX_OVERWRITE);
+	// NOTE: aaxBufferWriteToFile also uses data = aaxBufferGetData(buf);
+        //       and it does work properly.
+}
+#endif
                     data = aaxBufferGetData(buf);
                     testForError(data, "aaxBufferGetData");
 
@@ -175,11 +185,23 @@ int main(int argc, char **argv)
                     res = aaxBufferSetData(buffer, *data);
                     testForState(res, "aaxBufferSetData");
                     aaxFree(data);
+#if 0
+{
+char s[256];
+snprintf(s, 256,"/tmp/%s.wav", (nfmt & AAX_FORMAT_UNSIGNED)
+                                       ? _format_us[fmt & AAX_FORMAT_NATIVE]
+                                       : _format_s[fmt & AAX_FORMAT_NATIVE]);
+aaxBufferWriteToFile(buffer, s, AAX_OVERWRITE);
+        // NOTE: aaxBufferWriteToFile also uses data = aaxBufferGetData(buf);
+        //       and it does work properly.
+}
+#endif
+
 
                     res = aaxEmitterAddBuffer(emitter, buffer);
                     testForState(res, "aaxEmitterAddBuffer");
 
-                    printf("    %s\n", (nfmt & AAX_FORMAT_UNSIGNED)
+                    printf("  0x%03x:  %s\n", nfmt, (nfmt & AAX_FORMAT_UNSIGNED)
                                        ? _format_us[fmt & AAX_FORMAT_NATIVE]
                                        : _format_s[fmt & AAX_FORMAT_NATIVE]);
                     do

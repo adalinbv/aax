@@ -87,10 +87,16 @@ int main(int argc, char **argv)
 
     if (config && (rv >= 0))
     {
+        char fname[1024], *tmp, *outfile;
+        aaxConfig file = NULL;
         aaxBuffer buffer[MAX_WAVES];
         aaxEmitter emitter;
         int state, buf, i;
         aaxMtx4f mtx;
+
+        tmp = getenv("TEMP");
+        if (!tmp) tmp = getenv("TMP");
+        if (!tmp) tmp = "/tmp";
 
         for (i=0; i<MAX_WAVES; i++)
         {
@@ -108,6 +114,12 @@ int main(int argc, char **argv)
             res = aaxBufferProcessWaveform(buffer[i], rate, type, 1.0f,
                                            AAX_OVERWRITE);
             testForState(res, "aaxBufferProcessWaveform");
+
+#if 0
+            snprintf(fname, 1024, "%s/%s.wav", tmp, buf_info[i].name);
+            printf("saving the audio buffer to %s\n", fname);
+            aaxBufferWriteToFile(buffer[i], fname, AAX_OVERWRITE);
+#endif
         }
 
         /** emitter */
@@ -135,6 +147,22 @@ int main(int argc, char **argv)
 
         res = aaxMixerSetState(config, AAX_PLAYING);
         testForState(res, "aaxMixerStart");
+
+        outfile = getOutputFile(argc, argv, NULL);
+        if (outfile)
+        {
+            snprintf(fname, 256, "AeonWave on Audio Files: %s", outfile);
+            file = aaxDriverOpenByName(fname, AAX_MODE_WRITE_STEREO);
+
+            res = aaxMixerRegisterSensor(config, file);
+            testForState(res, "aaxMixerRegisterSensor file out");
+
+            res = aaxMixerSetState(file, AAX_INITIALIZED);
+            testForState(res, "aaxMixerSetInitialize");
+
+            res = aaxMixerSetState(file, AAX_PLAYING);
+            testForState(res, "aaxSensorCaptureStart");
+        }
 
         for (buf=0; buf<MAX_WAVES; buf++)
         {
@@ -174,6 +202,21 @@ int main(int argc, char **argv)
 
             res = aaxBufferDestroy(buffer[buf]);
             testForState(res, "aaxBufferDestroy");
+        }
+
+        if (file)
+        {
+            res = aaxMixerSetState(file, AAX_STOPPED);
+            testForState(res, "aaxMixerSetState");
+
+            res = aaxMixerDeregisterSensor(config, file);
+            testForState(res, "aaxMixerRegisterSensor file out");
+
+            res = aaxDriverClose(file);
+            testForState(res, "aaxDriverClose");
+
+            res = aaxDriverDestroy(file);
+            testForState(res, "aaxDriverDestroy");
         }
 
         res = aaxMixerDeregisterEmitter(config, emitter);

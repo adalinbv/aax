@@ -68,6 +68,9 @@ int main(int argc, char **argv)
             int q, state;
 
             /** mixer */
+            res = aaxMixerSetSetup(config, AAX_REFRESHRATE, 50);
+            testForState(res, "aaxMixerSetSetup");
+
             res = aaxMixerInit(config);
             testForState(res, "aaxMixerInit");
 
@@ -118,11 +121,12 @@ int main(int argc, char **argv)
             }
             while (state == AAX_PLAYING);
 
-            for (q=0; q<num; q++) {
+            for (q=0; q<num; q++)
+            {
                 res = aaxMixerDeregisterEmitter(config, emitter[q]);
+                res = aaxEmitterDestroy(emitter[q]);
             }
             res = aaxMixerSetState(config, AAX_STOPPED);
-            res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buffer);
         }
     }

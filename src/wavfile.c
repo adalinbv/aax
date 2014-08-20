@@ -417,6 +417,9 @@ bufferFromData(aaxConfig config, const unsigned char *indata)
     return buffer;
 }
 
+
+#define REFRESH_RATE		250
+
 int
 playAudioTune(int argc, char **argv)
 {
@@ -431,6 +434,7 @@ playAudioTune(int argc, char **argv)
         int state;
 
         config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+        aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRESH_RATE);
         aaxMixerSetState(config, AAX_INITIALIZED);
         aaxMixerSetState(config, AAX_PLAYING);
 
@@ -443,7 +447,7 @@ playAudioTune(int argc, char **argv)
 
         do
         {
-            msecSleep(50);
+            msecSleep(500);
             dt += 0.05f;
             state = aaxEmitterGetState(emitter);
         }

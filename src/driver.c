@@ -181,6 +181,34 @@ getOutputFile(int argc, char **argv, const char *filename)
     return fn;
 }
 
+enum aaxFormat
+getAudioFormat(int argc, char **argv, enum aaxFormat format)
+{
+   char *fn = getCommandLineOption(argc, argv, "-f");
+   enum aaxFormat rv = format;
+
+   if (!strcasecmp(fn, "AAX_PCM8S")) {
+      rv = AAX_PCM8S;
+   } else if (!strcasecmp(fn, "AAX_PCM16S")) {
+      rv = AAX_PCM16S;
+   } else if (!strcasecmp(fn, "AAX_PCM24S")) {
+      rv = AAX_PCM24S;
+   } else if (!strcasecmp(fn, "AAX_PCM32S")) {
+      rv = AAX_PCM32S;
+   } else if (!strcasecmp(fn, "AAX_FLOAT")) {
+      rv = AAX_FLOAT;
+   } else if (!strcasecmp(fn, "AAX_DOUBLE")) {
+      rv = AAX_DOUBLE;
+   } else if (!strcasecmp(fn, "AAX_MULAW")) {
+      rv = AAX_MULAW;
+   } else if (!strcasecmp(fn, "AAX_ALAW")) {
+      rv = AAX_ALAW;
+   } else if (!strcasecmp(fn, "AAX_IMA4_ADPCM")) {
+      rv = AAX_IMA4_ADPCM; 
+   }
+
+   return rv;
+}
 
 void
 testForError(void *p, char *s)
