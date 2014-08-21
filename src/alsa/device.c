@@ -1446,11 +1446,13 @@ _aaxALSADriverGetDevices(const void *id, int mode)
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
+
                if (name)
                {
                   if ((!strchr(name, ':') &&
                        (strcmp(name, "null") && !strstr(name, "default")))
                       || (!STRCMP(name, "hw:") && strstr(name, ",DEV=0"))
+                      || !STRCMP(name, "default:")
                      )
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -1534,7 +1536,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 
                   if (ifname_prefix[i] && (m ||
                        (!strcmp(name, "pulse:") || !strcmp(name, "front:") ||
-                        !strcmp(name, "iec958:")))
+                        !strcmp(name, "iec958:") || !strcmp(name, "default:")))
                      )
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
@@ -2061,7 +2063,8 @@ get_devices_avail(int m)
          if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
             char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && !STRCMP(name, "front:")) rv++;
+            if (name && (!STRCMP(name, "front:") || !STRCMP(name, "default:")))
+               rv++;
          }
          _sys_free(type);
          ++lst;
