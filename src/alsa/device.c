@@ -472,7 +472,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          handle->name = _aax_strdup((char*)renderer);
       }
       else {
-         handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
+         renderer = handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
       }
 
       if (xid)
