@@ -1434,6 +1434,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
       res = psnd_device_name_hint(-1, "pcm", &hints);
       if (!res && hints)
       {
+         char *sysdefault = NULL;
          void **lst = hints;
          size_t len = 1024;
          char *ptr;
@@ -1446,19 +1447,29 @@ _aaxALSADriverGetDevices(const void *id, int mode)
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
+               char *colon = strchr(name, ':');
 
-               if (name)
+               if (sysdefault && !STRCMP(name, "sysdefault:"))
                {
-                  if ((!strchr(name, ':') &&
-                       (strcmp(name, "null") && !strstr(name, "default")))
+                  free(sysdefault);
+                  sysdefault = NULL;
+               }
+
+               if (name && !(sysdefault && !STRCMP(colon, sysdefault)))
+               {
+                  if ((!colon &&
+                          (strcmp(name, "null") && !strstr(name, "default")))
                       || (!STRCMP(name, "hw:") && strstr(name, ",DEV=0"))
-                      || !STRCMP(name, "default:")
+                      || !STRCMP(name, "sysdefault:")
                      )
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
                      size_t slen;
 
+                     if (!sysdefault && !STRCMP(name, "sysdefault:")) {
+                        sysdefault = strdup(colon);
+                     }
                      if (!desc) desc = name;
 
                      iface = strstr(desc, ", ");
@@ -1485,6 +1496,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
          }
          while (*lst != NULL);
          *ptr = 0;
+         free(sysdefault);
       }
 
       res = psnd_device_name_free_hint(hints);
@@ -2046,35 +2058,41 @@ detect_devnum(const char *devname, int m)
 }
 
 unsigned int
-get_devices_avail(int m)
+get_devices_avail(int mode)
 {
-   unsigned int rv = 0;
+   static unsigned int rv[2] = {0, 0};
+   int m = (mode > 0) ? 1 : 0;
    void **hints;
    int res;
 
-   res = psnd_device_name_hint(-1, "pcm", &hints);
-   if (!res && hints)
+   if (rv[m] == 0)
    {
-      void **lst = hints;
-
-      do
+      res = psnd_device_name_hint(-1, "pcm", &hints);
+      if (!res && hints)
       {
-         char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _alsa_type[m])))
-         {
-            char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name && (!STRCMP(name, "front:") || !STRCMP(name, "default:")))
-               rv++;
-         }
-         _sys_free(type);
-         ++lst;
-      }
-      while (*lst != NULL);
+         void **lst = hints;
 
-      res = psnd_device_name_free_hint(hints);
+         do
+         {
+            char *type = psnd_device_name_get_hint(*lst, "IOID");
+            if (!type || (type && !strcmp(type, _alsa_type[m])))
+            {
+               char *name = psnd_device_name_get_hint(*lst, "NAME");
+               if (name && (!STRCMP(name,"front:") || strstr(name,"default:")))
+               {
+                  rv[m]++;
+               }
+            }
+            _sys_free(type);
+            ++lst;
+         }
+         while (*lst != NULL);
+
+         res = psnd_device_name_free_hint(hints);
+      }
    }
 
-   return rv;
+   return rv[m];
 }
 
 static int
