@@ -13,12 +13,9 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_ARM_NEON_H
-#include <arm_neon.h>
-
-// #pragma GCC target ("fpu=neon","float-abi=hard")
-
-#include "arch_simd.h"
+#ifdef __ARM_NEON__
+# include <arm_neon.h>
+#include "arch3d_simd.h"
 
 void
 _vec4Copy_neon(vec4 d, const vec4 v)
@@ -86,7 +83,7 @@ _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2)
    vst1q_f32(dst, nfr1);
 }
 
-inline void
+void
 __vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
 {
    float32x4_t a_line, b_line, r_line;
@@ -115,13 +112,19 @@ __vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
 void
 _pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m)
 {
-   p[3] = 1.0f;
-   __vec4Matrix4_neon(d, p, m);
+   vec4_t v;
+
+   vec4Copy(v, p);
+   v[3] = 1.0f;
+   __vec4Matrix4_neon(d, v, m);
 }
 
 void
-_vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
+_vec4Matrix4_neon(vec4 d, const vec4 vi, mtx4 m)
 {
+   vec4_t v;
+
+   vec4Copy(v, vi);
    v[3] = 0.0f;
    __vec4Matrix4_neon(d, v, m);
 }

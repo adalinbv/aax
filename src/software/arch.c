@@ -394,7 +394,7 @@ _aaxGetSIMDSupportString()
    if (_aaxDetectNeon())
    {
       level = MAX_SSE_LEVEL;
-#if HAVE_CPU_FEATURES_H
+// #if HAVE_CPU_FEATURES_H
       vec4Add = _vec4Add_neon;
       vec4Sub = _vec4Sub_neon;
       vec4Copy = _vec4Copy_neon;
@@ -409,7 +409,7 @@ _aaxGetSIMDSupportString()
       _batch_fmadd = _batch_fmadd_neon;
       _batch_cvt24_16 = _batch_cvt24_16_neon;
       _batch_cvt16_24 = _batch_cvt16_24_neon;
-      _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
+//    _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
       _batch_freqfilter = _batch_freqfilter_neon;
 
 #if RB_FLOAT_DATA
@@ -419,7 +419,7 @@ _aaxGetSIMDSupportString()
 #else
       _batch_resample = _batch_resample_neon;
 #endif
-#endif
+// #endif
    }
    else
    {

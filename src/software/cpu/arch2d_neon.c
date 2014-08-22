@@ -13,12 +13,9 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_ARM_NEON_H
+#ifdef __ARM_NEON__
 #include <arm_neon.h>
-
-// #pragma GCC target ("fpu=neon","float-abi=hard")
-
-#include "arch_simd.h"
+#include "arch2d_simd.h"
 
 /*
  * http://gcc.gnu.org/projects/prefetch.html
@@ -36,7 +33,7 @@
  */
 
 void
-_batch_fmadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float fstep)
+_batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float fstep)
 {
    int32_t *s = (int32_t *)src;
    size_t i, size, step;
@@ -101,7 +98,8 @@ _batch_fmadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
 void
 _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   float *s = (float *)src;
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
    step = sizeof(float32x4x4_t)/sizeof(float);
@@ -121,21 +119,21 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
          s += step;
 
-         sfr4[0] = vmulq_f32(sfr4[0], tv);	// multiply
-         sfr4[1] = vmulq_f32(sfr4[1], tv);
-         sfr4[2] = vmulq_f32(sfr4[2], tv);
-         sfr4[3] = vmulq_f32(sfr4[3], tv);
+         sfr4.val[0] = vmulq_f32(sfr4.val[0], tv);	// multiply
+         sfr4.val[1] = vmulq_f32(sfr4.val[1], tv);
+         sfr4.val[2] = vmulq_f32(sfr4.val[2], tv);
+         sfr4.val[3] = vmulq_f32(sfr4.val[3], tv);
 
          d += step;
 
-         dfr4[0] = vaddq_f32(dfr4[0], sfr4[0]);	// add
-         dfr4[1] = vaddq_f32(dfr4[1], sfr4[1]);
-         dfr4[2] = vaddq_f32(dfr4[2], sfr4[2]);
-         dfr4[3] = vaddq_f32(dfr4[3], sfr4[3]);
+         dfr4.val[0] = vaddq_f32(dfr4.val[0], sfr4.val[0]);	// add
+         dfr4.val[1] = vaddq_f32(dfr4.val[1], sfr4.val[1]);
+         dfr4.val[2] = vaddq_f32(dfr4.val[2], sfr4.val[2]);
+         dfr4.val[3] = vaddq_f32(dfr4.val[3], sfr4.val[3]);
 
          v += vstep;
 
-         vst4q_s32(d, drf4);	// store d
+         vst4q_f32(d, dfr4);	// store d
          tv = vdupq_n_f32(v);	// set (v,v,v,v)
       }
       while(--i);
@@ -153,11 +151,12 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 }
 
 void
-_batch_cvt24_16_neon(void_ptr d, const_void_ptr src, size_t num)
+_batch_cvt24_16_neon(void_ptr dst, const_void_ptr src, size_t num)
 {
-   // int32x4_t  vshlq_n_s32(int32x4_t a, __constrange(0,31) int b);
-   int32x4_t *sptr = (int32x4_t*)src;
+// int32x4_t  vshlq_n_s32(int32x4_t a, __constrange(0,31) int b);
+// int32x4_t *sptr = (int32x4_t*)src;
    int16_t* s = (int16_t*)src;
+   int32_t *d = (int32_t*)dst;
    size_t i, step;
 
    if (!num) return;
@@ -207,16 +206,16 @@ _batch_cvt24_16_neon(void_ptr d, const_void_ptr src, size_t num)
 }
 
 void
-_batch_cvt16_24_neon(void_ptr dst, const_void_ptr s, size_t num)
+_batch_cvt16_24_neon(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    // int32x4_t  vshrq_n_s32(int32x4_t a, __constrange(1,32) int b);
-   int32x4_t *sptr = (int32x4_t*)s;
+   int32_t *s = (int32_t*)sptr;
    int16_t* d = (int16_t*)dst;
    size_t i, step;
 
    if (!num) return;
 
-   step = sizeof(int32x4_2_t)/sizeof(int32_t);
+   step = sizeof(int32x4x2_t)/sizeof(int32_t);
 
    i = num/step;
    num -= i*step;
@@ -274,7 +273,7 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
    s1 = (int32_t *)src[0] + offset;
    s2 = (int32_t *)src[1] + offset;
 
-   step = sizeof(int32x4_2_t)/sizeof(int32_t);
+   step = sizeof(int32x4x2_t)/sizeof(int32_t);
 
    i = num/step;
    num -= i*step;
@@ -351,7 +350,7 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
    h0 = hist[0];
    h1 = hist[1];
 
-   step = sizeof(int32x4_2_t)/sizeof(int32_t);
+   step = sizeof(int32x4x2_t)/sizeof(int32_t);
    i = num/step;
    num -= i*step;
    if (i)
@@ -448,15 +447,20 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
    h0 = hist[0];
    h1 = hist[1];
 
-   step = sizeof(float32x4_2_t)/sizeof(float32_t);
+   step = sizeof(float32x4x2_t)/sizeof(float32_t);
    i = num/step;
    num -= i*step;
    if (i)
    {
       float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
-      float32x4_t fact, dhist, coeff, lf, hf, tmp2;
+      float32x4_t fact, dhist, coeff, lf, hf;
       float32_t *cfp = (float32_t *)cptr;
-      float32_t smp0, mpf;
+      float32x4_t tmp0, tmp1, tmp2;
+      float32_t *smp0, *smp1, *mpf;
+
+      smp0 = (float *)&tmp0;
+      smp1 = (float *)&tmp1;
+      mpf = (float *)&tmp2;
 
       fact = vdupq_n_f32(k);
       coeff = vrev64q_f32( vld1q_dup_f32(cfp) );
@@ -492,9 +496,9 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
          nfr2 = vmlaq_f32(nfr1, nfr3, hf);    /* smp*lfgain + (*s-smp)*hfgain */
          nfr6 = vmlaq_f32(nfr5, nfr7, hf);
          nfr2_1.val[0] = nfr2;
-         nir2_1.val[1] = nfr6;
+         nfr2_1.val[1] = nfr6;
 
-         vst2q_s32(d, nfr2_1);
+         vst2q_f32(d, nfr2_1);
          d += step;
       }
       while (--i);
