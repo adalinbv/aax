@@ -180,48 +180,54 @@ _aaxDetectNeon()
    static char res = (char)-1;
    if (res == (char)-1)
    {
+      char *env;
+
       res = 0;
 
-#if HAVE_CPU_FEATURES_H
-      if (android_getCpuFamily() == ANDROID_CPU_FAMILY_ARM)
+      env = getenv("AAX_NO_SIMD_SUPPORT");
+      if (!_aax_getbool(env))
       {
-         uint64_t features = android_getCpuFeatures();
-         if ( (features & ANDROID_CPU_ARM_FEATURE_ARMv7)
-               && (features & ANDROID_CPU_ARM_FEATURE_NEON) )
+#if HAVE_CPU_FEATURES_H
+         if (android_getCpuFamily() == ANDROID_CPU_FAMILY_ARM)
          {
-            res = 1;
+            uint64_t features = android_getCpuFeatures();
+            if ( (features & ANDROID_CPU_ARM_FEATURE_ARMv7)
+                  && (features & ANDROID_CPU_ARM_FEATURE_NEON) )
+            {
+               res = 1;
+            }
          }
-      }
 
 #elif defined(__linux__)
 // Reading /proc/self/auxv doesn't work reliably on Android.
 // cat /proc/cpuinfo | grep "^Features"
 // Features        : swp half thumb fastmult vfp edsp thumbee neon vfpv3 tls
-      FILE *fp = fopen("/proc/cpuinfo", "r");
-      if (fp)
-      {
-         char cpuinfo[MAX_CPUINFO];
-         int rv;
-
-         memset(cpuinfo, 0, MAX_CPUINFO); 
-         rv = fread(cpuinfo, 1, MAX_CPUINFO, fp);
-         fclose(fp);
-
-         if (rv > 0 && rv < MAX_CPUINFO)
+         FILE *fp = fopen("/proc/cpuinfo", "r");
+         if (fp)
          {
-            char *features, *ptr;
+            char cpuinfo[MAX_CPUINFO];
+            int rv;
 
-            cpuinfo[MAX_CPUINFO-1] = '\0';
-            features = strstr(cpuinfo, "Features");
-            if (features)
+            memset(cpuinfo, 0, MAX_CPUINFO); 
+            rv = fread(cpuinfo, 1, MAX_CPUINFO, fp);
+            fclose(fp);
+
+            if (rv > 0 && rv < MAX_CPUINFO)
             {
-               ptr = strchr(features, '\n');
-               if (ptr) *ptr = '\0';
+               char *features, *ptr;
 
-               ptr = strstr(features, " neon");
-               if (ptr && (*(ptr+5) == ' ' || *(ptr+5) == '\0'))
+               cpuinfo[MAX_CPUINFO-1] = '\0';
+               features = strstr(cpuinfo, "Features");
+               if (features)
                {
-                  res = 1;
+                  ptr = strchr(features, '\n');
+                  if (ptr) *ptr = '\0';
+
+                  ptr = strstr(features, " neon");
+                  if (ptr && (*(ptr+5) == ' ' || *(ptr+5) == '\0'))
+                  {
+                     res = 1;
+                  }
                }
             }
          }
