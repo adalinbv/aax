@@ -46,7 +46,8 @@ enum {
 };
 
 enum {
-   AAX_SIMD_VFP = 1,
+   AAX_SIMD_NONE = 0,
+   AAX_SIMD_VFP,
    AAX_SIMD_VFPV3,
    AAX_SIMD_VFPV4,
    AAX_SIMD_NEON,
@@ -66,9 +67,9 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 };
 
 char
-_aaxArchDetectNeon()
+_aaxArchDetectFeatures()
 {
-  static char res = 0;
+   static char res = 0;
    static int8_t init = -1;
    if (init)
    {
@@ -77,21 +78,7 @@ _aaxArchDetectNeon()
       init = 0;
       if (!_aax_getbool(env))
       {
-# if HAVE_CPU_FEATURES_H
-         if (android_getCpuFamily() == ANDROID_CPU_FAMILY_ARM)
-         {
-            uint64_t features = android_getCpuFeatures();
-            if ( (features & ANDROID_CPU_ARM_FEATURE_ARMv7)
-                  && (features & ANDROID_CPU_ARM_FEATURE_NEON) )
-            {
-               res = 1;
-            }
-         }
-
-# elif defined(__linux__)
-// Reading /proc/self/auxv doesn't work reliably on Android.
-// cat /proc/cpuinfo | grep "^Features"
-// Features        : swp half thumb fastmult vfp edsp thumbee neon vfpv3 tls
+// Features	: fastmult vfp neon vfpv3 vfpv4 idiva idivt 
          FILE *fp = fopen("/proc/cpuinfo", "r");
          if (fp)
          {
@@ -116,15 +103,35 @@ _aaxArchDetectNeon()
                   ptr = strstr(features, " neon");
                   if (ptr && (*(ptr+5) == ' ' || *(ptr+5) == '\0'))
                   {
-                     res = 1;
+                     _aax_arch_capabilities |= AAX_ARCH_NEON;
+                     res = AAX_SIMD_NEON;
+                  }
+
+                  ptr = strstr(features, " vfp")
+                  if (ptr)
+                  {
+                     if (*(ptr+4) == ' ' || *(ptr+5) == '\0'))
+                     {
+                        _aax_arch_capabilities |= AAX_ARCH_VFP;
+                        if ((res & AAX_SIMD_NEON) == 0) res = AAX_SIMD_VFP;
+                     }
+                     else if (*(ptr+4) == '3')
+                     {
+                        _aax_arch_capabilities |= AAX_ARCH_VFPV3;
+                        if ((res & AAX_SIMD_NEON) == 0) res = AAX_SIMD_VFPV3;
+                     }
+                     else if (*(ptr+4) == '4')
+                     {
+                        _aax_arch_capabilities |= AAX_ARCH_VFPVr4;
+                        if ((res & AAX_SIMD_NEON) == 0) res = AAX_SIMD_VFPV4;
+                        else if (((res & AAX_SIMD_NEON) == 1) res = AAX_SIMD_VFPV4_NEON;
+                     }
                   }
                }
             }
          }
       }
-# endif
    }
-   if (res) _aax_arch_capabilities |= AAX_ARCH_NEON;
    return res;
 }
 
@@ -133,7 +140,7 @@ _aaxGetSIMDSupportString()
 {
    uint32_t level = AAX_NO_SIMD;
 
-   level = _aaxGetVFPNeonLevel();
+   level = _aaxArchDetectFeatures();
    if (_aax_arch_capabilities & AAX_ARCH_NEON)
    {
       vec4Add = _vec4Add_neon;
