@@ -136,7 +136,6 @@ typedef struct
    int mode;
    int oss_version;
    int exclusive;
-   char sse_level;
    char bytes_sample;
 
    int16_t *ptr, *scratch;
@@ -198,7 +197,6 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->name = (char*)_const_oss_default_name;
-      handle->sse_level = _aaxGetSSELevel();
       handle->frequency_hz = (float)48000.0f;
       handle->no_tracks = 2;
       handle->mode = _mode[(mode > 0) ? 1 : 0];

@@ -15,24 +15,26 @@
 
 #include "arch3d_simd.h"
 
-#ifdef __SSE4__
+#ifdef __SSE4_1__
+
+#include <smmintrin.h>
 
 FN_PREALIGN float
-_vec3Magnitude_sse4(const vec3 v3)
+_vec3Magnitude_sse41(const vec3 v3)
 {
    __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
    return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v, v, 0x71)));
 }
 
 FN_PREALIGN float
-_vec3MagnitudeSquared_sse4(const vec3 v3)
+_vec3MagnitudeSquared_sse41(const vec3 v3)
 {
     __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
    return _mm_cvtss_f32(_mm_dp_ps(v, v, 0x71));
 }
 
 FN_PREALIGN float
-_vec3DotProduct_sse4(const vec3 v31, const vec3 v32)
+_vec3DotProduct_sse41(const vec3 v31, const vec3 v32)
 {
    __m128 v1 = _mm_set_ps(v31[0], v31[1], v31[2], 0);
    __m128 v2 = _mm_set_ps(v32[0], v32[1], v32[2], 0);
@@ -40,7 +42,7 @@ _vec3DotProduct_sse4(const vec3 v31, const vec3 v32)
 }
 
 FN_PREALIGN float
-_vec3Normalize_sse4(vec3 d, const vec3 v3)
+_vec3Normalize_sse41(vec3 d, const vec3 v3)
 {
    __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
    __m128 inverse_norm = _mm_rsqrt_ps(_mm_dp_ps(v, v, 0x77));
@@ -50,7 +52,7 @@ _vec3Normalize_sse4(vec3 d, const vec3 v3)
    _mm_store_ps(r, norm);
    _aax_memcpy(d, r, 3*sizeof(float));
  
-   return _vec3Magnitude_sse4(v3);
+   return _vec3Magnitude_sse41(v3);
 }
 
 #endif /* SSE4 */

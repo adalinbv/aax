@@ -124,7 +124,6 @@ typedef struct
    enum aaxFormat format;
    uint8_t no_channels;
    uint8_t bits_sample;
-   char sse_level;
 
    char *ptr, *scratch;
    size_t buf_len;
@@ -177,7 +176,6 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
       _aaxExtensionDetect *ftype = _aaxFileTypes[0];
 
       handle->mode = mode;
-      handle->sse_level = _aaxGetSSELevel();
       if (ftype)
       {
          _aaxFmtHandle* type = ftype();

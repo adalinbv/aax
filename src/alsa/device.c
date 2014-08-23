@@ -145,7 +145,6 @@ typedef struct
     char hw_channels;
     char playing;
     char shared;
-    char sse_level;
     char use_timer;
 
     _batch_cvt_to_proc cvt_to;
@@ -427,7 +426,6 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->play = _aaxALSADriverPlayback_rw_il;
-      handle->sse_level = _aaxGetSSELevel();
       handle->pause = 0;
       handle->use_mmap = 1;
       handle->interleaved = 0;

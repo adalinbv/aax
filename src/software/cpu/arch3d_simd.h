@@ -75,10 +75,10 @@ void _vec4Matrix4_sse3(vec4 d, const vec4 v, mtx4 m);
 void _pt4Matrix4_sse3(vec4 d, const vec4 p, mtx4 m);
 
 /* SSE4 */
-float _vec3Magnitude_sse4(const vec3);
-float _vec3MagnitudeSquared_sse4(const vec3);
-float _vec3DotProduct_sse4(const vec3, const vec3);
-float _vec3Normalize_sse4(vec3, const vec3);
+float _vec3Magnitude_sse41(const vec3);
+float _vec3MagnitudeSquared_sse41(const vec3);
+float _vec3DotProduct_sse41(const vec3, const vec3);
+float _vec3Normalize_sse41(vec3, const vec3);
 
 
 /* NEON */

@@ -29,6 +29,11 @@ extern "C" {
 #endif
 
 #define SIZETO16(a)	((a) & 0xF) ? ((a)|0xF)+1 : (a)
+#if RB_FLOAT_DATA
+# define SIMD_PREFIX	"FP "
+#else
+# define SIMD_PREFIX
+#endif
 
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, size_t, size_t);
@@ -119,14 +124,6 @@ extern _batch_cvt_to_intl_proc _batch_cvt32_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtps_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtpd_intl_24;
 
-char _aaxDetectNeon();
-char _aaxDetectMMX();
-char _aaxDetectSSE();
-char _aaxDetectSSE2();
-char _aaxDetectSSE3();
-char _aaxDetectSSE4();
-char _aaxDetectAVX();
-char _aaxGetSSELevel();
 unsigned int _aaxGetNoCores();
 const char* _aaxGetSIMDSupportString();
 
