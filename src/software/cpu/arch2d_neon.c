@@ -13,9 +13,11 @@
 #include "config.h"
 #endif
 
+#include "software/rbuf_int.h"
+#include "arch2d_simd.h"
+
 #ifdef __ARM_NEON__
 #include <arm_neon.h>
-#include "arch2d_simd.h"
 
 /*
  * http://gcc.gnu.org/projects/prefetch.html
@@ -31,6 +33,98 @@
  *  Level l1, l2, l3
  *  KEEP (retained), STRM (streaming)
  */
+
+void
+_batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
+{
+   int32_t *s = (int32_t*)src;
+   float *d = (float*)dst;
+   size_t i, step;
+
+   assert(s != 0);
+   assert(d != 0);
+
+   if (!num) return;
+
+   step = sizeof(int32x4x4_t)/sizeof(int32_t);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      int32x4x4_t nir4;
+      float32x4x4_t nfr4d;
+
+      do
+      {
+         nir4 = vld4q_s32(s);
+         s += 4*4;
+
+         nfr4d.val[0] = vcvtq_f32_s32(nir4.val[0]);
+         nfr4d.val[1] = vcvtq_f32_s32(nir4.val[1]);
+         nfr4d.val[2] = vcvtq_f32_s32(nir4.val[2]);
+         nfr4d.val[3] = vcvtq_f32_s32(nir4.val[3]);
+
+         vst4q_f32(d, nfr4d);
+         d += step;
+      }
+      while(--i);
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (float)*s++;
+         } while (--i);
+      }
+   }
+}
+
+void
+_batch_cvt24_ps24_neon(void_ptr dst, const_void_ptr src, size_t num)
+{
+   int32_t *d = (int32_t*)dst;
+   float *s = (float*)src;
+   size_t i, step;
+
+   assert(s != 0);
+   assert(d != 0);
+
+   if (!num) return;
+
+   step = sizeof(float32x4x4_t)/sizeof(float32_t);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      float32x4x4_t nir4;
+      int32x4x4_t nfr4d;
+
+      do
+      {
+         nir4 = vld4q_f32(s);
+         s += 4*4;
+
+         nfr4d.val[0] = vcvtq_s32_f32(nir4.val[0]);
+         nfr4d.val[1] = vcvtq_s32_f32(nir4.val[1]);
+         nfr4d.val[2] = vcvtq_s32_f32(nir4.val[2]);
+         nfr4d.val[3] = vcvtq_s32_f32(nir4.val[3]);
+
+         vst4q_s32(d, nfr4d);
+         d += step;
+      }
+      while(--i);
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (int32_t)*s++;
+         } while (--i);
+      }
+   }
+}
 
 void
 _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float fstep)
@@ -116,15 +210,12 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       {
          sfr4 = vld4q_f32(s);	// load s
          dfr4 = vld4q_f32(d);	// load d
-
          s += step;
 
          sfr4.val[0] = vmulq_f32(sfr4.val[0], tv);	// multiply
          sfr4.val[1] = vmulq_f32(sfr4.val[1], tv);
          sfr4.val[2] = vmulq_f32(sfr4.val[2], tv);
          sfr4.val[3] = vmulq_f32(sfr4.val[3], tv);
-
-         d += step;
 
          dfr4.val[0] = vaddq_f32(dfr4.val[0], sfr4.val[0]);	// add
          dfr4.val[1] = vaddq_f32(dfr4.val[1], sfr4.val[1]);
@@ -134,6 +225,8 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          v += vstep;
 
          vst4q_f32(d, dfr4);	// store d
+         d += step;
+
          tv = vdupq_n_f32(v);	// set (v,v,v,v)
       }
       while(--i);
@@ -439,7 +532,7 @@ void
 _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
-   size_t i, size, step;
+   size_t i, step;
    float h0, h1;
 
    if (!num) return;
@@ -455,11 +548,11 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
       float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
       float32x4_t fact, dhist, coeff, lf, hf;
       float32_t *cfp = (float32_t *)cptr;
-      float32x4_t tmp0, tmp1, tmp2;
-      float32_t *smp0, *smp1, *mpf;
+      float32x4_t tmp2;
+      float32_t *smp0, *mpf;
+      float32x4x2_t tmp0;
 
       smp0 = (float *)&tmp0;
-      smp1 = (float *)&tmp1;
       mpf = (float *)&tmp2;
 
       fact = vdupq_n_f32(k);
@@ -529,14 +622,14 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
    hist[1] = h1;
 }
 
+#if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-   const int32_t *sptr = s;
-   int32_t *dptr = d;
-   int32_t samp, nsamp;
+   int32_ptr sptr = (int32_ptr)s;
+   int32_ptr dptr = d;
+   int32_t samp, dsamp;
    size_t i;
-   float pos;
 
    assert(s != 0);
    assert(d != 0);
@@ -544,70 +637,268 @@ _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dma
    assert(freq_factor >= 1.0f);
    assert(0.0f <= smu && smu < 1.0f);
 
-   pos = smu + 1;
-   sptr = s + (size_t)pos;
    dptr += dmin;
-   samp = *sptr;
 
-   pos += freq_factor;
-   sptr = s + (size_t)pos;
-   nsamp = *sptr;
+   samp = *sptr++;              // n+(step-1)
+   dsamp = *sptr - samp;        // (n+1) - n
+
 
    i=dmax-dmin;
    if (i)
    {
       do
       {
-         *dptr++ = (samp + nsamp) / 2;
+         size_t step;
 
-         samp = nsamp;
-         pos += freq_factor;
-         sptr = s + (size_t)pos;
-         nsamp = *sptr;
+         *dptr++ = samp + (int32_t)(dsamp * smu);
+
+         smu += freq_factor;
+         step = (size_t)floorf(smu);
+
+         smu -= step;
+         sptr += step-1;
+         samp = *sptr++;
+         dsamp = *sptr - samp;
       }
       while (--i);
    }
 }
 
-static void
+static inline void
 _aaxBufResampleNearest_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-   const int32_t *sptr = s;
-   int32_t *dptr = d;
+   if (freq_factor == 1.0f) {
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+   }
+   else
+   {
+      int32_ptr sptr = (int32_ptr)s;
+      int32_ptr dptr = d;
+      size_t i;
+
+      assert(s != 0);
+      assert(d != 0);
+      assert(dmin < dmax);
+      assert(0.95f <= freq_factor && freq_factor <= 1.05f);
+      assert(0.0f <= smu && smu < 1.0f);
+
+      dptr += dmin;
+
+      i = dmax-dmin;
+      if (i)
+      {
+         do
+         {
+            *dptr++ = *sptr;
+
+            smu += freq_factor;
+            if (smu > 0.5f)
+            {
+               sptr++;
+               smu -= 1.0f;
+            }
+         }
+         while (--i);
+      }
+   }
+}
+
+static inline void
+_aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   int32_ptr sptr = (int32_ptr)s;
+   int32_ptr dptr = d;
+   int32_t samp, dsamp;
    size_t i;
 
    assert(s != 0);
    assert(d != 0);
    assert(dmin < dmax);
-   assert(0.95f <= freq_factor && freq_factor <= 1.05f);
+   assert(freq_factor < 1.0f);
    assert(0.0f <= smu && smu < 1.0f);
 
    dptr += dmin;
+
+   samp = *sptr++;              // n
+   dsamp = *sptr - samp;        // (n+1) - n
 
    i = dmax-dmin;
    if (i)
    {
       do
       {
-         *dptr++ = *sptr;
+         *dptr++ = samp + (int32_t)(dsamp * smu);
 
          smu += freq_factor;
-         if (smu > 0.5)
+         if (smu >= 1.0)
          {
-            sptr++;
             smu -= 1.0;
+            samp = *sptr++;
+            dsamp = *sptr - samp;
          }
       }
       while (--i);
    }
 }
 
-static void
-_aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+static inline void
+_aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-   const int32_t *sptr = s;
-   int32_t *dptr = d;
-   int32_t samp, dsamp;
+   float y0, y1, y2, y3, a0, a1, a2;
+   int32_ptr sptr = (int32_ptr)s;
+   int32_ptr dptr = d;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(0.0f <= smu && smu < 1.0f);
+   assert(0.0f < freq_factor && freq_factor <= 1.0f);
+
+   dptr += dmin;
+
+   y0 = (float)*sptr++;
+   y1 = (float)*sptr++;
+   y2 = (float)*sptr++;
+   y3 = (float)*sptr++;
+
+   a0 = y3 - y2 - y0 + y1;
+   a1 = y0 - y1 - a0;
+   a2 = y2 - y0;
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         float smu2, ftmp;
+
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *dptr++ = (int32_t)ftmp;
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu--;
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = (float)*sptr++;
+            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+         }
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_resample_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_neon(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_neon(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact > 1.0f) {
+      _aaxBufResampleSkip_neon(d, s, dmin, dmax, smu, fact);
+   } else {
+      _aaxBufResampleNearest_neon(d, s, dmin, dmax, smu, fact);
+   }
+}
+#else
+
+static inline void
+_aaxBufResampleSkip_float_neon(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = dptr;
+   float samp, dsamp;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor >= 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   d += dmin;
+
+   samp = *s++;                 // n+(step-1)
+   dsamp = *s - samp;           // (n+1) - n
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         size_t step;
+
+         *d++ = samp + (dsamp * smu);
+
+         smu += freq_factor;
+         step = (size_t)floorf(smu);
+
+         smu -= step;
+         s += step-1;
+         samp = *s++;
+         dsamp = *s - samp;
+      }
+      while (--i);
+   }
+}
+
+static inline void
+_aaxBufResampleNearest_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   if (freq_factor == 1.0f) {
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+   }
+   else
+   {
+      float32_ptr sptr = (float32_ptr)s;
+      float32_ptr dptr = d;
+      size_t i;
+
+      assert(s != 0);
+      assert(d != 0);
+      assert(dmin < dmax);
+      assert(0.95f <= freq_factor && freq_factor <= 1.05f);
+      assert(0.0f <= smu && smu < 1.0f);
+
+      dptr += dmin;
+
+      i = dmax-dmin;
+      if (i)
+      {
+         do
+         {
+            *dptr++ = *sptr;
+
+            smu += freq_factor;
+            if (smu > 0.5f)
+            {
+               sptr++;
+               smu -= 1.0f;
+            }
+         }
+         while (--i);
+      }
+   }
+}
+
+static inline void
+_aaxBufResampleLinear_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   float32_ptr sptr = (float32_ptr)s;
+   float32_ptr dptr = d;
+   float samp, dsamp;
    size_t i;
 
    assert(s != 0);
@@ -640,12 +931,12 @@ _aaxBufResampleLinear_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t d
    }
 }
 
-static void
-_aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+static inline void
+_aaxBufResampleCubic_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
-   const int32_t *sptr = s;
-   int32_t *dptr = d;
+   float32_ptr sptr = (float32_ptr)s;
+   float32_ptr dptr = d;
    size_t i;
 
    assert(s != 0);
@@ -674,17 +965,18 @@ _aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dm
 
          smu2 = smu*smu;
          ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
-         *dptr++ = (int32_t)ftmp;
+         *dptr++ = ftmp;
 
          smu += freq_factor;
-         if (smu >= 1.0)      {
+         if (smu >= 1.0)
+         {
             smu--;
             a0 += y0;
             y0 = y1;
             y1 = y2;
             y2 = y3;
             y3 = *sptr++;
-            a0 = -a0 + y3;                 /* a0 = y3 - y2 - y0 + y1; */
+            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
             a1 = y0 - y1 - a0;
             a2 = y2 - y0;
          }
@@ -692,5 +984,25 @@ _aaxBufResampleCubic_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dm
       while (--i);
    }
 }
+
+void
+_batch_resample_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_float_neon(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_float_neon(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact > 1.0f) {
+      _aaxBufResampleSkip_float_neon(d, s, dmin, dmax, smu, fact);
+   } else {
+      _aaxBufResampleNearest_float_neon(d, s, dmin, dmax, smu, fact);
+   }
+}
+#endif // RB_FLOAT_DATA
+
 #endif /* NEON */
 

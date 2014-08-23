@@ -66,6 +66,7 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"VFPv4/NEON"
 };
 
+// Features    : fastmult vfp neon vfpv3 vfpv4 idiva idivt
 char
 _aaxArchDetectFeatures()
 {
@@ -78,7 +79,6 @@ _aaxArchDetectFeatures()
       init = 0;
       if (!_aax_getbool(env))
       {
-// Features	: fastmult vfp neon vfpv3 vfpv4 idiva idivt 
          FILE *fp = fopen("/proc/cpuinfo", "r");
          if (fp)
          {
@@ -100,32 +100,35 @@ _aaxArchDetectFeatures()
                   ptr = strchr(features, '\n');
                   if (ptr) *ptr = '\0';
 
-                  ptr = strstr(features, " neon");
-                  if (ptr && (*(ptr+5) == ' ' || *(ptr+5) == '\0'))
+                  ptr = strstr(features, " vfp");
+                  if (ptr && (*(ptr+4) == ' ' || *(ptr+5) == '\0'))
                   {
-                     _aax_arch_capabilities |= AAX_ARCH_NEON;
-                     res = AAX_SIMD_NEON;
+                     _aax_arch_capabilities |= AAX_ARCH_VFP;
+                     res = AAX_SIMD_VFP;
                   }
 
-                  ptr = strstr(features, " vfp")
-                  if (ptr)
+                  ptr = strstr(features, " vfpv3");
+                  if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
                   {
-                     if (*(ptr+4) == ' ' || *(ptr+5) == '\0'))
-                     {
-                        _aax_arch_capabilities |= AAX_ARCH_VFP;
-                        if ((res & AAX_SIMD_NEON) == 0) res = AAX_SIMD_VFP;
+                     _aax_arch_capabilities |= AAX_ARCH_VFPV3;
+                     res = AAX_SIMD_VFPV3;
+                  }
+
+                  ptr = strstr(features, " vfpv4");
+                  if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
+                  {
+                     _aax_arch_capabilities |= AAX_ARCH_VFPV4;
+                     res = AAX_SIMD_VFPV4;
+                  }
+
+                  ptr = strstr(features, " neon");
+                  if (ptr && (*(ptr+5) == ' ' || *(ptr+6) == '\0'))
+                  {
+                     _aax_arch_capabilities |= AAX_ARCH_NEON;
+                     if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
+                        res = AAX_SIMD_VFPV4_NEON;
                      }
-                     else if (*(ptr+4) == '3')
-                     {
-                        _aax_arch_capabilities |= AAX_ARCH_VFPV3;
-                        if ((res & AAX_SIMD_NEON) == 0) res = AAX_SIMD_VFPV3;
-                     }
-                     else if (*(ptr+4) == '4')
-                     {
-                        _aax_arch_capabilities |= AAX_ARCH_VFPVr4;
-                        if ((res & AAX_SIMD_NEON) == 0) res = AAX_SIMD_VFPV4;
-                        else if (((res & AAX_SIMD_NEON) == 1) res = AAX_SIMD_VFPV4_NEON;
-                     }
+                     else res = AAX_SIMD_NEON;
                   }
                }
             }
