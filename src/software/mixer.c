@@ -405,6 +405,8 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    return res;
 }
 
+#include <sys/time.h>
+#include <sys/resource.h>
 int
 _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 {
@@ -413,6 +415,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    const _aaxDriverBackend *be, *fbe = NULL;
    _intBufferData *dptr_sensor;
    int res = 0;
+struct rusage start, end;
 
    assert(handle);
    assert(handle->sensors);
@@ -420,6 +423,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    assert(handle->info->no_tracks);
 
    _aaxTimerStart(handle->timer);
+getrusage(RUSAGE_SELF, &start);
 
    be = handle->backend.ptr;
    if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {
@@ -574,8 +578,16 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
       }
    }
 
+getrusage(RUSAGE_SELF, &end);
    handle->elapsed = _aaxTimerElapsed(handle->timer);
    _aaxTimerStop(handle->timer);
+
+{
+double total;
+total = end.ru_utime.tv_sec - start.ru_utime.tv_sec;
+total += (end.ru_utime.tv_usec - start.ru_utime.tv_usec)*1e-6;
+printf("user: %f ms\n", total*1000.0f);
+}
 
    return res;
 }
