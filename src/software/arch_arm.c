@@ -100,6 +100,7 @@ _aaxArchDetectFeatures()
                   ptr = strchr(features, '\n');
                   if (ptr) *ptr = '\0';
 
+#if 0
                   ptr = strstr(features, " vfp");
                   if (ptr && (*(ptr+4) == ' ' || *(ptr+5) == '\0'))
                   {
@@ -120,6 +121,7 @@ _aaxArchDetectFeatures()
                      _aax_arch_capabilities |= AAX_ARCH_VFPV4;
                      res = AAX_SIMD_VFPV4;
                   }
+#endif
 
                   ptr = strstr(features, " neon");
                   if (ptr && (*(ptr+5) == ' ' || *(ptr+6) == '\0'))
