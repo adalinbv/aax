@@ -1679,7 +1679,8 @@ _aaxBufResampleCubic_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin,
          smu += freq_factor;
          if (smu >= 1.0)
          {
-            smu--;            a0 += y0;
+            smu--;
+            a0 += y0;
             y0 = y1;
             y1 = y2;
             y2 = y3;
