@@ -155,21 +155,25 @@ _aaxGetSIMDSupportString()
       vec4Mulvec4 = _vec4Mulvec4_neon;
       vec4Matrix4 = _vec4Matrix4_neon;
       pt4Matrix4 = _pt4Matrix4_neon;
-
       mtx4Mul = _mtx4Mul_neon;
 
-      _batch_imadd = _batch_imadd_neon;
-      _batch_fmadd = _batch_fmadd_neon;
+#if 0
+      _batch_cvtps_24 = _batch_cvtps_24_sse2;
+      _batch_cvt24_ps = _batch_cvt24_ps_sse2;
+      _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
+#endif
       _batch_cvt24_16 = _batch_cvt24_16_neon;
       _batch_cvt16_24 = _batch_cvt16_24_neon;
-//    _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
-      _batch_freqfilter = _batch_freqfilter_neon;
 
 # if RB_FLOAT_DATA
+      _batch_fmadd = _batch_fmadd_neon;
       _batch_cvtps24_24 = _batch_cvtps24_24_neon;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
+      _batch_freqfilter = _batch_freqfilter_float_neon;
       _batch_resample_float = _batch_resample_float_neon;
 # else
+      _batch_imadd = _batch_imadd_neon;
+      _batch_freqfilter = _batch_freqfilter_neon;
       _batch_resample = _batch_resample_neon;
 # endif
    }

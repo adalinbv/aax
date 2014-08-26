@@ -297,9 +297,7 @@ _aaxGetSIMDSupportString()
    }
    if (_aax_arch_capabilities & AAX_ARCH_SSE2)
    {
-      _aax_memcpy = _aax_memcpy_sse2;
-      _batch_imadd = _batch_imadd_sse2;
-      _batch_fmadd = _batch_fmadd_sse2;
+//    _aax_memcpy = _aax_memcpy_sse2;
       _batch_cvtps_24 = _batch_cvtps_24_sse2;
       _batch_cvt24_ps = _batch_cvt24_ps_sse2;
       _batch_cvt24_16 = _batch_cvt24_16_sse2;
@@ -307,11 +305,13 @@ _aaxGetSIMDSupportString()
       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
 # if RB_FLOAT_DATA
+      _batch_fmadd = _batch_fmadd_sse2;
       _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
       _batch_freqfilter_float = _batch_freqfilter_float_sse2;
       _batch_resample_float = _batch_resample_float_sse2;
 # else
+      _batch_imadd = _batch_imadd_sse2;
       _batch_freqfilter = _batch_freqfilter_sse2;
       _batch_resample = _batch_resample_sse2;
 # endif
