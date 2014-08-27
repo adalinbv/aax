@@ -618,6 +618,39 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
    hist[1] = h1;
 }
 
+void
+_batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
+{
+   size_t i = num;
+
+   if (num)
+   {
+      switch (bps)
+      {
+      case 4:
+      {
+         float *d = (float*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+      }
+      case 8:
+      {
+         double *d = (double*)data;
+         do {
+            *d++ *= f;
+         }
+         while (--i);
+         break;
+      }
+      default:
+         break;
+      }
+   }
+}
+
 #if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleSkip_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)

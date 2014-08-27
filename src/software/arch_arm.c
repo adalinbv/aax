@@ -164,6 +164,7 @@ _aaxGetSIMDSupportString()
 #endif
       _batch_cvt24_16 = _batch_cvt24_16_neon;
       _batch_cvt16_24 = _batch_cvt16_24_neon;
+      _batch_fmul_value = _batch_fmul_value_neon;
 
 # if RB_FLOAT_DATA
       _batch_fmadd = _batch_fmadd_neon;

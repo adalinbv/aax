@@ -181,6 +181,9 @@ void _batch_fma4_avx(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_imadd_neon(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_neon(float32_ptr, const_float32_ptr, unsigned in, float, float);
 void _batch_freqfilter_neon(int32_ptr, const_int32_ptr, size_t, float*, float, float, float, const float*);
+void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, size_t, float*, float, float, float, const float*);
+void _batch_fmul_value_neon(void*, unsigned, size_t, float);
+
 #if RB_FLOAT_DATA
 void _batch_cvtps24_24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon(void_ptr, const_void_ptr, size_t);
