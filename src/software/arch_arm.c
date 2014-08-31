@@ -170,7 +170,7 @@ _aaxGetSIMDSupportString()
       _batch_fmadd = _batch_fmadd_neon;
       _batch_cvtps24_24 = _batch_cvtps24_24_neon;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
-      _batch_freqfilter = _batch_freqfilter_float_neon;
+      _batch_freqfilter_float = _batch_freqfilter_float_neon;
       _batch_resample_float = _batch_resample_float_neon;
 # else
       _batch_imadd = _batch_imadd_neon;
