@@ -267,11 +267,17 @@ ELSE(MSVC)
                      PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=corei7"
         )
     ELSEIF(ARM)
-        message("Build environment: ARM-HF")
+        message("Build environment: ARM")
 # In Debian Linux and derivatives armhf (ARM hard float) refers to the ARMv7
 # architecture including the additional VFP3-D16 floating-point hardware
 # extension (and Thumb-2) above.
-        SET(C_FLAGS "${C_FLAGS} -march=armv7 -mfpu=vfpv3-d16 -mfloat-abi=hard")
+        SET(C_FLAGS "${C_FLAGS} -march=armv5 -mfloat-abi=soft")
+#        SET_PROPERTY(SOURCE src/software/cpu/arch3d_hf.c APPEND
+#                     PROPERTY COMPILE_FLAGS "-march=armv7 -mfpu=vfpv3-d16 -mfloat-abi=hard"
+#        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_hf.c APPEND
+                     PROPERTY COMPILE_FLAGS "-march=armv7 -mfpu=vfpv3-d16 -mfloat-abi=hard"
+        )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND 
                      PROPERTY COMPILE_FLAGS "-mfpu=neon -funsafe-math-optimizations"
         )
@@ -440,11 +446,13 @@ SET( AEONWAVE_OBJS
      src/software/cpu/rbuf_limiter_tables.c
      src/software/cpu/rbuf_mixmulti.c
      src/software/cpu/rbuf_mixsingle.c
+#     src/software/cpu/arch3d_hf.c
      src/software/cpu/arch3d_neon.c
      src/software/cpu/arch3d_sse.c
      src/software/cpu/arch3d_sse3.c
      src/software/cpu/arch3d_sse41.c
      src/software/cpu/arch2d_cpu.c
+     src/software/cpu/arch2d_hf.c
      src/software/cpu/arch2d_neon.c
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c

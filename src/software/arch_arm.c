@@ -38,12 +38,15 @@
 #define MAX_CPUINFO	1024
 
 enum {
-    AAX_NO_SIMD      = 0,
-    AAX_ARCH_VFP     = 0x00000001,
-    AAX_ARCH_VFPV3   = 0x00000002,
-    AAX_ARCH_VFPV4   = 0x00000004,
-    AAX_ARCH_NEON    = 0x00000008
+    AAX_NO_SIMD       = 0,
+    AAX_ARCH_VFP      = 0x00000001,
+    AAX_ARCH_VFPV3    = 0x00000002,
+    AAX_ARCH_VFPV4    = 0x00000004,
+    AAX_ARCH_NEON     = 0x00000008,
+
+    AAX_ARCH_HF       = (AAX_ARCH_VFPV3|AAX_ARCH_VFPV4)
 };
+
 
 enum {
    AAX_SIMD_NONE = 0,
@@ -107,6 +110,13 @@ _aaxArchDetectFeatures()
                      _aax_arch_capabilities |= AAX_ARCH_VFP;
                      res = AAX_SIMD_VFP;
                   }
+#endif
+                  ptr = strstr(features, " vfpv3-d16");
+                  if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
+                  {
+                     _aax_arch_capabilities |= AAX_ARCH_VFPV3;
+                     res = AAX_SIMD_VFPV3;
+                  }
 
                   ptr = strstr(features, " vfpv3");
                   if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
@@ -121,7 +131,6 @@ _aaxArchDetectFeatures()
                      _aax_arch_capabilities |= AAX_ARCH_VFPV4;
                      res = AAX_SIMD_VFPV4;
                   }
-#endif
 
                   ptr = strstr(features, " neon");
                   if (ptr && (*(ptr+5) == ' ' || *(ptr+6) == '\0'))
@@ -146,6 +155,32 @@ _aaxGetSIMDSupportString()
    uint32_t level = AAX_NO_SIMD;
 
    level = _aaxArchDetectFeatures();
+   if (_aax_arch_capabilities & AAX_ARCH_HF)
+   {
+      _batch_fmadd = _batch_fmadd_hf;
+      _batch_imul_value = _batch_imul_value_hf;
+      _batch_fmul_value = _batch_fmul_value_hf;
+      _batch_cvt24_ps = _batch_cvt24_ps_hf;
+      _batch_cvtps_24 = _batch_cvtps_24_hf;
+      _batch_cvt24_pd = _batch_cvt24_pd_hf;
+      _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_hf;
+      _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_hf;
+      _batch_cvtpd_24 = _batch_cvtpd_24_hf;
+      _batch_cvtps_intl_24 = _batch_cvtps_intl_24_hf;
+      _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_hf;
+
+      _batch_freqfilter = _batch_freqfilter_hf;
+      _batch_freqfilter_float = _batch_freqfilter_float_hf;
+
+#if RB_FLOAT_DATA
+      _batch_cvt24_ps24 = _batch_cvt24_ps24_hf;
+      _batch_cvtps24_24 = _batch_cvtps24_24_hf;
+      _batch_resample_float = _batch_resample_float_hf;
+#else
+      _batch_resample = _batch_resample_hf;
+#endif
+   }
+
    if (_aax_arch_capabilities & AAX_ARCH_NEON)
    {
       vec4Add = _vec4Add_neon;
