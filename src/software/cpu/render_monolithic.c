@@ -28,7 +28,7 @@
 #include <api.h>
 
 #include "software/renderer.h"
-
+#include "software/rbuf_int.h"
 
 static _renderer_detect_fn _aaxCPUDetect;
 static _renderer_new_handle_fn _aaxCPUSetup;
@@ -85,7 +85,19 @@ _aaxCPUSetup(int dt)
 static const char*
 _aaxCPUInfo(void *id)
 {
-   return _aaxGetSIMDSupportString();
+   static char info[32] = "";
+
+   if (strlen(info) == 0)
+   {
+      const char *hwstr = _aaxGetSIMDSupportString();
+#if RB_FLOAT_DATA
+      snprintf(info, 32, "FP %s", hwstr);
+#else
+      snprintf(info, 32, "%s", hwstr);
+#endif
+   }
+
+   return info;
 }
 
 static int
