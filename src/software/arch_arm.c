@@ -177,6 +177,33 @@ _aaxGetSIMDSupportString()
 #else
       _batch_resample = _batch_resample_vfpv2;
 #endif
+
+      vec3Add = _vec3Add_vfpv2;
+      vec3Copy = _vec3Copy_vfpv2;
+      vec3Devide = _vec3Devide_vfpv2;
+      vec3Mulvec3 = _vec3Mulvec3_vfpv2;
+      vec3Sub = _vec3Sub_vfpv2;
+
+      vec3Magnitude = _vec3Magnitude_vfpv2;
+      vec3dMagnitude = _vec3dMagnitude_vfpv2;
+      vec3MagnitudeSquared = _vec3MagnitudeSquared_vfpv2;
+      vec3DotProduct = _vec3DotProduct_vfpv2;
+      vec3dDotProduct = _vec3dDotProduct_vfpv2;
+      vec3Normalize = _vec3Normalize_vfpv2;
+      vec3dNormalize = _vec3dNormalize_vfpv2;
+      vec3CrossProduct = _vec3CrossProduct_vfpv2;
+
+      vec4Add = _vec4Add_vfpv2;
+      vec4Copy = _vec4Copy_vfpv2;
+      vec4Devide = _vec4Devide_vfpv2;
+      vec4Mulvec4 = _vec4Mulvec4_vfpv2;
+      vec4Sub = _vec4Sub_vfpv2;
+      vec4Matrix4 = _vec4Matrix4_vfpv2;
+      pt4Matrix4 = _pt4Matrix4_vfpv2;
+      mtx4Mul = _mtx4Mul_vfpv2;
+      mtx4dMul = _mtx4dMul_vfpv2;
+
+      ivec4Devide = _ivec4Devide_vfpv2;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_HF)
@@ -203,6 +230,33 @@ _aaxGetSIMDSupportString()
 #else
       _batch_resample = _batch_resample_vfpv3;
 #endif
+
+      vec3Add = _vec3Add_vfpv3;
+      vec3Copy = _vec3Copy_vfpv3;
+      vec3Devide = _vec3Devide_vfpv3;
+      vec3Mulvec3 = _vec3Mulvec3_vfpv3;
+      vec3Sub = _vec3Sub_vfpv3;
+
+      vec3Magnitude = _vec3Magnitude_vfpv3;
+      vec3dMagnitude = _vec3dMagnitude_vfpv3;
+      vec3MagnitudeSquared = _vec3MagnitudeSquared_vfpv3;
+      vec3DotProduct = _vec3DotProduct_vfpv3;
+      vec3dDotProduct = _vec3dDotProduct_vfpv3;
+      vec3Normalize = _vec3Normalize_vfpv3;
+      vec3dNormalize = _vec3dNormalize_vfpv3;
+      vec3CrossProduct = _vec3CrossProduct_vfpv3;
+
+      vec4Add = _vec4Add_vfpv3;
+      vec4Copy = _vec4Copy_vfpv3;
+      vec4Devide = _vec4Devide_vfpv3;
+      vec4Mulvec4 = _vec4Mulvec4_vfpv3;
+      vec4Sub = _vec4Sub_vfpv3;
+      vec4Matrix4 = _vec4Matrix4_vfpv3;
+      pt4Matrix4 = _pt4Matrix4_vfpv3;
+      mtx4Mul = _mtx4Mul_vfpv3;
+      mtx4dMul = _mtx4dMul_vfpv3;
+
+      ivec4Devide = _ivec4Devide_vfpv3;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_NEON)

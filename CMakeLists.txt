@@ -270,16 +270,16 @@ ELSE(MSVC)
         message("Build environment: ARM")
         SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm")
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
-                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard"
+                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
-                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard"
+                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard"
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard"
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND 
                      PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"

@@ -5,6 +5,10 @@
    CPU has to do but devides the wall time spent on rendering by the number of
    physical cores. Threading is now always active on multi-core systems except
    when the environment variable AAX_USE_THREADPOOL is set to 0.
+ * Add support for the ARM architecture including support for hardware FPU
+   and NEON. Rendering performance is comparible with Intel/AMD Cores
+   at an equal CPU frequency and like x86 is at least 6 times faster than
+   OpenAL-Soft.
 
 * Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low

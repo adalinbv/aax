@@ -18,6 +18,7 @@
 #include "software/rbuf_int.h"
 #include "arch2d_simd.h"
 
+#ifdef __ARM_VFPV3
 void
 _batch_fmadd_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
@@ -401,7 +402,7 @@ _batch_freqfilter_float_vfpv3(float32_ptr d, const_float32_ptr sptr, size_t num,
  *
  * Note: smax is only used in the *Loop mixing functions
  */
-#if !RB_FLOAT_DATA
+# if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleSkip_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -518,11 +519,11 @@ _aaxBufResampleLinear_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, s
       while (--i);
    }
 
-#if 0
+#  if 0
  printf("dptr: %x, d+dmax: %x, dptr-d: %i (%x)\n", d, dptr+dmax, d-dptr, samp);
  for (i=0; i<dmax; i++)
     if (d[i] != 0x333300) printf("->d[%i] = %x\n", i, d[i]);
-#endif
+#  endif
 }
 
 static inline void
@@ -565,7 +566,7 @@ _aaxBufResampleCubic_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, si
          if (smu >= 1.0f)
          {
             smu--;
-#if 0
+#  if 0
             /* original code */
             s -= 3;
             y0 = *s++;
@@ -576,7 +577,7 @@ _aaxBufResampleCubic_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, si
             a0 = y3 - y2 - y0 + y1;
             a1 = y0 - y1 - a0;
             a2 = y2 - y0;
-#else
+#  else
             /* optimized code */
             a0 += y0;
             y0 = y1;
@@ -586,7 +587,7 @@ _aaxBufResampleCubic_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, si
             a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
             a1 = y0 - y1 - a0;
             a2 = y2 - y0;
-#endif
+#  endif
          }
       }
       while (--i);
@@ -611,7 +612,7 @@ _batch_resample_vfpv3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, 
    }
 }
 
-#else
+# else
 static inline void
 _aaxBufResampleSkip_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -728,9 +729,9 @@ _aaxBufResampleLinear_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size
       while (--i);
    }
 
-#if 0
+#  if 0
  printf("dptr: %x, d+dmax: %x, dptr-d: %i (%f)\n", d, dptr+dmax, d-dptr, samp);
-#endif
+#  endif
 }
 
 static inline void
@@ -773,7 +774,7 @@ _aaxBufResampleCubic_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_
          if (smu >= 1.0f)
          {
             smu--;
-#if 0
+#  if 0
             /* original code */
             /* original code */
             s -= 3;
@@ -785,7 +786,7 @@ _aaxBufResampleCubic_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_
             a0 = y3 - y2 - y0 + y1;
             a1 = y0 - y1 - a0;
             a2 = y2 - y0;
-#else
+#  else
             /* optimized code */
             a0 += y0;
             y0 = y1;
@@ -795,7 +796,7 @@ _aaxBufResampleCubic_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_
             a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
             a1 = y0 - y1 - a0;
             a2 = y2 - y0;
-#endif
+#  endif
          }
       }
       while (--i);
@@ -819,5 +820,6 @@ _batch_resample_float_vfpv3(float32_ptr d, const_float32_ptr s, size_t dmin, siz
       _aaxBufResampleNearest_float_vfpv3(d, s, dmin, dmax, smu, fact);
    }
 }
-#endif /* RB_FLOAT_DATA */
+# endif /* RB_FLOAT_DATA */
+#endif /* __ARM_VFPV3 */
 
