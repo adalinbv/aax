@@ -268,21 +268,24 @@ ELSE(MSVC)
         )
     ELSEIF(ARM)
         message("Build environment: ARM")
-# In Debian Linux and derivatives armhf (ARM hard float) refers to the ARMv7
-# architecture including the additional VFP3-D16 floating-point hardware
-# extension (and Thumb-2) above.
-        SET(C_FLAGS "${C_FLAGS} -march=armv5 -mfloat-abi=soft")
-#        SET_PROPERTY(SOURCE src/software/cpu/arch3d_hf.c APPEND
-#                     PROPERTY COMPILE_FLAGS "-march=armv7 -mfpu=vfpv3-d16 -mfloat-abi=hard"
-#        )
-        SET_PROPERTY(SOURCE src/software/cpu/arch2d_hf.c APPEND
-                     PROPERTY COMPILE_FLAGS "-march=armv7 -mfpu=vfpv3-d16 -mfloat-abi=hard"
+        SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm")
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
+                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
+                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard"
+        )
+        SET_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND 
-                     PROPERTY COMPILE_FLAGS "-mfpu=neon -funsafe-math-optimizations"
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
         )
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND 
-                     PROPERTY COMPILE_FLAGS "-mfpu=neon -funsafe-math-optimizations"
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
         )
     ELSE()
         message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
@@ -294,7 +297,7 @@ ELSE(MSVC)
           FORCE)
     ENDIF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
-    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops -fprefetch-loop-arrays" CACHE STRING
+    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops" CACHE STRING
         "Flags used by al build types."
         FORCE)
 
@@ -302,10 +305,10 @@ ELSE(MSVC)
     SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -g -DNDEBUG" CACHE STRING
         "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
         "Flags used by the compiler during release minsize builds."
         FORCE)
-    SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
+    SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
         CACHE STRING "Flags used by the compiler during release builds"
         FORCE)
     SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
@@ -446,13 +449,15 @@ SET( AEONWAVE_OBJS
      src/software/cpu/rbuf_limiter_tables.c
      src/software/cpu/rbuf_mixmulti.c
      src/software/cpu/rbuf_mixsingle.c
-#     src/software/cpu/arch3d_hf.c
+     src/software/cpu/arch3d_vfpv2.c
+     src/software/cpu/arch3d_vfpv3.c
      src/software/cpu/arch3d_neon.c
      src/software/cpu/arch3d_sse.c
      src/software/cpu/arch3d_sse3.c
      src/software/cpu/arch3d_sse41.c
      src/software/cpu/arch2d_cpu.c
-     src/software/cpu/arch2d_hf.c
+     src/software/cpu/arch2d_vfpv2.c
+     src/software/cpu/arch2d_vfpv3.c
      src/software/cpu/arch2d_neon.c
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c

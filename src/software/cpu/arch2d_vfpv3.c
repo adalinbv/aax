@@ -15,10 +15,11 @@
 
 #include <math.h>	/* rinft */
 
+#include "software/rbuf_int.h"
 #include "arch2d_simd.h"
 
 void
-_batch_fmadd_hf(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
+_batch_fmadd_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
    if (num)
    {
@@ -35,7 +36,7 @@ _batch_fmadd_hf(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, f
 }
 
 void
-_batch_imul_value_hf(void* data, unsigned bps, size_t num, float f)
+_batch_imul_value_vfpv3(void* data, unsigned bps, size_t num, float f)
 {
    size_t i = num;
    if (num)
@@ -76,7 +77,7 @@ _batch_imul_value_hf(void* data, unsigned bps, size_t num, float f)
 }
 
 void
-_batch_fmul_value_hf(void* data, unsigned bps, size_t num, float f)
+_batch_fmul_value_vfpv3(void* data, unsigned bps, size_t num, float f)
 {
    size_t i = num;
    if (num)
@@ -108,7 +109,7 @@ _batch_fmul_value_hf(void* data, unsigned bps, size_t num, float f)
 }
 
 void
-_batch_cvt24_ps24_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
+_batch_cvt24_ps24_vfpv3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -123,7 +124,7 @@ _batch_cvt24_ps24_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvtps24_24_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
+_batch_cvtps24_24_vfpv3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -138,7 +139,7 @@ _batch_cvtps24_24_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvt24_ps_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
+_batch_cvt24_ps_vfpv3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -154,7 +155,7 @@ _batch_cvt24_ps_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvtps_24_hf(void_ptr dst, const_void_ptr sptr, size_t num)
+_batch_cvtps_24_vfpv3(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -170,7 +171,7 @@ _batch_cvtps_24_hf(void_ptr dst, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvt24_pd_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
+_batch_cvt24_pd_vfpv3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -186,7 +187,7 @@ _batch_cvt24_pd_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvt24_ps_intl_hf(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+_batch_cvt24_ps_intl_vfpv3(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -215,7 +216,7 @@ _batch_cvt24_ps_intl_hf(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, u
 }
 
 void
-_batch_cvt24_pd_intl_hf(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+_batch_cvt24_pd_intl_vfpv3(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -243,7 +244,7 @@ _batch_cvt24_pd_intl_hf(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, u
 }
 
 void
-_batch_cvtpd_24_hf(void_ptr dst, const_void_ptr sptr, size_t num)
+_batch_cvtpd_24_vfpv3(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -258,7 +259,7 @@ _batch_cvtpd_24_hf(void_ptr dst, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvt24_8_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
+_batch_cvt24_8_vfpv3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
@@ -274,7 +275,7 @@ _batch_cvt24_8_hf(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
-_batch_cvtps_intl_24_hf(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
+_batch_cvtps_intl_24_vfpv3(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -298,7 +299,7 @@ _batch_cvtps_intl_24_hf(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, u
 }
 
 void
-_batch_cvtpd_intl_24_hf(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
+_batch_cvtpd_intl_24_vfpv3(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)
    {
@@ -322,7 +323,7 @@ _batch_cvtpd_intl_24_hf(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, u
 }
 
 void
-_batch_freqfilter_hf(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_vfpv3(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    if (num)
    {
@@ -353,7 +354,7 @@ _batch_freqfilter_hf(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist,
 }
 
 void
-_batch_freqfilter_float_hf(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_vfpv3(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
 {
    if (num)
    {
@@ -402,7 +403,7 @@ _batch_freqfilter_float_hf(float32_ptr d, const_float32_ptr sptr, size_t num, fl
  */
 #if !RB_FLOAT_DATA
 static inline void
-_aaxBufResampleSkip_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
    int32_ptr d = dptr;
@@ -442,7 +443,7 @@ _aaxBufResampleSkip_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t
 }
 
 static inline void
-_aaxBufResampleNearest_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
@@ -481,7 +482,7 @@ _aaxBufResampleNearest_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, siz
 }
 
 static inline void
-_aaxBufResampleLinear_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
    int32_ptr d = dptr;
@@ -525,7 +526,7 @@ _aaxBufResampleLinear_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size
 }
 
 static inline void
-_aaxBufResampleCubic_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_vfpv3(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    int32_ptr s = (int32_ptr)sptr;
@@ -593,26 +594,26 @@ _aaxBufResampleCubic_hf(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_
 }
 
 void
-_batch_resample_hf(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
+_batch_resample_vfpv3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 
    if (fact < CUBIC_TRESHOLD) {
-      _aaxBufResampleCubic_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleCubic_vfpv3(d, s, dmin, dmax, smu, fact);
    }
    else if (fact < 1.0f) {
-      _aaxBufResampleLinear_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleLinear_vfpv3(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleSkip_vfpv3(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleNearest_vfpv3(d, s, dmin, dmax, smu, fact);
    }
 }
 
 #else
 static inline void
-_aaxBufResampleSkip_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleSkip_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
@@ -652,7 +653,7 @@ _aaxBufResampleSkip_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t dm
 }
 
 static inline void
-_aaxBufResampleNearest_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleNearest_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
       _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
@@ -691,7 +692,7 @@ _aaxBufResampleNearest_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t
 }
 
 static inline void
-_aaxBufResampleLinear_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
@@ -733,7 +734,7 @@ _aaxBufResampleLinear_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t 
 }
 
 static inline void
-_aaxBufResampleCubic_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleCubic_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float y0, y1, y2, y3, a0, a1, a2;
    float32_ptr s = (float32_ptr)sptr;
@@ -802,20 +803,20 @@ _aaxBufResampleCubic_float_hf(float32_ptr dptr, const_float32_ptr sptr, size_t d
 }
 
 void
-_batch_resample_float_hf(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
+_batch_resample_float_vfpv3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
 
    if (fact < CUBIC_TRESHOLD) {
-      _aaxBufResampleCubic_float_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleCubic_float_vfpv3(d, s, dmin, dmax, smu, fact);
    }
    else if (fact < 1.0f) {
-      _aaxBufResampleLinear_float_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleLinear_float_vfpv3(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_float_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleSkip_float_vfpv3(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_float_hf(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleNearest_float_vfpv3(d, s, dmin, dmax, smu, fact);
    }
 }
 #endif /* RB_FLOAT_DATA */

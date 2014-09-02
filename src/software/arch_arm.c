@@ -39,7 +39,7 @@
 
 enum {
     AAX_NO_SIMD       = 0,
-    AAX_ARCH_VFP      = 0x00000001,
+    AAX_ARCH_VFPV2    = 0x00000001,
     AAX_ARCH_VFPV3    = 0x00000002,
     AAX_ARCH_VFPV4    = 0x00000004,
     AAX_ARCH_NEON     = 0x00000008,
@@ -50,7 +50,7 @@ enum {
 
 enum {
    AAX_SIMD_NONE = 0,
-   AAX_SIMD_VFP,
+   AAX_SIMD_VFPV2,
    AAX_SIMD_VFPV3,
    AAX_SIMD_VFPV4,
    AAX_SIMD_NEON,
@@ -62,7 +62,7 @@ static uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
    SIMD_PREFIX"",
-   SIMD_PREFIX"VFP",
+   SIMD_PREFIX"VFPv2",
    SIMD_PREFIX"VFPv3",
    SIMD_PREFIX"VFPv4",
    SIMD_PREFIX"NEON",
@@ -103,14 +103,12 @@ _aaxArchDetectFeatures()
                   ptr = strchr(features, '\n');
                   if (ptr) *ptr = '\0';
 
-#if 0
                   ptr = strstr(features, " vfp");
                   if (ptr && (*(ptr+4) == ' ' || *(ptr+5) == '\0'))
                   {
-                     _aax_arch_capabilities |= AAX_ARCH_VFP;
-                     res = AAX_SIMD_VFP;
+                     _aax_arch_capabilities |= AAX_ARCH_VFPV2;
+                     res = AAX_SIMD_VFPV2;
                   }
-#endif
                   ptr = strstr(features, " vfpv3-d16");
                   if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
                   {
@@ -155,29 +153,55 @@ _aaxGetSIMDSupportString()
    uint32_t level = AAX_NO_SIMD;
 
    level = _aaxArchDetectFeatures();
-   if (_aax_arch_capabilities & AAX_ARCH_HF)
+   if (_aax_arch_capabilities & AAX_ARCH_VFPV2)
    {
-      _batch_fmadd = _batch_fmadd_hf;
-      _batch_imul_value = _batch_imul_value_hf;
-      _batch_fmul_value = _batch_fmul_value_hf;
-      _batch_cvt24_ps = _batch_cvt24_ps_hf;
-      _batch_cvtps_24 = _batch_cvtps_24_hf;
-      _batch_cvt24_pd = _batch_cvt24_pd_hf;
-      _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_hf;
-      _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_hf;
-      _batch_cvtpd_24 = _batch_cvtpd_24_hf;
-      _batch_cvtps_intl_24 = _batch_cvtps_intl_24_hf;
-      _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_hf;
+      _batch_fmadd = _batch_fmadd_vfpv2;
+      _batch_imul_value = _batch_imul_value_vfpv2;
+      _batch_fmul_value = _batch_fmul_value_vfpv2;
+      _batch_cvt24_ps = _batch_cvt24_ps_vfpv2;
+      _batch_cvtps_24 = _batch_cvtps_24_vfpv2;
+      _batch_cvt24_pd = _batch_cvt24_pd_vfpv2;
+      _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv2;
+      _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv2;
+      _batch_cvtpd_24 = _batch_cvtpd_24_vfpv2;
+      _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv2;
+      _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv2;
 
-      _batch_freqfilter = _batch_freqfilter_hf;
-      _batch_freqfilter_float = _batch_freqfilter_float_hf;
+      _batch_freqfilter = _batch_freqfilter_vfpv2;
+      _batch_freqfilter_float = _batch_freqfilter_float_vfpv2;
 
 #if RB_FLOAT_DATA
-      _batch_cvt24_ps24 = _batch_cvt24_ps24_hf;
-      _batch_cvtps24_24 = _batch_cvtps24_24_hf;
-      _batch_resample_float = _batch_resample_float_hf;
+      _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv2;
+      _batch_cvtps24_24 = _batch_cvtps24_24_vfpv2;
+      _batch_resample_float = _batch_resample_float_vfpv2;
 #else
-      _batch_resample = _batch_resample_hf;
+      _batch_resample = _batch_resample_vfpv2;
+#endif
+   }
+
+   if (_aax_arch_capabilities & AAX_ARCH_HF)
+   {
+      _batch_fmadd = _batch_fmadd_vfpv3;
+      _batch_imul_value = _batch_imul_value_vfpv3;
+      _batch_fmul_value = _batch_fmul_value_vfpv3;
+      _batch_cvt24_ps = _batch_cvt24_ps_vfpv3;
+      _batch_cvtps_24 = _batch_cvtps_24_vfpv3;
+      _batch_cvt24_pd = _batch_cvt24_pd_vfpv3;
+      _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv3;
+      _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv3;
+      _batch_cvtpd_24 = _batch_cvtpd_24_vfpv3;
+      _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv3;
+      _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv3;
+
+      _batch_freqfilter = _batch_freqfilter_vfpv3;
+      _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
+
+#if RB_FLOAT_DATA
+      _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv3;
+      _batch_cvtps24_24 = _batch_cvtps24_24_vfpv3;
+      _batch_resample_float = _batch_resample_float_vfpv3;
+#else
+      _batch_resample = _batch_resample_vfpv3;
 #endif
    }
 
