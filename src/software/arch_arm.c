@@ -179,7 +179,6 @@ _aaxGetSIMDSupportString()
 #endif
 
       vec3Add = _vec3Add_vfpv2;
-      vec3Copy = _vec3Copy_vfpv2;
       vec3Devide = _vec3Devide_vfpv2;
       vec3Mulvec3 = _vec3Mulvec3_vfpv2;
       vec3Sub = _vec3Sub_vfpv2;
@@ -194,7 +193,6 @@ _aaxGetSIMDSupportString()
       vec3CrossProduct = _vec3CrossProduct_vfpv2;
 
       vec4Add = _vec4Add_vfpv2;
-      vec4Copy = _vec4Copy_vfpv2;
       vec4Devide = _vec4Devide_vfpv2;
       vec4Mulvec4 = _vec4Mulvec4_vfpv2;
       vec4Sub = _vec4Sub_vfpv2;
@@ -232,7 +230,6 @@ _aaxGetSIMDSupportString()
 #endif
 
       vec3Add = _vec3Add_vfpv3;
-      vec3Copy = _vec3Copy_vfpv3;
       vec3Devide = _vec3Devide_vfpv3;
       vec3Mulvec3 = _vec3Mulvec3_vfpv3;
       vec3Sub = _vec3Sub_vfpv3;
@@ -247,7 +244,6 @@ _aaxGetSIMDSupportString()
       vec3CrossProduct = _vec3CrossProduct_vfpv3;
 
       vec4Add = _vec4Add_vfpv3;
-      vec4Copy = _vec4Copy_vfpv3;
       vec4Devide = _vec4Devide_vfpv3;
       vec4Mulvec4 = _vec4Mulvec4_vfpv3;
       vec4Sub = _vec4Sub_vfpv3;
