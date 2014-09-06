@@ -328,7 +328,7 @@ _aaxWorkerThread(void *id)
                }
             }
          }
-         while(max > 0);
+         while (max > 0);
 
          /* mix our own ringbuffer with that of the mixer */
          _aaxMutexLock(handle->mutex);

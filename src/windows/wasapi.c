@@ -88,7 +88,7 @@ static _aaxDriverState _aaxWASAPIDriverState;
 static _aaxDriverParam _aaxWASAPIDriverParam;
 static _aaxDriverLog _aaxWASAPIDriverLog;
 
-static char _wasapi_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
+static char _wasapi_id_str[MAX_ID_STRLEN] = DEFAULT_RENDERER;
 static const EDataFlow _mode[] = { eCapture, eRender };
 
 const _aaxDriverBackend _aaxWASAPIDriverBackend =
@@ -96,7 +96,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char*)&_wasapi_default_renderer,
+   (char*)&_wasapi_id_str,
 
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
@@ -318,7 +318,7 @@ _aaxWASAPIDriverDetect(int mode)
 
    if (audio)
    {
-      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
+      snprintf(_wasapi_id_str, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
       rv = AAX_TRUE;
    }
 
@@ -2723,8 +2723,7 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
    {
       const char *rstr = handle->render->info(handle->render->id);
 
-      snprintf(_wasapi_default_renderer, MAX_ID_STRLEN, "%s %s",
-                                         DEFAULT_RENDERER, rstr);
+      snprintf(_wasapi_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, rstr);
    }
 
    if (co_init) {

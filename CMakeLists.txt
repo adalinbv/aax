@@ -417,13 +417,14 @@ SET( AEONWAVE_OBJS
      src/aax_instrument.c
      src/aax_midi.c
      src/filters/effects.c
-     src/alsa/device.c
+     src/alsa/asound.c
      src/dmedia/device.c
      src/oss/device.c
      src/stream/file.c
      src/stream/filetype.c
      src/stream/wavext.c
      src/stream/mp3ext.c
+     src/android/opensl.c
      src/software/device.c
      src/software/arch.c
      src/software/arch_x86.c

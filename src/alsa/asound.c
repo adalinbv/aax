@@ -58,28 +58,28 @@
                                        ","AAX_MKSTR(DEFAULT_IFNUM)
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_HWDEVNAME	"hw:0"
-#define DEFAULT_RENDERER	"ALSA"
+#define DEFAULT_RENDERER	"ASOUND"
 
-#define ALSA_TIE_FUNCTION(a)	if ((TIE_FUNCTION(a)) == 0) printf("%s\n", #a)
+#define ASOUND_TIE_FUNCTION(a)	if ((TIE_FUNCTION(a)) == 0) printf("%s\n", #a)
 
-static _aaxDriverDetect _aaxALSADriverDetect;
-static _aaxDriverNewHandle _aaxALSADriverNewHandle;
-static _aaxDriverGetDevices _aaxALSADriverGetDevices;
-static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
-static _aaxDriverConnect _aaxALSADriverConnect;
-static _aaxDriverDisconnect _aaxALSADriverDisconnect;
-static _aaxDriverSetup _aaxALSADriverSetup;
-static _aaxDriverCallback _aaxALSADriverPlayback;
-static _aaxDriverCaptureCallback _aaxALSADriverCapture;
-static _aaxDriverGetName _aaxALSADriverGetName;
-static _aaxDriverRender _aaxALSADriverRender;
-static _aaxDriverThread _aaxALSADriverThread;
-static _aaxDriverState _aaxALSADriverState;
-static _aaxDriverParam _aaxALSADriverParam;
-static _aaxDriverLog _aaxALSADriverLog;
+static _aaxDriverDetect _aaxASOUNDDriverDetect;
+static _aaxDriverNewHandle _aaxASOUNDDriverNewHandle;
+static _aaxDriverGetDevices _aaxASOUNDDriverGetDevices;
+static _aaxDriverGetInterfaces _aaxASOUNDDriverGetInterfaces;
+static _aaxDriverConnect _aaxASOUNDDriverConnect;
+static _aaxDriverDisconnect _aaxASOUNDDriverDisconnect;
+static _aaxDriverSetup _aaxASOUNDDriverSetup;
+static _aaxDriverCallback _aaxASOUNDDriverPlayback;
+static _aaxDriverCaptureCallback _aaxASOUNDDriverCapture;
+static _aaxDriverGetName _aaxASOUNDDriverGetName;
+static _aaxDriverRender _aaxASOUNDDriverRender;
+static _aaxDriverThread _aaxASOUNDDriverThread;
+static _aaxDriverState _aaxASOUNDDriverState;
+static _aaxDriverParam _aaxASOUNDDriverParam;
+static _aaxDriverLog _aaxASOUNDDriverLog;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
-const _aaxDriverBackend _aaxALSADriverBackend =
+const _aaxDriverBackend _aaxASOUNDDriverBackend =
 {
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
@@ -89,28 +89,28 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
-   (_aaxDriverDetect *)&_aaxALSADriverDetect,
-   (_aaxDriverNewHandle *)&_aaxALSADriverNewHandle,
-   (_aaxDriverGetDevices *)&_aaxALSADriverGetDevices,
-   (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
+   (_aaxDriverDetect *)&_aaxASOUNDDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxASOUNDDriverNewHandle,
+   (_aaxDriverGetDevices *)&_aaxASOUNDDriverGetDevices,
+   (_aaxDriverGetInterfaces *)&_aaxASOUNDDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxALSADriverGetName,
-   (_aaxDriverRender *)&_aaxALSADriverRender,
-   (_aaxDriverThread *)&_aaxALSADriverThread,
+   (_aaxDriverGetName *)&_aaxASOUNDDriverGetName,
+   (_aaxDriverRender *)&_aaxASOUNDDriverRender,
+   (_aaxDriverThread *)&_aaxASOUNDDriverThread,
 
-   (_aaxDriverConnect *)&_aaxALSADriverConnect,
-   (_aaxDriverDisconnect *)&_aaxALSADriverDisconnect,
-   (_aaxDriverSetup *)&_aaxALSADriverSetup,
-   (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
-   (_aaxDriverCallback *)&_aaxALSADriverPlayback,
+   (_aaxDriverConnect *)&_aaxASOUNDDriverConnect,
+   (_aaxDriverDisconnect *)&_aaxASOUNDDriverDisconnect,
+   (_aaxDriverSetup *)&_aaxASOUNDDriverSetup,
+   (_aaxDriverCaptureCallback *)&_aaxASOUNDDriverCapture,
+   (_aaxDriverCallback *)&_aaxASOUNDDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxALSADriverState,
-   (_aaxDriverParam *)&_aaxALSADriverParam,
-   (_aaxDriverLog *)&_aaxALSADriverLog
+   (_aaxDriverState *)&_aaxASOUNDDriverState,
+   (_aaxDriverParam *)&_aaxASOUNDDriverParam,
+   (_aaxDriverLog *)&_aaxASOUNDDriverLog
 };
 
 typedef struct
@@ -266,8 +266,8 @@ static int _xrun_recovery(snd_pcm_t *, int);
 static unsigned int get_devices_avail(int);
 static int detect_devnum(_driver_t *, int);
 static char *detect_devname(_driver_t *, int);
-static char *_aaxALSADriverLogVar(const void *, const char *, ...);
-static char *_aaxALSADriverGetDefaultInterface(const void *, int);
+static char *_aaxASOUNDDriverLogVar(const void *, const char *, ...);
+static char *_aaxASOUNDDriverGetDefaultInterface(const void *, int);
 
 static int _alsa_pcm_open(_driver_t*, int);
 static int _alsa_pcm_close(_driver_t*);
@@ -276,15 +276,15 @@ static void _alsa_error_handler(const char *, int, const char *, int, const char
 static void _alsa_error_handler_none(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
 static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
-static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
-static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
-static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
-static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
+static _aaxDriverCallback _aaxASOUNDDriverPlayback_mmap_ni;
+static _aaxDriverCallback _aaxASOUNDDriverPlayback_mmap_il;
+static _aaxDriverCallback _aaxASOUNDDriverPlayback_rw_ni;
+static _aaxDriverCallback _aaxASOUNDDriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
 #define FILL_FACTOR		1.65f
-#define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
+#define _AAX_DRVLOG(a)		_aaxASOUNDDriverLog(id, __LINE__, 0, a)
 #define STRCMP(a, b)		strncmp((a), (b), strlen(b))
 
 /* forward declarations */
@@ -298,7 +298,7 @@ static const char* ifname_prefix[];
 // int handle->default_devnum = DEFAULT_DEVNUM;
 
 static int
-_aaxALSADriverDetect(int mode)
+_aaxASOUNDDriverDetect(int mode)
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -307,7 +307,7 @@ _aaxALSADriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    if TEST_FOR_FALSE(rv) {
-#ifndef USE_SALSA
+#ifndef USE_SASOUND
       audio = _aaxIsLibraryPresent("asound", "2");
 #else
       audio = _aaxIsLibraryPresent("salsa", "0");
@@ -358,7 +358,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_mixer_selem_set_capture_volume_all);		//
          TIE_FUNCTION(snd_mixer_selem_get_id);				//
          TIE_FUNCTION(snd_mixer_selem_id_get_name);			//
-#ifndef USE_SALSA
+#ifndef USE_SASOUND
          TIE_FUNCTION(snd_pcm_nonblock);				//
          TIE_FUNCTION(snd_pcm_prepare);					//
          TIE_FUNCTION(snd_pcm_pause);					//
@@ -419,7 +419,7 @@ _aaxALSADriverDetect(int mode)
 }
 
 static void *
-_aaxALSADriverNewHandle(enum aaxRenderMode mode)
+_aaxASOUNDDriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
@@ -431,7 +431,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
    {
       int m = (mode > 0) ? 1 : 0;
       handle->default_name[m] = (char*)_const_alsa_default_name[m];
-      handle->play = _aaxALSADriverPlayback_rw_il;
+      handle->play = _aaxASOUNDDriverPlayback_rw_il;
       handle->pause = 0;
       handle->use_mmap = 1;
       handle->interleaved = 0;
@@ -456,7 +456,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxASOUNDDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int rdr_aax_fmt;
@@ -466,7 +466,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxALSADriverNewHandle(mode);
+      handle = _aaxASOUNDDriverNewHandle(mode);
    }
 
    rdr_aax_fmt = (renderer && strstr(renderer, ": ")) ? 1 : 0;
@@ -476,7 +476,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          handle->name = _aax_strdup((char*)renderer);
       }
       else {
-         renderer = handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
+         renderer = handle->name = _aaxASOUNDDriverGetDefaultInterface(handle, mode);
       }
 
       if (xid)
@@ -493,7 +493,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
                if (strcasecmp(s, "default")) {
                   handle->name = _aax_strdup(s);
                } else {						/* 'default' */
-                  handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
+                  handle->name = _aaxASOUNDDriverGetDefaultInterface(handle,mode);
                }
                xmlFree(s);
             }
@@ -604,7 +604,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 }
 
 static int
-_aaxALSADriverDisconnect(void *id)
+_aaxASOUNDDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -666,13 +666,13 @@ _aaxALSADriverDisconnect(void *id)
 
 
 #ifndef NDEBUG
-# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_DRVLOG(s); printf("ALSA error: %s (%i) at line %i\n", s, err, __LINE__); } }
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_DRVLOG(s); printf("ASOUND error: %s (%i) at line %i\n", s, err, __LINE__); } }
 #else
 # define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_DRVLOG(s); }
 #endif
 
 static int
-_aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxASOUNDDriverSetup(const void *id, size_t *frames, int *fmt,
                         unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -809,7 +809,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          if (channels != tracks)
          {
-            _aaxALSADriverLogVar(id, "Unable to output to %i speakers"
+            _aaxASOUNDDriverLogVar(id, "Unable to output to %i speakers"
                                  " (%i is the maximum)", tracks, channels);
          }
       }
@@ -1050,7 +1050,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 #undef TRUN
 
 static size_t
-_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+_aaxASOUNDDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int tracks, frame_size;
@@ -1095,7 +1095,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    {
       if ((res = xrun_recovery(handle->pcm, res)) < 0)
       {
-         _aaxALSADriverLogVar(id, "PCM avail error: %s\n", psnd_strerror(res));
+         _aaxASOUNDDriverLogVar(id, "PCM avail error: %s\n", psnd_strerror(res));
          avail = -1;
        }
    }
@@ -1147,7 +1147,7 @@ if (corr)
             {
                if ((res = xrun_recovery(handle->pcm, res)) < 0)
                {
-                  _aaxALSADriverLogVar(id, "MMAP begin error: %s\n",
+                  _aaxASOUNDDriverLogVar(id, "MMAP begin error: %s\n",
                                        psnd_strerror(res));
                   return 0;
                }
@@ -1262,7 +1262,7 @@ if (corr)
 }
 
 static char *
-_aaxALSADriverGetName(const void *id, int mode)
+_aaxASOUNDDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
@@ -1276,14 +1276,14 @@ _aaxALSADriverGetName(const void *id, int mode)
       }
    }
    else {
-      ret = _aaxALSADriverGetDefaultInterface(id, mode);
+      ret = _aaxASOUNDDriverGetDefaultInterface(id, mode);
    }
 
    return ret;
 }
 
 static int
-_aaxALSADriverState(const void *id, enum _aaxDriverState state)
+_aaxASOUNDDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -1336,7 +1336,7 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
 }
 
 static float
-_aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
+_aaxASOUNDDriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    float rv = 0.0f;
@@ -1364,7 +1364,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxALSADriverGetDevices(const void *id, int mode)
+_aaxASOUNDDriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
    static time_t t_previous[2] = { 0, 0 };
@@ -1458,7 +1458,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
 }
 
 static char *
-_aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxASOUNDDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
@@ -1562,7 +1562,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static char *
-_aaxALSADriverGetDefaultInterface(const void *id, int mode)
+_aaxASOUNDDriverGetDefaultInterface(const void *id, int mode)
 {
 // _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
@@ -1633,7 +1633,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
 
 
 static char *
-_aaxALSADriverLogVar(const void *id, const char *fmt, ...)
+_aaxASOUNDDriverLogVar(const void *id, const char *fmt, ...)
 {
    char _errstr[1024];
    va_list ap;
@@ -1646,15 +1646,15 @@ _aaxALSADriverLogVar(const void *id, const char *fmt, ...)
    _errstr[1023] = '\0';
    va_end(ap);
 
-   return _aaxALSADriverLog(id, 0, -1, _errstr);
+   return _aaxASOUNDDriverLog(id, 0, -1, _errstr);
 }
 
 static char *
-_aaxALSADriverLog(const void *id, int prio, int type, const char *str)
+_aaxASOUNDDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
 
-   snprintf(_errstr, 256, "alsa: %s\n", str);
+   snprintf(_errstr, 256, "asound: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
@@ -1762,7 +1762,7 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_param
    {
       handle->use_mmap = 0;
       handle->interleaved = 1;
-      handle->play = _aaxALSADriverPlayback_rw_il;
+      handle->play = _aaxASOUNDDriverPlayback_rw_il;
       err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                       SND_PCM_ACCESS_RW_INTERLEAVED);
       if (err < 0) _AAX_DRVLOG("unable to set interleaved mode");
@@ -1772,13 +1772,13 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_param
    {
       handle->use_mmap = 1;
       handle->interleaved = 0;
-      handle->play = _aaxALSADriverPlayback_mmap_ni;
+      handle->play = _aaxASOUNDDriverPlayback_mmap_ni;
       err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                       SND_PCM_ACCESS_MMAP_NONINTERLEAVED);
       if (err < 0)
       {
          handle->use_mmap = 0;
-         handle->play = _aaxALSADriverPlayback_rw_ni;
+         handle->play = _aaxASOUNDDriverPlayback_rw_ni;
          err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                         SND_PCM_ACCESS_RW_NONINTERLEAVED);
       }
@@ -1787,13 +1787,13 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_param
       {
          handle->use_mmap = 1;
          handle->interleaved = 1;
-         handle->play = _aaxALSADriverPlayback_mmap_il;
+         handle->play = _aaxASOUNDDriverPlayback_mmap_il;
          err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                         SND_PCM_ACCESS_MMAP_INTERLEAVED);
          if (err < 0)
          {
             handle->use_mmap = 0;
-            handle->play = _aaxALSADriverPlayback_rw_il;
+            handle->play = _aaxASOUNDDriverPlayback_rw_il;
             err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                            SND_PCM_ACCESS_RW_INTERLEAVED);
          }
@@ -2411,7 +2411,7 @@ _xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
 
 
 static size_t
-_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain)
+_aaxASOUNDDriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2512,7 +2512,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 
 
 static size_t
-_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain)
+_aaxASOUNDDriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2609,7 +2609,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
 
 
 static size_t
-_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
+_aaxASOUNDDriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2738,7 +2738,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 
 
 static size_t
-_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
+_aaxASOUNDDriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2848,7 +2848,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 }
 
 static size_t
-_aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
+_aaxASOUNDDriverPlayback(const void *id, void *src, float pitch, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_sframes_t avail;
@@ -2873,14 +2873,14 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
 }
 
 _aaxRenderer*
-_aaxALSADriverRender(const void* config)
+_aaxASOUNDDriverRender(const void* config)
 {
    _driver_t *handle = (_driver_t *)config;
    return handle->render;
 }
 
 void *
-_aaxALSADriverThread(void* config)
+_aaxASOUNDDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
    float delay_sec, wait_us;
@@ -2967,14 +2967,13 @@ _aaxALSADriverThread(void* config)
             msecSleep(stdby_time);
          }
       }
-
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
-         _SET_PROCESSED(handle);
-      }
-
       _aaxMutexLock(handle->thread.signal.mutex);
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
+      }
+
+      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+         _SET_PROCESSED(handle);
       }
 
       if (state != handle->state)
