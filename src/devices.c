@@ -613,7 +613,8 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxFileDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLoopbackDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
-      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxASOUNDDriverBackend);
+       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);
 #ifdef HAVE_WINDOWS_H
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif

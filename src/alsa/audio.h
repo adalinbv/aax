@@ -20,6 +20,7 @@ extern "C" {
 #define PLAYBACK_PERIODS	2
 #define CAPTURE_PERIODS		4
 
+/* all taken from the ALSA project website */
 typedef enum
 {
     SND_PCM_STREAM_PLAYBACK = 0,

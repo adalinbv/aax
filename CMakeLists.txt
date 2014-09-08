@@ -418,6 +418,7 @@ SET( AEONWAVE_OBJS
      src/aax_midi.c
      src/filters/effects.c
      src/alsa/asound.c
+     src/alsa/kernel.c
      src/dmedia/device.c
      src/oss/device.c
      src/stream/file.c

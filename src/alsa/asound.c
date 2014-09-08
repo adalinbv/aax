@@ -58,7 +58,7 @@
                                        ","AAX_MKSTR(DEFAULT_IFNUM)
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_HWDEVNAME	"hw:0"
-#define DEFAULT_RENDERER	"ASOUND"
+#define DEFAULT_RENDERER	"ASound"
 
 #define ASOUND_TIE_FUNCTION(a)	if ((TIE_FUNCTION(a)) == 0) printf("%s\n", #a)
 
@@ -1448,11 +1448,11 @@ _aaxASOUNDDriverGetDevices(const void *id, int mode)
       }
 
       res = psnd_device_name_free_hint(hints);
-   }
 
-    /* always end with "\0\0" no matter what */
-    names[m][1022] = 0;
-    names[m][1023] = 0;
+      /* always end with "\0\0" no matter what */
+      names[m][1022] = 0;
+      names[m][1023] = 0;
+   }
 
    return (char *)&names[m];
 }
