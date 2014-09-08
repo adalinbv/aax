@@ -507,7 +507,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
       return rv;
 
    if (*frames)
- ndle->no_periods =_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);  {
+   {
       unsigned int tracks = handle->no_tracks;
       unsigned int frame_size = tracks * handle->bits_sample/8;
       size_t res, no_frames;
