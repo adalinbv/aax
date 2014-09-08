@@ -83,13 +83,13 @@ static _aaxDriverState _aaxOSSDriverState;
 static _aaxDriverParam _aaxOSSDriverParam;
 static _aaxDriverLog _aaxOSSDriverLog;
 
-static char _oss_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
+static char _oss_id_str[MAX_ID_STRLEN] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxOSSDriverBackend =
 {
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_oss_default_renderer,
+   (char *)&_oss_id_str,
 
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
@@ -326,7 +326,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s",
+         snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
                    (version & 0xFF), os_name);
 
@@ -506,7 +506,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_oss_default_renderer, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
+         snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
                    (version & 0xFF), os_name, rstr);
 
