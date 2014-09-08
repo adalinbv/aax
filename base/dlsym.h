@@ -39,10 +39,10 @@ extern "C" {
 # define DLL_RV			void*
 #endif
 
-#define DECL_FUNCTION(f)	f##_proc p##f = 0
+#define DECL_FUNCTION(f)	static f##_proc p##f = 0
 #define TIE_FUNCTION(f)		p##f = (f##_proc)_aaxGetProcAddress(audio, #f)
 
-#define DECL_VARIABLE(v)	void* p##v = 0
+#define DECL_VARIABLE(v)	static void* p##v = 0
 #define TIE_VARIABLE(v)		p##v = _aaxGetProcAddress(audio, #v)
 
 char *_aaxGetSymError(const char *error);
