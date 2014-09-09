@@ -197,7 +197,6 @@ DECL_FUNCTION(snd_pcm_hw_params_set_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
 DECL_FUNCTION(snd_pcm_hw_params_get_buffer_size_max);
 DECL_FUNCTION(snd_pcm_hw_params_set_period_size_near);
-DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
 DECL_FUNCTION(snd_pcm_hw_params_get_periods_min);
 DECL_FUNCTION(snd_pcm_hw_params_get_periods_max);
 DECL_FUNCTION(snd_pcm_sw_params_malloc);
@@ -224,8 +223,6 @@ DECL_FUNCTION(snd_strerror);
 DECL_FUNCTION(snd_lib_error_set_handler);
 DECL_FUNCTION(snd_pcm_recover);
 DECL_FUNCTION(snd_pcm_stream);
-DECL_FUNCTION(snd_pcm_dump);
-DECL_FUNCTION(snd_output_stdio_attach);
 DECL_FUNCTION(snd_mixer_open);
 DECL_FUNCTION(snd_mixer_close);
 DECL_FUNCTION(snd_mixer_attach);
@@ -249,6 +246,11 @@ DECL_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);
 DECL_FUNCTION(snd_mixer_selem_set_capture_volume_all);
 DECL_FUNCTION(snd_mixer_selem_get_id);
 DECL_FUNCTION(snd_mixer_selem_id_get_name);
+#ifndef NDEBUG
+DECL_FUNCTION(snd_pcm_dump);
+DECL_FUNCTION(snd_output_stdio_attach);
+#endif
+
 
 typedef struct {
    char bps;

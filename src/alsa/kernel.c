@@ -495,7 +495,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          }
       }
    }
-#if 1
+#if 0
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -574,7 +574,7 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(rb);
    assert(id != 0);
 
-   if (handle->mode == O_WRONLY)
+   if (handle->mode != O_WRONLY)
       return 0;
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
@@ -608,6 +608,7 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    xfer.buf = data;
    xfer.frames = no_samples;
    res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
+printf("playi, xfer.frames: %i (%i)\n", res, xfer.frames, no_samples);
    if (res < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
    }
@@ -971,7 +972,7 @@ detect_pcm(_driver_t *handle, char m)
 
    if (devname && strcasecmp(devname, "default"))
    {
-      int fd, card, device = 0;
+      int fd, card = 0, device = 0;
       char *ifname;
       char fn[256];
 
@@ -1010,13 +1011,10 @@ detect_pcm(_driver_t *handle, char m)
          *ifname = ':';
       }
 
-      if (fd >= 0)
-      {
-         handle->cardnum = card;
-         handle->devnum = device;
-         handle->pcm = _aax_strdup(fn);
-         rv = AAX_TRUE;
-      }
+      handle->cardnum = card;
+      handle->devnum = device;
+      handle->pcm = _aax_strdup(fn);
+      rv = AAX_TRUE;
    }
    else
    {
