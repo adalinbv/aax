@@ -13,6 +13,7 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>		// exit
 #if HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
 #endif
@@ -78,6 +79,7 @@ static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverCallback _aaxALSADriverPlayback;
 static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverRender _aaxALSADriverRender;
+static _aaxDriverThread _aaxALSADriverThread;
 static _aaxDriverState _aaxALSADriverState;
 static _aaxDriverParam _aaxALSADriverParam;
 static _aaxDriverLog _aaxALSADriverLog;
@@ -100,7 +102,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
 
    (_aaxDriverGetName *)&_aaxALSADriverGetName,
    (_aaxDriverRender *)&_aaxALSADriverRender,
-   (_aaxDriverThread *)&_aaxSoftwareMixerThread,
+   (_aaxDriverThread *)&_aaxALSADriverThread,
 
    (_aaxDriverConnect *)&_aaxALSADriverConnect,
    (_aaxDriverDisconnect *)&_aaxALSADriverDisconnect,
@@ -140,6 +142,8 @@ typedef struct
    char use_timer;
    char exclusive;
    char interleaved;
+   char prepared;
+   char running;
 
    void **ptr;
    char **scratch;
@@ -181,7 +185,7 @@ _aaxALSADriverDetect(int mode)
       if (audio)
       {
          TIE_FUNCTION(ioctl);
-//         TIE_FUNCTION(poll);
+//       TIE_FUNCTION(xpoll);
       }
    }
 
@@ -466,11 +470,11 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
             no_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
 
-            handle->no_periods = periods;
             handle->frequency_hz = rate;
             handle->no_tracks = tracks;
+            handle->no_periods = periods;
             handle->no_frames = no_frames;
-            handle->latency = (float)no_frames/(float)rate;
+            handle->latency = (float)(no_frames*periods)/(float)rate;
 
             handle->render = _aaxSoftwareInitRenderer(handle->latency);
             if (handle->render)
@@ -566,10 +570,9 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs, outbuf_size, no_samples;
    unsigned int no_tracks;
-   struct snd_xferi xfer;
    int32_t **sbuf;
    char *data;
-   size_t res;
+   int res;
 
    assert(rb);
    assert(id != 0);
@@ -605,10 +608,32 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
    }
 
-   xfer.buf = data;
-   xfer.frames = no_samples;
-   res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
-printf("playi, xfer.frames: %i (%i)\n", res, xfer.frames, no_samples);
+   res = 0;
+   if (!handle->prepared)
+   {
+      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
+      if (res >= 0) {
+         handle->prepared = AAX_TRUE;
+      }
+   }
+#if 0
+   if (!handle->running)
+   {
+      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_START);
+      if (res >= 0) {
+         handle->running = AAX_TRUE;
+      }
+   }
+#endif
+   if (handle->prepared)
+   {
+      struct snd_xferi xfer;
+
+      xfer.buf = data;
+      xfer.frames = no_samples;
+      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
+   }
+
    if (res < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
    }
@@ -644,14 +669,17 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
    switch(state)
    {
    case DRIVER_PAUSE:
+#if 0
       if (handle)
       {
          close(handle->fd);
          handle->fd = -1;
          rv = AAX_TRUE;
       }
+#endif
       break;
    case DRIVER_RESUME:
+#if 0
       if (handle) 
       {
          handle->fd = open(handle->pcm, handle->mode|handle->exclusive);
@@ -663,6 +691,7 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
             }
          }
       }
+#endif
       break;
    case DRIVER_AVAILABLE:
       rv = AAX_TRUE;
@@ -1068,3 +1097,141 @@ detect_cardnum(const char *devname)
    return rv;
 }
 
+void *
+_aaxALSADriverThread(void* config)
+{
+   _handle_t *handle = (_handle_t *)config;
+   float delay_sec, wait_us;
+   _intBufferData *dptr_sensor;
+   snd_pcm_sframes_t no_samples;
+   const _aaxDriverBackend *be;
+   _aaxRingBuffer *dest_rb;
+   _aaxAudioFrame *mixer;
+   const void *id;
+   int stdby_time;
+   char state;
+
+   if (!handle || !handle->sensors || !handle->backend.ptr
+       || !handle->info->no_tracks) {
+      return NULL;
+   }
+
+   delay_sec = 1.0f/handle->info->refresh_rate;
+
+   be = handle->backend.ptr;
+   id = handle->backend.handle;		// Required for _AAX_DRVLOG
+
+   dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
+   {
+      _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
+
+      mixer = sensor->mixer;
+
+      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
+      if (dest_rb)
+      {
+         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
+         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->set_state(dest_rb, RB_STARTED);
+
+         handle->ringbuffer = dest_rb;
+      }
+      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
+      if (!dest_rb) {
+         return NULL;
+      }
+   }
+   else {
+      return NULL;
+   }
+
+   be->state(handle->backend.handle, DRIVER_PAUSE);
+   state = AAX_SUSPENDED;
+
+   wait_us = delay_sec*1000000.0f;
+   no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
+   stdby_time = (int)(delay_sec*1000);
+   _aaxMutexLock(handle->thread.signal.mutex);
+   while TEST_FOR_TRUE(handle->thread.started)
+   {
+      _driver_t *be_handle = (_driver_t *)handle->backend.handle;
+      snd_pcm_sframes_t avail;
+      int res;
+
+      _aaxMutexUnLock(handle->thread.signal.mutex);
+
+//    avail = psnd_pcm_avail(be_handle->pcm);
+avail = 0;
+      if (avail < no_samples)
+      {
+         if (_IS_PLAYING(handle))
+         {
+            // TIMER_BASED
+            if (be_handle->use_timer) {
+               usecSleep(wait_us);
+            }
+				/* timeout is in ms */
+            else
+            {
+               struct pollfd pfd;
+               pfd.fd = be_handle->fd;
+               pfd.events = POLLOUT|POLLERR|POLLNVAL;
+               do
+               {
+                  res = poll(&pfd, 1, 2*stdby_time);
+                  if (errno == -EINTR) continue;
+               }
+               while (!(pfd.revents & (POLLIN|POLLOUT)));
+
+               if (res < 0)
+               {
+//                xrun_recovery(be_handle->pcm, err);
+                  _AAX_DRVLOG("snd_pcm_wait polling error");
+               }
+            }
+         }
+         else {
+            msecSleep(stdby_time);
+         }
+      }
+      _aaxMutexLock(handle->thread.signal.mutex);
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+
+      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+         _SET_PROCESSED(handle);
+      }
+
+      if (state != handle->state)
+      {
+         if (_IS_PAUSED(handle) ||
+             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+            be->state(handle->backend.handle, DRIVER_PAUSE);
+         }
+         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
+            be->state(handle->backend.handle, DRIVER_RESUME);
+         }
+         state = handle->state;
+      }
+
+      if (_IS_PLAYING(handle)) {
+         _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      }
+#if 0
+ printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
+ printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
+#endif
+   }
+
+   handle->ringbuffer = NULL;
+   be->destroy_ringbuffer(dest_rb);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
+
+   return handle;
+}

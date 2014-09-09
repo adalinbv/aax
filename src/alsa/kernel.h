@@ -13,6 +13,7 @@
 #define _ALSA_KERNEL_H 1
 
 #include <sys/ioctl.h>
+#include <poll.h>
 
 #include "audio.h"
 
@@ -22,7 +23,9 @@
 #include <linux/types.h>
 
 
-typedef int (*ioctl_proc)(int, int, void*);
+#define xpoll	poll
+typedef int (*ioctl_proc)(int, int, ...);
+typedef int (*xpoll_proc)(struct pollfd[], nfds_t, int);
 
 #define SNDRV_PCM_HW_PARAM_ACCESS		0  
 #define SNDRV_PCM_HW_PARAM_FORMAT		1  
