@@ -128,6 +128,7 @@ typedef struct
    int mode;
    int fd;
 
+   float latency;
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
@@ -369,113 +370,132 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                    unsigned int *channels, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
-   int err = 0;
+   int rv = AAX_FALSE;
 
    if (handle->fd >= 0)
    {
+      unsigned int tracks, rate, bits, periods, format;
       struct snd_pcm_hw_params hwparams;
       struct snd_pcm_sw_params swparams;
-      int fd = handle->fd;
+      snd_pcm_uframes_t no_frames;
+      int err, fd = handle->fd;
+ 
+      tracks = *channels;
+      periods = handle->no_periods;
+      no_frames = *frames / periods;
+      bits = aaxGetBitsPerSample(*fmt);
+      rate = (unsigned int)*speed;
 
       _init_params(&hwparams);
       if (pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams) >= 0)
       {
-         unsigned int tracks, rate, bits, periods, format;
-         snd_pcm_uframes_t no_frames;
-
-         rate = (unsigned int)*speed;
          rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
-
-         tracks = *channels;
          tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
-
-         no_frames = *frames;
          no_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                             no_frames);
-         periods = handle->no_periods;
          periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
-
-         bits = aaxGetBitsPerSample(*fmt);
          bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
+      }
 
-         switch (*fmt)
+      switch (*fmt)
+      {
+      case AAX_PCM8S:
+         format = SND_PCM_FORMAT_S8;
+         break;
+      case AAX_PCM24S:
+         format = SND_PCM_FORMAT_S24_LE;
+         break;
+      case AAX_PCM32S:
+         format = SND_PCM_FORMAT_S32_LE;
+         break;
+      case AAX_PCM16S:
+      default:
+         format = SND_PCM_FORMAT_S16_LE;
+      }
+
+      _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_FORMAT, format);
+      _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_SUBFORMAT,
+                           SNDRV_PCM_SUBFORMAT_STD);
+      _set_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
+      _set_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
+      _set_min(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE, no_frames);
+      _set_int(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
+      _set_int(&hwparams, SNDRV_PCM_HW_PARAM_FRAME_BITS, bits*tracks);
+      _set_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
+
+      if (handle->use_timer) {
+          hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
+      }
+
+      if (handle->use_mmap) {
+         _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_ACCESS,
+                              SND_PCM_ACCESS_MMAP_INTERLEAVED);
+      } else {
+         _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_ACCESS,
+                              SND_PCM_ACCESS_RW_INTERLEAVED);
+      }
+
+      err = pioctl(handle->fd, SNDRV_PCM_IOCTL_HW_PARAMS, &hwparams);
+      if (err >= 0)
+      {
+         memset(&swparams, 0, sizeof(struct snd_pcm_sw_params));
+         swparams.tstamp_mode = SNDRV_PCM_TSTAMP_ENABLE;
+         swparams.period_step = 1;
+         swparams.avail_min = 1;
+         swparams.silence_size = 0;
+         swparams.boundary = handle->buf_len;
+         swparams.xfer_align = handle->no_periods/2;
+         swparams.silence_threshold = handle->no_periods*handle->no_frames;
+         if (handle->mode == O_RDONLY)
          {
-         case AAX_PCM8S:
-            format = SND_PCM_FORMAT_S8;
-            break;
-         case AAX_PCM24S:
-            format = SND_PCM_FORMAT_S24_LE;
-            break;
-         case AAX_PCM32S:
-            format = SND_PCM_FORMAT_S32_LE;
-            break;
-         case AAX_PCM16S:
-         default:
-            format = SND_PCM_FORMAT_S16_LE;
+            swparams.start_threshold = 1;
+            swparams.stop_threshold = 10*handle->no_periods*handle->no_frames;
          }
-
-         _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_FORMAT, format);
-         _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_SUBFORMAT,
-                              SNDRV_PCM_SUBFORMAT_STD);
-         _set_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
-         _set_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
-         _set_min(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE, no_frames);
-         _set_int(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
-         _set_int(&hwparams, SNDRV_PCM_HW_PARAM_FRAME_BITS, bits*tracks);
-         _set_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
-
-         if (handle->use_timer) {
-             hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
+         else
+         {
+            swparams.start_threshold = handle->no_periods*handle->no_frames;
+            swparams.stop_threshold = handle->no_periods*handle->no_frames;
          }
-
-         if (handle->use_mmap) {
-            _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_ACCESS,
-                                 SND_PCM_ACCESS_MMAP_INTERLEAVED);
-         } else {
-            _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_ACCESS,
-                                 SND_PCM_ACCESS_RW_INTERLEAVED);
-         }
-
-         err = pioctl(handle->fd, SNDRV_PCM_IOCTL_HW_PARAMS, &hwparams);
+         err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
          if (err >= 0)
          {
-            *speed = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
-            *channels = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
-            *frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+            _alsa_get_volume(handle);
 
-            handle->no_periods =_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-            handle->frequency_hz = *speed;
-            handle->no_tracks = *channels;
-            handle->no_frames = *frames;
+            rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
+            tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
+            periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
+            no_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+
+            handle->no_periods = periods;
+            handle->frequency_hz = rate;
+            handle->no_tracks = tracks;
+            handle->no_frames = no_frames;
+            handle->latency = (float)no_frames/(float)rate;
+
+            handle->render = _aaxSoftwareInitRenderer(handle->latency);
+            if (handle->render)
+            {
+               const char *rstr = handle->render->info(handle->render->id);
+#if HAVE_SYS_UTSNAME_H
+               struct utsname utsname;
+               uname(&utsname);
+               snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
+                                      DEFAULT_RENDERER, utsname.release, rstr);
+#else
+               snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
+                                      DEFAULT_RENDERER, os_name, rstr);
+#endif
+               _alsa_get_volume(handle);
+               *speed = rate;
+               *channels = tracks;
+               *frames = no_frames * periods;
+
+               rv = AAX_TRUE;
+            }
          }
       }
-      else {
-         _AAX_DRVLOG("unable to get the device capabilities")  ;
-      }
-         
-      memset(&swparams, 0, sizeof(struct snd_pcm_sw_params));
-      swparams.tstamp_mode = SNDRV_PCM_TSTAMP_ENABLE;
-      swparams.period_step = 1;
-      swparams.avail_min = 1;
-      swparams.silence_size = 0;
-      swparams.boundary = handle->buf_len;
-      swparams.xfer_align = handle->no_periods/2;
-      swparams.silence_threshold = handle->no_periods*handle->no_frames;
-      if (handle->mode == O_RDONLY)
-      {
-         swparams.start_threshold = 1;
-         swparams.stop_threshold = 10*handle->no_periods*handle->no_frames;
-      }
-      else
-      {
-         swparams.start_threshold = handle->no_periods*handle->no_frames;
-         swparams.stop_threshold = handle->no_periods*handle->no_frames;
-      }
-      err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
-
-      _alsa_get_volume(handle);
    }
-#if 0
+#if 1
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -487,9 +507,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
  printf("  no_tracks: %i\n", handle->no_tracks);
  printf("  no_frames: %zi\n", handle->no_frames);
  printf("  no_periods: %i\n", handle->no_periods);
+ printf("  latency:  %5.2f ms\n", handle->latency*1000.0f);
 #endif
 
-   return (err >= 0) ? AAX_TRUE : AAX_FALSE;
+   return rv;
 }
 
 
@@ -507,7 +528,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
       return rv;
 
    if (*frames)
- ndle->no_periods =_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);  {
+   {
       unsigned int tracks = handle->no_tracks;
       unsigned int frame_size = tracks * handle->bits_sample/8;
       size_t res, no_frames;
@@ -670,7 +691,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
       switch(param)
       {
       case DRIVER_LATENCY:
-         rv = 0.0f; // handle->latency;
+         rv = handle->latency;
          break;
       case DRIVER_MAX_VOLUME:
          rv = 1.0f;
@@ -948,9 +969,9 @@ detect_pcm(_driver_t *handle, char m)
    const char *devname = handle->name;
    int rv = AAX_FALSE;
 
-   if (devname)
+   if (devname && strcasecmp(devname, "default"))
    {
-      int fd, card, device;
+      int fd, card, device = 0;
       char *ifname;
       char fn[256];
 
@@ -959,32 +980,35 @@ detect_pcm(_driver_t *handle, char m)
       {
          *ifname = 0;
          ifname += 2;
-      }
 
-      card = detect_cardnum(devname);
-      device = 0;
-      do
-      {
-         snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m ? 'p' : 'c');
-
-         fd = open(fn, O_RDONLY);
-         if (fd >= 0)
+         card = detect_cardnum(devname);
+         device = 0;
+         do
          {
-            struct snd_pcm_info info;
-            const char *name;
-            int found;
+            snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m ? 'p' : 'c');
 
-            ioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
+            fd = open(fn, O_RDONLY);
+            if (fd >= 0)
+            {
+               struct snd_pcm_info info;
+               const char *name;
+               int found;
 
-            name = (const char*)info.name;
-            found = !strcasecmp(ifname, name) ? AAX_TRUE : AAX_FALSE;
-            close(fd);
+               ioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
 
-            if (found) break;
+               name = (const char*)info.name;
+               found = !strcasecmp(ifname, name) ? AAX_TRUE : AAX_FALSE;
+               close(fd);
+
+               if (found) break;
+            }
+            device++;
          }
-         device++;
+         while (fd >= 0);
+
+         *ifname-- = ' ';
+         *ifname = ':';
       }
-      while (fd >= 0);
 
       if (fd >= 0)
       {
@@ -993,12 +1017,13 @@ detect_pcm(_driver_t *handle, char m)
          handle->pcm = _aax_strdup(fn);
          rv = AAX_TRUE;
       }
-
-      if (ifname)
-      {
-         *ifname-- = ' ';
-         *ifname = ':';
-      }
+   }
+   else
+   {
+      handle->pcm = DEFAULT_PCM_NAME;
+      handle->cardnum = 0;
+      handle->devnum = 0;
+      rv = AAX_TRUE;
    }
 
    return rv;
