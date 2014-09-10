@@ -12,20 +12,25 @@
 #ifndef _ALSA_KERNEL_H
 #define _ALSA_KERNEL_H 1
 
+#include <sys/mman.h>
 #include <sys/ioctl.h>
-#include <poll.h>
-
-#include "audio.h"
 
 #define __force
 #define __bitwise
 #define __user
 #include <linux/types.h>
 
+#ifdef __USE_GNU
+# undef __USE_GNU
+#endif
+#include <poll.h>
 
-#define xpoll	poll
+#include "audio.h"
+
 typedef int (*ioctl_proc)(int, int, ...);
-typedef int (*xpoll_proc)(struct pollfd[], nfds_t, int);
+typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
+typedef void* (*mmap_proc)(void*, size_t, int, int, int, off_t);
+typedef int (*munmap_proc)(void*, size_t);
 
 #define SNDRV_PCM_HW_PARAM_ACCESS		0  
 #define SNDRV_PCM_HW_PARAM_FORMAT		1  
@@ -52,7 +57,18 @@ typedef int __bitwise snd_pcm_subformat_t;
 #define SNDRV_PCM_HW_PARAMS_EXPORT_BUFFER	(1<<1) 
 #define SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP	(1<<2)
 
-#define SNDRV_PCM_TSTAMP_ENABLE			1
+
+enum {
+   SNDRV_PCM_TSTAMP_NONE = 0,
+   SNDRV_PCM_TSTAMP_ENABLE,
+   SNDRV_PCM_TSTAMP_LAST = SNDRV_PCM_TSTAMP_ENABLE,
+};
+
+enum {
+   SNDRV_PCM_MMAP_OFFSET_DATA = 0x00000000,
+   SNDRV_PCM_MMAP_OFFSET_STATUS = 0x80000000,
+   SNDRV_PCM_MMAP_OFFSET_CONTROL = 0x81000000,
+};
 
 struct snd_ctl_card_info {
    int card;
@@ -70,9 +86,9 @@ struct snd_ctl_card_info {
 
 
 union snd_pcm_sync_id {
- unsigned char id[16];
- unsigned short id16[8];
- unsigned int id32[4];
+   unsigned char id[16];
+   unsigned short id16[8];
+   unsigned int id32[4];
 };
 
 struct snd_pcm_info {
@@ -144,6 +160,34 @@ struct snd_pcm_sw_params {
 };
 
 #define SNDRV_PCM_IOCTL_SW_PARAMS _IOWR('A', 0x13, struct snd_pcm_sw_params)
+
+
+struct snd_pcm_mmap_status {
+   snd_pcm_state_t state;
+   int pad1;
+   snd_pcm_uframes_t hw_ptr;
+   struct timespec tstamp;
+   snd_pcm_state_t suspended_state;
+};
+
+struct snd_pcm_mmap_control {
+   snd_pcm_uframes_t appl_ptr;
+   snd_pcm_uframes_t avail_min;
+};
+
+struct snd_pcm_sync_ptr {
+   unsigned int flags;
+   union {
+      struct snd_pcm_mmap_status status;
+      unsigned char reserved[64];
+   } s;
+   union {
+      struct snd_pcm_mmap_control control;
+      unsigned char reserved[64];
+   } c;
+};
+
+#define SNDRV_PCM_IOCTL_SYNC_PTR _IOWR('A', 0x23, struct snd_pcm_sync_ptr)
 
 
 struct snd_xferi {
