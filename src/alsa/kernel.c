@@ -629,7 +629,7 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs, outbuf_size, no_samples;
    unsigned int no_tracks;
-   int res, avail;
+   int res, avail, count;
    int32_t **sbuf;
    char *data;
 
@@ -668,43 +668,49 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    }
 
    res = 0;
-   if (!handle->prepared)
+   count = 16;
+   do
    {
-      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
-      if (res >= 0) {
-         handle->prepared = AAX_TRUE;
+      if (!handle->prepared)
+      {
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
+         if (res >= 0) {
+            handle->prepared = AAX_TRUE;
+         }
       }
-   }
 #if 0
-   if (!handle->running)
-   {
-      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_START);
-      if (res >= 0) {
-         handle->running = AAX_TRUE;
+      if (!handle->running)
+      {
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_START);
+         if (res >= 0) {
+            handle->running = AAX_TRUE;
+         }
       }
-   }
 #endif
 #if 0
-   if (handle->sync)
-   {
-      handle->sync->flags = 0;
-      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
-   }
+      if (handle->sync)
+      {
+         handle->sync->flags = 0;
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
+      }
 #endif
 
-   avail = handle->status->hw_ptr;
-   avail += handle->no_periods*handle->no_frames;
-   avail -= handle->control->appl_ptr;
-   if (handle->prepared)
-   {
-      struct snd_xferi xfer;
+      avail = handle->status->hw_ptr;
+      avail += handle->no_periods*handle->no_frames;
+      avail -= handle->control->appl_ptr;
+      if (handle->prepared)
+      {
+         struct snd_xferi xfer;
 
-      xfer.buf = data;
-      xfer.frames = no_samples;
-      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
-if (res < 0)
-exit(-1);
+         xfer.buf = data;
+         xfer.frames = no_samples;
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
+         if (res < 0) {
+            handle->prepared = AAX_FALSE;
+         }
+      }
    }
+   while ((res < 0) && --count);
 
    if (res < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
