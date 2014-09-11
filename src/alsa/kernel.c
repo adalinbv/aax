@@ -747,32 +747,32 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
    switch(state)
    {
    case DRIVER_PAUSE:
-#if 0
       if (handle)
       {
-         close(handle->fd);
-         handle->fd = -1;
-         rv = AAX_TRUE;
-      }
-#endif
-      break;
-   case DRIVER_RESUME:
-#if 0
-      if (handle) 
-      {
-         handle->fd = open(handle->pcm, handle->mode|handle->exclusive);
-         if (handle->fd)
-         {
-            int err = 0; // , fd = handle->fd;
-            if (err >= 0) {
-               rv = AAX_TRUE;
-            }
+         int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_PAUSE);
+         if (err >= 0) {
+            rv = AAX_TRUE;
          }
       }
-#endif
+      break;
+   case DRIVER_RESUME:
+      if (handle) 
+      {
+         int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_RESUME);
+         if (err >= 0) {
+            rv = AAX_TRUE;
+         }
+      }
       break;
    case DRIVER_AVAILABLE:
-      rv = AAX_TRUE;
+      if (handle)
+      {
+         int state;
+         int err = pioctl(handle->fd, SNDRV_CTL_IOCTL_POWER_STATE, &state);
+         if ((err >= 0) && (state != 0)) {
+            rv = AAX_TRUE;
+         }
+      }
       break;
    case DRIVER_SHARED_MIXER:
       rv = handle->exclusive ? AAX_FALSE : AAX_TRUE;

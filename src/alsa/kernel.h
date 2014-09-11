@@ -32,6 +32,11 @@ typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
 typedef void* (*mmap_proc)(void*, size_t, int, int, int, off_t);
 typedef int (*munmap_proc)(void*, size_t);
 
+/*
+ * all from the alsa documentation
+ * http://fossies.org/dox/alsa-lib-1.0.28/modules.html
+ */
+
 #define SNDRV_PCM_HW_PARAM_ACCESS		0  
 #define SNDRV_PCM_HW_PARAM_FORMAT		1  
 #define SNDRV_PCM_HW_PARAM_SUBFORMAT		2  
@@ -192,14 +197,14 @@ struct snd_pcm_sync_ptr {
 
 struct snd_xferi {
    snd_pcm_sframes_t result;
-   void __user *buf;
+   void __user* buf;
    snd_pcm_uframes_t frames;
 };
 
 struct snd_xfern {
- snd_pcm_sframes_t result;
- void __user * __user *bufs;
- snd_pcm_uframes_t frames;
+   snd_pcm_sframes_t result;
+   void __user * __user* bufs;
+   snd_pcm_uframes_t frames;
 };
 
 #define SNDRV_PCM_IOCTL_PREPARE _IO('A', 0x40)
@@ -207,6 +212,8 @@ struct snd_xfern {
 #define SNDRV_PCM_IOCTL_PAUSE _IOW('A', 0x45, int)
 #define SNDRV_PCM_IOCTL_REWIND _IOW('A', 0x46, snd_pcm_uframes_t)
 #define SNDRV_PCM_IOCTL_RESUME _IO('A', 0x47)
+#define SNDRV_CTL_IOCTL_POWER _IOWR('U', 0xd0, int)
+#define SNDRV_CTL_IOCTL_POWER_STATE _IOR('U', 0xd1, int)
 #define SNDRV_PCM_IOCTL_XRUN _IO('A', 0x48)
 #define SNDRV_PCM_IOCTL_WRITEI_FRAMES _IOW('A', 0x50, struct snd_xferi)
 #define SNDRV_PCM_IOCTL_READI_FRAMES _IOR('A', 0x51, struct snd_xferi)
