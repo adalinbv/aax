@@ -143,10 +143,10 @@ typedef struct
 
    char use_mmap;
    char use_timer;
-   char exclusive;
    char interleaved;
    char prepared;
-   char running;
+   char pause;
+   char can_pause;
 
    void **ptr;
    char **scratch;
@@ -228,8 +228,8 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_tracks = 2;
       handle->use_mmap = AAX_FALSE;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
-      handle->exclusive = 0; // O_EXCL;
       handle->no_periods = 2;
+      handle->interleaved = AAX_TRUE;
       handle->fd = -1;
    }
 
@@ -316,10 +316,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
                i = 16;
             }
          }
-
-         if (xmlNodeGetBool(xid, "shared")) {
-            handle->exclusive = 0;
-         }
       }
 
       if (renderer)
@@ -337,7 +333,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       int m = (handle->mode == O_RDONLY) ? 0 : 1;
       if (detect_pcm(handle, m))
       {
-         handle->fd = open(handle->pcm, handle->mode|handle->exclusive);
+         handle->fd = open(handle->pcm, O_RDWR);
          if (handle->fd < 0)
          {
             free(handle);
@@ -416,7 +412,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       tracks = *channels;
       periods = handle->no_periods;
       no_frames = *frames / periods;
-printf("*frames: %i, no_frames: %i, periods: %i\n", *frames, no_frames, periods);
       bits = aaxGetBitsPerSample(*fmt);
       rate = (unsigned int)*speed;
 
@@ -429,7 +424,6 @@ printf("*frames: %i, no_frames: %i, periods: %i\n", *frames, no_frames, periods)
                                             no_frames);
          periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
          bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
-printf("new no_frames: %i, periods: %i\n", no_frames, periods);
       }
 
       switch (*fmt)
@@ -473,6 +467,10 @@ printf("new no_frames: %i, periods: %i\n", no_frames, periods);
       err = pioctl(handle->fd, SNDRV_PCM_IOCTL_HW_PARAMS, &hwparams);
       if (err >= 0)
       {
+         if (hwparams.info & SNDRV_PCM_INFO_PAUSE) {
+            handle->can_pause = AAX_TRUE;
+         }
+
          memset(&swparams, 0, sizeof(struct snd_pcm_sw_params));
          swparams.tstamp_mode = SNDRV_PCM_TSTAMP_ENABLE;
          swparams.period_step = 1;
@@ -494,51 +492,41 @@ printf("new no_frames: %i, periods: %i\n", no_frames, periods);
          err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
          if (err >= 0)
          {
-            handle->render = _aaxSoftwareInitRenderer(handle->latency);
-            if (handle->render)
-            {
-               int page_size = sysconf(_SC_PAGE_SIZE);
-
-               rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
-               tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
-               periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-               no_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
-
-               handle->frequency_hz = rate;
-               handle->no_tracks = tracks;
-               handle->no_periods = periods;
-               handle->no_frames = no_frames;
-               handle->bits_sample = bits;
-               handle->latency = (float)(no_frames*periods)/(float)rate;
-
-               handle->status = pmmap(NULL, page_size, PROT_READ,
-                                        MAP_FILE|MAP_SHARED, handle->fd,
-                                        SNDRV_PCM_MMAP_OFFSET_STATUS);
-               if (handle->status != MAP_FAILED)
-               {
-                  handle->control = pmmap(NULL, page_size, PROT_READ|PROT_WRITE,
+            int page_size = sysconf(_SC_PAGE_SIZE);
+            handle->status = pmmap(NULL, page_size, PROT_READ,
                                          MAP_FILE|MAP_SHARED, handle->fd,
-                                         SNDRV_PCM_MMAP_OFFSET_CONTROL);
-                  if (handle->control == MAP_FAILED)
-                  {
-                     pmunmap(handle->status, page_size);
-                     handle->status = NULL;
-                  }
-               }
-
-               if (handle->status == MAP_FAILED)
+                                         SNDRV_PCM_MMAP_OFFSET_STATUS);
+            if (handle->status != MAP_FAILED)
+            {
+               handle->control = pmmap(NULL, page_size, PROT_READ|PROT_WRITE,
+                                       MAP_FILE|MAP_SHARED, handle->fd,
+                                       SNDRV_PCM_MMAP_OFFSET_CONTROL);
+               if (handle->control == MAP_FAILED)
                {
-                  handle->sync = calloc(1, sizeof(struct snd_pcm_sync_ptr));
-                  if (handle->sync)
-                  {
-                     handle->status = &handle->sync->s.status;
-                     handle->control = &handle->sync->c.control;
-                     handle->sync->flags = 0;
-                     pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
-                  }
+                  pmunmap(handle->status, page_size);
+                  handle->status = NULL;
                }
+            }
+            else {
+               handle->status = NULL;
+            }
 
-               if (handle->status)
+            if (handle->status == NULL)
+            {
+               handle->sync = calloc(1, sizeof(struct snd_pcm_sync_ptr));
+               if (handle->sync)
+               {
+                  handle->status = &handle->sync->s.status;
+                  handle->control = &handle->sync->c.control;
+                  handle->sync->flags = 0;
+                  pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
+               }
+            }
+
+            if (handle->status)
+            {
+               handle->render = _aaxSoftwareInitRenderer(handle->latency);
+               if (handle->render)
                {
                   const char *rstr= handle->render->info(handle->render->id);
 #if HAVE_SYS_UTSNAME_H
@@ -554,17 +542,62 @@ printf("new no_frames: %i, periods: %i\n", no_frames, periods);
                   handle->control->avail_min = 1;
                   _alsa_get_volume(handle);
 
+                  rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
+                  tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
+                  periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
+                  no_frames=_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+
+                  handle->frequency_hz = rate;
+                  handle->no_tracks = tracks;
+                  handle->no_periods = periods;
+                  handle->no_frames = no_frames;
+                  handle->bits_sample = bits;
+                  handle->latency = (float)(no_frames*periods)/(float)rate;
+
                   *speed = rate;
                   *channels = tracks;
                   *frames = no_frames * periods;
 
-printf("Setup: AAX_TRUE\n");
                   rv = AAX_TRUE;
                }
             }
          }
       }
    }
+
+   do
+   {
+      char str[255];
+
+      _AAX_SYSLOG("driver settings:");
+
+      if (handle->mode != 0) {
+         snprintf(str,255,"  output renderer: '%s'", handle->name);
+      } else {
+         snprintf(str,255,"  input renderer: '%s'", handle->name);
+      }
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  devname: '%s'", handle->pcm);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  playback rate: %5.0f hz", handle->frequency_hz);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  buffer size: %u bytes", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  no. periods: %i", handle->no_periods);
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  use mmap: %s", handle->use_mmap?"yes":"no");
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  timer based: %s",handle->use_timer?"yes":"no");
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->no_tracks, handle->bits_sample/8);
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  can pause: %i\n", handle->can_pause);
+      _AAX_SYSLOG(str);
+
 #if 1
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
@@ -573,12 +606,18 @@ printf("Setup: AAX_TRUE\n");
     printf("  input renderer: '%s'\n", handle->name);
  }
  printf("  pcm: '%s', card: %i, device: %i\n", handle->pcm, handle->cardnum, handle->devnum);
- printf("  frequency: %f\n", handle->frequency_hz);
- printf("  no_tracks: %i\n", handle->no_tracks);
- printf("  no_frames: %zi\n", handle->no_frames);
+ printf("  playback rate: %5.0f Hz\n", handle->frequency_hz);
+ printf("  buffer size: %u bytes\n", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
+ printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
  printf("  no_periods: %i\n", handle->no_periods);
- printf("  latency:  %5.2f ms\n", handle->latency*1000.0f);
+ printf("  use mmap: %s\n", handle->use_mmap?"yes":"no");
+ printf("  interleaved: %s\n",handle->interleaved?"yes":"no");
+ printf("  timer based: %s\n",handle->use_timer?"yes":"no");
+ printf("  channels: %i, bytes/sample: %i\n", handle->no_tracks, handle->bits_sample/8);
+ printf("  can pause: %i\n", handle->can_pause);
 #endif
+   }
+   while (0);
 
    return rv;
 }
@@ -643,7 +682,6 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(rb);
    assert(id != 0);
 
-printf("_aaxALSADriverPlayback\n");
    if (handle->mode != O_WRONLY)
       return 0;
 
@@ -686,15 +724,6 @@ printf("_aaxALSADriverPlayback\n");
             handle->prepared = AAX_TRUE;
          }
       }
-#if 0
-      if (!handle->running)
-      {
-         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_START);
-         if (res >= 0) {
-            handle->running = AAX_TRUE;
-         }
-      }
-#endif
       if (handle->sync)
       {
          handle->sync->flags = 0;
@@ -711,7 +740,6 @@ printf("_aaxALSADriverPlayback\n");
          xfer.buf = data;
          xfer.frames = no_samples;
          res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
-printf("Write: %i\n", res);
          if (res < 0) {
             handle->prepared = AAX_FALSE;
          }
@@ -754,24 +782,33 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
    switch(state)
    {
    case DRIVER_PAUSE:
-      if (handle)
+      if (handle && !handle->pause)
       {
-         int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_PAUSE);
-         if (err >= 0) {
-            rv = AAX_TRUE;
+         if (handle->can_pause)
+         {
+            int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_PAUSE, 1);
+            if (err >= 0) {
+               rv = AAX_TRUE;
+            }
          }
+         handle->pause = 1;
       }
       break;
    case DRIVER_RESUME:
-      if (handle) 
+      if (handle && handle->pause) 
       {
-         int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_RESUME);
-         if (err >= 0) {
-            rv = AAX_TRUE;
+         if (handle->can_pause)
+         {
+            int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_PAUSE, 0);
+            if (err >= 0) {
+               rv = AAX_TRUE;
+            }
          }
+         handle->pause = 0;
       }
       break;
    case DRIVER_AVAILABLE:
+#if 0
       if (handle)
       {
          int state;
@@ -780,9 +817,12 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
             rv = AAX_TRUE;
          }
       }
+#else
+rv = AAX_TRUE;
+#endif
       break;
    case DRIVER_SHARED_MIXER:
-      rv = handle->exclusive ? AAX_FALSE : AAX_TRUE;
+      rv = AAX_FALSE;
       break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
@@ -1270,7 +1310,6 @@ _aaxALSADriverThread(void* config)
                do
                {
                   res = ppoll(&pfd, 1, 2*stdby_time);
-printf("wait: %i\n", res);
                   if (res <= 0) break;
                   if (errno == -EINTR) continue;
                   if (pfd.revents & (POLLERR|POLLNVAL))
@@ -1283,7 +1322,6 @@ printf("wait: %i\n", res);
                          break;
                       case SND_PCM_STATE_SUSPENDED:
                       case SND_PCM_STATE_DISCONNECTED:
-                         be_handle->running = AAX_FALSE;
                          break;
                       default:
                          break;
