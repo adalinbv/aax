@@ -79,7 +79,7 @@ _aaxCPUClose(void* id)
 static void*
 _aaxCPUSetup(int dt)
 {
-   return NULL;
+   return (void*)-1;
 }
 
 static const char*

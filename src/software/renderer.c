@@ -41,9 +41,12 @@ _aaxSoftwareInitRenderer(float dt)
          _aaxRenderer* type = rtype();
          if (type && type->detect())
          {
-            type->id = type->setup(floorf(1000.0f * dt));
-            type->open(type->id);
-            rv = type;
+            type->id = type->setup(_MIN(floorf(1000.0f * dt), 1));
+            if (type->id)
+            {
+               type->open(type->id);
+               rv = type;
+            }
          }
       }
    }
