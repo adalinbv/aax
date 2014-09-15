@@ -189,6 +189,10 @@ struct snd_pcm_mmap_control {
    snd_pcm_uframes_t avail_min;
 };
 
+#define SNDRV_PCM_SYNC_PTR_HWSYNC	(1<<0)  
+#define SNDRV_PCM_SYNC_PTR_APPL		(1<<1)  
+#define SNDRV_PCM_SYNC_PTR_AVAIL_MIN	(1<<2) 
+
 struct snd_pcm_sync_ptr {
    unsigned int flags;
    union {

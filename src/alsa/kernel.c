@@ -677,8 +677,9 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs, outbuf_size, no_samples;
+   snd_pcm_sframes_t avail, bufsize;
    unsigned int no_tracks;
-   int res, avail, count;
+   int res, count;
    int32_t **sbuf;
    char *data;
 
@@ -733,9 +734,15 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
          res = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
       }
 
-      avail = handle->status->hw_ptr;
-      avail += handle->no_periods*handle->no_frames;
+      bufsize = handle->no_periods*handle->no_frames;
+      avail = handle->status->hw_ptr + bufsize;
       avail -= handle->control->appl_ptr;
+      if (avail < 0) {
+         avail +=  bufsize;
+      } else if (avail > bufsize) {
+         avail -= bufsize;
+      }
+
       if (handle->prepared)
       {
          struct snd_xferi xfer;
@@ -1288,14 +1295,26 @@ _aaxALSADriverThread(void* config)
    while TEST_FOR_TRUE(handle->thread.started)
    {
       _driver_t *be_handle = (_driver_t *)handle->backend.handle;
-      snd_pcm_sframes_t avail;
+      snd_pcm_sframes_t avail, bufsize;
       int res;
 
       _aaxMutexUnLock(handle->thread.signal.mutex);
 
-      avail = be_handle->status->hw_ptr;
-      avail += be_handle->no_periods*be_handle->no_frames;
+      if (be_handle->sync)
+      {
+         be_handle->sync->flags = SNDRV_PCM_SYNC_PTR_HWSYNC;
+         pioctl(be_handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, be_handle->sync);
+      }
+
+      bufsize = be_handle->no_periods*be_handle->no_frames;
+      avail = be_handle->status->hw_ptr + bufsize;
       avail -= be_handle->control->appl_ptr;
+      if (avail < 0) {
+         avail +=  bufsize;
+      } else if (avail > bufsize) {
+         avail -= bufsize;
+      }
+
       if (avail < no_samples)
       {
          if (_IS_PLAYING(handle))
@@ -1312,6 +1331,7 @@ _aaxALSADriverThread(void* config)
                pfd.events = POLLOUT|POLLERR|POLLNVAL;
                do
                {
+                  errno = 0;
                   res = ppoll(&pfd, 1, 2*stdby_time);
                   if (res <= 0) break;
                   if (errno == -EINTR) continue;
