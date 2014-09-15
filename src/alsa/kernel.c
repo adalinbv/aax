@@ -1,4 +1,4 @@
-/*
+/*);
  * Copyright 2005-2014 by Erik Hofman.
  * Copyright 2009-2014 by Adalin B.V.
  * All Rights Reserved.
@@ -380,10 +380,8 @@ _aaxALSADriverDisconnect(void *id)
       }
 #endif
 
-      if (handle->render)
-      {
+      if (handle->render) {
          handle->render->close(handle->render->id);
-         free(handle->render);
       }
 
       close(handle->fd);
@@ -416,32 +414,42 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       rate = (unsigned int)*speed;
 
       _init_params(&hwparams);
+      hwparams.flags |= SNDRV_PCM_HW_PARAMS_NORESAMPLE;
+      if (handle->use_timer) {
+          hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
+      }
+
       if (pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams) >= 0)
       {
          rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
+         bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
          tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
+         periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
+
+         no_frames = *frames / periods;
          no_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                             no_frames);
-         periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
-         bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
       }
 
-      switch (*fmt)
+      switch (bits)
       {
-      case AAX_PCM8S:
+      case 8:
          format = SND_PCM_FORMAT_S8;
+         *fmt = AAX_PCM8S;
          break;
-      case AAX_PCM24S:
+      case 24:
          format = SND_PCM_FORMAT_S24_LE;
+         *fmt = AAX_PCM24S;
          break;
-      case AAX_PCM32S:
+      case 32:
          format = SND_PCM_FORMAT_S32_LE;
+         *fmt = AAX_PCM32S;
          break;
-      case AAX_PCM16S:
+      case 16:
       default:
          format = SND_PCM_FORMAT_S16_LE;
+         *fmt = AAX_PCM16S;
       }
-
       _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_FORMAT, format);
       _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_SUBFORMAT,
                            SNDRV_PCM_SUBFORMAT_STD);
@@ -451,10 +459,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_FRAME_BITS, bits*tracks);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
-
-      if (handle->use_timer) {
-          hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
-      }
 
       if (handle->use_mmap) {
          _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_ACCESS,
@@ -525,10 +529,29 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
             if (handle->status)
             {
+               handle->control->avail_min = 1;
+               _alsa_get_volume(handle);
+
+               rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
+               tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
+               periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
+               no_frames=_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+
+               handle->frequency_hz = rate;
+               handle->no_tracks = tracks;
+               handle->no_periods = periods;
+               handle->no_frames = no_frames;
+               handle->bits_sample = bits;
+               handle->latency = (float)(no_frames*periods)/(float)rate;
+
+               *speed = rate;
+               *channels = tracks;
+               *frames = no_frames * periods;
+
                handle->render = _aaxSoftwareInitRenderer(handle->latency);
                if (handle->render)
                {
-                  const char *rstr= handle->render->info(handle->render->id);
+                  const char *rstr = handle->render->info(handle->render->id);
 #if HAVE_SYS_UTSNAME_H
                   struct utsname utsname;
                   uname(&utsname);
@@ -538,26 +561,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                   snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
                                             DEFAULT_RENDERER, os_name, rstr);
 #endif
-
-                  handle->control->avail_min = 1;
-                  _alsa_get_volume(handle);
-
-                  rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
-                  tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
-                  periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-                  no_frames=_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
-
-                  handle->frequency_hz = rate;
-                  handle->no_tracks = tracks;
-                  handle->no_periods = periods;
-                  handle->no_frames = no_frames;
-                  handle->bits_sample = bits;
-                  handle->latency = (float)(no_frames*periods)/(float)rate;
-
-                  *speed = rate;
-                  *channels = tracks;
-                  *frames = no_frames * periods;
-
                   rv = AAX_TRUE;
                }
             }
