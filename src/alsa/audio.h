@@ -148,17 +148,6 @@ typedef enum _snd_pcm_type
     SND_PCM_TYPE_MMAP_EMUL
 } snd_pcm_type_t;
 
-enum _snd_ctl_elem_iface
-{
-    SND_CTL_ELEM_IFACE_CARD = 0,
-    SND_CTL_ELEM_IFACE_HWDEP,
-    SND_CTL_ELEM_IFACE_MIXER,
-    SND_CTL_ELEM_IFACE_PCM,
-    SND_CTL_ELEM_IFACE_RAWMIDI,
-    SND_CTL_ELEM_IFACE_TIMER,
-    SND_CTL_ELEM_IFACE_SEQUENCER
-};
-
 enum {
    SND_PCM_NONBLOCK = 1,
    SND_PCM_ASYNC
@@ -196,7 +185,6 @@ typedef struct _snd_pcm_channel_area
    unsigned int	step;
 } snd_pcm_channel_area_t;
 
-typedef struct _snd_ctl snd_ctl_t;
 typedef struct _snd_pcm snd_pcm_t;
 typedef struct _snd_pcm_hw_params snd_pcm_hw_params_t;
 typedef struct _snd_pcm_sw_params snd_pcm_sw_params_t;
@@ -221,11 +209,6 @@ typedef unsigned long snd_pcm_uframes_t;
 typedef void snd_hctl_t;
 typedef void snd_pcm_info_t;
 typedef void snd_hctl_elem_t;
-typedef void snd_ctl_elem_value_t;
-typedef void snd_ctl_elem_list_t;
-typedef void snd_ctl_elem_id_t;
-typedef void snd_ctl_elem_info_t;
-typedef enum _snd_ctl_elem_iface snd_ctl_elem_iface_t;
 
 
 typedef void (*snd_lib_error_handler_t)(const char *, int, const char *, int, const char *,...);
@@ -329,28 +312,7 @@ typedef int (*snd_hctl_open_proc)(snd_hctl_t **, const char *, int);
 typedef int (*snd_hctl_close_proc)(snd_hctl_t *);
 typedef int (*snd_hctl_wait_proc)(snd_hctl_t *, int);
 typedef int (*snd_hctl_load_proc)(snd_hctl_t *);
-typedef int (*snd_hctl_elem_write_proc)(snd_hctl_t *, snd_ctl_elem_value_t *);
-typedef int (*snd_hctl_elem_read_proc)(snd_hctl_t *, snd_ctl_elem_value_t *);
 typedef snd_hctl_elem_t *(*snd_hctl_last_elem_proc)(snd_hctl_t *);
-typedef snd_hctl_elem_t *(*snd_hctl_find_elem_proc)(snd_hctl_t *, const snd_ctl_elem_id_t *);
-typedef int (*snd_hctl_elem_info_proc)(snd_hctl_elem_t *, snd_ctl_elem_info_t *);
-
-typedef int (*snd_ctl_open_proc)(snd_ctl_t **, const char *, int);
-typedef int (*snd_ctl_close_proc)(snd_ctl_t *);
-typedef int (*snd_ctl_pcm_info_proc)(snd_ctl_t *, snd_pcm_info_t *);
-typedef void (*snd_ctl_elem_info_clear_proc)(snd_ctl_elem_info_t *);
-typedef unsigned int (*snd_ctl_elem_info_get_count_proc)(const snd_ctl_elem_info_t *);
-typedef int (*snd_ctl_pcm_next_device_proc)(snd_ctl_t *, int *);
-typedef int (*snd_ctl_elem_list_malloc_proc)(snd_ctl_elem_list_t **);
-typedef void (*snd_ctl_elem_value_clear_proc)(snd_ctl_elem_list_t *);
-typedef void (*snd_ctl_elem_id_clear_proc)(snd_ctl_elem_id_t *);
-typedef void (*snd_ctl_elem_value_set_interface_proc)(snd_ctl_elem_value_t *, snd_ctl_elem_iface_t);
-typedef void (*snd_ctl_elem_value_set_name_proc)(snd_ctl_elem_value_t *, const char *);
-typedef void (*snd_ctl_elem_value_set_index_proc)(snd_ctl_elem_value_t *, unsigned int);
-typedef void (*snd_ctl_elem_value_set_integer_proc)(snd_ctl_elem_value_t *, unsigned int, long);
-typedef int (*snd_ctl_elem_value_get_integer_proc)(const snd_ctl_elem_value_t *, unsigned int);
-typedef void (*snd_ctl_elem_id_set_name_proc)(snd_ctl_elem_id_t *, const char *);
-typedef void (*snd_ctl_elem_id_set_interface_proc)(snd_ctl_elem_id_t *, snd_ctl_elem_iface_t);
 
 
 typedef ssize_t (*snd_pcm_frames_to_bytes_proc)(snd_pcm_t *, snd_pcm_sframes_t);
