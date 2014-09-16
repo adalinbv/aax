@@ -1,4 +1,4 @@
-/*);
+/*
  * Copyright 2005-2014 by Erik Hofman.
  * Copyright 2009-2014 by Adalin B.V.
  * All Rights Reserved.
@@ -731,26 +731,25 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
 
       if (handle->sync)
       {
-         handle->sync->flags = 0;
+         handle->sync->flags=SNDRV_PCM_SYNC_PTR_APPL|SNDRV_PCM_SYNC_PTR_HWSYNC;
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
       }
 
+#if 1
       bufsize = handle->no_periods*handle->no_frames;
       avail = handle->status->hw_ptr + bufsize;
       avail -= handle->control->appl_ptr;
-
-      if (avail < 0) {
-         avail +=  bufsize;
-      } else if (avail > bufsize) {
-         avail -= bufsize;
-      }
-
+#else
+ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &avail);
+printf("ret: %i, avail: %i\n", ret, avail);
+#endif
+printf("no_samples: %i, avail: %i\n", no_samples, avail);
       if (handle->prepared)
       {
          struct snd_xferi xfer;
 
          xfer.buf = data;
-         xfer.frames = _MIN(no_samples, avail);
+         xfer.frames = no_samples; // _MIN(no_samples, avail);
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
          if (ret < 0) {
             handle->prepared = AAX_FALSE;
@@ -764,6 +763,11 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    if (ret < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
    }
+
+#if 0
+   ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &avail);
+printf("ret: %i, avail: %i\n", ret, avail);
+#endif
 
    return res;
 }
