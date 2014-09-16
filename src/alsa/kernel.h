@@ -97,6 +97,9 @@ struct snd_ctl_card_info {
 };
 
 #define SNDRV_CTL_IOCTL_CARD_INFO _IOR('U', 0x01, struct snd_ctl_card_info)
+#define SNDRV_PCM_IOCTL_DELAY _IOR('A', 0x21, snd_pcm_sframes_t)
+#define SNDRV_PCM_IOCTL_HWSYNC _IO('A', 0x22)
+#define SNDRV_PCM_IOCTL_SYNC_PTR _IOWR('A', 0x23, struct snd_pcm_sync_ptr)
 
 
 union snd_pcm_sync_id {

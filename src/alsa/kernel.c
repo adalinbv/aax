@@ -490,7 +490,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          }
          else
          {
-            swparams.start_threshold = no_frames;
+            swparams.start_threshold = no_frames*(periods-1);
             swparams.stop_threshold = periods*no_frames;
          }
          err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
@@ -546,7 +546,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
                *speed = rate;
                *channels = tracks;
-               *frames = no_frames * periods;
+               *frames = no_frames;// * periods;
 
                handle->render = _aaxSoftwareInitRenderer(handle->latency);
                if (handle->render)
@@ -679,7 +679,7 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    ssize_t offs, outbuf_size, no_samples;
    snd_pcm_sframes_t avail, bufsize;
    unsigned int no_tracks;
-   int res, count;
+   int res, ret, count;
    int32_t **sbuf;
    char *data;
 
@@ -717,26 +717,28 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
    }
 
-   res = 0;
    count = 16;
+   res = ret = 0;
    do
    {
       if (!handle->prepared)
       {
-         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
+         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
          if (res >= 0) {
             handle->prepared = AAX_TRUE;
          }
       }
+
       if (handle->sync)
       {
          handle->sync->flags = 0;
-         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
+         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
       }
 
       bufsize = handle->no_periods*handle->no_frames;
       avail = handle->status->hw_ptr + bufsize;
       avail -= handle->control->appl_ptr;
+
       if (avail < 0) {
          avail +=  bufsize;
       } else if (avail > bufsize) {
@@ -748,20 +750,22 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
          struct snd_xferi xfer;
 
          xfer.buf = data;
-         xfer.frames = no_samples;
-         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
-         if (res < 0) {
+         xfer.frames = _MIN(no_samples, avail);
+         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
+         if (ret < 0) {
             handle->prepared = AAX_FALSE;
          }
+         no_samples -= xfer.frames;
+         res += xfer.frames;
       }
    }
-   while ((res < 0) && --count);
+   while (no_samples && (ret < 0) && --count);
 
-   if (res < 0) {
+   if (ret < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
    }
 
-   return 0;
+   return res;
 }
 
 static char *
