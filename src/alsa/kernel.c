@@ -159,6 +159,8 @@ typedef struct
    struct snd_pcm_sync_ptr *sync;
    void *mmap_buffer;
 
+   _batch_cvt_to_intl_proc cvt_to_intl;
+
 } _driver_t;
 
 DECL_FUNCTION(ioctl);
@@ -174,7 +176,7 @@ static void _set_min(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_int(struct snd_pcm_hw_params*, int);
 static unsigned int _set_int(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_minmax(struct snd_pcm_hw_params*, int, unsigned int);
-static void _alsa_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
+static void _alsa_set_volume(_driver_t*, const int32_t**, ssize_t, size_t, unsigned int, float);
 static int _alsa_get_volume(_driver_t*);
 
 
@@ -316,6 +318,22 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
                i = 16;
             }
          }
+
+         i = xmlNodeGetInt(xid, "periods");
+         if (i)
+         {
+            if (i < 1)
+            {
+               _AAX_DRVLOG("no periods too small.");
+               i = 1;
+            }
+            else if (i > 16)
+            {
+               _AAX_DRVLOG("no. tracks too great.");
+               i = 16;
+            }
+            handle->no_periods = i;
+         }
       }
 
       if (renderer)
@@ -434,19 +452,23 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       switch (bits)
       {
       case 8:
+         handle->cvt_to_intl = _batch_cvt8_intl_24;
          format = SND_PCM_FORMAT_S8;
          *fmt = AAX_PCM8S;
          break;
       case 24:
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
          format = SND_PCM_FORMAT_S24_LE;
          *fmt = AAX_PCM24S;
          break;
       case 32:
+         handle->cvt_to_intl = _batch_cvt32_intl_24;
          format = SND_PCM_FORMAT_S32_LE;
          *fmt = AAX_PCM32S;
          break;
       case 16:
       default:
+         handle->cvt_to_intl = _batch_cvt16_intl_24;
          format = SND_PCM_FORMAT_S16_LE;
          *fmt = AAX_PCM16S;
       }
@@ -535,7 +557,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
                tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
                periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-               no_frames=_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+               no_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
 
                handle->frequency_hz = rate;
                handle->no_tracks = tracks;
@@ -601,7 +623,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       snprintf(str,255,"  can pause: %i\n", handle->can_pause);
       _AAX_SYSLOG(str);
 
-#if 1
+#if 0
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -653,7 +675,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
       res = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
       if (res >= 0)
       {
-         int32_t **sbuf = (int32_t**)data;
+         const int32_t **sbuf = (const int32_t**)data;
 
          res /= frame_size;
 
@@ -676,11 +698,11 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   ssize_t offs, outbuf_size, no_samples;
+   ssize_t offs, outbuf_size, no_frames;
    snd_pcm_sframes_t avail, bufsize;
    unsigned int no_tracks;
    int res, ret, count;
-   int32_t **sbuf;
+   const int32_t **sbuf;
    char *data;
 
    assert(rb);
@@ -689,11 +711,10 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    if (handle->mode != O_WRONLY)
       return 0;
 
-   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
+   no_frames = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   outbuf_size = no_tracks *no_samples*handle->bits_sample/8;
+   outbuf_size = no_tracks *no_frames*handle->bits_sample/8;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
@@ -705,19 +726,17 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
       handle->scratch = (char**)p;
    }
 
+   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
+   no_frames -= offs;
+
+   _alsa_set_volume(handle, sbuf, offs, no_frames, no_tracks, gain);
+
    data = (char*)handle->scratch;
-
-   sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
-
-   _batch_cvt16_intl_24(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
+   sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
    rb->release_tracks_ptr(rb);
 
-   if (is_bigendian()) {
-      _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
-   }
-
-   count = 16;
+   count = 8;
    res = ret = 0;
    do
    {
@@ -735,30 +754,25 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
       }
 
-#if 1
       bufsize = handle->no_periods*handle->no_frames;
       avail = handle->status->hw_ptr + bufsize;
       avail -= handle->control->appl_ptr;
-#else
-ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &avail);
-printf("ret: %i, avail: %i\n", ret, avail);
-#endif
-printf("no_samples: %i, avail: %i\n", no_samples, avail);
+printf("no_samples: %i, avail: %i\n", no_frames, avail);
       if (handle->prepared)
       {
          struct snd_xferi xfer;
 
          xfer.buf = data;
-         xfer.frames = no_samples; // _MIN(no_samples, avail);
+         xfer.frames = no_frames; // _MIN(no_frames, avail);
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
          if (ret < 0) {
             handle->prepared = AAX_FALSE;
          }
-         no_samples -= xfer.frames;
+         no_frames -= xfer.frames;
          res += xfer.frames;
       }
    }
-   while (no_samples && (ret < 0) && --count);
+   while (no_frames && (ret < 0) && --count);
 
    if (ret < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
@@ -1022,7 +1036,7 @@ _alsa_get_volume(_driver_t *handle)
 }
 
 static void
-_alsa_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_frames, unsigned int no_tracks, float volume)
+_alsa_set_volume(_driver_t *handle, const int32_t **sbuf, ssize_t offset, size_t no_frames, unsigned int no_tracks, float volume)
 {
 }
 
@@ -1246,7 +1260,7 @@ _aaxALSADriverThread(void* config)
    _handle_t *handle = (_handle_t *)config;
    float delay_sec, wait_us;
    _intBufferData *dptr_sensor;
-   snd_pcm_sframes_t no_samples;
+   snd_pcm_sframes_t no_frames;
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
@@ -1297,7 +1311,7 @@ _aaxALSADriverThread(void* config)
    state = AAX_SUSPENDED;
 
    wait_us = delay_sec*1000000.0f;
-   no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
+   no_frames = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
    stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.signal.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
@@ -1323,7 +1337,7 @@ _aaxALSADriverThread(void* config)
          avail -= bufsize;
       }
 
-      if (avail < no_samples)
+      if (avail < no_frames)
       {
          if (_IS_PLAYING(handle))
          {
