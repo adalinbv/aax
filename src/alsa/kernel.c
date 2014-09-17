@@ -757,7 +757,6 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
       bufsize = handle->no_periods*handle->no_frames;
       avail = handle->status->hw_ptr + bufsize;
       avail -= handle->control->appl_ptr;
-printf("no_samples: %i, avail: %i\n", no_frames, avail);
       if (handle->prepared)
       {
          struct snd_xferi xfer;
@@ -777,11 +776,6 @@ printf("no_samples: %i, avail: %i\n", no_frames, avail);
    if (ret < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
    }
-
-#if 0
-   ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &avail);
-printf("ret: %i, avail: %i\n", ret, avail);
-#endif
 
    return res;
 }
@@ -1322,21 +1316,9 @@ _aaxALSADriverThread(void* config)
 
       _aaxMutexUnLock(handle->thread.signal.mutex);
 
-      if (be_handle->sync)
-      {
-         be_handle->sync->flags = SNDRV_PCM_SYNC_PTR_HWSYNC;
-         pioctl(be_handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, be_handle->sync);
-      }
-
       bufsize = be_handle->no_periods*be_handle->no_frames;
       avail = be_handle->status->hw_ptr + bufsize;
       avail -= be_handle->control->appl_ptr;
-      if (avail < 0) {
-         avail +=  bufsize;
-      } else if (avail > bufsize) {
-         avail -= bufsize;
-      }
-
       if (avail < no_frames)
       {
          if (_IS_PLAYING(handle))
