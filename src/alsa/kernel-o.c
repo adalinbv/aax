@@ -23,9 +23,6 @@
 #if HAVE_IOCTL
 # include <sys/ioctl.h>
 #endif
-#if HAVE_MMAN_H
-# include <sys/mman.h>
-#endif
 #endif
 #ifdef HAVE_IO_H
 #include <io.h>
@@ -41,6 +38,9 @@
 #include <assert.h>
 #if HAVE_STRINGS_H
 # include <strings.h>
+#endif
+#if HAVE_MMAN_H
+# include <sys/mman.h>
 #endif
 
 #include <aax/aax.h>
@@ -159,8 +159,6 @@ typedef struct
    struct snd_pcm_sync_ptr *sync;
    void *mmap_buffer;
 
-   _batch_cvt_to_intl_proc cvt_to_intl;
-
 } _driver_t;
 
 DECL_FUNCTION(ioctl);
@@ -176,7 +174,7 @@ static void _set_min(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_int(struct snd_pcm_hw_params*, int);
 static unsigned int _set_int(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_minmax(struct snd_pcm_hw_params*, int, unsigned int);
-static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
+static void _alsa_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
 static int _alsa_get_volume(_driver_t*);
 
 
@@ -318,22 +316,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
                i = 16;
             }
          }
-
-         i = xmlNodeGetInt(xid, "periods");
-         if (i)
-         {
-            if (i < 1)
-            {
-               _AAX_DRVLOG("no periods too small.");
-               i = 1;
-            }
-            else if (i > 16)
-            {
-               _AAX_DRVLOG("no. tracks too great.");
-               i = 16;
-            }
-            handle->no_periods = i;
-         }
       }
 
       if (renderer)
@@ -398,7 +380,8 @@ _aaxALSADriverDisconnect(void *id)
       }
 #endif
 
-      if (handle->render) {
+      if (handle->render)
+      {
          handle->render->close(handle->render->id);
       }
 
@@ -432,46 +415,32 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       rate = (unsigned int)*speed;
 
       _init_params(&hwparams);
-      hwparams.flags |= SNDRV_PCM_HW_PARAMS_NORESAMPLE;
-      if (handle->use_timer) {
-          hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
-      }
-
       if (pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams) >= 0)
       {
          rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
-         bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
          tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
-         periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
-
-         no_frames = *frames / periods;
          no_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                             no_frames);
+         periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
+         bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
       }
 
-      switch (bits)
+      switch (*fmt)
       {
-      case 8:
-         handle->cvt_to_intl = _batch_cvt8_intl_24;
+      case AAX_PCM8S:
          format = SND_PCM_FORMAT_S8;
-         *fmt = AAX_PCM8S;
          break;
-      case 24:
-         handle->cvt_to_intl = _batch_cvt24_intl_24;
+      case AAX_PCM24S:
          format = SND_PCM_FORMAT_S24_LE;
-         *fmt = AAX_PCM24S;
          break;
-      case 32:
-         handle->cvt_to_intl = _batch_cvt32_intl_24;
+      case AAX_PCM32S:
          format = SND_PCM_FORMAT_S32_LE;
-         *fmt = AAX_PCM32S;
          break;
-      case 16:
+      case AAX_PCM16S:
       default:
-         handle->cvt_to_intl = _batch_cvt16_intl_24;
          format = SND_PCM_FORMAT_S16_LE;
-         *fmt = AAX_PCM16S;
       }
+
       _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_FORMAT, format);
       _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_SUBFORMAT,
                            SNDRV_PCM_SUBFORMAT_STD);
@@ -481,6 +450,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_FRAME_BITS, bits*tracks);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
+
+      if (handle->use_timer) {
+          hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
+      }
 
       if (handle->use_mmap) {
          _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_ACCESS,
@@ -493,10 +466,11 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       err = pioctl(handle->fd, SNDRV_PCM_IOCTL_HW_PARAMS, &hwparams);
       if (err >= 0)
       {
+ 
          if (hwparams.info & SNDRV_PCM_INFO_PAUSE) {
             handle->can_pause = AAX_TRUE;
          }
-
+ 
          memset(&swparams, 0, sizeof(struct snd_pcm_sw_params));
          swparams.tstamp_mode = SNDRV_PCM_TSTAMP_ENABLE;
          swparams.period_step = 1;
@@ -512,7 +486,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          }
          else
          {
-            swparams.start_threshold = no_frames*(periods-1);
+            swparams.start_threshold = no_frames;
             swparams.stop_threshold = periods*no_frames;
          }
          err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
@@ -551,29 +525,15 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
             if (handle->status)
             {
-               handle->control->avail_min = 1;
-               _alsa_get_volume(handle);
-
-               rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
-               tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
-               periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-               no_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
-
-               handle->frequency_hz = rate;
-               handle->no_tracks = tracks;
-               handle->no_periods = periods;
-               handle->no_frames = no_frames;
-               handle->bits_sample = bits;
-               handle->latency = (float)(no_frames*periods)/(float)rate;
-
-               *speed = rate;
-               *channels = tracks;
-               *frames = no_frames;
-
+printf("handle->latency: %f\n", handle->latency);
                handle->render = _aaxSoftwareInitRenderer(handle->latency);
                if (handle->render)
                {
-                  const char *rstr = handle->render->info(handle->render->id);
+printf("handle: %x\n", handle);
+printf("handle->render: %x\n", handle->render);
+printf("handle->render->id: %x\n", handle->render->id);
+printf("handle->render->info: %x\n", handle->render->info);
+                  const char *rstr= handle->render->info(handle->render->id);
 #if HAVE_SYS_UTSNAME_H
                   struct utsname utsname;
                   uname(&utsname);
@@ -583,6 +543,28 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                   snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
                                             DEFAULT_RENDERER, os_name, rstr);
 #endif
+
+                  handle->control->avail_min = 1;
+                  _alsa_get_volume(handle);
+
+                  rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
+                  tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
+                  periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
+                  no_frames=_get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+
+                  handle->frequency_hz = rate;
+                  handle->no_tracks = tracks;
+                  handle->no_periods = periods;
+                  handle->no_frames = no_frames;
+                  handle->bits_sample = bits;
+                  handle->latency = (float)(no_frames*periods)/(float)rate;
+printf("1. handle->latency = %f\n", handle->latency);
+printf("no_frames: %i, periods: %i, rate: %i\n", no_frames, periods, rate);
+
+                  *speed = rate;
+                  *channels = tracks;
+                  *frames = no_frames * periods;
+
                   rv = AAX_TRUE;
                }
             }
@@ -606,7 +588,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  playback rate: %5.0f hz", handle->frequency_hz);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  buffer size: %zu bytes", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
+      snprintf(str,255, "  buffer size: %u bytes", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
       _AAX_SYSLOG(str);
@@ -623,7 +605,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       snprintf(str,255,"  can pause: %i\n", handle->can_pause);
       _AAX_SYSLOG(str);
 
-#if 0
+#if 1
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -680,16 +662,8 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
          res /= frame_size;
 
          _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, res);
+         _alsa_set_volume(handle, sbuf, offs, res, tracks, gain);
          *frames = x.frames;
-
-         gain = _alsa_set_volume(handle, NULL, offs, offs, tracks, gain);
-         if (gain > 0)
-         {
-            unsigned int i;
-            for (i=0; i<tracks; i++) {
-               _batch_imul_value(sbuf[i]+offs, sizeof(int32_t), offs, gain);
-         }
-      }
 
          rv = AAX_TRUE;
       }
@@ -706,11 +680,10 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   ssize_t offs, outbuf_size, no_frames;
-   snd_pcm_sframes_t avail, bufsize;
+   ssize_t offs, outbuf_size, no_samples;
    unsigned int no_tracks;
-   int res, ret, count;
-   const int32_t **sbuf;
+   int res, avail, count;
+   int32_t **sbuf;
    char *data;
 
    assert(rb);
@@ -719,10 +692,11 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    if (handle->mode != O_WRONLY)
       return 0;
 
+   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   no_frames = rb->get_parami(rb, RB_NO_SAMPLES);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
 
-   outbuf_size = no_tracks *no_frames*handle->bits_sample/8;
+   outbuf_size = no_tracks *no_samples*handle->bits_sample/8;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
@@ -734,58 +708,57 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
       handle->scratch = (char**)p;
    }
 
-   offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
-   no_frames -= offs;
-
-   _alsa_set_volume(handle, rb, offs, no_frames, no_tracks, gain);
-
    data = (char*)handle->scratch;
-   sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
+
+   sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+   _alsa_set_volume(handle, sbuf, offs, no_samples, no_tracks, gain);
+
+   _batch_cvt16_intl_24(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
    rb->release_tracks_ptr(rb);
 
-   count = 8;
-   res = ret = 0;
+   if (is_bigendian()) {
+      _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);
+   }
+
+   res = 0;
+   count = 16;
    do
    {
       if (!handle->prepared)
       {
-         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
          if (res >= 0) {
             handle->prepared = AAX_TRUE;
          }
       }
-
       if (handle->sync)
       {
-         handle->sync->flags=SNDRV_PCM_SYNC_PTR_APPL|SNDRV_PCM_SYNC_PTR_HWSYNC;
-         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
+         handle->sync->flags = 0;
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
       }
 
-      bufsize = handle->no_periods*handle->no_frames;
-      avail = handle->status->hw_ptr + bufsize;
+      avail = handle->status->hw_ptr;
+      avail += handle->no_periods*handle->no_frames;
       avail -= handle->control->appl_ptr;
       if (handle->prepared)
       {
          struct snd_xferi xfer;
 
          xfer.buf = data;
-         xfer.frames = no_frames; // _MIN(no_frames, avail);
-         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
-         if (ret < 0) {
+         xfer.frames = no_samples;
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
+         if (res < 0) {
             handle->prepared = AAX_FALSE;
          }
-         no_frames -= xfer.frames;
-         res += xfer.frames;
       }
    }
-   while (no_frames && (ret < 0) && --count);
+   while ((res < 0) && --count);
 
-   if (ret < 0) {
+   if (res < 0) {
       _AAX_SYSLOG("alsa: warning: pcm write error");
    }
 
-   return res;
+   return 0;
 }
 
 static char *
@@ -1037,20 +1010,9 @@ _alsa_get_volume(_driver_t *handle)
    return rv;
 }
 
-static float
-_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
+static void
+_alsa_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_frames, unsigned int no_tracks, float volume)
 {
-   float gain = fabsf(volume);
-   float rv = 0;
-
-// TODO: hardware volume
-
-      /* software volume fallback */
-   if (rb && fabsf(gain - 1.0f) > 0.05f) {
-      rb->data_multiply(rb, offset, no_frames, gain);
-   }
-
-   return rv;
 }
 
 
@@ -1271,13 +1233,12 @@ void *
 _aaxALSADriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-   snd_pcm_sframes_t no_frames, bufsize;
    float delay_sec, wait_us;
    _intBufferData *dptr_sensor;
+   snd_pcm_sframes_t no_samples;
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
-   _driver_t *be_handle;
    const void *id;
    int stdby_time;
    char state;
@@ -1324,11 +1285,8 @@ _aaxALSADriverThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   be_handle = (_driver_t *)handle->backend.handle;
-   bufsize = be_handle->no_periods*be_handle->no_frames;
-
    wait_us = delay_sec*1000000.0f;
-   no_frames = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
+   no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
    stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.signal.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
@@ -1339,9 +1297,10 @@ _aaxALSADriverThread(void* config)
 
       _aaxMutexUnLock(handle->thread.signal.mutex);
 
-      avail = be_handle->status->hw_ptr + bufsize;
+      avail = be_handle->status->hw_ptr;
+      avail += be_handle->no_periods*be_handle->no_frames;
       avail -= be_handle->control->appl_ptr;
-      if (avail < no_frames)
+      if (avail < no_samples)
       {
          if (_IS_PLAYING(handle))
          {
@@ -1357,7 +1316,6 @@ _aaxALSADriverThread(void* config)
                pfd.events = POLLOUT|POLLERR|POLLNVAL;
                do
                {
-                  errno = 0;
                   res = ppoll(&pfd, 1, 2*stdby_time);
                   if (res <= 0) break;
                   if (errno == -EINTR) continue;
