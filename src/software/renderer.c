@@ -38,15 +38,20 @@ _aaxSoftwareInitRenderer(float dt)
       if (found >= 0)
       {
          _aaxRendererDetect* rtype = _aaxRenderTypes[found];
-         _aaxRenderer* type = rtype();
-         if (type && type->detect())
+         rv = rtype();
+      }
+   }
+
+   if (rv)
+   {
+      _aaxRenderer* type = rv;
+      if (type->detect())
+      {
+         type->id = type->setup(_MIN(floorf(1000.0f * dt), 1));
+         if (type->id)
          {
-            type->id = type->setup(_MIN(floorf(1000.0f * dt), 1));
-            if (type->id)
-            {
-               type->open(type->id);
-               rv = type;
-            }
+            type->open(type->id);
+            rv = type;
          }
       }
    }
