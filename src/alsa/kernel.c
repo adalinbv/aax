@@ -351,8 +351,13 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       int m = (handle->mode == O_RDONLY) ? 0 : 1;
       if (detect_pcm(handle, m))
       {
-         handle->fd = open(handle->pcm, O_RDWR);
-         if (handle->fd < 0)
+         handle->fd = open(handle->pcm, O_RDWR|O_NONBLOCK);
+         if (handle->fd >= 0)
+         {
+            close(handle->fd);
+            handle->fd = open(handle->pcm, O_RDWR);
+         }
+         else
          {
             free(handle);
             handle = NULL;
@@ -923,7 +928,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
          char fn[256];
 
          snprintf(fn, 256, "/dev/snd/controlC%u", card++);
-         fd = open(fn, O_RDONLY);
+         fd = open(fn, O_RDONLY|O_NONBLOCK);
          if (fd >= 0)
          {
             struct snd_ctl_card_info card_info;
@@ -974,7 +979,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          char fn[256];
          snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m ? 'p' : 'c');
 
-         fd = open(fn, O_RDONLY);
+         fd = open(fn, O_RDONLY|O_NONBLOCK);
          if (fd >= 0)
          {
             struct snd_pcm_info info;
@@ -1187,7 +1192,7 @@ detect_pcm(_driver_t *handle, char m)
          {
             snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m ? 'p' : 'c');
 
-            fd = open(fn, O_RDONLY);
+            fd = open(fn, O_RDONLY|O_NONBLOCK);
             if (fd >= 0)
             {
                struct snd_pcm_info info;
@@ -1243,7 +1248,7 @@ detect_cardnum(const char *devname)
          char fn[256];
 
          snprintf(fn, sizeof(fn), "/dev/snd/controlC%u", ++card);
-         fd = open(fn, O_RDONLY);
+         fd = open(fn, O_RDONLY|O_NONBLOCK);
          if (fd >= 0)
          {
             struct snd_ctl_card_info card_info;
