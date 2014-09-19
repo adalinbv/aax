@@ -485,7 +485,8 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             if (res == 0)
             {
                handle->thread.started = AAX_TRUE;
-               handle->render = _aaxSoftwareInitRenderer(handle->latency);
+               handle->render = _aaxSoftwareInitRenderer(handle->latency,
+                                                         handle->mode);
                if (handle->render)
                {
                   const char *rstr = handle->render->info(handle->render->id);

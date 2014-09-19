@@ -126,6 +126,7 @@ typedef struct
 {
    char *name;
    _aaxRenderer *render;
+   int setup;
 
    char *pcm;
    unsigned int cardnum;
@@ -230,6 +231,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_tracks = 2;
       handle->use_mmap = AAX_FALSE;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
+      handle->setup = mode;
       handle->no_periods = 2;
       handle->interleaved = AAX_TRUE;
       handle->fd = -1;
@@ -575,7 +577,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                *channels = tracks;
                *frames = no_frames;
 
-               handle->render = _aaxSoftwareInitRenderer(handle->latency);
+               handle->render = _aaxSoftwareInitRenderer(handle->latency,
+                                                         handle->setup);
                if (handle->render)
                {
                   const char *rstr = handle->render->info(handle->render->id);

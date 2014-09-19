@@ -16,11 +16,16 @@
 #include "renderer.h"
 
 _aaxRenderer*
-_aaxSoftwareInitRenderer(float dt)
+_aaxSoftwareInitRenderer(float dt, int mode)
 {
    static _aaxRenderer *rv = NULL;
 
-   if (!rv)
+   if (mode == AAX_MODE_READ)
+   {
+      _aaxRendererDetect* rtype = _aaxRenderTypes[0];
+      rv = rtype();
+   }
+   else if (!rv)
    {
       _aaxRendererDetect* rtype;
       int i = -1, found = -1;

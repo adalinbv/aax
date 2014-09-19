@@ -101,6 +101,7 @@ static _aaxDriverLog _aaxLoopbackDriverLog;
 
 typedef struct
 {
+   int mode;
    float latency;
    float frequency;
    enum aaxFormat format;
@@ -289,6 +290,7 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
    if (rv)
    {
       rv->latency = 0.0f;
+      rv->mode = mode;
    }
    return rv;
 }
@@ -335,7 +337,7 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
       } else {
          handle->latency = 0.0f;
       }
-      handle->render = _aaxSoftwareInitRenderer(handle->latency);
+      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
    }
    return AAX_TRUE;
 }

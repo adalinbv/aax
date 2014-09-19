@@ -915,7 +915,7 @@ _aaxASOUNDDriverSetup(const void *id, size_t *frames, int *fmt,
       else {
           handle->latency = (float)no_frames/(float)rate;
       }
-      handle->render = _aaxSoftwareInitRenderer(handle->latency);
+      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);
