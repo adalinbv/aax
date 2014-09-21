@@ -215,6 +215,31 @@ ELSE(MSVC)
         ENDFOREACH(flag_var)
     ENDIF(NOT MINGW)
 
+    IF ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+      SET(C_FLAGS "${C_FLAGS} -Qunused-arguments" CACHE STRING
+          "Hide unised clang options"
+          FORCE)
+    ENDIF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+
+    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops" CACHE STRING
+        "Flags used by al build types."
+        FORCE)
+
+    # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
+    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -g -DNDEBUG" CACHE STRING
+        "Flags used by the compiler during Release with Debug Info builds."
+        FORCE)
+    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+        "Flags used by the compiler during release minsize builds."
+        FORCE)
+#   SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+#           CACHE STRING "Flags used by the compiler during release builds"
+#          FORCE)
+    SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
+        "Flags used by the compiler during debug builds."
+        FORCE)
+
+
     IF(X86_64)
         message("Build environment: X86_64")
         SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse")
@@ -303,27 +328,6 @@ ELSE(MSVC)
     ELSE()
         message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
     ENDIF()
-
-    IF ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-      SET(C_FLAGS "${C_FLAGS} -Qunused-arguments" CACHE STRING
-          "Hide unised clang options"
-          FORCE)
-    ENDIF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-
-    SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops" CACHE STRING
-        "Flags used by al build types."
-        FORCE)
-
-    # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -g -DNDEBUG" CACHE STRING
-        "Flags used by the compiler during Release with Debug Info builds."
-        FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
-        "Flags used by the compiler during release minsize builds."
-        FORCE)
-    SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
-        "Flags used by the compiler during debug builds."
-        FORCE)
 
     message("Build type: ${CMAKE_BUILD_TYPE}")
     message("Compiler flags: ${C_FLAGS}")
