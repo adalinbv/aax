@@ -27,7 +27,7 @@
 
 #include "api.h"
 
-#if USE_MIDI
+#if USE_EVENTMGR
 
 enum _aaxEventType
 {
@@ -398,8 +398,11 @@ _aaxEventStart(_aaxEventMgr *eventmgr)
    assert(eventmgr);
 
    eventmgr->thread.ptr = _aaxThreadCreate();
-   eventmgr->thread.condition = _aaxConditionCreate();
-   eventmgr->thread.mutex = _aaxMutexCreate(eventmgr->thread.mutex);
+   assert(handle->thread.ptr != 0);
+
+   _aaxSignalInit(&eventmgr->thread.signal);
+   assert(eventmgr->thread.signal.condition != 0);
+   assert(eventmgr->thread.signal.mutex != 0);
 
    res = _aaxThreadStart(eventmgr->thread.ptr, _aaxEventThread, eventmgr, 20);
    if (res == 0)
@@ -423,11 +426,10 @@ _aaxEventStop(_aaxEventMgr *eventmgr)
    if TEST_FOR_TRUE(eventmgr->thread.started)
    {
       eventmgr->thread.started = AAX_FALSE;
-      _aaxConditionSignal(eventmgr->thread.signal);
+      _aaxSignalTrigger(&eventmgr->thread.signal);
       _aaxThreadJoin(eventmgr->thread.ptr);
 
-      _aaxConditionDestroy(eventmgr->thread.signal.condition);
-      _aaxMutexDestroy(eventmgr->thread.mutex);
+      _aaxSignalFree(&eventmgr->thread.signal);
       _aaxThreadDestroy(eventmgr->thread.ptr);
    }
 
@@ -444,7 +446,8 @@ _aaxGetBufferFromCache(_aaxEventMgr *eventmgr, const char *fname)
    return rv;
 }
 
-static void _aaxFreeFrameCache(void *ptr)
+static void
+_aaxFreeFrameCache(void *ptr)
 {
    _frame_cache_t *fr = ptr;
    _handle_t *handle;
@@ -458,7 +461,8 @@ static void _aaxFreeFrameCache(void *ptr)
    free(fr);
 }
 
-static void _aaxFreeBufferCache(void *ptr)
+static void
+_aaxFreeBufferCache(void *ptr)
 {
    _buffer_cache_t *buf = ptr;
 
@@ -467,7 +471,8 @@ static void _aaxFreeBufferCache(void *ptr)
    free(buf);
 }
 
-static void _aaxFreeEmitterCache(void *ptr)
+static void
+_aaxFreeEmitterCache(void *ptr)
 {
    _emitter_cache_t *em = ptr;
 

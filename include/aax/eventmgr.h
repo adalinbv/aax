@@ -31,7 +31,7 @@ enum aaxEventType
     AAX_EVENT_LOOP,
     AAX_EVENT_BUFFER_AVAIL,
  
-    AAX_EVENT_IN_RANGE,
+    AAX_EVENT_WITHIN_RANGE,
     AAX_EVENT_OUT_OF_RANGE,
 
     AAX_EVENT_MAX,
@@ -42,7 +42,7 @@ enum aaxEventType
     AAX_BUFFER_EVENTS = 0x800,
     AAX_SPECIAL_EVENTS = 0x1000,
 
-    AAX_SYSTEM_EVENTS = 0x8000
+    AAX_SYSTEM_EVENTS = 0x80000000
 };
 
 typedef void* aaxEvent;

@@ -32,6 +32,7 @@ extern "C" {
 #include "objects.h"
 
 #define USE_MIDI			AAX_FALSE
+#define USE_EVENTMGR			AAX_TRUE
 #define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
 
 #if _WIN32
