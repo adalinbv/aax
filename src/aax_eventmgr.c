@@ -398,7 +398,7 @@ _aaxEventStart(_aaxEventMgr *eventmgr)
    assert(eventmgr);
 
    eventmgr->thread.ptr = _aaxThreadCreate();
-   assert(handle->thread.ptr != 0);
+   assert(eventmgr->thread.ptr != 0);
 
    _aaxSignalInit(&eventmgr->thread.signal);
    assert(eventmgr->thread.signal.condition != 0);
