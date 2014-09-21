@@ -245,6 +245,11 @@ ELSE(MSVC)
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                   PROPERTY COMPILE_FLAGS "-mfma4 -march=corei7-avx"
         )
+
+        SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+            CACHE STRING "Flags used by the compiler during release builds"
+            FORCE)
+
     ELSEIF(X86)
         message("Build environment: X86")
         SET(C_FLAGS "${C_FLAGS} -march=i686")
@@ -266,6 +271,10 @@ ELSE(MSVC)
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse41.c APPEND 
                      PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=corei7"
         )
+
+        SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+            CACHE STRING "Flags used by the compiler during release builds"
+            FORCE)
     ELSEIF(ARM)
         message("Build environment: ARM")
         SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm")
@@ -287,6 +296,10 @@ ELSE(MSVC)
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND 
                      PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
         )
+
+        SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
+            CACHE STRING "Flags used by the compiler during release builds"
+            FORCE)
     ELSE()
         message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
     ENDIF()
@@ -307,9 +320,6 @@ ELSE(MSVC)
         FORCE)
     SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
         "Flags used by the compiler during release minsize builds."
-        FORCE)
-    SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
-        CACHE STRING "Flags used by the compiler during release builds"
         FORCE)
     SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
         "Flags used by the compiler during debug builds."
