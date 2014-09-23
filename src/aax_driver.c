@@ -1022,7 +1022,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (iv > _AAX_MAX_MIXER_REFRESH_RATE) {
                iv = _AAX_MAX_MIXER_REFRESH_RATE;
             }
-            iv = fq / (float)get_pow2((unsigned)ceilf(fq / iv));
+            iv = fq / INTERVAL(fq / iv);
             handle->info->refresh_rate = iv;
             handle->info->frequency = fq;
             if (config->node[0].update) {
@@ -1051,7 +1051,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (iv > _AAX_MAX_MIXER_REFRESH_RATE_LT) {
                iv = _AAX_MAX_MIXER_REFRESH_RATE_LT;
             }
-            iv = fq / (float)get_pow2((unsigned)ceilf(fq / iv));
+            iv = fq / INTERVAL(fq / iv);
             handle->info->refresh_rate = iv;
             handle->info->frequency = fq;
             if (config->node[0].update) {

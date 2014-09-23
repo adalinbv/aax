@@ -81,7 +81,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             if ((setup > 1000) && (setup <= _AAX_MAX_MIXER_FREQUENCY))
             {
                float iv = info->refresh_rate;
-               iv = setup / (float)get_pow2((unsigned int)ceilf(setup / iv));
+               iv = setup / INTERVAL(setup / iv);
                info->frequency = (float)setup;
                info->refresh_rate = iv;
                rv = AAX_TRUE;
@@ -98,7 +98,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                float iv = (float)setup;
                if (iv <= 5.0f) iv = 5.0f;
 
-               iv = fq / (float)get_pow2((unsigned)ceilf(fq / iv));
+               iv = fq / INTERVAL(fq / iv);
                info->refresh_rate = iv;
 
                info->update_rate = (uint8_t)rintf(iv/update_hz);
@@ -122,7 +122,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                float iv = fq*sizeof(int32_t)/setup;
                if (iv <= 5.0f) iv = 5.0f;
 
-               iv = fq / (float)get_pow2((unsigned)ceilf(fq / iv));
+               iv = fq / INTERVAL(fq / iv);
                info->refresh_rate = iv;
                rv = AAX_TRUE;
             }

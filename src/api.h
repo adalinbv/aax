@@ -83,6 +83,7 @@ typedef struct
 #define VALID_LITE_HANDLE(h)	((h) && (((h)->valid & ~AAX_TRUE)==LITE_HANDLE_ID || ((h)->valid & ~AAX_TRUE) == HANDLE_ID))
 #define VALID_HANDLE(h)		((h) && ((h)->valid & ~AAX_TRUE) == HANDLE_ID)
 #define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
+#define INTERVAL(a)		(rintf((a)/64)*64)
 
 extern int _client_release_mode;
 extern _aaxMixerInfo* _info;
