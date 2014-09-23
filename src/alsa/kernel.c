@@ -60,66 +60,69 @@
 #include "kernel.h"
 #include "device.h"
 
+#define TIMER_BASED		AAX_FALSE
+
 #define MAX_NAME		40
 #define NO_PERIODS		2
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_PCM_NUM		0
 #define	DEFAULT_PCM_NAME	"/dev/snd/pcmC0D0p"
 #define DEFAULT_MIXER_NAME	"/dev/snd/controlC0"
-#define DEFAULT_RENDERER	"ALSA"
+#define DEFAULT_RENDERER	"Linux"
 #define MAX_ID_STRLEN		64
+#define FILL_FACTOR		1.65f
 
-#define _AAX_DRVLOG(a)         _aaxALSADriverLog(id, 0, 0, a)
+#define _AAX_DRVLOG(a)         _aaxLinuxDriverLog(id, 0, 0, a)
 
-static _aaxDriverDetect _aaxALSADriverDetect;
-static _aaxDriverNewHandle _aaxALSADriverNewHandle;
-static _aaxDriverGetDevices _aaxALSADriverGetDevices;
-static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
-static _aaxDriverConnect _aaxALSADriverConnect;
-static _aaxDriverDisconnect _aaxALSADriverDisconnect;
-static _aaxDriverSetup _aaxALSADriverSetup;
-static _aaxDriverCaptureCallback _aaxALSADriverCapture;
-static _aaxDriverCallback _aaxALSADriverPlayback;
-static _aaxDriverGetName _aaxALSADriverGetName;
-static _aaxDriverRender _aaxALSADriverRender;
-static _aaxDriverThread _aaxALSADriverThread;
-static _aaxDriverState _aaxALSADriverState;
-static _aaxDriverParam _aaxALSADriverParam;
-static _aaxDriverLog _aaxALSADriverLog;
+static _aaxDriverDetect _aaxLinuxDriverDetect;
+static _aaxDriverNewHandle _aaxLinuxDriverNewHandle;
+static _aaxDriverGetDevices _aaxLinuxDriverGetDevices;
+static _aaxDriverGetInterfaces _aaxLinuxDriverGetInterfaces;
+static _aaxDriverConnect _aaxLinuxDriverConnect;
+static _aaxDriverDisconnect _aaxLinuxDriverDisconnect;
+static _aaxDriverSetup _aaxLinuxDriverSetup;
+static _aaxDriverCaptureCallback _aaxLinuxDriverCapture;
+static _aaxDriverCallback _aaxLinuxDriverPlayback;
+static _aaxDriverGetName _aaxLinuxDriverGetName;
+static _aaxDriverRender _aaxLinuxDriverRender;
+static _aaxDriverThread _aaxLinuxDriverThread;
+static _aaxDriverState _aaxLinuxDriverState;
+static _aaxDriverParam _aaxLinuxDriverParam;
+static _aaxDriverLog _aaxLinuxDriverLog;
 
-static char _alsa_id_str[MAX_ID_STRLEN] = DEFAULT_RENDERER;
-const _aaxDriverBackend _aaxALSADriverBackend =
+static char _kernel_id_str[MAX_ID_STRLEN] = DEFAULT_RENDERER;
+const _aaxDriverBackend _aaxLinuxDriverBackend =
 {
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
-   (char *)&_alsa_id_str,
+   (char *)&_kernel_id_str,
 
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
-   (_aaxDriverDetect *)&_aaxALSADriverDetect,
-   (_aaxDriverNewHandle *)&_aaxALSADriverNewHandle,
-   (_aaxDriverGetDevices *)&_aaxALSADriverGetDevices,
-   (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
+   (_aaxDriverDetect *)&_aaxLinuxDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxLinuxDriverNewHandle,
+   (_aaxDriverGetDevices *)&_aaxLinuxDriverGetDevices,
+   (_aaxDriverGetInterfaces *)&_aaxLinuxDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxALSADriverGetName,
-   (_aaxDriverRender *)&_aaxALSADriverRender,
-   (_aaxDriverThread *)&_aaxALSADriverThread,
+   (_aaxDriverGetName *)&_aaxLinuxDriverGetName,
+   (_aaxDriverRender *)&_aaxLinuxDriverRender,
+   (_aaxDriverThread *)&_aaxLinuxDriverThread,
 
-   (_aaxDriverConnect *)&_aaxALSADriverConnect,
-   (_aaxDriverDisconnect *)&_aaxALSADriverDisconnect,
-   (_aaxDriverSetup *)&_aaxALSADriverSetup,
-   (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
-   (_aaxDriverCallback *)&_aaxALSADriverPlayback,
+   (_aaxDriverConnect *)&_aaxLinuxDriverConnect,
+   (_aaxDriverDisconnect *)&_aaxLinuxDriverDisconnect,
+   (_aaxDriverSetup *)&_aaxLinuxDriverSetup,
+   (_aaxDriverCaptureCallback *)&_aaxLinuxDriverCapture,
+   (_aaxDriverCallback *)&_aaxLinuxDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxALSADriverState,
-   (_aaxDriverParam *)&_aaxALSADriverParam,
-   (_aaxDriverLog *)&_aaxALSADriverLog
+   (_aaxDriverState *)&_aaxLinuxDriverState,
+   (_aaxDriverParam *)&_aaxLinuxDriverParam,
+   (_aaxDriverLog *)&_aaxLinuxDriverLog
 };
 
 typedef struct
@@ -162,6 +165,9 @@ typedef struct
 
    _batch_cvt_to_intl_proc cvt_to_intl;
 
+   float PID[1];
+   float target[3];
+
 } _driver_t;
 
 DECL_FUNCTION(ioctl);
@@ -177,16 +183,16 @@ static void _set_min(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_int(struct snd_pcm_hw_params*, int);
 static unsigned int _set_int(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_minmax(struct snd_pcm_hw_params*, int, unsigned int);
-static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
-static int _alsa_get_volume(_driver_t*);
+static float _kernel_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
+static int _kernel_get_volume(_driver_t*);
 
 
 static const int _mode[] = { O_RDONLY, O_WRONLY };
-static const char *_const_alsa_default_name = DEFAULT_DEVNAME;
-static int _alsa_default_cardnum = DEFAULT_PCM_NUM;
+static const char *_const_kernel_default_name = DEFAULT_DEVNAME;
+static int _kernel_default_cardnum = DEFAULT_PCM_NUM;
 
 static int
-_aaxALSADriverDetect(int mode)
+_aaxLinuxDriverDetect(int mode)
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -215,7 +221,7 @@ _aaxALSADriverDetect(int mode)
 }
 
 static void *
-_aaxALSADriverNewHandle(enum aaxRenderMode mode)
+_aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
@@ -226,7 +232,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->pcm = DEFAULT_PCM_NAME;
-      handle->name = (char*)_const_alsa_default_name;
+      handle->name = (char*)_const_kernel_default_name;
       handle->frequency_hz = (float)48000.0f;
       handle->no_tracks = 2;
       handle->use_mmap = AAX_FALSE;
@@ -235,6 +241,14 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_periods = 2;
       handle->interleaved = AAX_TRUE;
       handle->fd = -1;
+      if (handle->mode) { // Always interupt based for capture
+         handle->use_timer = TIMER_BASED;
+      }
+
+      handle->target[0] = FILL_FACTOR;
+      handle->target[1] = FILL_FACTOR;
+      handle->target[2] = AAX_FPINFINITE;
+
    }
 
    return handle;
@@ -242,7 +256,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
 
 
 static void *
-_aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -251,7 +265,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxALSADriverNewHandle(mode);
+      handle = _aaxLinuxDriverNewHandle(mode);
    }
 
    if (handle)
@@ -268,7 +282,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             if (s)
             {
                handle->cardnum = detect_cardnum(s);
-               if (handle->name != _const_alsa_default_name) {
+               if (handle->name != _const_kernel_default_name) {
                   free(handle->name);
                }
                handle->name = _aax_strdup(s);
@@ -276,17 +290,21 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
          }
 
+         if (xmlNodeTest(xid, "timed")) {
+            handle->use_timer = xmlNodeGetBool(xid, "timed");
+         }
+
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
          if (f)
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("alsa; frequency too small.");
+               _AAX_SYSLOG("kernel; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("alsa; frequency too large.");
+               _AAX_SYSLOG("kernel; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->frequency_hz = f;
@@ -299,12 +317,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("alsa; no. tracks too small.");
+                  _AAX_SYSLOG("kernel; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("alsa; no. tracks too great.");
+                  _AAX_SYSLOG("kernel; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->no_tracks = i;
@@ -316,7 +334,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          {
             if (i != 16)
             {
-               _AAX_SYSLOG("alsa; unsopported bits-per-sample");
+               _AAX_SYSLOG("kernel; unsopported bits-per-sample");
                i = 16;
             }
          }
@@ -341,7 +359,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       if (renderer)
       {
          handle->cardnum = detect_cardnum(renderer);
-         if (handle->name != _const_alsa_default_name) {
+         if (handle->name != _const_kernel_default_name) {
             free(handle->name);
          }
          handle->name = _aax_strdup(renderer);
@@ -371,7 +389,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 }
 
 static int
-_aaxALSADriverDisconnect(void *id)
+_aaxLinuxDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -392,13 +410,13 @@ _aaxALSADriverDisconnect(void *id)
          }
       }
 
-      if (handle->name != _const_alsa_default_name) {
+      if (handle->name != _const_kernel_default_name) {
          free(handle->name);
       }
 #if 0
       if (handle->pcm)
       {
-         if (handle->pcm != _const_alsa_default_name) {
+         if (handle->pcm != _const_kernel_default_name) {
             free(handle->pcm);
          }
          handle->pcm = 0;
@@ -418,7 +436,7 @@ _aaxALSADriverDisconnect(void *id)
 }
 
 static int
-_aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                    unsigned int *channels, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -433,10 +451,19 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       int err, fd = handle->fd;
  
       tracks = *channels;
+      if (tracks > handle->no_tracks) {
+         tracks = handle->no_tracks;
+      }
+
       periods = handle->no_periods;
       no_frames = *frames / periods;
       bits = aaxGetBitsPerSample(*fmt);
       rate = (unsigned int)*speed;
+
+      handle->latency = (float)no_frames/(float)rate;
+      if (handle->latency < 0.010f) {
+         handle->use_timer = AAX_FALSE;
+      }
 
       _init_params(&hwparams);
       hwparams.flags |= SNDRV_PCM_HW_PARAMS_NORESAMPLE;
@@ -444,7 +471,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
           hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
       }
 
-      if (pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams) >= 0)
+      err = pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams);
+      if (err >= 0)
       {
          rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
          bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
@@ -559,7 +587,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             if (handle->status)
             {
                handle->control->avail_min = 1;
-               _alsa_get_volume(handle);
+               _kernel_get_volume(handle);
 
                rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
                tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
@@ -571,11 +599,25 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                handle->no_periods = periods;
                handle->no_frames = no_frames;
                handle->bits_sample = bits;
-               handle->latency = (float)(no_frames*periods)/(float)rate;
 
                *speed = rate;
                *channels = tracks;
                *frames = no_frames;
+
+               handle->target[0] = ((float)no_frames/(float)rate);
+               if (handle->target[0] > 0.02f) {
+                  handle->target[0] += 0.01f; // add 10ms
+               } else {
+                  handle->target[0] *= FILL_FACTOR;
+               }
+               handle->target[1] = handle->target[0];
+
+               if (handle->use_timer) {
+                  handle->latency = handle->target[0];
+               }
+               else {
+                   handle->latency = (float)(no_frames*periods)/(float)rate;
+               }
 
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                          handle->setup);
@@ -585,10 +627,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 #if HAVE_SYS_UTSNAME_H
                   struct utsname utsname;
                   uname(&utsname);
-                  snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
+                  snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s %s",
                                        DEFAULT_RENDERER, utsname.release, rstr);
 #else
-                  snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
+                  snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s",
                                             DEFAULT_RENDERER, os_name, rstr);
 #endif
                   rv = AAX_TRUE;
@@ -640,7 +682,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
  }
  printf("  pcm: '%s', card: %i, device: %i\n", handle->pcm, handle->cardnum, handle->devnum);
  printf("  playback rate: %5.0f Hz\n", handle->frequency_hz);
- printf("  buffer size: %u bytes\n", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
+ printf("  buffer size: %zu bytes\n", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
  printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
  printf("  no_periods: %i\n", handle->no_periods);
  printf("  use mmap: %s\n", handle->use_mmap?"yes":"no");
@@ -657,7 +699,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
 
 static size_t
-_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
@@ -690,7 +732,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
          _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, res);
          *frames = x.frames;
 
-         gain = _alsa_set_volume(handle, NULL, offs, offs, tracks, gain);
+         gain = _kernel_set_volume(handle, NULL, offs, offs, tracks, gain);
          if (gain > 0)
          {
             unsigned int i;
@@ -710,7 +752,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
 }
 
 static size_t
-_aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
+_aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
@@ -745,7 +787,7 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    no_frames -= offs;
 
-   _alsa_set_volume(handle, rb, offs, no_frames, no_tracks, gain);
+   _kernel_set_volume(handle, rb, offs, no_frames, no_tracks, gain);
 
    data = (char*)handle->scratch;
    sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
@@ -790,14 +832,14 @@ _aaxALSADriverPlayback(const void *id, void *s, float pitch, float gain)
    while (no_frames && (ret < 0) && --count);
 
    if (ret < 0) {
-      _AAX_SYSLOG("alsa: warning: pcm write error");
+      _AAX_SYSLOG("kernel: warning: pcm write error");
    }
 
    return res;
 }
 
 static char *
-_aaxALSADriverGetName(const void *id, int playback)
+_aaxLinuxDriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
@@ -809,14 +851,14 @@ _aaxALSADriverGetName(const void *id, int playback)
 }
 
 _aaxRenderer*
-_aaxALSADriverRender(const void* config)
+_aaxLinuxDriverRender(const void* config)
 {
    _driver_t *handle = (_driver_t *)config;
    return handle->render;
 }
 
 static int
-_aaxALSADriverState(const void *id, enum _aaxDriverState state)
+_aaxLinuxDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -879,7 +921,7 @@ rv = AAX_TRUE;
 }
 
 static float
-_aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
+_aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    float rv = 0.0f;
@@ -907,7 +949,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxALSADriverGetDevices(const void *id, int mode)
+_aaxLinuxDriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
    static time_t t_previous[2] = { 0, 0 };
@@ -950,7 +992,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
             }
          }
       }
-      while (fd >= 0);
+      while (card < 16);
 
       /* always end with "\0\0" no matter what */
       names[m][1022] = 0;
@@ -961,7 +1003,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
 }
 
 static char *
-_aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
@@ -1003,7 +1045,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          }
          device++;
       }
-      while (fd >= 0);
+      while (device < 16);
 
       if (ptr != devlist)
       {
@@ -1025,11 +1067,11 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static char *
-_aaxALSADriverLog(const void *id, int prio, int type, const char *str)
+_aaxLinuxDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
 
-   snprintf(_errstr, 256, "alsa: %s\n", str);
+   snprintf(_errstr, 256, "kernel: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
@@ -1039,14 +1081,14 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 }
 
 static int
-_alsa_get_volume(_driver_t *handle)
+_kernel_get_volume(_driver_t *handle)
 {
    int rv = 0;
    return rv;
 }
 
 static float
-_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
+_kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float rv = 0;
@@ -1237,12 +1279,12 @@ detect_pcm(_driver_t *handle, char m)
 static int
 detect_cardnum(const char *devname)
 {
-   int rv = _alsa_default_cardnum;
+   int rv = _kernel_default_cardnum;
 
    if (!strncasecmp(devname, "/dev/snd/pcmC", 13) ) {
        rv = atoi(devname+13);
    }
-   else if (devname && strcasecmp(devname, "ALSA") &&
+   else if (devname && strcasecmp(devname, "Linux") &&
                        strcasecmp(devname, "default"))
    {
       int fd, card = -1;
@@ -1276,7 +1318,7 @@ detect_cardnum(const char *devname)
 }
 
 void *
-_aaxALSADriverThread(void* config)
+_aaxLinuxDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
    snd_pcm_sframes_t no_frames, bufsize;
@@ -1413,8 +1455,46 @@ _aaxALSADriverThread(void* config)
          state = handle->state;
       }
 
-      if (_IS_PLAYING(handle)) {
-         _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+      if (_IS_PLAYING(handle))
+      {
+         int res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+
+         if (be_handle->use_timer)
+         {
+            float diff, target, input, err, P, I;
+            float freq = mixer->info->frequency;
+
+            target = be_handle->target[1];
+            input = (float)res/freq;
+            err = input - target;
+
+            P = err;
+            I = err*delay_sec;
+
+            be_handle->PID[0] += I;
+            I = be_handle->PID[0];
+
+            diff = 1.85f*P + 0.9f*I;
+            wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
+
+            be_handle->target[2] += delay_sec*1000.0f;  // ms
+            if (res < be_handle->target[0]*freq)
+            {
+               be_handle->target[1] += 0.001f/be_handle->target[2];
+               be_handle->target[2] = 0.0f;
+#if 0
+ printf("increase, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+#endif
+            }
+            else if (be_handle->target[2] >= 10.0f*1000.0f)     // 10 sec
+            {
+               be_handle->target[1] *= 0.995f;
+               be_handle->target[2] = 0.0f;
+#if 0
+ printf("reduce, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+#endif
+            }
+         }
       }
 #if 0
  printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
