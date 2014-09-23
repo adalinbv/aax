@@ -257,13 +257,14 @@ typedef int (*snd_pcm_hw_params_set_rate_near_proc)(snd_pcm_t *, snd_pcm_hw_para
 typedef int (*snd_pcm_hw_params_set_channels_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int);
 typedef int (*snd_pcm_hw_params_test_channels_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int);
 typedef int (*snd_pcm_hw_params_get_channels_proc)(snd_pcm_t *, unsigned int*);
-typedef int (*snd_pcm_hw_params_set_buffer_size_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_uframes_t *);
+typedef int (*snd_pcm_hw_params_get_channels_min_proc)(const snd_pcm_hw_params_t *, unsigned int*);
+typedef int (*snd_pcm_hw_params_get_channels_max_proc)(const snd_pcm_hw_params_t *, unsigned int*);
+typedef int (*snd_pcm_hw_params_set_period_size_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_uframes_t *, int*);
 typedef int (*snd_pcm_hw_params_get_buffer_size_max_proc)(const snd_pcm_hw_params_t *, snd_pcm_uframes_t *);
 typedef int (*snd_pcm_hw_params_set_buffer_time_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_set_periods_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
-typedef int (*snd_pcm_hw_params_set_period_time_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
-typedef int (*snd_pcm_hw_params_set_period_size_near_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_uframes_t *, int *);
 typedef int (*snd_pcm_hw_params_set_periods_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int, int);
+typedef int (*snd_pcm_hw_params_get_period_size_max_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_can_pause_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_can_resume_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_can_drain_proc)(const snd_pcm_hw_params_t *);

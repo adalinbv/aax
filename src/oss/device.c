@@ -125,6 +125,7 @@ typedef struct
    char *devnode;
    char *ifname[2];
    int nodenum;
+   int setup;
 
    int fd;
    float latency;
@@ -199,6 +200,7 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
       handle->name = (char*)_const_oss_default_name;
       handle->frequency_hz = (float)48000.0f;
       handle->no_tracks = 2;
+      handle->setup = mode;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
       handle->exclusive = O_EXCL;
       handle->volumeMax = 0;
@@ -492,7 +494,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
          handle->latency /= (float)(freq*channels*handle->bytes_sample);
       }
       err = 0;
-      handle->render = _aaxSoftwareInitRenderer(handle->latency);
+      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);

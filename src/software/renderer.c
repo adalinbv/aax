@@ -16,11 +16,16 @@
 #include "renderer.h"
 
 _aaxRenderer*
-_aaxSoftwareInitRenderer(float dt)
+_aaxSoftwareInitRenderer(float dt, int mode)
 {
    static _aaxRenderer *rv = NULL;
 
-   if (!rv)
+   if (mode == AAX_MODE_READ)
+   {
+      _aaxRendererDetect* rtype = _aaxRenderTypes[0];
+      rv = rtype();
+   }
+   else if (!rv)
    {
       _aaxRendererDetect* rtype;
       int i = -1, found = -1;
@@ -38,15 +43,20 @@ _aaxSoftwareInitRenderer(float dt)
       if (found >= 0)
       {
          _aaxRendererDetect* rtype = _aaxRenderTypes[found];
-         _aaxRenderer* type = rtype();
-         if (type && type->detect())
+         rv = rtype();
+      }
+   }
+
+   if (rv)
+   {
+      _aaxRenderer* type = rv;
+      if (type->detect())
+      {
+         type->id = type->setup(_MIN(floorf(1000.0f * dt), 1));
+         if (type->id)
          {
-            type->id = type->setup(_MIN(floorf(1000.0f * dt), 1));
-            if (type->id)
-            {
-               type->open(type->id);
-               rv = type;
-            }
+            type->open(type->id);
+            rv = type;
          }
       }
    }
