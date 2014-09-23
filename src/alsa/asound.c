@@ -2778,7 +2778,7 @@ _aaxASOUNDDriverPlayback_rw_il(const void *id, void *src, float pitch, float gai
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    no_frames -= offs;
 
-   res = avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2816,6 +2816,7 @@ _aaxASOUNDDriverPlayback_rw_il(const void *id, void *src, float pitch, float gai
       do {
          res = psnd_pcm_writei(handle->pcm, data, no_frames);
       }
+
       while (res == -EAGAIN);
 
       if (res < 0)
@@ -2861,7 +2862,8 @@ _aaxASOUNDDriverPlayback(const void *id, void *src, float pitch, float gain)
 
    // return the current buffer fill level
 // avail = psnd_pcm_avail(handle->pcm);
-   psnd_pcm_delay(handle->pcm, &avail);
+// psnd_pcm_delay(handle->pcm, &avail);
+avail = res;
    if (avail < 0)
    {
       xrun_recovery(handle->pcm, avail);
