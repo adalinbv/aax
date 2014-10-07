@@ -512,10 +512,21 @@ typedef int (AAX_APIENTRY *PFNAAXDRIVERCLOSE)(aaxConfig);
 /*
  * Mixer/Playback setup
  */
-AAX_API int AAX_APIENTRY aaxMixerSetSetup(aaxConfig, enum aaxSetupType, unsigned int);
-AAX_API int AAX_APIENTRY aaxMixerSetFilter(aaxConfig, aaxFilter);
-AAX_API int AAX_APIENTRY aaxMixerSetEffect(aaxConfig, aaxEffect);
 AAX_API int AAX_APIENTRY aaxMixerSetState(aaxConfig, enum aaxState);
+AAX_API enum aaxState AAX_APIENTRY aaxMixerGetState(const aaxConfig);
+
+AAX_API int AAX_APIENTRY aaxMixerSetMode(aaxConfig, enum aaxModeType, int);
+AAX_API int AAX_APIENTRY aaxMixerGetMode(const aaxConfig, enum aaxModeType);
+
+AAX_API int AAX_APIENTRY aaxMixerSetSetup(aaxConfig, enum aaxSetupType, unsigned int);
+AAX_API unsigned int AAX_APIENTRY aaxMixerGetSetup(const aaxConfig, enum aaxSetupType);
+
+AAX_API int AAX_APIENTRY aaxMixerSetFilter(aaxConfig, aaxFilter);
+AAX_API aaxFilter AAX_APIENTRY aaxMixerGetFilter(const aaxConfig, enum aaxFilterType);
+
+AAX_API int AAX_APIENTRY aaxMixerSetEffect(aaxConfig, aaxEffect);
+AAX_API aaxEffect AAX_APIENTRY aaxMixerGetEffect(const aaxConfig, enum aaxEffectType);
+
 AAX_API int AAX_APIENTRY aaxMixerRegisterSensor(const aaxConfig, const aaxConfig);
 AAX_API int AAX_APIENTRY aaxMixerDeregisterSensor(const aaxConfig, const aaxConfig);
 AAX_API int AAX_APIENTRY aaxMixerRegisterEmitter(const aaxConfig, const aaxEmitter);
@@ -523,41 +534,38 @@ AAX_API int AAX_APIENTRY aaxMixerDeregisterEmitter(const aaxConfig, const aaxEmi
 AAX_API int AAX_APIENTRY aaxMixerRegisterAudioFrame(const aaxConfig, const aaxFrame);
 AAX_API int AAX_APIENTRY aaxMixerDeregisterAudioFrame(const aaxConfig, const aaxFrame);
 
-AAX_API unsigned int aaxMixerGetSetup(const aaxConfig, enum aaxSetupType);
-AAX_API enum aaxState AAX_APIENTRY aaxMixerGetState(aaxConfig);
-AAX_API aaxFilter AAX_APIENTRY aaxMixerGetFilter(const aaxConfig, enum aaxFilterType);
-AAX_API aaxEffect AAX_APIENTRY aaxMixerGetEffect(const aaxConfig, enum aaxEffectType);
-
 /* Pointer-to-function types */
-typedef int (AAX_APIENTRY *PFNAAXMIXERSETSETUP)(aaxConfig, enum aaxSetupType, unsigned int);
-typedef int (AAX_APIENTRY *PFNAAXMIXERSETFILTER)(aaxConfig, aaxFilter);
-typedef int (AAX_APIENTRY *PFNAAXMIXERSETEFFECT)(aaxConfig, aaxEffect);
 typedef int (AAX_APIENTRY *PFNAAXMIXERSETSTATE)(aaxConfig, enum aaxState);
+typedef enum aaxState (AAX_APIENTRY *PFNAAXMIXERGETSTATE)(aaxConfig);
+typedef int (AAX_APIENTRY *PFNAAXMIXERSETMODE)(aaxConfig, enum aaxModeType, int);
+typedef int (AAX_APIENTRY *PFNAAXMIXERGETMODE)(const aaxConfig, enum aaxModeType);
+typedef int (AAX_APIENTRY *PFNAAXMIXERSETSETUP)(aaxConfig, enum aaxSetupType, unsigned int);
+typedef unsigned int (AAX_APIENTRY *PFNAAXMIXERGETSETUP)(const aaxConfig, enum aaxSetupType);
+typedef int (AAX_APIENTRY *PFNAAXMIXERSETFILTER)(aaxConfig, aaxFilter);
+typedef aaxFilter (AAX_APIENTRY *PFNAAXMIXERGETFILTER)(const aaxConfig, enum aaxFilterType);
+typedef int (AAX_APIENTRY *PFNAAXMIXERSETEFFECT)(aaxConfig, aaxEffect);
+typedef aaxEffect (AAX_APIENTRY *PFNAAXMIXERGETEFFECT)(const aaxConfig, enum aaxEffectType);
 typedef int (AAX_APIENTRY *PFNAAXMIXERREGISTERSENSOR)(const aaxConfig, const aaxConfig);
 typedef int (AAX_APIENTRY *PFNAAXMIXERDEREGISTERSENSOR)(const aaxConfig, const aaxConfig);
 typedef int (AAX_APIENTRY *PFNAAXMIXERREGISTEREMITTER)(const aaxConfig, const aaxEmitter);
 typedef int (AAX_APIENTRY *PFNAAXMIXERDEREGISTEREMITTER)(const aaxConfig, const aaxEmitter);
 typedef int (AAX_APIENTRY *PFNAAXMIXERREGISTERAUDIOFRAME)(const aaxConfig, const aaxFrame);
 typedef int (AAX_APIENTRY *PFNAAXMIXERDEREGISTERAUDIOFRAME)(const aaxConfig, const aaxFrame);
-typedef unsigned int (AAX_APIENTRY *PFNAAXMIXERGETSETUP)(const aaxConfig, enum aaxSetupType);
-typedef enum aaxState (AAX_APIENTRY *PFNAAXMIXERGETSTATE)(aaxConfig);
-typedef aaxFilter (AAX_APIENTRY *PFNAAXMIXERGETFILTER)(const aaxConfig, enum aaxFilterType);
-typedef aaxEffect (AAX_APIENTRY *PFNAAXMIXERGETEFFECT)(const aaxConfig, enum aaxEffectType);
 
 
 /*
  * Scenery setup
  */
 AAX_API int AAX_APIENTRY aaxScenerySetFilter(aaxConfig, aaxFilter);
-AAX_API int AAX_APIENTRY aaxScenerySetEffect(aaxConfig, aaxEffect);
-
 AAX_API aaxFilter AAX_APIENTRY aaxSceneryGetFilter(const aaxConfig, enum aaxFilterType);
+
+AAX_API int AAX_APIENTRY aaxScenerySetEffect(aaxConfig, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxSceneryGetEffect(const aaxConfig, enum aaxEffectType);
 
 /* Pointer-to-function types */
 typedef int (AAX_APIENTRY *PFNAAXSCENERYSETFILTER)(aaxConfig, aaxFilter);
-typedef int (AAX_APIENTRY *PFNAAXSCENERYSETEFFECT)(aaxConfig, aaxEffect);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXSCENERYGETFILTER)(const aaxConfig, enum aaxFilterType);
+typedef int (AAX_APIENTRY *PFNAAXSCENERYSETEFFECT)(aaxConfig, aaxEffect);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXSCENERYGETEFFECT)(const aaxConfig, enum aaxEffectType);
 
 
@@ -566,96 +574,128 @@ typedef aaxEffect (AAX_APIENTRY *PFNAAXSCENERYGETEFFECT)(const aaxConfig, enum a
  */
 AAX_API aaxBuffer AAX_APIENTRY aaxBufferCreate(aaxConfig, unsigned int, unsigned, enum aaxFormat);
 AAX_API int AAX_APIENTRY aaxBufferDestroy(aaxBuffer);
-AAX_API int AAX_APIENTRY aaxBufferSetSetup(aaxBuffer, enum aaxSetupType, unsigned int);
-AAX_API int AAX_APIENTRY aaxBufferSetData(aaxBuffer, const void*);
-AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer, float, enum aaxWaveformType, float, enum aaxProcessingType);
 
-AAX_API void** AAX_APIENTRY aaxBufferGetData(const aaxBuffer);
+AAX_API int AAX_APIENTRY aaxBufferSetSetup(aaxBuffer, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxBufferGetSetup(const aaxBuffer, enum aaxSetupType);
+
+AAX_API int AAX_APIENTRY aaxBufferSetData(aaxBuffer, const void*);
+AAX_API void** AAX_APIENTRY aaxBufferGetData(const aaxBuffer);
+
+AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer, float, enum aaxWaveformType, float, enum aaxProcessingType);
 AAX_API int AAX_APIENTRY aaxBufferWriteToFile(aaxBuffer, const char*, enum aaxProcessingType);
 
 /* Pointer-to-function types */
 typedef int (AAX_APIENTRY *PFNAAXBUFFERCREATE)(aaxConfig, unsigned int, unsigned, enum aaxFormat);
 typedef int (AAX_APIENTRY *PFNAAXBUFFERDESTROY)(aaxBuffer);
 typedef int (AAX_APIENTRY *PFNAAXBUFFERSETSETUP)(aaxBuffer, enum aaxSetupType, unsigned int);
-typedef int (AAX_APIENTRY *PFNAAXBUFFERSETDATA)(aaxBuffer, const void*);
-typedef int (AAX_APIENTRY *PFNAAXBUFFERPROCESSWAVEFORM)(aaxBuffer, float, enum aaxWaveformType, float, enum aaxProcessingType);
-typedef void** (AAX_APIENTRY *PFNAAXBUFFERGETDATA)(const aaxBuffer);
 typedef unsigned int (AAX_APIENTRY *PFNAAXBUFFERGETSETUP)(const aaxBuffer, enum aaxSetupType);
+typedef int (AAX_APIENTRY *PFNAAXBUFFERSETDATA)(aaxBuffer, const void*);
+typedef void** (AAX_APIENTRY *PFNAAXBUFFERGETDATA)(const aaxBuffer);
+typedef int (AAX_APIENTRY *PFNAAXBUFFERPROCESSWAVEFORM)(aaxBuffer, float, enum aaxWaveformType, float, enum aaxProcessingType);
 
 
 /*
  * Source/Emitter manipulation
  */
 AAX_API aaxEmitter AAX_APIENTRY aaxEmitterCreate();
+AAX_API int AAX_APIENTRY aaxEmitterDestroy(aaxEmitter);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetMode(aaxEmitter, enum aaxModeType, int);
+AAX_API int AAX_APIENTRY aaxEmitterGetMode(const aaxEmitter, enum aaxModeType);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetState(aaxEmitter, enum aaxState);
+AAX_API int AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetSetup(aaxEmitter, enum aaxSetupType, unsigned int);
+AAX_API unsigned int AAX_APIENTRY aaxEmitterGetSetup(const aaxEmitter, enum aaxSetupType);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetMatrix(aaxConfig, aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxEmitterGetMatrix(aaxConfig, aaxMtx4f);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, const aaxVec3f);
+AAX_API int AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetFilter(aaxEmitter, aaxFilter);
+AAX_API aaxFilter AAX_APIENTRY aaxEmitterGetFilter(const aaxEmitter, enum aaxFilterType);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetEffect(aaxEmitter, aaxEffect);
+AAX_API aaxEffect AAX_APIENTRY aaxEmitterGetEffect(const aaxEmitter, enum aaxEffectType);
+
 AAX_API int AAX_APIENTRY aaxEmitterAddBuffer(aaxEmitter, aaxBuffer);
 AAX_API int AAX_APIENTRY aaxEmitterRemoveBuffer(aaxEmitter);
-AAX_API int AAX_APIENTRY aaxEmitterDestroy(aaxEmitter);
-AAX_API int AAX_APIENTRY aaxEmitterSetMode(aaxEmitter, enum aaxModeType, int);
-AAX_API int AAX_APIENTRY aaxEmitterSetFilter(aaxEmitter, aaxFilter);
-AAX_API int AAX_APIENTRY aaxEmitterSetEffect(aaxEmitter, aaxEffect);
-AAX_API int AAX_APIENTRY aaxEmitterSetState(aaxEmitter, enum aaxState);
-AAX_API int AAX_APIENTRY aaxEmitterSetOffset(aaxEmitter, unsigned long, enum aaxType);
-AAX_API int AAX_APIENTRY aaxEmitterSetOffsetSec(aaxEmitter, float);
-AAX_API int AAX_APIENTRY aaxEmitterSetMatrix(aaxConfig, aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, const aaxVec3f);
 
-AAX_API int AAX_APIENTRY aaxEmitterGetMode(const aaxEmitter, enum aaxModeType);
-AAX_API int AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
-AAX_API aaxFilter AAX_APIENTRY aaxEmitterGetFilter(const aaxEmitter, enum aaxFilterType);
-AAX_API aaxEffect AAX_APIENTRY aaxEmitterGetEffect(const aaxEmitter, enum aaxEffectType);
 AAX_API unsigned int AAX_APIENTRY aaxEmitterGetNoBuffers(const aaxEmitter, enum aaxState);
 AAX_API aaxBuffer AAX_APIENTRY aaxEmitterGetBufferByPos(const aaxEmitter, unsigned int, int);
-AAX_API float AAX_APIENTRY aaxEmitterGetOffsetSec(const aaxEmitter);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetOffset(aaxEmitter, unsigned long, enum aaxType);
 AAX_API unsigned long AAX_APIENTRY aaxEmitterGetOffset(const aaxEmitter, enum aaxType);
-AAX_API int AAX_APIENTRY aaxEmitterGetMatrix(aaxConfig, aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
+
+AAX_API int AAX_APIENTRY aaxEmitterSetOffsetSec(aaxEmitter, float);
+AAX_API float AAX_APIENTRY aaxEmitterGetOffsetSec(const aaxEmitter);
 
 /* Pointer-to-function types */
 typedef int (AAX_APIENTRY *PFNAAXEMITTERCREATE)();
+typedef int (AAX_APIENTRY *PFNAAXEMITTERDESTROY)(aaxEmitter);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETSTATE)(aaxEmitter, enum aaxState);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERGETSTATE)(const aaxEmitter);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMODE)(aaxEmitter, enum aaxModeType, int);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMODE)(const aaxEmitter, enum aaxModeType);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETSETUP)(aaxEmitter, enum aaxSetupType, unsigned int);
+typedef unsigned int (AAX_APIENTRY *PFNAAXEMITTERGETSETUP)(const aaxEmitter, enum aaxSetupType);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMATRIX)(aaxConfig, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMATRIX)(aaxConfig, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETVELOCITY)(aaxEmitter, const aaxVec3f);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERGETVELOCITY)(const aaxEmitter, aaxVec3f);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETFILTER)(aaxEmitter, aaxFilter);
+typedef aaxFilter (AAX_APIENTRY *PFNAAXEMITTERGETFILTER)(const aaxEmitter, enum aaxFilterType);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETEFFECT)(aaxEmitter, aaxEffect);
+typedef aaxEffect (AAX_APIENTRY *PFNAAXEMITTERGETEFFECT)(const aaxEmitter, enum aaxEffectType);
+
 typedef int (AAX_APIENTRY *PFNAAXEMITTERADDBUFFER)(aaxEmitter, aaxBuffer);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERREMOVEBUFFER)(aaxEmitter);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERDESTROY)(aaxEmitter);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMODE)(aaxEmitter, enum aaxModeType, int);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETFILTER)(aaxEmitter, aaxFilter);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETEFFECT)(aaxEmitter, aaxEffect);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETSTATE)(aaxEmitter, enum aaxState);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETOFFSET)(aaxEmitter, unsigned long, enum aaxType);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETOFFSETSEC)(aaxEmitter, float);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMATRIX)(aaxConfig, aaxMtx4f);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETVELOCITY)(aaxEmitter, const aaxVec3f);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMODE)(const aaxEmitter, enum aaxModeType);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERGETSTATE)(const aaxEmitter);
-typedef aaxFilter (AAX_APIENTRY *PFNAAXEMITTERGETFILTER)(const aaxEmitter, enum aaxFilterType);
-typedef aaxEffect (AAX_APIENTRY *PFNAAXEMITTERGETEFFECT)(const aaxEmitter, enum aaxEffectType);
 typedef unsigned int (AAX_APIENTRY *PFNAAXEMITTERGETNOBUFFERS)(const aaxEmitter, enum aaxState);
 typedef aaxBuffer (AAX_APIENTRY *PFNAAXEMITTERGETBUFFERBYPOS)(const aaxEmitter, unsigned int, int);
 typedef float (AAX_APIENTRY *PFNAAXEMITTERGETOFFSETSEC)(const aaxEmitter);
 typedef unsigned long (AAX_APIENTRY *PFNAAXEMITTERGETOFFSET)(const aaxEmitter, enum aaxType);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMATRIX)(aaxConfig, aaxMtx4f);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERGETVELOCITY)(const aaxEmitter, aaxVec3f);
 
 
 /*
  * Listener/Sensor manipulation
  */
-AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxSensorSetState(aaxConfig, enum aaxState);
-AAX_API int AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
+AAX_API enum aaxState AAX_APIENTRY aaxSensorGetState(const aaxConfig);
 
+AAX_API int AAX_APIENTRY aaxSensorSetMode(aaxConfig, enum aaxModeType, int);
+AAX_API int AAX_APIENTRY aaxSensorGetMode(const aaxConfig, enum aaxModeType);
+
+AAX_API int AAX_APIENTRY aaxSensorSetSetup(aaxConfig, enum aaxSetupType, unsigned int);
+AAX_API unsigned int AAX_APIENTRY aaxSensorGetSetup(const aaxConfig, enum aaxSetupType);
+
+AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxSensorGetMatrix(const aaxConfig, aaxMtx4f);
+
+AAX_API int AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxSensorGetVelocity(const aaxConfig, aaxVec3f);
+
+AAX_API int AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxSensorGetBuffer(const aaxConfig);
+
 AAX_API unsigned long AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxType);
 
 /* Pointer-to-function types */
-typedef int (AAX_APIENTRY *PFNAAXSENSORSETMATRIX)(aaxConfig, aaxMtx4f);
-typedef int (AAX_APIENTRY *PFNAAXSENSORSETVELOCITY)(aaxConfig, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORSETSTATE)(aaxConfig, enum aaxState);
-typedef int (AAX_APIENTRY *PFNAAXSENSORWAITFORBUFFER)(const aaxConfig, float);
+typedef int (AAX_APIENTRY *PFNAAXSENSORGETSTATE)(const aaxConfig);
+typedef int (AAX_APIENTRY *PFNAAXSENSORSETMODE)(aaxConfig, enum aaxModeType, int);
+typedef int (AAX_APIENTRY *PFNAAXSENSORGETMODE)(const aaxConfig, enum aaxModeType);
+typedef int (AAX_APIENTRY *PFNAAXSENSORSETSETUP)(aaxConfig, enum aaxSetupType, unsigned int);
+typedef unsigned int (AAX_APIENTRY *PFNAAXSENSORGETSETUP)(const aaxConfig, enum aaxSetupType);
+typedef int (AAX_APIENTRY *PFNAAXSENSORSETMATRIX)(aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETMATRIX)(const aaxConfig, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXSENSORSETVELOCITY)(aaxConfig, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETVELOCITY)(const aaxConfig, aaxVec3f);
+typedef int (AAX_APIENTRY *PFNAAXSENSORWAITFORBUFFER)(const aaxConfig, float);
 typedef aaxBuffer (AAX_APIENTRY *PFNAAXSENSORGETBUFFER)(const aaxConfig);
 typedef unsigned long (AAX_APIENTRY *PFNAAXSENSORGETOFFSET)(const aaxConfig, enum aaxType);
 
@@ -763,49 +803,66 @@ typedef int (AAX_APIENTRY *PFNAAXMATRIX64TOMATRIX)(aaxMtx4f, aaxMtx4d);
  */
 AAX_API aaxFrame AAX_APIENTRY aaxAudioFrameCreate(aaxConfig);
 AAX_API int AAX_APIENTRY aaxAudioFrameDestroy(aaxFrame);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetState(aaxFrame, enum aaxState);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
-AAX_API int AAX_APIENTRY aaxAudioFrameRegisterSensor(const aaxFrame, const aaxConfig);
-AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterSensor(const aaxFrame, const aaxConfig);
-AAX_API int AAX_APIENTRY aaxAudioFrameRegisterEmitter(const aaxFrame, const aaxEmitter);
-AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aaxEmitter);
-AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
-AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, const aaxVec3f);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
-AAX_API int AAX_APIENTRY aaxAudioFrameSetEffect(aaxFrame, aaxEffect);
 
+AAX_API int AAX_APIENTRY aaxAudioFrameSetState(aaxFrame, enum aaxState);
+AAX_API int AAX_APIENTRY aaxAudioFrameGetState(const aaxFrame);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
+AAX_API int AAX_APIENTRY aaxAudioFrameGetMode(const aaxFrame, enum aaxModeType);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameSetSetup(aaxFrame, enum aaxSetupType, unsigned int);
 AAX_API unsigned int aaxAudioFrameGetSetup(const aaxFrame, enum aaxSetupType);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetMatrix(aaxFrame, aaxMtx4f);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetVelocity(aaxFrame, aaxVec3f);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
+AAX_API aaxFilter AAX_APIENTRY aaxAudioFrameGetFilter(const aaxFrame, enum aaxFilterType);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameSetEffect(aaxFrame, aaxEffect);
+AAX_API aaxEffect AAX_APIENTRY aaxAudioFrameGetEffect(const aaxFrame, enum aaxEffectType);
+
 AAX_API int AAX_APIENTRY aaxAudioFrameWaitForBuffer(aaxFrame, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxAudioFrameGetBuffer(const aaxFrame);
-AAX_API aaxFilter AAX_APIENTRY aaxAudioFrameGetFilter(const aaxFrame, enum aaxFilterType);
-AAX_API aaxEffect AAX_APIENTRY aaxAudioFrameGetEffect(const aaxFrame, enum aaxEffectType);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameRegisterSensor(const aaxFrame, const aaxConfig);
+AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterSensor(const aaxFrame, const aaxConfig);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameRegisterEmitter(const aaxFrame, const aaxEmitter);
+AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aaxEmitter);
+
+AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
+AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
+
 
 /* Pointer-to-function types */
 typedef aaxFrame (AAX_APIENTRY *PFNAAXAUDIOFRAMECREATE)(aaxConfig);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEDESTROY)(aaxFrame);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETSTATE)(aaxFrame, enum aaxState);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETSTATE)(const aaxFrame);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMODE)(aaxFrame, enum aaxModeType, int);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMODE)(const aaxFrame, enum aaxModeType);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETSETUP)(aaxFrame, enum aaxSetupType, unsigned int);
+typedef unsigned int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETSETUP)(const aaxFrame, enum aaxSetupType);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMATRIX)(aaxFrame, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMATRIX)(aaxFrame, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETVELOCITY)(aaxFrame, const aaxVec3f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETVELOCITY)(aaxFrame, aaxVec3f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETFILTER)(aaxFrame, aaxFilter);
+typedef aaxFilter (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETFILTER)(const aaxFrame, enum aaxFilterType);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETEFFECT)(aaxFrame, aaxEffect);
+typedef aaxEffect (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETEFFECT)(const aaxFrame, enum aaxEffectType);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEWAITFORBUFFER)(aaxFrame, float);
+typedef aaxBuffer (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETBUFFER)(const aaxFrame);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEREGISTERSENSOR)(const aaxFrame, const aaxConfig);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEDEREGISTERSENSOR)(const aaxFrame, const aaxConfig);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEREGISTEREMITTER)(const aaxFrame, const aaxEmitter);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEDEREGISTEREMITTER)(const aaxFrame, const aaxEmitter);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEREGISTERAUDIOFRAME)(const aaxFrame, const aaxFrame);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEDEREGISTERAUDIOFRAME)(const aaxFrame, const aaxFrame);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMATRIX)(aaxFrame, aaxMtx4f);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETVELOCITY)(aaxFrame, const aaxVec3f);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETFILTER)(aaxFrame, aaxFilter);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETEFFECT)(aaxFrame, aaxEffect);
-typedef unsigned int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETSETUP)(const aaxFrame, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMATRIX)(aaxFrame, aaxMtx4f);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETVELOCITY)(aaxFrame, aaxVec3f);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEWAITFORBUFFER)(aaxFrame, float);
-typedef aaxBuffer (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETBUFFER)(const aaxFrame);
-typedef aaxFilter (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETFILTER)(const aaxFrame, enum aaxFilterType);
-typedef aaxEffect (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETEFFECT)(const aaxFrame, enum aaxEffectType);
 
 
 

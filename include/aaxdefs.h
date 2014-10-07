@@ -8,4 +8,5 @@
  * permission of Adalin B.V.
  */
 
+#pragma message ("including aaxdefs.h is depreciated, use aax/defines.h instead.")
 #include <aax/defines.h>

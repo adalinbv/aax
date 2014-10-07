@@ -958,7 +958,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
       _AAX_SYSLOG(str);
 
-#if 1
+#if 0
  printf("driver settings:\n");
  if (handle->mode != 0) {
     printf("  output renderer: '%s'\n", handle->name);

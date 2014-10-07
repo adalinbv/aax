@@ -8,4 +8,6 @@
  * permission of Adalin B.V.
  */
 
+#pragma message ("including aax.h is depreciated, use aax/aax.h instead.")
+
 #include <aax/aax.h>
