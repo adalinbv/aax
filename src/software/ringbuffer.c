@@ -214,7 +214,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
        * Create one buffer that can hold the data for all channels.
        * The first bytes are reserved for the track pointers
        */
-      tracksize = dde_bytes + (no_samples + 0xF) * bps;
+      tracksize = dde_bytes + (no_samples + MEMMASK) * bps;
 #if BYTE_ALIGN
       /* 16-byte align every buffer */
       tracksize = SIZETO16(tracksize);

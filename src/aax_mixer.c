@@ -1270,12 +1270,7 @@ _aaxMixerInit(_handle_t *handle)
 
    assert(be != 0);
 
-   frames = (size_t)rintf(freq/refrate);
-   if (frames & 0xF)
-   {
-      frames |= 0xF;
-      frames++;
-   }
+   frames = SIZETO16((size_t)rintf(freq/refrate));
 
    res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq, &brate);
    if TEST_FOR_TRUE(res)

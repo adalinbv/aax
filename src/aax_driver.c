@@ -817,7 +817,7 @@ _open_handle(aaxConfig config)
                sensor->mixer = smixer;
                sensor->mixer->info = handle->info;
 
-               assert(((long int)ptr2 & 0xF) == 0);
+               assert(((long int)ptr2 & MEMMASK) == 0);
 
                smixer->props2d = (_aax2dProps*)ptr2;
                _aaxSetDefault2dProps(smixer->props2d);

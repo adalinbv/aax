@@ -28,7 +28,7 @@ extern "C" {
 # define ASM    __asm __volatile
 #endif
 
-#define SIZETO16(a)	((a) & 0xF) ? ((a)|0xF)+1 : (a)
+#define SIZETO16(a)	((a) & MEMMASK) ? ((a)|MEMMASK)+1 : (a)
 #if RB_FLOAT_DATA
 # define SIMD_PREFIX	"FP "
 #else

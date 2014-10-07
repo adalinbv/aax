@@ -33,15 +33,18 @@ extern "C" {
 # define O_BINARY               0
 #endif
 
+#define MEMALIGN		16
+#define MEMMASK			(MEMALIGN-1)
+
 #ifdef _MSC_VER
-# define ALIGN16        __declspec(align(16))
+# define ALIGN16        __declspec(align(MEMALIGN))
 # define ALIGN16C
 #elif defined(__GNUC__)
 # define ALIGN16
-# define ALIGN16C        __attribute__((aligned(16)))
+# define ALIGN16C        __attribute__((aligned(MEMALIGN)))
 #elif defined(__APPLE__)
 # define ALIGN16
-# define ALIGN16C	__attribute__ ((aligned (16)))
+# define ALIGN16C	__attribute__ ((aligned(MEMALIGN)))
 #else
 # define ALIGN16
 # define ALIGN16C

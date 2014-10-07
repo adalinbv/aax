@@ -1038,7 +1038,7 @@ _aaxLinear2IMABlock(uint8_t* ndata, int32_t* data, unsigned block_smp,
    uint8_t nibble;
 
    header = *sample;
-   *ndata++ = header & 0xff;
+   *ndata++ = header & 0xFF;
    *ndata++ = header >> 8;
    *ndata++ = *index;
    *ndata++ = 0;

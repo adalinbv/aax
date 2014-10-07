@@ -101,22 +101,18 @@ _aax_aligned_alloc16(size_t size)
 {
    void *rv = NULL;
 
-   if (size & 0xF)
-   {
-      size |= 0xF;
-      size++;
-   }
+   size = SIZETO16(size);
 
 #if __MINGW32__
-   rv = _mm_malloc(size, 16);
+   rv = _mm_malloc(size, MEMALIGN);
 #elif ISOC11_SOURCE 
-   rv = aligned_alloc(16, size);
+   rv = aligned_alloc(MEMALIGN, size);
 #elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
-   if (posix_memalign(&rv, 16, size) != 0) {
+   if (posix_memalign(&rv, MEMALIGN, size) != 0) {
       rv = NULL;
    }
 #elif _MSC_VER
-   rv = _aligned_malloc(size, 16);
+   rv = _aligned_malloc(size, MEMALIGN);
 #else
    assert(1 == 0);
 #endif
@@ -145,14 +141,7 @@ _aax_malloc_align16(char **start, size_t size)
 
    assert((size_t)*start < size);
 
-   /* 16-byte align */
-   size += 16;		/* save room for a pointer shift to 16-byte align */
-   if (size & 0xF)
-   {
-      size |= 0xF;
-      size++;
-   }
-
+   size = SIZETO16(size + MEMALIGN);
    do
    {
       ptr = (char *)(int64_t *)malloc(size);
@@ -161,10 +150,10 @@ _aax_malloc_align16(char **start, size_t size)
          char *s = ptr + (size_t)*start;
          size_t tmp;
 
-         tmp = (size_t)s & 0xF;
+         tmp = (size_t)s & MEMMASK;
          if (tmp)
          {
-            tmp = 0x10 - tmp;
+            tmp = MEMALIGN - tmp;
             s += tmp;
          }
          *start = s;
@@ -187,14 +176,7 @@ _aax_calloc_align16(char **start, size_t num, size_t size)
 
    assert((size_t)*start < num*size);
 
-   /* 16-byte align */
-   size += 16;		 /* save room for a pointer shift to 16-byte align */
-   if (size & 0xF)
-   {
-      size |= 0xF;
-      size++;
-   }
-
+   size = SIZETO16(size + MEMALIGN);
    do
    {
       ptr = (char *)malloc(num*size);
@@ -203,10 +185,10 @@ _aax_calloc_align16(char **start, size_t num, size_t size)
          char *s = ptr + (size_t)*start;
          size_t tmp;
 
-         tmp = (size_t)s & 0xF;
+         tmp = (size_t)s & MEMMASK;
          if (tmp)
          {
-            tmp = 0x10 - tmp;
+            tmp = MEMALIGN - tmp;
             s += tmp;
          }
          *start = s;
