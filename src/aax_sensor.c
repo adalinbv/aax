@@ -386,6 +386,41 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
    return rv;
 }
 
+AAX_API enum aaxState AAX_APIENTRY
+aaxSensorGetState(const aaxConfig config)
+{
+   enum aaxState ret = AAX_STATE_NONE;
+   return ret;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSensorSetMode(aaxConfig config, enum aaxModeType type, int mode)
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSensorGetMode(const aaxConfig config, enum aaxModeType type)
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSensorSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API unsigned int AAX_APIENTRY
+aaxSensorGetSetup(const aaxConfig config, enum aaxSetupType type)
+{
+   unsigned int rv = AAX_FALSE;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 /* capturing only */

@@ -1193,6 +1193,20 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setup)
+{  
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API unsigned int AAX_APIENTRY
+aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
+{
+   unsigned int rv = AAX_FALSE;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _emitter_t*

@@ -68,9 +68,15 @@
 #define DEFAULT_PCM_NUM		0
 #define	DEFAULT_PCM_NAME	"/dev/snd/pcmC0D0p"
 #define DEFAULT_MIXER_NAME	"/dev/snd/controlC0"
-#define DEFAULT_RENDERER	"Linux"
 #define MAX_ID_STRLEN		64
 #define FILL_FACTOR		1.65f
+
+#ifdef __ANDROID__
+# define DEFAULT_RENDERER	"Android"
+#else
+# define DEFAULT_RENDERER	"Linux"
+#endif
+
 
 #define _AAX_DRVLOG(a)         _aaxLinuxDriverLog(id, 0, 0, a)
 

@@ -313,8 +313,15 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxAudioFrameSetSetup(aaxFrame frame, enum aaxSetupType type, unsigned int setup)
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
 AAX_API unsigned int AAX_APIENTRY
-aaxAudioFrameGetSetup(const aaxConfig frame, enum aaxSetupType type)
+aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
 {
    _frame_t *handle = get_frame(frame);
    unsigned int rv = AAX_FALSE;
@@ -586,6 +593,13 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    put_frame(handle);
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
+{
+   int rv = AAX_FALSE;
    return rv;
 }
 
@@ -1077,6 +1091,13 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
    }
    put_frame(frame);
    return rv;
+}
+
+AAX_API int AAX_APIENTRY 
+aaxAudioFrameGetState(const aaxFrame frame)
+{  
+   enum aaxState ret = AAX_STATE_NONE;
+   return ret;
 }
 
 AAX_API int AAX_APIENTRY

@@ -371,6 +371,20 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 }
 
 AAX_API int AAX_APIENTRY
+aaxMixerSetMode(aaxConfig config, enum aaxModeType type, int mode)
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxMixerGetMode(const aaxConfig config, enum aaxModeType type)
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config);
