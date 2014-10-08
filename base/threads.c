@@ -113,8 +113,8 @@ _aaxThreadSetPriority(void *t, int prio)
        * POSIX.1-2001 requires a spread of at least 32 between the maximum and
        * the minimum values for SCHED_FIFO and SCHED_RR
        */
-      prio = (prio-AAX_TIME_CRITICAL_PRIORITY);
-      prio *= abs(max-min)/abs(AAX_TIME_CRITICAL_PRIORITY-AAX_IDLE_PRIORITY);
+      prio -= AAX_TIME_CRITICAL_PRIORITY;
+      prio = prio*(max-min)/(AAX_IDLE_PRIORITY-AAX_TIME_CRITICAL_PRIORITY);
       prio += min;
 
       sched_param.sched_priority = prio;

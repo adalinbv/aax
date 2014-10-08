@@ -303,6 +303,7 @@ _aaxWorkerThread(void *id)
       drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_FALSE);
       drb->set_state(drb, RB_STARTED);
 
+      _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
       do
       {		// process up to 32 emitters at a time
          if (handle->max_emitters)
