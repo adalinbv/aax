@@ -742,7 +742,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                "umable to get the minimum no. tracks" );
          TRUN( psnd_pcm_hw_params_get_channels_max(hwparams, &val2),
                "umable to get the maximum no. tracks" );
-         tracks = _MINMAX(tracks, val1, val2);
+         if (err >= 0) {
+            tracks = _MINMAX(tracks, val1, val2);
+         }
 
          pos = 0;
          do

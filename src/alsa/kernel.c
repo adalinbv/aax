@@ -721,8 +721,9 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
    {
       unsigned int tracks = handle->no_tracks;
       unsigned int frame_size = tracks * handle->bits_sample/8;
-      size_t res, no_frames;
       struct snd_xferi x;
+      size_t no_frames;
+      ssize_t res;
 
       no_frames = *frames;
 
