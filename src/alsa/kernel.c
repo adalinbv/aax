@@ -183,6 +183,7 @@ DECL_FUNCTION(poll);
 
 static int detect_cardnum(const char*);
 static int detect_pcm(_driver_t*, char);
+static const char* detect_devname(int, int, char);
 static void _init_params(struct snd_pcm_hw_params*);
 static void _set_mask(struct snd_pcm_hw_params*, int, unsigned int);
 static void _set_min(struct snd_pcm_hw_params*, int, unsigned int);
@@ -237,6 +238,8 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
 
    if (handle)
    {
+      const char *name;
+
       handle->pcm = DEFAULT_PCM_NAME;
       handle->name = (char*)_const_kernel_default_name;
       handle->frequency_hz = (float)48000.0f;
@@ -255,6 +258,9 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->target[1] = FILL_FACTOR;
       handle->target[2] = AAX_FPINFINITE;
 
+      detect_pcm(handle, mode);
+      name = detect_devname(handle->cardnum, handle->devnum, handle->mode);
+      handle->name = _aax_strdup(name);
    }
 
    return handle;
@@ -851,8 +857,9 @@ _aaxLinuxDriverGetName(const void *id, int playback)
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle && handle->name)
+   if (handle && handle->name) {
       ret = _aax_strdup(handle->name);
+   }
 
    return ret;
 }
@@ -1038,7 +1045,7 @@ _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
             const char *name;
             int slen;
 
-            ioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
+            pioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
 
             name = (const char*)info.name;
             snprintf(ptr, len, "%s", name);
@@ -1224,13 +1231,13 @@ static int
 detect_pcm(_driver_t *handle, char m)
 {
    const char *devname = handle->name;
-   int rv = AAX_FALSE;
+   int fd, rv = AAX_FALSE;
+   char fn[256];
 
-   if (devname && strcasecmp(devname, "default"))
+   if (devname  && strcasecmp(devname, "default"))
    {
-      int fd, card = 0, device = 0;
+      int card = 0, device = 0;
       char *ifname;
-      char fn[256];
 
       ifname = strstr(devname, ": ");
       if (ifname)
@@ -1242,7 +1249,7 @@ detect_pcm(_driver_t *handle, char m)
          device = 0;
          do
          {
-            snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m ? 'p' : 'c');
+            snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m?'p':'c');
 
             fd = open(fn, O_RDONLY|O_NONBLOCK);
             if (fd >= 0)
@@ -1251,7 +1258,7 @@ detect_pcm(_driver_t *handle, char m)
                const char *name;
                int found;
 
-               ioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
+               pioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
 
                name = (const char*)info.name;
                found = !strcasecmp(ifname, name) ? AAX_TRUE : AAX_FALSE;
@@ -1281,6 +1288,46 @@ detect_pcm(_driver_t *handle, char m)
    }
 
    return rv;
+}
+
+static const char*
+detect_devname(int card, int device, char m)
+{
+   static char rv[256];
+   char fn[256];
+   int fd;
+
+   snprintf(fn, 256, "/dev/snd/controlC%u", card);
+
+   fd = open(fn, O_RDONLY|O_NONBLOCK);
+   if (fd >= 0)
+   {
+      struct snd_ctl_card_info card_info;
+      if (pioctl(fd, SNDRV_CTL_IOCTL_CARD_INFO, &card_info) >= 0) {
+         snprintf(rv, 256, "%s", card_info.name);
+      }
+      close(fd);
+
+      snprintf(fn, 256, "/dev/snd/pcmC%uD%u%c", card, device, m ? 'p' : 'c');
+
+      fd = open(fn, O_RDONLY|O_NONBLOCK);
+      if (fd >= 0)
+      {
+         struct snd_pcm_info info;
+         if (pioctl(fd, SNDRV_PCM_IOCTL_INFO, &info) >= 0)
+         {
+            char *ptr = strchr(rv, '\0');
+            size_t len = 256 - (ptr - rv);
+
+            if (len < 256) {
+               snprintf(ptr, len, ": %s", info.name);
+            }
+         }
+         close(fd);
+      }
+   }
+
+   return (const char*)&rv;
 }
 
 static int
