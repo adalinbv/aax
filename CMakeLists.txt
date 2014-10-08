@@ -242,7 +242,7 @@ ELSE(MSVC)
 
     IF(X86_64)
         message("Build environment: X86_64")
-        SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse")
+        SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DI64=1")
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse2"
         )
@@ -277,7 +277,7 @@ ELSE(MSVC)
 
     ELSEIF(X86)
         message("Build environment: X86")
-        SET(C_FLAGS "${C_FLAGS} -march=i686")
+        SET(C_FLAGS "${C_FLAGS} -march=i686 -DI32=1")
         SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND 
                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
         )
@@ -302,7 +302,7 @@ ELSE(MSVC)
             FORCE)
     ELSEIF(ARM)
         message("Build environment: ARM")
-        SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm")
+        SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
         SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
                      PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
         )
