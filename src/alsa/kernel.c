@@ -1270,7 +1270,7 @@ detect_pcm(_driver_t *handle, char m)
          }
          while (fd >= 0);
 
-         *ifname-- = ' ';
+         ifname -= 2;
          *ifname = ':';
       }
 

@@ -1911,7 +1911,7 @@ detect_devname(_driver_t *handle, int m)
 
          if (ifname)
          {
-            *ifname-- = ' ';
+            ifname -= 2;
             *ifname = ':';
          }
       }
