@@ -165,8 +165,14 @@ typedef struct
 
     char *ifname[2];
 
-    float PID[1];
-    float target[3];
+    struct {
+      float I;
+   } PID;
+   struct {
+      float aim;
+      float level;
+      float dt;
+   } fill;
 
 } _driver_t;
 
@@ -446,13 +452,13 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
       handle->mode = (mode > 0) ? 1 : 0;
-      if (handle->mode) { // Always interupt based for capture
+      if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
       }
 
-      handle->target[0] = FILL_FACTOR;
-      handle->target[1] = FILL_FACTOR;
-      handle->target[2] = AAX_FPINFINITE;
+      handle->fill.aim = FILL_FACTOR;
+      handle->fill.level = FILL_FACTOR;
+      handle->fill.dt = AAX_FPINFINITE;
    }
 
    return handle;
@@ -502,8 +508,10 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
          }
 
-         if (xmlNodeTest(xid, "timed")) {
+         if (xmlNodeTest(xid, "timed"))
+         {
             handle->use_timer = xmlNodeGetBool(xid, "timed");
+            if (handle->mode == AAX_MODE_READ) handle->use_timer = AAX_FALSE;
          }
 
          if (xmlNodeTest(xid, "shared")) {
@@ -864,13 +872,13 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (!handle->mode) no_frames = (no_frames/period_fact);
       handle->period_frames = no_frames;
 
-      handle->target[0] = ((float)no_frames/(float)rate);
-      if (handle->target[0] > 0.02f) {
-         handle->target[0] += 0.01f; // add 10ms
+      handle->fill.aim = (float)period_frames/(float)rate;
+      if (handle->fill.aim > 0.02f) {
+         handle->fill.aim += 0.01f; // add 10ms
       } else {
-         handle->target[0] *= FILL_FACTOR;
+         handle->fill.aim *= FILL_FACTOR;
       }
-      handle->target[1] = handle->target[0];
+      handle->fill.level = handle->fill.aim;
 #endif
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
@@ -907,7 +915,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          *frames = no_frames;
 
          if (handle->use_timer) {
-            handle->latency = handle->target[0];
+            handle->latency = handle->fill.aim;
          }
          else {
              handle->latency = (float)(no_frames*periods)/(float)rate;
@@ -2935,34 +2943,33 @@ _aaxALSADriverThread(void* config)
             float diff, target, input, err, P, I;
             float freq = mixer->info->frequency;
 
-            target = be_handle->target[1];
+            target = be_handle->fill.level;
             input = (float)res/freq;
             err = input - target;
 
-            P = err;
-            I = err*delay_sec;
+            be_handle->PID.I += err*delay_sec;
 
-            be_handle->PID[0] += I;
-            I = be_handle->PID[0];
+            P = err;
+            I = be_handle->PID.I;
 
             diff = 1.85f*P + 0.9f*I;
             wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
 
-            be_handle->target[2] += delay_sec*1000.0f;	// ms
-            if (res < be_handle->target[0]*freq)
+            be_handle->fill.dt += delay_sec;
+            if (input < be_handle->fill.aim)
             {
-               be_handle->target[1] += 0.001f/be_handle->target[2];
-               be_handle->target[2] = 0.0f;
-#if 0
- printf("increase, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+               be_handle->fill.level += 0.00001f/be_handle->fill.dt;
+               be_handle->fill.dt = 0.0f;
+#if 1
+ printf("increase, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
-            else if (be_handle->target[2] >= 10.0f*1000.0f)	// 10 sec
+            else if (be_handle->fill.dt >= 1.0f)       // 1 sec
             {
-               be_handle->target[1] *= 0.995f;
-               be_handle->target[2] = 0.0f;
-#if 0
- printf("reduce, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+               be_handle->fill.level *= 0.995f;
+               be_handle->fill.dt = 0.0f;
+#if o
+ printf("reduce, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
          }

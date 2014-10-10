@@ -69,7 +69,6 @@
 #define	DEFAULT_PCM_NAME	"/dev/snd/pcmC0D0p"
 #define DEFAULT_MIXER_NAME	"/dev/snd/controlC0"
 #define MAX_ID_STRLEN		64
-#define FILL_FACTOR		1.65f
 
 #ifdef __ANDROID__
 # define DEFAULT_RENDERER	"Android"
@@ -78,6 +77,7 @@
 #endif
 
 
+#define FILL_FACTOR		1.65f
 #define _AAX_DRVLOG(a)         _aaxLinuxDriverLog(id, 0, 0, a)
 
 static _aaxDriverDetect _aaxLinuxDriverDetect;
@@ -147,7 +147,7 @@ typedef struct
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
-   ssize_t no_frames;
+   ssize_t period_frames;
    char no_periods;
    char bits_sample;
 
@@ -171,9 +171,14 @@ typedef struct
 
    _batch_cvt_to_intl_proc cvt_to_intl;
 
-   float PID[1];
-   float target[3];
-
+   struct {
+      float I;
+   } PID;
+   struct {
+      float aim;
+      float level;
+      float dt;
+   } fill;
 } _driver_t;
 
 DECL_FUNCTION(ioctl);
@@ -243,24 +248,28 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->pcm = DEFAULT_PCM_NAME;
       handle->name = (char*)_const_kernel_default_name;
       handle->frequency_hz = (float)48000.0f;
+      handle->bits_sample = 16;
       handle->no_tracks = 2;
+      handle->no_periods = 2;
+      handle->period_frames = handle->frequency_hz/25.0f;
+      handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
       handle->use_mmap = AAX_FALSE;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
       handle->setup = mode;
-      handle->no_periods = 2;
       handle->interleaved = AAX_TRUE;
       handle->fd = -1;
-      if (handle->mode) { // Always interupt based for capture
+      if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
       }
-
-      handle->target[0] = FILL_FACTOR;
-      handle->target[1] = FILL_FACTOR;
-      handle->target[2] = AAX_FPINFINITE;
 
       detect_pcm(handle, mode);
       name = detect_devname(handle->cardnum, handle->devnum, handle->mode);
       handle->name = _aax_strdup(name);
+
+      // default period size is for 25Hz
+      handle->fill.aim = FILL_FACTOR;
+      handle->fill.level = FILL_FACTOR;
+      handle->fill.dt = AAX_FPINFINITE;
    }
 
    return handle;
@@ -302,8 +311,10 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
             }
          }
 
-         if (xmlNodeTest(xid, "timed")) {
+         if (xmlNodeTest(xid, "timed"))
+         {
             handle->use_timer = xmlNodeGetBool(xid, "timed");
+            if (handle->mode == AAX_MODE_READ) handle->use_timer = AAX_FALSE;
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -459,7 +470,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       unsigned int tracks, rate, bits, periods, format;
       struct snd_pcm_hw_params hwparams;
       struct snd_pcm_sw_params swparams;
-      snd_pcm_uframes_t no_frames;
+      snd_pcm_uframes_t period_frames;
       int err, fd = handle->fd;
  
       tracks = *channels;
@@ -468,11 +479,11 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       }
 
       periods = handle->no_periods;
-      no_frames = *frames / periods;
+      period_frames = *frames / periods;
       bits = aaxGetBitsPerSample(*fmt);
       rate = (unsigned int)*speed;
 
-      handle->latency = (float)no_frames/(float)rate;
+      handle->latency = (float)*frames/(float)rate;
       if (handle->latency < 0.010f) {
          handle->use_timer = AAX_FALSE;
       }
@@ -491,9 +502,9 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
          periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
 
-         no_frames = *frames / periods;
-         no_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
-                                            no_frames);
+         period_frames = *frames / periods;
+         period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
+                                            period_frames);
       }
 
       switch (bits)
@@ -524,7 +535,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                            SNDRV_PCM_SUBFORMAT_STD);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
-      _set_min(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE, no_frames);
+      _set_min(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE, period_frames);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_FRAME_BITS, bits*tracks);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
@@ -549,18 +560,18 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          swparams.period_step = 1;
          swparams.avail_min = 1;
          swparams.silence_size = 0;
-         swparams.silence_threshold = periods*no_frames;
-         swparams.boundary = periods*no_frames;
-         swparams.xfer_align = no_frames/2;
+         swparams.silence_threshold = periods*period_frames;
+         swparams.boundary = periods*period_frames;
+         swparams.xfer_align = period_frames/2;
          if (handle->mode == O_RDONLY)
          {
             swparams.start_threshold = 1;
-            swparams.stop_threshold = 10*periods*no_frames;
+            swparams.stop_threshold = 10*periods*period_frames;
          }
          else
          {
-            swparams.start_threshold = no_frames*(periods-1);
-            swparams.stop_threshold = periods*no_frames;
+            swparams.start_threshold = period_frames*(periods-1);
+            swparams.stop_threshold = periods*period_frames;
          }
          err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
          if (err >= 0)
@@ -604,31 +615,33 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
                tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
                periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-               no_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+               period_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
 
                handle->frequency_hz = rate;
                handle->no_tracks = tracks;
                handle->no_periods = periods;
-               handle->no_frames = no_frames;
+               handle->period_frames = period_frames;
                handle->bits_sample = bits;
 
                *speed = rate;
                *channels = tracks;
-               *frames = no_frames;
+               *frames = period_frames;
 
-               handle->target[0] = ((float)no_frames/(float)rate);
-               if (handle->target[0] > 0.02f) {
-                  handle->target[0] += 0.01f; // add 10ms
-               } else {
-                  handle->target[0] *= FILL_FACTOR;
+               if (!handle->use_timer) {
+                  handle->latency = (float)(period_frames*periods)/(float)rate;
                }
-               handle->target[1] = handle->target[0];
-
-               if (handle->use_timer) {
-                  handle->latency = handle->target[0];
-               }
-               else {
-                   handle->latency = (float)(no_frames*periods)/(float)rate;
+               else
+               {
+                  handle->fill.aim = (float)period_frames/(float)rate;
+printf("1. handle->fill.aim = %f\n", handle->fill.aim*rate);
+                  if (handle->fill.aim > 0.02f) {
+                     handle->fill.aim += 0.01f; // add 10ms
+                  } else {
+                     handle->fill.aim *= FILL_FACTOR;
+                  }
+printf("2. handle->fill.aim = %f\n", handle->fill.aim*rate);
+                  handle->fill.level = handle->fill.aim;
+                  handle->latency = handle->fill.aim;
                }
 
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
@@ -668,7 +681,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  playback rate: %5.0f hz", handle->frequency_hz);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  buffer size: %zu bytes", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
+      snprintf(str,255, "  buffer size: %zu bytes", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
       _AAX_SYSLOG(str);
@@ -694,7 +707,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
  }
  printf("  pcm: '%s', card: %i, device: %i\n", handle->pcm, handle->cardnum, handle->devnum);
  printf("  playback rate: %5.0f Hz\n", handle->frequency_hz);
- printf("  buffer size: %zu bytes\n", handle->no_frames*handle->no_tracks*handle->bits_sample/8);
+ printf("  buffer size: %zu bytes\n", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
  printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
  printf("  no_periods: %i\n", handle->no_periods);
  printf("  use mmap: %s\n", handle->use_mmap?"yes":"no");
@@ -728,13 +741,13 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
       unsigned int tracks = handle->no_tracks;
       unsigned int frame_size = tracks * handle->bits_sample/8;
       struct snd_xferi x;
-      size_t no_frames;
+      size_t period_frames;
       ssize_t res;
 
-      no_frames = *frames;
+      period_frames = *frames;
 
       x.buf = scratch;
-      x.frames = no_frames;
+      x.frames = period_frames;
       res = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
       if (res >= 0)
       {
@@ -769,12 +782,12 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   ssize_t offs, outbuf_size, no_frames;
+   ssize_t ret, offs, outbuf_size, period_frames;
    snd_pcm_sframes_t avail, bufsize;
-   unsigned int no_tracks;
-   int res, ret, count;
+   unsigned int no_tracks, count;
    const int32_t **sbuf;
    char *data;
+   int rv = 0;
 
    assert(rb);
    assert(id != 0);
@@ -783,9 +796,9 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
       return 0;
 
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   no_frames = rb->get_parami(rb, RB_NO_SAMPLES);
+   period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   outbuf_size = no_tracks *no_frames*handle->bits_sample/8;
+   outbuf_size = no_tracks*period_frames*handle->bits_sample/8;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
       char *p = 0;
@@ -798,23 +811,24 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
    }
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
-   no_frames -= offs;
+   period_frames -= offs;
 
-   _kernel_set_volume(handle, rb, offs, no_frames, no_tracks, gain);
+   _kernel_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
    data = (char*)handle->scratch;
    sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-   handle->cvt_to_intl(data, sbuf, offs, no_tracks, no_frames);
+   handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
    rb->release_tracks_ptr(rb);
 
+   ret = 0;
    count = 8;
-   res = ret = 0;
+   bufsize = handle->no_periods*handle->period_frames;
    do
    {
       if (!handle->prepared)
       {
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
-         if (res >= 0) {
+         if (ret >= 0) {
             handle->prepared = AAX_TRUE;
          }
       }
@@ -825,30 +839,33 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
       }
 
-      bufsize = handle->no_periods*handle->no_frames;
       avail = handle->status->hw_ptr + bufsize;
       avail -= handle->control->appl_ptr;
+
+      rv = bufsize - avail;
+printf("avail: %i, period_frames: %i\n", avail, period_frames);
       if (handle->prepared)
       {
          struct snd_xferi xfer;
 
          xfer.buf = data;
-         xfer.frames = no_frames; // _MIN(no_frames, avail);
+         xfer.frames = period_frames; // _MIN(period_frames, avail);
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
-         if (ret < 0) {
+         if (ret >= 0) {
+            period_frames -= xfer.frames;
+         }
+         else {
             handle->prepared = AAX_FALSE;
          }
-         no_frames -= xfer.frames;
-         res += xfer.frames;
       }
    }
-   while (no_frames && (ret < 0) && --count);
+   while (period_frames && (ret < 0) && --count);
 
    if (ret < 0) {
       _AAX_SYSLOG("kernel: warning: pcm write error");
    }
 
-   return res;
+   return rv;
 }
 
 static char *
@@ -1102,7 +1119,7 @@ _kernel_get_volume(_driver_t *handle)
 }
 
 static float
-_kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
+_kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t period_frames, unsigned int no_tracks, float volume)
 {
    float gain = fabsf(volume);
    float rv = 0;
@@ -1111,7 +1128,7 @@ _kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pc
 
       /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > 0.05f) {
-      rb->data_multiply(rb, offset, no_frames, gain);
+      rb->data_multiply(rb, offset, period_frames, gain);
    }
 
    return rv;
@@ -1375,13 +1392,14 @@ void *
 _aaxLinuxDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-   snd_pcm_sframes_t no_frames, bufsize;
-   float delay_sec, wait_us;
+   snd_pcm_sframes_t period_frames, bufsize;
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
    _driver_t *be_handle;
+   unsigned int wait_us;
+   float delay_sec;
    const void *id;
    int stdby_time;
    char state;
@@ -1429,10 +1447,10 @@ _aaxLinuxDriverThread(void* config)
    state = AAX_SUSPENDED;
 
    be_handle = (_driver_t *)handle->backend.handle;
-   bufsize = be_handle->no_periods*be_handle->no_frames;
+   bufsize = be_handle->no_periods*be_handle->period_frames;
 
-   wait_us = delay_sec*1000000.0f;
-   no_frames = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
+   wait_us = delay_sec*1000000;
+   period_frames = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
    stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.signal.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
@@ -1445,7 +1463,7 @@ _aaxLinuxDriverThread(void* config)
 
       avail = be_handle->status->hw_ptr + bufsize;
       avail -= be_handle->control->appl_ptr;
-      if (avail < no_frames)
+      if (avail < period_frames)
       {
          if (_IS_PLAYING(handle))
          {
@@ -1518,34 +1536,33 @@ _aaxLinuxDriverThread(void* config)
             float diff, target, input, err, P, I;
             float freq = mixer->info->frequency;
 
-            target = be_handle->target[1];
+            target = be_handle->fill.level;
             input = (float)res/freq;
             err = input - target;
 
-            P = err;
-            I = err*delay_sec;
+            be_handle->PID.I += err*delay_sec;
 
-            be_handle->PID[0] += I;
-            I = be_handle->PID[0];
+            P = err;
+            I = be_handle->PID.I;
 
             diff = 1.85f*P + 0.9f*I;
-            wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
+            wait_us = _MAX((delay_sec + diff)*1000000, 1);
 
-            be_handle->target[2] += delay_sec*1000.0f;  // ms
-            if (res < be_handle->target[0]*freq)
+            be_handle->fill.dt += delay_sec;
+            if (input < be_handle->fill.aim)
             {
-               be_handle->target[1] += 0.001f/be_handle->target[2];
-               be_handle->target[2] = 0.0f;
+               be_handle->fill.level += 0.00001f/be_handle->fill.dt;
+               be_handle->fill.dt = 0.0f;
 #if 0
- printf("increase, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+ printf("increase, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
-            else if (be_handle->target[2] >= 10.0f*1000.0f)     // 10 sec
+            else if (be_handle->fill.dt >= 1.00f)	// 1 sec
             {
-               be_handle->target[1] *= 0.995f;
-               be_handle->target[2] = 0.0f;
+               be_handle->fill.level *= 0.995f;
+               be_handle->fill.dt = 0.0f;
 #if 0
- printf("reduce, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
+ printf("reduce, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
          }
