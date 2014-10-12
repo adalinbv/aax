@@ -397,8 +397,11 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          handle->fd = open(handle->pcm, O_RDWR|O_NONBLOCK);
          if (handle->fd >= 0)
          {
-            close(handle->fd);
-            handle->fd = open(handle->pcm, O_RDWR);
+            if (!handle->use_timer)
+            {
+               close(handle->fd);
+               handle->fd = open(handle->pcm, O_RDWR);
+            }
          }
          else
          {
@@ -490,9 +493,11 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
       _init_params(&hwparams);
       hwparams.flags |= SNDRV_PCM_HW_PARAMS_NORESAMPLE;
+#if 1
       if (handle->use_timer) {
           hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
       }
+#endif
 
       err = pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams);
       if (err >= 0)
@@ -633,13 +638,11 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                else
                {
                   handle->fill.aim = (float)period_frames/(float)rate;
-printf("1. handle->fill.aim = %f\n", handle->fill.aim*rate);
                   if (handle->fill.aim > 0.02f) {
                      handle->fill.aim += 0.01f; // add 10ms
                   } else {
                      handle->fill.aim *= FILL_FACTOR;
                   }
-printf("2. handle->fill.aim = %f\n", handle->fill.aim*rate);
                   handle->fill.level = handle->fill.aim;
                   handle->latency = handle->fill.aim;
                }
@@ -843,7 +846,6 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
       avail -= handle->control->appl_ptr;
 
       rv = bufsize - avail;
-printf("avail: %i, period_frames: %i\n", avail, period_frames);
       if (handle->prepared)
       {
          struct snd_xferi xfer;
@@ -1537,7 +1539,7 @@ _aaxLinuxDriverThread(void* config)
             float freq = mixer->info->frequency;
 
             target = be_handle->fill.level;
-            input = (float)res/freq;
+            input = res/freq;
             err = input - target;
 
             be_handle->PID.I += err*delay_sec;
@@ -1545,15 +1547,21 @@ _aaxLinuxDriverThread(void* config)
             P = err;
             I = be_handle->PID.I;
 
-            diff = 1.85f*P + 0.9f*I;
-            wait_us = _MAX((delay_sec + diff)*1000000, 1);
+            diff = 0.45f*P + 0.83f*I;
+            diff = _MAX((delay_sec + diff), 1e-6f);
+            wait_us = diff*1000000.0f;
 
-            be_handle->fill.dt += delay_sec;
-            if (input < be_handle->fill.aim)
-            {
-               be_handle->fill.level += 0.00001f/be_handle->fill.dt;
-               be_handle->fill.dt = 0.0f;
 #if 0
+printf("res: %i, tgt: %5.1f, err: %5.1f, wait: %5.1f ms\n", res, target*freq, err*freq, be_handle->fill.wait*1000.0f);
+#endif
+
+#if 0
+            be_handle->fill.dt += delay_sec;
+            if (res <= be_handle->period_frames)
+            {
+               be_handle->fill.level += 0.000001f/be_handle->fill.dt;
+               be_handle->fill.dt = 0.0f;
+#if 1
  printf("increase, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
@@ -1561,10 +1569,11 @@ _aaxLinuxDriverThread(void* config)
             {
                be_handle->fill.level *= 0.995f;
                be_handle->fill.dt = 0.0f;
-#if 0
+#if 1
  printf("reduce, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
+#endif
          }
       }
 #if 0

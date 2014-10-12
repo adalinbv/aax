@@ -141,7 +141,7 @@ typedef struct
     unsigned int no_tracks;
     unsigned int no_periods;
     size_t no_frames;
-//  size_t max_frames;
+    size_t max_frames;
     size_t buf_len;
     int mode;
 
@@ -201,7 +201,7 @@ DECL_FUNCTION(snd_pcm_hw_params_test_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_channels);
 DECL_FUNCTION(snd_pcm_hw_params_get_channels_min);
 DECL_FUNCTION(snd_pcm_hw_params_get_channels_max);
-// DECL_FUNCTION(snd_pcm_hw_params_get_period_size_max);
+DECL_FUNCTION(snd_pcm_hw_params_get_period_size_max);
 DECL_FUNCTION(snd_pcm_hw_params_set_period_size_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
 DECL_FUNCTION(snd_pcm_hw_params_get_periods_min);
@@ -384,10 +384,11 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);			//
          TIE_FUNCTION(snd_pcm_hw_params_test_channels);			//
          TIE_FUNCTION(snd_pcm_hw_params_set_channels);			//
-         TIE_FUNCTION(snd_pcm_hw_params_get_channels_min);
-         TIE_FUNCTION(snd_pcm_hw_params_get_channels_max);
+         TIE_FUNCTION(snd_pcm_hw_params_get_channels_min);		//
+         TIE_FUNCTION(snd_pcm_hw_params_get_channels_max);		//
+         TIE_FUNCTION(snd_pcm_hw_params_get_period_size_max);		//
          TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);		//
-         TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);
+         TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);		//
          TIE_FUNCTION(snd_pcm_hw_params_get_periods_min);		//
          TIE_FUNCTION(snd_pcm_hw_params_get_periods_max);		//
          TIE_FUNCTION(snd_pcm_sw_params_malloc);			//
@@ -687,6 +688,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    unsigned int rate, bits, periods;
    snd_pcm_hw_params_t *hwparams;
    snd_pcm_sw_params_t *swparams;
+   snd_pcm_uframes_t max_frames;
    snd_pcm_uframes_t no_frames;
    unsigned int tracks;
    int err, rv = 0;
@@ -822,8 +824,19 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             "unsupported no. channels" );
 
       /* period size */
-      TRUN( psnd_pcm_hw_params_set_period_size_near(hid, hwparams,&no_frames,0),
-            "unable to set the period size" );
+      max_frames = no_frames;
+      if (0) // handle->use_timer)
+      {
+         TRUN( psnd_pcm_hw_params_get_period_size_max(hwparams, &max_frames, 0),
+               "unable to get max. period size" );
+
+         TRUN( psnd_pcm_hw_params_set_period_size_near(hid, hwparams, &max_frames,0),
+               "unable to set the period size" );
+         periods = 1;
+      } else {
+         TRUN( psnd_pcm_hw_params_set_period_size_near(hid, hwparams,&no_frames,0),
+               "unable to set the period size" );
+      }
 
       /* no. periods */
       TRUN ( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
@@ -836,50 +849,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (err == -EBUSY) {
          _AAX_DRVLOG("device busy\n");
       }
-
-#if 0
-      // TIMER_BASED
-      if (handle->use_timer) {
-         no_periods = val1;
-      }
-      else
-      {
-         TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
-                "unable to get the maximum no. periods" );
-         no_periods = _MINMAX(no_periods, val1, val2);
-      }
-
-      TRUN( psnd_pcm_hw_params_get_periods(hwparams, &val1, 0),
-            "unable to get the no. periods" );
-      if (err >= 0) {
-         handle->no_periods = val1;
-      }
-
-      // TIMER_BASED
-      if (handle->use_timer) {
-         TRUN( psnd_pcm_hw_params_get_period_size_max(hwparams, &no_frames),
-               "unable to get the max period size" );
-      }
-      handle->max_frames = no_frames;
-
-      // TIMER_BASED
-      if (handle->use_timer)
-      {
-         no_frames = *frames;
-         handle->no_periods = no_periods = 2;
-      }
-
-      if (!handle->mode) no_frames = (no_frames/period_fact);
-      handle->period_frames = no_frames;
-
-      handle->fill.aim = (float)period_frames/(float)rate;
-      if (handle->fill.aim > 0.02f) {
-         handle->fill.aim += 0.01f; // add 10ms
-      } else {
-         handle->fill.aim *= FILL_FACTOR;
-      }
-      handle->fill.level = handle->fill.aim;
-#endif
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
             "unable to set software config" );
@@ -914,10 +883,21 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          *channels = tracks;
          *frames = no_frames;
 
-         if (handle->use_timer) {
+         if (handle->use_timer)
+         {
+            handle->fill.aim = (float)no_frames/(float)rate;
+            if (handle->fill.aim > 0.02f) {
+               handle->fill.aim += 0.01f; // add 10ms
+            } else {
+//             handle->fill.aim *= FILL_FACTOR;
+            }
+            handle->fill.level = handle->fill.aim;
+            handle->max_frames = periods*max_frames;
             handle->latency = handle->fill.aim;
          }
-         else {
+         else
+         {
+             handle->max_frames = periods*no_frames;
              handle->latency = (float)(no_frames*periods)/(float)rate;
          }
          handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
@@ -2390,6 +2370,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2444,7 +2425,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       }
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    rbs->release_tracks_ptr(rbs);
@@ -2491,6 +2471,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2541,7 +2522,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       }
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    rbs->release_tracks_ptr(rbs);
@@ -2619,6 +2599,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2672,7 +2653,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       }
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    if (!chunk) _AAX_DRVLOG("too many playback tries\n");
@@ -2734,6 +2714,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2784,7 +2765,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
       data += (res * no_tracks*hw_bits)/8;
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    if (!chunk) _AAX_DRVLOG("too many playback tries\n");
@@ -2799,21 +2779,17 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
    snd_pcm_sframes_t avail;
    size_t res;
 
-   res = handle->play(id, src, pitch, gain);
+   avail = handle->play(id, src, pitch, gain);
    if (psnd_pcm_state(handle->pcm) == SND_PCM_STATE_PREPARED) {
       psnd_pcm_start(handle->pcm);
    }
 
-   // return the current buffer fill level
-// avail = psnd_pcm_avail(handle->pcm);
-// psnd_pcm_delay(handle->pcm, &avail);
-avail = res;
    if (avail < 0)
    {
       xrun_recovery(handle->pcm, avail);
       avail = _MAX(psnd_pcm_avail(handle->pcm), 0);
    }
-   res = avail; // handle->max_frames - avail;
+   res = handle->max_frames - avail;
 
    return res;
 }
@@ -2955,6 +2931,7 @@ _aaxALSADriverThread(void* config)
             diff = 1.85f*P + 0.9f*I;
             wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
 
+#if 0
             be_handle->fill.dt += delay_sec;
             if (input < be_handle->fill.aim)
             {
@@ -2968,10 +2945,11 @@ _aaxALSADriverThread(void* config)
             {
                be_handle->fill.level *= 0.995f;
                be_handle->fill.dt = 0.0f;
-#if o
+#if 1
  printf("reduce, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
 #endif
             }
+#endif
          }
       }
 #if 0
