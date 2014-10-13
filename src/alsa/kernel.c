@@ -77,7 +77,8 @@
 #endif
 
 
-#define FILL_FACTOR		1.65f
+#define DEFAULT_REFRESH		25.0f
+#define FILL_FACTOR		1.5f
 #define _AAX_DRVLOG(a)         _aaxLinuxDriverLog(id, 0, 0, a)
 
 static _aaxDriverDetect _aaxLinuxDriverDetect;
@@ -173,6 +174,7 @@ typedef struct
 
    struct {
       float I;
+      float err;
    } PID;
    struct {
       float aim;
@@ -251,7 +253,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->bits_sample = 16;
       handle->no_tracks = 2;
       handle->no_periods = 2;
-      handle->period_frames = handle->frequency_hz/25.0f;
+      handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
       handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
       handle->use_mmap = AAX_FALSE;
       handle->mode = _mode[(mode > 0) ? 1 : 0];
@@ -267,9 +269,9 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->name = _aax_strdup(name);
 
       // default period size is for 25Hz
-      handle->fill.aim = FILL_FACTOR;
-      handle->fill.level = FILL_FACTOR;
-      handle->fill.dt = AAX_FPINFINITE;
+      handle->fill.aim = FILL_FACTOR * DEFAULT_REFRESH;
+      handle->fill.level = FILL_FACTOR * DEFAULT_REFRESH;
+      handle->fill.dt = 1.0f/DEFAULT_REFRESH;
    }
 
    return handle;
@@ -1535,26 +1537,38 @@ _aaxLinuxDriverThread(void* config)
 
          if (be_handle->use_timer)
          {
-            float diff, target, input, err, P, I;
+            float diff, target, input, err, P, I, D;
             float freq = mixer->info->frequency;
 
             target = be_handle->fill.level;
             input = res/freq;
             err = input - target;
 
-            be_handle->PID.I += err*delay_sec;
-
+            /* present error */
             P = err;
+
+            /*  accumulation of past errors */
+            be_handle->PID.I += err*delay_sec;
             I = be_handle->PID.I;
 
-            diff = 0.45f*P + 0.83f*I;
-            diff = _MAX((delay_sec + diff), 1e-6f);
-            wait_us = diff*1000000.0f;
+            /* prediction of future errors, based on current rate of change */
+            D = (be_handle->PID.err - err)/delay_sec;
+            be_handle->PID.err = err;
+
+            err = 0.45f*P + 0.83f*I + 0.00125f*D;
+            diff = _MAX((delay_sec + err), 1e-6f);
+
+            be_handle->fill.dt = 0.8f*be_handle->fill.dt + 0.2f*diff;
+            wait_us = be_handle->fill.dt*1000000.0f;
 
 #if 0
-printf("res: %i, tgt: %5.1f, err: %5.1f, wait: %5.1f ms\n", res, target*freq, err*freq, be_handle->fill.wait*1000.0f);
+printf("tgt: %5.1f, res: %i, err: %5.1f, wait: %5.2f, delay: %5.1f, err: %5.2f ms\n", target*freq, res, err*freq, be_handle->fill.dt*1000.0f, delay_sec*1000.0f, err*1000.0f);
 #endif
-
+#if 0
+            if (input < 0.5f*delay_sec) {
+               be_handle->fill.level += 16/freq;
+            }
+#endif
 #if 0
             be_handle->fill.dt += delay_sec;
             if (res <= be_handle->period_frames)
