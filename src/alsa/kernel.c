@@ -77,8 +77,8 @@
 #endif
 
 
-#define DEFAULT_REFRESH		25.0f
 #define FILL_FACTOR		1.5f
+#define DEFAULT_REFRESH		25.0f
 #define _AAX_DRVLOG(a)         _aaxLinuxDriverLog(id, 0, 0, a)
 
 static _aaxDriverDetect _aaxLinuxDriverDetect;
@@ -178,8 +178,6 @@ typedef struct
    } PID;
    struct {
       float aim;
-      float level;
-      float dt;
    } fill;
 } _driver_t;
 
@@ -270,8 +268,6 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
 
       // default period size is for 25Hz
       handle->fill.aim = FILL_FACTOR * DEFAULT_REFRESH;
-      handle->fill.level = FILL_FACTOR * DEFAULT_REFRESH;
-      handle->fill.dt = 1.0f/DEFAULT_REFRESH;
    }
 
    return handle;
@@ -511,7 +507,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
          period_frames = *frames / periods;
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
-                                            period_frames);
+                                                period_frames);
       }
 
       switch (bits)
@@ -645,7 +641,6 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                   } else {
                      handle->fill.aim *= FILL_FACTOR;
                   }
-                  handle->fill.level = handle->fill.aim;
                   handle->latency = handle->fill.aim;
                }
 
@@ -703,7 +698,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       snprintf(str,255,"  can pause: %i\n", handle->can_pause);
       _AAX_SYSLOG(str);
 
-#if 0
+#if 1
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -745,33 +740,61 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
    {
       unsigned int tracks = handle->no_tracks;
       unsigned int frame_size = tracks * handle->bits_sample/8;
+      snd_pcm_sframes_t avail, bufsize;
+      size_t period_frames, count = 8;
       struct snd_xferi x;
-      size_t period_frames;
-      ssize_t res;
+      ssize_t ret;
 
+      errno = 0;
+      count = 0;
       period_frames = *frames;
+      bufsize = handle->no_periods*handle->period_frames;
+      do
+      {
+         if (!handle->prepared)
+         {
+            ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
+            if (ret >= 0) {
+               handle->prepared = AAX_TRUE;
+            }
+         }
 
-      x.buf = scratch;
-      x.frames = period_frames;
-      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
-      if (res >= 0)
+         if (handle->sync)
+         {
+            handle->sync->flags=SNDRV_PCM_SYNC_PTR_APPL|SNDRV_PCM_SYNC_PTR_HWSYNC;
+            ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
+         }
+
+         avail = handle->status->hw_ptr + bufsize;
+         avail -= handle->control->appl_ptr;
+
+         x.buf = scratch;
+         x.frames = _MIN(period_frames, avail);
+         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
+         if (ret >= 0) {
+            period_frames -= x.frames;
+         } else {
+            handle->prepared = AAX_FALSE;
+         }
+      }
+      while (period_frames && (ret < 0) && --count);
+
+      if (ret >= 0)
       {
          int32_t **sbuf = (int32_t**)data;
 
-         res /= frame_size;
+         ret = *frames - period_frames;
+          *frames = ret;
 
-         _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, res);
-         *frames = x.frames;
-
+         _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, ret);
          gain = _kernel_set_volume(handle, NULL, offs, offs, tracks, gain);
          if (gain > 0)
          {
             unsigned int i;
             for (i=0; i<tracks; i++) {
                _batch_imul_value(sbuf[i]+offs, sizeof(int32_t), offs, gain);
+            }
          }
-      }
-
          rv = AAX_TRUE;
       }
       else {
@@ -779,7 +802,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
       }
    }
 
-   return AAX_FALSE;
+   return rv;
 }
 
 static size_t
@@ -1537,11 +1560,11 @@ _aaxLinuxDriverThread(void* config)
 
          if (be_handle->use_timer)
          {
-            float diff, target, input, err, P, I, D;
+            float target, input, err, P, I; //, D;
             float freq = mixer->info->frequency;
 
-            target = be_handle->fill.level;
-            input = res/freq;
+            target = be_handle->fill.aim;
+            input = (float)res/freq;
             err = input - target;
 
             /* present error */
@@ -1552,41 +1575,14 @@ _aaxLinuxDriverThread(void* config)
             I = be_handle->PID.I;
 
             /* prediction of future errors, based on current rate of change */
-            D = (be_handle->PID.err - err)/delay_sec;
-            be_handle->PID.err = err;
+//          D = (be_handle->PID.err - err)/delay_sec;
+//          be_handle->PID.err = err;
 
-            err = 0.45f*P + 0.83f*I + 0.00125f*D;
-            diff = _MAX((delay_sec + err), 1e-6f);
-
-            be_handle->fill.dt = 0.8f*be_handle->fill.dt + 0.2f*diff;
-            wait_us = be_handle->fill.dt*1000000.0f;
-
+//          err = 0.45f*P + 0.83f*I + 0.00125f*D;
+            err = 0.40f*P + 0.97f*I;
+            wait_us = _MAX((delay_sec + err), 1e-6f) * 1000000.0f;
 #if 0
-printf("tgt: %5.1f, res: %i, err: %5.1f, wait: %5.2f, delay: %5.1f, err: %5.2f ms\n", target*freq, res, err*freq, be_handle->fill.dt*1000.0f, delay_sec*1000.0f, err*1000.0f);
-#endif
-#if 0
-            if (input < 0.5f*delay_sec) {
-               be_handle->fill.level += 16/freq;
-            }
-#endif
-#if 0
-            be_handle->fill.dt += delay_sec;
-            if (res <= be_handle->period_frames)
-            {
-               be_handle->fill.level += 0.000001f/be_handle->fill.dt;
-               be_handle->fill.dt = 0.0f;
-#if 1
- printf("increase, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
-#endif
-            }
-            else if (be_handle->fill.dt >= 1.00f)	// 1 sec
-            {
-               be_handle->fill.level *= 0.995f;
-               be_handle->fill.dt = 0.0f;
-#if 1
- printf("reduce, fill: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->fill.aim*freq, res, be_handle->fill.level*freq, wait_us/1000.0f, delay_sec*1000.0f);
-#endif
-            }
+ printf("target: %5.1f, res: %i, err: %- 5.1f, delay: %5.2f\n", target*freq, res, err*freq, be_handle->fill.dt*1000.0f);
 #endif
          }
       }
