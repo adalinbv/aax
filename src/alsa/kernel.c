@@ -19,14 +19,6 @@
 #endif
 #include <stdio.h>
 #include <sys/stat.h>
-#if 0
-#if HAVE_IOCTL
-# include <sys/ioctl.h>
-#endif
-#if HAVE_MMAN_H
-# include <sys/mman.h>
-#endif
-#endif
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
@@ -59,6 +51,12 @@
 #include <software/renderer.h>
 #include "kernel.h"
 #include "device.h"
+
+#if 1
+# ifdef NDEBUG
+#  undef NDEBUG
+# endif
+#endif
 
 #define TIMER_BASED		AAX_FALSE
 
@@ -148,6 +146,9 @@ typedef struct
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
+   unsigned int max_frequency;
+   unsigned int max_periods;
+   unsigned int max_tracks;
    ssize_t period_frames;
    char no_periods;
    char bits_sample;
@@ -194,7 +195,7 @@ static void _set_mask(struct snd_pcm_hw_params*, int, unsigned int);
 static void _set_min(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_int(struct snd_pcm_hw_params*, int);
 static unsigned int _set_int(struct snd_pcm_hw_params*, int, unsigned int);
-static unsigned int _get_minmax(struct snd_pcm_hw_params*, int, unsigned int);
+static unsigned int _get_minmax(struct snd_pcm_hw_params*, int, unsigned int, unsigned int*, unsigned int*);
 static float _kernel_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
 static int _kernel_get_volume(_driver_t*);
 
@@ -309,10 +310,14 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
             }
          }
 
-         if (xmlNodeTest(xid, "timed"))
-         {
+         s = getenv("AAX_USE_TIMER");
+         if (s) {
+            handle->use_timer = _aax_getbool(s);
+         } else if (xmlNodeTest(xid, "timed")) {
             handle->use_timer = xmlNodeGetBool(xid, "timed");
-            if (handle->mode == AAX_MODE_READ) handle->use_timer = AAX_FALSE;
+         }
+         if (handle->mode == AAX_MODE_READ) {
+            handle->use_timer = AAX_FALSE;
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -320,12 +325,12 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("kernel; frequency too small.");
+               _AAX_DRVLOG("kernel; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("kernel; frequency too large.");
+               _AAX_DRVLOG("kernel; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->frequency_hz = f;
@@ -338,12 +343,12 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("kernel; no. tracks too small.");
+                  _AAX_DRVLOG("kernel; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("kernel; no. tracks too great.");
+                  _AAX_DRVLOG("kernel; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->no_tracks = i;
@@ -355,7 +360,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          {
             if (i != 16)
             {
-               _AAX_SYSLOG("kernel; unsopported bits-per-sample");
+               _AAX_DRVLOG("kernel; unsopported bits-per-sample");
                i = 16;
             }
          }
@@ -370,7 +375,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
             }
             else if (i > 16)
             {
-               _AAX_DRVLOG("no. tracks too great.");
+               _AAX_DRVLOG("no. periods too great.");
                i = 16;
             }
             handle->no_periods = i;
@@ -403,6 +408,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          }
          else
          {
+            _AAX_DRVLOG(strerror(errno));
             free(handle);
             handle = NULL;
          }
@@ -500,14 +506,20 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       err = pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams);
       if (err >= 0)
       {
-         rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
-         bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
-         tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
-         periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
+         unsigned int min, max;
+
+         rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate,
+                            &min, &handle->max_frequency);
+         bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits,
+                            &min, &max);
+         tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks,
+                              &min, &handle->max_tracks);
+         periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods,
+                               &min, &handle->max_periods);
 
          period_frames = *frames / periods;
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
-                                                period_frames);
+                                                period_frames, &min, &max);
       }
 
       switch (bits)
@@ -739,7 +751,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
    if (*frames)
    {
       unsigned int tracks = handle->no_tracks;
-      unsigned int frame_size = tracks * handle->bits_sample/8;
+//    unsigned int frame_size = tracks * handle->bits_sample/8;
       snd_pcm_sframes_t avail, bufsize;
       size_t period_frames, count = 8;
       struct snd_xferi x;
@@ -757,6 +769,9 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
             if (ret >= 0) {
                handle->prepared = AAX_TRUE;
             }
+            else {
+               _AAX_DRVLOG(strerror(errno));
+            }
          }
 
          if (handle->sync)
@@ -773,7 +788,10 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
          if (ret >= 0) {
             period_frames -= x.frames;
-         } else {
+         }
+         else
+         {
+            _AAX_DRVLOG(strerror(errno));
             handle->prepared = AAX_FALSE;
          }
       }
@@ -798,7 +816,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
          rv = AAX_TRUE;
       }
       else {
-         _AAX_SYSLOG(strerror(errno));
+         _AAX_DRVLOG(strerror(errno));
       }
    }
 
@@ -859,6 +877,9 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
          if (ret >= 0) {
             handle->prepared = AAX_TRUE;
          }
+         else {
+            _AAX_DRVLOG(strerror(errno));
+         }
       }
 
       if (handle->sync)
@@ -881,7 +902,9 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
          if (ret >= 0) {
             period_frames -= xfer.frames;
          }
-         else {
+         else
+         {
+            _AAX_DRVLOG(strerror(errno));
             handle->prepared = AAX_FALSE;
          }
       }
@@ -889,7 +912,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
    while (period_frames && (ret < 0) && --count);
 
    if (ret < 0) {
-      _AAX_SYSLOG("kernel: warning: pcm write error");
+      _AAX_DRVLOG(strerror(errno));
    }
 
    return rv;
@@ -960,7 +983,7 @@ _aaxLinuxDriverState(const void *id, enum _aaxDriverState state)
          }
       }
 #else
-rv = AAX_TRUE;
+      rv = AAX_TRUE;
 #endif
       break;
    case DRIVER_SHARED_MIXER:
@@ -987,6 +1010,7 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
+		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
          break;
@@ -999,6 +1023,23 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = 1.0f; // handle->hwgain;
          break;
+
+		/* int */
+      case DRIVER_MAX_FREQUENCY:
+         rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MAX_TRACKS:
+         rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MAX_PERIODS:
+         rv = (float)handle->max_periods;
+         break;
+
+		/* boolean */
+      case DRIVER_TIMER_MODE:
+          rv = (float)AAX_TRUE;
+          break;
+      case DRIVER_SHARED_MODE:
       default:
          break;
       }
@@ -1134,6 +1175,9 @@ _aaxLinuxDriverLog(const void *id, int prio, int type, const char *str)
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
+#ifndef NDEBUG
+   printf("%s", _errstr);
+#endif
 
    return (char*)&_errstr;
 }
@@ -1151,7 +1195,7 @@ _kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pc
    float gain = fabsf(volume);
    float rv = 0;
 
-// TODO: hardware volume
+// TODO: hardware volume if available
 
       /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > 0.05f) {
@@ -1195,7 +1239,7 @@ _init_params(struct snd_pcm_hw_params *params)
 }
 
 static unsigned int
-_get_minmax(struct snd_pcm_hw_params *params, int param, unsigned int value)
+_get_minmax(struct snd_pcm_hw_params *params, int param, unsigned int value, unsigned int *min, unsigned int *max)
 {
    int rv = value;
    if (param >= SNDRV_PCM_HW_PARAM_FIRST_INTERVAL &&
@@ -1205,6 +1249,8 @@ _get_minmax(struct snd_pcm_hw_params *params, int param, unsigned int value)
 
       itv = &params->intervals[param - SNDRV_PCM_HW_PARAM_FIRST_INTERVAL];
       rv = _MINMAX(value, itv->min, itv->max);
+      *min = itv->min;
+      *max = itv->max;
    }
    return rv;
 }
@@ -1484,7 +1530,7 @@ _aaxLinuxDriverThread(void* config)
    {
       _driver_t *be_handle = (_driver_t *)handle->backend.handle;
       snd_pcm_sframes_t avail;
-      int res;
+      int ret;
 
       _aaxMutexUnLock(handle->thread.signal.mutex);
 
@@ -1507,8 +1553,8 @@ _aaxLinuxDriverThread(void* config)
                do
                {
                   errno = 0;
-                  res = ppoll(&pfd, 1, 2*stdby_time);
-                  if (res <= 0) break;
+                  ret = ppoll(&pfd, 1, 2*stdby_time);
+                  if (ret <= 0) break;
                   if (errno == -EINTR) continue;
                   if (pfd.revents & (POLLERR|POLLNVAL))
                   {
@@ -1527,6 +1573,9 @@ _aaxLinuxDriverThread(void* config)
                   }
                }
                while (!(pfd.revents & (POLLIN|POLLOUT)));
+               if (ret < 0) {
+                  _AAX_DRVLOG(strerror(errno));
+               }
             }
          }
          else {

@@ -605,6 +605,10 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
       *frames = sample_frames;
+
+// http://permalink.gmane.org/gmane.comp.audio.portaudio.devel/9026
+      handle->max_frequency =
+      handle->max_tracks =
    }
 
    return rv;
@@ -903,6 +907,7 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
+		/* float */
       case DRIVER_LATENCY:
          rv = handle->hnsLatency*100e-9f;
          break;
@@ -915,6 +920,23 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+
+		/* int */
+      case DRIVER_MAX_FREQUENCY:
+         rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MAX_TRACKS:
+         rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MAX_PERIODS:
+         rv = 2.0f;
+         break;
+
+		/* boolean */
+      case DRIVER_SHARED_MODE:
+          rv = (float)AAX_TRUE;
+          break;
+      case DRIVER_TIMER_MODE:
       default:
          break;
       }

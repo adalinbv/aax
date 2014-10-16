@@ -61,11 +61,22 @@ extern "C" {
 				AAX_MKSTR(AAX_PATCH_LEVEL)
 
 enum _aaxDriverParam {
+   /* float */
    DRIVER_LATENCY = 0,
    DRIVER_MIN_VOLUME,
    DRIVER_MAX_VOLUME,
    DRIVER_VOLUME,
-   DRIVER_AGC_LEVEL
+   DRIVER_AGC_LEVEL,
+
+   /* int */
+   DRIVER_MAX_FREQUENCY = 0x100,
+   DRIVER_MAX_TRACKS,
+   DRIVER_MAX_PERIODS,
+
+   /* boolean */
+   DRIVER_SHARED_MODE = 0x200,
+   DRIVER_TIMER_MODE
+   
 };
 
 enum _aaxDriverState {

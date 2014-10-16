@@ -132,6 +132,8 @@ typedef struct
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
+   unsigned int max_frequency;
+   unsigned int max_tracks;
    size_t buffer_size;
 
    int mode;
@@ -478,7 +480,13 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 
    if (err >= 0)
    {
+      oss_audioinfo ainfo;
       int delay;
+
+      ainfo.dev = handle->nodenum;
+      err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+      handle->max_tracks = ainfo.max_channels;
+      handle->max_frequency = ainfo.max_rate;
 
       handle->format = format;
       handle->no_tracks = channels;
@@ -757,6 +765,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
+		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
          break;
@@ -769,6 +778,23 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->hwgain;
          break;
+
+		/* int */
+      case DRIVER_MAX_FREQUENCY:
+         rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MAX_TRACKS:
+         rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MAX_PERIODS:
+         rv = (float)NO_FRAGMENTS;
+         break;
+
+		/* boolean */
+      case DRIVER_SHARED_MODE:
+          rv = (float)AAX_TRUE;
+          break;
+      case DRIVER_TIMER_MODE:
       default:
          break;
       }

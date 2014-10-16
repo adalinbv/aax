@@ -42,7 +42,7 @@
 #include "device.h"
 #include "audio.h"
 
-#if 0
+#if 1
 # ifdef NDEBUG
 #  undef NDEBUG
 # endif
@@ -140,6 +140,9 @@ typedef struct
 
     unsigned int no_tracks;
     unsigned int no_periods;
+    unsigned int max_frequency;
+    unsigned int max_periods;
+    unsigned int max_tracks;
     size_t period_frames;
     size_t max_frames;
     size_t buf_len;
@@ -197,6 +200,7 @@ DECL_FUNCTION(snd_pcm_hw_params_set_access);
 DECL_FUNCTION(snd_pcm_hw_params_set_format);
 DECL_FUNCTION(snd_pcm_hw_params_set_rate_resample);
 DECL_FUNCTION(snd_pcm_hw_params_set_rate_near);
+DECL_FUNCTION(snd_pcm_hw_params_get_rate_max);
 DECL_FUNCTION(snd_pcm_hw_params_test_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_channels);
 DECL_FUNCTION(snd_pcm_hw_params_get_channels_min);
@@ -382,6 +386,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_hw_params_set_format);			//
          TIE_FUNCTION(snd_pcm_hw_params_set_rate_resample);		//
          TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);			//
+         TIE_FUNCTION(snd_pcm_hw_params_get_rate_max);			//
          TIE_FUNCTION(snd_pcm_hw_params_test_channels);			//
          TIE_FUNCTION(snd_pcm_hw_params_set_channels);			//
          TIE_FUNCTION(snd_pcm_hw_params_get_channels_min);		//
@@ -509,10 +514,14 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
          }
 
-         if (xmlNodeTest(xid, "timed"))
-         {
+         s = getenv("AAX_USE_TIMER");
+         if (s) {
+            handle->use_timer = _aax_getbool(s);
+         } else if (xmlNodeTest(xid, "timed")) {
             handle->use_timer = xmlNodeGetBool(xid, "timed");
-            if (handle->mode == AAX_MODE_READ) handle->use_timer = AAX_FALSE;
+         }
+         if (handle->mode == AAX_MODE_READ) {
+            handle->use_timer = AAX_FALSE;
          }
 
          if (xmlNodeTest(xid, "shared")) {
@@ -575,7 +584,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             }
             else if (i > 16)
             {
-               _AAX_DRVLOG("no. tracks too great.");
+               _AAX_DRVLOG("no. periods too great.");
                i = 16;
             }
             handle->no_periods = i;
@@ -760,6 +769,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                "umable to get the maximum no. tracks" );
          if (err >= 0) {
             tracks = _MINMAX(tracks, val1, val2);
+            handle->max_tracks = val2;
          }
 
          pos = 0;
@@ -825,6 +835,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
 
+      TRUN( psnd_pcm_hw_params_get_rate_max(hwparams, &handle->max_frequency, 0),
+            "unable to het the maximum sample reate" );
+
       /* no. tracks */
       TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
             "unsupported no. channels" );
@@ -846,7 +859,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       /* no. periods */
       TRUN ( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
-             "unable to get the minimum no. periods" );
+             "unable to set the no. periods" );
+
+      TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &handle->max_periods, 0),
+             "unable to get the maximum no. periods" );
 
       /* make sure the prefered access method is still available */
       err = _alsa_set_access(handle, hwparams, swparams);
@@ -1274,6 +1290,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
+		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
          break;
@@ -1285,6 +1302,23 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
+         break;
+
+		/* int */
+      case DRIVER_MAX_FREQUENCY:
+         rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MAX_TRACKS:
+         rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MAX_PERIODS:
+         rv = (float)handle->max_periods;
+         break;
+
+		/* boolean */
+      case DRIVER_SHARED_MODE:
+      case DRIVER_TIMER_MODE:
+         rv = (float)AAX_TRUE;
          break;
       default:
          break;
@@ -1589,6 +1623,9 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
+#ifndef NDEBUG
+   printf("%s", _errstr);
+#endif
 
    return (char*)&_errstr;
 }
@@ -2887,7 +2924,8 @@ _aaxALSADriverThread(void* config)
             else if ((err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time)) < 0)
             {
                xrun_recovery(be_handle->pcm, err);
-               _AAX_DRVLOG("snd_pcm_wait polling error");
+               _AAX_DRVLOG(strerror(-err));
+//             _AAX_DRVLOG("snd_pcm_wait polling error");
             }
          }
          else {
