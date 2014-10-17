@@ -135,6 +135,12 @@ typedef struct
    float volumeCur, volumeInit;
    float volumeMin, volumeMax;
 
+   /* capabilities */
+   unsigned int min_frequency;
+   unsigned int max_frequency;
+   unsigned int min_tracks;
+   unsigned int max_tracks;
+
 } _driver_t;
 
 static int _sles_get_hw_settings(_driver_t*);
@@ -404,6 +410,11 @@ _aaxSLESDriverSetup(const void *id, size_t *frames, int *fmt,
       return AAX_FALSE;
    }
 
+   handle->min_frequency = 8000.0f;
+   handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
+   handle->min_tracks = 1;
+   handle->max_tracks = _AAX_MAX_SPEAKERS;
+
    // Early versions of OpenSL required at least two buffers but this was later
    // relaxed to just one. Go for the least required number fo buffers for
    // lowest latency.
@@ -610,6 +621,7 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
+		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
          break;
@@ -622,6 +634,30 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+
+		/* int */
+      case DRIVER_MIN_FREQUENCY:
+         rv = (float)handle->min_frequency;
+         break;
+      case DRIVER_MAX_FREQUENCY:
+         rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MIN_TRACKS:
+         rv = (float)handle->min_tracks;
+         break
+      case DRIVER_MAX_TRACKS:
+         rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MIN_PERIODS:
+      case DRIVER_MAX_PERIODS:
+         rv = 2.0f;
+         break;
+
+		/* boolean */
+      case DRIVER_TIMER_MODE:
+          rv = (float)AAX_TRUE;
+          break;
+      case DRIVER_SHARED_MODE:
       default:
          break;
       }

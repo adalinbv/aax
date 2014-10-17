@@ -132,8 +132,6 @@ typedef struct
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
-   unsigned int max_frequency;
-   unsigned int max_tracks;
    size_t buffer_size;
 
    int mode;
@@ -150,6 +148,12 @@ typedef struct
    int mixfd;
    long volumeCur, volumeMin, volumeMax;
    float volumeInit, hwgain;
+
+   /* capabilities */
+   unsigned int min_frequency;
+   unsigned int max_frequency;
+   unsigned int min_tracks;
+   unsigned int max_tracks;
 
 } _driver_t;
 
@@ -485,7 +489,9 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 
       ainfo.dev = handle->nodenum;
       err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+      handle->min_tracks = ainfo.min_channels;
       handle->max_tracks = ainfo.max_channels;
+      handle->min_frequency = ainfo.min_rate;
       handle->max_frequency = ainfo.max_rate;
 
       handle->format = format;
@@ -780,12 +786,19 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* int */
+      case DRIVER_MIN_FREQUENCY:
+         rv = (float)handle->min_frequency;
+         break;
       case DRIVER_MAX_FREQUENCY:
          rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MIN_TRACKS:
+         rv = (float)handle->min_tracks;
          break;
       case DRIVER_MAX_TRACKS:
          rv = (float)handle->max_tracks;
          break;
+      case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = (float)NO_FRAGMENTS;
          break;

@@ -146,9 +146,6 @@ typedef struct
    float frequency_hz;
    unsigned int format;
    unsigned int no_tracks;
-   unsigned int max_frequency;
-   unsigned int max_periods;
-   unsigned int max_tracks;
    ssize_t period_frames;
    char no_periods;
    char bits_sample;
@@ -180,6 +177,15 @@ typedef struct
    struct {
       float aim;
    } fill;
+
+   /* capabilities */
+   unsigned int min_frequency;
+   unsigned int max_frequency;
+   unsigned int min_periods;
+   unsigned int max_periods;
+   unsigned int min_tracks;
+   unsigned int max_tracks;
+
 } _driver_t;
 
 DECL_FUNCTION(ioctl);
@@ -509,13 +515,13 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          unsigned int min, max;
 
          rate = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate,
-                            &min, &handle->max_frequency);
+                            &handle->min_frequency, &handle->max_frequency);
          bits = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits,
                             &min, &max);
          tracks = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks,
-                              &min, &handle->max_tracks);
+                              &handle->min_tracks, &handle->max_tracks);
          periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods,
-                               &min, &handle->max_periods);
+                               &handle->min_periods, &handle->max_periods);
 
          period_frames = *frames / periods;
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
@@ -710,7 +716,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       snprintf(str,255,"  can pause: %i\n", handle->can_pause);
       _AAX_SYSLOG(str);
 
-#if 1
+#if 0
  printf("driver settings:\n");
  if (handle->mode != O_RDONLY) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -1025,11 +1031,20 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* int */
+       case DRIVER_MIN_FREQUENCY:
+         rv = (float)handle->min_frequency;
+         break;
       case DRIVER_MAX_FREQUENCY:
          rv = (float)handle->max_frequency;
          break;
+      case DRIVER_MIN_TRACKS:
+         rv = (float)handle->min_tracks;
+         break;
       case DRIVER_MAX_TRACKS:
          rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MIN_PERIODS:
+         rv = (float)handle->min_periods;
          break;
       case DRIVER_MAX_PERIODS:
          rv = (float)handle->max_periods;

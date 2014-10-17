@@ -194,6 +194,11 @@ typedef struct
    unsigned int type_ctr;
    char errstr[256];
 
+   /* capabilities */
+   unsigned int min_frequency;
+   unsigned int max_frequency;
+   unsigned int max_tracks;
+
 } _driver_t;
 
 enum _aaxFlags
@@ -602,13 +607,16 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    rv = _wasapi_setup(handle, &sample_frames);
    if (rv == AAX_TRUE)
    {
+      KSDATARANGE* range;
+
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
       *frames = sample_frames;
 
-// http://permalink.gmane.org/gmane.comp.audio.portaudio.devel/9026
-      handle->max_frequency =
-      handle->max_tracks =
+       handle->min_frequency = 100;
+      handle->max_frequency = 200000.0f;
+      handle->min_tracks = 1.0f;
+      handle->max_tracks = 8.0f;
    }
 
    return rv;
@@ -922,12 +930,19 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* int */
+      case DRIVER_MIN_FREQUENCY:
+         rv = (float)handle->min_frequency;
+         break;
       case DRIVER_MAX_FREQUENCY:
          rv = (float)handle->max_frequency;
+         break;
+      case DRIVER_MIN_TRACKS:
+         rv = (float)handle->min_tracks;
          break;
       case DRIVER_MAX_TRACKS:
          rv = (float)handle->max_tracks;
          break;
+      case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 2.0f;
          break;

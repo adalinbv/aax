@@ -217,6 +217,14 @@ enum aaxSetupType
    AAX_TRACK_LAYOUT,
    AAX_BITRATE,
    AAX_FRAME_TIMING,
+   AAX_SHARED_MODE,		/* mixer capabilities */
+   AAX_TIMER_MODE,
+   AAX_TRACKS_MIN,
+   AAX_TRACKS_MAX,
+   AAX_PERIODS_MIN,
+   AAX_PERIODS_MAX,
+   AAX_FREQUENCY_MIN,
+   AAX_FREQUENCY_MAX,		/* mixer capabilities */
    AAX_SETUP_TYPE_MAX,
 
    AAX_PEAK_VALUE             = 0x0100,

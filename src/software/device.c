@@ -245,10 +245,43 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
    float rv = 0.0f;
    switch(param)
    {
+		/* float */
    case DRIVER_LATENCY:
+      rv = 1e-6f;
+      break;
    case DRIVER_MAX_VOLUME:
+      rv = 1.0f;
+      break;
    case DRIVER_MIN_VOLUME:
+      rv = 0.0f;
+      break;
    case DRIVER_VOLUME:
+      rv = 1.0f;
+      break;
+
+		/* int */
+   case DRIVER_MIN_FREQUENCY:
+      rv = 8000.0f;
+      break;
+   case DRIVER_MAX_FREQUENCY:
+      rv = _AAX_MAX_MIXER_FREQUENCY;
+      break;
+   case DRIVER_MIN_TRACKS:
+      rv = 1.0f;
+      break;
+   case DRIVER_MAX_TRACKS:
+      rv = (float)_AAX_MAX_SPEAKERS;
+      break;
+   case DRIVER_MIN_PERIODS:
+   case DRIVER_MAX_PERIODS:
+      rv = 1.0f;
+      break;
+
+		/* boolean */
+   case DRIVER_TIMER_MODE:
+       rv = (float)AAX_TRUE;
+       break;
+   case DRIVER_SHARED_MODE:
    default:
       break;
    }
@@ -362,6 +395,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
+		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
       case DRIVER_MAX_VOLUME:
@@ -373,6 +407,30 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = 1.0f;
          break;
+
+		/* int */
+      case DRIVER_MIN_FREQUENCY:
+         rv = 8000.0f;
+         break;
+      case DRIVER_MAX_FREQUENCY:
+         rv = _AAX_MAX_MIXER_FREQUENCY;
+         break;
+      case DRIVER_MIN_TRACKS:
+         rv = 1.0f;
+         break;
+      case DRIVER_MAX_TRACKS:
+         rv = (float)_AAX_MAX_SPEAKERS;
+         break;
+      case DRIVER_MIN_PERIODS:
+      case DRIVER_MAX_PERIODS:
+         rv = 1.0f;
+         break;
+
+		/* boolean */
+      case DRIVER_TIMER_MODE:
+          rv = (float)AAX_TRUE;
+          break;
+      case DRIVER_SHARED_MODE:
       default:
          break;
       }

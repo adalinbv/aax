@@ -295,6 +295,7 @@ typedef int (*snd_pcm_hw_params_test_buffer_size_proc)(snd_pcm_t *, snd_pcm_hw_p
 typedef int (*snd_pcm_format_width_proc)(snd_pcm_format_t);
 typedef int (*snd_pcm_hw_params_can_mmap_sample_resolution_proc)(const snd_pcm_hw_params_t *);
 typedef int (*snd_pcm_hw_params_get_rate_numden_proc)(const snd_pcm_hw_params_t *, unsigned int *, unsigned int *);
+typedef int (*snd_pcm_hw_params_get_rate_min_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_get_rate_max_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);
 typedef int (*snd_pcm_hw_params_get_buffer_size_proc)(const snd_pcm_hw_params_t *, snd_pcm_uframes_t *);
 typedef int (*snd_pcm_hw_params_get_periods_proc)(const snd_pcm_hw_params_t *, unsigned int *, int *);

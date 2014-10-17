@@ -140,9 +140,6 @@ typedef struct
 
     unsigned int no_tracks;
     unsigned int no_periods;
-    unsigned int max_frequency;
-    unsigned int max_periods;
-    unsigned int max_tracks;
     size_t period_frames;
     size_t max_frames;
     size_t buf_len;
@@ -177,6 +174,14 @@ typedef struct
       float dt;
    } fill;
 
+   /* cabailities */
+   unsigned int min_frequency;
+   unsigned int max_frequency;
+   unsigned int min_periods;
+   unsigned int max_periods;
+   unsigned int min_tracks;
+   unsigned int max_tracks;
+
 } _driver_t;
 
 
@@ -200,6 +205,7 @@ DECL_FUNCTION(snd_pcm_hw_params_set_access);
 DECL_FUNCTION(snd_pcm_hw_params_set_format);
 DECL_FUNCTION(snd_pcm_hw_params_set_rate_resample);
 DECL_FUNCTION(snd_pcm_hw_params_set_rate_near);
+DECL_FUNCTION(snd_pcm_hw_params_get_rate_min);
 DECL_FUNCTION(snd_pcm_hw_params_get_rate_max);
 DECL_FUNCTION(snd_pcm_hw_params_test_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_channels);
@@ -320,11 +326,7 @@ _aaxALSADriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    if TEST_FOR_FALSE(rv) {
-#ifndef USE_SALSA
       audio = _aaxIsLibraryPresent("asound", "2");
-#else
-      audio = _aaxIsLibraryPresent("salsa", "0");
-#endif
    }
 
    if (audio)
@@ -371,7 +373,6 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_mixer_selem_set_capture_volume_all);		//
          TIE_FUNCTION(snd_mixer_selem_get_id);				//
          TIE_FUNCTION(snd_mixer_selem_id_get_name);			//
-#ifndef USE_SALSA
          TIE_FUNCTION(snd_pcm_nonblock);				//
          TIE_FUNCTION(snd_pcm_prepare);					//
          TIE_FUNCTION(snd_pcm_pause);					//
@@ -386,6 +387,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_hw_params_set_format);			//
          TIE_FUNCTION(snd_pcm_hw_params_set_rate_resample);		//
          TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);			//
+         TIE_FUNCTION(snd_pcm_hw_params_get_rate_min);			//
          TIE_FUNCTION(snd_pcm_hw_params_get_rate_max);			//
          TIE_FUNCTION(snd_pcm_hw_params_test_channels);			//
          TIE_FUNCTION(snd_pcm_hw_params_set_channels);			//
@@ -412,7 +414,6 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_lib_error_set_handler);			//
          TIE_FUNCTION(snd_asoundlib_version);				//
 //       TIE_FUNCTION(snd_output_stdio_attach);
-#endif
       }
 
       error = _aaxGetSymError(0);
@@ -763,12 +764,19 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       {
          unsigned int pos;
 
+         TRUN( psnd_pcm_hw_params_get_rate_min(hwparams, &handle->min_frequency, 0),
+            "unable to het the minimum sample reate" );
+       TRUN( psnd_pcm_hw_params_get_rate_max(hwparams, &handle->max_frequency, 0),
+            "unable to het the maximum sample reate" );
+
          TRUN( psnd_pcm_hw_params_get_channels_min(hwparams, &val1),
                "umable to get the minimum no. tracks" );
          TRUN( psnd_pcm_hw_params_get_channels_max(hwparams, &val2),
                "umable to get the maximum no. tracks" );
-         if (err >= 0) {
+         if (err >= 0)
+         {
             tracks = _MINMAX(tracks, val1, val2);
+            handle->min_tracks = val1;
             handle->max_tracks = val2;
          }
 
@@ -835,9 +843,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
 
-      TRUN( psnd_pcm_hw_params_get_rate_max(hwparams, &handle->max_frequency, 0),
-            "unable to het the maximum sample reate" );
-
       /* no. tracks */
       TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
             "unsupported no. channels" );
@@ -861,6 +866,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN ( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
              "unable to set the no. periods" );
 
+      TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &handle->min_periods, 0),
+             "unable to get the minimum no. periods" );
       TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &handle->max_periods, 0),
              "unable to get the maximum no. periods" );
 
@@ -1305,11 +1312,20 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* int */
+      case DRIVER_MIN_FREQUENCY:
+         rv = (float)handle->min_frequency;
+         break;
       case DRIVER_MAX_FREQUENCY:
          rv = (float)handle->max_frequency;
          break;
+      case DRIVER_MIN_TRACKS:
+         rv = (float)handle->min_tracks;
+         break;
       case DRIVER_MAX_TRACKS:
          rv = (float)handle->max_tracks;
+         break;
+      case DRIVER_MIN_PERIODS:
+         rv = (float)handle->min_periods;
          break;
       case DRIVER_MAX_PERIODS:
          rv = (float)handle->max_periods;

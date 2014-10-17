@@ -255,14 +255,6 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_UPDATERATE:
                 rv=(unsigned int)(info->refresh_rate/handle->info->update_rate);
                 break;
-            case AAX_LATENCY:
-               if (handle->backend.driver)
-               {
-                  const _aaxDriverBackend *be = handle->backend.ptr;
-                  float ltc = be->param(handle->backend.handle, DRIVER_LATENCY);
-                  rv = (int)(ltc*1e6);
-               }
-               break;
             case AAX_FRAME_TIMING:
                rv = (int)(handle->elapsed*1000000.0f);
                break;
@@ -284,7 +276,57 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                rv = info->format;
                break;
             default:
-               _aaxErrorSet(AAX_INVALID_ENUM);
+               if (handle->backend.driver)
+               {
+                  const _aaxDriverBackend *be = handle->backend.ptr;
+                  float f;
+
+                  switch(type)
+                  {
+                  case AAX_LATENCY:
+                     f = be->param(handle->backend.handle, DRIVER_LATENCY);
+                     rv = (int)(f*1e6);
+                     break;
+                  case AAX_SHARED_MODE:
+                     f = be->param(handle->backend.handle, DRIVER_SHARED_MODE);
+                     rv = f ? AAX_TRUE : AAX_FALSE;
+                     break;
+                  case AAX_TIMER_MODE:
+                     f = be->param(handle->backend.handle, DRIVER_TIMER_MODE);
+                     rv = f ? AAX_TRUE : AAX_FALSE;
+                     break;
+                  case AAX_TRACKS_MIN:
+                     f = be->param(handle->backend.handle, DRIVER_MIN_TRACKS);
+                     rv = (int)f;
+                     break;
+                  case AAX_TRACKS_MAX:
+                     f = be->param(handle->backend.handle, DRIVER_MAX_TRACKS);
+                     rv = (int)f;
+                     break;
+                  case AAX_PERIODS_MIN:
+                     f = be->param(handle->backend.handle, DRIVER_MIN_PERIODS);
+                     rv = (int)f;
+                     break;
+                  case AAX_PERIODS_MAX:
+                     f = be->param(handle->backend.handle, DRIVER_MAX_PERIODS);
+                     rv = (int)f;
+                     break;
+                  case AAX_FREQUENCY_MIN:
+                     f = be->param(handle->backend.handle,DRIVER_MIN_FREQUENCY);
+                     rv = (int)f;
+                     break;
+                  case AAX_FREQUENCY_MAX:
+                     f = be->param(handle->backend.handle,DRIVER_MAX_FREQUENCY);
+                     rv = (int)f;
+                     break;
+                  default:
+                     _aaxErrorSet(AAX_INVALID_ENUM);
+                     break;
+                  }
+               }
+               else {
+                  _aaxErrorSet(AAX_INVALID_STATE);
+               }
             }
          }
          else if ((type & AAX_PEAK_VALUE) || (type & AAX_AVERAGE_VALUE))
