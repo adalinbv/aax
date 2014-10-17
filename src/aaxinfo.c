@@ -167,13 +167,8 @@ int main(int argc, char **argv)
                                 printf(" '%s on %s: %s'\n", d, r, ifs);
                             }
                         }
-                        else {
-                            printf(" '%s on %s'\n", d, r);
-                        }
                         
                     }
-                } else {
-                    printf(" '%s'\n", d);
                 }
                 aaxDriverClose(cfg);
                 aaxDriverDestroy(cfg);
@@ -196,19 +191,33 @@ int main(int argc, char **argv)
 
         if (cfg)
         {
-            int res;
+            int res, min, max;
 
             res = aaxMixerInit(cfg);
             testForState(res, "aaxMixerInit");
-
-            s = aaxDriverGetVendor(cfg);
-            printf("Vendor  : %s\n", s);
 
             s = aaxDriverGetDriver(cfg);
             printf("Driver  : %s\n", s);
 
             s = aaxDriverGetRenderer(cfg);
             printf("Renderer: %s\n", s);
+
+            s = aaxDriverGetVendor(cfg);
+            printf("Vendor  : %s\n", s);
+
+            x = aaxMixerGetSetup(cfg, AAX_TIMER_MODE);
+            printf ("Mixer timed mode support : %s\n", x ? "yes" : "no");
+
+            x = aaxMixerGetSetup(cfg, AAX_SHARED_MODE);
+            printf ("Mixer shared mode support: %s\n", x ? "yes" : "no");
+
+            min = aaxMixerGetSetup(cfg, AAX_TRACKS_MIN);
+            max = aaxMixerGetSetup(cfg, AAX_TRACKS_MAX);
+            printf("Mixer supported track range: %i - %i tracks\n", min, max);
+
+            min = aaxMixerGetSetup(cfg, AAX_FREQUENCY_MIN);
+            max = aaxMixerGetSetup(cfg, AAX_FREQUENCY_MAX);
+            printf("Mixer frequency range: %4.1fkHz - %4.1fkHz\n", min/1000.0f, max/1000.0f);
 
             x = aaxMixerGetFrequency(cfg);
             printf("Mixer frequency: %i Hz\n", x);
