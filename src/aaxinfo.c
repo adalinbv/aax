@@ -167,9 +167,12 @@ int main(int argc, char **argv)
                                 printf(" '%s on %s: %s'\n", d, r, ifs);
                             }
                         }
-                        
+                        else {
+                           printf(" '%s on %s\n", d, r);
+                        }
                     }
                 }
+else printf(" '%s'\n", d);
                 aaxDriverClose(cfg);
                 aaxDriverDestroy(cfg);
             } else {
