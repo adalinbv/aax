@@ -131,7 +131,7 @@ int main(int argc, char **argv)
         int state;
 
         /** mixer */
-        res = aaxMixerSetSetup(config, AAX_REFRESHRATE, 500);
+        res = aaxMixerSetSetup(config, AAX_REFRESHRATE, 64);
         testForState(res, "aaxMixerSetSetup");
 
         res = aaxMixerSetState(config, AAX_INITIALIZED);
