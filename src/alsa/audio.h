@@ -17,6 +17,12 @@
 extern "C" {
 #endif
 
+#if 0
+# ifdef NDEBUG
+#  undef NDEBUG
+# endif
+#endif
+
 #define PLAYBACK_PERIODS	2
 #define CAPTURE_PERIODS		4
 

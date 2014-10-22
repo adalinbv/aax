@@ -52,15 +52,10 @@
 #include "kernel.h"
 #include "device.h"
 
-#if 1
-# ifdef NDEBUG
-#  undef NDEBUG
-# endif
-#endif
-
 #define TIMER_BASED		AAX_FALSE
 
 #define MAX_NAME		40
+#define MAX_DEVICES		16
 #define NO_PERIODS		2
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_PCM_NUM		0
@@ -331,12 +326,12 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_DRVLOG("kernel; frequency too small.");
+               _AAX_DRVLOG("sampel rate too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_DRVLOG("kernel; frequency too large.");
+               _AAX_DRVLOG("sample rate too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->frequency_hz = f;
@@ -349,12 +344,12 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
             {
                if (i < 1)
                {
-                  _AAX_DRVLOG("kernel; no. tracks too small.");
+                  _AAX_DRVLOG("no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_DRVLOG("kernel; no. tracks too great.");
+                  _AAX_DRVLOG("no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->no_tracks = i;
@@ -366,7 +361,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          {
             if (i != 16)
             {
-               _AAX_DRVLOG("kernel; unsopported bits-per-sample");
+               _AAX_DRVLOG("unsopported bits-per-sample");
                i = 16;
             }
          }
@@ -678,8 +673,20 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 #endif
                   rv = AAX_TRUE;
                }
+               else {
+                  _AAX_DRVLOG("unable to get the renderer");
+               }
+            }
+            else {
+               _AAX_DRVLOG("status information unavailable");
             }
          }
+         else {
+            _AAX_DRVLOG("invalid software configuration");
+         }
+      }
+      else {
+         _AAX_DRVLOG("incompatible hardware configuration");
       }
    }
 
@@ -1106,7 +1113,7 @@ _aaxLinuxDriverGetDevices(const void *id, int mode)
             }
          }
       }
-      while (card < 16);
+      while (card < MAX_DEVICES);
 
       /* always end with "\0\0" no matter what */
       names[m][1022] = 0;
@@ -1159,7 +1166,7 @@ _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
          }
          device++;
       }
-      while (device < 16);
+      while (device < MAX_DEVICES);
 
       if (ptr != devlist)
       {
@@ -1185,7 +1192,7 @@ _aaxLinuxDriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
 
-   snprintf(_errstr, 256, "kernel: %s\n", str);
+   snprintf(_errstr, 256, DEFAULT_RENDERER": %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
@@ -1373,7 +1380,7 @@ detect_pcm(_driver_t *handle, char m)
             }
             device++;
          }
-         while (fd >= 0);
+         while (device < MAX_DEVICES);
 
          ifname -= 2;
          *ifname = ':';
@@ -1470,7 +1477,7 @@ detect_cardnum(const char *devname)
             }
          }
       }
-      while (fd >= 0);
+      while (card < MAX_DEVICES);
    }
 
    return rv;
