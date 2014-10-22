@@ -70,6 +70,8 @@ static _update_fn _aaxMPG123FileReadWrite;
  * http://flac.sourceforge.net/api/group__flac__stream__decoder.html
  * http://flac.cvs.sourceforge.net/viewvc/flac/flac/examples/c/decode/file/main.c?content-type=text%2Fplain
  * http://alure.sourcearchive.com/documentation/1.2-1/codec__flac_8cpp_source.html
+ *
+ * http://ffmpeg.org/doxygen/trunk/libavcodec_2flacdec_8c_source.html
  */
 
 _aaxFileHandle*
@@ -142,6 +144,7 @@ _aaxFLACFileDetect(int mode)
       {
          TIE_FUNCTION(mpg123_exit);
          TIE_FUNCTION(FLAC__stream_decoder_new);
+         TIE_FUNCTION(FLAC__stream_decoder_set_md5_checking);
          TIE_FUNCTION(mpg123_open_fd);
          TIE_FUNCTION(mpg123_read);
          TIE_FUNCTION(mpg123_delete);
