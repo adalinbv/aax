@@ -197,6 +197,9 @@ typedef struct
    /* capabilities */
    unsigned int min_frequency;
    unsigned int max_frequency;
+   unsigned int min_periods;
+   unsigned int max_periods;
+   unsigned int min_tracks;
    unsigned int max_tracks;
 
 } _driver_t;
@@ -308,6 +311,8 @@ static int _wasapi_setup_event(_driver_t *, float);
 static int _wasapi_close_event(_driver_t *);
 static int _wasapi_get_volume_range(_driver_t *);
 static int _wasapi_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
+static int _wasapi_get_channel_range(_driver_t*, unsigned int*, unsigned int*);
+
 
 static int
 _aaxWASAPIDriverDetect(int mode)
@@ -608,15 +613,23 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    if (rv == AAX_TRUE)
    {
       KSDATARANGE* range;
+      DWORD config;
 
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
       *frames = sample_frames;
 
-       handle->min_frequency = 100;
-      handle->max_frequency = 200000.0f;
-      handle->min_tracks = 1.0f;
-      handle->max_tracks = 8.0f;
+      if (handle->Mode == eCapture) {
+         handle->min_periods = handle->max_periods = CAPTURE_PERIODS;
+      } else {
+         handle->min_periods = handle->max_periods = PLAYBACK_PERIODS;
+      }
+      handle->min_frequency = 8000;
+      handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
+      handle->min_tracks = 1;
+      handle->max_tracks = _AAX_MAX_SPEAKERS;
+
+      IAudioChannelConfig_GetChannelConfig(&config);
    }
 
    return rv;
@@ -2120,6 +2133,70 @@ _wasapi_get_volume_range(_driver_t *handle)
          }
          handle->volumeCur = handle->volumeInit;
       }
+   }
+
+   return rv;
+}
+
+static int
+_wasapi_get_channel_range(_driver_t *handle, unsgined int *min, unsigned int *max)
+{
+   IDeviceTopology *pDeviceTopology = NULL;
+   int rv;
+
+   *min = 1;
+   *max = _AAX_MAX_SPEAKER;
+
+   // http://msdn.microsoft.com/en-us/library/dd371376%28v=vs.85%29.aspx
+   // http://msdn.microsoft.com/en-us/library/dd371387%28v=VS.85%29.aspx
+   rv = pIMMDevice_Activate(handle->pDevice, pIID_IDeviceTopology,
+                            CLSCTX_INPROC_SERVER, NULL,
+                            (void**)&pDeviceTopology);
+   if (rv == S_OK)
+   {
+      IConnector *pConnFrom = NULL;
+
+      // The device topology for an endpoint device always
+      // contains just one connector (connector number 0).
+      rv = IDeviceTopology_GetConnector(pDeviceTopology, 0, &pConnFrom);
+      if (rv == S_OK)
+      {
+         IConnector *pConnHWDev = NULL;
+
+         // Use the connector in the endpoint device to get the
+         // connector in the adapter device.
+         rv = IConnector_GetConnectedTo(pConnEndpt, &pConnHWDev);
+         if (rv == S_OK)
+         {
+            IPart *pPartConn = NULL;
+
+            // Query the connector in the adapter device for
+            // its IPart interface.
+            rv = IConnector_QueryInterface(pConnHWDev, IID_IPart,
+                                           (void**)&pPartConn);
+            if (rv == S_OK)
+            {
+               IKsJackDescription *pJackDesc = NULL;
+               rv = IPart_Activate(pPartConn, CLSCTX_INPROC_SERVER,
+                                   IID_IKsJackDescription, (void**)&pJackDesc);
+               if (rv == S_OK)
+               {
+                  UINT jackCount = 0;
+
+                  rv = IKsJackDescription_GetJackCount(pJackDesc, &jackCount);
+                  *max = jackCount;
+
+                 // KSJACK_DESCRIPTION jack = { 0 };
+                 // rv=IKsJackDescription_GetJackDescription(pJackDesc,i &jack);
+
+                  IPart_Release(pPartConn);
+               }
+               IConnector_Release(pConnHWDev);
+            }
+            IConnector_Release(pConnEndpt);
+         }
+      }
+      IDeviceTopology_Release(pDeviceTopology);
    }
 
    return rv;
