@@ -42,12 +42,6 @@
 #include "device.h"
 #include "audio.h"
 
-#if 1
-# ifdef NDEBUG
-#  undef NDEBUG
-# endif
-#endif
-
 #define TIMER_BASED		AAX_FALSE
 #define MAX_ID_STRLEN		64
 
@@ -1403,11 +1397,11 @@ _aaxALSADriverGetDevices(const void *id, int mode)
                      iface = strstr(desc, ", ");
                      if (iface) *iface = 0;
 
-                     if (!strchr(name, ':') && (!desc || strcmp(name, desc))) {
-                        snprintf(ptr, len, "%s: %s", name, desc);
-                     } else {
+//                   if (!strchr(name, ':') && (!desc || strcmp(name, desc))) {
+//                      snprintf(ptr, len, "%s: %s", name, desc);
+//                   } else {
                         snprintf(ptr, len, "%s", desc);
-                     }
+//                   }
                      slen = strlen(ptr)+1;	/* skip the trailing 0 */
                      if (slen > (len-1)) break;
 
