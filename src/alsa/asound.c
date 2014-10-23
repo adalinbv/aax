@@ -873,7 +873,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
 
       // Always use interupts for low latency.
-      handle->latency = period_frames/(float)rate;
+      handle->latency = (float)period_frames/(float)rate;
 
       TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
              "unable to get the minimum no. periods" );
@@ -897,6 +897,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (err >= 0) {
          handle->no_periods = periods;
       }
+      handle->no_tracks = tracks;
 
       if (!handle->mode) {
          period_frames *= period_fact;
@@ -944,8 +945,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->latency = handle->target[0];
       }
       else {
-          handle->latency = (float)period_frames/(float)rate;
+          handle->latency = (float)(period_frames*periods)/(float)rate;
       }
+
       if (handle->latency < 0.010f) {
          handle->use_timer = AAX_FALSE;
       }
