@@ -919,41 +919,39 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             "invalid buffer size" );
       handle->max_frames = period_frames;
 
-      if (handle->mode == AAX_MODE_READ) {
+      if (handle->mode == AAX_MODE_READ)
+      {
          period_frames /= period_fact;
+         handle->latency = (float)(period_frames*periods)/(float)rate;
       }
       else if (handle->use_timer)
       {
-         period_frames = *frames;
          handle->no_periods = periods = 2;
-      }
-      else {
-         period_frames /= periods;
-      }
-      handle->period_frames = period_frames;
+         period_frames = *frames/periods;
 
-      *speed = rate;
-      *channels = tracks;
-      *frames = period_frames;
-
-      handle->target[0] = ((float)period_frames/(float)rate);
-      if (handle->target[0] > 0.02f) {
-         handle->target[0] += 0.01f; // add 10ms
-      } else {
-         handle->target[0] *= FILL_FACTOR;
-      }
-      handle->target[1] = handle->target[0];
-
-      if (handle->use_timer) {
+         handle->target[0] = ((float)period_frames/(float)rate);
+         if (handle->target[0] > 0.02f) {
+            handle->target[0] += 0.01f; // add 10ms
+         } else {
+            handle->target[0] *= FILL_FACTOR;
+         }
+         handle->target[1] = handle->target[0];
          handle->latency = handle->target[0];
       }
-      else {
-          handle->latency = (float)(period_frames*periods)/(float)rate;
+      else
+      {
+         period_frames /= periods;
+         handle->latency = (float)(period_frames*periods)/(float)rate;
       }
+      handle->period_frames = period_frames;
 
       if (handle->latency < 0.010f) {
          handle->use_timer = AAX_FALSE;
       }
+
+      *speed = rate;
+      *channels = tracks;
+      *frames = period_frames;
 
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
       if (err == -EBUSY) {
