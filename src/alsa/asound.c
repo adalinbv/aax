@@ -899,33 +899,36 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       handle->no_tracks = tracks;
 
-      if (!handle->mode) {
+      /** set buffer and period sizes */
+      if (handle->mode == AAX_MODE_READ) {
          period_frames *= period_fact;
       }
-
-      /* Set buffer size (in frames). The resulting latency is given by */
-      /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-      period_frames *= periods;
-
-      // TIMER_BASED
-      if (handle->use_timer) {
+      else if (handle->use_timer) {
          TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
-               "unable to fetch the mx., buffer size" );
+               "unable to fetch the maximum buffer size" );
       }
-      handle->max_frames = period_frames;
-      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &period_frames),
-            "invalid buffer size" );
+      else
+      {
+         /* Set buffer size (in frames). The resulting latency is given by */
+         /* latency = periodsize * periods / (rate * bytes_per_frame))     */
+         period_frames *= periods;
+      }
 
-      // TIMER_BASED
-      if (handle->use_timer)
+      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams,
+                                                    &period_frames),
+            "invalid buffer size" );
+      handle->max_frames = period_frames;
+
+      if (handle->mode == AAX_MODE_READ) {
+         period_frames /= period_fact;
+      }
+      else if (handle->use_timer)
       {
          period_frames = *frames;
          handle->no_periods = periods = 2;
       }
-
-      period_frames /= periods;
-      if (!handle->mode) {
-         period_frames = (period_frames/period_fact);
+      else {
+         period_frames /= periods;
       }
       handle->period_frames = period_frames;
 
@@ -2498,7 +2501,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
 
-   res = avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2510,6 +2513,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2564,7 +2568,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       }
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    rbs->release_tracks_ptr(rbs);
@@ -2599,7 +2602,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
 
-   res = avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2611,6 +2614,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2661,7 +2665,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       }
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    rbs->release_tracks_ptr(rbs);
@@ -2727,7 +2730,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    period_frames -= offs;
 
-   res = avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2739,6 +2742,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2792,7 +2796,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
       }
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    if (!chunk) _AAX_DRVLOG("too many playback tries\n");
@@ -2842,7 +2845,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    period_frames -= offs;
 
-   res = avail = psnd_pcm_avail_update(handle->pcm);
+   res = avail = psnd_pcm_avail(handle->pcm);
    if (avail < 0)
    {
       int err;
@@ -2854,6 +2857,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
          return 0;
       }
    }
+   rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
    if ((state != SND_PCM_STATE_RUNNING) &&
@@ -2903,7 +2907,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
       data += (res * no_tracks*hw_bits)/8;
       offs += res;
       avail -= res;
-      rv += res;
    }
    while ((avail > 0) && --chunk);
    if (!chunk) _AAX_DRVLOG("too many playback tries\n");
@@ -2923,17 +2926,7 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
       psnd_pcm_start(handle->pcm);
    }
 
-   // return the current buffer fill level
-// avail = psnd_pcm_avail(handle->pcm);
-   psnd_pcm_delay(handle->pcm, &avail);
-   if (avail < 0)
-   {
-      xrun_recovery(handle->pcm, avail);
-      avail = _MAX(psnd_pcm_avail(handle->pcm), 0);
-   }
-   res = avail; // handle->max_frames - avail;
-
-   return res;
+   return handle->max_frames - res;
 }
 
 _aaxRenderer*
