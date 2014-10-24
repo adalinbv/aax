@@ -763,6 +763,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                "unable to get the maximum no. tracks" );
          if (err >= 0)
          {
+            val2 = _MAX(handle->max_tracks, val2);
             tracks = _MINMAX(tracks, val1, val2);
             handle->min_tracks = val1;
             handle->max_tracks = val2;
@@ -2066,14 +2067,15 @@ detect_devnum(_driver_t *handle, int m)
       if (!res && hints)
       {
          void **lst = hints;
+         int found, ctr = 0;
          size_t len;
-         int ctr = 0;
          char *ptr;
 
          ptr = strstr(devname, ": ");
          if (ptr) len = ptr-devname;
          else len = strlen(devname);
 
+         found = 0;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
@@ -2089,13 +2091,12 @@ detect_devnum(_driver_t *handle, int m)
                      break;
                   }
 
-                  if (!STRCMP(name, "front:"))
+                  if (!found && !STRCMP(name, "front:"))
                   {
                      if (!strcasecmp(devname, "default"))
                      {
-                        _sys_free(name);
                         devnum = ctr;
-                        break;
+                        found = 1;
                      }
                      else
                      {
@@ -2109,13 +2110,29 @@ detect_devnum(_driver_t *handle, int m)
    
                         if (!strncasecmp(devname, desc, len))
                         {
-                           _sys_free(desc);
-                           _sys_free(name);
                            devnum = ctr;
-                           break;
+                           found = 1;
                         }
+                        _sys_free(desc);
                         ctr++;
                      }
+                  }
+                  else if (!STRCMP(name, "surround"))
+                  {
+                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
+                     char *iface;
+
+                     if (!desc) continue;
+
+                     iface = strstr(desc, ", ");
+                     if (iface) *iface = 0;
+
+                     if (!strncasecmp(devname, desc, len))
+                     {
+                        int pos = strlen("surround");
+                        handle->max_tracks = name[pos]-'0' + name[pos+1]-'0';
+                     }
+                     _sys_free(desc);
                   }
                   _sys_free(name);
                }
