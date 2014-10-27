@@ -962,21 +962,24 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN( psnd_pcm_sw_params_current(hid, swparams), 
             "unable to set software config" );
-      TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 0x7fffffff),
-            "improper interrupt treshold" );
-
-      // TIMER_BASED
-      if (handle->use_timer)
+      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, 1),
+            "wakeup treshold unsupported" );
+      if (handle->mode == AAX_MODE_READ)
       {
-         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams,
-                                                     handle->max_frames),
-               "wakeup treshold unsupported" );
-         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams, -1),
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 1),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
+                                                     10*handle->period_frames),
                "set_stop_threshold unsupported" );
-      } else {
-         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams,
-                                                     handle->period_frames),
-               "wakeup treshold unsupported" );
+      }
+      else
+      {
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
+                                  handle->period_frames*(handle->no_periods-1)),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
+                                                     handle->max_frames),
+               "set_stop_threshold unsupported" );
       }
       handle->threshold = 5*handle->period_frames/4;
 
@@ -1057,7 +1060,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
          _AAX_SYSLOG(str);
-#if 1
+#if 0
  printf("alsa; driver settings:\n");
  if (handle->mode != 0) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -1102,7 +1105,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
 
    if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
-      if (handle->mode == 0) {
+      if (handle->mode == AAX_MODE_READ) {
          _AAX_DRVLOG("calling the record function with a playback handle");
       } else if (req_frames == 0) {
          _AAX_DRVLOG("record buffer size is zero bytes");
@@ -1824,7 +1827,7 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_param
    snd_pcm_t *hid = handle->pcm;
    int err = 0;
 
-#if 0
+#if 1
    /* for testing purposes */
    if (err >= 0)
    {
@@ -2518,29 +2521,26 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
    period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
 
-   res = avail = psnd_pcm_avail(handle->pcm);
-   if (avail < 0)
+   do
    {
-      int err;
-      if ((err = xrun_recovery(handle->pcm, avail)) < 0)
+      res = avail = psnd_pcm_avail(handle->pcm);
+      if (avail < 0)
       {
-         char s[255];
-         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
-         _AAX_DRVLOG(s);
-         return 0;
+         int err;
+         if ((err = xrun_recovery(handle->pcm, avail)) < 0)
+         {
+            char s[255];
+            snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+            _AAX_DRVLOG(s);
+            return 0;
+         }
       }
    }
+   while (avail < 0);
    rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
-      psnd_pcm_start(handle->pcm);
-   }
-
-   if (avail < period_frames) avail = 0;
-   else avail = period_frames;
+   avail = period_frames;
 
    _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
 
@@ -2605,7 +2605,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    unsigned int no_tracks, chunk;
    snd_pcm_sframes_t period_frames;
    snd_pcm_sframes_t avail;
-   snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
    size_t offs, rv = 0;
@@ -2621,30 +2620,25 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
    no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
 
-   res = avail = psnd_pcm_avail(handle->pcm);
-   if (avail < 0)
+   do
    {
-      int err;
-      if ((err = xrun_recovery(handle->pcm, avail)) < 0)
+      res = avail = psnd_pcm_avail(handle->pcm);
+      if (avail < 0)
       {
-         char s[255];
-         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
-         _AAX_DRVLOG(s);
-         return 0;
+         int err;
+         if ((err = xrun_recovery(handle->pcm, avail)) < 0)
+         {
+            char s[255];
+            snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+            _AAX_DRVLOG(s);
+            return 0;
+         }
       }
    }
+   while (avail < 0);
    rv = avail;
 
-   state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))  
-   {
-      psnd_pcm_start(handle->pcm);
-   }
-
-   if (avail < period_frames) avail = 0;
-   else avail = period_frames;
-
+   avail = period_frames;
    _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
 
    chunk = 10;
@@ -2706,7 +2700,6 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    unsigned int hw_bits, chunk;
    snd_pcm_sframes_t period_frames;
    snd_pcm_sframes_t avail;
-   snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
    ssize_t outbuf_size;
@@ -2751,30 +2744,25 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    period_frames -= offs;
 
-   res = avail = psnd_pcm_avail(handle->pcm);
-   if (avail < 0)
+   do
    {
-      int err = xrun_recovery(handle->pcm, avail);
-      if (err < 0)
+      res = avail = psnd_pcm_avail(handle->pcm);
+      if (avail < 0)
       {
-         char s[255];
-         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
-         _AAX_DRVLOG(s);
-         return 0;
+         int err = xrun_recovery(handle->pcm, avail);
+         if (err < 0)
+         {
+            char s[255];
+            snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+            _AAX_DRVLOG(s);
+            return 0;
+         }
       }
    }
+   while (avail < 0);
    rv = avail;
 
-   state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
-      psnd_pcm_start(handle->pcm);
-   }
-
-   if (avail < period_frames) avail = 0;
-   else avail = period_frames;
-
+   avail = period_frames;
    _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
 
    sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
@@ -2834,7 +2822,6 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    unsigned int no_tracks, chunk, hw_bits;
    snd_pcm_sframes_t period_frames;
    snd_pcm_sframes_t avail;
-   snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
    size_t outbuf_size;
@@ -2867,30 +2854,25 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
    period_frames -= offs;
 
-   res = avail = psnd_pcm_avail(handle->pcm);
-   if (avail < 0)
+   do
    {
-      int err = xrun_recovery(handle->pcm, avail);
-      if (err < 0)
+      res = avail = psnd_pcm_avail(handle->pcm);
+      if (avail < 0)
       {
-         char s[255];
-         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
-         _AAX_DRVLOG(s);
-         return 0;
+         int err = xrun_recovery(handle->pcm, avail);
+         if (err < 0)
+         {
+            char s[255];
+            snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+            _AAX_DRVLOG(s);
+            return 0;
+         }
       }
    }
+   while (avail < 0);
    rv = avail;
 
-   state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
-      psnd_pcm_start(handle->pcm);
-   }
-
-   if (avail < period_frames) avail = 0;
-   else avail = period_frames;
-
+   avail = period_frames;
    _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
 
    data = (char*)handle->scratch;
@@ -2903,15 +2885,11 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
    {
       int try = 0;
 
-      do {
-         res = psnd_pcm_writei(handle->pcm, data, period_frames);
-      }
-      while (!res);
-
+      res = psnd_pcm_writei(handle->pcm, data, period_frames);
       if (res < 0)
       {
-         res = xrun_recovery(handle->pcm, res);
-         if (res < 0)
+         int err = xrun_recovery(handle->pcm, res);
+         if (err < 0)
          {
             _AAX_DRVLOG("unable to run xrun_recovery");
             rv = 0;
@@ -2946,9 +2924,6 @@ _aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
    size_t res;
 
    res = handle->play(id, src, pitch, gain);
-   if (psnd_pcm_state(handle->pcm) == SND_PCM_STATE_PREPARED) {
-      psnd_pcm_start(handle->pcm);
-   }
 
    return handle->max_frames - res;
 }
@@ -3038,11 +3013,15 @@ _aaxALSADriverThread(void* config)
 				/* timeout is in ms */
          else
          {
-            err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time);
-            if (err < 0)
+            int avail = psnd_pcm_avail_update(be_handle->pcm);
+            if (avail < be_handle->period_frames)
             {
-               xrun_recovery(be_handle->pcm, err);
-               _AAX_DRVLOG("snd_pcm_wait polling error");
+               err = psnd_pcm_wait(be_handle->pcm, stdby_time);
+               if (err < 0)
+               {
+                  xrun_recovery(be_handle->pcm, err);
+                  _AAX_DRVLOG("snd_pcm_wait polling error");
+              }
            }
          }
       }
