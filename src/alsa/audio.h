@@ -373,6 +373,8 @@ typedef void (*snd_mixer_set_callback_private_proc)(snd_mixer_t *, void *);
 typedef void* (*snd_mixer_get_callback_private_proc)(const snd_mixer_t *);
 typedef int (*snd_mixer_handle_events_proc)(snd_mixer_t * );	
 
+typedef int (*snd_pcm_hw_params_set_period_wakeup_proc)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

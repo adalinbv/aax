@@ -198,10 +198,9 @@ DECL_FUNCTION(snd_pcm_hw_params_test_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_channels);
 DECL_FUNCTION(snd_pcm_hw_params_get_channels_min);
 DECL_FUNCTION(snd_pcm_hw_params_get_channels_max);
-DECL_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
-DECL_FUNCTION(snd_pcm_hw_params_get_buffer_size_max);
-DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_period_size_near);
+DECL_FUNCTION(snd_pcm_hw_params_get_period_size_max);
+DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
 DECL_FUNCTION(snd_pcm_hw_params_get_periods_min);
 DECL_FUNCTION(snd_pcm_hw_params_get_periods_max);
 DECL_FUNCTION(snd_pcm_sw_params_malloc);
@@ -382,8 +381,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);		//
          TIE_FUNCTION(snd_pcm_hw_params_get_periods_min);		//
          TIE_FUNCTION(snd_pcm_hw_params_get_periods_max);		//
-         TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);		//
-         TIE_FUNCTION(snd_pcm_hw_params_get_buffer_size_max);		//
+         TIE_FUNCTION(snd_pcm_hw_params_get_period_size_max);		//
          TIE_FUNCTION(snd_pcm_sw_params_malloc);			//
          TIE_FUNCTION(snd_pcm_sw_params_free);				//
          TIE_FUNCTION(snd_pcm_sw_params_current);			//
@@ -406,7 +404,7 @@ _aaxALSADriverDetect(int mode)
       error = _aaxGetSymError(0);
       if (!error)
       {
-         TIE_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
+//       TIE_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
          if (get_devices_avail(mode) != 0)
          {
             snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
@@ -715,9 +713,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
    }
    /* for now */
-   if (tracks > 2) {
-      handle->use_timer = AAX_FALSE;
-   }
+// if (tracks > 2) {
+//    handle->use_timer = AAX_FALSE;
+// }
 
    psnd_pcm_hw_params_malloc(&hwparams);
    psnd_pcm_sw_params_malloc(&swparams);
@@ -736,10 +734,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
+#if 0
       if (handle->use_timer && psnd_pcm_hw_params_set_period_wakeup) {
          TRUN( psnd_pcm_hw_params_set_period_wakeup(hid, hwparams, 0),
             "unable to disable period wakeups" );
       }
+#endif
 
       /* Set the prefered access method (rw/mmap interleaved/non-interleaved) */
       err = _alsa_set_access(handle, hwparams, swparams);
@@ -909,20 +909,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          period_frames *= period_fact;
       }
       else if (handle->use_timer) {
-         TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
+         TRUN( psnd_pcm_hw_params_get_period_size_max(hwparams, &period_frames, 0),
                "unable to fetch the maximum buffer size" );
       }
-      else
-      {
-         /* Set buffer size (in frames). The resulting latency is given by */
-         /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-         period_frames *= periods;
-      }
-
-      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams,
-                                                    &period_frames),
+      TRUN( psnd_pcm_hw_params_set_period_size_near(hid, hwparams, &period_frames, 0),
             "invalid buffer size" );
-      handle->max_frames = period_frames;
+      handle->max_frames = period_frames*periods;
 
       if (handle->mode == AAX_MODE_READ)
       {
@@ -941,11 +933,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             handle->target[0] *= FILL_FACTOR;
          }
          handle->target[1] = handle->target[0];
+
          handle->latency = handle->target[0];
       }
-      else
-      {
-         period_frames /= periods;
+      else {
          handle->latency = (float)(period_frames*periods)/(float)rate;
       }
       handle->period_frames = period_frames;
@@ -1063,7 +1054,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
          _AAX_SYSLOG(str);
-#if 1
+#if 0
  printf("alsa; driver settings:\n");
  if (handle->mode != 0) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -2508,7 +2499,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    unsigned int no_tracks, t, chunk;
    snd_pcm_sframes_t period_frames;
    snd_pcm_sframes_t avail;
-   snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
    size_t offs, rv = 0;
@@ -2541,13 +2531,6 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    }
    while (avail < 0);
    rv = avail;
-
-   state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
-      psnd_pcm_start(handle->pcm);
-   }
 
    avail = period_frames;
    _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
@@ -2613,7 +2596,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    unsigned int no_tracks, chunk;
    snd_pcm_sframes_t period_frames;
    snd_pcm_sframes_t avail;
-   snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
    size_t offs, rv = 0;
@@ -2634,8 +2616,8 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       res = avail = psnd_pcm_avail(handle->pcm);
       if (avail < 0)
       {
-         int err = xrun_recovery(handle->pcm, avail);
-         if (err < 0)
+         int err;
+         if ((err = xrun_recovery(handle->pcm, avail)) < 0)
          {
             char s[255];
             snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
@@ -2646,13 +2628,6 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    }
    while (avail < 0);
    rv = avail;
-
-   state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
-      psnd_pcm_start(handle->pcm);
-   }
 
    avail = period_frames;
    _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
@@ -2687,8 +2662,8 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
       if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
-         err = xrun_recovery(handle->pcm, res >= 0 ? -EPIPE : res);
-         if (err < 0)
+         res = xrun_recovery(handle->pcm, res >= 0 ? -EPIPE : res);
+         if (res < 0)
          {
             rv = 0;
             break;
@@ -3080,6 +3055,9 @@ _aaxALSADriverThread(void* config)
             target = be_handle->target[1];
             input = (float)res/freq;
             err = input - target;
+#if 0
+printf("wait: %-3.1f, res: %4i, target: %4.1f, err: %4.1f    ###\n", wait_us/1000.0f, res, target*freq, err*freq);
+#endif
 
             P = err;
             I = err*delay_sec;
