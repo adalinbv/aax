@@ -3016,7 +3016,7 @@ _aaxALSADriverThread(void* config)
             int avail = psnd_pcm_avail_update(be_handle->pcm);
             if (avail < be_handle->period_frames)
             {
-               err = psnd_pcm_wait(be_handle->pcm, stdby_time);
+               err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time);
                if (err < 0)
                {
                   xrun_recovery(be_handle->pcm, err);
