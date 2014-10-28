@@ -779,7 +779,11 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                 "unable to get the maximum no. periods" );
          if (err >= 0)
          {
-            periods = _MINMAX(periods, val1, val2);
+            if (handle->use_timer) {
+               periods = val1;
+            } else {
+               periods = _MINMAX(periods, val1, val2);
+            }
             handle->min_periods = val1;
             handle->max_periods = val2;
          }
@@ -854,7 +858,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
             "unsupported no. tracks" );
-      if (tracks > handle->no_tracks) handle->no_tracks = tracks;
+      handle->no_tracks = tracks;
 
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
@@ -871,27 +875,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (frames && (*frames > 0))
       {
          period_frames = (*frames * rate)/(*speed);
-         if (handle->mode) period_frames /= 2;
+         if (handle->mode != AAX_MODE_READ) period_frames /= 2;
       }
       else {
          period_frames = rate/25;
-      }
-
-      // Always use interupts for low latency.
-      handle->latency = (float)period_frames/(float)rate;
-
-      TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
-             "unable to get the minimum no. periods" );
-
-      // TIMER_BASED
-      if (handle->use_timer) {
-         periods = val1;
-      }
-      else
-      {
-         TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
-                "unable to get the maximum no. periods" );
-         periods = _MINMAX(periods, val1, val2);
       }
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
@@ -2543,9 +2530,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
+   if (state != SND_PCM_STATE_RUNNING) {
       psnd_pcm_start(handle->pcm);
    }
 
@@ -2648,9 +2633,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    rv = avail;
 
    state = psnd_pcm_state(handle->pcm);
-   if ((state != SND_PCM_STATE_RUNNING) &&
-       (avail > 0) && (avail <= handle->threshold))
-   {
+   if (state != SND_PCM_STATE_RUNNING) {
       psnd_pcm_start(handle->pcm);
    }
 
