@@ -871,53 +871,27 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       handle->frequency_hz = (float)rate;
 
-#if 0
+      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
+            "unsupported no. periods" );
+      if (periods == 0) periods = 1;
+      period_fact = handle->no_periods/periods;
+
+      if (err >= 0) {
+         handle->no_periods = periods;
+      }
+
       if (frames && (*frames > 0))
       {
-         period_frames = (*frames * rate)/(*speed);
+         period_frames = tracks*(*frames * rate)/(*speed);
          if (handle->mode != AAX_MODE_READ) period_frames /= 2;
       }
       else {
          period_frames = rate/25;
       }
-#else
-      period_fact = handle->no_periods/periods;
-
-      /* Set buffer size (in frames). The resulting latency is given by */
-      /* latency = size * periods / (rate * tracks * bps))              */
-      if (frames && (*frames > 0))
-      {
-         period_frames = *frames*tracks*bits/8;
-         if (!handle->mode) period_frames *= period_fact;
-      } else {
-         period_frames = rate/25;
-      }
-
-      period_frames /= tracks;
-      if (period_frames & 0xF)
-      {
-         period_frames |= 0xF;
-         period_frames++;
-      }
-      if (period_frames < 32) period_frames = 32;
-      period_frames *= tracks;
-
-      period_frames *= periods;
-#endif
-
-      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
-            "unsupported no. periods" );
-      if (periods == 0) periods = 1;
-
-//    period_fact = handle->no_periods/periods;
-      if (err >= 0) {
-         handle->no_periods = periods;
-      }
-      handle->no_tracks = tracks;
 
       /** set buffer and period sizes */
       if (handle->mode == AAX_MODE_READ) {
-//       period_frames *= period_fact;
+         period_frames *= period_fact;
       }
       else if (handle->use_timer) {
          TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
@@ -929,7 +903,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          /* latency = periodsize * periods / (rate * bytes_per_frame))     */
          period_frames *= periods;
       }
-
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams,
                                                     &period_frames),
             "invalid buffer size" );
@@ -956,7 +929,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       else
       {
-         period_frames /= periods;
+         period_frames /= periods*tracks;
          handle->latency = (float)(period_frames*periods)/(float)rate;
       }
       handle->period_frames = period_frames;
