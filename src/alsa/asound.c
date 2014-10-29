@@ -171,7 +171,6 @@ typedef struct
 
 } _driver_t;
 
-
 DECL_FUNCTION(snd_pcm_open);
 DECL_FUNCTION(snd_pcm_close);
 DECL_FUNCTION(snd_pcm_wait);
@@ -849,7 +848,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                err = -EINVAL;
                break;
             }
-            handle->bits_sample = _alsa_formats[pos].bits;
+            handle->bits_sample = bits;
          }
          else {
             _AAX_DRVLOG("unable to match hardware format");
@@ -872,6 +871,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
       handle->frequency_hz = (float)rate;
 
+#if 0
       if (frames && (*frames > 0))
       {
          period_frames = (*frames * rate)/(*speed);
@@ -880,12 +880,36 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       else {
          period_frames = rate/25;
       }
+#else
+      period_fact = handle->no_periods/periods;
+
+      /* Set buffer size (in frames). The resulting latency is given by */
+      /* latency = size * periods / (rate * tracks * bps))              */
+      if (frames && (*frames > 0))
+      {
+         period_frames = *frames*tracks*bits/8;
+         if (!handle->mode) period_frames *= period_fact;
+      } else {
+         period_frames = rate/25;
+      }
+
+      period_frames /= tracks;
+      if (period_frames & 0xF)
+      {
+         period_frames |= 0xF;
+         period_frames++;
+      }
+      if (period_frames < 32) period_frames = 32;
+      period_frames *= tracks;
+
+      period_frames *= periods;
+#endif
 
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" );
       if (periods == 0) periods = 1;
 
-      period_fact = handle->no_periods/periods;
+//    period_fact = handle->no_periods/periods;
       if (err >= 0) {
          handle->no_periods = periods;
       }
@@ -893,7 +917,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       /** set buffer and period sizes */
       if (handle->mode == AAX_MODE_READ) {
-         period_frames *= period_fact;
+//       period_frames *= period_fact;
       }
       else if (handle->use_timer) {
          TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
