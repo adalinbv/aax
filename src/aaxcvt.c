@@ -33,6 +33,9 @@
 #include "config.h"
 #endif
 
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -46,7 +49,7 @@ void
 help()
 {
     printf("Usage:\n");
-    printf("  aaxcvt -i <filename> -o <filename> -f <format>)\n\n");
+    printf("  aaxcvt -i <filename> -o <filename> -f <format> (-raw))\n\n");
     exit(-1);
 }
 
@@ -54,11 +57,13 @@ int main(int argc, char **argv)
 {
     enum aaxFormat format;
     char *infile, *outfile;
-    int rv = 0;
+    int raw, rv = 0;
 
-    if (argc != 7) {
+    if ((argc < 7) || (argc > 8))  {
         help();
     }
+
+    raw = getCommandLineOption(argc, argv, "-r") ? 1 : 0;
 
     infile = getInputFile(argc, argv, NULL);
     if (!infile)
@@ -81,7 +86,26 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxBufferSetSetup(buffer, AAX_FORMAT, format);
-            aaxBufferWriteToFile(buffer, outfile, AAX_OVERWRITE);
+            if (!raw) {
+               aaxBufferWriteToFile(buffer, outfile, AAX_OVERWRITE);
+            }
+            else
+            {
+               int fd = open(outfile, O_CREAT|O_WRONLY, 0644);
+               if (fd >= 0)
+               {
+                  int size = aaxBufferGetSetup(buffer, AAX_TRACKSIZE);
+                  void **data = aaxBufferGetData(buffer);
+                  int res = write(fd, *data, size);
+                  if (res != size) {
+                     printf("Written %i bytes of the required: %i\n", res, size);
+                  }
+                  close(fd);
+               }
+               else {
+                  printf("Unable to open file for writing: %s\n", outfile);
+               }
+            }
             aaxBufferDestroy(buffer);
         }
         aaxDriverDestroy(config);
