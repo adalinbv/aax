@@ -53,7 +53,7 @@
 #  include <rmalloc.h>
 # endif
 #endif
-#include <aax/defines.h>
+#include <aax/aax.h>
 #include "wavfile.h"
 #include "driver.h"
 
@@ -167,8 +167,13 @@ int main(int argc, char **argv)
                                 printf(" '%s on %s: %s'\n", d, r, ifs);
                             }
                         }
-                        
+                        else {
+                           printf(" '%s on %s'\n", d, r);
+                        }
                     }
+                }
+                else {
+                    printf(" '%s'\n", d);
                 }
                 aaxDriverClose(cfg);
                 aaxDriverDestroy(cfg);
@@ -183,26 +188,27 @@ int main(int argc, char **argv)
     cfg = aaxDriverGetByName(devname, mode);
     if (cfg)
     {
+        printf("\n");
         cfg = aaxDriverOpen(cfg);
-        x = aaxGetMajorVersion();
-        y = aaxGetMinorVersion();
-        s = (char *)aaxGetVersionString(cfg);
-        printf("\nVersion : %s (%i.%i)\n", s, x, y);
-
         if (cfg)
         {
             int res, min, max;
 
-            res = aaxMixerInit(cfg);
+            res = aaxMixerSetState(cfg, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
-            s = aaxDriverGetDriver(cfg);
+            s = aaxDriverGetSetup(cfg, AAX_DRIVER_STRING);
             printf("Driver  : %s\n", s);
 
-            s = aaxDriverGetRenderer(cfg);
+            s = aaxDriverGetSetup(cfg, AAX_RENDERER_STRING);
             printf("Renderer: %s\n", s);
 
-            s = aaxDriverGetVendor(cfg);
+            x = aaxGetMajorVersion();
+            y = aaxGetMinorVersion();
+            s = (char *)aaxGetVersionString(cfg);
+            printf("Version : %s (%i.%i)\n", s, x, y);
+
+            s = aaxDriverGetSetup(cfg, AAX_VENDOR_STRING);
             printf("Vendor  : %s\n", s);
 
             x = aaxMixerGetSetup(cfg, AAX_TIMER_MODE);
@@ -217,12 +223,13 @@ int main(int argc, char **argv)
 
             min = aaxMixerGetSetup(cfg, AAX_FREQUENCY_MIN);
             max = aaxMixerGetSetup(cfg, AAX_FREQUENCY_MAX);
-            printf("Mixer frequency range: %4.1fkHz - %4.1fkHz\n", min/1000.0f, max/1000.0f);
+            printf("Mixer frequency range: %4.1fkHz - %4.1fkHz\n",
+                    min/1000.0f, max/1000.0f);
 
-            x = aaxMixerGetFrequency(cfg);
+            x = aaxMixerGetSetup(cfg, AAX_FREQUENCY);
             printf("Mixer frequency: %i Hz\n", x);
 
-            x = aaxMixerGetRefreshRate(cfg);
+            x = aaxMixerGetSetup(cfg, AAX_REFRESHRATE);
             printf("Mixer refresh rate: %u Hz\n", x);
 
             x = aaxMixerGetSetup(cfg, AAX_UPDATERATE);
