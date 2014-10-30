@@ -149,14 +149,31 @@ fileLoad(const char *file, unsigned int *no_samples,
     while (0);
 #endif
 
-    *freq = _oalSoftwareWaveHeader[6];
-    *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
-    *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
-    *bits_sample = _oalSoftwareWaveHeader[8] >> 16;
-    blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
+    /* Is it a RIFF file? */
+    if (_oalSoftwareWaveHeader[0] == 0x46464952)              /* RIFF */
+    {
+        char extfmt;
+
+	// EXTENSIBLE_WAVE_FORMAT?
+        *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
+        extfmt = (*format == 0xFFFE) ? 1 : 0;
+printf("extfmt: %i, format: %x\n", extfmt, *format);
+
+        if (_oalSoftwareWaveHeader[2] == 0x45564157 &&	/* WAVE */
+            _oalSoftwareWaveHeader[3] == 0x20746d66)	/* fmt  */
+        {
+            *freq = _oalSoftwareWaveHeader[6];
+            *no_tracks = _oalSoftwareWaveHeader[5] >> 16;
+            *bits_sample = extfmt ? _oalSoftwareWaveHeader[9] >> 16 :
+                                    _oalSoftwareWaveHeader[8] >> 16;
+            *format = extfmt ? _oalSoftwareWaveHeader[11] :
+                               _oalSoftwareWaveHeader[5] & 0xFFFF;
+            blocksz = _oalSoftwareWaveHeader[8] & 0xFFFF;
 #if !_OPENAL_SUPPORT
-    *block = blocksz;
+            *block = blocksz;
 #endif
+        }
+    }
 
     /* search for the data chunk */
     lseek(fd, 32L, SEEK_SET);
@@ -534,7 +551,11 @@ getFormatFromFileFormat(unsigned int format, int  bps)
     case 17:
         rv = AAX_IMA4_ADPCM;
         break;
+    case 65534:
+        printf("Extenden WAV format not yet implemented\n");
+        break;
     default:
+        printf("Unsupported WAR format: %i\n", format);
         break;
     }
     return rv;

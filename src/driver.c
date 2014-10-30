@@ -248,7 +248,6 @@ getCommandLineOption(int argc, char **argv, char *option)
         if (strncmp(argv[i], option, slen) == 0)
         {
             rv = "";
-            rv = "";
             i++;
             if (i<argc) rv = argv[i];
         }
