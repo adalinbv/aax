@@ -34,6 +34,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>	// getenv
 
 #include <aax/defines.h>
 
