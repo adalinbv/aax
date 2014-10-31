@@ -635,6 +635,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                while ((buf = aaxSensorGetBuffer(ssr_config)) != NULL) {
                   aaxBufferDestroy(buf);
                }
+               _aaxErrorSet(AAX_ERROR_NONE);
                pos = _intBufAddData(hd, _AAX_DEVICE, ssr_config);
                fmixer->no_registered++;
             }

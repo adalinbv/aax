@@ -748,6 +748,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   while ((buf = aaxSensorGetBuffer(sframe)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
+                  _aaxErrorSet(AAX_ERROR_NONE);
                   pos = _intBufAddData(hs, _AAX_DEVICE, sframe);
                   mixer->no_registered++;
                }

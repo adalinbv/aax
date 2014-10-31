@@ -979,6 +979,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          const char *rstr = handle->render->info(handle->render->id);
          snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                        DEFAULT_RENDERER, psnd_asoundlib_version(), rstr);
+         rv = AAX_TRUE;
       }
 
       TRUN( psnd_pcm_prepare(hid),
@@ -1013,8 +1014,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             handle->latency = (float)delay/(float)rate;
          }
          err = 0;
-
-         rv = AAX_TRUE;
       }
 
       do
