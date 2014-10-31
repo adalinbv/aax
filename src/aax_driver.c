@@ -423,7 +423,7 @@ aaxDriverDestroy(aaxConfig config)
 
       _aaxSignalFree(&handle->buffer_ready);
 
-      handle->info->id = 0xdeadbeef;
+      handle->info->id = FADEDBAD;
       if (_info == handle->info) {
          _info = NULL;
       }
@@ -449,7 +449,7 @@ aaxDriverDestroy(aaxConfig config)
       }
 
       /* safeguard against using already destroyed handles */
-      handle->id = 0xdeadbeef;
+      handle->id = FADEDBAD;
       free(handle);
 
       _aaxRemoveDriverBackends(&_backends);
@@ -1257,7 +1257,7 @@ _aaxCheckKeyValidityStr(char *keystr)
       }
    }
    else {
-      rv = 0xdeadbeef;
+      rv = FADEDBAD;
    }
    return rv;
 }

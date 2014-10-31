@@ -155,7 +155,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
                       _aaxRingBufferFree);
 
          /* safeguard against using already destroyed handles */
-         handle->id = 0xdeadbeef;
+         handle->id = FADEDBAD;
          free(handle);
          handle = 0;
          rv = AAX_TRUE;

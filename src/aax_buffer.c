@@ -625,7 +625,7 @@ free_buffer(_buffer_t* buf)
          buf->ringbuffer = _bufDestroyRingBuffer(buf);
 
          /* safeguard against using already destroyed handles */
-         buf->id = 0xdeadbeef;
+         buf->id = FADEDBAD;
          free(buf);
       }
       rv = AAX_TRUE;

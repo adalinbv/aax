@@ -126,7 +126,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          free(src->props3d);
 
          /* safeguard against using already destroyed handles */
-         handle->id = 0xdeadbeef;
+         handle->id = FADEDBAD;
          free(handle);
          handle = 0;
          rv = AAX_TRUE;
@@ -225,7 +225,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
                free_buffer(embuf->buffer);
                _aaxRingBufferFree(embuf->ringbuffer);
                embuf->ringbuffer = NULL;
-               embuf->id = 0xdeadbeef;
+               embuf->id = FADEDBAD;
                free(embuf);
             }
             _intBufDestroyDataNoLock(buf);
@@ -1368,7 +1368,7 @@ _aaxFreeEmitterBuffer(void *sbuf)
    free_buffer(embuf->buffer);
    _aaxRingBufferFree(embuf->ringbuffer);
    embuf->ringbuffer = NULL;
-   embuf->id = 0xdeadbeef;
+   embuf->id = FADEDBAD;
    free(embuf);
    embuf = NULL;
 }
