@@ -707,7 +707,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       handle->devname = detect_devname(handle, m);
 
       err = _alsa_pcm_open(handle, m);
-      if (err <= 0)
+      if (err < 0)
       {
          _AAX_DRVLOG("unsupported number of tracks");
          return AAX_FALSE;
@@ -1754,13 +1754,11 @@ _alsa_pcm_open(_driver_t *handle, int m)
 {
    int err;
 
-printf("handle->devname: '%s'\n", handle->devname);
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
    if (err >= 0) {
       err = psnd_pcm_nonblock(handle->pcm, 1);
    }
-
    if (err >= 0)
    {
       err = psnd_mixer_open(&handle->mixer, 0);
