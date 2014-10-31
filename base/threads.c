@@ -91,7 +91,7 @@ _aaxThreadSetPriority(void *t, int prio)
    int min, max, policy;
    int rv = 0;
 
-   if (prio >= AAX_HIGHEST_PRIORITY) {
+   if (prio <= AAX_HIGHEST_PRIORITY) {
       policy = SCHED_FIFO;
    } else if (prio == AAX_HIGH_PRIORITY) {
       policy = SCHED_RR;
