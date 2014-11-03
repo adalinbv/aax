@@ -766,7 +766,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          if (err >= 0)
          {
             val1 = _MIN(val1, handle->min_tracks);
-            val2 = _MAX(val2,  handle->max_tracks);
+            val2 = _MAX(_MIN(val2, _AAX_MAX_SPEAKERS),  handle->max_tracks);
             tracks = _MINMAX(tracks, val1, val2);
             handle->min_tracks = val1;
             handle->max_tracks = val2;
