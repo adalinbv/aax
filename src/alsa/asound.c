@@ -444,7 +444,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->bits_sample = 16;
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
-      handle->mode = (mode > 0) ? 1 : 0;
+      handle->mode = mode;
       if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
       }
@@ -589,9 +589,9 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
    if (handle)
    {
-      int err, m;
+      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
+      int err;
 
-      m = (handle->mode > 0) ? 1 : 0;
       handle->devnum = detect_devnum(handle, m);
       if (rdr_aax_fmt) {
          handle->devname = detect_devname(handle, m);
@@ -619,7 +619,7 @@ _aaxALSADriverDisconnect(void *id)
 
    if (handle)
    {
-      int m = (handle->mode > 0) ? 1 : 0;
+      unsigned char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
 
       if (handle->default_name[m] != _const_alsa_default_name[m]) {
          free(handle->default_name[m]);
@@ -698,7 +698,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
  
    if (handle->no_tracks != tracks)
    {
-      int m = handle->mode;
+      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
 
       _alsa_pcm_close(handle);
 
@@ -988,12 +988,13 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       // Now fill the playback buffer with handle->no_periods periods of
       // silence for lowest latency.
       // TIMER_BASED
-      if (handle->mode) // && !handle->use_timer)
+      if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
       {
+         char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
          _aaxRingBuffer *rb;
          int i;
 
-         rb = _aaxRingBufferCreate(0.0f, handle->mode);
+         rb = _aaxRingBufferCreate(0.0f, m);
          if (rb)
          {
             rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
@@ -1022,7 +1023,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          _AAX_SYSLOG("alsa; driver settings:");
 
-         if (handle->mode != 0) {
+         if (handle->mode != AAX_MODE_READ) {
             snprintf(str,255,"  output renderer: '%s'", handle->name);
          } else {
             snprintf(str,255,"  input renderer: '%s'", handle->name);
@@ -1046,9 +1047,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
          _AAX_SYSLOG(str);
-#if 1
+#if 0
  printf("alsa; driver settings:\n");
- if (handle->mode != 0) {
+ if (handle->mode != AAX_MODE_READ) {
     printf("  output renderer: '%s'\n", handle->name);
  } else {
     printf("  input renderer: '%s'\n", handle->name);
@@ -1089,7 +1090,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    size_t rv = 0;
    int res;
 
-   if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
+   if ((handle->mode != AAX_MODE_READ) || (req_frames == 0) || (data == 0))
    {
       if (handle->mode == AAX_MODE_READ) {
          _AAX_DRVLOG("calling the record function with a playback handle");
@@ -1122,7 +1123,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    {
       if ((res = xrun_recovery(handle->pcm, res)) < 0)
       {
-         _aaxALSADriverLogVar(id, "PCM avail error: %s\n", psnd_strerror(res));
+         _aaxALSADriverLogVar(id, "xrun: %s", psnd_strerror(res));
          avail = -1;
        }
    }
@@ -1174,7 +1175,7 @@ if (corr)
             {
                if ((res = xrun_recovery(handle->pcm, res)) < 0)
                {
-                  _aaxALSADriverLogVar(id, "MMAP begin error: %s\n",
+                  _aaxALSADriverLogVar(id, "mmap begin: %s",
                                        psnd_strerror(res));
                   return 0;
                }

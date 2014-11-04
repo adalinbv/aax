@@ -31,6 +31,7 @@
 #endif
 #include <errno.h>
 #include <assert.h>
+#include <stdarg.h>	// va_start
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif
@@ -69,10 +70,11 @@
 # define DEFAULT_RENDERER	"Linux"
 #endif
 
+static char *_aaxLinuxDriverLogVar(const void *, const char *, ...);
 
 #define FILL_FACTOR		1.5f
 #define DEFAULT_REFRESH		25.0f
-#define _AAX_DRVLOG(a)         _aaxLinuxDriverLog(id, 0, 0, a)
+#define _AAX_DRVLOG(a)		_aaxLinuxDriverLog(id, __LINE__, 0, a)
 
 static _aaxDriverDetect _aaxLinuxDriverDetect;
 static _aaxDriverNewHandle _aaxLinuxDriverNewHandle;
@@ -129,12 +131,11 @@ typedef struct
 {
    char *name;
    _aaxRenderer *render;
-   int setup;
+   enum aaxRenderMode mode;
 
    char *pcm;
    unsigned int cardnum;
    unsigned int devnum;
-   int mode;
    int fd;
 
    float latency;
@@ -201,7 +202,6 @@ static float _kernel_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sf
 static int _kernel_get_volume(_driver_t*);
 
 
-static const int _mode[] = { O_RDONLY, O_WRONLY };
 static const char *_const_kernel_default_name = DEFAULT_DEVNAME;
 static int _kernel_default_cardnum = DEFAULT_PCM_NUM;
 
@@ -245,6 +245,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
 
    if (handle)
    {
+      char m = (mode == AAX_MODE_READ) ? 0 : 1;
       const char *name;
 
       handle->pcm = DEFAULT_PCM_NAME;
@@ -256,16 +257,15 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
       handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
       handle->use_mmap = AAX_FALSE;
-      handle->mode = _mode[(mode > 0) ? 1 : 0];
-      handle->setup = mode;
+      handle->mode = mode;
       handle->interleaved = AAX_TRUE;
       handle->fd = -1;
       if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
       }
 
-      detect_pcm(handle, mode);
-      name = detect_devname(handle->cardnum, handle->devnum, handle->mode);
+      detect_pcm(handle, m);
+      name = detect_devname(handle->cardnum, handle->devnum, m);
       handle->name = _aax_strdup(name);
 
       // default period size is for 25Hz
@@ -395,7 +395,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
 
    if (handle)
    {
-      int m = (handle->mode == O_RDONLY) ? 0 : 1;
+      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
       if (detect_pcm(handle, m))
       {
          handle->fd = open(handle->pcm, O_RDWR|O_NONBLOCK);
@@ -409,9 +409,11 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
          }
          else
          {
-            _AAX_DRVLOG(strerror(errno));
+            _aaxLinuxDriverLogVar(id, "open: %s", strerror(errno));
             free(handle);
             handle = NULL;
+printf("File open error: %s\n", strerror(errno));
+exit(-1);
          }
       }
    }
@@ -579,7 +581,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          swparams.silence_threshold = periods*period_frames;
          swparams.boundary = periods*period_frames;
          swparams.xfer_align = period_frames/2;
-         if (handle->mode == O_RDONLY)
+         if (handle->mode == AAX_MODE_READ)
          {
             swparams.start_threshold = 1;
             swparams.stop_threshold = 10*periods*period_frames;
@@ -658,7 +660,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                }
 
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
-                                                         handle->setup);
+                                                         handle->mode);
                if (handle->render)
                {
                   const char *rstr = handle->render->info(handle->render->id);
@@ -696,7 +698,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
       _AAX_SYSLOG("driver settings:");
 
-      if (handle->mode != 0) {
+      if (handle->mode != AAX_MODE_READ) {
          snprintf(str,255,"  output renderer: '%s'", handle->name);
       } else {
          snprintf(str,255,"  input renderer: '%s'", handle->name);
@@ -725,7 +727,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
 #if 0
  printf("driver settings:\n");
- if (handle->mode != O_RDONLY) {
+ if (handle->mode != AAX_MODE_READ) {
     printf("  output renderer: '%s'\n", handle->name);
  } else {
     printf("  input renderer: '%s'\n", handle->name);
@@ -755,7 +757,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
    ssize_t offs = *offset;
    size_t rv = AAX_FALSE;
  
-   assert(handle->mode == O_RDONLY);
+   assert(handle->mode == AAX_MODE_READ);
 
    *offset = 0;
    if ((frames == 0) || (data == 0))
@@ -783,7 +785,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
                handle->prepared = AAX_TRUE;
             }
             else {
-               _AAX_DRVLOG(strerror(errno));
+               _aaxLinuxDriverLogVar(id, "read prepare: %s", strerror(errno));
             }
          }
 
@@ -804,7 +806,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
          }
          else
          {
-            _AAX_DRVLOG(strerror(errno));
+            _aaxLinuxDriverLogVar(id, "read: %s", strerror(errno));
             handle->prepared = AAX_FALSE;
          }
       }
@@ -828,9 +830,6 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
          }
          rv = AAX_TRUE;
       }
-      else {
-         _AAX_DRVLOG(strerror(errno));
-      }
    }
 
    return rv;
@@ -851,7 +850,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(rb);
    assert(id != 0);
 
-   if (handle->mode != O_WRONLY)
+   if (handle->mode == AAX_MODE_READ)
       return 0;
 
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -891,7 +890,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
             handle->prepared = AAX_TRUE;
          }
          else {
-            _AAX_DRVLOG(strerror(errno));
+            _aaxLinuxDriverLogVar(id, "write prepare: %s", strerror(errno));
          }
       }
 
@@ -917,16 +916,12 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
          }
          else
          {
-            _AAX_DRVLOG(strerror(errno));
+            _aaxLinuxDriverLogVar(id, "write: %s", strerror(errno));
             handle->prepared = AAX_FALSE;
          }
       }
    }
    while (period_frames && (ret < 0) && --count);
-
-   if (ret < 0) {
-      _AAX_DRVLOG(strerror(errno));
-   }
 
    return rv;
 }
@@ -1074,7 +1069,7 @@ _aaxLinuxDriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
    static time_t t_previous[2] = { 0, 0 };
-   int m = (mode > 0) ? 1 : 0;
+   unsigned char m = (mode == AAX_MODE_READ) ? 0 : 1;
    time_t t_now;
 
    t_now = time(NULL);
@@ -1127,7 +1122,7 @@ static char *
 _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
-   int m = (mode > 0) ? 1 : 0;
+   unsigned char m = (mode == AAX_MODE_READ) ? 0 : 1;
    char *rv = handle->ifname[m];
 
    if (!rv)
@@ -1185,6 +1180,23 @@ _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
    }
 
    return rv;
+}
+
+static char *
+_aaxLinuxDriverLogVar(const void *id, const char *fmt, ...)
+{
+   char _errstr[1024];
+   va_list ap;
+
+   _errstr[0] = '\0';
+   va_start(ap, fmt);
+   vsnprintf(_errstr, 1024, fmt, ap);
+
+   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   _errstr[1023] = '\0';
+   va_end(ap);
+
+   return _aaxLinuxDriverLog(id, 0, -1, _errstr);
 }
 
 static char *
@@ -1596,7 +1608,7 @@ _aaxLinuxDriverThread(void* config)
                }
                while (!(pfd.revents & (POLLIN|POLLOUT)));
                if (ret < 0) {
-                  _AAX_DRVLOG(strerror(errno));
+                  _aaxLinuxDriverLogVar(id, "poll: %s\n", strerror(errno));
                }
             }
          }

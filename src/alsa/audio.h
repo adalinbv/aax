@@ -18,9 +18,11 @@ extern "C" {
 #endif
 
 #if 0
+#ifndef RELEASE
 # ifdef NDEBUG
 #  undef NDEBUG
 # endif
+#endif
 #endif
 
 #define PLAYBACK_PERIODS	2
