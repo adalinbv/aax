@@ -16,7 +16,7 @@
 #include "renderer.h"
 
 _aaxRenderer*
-_aaxSoftwareInitRenderer(float dt, int mode)
+_aaxSoftwareInitRenderer(float dt, enum aaxRenderMode mode)
 {
    static _aaxRenderer *rv = NULL;
 
