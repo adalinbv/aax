@@ -269,7 +269,6 @@ _intBufGetMaxNumNoLock(const _intBuffers *, unsigned int);
 unsigned int
 _intBufGetNumDebug(_intBuffers *, unsigned int, char, char *, int);
 #else
-hjdf
 # define _intBufGetNum(a, b)  _intBufGetNumNormal(a, b, 0)
 #endif
 
