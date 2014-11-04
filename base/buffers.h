@@ -170,9 +170,9 @@ _intBufReplace(_intBuffers *, unsigned int, unsigned int, void *);
  * @return the object data
  */
 #ifdef BUFFER_DEBUG
-# define _intBufGet(a, b, c)  _intBufGetDebug(a, b, c, __FILE__, __LINE__)
+# define _intBufGet(a, b, c)  _intBufGetDebug(a, b, c, 0, __FILE__, __LINE__)
  _intBufferData *
- _intBufGetDebug(_intBuffers *, unsigned int, unsigned int, char *, int);
+ _intBufGetDebug(_intBuffers *, unsigned int, unsigned int, char, char *, int);
 #else
 # define _intBufGet(a, b, c)  _intBufGetNormal(a, b, c, 0)
 #endif
@@ -265,10 +265,11 @@ _intBufGetMaxNumNoLock(const _intBuffers *, unsigned int);
  * @return the number of allocated objects in the buffer array
  */
 #ifndef NDEBUG
-# define _intBufGetNum(a, b)  _intBufGetNumDebug(a, b, __FILE__, __LINE__)
+# define _intBufGetNum(a, b)  _intBufGetNumDebug(a, b, 0,  __FILE__, __LINE__)
 unsigned int
-_intBufGetNumDebug(_intBuffers *, unsigned int, char *, int);
+_intBufGetNumDebug(_intBuffers *, unsigned int, char, char *, int);
 #else
+hjdf
 # define _intBufGetNum(a, b)  _intBufGetNumNormal(a, b, 0)
 #endif
 

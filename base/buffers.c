@@ -311,7 +311,7 @@ _intBufReplace(_intBuffers *buffer, unsigned int id, unsigned int n, void *data)
 
 #ifndef NDEBUG
 _intBufferData *
-_intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char *file, int line)
+_intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char locked, char *file, int line)
 {
     _BUF_LOG(LOG_BULK, id, __FUNCTION__);
 
@@ -324,7 +324,7 @@ _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char *file
     assert(buffer->data != 0);
 
 #ifndef _AL_NOTHREADS
-    if (buffer->data[n] != 0)
+    if (!locked && buffer->data[n] != 0)
     {
         int r = _aaxMutexLockDebug(buffer->data[n]->mutex, file, line);
         if (r < 0) PRINT("error: %i at %s line %i\n", -r, file, line);
@@ -434,7 +434,7 @@ _intBufGetNumNoLock(const _intBuffers *buffer, unsigned int id)
 
 #ifndef NDEBUG
 unsigned int
-_intBufGetNumDebug(_intBuffers *buffer, unsigned int id, char *file, int line)
+_intBufGetNumDebug(_intBuffers *buffer, unsigned int id, char lock, char *file, int line)
 {
     _BUF_LOG(LOG_BULK, id, __FUNCTION__);
 
@@ -727,9 +727,66 @@ void *
 _intBufRemoveDebug(_intBuffers *buffer, unsigned int id, unsigned int n,
                         char locked, char num_locked, char *file, int lineno)
 {
+#if 0
     void * r = _intBufRemoveNormal(buffer, id, n, locked, num_locked);
     PRINT("remove: %s at line %i: %x\n", file, lineno, n);
     return r;
+#else
+   _intBufferData *buf;
+    void *rv = 0;
+
+    _BUF_LOG(LOG_INFO, id, __FUNCTION__);
+
+    assert(buffer != 0);
+    assert(buffer->id == id);
+    assert(buffer->start+n < buffer->max_allocations);
+    assert(buffer->data != 0);
+
+    if (num_locked) {
+        _intBufReleaseNum(buffer, id);
+    }
+printf("D\n");
+    _intBufGetNumDebug(buffer, id, 1, file, lineno);
+
+    buf = _intBufGetDebug(buffer, id, n, locked, file, lineno);
+    if (buf)
+    {
+        assert(buf->reference_ctr > 0);
+
+        /*
+         * If the counter doesn't equal to zero this buffer was referenced
+         * by another buffer. So just detach it and let the last referer
+         * take care of it.
+         */
+        if (--buf->reference_ctr == 0)
+        {
+# ifndef _AL_NOTHREADS
+            _aaxMutexDestroy(buf->mutex);
+# endif
+            rv = (void*)buf->ptr;
+            free(buf);
+            buf = 0;
+        }
+        else {
+            _intBufReleaseData(buf, id);
+        }
+
+        buffer->data[buffer->start+n] = NULL;
+        buffer->num_allocated--;
+        if (buffer->first_free > n) {
+            buffer->first_free = n;
+        }
+    }
+
+# ifndef _AL_NOTHREADS
+    _intBufReleaseNumNormal(buffer, id, 1);
+# endif
+    if (num_locked) {
+        _intBufGetNum(buffer, id);
+    }
+
+    return rv;
+#endif
 }
 #endif
 
@@ -750,6 +807,7 @@ _intBufRemoveNormal(_intBuffers *buffer, unsigned int id, unsigned int n,
     if (num_locked) {
         _intBufReleaseNum(buffer, id);
     }
+printf("A\n");
     _intBufGetNumNormal(buffer, id, 1);
 
     buf = _intBufGetNormal(buffer, id, n, locked);
