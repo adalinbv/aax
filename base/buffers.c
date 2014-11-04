@@ -745,7 +745,6 @@ _intBufRemoveDebug(_intBuffers *buffer, unsigned int id, unsigned int n,
     if (num_locked) {
         _intBufReleaseNum(buffer, id);
     }
-printf("D\n");
     _intBufGetNumDebug(buffer, id, 1, file, lineno);
 
     buf = _intBufGetDebug(buffer, id, n, locked, file, lineno);
@@ -807,7 +806,6 @@ _intBufRemoveNormal(_intBuffers *buffer, unsigned int id, unsigned int n,
     if (num_locked) {
         _intBufReleaseNum(buffer, id);
     }
-printf("A\n");
     _intBufGetNumNormal(buffer, id, 1);
 
     buf = _intBufGetNormal(buffer, id, n, locked);
