@@ -1025,18 +1025,18 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    int rv = AAX_FALSE;
    if (handle)
    {
-      _frame_t* frame = get_frame(subframe);
-      if (frame && frame->mixer_pos != UINT_MAX)
+      _frame_t* sframe = get_frame(subframe);
+      if (sframe && sframe->mixer_pos != UINT_MAX)
       {
          _intBuffers *hf = handle->submix->frames;
 
          /* Unlock the frame again to make sure locking is done in the proper */
          /* order by _intBufRemove                                            */
-         _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
-         _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos, AAX_FALSE);
-         frame->submix->refcount--;
-         frame->mixer_pos = UINT_MAX;
-         frame->handle = NULL;
+         _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos);
+         _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
+         sframe->submix->refcount--;
+         sframe->mixer_pos = UINT_MAX;
+         sframe->handle = NULL;
 
          handle->submix->no_registered--;
          rv = AAX_TRUE;
@@ -1044,7 +1044,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
-      put_frame(frame);
+      put_frame(sframe);
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
@@ -1314,7 +1314,7 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
       fp2d->dist_delay_sec = dist / vs;
 
 #if 0
- printf("# frame parent:\t\t\t\tfrmae:\n");
+ printf("# frame parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
  printf("# modified frame\n");
  PRINT_MATRIX(fdp3d_m->matrix);
