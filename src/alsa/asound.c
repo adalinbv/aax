@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2005-2012 by Erik Hofman.
+ * Copyright 2009-2012 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -21,40 +21,32 @@
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif
-#include <string.h>		/* strstr */
-#include <stdarg.h>		/* va_start */
+#include <stdarg.h>	/* va_start */
 
 #include <xml.h>
 
-#include <base/timer.h>		/* for msecSleep */
+#include <api.h>
+#include <arch.h>
+#include <devices.h>
+#include <ringbuffer.h>
+#include <base/types.h>
 #include <base/dlsym.h>
 #include <base/logging.h>
 #include <base/threads.h>
-#include <base/types.h>
 
-#include <arch.h>
-#include <api.h>
-#include <driver.h>
-#include <devices.h>
-#include <ringbuffer.h>
-
-#include <software/renderer.h>
+#include "alsa/audio.h"
 #include "device.h"
-#include "audio.h"
 
-#define TIMER_BASED		AAX_FALSE
-#define MAX_ID_STRLEN		64
+#define MAX_ID_STRLEN		32
 
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_IFNUM		0
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME_OLD     "front:"AAX_MKSTR(DEFAULT_DEVNUM) \
-                                       ","AAX_MKSTR(DEFAULT_IFNUM)
+#define DEFAULT_DEVNAME_OLD	"front:"AAX_MKSTR(DEFAULT_DEVNUM) \
+                                     ","AAX_MKSTR(DEFAULT_IFNUM)
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_HWDEVNAME	"hw:0"
 #define DEFAULT_RENDERER	"ALSA"
-
-#define ALSA_TIE_FUNCTION(a)	if ((TIE_FUNCTION(a)) == 0) printf("%s\n", #a)
 
 static _aaxDriverDetect _aaxALSADriverDetect;
 static _aaxDriverNewHandle _aaxALSADriverNewHandle;
@@ -64,24 +56,29 @@ static _aaxDriverConnect _aaxALSADriverConnect;
 static _aaxDriverDisconnect _aaxALSADriverDisconnect;
 static _aaxDriverSetup _aaxALSADriverSetup;
 static _aaxDriverCallback _aaxALSADriverPlayback;
+static _aaxDriverState _aaxALSADriverPause;
+static _aaxDriverState _aaxALSADriverResume;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverGetName _aaxALSADriverGetName;
-static _aaxDriverRender _aaxALSADriverRender;
 static _aaxDriverThread _aaxALSADriverThread;
-static _aaxDriverState _aaxALSADriverState;
-static _aaxDriverParam _aaxALSADriverParam;
-static _aaxDriverLog _aaxALSADriverLog;
+static _aaxDriverState _aaxALSADriverIsReachable;
+static _aaxDriverState _aaxALSADriverAvailable;
+static _aaxDriver3dMixerCB _aaxALSADriver3dMixer;
 
 static char _alsa_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxALSADriverBackend =
 {
+   1.0,
+   AAX_PCM16S,
+   DEFAULT_OUTPUT_RATE,
+   2,
+
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
    AAX_VENDOR_STR,
    (char *)&_alsa_id_str,
 
-   (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
-   (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
+   (_aaxCodec **)&_oalRingBufferCodecs,
 
    (_aaxDriverDetect *)&_aaxALSADriverDetect,
    (_aaxDriverNewHandle *)&_aaxALSADriverNewHandle,
@@ -89,135 +86,129 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
 
    (_aaxDriverGetName *)&_aaxALSADriverGetName,
-   (_aaxDriverRender *)&_aaxALSADriverRender,
    (_aaxDriverThread *)&_aaxALSADriverThread,
 
    (_aaxDriverConnect *)&_aaxALSADriverConnect,
    (_aaxDriverDisconnect *)&_aaxALSADriverDisconnect,
    (_aaxDriverSetup *)&_aaxALSADriverSetup,
+   (_aaxDriverState *)&_aaxALSADriverPause,
+   (_aaxDriverState *)&_aaxALSADriverResume,
    (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
    (_aaxDriverCallback *)&_aaxALSADriverPlayback,
 
-   (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
+   (_aaxDriver2dMixerCB *)&_aaxFileDriverStereoMixer,
+   (_aaxDriver3dMixerCB *)&_aaxALSADriver3dMixer,
+   (_aaxDriverPrepare3d *)&_aaxFileDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
 
-   (_aaxDriverState *)&_aaxALSADriverState,
-   (_aaxDriverParam *)&_aaxALSADriverParam,
-   (_aaxDriverLog *)&_aaxALSADriverLog
+   (_aaxDriverState *)&_aaxALSADriverAvailable,
+   (_aaxDriverState *)&_aaxALSADriverAvailable,
+   (_aaxDriverState *)&_aaxALSADriverIsReachable
 };
 
 typedef struct
 {
     char *name;
     char *devname;
-    char *default_name[2];
-    int default_devnum;
     int devnum;
 
     _aaxDriverCallback *play;
-    _aaxRenderer *render;
-    snd_mixer_t *mixer;
-    snd_pcm_t *pcm;
-
-    float volumeHW;
-    float volumeCur, volumeInit;
-    float volumeMin, volumeMax;
-    float volumeStep, hwgain;
-    char *outMixer;		/* mixer element name for output volume */
+    snd_pcm_t *id;
 
     float latency;
+    float pitch;       /* difference between requested freq and returned freq */
     float frequency_hz;
 
-    float padding;		/* for sensor clock drift correction   */
-    size_t threshold;		/* sensor buffer threshold for padding */
-
-    unsigned int no_tracks;
+    unsigned int no_channels;
     unsigned int no_periods;
-    size_t period_frames;
-    size_t max_frames;
-    size_t buf_len;
+    unsigned int period_size;
     int mode;
 
     char pause;
     char can_pause;
     char use_mmap;
-    char bits_sample;
+    char bytes_sample;
     char interleaved;
+    char hw_channels;
     char playing;
-    char shared;
-    char use_timer;
+    char vmixer;
+    char sse_level;
+
+#ifndef NDEBUG
+   unsigned int buf_len;
+#endif
 
     _batch_cvt_to_proc cvt_to;
     _batch_cvt_from_proc cvt_from;
     _batch_cvt_to_intl_proc cvt_to_intl;
     _batch_cvt_from_intl_proc cvt_from_intl;
 
-    void **ptr;
-    char **scratch;
+    void **scratch;
+    char **data;
 
     char *ifname[2];
-
-    float PID[1];
-    float target[3];
-
-   /* capabilities */
-   unsigned int min_frequency;
-   unsigned int max_frequency;
-   unsigned int min_periods;
-   unsigned int max_periods;
-   unsigned int min_tracks;
-   unsigned int max_tracks;
+    _oalRingBufferMix1NFunc *mix_mono3d;
 
 } _driver_t;
+
 
 DECL_FUNCTION(snd_pcm_open);
 DECL_FUNCTION(snd_pcm_close);
 DECL_FUNCTION(snd_pcm_wait);
 DECL_FUNCTION(snd_pcm_nonblock);
 DECL_FUNCTION(snd_pcm_prepare);
+DECL_FUNCTION(snd_pcm_resume);
+DECL_FUNCTION(snd_pcm_drain);
+DECL_FUNCTION(snd_pcm_drop);
 DECL_FUNCTION(snd_pcm_pause);
 DECL_FUNCTION(snd_pcm_hw_params_can_pause);
+DECL_FUNCTION(snd_pcm_hw_params_can_resume);
+DECL_FUNCTION(snd_pcm_info_malloc);
+DECL_FUNCTION(snd_pcm_info_sizeof);
 DECL_FUNCTION(snd_asoundlib_version);
-DECL_FUNCTION(snd_config_update);
+DECL_FUNCTION(snd_pcm_info_get_name);
+DECL_FUNCTION(snd_pcm_info_get_subdevices_count);
+DECL_FUNCTION(snd_pcm_info_set_subdevice);
+DECL_FUNCTION(snd_pcm_info_set_device);
+DECL_FUNCTION(snd_pcm_info_set_stream);
+DECL_FUNCTION(snd_pcm_info_free);
 DECL_FUNCTION(snd_device_name_hint);
 DECL_FUNCTION(snd_device_name_get_hint);
 DECL_FUNCTION(snd_device_name_free_hint);
-DECL_FUNCTION(snd_pcm_hw_params_malloc);
-DECL_FUNCTION(snd_pcm_hw_params_free);
+DECL_FUNCTION(snd_pcm_hw_params_sizeof);
 DECL_FUNCTION(snd_pcm_hw_params);
 DECL_FUNCTION(snd_pcm_hw_params_any);
 DECL_FUNCTION(snd_pcm_hw_params_set_access);
 DECL_FUNCTION(snd_pcm_hw_params_set_format);
 DECL_FUNCTION(snd_pcm_hw_params_set_rate_resample);
 DECL_FUNCTION(snd_pcm_hw_params_set_rate_near);
-DECL_FUNCTION(snd_pcm_hw_params_get_rate_min);
-DECL_FUNCTION(snd_pcm_hw_params_get_rate_max);
 DECL_FUNCTION(snd_pcm_hw_params_test_channels);
 DECL_FUNCTION(snd_pcm_hw_params_set_channels);
-DECL_FUNCTION(snd_pcm_hw_params_get_channels_min);
-DECL_FUNCTION(snd_pcm_hw_params_get_channels_max);
 DECL_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
-DECL_FUNCTION(snd_pcm_hw_params_get_buffer_size_max);
+DECL_FUNCTION(snd_pcm_hw_params_set_buffer_time_near);
 DECL_FUNCTION(snd_pcm_hw_params_set_periods_near);
-DECL_FUNCTION(snd_pcm_hw_params_set_period_size_near);
-DECL_FUNCTION(snd_pcm_hw_params_get_periods_min);
-DECL_FUNCTION(snd_pcm_hw_params_get_periods_max);
-DECL_FUNCTION(snd_pcm_sw_params_malloc);
-DECL_FUNCTION(snd_pcm_sw_params_free);
+DECL_FUNCTION(snd_pcm_hw_params_set_period_time_near);
+DECL_FUNCTION(snd_pcm_hw_params_get_channels);
+DECL_FUNCTION(snd_pcm_sw_params_sizeof);
 DECL_FUNCTION(snd_pcm_sw_params_current);
 DECL_FUNCTION(snd_pcm_sw_params);
 DECL_FUNCTION(snd_pcm_sw_params_set_avail_min);
 DECL_FUNCTION(snd_pcm_sw_params_set_start_threshold);
-DECL_FUNCTION(snd_pcm_sw_params_set_stop_threshold);
 DECL_FUNCTION(snd_pcm_mmap_begin);
 DECL_FUNCTION(snd_pcm_mmap_commit);
 DECL_FUNCTION(snd_pcm_writen);
 DECL_FUNCTION(snd_pcm_writei);
 DECL_FUNCTION(snd_pcm_readi);
 DECL_FUNCTION(snd_pcm_readn);
+DECL_FUNCTION(snd_pcm_mmap_readi);
+DECL_FUNCTION(snd_pcm_mmap_readn);
+DECL_FUNCTION(snd_pcm_format_width);
 DECL_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
 DECL_FUNCTION(snd_pcm_hw_params_get_rate_numden);
+DECL_FUNCTION(snd_pcm_hw_params_get_buffer_size);
+DECL_FUNCTION(snd_pcm_hw_params_get_periods);
+DECL_FUNCTION(snd_pcm_hw_params_get_period_size);
 DECL_FUNCTION(snd_pcm_avail_update);
 DECL_FUNCTION(snd_pcm_avail);
 DECL_FUNCTION(snd_pcm_state);
@@ -225,40 +216,18 @@ DECL_FUNCTION(snd_pcm_start);
 DECL_FUNCTION(snd_pcm_delay);
 DECL_FUNCTION(snd_strerror);
 DECL_FUNCTION(snd_lib_error_set_handler);
+
+DECL_FUNCTION(snd_pcm_frames_to_bytes);
+DECL_FUNCTION(snd_pcm_type);
 DECL_FUNCTION(snd_pcm_recover);
 DECL_FUNCTION(snd_pcm_stream);
-DECL_FUNCTION(snd_mixer_open);
-DECL_FUNCTION(snd_mixer_close);
-DECL_FUNCTION(snd_mixer_attach);
-DECL_FUNCTION(snd_mixer_load);
-DECL_FUNCTION(snd_mixer_selem_id_malloc);
-DECL_FUNCTION(snd_mixer_selem_id_free);
-DECL_FUNCTION(snd_mixer_selem_register);
-DECL_FUNCTION(snd_mixer_first_elem);
-DECL_FUNCTION(snd_mixer_elem_next);
-DECL_FUNCTION(snd_mixer_selem_has_playback_volume);
-DECL_FUNCTION(snd_mixer_selem_get_playback_dB);
-DECL_FUNCTION(snd_mixer_selem_get_playback_volume_range);
-DECL_FUNCTION(snd_mixer_selem_get_playback_dB_range);
-DECL_FUNCTION(snd_mixer_selem_ask_playback_dB_vol);
-DECL_FUNCTION(snd_mixer_selem_set_playback_volume_all);
-DECL_FUNCTION(snd_mixer_selem_has_capture_volume);
-DECL_FUNCTION(snd_mixer_selem_get_capture_dB);
-DECL_FUNCTION(snd_mixer_selem_get_capture_volume_range);
-DECL_FUNCTION(snd_mixer_selem_get_capture_dB_range);
-DECL_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);
-DECL_FUNCTION(snd_mixer_selem_set_capture_volume_all);
-DECL_FUNCTION(snd_mixer_selem_get_id);
-DECL_FUNCTION(snd_mixer_selem_id_get_name);
-DECL_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
-#ifndef NDEBUG
+DECL_FUNCTION(snd_pcm_rewind);
+DECL_FUNCTION(snd_pcm_forward);
 DECL_FUNCTION(snd_pcm_dump);
 DECL_FUNCTION(snd_output_stdio_attach);
-#endif
-
 
 typedef struct {
-   char bits;
+   char bps;
    snd_pcm_format_t format;
 } _alsa_formats_t;
 
@@ -271,18 +240,9 @@ static int _xrun_recovery(snd_pcm_t *, int);
 #endif
 
 static unsigned int get_devices_avail(int);
-static int detect_devnum(_driver_t *, int);
-static char *detect_devname(_driver_t *, int);
-static char *_aaxALSADriverLogVar(const void *, const char *, ...);
-static char *_aaxALSADriverGetDefaultInterface(const void *, int);
-
-static int _alsa_pcm_open(_driver_t*, int);
-static int _alsa_pcm_close(_driver_t*);
-static int _alsa_set_access(const void *, snd_pcm_hw_params_t *, snd_pcm_sw_params_t *);
+static int detect_devnum(const char *, int);
+static char *detect_devname(const char*, int, unsigned int, int, char);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
-static void _alsa_error_handler_none(const char *, int, const char *, int, const char *,...);
-static int _alsa_get_volume_range(_driver_t*);
-static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
 static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
 static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
@@ -290,129 +250,120 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
-#define FILL_FACTOR		1.65f
-#define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
-#define STRCMP(a, b)		strncmp((a), (b), strlen(b))
 
-/* forward declarations */
 static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
-static const char *_const_alsa_default_name[2];
+static const char *_const_soft_default_name[2];
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
-static const char* ifname_prefix[];
+
+char *_soft_default_name[2] = { NULL, NULL };
+int _default_devnum = DEFAULT_DEVNUM;
 
 static int
 _aaxALSADriverDetect(int mode)
 {
+   int m = (mode > 0) ? 1 : 0;
    static void *audio = NULL;
    static int rv = AAX_FALSE;
    char *error = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
+   if (_soft_default_name[m] == NULL) {
+      _soft_default_name[m] = (char*)_const_soft_default_name[m];
+   }
+
    if TEST_FOR_FALSE(rv) {
-      audio = _aaxIsLibraryPresent("asound", "2");
+      audio = _oalIsLibraryPresent("asound", "2");
    }
 
    if (audio)
    {
-      _aaxGetSymError(0);
+      const char *hwstr = _aaxGetSIMDSupportString();
 
-      TIE_FUNCTION(snd_pcm_open);					//
-      if (psnd_pcm_open)	
+      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, hwstr);
+      _oalGetSymError(0);
+
+      TIE_FUNCTION(snd_pcm_open);
+      if (psnd_pcm_open)
       {
-         TIE_FUNCTION(snd_pcm_close);					//
-         TIE_FUNCTION(snd_pcm_wait);					//
-         TIE_FUNCTION(snd_pcm_hw_params);				//
-         TIE_FUNCTION(snd_pcm_hw_params_any);				//
-         TIE_FUNCTION(snd_pcm_sw_params);				//
-         TIE_FUNCTION(snd_pcm_mmap_begin);				//
-         TIE_FUNCTION(snd_pcm_mmap_commit);				//
-         TIE_FUNCTION(snd_pcm_writen);					//
-         TIE_FUNCTION(snd_pcm_writei);					//
-         TIE_FUNCTION(snd_pcm_readi);					//
-         TIE_FUNCTION(snd_pcm_readn);					//
-         TIE_FUNCTION(snd_pcm_avail_update);				//
-         TIE_FUNCTION(snd_pcm_avail);					//
-         TIE_FUNCTION(snd_pcm_recover);					//
-         TIE_FUNCTION(snd_mixer_open);					//
-         TIE_FUNCTION(snd_mixer_close);					//
-         TIE_FUNCTION(snd_mixer_attach);				//
-         TIE_FUNCTION(snd_mixer_load);					//
-         TIE_FUNCTION(snd_mixer_selem_id_malloc);			//
-         TIE_FUNCTION(snd_mixer_selem_id_free);				//
-         TIE_FUNCTION(snd_mixer_selem_register);			//
-         TIE_FUNCTION(snd_mixer_first_elem);				//
-         TIE_FUNCTION(snd_mixer_elem_next);				//
-         TIE_FUNCTION(snd_mixer_selem_has_playback_volume);		//
-         TIE_FUNCTION(snd_mixer_selem_get_playback_dB);			//
-         TIE_FUNCTION(snd_mixer_selem_get_playback_volume_range);	//
-         TIE_FUNCTION(snd_mixer_selem_get_playback_dB_range);		//
-         TIE_FUNCTION(snd_mixer_selem_ask_playback_dB_vol);		//
-         TIE_FUNCTION(snd_mixer_selem_set_playback_volume_all);		//
-         TIE_FUNCTION(snd_mixer_selem_has_capture_volume);		//
-         TIE_FUNCTION(snd_mixer_selem_get_capture_dB);			//
-         TIE_FUNCTION(snd_mixer_selem_get_capture_volume_range);	//
-         TIE_FUNCTION(snd_mixer_selem_get_capture_dB_range);		//
-         TIE_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);		//
-         TIE_FUNCTION(snd_mixer_selem_set_capture_volume_all);		//
-         TIE_FUNCTION(snd_mixer_selem_get_id);				//
-         TIE_FUNCTION(snd_mixer_selem_id_get_name);			//
-         TIE_FUNCTION(snd_pcm_nonblock);				//
-         TIE_FUNCTION(snd_pcm_prepare);					//
-         TIE_FUNCTION(snd_pcm_pause);					//
-         TIE_FUNCTION(snd_pcm_hw_params_can_pause);			//
-         TIE_FUNCTION(snd_device_name_hint);				//
-         TIE_FUNCTION(snd_device_name_get_hint);			//
-         TIE_FUNCTION(snd_device_name_free_hint);			//
-         TIE_FUNCTION(snd_pcm_hw_params_malloc);			//
-         TIE_FUNCTION(snd_pcm_hw_params_free);				//
-         TIE_FUNCTION(snd_pcm_hw_params_set_access);			//
-         TIE_FUNCTION(snd_pcm_hw_params_set_format);			//
-         TIE_FUNCTION(snd_pcm_hw_params_set_rate_resample);		//
-         TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);			//
-         TIE_FUNCTION(snd_pcm_hw_params_get_rate_min);			//
-         TIE_FUNCTION(snd_pcm_hw_params_get_rate_max);			//
-         TIE_FUNCTION(snd_pcm_hw_params_test_channels);			//
-         TIE_FUNCTION(snd_pcm_hw_params_set_channels);			//
-         TIE_FUNCTION(snd_pcm_hw_params_get_channels_min);		//
-         TIE_FUNCTION(snd_pcm_hw_params_get_channels_max);		//
-         TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);		//
-         TIE_FUNCTION(snd_pcm_hw_params_set_period_size_near);		//
-         TIE_FUNCTION(snd_pcm_hw_params_get_periods_min);		//
-         TIE_FUNCTION(snd_pcm_hw_params_get_periods_max);		//
-         TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);		//
-         TIE_FUNCTION(snd_pcm_hw_params_get_buffer_size_max);		//
-         TIE_FUNCTION(snd_pcm_sw_params_malloc);			//
-         TIE_FUNCTION(snd_pcm_sw_params_free);				//
-         TIE_FUNCTION(snd_pcm_sw_params_current);			//
-         TIE_FUNCTION(snd_pcm_sw_params_set_avail_min);			//
-         TIE_FUNCTION(snd_pcm_sw_params_set_start_threshold);		//
-         TIE_FUNCTION(snd_pcm_sw_params_set_stop_threshold);		//
-         TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);	//
-         TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);		//
-         TIE_FUNCTION(snd_pcm_state);					//
-         TIE_FUNCTION(snd_pcm_start);					//
-         TIE_FUNCTION(snd_pcm_delay);					//
-         TIE_FUNCTION(snd_pcm_stream);					//
-         TIE_FUNCTION(snd_strerror);					//
-         TIE_FUNCTION(snd_config_update);				//
-         TIE_FUNCTION(snd_lib_error_set_handler);			//
-         TIE_FUNCTION(snd_asoundlib_version);				//
-//       TIE_FUNCTION(snd_output_stdio_attach);
+         TIE_FUNCTION(snd_pcm_close);
+         TIE_FUNCTION(snd_pcm_wait);
+         TIE_FUNCTION(snd_pcm_nonblock);
+         TIE_FUNCTION(snd_pcm_prepare);
+         TIE_FUNCTION(snd_pcm_resume);
+         TIE_FUNCTION(snd_pcm_drain);
+         TIE_FUNCTION(snd_pcm_drop);
+         TIE_FUNCTION(snd_pcm_pause);
+         TIE_FUNCTION(snd_pcm_hw_params_can_pause);
+         TIE_FUNCTION(snd_pcm_hw_params_can_resume);
+         TIE_FUNCTION(snd_pcm_info_malloc);
+         TIE_FUNCTION(snd_pcm_info_sizeof);
+         TIE_FUNCTION(snd_asoundlib_version);
+         TIE_FUNCTION(snd_pcm_info_get_name);
+         TIE_FUNCTION(snd_pcm_info_get_subdevices_count);
+         TIE_FUNCTION(snd_pcm_info_set_subdevice);
+         TIE_FUNCTION(snd_pcm_info_set_device);
+         TIE_FUNCTION(snd_pcm_info_set_stream);
+         TIE_FUNCTION(snd_pcm_info_free);
+         TIE_FUNCTION(snd_device_name_hint);
+         TIE_FUNCTION(snd_device_name_get_hint);
+         TIE_FUNCTION(snd_device_name_free_hint);
+         TIE_FUNCTION(snd_pcm_hw_params_sizeof);
+         TIE_FUNCTION(snd_pcm_hw_params);
+         TIE_FUNCTION(snd_pcm_hw_params_any);
+         TIE_FUNCTION(snd_pcm_hw_params_set_access);
+         TIE_FUNCTION(snd_pcm_hw_params_set_format);
+         TIE_FUNCTION(snd_pcm_hw_params_set_rate_resample);
+         TIE_FUNCTION(snd_pcm_hw_params_set_rate_near);
+         TIE_FUNCTION(snd_pcm_hw_params_test_channels);
+         TIE_FUNCTION(snd_pcm_hw_params_set_channels);
+         TIE_FUNCTION(snd_pcm_hw_params_set_periods_near);
+         TIE_FUNCTION(snd_pcm_hw_params_set_period_time_near);
+         TIE_FUNCTION(snd_pcm_hw_params_set_buffer_size_near);
+         TIE_FUNCTION(snd_pcm_hw_params_set_buffer_time_near);
+         TIE_FUNCTION(snd_pcm_hw_params_get_channels);
+         TIE_FUNCTION(snd_pcm_sw_params_sizeof);
+         TIE_FUNCTION(snd_pcm_sw_params_current);
+         TIE_FUNCTION(snd_pcm_sw_params);
+         TIE_FUNCTION(snd_pcm_sw_params_set_avail_min);
+         TIE_FUNCTION(snd_pcm_sw_params_set_start_threshold);
+         TIE_FUNCTION(snd_pcm_mmap_begin);
+         TIE_FUNCTION(snd_pcm_mmap_commit);
+         TIE_FUNCTION(snd_pcm_writen);
+         TIE_FUNCTION(snd_pcm_writei);
+         TIE_FUNCTION(snd_pcm_readi);
+         TIE_FUNCTION(snd_pcm_readn);
+         TIE_FUNCTION(snd_pcm_mmap_readi);
+         TIE_FUNCTION(snd_pcm_mmap_readn);
+         TIE_FUNCTION(snd_pcm_format_width);
+         TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);
+         TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);
+         TIE_FUNCTION(snd_pcm_hw_params_get_buffer_size);
+         TIE_FUNCTION(snd_pcm_hw_params_get_periods);
+         TIE_FUNCTION(snd_pcm_hw_params_get_period_size);
+         TIE_FUNCTION(snd_pcm_avail_update);
+         TIE_FUNCTION(snd_pcm_avail);
+         TIE_FUNCTION(snd_pcm_state);
+         TIE_FUNCTION(snd_pcm_start);
+         TIE_FUNCTION(snd_pcm_delay);
+         TIE_FUNCTION(snd_strerror);
+         TIE_FUNCTION(snd_lib_error_set_handler);
+
+         TIE_FUNCTION(snd_pcm_frames_to_bytes);
+         TIE_FUNCTION(snd_pcm_type);
+         TIE_FUNCTION(snd_pcm_recover);
+         TIE_FUNCTION(snd_pcm_stream);
+         TIE_FUNCTION(snd_pcm_rewind);
+         TIE_FUNCTION(snd_pcm_forward);
+         TIE_FUNCTION(snd_pcm_dump);
+         TIE_FUNCTION(snd_output_stdio_attach);
       }
 
-      error = _aaxGetSymError(0);
+      error = _oalGetSymError(0);
       if (!error)
       {
-         TIE_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
-         if (get_devices_avail(mode) != 0)
-         {
-            snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
-                             DEFAULT_RENDERER, psnd_asoundlib_version());
-
-            psnd_lib_error_set_handler(_alsa_error_handler_none);
-            psnd_config_update();
+         if (get_devices_avail(mode) != 0) {
             rv = AAX_TRUE;
          }
       }
@@ -432,26 +383,20 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
 
    if (handle)
    {
-      int m = (mode > 0) ? 1 : 0;
-      handle->default_name[m] = (char*)_const_alsa_default_name[m];
       handle->play = _aaxALSADriverPlayback_rw_il;
+      handle->sse_level = _aaxGetSSELevel();
       handle->pause = 0;
       handle->use_mmap = 1;
       handle->interleaved = 0;
+      handle->hw_channels = 2;
 
-      handle->frequency_hz = 48000.0f; 
-      handle->no_tracks = 2;
-      handle->bits_sample = 16;
+      handle->frequency_hz = (float)_aaxALSADriverBackend.rate;
+      handle->no_channels = _aaxALSADriverBackend.tracks;
+      handle->bytes_sample = 2;
       handle->no_periods = (mode) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
 
-      handle->mode = mode;
-      if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
-         handle->use_timer = TIMER_BASED;
-      }
-
-      handle->target[0] = FILL_FACTOR;
-      handle->target[1] = FILL_FACTOR;
-      handle->target[2] = AAX_FPINFINITE;
+      handle->mode = (mode > 0) ? 1 : 0;
+      handle->mix_mono3d = _oalRingBufferMixMonoGetRenderer(mode);
    }
 
    return handle;
@@ -461,7 +406,6 @@ static void *
 _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rdr_aax_fmt;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -471,15 +415,13 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       handle = _aaxALSADriverNewHandle(mode);
    }
 
-   rdr_aax_fmt = (renderer && strstr(renderer, ": ")) ? 1 : 0;
    if (handle)
    {
-      if (rdr_aax_fmt) {
-         handle->name = _aax_strdup((char*)renderer);
-      }
-      else {
-         renderer = handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
-      }
+      const char *hwstr = _aaxGetSIMDSupportString();
+      snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
+                             DEFAULT_RENDERER, psnd_asoundlib_version(), hwstr);
+
+      handle->name = _aax_strdup((char*)renderer);
 
       if (xid)
       {
@@ -489,30 +431,19 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
          if (!handle->name)
          {
-            s = xmlAttributeGetString(xid, "name");
-            if (s)
+            s = xmlNodeGetString(xid, "renderer");
+            if (s && strcmp(s, "default")) {
+               handle->name = _aax_strdup(s);
+            }
+            else
             {
-               if (strcasecmp(s, "default")) {
-                  handle->name = _aax_strdup(s);
-               } else {						/* 'default' */
-                  handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
-               }
-               xmlFree(s);
+               free(s); /* 'default' */
+               handle->name = (char *)_soft_default_name[mode > 0 ? 1 : 0];
             }
          }
 
-         s = getenv("AAX_USE_TIMER");
-         if (s) {
-            handle->use_timer = _aax_getbool(s);
-         } else if (xmlNodeTest(xid, "timed")) {
-            handle->use_timer = xmlNodeGetBool(xid, "timed");
-         }
-         if (handle->mode == AAX_MODE_READ) {
-            handle->use_timer = AAX_FALSE;
-         }
-
-         if (xmlNodeTest(xid, "shared")) {
-            handle->shared = xmlNodeGetBool(xid, "shared");
+         if (xmlNodeGetBool(xid, "virtual-mixer")) {
+            handle->vmixer = AAX_TRUE;
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -520,12 +451,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_DRVLOG("frequency too small.");
+               _AAX_SYSLOG("alsa; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_DRVLOG("frequency too large.");
+               _AAX_SYSLOG("alsa; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->frequency_hz = f;
@@ -538,27 +469,28 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             {
                if (i < 1)
                {
-                  _AAX_DRVLOG("no. tracks too small.");
+                  _AAX_SYSLOG("alsa; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_DRVLOG("no. tracks too great.");
+                  _AAX_SYSLOG("alsa; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
-               handle->no_tracks = i;
+               handle->no_channels = i;
             }
          }
 
          i = xmlNodeGetInt(xid, "bits-per-sample");
          if (i)
          {
-            if (i < 8 || i > 32)
+            i /= 8;
+            if (i < 2 || i > 4)
             {
-               _AAX_DRVLOG("unsupported bits-per-sample");
-               i = 16;
+               _AAX_SYSLOG("alsa; unsupported bits-per-sample");
+               i = 2;
             }
-            handle->bits_sample = i;
+            handle->bytes_sample = i;
          }
 
          i = xmlNodeGetInt(xid, "periods");
@@ -566,12 +498,12 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          {
             if (i < 1)
             {
-               _AAX_DRVLOG("no periods too small.");
+               _AAX_SYSLOG("alsa; no periods too small.");
                i = 1;
             }
             else if (i > 16)
             {
-               _AAX_DRVLOG("no. periods too great.");
+               _AAX_SYSLOG("alsa; no. tracks too great.");
                i = 16;
             }
             handle->no_periods = i;
@@ -581,25 +513,30 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 #if 0
  printf("\nrenderer: %s\n", handle->name);
  printf("frequency-hz: %f\n", handle->frequency_hz);
- printf("channels: %i\n", handle->no_tracks);
- printf("bits-per-sample: %i\n", handle->bits_sample);
+ printf("channels: %i\n", handle->no_channels);
+ printf("bytes-per-sample: %i\n", handle->bytes_sample);
  printf("periods: %i\n", handle->no_periods);
  printf("\n");
 #endif
 
    if (handle)
    {
-      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-      int err;
+      int err, m;
 
-      handle->devnum = detect_devnum(handle, m);
-      if (rdr_aax_fmt) {
-         handle->devname = detect_devname(handle, m);
-      } else {
-         handle->devname = _aax_strdup(renderer ? renderer : "default");
+      psnd_lib_error_set_handler(_alsa_error_handler);
+
+      m = (mode > 0) ? 1 : 0;
+      handle->devnum = detect_devnum(handle->name, m);
+
+      handle->devname = detect_devname(handle->name, handle->devnum,
+                                    handle->no_channels, m, handle->vmixer);
+      err = psnd_pcm_open(&handle->id, handle->devname, _alsa_mode[m], SND_PCM_NONBLOCK);
+      if (err >= 0)
+      {
+         err = psnd_pcm_nonblock(handle->id, 1);
+         if (err < 0) psnd_pcm_close(handle->id);
       }
-    
-      err = _alsa_pcm_open(handle, m);
+
       if (err < 0)
       {
          if (id == 0) free(handle);
@@ -619,49 +556,40 @@ _aaxALSADriverDisconnect(void *id)
 
    if (handle)
    {
-      unsigned char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-
-      if (handle->default_name[m] != _const_alsa_default_name[m]) {
-         free(handle->default_name[m]);
-      }
+      int m = (handle->mode > 0) ? 1 : 0;
 
       free(handle->ifname[0]);
       free(handle->ifname[1]);
       if (handle->devname)
       {
-         if (handle->devname != handle->default_name[m]) {
+         if (handle->devname != _soft_default_name[m]) {
             free(handle->devname);
          }
          handle->devname = 0;
       }
       if (handle->name)
       {
-         if (handle->name != handle->default_name[m]) {
+         if (handle->name != _soft_default_name[m]) {
             free(handle->name);
          }
          handle->name = 0;
       }
 
-      if (handle->mixer)
-      {
-         _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
-         psnd_mixer_close(handle->mixer);
+      if (handle->id) {
+         psnd_pcm_close(handle->id);
       }
-      _aax_free(handle->outMixer);
-      handle->outMixer = NULL;
-
-      if (handle->render) {
-         handle->render->close(handle->render->id);
-      }
-
-      if (handle->pcm) {
-         psnd_pcm_close(handle->pcm);
-      }
-      _aax_free(handle->ptr);
-      handle->ptr = 0;
-      handle->pcm = 0;
+      free(handle->scratch);
+      handle->scratch = 0;
+      handle->id = 0;
       free(handle);
       handle = 0;
+
+      if (_soft_default_name[m] != _const_soft_default_name[m])
+      {
+         free(_soft_default_name[m]);
+         _soft_default_name[m] = (char*)_const_soft_default_name[m];
+         _default_devnum = DEFAULT_DEVNUM;
+      }
 
       return AAX_TRUE;
    }
@@ -671,196 +599,238 @@ _aaxALSADriverDisconnect(void *id)
 
 
 #ifndef NDEBUG
-# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_DRVLOG(s); printf("ALSA error: %s (%i) at line %i\n", s, err, __LINE__); } }
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) { _AAX_SYSLOG("alsa; "s); printf("ALSA error: %s (%i) at line %i\n", s, err, __LINE__); } }
 #else
-# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_DRVLOG(s); }
+# define TRUN(f, s)	if (err >= 0) { err = f; if (err < 0) _AAX_SYSLOG("alsa; "s); }
 #endif
 
 static int
 _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
-                        unsigned int *channels, float *speed, int *bitrate)
+                        unsigned int *tracks, float *speed)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_hw_params_t *hwparams;
    snd_pcm_sw_params_t *swparams;
-   unsigned int tracks, rate;
-   int err, rv = 0;
+   unsigned int channels, rate;
+   int err = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(handle != 0);
 
    rate = (unsigned int)*speed;
-   tracks = *channels;
-   if (tracks > handle->no_tracks) {
-      tracks = handle->no_tracks;
+
+   channels = *tracks;
+   if (channels > handle->no_channels) {
+      channels = handle->no_channels;
    }
  
-   if (handle->no_tracks != tracks)
+   if (handle->no_channels != channels)
    {
-      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
+      int m = handle->mode;
 
-      _alsa_pcm_close(handle);
+      err = psnd_pcm_nonblock(handle->id, 0);
+      err = psnd_pcm_close(handle->id);
 
-      handle->no_tracks = tracks;
-      handle->devnum = detect_devnum(handle, m);
-      handle->devname = detect_devname(handle, m);
-
-      err = _alsa_pcm_open(handle, m);
-      if (err < 0)
-      {
-         _AAX_DRVLOG("unsupported number of tracks");
-         return AAX_FALSE;
+      handle->no_channels = channels;
+      handle->devnum = detect_devnum(handle->name, m);
+      handle->devname = detect_devname(handle->name, handle->devnum,
+                                    handle->no_channels, m, handle->vmixer);
+      err = psnd_pcm_open(&handle->id, handle->devname, _alsa_mode[m], SND_PCM_NONBLOCK);
+      if (err >= 0) {
+         err = psnd_pcm_nonblock(handle->id, 1);
       }
    }
-   /* TODO: for now */
-   if (tracks > 2) {
-      handle->use_timer = AAX_FALSE;
-   }
 
-   psnd_pcm_hw_params_malloc(&hwparams);
-   psnd_pcm_sw_params_malloc(&swparams);
+   hwparams = calloc(1, psnd_pcm_hw_params_sizeof());
+   swparams = calloc(1, psnd_pcm_sw_params_sizeof());
    if (hwparams && swparams)
    {
-      unsigned int bits = handle->bits_sample;
+      snd_pcm_t *hid = handle->id;
+      snd_pcm_format_t data_format;
+      snd_pcm_uframes_t size;
+      unsigned int bps = handle->bytes_sample;
       unsigned int periods = handle->no_periods;
       unsigned int val1, val2, period_fact;
-      snd_pcm_uframes_t period_frames;
-      snd_pcm_format_t data_format;
-      snd_pcm_t *hid = handle->pcm;
-      snd_pcm_sframes_t delay;
-//    unsigned int bytes;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
             "unable to disable sample rate conversion" );
 
-      if (handle->use_timer && psnd_pcm_hw_params_set_period_wakeup) {
-         TRUN( psnd_pcm_hw_params_set_period_wakeup(hid, hwparams, 0),
-            "unable to disable period wakeups" );
-      }
-
-      /* Set the prefered access method (rw/mmap interleaved/non-interleaved) */
-      err = _alsa_set_access(handle, hwparams, swparams);
-
-      /* supported sample formats*/
+#if 0
+      /* for testing purposes */
       if (err >= 0)
       {
-         handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
-
-         TRUN( psnd_pcm_hw_params_get_rate_min(hwparams, &val1, 0),
-               "unable to het the minimum sample reate" );
-         TRUN( psnd_pcm_hw_params_get_rate_max(hwparams, &val2, 0),
-               "unable to het the maximum sample reate" );
-         if (err >= 0)
+         handle->interleaved = 1;
+         handle->use_mmap = 0;
+         err = psnd_pcm_hw_params_set_access(hid, hwparams,
+                                         SND_PCM_ACCESS_RW_INTERLEAVED);
+         if (err < 0) _AAX_SYSLOG("alsa; unable to set interleaved mode");
+      } else
+#endif
+      if (err >= 0)			/* playback */
+      {
+         handle->use_mmap = 1;
+         handle->interleaved = 0;
+         err = psnd_pcm_hw_params_set_access(hid, hwparams,
+                                         SND_PCM_ACCESS_MMAP_NONINTERLEAVED);
+         if (err < 0)
          {
-            rate = _MINMAX(rate, val1, val2);
-            handle->min_frequency = val1;
-            handle->max_frequency = val2;
+            handle->use_mmap = 0;
+            err = psnd_pcm_hw_params_set_access(hid, hwparams,
+                                           SND_PCM_ACCESS_RW_NONINTERLEAVED);
          }
 
-         TRUN( psnd_pcm_hw_params_get_channels_min(hwparams, &val1),
-               "unable to get the minimum no. tracks" );
-         TRUN( psnd_pcm_hw_params_get_channels_max(hwparams, &val2),
-               "unable to get the maximum no. tracks" );
-         if (err >= 0)
+         if (err < 0)
          {
-            val1 = _MIN(val1, handle->min_tracks);
-            val2 = _MAX(_MIN(val2, _AAX_MAX_SPEAKERS),  handle->max_tracks);
-            tracks = _MINMAX(tracks, val1, val2);
-            handle->min_tracks = val1;
-            handle->max_tracks = val2;
-         }
-
-         TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
-                "unable to get the minimum no. periods" );
-         TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
-                "unable to get the maximum no. periods" );
-         if (err >= 0)
-         {
-            if (handle->use_timer) {
-               periods = val1;
-            } else {
-               periods = _MINMAX(periods, val1, val2);
+            handle->use_mmap = 1;
+            handle->interleaved = 1;
+            err = psnd_pcm_hw_params_set_access(hid, hwparams,
+                                           SND_PCM_ACCESS_MMAP_INTERLEAVED);
+            if (err < 0)
+            {
+               handle->use_mmap = 0;
+               err = psnd_pcm_hw_params_set_access(hid, hwparams,
+                                              SND_PCM_ACCESS_RW_INTERLEAVED);
             }
-            handle->min_periods = val1;
-            handle->max_periods = val2;
-         }
 
-         /* recalculate period_frames and latency */
-         period_frames = (*frames * rate)/(*speed * periods);
-         handle->latency = (float)(period_frames*periods)/(float)rate;
+            if (err < 0) _AAX_SYSLOG("alsa; unable to find a proper renderer");
+         }
+#if 0
+         TRUN( psnd_pcm_hw_params_can_mmap_sample_resolution(hwparams),
+               "unable to determine if mmap is supported" );
+         handle->use_mmap = (err == 1);
+#endif
       }
 
-      /* test for supported sample formats */
+      /* test for supported sample formats*/
+      bps = 0;
       if (err >= 0)
       {
-         unsigned int pos = 0;
          do
          {
-            data_format = _alsa_formats[pos].format;
+            data_format = _alsa_formats[bps].format;
             err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
          }
-         while ((err < 0) && (_alsa_formats[++pos].bits != 0));
-         bits = _alsa_formats[pos].bits;
+         while ((err < 0) && (_alsa_formats[++bps].bps != 0));
 
-         if ((err >= 0) && (bits > 0))
+         if ((err >= 0) && (_alsa_formats[bps].bps > 0))
          {
-            switch (pos)
+            switch (bps)
             {
-            case 0:				/* SND_PCM_FORMAT_S24_LE */
-               handle->cvt_to = (_batch_cvt_to_proc)_batch_cvt24_24;
-               handle->cvt_from = (_batch_cvt_from_proc)_batch_cvt24_24;
-               handle->cvt_to_intl = _batch_cvt24_intl_24;
-               handle->cvt_from_intl = _batch_cvt24_24_intl;
-               *fmt = AAX_PCM24S;
+            case 0:				/* SND_PCM_FORMAT_S16_LE */
+               handle->cvt_to = _batch_cvt16_24;
+               handle->cvt_from = _batch_cvt24_16;
+               handle->cvt_to_intl = _batch_cvt16_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_16_intl;
                break;
             case 1:				/* SND_PCM_FORMAT_S32_LE */
                handle->cvt_to = _batch_cvt32_24;
                handle->cvt_from = _batch_cvt24_32;
                handle->cvt_to_intl = _batch_cvt32_intl_24;
                handle->cvt_from_intl = _batch_cvt24_32_intl;
-               *fmt = AAX_PCM32S;
                break;
-            case 2:				/* SND_PCM_FORMAT_S16_LE */
-               handle->cvt_to = _batch_cvt16_24;
-               handle->cvt_from = _batch_cvt24_16;
-               handle->cvt_to_intl = _batch_cvt16_intl_24;
-               handle->cvt_from_intl = _batch_cvt24_16_intl;
-               *fmt = AAX_PCM16S;
+            case 2:				/* SND_PCM_FORMAT_S24_LE */
+               handle->cvt_to = (_batch_cvt_to_proc)_batch_cvt24_24;
+               handle->cvt_from = (_batch_cvt_from_proc)_batch_cvt24_24;
+               handle->cvt_to_intl = _batch_cvt24_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_24_intl;
                break;
             case 3:				/* SND_PCM_FORMAT_S24_3LE */
                handle->cvt_to = _batch_cvt24_3_24;
                handle->cvt_from = _batch_cvt24_24_3;
                handle->cvt_to_intl = _batch_cvt24_3intl_24;
                handle->cvt_from_intl = _batch_cvt24_24_3intl;
-               *fmt = AAX_PCM24S;
                break;
             case 4:				/* SND_PCM_FORMAT_U8 */
                handle->cvt_to = _batch_cvt8_24;
                handle->cvt_from = _batch_cvt24_8;
                handle->cvt_to_intl = _batch_cvt8_intl_24;
                handle->cvt_from_intl = _batch_cvt24_8_intl;
-               *fmt = AAX_PCM8S;
                break;
             default:
-               _AAX_DRVLOG("error: hardware format mismatch!\n");
+               _AAX_SYSLOG("alsa; error: hardware format mismatch!\n");
                err = -EINVAL;
                break;
             }
-            handle->bits_sample = bits;
+            handle->bytes_sample = _alsa_formats[bps].bps;
+            bps = handle->bytes_sample;
          }
          else {
-            _AAX_DRVLOG("unable to match hardware format");
+            _AAX_SYSLOG("alsa; unable to match hardware format");
          }
       }
 
-      TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
-            "unsupported no. tracks" );
-      handle->no_tracks = tracks;
+      if (err >= 0)
+      {
+         int err = psnd_pcm_hw_params_test_channels(hid, hwparams, channels);
+         int tracks = channels;
+         if (err < 0)
+         {
+            do
+            {
+               channels -= 2;
+               if ((int)channels < 2) break;
 
+               err = psnd_pcm_hw_params_test_channels(hid, hwparams, channels);
+            }
+            while (err < 0);
+         }
+
+         if (channels != tracks)
+         {
+            char str[255];
+            snprintf((char *)&str, 255, "Unable to output to %i speakers"
+                                   " (%i is the maximum)", tracks, channels);
+            _AAX_SYSLOG(str);
+         }
+      }
+
+      TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, channels),
+            "unsupported no. channels" );
+      if (channels > handle->no_channels) handle->no_channels = channels;
+      *tracks = channels;
+
+      handle->pitch = (float)rate;
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
+      handle->pitch = rate/handle->pitch;
+
+      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
+            "unsupported no. periods" );
+      period_fact = handle->no_periods/periods;
+      if (err >= 0) {
+         handle->no_periods = periods;
+      }
+
+      /* Set buffer size (in frames). The resulting latency is given by */
+      /* latency = size * periods / (rate * tracks * bps))              */
+      if (frames && (*frames > 0))
+      {
+         size = *frames*channels*bps;
+         if (!handle->mode) size *= period_fact;
+      } else {
+         size = rate/25;
+      }
+
+      size /= channels;
+      size = ceilf(size*handle->pitch);
+      if (size & 0xF)
+      {
+         size |= 0xF;
+         size++;
+      }
+      if (size < 32) size = 32;
+      size *= channels;
+
+      size *= periods;
+      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams, &size),
+            "unvalid buffer size" );
+      size /= periods;
+      *frames = size/(channels*bps);
+
+      if (!handle->mode) size /= period_fact;
+      handle->period_size = size;
 
       val1 = val2 = 0;
       err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
@@ -869,153 +839,10 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          handle->frequency_hz = (float)val1/(float)val2;
          rate = (unsigned int)handle->frequency_hz;
       }
-      handle->frequency_hz = (float)rate;
+      *speed = handle->frequency_hz = (float)rate;
 
-      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
-            "unsupported no. periods" );
-      if (periods == 0) periods = 1;
-      period_fact = handle->no_periods/periods;
-
-      if (err >= 0) {
-         handle->no_periods = periods;
-      }
-
-      if (frames && (*frames > 0))
-      {
-         period_frames = (*frames * rate)/(*speed);
-         if (handle->mode != AAX_MODE_READ) period_frames /= 2;
-      }
-      else {
-         period_frames = rate/25;
-      }
-
-      /** set buffer and period sizes */
-      if (handle->mode == AAX_MODE_READ) {
-         period_frames *= period_fact;
-      }
-      else if (handle->use_timer) {
-         TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
-               "unable to fetch the maximum buffer size" );
-      }
-      else
-      {
-         /* Set buffer size (in frames). The resulting latency is given by */
-         /* latency = periodsize * periods / (rate * bytes_per_frame))     */
-         period_frames *= periods;
-      }
-      TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams,
-                                                    &period_frames),
-            "invalid buffer size" );
-      handle->max_frames = period_frames;
-
-      if (handle->mode == AAX_MODE_READ)
-      {
-         period_frames /= period_fact;
-         handle->latency = (float)(period_frames*periods)/(float)rate;
-      }
-      else if (handle->use_timer)
-      {
-         handle->no_periods = periods = 2;
-         period_frames = *frames/periods;
-
-         handle->target[0] = ((float)period_frames/(float)rate);
-         if (handle->target[0] > 0.02f) {
-            handle->target[0] += 0.01f; // add 10ms
-         } else {
-            handle->target[0] *= FILL_FACTOR;
-         }
-         handle->target[1] = handle->target[0];
-         handle->latency = handle->target[0];
-      }
-      else
-      {
-         period_frames /= periods;
-         handle->latency = (float)(period_frames*periods)/(float)rate;
-      }
-      handle->period_frames = period_frames;
-
-      if (handle->latency < 0.010f) {
-         handle->use_timer = AAX_FALSE;
-      }
-
-      *speed = rate;
-      *channels = tracks;
-      *frames = period_frames;
-
-      TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
-      if (err == -EBUSY) {
-         _AAX_DRVLOG("device busy\n");
-      }
-
-      TRUN( psnd_pcm_sw_params_current(hid, swparams), 
-            "unable to set software config" );
-      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
-            "wakeup treshold unsupported" );
-      if (handle->mode == AAX_MODE_READ)
-      {
-         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 1),
-               "improper interrupt treshold" );
-         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
-                                                     10*period_frames),
-               "set_stop_threshold unsupported" );
-      }
-      else
-      {
-         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
-                                                     period_frames*(periods-1)),
-               "improper interrupt treshold" );
-         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
-                                                     handle->max_frames),
-               "set_stop_threshold unsupported" );
-      }
-      handle->threshold = 5*period_frames/4;
-
-      TRUN( psnd_pcm_sw_params(hid, swparams),
-            "unable to configure software" );
-
-      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
-      if (handle->render)
-      {
-         const char *rstr = handle->render->info(handle->render->id);
-         snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
-                       DEFAULT_RENDERER, psnd_asoundlib_version(), rstr);
-         rv = AAX_TRUE;
-      }
-
-      TRUN( psnd_pcm_prepare(hid),
-            "unable to prepare" );
-
-      // Now fill the playback buffer with handle->no_periods periods of
-      // silence for lowest latency.
-      // TIMER_BASED
-      if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
-      {
-         char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-         _aaxRingBuffer *rb;
-         int i;
-
-         rb = _aaxRingBufferCreate(0.0f, m);
-         if (rb)
-         {
-            rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
-            rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
-            rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
-            rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
-            rb->init(rb, AAX_TRUE);
-            rb->set_state(rb, RB_STARTED);
-
-            for (i=0; i<handle->no_periods; i++) {
-               handle->play(handle, rb, 1.0f, 0.0f);
-            }
-            _aaxRingBufferFree(rb);
-         }
-
-         err = psnd_pcm_delay(hid, &delay);
-         if (err >= 0) {
-            handle->latency = (float)delay/(float)rate;
-         }
-         err = 0;
-      }
+      handle->latency = (float)size*(float)periods;
+      handle->latency /= (float)rate*(float)*tracks*(float)bps;
 
       do
       {
@@ -1023,7 +850,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
          _AAX_SYSLOG("alsa; driver settings:");
 
-         if (handle->mode != AAX_MODE_READ) {
+         if (handle->mode != 0) {
             snprintf(str,255,"  output renderer: '%s'", handle->name);
          } else {
             snprintf(str,255,"  input renderer: '%s'", handle->name);
@@ -1033,7 +860,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
          _AAX_SYSLOG(str);
-         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)(*frames*tracks*bits)/8);
+         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)*frames*channels*bps);
          _AAX_SYSLOG(str);
          snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
          _AAX_SYSLOG(str);
@@ -1043,116 +870,238 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  interleaved: %s",handle->interleaved?"yes":"no");
          _AAX_SYSLOG(str);
-         snprintf(str,255,"  timer based: %s",handle->use_timer?"yes":"no");
-         _AAX_SYSLOG(str);
-         snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
+         snprintf(str,255,"  channels: %i, bytes/sample: %i\n", channels, handle->bytes_sample);
          _AAX_SYSLOG(str);
 #if 0
- printf("alsa; driver settings:\n");
- if (handle->mode != AAX_MODE_READ) {
-    printf("  output renderer: '%s'\n", handle->name);
- } else {
-    printf("  input renderer: '%s'\n", handle->name);
- }
- printf( "  devname: '%s'\n", handle->devname);
- printf( "  playback rate: %u hz\n",  rate);
- printf( "  buffer size: %u bytes\n", (unsigned int)(*frames*tracks*bits)/8);
- printf( "  latency: %3.2f ms\n",  1e3*handle->latency);
- printf( "  no. periods: %i\n", handle->no_periods);
- printf("  use mmap: %s\n", handle->use_mmap?"yes":"no");
- printf("  interleaved: %s\n",handle->interleaved?"yes":"no");
- printf("  timer based: %s\n",handle->use_timer?"yes":"no");
- printf("  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
- printf("\tformat: %x\n", *fmt);
+// printf("\tformat: %X", *fmt);
 #endif
       } while (0);
+
+
+      handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
+      handle->can_pause &= psnd_pcm_hw_params_can_resume(hwparams);
+
+      if (handle->use_mmap && !handle->interleaved) {
+         handle->play = _aaxALSADriverPlayback_mmap_ni;
+      } else if (handle->use_mmap && handle->interleaved) {
+         handle->play = _aaxALSADriverPlayback_mmap_il;
+      } else if (!handle->use_mmap && !handle->interleaved) {
+         handle->play = _aaxALSADriverPlayback_rw_ni;
+      } else {
+         handle->play = _aaxALSADriverPlayback_rw_il;
+      }
+      TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
+      if (err == -EBUSY) {
+         _AAX_SYSLOG("alsa; device busy\n");
+      }
+
+      TRUN( psnd_pcm_sw_params_current(hid, swparams), 
+            "unable to set software config" );
+      if (handle->mode == 0)	/* record */
+      {
+         snd_pcm_uframes_t period_size = handle->period_size;
+//       int dir;
+//       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
+//             "unable to get period size" );
+//       handle->period_size = period_size;
+
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,0x7fffffff),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_size),
+               "wakeup treshold unsupported" );
+      }
+      else			/* playback */
+      {
+         snd_pcm_uframes_t period_size = handle->period_size;
+//       int dir;
+//       TRUN( psnd_pcm_hw_params_get_period_size(hwparams, &period_size, &dir),
+//             "unable to get period size" );
+//       handle->period_size = period_size;
+
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
+                                                (size/period_size)*period_size),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_size),
+               "wakeup treshold unsupported" );
+      }
+
+      TRUN( psnd_pcm_sw_params(hid, swparams),
+            "unable to configure software" );
    }
 
-   if (swparams) psnd_pcm_sw_params_free(swparams);
-   if (hwparams) psnd_pcm_hw_params_free(hwparams);
+   if (swparams) free(swparams);
+   if (hwparams) free(hwparams);
 
    psnd_lib_error_set_handler(_alsa_error_handler);
 
-   return rv;
+   return (err >= 0) ? AAX_TRUE : AAX_FALSE;
 }
 #undef TRUN
 
-static size_t
-_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+static int
+_aaxALSADriverPause(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int tracks, frame_size;
+   int err = -ENOSYS;
+
+   assert(id);
+
+   if (psnd_pcm_state(handle->id) == SND_PCM_STATE_RUNNING && !handle->pause)
+   {
+      handle->pause = 1;
+      if (handle->can_pause) {
+         err = psnd_pcm_pause(handle->id, 1);
+      }
+#if 0
+      else {
+         err = psnd_pcm_drop(handle->id);
+      }
+#endif
+   }
+
+   return err;
+}
+
+static int
+_aaxALSADriverResume(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int err = 0;
+
+   assert(id);
+
+   if (psnd_pcm_state(handle->id) == SND_PCM_STATE_PAUSED && handle->pause)
+   {
+      handle->pause = 0;
+      if (handle->can_pause) {
+         err = psnd_pcm_pause(handle->id, 0);
+      }
+#if 0
+      else {
+         err = psnd_pcm_prepare(handle->id);
+      }
+#endif
+   }
+
+   return err;
+}
+
+static int
+_aaxALSADriverAvailable(const void *id)
+{
+   return AAX_TRUE;
+}
+
+static int
+_aaxALSADriverIsReachable(const void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
+
+   assert(id);
+
+   if (psnd_pcm_state(handle->id) != SND_PCM_STATE_DISCONNECTED) {
+      rv = AAX_TRUE;
+   }
+
+   return rv;
+}
+
+int
+_aaxALSADriver3dMixer(const void *id, void *d, void *s, void *p, void *m, int n, unsigned char ctr, unsigned int nbuf)
+{
+   _driver_t *handle = (_driver_t *)id;
+   float gain;
+   int ret;
+
+   assert(s);
+   assert(d);
+   assert(p);
+
+   gain = _aaxALSADriverBackend.gain;
+   ret = handle->mix_mono3d(d, s, p, m, gain, n, ctr, nbuf);
+
+   return ret;
+}
+
+static int
+_aaxALSADriverCapture(const void *id, void **data, int offs, size_t *req_frames, void *scratch, size_t scratchlen)
+{
+   _driver_t *handle = (_driver_t *)id;
+   unsigned int frames, frame_size, tracks;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   ssize_t offs = *offset;
-   ssize_t init_offs = offs;
-   size_t period_frames;
-   size_t rv = 0;
-   int res;
+   int res, threshold;
+   int rv = AAX_FALSE;
 
-   if ((handle->mode != AAX_MODE_READ) || (req_frames == 0) || (data == 0))
+   if ((handle->mode != 0) || (req_frames == 0) || (data == 0))
    {
-      if (handle->mode == AAX_MODE_READ) {
-         _AAX_DRVLOG("calling the record function with a playback handle");
+      if (handle->mode == 0) {
+         _AAX_SYSLOG("alsa; calling the record function with a playback handle");
       } else if (req_frames == 0) {
-         _AAX_DRVLOG("record buffer size is zero bytes");
+         _AAX_SYSLOG("alsa; record buffer size is zero bytes");
       } else {
-         _AAX_DRVLOG("calling the record function with null pointer");
+         _AAX_SYSLOG("alsa; calling the record function with null pointer");
       }
       return rv;
    }
 
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING) {
-      psnd_pcm_start(handle->pcm);
-   }
-   else if (state == SND_PCM_STATE_XRUN) {
-//    _AAX_DRVLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
-      xrun_recovery(handle->pcm, -EPIPE);
+   state = psnd_pcm_state(handle->id);
+   if (state != SND_PCM_STATE_RUNNING)
+   {
+      if (state <= SND_PCM_STATE_PREPARED)
+      {
+         if (handle->playing == 0)
+         {
+            psnd_pcm_prepare(handle->id);
+            psnd_pcm_start(handle->id);
+         }
+      }
+      else if (state == SND_PCM_STATE_XRUN) {
+//       _AAX_SYSLOG("alsa (record): state = SND_PCM_STATE_XRUN.");
+         xrun_recovery(handle->id, -EPIPE);
+      }
    }
 
-   tracks = handle->no_tracks;
-   frame_size = (tracks * handle->bits_sample)/8;
-   period_frames = *req_frames;
-   handle->buf_len = period_frames * frame_size;
+   tracks = handle->no_channels;
+   frame_size = tracks * handle->bytes_sample;
+   frames = *req_frames;
+#ifndef NDEBUG
+   handle->buf_len = frames * frame_size;
+#endif
 
    /* synchronise capture and playback for registered sensors */
    avail = 0;
-   res = psnd_pcm_delay(handle->pcm, &avail);
+   res = psnd_pcm_delay(handle->id, &avail);
    if (res < 0)
    {
-      if ((res = xrun_recovery(handle->pcm, res)) < 0)
+      if ((res = xrun_recovery(handle->id, res)) < 0)
       {
-         _aaxALSADriverLogVar(id, "xrun: %s", psnd_strerror(res));
+         char s[255];
+         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(res));
+         _AAX_SYSLOG(s);
          avail = -1;
        }
    }
 
    *req_frames = 0;
-   if (period_frames && avail)
+   threshold = handle->period_size;
+   if (frames && (avail > 2*threshold-32))
    {
-      size_t corr, fetch = period_frames;
-      unsigned int chunk, try = 0;
+      unsigned int offs, fetch = frames;
+      int error, chunk, try = 0;
       snd_pcm_uframes_t size;
-      int32_t **sbuf;
-      float diff;
 
-      sbuf = (int32_t**)data;
+      error = _MINMAX(((int)avail - 2*threshold)/6, -4, 4);
+      fetch += error;
+      offs = frames - fetch;
 
-      /* try to keep the buffer padding at the threshold level at all times */
-      diff = (float)avail-(float)handle->threshold;
-      handle->padding = (handle->padding + diff/(float)period_frames)/2;
-      corr = _MINMAX(roundf(handle->padding), -1, 1);
-      fetch += corr;
-      offs -= corr;
-      *offset = -corr;
 #if 0
-if (corr)
- printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, fetch);
+printf("avail: %6i, error: %-3i, fetch: %6i, threshold: %6i\n", avail, error, fetch, 2*threshold, size);
 #endif
-      /* try to keep the buffer padding at the threshold level at all times */
+
       chunk = 10;
-      size = fetch; // period_frames;
+      size = fetch;
       rv = AAX_TRUE;
       do
       {
@@ -1166,27 +1115,28 @@ if (corr)
          if (handle->use_mmap)
          {
             const snd_pcm_channel_area_t *area;
-            snd_pcm_uframes_t frames = size;
+            snd_pcm_uframes_t no_frames = size;
             snd_pcm_uframes_t mmap_offs = 0;
 
-            psnd_pcm_avail_update(handle->pcm);
-            res = psnd_pcm_mmap_begin(handle->pcm, &area, &mmap_offs, &frames);
+            psnd_pcm_avail_update(handle->id);
+            res=psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &no_frames);
             if (res < 0)
             {
-               if ((res = xrun_recovery(handle->pcm, res)) < 0)
+               if ((res = xrun_recovery(handle->id, res)) < 0)
                {
-                  _aaxALSADriverLogVar(id, "mmap begin: %s",
-                                       psnd_strerror(res));
+                  char s[255];
+                  snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(res));
+                  _AAX_SYSLOG(s);
                   return 0;
                }
             }
 
-            if (!frames) break;
+            if (!no_frames) break;
 
             if (handle->interleaved)
             {
                do {
-                  res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
+                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, no_frames);
                }
                while (res == -EAGAIN);
 
@@ -1194,26 +1144,25 @@ if (corr)
                {
                   char *p = (char *)area->addr; 
                   p += (area->first + area->step*mmap_offs) >> 3;
-                  handle->cvt_from_intl(sbuf, p, offs, tracks, res);
+                  handle->cvt_from_intl((int32_t**)data, p, offs, 2, res);
                }
             }
             else
             {
                do {
-                  res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
+                  res = psnd_pcm_mmap_commit(handle->id, mmap_offs, no_frames);
                }
                while (res == -EAGAIN);
 
                if (res > 0)
                {
-                  unsigned int t;
-                  for (t=0; t<tracks; t++)
-                  {
-                     unsigned char *s;
-                     s = (((unsigned char *)area[t].addr) + (area[t].first/8));
-                     s += (mmap_offs*handle->bits_sample)/8;
-                     handle->cvt_from(sbuf[t]+offs, s, res);
-                  }
+                  unsigned char *s;
+                  s = (((unsigned char *)area[0].addr) + (area[0].first/8));
+                  s += mmap_offs*handle->bytes_sample;
+                  handle->cvt_from((int32_t*)data[0]+offs, s, res);
+                  s = (((unsigned char *)area[1].addr) + (area[1].first/8));
+                  s += mmap_offs*handle->bytes_sample;
+                  handle->cvt_from((int32_t*)data[1]+offs, s, res);
                }
             }
          }
@@ -1222,12 +1171,12 @@ if (corr)
             if (handle->interleaved)
             {
                do {
-                  res = psnd_pcm_readi(handle->pcm, scratch, size);
+                  res = psnd_pcm_readi(handle->id, scratch, size);
                }
                while (res == -EAGAIN);
 
                if (res > 0) {
-                  handle->cvt_from_intl(sbuf, scratch, offs, tracks, res);
+                  handle->cvt_from_intl((int32_t**)data, scratch, offs, 2, res);
                }
             }
             else
@@ -1237,34 +1186,32 @@ if (corr)
                s[0] = scratch;
                s[1] = (void*)((char*)s[0] + fetch*frame_size);
                do {
-                  res = psnd_pcm_readn(handle->pcm, s, size);
+                  res = psnd_pcm_readn(handle->id, s, size);
                } while (res == -EAGAIN);
 
                if (res > 0)
                {
-                  handle->cvt_from(sbuf[0]+offs, s[0], res);
-                  if (tracks == 2) {
-                     handle->cvt_from(sbuf[1]+offs, s[1], res);
-                  }
+                  handle->cvt_from((int32_t*)data[0]+offs, s[0], res);
+                  handle->cvt_from((int32_t*)data[1]+offs, s[1], res);
                }
             }
          }
 
          if (res < 0)
          {
-            if (xrun_recovery(handle->pcm, res) < 0)
+            if (xrun_recovery(handle->id, res) < 0)
             {
-               _AAX_DRVLOG("unable to run xrun_recovery");
+               _AAX_SYSLOG("alsa; unable to run xrun_recovery");
                rv = AAX_FALSE;
                break;
             }
             if (try++ > 2)
             {
-               _AAX_DRVLOG("unable to recover from pcm read error");
+               _AAX_SYSLOG("alsa; unable to recover from pcm read error");
                rv = AAX_FALSE;
                break;
             }
-//          _AAX_DRVLOG("warning: pcm read error");
+//          _AAX_SYSLOG("alsa; warning: pcm read error");
             continue;
          }
 
@@ -1272,17 +1219,8 @@ if (corr)
          offs += res;
       }
       while((size > 0) && --chunk);
-      if (!chunk) _AAX_DRVLOG("too many capture tries\n");
+      if (!chunk) _AAX_SYSLOG("alsa; too many capture tries\n");
       *req_frames = offs;
-
-      gain = _alsa_set_volume(handle, NULL, init_offs, offs, tracks, gain);
-      if (gain > 0)
-      {
-         unsigned int i;
-         for (i=0; i<tracks; i++) {
-            _batch_imul_value(sbuf[i]+init_offs, sizeof(int32_t), offs, gain);
-         }
-      }
    }
    else rv = AAX_TRUE;
 
@@ -1290,132 +1228,22 @@ if (corr)
 }
 
 static char *
-_aaxALSADriverGetName(const void *id, int mode)
+_aaxALSADriverGetName(const void *id, int playback)
 {
    _driver_t *handle = (_driver_t *)id;
-   char *ret = NULL;
+   char *ret = (char *)_soft_default_name[handle->mode];
 
    if (handle)
    {
       if (handle->name) {
-         ret = _aax_strdup(handle->name);
+         ret = handle->name;
       } else if (handle->devname) {
-         ret = _aax_strdup(handle->devname);
+         ret = handle->devname;
       }
    }
-   else {
-      ret = _aaxALSADriverGetDefaultInterface(id, mode);
-   }
+   
 
    return ret;
-}
-
-static int
-_aaxALSADriverState(const void *id, enum _aaxDriverState state)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-
-   switch(state)
-   {
-   case DRIVER_AVAILABLE:
-      if (handle && psnd_pcm_state(handle->pcm) != SND_PCM_STATE_DISCONNECTED) {
-         rv = AAX_TRUE;
-      }
-      break;
-   case DRIVER_PAUSE:
-      if (handle)
-      {
-         if (psnd_pcm_state(handle->pcm) == SND_PCM_STATE_RUNNING &&
-             !handle->pause)
-         {
-            if (handle->can_pause) {
-               rv = psnd_pcm_pause(handle->pcm, 1);
-            }
-         }
-         handle->pause = 1;
-      }
-      break;
-   case DRIVER_RESUME:
-      if (handle)
-      {
-         if (psnd_pcm_state(handle->pcm) == SND_PCM_STATE_PAUSED &&
-             handle->pause)
-         {
-            if (handle->can_pause) {
-               rv = psnd_pcm_pause(handle->pcm, 0);
-            }
-         }
-         handle->pause = 0;
-      }
-      break;
-   case DRIVER_SHARED_MIXER:
-      rv = handle->shared;
-      break;
-   case DRIVER_SUPPORTS_PLAYBACK:
-   case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
-      break;
-   case DRIVER_NEED_REINIT:
-   default:
-      break;
-   }
-   return rv;
-}
-
-static float
-_aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
-{
-   _driver_t *handle = (_driver_t *)id;
-   float rv = 0.0f;
-   if (handle)
-   {
-      switch(param)
-      {
-		/* float */
-      case DRIVER_LATENCY:
-         rv = handle->latency;
-         break;
-      case DRIVER_MAX_VOLUME:
-         rv = handle->volumeMax;
-         break;
-      case DRIVER_MIN_VOLUME:
-         rv = handle->volumeMin;
-         break;
-      case DRIVER_VOLUME:
-         rv = handle->volumeHW;
-         break;
-
-		/* int */
-      case DRIVER_MIN_FREQUENCY:
-         rv = (float)handle->min_frequency;
-         break;
-      case DRIVER_MAX_FREQUENCY:
-         rv = (float)handle->max_frequency;
-         break;
-      case DRIVER_MIN_TRACKS:
-         rv = (float)handle->min_tracks;
-         break;
-      case DRIVER_MAX_TRACKS:
-         rv = (float)handle->max_tracks;
-         break;
-      case DRIVER_MIN_PERIODS:
-         rv = (float)handle->min_periods;
-         break;
-      case DRIVER_MAX_PERIODS:
-         rv = (float)handle->max_periods;
-         break;
-
-		/* boolean */
-      case DRIVER_SHARED_MODE:
-      case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
-         break;
-      default:
-         break;
-      }
-   }
-   return rv;
 }
 
 static char *
@@ -1429,7 +1257,6 @@ _aaxALSADriverGetDevices(const void *id, int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
-      char *sysdefault = NULL;
       void **hints;
       int res;
 
@@ -1439,74 +1266,51 @@ _aaxALSADriverGetDevices(const void *id, int mode)
       if (!res && hints)
       {
          void **lst = hints;
-         size_t len = 1024;
+         int len = 1024;
          char *ptr;
 
          ptr = (char *)&names[m];
-         *ptr = 0; *(ptr+1) = 0;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               char *colon = strchr(name, ':');
-
-               if (sysdefault && !STRCMP(name, "sysdefault:"))
+               if (name && !strncmp(name, "front:", strlen("front:")))
                {
-                  free(sysdefault);
-                  sysdefault = NULL;
-               }
-
-               if (name && !(sysdefault && !STRCMP(colon, sysdefault)))
-               {
-                  if ((!colon &&
-                          (strcmp(name, "null") && !strstr(name, "default")))
-                      || (!STRCMP(name, "hw:") && strstr(name, ",DEV=0"))
-                      || !STRCMP(name, "sysdefault:")
-                     )
+                  snd_pcm_t *id;
+                  if (!psnd_pcm_open(&id, name, _alsa_mode[m], SND_PCM_NONBLOCK))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
-                     size_t slen;
+                     int slen;
 
-                     if (!sysdefault && !STRCMP(name, "sysdefault:")) {
-                        sysdefault = strdup(colon);
-                     }
+                     psnd_pcm_close(id);
                      if (!desc) desc = name;
 
                      iface = strstr(desc, ", ");
                      if (iface) *iface = 0;
 
-//                   if (!strchr(name, ':') && (!desc || strcmp(name, desc))) {
-//                      snprintf(ptr, len, "%s: %s", name, desc);
-//                   } else {
-                        snprintf(ptr, len, "%s", desc);
-//                   }
+                     snprintf(ptr, len, "%s", desc);
                      slen = strlen(ptr)+1;	/* skip the trailing 0 */
                      if (slen > (len-1)) break;
 
                      len -= slen;
                      ptr += slen;
 
-                     if (desc != name) _sys_free(desc);
+                     if (desc != name) _aax_free(desc);
                   }
-                  _sys_free(name);
                }
+               _aax_free(name);
             }
-            _sys_free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
          *ptr = 0;
-         free(sysdefault);
       }
 
       res = psnd_device_name_free_hint(hints);
-
-       /* always end with "\0\0" no matter what */
-       names[m][1022] = 0;
-       names[m][1023] = 0;
    }
 
    return (char *)&names[m];
@@ -1521,8 +1325,8 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 
    if (!rv)
    {
-      char devlist[1024] = "\0\0";
-      size_t len = 1024;
+      char name[1024] = "\0\0";
+      int len = 1024;
       void **hints;
       int res;
 
@@ -1532,27 +1336,21 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
          void **lst = hints;
          char *ptr;
 
-         ptr = devlist;
+         ptr = name;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name)
+               if (name && (!strncmp(name, "front:", strlen("front:"))
+                         || !strncmp(name, "center_lfe:", strlen("center_lfe:"))
+                         || !strncmp(name, "rear:", strlen("rear:"))
+                         || !strncmp(name, "side:", strlen("side:"))
+                         || !strncmp(name, "iec958:", strlen("iec958:"))))
                {
-                  char *p = strchr(name, ':');
-                  int i = 0;
-
-                  if (p) *(++p) = 0;
-                  while (ifname_prefix[i] && strcmp(name, ifname_prefix[i])) {
-                     i++;
-                  }
-
-                  if (ifname_prefix[i] && (m ||
-                       (!strcmp(name, "pulse:") || !strcmp(name, "front:") ||
-                        !strcmp(name, "iec958:") || !strcmp(name, "default:")))
-                     )
+                  if (m || (!strncmp(name, "front:", strlen("front:")) ||
+                            !strncmp(name, "iec958:", strlen("iec958:"))))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface;
@@ -1561,52 +1359,52 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      iface = strstr(desc, ", ");
 
                      if (iface) *iface = 0;
-                     if (iface && !strcasecmp(devname, desc))
+                     if (iface && !strcmp(devname, desc))
                      {
-                        size_t slen;
-
-                        if (m || strcmp(name, "front:"))
+                        snd_pcm_t *id;
+                        if (!psnd_pcm_open(&id, name, _alsa_mode[m],
+                                           SND_PCM_NONBLOCK))
                         {
-                           if (iface != desc) {
-                              iface = strchr(iface+2, '\n')+1;
+                           int slen;
+
+                           psnd_pcm_close(id);
+                           if (m || strncmp(name, "front:", strlen("front:")))
+                           {
+                              if (iface != desc) {
+                                 iface = strchr(iface+2, '\n')+1;
+                              }
+                              snprintf(ptr, len, "%s", iface);
                            }
-                           snprintf(ptr, len, "%s", iface);
-                        }
-                        else
-                        {
-                           if (iface != desc) iface += 2;
-                           snprintf(ptr, len, "%s", iface);
-                           iface = strchr(ptr, '\n');
-                           if (iface) *iface = 0;
-                        }
-                        slen = strlen(ptr)+1; /* skip the trailing 0 */
-                        if (slen > (len-1)) break;
+                           else
+                           {
+                              if (iface != desc) iface += 2;
+                              snprintf(ptr, len, "%s", iface);
+                              iface = strchr(ptr, '\n');
+                              if (iface) *iface = 0;
+                           }
+                           slen = strlen(ptr)+1; /* skip the trailing 0 */
+                           if (slen > (len-1)) break;
 
-                        len -= slen;
-                        ptr += slen;
+                           len -= slen;
+                           ptr += slen;
+                        }
                      }
-                     if (desc != name) _sys_free(desc);
+                     if (desc != name) _aax_free(desc);
                   }
                }
-               _sys_free(name);
+               _aax_free(name);
             }
-            _sys_free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
 
-         if (ptr != devlist)
+         if (ptr != name)
          {
             *ptr++ = '\0';
-            if (handle->ifname[m]) {
-               rv = realloc(handle->ifname[m], ptr-devlist);
-            } else {
-               rv = malloc(ptr-devlist);
-            }
-            if (rv)
-            {
-               handle->ifname[m] = rv;
-               memcpy(handle->ifname[m], devlist, ptr-devlist);
+            rv = handle->ifname[m] = malloc(ptr-name);
+            if (rv) {
+               memcpy(handle->ifname[m], name, ptr-name);
             }
          }
       }
@@ -1616,128 +1414,19 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    return rv;
 }
 
-static char *
-_aaxALSADriverGetDefaultInterface(const void *id, int mode)
-{
-// _driver_t *handle = (_driver_t *)id;
-   int m = (mode > 0) ? 1 : 0;
-   char rv[1024]  = "default";
-   size_t len = 1024;
-   void **hints;
-   int res;
-
-   res = psnd_device_name_hint(-1, "pcm", &hints);
-   if (!res && hints)
-   {
-      void **lst = hints;
-      int found = 0;
-
-      do
-      {
-         char *type = psnd_device_name_get_hint(*lst, "IOID");
-         if (!type || (type && !strcmp(type, _alsa_type[m])))
-         {
-            char *name = psnd_device_name_get_hint(*lst, "NAME");
-            if (name)
-            {
-               if ((!m && (!strcmp(name, "default:") ||
-                          !strcmp(name, "sysdefault:")))
-                    || !strcmp(name, "front:")
-                  )
-               {
-                  char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *iface;
- 
-                  if (!desc) desc = name;
-                  iface = strstr(desc, ", ");
-
-                  if (iface && (len > (iface-desc)))
-                  {
-                     char *s = rv;
-                     
-                     snprintf(s, (iface-desc)+1, "%s", desc);
-                     len -= iface-desc;
-                     s += (iface-desc);
-
-                     if (m) iface = strchr(desc, '\n')+1;
-                     if (!m || !iface) iface = strstr(desc, ", ")+2;
-                     
-                     snprintf(s, len, ": %s", iface);
-
-                     if (!m)
-                     {
-                        iface = strchr(iface+2, '\n');
-                        *iface = 0;
-                     }
-                     found = 1;
-                  }
-                  if (desc != name) _sys_free(desc);
-               }
-               _sys_free(name);
-            }
-         }
-         _sys_free(type);
-         ++lst;
-       }
-      while (!found && (*lst != NULL));
-      res = psnd_device_name_free_hint(hints);
-   }
-
-   return _aax_strdup(rv);
-}
-
-
-static char *
-_aaxALSADriverLogVar(const void *id, const char *fmt, ...)
-{
-   char _errstr[1024];
-   va_list ap;
-
-   _errstr[0] = '\0';
-   va_start(ap, fmt);
-   vsnprintf(_errstr, 1024, fmt, ap);
-
-   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
-   _errstr[1023] = '\0';
-   va_end(ap);
-
-   return _aaxALSADriverLog(id, 0, -1, _errstr);
-}
-
-static char *
-_aaxALSADriverLog(const void *id, int prio, int type, const char *str)
-{
-   static char _errstr[256];
-
-   snprintf(_errstr, 256, "asound: %s\n", str);
-   _errstr[255] = '\0';  /* always null terminated */
-
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
-   _AAX_SYSLOG(_errstr);
-#ifndef NDEBUG
-   printf("%s", _errstr);
-#endif
-
-   return (char*)&_errstr;
-}
-
 /*-------------------------------------------------------------------------- */
-
-static const char* ifname_prefix[] = {
-   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL
-};
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
 {
-   {32, SND_PCM_FORMAT_S24_LE},
-   {32, SND_PCM_FORMAT_S32_LE},
-   {16, SND_PCM_FORMAT_S16_LE},
-   {24, SND_PCM_FORMAT_S24_3LE},
-   { 8, SND_PCM_FORMAT_U8},
-   { 0, 0}
+   {2, SND_PCM_FORMAT_S16_LE},
+   {4, SND_PCM_FORMAT_S32_LE},
+   {4, SND_PCM_FORMAT_S24_LE},
+   {3, SND_PCM_FORMAT_S24_3LE},
+   {1, SND_PCM_FORMAT_U8},
+   {0, 0}
 };
 
-static const char* _const_alsa_default_name[2] = {
+static const char* _const_soft_default_name[2] = {
    DEFAULT_HWDEVNAME, DEFAULT_DEVNAME_OLD
 };
 
@@ -1749,175 +1438,49 @@ static const snd_pcm_stream_t _alsa_mode[2] = {
    SND_PCM_STREAM_CAPTURE, SND_PCM_STREAM_PLAYBACK
 };
 
-static int
-_alsa_pcm_open(_driver_t *handle, int m)
-{
-   int err;
-
-   err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
-                       SND_PCM_NONBLOCK);
-   if (err >= 0) {
-      err = psnd_pcm_nonblock(handle->pcm, 1);
-   }
-   if (err >= 0)
-   {
-      err = psnd_mixer_open(&handle->mixer, 0);
-      if (err >= 0)
-      {
-         char name[8];
-         snprintf(name, 8, "hw:%i", handle->devnum);
-         err = psnd_mixer_attach(handle->mixer, name);
-      }
-      if (err >= 0) {
-         err = psnd_mixer_selem_register(handle->mixer, NULL, NULL);
-      }
-      if (err >= 0)
-      {
-         err = psnd_mixer_load(handle->mixer);
-         _alsa_get_volume_range(handle);
-      }
-      if (err < 0)
-      {
-         psnd_mixer_close(handle->mixer);
-         handle->mixer = NULL;
-      }
-   }
-   else
-   {
-      psnd_pcm_close(handle->pcm);
-      handle->pcm = NULL;
-   }
-
-   return err;
-}
-
-static int
-_alsa_pcm_close(_driver_t *handle)
-{
-   int err = 0;
-   if (handle->mixer)
-   {
-      _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
-      psnd_mixer_close(handle->mixer);
-   }
-   if (handle->pcm) {
-      err = psnd_pcm_close(handle->pcm);
-   }
-   return err;
-}
-
-static int
-_alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_params_t *swparams)
-{
-   _driver_t *handle = (_driver_t*)id;
-   snd_pcm_t *hid = handle->pcm;
-   int err = 0;
-
-#if 0
-   /* for testing purposes */
-   if (err >= 0)
-   {
-      handle->use_mmap = 0;
-      handle->interleaved = 1;
-      handle->play = _aaxALSADriverPlayback_rw_il;
-      err = psnd_pcm_hw_params_set_access(hid, hwparams,
-                                          SND_PCM_ACCESS_RW_INTERLEAVED);
-      if (err < 0) _AAX_DRVLOG("unable to set interleaved mode");
-   } else
-#endif
-   if (err >= 0)                     /* playback */
-   {
-      handle->use_mmap = 1;
-      handle->interleaved = 0;
-      handle->play = _aaxALSADriverPlayback_mmap_ni;
-      err = psnd_pcm_hw_params_set_access(hid, hwparams,
-                                          SND_PCM_ACCESS_MMAP_NONINTERLEAVED);
-      if (err < 0)
-      {
-         handle->use_mmap = 0;
-         handle->play = _aaxALSADriverPlayback_rw_ni;
-         err = psnd_pcm_hw_params_set_access(hid, hwparams,
-                                             SND_PCM_ACCESS_RW_NONINTERLEAVED);
-      }
-
-      if (err < 0)
-      {
-         handle->use_mmap = 1;
-         handle->interleaved = 1;
-         handle->play = _aaxALSADriverPlayback_mmap_il;
-         err = psnd_pcm_hw_params_set_access(hid, hwparams,
-                                             SND_PCM_ACCESS_MMAP_INTERLEAVED);
-         if (err < 0)
-         {
-            handle->use_mmap = 0;
-            handle->play = _aaxALSADriverPlayback_rw_il;
-            err = psnd_pcm_hw_params_set_access(hid, hwparams,
-                                                SND_PCM_ACCESS_RW_INTERLEAVED);
-         }
-
-         if (err < 0) _AAX_DRVLOG("unable to find a proper renderer");
-      }
-   }
-
-   return err;
-}
-
-static void
-_alsa_error_handler_none(const char *file, int line, const char *function,
-                         int err, const char *fmt, ...)
-{
-}
-
 static void
 _alsa_error_handler(const char *file, int line, const char *function, int err,
                     const char *fmt, ...)
 {
-   const void *id = NULL;
    char s[1024];
    va_list ap;
 
 #ifndef NDEBUG
-   snprintf(s, 1024, "%s at line %i in function %s:", file, line, function);
+   snprintf((char *)&s, 1024, "%s at line %i in function %s:", file, line, function);
    _AAX_LOG(LOG_ERR, s);
 #endif
 
    va_start(ap, fmt);
-// snprintf(s, 1024, fmt, va_arg(ap, char *));
-   vsnprintf(s, 1024, fmt, ap);
+   snprintf((char *)&s, 1024, fmt, va_arg(ap, char *));
    va_end(ap);
 
-   _AAX_DRVLOG(s);
+   _AAX_SYSLOG(s);
 }
 
 static char *
-detect_devname(_driver_t *handle, int m)
+detect_devname(const char *devname, int devnum, unsigned int tracks, int m, char vmix)
 {
    static const char* dev_prefix[] = {
          "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
-   unsigned int tracks = handle->no_tracks;
-   const char *devname = handle->name;
-   char vmix = handle->shared;
-   char *rv = (char*)handle->default_name[m];
+   char *rv = (char*)_soft_default_name[m];
 
-   if (devname && (tracks < _AAX_MAX_SPEAKERS))
+   if (devname && (tracks <= _AAX_MAX_SPEAKERS))
    {
-      unsigned int tracks_2 = tracks/2;
       void **hints;
       int res;
 
+      tracks /= 2;
       res = psnd_device_name_hint(-1, "pcm", &hints);
       if (!res && hints)
       {
          void **lst = hints;
-         char *ifname;
+         char *ptr;
+         int len;
 
-         ifname = strstr(devname, ": ");
-         if (ifname)
-         {
-             *ifname = 0;
-            ifname += 2;
-         }
+         ptr = strstr(devname, ": ");
+         if (ptr) len = ptr-devname;
+         else len = strlen(devname);
 
          do
          {
@@ -1925,50 +1488,44 @@ detect_devname(_driver_t *handle, int m)
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name)
+               if (name && !strncmp(name, "front:", strlen("front:")))
                {
-                  int i = 0;
-                  while (ifname_prefix[i] && STRCMP(name, ifname_prefix[i])) {
-                     i++;
-                  }
-
-                  if (!strcmp(devname, "pulse")) {
-                     rv = strdup(devname);
-                  }
-                  else if (ifname_prefix[i] && !STRCMP(devname, name))
+                  if (!strcmp(devname, name))
                   {
-                     size_t dlen = strlen(name)+1;
+                     int dlen = strlen(name)+1;
                      if (vmix)
                      {
+                         dlen -= strlen("front:");
                          dlen += strlen("plug:''");
                          if (m) dlen += strlen("dmix:");
                          else dlen += strlen("dsnoop:");
                      }
-
                      rv = malloc(dlen);
                      if (rv)
                      {
                         if (vmix)
                         {
+                            char *ptr =  name+strlen("front:");
                             snprintf(rv, dlen, "plug:'%s%s'",
-                                         m ? "dmix:" : "dsnoop:",
-                                         name + strlen(ifname_prefix[i]));
+                                         m ? "dmix:" : "dsnoop:", ptr);
                         }
                         else {
                             snprintf(rv, dlen, "%s", name);
                         }
+                     } else {
+                        rv = _aax_strdup(name);
                      }
                      break;
                   }
-                  else if (ifname_prefix[i] &&
-                           ((tracks_2 <= (_AAX_MAX_SPEAKERS/2)) ||
-                            (STRCMP(name, dev_prefix[m ? tracks_2 : 0]) == 0))
-                          )
+                  else if ((tracks <= 4)
+                            || (strncmp(name, dev_prefix[m ? tracks : 0],
+                                    strlen(dev_prefix[m ? tracks : 0])) == 0))
                   {
                      char *desc = psnd_device_name_get_hint(*lst, "DESC");
                      char *iface, *description = 0;
 
                      if (!desc) desc = name;
+
                      iface = strstr(desc, ", ");
                      if (iface)
                      {
@@ -1978,62 +1535,87 @@ detect_devname(_driver_t *handle, int m)
                         else description = iface;
                      }
 
-                     if (!strcasecmp(devname, desc))
+                     if (!strncmp(devname, desc, len))
                      {
-                        if (ifname)
+                        char *devptr = strstr(devname, ": ");
+                        if (devptr)
                         {
-                           if (!strcasecmp(ifname, iface) ||
-                               (description && !strcasecmp(ifname, description)))
+                           devptr += 2;
+                           if (!strcmp(devptr, iface) ||
+                               (description && !strcmp(devptr, description)))
                            {
-                              size_t dlen = strlen(name)+1;
-                              dlen += strlen(dev_prefix[m ? tracks_2 : 0]);
+                              int dlen = strlen(name)-strlen("front:")+1;
                               if (vmix)
                               {
                                  dlen += strlen("plug:''");
                                  if (m) dlen += strlen("dmix:");
                                  else dlen += strlen("dsnoop:");
                               }
-
+                              else dlen += strlen(dev_prefix[m ? tracks : 0]);
                               rv = malloc(dlen);
                               if (rv)
                               {
-                                 if (vmix) {
+                                 char *ptr = name+strlen("front:");
+                                 if (vmix)
+                                 {
                                     snprintf(rv, dlen, "plug:'%s%s'",
-                                                 m ? "dmix:" : "dsnoop:",
-                                                 name+strlen(ifname_prefix[i]));
+                                                 m ? "dmix:" : "dsnoop:", ptr);
                                  }
-                                 else if (ifname_prefix[i]) {
+                                 else if (ptr)
+                                 {
                                     snprintf(rv, dlen, "%s%s",
-                                                 (tracks_2 > 1)
-                                                 ? dev_prefix[m ? tracks_2 : 0]
-                                                 : ifname_prefix[i],
-                                                 name+strlen(ifname_prefix[i]));
+                                               dev_prefix[m ? tracks : 0], ptr);
+                                 } else {
+                                    snprintf(rv, dlen, "%s", name);
                                  }
+                              } else {
+                                 rv = _aax_strdup(name);
                               }
                               break;
                            }
                         }
-                        else	// no interface specified, use sysdefault
+                        else
                         {
-                           rv = strdup(name);
+                           int dlen = strlen(name)-strlen("front:")+1;
+                           if (vmix)
+                           {
+                              dlen += strlen("plug:''");
+                              if (m) dlen += strlen("dmix:");
+                              else dlen += strlen("dsnoop:");
+                           }
+                           else dlen += strlen(dev_prefix[m ? tracks : 0]);
+                           rv = malloc(dlen);
+                           if (rv)
+                           {
+                              char *ptr = name+strlen("front:");
+
+                              if (vmix)
+                              {
+                                 snprintf(rv, dlen, "plug:'%s%s'",
+                                                 m ? "dmix:" : "dsnoop:", ptr);
+                              }
+                              else if (ptr)
+                              {
+                                    snprintf(rv, dlen, "%s%s",
+                                               dev_prefix[m ? tracks : 0], ptr);
+                              } else {
+                                 snprintf(rv, dlen, "%s", name);
+                              }
+                           } else {
+                              rv = _aax_strdup(name);
+                           }
                            break;
                         }
                      }
-                     if (desc != name) _sys_free(desc);
+                     if (desc != name) _aax_free(desc);
                   }
-                  _sys_free(name);
+                  _aax_free(name);
                }
             }
-            _sys_free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
-
-         if (ifname)
-         {
-            ifname -= 2;
-            *ifname = ':';
-         }
       }
 
       res = psnd_device_name_free_hint(hints);
@@ -2044,10 +1626,9 @@ detect_devname(_driver_t *handle, int m)
 
 
 static int
-detect_devnum(_driver_t *handle, int m)
+detect_devnum(const char *devname, int m)
 {
-   const char *devname = handle->name;
-   int devnum = handle->default_devnum;
+   int devnum = _default_devnum;
 
    if (devname)
    {
@@ -2057,15 +1638,13 @@ detect_devnum(_driver_t *handle, int m)
       if (!res && hints)
       {
          void **lst = hints;
-         int found, ctr = 0;
-         size_t len;
+         int len, ctr = 0;
          char *ptr;
 
          ptr = strstr(devname, ": ");
          if (ptr) len = ptr-devname;
          else len = strlen(devname);
 
-         found = 0;
          do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
@@ -2074,19 +1653,20 @@ detect_devnum(_driver_t *handle, int m)
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
-                  if (!strcasecmp(devname, name))
+                  if (!strcmp(devname, name))
                   {
-                     _sys_free(name);
+                     _aax_free(name);
                      devnum = ctr;
                      break;
                   }
 
-                  if (!found && !STRCMP(name, "front:"))
+                  if (!strncmp(name, "front:", strlen("front:")))
                   {
-                     if (!strcasecmp(devname, "default"))
+                     if (!strcmp(devname, "default"))
                      {
+                        _aax_free(name);
                         devnum = ctr;
-                        found = 1;
+                        break;
                      }
                      else
                      {
@@ -2098,37 +1678,20 @@ detect_devnum(_driver_t *handle, int m)
                         iface = strstr(desc, ", ");
                         if (iface) *iface = 0;
    
-                        if (!strncasecmp(devname, desc, len))
+                        if (!strncmp(devname, desc, len))
                         {
-                           handle->min_tracks = 2;
+                           _aax_free(desc);
+                           _aax_free(name);
                            devnum = ctr;
-                           found = 1;
+                           break;
                         }
-                        _sys_free(desc);
                         ctr++;
                      }
                   }
-                  else if (!STRCMP(name, "surround"))
-                  {
-                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *iface;
-
-                     if (!desc) continue;
-
-                     iface = strstr(desc, ", ");
-                     if (iface) *iface = 0;
-
-                     if (!strncasecmp(devname, desc, len))
-                     {
-                        int pos = strlen("surround");
-                        handle->max_tracks = name[pos]-'0' + name[pos+1]-'0';
-                     }
-                     _sys_free(desc);
-                  }
-                  _sys_free(name);
+                  _aax_free(name);
                }
             }
-            _sys_free(type);
+            _aax_free(type);
             ++lst;
          }
          while (*lst != NULL);
@@ -2141,298 +1704,31 @@ detect_devnum(_driver_t *handle, int m)
 }
 
 unsigned int
-get_devices_avail(int mode)
+get_devices_avail(int m)
 {
-   static unsigned int rv[2] = {0, 0};
-   int m = (mode > 0) ? 1 : 0;
+   unsigned int rv = 0;
    void **hints;
    int res;
 
-   if (rv[m] == 0)
+   res = psnd_device_name_hint(-1, "pcm", &hints);
+   if (!res && hints)
    {
-      res = psnd_device_name_hint(-1, "pcm", &hints);
-      if (!res && hints)
-      {
-         void **lst = hints;
+      void **lst = hints;
 
-         do
+      do
+      {
+         char *type = psnd_device_name_get_hint(*lst, "IOID");
+         if (!type || (type && !strcmp(type, _alsa_type[m])))
          {
-            char *type = psnd_device_name_get_hint(*lst, "IOID");
-            if (!type || (type && !strcmp(type, _alsa_type[m])))
-            {
-               char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && (!STRCMP(name,"front:") || strstr(name,"default:")))
-               {
-                  rv[m]++;
-               }
-            }
-            _sys_free(type);
-            ++lst;
+            char *name = psnd_device_name_get_hint(*lst, "NAME");
+            if (name && !strncmp(name, "front:", strlen("front:"))) rv++;
          }
-         while (*lst != NULL);
-
-         res = psnd_device_name_free_hint(hints);
+         _aax_free(type);
+         ++lst;
       }
-   }
+      while (*lst != NULL);
 
-   return rv[m];
-}
-
-static int
-_alsa_get_volume_range(_driver_t *handle)
-{
-   snd_mixer_selem_id_t *sid;
-   int rv = 0;
-
-   psnd_mixer_selem_id_malloc(&sid);
-   if (handle->mode == AAX_MODE_READ)
-   {
-      snd_mixer_elem_t *elem;
-      for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-           elem = psnd_mixer_elem_next(elem))
-      {
-         const char *name;
-
-         psnd_mixer_selem_get_id(elem, sid);
-         name = psnd_mixer_selem_id_get_name(sid);
-
-         if (!strcasecmp(name, "Capture"))
-         {
-            if (psnd_mixer_selem_has_capture_volume(elem))
-            {
-               long min, max;
-
-               psnd_mixer_selem_get_capture_dB_range(elem, &min, &max);
-               handle->volumeMin = _db2lin((float)min*0.01f);
-               handle->volumeMax = _db2lin((float)max*0.01f);
-
-               rv = psnd_mixer_selem_get_capture_dB(elem,
-                                                    SND_MIXER_SCHN_MONO, &max);
-               handle->volumeInit = _db2lin((float)max*0.01f);
-               handle->volumeCur = handle->volumeInit;
-               handle->volumeHW = handle->volumeInit;
-
-               psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
-               handle->volumeStep = 0.5f/((float)max-(float)min);
-            }
-            break;
-         }
-      }
-   }
-   else
-   {
-      snd_mixer_elem_t *elem;
-      for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-           elem = psnd_mixer_elem_next(elem))
-      {
-         const char *name;
-
-         psnd_mixer_selem_get_id(elem, sid);
-         name = psnd_mixer_selem_id_get_name(sid);
-
-         if (!strcasecmp(name, "Front") || !strcasecmp(name, "Speaker"))
-         {
-            handle->outMixer = _aax_strdup(name);
-            if (psnd_mixer_selem_has_playback_volume(elem))
-            {
-               long min, max;
-
-               psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
-               handle->volumeMin = _db2lin((float)min*0.01f);
-               handle->volumeMax = _db2lin((float)max*0.01f);
-
-               rv = psnd_mixer_selem_get_playback_dB(elem,
-                                                     SND_MIXER_SCHN_MONO, &min);
-               handle->volumeInit = _db2lin((float)min*0.01f);
-               handle->volumeCur = handle->volumeInit;
-               handle->volumeHW = handle->volumeInit;
-               
-               psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-               handle->volumeStep = 0.5f/((float)max-(float)min);
-            }
-            break;
-         }
-      }
-
-      if (handle->volumeMax == 0.0f)
-      {
-         for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-              elem = psnd_mixer_elem_next(elem))
-         {
-            const char *name;
-
-            psnd_mixer_selem_get_id(elem, sid);
-            name = psnd_mixer_selem_id_get_name(sid);
-
-            if (!strcasecmp(name, "PCM"))
-            {
-               handle->outMixer = _aax_strdup(name);
-               if (psnd_mixer_selem_has_playback_volume(elem))
-               {
-                  long min, max;
-
-                  psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
-                  handle->volumeMin = _db2lin((float)min*0.01f);
-                  handle->volumeMax = _db2lin((float)max*0.01f);
-
-                  rv = psnd_mixer_selem_get_playback_dB(elem,
-                                                     SND_MIXER_SCHN_MONO, &min);
-                  handle->volumeInit = _db2lin((float)min*0.01f);
-                  handle->volumeCur = handle->volumeInit;
-                  handle->volumeHW = handle->volumeInit;
-               
-                  psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-                  handle->volumeStep = 0.5f/((float)max-(float)min);
-               }
-               break;
-            }
-         }
-      }
-
-      if (handle->volumeMax == 0.0f)
-      {
-         for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-              elem = psnd_mixer_elem_next(elem))
-         {
-            const char *name;
-
-            psnd_mixer_selem_get_id(elem, sid);
-            name = psnd_mixer_selem_id_get_name(sid);
-
-            if (!strcasecmp(name, "Master"))
-            {
-               handle->outMixer = _aax_strdup(name);
-               if (psnd_mixer_selem_has_playback_volume(elem))
-               {
-                  long min, max;
-
-                  psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
-                  handle->volumeMin = _db2lin((float)min*0.01f);
-                  handle->volumeMax = _db2lin((float)max*0.01f);
-
-                  rv = psnd_mixer_selem_get_playback_dB(elem,
-                                                     SND_MIXER_SCHN_MONO, &min);
-                  handle->volumeInit = _db2lin((float)min*0.01f);
-                  handle->volumeCur = handle->volumeInit;
-                  handle->volumeHW = handle->volumeInit;
-               
-                  psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-                  handle->volumeStep = 0.5f/((float)max-(float)min);
-               }
-               break;
-            }
-         }
-      }
-
-   }
-   psnd_mixer_selem_id_free(sid);
-
-   return rv;
-}
-
-static float
-_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
-{
-   float gain = fabsf(volume);
-   float hwgain = gain;
-   float rv = 0;
-
-   if (handle && handle->mixer && !handle->shared && handle->volumeMax)
-   {
-      hwgain = _MINMAX(fabsf(gain), handle->volumeMin, handle->volumeMax);
-
-      /*
-       * Slowly adjust volume to dampen volume slider movement.
-       * If the volume step is large, don't dampen it.
-       * volume is negative for auto-gain mode.
-       */
-      if ((volume < 0.0f) && (handle->mode == AAX_MODE_READ))
-      {
-         float dt = no_frames/handle->frequency_hz;
-         float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);	/* 10 sec average */
-
-         /* Quickly adjust for a very large step in volume */
-         if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.9f;
-
-         hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
-         handle->hwgain = hwgain;
-      }
-
-      if (1) // fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
-      {
-         snd_mixer_selem_id_t *sid;
-         snd_mixer_elem_t *elem;
-
-         psnd_mixer_selem_id_malloc(&sid);
-         for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-              elem = psnd_mixer_elem_next(elem))
-         {
-            const char *name;
-            long volume;
-
-            psnd_mixer_selem_get_id(elem, sid);
-
-            if ((handle->mode == AAX_MODE_READ) &&
-                 psnd_mixer_selem_has_capture_volume(elem))
-            {
-               name = psnd_mixer_selem_id_get_name(sid);
-               if (!strcasecmp(name, "Capture"))
-               {
-                  long volumeDB;
-#if 0
-                  psnd_mixer_selem_get_capture_dB(elem, SND_MIXER_SCHN_MONO,
-                                                  &volumeDB);
-                  handle->volumeHW = _db2lin(volumeDB*0.01f);
-#endif
-                  if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
-                  {
-                     int dir = 0;
-
-                     volumeDB = (long)(_lin2db(hwgain)*100.0f);
-                     if (volumeDB > 0) dir = -1;
-                     else if (volumeDB < 0) dir = 1;
-                     psnd_mixer_selem_ask_capture_dB_vol(elem, volumeDB, dir,
-                                                         &volume);
-                     psnd_mixer_selem_set_capture_volume_all(elem, volume);
-                  }
-                  break;
-               }
-            }
-            else if ((handle->mode != AAX_MODE_READ) &&
-                      psnd_mixer_selem_has_playback_volume(elem))
-            {
-               long volumeDB;
-
-               name = psnd_mixer_selem_id_get_name(sid);
-               if ((fabsf(hwgain - handle->volumeCur) >= handle->volumeStep) &&
-                   (!strcasecmp(name, handle->outMixer) || !strcasecmp(name, "Center")
-                    || !strcasecmp(name, "Surround") || !strcasecmp(name, "LFE")
-                    || !strcasecmp(name, "Side")))
-               {
-                  int dir = 0;
-
-                  volumeDB = (long)(_lin2db(hwgain)*100.0f);
-                  if (volumeDB > 0) dir = -1;
-                  else if (volumeDB < 0) dir = 1;
-                  psnd_mixer_selem_ask_playback_dB_vol(elem, volumeDB, dir,
-                                                       &volume);
-                  psnd_mixer_selem_set_playback_volume_all(elem, volume);
-               }
-            }             
-         }
-         psnd_mixer_selem_id_free(sid);
-
-         handle->volumeCur = hwgain;
-      }
-
-      if (hwgain) gain /= hwgain;
-      else gain = 0.0f;
-      rv = gain;
-   }
-
-   /* software volume fallback */
-   if (rb && fabsf(gain - 1.0f) > 0.05f) {
-      rb->data_multiply(rb, offset, no_frames, gain);
+      res = psnd_device_name_free_hint(hints);
    }
 
    return rv;
@@ -2441,7 +1737,6 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
 static int
 _xrun_recovery(snd_pcm_t *handle, int err)
 {
-   const void *id = NULL;
    int res = psnd_pcm_recover(handle, err, 1);
 #if 0
    snd_output_t *output = NULL;
@@ -2450,24 +1745,15 @@ _xrun_recovery(snd_pcm_t *handle, int err)
    psnd_pcm_dump(handle, output);
 #endif
    if (res != 0) {
-      _AAX_DRVLOG("xrun recovery failure");
+      _AAX_SYSLOG("alsa; Unable to recover from xrun situation");
    }
-   else if (res == -EPIPE)
+   else if ((err == -EPIPE) &&
+            (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE))
    {
-      if (psnd_pcm_stream(handle) == SND_PCM_STREAM_CAPTURE)
-      {
-         /* capturing requirs an explicit call to snd_pcm_start */
-         res = psnd_pcm_start(handle);
-         if (res != 0) {
-            _AAX_DRVLOG("input stream restart failure");
-         }
-      }
-      else
-      {
-         res = psnd_pcm_prepare(handle);
-         if (res != 0) {
-            _AAX_DRVLOG("output stream restart failure");
-         }
+      /* capturing requirs an explicit call to snd_pcm_start */
+      res = psnd_pcm_start(handle);
+      if (res != 0) {
+         _AAX_SYSLOG("alsa; unable to restart input stream");
       }
    }
    return res;
@@ -2483,18 +1769,16 @@ _xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
 #endif
 
 
-static size_t
-_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain)
+static int
+_aaxALSADriverPlayback_mmap_ni(const void *id, void *dst, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, t, chunk;
-   snd_pcm_sframes_t period_frames;
+   _oalRingBuffer *rbs = (_oalRingBuffer *)src;
+   unsigned int no_tracks, offs, t, chunk;
+   _oalRingBufferSample *rbsd;
+   snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   snd_pcm_sframes_t res;
-   const int32_t **sbuf;
-   size_t offs, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2502,59 +1786,64 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    if (handle->pause) return 0;
 
    assert(rbs != 0);
+   assert(rbs->sample != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
-   period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
+   rbsd = rbs->sample;
+   offs = _oalRingBufferGetOffsetSamples(rbs);
+   no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
+   no_tracks = _oalRingBufferGetNoTracks(rbs);
 
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING) {
-      psnd_pcm_start(handle->pcm);
-   }
-
-   do
+   state = psnd_pcm_state(handle->id);
+   if (state != SND_PCM_STATE_RUNNING)
    {
-      avail = psnd_pcm_avail(handle->pcm);
-      if (avail < 0)
+      if (state == SND_PCM_STATE_PREPARED)
       {
-         res = xrun_recovery(handle->pcm, avail);
-         if (res < 0)
-         {
-            char s[255];
-            snprintf(s, 255, "avail: %s\n", psnd_strerror(res));
-            _AAX_DRVLOG(s);
-            return 0;
+         if (handle->playing++ < 1) {
+            psnd_pcm_prepare(handle->id);
+         } else {
+            psnd_pcm_start(handle->id);
          }
       }
+      else if (state == SND_PCM_STATE_XRUN) {
+         _AAX_SYSLOG("alsa (mmap_ni): state = SND_PCM_STATE_XRUN.");
+         xrun_recovery(handle->id, -EPIPE);
+      }
    }
-   while (avail < 0);
-   rv = avail;
 
-   _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
-
-   if (avail < period_frames) {
-      usecSleep(500);
+   avail = psnd_pcm_avail_update(handle->id);
+   if (avail < 0)
+   {
+      int err;
+      if ((err = xrun_recovery(handle->id, avail)) < 0)
+      {
+         char s[255];
+         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+         _AAX_SYSLOG(s);
+         return 0;
+      }
    }
+
+   if (avail < no_frames) avail = 0;
+   else avail = no_frames;
 
    chunk = 10;
-   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
    do
    {
       const snd_pcm_channel_area_t *area;
-      snd_pcm_uframes_t frames = period_frames;
+      snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
+      snd_pcm_sframes_t res;
+      int err;
 
-      res = psnd_pcm_mmap_begin(handle->pcm, &area, &mmap_offs, &frames);
-      if (res < 0)
+      err = psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &frames);
+      if (err < 0)
       {
-         res = xrun_recovery(handle->pcm, res);
-         if (res < 0)
+         if ((err = xrun_recovery(handle->id, err)) < 0)
          {
             char s[255];
-            snprintf(s, 255, "mmap begin: %s\n", psnd_strerror(res));
-            _AAX_DRVLOG(s);
-            rv = 0;
-            break;
+            snprintf(s, 255, "MMAP begin avail error: %s\n",psnd_strerror(err));
+            _AAX_SYSLOG(s);
+            return 0;
          }
       }
 
@@ -2562,152 +1851,135 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       {
          unsigned char *p;
          p = (((unsigned char *)area[t].addr) + (area[t].first/8));
-         p += (mmap_offs*handle->bits_sample)/8;
-         handle->cvt_to(p, sbuf[t]+offs, frames);
+         p += mmap_offs*handle->bytes_sample;
+         handle->cvt_to(p, (const int32_t *)rbsd->track[t]+offs, frames);
       }
 
-      res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
-      if (res < 0 || res != frames)
+      res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
+      if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
-         res = xrun_recovery(handle->pcm, res >= 0 ? -EPIPE : res);
-         if (res < 0)
-         {
-            rv = 0;
-            break;
+         if (xrun_recovery(handle->id, res >= 0 ? -EPIPE : res) < 0) {
+            return 0;
          }
-         res = 0;
       }
-
       offs += res;
-      period_frames -= res;
+      avail -= res;
    }
-   while ((period_frames > 0) && --chunk);
-   rbs->release_tracks_ptr(rbs);
+   while ((avail > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
-   if (!chunk) _AAX_DRVLOG("too many playback tries");
-
-   return rv;
+   return 0;
 }
 
 
-static size_t
-_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain)
+static int
+_aaxALSADriverPlayback_mmap_il(const void *id, void *dst, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, chunk;
-   snd_pcm_sframes_t period_frames;
+   _oalRingBuffer *rbs = (_oalRingBuffer *)src;
+   unsigned int no_tracks, offs, chunk;
+   _oalRingBufferSample *rbsd;
+   snd_pcm_sframes_t no_frames;
    snd_pcm_sframes_t avail;
    snd_pcm_state_t state;
-   snd_pcm_sframes_t res;
-   const int32_t **sbuf;
-   size_t offs, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(handle != 0);
-   if (handle->pause) return 0;
 
    assert(rbs != 0);
+   assert(rbs->sample != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES) - offs;
-   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
+   rbsd = rbs->sample;
+   offs = _oalRingBufferGetOffsetSamples(rbs);
+   no_frames = _oalRingBufferGetNoSamples(rbs) - offs;
+   no_tracks = _oalRingBufferGetNoTracks(rbs);
 
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING) {
-      psnd_pcm_start(handle->pcm);
-   }
-
-   do
+   state = psnd_pcm_state(handle->id);
+   if (state != SND_PCM_STATE_RUNNING)
    {
-      avail = psnd_pcm_avail(handle->pcm);
-      if (avail < 0)
+      if (state == SND_PCM_STATE_PREPARED)
       {
-         res = xrun_recovery(handle->pcm, avail);
-         if (res < 0)
-         {
-            char s[255];
-            snprintf(s, 255, "avail: %s\n", psnd_strerror(res));
-            _AAX_DRVLOG(s);
-            return 0;
+         if (handle->playing++ < 1) {
+            psnd_pcm_prepare(handle->id);
+         } else {
+            psnd_pcm_start(handle->id);
          }
       }
+      else if (state == SND_PCM_STATE_XRUN) {
+         _AAX_SYSLOG("alsa (mmap_il): state = SND_PCM_STATE_XRUN.");
+         xrun_recovery(handle->id, -EPIPE);
+      }
    }
-   while (avail < 0);
-   rv = avail;
 
-   _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
-
-   if (avail < period_frames) {
-      usecSleep(500);
+   avail = psnd_pcm_avail_update(handle->id);
+   if (avail < 0)
+   {
+      int err;
+      if ((err = xrun_recovery(handle->id, avail)) < 0) 
+      {
+         char s[255];
+         snprintf(s, 255, "PCM avail error: %s\n", psnd_strerror(err));
+         _AAX_SYSLOG(s);
+         return 0;
+      }
    }
+   
+   if (avail < no_frames) avail = 0;
+   else avail = no_frames;
 
    chunk = 10;
-   sbuf = (const int32_t **)rbs->get_tracks_ptr(rbs, RB_READ);
    do
    {
       const snd_pcm_channel_area_t *area;
-      snd_pcm_uframes_t frames = period_frames;
+      snd_pcm_uframes_t frames = avail;
       snd_pcm_uframes_t mmap_offs;
+      snd_pcm_sframes_t res;
       char *p;
+      int err;
 
-      res = psnd_pcm_mmap_begin(handle->pcm, &area, &mmap_offs, &frames);
-      if (res < 0)
+      err = psnd_pcm_mmap_begin(handle->id, &area, &mmap_offs, &frames);
+      if (err < 0)
       {
-         res = xrun_recovery(handle->pcm, res);
-         if (res < 0)
+         if ((err = xrun_recovery(handle->id, err)) < 0)
          {
             char s[255];
-            snprintf(s, 255, "mmap begin: %s\n",psnd_strerror(res));
-            _AAX_DRVLOG(s);
-            rv = 0;
-            break;
+            snprintf(s, 255, "MMAP begin error: %s\n",psnd_strerror(err));
+            _AAX_SYSLOG(s);
+            return 0;
          }
       }
 
       p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
-      handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
+      handle->cvt_to_intl(p, (const int32_t**)rbsd->track, offs, no_tracks, frames);
 
-      res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
-      if (res < 0 || res != frames)
+      res = psnd_pcm_mmap_commit(handle->id, mmap_offs, frames);
+      if (res < 0 || (snd_pcm_uframes_t)res != frames)
       {
-         res = xrun_recovery(handle->pcm, res >= 0 ? -EPIPE : res);
-         if (res < 0)
-         {
-            rv = 0;
-            break;
+         if (xrun_recovery(handle->id, res >= 0 ? -EPIPE : res) < 0) {
+            return 0;
          }
-         res = 0;
       }
-
       offs += res;
-      period_frames -= res;
+      avail -= res;
    }
-   while ((period_frames > 0) && --chunk);
-   rbs->release_tracks_ptr(rbs);
+   while ((avail > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
-   if (!chunk) _AAX_DRVLOG("too many playback tries");
-
-   return rv;
+   return 0;
 }
 
 
-static size_t
-_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
+static int
+_aaxALSADriverPlayback_rw_ni(const void *id, void *dst, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   char **data[_AAX_MAX_SPEAKERS];
-   unsigned int t, no_tracks;
-   unsigned int hw_bits, chunk;
-   snd_pcm_sframes_t period_frames;
-   snd_pcm_sframes_t avail;
-// snd_pcm_state_t state;
-   snd_pcm_sframes_t res;
-   const int32_t **sbuf;
-   ssize_t outbuf_size;
-   size_t offs, rv = 0;
+   _oalRingBuffer *rbs = (_oalRingBuffer *)src;
+   unsigned int no_samples, no_tracks, chunk;
+   unsigned int offs, t, hw_bps;
+   _oalRingBufferSample *rbsd;
+   char **data;
+   int err;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
@@ -2715,237 +1987,183 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
    if (handle->pause) return 0;
 
    assert(rbs != 0);
+   assert(rbs->sample != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
-   period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES);
-   hw_bits = handle->bits_sample;
+   rbsd = rbs->sample;
+   offs = _oalRingBufferGetOffsetSamples(rbs);
+   no_samples = _oalRingBufferGetNoSamples(rbs) - offs;
+   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   hw_bps = handle->bytes_sample;
 
-   outbuf_size = (no_tracks * period_frames*hw_bits)/8;
-   if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
+   if (handle->scratch == 0)
    {
-      size_t size;
+      unsigned int samples, outbuf_size, size;
+      int16_t *ptr;
       char *p;
 
-      _aax_free(handle->ptr);
-      handle->buf_len = outbuf_size;
-      
-      outbuf_size = SIZETO16((period_frames*hw_bits)/8);
+      samples = _oalRingBufferGetNoSamples(rbs);
+      outbuf_size = samples * hw_bps;
+      if (outbuf_size & 0xF)
+      {
+         outbuf_size|= 0xF;
+         outbuf_size++;
+      }
 
-      size = no_tracks * sizeof(void*);
-      p = (char *)size;
-
+      size = no_tracks * (2*sizeof(void*));
       size += no_tracks * outbuf_size;
-      handle->ptr = (void**)_aax_malloc(&p, size);
-      handle->scratch = (char**)p;
 
+      p = (char *)(no_tracks * 2*sizeof(void*));
+      handle->scratch = (void**)_aax_malloc(&p, size);
+      handle->data = (char**)handle->scratch + no_tracks;
+
+      ptr = (int16_t*)p;
       for (t=0; t<no_tracks; t++)
       {
-         handle->ptr[t] = p;
-         p += outbuf_size;
+         handle->scratch[t] = ptr;
+         ptr += samples;
       }
+#ifndef NDEBUG
+      handle->buf_len = outbuf_size;
+#endif
    }
 
-#if 0
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING) {
-      psnd_pcm_start(handle->pcm);
-   }
+#ifndef NDEBUG
+      assert(no_samples*hw_bps <= handle->buf_len);
 #endif
 
-   period_frames -= offs;
-   do
-   {
-      avail = psnd_pcm_avail(handle->pcm);
-      if (avail < 0)
-      {
-         res = xrun_recovery(handle->pcm, avail);
-         if (res < 0)
-         {
-            char s[255];
-            snprintf(s, 255, "avail: %s\n", psnd_strerror(res));
-            _AAX_DRVLOG(s);
-            return 0;
-         }
-      }
-   }
-   while (avail < 0);
-   rv = avail;
-
-   _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
-
-   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
+  
+   data = handle->data;
    for (t=0; t<no_tracks; t++)
    {
-      data[t] = handle->ptr[t];
-      handle->cvt_to(data[t], sbuf[t]+offs, period_frames);
-   }
-   rbs->release_tracks_ptr(rbs);
-
-   if (avail < period_frames) {
-      usecSleep(500);
+      data[t] = handle->scratch[t];
+      handle->cvt_to(data[t], (const int32_t*)rbsd->track[t]+offs, no_samples);
    }
 
    chunk = 10;
    do
    {
-      res = psnd_pcm_writen(handle->pcm, (void**)data, period_frames);
-      if (res < 0)
+      do {
+         err = psnd_pcm_writen(handle->id, (void**)data, no_samples);
+      }
+      while (err == -EAGAIN);
+
+      if (err < 0)
       {
-         res = xrun_recovery(handle->pcm, res);
-         if (res < 0)
-         {
-            _AAX_DRVLOG("xrun_recovery failure");
-            rv = 0;
-            break;
+         if (xrun_recovery(handle->id, err) < 0) {
+            return 0;
          }
-         res = 0;
+         break; /* skip one period */
       }
 
       for (t=0; t<no_tracks; t++) {
-         data[t] += (res*hw_bits)/8;
+         data[t] += err;
       }
-      period_frames -= res;
+      no_samples -= err;
    }
-   while ((period_frames > 0) && --chunk);
-   if (!chunk) _AAX_DRVLOG("too many playback tries");
+   while ((no_samples > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
-   return rv;
+   return 0;
 }
 
 
-static size_t
-_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
+static int
+_aaxALSADriverPlayback(const void *id, void *dst, void *src, float pitch, float volume)
 {
    _driver_t *handle = (_driver_t *)id;
-   _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
-   unsigned int no_tracks, chunk, hw_bits;
-   snd_pcm_sframes_t period_frames;
-   snd_pcm_sframes_t avail;
-// snd_pcm_state_t state;
-   snd_pcm_sframes_t res;
-   const int32_t **sbuf;
-   size_t outbuf_size;
-   size_t offs, rv = 0;
+   return handle->play(id, dst, src, pitch, volume);
+}
+
+static int
+_aaxALSADriverPlayback_rw_il(const void *id, void *dst, void *src, float pitch, float volume
+)
+{
+   _driver_t *handle = (_driver_t *)id;
+   _oalRingBuffer *rbs = (_oalRingBuffer *)src;
+   unsigned int no_samples, no_tracks, offs, hw_bps;
+   unsigned int outbuf_size, chunk;
+   _oalRingBufferSample *rbsd;
    char *data;
+   int err;
     
+
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    assert(handle != 0);
    if (handle->pause) return 0;
 
    assert(rbs != 0);
+   assert(rbs->sample != 0);
 
-   offs = rbs->get_parami(rbs, RB_OFFSET_SAMPLES);
-   no_tracks = rbs->get_parami(rbs, RB_NO_TRACKS);
-   period_frames = rbs->get_parami(rbs, RB_NO_SAMPLES);
-   hw_bits = handle->bits_sample;
+   rbsd = rbs->sample;
+   offs = _oalRingBufferGetOffsetSamples(rbs);
+   no_samples = _oalRingBufferGetNoSamples(rbs) - offs;
+   no_tracks = _oalRingBufferGetNoTracks(rbs);
+   hw_bps = handle->bytes_sample;
 
-   outbuf_size = (no_tracks * period_frames*hw_bits)/8;
-   if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
+   outbuf_size = no_tracks * no_samples*hw_bps;
+   if (handle->scratch == 0)
    {
       char *p = 0;
-
-      _aax_free(handle->ptr);
+      handle->scratch = (void**)_aax_malloc(&p, outbuf_size);
+      handle->data = (char**)p;
+#ifndef NDEBUG
       handle->buf_len = outbuf_size;
-
-      handle->ptr = (void**)_aax_malloc(&p, outbuf_size);
-      handle->scratch = (char**)p;
+#endif
    }
 
 #if 0
-   state = psnd_pcm_state(handle->pcm);
-   if (state != SND_PCM_STATE_RUNNING) {
-      psnd_pcm_start(handle->pcm);
-   }
+   assert(outbuf_size <= handle->buf_len);
 #endif
 
-   period_frames -= offs;
-   do
-   {
-      avail = psnd_pcm_avail(handle->pcm);
-      if (avail < 0)
-      {
-         res = xrun_recovery(handle->pcm, avail);
-         if (res < 0)
-         {
-            char s[255];
-            snprintf(s, 255, "avail: %s\n", psnd_strerror(res));
-            _AAX_DRVLOG(s);
-            return 0;
-         }
-      }
-   }
-   while (avail < 0);
-   rv = avail;
-
-   _alsa_set_volume(handle, rbs, offs, period_frames, no_tracks, gain);
-
-   data = (char*)handle->scratch;
-   sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
-   handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
-   rbs->release_tracks_ptr(rbs);
-
-   if (avail < period_frames) {
-      usecSleep(500);
-   }
+   data = (char*)handle->data;
+   handle->cvt_to_intl(data, (const int32_t**)rbsd->track, offs, no_tracks, no_samples);
 
    chunk = 10;
    do
    {
-      res = psnd_pcm_writei(handle->pcm, data, period_frames);
-      if (res < 0)
+      int try = 0;
+
+      do {
+         err = psnd_pcm_writei(handle->id, data, no_samples);
+      }
+      while (err == -EAGAIN);
+
+      if (err < 0)
       {
-         res = xrun_recovery(handle->pcm, res);
-         if (res < 0)
+         if (xrun_recovery(handle->id, err) < 0)
          {
-            _AAX_DRVLOG("xrun_recovery failure");
-            rv = 0;
+            _AAX_SYSLOG("alsa; unable to run xrun_recovery");
+            return 0;
+         }
+         if (try++ > 2) 
+         {
+            _AAX_SYSLOG("alsa; unable to recover from pcm write error");
             break;
          }
-         res = 0;
+//       _AAX_SYSLOG("alsa; warning: pcm write error");
+         continue;
       }
 
-      data += (res * no_tracks*hw_bits)/8;
-      period_frames -= res;
+      data += err * no_tracks;
+      no_samples -= err;
    }
-   while ((period_frames > 0) && --chunk);
-   if (!chunk) _AAX_DRVLOG("too many playback tries");
+   while ((no_samples > 0) && --chunk);
+   if (!chunk) _AAX_SYSLOG("alsa; too many playback tries\n");
 
-   return rv;
+   return 0;
 }
 
-static size_t
-_aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
-{
-   _driver_t *handle = (_driver_t *)id;
-   size_t res;
-
-   res = handle->play(id, src, pitch, gain);
-
-   return handle->max_frames - res;
-}
-
-_aaxRenderer*
-_aaxALSADriverRender(const void* config)
-{
-   _driver_t *handle = (_driver_t *)config;
-   return handle->render;
-}
 
 void *
 _aaxALSADriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-#if ENABLE_TIMING
-   _aaxTimer *timer = _aaxTimerCreate();
-#endif
-   float delay_sec, wait_us; // no_samples
    _intBufferData *dptr_sensor;
    const _aaxDriverBackend *be;
-   _aaxRingBuffer *dest_rb;
+   _oalRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
-   const void *id;
+   float delay_sec;
    int stdby_time;
    char state;
 
@@ -2954,164 +2172,92 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
+   dest_rb = _oalRingBufferCreate(AAX_TRUE);
+   if (!dest_rb) {
+      return NULL;
+   }
+
    delay_sec = 1.0f/handle->info->refresh_rate;
 
    be = handle->backend.ptr;
-   id = handle->backend.handle;		// Required for _AAX_DRVLOG
-
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
       _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
-
       mixer = sensor->mixer;
 
-      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
-      if (dest_rb)
-      {
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
-         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
-         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
-         dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
-         dest_rb->set_state(dest_rb, RB_STARTED);
+      _oalRingBufferSetFormat(dest_rb, be->codecs, AAX_PCM24S);
+      _oalRingBufferSetNoTracks(dest_rb, mixer->info->no_tracks);
+      _oalRingBufferSetFrequency(dest_rb, mixer->info->frequency);
+      _oalRingBufferSetDuration(dest_rb, delay_sec);
+      _oalRingBufferInit(dest_rb, AAX_TRUE);
+      _oalRingBufferStart(dest_rb);
 
-         handle->ringbuffer = dest_rb;
-      }
+      mixer->ringbuffer = dest_rb;
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-
-      if (!dest_rb) {
-         return NULL;
-      }
    }
-   else {
+   else
+   {
+      _oalRingBufferDelete(dest_rb);
       return NULL;
    }
 
-   be->state(handle->backend.handle, DRIVER_PAUSE);
+   be->pause(handle->backend.handle);
    state = AAX_SUSPENDED;
 
-   wait_us = delay_sec*1000000.0f;
-// no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
-   stdby_time = (int)(delay_sec*1000);
-   _aaxMutexLock(handle->thread.signal.mutex);
+   _aaxMutexLock(handle->thread.mutex);
+   stdby_time = 2*(int)(delay_sec*1000);
    while TEST_FOR_TRUE(handle->thread.started)
    {
       _driver_t *be_handle = (_driver_t *)handle->backend.handle;
       int err;
 
-      _aaxMutexUnLock(handle->thread.signal.mutex);
-
-      if (_IS_PLAYING(handle))
+      _aaxMutexUnLock(handle->thread.mutex);
+      if (_IS_PLAYING(handle) && be->is_available(be_handle))
       {
-         // TIMER_BASED
-         if (be_handle->use_timer) {
-            usecSleep(wait_us);
-         }
 				/* timeout is in ms */
-         else
+         if ((err = psnd_pcm_wait(be_handle->id, stdby_time)) < 0)
          {
-//          int avail = psnd_pcm_avail_update(be_handle->pcm);
-            if (1) // avail < be_handle->period_frames)
-            {
-               err = psnd_pcm_wait(be_handle->pcm, 2*stdby_time);
-               if (err < 0)
-               {
-                  xrun_recovery(be_handle->pcm, err);
-                  _AAX_DRVLOG("snd_pcm_wait polling error");
-              }
-           }
+            _AAX_SYSLOG("alsa; snd_pcm_wait polling error");
+//          _aaxMutexLock(handle->thread.mutex);
+//          continue;
          }
       }
       else {
-         msecSleep(stdby_time);
+         msecSleep(delay_sec*1000);
       }
+      _aaxMutexLock(handle->thread.mutex);
 
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
-         _SET_PROCESSED(handle);
-      }
-
-      _aaxMutexLock(handle->thread.signal.mutex);
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
-
-      if (state != handle->state)
-      {
-         if (_IS_PAUSED(handle) ||
-             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
-            be->state(handle->backend.handle, DRIVER_PAUSE);
-         }
-         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
-            be->state(handle->backend.handle, DRIVER_RESUME);
-         }
-         state = handle->state;
-      }
-
-#if ENABLE_TIMING
-       _aaxTimerStart(timer);
-#endif
-      if (_IS_PLAYING(handle))
-      {
-         int res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
-
-         if (be_handle->use_timer)
-         {
-            float diff, target, input, err, P, I;
-            float freq = mixer->info->frequency;
-
-            target = be_handle->target[1];
-            input = (float)res/freq;
-            err = input - target;
-
-            P = err;
-            I = err*delay_sec;
-
-            be_handle->PID[0] += I;
-            I = be_handle->PID[0];
-
-            diff = 1.85f*P + 0.9f*I;
-            wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
-
-            be_handle->target[2] += delay_sec*1000.0f;	// ms
-            if (res < be_handle->target[0]*freq)
-            {
-               be_handle->target[1] += 0.001f/be_handle->target[2];
-               be_handle->target[2] = 0.0f;
-#if 0
- printf("increase, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
-#endif
-            }
-            else if (be_handle->target[2] >= 10.0f*1000.0f)	// 10 sec
-            {
-               be_handle->target[1] *= 0.995f;
-               be_handle->target[2] = 0.0f;
-#if 0
- printf("reduce, target: %5.1f (%i), new: %5.2f, wait: %5.3f (%5.3f) ms\n", be_handle->target[0]*freq, res, be_handle->target[1]*freq, wait_us/1000.0f, delay_sec*1000.0f);
-#endif
-            }
-         }
-      }
-#if ENABLE_TIMING
-{
-float elapsed = _aaxTimerElapsed(timer);
-if (elapsed > delay_sec)
- printf("elapsed: %f ms\n", elapsed*1000.0f);
-}
-#endif
 
 #if 0
  printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
  printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
+      if (state != handle->state)
+      {
+         if (_IS_PAUSED(handle) ||
+             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+            be->pause(handle->backend.handle);
+         }
+         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
+            be->resume(handle->backend.handle);
+         }
+         state = handle->state;
+      }
+
+      /* do all the mixing */
+      _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
    }
+   _aaxMutexUnLock(handle->thread.mutex);
 
-#if ENABLE_TIMING
-   _aaxTimerDestroy(timer);
-#endif
-   handle->ringbuffer = NULL;
-   be->destroy_ringbuffer(dest_rb);
-   _aaxMutexUnLock(handle->thread.signal.mutex);
-
+   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
+   {
+      _oalRingBufferStop(mixer->ringbuffer);
+      _oalRingBufferDelete(mixer->ringbuffer);
+   }
    return handle;
 }
