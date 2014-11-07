@@ -1023,7 +1023,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                iv = _AAX_MAX_MIXER_REFRESH_RATE;
             }
             iv = fq / INTERVAL(fq / iv);
-            handle->info->refresh_rate = iv;
+            handle->info->req_refresh_rate = iv;
             handle->info->frequency = fq;
             if (config->node[0].update) {
                handle->info->update_rate = (uint8_t)rintf(iv/config->node[0].update);
@@ -1052,7 +1052,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                iv = _AAX_MAX_MIXER_REFRESH_RATE_LT;
             }
             iv = fq / INTERVAL(fq / iv);
-            handle->info->refresh_rate = iv;
+            handle->info->req_refresh_rate = iv;
             handle->info->frequency = fq;
             if (config->node[0].update) {
                handle->info->update_rate = (uint8_t)rintf(iv/config->node[0].update);
@@ -1071,6 +1071,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 
             handle->valid = LITE_HANDLE_ID;
          }
+         handle->info->refresh_rate = handle->info->req_refresh_rate;
 
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -1131,7 +1132,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                _AAX_SYSLOG(buf);
 
                snprintf(buf,1024,"  frequency: %5.1f, interval: %5.1f\n",
-                        handle->info->frequency, handle->info->refresh_rate);
+                        handle->info->frequency,handle->info->req_refresh_rate);
                _AAX_SYSLOG(buf);
             }
 

@@ -233,6 +233,7 @@ typedef ALIGN16 struct
    float pitch;
    float frequency;
    float refresh_rate;
+   float req_refresh_rate;
    enum aaxFormat format;
    enum aaxRenderMode mode;
    unsigned int max_emitters;		/* total */

@@ -52,7 +52,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 
    info->pitch = 1.0f;
    info->frequency = 48000.0f;
-   info->refresh_rate = 20.0f;
+   info->req_refresh_rate = 20.0f;
    info->format = AAX_PCM16S;
    info->mode = AAX_MODE_WRITE_STEREO;
    info->max_emitters = _AAX_MAX_MIXER_REGISTERED;

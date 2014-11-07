@@ -80,10 +80,10 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          case AAX_FREQUENCY:
             if ((setup > 1000) && (setup <= _AAX_MAX_MIXER_FREQUENCY))
             {
-               float iv = info->refresh_rate;
+               float iv = info->req_refresh_rate;
                iv = setup / INTERVAL(setup / iv);
                info->frequency = (float)setup;
-               info->refresh_rate = iv;
+               info->req_refresh_rate = iv;
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -93,13 +93,13 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
-               float update_hz = info->refresh_rate/info->update_rate;
+               float update_hz = info->req_refresh_rate/info->update_rate;
                float fq = info->frequency;
                float iv = (float)setup;
                if (iv <= 5.0f) iv = 5.0f;
 
                iv = fq / INTERVAL(fq / iv);
-               info->refresh_rate = iv;
+               info->req_refresh_rate = iv;
 
                info->update_rate = (uint8_t)rintf(iv/update_hz);
                rv = AAX_TRUE;
@@ -111,7 +111,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
-               info->update_rate = (uint8_t)rintf(info->refresh_rate/setup);
+               info->update_rate = (uint8_t)rintf(info->req_refresh_rate/setup);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -123,7 +123,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                if (iv <= 5.0f) iv = 5.0f;
 
                iv = fq / INTERVAL(fq / iv);
-               info->refresh_rate = iv;
+               info->req_refresh_rate = iv;
                rv = AAX_TRUE;
             }
             break;
@@ -787,7 +787,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      while (info->frequency > 48000.0f) {
                         info->frequency /= 2.0f;
                      }
-                     info->refresh_rate = mixer->info->refresh_rate;
+                     info->req_refresh_rate = mixer->info->req_refresh_rate;
                      info->update_rate = mixer->info->update_rate;
                      if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
                      {
@@ -822,7 +822,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 
                      if (rb)
                      {
-                        float delay_sec = 1.0f / info->refresh_rate;
+                        float delay_sec = 1.0f / info->req_refresh_rate;
 
                         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
                         rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
@@ -878,7 +878,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   _aaxAudioFrame *submix = sframe_sensor->mixer;
 
                   submix->info->frequency = mixer->info->frequency;
-                  submix->info->refresh_rate = mixer->info->refresh_rate;
+                  submix->info->req_refresh_rate=mixer->info->req_refresh_rate;
                   submix->info->update_rate = mixer->info->update_rate;
                   submix->info->no_tracks = mixer->info->no_tracks;
                   submix->info->format = mixer->info->format;
@@ -1304,7 +1304,7 @@ _aaxMixerInit(_handle_t *handle)
    int res = AAX_FALSE;
    const _aaxDriverBackend *be = handle->backend.ptr;
    _aaxMixerInfo* info = handle->info;
-   float refrate = info->refresh_rate;
+   float refrate = info->req_refresh_rate;
    unsigned ch = info->no_tracks;
    float freq = info->frequency;
    int brate = info->bitrate;
@@ -1329,10 +1329,10 @@ _aaxMixerInit(_handle_t *handle)
          info->format = fmt;
 
          /* only alter the refresh rate when not registered */
-         if (!handle->handle)
+         if (1) // !handle->handle)
          {
-            float old_rate = info->refresh_rate/info->update_rate;
-            info->refresh_rate = (float)freq/frames;
+            float old_rate = info->req_refresh_rate/info->update_rate;
+            info->refresh_rate = freq/(float)frames;
             info->update_rate = (uint8_t)rintf(handle->info->refresh_rate/old_rate);
          }
 
@@ -1377,7 +1377,7 @@ _aaxMixerStart(_handle_t *handle)
       assert(handle->thread.signal.mutex != 0);
 
       handle->thread.started = AAX_TRUE;
-      ms = rintf(1000/handle->info->refresh_rate);
+      ms = rintf(1000/handle->info->req_refresh_rate);
       r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread,
                           handle, ms);
       if (r == 0)
