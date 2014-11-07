@@ -253,7 +253,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->frequency_hz = (float)48000.0f;
       handle->bits_sample = 16;
       handle->no_tracks = 2;
-      handle->no_periods = (m) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
+      handle->no_periods = DEFAULT_PERIODS;
       handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
       handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
       handle->use_mmap = AAX_FALSE;
@@ -521,9 +521,6 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          period_frames = *frames / periods;
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
-         if (handle->mode == AAX_MODE_READ) {
-            period_frames *= 2;
-         }
       }
 
       switch (bits)

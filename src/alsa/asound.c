@@ -722,9 +722,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    psnd_pcm_sw_params_malloc(&swparams);
    if (hwparams && swparams)
    {
-      unsigned int bits = handle->bits_sample;
-      unsigned int periods = handle->no_periods;
-      unsigned int val1, val2, period_fact;
+      unsigned int val1, bits = handle->bits_sample;
+      unsigned int val2, periods = handle->no_periods;
       snd_pcm_uframes_t period_frames;
       snd_pcm_format_t data_format;
       snd_pcm_t *hid = handle->pcm;
@@ -874,8 +873,6 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
             "unsupported no. periods" );
       if (periods == 0) periods = 1;
-
-      period_fact = handle->no_periods/periods;
       if (err >= 0) {
          handle->no_periods = periods;
       }
@@ -883,17 +880,13 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       if (frames && (*frames > 0))
       {
          period_frames = (*frames * rate)/(*speed);
-         if (handle->mode != AAX_MODE_READ) period_frames /= 2;
       }
       else {
          period_frames = rate/25;
       }
 
       /** set buffer and period sizes */
-      if (handle->mode == AAX_MODE_READ) {
-         period_frames *= periods*period_fact;
-      }
-      else if (handle->use_timer) {
+      if (handle->use_timer) {
          TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
                "unable to fetch the maximum buffer size" );
       }
@@ -908,12 +901,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
             "invalid buffer size" );
       handle->max_frames = period_frames;
 
-      if (handle->mode == AAX_MODE_READ)
-      {
-         period_frames /= (periods*period_fact);
-         handle->latency = (float)(period_frames*periods)/(float)rate;
-      }
-      else if (handle->use_timer)
+      if (handle->use_timer)
       {
          handle->no_periods = periods = 2;
          period_frames = *frames/periods;
