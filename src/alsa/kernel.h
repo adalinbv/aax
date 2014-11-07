@@ -224,7 +224,9 @@ struct snd_xfern {
 };
 
 #define SNDRV_PCM_IOCTL_PREPARE _IO('A', 0x40)
+#define SNDRV_PCM_IOCTL_RESET _IO('A', 0x41)
 #define SNDRV_PCM_IOCTL_START _IO('A', 0x42)
+#define SNDRV_PCM_IOCTL_DROP _IO('A', 0x43)
 #define SNDRV_PCM_IOCTL_PAUSE _IOW('A', 0x45, int)
 #define SNDRV_PCM_IOCTL_REWIND _IOW('A', 0x46, snd_pcm_uframes_t)
 #define SNDRV_PCM_IOCTL_RESUME _IO('A', 0x47)

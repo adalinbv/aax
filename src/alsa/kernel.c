@@ -522,7 +522,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
          if (handle->mode == AAX_MODE_READ) {
-            period_frames_actual = max/periods;
+            period_frames_actual = period_frames; // max/periods;
          } else {
             period_frames_actual = period_frames;
          }
@@ -786,6 +786,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
          {
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
             if (ret >= 0) {
+               pioctl(handle->fd, SNDRV_PCM_IOCTL_START);
                handle->prepared = AAX_TRUE;
             }
             else {
@@ -800,7 +801,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
          }
 
-         avail = handle->status->hw_ptr + bufsize;
+         avail = handle->status->hw_ptr;
          avail -= handle->control->appl_ptr;
 
          x.buf = scratch;
