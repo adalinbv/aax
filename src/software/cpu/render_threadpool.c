@@ -224,6 +224,8 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
    unsigned int stage;
    int rv = AAX_FALSE;
 
+   assert(data);
+
    stage = 2;
    do
    {
@@ -279,7 +281,6 @@ _aaxWorkerThread(void *id)
 {
    _render_t *handle = (_render_t*)id;
    struct threat_t *thread;
-   _aaxRendererData *data;
    int worker_no;
 
    worker_no = handle->worker_no;
@@ -290,15 +291,15 @@ _aaxWorkerThread(void *id)
 
    // wait for our first job
    _aaxSemaphoreWait(handle->worker_start);
-   data = handle->data;
-
-   assert(data);
-
    if (thread->started == AAX_TRUE)
    {
       int *busy = &handle->workers_busy;
       int *num = &handle->max_emitters;
+       _aaxRendererData *data;
       _aaxRingBuffer *drb;
+
+      data = handle->data;
+      assert(data);
 
       drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_FALSE);
       drb->set_state(drb, RB_STARTED);
