@@ -143,6 +143,7 @@ typedef struct
    unsigned int format;
    unsigned int no_tracks;
    ssize_t period_frames;
+   ssize_t period_frames_actual;
    char no_periods;
    char bits_sample;
 
@@ -255,6 +256,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->no_tracks = 2;
       handle->no_periods = DEFAULT_PERIODS;
       handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
+      handle->period_frames_actual = handle->period_frames;
       handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
       handle->use_mmap = AAX_FALSE;
       handle->mode = mode;
@@ -478,7 +480,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       unsigned int tracks, rate, bits, periods, format;
       struct snd_pcm_hw_params hwparams;
       struct snd_pcm_sw_params swparams;
-      snd_pcm_uframes_t period_frames;
+      snd_pcm_uframes_t period_frames, period_frames_actual;
       int err, fd = handle->fd;
  
       tracks = *channels;
@@ -487,7 +489,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       }
 
       periods = handle->no_periods;
-      period_frames = *frames / periods;
+      period_frames_actual = period_frames = *frames / periods;
       bits = aaxGetBitsPerSample(*fmt);
       rate = (unsigned int)*speed;
 
@@ -519,6 +521,11 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                                &handle->min_periods, &handle->max_periods);
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
+         if (handle->mode == AAX_MODE_READ) {
+            period_frames_actual = max/periods;
+         } else {
+            period_frames_actual = period_frames;
+         }
       }
 
       switch (bits)
@@ -549,7 +556,7 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                            SNDRV_PCM_SUBFORMAT_STD);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE, rate);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS, tracks);
-      _set_min(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE, period_frames);
+      _set_min(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE, period_frames_actual);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_SAMPLE_BITS, bits);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_FRAME_BITS, bits*tracks);
       _set_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods);
@@ -574,13 +581,13 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          swparams.period_step = 1;
          swparams.avail_min = 1;
          swparams.silence_size = 0;
-         swparams.silence_threshold = periods*period_frames;
-         swparams.boundary = periods*period_frames;
+         swparams.silence_threshold = periods*period_frames_actual;
+         swparams.boundary = periods*period_frames_actual;
          swparams.xfer_align = period_frames/2;
          if (handle->mode == AAX_MODE_READ)
          {
             swparams.start_threshold = 1;
-            swparams.stop_threshold = 10*periods*period_frames;
+            swparams.stop_threshold = periods*period_frames_actual;
          }
          else
          {
@@ -629,12 +636,13 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
                tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
                periods = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS);
-               period_frames = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
+               period_frames_actual = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
 
                handle->frequency_hz = rate;
                handle->no_tracks = tracks;
                handle->no_periods = periods;
                handle->period_frames = period_frames;
+               handle->period_frames_actual = period_frames_actual;
                handle->bits_sample = bits;
 
                *speed = rate;
@@ -759,7 +767,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
    if ((frames == 0) || (data == 0))
       return rv;
 
-   if (*frames)
+   if (*frames && handle->status)
    {
       unsigned int tracks = handle->no_tracks;
 //    unsigned int frame_size = tracks * handle->bits_sample/8;
@@ -771,7 +779,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
       errno = 0;
       count = 0;
       period_frames = *frames;
-      bufsize = handle->no_periods*handle->period_frames;
+      bufsize = handle->no_periods*handle->period_frames_actual;
       do
       {
          if (!handle->prepared)
@@ -787,7 +795,8 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
 
          if (handle->sync)
          {
-            handle->sync->flags=SNDRV_PCM_SYNC_PTR_APPL|SNDRV_PCM_SYNC_PTR_HWSYNC;
+            handle->sync->flags = SNDRV_PCM_SYNC_PTR_APPL |
+                                  SNDRV_PCM_SYNC_PTR_HWSYNC;
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
          }
 
@@ -846,7 +855,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
    assert(rb);
    assert(id != 0);
 
-   if (handle->mode == AAX_MODE_READ)
+   if (handle->mode == AAX_MODE_READ || handle->status == NULL)
       return 0;
 
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -1516,6 +1525,10 @@ _aaxLinuxDriverThread(void* config)
 
    be = handle->backend.ptr;
    id = handle->backend.handle;		// Required for _AAX_DRVLOG
+   be_handle = (_driver_t *)handle->backend.handle;
+   if (!be_handle->status) {
+      return NULL;
+   }
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
@@ -1549,7 +1562,6 @@ _aaxLinuxDriverThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   be_handle = (_driver_t *)handle->backend.handle;
    bufsize = be_handle->no_periods*be_handle->period_frames;
 
    wait_us = delay_sec*1000000;
