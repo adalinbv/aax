@@ -879,7 +879,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
       if (frames && (*frames > 0))
       {
-         period_frames = (*frames * rate)/(*speed);
+         period_frames = (*frames * rate)/(*speed * periods);
       }
       else {
          period_frames = rate/25;

@@ -57,7 +57,7 @@
 
 #define MAX_NAME		40
 #define MAX_DEVICES		16
-#define NO_PERIODS		2
+#define DEFAULT_PERIODS		2
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_PCM_NUM		0
 #define	DEFAULT_PCM_NAME	"/dev/snd/pcmC0D0p"
@@ -517,8 +517,6 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                               &handle->min_tracks, &handle->max_tracks);
          periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods,
                                &handle->min_periods, &handle->max_periods);
-
-         period_frames = *frames / periods;
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
       }
