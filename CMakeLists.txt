@@ -19,6 +19,7 @@ SET(PACKAGE_NAME "AeonWave")
 SET(PACKAGE "libaax2")
 
 OPTION(LTO "Enabel linkt-time optimizations" OFF)
+option(RELEASE "Enable for final release builds" OFF)
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
 OPTION(RMALLOC "Enable memory debugging functions" OFF)
@@ -138,6 +139,10 @@ ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
 IF(WERROR)
   ADD_DEFINITIONS(-Werror)
 ENDIF()
+
+IF(RELEASE)
+  SET(C_FLAGS "${C_FLAGS} -DRELEASE=1")
+ENDIF(RELEASE)
 
 IF(MSVC)
     SET(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")

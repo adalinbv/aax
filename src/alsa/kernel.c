@@ -217,8 +217,14 @@ _aaxLinuxDriverDetect(int mode)
    char *error = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+
+#if RELEASE
+   if TEST_FOR_FALSE(rv) {
+      audio = _aaxIsLibraryPresent("asound", "2");
+   }
+#endif
      
-   if (TEST_FOR_FALSE(rv))
+   if (!audio && TEST_FOR_FALSE(rv))
    {
       audio = _aaxIsLibraryPresent(NULL, 0);
       if (audio && (access(DEFAULT_PCM_NAME, F_OK) != -1))
@@ -654,8 +660,38 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                *channels = tracks;
                *frames = period_frames;
 
-               if (!handle->use_timer) {
+               if (!handle->use_timer)
+               {
                   handle->latency = (float)(period_frames*periods)/(float)rate;
+                  if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
+                  {
+                     char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
+                     snd_pcm_sframes_t delay;
+                     _aaxRingBuffer *rb;
+                     int i;
+
+                     rb = _aaxRingBufferCreate(0.0f, m);
+                     if (rb)
+                     {
+                        rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+                        rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
+                        rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
+                        rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
+                        rb->init(rb, AAX_TRUE);
+                        rb->set_state(rb, RB_STARTED);
+
+                        for (i=0; i<handle->no_periods; i++) {
+                           _aaxLinuxDriverPlayback(handle, rb, 1.0f, 0.0f);
+                        }
+                        _aaxRingBufferFree(rb);
+                     }
+
+                     err = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &delay);
+                     if (err >= 0) {
+                        handle->latency = (float)delay/(float)rate;
+                     }
+                     err = 0;
+                  }
                }
                else
                {
