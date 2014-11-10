@@ -138,6 +138,9 @@ typedef struct
    unsigned int devnum;
    int fd;
 
+   size_t threshold;		/* sensor buffer threshold for padding */
+   float padding;		/* for sensor clock drift correction   */
+
    float latency;
    float frequency_hz;
    unsigned int format;
@@ -522,7 +525,8 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
          if (handle->mode == AAX_MODE_READ) {
-            period_frames_actual = period_frames; // max/periods;
+//          period_frames_actual = max/periods;
+            period_frames_actual = 2*period_frames;
          } else {
             period_frames_actual = period_frames;
          }
@@ -640,12 +644,13 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
                handle->frequency_hz = rate;
                handle->no_tracks = tracks;
+               handle->bits_sample = bits;
                handle->no_periods = periods;
                handle->period_frames = period_frames;
                handle->period_frames_actual = period_frames_actual;
-               handle->bits_sample = bits;
+               handle->threshold = 5*period_frames/4;
+               
 
-               *speed = rate;
                *channels = tracks;
                *frames = period_frames;
 
@@ -755,33 +760,57 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
 
 static size_t
-_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
 {
    _driver_t *handle = (_driver_t *)id;
+   snd_pcm_sframes_t avail;
    ssize_t offs = *offset;
    size_t rv = AAX_FALSE;
+   int ret;
  
    assert(handle->mode == AAX_MODE_READ);
 
    *offset = 0;
-   if ((frames == 0) || (data == 0))
+   if ((req_frames == 0) || (data == 0))
       return rv;
 
-   if (*frames && handle->status)
+   /* synchronise capture and playback for registered sensors */
+   if (handle->sync)
+   {
+      handle->sync->flags = SNDRV_PCM_SYNC_PTR_APPL |
+                            SNDRV_PCM_SYNC_PTR_HWSYNC;
+      ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_SYNC_PTR, handle->sync);
+   }
+
+   avail = handle->status->hw_ptr;
+   avail -= handle->control->appl_ptr;
+
+   if (*req_frames && handle->status)
    {
       unsigned int tracks = handle->no_tracks;
-//    unsigned int frame_size = tracks * handle->bits_sample/8;
-      snd_pcm_sframes_t avail, bufsize;
-      size_t period_frames, count = 8;
+      int32_t **sbuf = (int32_t**)data;
+      size_t period_frames, count, corr;
       struct snd_xferi x;
-      ssize_t ret;
+      float diff;
 
-      errno = 0;
-      count = 0;
-      period_frames = *frames;
-      bufsize = handle->no_periods*handle->period_frames_actual;
+      period_frames = *req_frames;
+
+      /* try to keep the buffer padding at the threshold level at all times */
+      diff = (float)avail-(float)handle->threshold;
+      handle->padding = (handle->padding + diff/(float)period_frames)/2;
+      corr = _MINMAX(roundf(handle->padding), -1, 1);
+      period_frames += corr;
+      offs -= corr;
+      *offset = -corr;
+#if 0
+if (corr)
+ printf("avail: %4i (%4i), fetch: %6i\r", avail, handle->threshold, period_frames);
+#endif
+
+      count = 8;
       do
       {
+         ret = 0;
          if (!handle->prepared)
          {
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
@@ -803,29 +832,29 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fra
 
          avail = handle->status->hw_ptr;
          avail -= handle->control->appl_ptr;
-
-         x.buf = scratch;
-         x.frames = _MIN(period_frames, avail);
-         ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
-         if (ret >= 0) {
-            period_frames -= x.frames;
-         }
-         else
+         if (avail)
          {
-            _aaxLinuxDriverLogVar(id, "read: %s", strerror(errno));
-            handle->prepared = AAX_FALSE;
+            x.buf = scratch;
+            x.frames = _MIN(period_frames, avail);
+            ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
+            if (ret >= 0)
+            {
+               _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, x.frames);
+               period_frames -= x.frames;
+               offs += x.frames;
+            }
+            else
+            {
+               _aaxLinuxDriverLogVar(id, "read: %s", strerror(errno));
+               handle->prepared = AAX_FALSE;
+            }
          }
       }
-      while (period_frames && (ret < 0) && --count);
+      while (period_frames && --count);
 
       if (ret >= 0)
       {
-         int32_t **sbuf = (int32_t**)data;
-
-         ret = *frames - period_frames;
-          *frames = ret;
-
-         _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, ret);
+         *req_frames = _MAX(offs, 0);
          gain = _kernel_set_volume(handle, NULL, offs, offs, tracks, gain);
          if (gain > 0)
          {
@@ -884,11 +913,11 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
    rb->release_tracks_ptr(rb);
 
-   ret = 0;
    count = 8;
    bufsize = handle->no_periods*handle->period_frames;
    do
    {
+      ret = 0;
       if (!handle->prepared)
       {
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
