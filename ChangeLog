@@ -10,6 +10,7 @@
  * Add support for the ARM architecture including support for hardware FPU
    and NEON. Rendering performance is comparible with Intel/AMD Cores
    at a matching CPU frequency.
+ * Fix an emitter looping bug introduced in version 2.4.1
 
 * Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low
