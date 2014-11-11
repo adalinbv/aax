@@ -96,7 +96,7 @@ _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
 {
    static const int dbps = sizeof(int32_t);
    const size_t sbuflen = sno_samples - loop_start;
-   size_t new_len, dbuflen = dno_samples;
+   size_t new_len, dbuflen = dno_samples + ddesamps;
    int32_t *dptr = d;
    char *sptr;
 
