@@ -784,6 +784,13 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->hwgain;
          break;
+      case DRIVER_SAMPLE_DELAY:
+      {
+         unsigned int avail;
+         int err = pioctl(handle->fd, SNDCTL_DSP_GETODELAY, &avail);
+         if (err >= 0) rv = (float)avail;
+         break;
+      }
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:

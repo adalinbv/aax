@@ -1357,6 +1357,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
    float rv = 0.0f;
    if (handle)
    {
+      
       switch(param)
       {
 		/* float */
@@ -1372,6 +1373,13 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+      case DRIVER_SAMPLE_DELAY:
+      {
+         snd_pcm_sframes_t avail;
+         int res = psnd_pcm_delay(handle->pcm, &avail);
+         if (res >= 0) rv = (float)avail;
+         break;
+      }
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:

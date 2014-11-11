@@ -287,6 +287,9 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                      f = be->param(handle->backend.handle, DRIVER_LATENCY);
                      rv = (int)(f*1e6);
                      break;
+                  case AAX_NO_SAMPLES:
+                     rv= be->param(handle->backend.handle, DRIVER_SAMPLE_DELAY);
+                     break;
                   case AAX_SHARED_MODE:
                      f = be->param(handle->backend.handle, DRIVER_SHARED_MODE);
                      rv = f ? AAX_TRUE : AAX_FALSE;

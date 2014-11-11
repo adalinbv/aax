@@ -129,6 +129,7 @@ typedef struct
    int device;
    unsigned int bytes_sample;
    unsigned int no_channels;
+   size_t no_frames;
    stamp_t offset;
    float frequency_hz;
    float latency;
@@ -622,6 +623,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
 
       palSetQueueSize(handle->port[0].config, queuesize);
 
+      handle->port[0].no_frames = *frames;
       handle->port[0].latency = 0.0f;
       if (frames)
       {
@@ -925,6 +927,9 @@ _aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
+         break;
+      case DRIVER_SAMPLE_DELAY:
+         rv = (float)handle->port[0].no_frames;
          break;
 
 		/* int */

@@ -67,6 +67,7 @@ enum _aaxDriverParam {
    DRIVER_MAX_VOLUME,
    DRIVER_VOLUME,
    DRIVER_AGC_LEVEL,
+   DRIVER_SAMPLE_DELAY,
 
    /* int */
    DRIVER_MIN_FREQUENCY = 0x100,

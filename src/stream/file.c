@@ -124,6 +124,7 @@ typedef struct
    enum aaxFormat format;
    uint8_t no_channels;
    uint8_t bits_sample;
+   size_t no_samples;
 
    char *ptr, *scratch;
    size_t buf_len;
@@ -469,6 +470,7 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
             *tracks = handle->no_channels;
             *frames = no_samples;
 
+            handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
 
             handle->thread.ptr = _aaxThreadCreate();
@@ -773,6 +775,9 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_VOLUME:
          rv = 1.0f;
+         break;
+      case DRIVER_SAMPLE_DELAY:
+         rv = (float)handle->no_samples;
          break;
 
 		/* int */

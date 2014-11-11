@@ -1102,9 +1102,16 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = 1.0f; // handle->hwgain;
          break;
+      case DRIVER_SAMPLE_DELAY:
+      {
+         snd_pcm_sframes_t avail;
+         int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &avail);
+         if (err >= 0) rv = (float)avail;
+         break;
+      }
 
 		/* int */
-       case DRIVER_MIN_FREQUENCY:
+      case DRIVER_MIN_FREQUENCY:
          rv = (float)handle->min_frequency;
          break;
       case DRIVER_MAX_FREQUENCY:

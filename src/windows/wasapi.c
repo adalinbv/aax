@@ -941,6 +941,16 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+      case DRIVER_SAMPLE_DELAY:
+      {
+          REFERENCE_TIME latency;
+          HRESULT hr;
+          hr = pIAudioClient_GetStreamLatency(handle->pAudioClient, &latency);
+          if (hr == S_OK) {
+             rv = (float)latency*handle->Fmt.Format.nSamplesPerSec/10000000.0f;
+          }
+          break;
+      }
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:

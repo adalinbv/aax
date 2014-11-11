@@ -634,6 +634,9 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+      case DRIVER_SAMPLE_DELAY:
+         rv = (float)handle->no_frames;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:

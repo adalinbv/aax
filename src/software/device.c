@@ -104,6 +104,7 @@ typedef struct
    int mode;
    float latency;
    float frequency;
+   size_t no_frames;
    enum aaxFormat format;
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -258,6 +259,9 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
    case DRIVER_VOLUME:
       rv = 1.0f;
       break;
+   case DRIVER_SAMPLE_DELAY:
+      rv = 0.0f;
+      break;
 
 		/* int */
    case DRIVER_MIN_FREQUENCY:
@@ -360,13 +364,17 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
    _driver_t *handle = (_driver_t *)id;
    if (handle)
    {
+      assert(speed);
+      assert(frames);
+
       handle->format = *fmt;
       handle->frequency = *speed;
       handle->no_channels = *tracks;
       handle->bits_sample = aaxGetBitsPerSample(*fmt);
+      handle->no_frames = *frames;
       
-      if (frames && speed && (*speed > 0)) {
-         handle->latency = (float)*frames / (float)*speed;
+      if (handle->frequency > 0) {
+         handle->latency = (float)handle->no_frames / (float)handle->frequency;
       } else {
          handle->latency = 0.0f;
       }
@@ -406,6 +414,9 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_VOLUME:
          rv = 1.0f;
+         break;
+      case DRIVER_SAMPLE_DELAY:
+         rv = (float)handle->no_frames;
          break;
 
 		/* int */
