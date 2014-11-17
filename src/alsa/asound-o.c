@@ -135,7 +135,6 @@ typedef struct
     unsigned int no_tracks;
     unsigned int no_periods;
     size_t period_frames;
-    ssize_t period_frames_actual;
     size_t max_frames;
     size_t buf_len;
     int mode;
@@ -211,8 +210,6 @@ DECL_FUNCTION(snd_pcm_sw_params);
 DECL_FUNCTION(snd_pcm_sw_params_set_avail_min);
 DECL_FUNCTION(snd_pcm_sw_params_set_start_threshold);
 DECL_FUNCTION(snd_pcm_sw_params_set_stop_threshold);
-DECL_FUNCTION(snd_pcm_sw_params_set_silence_threshold);
-DECL_FUNCTION(snd_pcm_sw_params_set_silence_size);
 DECL_FUNCTION(snd_pcm_mmap_begin);
 DECL_FUNCTION(snd_pcm_mmap_commit);
 DECL_FUNCTION(snd_pcm_writen);
@@ -294,7 +291,6 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 
 #define MAX_FORMATS		6
 #define FILL_FACTOR		1.65f
-#define DEFAULT_REFRESH		25.0f
 #define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
 #define STRCMP(a, b)		strncmp((a), (b), strlen(b))
 
@@ -393,8 +389,6 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_sw_params_set_avail_min);			//
          TIE_FUNCTION(snd_pcm_sw_params_set_start_threshold);		//
          TIE_FUNCTION(snd_pcm_sw_params_set_stop_threshold);		//
-         TIE_FUNCTION(snd_pcm_sw_params_set_silence_threshold);		//
-         TIE_FUNCTION(snd_pcm_sw_params_set_silence_size);		//
          TIE_FUNCTION(snd_pcm_hw_params_can_mmap_sample_resolution);	//
          TIE_FUNCTION(snd_pcm_hw_params_get_rate_numden);		//
          TIE_FUNCTION(snd_pcm_state);					//
@@ -449,8 +443,6 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->no_tracks = 2;
       handle->bits_sample = 16;
       handle->no_periods = (m) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
-      handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
-      handle->period_frames_actual = handle->period_frames;
 
       handle->mode = mode;
       if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
@@ -689,12 +681,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
                         unsigned int *channels, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
-   snd_pcm_uframes_t period_frames_actual;
-   snd_pcm_uframes_t period_frames;
    snd_pcm_hw_params_t *hwparams;
    snd_pcm_sw_params_t *swparams;
    unsigned int tracks, rate;
-   unsigned int bits, periods;
    int err, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
@@ -729,22 +718,17 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       handle->use_timer = AAX_FALSE;
    }
 
-   periods = handle->no_periods;
-   period_frames_actual = period_frames = *frames / periods;
-   bits = aaxGetBitsPerSample(*fmt);
-
-   handle->latency = (float)*frames/(float)rate;
-   if (handle->latency < 0.010f) {
-      handle->use_timer = AAX_FALSE;
-   }
-
    psnd_pcm_hw_params_malloc(&hwparams);
-   if (hwparams && handle->pcm)
+   psnd_pcm_sw_params_malloc(&swparams);
+   if (hwparams && swparams)
    {
-      snd_pcm_t *hid = handle->pcm;
+      unsigned int val1, bits = handle->bits_sample;
+      unsigned int val2, periods = handle->no_periods;
+      snd_pcm_uframes_t period_frames;
       snd_pcm_format_t data_format;
-      unsigned int val1, val2;
-      unsigned int bits_pos;
+      snd_pcm_t *hid = handle->pcm;
+      snd_pcm_sframes_t delay;
+//    unsigned int bytes;
 
       err = psnd_pcm_hw_params_any(hid, hwparams);
       TRUN( psnd_pcm_hw_params_set_rate_resample(hid, hwparams, 0),
@@ -759,281 +743,266 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       err = _alsa_set_access(handle, hwparams, swparams);
 
       /* supported sample formats*/
-      handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
-
-      TRUN( psnd_pcm_hw_params_get_rate_min(hwparams, &val1, 0),
-            "unable to get the minimum sample rate" );
-      TRUN( psnd_pcm_hw_params_get_rate_max(hwparams, &val2, 0),
-            "unable to get the maximum sample rate" );
       if (err >= 0)
       {
-         rate = _MINMAX(rate, val1, val2);
-         handle->min_frequency = val1;
-         handle->max_frequency = val2;
-      }
+         handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
 
-      bits_pos = 0;
-      if (err >= 0)
-      {
-         do
+         TRUN( psnd_pcm_hw_params_get_rate_min(hwparams, &val1, 0),
+               "unable to get the minimum sample reate" );
+         TRUN( psnd_pcm_hw_params_get_rate_max(hwparams, &val2, 0),
+               "unable to get the maximum sample reate" );
+         if (err >= 0)
          {
-            data_format = _alsa_formats[bits_pos].format;
-            err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
+            rate = _MINMAX(rate, val1, val2);
+            handle->min_frequency = val1;
+            handle->max_frequency = val2;
          }
-         while ((err < 0) && (_alsa_formats[++bits_pos].bits != 0));
-         bits = _alsa_formats[bits_pos].bits;
-      }
 
-      TRUN( psnd_pcm_hw_params_get_channels_min(hwparams, &val1),
-            "unable to get the minimum no. tracks" );
-      TRUN( psnd_pcm_hw_params_get_channels_max(hwparams, &val2),
-            "unable to get the maximum no. tracks" );
-      if (err >= 0)
-      {
-         val1 = _MIN(val1, handle->min_tracks);
-         val2 = _MAX(_MIN(val2, _AAX_MAX_SPEAKERS), handle->max_tracks);
-         tracks = _MINMAX(tracks, val1, val2);
-         handle->min_tracks = val1;
-         handle->max_tracks = val2;
-      }
-
-      TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
-             "unable to get the minimum no. periods" );
-      TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
-             "unable to get the maximum no. periods" );
-      if (err >= 0)
-      {
-         if (handle->use_timer) {
-            periods = val1;
-         } else {
-            periods = _MINMAX(periods, val1, val2);
+         TRUN( psnd_pcm_hw_params_get_channels_min(hwparams, &val1),
+               "unable to get the minimum no. tracks" );
+         TRUN( psnd_pcm_hw_params_get_channels_max(hwparams, &val2),
+               "unable to get the maximum no. tracks" );
+         if (err >= 0)
+         {
+            val1 = _MIN(val1, handle->min_tracks);
+            val2 = _MAX(_MIN(val2, _AAX_MAX_SPEAKERS), handle->max_tracks);
+            tracks = _MINMAX(tracks, val1, val2);
+            handle->min_tracks = val1;
+            handle->max_tracks = val2;
          }
-         handle->min_periods = val1;
-         handle->max_periods = val2;
-      }
 
-      /* recalculate period_frames and latency */
-      period_frames = (*frames * rate)/(*speed * periods);
-      handle->latency = (float)(period_frames*periods)/(float)rate;
+         TRUN ( psnd_pcm_hw_params_get_periods_min(hwparams, &val1, 0),
+                "unable to get the minimum no. periods" );
+         TRUN ( psnd_pcm_hw_params_get_periods_max(hwparams, &val2, 0),
+                "unable to get the maximum no. periods" );
+         if (err >= 0)
+         {
+            if (handle->use_timer) {
+               periods = val1;
+            } else {
+               periods = _MINMAX(periods, val1, val2);
+            }
+            handle->min_periods = val1;
+            handle->max_periods = val2;
+         }
+
+         /* recalculate period_frames and latency */
+         period_frames = (*frames * rate)/(*speed * periods);
+         handle->latency = (float)(period_frames*periods)/(float)rate;
+      }
 
       /* test for supported sample formats */
-      switch (bits_pos)
+      if (err >= 0)
       {
-      case 0:				/* SND_PCM_FORMAT_S24_LE */
-         handle->cvt_to = (_batch_cvt_to_proc)_batch_cvt24_24;
-         handle->cvt_from = (_batch_cvt_from_proc)_batch_cvt24_24;
-         handle->cvt_to_intl = _batch_cvt24_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_24_intl;
-         *fmt = AAX_PCM24S;
-         break;
-      case 1:				/* SND_PCM_FORMAT_S32_LE */
-         handle->cvt_to = _batch_cvt32_24;
-         handle->cvt_from = _batch_cvt24_32;
-         handle->cvt_to_intl = _batch_cvt32_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_32_intl;
-         *fmt = AAX_PCM32S;
-         break;
-      case 2:				/* SND_PCM_FORMAT_S16_LE */
-         handle->cvt_to = _batch_cvt16_24;
-         handle->cvt_from = _batch_cvt24_16;
-         handle->cvt_to_intl = _batch_cvt16_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_16_intl;
-         *fmt = AAX_PCM16S;
-         break;
-      case 3:				/* SND_PCM_FORMAT_S24_3LE */
-         handle->cvt_to = _batch_cvt24_3_24;
-         handle->cvt_from = _batch_cvt24_24_3;
-         handle->cvt_to_intl = _batch_cvt24_3intl_24;
-         handle->cvt_from_intl = _batch_cvt24_24_3intl;
-         *fmt = AAX_PCM24S;
-         break;
-      case 4:				/* SND_PCM_FORMAT_U8 */
-         handle->cvt_to = _batch_cvt8_24;
-         handle->cvt_from = _batch_cvt24_8;
-         handle->cvt_to_intl = _batch_cvt8_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_8_intl;
-         *fmt = AAX_PCM8S;
-         break;
-      default:
-         _AAX_DRVLOG("unsupported hardware format\n");
-         err = -EINVAL;
-         break;
+         unsigned int pos = 0;
+         do
+         {
+            data_format = _alsa_formats[pos].format;
+            err = psnd_pcm_hw_params_set_format(hid, hwparams, data_format);
+         }
+         while ((err < 0) && (_alsa_formats[++pos].bits != 0));
+         bits = _alsa_formats[pos].bits;
+
+         if ((err >= 0) && (bits > 0))
+         {
+            switch (pos)
+            {
+            case 0:				/* SND_PCM_FORMAT_S24_LE */
+               handle->cvt_to = (_batch_cvt_to_proc)_batch_cvt24_24;
+               handle->cvt_from = (_batch_cvt_from_proc)_batch_cvt24_24;
+               handle->cvt_to_intl = _batch_cvt24_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_24_intl;
+               *fmt = AAX_PCM24S;
+               break;
+            case 1:				/* SND_PCM_FORMAT_S32_LE */
+               handle->cvt_to = _batch_cvt32_24;
+               handle->cvt_from = _batch_cvt24_32;
+               handle->cvt_to_intl = _batch_cvt32_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_32_intl;
+               *fmt = AAX_PCM32S;
+               break;
+            case 2:				/* SND_PCM_FORMAT_S16_LE */
+               handle->cvt_to = _batch_cvt16_24;
+               handle->cvt_from = _batch_cvt24_16;
+               handle->cvt_to_intl = _batch_cvt16_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_16_intl;
+               *fmt = AAX_PCM16S;
+               break;
+            case 3:				/* SND_PCM_FORMAT_S24_3LE */
+               handle->cvt_to = _batch_cvt24_3_24;
+               handle->cvt_from = _batch_cvt24_24_3;
+               handle->cvt_to_intl = _batch_cvt24_3intl_24;
+               handle->cvt_from_intl = _batch_cvt24_24_3intl;
+               *fmt = AAX_PCM24S;
+               break;
+            case 4:				/* SND_PCM_FORMAT_U8 */
+               handle->cvt_to = _batch_cvt8_24;
+               handle->cvt_from = _batch_cvt24_8;
+               handle->cvt_to_intl = _batch_cvt8_intl_24;
+               handle->cvt_from_intl = _batch_cvt24_8_intl;
+               *fmt = AAX_PCM8S;
+               break;
+            default:
+               _AAX_DRVLOG("unsupported hardware format\n");
+               err = -EINVAL;
+               break;
+            }
+            handle->bits_sample = bits;
+         }
+         else {
+            _AAX_DRVLOG("unable to match hardware format");
+         }
       }
+
+      TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
+            "unsupported no. tracks" );
+      handle->no_tracks = tracks;
 
       TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
             "unsupported sample rate" );
 
-      TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
-            "unsupported no. tracks" );
+      val1 = val2 = 0;
+      err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
+      if (val1 && val2)
+      {
+         handle->frequency_hz = (float)val1/(float)val2;
+         rate = (unsigned int)handle->frequency_hz;
+      }
+      handle->frequency_hz = (float)rate;
+
+      TRUN( psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0),
+            "unsupported no. periods" );
+      if (periods == 0) periods = 1;
+      if (err >= 0) {
+         handle->no_periods = periods;
+      }
+
+      if (frames && (*frames > 0))
+      {
+         period_frames = (*frames * rate)/(*speed * periods);
+      }
+      else {
+         period_frames = rate/25;
+      }
 
       /** set buffer and period sizes */
-      if (handle->use_timer)
-      {
+      if (handle->use_timer) {
          TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
                "unable to fetch the maximum buffer size" );
-         period_frames_actual = period_frames;
       }
       else
       {
          /* Set buffer size (in frames). The resulting latency is given by */
          /* latency = periodsize * periods / (rate * bytes_per_frame))     */
          period_frames *= periods;
-         if (handle->mode == AAX_MODE_READ) {
-            period_frames_actual = 2*period_frames;
-         } else {
-            period_frames_actual = period_frames;
-         }
       }
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams,
-                                                    &period_frames_actual),
+                                                    &period_frames),
             "invalid buffer size" );
       handle->max_frames = period_frames;
-      
 
-      /* Ugly hack: At least the SUNXI driver needs it this way. */
-      do {
-         err = psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0);
-      } while ((err < 0) && (++periods < handle->max_periods));
+      if (handle->use_timer)
+      {
+         handle->no_periods = periods = 2;
+         period_frames = *frames/periods;
+
+         handle->target[0] = ((float)period_frames/(float)rate);
+         if (handle->target[0] > 0.02f) {
+            handle->target[0] += 0.01f; // add 10ms
+         } else {
+            handle->target[0] *= FILL_FACTOR;
+         }
+         handle->target[1] = handle->target[0];
+         handle->latency = handle->target[0];
+      }
+      else
+      {
+         period_frames /= periods;
+         handle->latency = (float)(period_frames*periods)/(float)rate;
+      }
+      handle->period_frames = period_frames;
+
+      if (handle->latency < 0.010f) {
+         handle->use_timer = AAX_FALSE;
+      }
+
+      *speed = rate;
+      *channels = tracks;
+      *frames = period_frames;
 
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
+      if (err == -EBUSY) {
+         _AAX_DRVLOG("device busy\n");
+      }
+
+      TRUN( psnd_pcm_sw_params_current(hid, swparams), 
+            "unable to set software config" );
+      TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
+            "wakeup treshold unsupported" );
+      if (handle->mode == AAX_MODE_READ)
+      {
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 1),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
+                                                     10*period_frames),
+               "set_stop_threshold unsupported" );
+      }
+      else
+      {
+         TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
+                                                     period_frames*(periods-1)),
+               "improper interrupt treshold" );
+         TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
+                                                     handle->max_frames),
+               "set_stop_threshold unsupported" );
+      }
+      handle->threshold = 5*period_frames/4;
+
+      TRUN( psnd_pcm_sw_params(hid, swparams), "unable to configure software" );
+      TRUN( psnd_pcm_prepare(hid), "unable to prepare" )
+
       if (err >= 0)
       {
-         psnd_pcm_sw_params_malloc(&swparams);
-         TRUN( psnd_pcm_sw_params_current(hid, swparams),
-               "unable to set software config" );
-
-         if (handle->use_timer)
+         handle->render =_aaxSoftwareInitRenderer(handle->latency,handle->mode);
+         if (handle->render)
          {
-            handle->no_periods = periods = 2;
-            period_frames = *frames/periods;
-         }
-         else
-         {
-            if (handle->mode == AAX_MODE_READ) {
-               period_frames = period_frames_actual/2;
-            } else {
-               period_frames = period_frames_actual;
-            }
-            period_frames /= periods;
-            handle->latency = (float)(period_frames*periods)/(float)rate;
+            const char *rstr = handle->render->info(handle->render->id);
+            snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
+                          DEFAULT_RENDERER, psnd_asoundlib_version(), rstr);
+            rv = AAX_TRUE;
          }
 
-         TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
-               "wakeup treshold unsupported" );
-
-         TRUN( psnd_pcm_sw_params_set_silence_size(hid, swparams, 0),
-               "failed to set the silence size" );
-#if 0
-         TRUN( psnd_pcm_sw_params_set_silence_threshold(hid, swparams, periods*period_frames_actual),
-               "failed to set the silence threshold" );
-#endif
-
-         if (handle->mode == AAX_MODE_READ)
+         // Now fill the playback buffer with handle->no_periods periods of
+         // silence for lowest latency.
+         // TIMER_BASED
+         if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
          {
-            TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams, 1),
-                  "improper interrupt treshold" );
-            TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
-                                                  periods*period_frames_actual),
-                  "set_stop_threshold unsupported" );
-         }
-         else
-         {
-            TRUN( psnd_pcm_sw_params_set_start_threshold(hid, swparams,
-                                                     period_frames*(periods-1)),
-                  "improper interrupt treshold" );
-            TRUN( psnd_pcm_sw_params_set_stop_threshold(hid, swparams,
-                                                        handle->max_frames),
-                  "set_stop_threshold unsupported" );
-         }
-         handle->threshold = 5*period_frames/4;
+            char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
+            _aaxRingBuffer *rb;
+            int i;
 
-         TRUN( psnd_pcm_sw_params(hid, swparams),
-               "unable to configure software" );
-         if (err >= 0)
-         {
-            val1 = val2 = 0;
-            err = psnd_pcm_hw_params_get_rate_numden(hwparams, &val1, &val2);
-            if (val1 && val2)
+            rb = _aaxRingBufferCreate(0.0f, m);
+            if (rb)
             {
-               handle->frequency_hz = (float)val1/(float)val2;
-               rate = (unsigned int)handle->frequency_hz;
-            }
+               rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+               rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
+               rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
+               rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
+               rb->init(rb, AAX_TRUE);
+               rb->set_state(rb, RB_STARTED);
 
-            handle->frequency_hz = (float)rate;
-            handle->no_tracks = tracks;
-            handle->bits_sample = bits;
-            handle->period_frames = period_frames;
-            handle->period_frames_actual = period_frames_actual;
-            handle->no_periods = periods;
-
-            *speed = rate;
-            *channels = tracks;
-            *frames = period_frames;
-
-            if (!handle->use_timer)
-            {
-               handle->latency = (float)(period_frames*periods)/(float)rate;
-               if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
-               {
-                  char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-                  snd_pcm_sframes_t delay;
-                  _aaxRingBuffer *rb;
-                  int i;
-
-                  rb = _aaxRingBufferCreate(0.0f, m);
-                  if (rb)
-                  {
-                     rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
-                     rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
-                     rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
-                     rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
-                     rb->init(rb, AAX_TRUE);
-                     rb->set_state(rb, RB_STARTED);
-
-                     for (i=0; i<handle->no_periods; i++) {
-                        handle->play(handle, rb, 1.0f, 0.0f);
-                     }
-                     _aaxRingBufferFree(rb);
-                  }
-
-                  err = psnd_pcm_delay(hid, &delay);
-                  if (err >= 0) {
-                     handle->latency = (float)delay/(float)rate;
-                  }
-                  err = 0;
+               for (i=0; i<handle->no_periods; i++) {
+                  handle->play(handle, rb, 1.0f, 0.0f);
                }
-            }
-            else
-            {
-               handle->target[0] = ((float)period_frames/(float)rate);
-               if (handle->target[0] > 0.02f) {
-                  handle->target[0] += 0.01f; // add 10ms
-               } else {
-                  handle->target[0] *= FILL_FACTOR;
-               }
-               handle->target[1] = handle->target[0];
-               handle->latency = handle->target[0];
+               _aaxRingBufferFree(rb);
             }
 
-            handle->render = _aaxSoftwareInitRenderer(handle->latency,
-                                                      handle->mode);
-            if (handle->render)
-            {
-               const char *rstr = handle->render->info(handle->render->id);
-               snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
-                             DEFAULT_RENDERER, psnd_asoundlib_version(), rstr);
-               rv = AAX_TRUE;
+            err = psnd_pcm_delay(hid, &delay);
+            if (err >= 0) {
+               handle->latency = (float)delay/(float)rate;
             }
-            else {
-               _AAX_DRVLOG("unable to get the renderer");
-            }
+            err = 0;
          }
-         else {
-            _AAX_DRVLOG("invalid software configuration");
-         }
-      }
-      else {
-         _AAX_DRVLOG("incompatible hardware configuration");
       }
 
       do
@@ -1735,7 +1704,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 {
    static char _errstr[256];
 
-   snprintf(_errstr, 256, "alsa: %s\n", str);
+   snprintf(_errstr, 256, "asound: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);

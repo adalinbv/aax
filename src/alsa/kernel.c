@@ -219,14 +219,17 @@ _aaxLinuxDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
 #if RELEASE
-   if TEST_FOR_FALSE(rv) {
+   if TEST_FOR_FALSE(rv)
+   {
       audio = _aaxIsLibraryPresent("asound", "2");
+      _aaxGetSymError(0);
    }
 #endif
      
    if (!audio && TEST_FOR_FALSE(rv))
    {
       audio = _aaxIsLibraryPresent(NULL, 0);
+      _aaxGetSymError(0);
       if (audio && (access(DEFAULT_PCM_NAME, F_OK) != -1))
       {
          TIE_FUNCTION(ioctl);
@@ -486,12 +489,13 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
    if (handle->fd >= 0)
    {
+      snd_pcm_uframes_t period_frames, period_frames_actual;
       unsigned int tracks, rate, bits, periods, format;
       struct snd_pcm_hw_params hwparams;
       struct snd_pcm_sw_params swparams;
-      snd_pcm_uframes_t period_frames, period_frames_actual;
       int err, fd = handle->fd;
  
+      rate = (unsigned int)*speed;
       tracks = *channels;
       if (tracks > handle->no_tracks) {
          tracks = handle->no_tracks;
@@ -500,7 +504,6 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       periods = handle->no_periods;
       period_frames_actual = period_frames = *frames / periods;
       bits = aaxGetBitsPerSample(*fmt);
-      rate = (unsigned int)*speed;
 
       handle->latency = (float)*frames/(float)rate;
       if (handle->latency < 0.010f) {
@@ -509,11 +512,9 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
 
       _init_params(&hwparams);
       hwparams.flags |= SNDRV_PCM_HW_PARAMS_NORESAMPLE;
-#if 1
       if (handle->use_timer) {
           hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
       }
-#endif
 
       err = pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams);
       if (err >= 0)
@@ -531,7 +532,6 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
          if (handle->mode == AAX_MODE_READ) {
-//          period_frames_actual = max/periods;
             period_frames_actual = 2*period_frames;
          } else {
             period_frames_actual = period_frames;
