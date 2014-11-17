@@ -1305,57 +1305,70 @@ static int
 _aaxMixerInit(_handle_t *handle)
 {
    int res = AAX_FALSE;
-   const _aaxDriverBackend *be = handle->backend.ptr;
    _aaxMixerInfo* info = handle->info;
    float refrate = info->req_refresh_rate;
-   unsigned ch = info->no_tracks;
-   float freq = info->frequency;
-   int brate = info->bitrate;
-   int fmt = info->format;
-   size_t frames;
+   float ms = rintf(1000/refrate);
 
    assert(be != 0);
 
-   frames = SIZETO16((size_t)rintf(freq/refrate));
+   /* test if we have enough privileges to set the requested priority */
+   if (ms < 5) {
+      res = _aaxThreadSetPriority(NULL, AAX_HIGHEST_PRIORITY);
+   } else if (ms < 11) {
+      res = _aaxThreadSetPriority(NULL, AAX_HIGH_PRIORITY);
+   }
+   if (res != 0) {
+      _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+   }
+   _aaxProcessSetPriority(AAX_NORMAL_PRIORITY);
 
-   res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq, &brate);
-   if TEST_FOR_TRUE(res)
+   if (1)
    {
-      if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
+      const _aaxDriverBackend *be = handle->backend.ptr;
+      unsigned ch = info->no_tracks;
+      float freq = info->frequency;
+      int brate = info->bitrate;
+      int fmt = info->format;
+      size_t frames = SIZETO16((size_t)rintf(freq/refrate));
+
+      res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq,&brate);
+      if TEST_FOR_TRUE(res)
       {
-         const _intBufferData* dptr;
-
-         handle->valid |= AAX_TRUE;
-         info->bitrate = brate;
-         info->frequency = freq;
-         info->no_tracks = ch;
-         info->format = fmt;
-
-         /* only alter the refresh rate when not registered */
-         if (1) // !handle->handle)
+         if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
          {
-            float old_rate = info->req_refresh_rate/info->update_rate;
+            const _intBufferData* dptr;
+            float old_rate;
+
+            handle->valid |= AAX_TRUE;
+            info->bitrate = brate;
+            info->frequency = freq;
+            info->no_tracks = ch;
+            info->format = fmt;
+
+            old_rate = info->req_refresh_rate/info->update_rate;
             info->refresh_rate = freq/(float)frames;
             info->update_rate = (uint8_t)rintf(handle->info->refresh_rate/old_rate);
+            /* copy the hardware volume from the backend */
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame *mixer = sensor->mixer;
+               _aax2dProps *p2d = mixer->props2d;
+               float cur;
+
+               cur = be->param(handle->backend.handle, DRIVER_VOLUME);
+               if (cur < 0.05f) cur = 1.0f;
+               _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
          }
-
-         /* copy the hardware volume from the backend */
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *mixer = sensor->mixer;
-            _aax2dProps *p2d = mixer->props2d;
-            float cur;
-
-            cur = be->param(handle->backend.handle, DRIVER_VOLUME);
-            if (cur < 0.05f) cur = 1.0f;
-            _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+         else {
+            __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
          }
       }
       else {
-         __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
+         _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
    return res;
@@ -1415,7 +1428,7 @@ _aaxMixerStart(_handle_t *handle)
             } else if (ms < 11) {
                _aaxThreadSetPriority(handle->thread.ptr, AAX_HIGH_PRIORITY);
             } else {
-               _aaxThreadSetPriority(handle->thread.ptr, AAX_NORMAL_RPIORITY);
+               _aaxThreadSetPriority(handle->thread.ptr, AAX_NORMAL_PRIORITY);
             }
             rv = AAX_TRUE;
          }
