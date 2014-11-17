@@ -38,15 +38,13 @@ static char __threads_enabled = 0;
 int                     /* Prio is a value in the range -20 to 19 */
 _aaxProcessSetPriority(int prio)
 {
-   int rv = 0;
    int curr_prio = getpriority(PRIO_PROCESS, getpid());
+   int rv = 0;
+
    if (curr_prio < prio)
    {
       errno = 0;
       rv = setpriority(PRIO_PROCESS, getpid(), prio);
-      if (rv < 0) {
-         rv = errno;
-     }
    }
 
    return rv;
@@ -91,6 +89,10 @@ _aaxThreadSetPriority(void *t, int prio)
    int min, max, policy;
    int rv = 0;
 
+   if (id == NULL) {
+     id = pthread_self();
+   }
+
    if (prio <= AAX_HIGHEST_PRIORITY) {
       policy = SCHED_FIFO;
    } else if (prio == AAX_HIGH_PRIORITY) {
@@ -120,10 +122,10 @@ _aaxThreadSetPriority(void *t, int prio)
       sched_param.sched_priority = prio;
 //    rv = sched_setparam(*id, &sched_param);
       rv = pthread_setschedparam(*id, policy, &sched_param);
-      if (rv != 0) {
-         _TH_SYSLOG("no thread scheduling privilege");
-      } else {
+      if (rv == 0) {
          _TH_SYSLOG("using thread scheduling privilege");
+      } else {
+         _TH_SYSLOG("no thread scheduling privilege");
       }
    }
 
@@ -684,9 +686,6 @@ _aaxProcessSetPriority(int prio)
    if (new_priority > curr_priority)
    {
       rv = SetPriorityClass(GetCurrentProcess(), new_priority);
-      if (!rv) {
-         rv = GetLastError();
-      }
    }
 
    return rv;
