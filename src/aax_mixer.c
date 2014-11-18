@@ -1309,8 +1309,6 @@ _aaxMixerInit(_handle_t *handle)
    float refrate = info->req_refresh_rate;
    float ms = rintf(1000/refrate);
 
-   assert(be != 0);
-
    /* test if we have enough privileges to set the requested priority */
    if (ms < 5) {
       res = _aaxThreadSetPriority(NULL, AAX_HIGHEST_PRIORITY);
@@ -1322,7 +1320,7 @@ _aaxMixerInit(_handle_t *handle)
    }
    _aaxProcessSetPriority(AAX_NORMAL_PRIORITY);
 
-   if (1)
+   if ((handle->valid & AAX_TRUE) == 0)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
       unsigned ch = info->no_tracks;
@@ -1331,45 +1329,49 @@ _aaxMixerInit(_handle_t *handle)
       int fmt = info->format;
       size_t frames = SIZETO16((size_t)rintf(freq/refrate));
 
+      assert(be != 0);
+
       res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq,&brate);
-      if TEST_FOR_TRUE(res)
+      if (TEST_FOR_TRUE(res) &&
+          ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
+           (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT)))
       {
-         if (handle->valid || (freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
+         const _intBufferData* dptr;
+         float old_rate;
+
+         handle->valid |= AAX_TRUE;
+         info->bitrate = brate;
+         info->frequency = freq;
+         info->no_tracks = ch;
+         info->format = fmt;
+
+         old_rate = info->req_refresh_rate/info->update_rate;
+         info->refresh_rate = freq/(float)frames;
+         info->update_rate = (uint8_t)rintf(handle->info->refresh_rate/old_rate);
+         /* copy the hardware volume from the backend */
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
          {
-            const _intBufferData* dptr;
-            float old_rate;
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *mixer = sensor->mixer;
+            _aax2dProps *p2d = mixer->props2d;
+            float cur;
 
-            handle->valid |= AAX_TRUE;
-            info->bitrate = brate;
-            info->frequency = freq;
-            info->no_tracks = ch;
-            info->format = fmt;
-
-            old_rate = info->req_refresh_rate/info->update_rate;
-            info->refresh_rate = freq/(float)frames;
-            info->update_rate = (uint8_t)rintf(handle->info->refresh_rate/old_rate);
-            /* copy the hardware volume from the backend */
-            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            if (dptr)
-            {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               _aaxAudioFrame *mixer = sensor->mixer;
-               _aax2dProps *p2d = mixer->props2d;
-               float cur;
-
-               cur = be->param(handle->backend.handle, DRIVER_VOLUME);
-               if (cur < 0.05f) cur = 1.0f;
-               _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-            }
+            cur = be->param(handle->backend.handle, DRIVER_VOLUME);
+            if (cur < 0.05f) cur = 1.0f;
+            _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
+            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          else {
-            __aaxErrorSet(AAX_INVALID_SETUP, "aaxMixerSetState");
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
       }
       else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+         _aaxErrorSet(AAX_INVALID_SETUP);
       }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_STATE);
    }
    return res;
 }
