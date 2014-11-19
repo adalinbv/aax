@@ -47,6 +47,7 @@
 
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_IFNUM		0
+#define DEFAULT_PERIODS		2
 #define DEFAULT_OUTPUT_RATE	48000
 #define DEFAULT_DEVNAME_OLD     "front:"AAX_MKSTR(DEFAULT_DEVNUM) \
                                        ","AAX_MKSTR(DEFAULT_IFNUM)
@@ -448,7 +449,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
       handle->frequency_hz = 48000.0f; 
       handle->no_tracks = 2;
       handle->bits_sample = 16;
-      handle->no_periods = (m) ? PLAYBACK_PERIODS : CAPTURE_PERIODS;
+      handle->no_periods = DEFAULT_PERIODS;
       handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
       handle->period_frames_actual = handle->period_frames;
 
@@ -730,7 +731,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    }
 
    periods = handle->no_periods;
-   period_frames_actual = period_frames = *frames / periods;
+   period_frames_actual = period_frames = get_pow2(*frames / periods);
    bits = aaxGetBitsPerSample(*fmt);
 
    handle->latency = (float)*frames/(float)rate;
@@ -813,8 +814,8 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
 
       /* recalculate period_frames and latency */
-      period_frames = (*frames * rate)/(*speed * periods);
-      handle->latency = (float)(period_frames*periods)/(float)rate;
+      period_frames_actual = (*frames * rate)/(*speed * periods);
+      handle->latency = (float)(period_frames_actual*periods)/(float)rate;
 
       /* test for supported sample formats */
       switch (bits_pos)
@@ -887,7 +888,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       TRUN( psnd_pcm_hw_params_set_buffer_size_near(hid, hwparams,
                                                     &period_frames_actual),
             "invalid buffer size" );
-      handle->max_frames = period_frames;
+      handle->max_frames = period_frames_actual;
       
 
       /* Ugly hack: At least the SUNXI driver needs it this way. */

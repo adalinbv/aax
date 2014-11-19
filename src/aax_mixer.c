@@ -1323,15 +1323,17 @@ _aaxMixerInit(_handle_t *handle)
    if ((handle->valid & AAX_TRUE) == 0)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
+      void *be_handle = handle->backend.handle;
       unsigned ch = info->no_tracks;
       float freq = info->frequency;
       int brate = info->bitrate;
       int fmt = info->format;
-      size_t frames = SIZETO16((size_t)rintf(freq/refrate));
+      size_t frames;
 
       assert(be != 0);
 
-      res = be->setup(handle->backend.handle, &frames, &fmt, &ch, &freq,&brate);
+      frames = SIZETO16((size_t)rintf(freq/refrate));
+      res = be->setup(be_handle, &frames, &fmt, &ch, &freq, &brate);
       if (TEST_FOR_TRUE(res) &&
           ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
            (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT)))
@@ -1347,7 +1349,8 @@ _aaxMixerInit(_handle_t *handle)
 
          old_rate = info->req_refresh_rate/info->update_rate;
          info->refresh_rate = freq/(float)frames;
-         info->update_rate = (uint8_t)rintf(handle->info->refresh_rate/old_rate);
+         info->update_rate = (uint8_t)rintf(info->refresh_rate/old_rate);
+
          /* copy the hardware volume from the backend */
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -1357,13 +1360,10 @@ _aaxMixerInit(_handle_t *handle)
             _aax2dProps *p2d = mixer->props2d;
             float cur;
 
-            cur = be->param(handle->backend.handle, DRIVER_VOLUME);
+            cur = be->param(be_handle, DRIVER_VOLUME);
             if (cur < 0.05f) cur = 1.0f;
             _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
             _intBufReleaseData(dptr, _AAX_SENSOR);
-         }
-         else {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
       }
       else {

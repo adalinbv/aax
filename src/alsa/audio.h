@@ -25,9 +25,6 @@ extern "C" {
 #endif
 #endif
 
-#define PLAYBACK_PERIODS	2
-#define CAPTURE_PERIODS		4
-
 /* all taken from the ALSA project website */
 typedef enum
 {
