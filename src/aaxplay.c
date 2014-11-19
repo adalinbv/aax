@@ -69,9 +69,9 @@ int main(int argc, char **argv)
     }
 
     idevname = getCaptureName(argc, argv);
+    infile = getInputFile(argc, argv, IFILE_PATH);
     if (!idevname)
     {
-       infile = getInputFile(argc, argv, IFILE_PATH);
        if (infile)
        {
            snprintf(ibuf, 256, "AeonWave on Audio Files: %s", infile);
