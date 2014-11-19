@@ -115,7 +115,7 @@ fileLoad(const char *file, unsigned int *no_samples,
          int *freq, char *bits_sample, char *no_tracks, unsigned int *format)
 {
     static const unsigned int _t = 1;
-    unsigned int buflen, blocksz;
+    unsigned int buflen, blocksz = 1;
     char buf[4];
     void *data;
     int i, fd;
