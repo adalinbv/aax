@@ -320,7 +320,8 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                      break;
                   case AAX_FREQUENCY_MAX:
                      f = be->param(handle->backend.handle,DRIVER_MAX_FREQUENCY);
-                     rv = (int)f;
+                     if (VALID_HANDLE(handle)) rv = (int)f;
+                     else rv = _MIN((int)f, _AAX_MAX_MIXER_FREQUENCY_LT);
                      break;
                   default:
                      _aaxErrorSet(AAX_INVALID_ENUM);
