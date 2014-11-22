@@ -364,18 +364,15 @@ _aaxSLESDriverDisconnect(void *id)
 }
 
 static int
-_aaxSLESDriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
                    unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
+   ssize_t period_frames;
    SLuint32 num;
    SLresult res;
-// ssize_t no_samples;
   
-// no_samples = NO_SAMPLES;
-// if (*frames) {
-//    no_samples = *frames;
-// }
+   period_frames = (size_t)rintf(freq / *refresh_rate);
 
    assert(handle);
 
@@ -398,7 +395,7 @@ _aaxSLESDriverSetup(const void *id, size_t *frames, int *fmt,
    // rather than one. Unless your CPU usage is really light, this will
    // probably end up glitching.
 // handle->no_frames = AudioManager.getProperty(PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
-   *frames = handle->no_frames;
+   *refresh_rate = freq/(float)period_frames;
 
    // TODO: for now
    if (*tracks > 2)

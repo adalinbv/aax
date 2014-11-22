@@ -481,7 +481,7 @@ _aaxLinuxDriverDisconnect(void *id)
 }
 
 static int
-_aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                    unsigned int *channels, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -502,10 +502,11 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
       }
 
       periods = handle->no_periods;
-      period_frames_actual = period_frames = *frames / periods;
+      period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+      period_frames_actual = period_frames;
       bits = aaxGetBitsPerSample(*fmt);
 
-      handle->latency = (float)*frames/(float)rate;
+      handle->latency = 1.0f / *refresh_rate;
       if (handle->latency < 0.010f) {
          handle->use_timer = AAX_FALSE;
       }
@@ -529,6 +530,9 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                               &handle->min_tracks, &handle->max_tracks);
          periods = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIODS, periods,
                                &handle->min_periods, &handle->max_periods);
+
+         /* recalculate the no. frames to match the refresh_rate */
+         period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
          if (handle->mode == AAX_MODE_READ) {
@@ -658,11 +662,11 @@ _aaxLinuxDriverSetup(const void *id, size_t *frames, int *fmt,
                
 
                *channels = tracks;
-               *frames = period_frames;
+               *refresh_rate = rate/(float)period_frames;
 
                if (!handle->use_timer)
                {
-                  handle->latency = (float)(period_frames*periods)/(float)rate;
+                  handle->latency = 1.0f / *refresh_rate;
                   if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
                   {
                      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;

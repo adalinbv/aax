@@ -1308,7 +1308,7 @@ _aaxMixerInit(_handle_t *handle)
    int res = AAX_FALSE;
    _aaxMixerInfo* info = handle->info;
    float refrate = info->req_refresh_rate;
-   float ms = rintf(1000/refrate);
+   float ms = rintf(1000.0f/refrate);
 
 
    /* test if we have enough privileges to set the requested priority */
@@ -1330,12 +1330,10 @@ _aaxMixerInit(_handle_t *handle)
       float freq = info->frequency;
       int brate = info->bitrate;
       int fmt = info->format;
-      size_t frames;
 
       assert(be != 0);
 
-      frames = SIZETO16((size_t)rintf(freq/refrate));
-      res = be->setup(be_handle, &frames, &fmt, &ch, &freq, &brate);
+      res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate);
       if (TEST_FOR_TRUE(res) &&
           ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
            (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT)))
@@ -1350,13 +1348,13 @@ _aaxMixerInit(_handle_t *handle)
          info->format = fmt;
 
          old_rate = info->req_refresh_rate/info->update_rate;
-         info->refresh_rate = freq/(float)frames;
-         info->update_rate = (uint8_t)rintf(info->refresh_rate/old_rate);
+         info->refresh_rate = refrate;
+         info->update_rate = (uint8_t)rintf(refrate/old_rate);
 
          // recalculate req_refresh_rate based on the number of periods
          // and the new refresh-rate.
-         periods = ceilf(info->refresh_rate/info->req_refresh_rate);
-         info->req_refresh_rate = info->refresh_rate/periods;
+         periods = ceilf(refrate/info->req_refresh_rate);
+         info->req_refresh_rate = refrate/periods;
 
          /* copy the hardware volume from the backend */
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

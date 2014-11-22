@@ -180,7 +180,7 @@ _aaxNoneDriverDisconnect(void *id)
 }
 
 static int
-_aaxNoneDriverSetup(const void *id, size_t *bufsize, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
+_aaxNoneDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
 {
    return AAX_TRUE;
 }
@@ -359,7 +359,7 @@ _aaxLoopbackDriverDisconnect(void *id)
 }
 
 static int
-_aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
+_aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    if (handle)
@@ -371,13 +371,8 @@ _aaxLoopbackDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *
       handle->frequency = *speed;
       handle->no_channels = *tracks;
       handle->bits_sample = aaxGetBitsPerSample(*fmt);
-      handle->no_frames = *frames;
-      
-      if (handle->frequency > 0) {
-         handle->latency = (float)handle->no_frames / (float)handle->frequency;
-      } else {
-         handle->latency = 0.0f;
-      }
+      handle->no_frames = (size_t)rintf((float)*speed / *refresh_rate);
+      handle->latency = 1.0f / *refresh_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
    }
    return AAX_TRUE;

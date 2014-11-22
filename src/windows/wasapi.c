@@ -568,7 +568,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 }
 
 static int
-_aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
+_aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
                    unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -579,14 +579,8 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
    assert(handle);
 
    rate = *speed;
-   if (frames && (*frames > 0))
-   {
-      sample_frames = *frames;
-      if (handle->Mode == eRender) sample_frames /= 2;
-   }
-   else {
-      sample_frames = rate/25;
-   }
+   sample_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*DEFAULT_PERIODS)));
+   if (handle->Mode == eRender) sample_frames /= 2;
 
    channels = *tracks;
    if (channels > handle->Fmt.Format.nChannels) {
@@ -617,13 +611,9 @@ _aaxWASAPIDriverSetup(const void *id, size_t *frames, int *format,
 
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
-      *frames = sample_frames;
+      *refresh_rate = (float)*speed/(float)sample_frames;
 
-      if (handle->Mode == eCapture) {
-         handle->min_periods = handle->max_periods = CAPTURE_PERIODS;
-      } else {
-         handle->min_periods = handle->max_periods = PLAYBACK_PERIODS;
-      }
+      handle->min_periods = handle->max_periods = DEFAULT_PERIODS;
       handle->min_frequency = 8000;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
       handle->min_tracks = 1;

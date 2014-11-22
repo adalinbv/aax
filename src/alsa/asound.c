@@ -686,7 +686,7 @@ _aaxALSADriverDisconnect(void *id)
 #endif
 
 static int
-_aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                         unsigned int *channels, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -731,10 +731,12 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
    }
 
    periods = handle->no_periods;
-   period_frames_actual = period_frames = get_pow2(*frames / periods);
+// period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
+   period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+   period_frames_actual = period_frames;
    bits = aaxGetBitsPerSample(*fmt);
 
-   handle->latency = (float)*frames/(float)rate;
+   handle->latency = 1.0f / *refresh_rate;
    if (handle->latency < 0.010f) {
       handle->use_timer = AAX_FALSE;
    }
@@ -814,8 +816,9 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
       }
 
       /* recalculate period_frames and latency */
-      period_frames_actual = (*frames * rate)/(*speed * periods);
-      handle->latency = (float)(period_frames_actual*periods)/(float)rate;
+//    period_frames_actual = (*frames * rate)/(*speed * periods);
+      period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
+      period_frames_actual = period_frames;
 
       /* test for supported sample formats */
       switch (bits_pos)
@@ -906,7 +909,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          if (handle->use_timer)
          {
             handle->no_periods = periods = 2;
-            period_frames = *frames/periods;
+            period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
          }
          else
          {
@@ -969,7 +972,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
 
             *speed = rate;
             *channels = tracks;
-            *frames = period_frames;
+            *refresh_rate = rate/(float)period_frames;
 
             if (!handle->use_timer)
             {
@@ -1053,7 +1056,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255, "  playback rate: %u hz",  rate);
          _AAX_SYSLOG(str);
-         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)(*frames*tracks*bits)/8);
+         snprintf(str,255, "  buffer size: %u bytes", (unsigned int)(handle->period_frames*tracks*bits)/8);
          _AAX_SYSLOG(str);
          snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
          _AAX_SYSLOG(str);
@@ -1076,7 +1079,7 @@ _aaxALSADriverSetup(const void *id, size_t *frames, int *fmt,
  }
  printf( "  devname: '%s'\n", handle->devname);
  printf( "  playback rate: %u hz\n",  rate);
- printf( "  buffer size: %u bytes\n", (unsigned int)(*frames*tracks*bits)/8);
+ printf( "  buffer size: %u bytes\n", (unsigned int)(handle->period_frames*tracks*bits)/8);
  printf( "  latency: %3.2f ms\n",  1e3*handle->latency);
  printf( "  no. periods: %i\n", handle->no_periods);
  printf("  use mmap: %s\n", handle->use_mmap?"yes":"no");

@@ -394,12 +394,12 @@ _aaxFileDriverDisconnect(void *id)
 }
 
 static int
-_aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
-   int freq, rv = AAX_FALSE;
-   size_t bufsize;
+   size_t bufsize, period_frames;
+   int rate, rv = AAX_FALSE;
    float period_ms;
 
    assert(handle);
@@ -407,20 +407,22 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
    handle->frequency = *speed;
-   freq = (int)handle->frequency;
+   rate = *speed;
 
-   period_ms = ceilf(1000.0f*(*frames)/(*speed));
+   period_ms = 1000.0f / *refresh_rate;
    if (period_ms < 4.0f) period_ms = 4.0f;
-   *frames = period_ms*(*speed)/1000.0f;
+   *refresh_rate = 1000.0f / period_ms;
 
-   handle->fmt->id = handle->fmt->setup(handle->mode, &bufsize, freq,
-                                        *tracks, *fmt, *frames, *bitrate);
+
+   period_frames = (size_t)rintf(rate / *refresh_rate);
+   handle->fmt->id = handle->fmt->setup(handle->mode, &bufsize, rate,
+                                        *tracks, *fmt, period_frames, *bitrate);
    if (handle->fmt->id)
    {
       handle->fd = open(handle->name, handle->fmode, 0644);
       if (handle->fd >= 0)
       {
-         size_t no_samples = *frames;
+         size_t no_samples = period_frames;
          void *header = NULL;
          void *buf = NULL;
          int res = AAX_TRUE;
@@ -459,16 +461,16 @@ _aaxFileDriverSetup(const void *id, size_t *frames, int *fmt,
 
          if (bufsize && res == bufsize)
          {
-            freq = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
+            rate = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
 
-            handle->frequency = (float)freq;
+            handle->frequency = (float)rate;
             handle->format = handle->fmt->get_param(handle->fmt->id, __F_FMT);
             handle->no_channels = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
 
             *fmt = handle->format;
             *speed = handle->frequency;
             *tracks = handle->no_channels;
-            *frames = no_samples;
+            *refresh_rate = handle->frequency/(float)no_samples;
 
             handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;

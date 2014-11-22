@@ -404,18 +404,17 @@ _aaxOSSDriverDisconnect(void *id)
 }
 
 static int
-_aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
+_aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
                    unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int channels, format, freq;
-   ssize_t frag, no_samples = 1024;
+   unsigned int channels, format, rate;
+   ssize_t frag, period_frames = 1024;
    audio_buf_info info;
    int fd, err;
 
-   if (*frames) {
-      no_samples = *frames;
-   }
+   rate = *speed;
+   period_frames = (size_t)rintf(rate / *refresh_rate);
 
    assert(handle);
 
@@ -434,7 +433,7 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    }
 
    fd = handle->fd;
-   freq = (unsigned int)*speed;
+   rate = (unsigned int)*speed;
    channels = *tracks; // handle->no_tracks;
 
    switch(*fmt)
@@ -451,8 +450,10 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    }
    handle->bytes_sample = aaxGetBytesPerSample(*fmt);
 
-   frag = log2i(no_samples*channels*handle->bytes_sample);
-// frag = log2i(channels*freq); // 1 second buffer
+   err = pioctl(fd, SNDCTL_DSP_SPEED, &rate);
+   *speed = (float)rate;
+
+   frag = log2i((period_frames*channels*handle->bytes_sample)/NO_FRAGMENTS);
    if (frag < 4) {
       frag = 4;
    }
@@ -466,11 +467,6 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
    }
    if ((err >= 0) && (handle->mode == O_WRONLY)) {
       err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
-   }
-   if (err >= 0)
-   {
-      err = pioctl(fd, SNDCTL_DSP_SPEED, &freq);
-      *speed = (float)freq;
    }
 
    /* disable sample conversion */
@@ -496,16 +492,16 @@ _aaxOSSDriverSetup(const void *id, size_t *frames, int *fmt,
 
       handle->format = format;
       handle->no_tracks = channels;
-      handle->frequency_hz = (float)freq;
+      handle->frequency_hz = (float)rate;
       handle->buffer_size = info.fragsize;
-      if (frames) *frames = info.fragsize/(channels*handle->bytes_sample);
+      *refresh_rate = (rate*channels*handle->bytes_sample)/(float)info.fragsize;
 
       handle->latency = 0.0f;
       err = pioctl(fd, SNDCTL_DSP_GETODELAY, &delay);
       if (err >= 0)
       {
          handle->latency = (float)delay;
-         handle->latency /= (float)(freq*channels*handle->bytes_sample);
+         handle->latency /= (float)(rate*channels*handle->bytes_sample);
       }
       err = 0;
       handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);

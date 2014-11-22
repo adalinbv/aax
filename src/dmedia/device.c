@@ -538,7 +538,7 @@ _aaxDMediaDriverDisconnect(void *id)
 }
 
 static int
-_aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
+_aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, data_format;
@@ -593,7 +593,7 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
 
    if (handle->port[0].port == NULL)   /* Only if port not initialized */
     {
-      size_t queuesize;
+      size_t frames, queuesize;
 
       handle->port[0].no_channels = channels/handle->noPorts;
       if (handle->port[0].no_channels <= 1) {
@@ -614,24 +614,13 @@ _aaxDMediaDriverSetup(const void *id, size_t *frames, int *fmt, unsigned int *tr
       result = palSetChannels(handle->port[0].config,
                         handle->port[0].no_channels);
 
-      if (frames && (*frames > 0)) {
-         queuesize = *frames * channels * handle->port[0].bytes_sample;
-      }
-      else {
-         queuesize = (unsigned int)(handle->port[0].frequency_hz * handle->port[0].no_channels/10.0f);
-      }
+      frames = (size_t)rintf(handle->port[0].frequency_hz / *refresh_rate);
+      queuesize = frames * channels * handle->port[0].bytes_sample;
 
       palSetQueueSize(handle->port[0].config, queuesize);
 
-      handle->port[0].no_frames = *frames;
-      handle->port[0].latency = 0.0f;
-      if (frames)
-      {
-         *frames = queuesize/(channels*handle->port[0].bytes_sample);
-         handle->port[0].latency = 2.0f*(float)*frames;
-         handle->port[0].latency /= (float)handle->port[0].frequency_hz;
-      }
-
+      handle->port[0].no_frames = frames;
+      handle->port[0].latency = 1.0f / *refresh_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->port[0].latency,
                                                 handle->mode);
       if (handle->render)
