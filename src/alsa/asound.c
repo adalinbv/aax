@@ -1842,10 +1842,11 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_param
    _driver_t *handle = (_driver_t*)id;
    snd_pcm_t *hid = handle->pcm;
    int err = 0;
+   char *s;
 
-#if 0
    /* for testing purposes */
-   if (err >= 0)
+   s = getenv("AAX_USE_MMAP");
+   if (s && (_aax_getbool(s) == AAX_FALSE))
    {
       handle->use_mmap = 0;
       handle->interleaved = 1;
@@ -1853,9 +1854,8 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_param
       err = psnd_pcm_hw_params_set_access(hid, hwparams,
                                           SND_PCM_ACCESS_RW_INTERLEAVED);
       if (err < 0) _AAX_DRVLOG("unable to set interleaved mode");
-   } else
-#endif
-   if (err >= 0)                     /* playback */
+   }
+   else if (err >= 0)                     /* playback */
    {
       handle->use_mmap = 1;
       handle->interleaved = 0;
