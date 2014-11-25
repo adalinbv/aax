@@ -470,7 +470,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *fmt = handle->format;
             *speed = handle->frequency;
             *tracks = handle->no_channels;
-            *refresh_rate = handle->frequency/(float)no_samples;
+//          *refresh_rate = handle->frequency/(float)no_samples;
 
             handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
