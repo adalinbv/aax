@@ -1353,7 +1353,7 @@ _aaxMixerInit(_handle_t *handle)
 
          // recalculate req_refresh_rate based on the number of periods
          // and the new refresh-rate.
-         periods = ceilf(refrate/info->req_refresh_rate);
+         periods = rintf(refrate/info->req_refresh_rate);
          info->req_refresh_rate = refrate/periods;
 
          /* copy the hardware volume from the backend */

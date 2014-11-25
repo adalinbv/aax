@@ -661,6 +661,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                handle->threshold = 5*period_frames/4;
                
 
+               *speed = rate;
                *channels = tracks;
                *refresh_rate = rate/(float)period_frames;
 
