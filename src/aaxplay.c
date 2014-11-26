@@ -49,8 +49,8 @@ void
 help()
 {
     printf("Usage:\n");
-    printf("  aaxplay -i <filename> (-d <playcbakc device>)\n");
-    printf("  aaxplay -c <capture device> (-d <playcbakc device>)\n\n");
+    printf("  aaxplay -i <filename> [-d <playback device>] [-o <output file>]\n");
+    printf("  aaxplay -c <capture device> [-d <playback device>] [-o <output file>]\n\n");
     exit(-1);
 }
 
