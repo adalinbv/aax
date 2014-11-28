@@ -506,6 +506,14 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                f = (float)xmlNodeGetDouble(xiid, "frequency-hz");
                if (f) config->node[0].frequency = f;
 
+               ptr = xmlNodeGetString(xiid, "setup");
+               if (ptr)
+               {
+                  free(config->node[0].setup);
+                  config->node[0].setup = _aax_strdup(ptr);
+                  xmlFree(ptr);
+               }
+
                if (m)
                {
                   void *xsid;
@@ -513,14 +521,6 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                   i = xmlNodeGetInt(xiid, "channels");
                   if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
                   config->node[0].no_speakers = i;
-
-                  ptr = xmlNodeGetString(xiid, "setup");
-                  if (ptr)
-                  {
-                     free(config->node[0].setup);
-                     config->node[0].setup = _aax_strdup(ptr);
-                     xmlFree(ptr);
-                  }
 
                   if (xmlNodeTest(xiid, "hrtf"))
                   {
@@ -836,6 +836,7 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
                   size_t q, l;
                   char *ptr, *tmp;
                   char rr[255];
+                  float f;
 
                   curlevel = level;
 
@@ -855,6 +856,17 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
 
                   xmlFree(config->backend.input);
                   config->backend.input = input;
+
+                  f = (float)xmlNodeGetDouble(input, "frequency-hz");
+                  if (f) config->node[0].frequency = f;
+
+                  ptr = xmlNodeGetString(input, "setup");
+                  if (ptr)
+                  {
+                     free(config->node[0].setup);
+                     config->node[0].setup = _aax_strdup(ptr);
+                     xmlFree(ptr);
+                  }
                }
                else {
                   xmlFree(input);

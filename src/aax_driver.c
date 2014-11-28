@@ -992,6 +992,18 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                handle->info->mode = AAX_MODE_WRITE_STEREO;
             }
          }
+         else if (ptr && handle->info->mode == AAX_MODE_READ)
+         {
+            if (!strcasecmp(ptr, "mix")) {
+               handle->info->track = AAX_TRACK_MIX;
+            } else if (!strcasecmp(ptr, "left")) {
+               handle->info->track = AAX_TRACK_LEFT;
+            } else if (!strcasecmp(ptr, "right")) {
+               handle->info->track = AAX_TRACK_RIGHT;
+            } else {
+               handle->info->track = AAX_TRACK_ALL;
+            }
+         }
 
          key = _bswap32(key);
          if (config->node[0].no_speakers > 0) {
