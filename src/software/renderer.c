@@ -23,7 +23,7 @@ _aaxSoftwareInitRenderer(float dt, enum aaxRenderMode mode)
    if (mode == AAX_MODE_READ)
    {
       _aaxRendererDetect* rtype = _aaxRenderTypes[0];
-      rv = rtype();
+      return  rtype();
    }
    else if (!rv)
    {
