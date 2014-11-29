@@ -176,6 +176,7 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
    {
       _aaxExtensionDetect *ftype = _aaxFileTypes[0];
 
+      handle->fd = -1;
       handle->mode = mode;
       if (ftype)
       {
