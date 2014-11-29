@@ -506,6 +506,9 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                f = (float)xmlNodeGetDouble(xiid, "frequency-hz");
                if (f) config->node[0].frequency = f;
 
+               f = (float)xmlNodeGetDouble(xiid, "interval-hz");
+               if (f) config->node[0].interval = f;
+
                ptr = xmlNodeGetString(xiid, "setup");
                if (ptr)
                {
@@ -776,6 +779,9 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
                   f = (float)xmlNodeGetDouble(output, "frequency-hz");
                   if (f) config->node[0].frequency = f;
 
+                  f = (float)xmlNodeGetDouble(output, "interval-hz");
+                  if (f) config->node[0].interval = f;
+
                   i = xmlNodeGetInt(output, "channels");
                   if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
                   config->node[0].no_speakers = i;
@@ -859,6 +865,9 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
 
                   f = (float)xmlNodeGetDouble(input, "frequency-hz");
                   if (f) config->node[0].frequency = f;
+
+                  f = (float)xmlNodeGetDouble(input, "interval-hz");
+                  if (f) config->node[0].interval = f;
 
                   ptr = xmlNodeGetString(input, "setup");
                   if (ptr)
