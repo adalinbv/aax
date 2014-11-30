@@ -94,9 +94,11 @@ ELSE(MSVC)
     ENDIF(MINGW)
 
     IF(X86_64)
+       SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse")
     ELSEIF(X86)
-       SET(C_FLAGS "${C_FLAGS} -march=i586")
+       SET(C_FLAGS "${C_FLAGS} -march=i686")
     ELSEIF(ARM)
+       SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm")
     ENDIF()
 
     SET(C_FLAGS "${C_FLAGS} -Os -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops -fomit-frame-pointer" CACHE STRING
