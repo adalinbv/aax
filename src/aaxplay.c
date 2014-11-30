@@ -48,9 +48,25 @@
 void
 help()
 {
+    aaxConfig cfg;
+
     printf("Usage:\n");
-    printf("  aaxplay -i <filename> [-d <playback device>] [-o <output file>]\n");
-    printf("  aaxplay -c <capture device> [-d <playback device>] [-o <output file>]\n\n");
+    printf("  aaxplay -c <capture device> [-d <playback device>] [-o <output file>]\n");
+
+    cfg = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_READ);
+    if (cfg)
+    {
+        const char *d, *s;
+
+        d = aaxDriverGetDeviceNameByPos(cfg, 0, AAX_MODE_READ);
+        s = aaxDriverGetInterfaceNameByPos(cfg, d, 0, AAX_MODE_READ);
+        printf("  aaxplay -i <%s> [-d <playback device>] [-o <output file>]\n\n", s);
+        aaxDriverDestroy(cfg);
+    }
+    else {
+       printf("  aaxplay -i <filename> [-d <playback device>] [-o <output file>]\n\n");
+    }
+
     exit(-1);
 }
 
