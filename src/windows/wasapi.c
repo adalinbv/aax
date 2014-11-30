@@ -35,7 +35,7 @@
 #include <base/logging.h>
 #include <base/threads.h>
 
-#include <software/rendertype.h>
+#include <software/renderer.h>
 #include "api.h"
 #include "arch.h"
 #include "driver.h"
@@ -60,8 +60,7 @@
 #ifdef NDEBUG
 # undef NDEBUG
 #endif
-#define PLAYBACK_PERIODS	2
-#define CAPTURE_PERIODS		4
+#define DEFAULT_PERIODS		2
 #define MAX_ID_STRLEN		64
 #define DEFAULT_RENDERER	"WASAPI"
 #define DEFAULT_DEVNAME		NULL
@@ -151,9 +150,9 @@ typedef struct
    UINT32 hw_buffer_frames;
 
    int status;
-   char sse_level;
 
    char *ifname[2];
+   _aaxRenderer *render;
    enum aaxRenderMode setup;
 
    _batch_cvt_to_intl_proc cvt_to_intl;
@@ -232,6 +231,9 @@ static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
 # define pIID_IAudioClient &aax_IID_IAudioClient
 # define pIID_IAudioEndpointVolume &aax_IID_IAudioEndpointVolume
 # define pIID_IAudioSessionControl &aax_IID_IAudioSessionControl
+# define pIID_IDeviceTopology &aax_IID_IDeviceTopology
+# define pIID_IPart &aax_IID_IPart
+# define pIID_IKsJackDescription &aax_IID_IKsJackDescription
 # define pPKEY_Device_DeviceDesc &PKEY_Device_DeviceDesc
 # define pPKEY_Device_FriendlyName &PKEY_Device_FriendlyName
 # define pPKEY_DeviceInterface_FriendlyName &PKEY_DeviceInterface_FriendlyName
@@ -348,7 +350,6 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
    {
       handle->Mode = _mode[(mode > 0) ? 1 : 0];
 
-      handle->sse_level = _aaxGetSSELevel();
       handle->status = DRIVER_INIT_MASK | CAPTURE_INIT_MASK;
       handle->status |= DRIVER_PAUSE_MASK;
 #if EXCLUSIVE_MODE
@@ -606,8 +607,8 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
    rv = _wasapi_setup(handle, &sample_frames);
    if (rv == AAX_TRUE)
    {
-      KSDATARANGE* range;
-      DWORD config;
+//    KSDATARANGE* range;
+//    DWORD config;
 
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
@@ -619,7 +620,7 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
 
-      IAudioChannelConfig_GetChannelConfig(&config);
+//    IAudioChannelConfig_GetChannelConfig(&config);
    }
 
    return rv;
@@ -820,6 +821,13 @@ Exit:
    return 0;
 }
 
+_aaxRenderer*
+_aaxWASAPIDriverRender(const void* config)
+{
+   _driver_t *handle = (_driver_t *)config;
+   return handle->render;
+}
+
 static char *
 _aaxWASAPIDriverGetName(const void *id, int playback)
 {
@@ -957,7 +965,7 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
-         rv = 2.0f;
+         rv = (float)DEFAULT_PERIODS;
          break;
 
 		/* boolean */
@@ -2139,17 +2147,17 @@ _wasapi_get_volume_range(_driver_t *handle)
 }
 
 static int
-_wasapi_get_channel_range(_driver_t *handle, unsgined int *min, unsigned int *max)
+_wasapi_get_channel_range(_driver_t *handle, unsigned int *min, unsigned int *max)
 {
    IDeviceTopology *pDeviceTopology = NULL;
    int rv;
 
    *min = 1;
-   *max = _AAX_MAX_SPEAKER;
+   *max = _AAX_MAX_SPEAKERS;
 
    // http://msdn.microsoft.com/en-us/library/dd371376%28v=vs.85%29.aspx
    // http://msdn.microsoft.com/en-us/library/dd371387%28v=VS.85%29.aspx
-   rv = pIMMDevice_Activate(handle->pDevice, pIID_IDeviceTopology,
+   rv = pIMMDevice_Activate(handle->pDevice, &aax_IID_IDeviceTopology,
                             CLSCTX_INPROC_SERVER, NULL,
                             (void**)&pDeviceTopology);
    if (rv == S_OK)
@@ -2165,20 +2173,21 @@ _wasapi_get_channel_range(_driver_t *handle, unsgined int *min, unsigned int *ma
 
          // Use the connector in the endpoint device to get the
          // connector in the adapter device.
-         rv = IConnector_GetConnectedTo(pConnEndpt, &pConnHWDev);
+         rv = IConnector_GetConnectedTo(pConnFrom, &pConnHWDev);
          if (rv == S_OK)
          {
             IPart *pPartConn = NULL;
 
             // Query the connector in the adapter device for
             // its IPart interface.
-            rv = IConnector_QueryInterface(pConnHWDev, IID_IPart,
+            rv = IConnector_QueryInterface(pConnHWDev, &aax_IID_IPart,
                                            (void**)&pPartConn);
             if (rv == S_OK)
             {
                IKsJackDescription *pJackDesc = NULL;
                rv = IPart_Activate(pPartConn, CLSCTX_INPROC_SERVER,
-                                   IID_IKsJackDescription, (void**)&pJackDesc);
+                                   &aax_IID_IKsJackDescription,
+                                   (void**)&pJackDesc);
                if (rv == S_OK)
                {
                   UINT jackCount = 0;
@@ -2193,7 +2202,7 @@ _wasapi_get_channel_range(_driver_t *handle, unsgined int *min, unsigned int *ma
                }
                IConnector_Release(pConnHWDev);
             }
-            IConnector_Release(pConnEndpt);
+            IConnector_Release(pConnFrom);
          }
       }
       IDeviceTopology_Release(pDeviceTopology);
@@ -2545,9 +2554,9 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
          hnsPeriodicity = (2 + hnsPeriodicity)*10000;
 
          if (handle->Mode == eRender) {
-            hnsBufferDuration *= PLAYBACK_PERIODS;
+            hnsBufferDuration *= DEFAULT_PERIODS;
          } else {
-            hnsBufferDuration *= CAPTURE_PERIODS;
+            hnsBufferDuration *= DEFAULT_PERIODS;
          }
 
          if ((handle->status & EXCLUSIVE_MODE_MASK) == 0) { /* shared mode */
@@ -2830,7 +2839,7 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
       break;
    }
 
-   handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->setup);
+   handle->render = _aaxSoftwareInitRenderer(handle->hnsLatency/10000000.0f, handle->setup);
    if (handle->render)
    {
       const char *rstr = handle->render->info(handle->render->id);

@@ -125,6 +125,11 @@ static char *_wasapi_errors[WASAPI_MAX_ERROR] =
 #  include <rpcsal.h>
 #  include <sal.h>
 
+typedef struct _BYTE_BLOB {
+   unsigned long clSize;
+   BYTE abData[];
+} BYTE_BLOB;
+
 #  ifndef PROPERTYKEY_DEFINED
 #   define PROPERTYKEY_DEFINED
 typedef struct _tagpropertykey
@@ -171,6 +176,7 @@ typedef LONGLONG REFERENCE_TIME;
 #  include <audiopolicy.h>
 #  include <mmdeviceapi.h>
 #  include <Endpointvolume.h>
+#  include <devicetopology.h>
 #  include <functiondiscoverykeys.h>
 #  include <unknwn.h>
 #  undef INITGUID
@@ -206,6 +212,10 @@ LONG InterlockedOr_Inline(LONG volatile *, LONG);
  AAX_DEFINE_IID(aax_IID_IAudioSessionControl, 0xf4b1a599, 0x7266, 0x4319, 0xa8,0xca, 0xe7,0x0a,0xcb,0x11,0xe8,0xcd);
 
 
+ AAX_DEFINE_IID(aax_IID_IDeviceTopology, 0x2a07407e, 0x6497, 0x4a18, 0x97,0x87, 0x32,0xf7,0x9b,0xd0,0xd9,0x8f);
+ AAX_DEFINE_IID(aax_IID_IPart, 0xae2de0e4, 0x5bca, 0x4f2d, 0xaa,0x46, 0x5d,0x13,0xf8,0xfd,0xb3,0xa9);
+ AAX_DEFINE_IID(aax_IID_IPartsList, 0x6daa848c, 0x5eb0, 0x45cc, 0xae,0xa5, 0x99,0x8a,0x2c,0xda,0x1f,0xfb);
+ AAX_DEFINE_IID(aax_IID_IKsJackDescription, 0x4509f757, 0x2d46, 0x4637, 0x8e,0x62, 0xce,0x7d,0xb9,0x44,0xf5,0x7b);
 
 #define AAX_DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 

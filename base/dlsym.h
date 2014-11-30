@@ -39,7 +39,8 @@ extern "C" {
 # define DLL_RV			void*
 #endif
 
-#define DECL_FUNCTION(f)	static f##_proc p##f = 0
+#define DECL_FUNCTION(f)	f##_proc p##f = 0
+#define DECL_STATIC_FUNCTION(f)	static f##_proc p##f = 0
 #define TIE_FUNCTION(f)		p##f = (f##_proc)_aaxGetProcAddress(audio, #f)
 
 #define DECL_VARIABLE(v)	static void* p##v = 0

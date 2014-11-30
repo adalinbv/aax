@@ -12,18 +12,74 @@
 #ifndef _ALSA_KERNEL_H
 #define _ALSA_KERNEL_H 1
 
-#include <sys/mman.h>
-#include <sys/ioctl.h>
+#include <fcntl.h>		/* SEEK_*, O_* */
+#if HAVE_IOCTL_H
+# include <sys/ioctl.h>
+#endif
 
-#define __force
-#define __bitwise
-#define __user
-#include <linux/types.h>
+# define __force
+# define __bitwise
+# define __user
+#if HAVE_LINUX_TYPES_H
+# include <linux/types.h>
+#else
+typedef uint32_t __u32;
+#endif
+
+#ifdef WIN32
+#define MAP_FILE	0
+#define MAP_FAILED	((void*)-1)
+#define PROT_READ	0x1
+#define PROT_WRITE	0x2
+#define MAP_SHARED	0x1
+void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off);
+int munmap(void *addr, size_t len);
+#else
+# include <sys/mman.h>
+#endif
 
 #ifdef __USE_GNU
 # undef __USE_GNU
 #endif
-#include <poll.h>
+#if HAVE_POLL_H
+# include <poll.h>
+#elif HAVE_WINSOCK2_H
+# include <winsock2.h>
+# ifndef POLLRDNORM
+#  define POLLRDNORM	0x0100
+# endif
+# ifndef POLLRDBAND
+#  define POLLRDBAND	0x0200
+# endif
+# ifndef POLLIN
+#  define POLLIN	(POLLRDNORM|POLLRDBAND)
+# endif
+# ifndef POLLWRNORM
+#  define POLLWRNORM	0x0010
+# endif
+# ifndef POLLOUT
+#  define POLLOUT	(POLLWRNORM)
+# endif
+# ifndef POLLERR
+#  define POLLERR	0x0001
+# endif
+# ifndef POLLNVAL
+#  define POLLNVAL	0x0004
+# endif
+# ifndef _IOC
+#  define _IOC(inout,group,num,len) \
+              (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
+# endif
+# ifndef _IOWR
+#  define _IOWR(g,n,t)	_IOC(IOC_IN | IOC_OUT,  (g), (n), sizeof(t))
+# endif
+typedef int nfds_t;
+struct pollfd {
+   int   fd;
+   short events;
+   short revents;
+};
+#endif
 
 #include "audio.h"
 

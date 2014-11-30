@@ -188,7 +188,7 @@ typedef struct
 
 } _driver_t;
 
-DECL_FUNCTION(ioctl);
+DECL_STATIC_FUNCTION(ioctl);
 DECL_FUNCTION(mmap);
 DECL_FUNCTION(munmap);
 DECL_FUNCTION(poll);
@@ -208,6 +208,11 @@ static int _kernel_get_volume(_driver_t*);
 
 static const char *_const_kernel_default_name = DEFAULT_DEVNAME;
 static int _kernel_default_cardnum = DEFAULT_PCM_NUM;
+static int _get_pagesize();
+
+#ifndef O_NONBLOCK
+# define O_NONBLOCK	0
+#endif
 
 static int
 _aaxLinuxDriverDetect(int mode)
@@ -440,7 +445,7 @@ _aaxLinuxDriverDisconnect(void *id)
 
    if (handle)
    {
-      int page_size = sysconf(_SC_PAGE_SIZE);
+      int page_size = _get_pagesize();
 
       if (handle->sync) {
          free(handle->sync);
@@ -611,7 +616,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
          err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
          if (err >= 0)
          {
-            int page_size = sysconf(_SC_PAGE_SIZE);
+            int page_size = _get_pagesize();
             handle->status = pmmap(NULL, page_size, PROT_READ,
                                          MAP_FILE|MAP_SHARED, handle->fd,
                                          SNDRV_PCM_MMAP_OFFSET_STATUS);
@@ -721,7 +726,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                                        DEFAULT_RENDERER, utsname.release, rstr);
 #else
                   snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s",
-                                            DEFAULT_RENDERER, os_name, rstr);
+                                            DEFAULT_RENDERER, rstr);
 #endif
                   rv = AAX_TRUE;
                }
@@ -758,7 +763,11 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  playback rate: %5.0f hz", handle->frequency_hz);
       _AAX_SYSLOG(str);
+#ifdef WIN32
+       snprintf(str,255, "  buffer size: %Iu bytes", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
+#else
       snprintf(str,255, "  buffer size: %zu bytes", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
+#endif
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
       _AAX_SYSLOG(str);
@@ -1324,6 +1333,32 @@ _kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pc
 
 
 /* -------------------------------------------------------------------------- */
+
+#ifdef WIN32
+void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
+{
+   return 0;
+}
+
+int munmap(void *addr, size_t len)
+{
+   return 0;
+}
+#endif
+
+static int
+_get_pagesize()
+{
+#ifdef WIN32
+   SYSTEM_INFO system_info;
+   GetSystemInfo (&system_info);
+   int page_size = system_info.dwPageSize;
+#else
+   int page_size = sysconf(_SC_PAGE_SIZE);
+#endif
+
+   return page_size;
+}
 
 static void
 _init_params(struct snd_pcm_hw_params *params)

@@ -147,6 +147,11 @@ typedef INT32	ssize_t;
 # else
 typedef INT64	ssize_t;
 # endif
+
+struct timespec {
+      time_t tv_sec;
+      long   tv_nsec;
+};
 #endif		// WIN32
 
 #if defined(__cplusplus)

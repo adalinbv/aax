@@ -157,7 +157,7 @@ typedef struct
 
 } _driver_t;
 
-DECL_FUNCTION(ioctl);
+DECL_STATIC_FUNCTION(ioctl);
 
 static int get_oss_version();
 static int detect_devnode(_driver_t*, char);

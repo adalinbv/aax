@@ -37,9 +37,17 @@
 #undef HAVE_INTTYPES_H
 #cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
 
-/* Define to 1 if you have the `ioctl.h> header file. */
+/* Define to 1 if you have the <ioctl.h> header file. */
 #undef HAVE_IOCTL_H
 #cmakedefine HAVE_IOCTL_H @HAVE_IOCTL_H@
+
+/* Define to 1 if you have the <poll.h> header file. */
+#undef HAVE_POLL_H
+#cmakedefine HAVE_POLL_H @HAVE_POLL_H@
+
+/* Define to 1 if you have the <Winsock2.h> header file. */
+#undef HAVE_WINSOCK2_H
+#cmakedefine HAVE_WINSOCK2_H @HAVE_WINSOCK2_H@
 
 /* Define to 1 if you have the <windows.h> header file. */
 #undef HAVE_WINDOWS_H
@@ -131,8 +139,13 @@
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
+/* Define to 1 if you have the <linux/types.h> header file. */
+#undef HAVE_LINUX_TYPES_H
+#cmakedefine HAVE_LINUX_TYPES_H @HAVE_LINUX_TYPES_H@
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+#cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #undef HAVE_SYS_UTSNAME_H
