@@ -54,15 +54,15 @@ help()
                                            AAX_UTILS_MINOR_VERSION,
                                            AAX_UTILS_MICRO_VERSION);
     printf("Usage: aaxplay [options]\n");
-    printf("Plays audio files or captures audio from an audio input device.\n");
-    printf("Optionally writes the input audio file to an output audio file.\n");
+    printf("Plays audio from a file or from an audio input device.\n");
+    printf("Optionally writes the audio to an output file.\n");
 
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -c, --capture <device>\tcapture from an audio device\n");
     printf("  -d, --device <device>\t\tplayback device (optional)\n");
     printf("  -o, --output <file>\t\twrite the audio to a file (optional)\n");
-    printf("  -h, --help\t\tprint this message and exit\n");
+    printf("  -h, --help\t\t\tprint this message and exit\n");
     printf("Either --input or --capture can be used but not both.\n");
     printf("For a list of device names run: aaxinfo\n");
 
