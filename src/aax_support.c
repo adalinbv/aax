@@ -25,7 +25,7 @@
 #include "software/audio.h"
 
 typedef struct {
-   char supported;
+   char supported_lite;
    const char *name;
 } ef_type; 
 
@@ -95,8 +95,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
          {
             if (!strcasecmp(filter, _aax_filter_s[i].name))
             {
-               if (_aax_filter_s[i].supported ||
-                   (handle && VALID_HANDLE(handle))) {
+               if (_aax_filter_s[i].supported_lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
                }
                break;
@@ -105,6 +104,53 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxFiltersGetCount(aaxConfig cfg)
+{
+   _handle_t* handle = (_handle_t*)cfg;
+   int rv = AAX_FALSE;
+   if (handle)
+   {
+      for(int i=1; i<AAX_FILTER_MAX; i++)
+      {
+         if (_aax_filter_s[i].supported_lite || VALID_HANDLE(handle)) {
+            rv++;
+         }
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   return rv;
+}
+
+AAX_API const char* AAX_APIENTRY
+aaxFiltersGetNameByPos(aaxConfig cfg, int pos)
+{
+   _handle_t* handle = (_handle_t*)cfg;
+   const char *rv = NULL;
+   if (handle)
+   {
+      int avail = 0;
+      for(int i=1; i<AAX_FILTER_MAX; i++)
+      {
+         if (_aax_filter_s[i].supported_lite || VALID_HANDLE(handle))
+         {
+            avail++;
+            if (pos == avail)
+            {
+               rv =  _aax_filter_s[i].name;
+               break;
+            }
+         }
       }
    }
    else {
@@ -127,8 +173,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
          {
             if (!strcasecmp(effect, _aax_effect_s[i].name))
             {
-               if (_aax_effect_s[i].supported ||
-                   (handle && VALID_HANDLE(handle))) {
+               if (_aax_effect_s[i].supported_lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
                }
                break;
@@ -137,6 +182,54 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
       }
       else {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxEffectsGetCount(aaxConfig cfg)
+{
+   _handle_t* handle = (_handle_t*)cfg;
+   int rv = AAX_FALSE;
+   if (handle)
+   {
+      int i; 
+      for(i=1; i<AAX_EFFECT_MAX; i++)
+      {  
+         if (_aax_effect_s[i].supported_lite || VALID_HANDLE(handle)) {
+            rv++;
+         }
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_HANDLE);
+   }
+   return rv;
+}
+
+AAX_API const char* AAX_APIENTRY
+aaxEffectsGetNameByPos(aaxConfig cfg, int pos)
+{
+   _handle_t* handle = (_handle_t*)cfg;
+   const char *rv = NULL;
+   if (handle)
+   {
+      int avail = 0;
+      for(int i=1; i<AAX_EFFECT_MAX; i++)
+      {
+         if (_aax_effect_s[i].supported_lite || VALID_HANDLE(handle))
+         {
+            avail++;
+            if (pos == avail)
+            {
+               rv =  _aax_effect_s[i].name;
+               break;
+            }
+         }
       }
    }
    else {
@@ -331,53 +424,33 @@ aaxGetNoCores(aaxConfig cfg)
 static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
 {
    { 0, "NONE" },
-#if ENABLE_LITE
-   { 0, "" },
-   { 1, "AAX_VOLUME_FILTER" },
-   { 0, "" },
-   { 0, "" },
-#else
-   { 0, "AAX_EQUALIZER" },
-   { 1, "AAX_VOLUME_FILTER" },
-   { 0, "AAX_DYNAMIC_GAIN_FILTER" },
-   { 0, "AAX_TIMED_GAIN_FILTER" },
-#endif
-   { 1, "AAX_ANGULAR_FILTER" },
-   { 1, "AAX_DISTANCE_FILTER" },
-   { 1, "AAX_FREQUENCY_FILTER" },
-#if ENABLE_LITE
-   { 0, "" },
-#else
-   { 1, "AAX_GRAPHIC_EQUALIZER" },
-#endif
-   { 1, "AAX_COMPRESSOR" }
+
+   { 0, "AAX_equalizer" },
+   { 0, "AAX_graphic_equalizer" },
+   { 1, "AAX_compressor" },
+   { 1, "AAX_volume_filter" },
+   { 0, "AAX_dynamic_gain_filter" },
+   { 0, "AAX_timed_gain_filter" },
+   { 1, "AAX_frequency_filter" },
+
+   { 1, "AAX_angular_filter" },
+   { 1, "AAX_distance_filter" }
 };
 
 static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
 {
    { 0, "NONE" },
-   { 1, "AAX_PITCH_EFFECT" },
-#if ENABLE_LITE
-   { 0, "" },
-   { 0, "" },
-   { 0, "" },
-   { 0, "" },
-   { 0, "" },
-   { 0, "" },
-#else
-   { 0, "AAX_DYNAMIC_PITCH_EFFECT" },
-   { 0, "AAX_TIMED_PITCH_EFFECT" },
-   { 0, "AAX_DISTORTION_EFFECT" },
-   { 0, "AAX_PHASING_EFFECT" },
-   { 0, "AAX_CHORUS_EFFECT" },
-   { 0, "AAX_FLANGING_EFFECT" },
-#endif
-   { 1, "AAX_VELOCITY_EFFECT" },
-#if ENABLE_LITE
-   { 0, "" }
-#else
-   { 1, "AAX_REVERB_EFFECT" }
-#endif
+
+   { 1, "AAX_pitch_effect" },
+   { 0, "AAX_dynamic_pitch_effect" },
+   { 0, "AAX_timed_pitch_effect" },
+   { 0, "AAX_phasing_effect" },
+   { 0, "AAX_chorus_effect" },
+   { 0, "AAX_flanging_effect" },
+   { 0, "AAX_distortion_effect" },
+   { 0, "AAX_reverb_effect" },
+
+   { 1, "AAX_velocity_effect" }
 };
 
 const char *_aax_id_s[_AAX_MAX_ID] =
