@@ -128,6 +128,9 @@ int main(int argc, char **argv)
     }
 
     maximumWidth = terminalWidth()-1;
+    printf("aaxinfo version %i.%i.%i\n", AAX_UTILS_MAJOR_VERSION,
+                                         AAX_UTILS_MINOR_VERSION,
+                                         AAX_UTILS_MICRO_VERSION);
     printf("Run %s -copyright to read the copyright information.\n", argv[0]);
 
     for (mode = AAX_MODE_READ; mode <= AAX_MODE_WRITE_STEREO; mode++)

@@ -48,24 +48,53 @@
 void
 help()
 {
-    aaxConfig cfg;
+    aaxConfig cfgi, cfgo;
 
-    printf("Usage:\n");
-    printf("  aaxplay -c <capture device> [-d <playback device>] [-o <output file>]\n");
+    printf("aaxplay version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
+                                           AAX_UTILS_MINOR_VERSION,
+                                           AAX_UTILS_MICRO_VERSION);
+    printf("Usage: aaxplay [options]\n");
+    printf("Plays audio files or captures audio from an audio input device.\n");
+    printf("Optionally writes the input audio file to an output audio file.\n");
 
-    cfg = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_READ);
-    if (cfg)
+    printf("\nOptions:\n");
+    printf("  -i, --input <file>\t\tplayback audio from a file\n");
+    printf("  -c, --capture <device>\tcapture from an audio device\n");
+    printf("  -d, --device <device>\t\tplayback device (optional)\n");
+    printf("  -o, --output <file>\t\twrite the audio to a file (optional)\n");
+    printf("  -h, --help\t\tprint this message and exit\n");
+    printf("Either -i or -c can be used but not both.\n");
+    printf("For a list of device names run: aaxinfo\n");
+    printf("Audio will always be sent to the (default) audio device,\n");
+    printf("writing to an output file is fully optional.\n");
+
+    cfgi = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_READ);
+    cfgo = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_WRITE_STEREO);
+    if (cfgi || cfgo) {
+        printf("\nSupported file formats:\n");
+    }
+
+    if (cfgi)
     {
         const char *d, *s;
 
-        d = aaxDriverGetDeviceNameByPos(cfg, 0, AAX_MODE_READ);
-        s = aaxDriverGetInterfaceNameByPos(cfg, d, 0, AAX_MODE_READ);
-        printf("  aaxplay -i <%s> [-d <playback device>] [-o <output file>]\n\n", s);
-        aaxDriverDestroy(cfg);
+        d = aaxDriverGetDeviceNameByPos(cfgi, 0, AAX_MODE_READ);
+        s = aaxDriverGetInterfaceNameByPos(cfgi, d, 0, AAX_MODE_READ);
+        printf("  - input : %s\n", s);
+        aaxDriverDestroy(cfgi);
     }
-    else {
-       printf("  aaxplay -i <filename> [-d <playback device>] [-o <output file>]\n\n");
+
+    cfgo = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_READ);
+    if (cfgo)
+    {
+        const char *d, *s;
+
+        d = aaxDriverGetDeviceNameByPos(cfgo, 0, AAX_MODE_WRITE_STEREO);
+        s = aaxDriverGetInterfaceNameByPos(cfgo, d, 0, AAX_MODE_WRITE_STEREO);
+        printf("  - output: %s\n", s);
+        aaxDriverDestroy(cfgo);
     }
+    printf("\n");
 
     exit(-1);
 }
@@ -80,7 +109,9 @@ int main(int argc, char **argv)
     aaxConfig file = NULL;
     int res, rv = 0;
 
-    if (argc == 1) {
+    if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
+                     getCommandLineOption(argc, argv, "--help"))
+    {
         help();
     }
 

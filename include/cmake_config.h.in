@@ -1,5 +1,10 @@
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* versioning */
+#cmakedefine AAX_UTILS_MAJOR_VERSION @AAX_UTILS_MAJOR_VERSION@
+#cmakedefine AAX_UTILS_MINOR_VERSION @AAX_UTILS_MINOR_VERSION@
+#cmakedefine AAX_UTILS_MICRO_VERSION @AAX_UTILS_MICRO_VERSION@
+
 /* Define this to enable nano debug messages. */
 #undef DEBUG
 

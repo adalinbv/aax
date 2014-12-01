@@ -60,6 +60,7 @@ getDeviceName(int argc, char **argv)
 
     /* -d for device name */
     s = getCommandLineOption(argc, argv, "-d");
+    if (!s) s = getCommandLineOption(argc, argv, "--device");
     if (s)
     {
         strncpy((char *)&devname, s, len);
@@ -67,6 +68,7 @@ getDeviceName(int argc, char **argv)
 
         /* -r for a separate renderer */
         s = getCommandLineOption(argc, argv, "-r");
+        if (!s) s = getCommandLineOption(argc, argv, "--renderer");
         if (s)
         {
             strncat((char *)&devname, " on ", len);
@@ -89,6 +91,7 @@ getCaptureName(int argc, char **argv)
 
    /* -c for a capture device */
     s = getCommandLineOption(argc, argv, "-c");
+    if (!s) s = getCommandLineOption(argc, argv, "--capture");
     if (s)
     {
         strncpy((char *)&devname, s, len);
@@ -105,6 +108,7 @@ getRenderer(int argc, char **argv)
 
     /* -r for a separate renderer */
     renderer = getCommandLineOption(argc, argv, "-r");
+    if (!renderer) renderer = getCommandLineOption(argc, argv, "--renderer");
     return renderer;
 }
 
@@ -116,6 +120,7 @@ getNumEmitters(int argc, char **argv)
 
     /* -n for the number of emitters */
     ret = getCommandLineOption(argc, argv, "-n");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--num");
     if (ret) num = atoi(ret);
     return num;
 }
@@ -125,6 +130,7 @@ getPitch(int argc, char **argv)
 {
     float num = 1.0f;
     char *ret = getCommandLineOption(argc, argv, "-p");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--pitch");
     if (ret) num = (float)atof(ret);
     return num;
 }
@@ -134,6 +140,7 @@ getGain(int argc, char **argv)
 {
     float num = 1.0f;
     char *ret = getCommandLineOption(argc, argv, "-g");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--gain");
     if (ret) num = (float)atof(ret);
     return num;
 }
@@ -142,6 +149,7 @@ int
 printCopyright(int argc, char **argv)
 {
     char *ret = getCommandLineOption(argc, argv, "-c");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--copyright");
     if (ret) {
         printf("%s\n", aaxGetCopyrightString());
     }
@@ -153,6 +161,7 @@ getMode(int argc, char **argv)
 {
     int mode = AAX_MODE_WRITE_STEREO;
     char *ret = getCommandLineOption(argc, argv, "-m");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--mode");
     if (ret)
     {
         if (!strcasecmp(ret, "hrtf")) mode = AAX_MODE_WRITE_HRTF;
@@ -167,6 +176,7 @@ getInputFile(int argc, char **argv, const char *filename)
 {
     char *fn = getCommandLineOption(argc, argv, "-i");
 
+    if (!fn) fn = getCommandLineOption(argc, argv, "--input");
     if (!fn) fn = (char *)filename;
     if (access(fn, F_OK|R_OK) < 0) fn = NULL;
     return fn;
@@ -177,6 +187,7 @@ getOutputFile(int argc, char **argv, const char *filename)
 {
     char *fn = getCommandLineOption(argc, argv, "-o");
 
+    if (!fn) fn = getCommandLineOption(argc, argv, "--output");
     if (!fn) fn = (char *)filename;
     return fn;
 }
@@ -187,24 +198,28 @@ getAudioFormat(int argc, char **argv, enum aaxFormat format)
    char *fn = getCommandLineOption(argc, argv, "-f");
    enum aaxFormat rv = format;
 
-   if (!strcasecmp(fn, "AAX_PCM8S")) {
-      rv = AAX_PCM8S;
-   } else if (!strcasecmp(fn, "AAX_PCM16S")) {
-      rv = AAX_PCM16S;
-   } else if (!strcasecmp(fn, "AAX_PCM24S")) {
-      rv = AAX_PCM24S;
-   } else if (!strcasecmp(fn, "AAX_PCM32S")) {
-      rv = AAX_PCM32S;
-   } else if (!strcasecmp(fn, "AAX_FLOAT")) {
-      rv = AAX_FLOAT;
-   } else if (!strcasecmp(fn, "AAX_DOUBLE")) {
-      rv = AAX_DOUBLE;
-   } else if (!strcasecmp(fn, "AAX_MULAW")) {
-      rv = AAX_MULAW;
-   } else if (!strcasecmp(fn, "AAX_ALAW")) {
-      rv = AAX_ALAW;
-   } else if (!strcasecmp(fn, "AAX_IMA4_ADPCM")) {
-      rv = AAX_IMA4_ADPCM; 
+   if (!fn) fn = getCommandLineOption(argc, argv, "--format");
+   if (fn)
+   {
+      if (!strcasecmp(fn, "AAX_PCM8S")) {
+         rv = AAX_PCM8S;
+      } else if (!strcasecmp(fn, "AAX_PCM16S")) {
+         rv = AAX_PCM16S;
+      } else if (!strcasecmp(fn, "AAX_PCM24S")) {
+         rv = AAX_PCM24S;
+      } else if (!strcasecmp(fn, "AAX_PCM32S")) {
+         rv = AAX_PCM32S;
+      } else if (!strcasecmp(fn, "AAX_FLOAT")) {
+         rv = AAX_FLOAT;
+      } else if (!strcasecmp(fn, "AAX_DOUBLE")) {
+         rv = AAX_DOUBLE;
+      } else if (!strcasecmp(fn, "AAX_MULAW")) {
+         rv = AAX_MULAW;
+      } else if (!strcasecmp(fn, "AAX_ALAW")) {
+         rv = AAX_ALAW;
+      } else if (!strcasecmp(fn, "AAX_IMA4_ADPCM")) {
+         rv = AAX_IMA4_ADPCM; 
+      }
    }
 
    return rv;
