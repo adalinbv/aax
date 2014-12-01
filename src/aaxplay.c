@@ -63,9 +63,10 @@ help()
     printf("  -d, --device <device>\t\tplayback device (optional)\n");
     printf("  -o, --output <file>\t\twrite the audio to a file (optional)\n");
     printf("  -h, --help\t\tprint this message and exit\n");
-    printf("Either -i or -c can be used but not both.\n");
+    printf("Either --input or --capture can be used but not both.\n");
     printf("For a list of device names run: aaxinfo\n");
-    printf("Audio will always be sent to the (default) audio device,\n");
+
+    printf("\nAudio will always be sent to the (default) audio device,\n");
     printf("writing to an output file is fully optional.\n");
 
     cfgi = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_READ);
