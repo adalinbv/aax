@@ -90,8 +90,8 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
    {
       if (filter)
       {
-         int i;
-         for(i=1; i<AAX_FILTER_MAX; i++)
+         int i = 0;
+         while (_aax_filter_s[i].name)
          {
             if (!strcasecmp(filter, _aax_filter_s[i].name))
             {
@@ -100,6 +100,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
                }
                break;
             }
+            i++;
          }
       }
       else {
@@ -119,11 +120,13 @@ aaxFiltersGetCount(aaxConfig cfg)
    int rv = AAX_FALSE;
    if (handle)
    {
-      for(int i=1; i<AAX_FILTER_MAX; i++)
+      int i = 0;
+      while (_aax_filter_s[i].name)
       {
          if (_aax_filter_s[i].supported_lite || VALID_HANDLE(handle)) {
             rv++;
          }
+         i++;
       }
    }
    else {
@@ -139,8 +142,8 @@ aaxFiltersGetNameByPos(aaxConfig cfg, int pos)
    const char *rv = NULL;
    if (handle)
    {
-      int avail = 0;
-      for(int i=1; i<AAX_FILTER_MAX; i++)
+      int i = 0, avail = -1;
+      while (_aax_filter_s[i].name)
       {
          if (_aax_filter_s[i].supported_lite || VALID_HANDLE(handle))
          {
@@ -151,6 +154,7 @@ aaxFiltersGetNameByPos(aaxConfig cfg, int pos)
                break;
             }
          }
+         i++;
       }
    }
    else {
@@ -168,8 +172,8 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
    {
       if (effect)
       {
-         int i;
-         for(i=1; i<AAX_EFFECT_MAX; i++)
+         int i = 0;
+         while (_aax_effect_s[i].name)
          {
             if (!strcasecmp(effect, _aax_effect_s[i].name))
             {
@@ -178,6 +182,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
                }
                break;
             }
+            i++;
          }
       }
       else {
@@ -197,12 +202,13 @@ aaxEffectsGetCount(aaxConfig cfg)
    int rv = AAX_FALSE;
    if (handle)
    {
-      int i; 
-      for(i=1; i<AAX_EFFECT_MAX; i++)
+      int i = 0; 
+      while (_aax_effect_s[i].name)
       {  
          if (_aax_effect_s[i].supported_lite || VALID_HANDLE(handle)) {
             rv++;
          }
+         i++;
       }
    }
    else {
@@ -218,8 +224,8 @@ aaxEffectsGetNameByPos(aaxConfig cfg, int pos)
    const char *rv = NULL;
    if (handle)
    {
-      int avail = 0;
-      for(int i=1; i<AAX_EFFECT_MAX; i++)
+      int i = 0, avail = -1;
+      while (_aax_effect_s[i].name)
       {
          if (_aax_effect_s[i].supported_lite || VALID_HANDLE(handle))
          {
@@ -230,6 +236,7 @@ aaxEffectsGetNameByPos(aaxConfig cfg, int pos)
                break;
             }
          }
+         i++;
       }
    }
    else {
@@ -423,8 +430,6 @@ aaxGetNoCores(aaxConfig cfg)
 
 static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
 {
-   { 0, "NONE" },
-
    { 0, "AAX_equalizer" },
    { 0, "AAX_graphic_equalizer" },
    { 1, "AAX_compressor" },
@@ -434,13 +439,13 @@ static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
    { 1, "AAX_frequency_filter" },
 
    { 1, "AAX_angular_filter" },
-   { 1, "AAX_distance_filter" }
+   { 1, "AAX_distance_filter" },
+
+   { 0, NULL }		/* always last */
 };
 
 static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
 {
-   { 0, "NONE" },
-
    { 1, "AAX_pitch_effect" },
    { 0, "AAX_dynamic_pitch_effect" },
    { 0, "AAX_timed_pitch_effect" },
@@ -450,7 +455,9 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
    { 0, "AAX_distortion_effect" },
    { 0, "AAX_reverb_effect" },
 
-   { 1, "AAX_velocity_effect" }
+   { 1, "AAX_velocity_effect" },
+
+   { 0, NULL }		/* always last */
 };
 
 const char *_aax_id_s[_AAX_MAX_ID] =
