@@ -1786,35 +1786,39 @@ _alsa_pcm_open(_driver_t *handle, int m)
 
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
-   if (err >= 0) {
-      err = psnd_pcm_nonblock(handle->pcm, 1);
-   }
    if (err >= 0)
    {
-      err = psnd_mixer_open(&handle->mixer, 0);
+      err = psnd_pcm_nonblock(handle->pcm, 1);
       if (err >= 0)
       {
-         char name[8];
-         snprintf(name, 8, "hw:%i", handle->devnum);
-         err = psnd_mixer_attach(handle->mixer, name);
+         err = psnd_mixer_open(&handle->mixer, 0);
+         if (err >= 0)
+         {
+            char name[8];
+            snprintf(name, 8, "hw:%i", handle->devnum);
+            err = psnd_mixer_attach(handle->mixer, name);
+         }
+         if (err >= 0) {
+            err = psnd_mixer_selem_register(handle->mixer, NULL, NULL);
+         }
+         if (err >= 0)
+         {
+            err = psnd_mixer_load(handle->mixer);
+            _alsa_get_volume_range(handle);
+         }
+         if (err < 0)
+         {
+            psnd_mixer_close(handle->mixer);
+            handle->mixer = NULL;
+         }
       }
-      if (err >= 0) {
-         err = psnd_mixer_selem_register(handle->mixer, NULL, NULL);
-      }
-      if (err >= 0)
+      else
       {
-         err = psnd_mixer_load(handle->mixer);
-         _alsa_get_volume_range(handle);
-      }
-      if (err < 0)
-      {
-         psnd_mixer_close(handle->mixer);
-         handle->mixer = NULL;
+         psnd_pcm_close(handle->pcm);
+         handle->pcm = NULL;
       }
    }
-   else
-   {
-      psnd_pcm_close(handle->pcm);
+   else {
       handle->pcm = NULL;
    }
 
