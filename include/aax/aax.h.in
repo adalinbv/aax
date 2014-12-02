@@ -454,11 +454,7 @@ AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
 AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
 AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
-AAX_API int AAX_APIENTRY aaxFiltersGetCount(aaxConfig);
-AAX_API const char* AAX_APIENTRY aaxFiltersGetNameByPos(aaxConfig, int);
 AAX_API int AAX_APIENTRY aaxIsFilterSupported(aaxConfig, const char*);
-AAX_API int AAX_APIENTRY aaxEffectsGetCount(aaxConfig);
-AAX_API const char* AAX_APIENTRY aaxEffectsGetNameByPos(aaxConfig, int);
 AAX_API int AAX_APIENTRY aaxIsEffectSupported(aaxConfig, const char*);
 
 /* Pointer-to-function types */
@@ -718,6 +714,7 @@ typedef unsigned long (AAX_APIENTRY *PFNAAXSENSORGETOFFSET)(const aaxConfig, enu
 typedef int (*aaxFilterFn)(void*, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
+AAX_API const char* AAX_APIENTRY aaxFilterGetNameByType(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
@@ -749,6 +746,7 @@ typedef int (AAX_APIENTRY *PFNAAXFILTERGETSTATE)(aaxFilter);
 typedef int (*aaxEffectFn)(void*, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
+AAX_API const char* AAX_APIENTRY aaxEffectGetNameByType(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
