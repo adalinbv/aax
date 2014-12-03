@@ -31,8 +31,8 @@ typedef struct {
 
 static const char* __aaxErrorSetFunctionOrBackendString(const char*);
 
-static const ef_type _aax_filter_s[AAX_FILTER_MAX];
-static const ef_type _aax_effect_s[AAX_EFFECT_MAX];
+static const ef_type _aax_filter_s[];
+static const ef_type _aax_effect_s[];
 
 const char *_aax_id_s[_AAX_MAX_ID];
 const char* _aaxErrorStrings[];
@@ -354,7 +354,7 @@ aaxGetNoCores(aaxConfig cfg)
 
 /* -------------------------------------------------------------------------- */
 
-static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
+static const ef_type _aax_filter_s[AAX_FILTER_MAX+1] =
 {
    { 1, "None" },
    { 0, "AAX_equalizer" },
@@ -371,7 +371,7 @@ static const ef_type _aax_filter_s[AAX_FILTER_MAX] =
    { 0, NULL }		/* always last */
 };
 
-static const ef_type _aax_effect_s[AAX_EFFECT_MAX] =
+static const ef_type _aax_effect_s[AAX_EFFECT_MAX+1] =
 {
    { 1, "None" },
    { 1, "AAX_pitch_effect" },
