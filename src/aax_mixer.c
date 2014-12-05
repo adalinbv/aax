@@ -830,7 +830,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 
                      if (rb)
                      {
-                        float delay_sec = 1.0f / info->refresh_rate;
+                        float delay_sec = 1.0f / info->period_rate;
 
                         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
                         rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
@@ -1215,7 +1215,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   mp3d = smixer->props3d;
                   fp3d = fmixer->props3d;
 
-                  fmixer->info->period_rate = smixer->info->refresh_rate;
+                  fmixer->info->period_rate = smixer->info->period_rate;
                   fmixer->info->refresh_rate = smixer->info->refresh_rate;
                   fmixer->info->update_rate = smixer->info->update_rate;
                   if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)

@@ -892,7 +892,6 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                                                     &period_frames_actual),
             "invalid buffer size" );
       handle->max_frames = period_frames_actual;
-      
 
       /* Ugly hack: At least the SUNXI driver needs it this way. */
       do {
