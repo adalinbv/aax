@@ -405,7 +405,8 @@ _aaxOSSDriverDisconnect(void *id)
 
 static int
 _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
-                   unsigned int *tracks, float *speed, int *bitrate)
+                   unsigned int *tracks, float *speed, int *bitrate,
+                   int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, format, rate;

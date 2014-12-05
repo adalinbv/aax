@@ -457,7 +457,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
       rb = submix->ringbuffer;
       if (rb)
       {
-         float delay_sec = 1.0f / info->refresh_rate;
+         float delay_sec = 1.0f / info->period_rate;
          const _aaxDriverBackend *be;
          float min, max;
 
@@ -518,7 +518,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
          assert(handle->thread.signal.mutex != 0);
 
          handle->thread.started = AAX_TRUE;
-         ms = rintf(1000/handle->info->refresh_rate);
+         ms = rintf(1000/handle->info->period_rate);
 #if 0
          r = _aaxThreadStart(handle->thread.ptr,
                              handle->backend.ptr->thread, handle, ms);

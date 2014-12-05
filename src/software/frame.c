@@ -190,7 +190,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
          frame_rb = be->get_ringbuffer(DELAY_EFFECTS_TIME, info->mode);
          if (frame_rb)
          {
-            float dt = 1.0f/info->refresh_rate;
+            float dt = 1.0f/info->period_rate;
 
             dest_rb->set_parami(frame_rb, RB_NO_TRACKS, info->no_tracks);
             dest_rb->set_format(frame_rb, AAX_PCM24S, AAX_TRUE);

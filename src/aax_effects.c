@@ -376,7 +376,7 @@ aaxEffectSetState(aaxEffect e, int state)
                   {
                      lfo->step[t] = -2.0f*depth * lfo->f;
                      lfo->step[t] *= (lfo->max - lfo->min);
-                     lfo->step[t] /= effect->info->refresh_rate;
+                     lfo->step[t] /= effect->info->period_rate;
                      lfo->value[t] = 1.0f; // 0.5f*(lfo->min+lfo->max);
                      switch (state & ~AAX_INVERSE)
                      {
@@ -455,7 +455,7 @@ aaxEffectSetState(aaxEffect e, int state)
                if (env)
                {
                   float nextval = effect->slot[0]->param[AAX_LEVEL0];
-                  float refresh = effect->info->refresh_rate;
+                  float refresh = effect->info->period_rate;
                   float timestep = 1.0f / refresh;
                   int i;
 
@@ -618,7 +618,7 @@ aaxEffectSetState(aaxEffect e, int state)
 
                         data->lfo.step[t] = 2.0f*sign * data->lfo.f;
                         data->lfo.step[t] *= (data->lfo.max - data->lfo.min);
-                        data->lfo.step[t] /= effect->info->refresh_rate;
+                        data->lfo.step[t] /= effect->info->period_rate;
 
                         if ((data->lfo.value[t] == 0)
                             || (data->lfo.value[t] < data->lfo.min)) {

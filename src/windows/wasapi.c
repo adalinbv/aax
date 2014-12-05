@@ -570,7 +570,8 @@ _aaxWASAPIDriverDisconnect(void *id)
 
 static int
 _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
-                   unsigned int *tracks, float *speed, int *bitrate)
+                      unsigned int *tracks, float *speed, int *bitrate,
+                      int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
    int channels, bps, frame_sz, rate;
@@ -1819,7 +1820,7 @@ _aaxWASAPIDriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 1.0f/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->period_rate;
 
    be = handle->backend.ptr;
    id = handle->backend.handle;		// Required for _AAX_DRVLOG

@@ -80,10 +80,11 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          case AAX_FREQUENCY:
             if ((setup > 1000) && (setup <= _AAX_MAX_MIXER_FREQUENCY))
             {
-               float iv = info->req_refresh_rate;
+               float iv = info->refresh_rate;
                iv = setup / INTERVAL(setup / iv);
                info->frequency = (float)setup;
-               info->req_refresh_rate = iv;
+               info->refresh_rate = iv;
+               info->period_rate = iv;
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -93,13 +94,14 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
-               float update_hz = info->req_refresh_rate/info->update_rate;
+               float update_hz = info->refresh_rate/info->update_rate;
                float fq = info->frequency;
                float iv = (float)setup;
                if (iv <= 5.0f) iv = 5.0f;
 
                iv = fq / INTERVAL(fq / iv);
-               info->req_refresh_rate = iv;
+               info->refresh_rate = iv;
+               info->period_rate = iv;
 
                info->update_rate = (uint8_t)rintf(iv/update_hz);
                rv = AAX_TRUE;
@@ -111,7 +113,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                          && (handle->valid & HANDLE_ID))
                 || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
             {
-               info->update_rate = (uint8_t)rintf(info->req_refresh_rate/setup);
+               info->update_rate = (uint8_t)rintf(info->refresh_rate/setup);
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -123,7 +125,8 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                if (iv <= 5.0f) iv = 5.0f;
 
                iv = fq / INTERVAL(fq / iv);
-               info->req_refresh_rate = iv;
+               info->refresh_rate = iv;
+               info->period_rate = iv;
                rv = AAX_TRUE;
             }
             break;
@@ -250,7 +253,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                rv = (unsigned int)info->frequency;
                break;
             case AAX_REFRESHRATE:
-               rv = (unsigned int)info->refresh_rate;
+               rv = (unsigned int)info->period_rate;
                break;
             case AAX_UPDATERATE:
                 rv=(unsigned int)(info->refresh_rate/handle->info->update_rate);
@@ -266,7 +269,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                _aaxRingBuffer *rb = handle->ringbuffer;
                int bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
 
-               rv = (unsigned int)(info->frequency*bps/info->refresh_rate);
+               rv = (unsigned int)(info->frequency*bps/info->period_rate);
                break;
             }
             case AAX_TRACKS:
@@ -791,8 +794,9 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      while (info->frequency > 48000.0f) {
                         info->frequency /= 2.0f;
                      }
-                     info->req_refresh_rate = mixer->info->req_refresh_rate;
                      info->update_rate = mixer->info->update_rate;
+                     info->period_rate = mixer->info->period_rate;
+                     info->refresh_rate = mixer->info->refresh_rate;
                      if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
                      {
                         _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
@@ -826,7 +830,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 
                      if (rb)
                      {
-                        float delay_sec = 1.0f / info->req_refresh_rate;
+                        float delay_sec = 1.0f / info->refresh_rate;
 
                         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
                         rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
@@ -882,7 +886,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   _aaxAudioFrame *submix = sframe_sensor->mixer;
 
                   submix->info->frequency = mixer->info->frequency;
-                  submix->info->req_refresh_rate=mixer->info->req_refresh_rate;
+                  submix->info->period_rate = mixer->info->period_rate;
+                  submix->info->refresh_rate = mixer->info->refresh_rate;
                   submix->info->update_rate = mixer->info->update_rate;
                   submix->info->no_tracks = mixer->info->no_tracks;
                   submix->info->format = mixer->info->format;
@@ -1198,24 +1203,27 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             if (dptr && pos != UINT_MAX)
             {
                _aax3dProps *mp3d, *fp3d;
-               _aaxAudioFrame *mixer, *submix;
+               _aaxAudioFrame *smixer, *fmixer;
 
                dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr)
                {
                   _sensor_t *sensor = _intBufGetDataPtr(dptr);
-                  mixer = sensor->mixer;
-                  submix = frame->submix;
+                  smixer = sensor->mixer;
+                  fmixer = frame->submix;
 
-                  mp3d = mixer->props3d;
-                  fp3d = submix->props3d;
+                  mp3d = smixer->props3d;
+                  fp3d = fmixer->props3d;
 
+                  fmixer->info->period_rate = smixer->info->refresh_rate;
+                  fmixer->info->refresh_rate = smixer->info->refresh_rate;
+                  fmixer->info->update_rate = smixer->info->update_rate;
                   if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
                   {
                      _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
                   }
-                  _aaxAudioFrameResetDistDelay(submix, mixer);
+                  _aaxAudioFrameResetDistDelay(fmixer, smixer);
 
                   if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
                   {
@@ -1226,7 +1234,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                   rv = AAX_TRUE;
 
-                  submix->refcount++;
+                  fmixer->refcount++;
 
                   frame->handle = handle;
                   frame->mixer_pos = pos;
@@ -1307,7 +1315,7 @@ _aaxMixerInit(_handle_t *handle)
 {
    int res = AAX_FALSE;
    _aaxMixerInfo* info = handle->info;
-   float refrate = info->req_refresh_rate;
+   float refrate = info->refresh_rate;
    float ms = rintf(1000.0f/refrate);
 
 
@@ -1326,14 +1334,20 @@ _aaxMixerInit(_handle_t *handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
       void *be_handle = handle->backend.handle;
+      float periodrate = info->period_rate;
       unsigned ch = info->no_tracks;
       float freq = info->frequency;
       int brate = info->bitrate;
       int fmt = info->format;
+      int rssr;
 
       assert(be != 0);
 
-      res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate);
+      /* is this a registered sensor? */
+      rssr = (handle->handle) ? AAX_TRUE : AAX_FALSE;
+      res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate,
+                      rssr, periodrate);
+
       if (TEST_FOR_TRUE(res) &&
           ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
            (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT)))
@@ -1347,14 +1361,14 @@ _aaxMixerInit(_handle_t *handle)
          info->no_tracks = ch;
          info->format = fmt;
 
-         old_rate = info->req_refresh_rate/info->update_rate;
-         info->refresh_rate = refrate;
+         info->period_rate = refrate;
+         old_rate = info->refresh_rate/info->update_rate;
          info->update_rate = (uint8_t)rintf(refrate/old_rate);
 
-         // recalculate req_refresh_rate based on the number of periods
+         // recalculate refresh_rate based on the number of periods
          // and the new refresh-rate.
-         periods = rintf(refrate/info->req_refresh_rate);
-         info->req_refresh_rate = refrate/periods;
+         periods = rintf(refrate/info->refresh_rate);
+         info->refresh_rate = refrate/periods;
 
          /* copy the hardware volume from the backend */
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1400,7 +1414,7 @@ _aaxMixerStart(_handle_t *handle)
       assert(handle->thread.signal.mutex != 0);
 
       handle->thread.started = AAX_TRUE;
-      ms = rintf(1000/handle->info->req_refresh_rate);
+      ms = rintf(1000/handle->info->period_rate);
       r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread,
                           handle, ms);
       if (r == 0)

@@ -232,8 +232,8 @@ typedef ALIGN16 struct
 
    float pitch;
    float frequency;
-   float refresh_rate;
-   float req_refresh_rate;
+   float period_rate;
+   float refresh_rate;			/* defines the latency */
    enum aaxFormat format;
    enum aaxRenderMode mode;
    unsigned int max_emitters;		/* total */

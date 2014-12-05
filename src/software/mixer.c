@@ -257,7 +257,7 @@ _aaxSoftwareMixerThread(void* config)
    }
 
    be = handle->backend.ptr;
-   delay_sec = 1.0f/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->period_rate;
 
    tracks = 2;
    smixer = NULL;
@@ -444,7 +444,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             smixer = sensor->mixer;
             if (handle->info->mode == AAX_MODE_READ)
             {
-               float gain, rr, dt = 1.0f/smixer->info->refresh_rate;
+               float gain, rr, dt = 1.0f/smixer->info->period_rate;
                void *rv;
 
                gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);

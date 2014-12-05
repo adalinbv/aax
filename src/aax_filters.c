@@ -463,7 +463,7 @@ aaxFilterSetState(aaxFilter f, int state)
                if (env)
                {
                   float nextval = filter->slot[0]->param[AAX_LEVEL0];
-                  float refresh = filter->info->refresh_rate;
+                  float refresh = filter->info->period_rate;
                   float timestep = 1.0f / refresh;
                   int i;
 
@@ -584,7 +584,7 @@ aaxFilterSetState(aaxFilter f, int state)
                   {
                      lfo->step[t] = 2.0f*depth * lfo->f;
                      lfo->step[t] *= (lfo->max - lfo->min);
-                     lfo->step[t] /= filter->info->refresh_rate;
+                     lfo->step[t] /= filter->info->period_rate;
                      lfo->value[t] = 1.0f;
 
                      switch (state & ~AAX_INVERSE)
@@ -596,7 +596,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      {
                         if (filter->type == AAX_COMPRESSOR)
                         {		// 10dB
-                           float dt = 3.16228f/filter->info->refresh_rate;
+                           float dt = 3.16228f/filter->info->period_rate;
                            float min, max, rate;
 
                            /*
@@ -647,7 +647,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      case AAX_ENVELOPE_FOLLOW:
                         if (filter->type == AAX_COMPRESSOR)
                         {
-                           float dt = 1.0f/filter->info->refresh_rate;
+                           float dt = 1.0f/filter->info->period_rate;
                            float min, max, f;
 
                            min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_PERIOD & 0xF];
@@ -765,7 +765,7 @@ aaxFilterSetState(aaxFilter f, int state)
                         {
                            lfo->step[t] = 2.0f * lfo->f;
                            lfo->step[t] *= (lfo->max - lfo->min);
-                           lfo->step[t] /= filter->info->refresh_rate;
+                           lfo->step[t] /= filter->info->period_rate;
                            lfo->value[t] = lfo->max;
                            switch (state & ~AAX_INVERSE)
                            {

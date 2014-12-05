@@ -70,7 +70,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          sensor = _intBufGetDataPtr(dptr_sensor);
          smixer = sensor->mixer;
          srb = smixer->ringbuffer;
-         dt = 1.0f / smixer->info->refresh_rate;
+         dt = 1.0f / smixer->info->period_rate;
          srbs = smixer->play_ringbuffers;
          curr_pos_sec = smixer->curr_pos_sec;
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);

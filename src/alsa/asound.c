@@ -687,7 +687,8 @@ _aaxALSADriverDisconnect(void *id)
 
 static int
 _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
-                        unsigned int *channels, float *speed, int *bitrate)
+                    unsigned int *channels, float *speed, int *bitrate,
+                    int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_uframes_t period_frames_actual;
@@ -731,7 +732,6 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    periods = handle->no_periods;
-// period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
    period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
    period_frames_actual = period_frames;
    bits = aaxGetBitsPerSample(*fmt);
@@ -883,7 +883,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          /* latency = periodsize * periods / (rate * bytes_per_frame))     */
          period_frames *= periods;
          if (handle->mode == AAX_MODE_READ) {
-            period_frames_actual = 2*period_frames;
+            period_frames_actual = period_frames*2;
          } else {
             period_frames_actual = period_frames;
          }
@@ -2988,7 +2988,7 @@ _aaxALSADriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 1.0f/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->period_rate;
 
    be = handle->backend.ptr;
    id = handle->backend.handle;		// Required for _AAX_DRVLOG

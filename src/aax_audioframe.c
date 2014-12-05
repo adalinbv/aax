@@ -664,7 +664,8 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   while (smixer->info->frequency > 48000.0f) {
                      smixer->info->frequency /= 2.0f;
                   }
-                  smixer->info->req_refresh_rate=fmixer->info->req_refresh_rate;
+                  smixer->info->period_rate = fmixer->info->refresh_rate;
+                  smixer->info->refresh_rate = fmixer->info->refresh_rate;
                   smixer->info->update_rate = fmixer->info->update_rate;
                   if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
                   {
@@ -698,7 +699,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                   if (rb)
                   {
                      _aaxMixerInfo* info = smixer->info;
-                     float delay_sec = 1.0f / info->refresh_rate;
+                     float delay_sec = 1.0f / info->period_rate;
 
                      rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
                      rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
@@ -1108,7 +1109,7 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    int rv = AAX_FALSE;
    if (handle)
    {
-      float duration = 0.0f, refrate = handle->submix->info->refresh_rate;
+      float duration = 0.0f, refrate = handle->submix->info->period_rate;
       unsigned int sleep_ms;
       _aaxAudioFrame* fmixer;
       int nbuf;

@@ -374,6 +374,7 @@ static const ef_type _aax_filter_s[AAX_FILTER_MAX+1] =
 static const ef_type _aax_effect_s[AAX_EFFECT_MAX+1] =
 {
    { 1, "None" },
+   { 0, "AAX_reverb_effect" },
    { 1, "AAX_pitch_effect" },
    { 0, "AAX_dynamic_pitch_effect" },
    { 0, "AAX_timed_pitch_effect" },
@@ -381,7 +382,6 @@ static const ef_type _aax_effect_s[AAX_EFFECT_MAX+1] =
    { 0, "AAX_chorus_effect" },
    { 0, "AAX_flanging_effect" },
    { 0, "AAX_distortion_effect" },
-   { 0, "AAX_reverb_effect" },
 
    { 1, "AAX_velocity_effect" },
 

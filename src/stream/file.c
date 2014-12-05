@@ -396,7 +396,8 @@ _aaxFileDriverDisconnect(void *id)
 
 static int
 _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
-                        unsigned int *tracks, float *speed, int *bitrate)
+                    unsigned int *tracks, float *speed, int *bitrate,
+                    int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t bufsize, period_frames;
@@ -410,12 +411,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->frequency = *speed;
    rate = *speed;
 
-   period_ms = 1000.0f / *refresh_rate;
+   period_ms = 1000.0f / period_rate;
    if (period_ms < 4.0f) period_ms = 4.0f;
-   *refresh_rate = 1000.0f / period_ms;
+   period_rate = 1000.0f / period_ms;
 
-
-   period_frames = (size_t)rintf(rate / *refresh_rate);
+   period_frames = (size_t)rintf(rate / period_rate);
    handle->fmt->id = handle->fmt->setup(handle->mode, &bufsize, rate,
                                         *tracks, *fmt, period_frames, *bitrate);
    if (handle->fmt->id)
@@ -471,7 +471,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *fmt = handle->format;
             *speed = handle->frequency;
             *tracks = handle->no_channels;
-//          *refresh_rate = handle->frequency/(float)no_samples;
+            *refresh_rate = period_rate;
 
             handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;

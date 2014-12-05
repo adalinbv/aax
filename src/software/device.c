@@ -180,7 +180,7 @@ _aaxNoneDriverDisconnect(void *id)
 }
 
 static int
-_aaxNoneDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
+_aaxNoneDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate, int registered, float period_rate)
 {
    return AAX_TRUE;
 }
@@ -359,20 +359,24 @@ _aaxLoopbackDriverDisconnect(void *id)
 }
 
 static int
-_aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate)
+_aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int *tracks, float *speed, int *bitrate, int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
    if (handle)
    {
       assert(speed);
-      assert(frames);
+      assert(refresh_rate);
+      assert(fmt);
+      assert(tracks);
+      assert(speed);
+      assert(bitrate);
 
       handle->format = *fmt;
       handle->frequency = *speed;
       handle->no_channels = *tracks;
       handle->bits_sample = aaxGetBitsPerSample(*fmt);
       handle->no_frames = (size_t)rintf((float)*speed / *refresh_rate);
-      handle->latency = 1.0f / *refresh_rate;
+      handle->latency = 1.0f / period_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
    }
    return AAX_TRUE;
@@ -474,7 +478,7 @@ _aaxNoneDriverProcessFrame(void* config)
    float dt, d_pos;
    int stage;
 
-   dt = 1.0f/frame->info->refresh_rate;
+   dt = 1.0f/frame->info->period_rate;
 
    stage = 0;
    he = frame->emitters_3d;
@@ -631,7 +635,7 @@ _aaxNoneDriverThread(void* config)
       return NULL;
    }
 
-   delay_sec = 1.0f/handle->info->refresh_rate;
+   delay_sec = 1.0f/handle->info->period_rate;
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
