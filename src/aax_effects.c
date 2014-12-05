@@ -455,8 +455,8 @@ aaxEffectSetState(aaxEffect e, int state)
                if (env)
                {
                   float nextval = effect->slot[0]->param[AAX_LEVEL0];
-                  float refresh = effect->info->period_rate;
-                  float timestep = 1.0f / refresh;
+                  float period = effect->info->period_rate;
+                  float timestep = 1.0f / period;
                   int i;
 
                   env->value = nextval;
@@ -472,7 +472,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      if (dt != MAXFLOAT)
                      {
                         if (dt < timestep && dt > EPS) dt = timestep;
-                        max_pos = rintf(dt * refresh);
+                        max_pos = rintf(dt * period);
                      }
                      if (max_pos == 0)
                      {
@@ -493,7 +493,7 @@ aaxEffectSetState(aaxEffect e, int state)
                      if (dt != MAXFLOAT)
                      {
                         if (dt < timestep && dt > EPS) dt = timestep;
-                        max_pos = rintf(dt * refresh);
+                        max_pos = rintf(dt * period);
                      }
                      if (max_pos == 0)
                      {

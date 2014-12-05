@@ -463,8 +463,8 @@ aaxFilterSetState(aaxFilter f, int state)
                if (env)
                {
                   float nextval = filter->slot[0]->param[AAX_LEVEL0];
-                  float refresh = filter->info->period_rate;
-                  float timestep = 1.0f / refresh;
+                  float period = filter->info->period_rate;
+                  float timestep = 1.0f / period;
                   int i;
 
                   env->value = nextval;
@@ -479,7 +479,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      if (dt != MAXFLOAT)
                      {
                         if (dt < timestep && dt > EPS) dt = timestep;
-                        max_pos = rintf(dt * refresh);
+                        max_pos = rintf(dt * period);
                      }
                      if (max_pos == 0)
                      {
@@ -500,7 +500,7 @@ aaxFilterSetState(aaxFilter f, int state)
                      if (dt != MAXFLOAT)
                      {
                         if (dt < timestep && dt > EPS) dt = timestep;
-                        max_pos = rintf(dt * refresh);
+                        max_pos = rintf(dt * period);
                      } 
                      if (max_pos == 0)
                      {
