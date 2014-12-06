@@ -732,7 +732,11 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    periods = handle->no_periods;
-   period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+   if (!registered) {
+      period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+   } else {
+      period_frames = (size_t)rintf((rate*periods)/period_rate);
+   }
    period_frames_actual = period_frames;
    bits = aaxGetBitsPerSample(*fmt);
 
@@ -816,8 +820,11 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
 
       /* recalculate period_frames and latency */
-//    period_frames_actual = (*frames * rate)/(*speed * periods);
-      period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
+      if (!registered) {
+         period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
+      } else {
+         period_frames = (size_t)rintf((rate*periods)/period_rate);
+      }
       period_frames_actual = period_frames;
 
       /* test for supported sample formats */
@@ -908,7 +915,11 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          if (handle->use_timer)
          {
             handle->no_periods = periods = 2;
-            period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
+            if (!registered) {
+               period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
+            } else {
+               period_frames = (size_t)rintf((rate*periods)/period_rate);
+            }
          }
          else
          {
@@ -971,7 +982,11 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 
             *speed = rate;
             *channels = tracks;
-            *refresh_rate = rate/(float)period_frames;
+            if (!registered) {
+               *refresh_rate = rate/(float)period_frames;
+            } else {
+               *refresh_rate = period_rate;
+            }
 
             if (!handle->use_timer)
             {
