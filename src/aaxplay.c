@@ -62,6 +62,7 @@ help()
     printf("  -c, --capture <device>\tcapture from an audio device\n");
     printf("  -d, --device <device>\t\tplayback device (optional)\n");
     printf("  -o, --output <file>\t\twrite the audio to a file (optional)\n");
+    printf("  -v, --verbose\t\tshow playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
     printf("Either --input or --capture can be used but not both.\n");
     printf("For a list of device names run: aaxinfo\n");
@@ -109,11 +110,18 @@ int main(int argc, char **argv)
     aaxConfig record = NULL;
     aaxConfig file = NULL;
     int res, rv = 0;
+    int verbose = 0;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
                      getCommandLineOption(argc, argv, "--help"))
     {
         help();
+    }
+
+    if (getCommandLineOption(argc, argv, "-v") || 
+        getCommandLineOption(argc, argv, "--verbose"))
+    {
+       verbose = 1;
     }
 
     idevname = getCaptureName(argc, argv);
@@ -173,6 +181,7 @@ int main(int argc, char **argv)
     {
         char *fparam = getCommandLineOption(argc, argv, "-f");
         float pitch = getPitch(argc, argv);
+        float duration, freq;
         aaxFrame frame = NULL;
         aaxEffect effect;
         aaxFilter filter;
@@ -303,14 +312,24 @@ int main(int argc, char **argv)
         }
 
         set_mode(1);
+        freq = (float)aaxMixerGetSetup(record, AAX_FREQUENCY);
+        duration = (float)aaxMixerGetSetup(record, AAX_SAMPLES_MAX)/freq;
         do
         {
+            if (verbose)
+            {
+                float pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
+                printf("pos: % .1f (% .1f) of % .1f % 4.1f%\r",
+                        pos, duration-pos, duration, 100.0f*pos/duration);
+            }
+
             if (get_key()) break;
 
-            msecSleep(100);
+            msecSleep(25);
             state = aaxMixerGetState(record);
         }
         while (state == AAX_PLAYING);
+        printf("\n");
         set_mode(0);
 
         res = aaxMixerSetState(config, AAX_STOPPED);
