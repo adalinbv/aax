@@ -415,7 +415,11 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    int fd, err;
 
    rate = *speed;
-   period_frames = (size_t)rintf(rate / *refresh_rate);
+   if (!registered) {
+      period_frames = (size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS));
+   } else {
+      period_frames = (size_t)rintf((rate*NO_FRAGMENTS)/period_rate);
+   }
 
    assert(handle);
 
@@ -454,7 +458,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    err = pioctl(fd, SNDCTL_DSP_SPEED, &rate);
    *speed = (float)rate;
 
-   frag = log2i((period_frames*channels*handle->bytes_sample)/NO_FRAGMENTS);
+   frag = log2i(period_frames*channels*handle->bytes_sample);
    if (frag < 4) {
       frag = 4;
    }
@@ -495,7 +499,13 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->no_tracks = channels;
       handle->frequency_hz = (float)rate;
       handle->buffer_size = info.fragsize;
-      *refresh_rate = (rate*channels*handle->bytes_sample)/(float)info.fragsize;
+
+      period_frames = info.fragsize/(channels*handle->bytes_sample);
+      if (!registered) {
+         *refresh_rate = rate/(float)period_frames;
+      } else {
+         *refresh_rate = period_rate;
+      }
 
       handle->latency = 0.0f;
       err = pioctl(fd, SNDCTL_DSP_GETODELAY, &delay);

@@ -616,13 +616,13 @@ _aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
       result = palSetChannels(handle->port[0].config,
                         handle->port[0].no_channels);
 
-      frames = (size_t)rintf(handle->port[0].frequency_hz / *refresh_rate);
+      frames = (size_t)rintf(handle->port[0].frequency_hz / period_rate);
       queuesize = frames * channels * handle->port[0].bytes_sample;
 
       palSetQueueSize(handle->port[0].config, queuesize);
 
       handle->port[0].no_frames = frames;
-      handle->port[0].latency = 1.0f / *refresh_rate;
+      handle->port[0].latency = 1.0f / period_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->port[0].latency,
                                                 handle->mode);
       if (handle->render)

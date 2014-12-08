@@ -373,7 +373,11 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
    SLuint32 num;
    SLresult res;
   
-   period_frames = (size_t)rintf(freq / *refresh_rate);
+   if (!registered) {
+      period_frames = (size_t)rintf(rate / *refresh_rate);
+   } else {
+      period_frames = (size_t)rintf((rate*periods)/period_rate);
+   }
 
    assert(handle);
 
@@ -396,7 +400,11 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
    // rather than one. Unless your CPU usage is really light, this will
    // probably end up glitching.
 // handle->no_frames = AudioManager.getProperty(PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
-   *refresh_rate = freq/(float)period_frames;
+   if (!registered) {
+      *refresh_rate = rate/(float)period_frames;
+   } else {
+      *refresh_rate = period_rate;
+   }
 
    // TODO: for now
    if (*tracks > 2)
