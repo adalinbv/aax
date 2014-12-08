@@ -949,16 +949,6 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
-      case DRIVER_SAMPLE_DELAY:
-      {
-          REFERENCE_TIME latency;
-          HRESULT hr;
-          hr = pIAudioClient_GetStreamLatency(handle->pAudioClient, &latency);
-          if (hr == S_OK) {
-             rv = (float)latency*handle->Fmt.Format.nSamplesPerSec/10000000.0f;
-          }
-          break;
-      }
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -977,6 +967,19 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MAX_PERIODS:
          rv = (float)DEFAULT_PERIODS;
          break;
+      case DRIVER_SAMPLES_REMAINING:
+         rv = AAX_FPINFINITE;
+         break;
+      case DRIVER_SAMPLE_DELAY:
+      {
+          REFERENCE_TIME latency;
+          HRESULT hr;
+          hr = pIAudioClient_GetStreamLatency(handle->pAudioClient, &latency);
+          if (hr == S_OK) {
+             rv = (float)latency*handle->Fmt.Format.nSamplesPerSec/10000000.0f;
+          }
+          break;
+      }
 
 		/* boolean */
       case DRIVER_SHARED_MODE:

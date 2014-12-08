@@ -161,11 +161,12 @@ typedef struct
 {
    int capturing;
 
+   int no_tracks;
+   int bits_sample;
    int frequency;
    enum aaxFormat format;
    size_t blocksize;
-   int no_tracks;
-   int bits_sample;
+   size_t max_samples;
 
    union
    {
@@ -218,7 +219,7 @@ _aaxWavDetect(int mode) {
 }
 
 static void*
-_aaxWavOpen(void *id, void *buf, size_t *bufsize)
+_aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
 {
    _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
@@ -528,6 +529,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
+         handle->max_samples = UINT_MAX;
 
          if (!handle->capturing)
          {
@@ -536,6 +538,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          }
          else
          {
+            handle->max_samples = UINT_MAX;
             handle->io.read.no_samples = UINT_MAX;
             *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
@@ -715,6 +718,9 @@ _aaxWavGetParam(void *id, int type)
       break;
    case __F_BLOCK:
       rv = handle->blocksize;
+      break;
+   case __F_SAMPLES:
+      rv = handle->max_samples;
       break;
    default:
       break;
@@ -921,10 +927,14 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
    {
       curr = BSWAP(header[2]);
       handle->io.read.no_samples = curr;
+      handle->max_samples = curr;
       *step = res = 3*sizeof(int32_t);
    }
    else if (curr == 0x61746164)		/* data */
    {
+      curr = (8*header[1])/(handle->no_tracks*handle->bits_sample);
+      handle->io.read.no_samples = curr;
+      handle->max_samples = curr;
       *step = res = 2*sizeof(int32_t);
    }
 
@@ -1363,7 +1373,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       return;
    }
 
-   buf = _aaxWavOpen(handle, NULL, &size);
+   buf = _aaxWavOpen(handle, NULL, &size, 0);
 
    res = write(fd, buf, size);
    if (res == -1) {

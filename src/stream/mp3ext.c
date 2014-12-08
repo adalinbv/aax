@@ -101,6 +101,8 @@ DECL_FUNCTION(mpg123_delete);
 DECL_FUNCTION(mpg123_format);
 DECL_FUNCTION(mpg123_format_none);
 DECL_FUNCTION(mpg123_getformat);
+DECL_FUNCTION(mpg123_length);
+DECL_FUNCTION(mpg123_set_filesize);
 
 	/** lame: both Linxu and Windows */
 DECL_FUNCTION(lame_init);
@@ -154,6 +156,7 @@ typedef struct
    int frequency;
    int bitrate;
    size_t no_samples;
+   size_t max_samples;
    enum aaxFormat format;
    int blocksize;
    uint8_t no_tracks;
@@ -265,6 +268,10 @@ _aaxMP3Detect(int mode)
                   } else {
                      rv = AAX_TRUE;
                   }
+
+                  /* not required but useful */
+                  TIE_FUNCTION(mpg123_length);
+                  TIE_FUNCTION(mpg123_set_filesize);
                }
             }
          }
@@ -329,6 +336,7 @@ _aaxMP3Setup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          handle->bitrate = bitrate;
          handle->format = format;
          handle->no_samples = no_samples;
+         handle->max_samples = UINT_MAX;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
          if (mode == 0) {
@@ -381,6 +389,9 @@ _aaxMP3GetParam(void *id, int type)
    case __F_BLOCK:
       rv = handle->blocksize;
       break;
+   case __F_SAMPLES:
+      rv = handle->max_samples;
+      break;
    default:
       break;
    }
@@ -418,7 +429,7 @@ getFormatFromMP3FileFormat(int enc)
 }
 
 static void*
-_aaxMPG123Open(void *id, void *buf, size_t *bufsize)
+_aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
 {
    _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
@@ -473,6 +484,14 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize)
                      handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
                      rv = buf;
+
+                     if (pmpg123_set_filesize)
+                     {
+                        pmpg123_set_filesize(handle->id, fsize);
+                        if (pmpg123_length) {
+                           handle->max_samples = pmpg123_length(handle->id);
+                        }
+                     }
                   }
                }
                else {

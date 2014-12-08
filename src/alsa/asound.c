@@ -1422,13 +1422,6 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
-      case DRIVER_SAMPLE_DELAY:
-      {
-         snd_pcm_sframes_t avail;
-         int res = psnd_pcm_delay(handle->pcm, &avail);
-         if (res >= 0) rv = (float)avail;
-         break;
-      }
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -1449,6 +1442,16 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MAX_PERIODS:
          rv = (float)handle->max_periods;
          break;
+      case DRIVER_MAX_SAMPLES:
+         rv = AAX_FPINFINITE;
+         break;
+      case DRIVER_SAMPLE_DELAY:
+      {
+         snd_pcm_sframes_t avail;
+         int res = psnd_pcm_delay(handle->pcm, &avail);
+         if (res >= 0) rv = (float)avail;
+         break;
+      }
 
 		/* boolean */
       case DRIVER_SHARED_MODE:

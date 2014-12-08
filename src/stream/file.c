@@ -31,6 +31,7 @@
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
+#include <sys/stat.h>
 #include <errno.h>		/* for ETIMEDOUT, errno */
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
@@ -426,7 +427,10 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
          size_t no_samples = period_frames;
          void *header = NULL;
          void *buf = NULL;
+         struct stat st;
          int res = AAX_TRUE;
+
+         fstat(handle->fd, &st);
 
          if (bufsize) {
             header = malloc(bufsize);
@@ -441,7 +445,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             }
 
             bufsize = res;
-            buf = handle->fmt->open(handle->fmt->id, header, &bufsize);
+            buf = handle->fmt->open(handle->fmt->id, header, &bufsize, st.st_size);
             res = bufsize;
 
             if (buf)
@@ -779,9 +783,6 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = 1.0f;
          break;
-      case DRIVER_SAMPLE_DELAY:
-         rv = (float)handle->no_samples;
-         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -799,6 +800,13 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 1.0f;
+         break;
+      case DRIVER_MAX_SAMPLES:
+         rv = (float)handle->fmt->get_param(handle->fmt->id, __F_SAMPLES);
+         if (rv == UINT_MAX) rv = AAX_FPINFINITE;
+         break;
+      case DRIVER_SAMPLE_DELAY:
+         rv = (float)handle->no_samples;
          break;
 
 		/* boolean */

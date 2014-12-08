@@ -30,12 +30,13 @@ enum _aaxFileParam
    __F_TRACKS,
    __F_FREQ,
    __F_BITS,
-   __F_BLOCK
+   __F_BLOCK,
+   __F_SAMPLES
 };
 
 typedef int (_file_detect_fn)(int);
 typedef void* (_file_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
-typedef void* (_file_open_fn)(void*, void*, size_t*);
+typedef void* (_file_open_fn)(void*, void*, size_t*, size_t);
 typedef int (_file_close_fn)(void*);
 typedef void* (_file_update_fn)(void*, size_t*, size_t*, char);
 

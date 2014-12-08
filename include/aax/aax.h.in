@@ -225,6 +225,7 @@ enum aaxSetupType
    AAX_PERIODS_MAX,
    AAX_FREQUENCY_MIN,
    AAX_FREQUENCY_MAX,		/* mixer capabilities */
+   AAX_SAMPLES_MAX,
    AAX_SETUP_TYPE_MAX,
 
    AAX_PEAK_VALUE             = 0x0100,

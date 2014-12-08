@@ -199,6 +199,8 @@ typedef int (*mpg123_feature_proc)(const enum mpg123_feature_set);
 typedef int (*mpg123_format_proc)(void*, long, int, int);
 typedef int (*mpg123_format_none_proc)(void*);
 typedef int (*mpg123_getformat_proc)(void*, long*, int*, int*);
+typedef int (*mpg123_set_filesize_proc)(void*, off_t);
+typedef off_t (*mpg123_length_proc)(void*);
 
 /* libmpg123 */
 

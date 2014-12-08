@@ -67,7 +67,6 @@ enum _aaxDriverParam {
    DRIVER_MAX_VOLUME,
    DRIVER_VOLUME,
    DRIVER_AGC_LEVEL,
-   DRIVER_SAMPLE_DELAY,
 
    /* int */
    DRIVER_MIN_FREQUENCY = 0x100,
@@ -76,6 +75,8 @@ enum _aaxDriverParam {
    DRIVER_MAX_TRACKS,
    DRIVER_MIN_PERIODS,
    DRIVER_MAX_PERIODS,
+   DRIVER_MAX_SAMPLES,	/* no. samples in the file or UINT_MAX */
+   DRIVER_SAMPLE_DELAY,	/* no samples to go before the next sample is played */
 
    /* boolean */
    DRIVER_SHARED_MODE = 0x200,
