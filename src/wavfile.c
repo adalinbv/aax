@@ -555,7 +555,7 @@ getFormatFromFileFormat(unsigned int format, int  bps)
         printf("Extenden WAV format not yet implemented\n");
         break;
     default:
-        printf("Unsupported WAR format: %i\n", format);
+        printf("Unsupported WAV format: %i\n", format);
         break;
     }
     return rv;
