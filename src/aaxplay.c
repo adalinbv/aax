@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2013 by Erik Hofman.
- * Copyright (C) 2009-2013 by Adalin B.V.
+ * Copyright (C) 2008-2014 by Erik Hofman.
+ * Copyright (C) 2009-2014 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <aax/aax.h>
 
@@ -181,10 +182,12 @@ int main(int argc, char **argv)
     {
         char *fparam = getCommandLineOption(argc, argv, "-f");
         float pitch = getPitch(argc, argv);
+        float dhour, hour, minutes, seconds;
         float duration, freq;
         aaxFrame frame = NULL;
         aaxEffect effect;
         aaxFilter filter;
+        char tstr[80];
         int state;
 
         /** mixer */
@@ -314,18 +317,42 @@ int main(int argc, char **argv)
         set_mode(1);
         freq = (float)aaxMixerGetSetup(record, AAX_FREQUENCY);
         duration = (float)aaxMixerGetSetup(record, AAX_SAMPLES_MAX)/freq;
+        seconds = duration;
+        dhour = floorf(seconds/(60.0f*60.0f));
+        seconds -= dhour*60.0f*60.0f;
+        minutes = floorf(seconds/60.0f);
+        seconds -= minutes*60.0f;
+        if (dhour) {
+           snprintf(tstr, 80, "%s  %02.0f:%02.0f:%02.0f %s\r",
+                              "pos: % 5.1f (%02.0f:%02.0f:%04.1f) of ",
+                              dhour, minutes, seconds, " % 3.0f%");
+        } else {
+           snprintf(tstr, 80, "%s  %02.0f:%02.0f %s\r",
+                              "pos: % 5.1f (%02.0f:%04.1f) of ",
+                              minutes, seconds, " % 3.0f%");
+        }
         do
         {
             if (verbose)
             {
                 float pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
-                printf("pos: % .1f (% .1f) of % .1f % 4.1f%\r",
-                        pos, duration-pos, duration, 100.0f*pos/duration);
+
+                seconds = duration-pos;
+                hour = floorf(seconds/(60.0f*60.0f));
+                seconds -= hour*60.0f*60.0f;
+                minutes = floorf(seconds/60.0f);
+                seconds -= minutes*60.0f;
+                if (dhour) {
+                   printf(tstr, pos, hour, minutes, seconds, 100*pos/duration);
+                } else {
+                   printf(tstr, pos, minutes, seconds, 100*pos/duration);
+                }
+                fflush(stdout);
             }
 
             if (get_key()) break;
 
-            msecSleep(25);
+            msecSleep(250);
             state = aaxMixerGetState(record);
         }
         while (state == AAX_PLAYING);
