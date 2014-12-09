@@ -123,6 +123,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
             smixer->ringbuffer = rv;
          }
          smixer->curr_pos_sec += dt;
+         smixer->curr_sample += srb->get_parami(srb, RB_NO_SAMPLES);
 
          sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
          if (sptr_rb)

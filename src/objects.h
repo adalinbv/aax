@@ -329,6 +329,7 @@ typedef struct
    _intBuffers *play_ringbuffers;		/* for loopback capture */
 
    unsigned int no_registered;
+   uint64_t curr_sample;
    float curr_pos_sec;
 
    unsigned char refcount;

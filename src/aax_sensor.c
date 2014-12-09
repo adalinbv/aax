@@ -182,35 +182,32 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
-         const _intBufferData* dptr_rb;
 
-         dptr_rb = _intBufGet(smixer->play_ringbuffers, _AAX_RINGBUFFER, 0);
-         if (dptr_rb)
+         switch (type)
          {
-            _aaxRingBuffer *rb = _intBufGetDataPtr(dptr_rb);
-            switch (type)
+         case AAX_MICROSECONDS:
+            rv = (unsigned long)(smixer->curr_pos_sec*1e6f);
+            break;
+         case AAX_FRAMES:
+         case AAX_SAMPLES:
+            rv = (smixer->curr_sample > UINT_MAX) ?
+                   UINT_MAX : smixer->curr_sample;
+            break;
+         case AAX_BYTES:
+         {
+            const _intBufferData* dptr_rb;
+            dptr_rb = _intBufGet(smixer->play_ringbuffers, _AAX_RINGBUFFER, 0);
+            if (dptr_rb)
             {
-            case AAX_FRAMES:
-            case AAX_SAMPLES:
-               rv = _intBufGetNumNoLock(smixer->play_ringbuffers, _AAX_RINGBUFFER);
-               rv *= rb->get_parami(rb, RB_NO_SAMPLES);
-               rv += rb->get_parami(rb, RB_OFFSET_SAMPLES);
-               break;
-            case AAX_BYTES:
-            {
-               rv = _intBufGetNumNoLock(smixer->play_ringbuffers, _AAX_RINGBUFFER);
-               rv *= rb->get_parami(rb, RB_NO_SAMPLES);
-               rv += rb->get_parami(rb, RB_OFFSET_SAMPLES);
+               _aaxRingBuffer *rb = _intBufGetDataPtr(dptr_rb);
+               rv = (smixer->curr_sample > UINT_MAX) ?
+                      UINT_MAX : smixer->curr_sample;
                rv *= rb->get_parami(rb, RB_BYTES_SAMPLE);
-               break;
             }
-            case AAX_MICROSECONDS:
-               rv = (unsigned long)(sensor->mixer->curr_pos_sec*1e6f);
-               break;
-            default:
-               _aaxErrorSet(AAX_INVALID_ENUM);
-            }
-            _intBufReleaseData(dptr_rb, _AAX_RINGBUFFER);
+            break;
+         }
+         default:
+            _aaxErrorSet(AAX_INVALID_ENUM);
          }
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
