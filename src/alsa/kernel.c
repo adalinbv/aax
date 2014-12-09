@@ -509,9 +509,9 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       periods = handle->no_periods;
       if (!registered) {
-         period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+         period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
       } else {
-         period_frames = (size_t)rintf((rate*periods)/period_rate);
+         period_frames = get_pow2((size_t)rintf((rate*periods)/period_rate));
       }
       period_frames_actual = period_frames;
       bits = aaxGetBitsPerSample(*fmt);
@@ -543,9 +543,9 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          /* recalculate the no. frames to match the refresh_rate */
          if (!registered) {
-            period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
+            period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
          } else {
-            period_frames = (size_t)rintf((rate*periods)/period_rate);
+            period_frames = get_pow2((size_t)rintf((rate*periods)/period_rate));
          }
          period_frames = _get_minmax(&hwparams, SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
                                                 period_frames, &min, &max);
