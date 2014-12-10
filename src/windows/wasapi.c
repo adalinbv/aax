@@ -307,7 +307,7 @@ static int copyFmtExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEXTENSIBLE*);
 static int exToExtensible(WAVEFORMATEXTENSIBLE*, WAVEFORMATEX*, enum aaxRenderMode);
 
 static int _wasapi_open(_driver_t *, WAVEFORMATEXTENSIBLE *);
-static int _wasapi_setup(_driver_t *, size_t*);
+static int _wasapi_setup(_driver_t *, size_t*, int);
 static int _wasapi_close(_driver_t *);
 static int _wasapi_setup_event(_driver_t *, float);
 static int _wasapi_close_event(_driver_t *);
@@ -569,7 +569,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 }
 
 static int
-_aaxWASAPIDrivereetup(const void *id, float *refresh_rate, int *format,
+_aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
                       unsigned int *tracks, float *speed, int *bitrate,
                       int registered, float period_rate)
 {
@@ -609,12 +609,9 @@ _aaxWASAPIDrivereetup(const void *id, float *refresh_rate, int *format,
    handle->Fmt.dwChannelMask = getMSChannelMask(handle->Fmt.Format.nChannels);
    handle->Fmt.SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
 
-   rv = _wasapi_setup(handle, &period_frames);
+   rv = _wasapi_setup(handle, &period_frames, registered);
    if (rv == AAX_TRUE)
    {
-//    KSDATARANGE* range;
-//    DWORD config;
-
       *speed = (float)handle->Fmt.Format.nSamplesPerSec;
       *tracks = handle->Fmt.Format.nChannels;
 
@@ -630,7 +627,7 @@ _aaxWASAPIDrivereetup(const void *id, float *refresh_rate, int *format,
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
 
-//    IAudioChannelConfig_GetChannelConfig(&config);
+      _wasapi_get_channel_range(handle, &handle->min_tracks, &handle->max_tracks);
    }
 
    return rv;
@@ -967,7 +964,7 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MAX_PERIODS:
          rv = (float)DEFAULT_PERIODS;
          break;
-      case DRIVER_SAMPLES_REMAINING:
+      case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
@@ -2362,7 +2359,7 @@ _wasapi_close(_driver_t *handle)
 }
 
 static int
-_wasapi_setup(_driver_t *handle, size_t *frames)
+_wasapi_setup(_driver_t *handle, size_t *frames, int registered)
 {
    _driver_t *id = handle;
    int co_init, rv = AAX_FALSE;

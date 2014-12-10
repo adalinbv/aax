@@ -19,6 +19,9 @@
 #else
 # include <string.h>	/* strstr, strchr */
 #endif
+#if __MINGW32__
+# include <mm_malloc.h>
+#endif
 
 #include <api.h>
 #include <arch.h>
@@ -104,7 +107,11 @@ _aax_aligned_alloc16(size_t size)
    size = SIZETO16(size);
 
 #if __MINGW32__
+# if defined(_aligned_malloc)
+   rv = _aligned_malloc(size, MEMALIGN);
+# else
    rv = _mm_malloc(size, MEMALIGN);
+# endif
 #elif ISOC11_SOURCE 
    rv = aligned_alloc(MEMALIGN, size);
 #elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
@@ -120,7 +127,11 @@ _aax_aligned_alloc16(size_t size)
 }
 
 #if defined(__MINGW32__)
+# if defined(_aligned_malloc)
+void _xmm_free(void *ptr) { _aligned_free((ptr); }
+# else
 void _xmm_free(void *ptr) { _mm_free(ptr); }
+# endif
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_xmm_free;
 #elif ISOC11_SOURCE 
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;

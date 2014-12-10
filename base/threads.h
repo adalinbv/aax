@@ -65,11 +65,11 @@ int _aaxProcessSetPriority(int);
 
 # define _aaxAtomicIntIncrement(a)	__sync_add_and_fetch((a),1)
 # define _aaxAtomicIntDecrement(a)	__sync_sub_and_fetch((a),1)
-# define _aaxAtomicIntAdd(a,b)		__sync_add_and_fetch((a),(b))
-# define _aaxAtomicIntSub(a,b)		__sync_sub_and_fetch((a),(b))
+# define _aaxAtomicIntAdd(a,b)		__sync_fetch_and_add((a),(b))
+# define _aaxAtomicIntSub(a,b)		__sync_fetch_and_sub((a),(b))
 
 #elif defined( WIN32 )
-# include <Windows.h>			/* WINDOWS */
+# include <windows.h>			/* WINDOWS */
 
  typedef enum
  {
@@ -112,8 +112,8 @@ int _aaxProcessSetPriority(int);
 
 # define _aaxAtomicIntIncrement(a)	InterlockedIncrement(a)
 # define _aaxAtomicIntDecrement(a)	InterlockedDecrement(a)
-# define _aaxAtomicIntAdd(a,b)          InterlockedAdd(a,b)
-# define _aaxAtomicIntSub(a,b)          InterlockedAdd(a,-(b))
+# define _aaxAtomicIntAdd(a,b)          InterlockedExchangeAdd(a,b)
+# define _aaxAtomicIntSub(a,b)          InterlockedExchangeAdd(a,-(b))
 
 #endif
 
