@@ -2852,7 +2852,8 @@ _wasapi_setup(_driver_t *handle, size_t *frames)
       break;
    }
 
-   handle->render = _aaxSoftwareInitRenderer(handle->hnsLatency/10000000.0f, handle->setup);
+   handle->render = _aaxSoftwareInitRenderer(handle->hnsLatency/10000000.0f,
+                                             handle->setup, registered);
    if (handle->render)
    {
       const char *rstr = handle->render->info(handle->render->id);

@@ -74,7 +74,7 @@ extern _aaxRendererDetect* _aaxRenderTypes[];
 
 _aaxRendererDetect _aaxDetectCPURenderer;
 _aaxRendererDetect _aaxDetectPoolRenderer;
-_aaxRenderer* _aaxSoftwareInitRenderer(float, enum aaxRenderMode);
+_aaxRenderer* _aaxSoftwareInitRenderer(float, enum aaxRenderMode, int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

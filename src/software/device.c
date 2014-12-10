@@ -380,7 +380,7 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
       handle->bits_sample = aaxGetBitsPerSample(*fmt);
       handle->no_frames = (size_t)rintf((float)*speed / *refresh_rate);
       handle->latency = 1.0f / period_rate;
-      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
+      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
    }
    return AAX_TRUE;
 }

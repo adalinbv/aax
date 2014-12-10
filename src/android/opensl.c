@@ -486,7 +486,7 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (res == SL_RESULT_SUCCESS)
    {
       handle->worker_start = _aaxSemaphoreCreate(0);
-      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
+      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);

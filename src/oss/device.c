@@ -515,7 +515,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->latency /= (float)(rate*channels*handle->bytes_sample);
       }
       err = 0;
-      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode);
+      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);

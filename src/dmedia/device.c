@@ -624,7 +624,7 @@ _aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->port[0].no_frames = frames;
       handle->port[0].latency = 1.0f / period_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->port[0].latency,
-                                                handle->mode);
+                                                handle->mode, registered);
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);
