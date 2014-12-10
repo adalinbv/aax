@@ -118,7 +118,6 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterSetBufferTrack");
 
             if (i == 1) _neg(EmitterPos[0]);
-printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 
@@ -152,7 +151,6 @@ printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
         for (i=0; i<num; i++)
         {
             if (i == 1) _neg(EmitterPos[2]);
-printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 
@@ -173,7 +171,6 @@ printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
         for (i=0; i<num; i++)
         {
             if (i == 1) _neg(EmitterPos[1]);
-printf("%3.2f, %3.2f, %3.2f\n", EmitterPos[0], EmitterPos[1], EmitterPos[2]);
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");
 

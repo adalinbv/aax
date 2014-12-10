@@ -157,7 +157,6 @@ fileLoad(const char *file, unsigned int *no_samples,
 	// EXTENSIBLE_WAVE_FORMAT?
         *format = _oalSoftwareWaveHeader[5] & 0xFFFF;
         extfmt = (*format == 0xFFFE) ? 1 : 0;
-printf("extfmt: %i, format: %x\n", extfmt, *format);
 
         if (_oalSoftwareWaveHeader[2] == 0x45564157 &&	/* WAVE */
             _oalSoftwareWaveHeader[3] == 0x20746d66)	/* fmt  */
