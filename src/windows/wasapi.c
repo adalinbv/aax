@@ -313,7 +313,6 @@ static int _wasapi_setup_event(_driver_t *, float);
 static int _wasapi_close_event(_driver_t *);
 static int _wasapi_get_volume_range(_driver_t *);
 static int _wasapi_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
-static int _wasapi_get_channel_range(_driver_t*, unsigned int*, unsigned int*);
 
 
 static int
@@ -625,9 +624,7 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
       handle->min_frequency = 8000;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
       handle->min_tracks = 1;
-      handle->max_tracks = _AAX_MAX_SPEAKERS;
-
-      _wasapi_get_channel_range(handle, &handle->min_tracks, &handle->max_tracks);
+      handle->max_tracks = handle->Fmt.Format.nChannels;
    }
 
    return rv;
@@ -2151,71 +2148,6 @@ _wasapi_get_volume_range(_driver_t *handle)
          }
          handle->volumeCur = handle->volumeInit;
       }
-   }
-
-   return rv;
-}
-
-static int
-_wasapi_get_channel_range(_driver_t *handle, unsigned int *min, unsigned int *max)
-{
-   IDeviceTopology *pDeviceTopology = NULL;
-   int rv;
-
-   *min = 1;
-   *max = _AAX_MAX_SPEAKERS;
-
-   // http://msdn.microsoft.com/en-us/library/dd371376%28v=vs.85%29.aspx
-   // http://msdn.microsoft.com/en-us/library/dd371387%28v=VS.85%29.aspx
-   rv = pIMMDevice_Activate(handle->pDevice, &aax_IID_IDeviceTopology,
-                            CLSCTX_INPROC_SERVER, NULL,
-                            (void**)&pDeviceTopology);
-   if (rv == S_OK)
-   {
-      IConnector *pConnFrom = NULL;
-
-      // The device topology for an endpoint device always
-      // contains just one connector (connector number 0).
-      rv = IDeviceTopology_GetConnector(pDeviceTopology, 0, &pConnFrom);
-      if (rv == S_OK)
-      {
-         IConnector *pConnHWDev = NULL;
-
-         // Use the connector in the endpoint device to get the
-         // connector in the adapter device.
-         rv = IConnector_GetConnectedTo(pConnFrom, &pConnHWDev);
-         if (rv == S_OK)
-         {
-            IPart *pPartConn = NULL;
-
-            // Query the connector in the adapter device for
-            // its IPart interface.
-            rv = IConnector_QueryInterface(pConnHWDev, &aax_IID_IPart,
-                                           (void**)&pPartConn);
-            if (rv == S_OK)
-            {
-               IKsJackDescription *pJackDesc = NULL;
-               rv = IPart_Activate(pPartConn, CLSCTX_INPROC_SERVER,
-                                   &aax_IID_IKsJackDescription,
-                                   (void**)&pJackDesc);
-               if (rv == S_OK)
-               {
-                  UINT jackCount = 0;
-
-                  rv = IKsJackDescription_GetJackCount(pJackDesc, &jackCount);
-                  *max = jackCount;
-
-                 // KSJACK_DESCRIPTION jack = { 0 };
-                 // rv=IKsJackDescription_GetJackDescription(pJackDesc,i &jack);
-
-                  IPart_Release(pPartConn);
-               }
-               IConnector_Release(pConnHWDev);
-            }
-            IConnector_Release(pConnFrom);
-         }
-      }
-      IDeviceTopology_Release(pDeviceTopology);
    }
 
    return rv;
