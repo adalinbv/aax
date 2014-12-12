@@ -478,7 +478,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
 
             handle->no_samples = no_samples;
-            handle->latency = (float)_MAX(no_samples, (PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
+            handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
 
             handle->thread.ptr = _aaxThreadCreate();
             handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);

@@ -1,5 +1,5 @@
-* Tue Aug 12 2014 - tech@adalin.org
-- AeonWave (2.4.2) stable; urgency=low
+* Fri Dec 12 2014 - tech@adalin.org
+- AeonWave (2.5.0) stable; urgency=low
  * Added a capabilities interface to detect the limits of the audio hardware
    by making calls to the aaxMixerGetSetup function.
  * Changed the threading model from one thread per mixer-registered audio-frame
@@ -10,16 +10,19 @@
  * Add support for the ARM architecture including support for hardware FPU
    and NEON. Rendering performance is comparible with Intel/AMD Cores
    at a matching CPU frequency.
+ * Support a default output device in the confguration file.
  * Fix a problem when a registered sensor had a different number of
    audio periods in relation to the playback device.
  * Fix an emitter looping bug introduced in version 2.4.1
+
+ -- Erik Hofman <tech@adalin.org>  Fri, 12 Dec 2014 14:16:00 + 0100
 
 * Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low
  * Fixed a possible segmentation fault with certain ALSA drivers.
  * Fixed a possible segmentation fault for looping emitters.
 
- -- Erik Hofman <tech@adalin.org>  Tue, 10 Jun 2014 12:58:00 + 0100
+ -- Erik Hofman <tech@adalin.org>  Tue, 10 Jun 2014 12:58:00 + 0200
 
 * Wed May 21 2014 - tech@adalin.org
 - AeonWave (2.4.0) stable; urgency=low
