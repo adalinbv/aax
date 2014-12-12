@@ -178,7 +178,7 @@ aaxDriverGetByPos(unsigned pos_req, enum aaxRenderMode mode)
 }
 
 AAX_API aaxConfig AAX_APIENTRY
-aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
+aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
 {
    _handle_t *handle = NULL;
 
@@ -187,8 +187,18 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
       handle = new_handle();
       if (handle)
       {
+         char *name = (char *)devname;
          handle->info->mode = mode;
-         if ((name != NULL) 
+
+         if (!name)
+         {
+            _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode);
+            if (cfg->node[0].devname) {
+               name = _aax_strdup(cfg->node[0].devname);
+            }
+         }
+
+         if ((name != NULL) && strcasecmp(name, "default")
 #ifdef WIN32
               && strcasecmp(name, "Generic Software")
               && strcasecmp(name, "Generic Hardware")
@@ -225,6 +235,12 @@ aaxDriverGetByName(const char* name, enum aaxRenderMode mode)
                handle->devname[0] = _aax_strdup(be->driver);
                handle->devname[1] = be->name(handle->backend.handle, mode);
             }
+         }
+
+         if (name != devname)
+         {
+            _aax_free(name);
+             name = NULL;
          }
 
          if (handle->backend.ptr == NULL)
@@ -1086,81 +1102,84 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->valid = LITE_HANDLE_ID;
          }
 
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         if (handle->sensors)
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxMixerInfo* info = sensor->mixer->info;
-            unsigned int size;
-
-            size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
-            if (handle->info->mode == AAX_MODE_WRITE_HRTF)
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
             {
-               handle->info->no_tracks = 2;
-               _aax_memcpy(&info->speaker,&_aaxContextDefaultHRTFVolume, size);
-               _aax_memcpy(info->delay, &_aaxContextDefaultHRTFDelay, size);
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxMixerInfo* info = sensor->mixer->info;
+               unsigned int size;
 
-               /*
-                * By mulitplying the delays with the sample frequency the delays
-                * in seconds get converted into sample offsets.
-                */
-               _aaxContextSetupHRTF(config->node[0].hrtf, 0);
-               vec4Copy(info->hrtf[0], _aaxContextDefaultHead[0]);
-               vec4ScalarMul(info->hrtf[0], fq);
-
-               vec4Copy(info->hrtf[1], _aaxContextDefaultHead[1]);
-               vec4ScalarMul(info->hrtf[1], fq);
-            }
-            else
-            {
-               int t;
-
-               _aaxContextSetupSpeakers(config->node[0].speaker,info->no_tracks);
-               for (t=0; t<handle->info->no_tracks; t++)
+               size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
+               if (handle->info->mode == AAX_MODE_WRITE_HRTF)
                {
-                  float gain = vec3Normalize(info->speaker[t],
-                                           _aaxContextDefaultSpeakersVolume[t]);
-                  info->speaker[t][3] = 1.0f/gain;
+                  handle->info->no_tracks = 2;
+                  _aax_memcpy(&info->speaker,&_aaxContextDefaultHRTFVolume, size);
+                  _aax_memcpy(info->delay, &_aaxContextDefaultHRTFDelay, size);
+
+                  /*
+                   * By mulitplying the delays with the sample frequency the
+                   * delays in seconds get converted into sample offsets.
+                   */
+                  _aaxContextSetupHRTF(config->node[0].hrtf, 0);
+                  vec4Copy(info->hrtf[0], _aaxContextDefaultHead[0]);
+                  vec4ScalarMul(info->hrtf[0], fq);
+
+                  vec4Copy(info->hrtf[1], _aaxContextDefaultHead[1]);
+                  vec4ScalarMul(info->hrtf[1], fq);
                }
-               _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
-            }
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-         }
-
-         do
-         {
-            char buffer[1024], *buf = (char *)&buffer;
-            _intBuffers* backends = get_backends();
-            unsigned int i, count;
-
-            for (i=0; i<config->no_nodes; i++)
-            {
-               snprintf(buf,1024,"config file; settings:");
-               _AAX_SYSLOG(buf);
-
-               snprintf(buf,1024,"  output[%i]: '%s'\n", i, config->node[i].devname);
-              _AAX_SYSLOG(buf);
-
-               snprintf(buf,1024,"  setup: %s\n", (handle->info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
-               _AAX_SYSLOG(buf);
-
-               snprintf(buf,1024,"  frequency: %5.1f, interval: %5.1f\n",
-                        handle->info->frequency, handle->info->refresh_rate);
-               _AAX_SYSLOG(buf);
-            }
-
-            count = _intBufGetNumNoLock(backends, _AAX_BACKEND);
-            for (i=0; i<count; i++)
-            {
-               _aaxDriverBackend *be = _aaxGetDriverBackendByPos(backends, i);
-               if (be)
+               else
                {
-                  snprintf(buf,1024,"  backend[%i]: '%s'\n", i, be->driver);
+                  int t;
+
+                  _aaxContextSetupSpeakers(config->node[0].speaker,info->no_tracks);
+                  for (t=0; t<handle->info->no_tracks; t++)
+                  {
+                     float gain = vec3Normalize(info->speaker[t],
+                                              _aaxContextDefaultSpeakersVolume[t]);
+                     info->speaker[t][3] = 1.0f/gain;
+                  }
+                  _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
+               }
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
+
+            do
+            {
+               char buffer[1024], *buf = (char *)&buffer;
+               _intBuffers* backends = get_backends();
+               unsigned int i, count;
+
+               for (i=0; i<config->no_nodes; i++)
+               {
+                  snprintf(buf,1024,"config file; settings:");
+                  _AAX_SYSLOG(buf);
+
+                  snprintf(buf,1024,"  output[%i]: '%s'\n", i, config->node[i].devname);
+                 _AAX_SYSLOG(buf);
+
+                  snprintf(buf,1024,"  setup: %s\n", (handle->info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
+                  _AAX_SYSLOG(buf);
+
+                  snprintf(buf,1024,"  frequency: %5.1f, interval: %5.1f\n",
+                           handle->info->frequency, handle->info->refresh_rate);
                   _AAX_SYSLOG(buf);
                }
+
+               count = _intBufGetNumNoLock(backends, _AAX_BACKEND);
+               for (i=0; i<count; i++)
+               {
+                  _aaxDriverBackend *be = _aaxGetDriverBackendByPos(backends, i);
+                  if (be)
+                  {
+                     snprintf(buf,1024,"  backend[%i]: '%s'\n", i, be->driver);
+                     _AAX_SYSLOG(buf);
+                  }
+               }
             }
+            while (0);
          }
-         while (0);
       }
       else
       {

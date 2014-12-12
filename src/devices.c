@@ -271,22 +271,25 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
    memset(config, 0, sizeof(_aaxConfig));
    if (dbe)
    {
-      unsigned int pos;
+      unsigned int pos = 2;
 
-      num = _intBufGetNumNoLock(dbe, _AAX_BACKEND);
-      config->no_backends = num;
-      for (i=0; i<num; i++)
+      if (devname[0])
       {
-         _intBufferData *dptr;
-         dptr = _intBufGetNoLock(dbe, _AAX_BACKEND, i);
-         be = _intBufGetDataPtr(dptr);
-         if (be)
+         num = _intBufGetNumNoLock(dbe, _AAX_BACKEND);
+         config->no_backends = num;
+         for (i=0; i<num; i++)
          {
-            if (!strcasecmp(devname[0], be->driver))
+            _intBufferData *dptr;
+            dptr = _intBufGetNoLock(dbe, _AAX_BACKEND, i);
+            be = _intBufGetDataPtr(dptr);
+            if (be)
             {
-               config->backend.driver = _aax_strdup(be->driver);
-               config->backend.input = 0;
-               config->backend.output = 0;
+               if (!strcasecmp(devname[0], be->driver))
+               {
+                  config->backend.driver = _aax_strdup(be->driver);
+                  config->backend.input = 0;
+                  config->backend.output = 0;
+               }
             }
          }
       }
@@ -308,6 +311,10 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
       config->node[0].update = 50;
       config->node[0].hrtf = 0;
       config->node[0].no_speakers = 2;
+
+      if (!devname[0]) {
+         config->backend.driver = _aax_strdup(be->driver);
+      }
    }
 
    return (long)rv; 
