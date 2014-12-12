@@ -349,6 +349,9 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
    {
       handle->Mode = _mode[(mode > 0) ? 1 : 0];
 
+      handle->min_tracks = 1;
+      handle->max_tracks = _AAX_MAX_SPEAKERS;
+
       handle->status = DRIVER_INIT_MASK | CAPTURE_INIT_MASK;
       handle->status |= DRIVER_PAUSE_MASK;
 #if EXCLUSIVE_MODE
@@ -623,8 +626,6 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
       handle->min_periods = handle->max_periods = DEFAULT_PERIODS;
       handle->min_frequency = 8000;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
-      handle->min_tracks = 1;
-      handle->max_tracks = handle->Fmt.Format.nChannels;
    }
 
    return rv;
@@ -2318,8 +2319,9 @@ _wasapi_setup(_driver_t *handle, size_t *frames, int registered)
    init = S_OK;
    do
    {
-      const WAVEFORMATEX *pfmt;
+      WAVEFORMATEX *pfmt;
       WAVEFORMATEX **cfmt;
+      WORD nChannels;
 
       /*
        * For shared mode set wfx to point to a valid, non-NULL pointer variable.
@@ -2342,8 +2344,18 @@ _wasapi_setup(_driver_t *handle, size_t *frames, int registered)
          mode = AUDCLNT_SHAREMODE_SHARED;
          cfmt = &wfx;
       }
-
       pfmt = &handle->Fmt.Format;
+
+      /* first detect the max. nChannels supported by the endpoint */
+      nChannels = pfmt->nChannels;
+      pfmt->nChannels = _AAX_MAX_SPEAKERS;
+      hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
+      pfmt->nChannels = nChannels;
+      if (hr == S_OK || hr == S_FALSE) {
+         handle->max_tracks = (*cfmt)->nChannels;
+      }
+      
+      /* Now do the acutal testing of the requested format */
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
       if (hr == S_FALSE)
       {
