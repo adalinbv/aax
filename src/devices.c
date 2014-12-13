@@ -294,17 +294,8 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
          }
       }
 
-      be = _aaxGetDriverBackendDefault(bs, &pos);
-      if (be)
-      {
-         config->node[0].devname = _aax_strdup(be->driver);
-         config->node[0].frequency = 48000;
-      }
-      else
-      {
-         config->node[0].devname = _aax_strdup("unknown");
-         config->node[0].frequency = 44100;
-      }
+      config->node[0].devname = NULL;
+      config->node[0].frequency = 44100;
       config->node[0].setup = _aax_strdup("stereo");
       config->no_nodes = 1;
       config->node[0].interval = 66;
@@ -312,7 +303,9 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
       config->node[0].hrtf = 0;
       config->node[0].no_speakers = 2;
 
-      if (!devname[0]) {
+      if (!devname[0])
+      {
+         be = _aaxGetDriverBackendDefault(bs, &pos);
          config->backend.driver = _aax_strdup(be->driver);
       }
    }
@@ -345,12 +338,15 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             char *setup;
             float f;
 
-            dev = xmlNodeGetString(xoid, "device");
-            if (dev)
+            if (m)
             {
-               free(config->node[n].devname);
-               config->node[n].devname = _aax_strdup(dev);
-               xmlFree(dev);
+               dev = xmlNodeGetString(xoid, "device");
+               if (dev)
+               {
+                  free(config->node[n].devname);
+                  config->node[n].devname = _aax_strdup(dev);
+                  xmlFree(dev);
+               }
             }
 
 #if 0
