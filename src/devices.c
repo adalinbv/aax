@@ -468,7 +468,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             _aaxDriverDetectConfigConnector(xiid, devname,
                                              (char *)&level,
                                              (char *)&curlevel);
-            if (level >= curlevel)
+            if (level > curlevel)
             {
                ssize_t q, i, l, index = -1;
                char *ptr, *tmp;
