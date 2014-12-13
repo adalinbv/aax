@@ -195,6 +195,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
             _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode);
             if (cfg->node[0].devname) {
                name = _aax_strdup(cfg->node[0].devname);
+               handle->backend.driver = _aax_strdup(cfg->node[0].devname);
             }
          }
 
@@ -297,13 +298,6 @@ aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
 }
 
 AAX_API aaxConfig AAX_APIENTRY
-aaxDriverOpenDefault(enum aaxRenderMode mode)
-{
-   aaxConfig config = aaxDriverGetByName(NULL, mode);
-   return aaxDriverOpen(config);
-}
-
-AAX_API aaxConfig AAX_APIENTRY
 aaxDriverOpen(aaxConfig config)
 {
    _handle_t *handle = _open_handle(config);
@@ -358,69 +352,26 @@ aaxDriverOpen(aaxConfig config)
 AAX_API aaxConfig AAX_APIENTRY
 aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
 {
-   _handle_t *handle = NULL;
+   aaxConfig config = NULL;
    if (mode < AAX_MODE_WRITE_MAX)
    {
-      if (name != NULL)
-      {
-         aaxConfig config = aaxDriverGetByName(name, mode);
-         handle = _open_handle(config);
-         if (handle)
-         {
-            const _aaxDriverBackend *be = handle->backend.ptr;
-            void *xoid, *nid = 0;
-            _aaxConfig *cfg;
-
-            if (mode == AAX_MODE_WRITE_STEREO) mode = handle->info->mode;
-            else handle->info->mode = mode;
-
-            cfg = _aaxReadConfig(handle, name, mode);
-            if (cfg)
-            {
-               if (mode == AAX_MODE_READ) {
-                  xoid = cfg->backend.input;
-               } else {
-                  xoid = cfg->backend.output;
-               }
-               if (be)
-               {
-                  const char* devname = handle->devname[1];
-                  char *renderer;
-
-                  handle->backend.handle= be->connect(nid, xoid, devname, mode);
-
-                  if (handle->backend.driver != _default_renderer) {
-                     free(handle->backend.driver);
-                  }
-                  renderer = be->name(handle->backend.handle, mode);
-                  handle->backend.driver=renderer? renderer : _default_renderer;
-                  if (_info == NULL) {
-                     _info =  handle->info;
-                  }
-               }
-               _aaxDriverBackendClearConfigSettings(cfg);
-            }
-            else {
-               _AAX_SYSLOG("invalid personal product key");
-            }
-         }
-   
-         if (handle && !handle->backend.handle)
-         {
-            _aaxErrorSet(AAX_INVALID_PARAMETER);
-            aaxDriverClose(handle);
-            aaxDriverDestroy(handle);
-            handle = NULL;
-         }
-      }
-      else {
-         handle = aaxDriverOpenDefault(mode);
+      config = aaxDriverGetByName(name, mode);
+      if (config) {
+         config = aaxDriverOpen(config);
+      } else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
    else {
       _aaxErrorSet(AAX_INVALID_ENUM);
    }
-   return (aaxConfig)handle;
+   return config;
+}
+
+AAX_API aaxConfig AAX_APIENTRY
+aaxDriverOpenDefault(enum aaxRenderMode mode)
+{
+   return aaxDriverOpenByName(NULL, mode);
 }
 
 AAX_API int AAX_APIENTRY
