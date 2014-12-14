@@ -321,7 +321,23 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
    if (xcid != NULL && config != NULL)
    {
       unsigned int n, num;
-      void *xoid;
+      void *xoid, *xiid;
+
+      if (!m)
+      {
+         xiid = xmlNodeGet(xcid, "input");	/* global input section */
+         if (xiid)
+         {
+            char *dev = xmlNodeGetString(xiid, "device");
+            if (dev)
+            {
+               free(config->node[n].devname);
+               config->node[n].devname = _aax_strdup(dev);
+               xmlFree(dev);
+            }
+            xmlFree(xiid);
+         }
+      }
 
       xoid = xmlMarkId(xcid);
       num = xmlNodeGetNum(xoid, "output");      /* global output sections */
@@ -387,6 +403,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             if (i) config->node[n].no_emitters = i;
          }
       }
+      xmlFree(xoid);
    }
 
    if (xcid)
