@@ -297,7 +297,7 @@ static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
 #define FILL_FACTOR		1.65f
 #define DEFAULT_REFRESH		25.0f
 #define _AAX_DRVLOG(a)		_aaxALSADriverLog(id, __LINE__, 0, a)
-#define STRCMP(a, b)		strncmp((a), (b), strlen(b))
+#define STRCMP(a, b)		(((a)&&(b)) ? strncmp((a), (b), strlen(b)) : -1)
 
 /* forward declarations */
 static const char* _alsa_type[2];
@@ -1497,7 +1497,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
             if (!type || (type && !strcmp(type, _alsa_type[m])))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               char *colon = strchr(name, ':');
+               char *colon = name ? strchr(name, ':') : NULL;
 
                if (sysdefault && !STRCMP(name, "sysdefault:"))
                {
@@ -1566,7 +1566,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    int m = (mode > 0) ? 1 : 0;
    char *rv = handle->ifname[m];
 
-   if (!rv)
+   if (!rv && devname)
    {
       char devlist[1024] = "\0\0";
       size_t len = 1024;
@@ -1711,7 +1711,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
                      
                      snprintf(s, len, ": %s", iface);
 
-                     if (!m)
+                     if (!m && iface)
                      {
                         iface = strchr(iface+2, '\n');
                         *iface = 0;
@@ -2247,7 +2247,7 @@ _alsa_get_volume_range(_driver_t *handle)
          psnd_mixer_selem_get_id(elem, sid);
          name = psnd_mixer_selem_id_get_name(sid);
 
-         if (!strcasecmp(name, "Capture"))
+         if (name && !strcasecmp(name, "Capture"))
          {
             if (psnd_mixer_selem_has_capture_volume(elem))
             {
@@ -2281,7 +2281,7 @@ _alsa_get_volume_range(_driver_t *handle)
          psnd_mixer_selem_get_id(elem, sid);
          name = psnd_mixer_selem_id_get_name(sid);
 
-         if (!strcasecmp(name, "Front") || !strcasecmp(name, "Speaker"))
+         if (name && (!strcasecmp(name, "Front") || !strcasecmp(name, "Speaker")))
          {
             handle->outMixer = _aax_strdup(name);
             if (psnd_mixer_selem_has_playback_volume(elem))
@@ -2315,7 +2315,7 @@ _alsa_get_volume_range(_driver_t *handle)
             psnd_mixer_selem_get_id(elem, sid);
             name = psnd_mixer_selem_id_get_name(sid);
 
-            if (!strcasecmp(name, "PCM"))
+            if (name && !strcasecmp(name, "PCM"))
             {
                handle->outMixer = _aax_strdup(name);
                if (psnd_mixer_selem_has_playback_volume(elem))
@@ -2350,7 +2350,7 @@ _alsa_get_volume_range(_driver_t *handle)
             psnd_mixer_selem_get_id(elem, sid);
             name = psnd_mixer_selem_id_get_name(sid);
 
-            if (!strcasecmp(name, "Master"))
+            if (name && !strcasecmp(name, "Master"))
             {
                handle->outMixer = _aax_strdup(name);
                if (psnd_mixer_selem_has_playback_volume(elem))
@@ -2427,7 +2427,7 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
                  psnd_mixer_selem_has_capture_volume(elem))
             {
                name = psnd_mixer_selem_id_get_name(sid);
-               if (!strcasecmp(name, "Capture"))
+               if (name && !strcasecmp(name, "Capture"))
                {
                   long volumeDB;
 #if 0
@@ -2455,10 +2455,13 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
                long volumeDB;
 
                name = psnd_mixer_selem_id_get_name(sid);
-               if ((fabsf(hwgain - handle->volumeCur) >= handle->volumeStep) &&
-                   (!strcasecmp(name, handle->outMixer) || !strcasecmp(name, "Center")
-                    || !strcasecmp(name, "Surround") || !strcasecmp(name, "LFE")
-                    || !strcasecmp(name, "Side")))
+               if (name &&
+                   ((fabsf(hwgain - handle->volumeCur) >= handle->volumeStep) &&
+                     (!strcasecmp(name, handle->outMixer)
+                     || !strcasecmp(name, "Center")
+                     || !strcasecmp(name, "Surround")
+                     || !strcasecmp(name, "LFE")
+                     || !strcasecmp(name, "Side"))))
                {
                   int dir = 0;
 

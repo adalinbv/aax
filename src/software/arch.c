@@ -16,8 +16,6 @@
 #include <stdio.h>	/* fopen, fclose */
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
-#else
-# include <string.h>	/* strstr, strchr */
 #endif
 #if __MINGW32__
 # include <mm_malloc.h>

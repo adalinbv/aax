@@ -1218,10 +1218,14 @@ _aaxCheckKeyValidityStr(char *keystr)
 
       nptr = keystr;
       eptr = strchr(nptr, '-');
+      if (!eptr) return rv;
+
       key = strtoll(nptr, &eptr, base);
 
       nptr = eptr+1;
       eptr = strchr(nptr, '-');
+      if (!eptr) return rv;
+
       tmp.ll = strtoll(nptr, &eptr, base);
       if (is_bigendian()) {
          key += tmp.i[1]; // *((uint32_t*)(&tmp.ll)+1);

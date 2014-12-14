@@ -949,7 +949,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
    int m = (mode > 0) ? 1 : 0;
    char *rv = handle->ifname[m];
 
-   if (!rv)
+   if (!rv && devname)
    {
       int fd = open(_default_mixer, O_RDWR);
       if (fd < 0)                          /* test for /dev/mixer0 instead */
@@ -1033,14 +1033,18 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 static char *
 _aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
 {
-   static char _errstr[256];
-   size_t len = _MIN(strlen(str)+1, 256);
+   static char _errstr[256] = "\0";
 
-   memcpy(_errstr, str, len);
-   _errstr[255] = '\0';  /* always null terminated */
+   if (str)
+   {
+      size_t len = _MIN(strlen(str)+1, 256);
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
-   _AAX_SYSLOG(_errstr);
+      memcpy(_errstr, str, len);
+      _errstr[255] = '\0';  /* always null terminated */
+
+      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+      _AAX_SYSLOG(_errstr);
+   }
 
    return (char*)&_errstr;
 }
@@ -1270,7 +1274,7 @@ detect_nodenum(const char *devname)
    int version = get_oss_version();
    int rv = _oss_default_nodenum;
 
-   if (!strncasecmp(devname, "/dev/dsp", 8) ) {
+   if (devname && !strncasecmp(devname, "/dev/dsp", 8) ) {
        rv = atoi(devname+8);
    }
    else if (devname && strcasecmp(devname, "OSS") &&

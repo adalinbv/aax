@@ -19,9 +19,6 @@
 #else
 # include <stdlib.h>
 # include <malloc.h>
-# if HAVE_STRINGS_H
-#  include <strings.h>   /* strcasecmp */
-# endif
 #endif
 #include <math.h>
 #ifndef NDEBUG

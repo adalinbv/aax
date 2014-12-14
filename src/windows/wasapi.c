@@ -1683,6 +1683,8 @@ wcharToChar(char *dst, size_t *dlen, const WCHAR* wstr)
    char *rv = dst;
    size_t alen, wlen;
 
+   if (!wstr) return rv;
+
    wlen = lstrlenW(wstr);
    alen = pWideCharToMultiByte(CP_ACP, 0, wstr, wlen, 0, 0, NULL, NULL);
    if (alen > 0)
@@ -1708,6 +1710,8 @@ charToWChar(const char* str)
 {
    WCHAR *rv = NULL;
    size_t alen, wlen;
+
+   if (!str) return rv;
 
    alen = lstrlenA(str);
    wlen = pMultiByteToWideChar(CP_ACP, 0, str, alen, NULL, 0);

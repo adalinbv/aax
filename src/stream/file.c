@@ -853,7 +853,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
             if (type->detect(mode))
             {
                char *ifs = type->interfaces(mode);
-               size_t len = strlen(ifs);
+               size_t len = ifs ? strlen(ifs) : 0;
                if (ifs && len)
                {
                   snprintf(ptr, buflen, "%s ", ifs);
