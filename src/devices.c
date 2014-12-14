@@ -492,22 +492,26 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                xmlAttributeCopyString(xdid, "name", (char*)rr[0], 255);
                xmlAttributeCopyString(xiid, "name", (char*)rr[1], 255);
+
                ptr = config->backend.driver;
+               if (ptr)
+               {
+                  tmp = strstr(ptr, " on ");
+                  if (tmp) q = tmp-ptr;
+                  else q = strlen(ptr);
 
-               tmp = ptr ? strstr(ptr, " on ") : NULL;
-               if (tmp) q = tmp-ptr;
-               else q = strlen(ptr);
+                  l = ++q + strlen(rr[0]) + strlen(rr[1]) + strlen(" on : \0");
+                  config->backend.driver = malloc(l);
 
-               l = ++q + strlen(rr[0]) + strlen(rr[1]) + strlen(" on : \0");
-               config->backend.driver = malloc(l);
-
-               // copy the backend name (might be a part of the renderer string)
-               snprintf(config->backend.driver, q, "%s", ptr);	
-               strcat(config->backend.driver, " on ");
-               strcat(config->backend.driver, rr[0]);	/* device name    */
-               strcat(config->backend.driver, ": ");
-               strcat(config->backend.driver, rr[1]);	/* interface name */
-               free(ptr);
+                  ///copy the backend name (might be a part of the
+                  // renderer string)
+                  snprintf(config->backend.driver, q, "%s", ptr);	
+                  strcat(config->backend.driver, " on ");
+                  strcat(config->backend.driver, rr[0]);   /* device name    */
+                  strcat(config->backend.driver, ": ");
+                  strcat(config->backend.driver, rr[1]);   /* interface name */
+                  free(ptr);
+               }
 
                if (m)
                {
@@ -781,17 +785,19 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
 
                   xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
                   ptr = config->backend.driver;
+                  if (ptr)
+                  {
+                     tmp = strstr(ptr, " on ");
+                     if (tmp) q = tmp-ptr;
+                     else q = strlen(ptr);
 
-                  tmp = ptr ? strstr(ptr, " on ") : NULL;
-                  if (tmp) q = tmp-ptr;
-                  else q = strlen(ptr);
-
-                  l = ++q + strlen(rr) + strlen(" on \0");
-                  config->backend.driver = malloc(l);
-                  snprintf(config->backend.driver, q, "%s", ptr);
-                  strcat(config->backend.driver, " on ");
-                  strcat(config->backend.driver, rr);
-                  free(ptr);
+                     l = ++q + strlen(rr) + strlen(" on \0");
+                     config->backend.driver = malloc(l);
+                     snprintf(config->backend.driver, q, "%s", ptr);
+                     strcat(config->backend.driver, " on ");
+                     strcat(config->backend.driver, rr);
+                     free(ptr);
+                  }
 
                   xmlFree(config->backend.output);
                   config->backend.output = output;
@@ -868,17 +874,19 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
 
                   xmlNodeCopyString(input, "renderer", (char*)&rr, 255);
                   ptr = config->backend.driver;
+                  if (ptr)
+                  {
+                     tmp = strstr(ptr, " on ");
+                     if (tmp) q = tmp-ptr;
+                     else q = strlen(ptr);
 
-                  tmp = ptr ? strstr(ptr, " on ") : NULL;
-                  if (tmp) q = tmp-ptr;
-                  else q = strlen(ptr);
-
-                  l = ++q + strlen(rr) + strlen(" on \0");
-                  config->backend.driver = malloc(l);
-                  snprintf(config->backend.driver, q, "%s", ptr);
-                  strcat(config->backend.driver, " on ");
-                  strcat(config->backend.driver, rr);
-                  free(ptr);
+                     l = ++q + strlen(rr) + strlen(" on \0");
+                     config->backend.driver = malloc(l);
+                     snprintf(config->backend.driver, q, "%s", ptr);
+                     strcat(config->backend.driver, " on ");
+                     strcat(config->backend.driver, rr);
+                     free(ptr);
+                  }
 
                   xmlFree(config->backend.input);
                   config->backend.input = input;
