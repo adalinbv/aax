@@ -114,7 +114,7 @@ typedef struct
 
 } _driver_t;
 
-static char _loopback_default_renderer[100] = DEFAULT_RENDERER;
+static char _loopback_default_renderer[100] = LOOPBACK_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
    AAX_VERSION_STR,
@@ -164,12 +164,7 @@ _aaxNoneDriverNewHandle(enum aaxRenderMode mode)
 static void *
 _aaxNoneDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
-   const char *hwstr = _aaxGetSIMDSupportString();
-
    if (mode == AAX_MODE_READ) return NULL;
-
-   snprintf(_loopback_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
-
    return (void *)&_aaxNoneDriverBackend;
 }
 
@@ -381,6 +376,11 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
       handle->no_frames = (size_t)rintf((float)*speed / *refresh_rate);
       handle->latency = 1.0f / period_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
+      if (handle->render)
+      {
+         const char *rstr = handle->render->info(handle->render->id);
+         snprintf(_loopback_default_renderer, 99, "%s %s", LOOPBACK_RENDERER, rstr);
+      }
    }
    return AAX_TRUE;
 }
