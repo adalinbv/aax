@@ -329,7 +329,7 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
    _driver_t *rv = calloc(1, sizeof(_driver_t));
    if (rv)
    {
-      rv->latency = 0.0f;
+      rv->latency = 0.001f;
       rv->mode = mode;
    }
    return rv;
@@ -408,6 +408,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
+         break;
       case DRIVER_MAX_VOLUME:
          rv = 1.0f;
          break;
