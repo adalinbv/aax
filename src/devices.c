@@ -331,8 +331,8 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
             char *dev = xmlNodeGetString(xiid, "device");
             if (dev)
             {
-               free(config->node[n].devname);
-               config->node[n].devname = _aax_strdup(dev);
+               free(config->node[0].devname);
+               config->node[0].devname = _aax_strdup(dev);
                xmlFree(dev);
             }
             xmlFree(xiid);
@@ -494,7 +494,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                xmlAttributeCopyString(xiid, "name", (char*)rr[1], 255);
                ptr = config->backend.driver;
 
-               tmp = strstr(ptr, " on ");
+               tmp = ptr ? strstr(ptr, " on ") : NULL;
                if (tmp) q = tmp-ptr;
                else q = strlen(ptr);
 
@@ -782,7 +782,7 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
                   xmlNodeCopyString(output, "renderer", (char*)&rr, 255);
                   ptr = config->backend.driver;
 
-                  tmp = strstr(ptr, " on ");
+                  tmp = ptr ? strstr(ptr, " on ") : NULL;
                   if (tmp) q = tmp-ptr;
                   else q = strlen(ptr);
 
@@ -869,7 +869,7 @@ _aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *co
                   xmlNodeCopyString(input, "renderer", (char*)&rr, 255);
                   ptr = config->backend.driver;
 
-                  tmp = strstr(ptr, " on ");
+                  tmp = ptr ? strstr(ptr, " on ") : NULL;
                   if (tmp) q = tmp-ptr;
                   else q = strlen(ptr);
 
