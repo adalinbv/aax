@@ -2321,6 +2321,7 @@ _wasapi_setup(_driver_t *handle, size_t *frames, int registered)
    {
       WAVEFORMATEX *pfmt;
       WAVEFORMATEX **cfmt;
+      DWORD nSamplesPerSec;
       WORD nChannels;
 
       /*
@@ -2346,13 +2347,19 @@ _wasapi_setup(_driver_t *handle, size_t *frames, int registered)
       }
       pfmt = &handle->Fmt.Format;
 
-      /* first detect the max. nChannels supported by the endpoint */
+      /* first detect the max. nChannels and frequency supported by the
+       * endpoint */
       nChannels = pfmt->nChannels;
+      nSamplesPerSec = pfmt->nSamplesPerSec;
       pfmt->nChannels = _AAX_MAX_SPEAKERS;
+      pfmt->nSamplesPerSec = _AAX_MAX_MIXER_FREQUENCY;
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
       pfmt->nChannels = nChannels;
-      if (hr == S_OK || hr == S_FALSE) {
+       pfmt->nSamplesPerSec = nSamplesPerSec;
+      if (hr == S_OK || hr == S_FALSE)
+      {
          handle->max_tracks = (*cfmt)->nChannels;
+         handle->max_frequency = (*cfmt)->nSamplesPerSec;
       }
       
       /* Now do the acutal testing of the requested format */
