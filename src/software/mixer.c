@@ -250,6 +250,7 @@ _aaxSoftwareMixerThread(void* config)
    _aaxAudioFrame *smixer;
    int state, tracks;
    float delay_sec;
+   int res;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
@@ -318,8 +319,10 @@ _aaxSoftwareMixerThread(void* config)
 
       /* do all the mixing */
       _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+
+      res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }
-   while (_aaxSignalWaitTimed(&handle->thread.signal,delay_sec) == AAX_TIMEOUT);
+   while (res == AAX_TIMEOUT || res == AAX_TRUE);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 

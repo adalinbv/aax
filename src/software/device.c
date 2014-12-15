@@ -633,7 +633,7 @@ _aaxNoneDriverThread(void* config)
    _aaxAudioFrame* mixer;
    _sensor_t* sensor;
    float delay_sec;
-
+   int res;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
@@ -678,8 +678,9 @@ _aaxNoneDriverThread(void* config)
             _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
          }
       }
+      res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }
-   while (_aaxSignalWaitTimed(&handle->thread.signal,delay_sec) == AAX_TIMEOUT);
+   while (res == AAX_TIMEOUT || res == AAX_TRUE);
 
    be->destroy_ringbuffer(dest_rb);
    handle->ringbuffer = NULL;
