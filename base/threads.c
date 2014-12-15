@@ -1160,12 +1160,22 @@ _aaxSemaphoreDestroy(_aaxSemaphore *sem)
    return AAX_TRUE;
 }
 
+#ifndef NDEBUG
+inline int
+_aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
+{
+   DWORD r = WaitForSingleObject(sem, INFINITE);
+   return (r == WAIT_OBJECT_0) ? AAX_TRUE : AAX_FALSE;
+}
+
+#else
 inline int
 _aaxSemaphoreWait(_aaxSemaphore *sem)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
    return (r == WAIT_OBJECT_0) ? AAX_TRUE : AAX_FALSE;
 }
+#endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
