@@ -63,7 +63,8 @@ help()
     printf("  -c, --capture <device>\tcapture from an audio device\n");
     printf("  -d, --device <device>\t\tplayback device (optional)\n");
     printf("  -o, --output <file>\t\twrite the audio to a file (optional)\n");
-    printf("  -v, --verbose\t\tshow playback information\n");
+    printf("  -b, --batch\t\t\tprocess as fast as possible (file out only)\n");
+    printf("  -v, --verbose\t\t\tshow playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
     printf("Either --input or --capture can be used but not both.\n");
     printf("For a list of device names run: aaxinfo\n");
@@ -180,7 +181,10 @@ int main(int argc, char **argv)
 
     if (config && record && (rv >= 0))
     {
-        char *fparam = getCommandLineOption(argc, argv, "-f");
+        char batch = getCommandLineOption(argc, argv, "-b") ||
+                     getCommandLineOption(argc, argv, "--batch");
+        char fparam = getCommandLineOption(argc, argv, "-f") ||
+                      getCommandLineOption(argc, argv, "-frame");
         float pitch = getPitch(argc, argv);
         float dhour, hour, minutes, seconds;
         float duration, freq;
@@ -331,6 +335,7 @@ int main(int argc, char **argv)
                               "pos: % 5.1f (%02.0f:%04.1f) of ",
                               minutes, seconds, " % 3.0f%");
         }
+
         do
         {
             if (verbose)
@@ -352,7 +357,11 @@ int main(int argc, char **argv)
 
             if (get_key()) break;
 
-            msecSleep(250);
+            if (batch) {
+               res = aaxMixerSetState(config, AAX_UPDATE);
+            } else {
+                msecSleep(250);
+            }
             state = aaxMixerGetState(record);
         }
         while (state == AAX_PLAYING);
