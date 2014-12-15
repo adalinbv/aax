@@ -210,19 +210,21 @@ _aaxBackendDriverToDeviceConnector(char **backend, char **driver)
 
    snprintf(_str, 2048, "%s on %s", *backend, *driver);
    ptr = strstr(_str, ": ");
-
-   len = ptr - _str;
-   if (len > strlen(*backend))
+   if (ptr)
    {
-      char *tmp = realloc(*backend, len+1);
-      if (!tmp) return;
+      len = ptr - _str;
+      if (len > strlen(*backend))
+      {
+         char *tmp = realloc(*backend, len+1);
+         if (!tmp) return;
 
-      *backend = tmp;
+         *backend = tmp;
+      }
+
+      *ptr++ = 0;
+      memcpy(*backend, _str, ptr - _str);
+      memcpy(*driver, (ptr+1), strlen(ptr));
    }
-
-   *ptr++ = 0;
-   memcpy(*backend, _str, ptr - _str);
-   memcpy(*driver, (ptr+1), strlen(ptr));
 }
 
 /*
@@ -240,20 +242,22 @@ _aaxDeviceConnectorToBackendDriver(char **device, char **iface)
 
    snprintf(_str, 2048, "%s: %s", *device, *iface);
    ptr = strstr(_str, " on ");
-
-   len = strlen(ptr)-strlen(" on ");
-   if (len > strlen(*iface))
+   if (ptr)
    {
-      char *tmp = realloc(*iface, len+1);
-      if (!tmp) return;
+      len = strlen(ptr)-strlen(" on ");
+      if (len > strlen(*iface))
+      {
+         char *tmp = realloc(*iface, len+1);
+         if (!tmp) return;
 
-      *iface = tmp;
+         *iface = tmp;
+      }
+
+      *ptr = 0;
+      memcpy(*device, _str, ptr - _str);
+
+      ptr += strlen(" on ");
+      memcpy(*iface, ptr, strlen(ptr));
    }
-
-   *ptr = 0;
-   memcpy(*device, _str, ptr - _str);
-
-   ptr += strlen(" on ");
-   memcpy(*iface, ptr, strlen(ptr));
 }
 

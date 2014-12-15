@@ -1593,7 +1593,7 @@ detect_cardnum(const char *devname)
 {
    int rv = _kernel_default_cardnum;
 
-   if (!strncasecmp(devname, "/dev/snd/pcmC", 13) ) {
+   if (devname && !strncasecmp(devname, "/dev/snd/pcmC", 13) ) {
        rv = atoi(devname+13);
    }
    else if (devname && strcasecmp(devname, "Linux") &&

@@ -114,7 +114,7 @@ typedef struct
 
 } _driver_t;
 
-static char _loopback_default_renderer[100] = DEFAULT_RENDERER;
+static char _loopback_default_renderer[100] = LOOPBACK_RENDERER;
 const _aaxDriverBackend _aaxLoopbackDriverBackend =
 {
    AAX_VERSION_STR,
@@ -164,12 +164,7 @@ _aaxNoneDriverNewHandle(enum aaxRenderMode mode)
 static void *
 _aaxNoneDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
-   const char *hwstr = _aaxGetSIMDSupportString();
-
    if (mode == AAX_MODE_READ) return NULL;
-
-   snprintf(_loopback_default_renderer, 99, "%s %s", DEFAULT_RENDERER, hwstr);
-
    return (void *)&_aaxNoneDriverBackend;
 }
 
@@ -329,7 +324,7 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
    _driver_t *rv = calloc(1, sizeof(_driver_t));
    if (rv)
    {
-      rv->latency = 0.0f;
+      rv->latency = 0.001f;
       rv->mode = mode;
    }
    return rv;
@@ -381,6 +376,11 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
       handle->no_frames = (size_t)rintf((float)*speed / *refresh_rate);
       handle->latency = 1.0f / period_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
+      if (handle->render)
+      {
+         const char *rstr = handle->render->info(handle->render->id);
+         snprintf(_loopback_default_renderer, 99, "%s %s", LOOPBACK_RENDERER, rstr);
+      }
    }
    return AAX_TRUE;
 }
@@ -408,6 +408,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 		/* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
+         break;
       case DRIVER_MAX_VOLUME:
          rv = 1.0f;
          break;
@@ -457,14 +458,18 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
 {
-   static char _errstr[256];
-   size_t len = _MIN(strlen(str)+1, 256);
+   static char _errstr[256] = "\0";
 
-   memcpy(_errstr, str, len);
-   _errstr[255] = '\0';  /* always null terminated */
+   if (str)
+   {
+      size_t len = _MIN(strlen(str)+1, 256);
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
-   _AAX_SYSLOG(_errstr);
+      memcpy(_errstr, str, len);
+      _errstr[255] = '\0';  /* always null terminated */
+
+      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+      _AAX_SYSLOG(_errstr);
+   }
 
    return (char*)&_errstr;
 }

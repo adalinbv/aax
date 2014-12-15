@@ -356,7 +356,7 @@ _aaxMP3Setup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
 
 static int
 _aaxMP3Extension(char *ext) {
-   return !strcasecmp(ext, "mp3");
+   return (ext && !strcasecmp(ext, "mp3")) ? 1 : 0;
 }
 
 static char*

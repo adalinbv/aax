@@ -853,7 +853,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
             if (type->detect(mode))
             {
                char *ifs = type->interfaces(mode);
-               size_t len = strlen(ifs);
+               size_t len = ifs ? strlen(ifs) : 0;
                if (ifs && len)
                {
                   snprintf(ptr, buflen, "%s ", ifs);
@@ -901,10 +901,10 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 static _aaxFmtHandle*
 _aaxGetFormat(const char *fname, enum aaxRenderMode mode)
 {
-   char *ext = strrchr(fname, '.');
    _aaxFmtHandle *rv = NULL;
+   char *ext;
 
-   if (ext)
+   if (fname && ((ext = strrchr(fname, '.')) != 0))
    {
       _aaxExtensionDetect* ftype;
       int i = 0;

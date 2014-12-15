@@ -973,14 +973,18 @@ _aaxDMediaDriverGetInterfaces(const void *id, const char*devname, int mode)
 static char *
 _aaxDMediaDriverLog(const void *id, int prio, int type, const char *str)
 {
-   static char _errstr[256];
-   size_t len = _MIN(strlen(str)+1, 256);
+   static char _errstr[256] = "\0";
 
-   memcpy(_errstr, str, len);
-   _errstr[255] = '\0';  /* always null terminated */
+   if (str)
+   {
+      size_t len = _MIN(strlen(str)+1, 256);
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
-   _AAX_SYSLOG(_errstr);
+      memcpy(_errstr, str, len);
+      _errstr[255] = '\0';  /* always null terminated */
+
+      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+      _AAX_SYSLOG(_errstr);
+   }
 
    return (char*)&_errstr;
 }

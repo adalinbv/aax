@@ -685,7 +685,7 @@ _aaxWavCvtFromSigned(void *id, void_ptr dptr, size_t num)
 
 static int
 _aaxWavExtension(char *ext) {
-   return !strcasecmp(ext, "wav");
+   return (ext && !strcasecmp(ext, "wav")) ? 1 : 0;
 }
 
 static char*

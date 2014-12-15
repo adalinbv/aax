@@ -162,7 +162,7 @@ _aaxFLACFileDetect(int mode)
 
 static int
 _aaxFLACFileExtension(char *ext) {
-   return !strcasecmp(ext, "mp3");
+   return (ext && !strcasecmp(ext, "mp3")) ? 1 : 0;
 }
 
 static char*

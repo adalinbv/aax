@@ -296,7 +296,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* buf = get_buffer(buffer);
    int rv = AAX_FALSE;
-   if (buf && (buf->format & AAX_SPECIAL))
+   if (buf && (buf->format & AAX_SPECIAL) && d)
    {				/* the data in *d isn't actual sample data */
       unsigned int format = buf->format;
       switch(format)
