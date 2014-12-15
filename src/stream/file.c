@@ -13,20 +13,16 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>           /* read, write, close, lseek */
+#endif
 #ifdef HAVE_RMALLOC_H
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>		/* read, write, close, lseek */
-# endif
 # include <rmalloc.h>
 #else
 # include <string.h>
 # if HAVE_STRINGS_H
 #  include <strings.h>
 # endif
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>		/* read, write, close, lseek */
-# endif
-#include <string.h>
 #endif
 #ifdef HAVE_IO_H
 #include <io.h>

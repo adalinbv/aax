@@ -14,19 +14,16 @@
 #endif
 
 #include <stdio.h>
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #ifdef HAVE_RMALLOC_H
-# if HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
 # include <rmalloc.h>
 #else
 # include <stdlib.h>
 # include <string.h>
 # if HAVE_STRINGS_H
 #  include <strings.h>		/* strcasecmp */
-# endif
-# if HAVE_UNISTD_H
-#  include <unistd.h>
 # endif
 #endif
 #include <assert.h>		/* assert */

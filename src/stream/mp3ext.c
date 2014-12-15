@@ -13,6 +13,9 @@
 #include "config.h"
 #endif
 
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
@@ -20,9 +23,6 @@
 # include <string.h>
 # if HAVE_STRINGS_H
 #  include <strings.h>   /* strcasecmp */
-# endif
-# if HAVE_UNISTD_H
-#  include <unistd.h>
 # endif
 #endif
 #include <assert.h>		/* assert */
