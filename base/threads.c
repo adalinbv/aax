@@ -187,12 +187,6 @@ _aaxThreadJoin(void *t)
    return ret;
 }
 
-int
-_aaxThreadSwitch()
-{
-   return pthread_yield() ? -1 : 0;
-}
-
 
 #if defined(NDEBUG)
 void *
@@ -455,11 +449,13 @@ _aaxSignalInit(_aaxSignal *signal)
    pthread_cond_init(signal->condition, 0);
    
    signal->mutex = _aaxMutexCreate(signal->mutex);
+   signal->ready = _aaxMutexCreate(signal->ready);
 }
 
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
+   _aaxMutexDestroy(signal->mutex);
    _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition) 
@@ -847,12 +843,6 @@ _aaxThreadJoin(void *t)
    }
 
    return ret;
-}
-
-int
-_aaxThreadSwitch()
-{
-   return SwitchToThread() ? 0 : -1;
 }
 
 /*

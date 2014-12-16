@@ -127,7 +127,6 @@ void _aaxThreadDestroy(void *);
 int _aaxThreadStart(void *,  void *(*handler)(void*), void*, unsigned int);
 // int _aaxThreadCancel(void *);
 int _aaxThreadJoin(void *);
-int _aaxThreadSwitch();
 
 
 /* -- Mutexes ---------------------------------------------------------- */
