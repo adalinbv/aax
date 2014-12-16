@@ -1499,6 +1499,11 @@ _aaxMixerUpdate(_handle_t *handle)
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
       _aaxSignalTrigger(&handle->thread.signal);
+
+      msecSleep(1);	// Wait until the thread is ready
+      _aaxMutexLock(handle->thread.signal.mutex);
+      _aaxMutexUnLock(handle->thread.signal.mutex);
+
       rv = AAX_TRUE;
    }
    else if (handle->handle) {
