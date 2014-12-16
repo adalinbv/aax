@@ -455,7 +455,7 @@ _aaxSignalInit(_aaxSignal *signal)
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
-   _aaxMutexDestroy(signal->mutex);
+   _aaxMutexDestroy(signal->ready);
    _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition) 
@@ -1001,11 +1001,13 @@ _aaxSignalInit(_aaxSignal *signal)
    if (!signal->condition) return;
 
    signal->mutex = _aaxMutexCreate(signal->mutex);
+   signal->ready = _aaxMutexCreate(signal->ready);
 }
 
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
+   _aaxMutexDestroy(signal->ready);
    _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition)
