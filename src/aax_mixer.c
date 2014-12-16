@@ -1498,14 +1498,7 @@ _aaxMixerUpdate(_handle_t *handle)
    int rv = AAX_FALSE;
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
-      _aaxMutexLock(handle->thread.signal.ready);
-      _aaxMutexUnLock(handle->thread.signal.ready);
-
       _aaxSignalTrigger(&handle->thread.signal);
-
-      _aaxMutexLock(handle->thread.signal.mutex);
-      _aaxMutexUnLock(handle->thread.signal.mutex);
-
       rv = AAX_TRUE;
    }
    else if (handle->handle) {
