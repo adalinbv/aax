@@ -35,6 +35,7 @@ enum {
 typedef struct
 {
    void *mutex;
+   void *ready;
    void *condition;
    char waiting;
    int triggered;
@@ -157,8 +158,6 @@ void _aaxSignalFree(_aaxSignal*);
 int _aaxSignalTrigger(_aaxSignal*);
 int _aaxSignalWait(_aaxSignal*);
 int _aaxSignalWaitTimed(_aaxSignal*, float);
-int _aaxSignalLock(_aaxSignal*);
-int _aaxSignalUnLock(_aaxSignal*);
 
 /* -- Semaphores ------------------------------------------------------- */
 _aaxSemaphore *_aaxSemaphoreCreate(unsigned);

@@ -1500,7 +1500,9 @@ _aaxMixerUpdate(_handle_t *handle)
    {
       _aaxSignalTrigger(&handle->thread.signal);
 
-      msecSleep(1);	// Wait until the thread is ready
+      _aaxMutexLock(handle->thread.signal.ready);
+      _aaxMutexUnLock(handle->thread.signal.ready);
+
       _aaxMutexLock(handle->thread.signal.mutex);
       _aaxMutexUnLock(handle->thread.signal.mutex);
 

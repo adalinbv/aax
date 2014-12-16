@@ -455,12 +455,14 @@ _aaxSignalInit(_aaxSignal *signal)
    pthread_cond_init(signal->condition, 0);
    
    signal->mutex = _aaxMutexCreate(signal->mutex);
+   signal->ready = _aaxMutexCreate(signal->ready);
 }
 
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
-  _aaxMutexDestroy(signal->mutex);
+   _aaxMutexDestroy(signal->ready);
+   _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition) 
    {
@@ -478,18 +480,6 @@ _aaxSignalDestroy(_aaxSignal *signal)
 }
 
 int
-_aaxSignalLock(_aaxSignal *signal)
-{
-   return _aaxMutexLock(signal->mutex);
-};
-
-int
-_aaxSignalUnLock(_aaxSignal *signal)
-{
-   return _aaxMutexUnLock(signal->mutex);
-};
-
-int
 _aaxSignalWait(_aaxSignal *signal)
 {
    int rv;
@@ -498,11 +488,13 @@ _aaxSignalWait(_aaxSignal *signal)
    {
       _aaxMutex *m = (_aaxMutex *)signal->mutex;
 
+      _aaxMutexLock(signal->ready);
       signal->waiting = AAX_TRUE;
       do {	// wait for _aaxSignalTrigger to set signal->waiting = AAX_FALSE
          rv = pthread_cond_wait(signal->condition, &m->mutex);
       }
       while (signal->waiting == AAX_TRUE);
+      _aaxMutexUnLock(signal->ready);
 
       switch(rv)
       {
@@ -548,12 +540,14 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          ts.tv_nsec -= 1000000000L;
       }
    
+      _aaxMutexLock(signal->ready);
       signal->waiting = AAX_TRUE;
       do {
          rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
          if (rv == ETIMEDOUT) break;
       }
       while (signal->waiting == AAX_TRUE);
+      _aaxMutexUnLock(signal->ready);
 
       switch(rv)
       {
@@ -1023,11 +1017,13 @@ _aaxSignalInit(_aaxSignal *signal)
    if (!signal->condition) return;
 
    signal->mutex = _aaxMutexCreate(signal->mutex);
+   signal->ready = _aaxMutexCreate(signal->mutex);
 }
 
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
+   _aaxMutexDestroy(signal->ready);
    _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition)
@@ -1056,12 +1052,15 @@ _aaxSignalWait(_aaxSignal *signal)
 
    if (!signal->triggered)
    {
-      _aaxMutex *mtx = (_aaxMutex *)signal->mutex;
+      _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
+      aaxMutex *ready = (_aaxMutex *)signal->ready;
       DWORD hr;
 
-      _aaxMutexUnLock(mtx);
+      _aaxMutexLock(ready);
+      _aaxMutexUnLock(mutex);
       hr = WaitForSingleObject(signal->condition, INFINITE);
-      _aaxMutexLock(mtx);
+      _aaxMutexLock(mutex);
+      _aaxMutexUnLock(ready);
 
       switch (hr)
       {
@@ -1090,15 +1089,18 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 
    if (!signal->triggered)
    {
-      _aaxMutex *mtx = (_aaxMutex *)signal->mutex;
+      _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
+      aaxMutex *ready = (_aaxMutex *)signal->ready;
       DWORD hr;
 
       timeout *= 1000.0f; 		/* from seconds to ms */
       if (timeout > 0.0f)	
       {
-         _aaxMutexUnLock(mtx);
+         _aaxMutexLock(ready);
+         _aaxMutexUnLock(mutex);
          hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
-         _aaxMutexLock(mtx);
+         _aaxMutexLock(mutex);
+         _aaxMutexUnLock(ready);
 
          switch (hr)
          {
