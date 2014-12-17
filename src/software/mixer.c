@@ -320,9 +320,10 @@ _aaxSoftwareMixerThread(void* config)
       /* do all the mixing */
       _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
-      _aaxMutexLock(handle->thread.signal.ready);
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
       res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
-      _aaxMutexUnLock(handle->thread.signal.ready);
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
 

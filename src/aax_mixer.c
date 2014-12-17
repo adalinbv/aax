@@ -1483,6 +1483,12 @@ _aaxMixerStop(_handle_t *handle)
       _aaxSignalFree(&handle->thread.signal);
       _aaxThreadDestroy(handle->thread.ptr);
 
+      if (handle->finished)
+      {
+         _aaxSemaphoreDestroy(handle->finished);
+         handle->finished = NULL;
+      }
+
       rv = AAX_TRUE;
    }
    else if (handle->handle) {
@@ -1498,8 +1504,10 @@ _aaxMixerUpdate(_handle_t *handle)
    int rv = AAX_FALSE;
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
-      _aaxMutexLock(handle->thread.signal.ready);
-      _aaxMutexUnLock(handle->thread.signal.ready);
+      if (!handle->finished) {
+         handle->finished = _aaxSemaphoreCreate(0);
+      }
+      _aaxSemaphoreWait(handle->finished);
 
       _aaxSignalTrigger(&handle->thread.signal);
       rv = AAX_TRUE;

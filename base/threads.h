@@ -35,7 +35,6 @@ enum {
 typedef struct
 {
    void *mutex;
-   void *ready;
    void *condition;
    char waiting;
    int triggered;

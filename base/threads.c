@@ -449,13 +449,11 @@ _aaxSignalInit(_aaxSignal *signal)
    pthread_cond_init(signal->condition, 0);
    
    signal->mutex = _aaxMutexCreate(signal->mutex);
-   signal->ready = _aaxMutexCreate(signal->ready);
 }
 
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
-   _aaxMutexDestroy(signal->ready);
    _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition) 
@@ -1001,13 +999,11 @@ _aaxSignalInit(_aaxSignal *signal)
    if (!signal->condition) return;
 
    signal->mutex = _aaxMutexCreate(signal->mutex);
-   signal->ready = _aaxMutexCreate(signal->ready);
 }
 
 void
 _aaxSignalFree(_aaxSignal *signal)
 {
-   _aaxMutexDestroy(signal->ready);
    _aaxMutexDestroy(signal->mutex);
 
    if (signal->condition)
