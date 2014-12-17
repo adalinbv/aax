@@ -1504,11 +1504,14 @@ _aaxMixerUpdate(_handle_t *handle)
    int rv = AAX_FALSE;
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
-      if (!handle->finished) {
-         handle->finished = _aaxSemaphoreCreate(0);
+      const _aaxDriverBackend *be = handle->backend.ptr;
+      if (be->param(handle->backend.handle, DRIVER_UPDATE_MODE))
+      {
+         if (!handle->finished) {
+            handle->finished = _aaxSemaphoreCreate(0);
+         }
+         _aaxSemaphoreWait(handle->finished);
       }
-      _aaxSemaphoreWait(handle->finished);
-
       _aaxSignalTrigger(&handle->thread.signal);
       rv = AAX_TRUE;
    }

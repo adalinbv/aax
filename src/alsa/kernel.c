@@ -1162,8 +1162,9 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_TIMER_MODE:
-          rv = (float)AAX_TRUE;
-          break;
+         rv = (float)AAX_TRUE;
+         break;
+      case DRIVER_UPDATE_MODE:
       case DRIVER_SHARED_MODE:
       default:
          break;
