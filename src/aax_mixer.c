@@ -301,6 +301,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                      f = be->param(handle->backend.handle, DRIVER_TIMER_MODE);
                      rv = f ? AAX_TRUE : AAX_FALSE;
                      break;
+                  case AAX_UPDATE_MODE:
+                     f = be->param(handle->backend.handle, DRIVER_UPDATE_MODE);
+                     rv = f ? AAX_TRUE : AAX_FALSE;
+                     break;
                   case AAX_TRACKS_MIN:
                      f = be->param(handle->backend.handle, DRIVER_MIN_TRACKS);
                      rv = (int)f;

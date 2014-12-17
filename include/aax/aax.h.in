@@ -219,6 +219,7 @@ enum aaxSetupType
    AAX_FRAME_TIMING,
    AAX_SHARED_MODE,		/* mixer capabilities */
    AAX_TIMER_MODE,
+   AAX_UPDATE_MODE,
    AAX_TRACKS_MIN,
    AAX_TRACKS_MAX,
    AAX_PERIODS_MIN,
