@@ -451,6 +451,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             if (handle->info->mode == AAX_MODE_READ)
             {
                float gain, rr, dt = 1.0f/smixer->info->period_rate;
+               ssize_t nsamps;
                void *rv;
 
                gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
@@ -458,7 +459,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
                                       smixer->info->track,
-                                      smixer->curr_pos_sec, gain);
+                                      smixer->curr_pos_sec, gain, &nsamps);
                if (dt == 0.0f)
                {
                   _SET_STOPPED(handle);
@@ -482,6 +483,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                      }
                   }
                   smixer->curr_pos_sec += dt;
+                  smixer->curr_sample += nsamps;
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
             }

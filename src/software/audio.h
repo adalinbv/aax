@@ -42,7 +42,7 @@ void  _sw_bufcpy_ima_adpcm(void*, const void*, unsigned char, size_t);
 /* sensor */
 void _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*, _aax2dProps*, int);
 void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
-                        float*, float, int, float, float);
+                        float*, float, int, float, float, ssize_t*);
 
 char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
 void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4_t*, _aaxDelayed3dProps*);

@@ -65,6 +65,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          _aaxAudioFrame *smixer;
          _sensor_t* sensor;
          _intBuffers *srbs;
+         ssize_t nsamps;
          void *rv;
 
          sensor = _intBufGetDataPtr(dptr_sensor);
@@ -83,7 +84,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
          rv = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
-                                curr_pos_sec, gain);
+                                curr_pos_sec, gain, &nsamps);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
@@ -123,7 +124,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
             smixer->ringbuffer = rv;
          }
          smixer->curr_pos_sec += dt;
-         smixer->curr_sample += srb->get_parami(srb, RB_NO_SAMPLES);
+         smixer->curr_sample += nsamps;
 
          sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
          if (sptr_rb)
@@ -193,7 +194,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 void*
 _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                   void *be_handle, float *delay, float agc_rr, int dest_track,
-                  float pos_sec, float gain)
+                  float pos_sec, float gain, ssize_t *nsamps)
 {
    void *rv = drb;
    int32_t **scratch;
@@ -367,6 +368,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       }
 
       if (res <= 0) *delay = 0.0f;
+      *nsamps = res/(no_tracks*bps);
    }
 
    return rv;
