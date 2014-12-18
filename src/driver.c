@@ -201,24 +201,46 @@ getAudioFormat(int argc, char **argv, enum aaxFormat format)
    if (!fn) fn = getCommandLineOption(argc, argv, "--format");
    if (fn)
    {
+      char *ptr = fn+strlen(fn)-strlen("_LE");
+
+      if (!strcasecmp(ptr, "_LE"))
+      {
+         *ptr = 0;
+         rv = AAX_FORMAT_LE;
+      }
+      else if (!strcasecmp(ptr, "_BE"))
+      {
+         *ptr = 0;
+         rv = AAX_FORMAT_BE;
+      }
+
       if (!strcasecmp(fn, "AAX_PCM8S")) {
          rv = AAX_PCM8S;
       } else if (!strcasecmp(fn, "AAX_PCM16S")) {
-         rv = AAX_PCM16S;
+         rv |= AAX_PCM16S;
       } else if (!strcasecmp(fn, "AAX_PCM24S")) {
-         rv = AAX_PCM24S;
+         rv |= AAX_PCM24S;
       } else if (!strcasecmp(fn, "AAX_PCM32S")) {
-         rv = AAX_PCM32S;
+         rv |= AAX_PCM32S;
       } else if (!strcasecmp(fn, "AAX_FLOAT")) {
-         rv = AAX_FLOAT;
+         rv |= AAX_FLOAT;
       } else if (!strcasecmp(fn, "AAX_DOUBLE")) {
-         rv = AAX_DOUBLE;
+         rv |= AAX_DOUBLE;
       } else if (!strcasecmp(fn, "AAX_MULAW")) {
          rv = AAX_MULAW;
       } else if (!strcasecmp(fn, "AAX_ALAW")) {
          rv = AAX_ALAW;
       } else if (!strcasecmp(fn, "AAX_IMA4_ADPCM")) {
          rv = AAX_IMA4_ADPCM; 
+
+      } else if (!strcasecmp(fn, "AAX_PCM8U")) {
+         rv = AAX_PCM8U;
+      } else if (!strcasecmp(fn, "AAX_PCM16U")) {
+         rv |= AAX_PCM16U;
+      } else if (!strcasecmp(fn, "AAX_PCM24U")) {
+         rv |= AAX_PCM24U;
+      } else if (!strcasecmp(fn, "AAX_PCM32U")) {
+         rv |= AAX_PCM32U;
       }
    }
 
