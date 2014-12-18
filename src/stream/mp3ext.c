@@ -495,8 +495,10 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                      if (pmpg123_set_filesize)
                      {
                         pmpg123_set_filesize(handle->id, fsize);
-                        if (pmpg123_length) {
-                           handle->max_samples = pmpg123_length(handle->id);
+                        if (pmpg123_length)
+                        {
+                           off_t length = pmpg123_length(handle->id);
+                           handle->max_samples = (length>0) ? length : UINT_MAX;
                         }
                      }
                   }

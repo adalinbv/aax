@@ -369,7 +369,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
       }
 
       if (res <= 0) *delay = 0.0f;
-      *nsamps = res/(no_tracks*bps);
+      *nsamps = res/bps;
    }
 
    return rv;
