@@ -72,7 +72,7 @@ static _aaxDriverConnect _aaxDMediaDriverConnect;
 static _aaxDriverDisconnect _aaxDMediaDriverDisconnect;
 static _aaxDriverSetup _aaxDMediaDriverSetup;
 static _aaxDriverCaptureCallback _aaxDMediaDriverCapture;
-static _aaxDriverCallback _aaxDMediaDriverPlayback;
+static _aaxDriverPlaybackCallback _aaxDMediaDriverPlayback;
 static _aaxDriverGetName _aaxDMediaGetName;
 static _aaxDriverRender _aaxDMediaDriverRender;
 static _aaxDriverState _aaxDMediaDriverState;
@@ -103,7 +103,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverDisconnect *)&_aaxDMediaDriverDisconnect,
    (_aaxDriverSetup *)&_aaxDMediaDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxDMediaDriverCapture,
-   (_aaxDriverCallback *)&_aaxDMediaDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxDMediaDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -660,7 +660,7 @@ _aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 static size_t
-_aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t nframes = *frames;
@@ -697,7 +697,8 @@ _aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fr
 }
 
 static size_t
-_aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain)
+_aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain,
+                         char batched)
 {
 #if MAX_PORTS > 1
    static int check_ = CHECK_FRAMES;

@@ -64,7 +64,7 @@ static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
 static _aaxDriverConnect _aaxALSADriverConnect;
 static _aaxDriverDisconnect _aaxALSADriverDisconnect;
 static _aaxDriverSetup _aaxALSADriverSetup;
-static _aaxDriverCallback _aaxALSADriverPlayback;
+static _aaxDriverPlaybackCallback _aaxALSADriverPlayback;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
 static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverRender _aaxALSADriverRender;
@@ -97,7 +97,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverDisconnect *)&_aaxALSADriverDisconnect,
    (_aaxDriverSetup *)&_aaxALSADriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxALSADriverCapture,
-   (_aaxDriverCallback *)&_aaxALSADriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxALSADriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -116,7 +116,7 @@ typedef struct
     int default_devnum;
     int devnum;
 
-    _aaxDriverCallback *play;
+    _aaxDriverPlaybackCallback *play;
     _aaxRenderer *render;
     snd_mixer_t *mixer;
     snd_pcm_t *pcm;
@@ -287,10 +287,10 @@ static void _alsa_error_handler(const char *, int, const char *, int, const char
 static void _alsa_error_handler_none(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
 static float _alsa_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
-static _aaxDriverCallback _aaxALSADriverPlayback_mmap_ni;
-static _aaxDriverCallback _aaxALSADriverPlayback_mmap_il;
-static _aaxDriverCallback _aaxALSADriverPlayback_rw_ni;
-static _aaxDriverCallback _aaxALSADriverPlayback_rw_il;
+static _aaxDriverPlaybackCallback _aaxALSADriverPlayback_mmap_ni;
+static _aaxDriverPlaybackCallback _aaxALSADriverPlayback_mmap_il;
+static _aaxDriverPlaybackCallback _aaxALSADriverPlayback_rw_ni;
+static _aaxDriverPlaybackCallback _aaxALSADriverPlayback_rw_il;
 
 
 #define MAX_FORMATS		6
@@ -1009,7 +1009,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                      rb->set_state(rb, RB_STARTED);
 
                      for (i=0; i<handle->no_periods; i++) {
-                        handle->play(handle, rb, 1.0f, 0.0f);
+                        handle->play(handle, rb, 1.0f, 0.0f, 0);
                      }
                      _aaxRingBufferFree(rb);
                   }
@@ -1115,7 +1115,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 #undef TRUN
 
 static size_t
-_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int tracks, frame_size;
@@ -2539,7 +2539,7 @@ _xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
 
 
 static size_t
-_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain)
+_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2646,7 +2646,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 
 
 static size_t
-_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain)
+_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2749,7 +2749,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
 
 
 static size_t
-_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
+_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2870,7 +2870,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain)
 
 
 static size_t
-_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
+_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2971,12 +2971,13 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain)
 }
 
 static size_t
-_aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain)
+_aaxALSADriverPlayback(const void *id, void *src, float pitch, float gain,
+                       char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t res;
 
-   res = handle->play(id, src, pitch, gain);
+   res = handle->play(id, src, pitch, gain, batched);
 
    return handle->max_frames - res;
 }

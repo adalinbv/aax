@@ -111,7 +111,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
                       _aaxDelayed3dProps *fdp3d,
                       _aaxDelayed3dProps *fdp3d_m,
                       const _aaxDriverBackend *be, void *be_handle,
-                      char fprocess)
+                      char fprocess, char batched)
 {
    _aaxRingBufferLFOData *lfo;
    char process;
@@ -212,7 +212,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
          for (i=0; i<max; i++)
          {
             process = _aaxAudioFrameRender(dest_rb, fmixer, fp2d, fdp3d_m, hf,
-                                           i, ssv, sdf, be, be_handle);
+                                           i, ssv, sdf, be, be_handle, batched);
             if (process) --cnt;
             if (cnt == 0) break;
          }
@@ -224,7 +224,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
    if (fmixer->devices)
    {
       _aaxMixerInfo* info = fmixer->info;
-      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track);
+      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track, batched);
       process = AAX_TRUE;
    }
 
@@ -238,7 +238,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
 }
 
 char
-_aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m, _intBuffers *hf, unsigned int i, float ssv, float sdf, const _aaxDriverBackend *be, void *be_handle)
+_aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m, _intBuffers *hf, unsigned int i, float ssv, float sdf, const _aaxDriverBackend *be, void *be_handle, char batched)
 {
    char process = AAX_FALSE;
    _intBufferData *dptr;
@@ -289,7 +289,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
        */
       res = _aaxAudioFrameProcess(frame_rb, NULL, sfmixer, ssv, sdf,
                                   fp2d, fdp3d_m, &sfp2d, sfdp3d, sfdp3d_m,
-                                  be, be_handle, AAX_TRUE);
+                                  be, be_handle, AAX_TRUE, batched);
 
       /* if the subframe actually did render something, mix the data */
       if (res)

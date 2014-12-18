@@ -113,8 +113,8 @@ typedef float _aaxDriverParam(const void*, enum _aaxDriverParam);
 typedef char *_aaxDriverGetDevices(const void*, int mode);
 typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
 
-typedef size_t _aaxDriverCallback(const void*, void*, float, float);
-typedef size_t _aaxDriverCaptureCallback(const void*, void**, ssize_t*, size_t*, void*, size_t, float);
+typedef size_t _aaxDriverPlaybackCallback(const void*, void*, float, float, char);
+typedef size_t _aaxDriverCaptureCallback(const void*, void**, ssize_t*, size_t*, void*, size_t, float, char);
 
 typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*);
 typedef void _aaxDriverPostProcess(const void*, void*, const void*);
@@ -151,7 +151,7 @@ typedef struct
     _aaxDriverDisconnect *disconnect;
     _aaxDriverSetup *setup;
     _aaxDriverCaptureCallback *capture;
-    _aaxDriverCallback *play;
+    _aaxDriverPlaybackCallback *play;
 
     _aaxDriverPrepare3d *prepare3d;
     _aaxDriverPostProcess *postprocess;

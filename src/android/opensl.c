@@ -54,7 +54,7 @@ static _aaxDriverConnect _aaxSLESDriverConnect;
 static _aaxDriverDisconnect _aaxSLESDriverDisconnect;
 static _aaxDriverSetup _aaxSLESDriverSetup;
 static _aaxDriverCaptureCallback _aaxSLESDriverCapture;
-static _aaxDriverCallback _aaxSLESDriverPlayback;
+static _aaxDriverPlaybackCallback _aaxSLESDriverPlayback;
 static _aaxDriverGetName _aaxSLESDriverGetName;
 static _aaxDriverRender _aaxSLESDriverRender;
 static _aaxDriverState _aaxSLESDriverState;
@@ -86,7 +86,7 @@ const _aaxDriverBackend _aaxSLESDriverBackend =
    (_aaxDriverDisconnect *)&_aaxSLESDriverDisconnect,
    (_aaxDriverSetup *)&_aaxSLESDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxSLESDriverCapture,
-   (_aaxDriverCallback *)&_aaxSLESDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxSLESDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -522,7 +522,8 @@ _aaxSLESDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
 // to the last time, and then render the next. Hopefully it's okay to spend
 // time in this callback after having enqueued
 static size_t
-_aaxSLESDriverPlayback(const void *id, void *s, float pitch, float gain)
+_aaxSLESDriverPlayback(const void *id, void *s, float pitch, float gain,
+                       char batched)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;

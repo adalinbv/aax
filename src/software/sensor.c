@@ -25,7 +25,7 @@
 
 void
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
-                   _aax2dProps *props2d, int dest_track)
+                   _aax2dProps *props2d, int dest_track, char batched)
 {
    _intBuffers *hd = (_intBuffers *)devices;
    size_t i, num;
@@ -84,7 +84,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
          rv = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
-                                curr_pos_sec, gain, &nsamps);
+                                curr_pos_sec, gain, &nsamps, batched);
          if (dt == 0.0f)
          {
             _SET_STOPPED(device);
@@ -194,7 +194,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 void*
 _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                   void *be_handle, float *delay, float agc_rr, int dest_track,
-                  float pos_sec, float gain, ssize_t *nsamps)
+                  float pos_sec, float gain, ssize_t *nsamps, char batched)
 {
    void *rv = drb;
    int32_t **scratch;
@@ -229,7 +229,8 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
 
       sbuf = (void**)drb->get_tracks_ptr(drb, RB_WRITE);
       res = be->capture(be_handle, sbuf, &offs, &nframes,
-                        scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain);
+                        scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain,
+                        batched);
       drb->release_tracks_ptr(drb);	// convert to mixer format
 
       // be->capture can capture one extra sample to keep synchronised with

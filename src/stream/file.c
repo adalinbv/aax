@@ -68,7 +68,7 @@ static _aaxDriverConnect _aaxFileDriverConnect;
 static _aaxDriverDisconnect _aaxFileDriverDisconnect;
 static _aaxDriverSetup _aaxFileDriverSetup;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
-static _aaxDriverCallback _aaxFileDriverPlayback;
+static _aaxDriverPlaybackCallback _aaxFileDriverPlayback;
 static _aaxDriverGetName _aaxFileDriverGetName;
 static _aaxDriverRender _aaxFileDriverRender;
 static _aaxDriverState _aaxFileDriverState;
@@ -98,7 +98,7 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverDisconnect *)&_aaxFileDriverDisconnect,
    (_aaxDriverSetup *)&_aaxFileDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxFileDriverCapture,
-   (_aaxDriverCallback *)&_aaxFileDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxFileDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -127,6 +127,7 @@ typedef struct
    size_t buf_len;
 
    struct threat_t thread;
+   _aaxSemaphore *finished;
    uint8_t buf[IOBUF_SIZE];
    size_t bufpos;
    size_t bytes_avail;
@@ -383,6 +384,12 @@ _aaxFileDriverDisconnect(void *id)
          handle->render->close(handle->render->id);
       }
 
+      if (handle->finished)
+      {
+         _aaxSemaphoreDestroy(handle->finished);
+         handle->finished = NULL;
+      }
+
       free(handle->fmt);
       free(handle->interfaces);
       free(handle);
@@ -531,7 +538,8 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 static size_t
-_aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
+_aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
+                       char batched)
 {
    _driver_t *handle = (_driver_t *)id;  
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
@@ -586,12 +594,19 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain)
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
    _aaxSignalTrigger(&handle->thread.signal);
+   if (batched)
+   {
+      if (!handle->finished) {
+         handle->finished = _aaxSemaphoreCreate(0);
+      }
+      _aaxSemaphoreWait(handle->finished);
+   }
 
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
 }
 
 static size_t
-_aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
@@ -677,6 +692,13 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
                _aaxSignalTrigger(&handle->thread.signal);
+               if (batched)
+               {
+                  if (!handle->finished) {
+                     handle->finished = _aaxSemaphoreCreate(0);
+                  }
+                  _aaxSemaphoreWait(handle->finished);
+               }
 
                if (ret <= 0)
                {
@@ -1001,6 +1023,10 @@ _aaxFileDriverWriteThread(void *id)
       }
       while (buffer_avail >= 0);
       handle->bytes_avail = 0;
+
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
    }
    while(handle->thread.started);
 
@@ -1026,6 +1052,10 @@ _aaxFileDriverReadThread(void *id)
       if (res < 0) break;
 
       handle->bufpos += res;
+
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
       _aaxSignalWait(&handle->thread.signal);
    }
    while(handle->thread.started);

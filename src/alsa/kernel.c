@@ -84,7 +84,7 @@ static _aaxDriverConnect _aaxLinuxDriverConnect;
 static _aaxDriverDisconnect _aaxLinuxDriverDisconnect;
 static _aaxDriverSetup _aaxLinuxDriverSetup;
 static _aaxDriverCaptureCallback _aaxLinuxDriverCapture;
-static _aaxDriverCallback _aaxLinuxDriverPlayback;
+static _aaxDriverPlaybackCallback _aaxLinuxDriverPlayback;
 static _aaxDriverGetName _aaxLinuxDriverGetName;
 static _aaxDriverRender _aaxLinuxDriverRender;
 static _aaxDriverThread _aaxLinuxDriverThread;
@@ -116,7 +116,7 @@ const _aaxDriverBackend _aaxLinuxDriverBackend =
    (_aaxDriverDisconnect *)&_aaxLinuxDriverDisconnect,
    (_aaxDriverSetup *)&_aaxLinuxDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxLinuxDriverCapture,
-   (_aaxDriverCallback *)&_aaxLinuxDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxLinuxDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -704,7 +704,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         rb->set_state(rb, RB_STARTED);
 
                         for (i=0; i<handle->no_periods; i++) {
-                           _aaxLinuxDriverPlayback(handle, rb, 1.0f, 0.0f);
+                           _aaxLinuxDriverPlayback(handle, rb, 1.0f, 0.0f, 0);
                         }
                         _aaxRingBufferFree(rb);
                      }
@@ -823,7 +823,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static size_t
-_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain)
+_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_sframes_t avail;
@@ -934,7 +934,8 @@ if (corr)
 }
 
 static size_t
-_aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain)
+_aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain,
+                        char batched)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;

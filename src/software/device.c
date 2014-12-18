@@ -43,8 +43,7 @@ static _aaxDriverGetInterfaces _aaxNoneDriverGetInterfaces;
 static _aaxDriverConnect _aaxNoneDriverConnect;
 static _aaxDriverDisconnect _aaxNoneDriverDisconnect;
 static _aaxDriverSetup _aaxNoneDriverSetup;
-static _aaxDriverCallback _aaxNoneDriverPlayback;
-static _aaxDriverCallback _aaxNoneDriverPlayback;
+static _aaxDriverPlaybackCallback _aaxNoneDriverPlayback;
 static _aaxDriverGetName _aaxNoneDriverGetName;
 static _aaxDriverRender _aaxNoneDriverRender;
 static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
@@ -78,7 +77,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverDisconnect *)&_aaxNoneDriverDisconnect,
    (_aaxDriverSetup *)&_aaxNoneDriverSetup,
    NULL,
-   (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxNoneDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxNoneDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxNoneDriverPostProcess,
@@ -138,7 +137,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverDisconnect *)&_aaxLoopbackDriverDisconnect,
    (_aaxDriverSetup *)&_aaxLoopbackDriverSetup,
    NULL,
-   (_aaxDriverCallback *)&_aaxNoneDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxNoneDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -181,7 +180,7 @@ _aaxNoneDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned int 
 }
 
 static size_t
-_aaxNoneDriverPlayback(const void *id, void *s, float pitch, float volume)
+_aaxNoneDriverPlayback(const void *id, void *s, float pitch, float volume, char batched)
 {
    return 0;
 }

@@ -76,7 +76,7 @@ static _aaxDriverConnect _aaxOSSDriverConnect;
 static _aaxDriverDisconnect _aaxOSSDriverDisconnect;
 static _aaxDriverSetup _aaxOSSDriverSetup;
 static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
-static _aaxDriverCallback _aaxOSSDriverPlayback;
+static _aaxDriverPlaybackCallback _aaxOSSDriverPlayback;
 static _aaxDriverGetName _aaxOSSDriverGetName;
 static _aaxDriverRender _aaxOSSDriverRender;
 static _aaxDriverState _aaxOSSDriverState;
@@ -107,7 +107,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverDisconnect *)&_aaxOSSDriverDisconnect,
    (_aaxDriverSetup *)&_aaxOSSDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxOSSDriverCapture,
-   (_aaxDriverCallback *)&_aaxOSSDriverPlayback,
+   (_aaxDriverPlaybackCallback *)&_aaxOSSDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -539,7 +539,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static size_t
-_aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
+_aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
@@ -583,7 +583,8 @@ _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 }
 
 static size_t
-_aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain)
+_aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain,
+                      char batched)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;

@@ -377,7 +377,7 @@ _aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
 }
 
 int
-_aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle)
+_aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, char batched)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    const _aaxDriverBackend* fbe = (const _aaxDriverBackend*)fbackend;
@@ -404,9 +404,9 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    // NOTE: File backend must be first, it's the only backend that
    //       converts the buffer back to floats when done!
    if (fbe) {	/* slaved file-out backend */
-      fbe->play(fbe_handle, dest_rb, 1.0f, gain);
+      fbe->play(fbe_handle, dest_rb, 1.0f, gain, batched);
    }
-   res = be->play(be_handle, dest_rb, 1.0f, gain);
+   res = be->play(be_handle, dest_rb, 1.0f, gain, batched);
 
    return res;
 }
@@ -419,6 +419,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    _handle_t *handle = (_handle_t *)config;
    const _aaxDriverBackend *be, *fbe = NULL;
    _intBufferData *dptr_sensor;
+   char batched;
    int res = 0;
 
    assert(handle);
@@ -427,6 +428,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    assert(handle->info->no_tracks);
 
    _aaxTimerStart(handle->timer);
+
+   batched = handle->finished ? AAX_TRUE : AAX_FALSE;
 
    be = handle->backend.ptr;
    if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {
@@ -459,7 +462,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
                rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
                                       smixer->info->track,
-                                      smixer->curr_pos_sec, gain, &nsamps);
+                                      smixer->curr_pos_sec, gain, &nsamps,
+                                      batched);
                if (dt == 0.0f)
                {
                   _SET_STOPPED(handle);
@@ -545,7 +549,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, sensor, smixer, ssv, sdf,
                                            NULL, NULL, &sp2d, sdp3d, sdp3d_m,
-                                           be, be_handle, fprocess);
+                                           be, be_handle, fprocess, batched);
                /*
                 * if the final mixer actually did render something,
                 * mix the data.
@@ -554,7 +558,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                            smixer->play_ringbuffers,
                                            smixer->frames, &sp2d,
                                            smixer->capturing, sensor,
-                                           be, be_handle, fbe, fbe_handle);
+                                           be, be_handle, fbe, fbe_handle,
+                                           batched);
                _aax_aligned_free(sdp3d);
                _aax_aligned_free(sdp3d_m);
 
