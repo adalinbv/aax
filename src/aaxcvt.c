@@ -62,9 +62,9 @@ static const char* _format_s[][2] = {
     { " AAX_PCM32S", "\tsigned, 32-bits per sample" },
     { " AAX_FLOAT", "\t32-bit floating point, -1.0f to 1.0f" },
     { " AAX_DOUBLE", "\t64-bit floating point, -1.0f to 1.0f" },
-    { " AAX_MULAW", "\tmulaw, 2:1 compression" },
-    { " AAX_ALAW", "\talaw, 2:1 compression" },
-    { " AAX_IMA4_ADPCM", "IMA4 ADPCM, 4:1 compression" }
+    { " AAX_MULAW", "\tmulaw, 16-bit with 2:1 compression" },
+    { " AAX_ALAW", "\talaw, 16-bit with 2:1 compression" },
+    { " AAX_IMA4_ADPCM", "IMA4 ADPCM, 16-bit with 4:1 compression" }
 };
 
 static const char* _format_us[][2] = {
