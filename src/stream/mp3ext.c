@@ -95,6 +95,7 @@ static _file_cvt_from_fn *_aaxMP3CvtFromIntl = _aaxMPG123CvtFromIntl;
 DECL_FUNCTION(mpg123_init);
 DECL_FUNCTION(mpg123_exit);
 DECL_FUNCTION(mpg123_new);
+DECL_FUNCTION(mpg123_param);
 DECL_FUNCTION(mpg123_open_feed);
 DECL_FUNCTION(mpg123_decode);
 DECL_FUNCTION(mpg123_delete);
@@ -255,6 +256,7 @@ _aaxMP3Detect(int mode)
                {
                   TIE_FUNCTION(mpg123_exit);
                   TIE_FUNCTION(mpg123_new);
+                  TIE_FUNCTION(mpg123_param);
                   TIE_FUNCTION(mpg123_open_feed);
                   TIE_FUNCTION(mpg123_decode);
                   TIE_FUNCTION(mpg123_delete);
@@ -447,6 +449,11 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
             if (handle->id)
             {
                char *ptr = 0;
+
+               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
+               pmpg123_param(handle->id, MPG123_RESYNC_LIMIT, -1, 0.0);
+               pmpg123_param(handle->id, MPG123_REMOVE_FLAGS,
+                                         MPG123_AUTO_RESAMPLE, 0);
                pmpg123_open_feed(handle->id);
                handle->mp3BufSize = 16384;
 
