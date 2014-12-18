@@ -207,6 +207,9 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
     */
    assert(delay);
 
+  *delay = 1e-9f;
+  *nsamps = 0;
+
    scratch = (int32_t**)drb->get_scratch(drb);
    if (scratch)
    {
