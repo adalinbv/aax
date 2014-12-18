@@ -45,11 +45,108 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#define MAX_LOOPS		6
+static int _mask_t[MAX_LOOPS] = {
+    0,
+    AAX_FORMAT_UNSIGNED,
+    AAX_FORMAT_LE,
+    AAX_FORMAT_LE_UNSIGNED,
+    AAX_FORMAT_BE,
+    AAX_FORMAT_BE_UNSIGNED
+};
+
+static const char* _format_s[][2] = {
+    { " AAX_PCM8S", "\tsigned, 8-bits per sample" },
+    { " AAX_PCM16S", "\tsigned, 16-bits per sample" },
+    { " AAX_PCM24S", "\tsigned, 24-bits per sample, 32-bit encoded" },
+    { " AAX_PCM32S", "\tsigned, 32-bits per sample" },
+    { " AAX_FLOAT", "\t32-bit floating point, -1.0f to 1.0f" },
+    { " AAX_DOUBLE", "\t64-bit floating point, -1.0f to 1.0f" },
+    { " AAX_MULAW", "\tmulaw, 2:1 compression" },
+    { " AAX_ALAW", "\talaw, 2:1 compression" },
+    { " AAX_IMA4_ADPCM", "IMA4 ADPCM, 4:1 compression" }
+};
+
+static const char* _format_us[][2] = {
+    { " AAX_PCM8U", "\tunsigned, 8-bits per sample" },
+    { " AAX_PCM16U", "\tunsigned, 16-bits per sample" },
+    { " AAX_PCM24U", "\tunsigned, 24-bits per sample, 32-bit encoded" },
+    { " AAX_PCM32U", "\tunsigned, 32-bits per sample" }
+};
+
+static const char* _mask_s[MAX_LOOPS][2] = {
+    { "Native format", ":\t" },
+    { "Unigned format", ":\t" },
+    { "Little endian, signed", "_LE:" },
+    { "Little endian, unsigned", "_LE:" },
+    { "Big endian, signed", "_BE:" },
+    { "Big endian, unsigned", "_BE:" }
+};
+
 void
 help()
 {
-    printf("Usage:\n");
-    printf("  aaxcvt -i <filename> -o <filename> -f <format> (-raw))\n\n");
+    printf("aaxcvt version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
+                                           AAX_UTILS_MINOR_VERSION,
+                                           AAX_UTILS_MICRO_VERSION);
+    printf("Usage: aaxcvt [options]\n");
+    printf("Converts an input audio file to an output file in the the specified"
+           "\noutput format.\n");
+
+    printf("\nOptions:\n");
+    printf("  -i, --input <file>\t\tconvert audio from this file\n");
+    printf("  -o, --output <file>\t\twrite the audio to this file\n");
+    printf("  -r, --raw\t\t\tdo not write the WAV file header if specified\n");
+    printf("  -f, --format <format>\t\tspecifies the output format\n");
+    printf("  -l, --list\t\t\tshow a list of all supported formats\n");
+    printf("  -v, --verbose\t\t\tshow playback information\n");
+    printf("  -h, --help\t\t\tprint this message and exit\n");
+
+    printf("\n");
+    exit(-1);
+}
+
+void
+list()
+{
+    int q;
+    for (q=0; q<MAX_LOOPS; q++)
+    {
+        int fmt = 0;
+        printf("%s\n", _mask_s[q][0]);
+        do
+        {
+            int nfmt = fmt + _mask_t[q];
+ 
+            if (q)
+            {
+                if (q > 1 && fmt == 0) {
+                    continue;
+                }
+
+                if (fmt >= AAX_FLOAT && nfmt & AAX_FORMAT_UNSIGNED) {
+                    break;
+                }
+                if (fmt >= AAX_MULAW) {
+                    break;
+                }
+            }
+
+            if (nfmt & AAX_FORMAT_UNSIGNED)
+            {
+                printf("  %s%s%s\n", _format_us[fmt & AAX_FORMAT_NATIVE][0],
+                                       _mask_s[q][1],
+                                       _format_us[fmt & AAX_FORMAT_NATIVE][1]);
+            }
+            else
+            {
+                printf("  %s%s%s\n", _format_s[fmt & AAX_FORMAT_NATIVE][0],
+                                       _mask_s[q][1],
+                                       _format_s[fmt & AAX_FORMAT_NATIVE][1]);
+            }
+        }
+        while (++fmt < AAX_FORMAT_MAX);
+    }
     exit(-1);
 }
 
@@ -58,6 +155,12 @@ int main(int argc, char **argv)
     enum aaxFormat format;
     char *infile, *outfile;
     int raw, rv = 0;
+
+    if (getCommandLineOption(argc, argv, "-l") ||
+        getCommandLineOption(argc, argv, "--list"))
+    {
+       list();
+    }
 
     if ((argc < 7) || (argc > 8))  {
         help();
