@@ -454,7 +454,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             if (handle->info->mode == AAX_MODE_READ)
             {
                float gain, rr, dt = 1.0f/smixer->info->period_rate;
-               ssize_t nsamps;
+               ssize_t nsamps = 0;
                void *rv;
 
                gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);

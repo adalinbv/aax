@@ -80,6 +80,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
             device->ringbuffer = be->get_ringbuffer(0.0f, smixer->info->mode);
          }
 
+         nsamps = 0;
          gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
          gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
          rr =_FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
@@ -206,9 +207,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
     *  - capture functions should return the data in signed 24-bit
     */
    assert(delay);
-
-  *delay = 1e-9f;
-  *nsamps = 0;
 
    scratch = (int32_t**)drb->get_scratch(drb);
    if (scratch)
