@@ -99,7 +99,6 @@ help()
     printf("  -r, --raw\t\t\tdo not write the WAV file header if specified\n");
     printf("  -f, --format <format>\t\tspecifies the output format\n");
     printf("  -l, --list\t\t\tshow a list of all supported formats\n");
-    printf("  -v, --verbose\t\t\tshow playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nNote that WAV files are little endian only and AeonWave "
