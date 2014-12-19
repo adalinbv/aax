@@ -1,0 +1,41 @@
+.\" Manpage for aaxplay.
+.\" Contact tech@adalin.com to correct errors or typos.
+.TH man 1 "19 Dec 2014" "@AAX_UTILS_MAJOR_VERSION@.@AAX_UTILS_MINOR_VERSION@.@AAX_UTILS_MICRO_VERSION@" "aaxplay man page"
+.SH NAME
+aaxplay \- Plays audio from a file or from an audio input device.
+.SH SYNOPSIS
+.B aaxplay
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+.PP
+Plays audio from a file or from an audio input device.
+Optionally writes the audio to an output file.
+.TP
+\fB\-i\f, \fB\-\-input \fRFILE\fR
+playback audio from a file
+.TP
+\fB\-i\f, \fB\-\-capture \fRDEVICE\fR
+capture from an audio device
+.TP
+\fB\-d\f, \fB\-\-device \fRDEVICE\fR
+playback device (optional)
+.TP
+\fB\-o\f, \fB\-\-output \fRFILE\fR
+also write the audio to a file (optional)
+.TP
+\fB\-b\f, \fB\-\-batch
+process as fast as possible (file out only)
+.TP
+\fB\-v,\f \fB\-\-verbose
+show extra playback information
+.TP
+\fB\-h\f, \fB\-\-help
+print this message and exit
+.PP
+Audio will always be sent to the (default) audio device,
+writing to an output file is fully optional.
+.SH AUTHOR
+Written by Erik Hofman (info@adalin.com)
+.SH SEE ALSO
+aaxinfo(1), aaxcvt(1)
+

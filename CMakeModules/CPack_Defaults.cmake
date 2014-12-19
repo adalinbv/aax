@@ -105,16 +105,16 @@ ELSE(WIN32)
   SET(CPACK_DEB_COMPONENT_INSTALL ON)
 
   INSTALL(FILES
-          debian/copyright
+          admin/debian/copyright
           DESTINATION /usr/share/doc/${PACKAGE}-bin
           COMPONENT Applications
   )
 
-  EXECUTE_PROCESS(COMMAND "cp" -f -p ChangeLog debian/ChangeLog
-                  COMMAND "gzip" -f -9 debian/ChangeLog
+  EXECUTE_PROCESS(COMMAND "cp" -f -p ChangeLog admin/debian/ChangeLog
+                  COMMAND "gzip" -f -9 admin/debian/ChangeLog
                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes)
   INSTALL(FILES
-          debian/ChangeLog.gz
+          admin/debian/ChangeLog.gz
           DESTINATION /usr/share/doc/${PACKAGE}-bin
           RENAME changelog.gz
           COMPONENT Applications
