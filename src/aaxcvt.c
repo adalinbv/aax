@@ -102,6 +102,9 @@ help()
     printf("  -v, --verbose\t\t\tshow playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
+    printf("\nNote that WAV files are little endian only and AeonWave "
+           "automatically\ncompensates for that.\n");
+
     printf("\n");
     exit(-1);
 }
