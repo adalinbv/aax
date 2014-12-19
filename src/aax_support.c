@@ -253,7 +253,7 @@ aaxGetBitsPerSample(enum aaxFormat format)
 {
    unsigned rv = 0;
 
-   switch (format)
+   switch (format & AAX_FORMAT_NATIVE)
    {
    case AAX_PCM8S:
    case AAX_MULAW:
