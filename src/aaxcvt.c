@@ -90,11 +90,11 @@ help()
                                            AAX_UTILS_MINOR_VERSION,
                                            AAX_UTILS_MICRO_VERSION);
     printf("Usage: aaxcvt [options]\n");
-    printf("Converts an input audio file to an output file in the the specified"
-           "\noutput format.\n");
+    printf("Converts an input WAV audio file to an output file in the the"
+           "\nspecified output format.\n");
 
     printf("\nOptions:\n");
-    printf("  -i, --input <file>\t\tconvert audio from this file\n");
+    printf("  -i, --input <file>\t\tconvert audio from this WAV file\n");
     printf("  -o, --output <file>\t\twrite the audio to this file\n");
     printf("  -r, --raw\t\t\tdo not write the WAV file header if specified\n");
     printf("  -f, --format <format>\t\tspecifies the output format\n");

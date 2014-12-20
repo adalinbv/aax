@@ -9,33 +9,36 @@ aaxplay \- Plays audio from a file or from an audio input device.
 .SH DESCRIPTION
 .PP
 Plays audio from a file or from an audio input device.
-Optionally writes the audio to an output file.
+Optionally writes the audio also to an output file.
 .TP
-\fB\-i\f, \fB\-\-input \fRFILE\fR
+\fB\-i\fR, \fB\-\-input \fRFILE\fR
 playback audio from a file
 .TP
-\fB\-i\f, \fB\-\-capture \fRDEVICE\fR
+\fB\-i\fR, \fB\-\-capture \fRDEVICE\fR
 capture from an audio device
 .TP
-\fB\-d\f, \fB\-\-device \fRDEVICE\fR
-playback device (optional)
+\fB\-d\fR, \fB\-\-device \fRDEVICE\fR
+playback device (default if not specified)
 .TP
-\fB\-o\f, \fB\-\-output \fRFILE\fR
-also write the audio to a file (optional)
+\fB\-o\fR, \fB\-\-output \fRFILE\fR
+also write to an audio file (optional)
 .TP
-\fB\-b\f, \fB\-\-batch
-process as fast as possible (file out only)
+\fB\-b\fR, \fB\-\-batch
+process as fast as possible (Audio Files device only)
 .TP
-\fB\-v,\f \fB\-\-verbose
+\fB\-v\fR, \fB\-\-verbose
 show extra playback information
 .TP
-\fB\-h\f, \fB\-\-help
+\fB\-h\fR, \fB\-\-help
 print this message and exit
 .PP
-Audio will always be sent to the (default) audio device,
-writing to an output file is fully optional.
+Either --input or --capture can be used but not both.
+.PP
+For a list of device names run: aaxinfo
+.PP
+Audio will always be sent to the (default) audio device, writing to an output file is fully optional.
 .SH AUTHOR
-Written by Erik Hofman (info@adalin.com)
+Written by Erik Hofman <tech@adalin.com>
 .SH SEE ALSO
 aaxinfo(1), aaxcvt(1)
 

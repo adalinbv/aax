@@ -2,36 +2,35 @@
 .\" Contact tech@adalin.com to correct errors or typos.
 .TH man 1 "19 Dec 2014" "@AAX_UTILS_MAJOR_VERSION@.@AAX_UTILS_MINOR_VERSION@.@AAX_UTILS_MICRO_VERSION@" "aaxcvt man page"
 .SH NAME
-aaxcvt \- Converst audio files to a new format
+aaxcvt \- Converts a WAV audio file to a new format
 .SH SYNOPSIS
 .B aaxcvt
 [\fIOPTION\fR]...
 .SH DESCRIPTION
 .PP
-Converts an input audio file to an output file in the the specified output format.
+Converts a WAV input audio file to an output file in the the specified output format.
 .TP
-\fB\-i\f, \fB\-\-input \fRFILE\fR
-convert audio from this file
+\fB\-i\fR, \fB\-\-input \fRFILE\fR
+convert audio from this WAV file
 .TP
-\fB\-o\f, \fB\-\-output \fRFILE\fR
+\fB\-o\fR, \fB\-\-output \fRFILE\fR
 write the audio to this file
 .TP
-\fB\-r\f, \fB\-\-raw
+\fB\-r\fR, \fB\-\-raw
 do not write the WAV file header if specified
 .TP
-\fB\-f,\f \fB\-\-format \fRFORMAT\fR
+\fB\-f\fR, \fB\-\-format \fRFORMAT\fR
 specifies the output format
 .TP
-\fB\-l\f, \fB\-\-list
+\fB\-l\fR, \fB\-\-list
 show a list of all supported formats
 .TP
-\fB\-h\f, \fB\-\-help
+\fB\-h\fR, \fB\-\-help
 print this message and exit
 .PP
-NOTE: WAV files are little endian only and AeonWave automatically
-compensates for that.
+NOTE: WAV files are little endian only and AeonWave automatically compensates for that.
 .SH AUTHOR
-Written by Erik Hofman (info@adalin.com)
+Written by Erik Hofman <tech@adalin.com>
 .SH SEE ALSO
 aaxinfo(1), aaxplay(1)
 

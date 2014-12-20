@@ -61,10 +61,10 @@ help()
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -c, --capture <device>\tcapture from an audio device\n");
-    printf("  -d, --device <device>\t\tplayback device (optional)\n");
-    printf("  -o, --output <file>\t\twrite the audio to a file (optional)\n");
-    printf("  -b, --batch\t\t\tprocess as fast as possible (file out only)\n");
-    printf("  -v, --verbose\t\t\tshow playback information\n");
+    printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
+    printf("  -o, --output <file>\t\talso write to an audio file (optional)\n");
+    printf("  -b, --batch\t\t\tprocess as fast as possible (Audio Files only)\n");
+    printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
     printf("Either --input or --capture can be used but not both.\n");
     printf("For a list of device names run: aaxinfo\n");
