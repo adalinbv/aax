@@ -10,13 +10,13 @@ aaxinfo \- Shows information on supported audio devices.
 .PP
 Shows information on supported audio devices.
 .TP
-\fB\-d\f, \fB\-\-device \fRDEVICE\fR
+\fB\-d\fR, \fB\-\-device \fRDEVICE\fR
 show mixer and hardware support for the specified device.
 .TP
-\fB\-c\f, \fB\-\-copyright
+\fB\-c\fR, \fB\-\-copyright
 shows copyright information for AeonWave.
 .SH AUTHOR
-Written by Erik Hofman (info@adalin.com)
+Written by Erik Hofman <tech@adalin.com>
 .SH SEE ALSO
 aaxplay(1), aaxcvt(1)
 
