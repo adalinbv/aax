@@ -825,7 +825,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_SHARED_MODE:
          rv = (float)AAX_TRUE;
          break;
-      case DRIVER_UPDATE_MODE:
+      case DRIVER_BATCHED_MODE:
       case DRIVER_TIMER_MODE:
       default:
          break;

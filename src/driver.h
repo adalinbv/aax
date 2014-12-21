@@ -81,7 +81,7 @@ enum _aaxDriverParam {
    /* boolean */
    DRIVER_SHARED_MODE = 0x200,
    DRIVER_TIMER_MODE,
-   DRIVER_UPDATE_MODE
+   DRIVER_BATCHED_MODE
    
 };
 

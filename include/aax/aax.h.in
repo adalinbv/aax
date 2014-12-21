@@ -217,22 +217,25 @@ enum aaxSetupType
    AAX_TRACK_LAYOUT,
    AAX_BITRATE,
    AAX_FRAME_TIMING,
-   AAX_SHARED_MODE,		/* mixer capabilities */
-   AAX_TIMER_MODE,
-   AAX_UPDATE_MODE,
-   AAX_TRACKS_MIN,
-   AAX_TRACKS_MAX,
-   AAX_PERIODS_MIN,
-   AAX_PERIODS_MAX,
-   AAX_FREQUENCY_MIN,
-   AAX_FREQUENCY_MAX,		/* mixer capabilities */
-   AAX_SAMPLES_MAX,
    AAX_SETUP_TYPE_MAX,
 
    AAX_PEAK_VALUE             = 0x0100,
    AAX_AVERAGE_VALUE          = 0x0200,
    AAX_COMPRESSION_VALUE      = 0x0400,
-   AAX_GATE_ENABLED           = 0x0800
+   AAX_GATE_ENABLED           = 0x0800,
+
+   /* mixer capabilities */
+   AAX_SHARED_MODE            = 0x1000,
+   AAX_TIMER_MODE,
+   AAX_BATCHED_MODE,
+
+   AAX_TRACKS_MIN             = 0x1200,
+   AAX_TRACKS_MAX,
+   AAX_PERIODS_MIN,
+   AAX_PERIODS_MAX,
+   AAX_FREQUENCY_MIN,
+   AAX_FREQUENCY_MAX,           /* mixer capabilities */
+   AAX_SAMPLES_MAX,
 };
 
 enum aaxErrorType

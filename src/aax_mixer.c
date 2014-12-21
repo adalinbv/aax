@@ -279,70 +279,74 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                rv = info->format;
                break;
             default:
-               if (handle->backend.driver)
-               {
-                  const _aaxDriverBackend *be = handle->backend.ptr;
-                  float f;
+               break;
+            }
+         }
+         else if (type & AAX_SHARED_MODE)
+         {
+            if (handle->backend.driver)
+            {
+               const _aaxDriverBackend *be = handle->backend.ptr;
+               float f;
 
-                  switch(type)
-                  {
-                  case AAX_LATENCY:
-                     f = be->param(handle->backend.handle, DRIVER_LATENCY);
-                     rv = (int)(f*1e6);
-                     break;
-                  case AAX_NO_SAMPLES:
-                     rv= be->param(handle->backend.handle, DRIVER_SAMPLE_DELAY);
-                     break;
-                  case AAX_SHARED_MODE:
-                     f = be->param(handle->backend.handle, DRIVER_SHARED_MODE);
-                     rv = f ? AAX_TRUE : AAX_FALSE;
-                     break;
-                  case AAX_TIMER_MODE:
-                     f = be->param(handle->backend.handle, DRIVER_TIMER_MODE);
-                     rv = f ? AAX_TRUE : AAX_FALSE;
-                     break;
-                  case AAX_UPDATE_MODE:
-                     f = be->param(handle->backend.handle, DRIVER_UPDATE_MODE);
-                     rv = f ? AAX_TRUE : AAX_FALSE;
-                     break;
-                  case AAX_TRACKS_MIN:
-                     f = be->param(handle->backend.handle, DRIVER_MIN_TRACKS);
-                     rv = (int)f;
-                     break;
-                  case AAX_TRACKS_MAX:
-                     f = be->param(handle->backend.handle, DRIVER_MAX_TRACKS);
-                     rv = (int)f;
-                     break;
-                  case AAX_PERIODS_MIN:
-                     f = be->param(handle->backend.handle, DRIVER_MIN_PERIODS);
-                     rv = (int)f;
-                     break;
-                  case AAX_PERIODS_MAX:
-                     f = be->param(handle->backend.handle, DRIVER_MAX_PERIODS);
-                     rv = (int)f;
-                     break;
-                  case AAX_FREQUENCY_MIN:
-                     f = be->param(handle->backend.handle,DRIVER_MIN_FREQUENCY);
-                     rv = (int)f;
-                     break;
-                  case AAX_FREQUENCY_MAX:
-                     f = be->param(handle->backend.handle,DRIVER_MAX_FREQUENCY);
-                     if (VALID_HANDLE(handle)) rv = (int)f;
-                     else rv = _MIN((int)f, _AAX_MAX_MIXER_FREQUENCY_LT);
-                     break;
-                  case AAX_SAMPLES_MAX:
-                     f = be->param(handle->backend.handle, DRIVER_MAX_SAMPLES);
-                     if (f == AAX_FPINFINITE) rv = UINT_MAX;
-                     else rv = rintf(f);
-                     break;
-                  default:
-                     _aaxErrorSet(AAX_INVALID_ENUM);
-                     break;
-                  }
+               switch(type)
+               {
+               case AAX_LATENCY:
+                  f = be->param(handle->backend.handle, DRIVER_LATENCY);
+                  rv = (int)(f*1e6);
+                  break;
+               case AAX_NO_SAMPLES:
+                  rv= be->param(handle->backend.handle, DRIVER_SAMPLE_DELAY);
+                  break;
+               case AAX_SHARED_MODE:
+                  f = be->param(handle->backend.handle, DRIVER_SHARED_MODE);
+                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  break;
+               case AAX_TIMER_MODE:
+                  f = be->param(handle->backend.handle, DRIVER_TIMER_MODE);
+                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  break;
+               case AAX_BATCHED_MODE:
+                  f = be->param(handle->backend.handle, DRIVER_BATCHED_MODE);
+                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  break;
+               case AAX_TRACKS_MIN:
+                  f = be->param(handle->backend.handle, DRIVER_MIN_TRACKS);
+                  rv = (int)f;
+                  break;
+               case AAX_TRACKS_MAX:
+                  f = be->param(handle->backend.handle, DRIVER_MAX_TRACKS);
+                  rv = (int)f;
+                  break;
+               case AAX_PERIODS_MIN:
+                  f = be->param(handle->backend.handle, DRIVER_MIN_PERIODS);
+                  rv = (int)f;
+                  break;
+               case AAX_PERIODS_MAX:
+                  f = be->param(handle->backend.handle, DRIVER_MAX_PERIODS);
+                  rv = (int)f;
+                  break;
+               case AAX_FREQUENCY_MIN:
+                  f = be->param(handle->backend.handle,DRIVER_MIN_FREQUENCY);
+                  rv = (int)f;
+                  break;
+               case AAX_FREQUENCY_MAX:
+                  f = be->param(handle->backend.handle,DRIVER_MAX_FREQUENCY);
+                  if (VALID_HANDLE(handle)) rv = (int)f;
+                  else rv = _MIN((int)f, _AAX_MAX_MIXER_FREQUENCY_LT);
+                  break;
+               case AAX_SAMPLES_MAX:
+                  f = be->param(handle->backend.handle, DRIVER_MAX_SAMPLES);
+                  if (f == AAX_FPINFINITE) rv = UINT_MAX;
+                  else rv = rintf(f);
+                  break;
+               default:
+                  _aaxErrorSet(AAX_INVALID_ENUM);
+                  break;
                }
-               else {
-                  _aaxErrorSet(AAX_INVALID_STATE);
-               }
+            }
+            else {
+               _aaxErrorSet(AAX_INVALID_STATE);
             }
          }
          else if ((type & AAX_PEAK_VALUE) || (type & AAX_AVERAGE_VALUE))
@@ -1509,7 +1513,7 @@ _aaxMixerUpdate(_handle_t *handle)
    if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
-      if (be->param(handle->backend.handle, DRIVER_UPDATE_MODE))
+      if (be->param(handle->backend.handle, DRIVER_BATCHED_MODE))
       {
          if (!handle->finished) {
             handle->finished = _aaxSemaphoreCreate(0);
