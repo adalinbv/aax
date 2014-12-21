@@ -215,10 +215,13 @@ int main(int argc, char **argv)
             printf("Vendor  : %s\n", s);
 
             x = aaxMixerGetSetup(cfg, AAX_TIMER_MODE);
-            printf ("Mixer timed mode support : %s\n", x ? "yes" : "no");
+            printf ("Mixer timed mode support:   %s\n", x ? "yes" : "no");
 
             x = aaxMixerGetSetup(cfg, AAX_SHARED_MODE);
-            printf ("Mixer shared mode support: %s\n", x ? "yes" : "no");
+            printf ("Mixer shared mode support:  %s\n", x ? "yes" : "no");
+
+            x = aaxMixerGetSetup(cfg, AAX_BATCHED_MODE);
+            printf ("Mixer batched mode support: %s\n", x ? "yes" : "no");
 
             min = aaxMixerGetSetup(cfg, AAX_TRACKS_MIN);
             max = aaxMixerGetSetup(cfg, AAX_TRACKS_MAX);
