@@ -194,7 +194,7 @@ int main(int argc, char **argv)
         char tstr[80];
         int state;
 
-        if (batch && !aaxMixerGetSetup(config, AAX_UPDATE_MODE)) {
+        if (batch && !aaxMixerGetSetup(config, AAX_BATCHED_MODE)) {
             printf("Warning: Batched mode not supported for this backend\n");
         }
 

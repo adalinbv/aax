@@ -174,6 +174,7 @@ SET(BASE_OBJS
 )
 
 ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(test)
 
 #-----------------------------------------------------------------------------
 ### uninstall target

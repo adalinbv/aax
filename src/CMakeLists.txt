@@ -17,7 +17,7 @@ SET(LIBDRIVER driver)
 SET(LIBTYPE STATIC)
 ADD_LIBRARY(${LIBDRIVER} ${LIBTYPE} ${DRIVER_OBJS} ${AAX_LIBRARY})
 
-FUNCTION(CREATE_TEST TEST_NAME)
+FUNCTION(CREATE_UTIL TEST_NAME)
     ADD_EXECUTABLE(${TEST_NAME} ${TEST_NAME}.c)
     TARGET_LINK_LIBRARIES(${TEST_NAME} ${LIBDRIVER} ${AAX_LIBRARY} ${KERNEL_LIBRARY} ${EXTRA_LIBS})
     SET_TARGET_PROPERTIES(${TEST_NAME} PROPERTIES
@@ -25,45 +25,15 @@ FUNCTION(CREATE_TEST TEST_NAME)
 ENDFUNCTION()
 
 
-CREATE_TEST(aaxinfo)
+CREATE_UTIL(aaxinfo)
 INSTALL(TARGETS aaxinfo
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Applications
 )
-CREATE_TEST(aaxplay)
+CREATE_UTIL(aaxplay)
 INSTALL(TARGETS aaxplay
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Applications
 )
-CREATE_TEST(aaxcvt)
+CREATE_UTIL(aaxcvt)
 INSTALL(TARGETS aaxcvt
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Applications
 )
-
-CREATE_TEST(testcapture)
-CREATE_TEST(testcone)
-CREATE_TEST(testdistance)
-CREATE_TEST(testdistortion)
-CREATE_TEST(testenvelope)
-CREATE_TEST(testformats)
-CREATE_TEST(testinstrument)
-CREATE_TEST(testleftright)
-CREATE_TEST(testloop)
-CREATE_TEST(testlowpass)
-CREATE_TEST(testlst_rotation)
-CREATE_TEST(testmono3d)
-CREATE_TEST(testmono3d_updown)
-CREATE_TEST(testmono3d_frame)
-CREATE_TEST(testmono3d_oneshot)
-CREATE_TEST(testmono3d_phasing)
-CREATE_TEST(testposition)
-CREATE_TEST(teststereo)
-CREATE_TEST(teststereo_equalizer)
-CREATE_TEST(teststereo_frame)
-CREATE_TEST(teststereo_grapheq)
-CREATE_TEST(testloopback)
-CREATE_TEST(teststream)
-CREATE_TEST(teststream_phasing)
-CREATE_TEST(testwaves)
-
-CREATE_TEST(testdistortion_frame)
-CREATE_TEST(testregisteredsensor)
-CREATE_TEST(testregisteredsensor_frame)
