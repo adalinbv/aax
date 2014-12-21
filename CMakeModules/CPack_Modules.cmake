@@ -26,10 +26,11 @@ IF(WIN32)
   SET(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
   SET(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
   SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
+# SET(CPACK_COMPONENT_UTILS_GROUP "Utilities")
 
   # Note Windows DLL are specified by RUNTIME
   SET(CPACK_COMPONENT_GROUP_RUNTIME_DESCRIPTION
-     "Software required to run the software")
+     "Graphical administration utilities")
   SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
      "C/C++ Development headers and libraries")
 
@@ -42,11 +43,15 @@ ELSE(WIN32)
   SET(CPACK_COMPONENT_APPLICATIONS_GROUP "bin")
   SET(CPACK_COMPONENT_LIBRARIES_GROUP "bin")
   SET(CPACK_COMPONENT_HEADERS_GROUP "dev")
+# SET(CPACK_COMPONENT_UTILS_GROUP "aaxutils")
+# SET(CPACK_UTILS_USE_DISPLAY_NAME_IN_FILENAME ON)
 
   SET(CPACK_COMPONENT_GROUP_BIN_DESCRIPTION
-     "Software required to run the software")
+     "Graphical administration utilities")
   SET(CPACK_COMPONENT_GROUP_DEV_DESCRIPTION
      "C/C++ Development headers and libraries")
+# SET(CPACK_COMPONENT_GROUP_UTILS_DESCRIPTION
+#    "Command line utilities")
 
   SET(CPACK_ALL_INSTALL_TYPES bin dev)
   SET(CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES bin dev)
