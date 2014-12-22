@@ -417,7 +417,7 @@ int main(int argc, char **argv)
         testForState(res, "aaxMixerSetState");
 
         res = aaxMixerDeregisterSensor(config, file);
-        testForState(res, "aaxMixerRegisterSensor file out");
+        testForState(res, "aaxMixerDeregisterSensor file out");
 
         res = aaxDriverClose(file);
         testForState(res, "aaxDriverClose");

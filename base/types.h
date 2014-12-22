@@ -48,6 +48,8 @@ typedef int size_t;
 #endif
 
 #define _MIN(a,b)	(((a)<(b)) ? (a) : (b))
+#define _MAX(a,b)       (((a)>(b)) ? (a) : (b))
+#define _MINMAX(a,b,c)  (((a)>(c)) ? (c) : (((a)<(b)) ? (b) : (a)))
 
 #if _MSC_VER
 # include <Windows.h>
