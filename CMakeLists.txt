@@ -173,6 +173,7 @@ SET(BASE_OBJS
      base/types.c
 )
 
+ADD_SUBDIRECTORY(aaxplayer)
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
 

@@ -22,17 +22,55 @@
 
 #include <aax/aax.h>
 
-class Ui_Player;
+#include <QtGui/QDialog>
+#include <QTimer>
+
+class Ui_AudioPlayer;
 
 class AeonWavePlayer : public QDialog
 {
-    O_OBJECT
+    Q_OBJECT
 
 public:
     AeonWavePlayer(QWidget *parent = 0);
     ~AeonWavePlayer();
 
-    Ui_Player *ui;
+    Ui_AudioPlayer *ui;
+
+    aaxConfig outdev;
+    aaxConfig indev;
+    bool agc_enabled;
+    bool playing;
+
+    aaxConfig file;
+    int bitrate;
+    bool recording;
+
+    aaxConfig openInputDevice();
+    aaxConfig openOutputDevice();
+    void closeDevices(bool keep = false);
+    void freeDevices();
+
+private:
+    QTimer timer;
+    QString outfiles_path;
+    QString infiles_path;
+    float duration;
+
+    void alert(QString msg);
+
+private slots:
+    void togglePlay();
+    void toggleStop();
+    void togglePause();
+    void toggleRecord();
+    void loadFile();
+    void saveTo();
+    void exit();
+
+protected slots:
+    void tick();
+    
 };
 
 extern AeonWavePlayer *_mw;
