@@ -56,6 +56,26 @@ AeonWavePlayer::AeonWavePlayer(QWidget *parent) :
     ui = new Ui_AudioPlayer;
     ui->setupUi(this);
 
+    QFile QSSFile(":/aaxplayer.qss");
+    QSSFile.open(QFile::ReadOnly);
+    QString StyleSheet = QLatin1String(QSSFile.readAll());
+    qApp->setStyleSheet(StyleSheet);
+
+    QPixmap PlayPixMap(":/play.png");
+    QIcon PlayIcon(PlayPixMap);
+    ui->startPlay->setIcon(PlayIcon);
+    ui->startPlay->setIconSize(PlayPixMap.rect().size());
+
+    QPixmap PausePixMap(":/pause.png");
+    QIcon PauseIcon(PausePixMap);
+    ui->pausePlay->setIcon(PauseIcon);
+    ui->pausePlay->setIconSize(PausePixMap.rect().size());
+
+    QPixmap StopPixMap(":/stop.png");
+    QIcon StopIcon(StopPixMap);
+    ui->stopPlay->setIcon(StopIcon);
+    ui->stopPlay->setIconSize(StopPixMap.rect().size());
+
     outdev = aaxDriverOpenDefault(AAX_MODE_WRITE_STEREO);
     if (outdev)
     {
@@ -75,16 +95,21 @@ AeonWavePlayer::AeonWavePlayer(QWidget *parent) :
     QObject::connect(ui->startPlay, SIGNAL(released()), this,  SLOT(togglePlay()));
     QObject::connect(ui->pausePlay, SIGNAL(released()), this,  SLOT(togglePause()));
     QObject::connect(ui->stopPlay, SIGNAL(released()), this,  SLOT(toggleStop()));
-    QObject::connect(ui->startRecord, SIGNAL(released()), this,  SLOT(toggleRecord()));
+    QObject::connect(ui->volume, SIGNAL(valueChanged(int)), this, SLOT(volumeChanged(int)));
     QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(loadFile()));
-    QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveTo()));
-    QObject::connect(&timer, SIGNAL(timeout()), SLOT(tick()));
+//  QObject::connect(ui->startRecord, SIGNAL(released()), this,  SLOT(toggleRecord()));
+//  QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveTo()));
 
+    QObject::connect(&timer, SIGNAL(timeout()), SLOT(tick()));
     timer.setSingleShot(false);
     timer.start(100);
 
     ui->pctPlaying->setValue(0);
-    ui->volumeSlider->setValue(80);
+
+    aaxFilter flt = aaxMixerGetFilter(outdev, AAX_VOLUME_FILTER);
+    float vol = _MIN(aaxFilterGetParam(flt, AAX_GAIN, AAX_LINEAR), 1.0f);
+    ui->volume->setValue(rintf(vol*100));
+    aaxFilterDestroy(flt);
 }
 
 AeonWavePlayer::~AeonWavePlayer()
@@ -152,13 +177,9 @@ AeonWavePlayer::tick()
        for (int track=0; track<2; track++)
        {
            enum aaxSetupType e1 = aaxSetupType(AAX_AVERAGE_VALUE+track);
-           enum aaxSetupType e2 = aaxSetupType(AAX_PEAK_VALUE+track);
            int ival;
 
            ival = aaxMixerGetSetup(outdev, e1);
-           ival += aaxMixerGetSetup(outdev, e2);
-           ival /= 2;
-
            dB = (ival > 0) ? 10*log10(ival*MAXDIV) : -1000000.0;
            vu[track] = _MINMAX(100*(dB-MIN_DB)/(MAX_DB-MIN_DB), 0, 99);
        }
@@ -240,6 +261,15 @@ AeonWavePlayer::toggleRecord()
 }
 
 void
+AeonWavePlayer::volumeChanged(int val)
+{
+    aaxFilter flt = aaxMixerGetFilter(outdev, AAX_VOLUME_FILTER);
+    aaxFilterSetParam(flt, AAX_GAIN, AAX_LINEAR, (float)val/100.0f);
+    aaxMixerSetFilter(outdev, flt);
+    aaxFilterDestroy(flt);
+}
+
+void
 AeonWavePlayer::loadFile()
 {
     QString filter = "*.wav";
@@ -283,7 +313,7 @@ AeonWavePlayer::loadFile()
             _ATB(aaxMixerRegisterSensor(outdev, indev));
             _ATB(aaxMixerSetState(indev, AAX_INITIALIZED));
 
-            ui->volumeSlider->setValue(80);
+            ui->volume->setValue(80);
         }
     }
 }

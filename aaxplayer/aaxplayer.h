@@ -64,6 +64,7 @@ private slots:
     void toggleStop();
     void togglePause();
     void toggleRecord();
+    void volumeChanged(int);
     void loadFile();
     void saveTo();
     void exit();
