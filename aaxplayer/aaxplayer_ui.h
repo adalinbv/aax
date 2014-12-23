@@ -13,6 +13,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
+#include <QtGui/QDial>
 #include <QtGui/QDialog>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
@@ -20,7 +21,6 @@
 #include <QtGui/QMenuBar>
 #include <QtGui/QProgressBar>
 #include <QtGui/QPushButton>
-#include <QtGui/QSlider>
 #include <QtGui/QStatusBar>
 
 QT_BEGIN_NAMESPACE
@@ -29,12 +29,10 @@ class Ui_AudioPlayer
 {
 public:
     QAction *actionOpen;
-    QAction *actionSave;
     QAction *actionExit;
     QAction *actionHardware;
     QMenuBar *menubar;
     QMenu *menuFile;
-    QMenu *menuSetup;
     QStatusBar *statusbar;
     QPushButton *stopPlay;
     QLabel *timeCurrent;
@@ -43,23 +41,22 @@ public:
     QPushButton *startPlay;
     QLabel *timeTotal;
     QPushButton *pausePlay;
-    QPushButton *startRecord;
-    QLabel *timeRecord;
     QProgressBar *VUleft;
     QProgressBar *VUright;
-    QSlider *volumeSlider;
+    QDial *volume;
+    QLabel *labelVolumeMin;
+    QLabel *labelVolumeMax;
+    QLabel *labelVolume;
 
     void setupUi(QDialog *AudioPlayer)
     {
         if (AudioPlayer->objectName().isEmpty())
             AudioPlayer->setObjectName(QString::fromUtf8("AudioPlayer"));
-        AudioPlayer->resize(400, 160);
-        AudioPlayer->setMinimumSize(QSize(400, 160));
-        AudioPlayer->setMaximumSize(QSize(400, 160));
+        AudioPlayer->resize(400, 125);
+        AudioPlayer->setMinimumSize(QSize(400, 125));
+        AudioPlayer->setMaximumSize(QSize(400, 125));
         actionOpen = new QAction(AudioPlayer);
         actionOpen->setObjectName(QString::fromUtf8("actionOpen"));
-        actionSave = new QAction(AudioPlayer);
-        actionSave->setObjectName(QString::fromUtf8("actionSave"));
         actionExit = new QAction(AudioPlayer);
         actionExit->setObjectName(QString::fromUtf8("actionExit"));
         actionHardware = new QAction(AudioPlayer);
@@ -69,14 +66,13 @@ public:
         menubar->setGeometry(QRect(0, 0, 400, 24));
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
-        menuSetup = new QMenu(menubar);
-        menuSetup->setObjectName(QString::fromUtf8("menuSetup"));
         statusbar = new QStatusBar(AudioPlayer);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         statusbar->setGeometry(QRect(0, 0, 3, 22));
         stopPlay = new QPushButton(AudioPlayer);
         stopPlay->setObjectName(QString::fromUtf8("stopPlay"));
-        stopPlay->setGeometry(QRect(125, 113, 51, 25));
+        stopPlay->setGeometry(QRect(125, 80, 51, 25));
+        stopPlay->setFocusPolicy(Qt::NoFocus);
         timeCurrent = new QLabel(AudioPlayer);
         timeCurrent->setObjectName(QString::fromUtf8("timeCurrent"));
         timeCurrent->setGeometry(QRect(15, 35, 71, 20));
@@ -103,7 +99,8 @@ public:
         pctPlaying->setValue(24);
         startPlay = new QPushButton(AudioPlayer);
         startPlay->setObjectName(QString::fromUtf8("startPlay"));
-        startPlay->setGeometry(QRect(15, 113, 51, 25));
+        startPlay->setGeometry(QRect(15, 80, 51, 25));
+        startPlay->setFocusPolicy(Qt::NoFocus);
         timeTotal = new QLabel(AudioPlayer);
         timeTotal->setObjectName(QString::fromUtf8("timeTotal"));
         timeTotal->setGeometry(QRect(185, 70, 71, 20));
@@ -112,42 +109,48 @@ public:
         timeTotal->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         pausePlay = new QPushButton(AudioPlayer);
         pausePlay->setObjectName(QString::fromUtf8("pausePlay"));
-        pausePlay->setGeometry(QRect(70, 113, 51, 25));
-        startRecord = new QPushButton(AudioPlayer);
-        startRecord->setObjectName(QString::fromUtf8("startRecord"));
-        startRecord->setGeometry(QRect(330, 113, 51, 25));
-        timeRecord = new QLabel(AudioPlayer);
-        timeRecord->setObjectName(QString::fromUtf8("timeRecord"));
-        timeRecord->setGeometry(QRect(315, 95, 61, 17));
-        timeRecord->setFont(font);
-        timeRecord->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        pausePlay->setGeometry(QRect(70, 80, 51, 25));
+        pausePlay->setFocusPolicy(Qt::NoFocus);
         VUleft = new QProgressBar(AudioPlayer);
         VUleft->setObjectName(QString::fromUtf8("VUleft"));
-        VUleft->setGeometry(QRect(310, 33, 81, 16));
+        VUleft->setGeometry(QRect(355, 30, 14, 85));
         VUleft->setFont(font1);
         VUleft->setValue(24);
-        VUleft->setOrientation(Qt::Horizontal);
+        VUleft->setOrientation(Qt::Vertical);
         VUright = new QProgressBar(AudioPlayer);
         VUright->setObjectName(QString::fromUtf8("VUright"));
-        VUright->setGeometry(QRect(310, 53, 81, 16));
+        VUright->setGeometry(QRect(375, 30, 14, 85));
         VUright->setFont(font1);
         VUright->setValue(24);
-        VUright->setOrientation(Qt::Horizontal);
-        volumeSlider = new QSlider(AudioPlayer);
-        volumeSlider->setObjectName(QString::fromUtf8("volumeSlider"));
-        volumeSlider->setGeometry(QRect(270, 30, 29, 105));
-        volumeSlider->setOrientation(Qt::Vertical);
+        VUright->setOrientation(Qt::Vertical);
+        volume = new QDial(AudioPlayer);
+        volume->setObjectName(QString::fromUtf8("volume"));
+        volume->setGeometry(QRect(270, 35, 70, 80));
+        volume->setFocusPolicy(Qt::NoFocus);
+        volume->setValue(80);
+        volume->setNotchesVisible(true);
+        labelVolumeMin = new QLabel(AudioPlayer);
+        labelVolumeMin->setObjectName(QString::fromUtf8("labelVolumeMin"));
+        labelVolumeMin->setGeometry(QRect(255, 100, 31, 16));
+        labelVolumeMin->setFont(font);
+        labelVolumeMin->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        labelVolumeMax = new QLabel(AudioPlayer);
+        labelVolumeMax->setObjectName(QString::fromUtf8("labelVolumeMax"));
+        labelVolumeMax->setGeometry(QRect(325, 100, 31, 16));
+        labelVolumeMax->setFont(font);
+        labelVolumeMax->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
+        labelVolume = new QLabel(AudioPlayer);
+        labelVolume->setObjectName(QString::fromUtf8("labelVolume"));
+        labelVolume->setGeometry(QRect(270, 22, 70, 20));
+        labelVolume->setFont(font);
+        labelVolume->setAlignment(Qt::AlignCenter);
         QWidget::setTabOrder(startPlay, pausePlay);
         QWidget::setTabOrder(pausePlay, stopPlay);
-        QWidget::setTabOrder(stopPlay, volumeSlider);
-        QWidget::setTabOrder(volumeSlider, startRecord);
 
         menubar->addAction(menuFile->menuAction());
-        menubar->addAction(menuSetup->menuAction());
         menuFile->addAction(actionOpen);
-        menuFile->addAction(actionSave);
+        menuFile->addAction(actionHardware);
         menuFile->addAction(actionExit);
-        menuSetup->addAction(actionHardware);
 
         retranslateUi(AudioPlayer);
 
@@ -162,33 +165,25 @@ public:
         actionOpen->setToolTip(QApplication::translate("AudioPlayer", "Open Input File", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         actionOpen->setShortcut(QApplication::translate("AudioPlayer", "Ctrl+O", 0, QApplication::UnicodeUTF8));
-        actionSave->setText(QApplication::translate("AudioPlayer", "Save To", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        actionSave->setToolTip(QApplication::translate("AudioPlayer", "Select Save To file", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        actionSave->setShortcut(QApplication::translate("AudioPlayer", "Ctrl+S", 0, QApplication::UnicodeUTF8));
         actionExit->setText(QApplication::translate("AudioPlayer", "Exit", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         actionExit->setToolTip(QApplication::translate("AudioPlayer", "Close the application", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         actionExit->setShortcut(QApplication::translate("AudioPlayer", "Ctrl+X", 0, QApplication::UnicodeUTF8));
-        actionHardware->setText(QApplication::translate("AudioPlayer", "Configuration", 0, QApplication::UnicodeUTF8));
+        actionHardware->setText(QApplication::translate("AudioPlayer", "Setup", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         actionHardware->setToolTip(QApplication::translate("AudioPlayer", "Hardware Configuration", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         actionHardware->setShortcut(QApplication::translate("AudioPlayer", "Ctrl+H", 0, QApplication::UnicodeUTF8));
         menuFile->setTitle(QApplication::translate("AudioPlayer", "File", 0, QApplication::UnicodeUTF8));
-        menuSetup->setTitle(QApplication::translate("AudioPlayer", "Setup", 0, QApplication::UnicodeUTF8));
-        stopPlay->setText(QApplication::translate("AudioPlayer", "STOP", 0, QApplication::UnicodeUTF8));
         timeCurrent->setText(QApplication::translate("AudioPlayer", "00:00:00", 0, QApplication::UnicodeUTF8));
         timeRemaining->setText(QApplication::translate("AudioPlayer", "00:00:00", 0, QApplication::UnicodeUTF8));
-        startPlay->setText(QApplication::translate("AudioPlayer", "PLAY", 0, QApplication::UnicodeUTF8));
         timeTotal->setText(QApplication::translate("AudioPlayer", "00:00:00", 0, QApplication::UnicodeUTF8));
-        pausePlay->setText(QApplication::translate("AudioPlayer", "PAUSE", 0, QApplication::UnicodeUTF8));
-        startRecord->setText(QApplication::translate("AudioPlayer", "REC", 0, QApplication::UnicodeUTF8));
-        timeRecord->setText(QApplication::translate("AudioPlayer", "00:00:00", 0, QApplication::UnicodeUTF8));
         VUleft->setFormat(QString());
         VUright->setFormat(QString());
+        labelVolumeMin->setText(QApplication::translate("AudioPlayer", "min", 0, QApplication::UnicodeUTF8));
+        labelVolumeMax->setText(QApplication::translate("AudioPlayer", "max", 0, QApplication::UnicodeUTF8));
+        labelVolume->setText(QApplication::translate("AudioPlayer", "volume", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

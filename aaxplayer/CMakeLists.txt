@@ -12,7 +12,7 @@ SET( SOURCES main.cpp aaxplayer.cpp )
 SET( PREPROCESS_HEADERS aaxplayer.h )
 SET( HEADERS aaxplayer_ui.h )
 SET( GUI aaxplayer.ui )
-SET( RCS aaxplayer.qrc )
+SET( RCS ${aax-utils_SOURCE_DIR}/admin/aaxplayer.qrc )
 
 QT4_ADD_RESOURCES(RC_SRCS ${RCS})
 QT4_WRAP_UI( GUI_HDRS ${GUI} )
