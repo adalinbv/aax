@@ -55,7 +55,7 @@ private:
     QTimer timer;
     QString outfiles_path;
     QString infiles_path;
-    float duration;
+    size_t max_samples;
 
     void alert(QString msg);
 
