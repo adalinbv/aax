@@ -93,6 +93,9 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
             {
                _SET_STOPPED(device);
                _SET_PROCESSED(device);
+               smixer->curr_pos_sec = 0.0f;
+               smixer->curr_sample = 0;
+               be->set_position(be_handle, 0);
             }
 
             if (device->ringbuffer)
