@@ -82,6 +82,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverPrepare3d *)&_aaxNoneDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxNoneDriverPostProcess,
    (_aaxDriverPrepare *)&_aaxNoneDriverPrepare,		/* effects */
+   NULL,
 
    (_aaxDriverState *)_aaxNoneDriverState,
    (_aaxDriverParam *)&_aaxNoneDriverParam,
@@ -142,6 +143,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
+   NULL,
 
    (_aaxDriverState *)_aaxNoneDriverState,
    (_aaxDriverParam *)&_aaxLoopbackDriverParam,

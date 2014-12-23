@@ -102,6 +102,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
+   NULL,
 
    (_aaxDriverState *)&_aaxALSADriverState,
    (_aaxDriverParam *)&_aaxALSADriverParam,

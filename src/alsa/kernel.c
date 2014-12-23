@@ -121,6 +121,7 @@ const _aaxDriverBackend _aaxLinuxDriverBackend =
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
+   NULL,
 
    (_aaxDriverState *)&_aaxLinuxDriverState,
    (_aaxDriverParam *)&_aaxLinuxDriverParam,

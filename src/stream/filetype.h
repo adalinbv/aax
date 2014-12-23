@@ -24,14 +24,16 @@ extern "C" {
 
 enum _aaxFileParam
 {
-   __F_PROCESS = -2,
+   __F_PROCESS = -2,		/* get */
    __F_EOF = -1,
    __F_FMT = 0,
    __F_TRACKS,
    __F_FREQ,
    __F_BITS,
    __F_BLOCK,
-   __F_SAMPLES
+   __F_SAMPLES,
+
+   __F_POSITION = 0x1000	/* set */
 };
 
 typedef int (_file_detect_fn)(int);
@@ -46,7 +48,8 @@ typedef size_t (_file_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, size_t, un
 
 typedef char* (_file_default_fname_fn)(int);
 typedef int (_file_extension_fn)(char*);
-typedef unsigned int (_file_get_param_fn)(void *, int);
+typedef off_t (_file_get_param_fn)(void *, int);
+typedef off_t (_file_set_param_fn)(void *, int, off_t);
 
 typedef struct
 {
@@ -68,6 +71,7 @@ typedef struct
    _file_default_fname_fn *interfaces;
 
    _file_get_param_fn *get_param;
+   _file_set_param_fn *set_param;
 
 } _aaxFmtHandle;
 

@@ -48,6 +48,7 @@ static _file_open_fn _aaxMPG123Open;
 static _file_close_fn _aaxMPG123Close;
 static _file_cvt_to_fn _aaxMPG123CvtToIntl;
 static _file_cvt_from_fn _aaxMPG123CvtFromIntl;
+static _file_set_param_fn _aaxMPG123SetParam;
 	/** libmpg123 */
 
 static _file_detect_fn _aaxMP3Detect;
@@ -58,15 +59,16 @@ static _file_get_param_fn _aaxMP3GetParam;
 
 #ifdef WINXP
 	/** windows (xp and later) native */
-static _file_open_fn _aaxMSACMFileOpen;
-static _file_close_fn _aaxMSACMFileClose;
-static _file_update_fn _aaxMSACMFileCvtFrom;
-static _file_update_fn _aaxMSACMFileCvtTo;
+static _file_open_fn _aaxMSACMOpen;
+static _file_close_fn _aaxMSACMClose;
+static _file_update_fn _aaxMSACMCvtFrom;
+static _file_update_fn _aaxMSACMCvtTo;
 
-static _file_open_fn *_aaxMP3Open = _aaxMSACMFileOpen;
-static _file_close_fn *_aaxMP3Close = _aaxMSACMFileClose;
-static _file_update_fn *_aaxMP3CvtFrom = _aaxMSACMFileCvtFrom;
-static _file_update_fn *_aaxMP3CvtTo = _aaxMSACMFileCvtTo;
+static _file_open_fn *_aaxMP3Open = _aaxMSACMOpen;
+static _file_close_fn *_aaxMP3Close = _aaxMSACMClose;
+static _file_update_fn *_aaxMP3CvtFrom = _aaxMSACMCvtFrom;
+static _file_update_fn *_aaxMP3CvtTo = _aaxMSACMCvtTo;
+static _file_set_param_fn *_aaxM3SetParam = aaxMSACMSetParam;
 
 DECL_FUNCTION(acmDriverOpen);
 DECL_FUNCTION(acmDriverClose);
@@ -89,6 +91,8 @@ static _file_open_fn *_aaxMP3Open = _aaxMPG123Open;
 static _file_close_fn *_aaxMP3Close = _aaxMPG123Close;
 static _file_cvt_to_fn *_aaxMP3CvtToIntl = _aaxMPG123CvtToIntl;
 static _file_cvt_from_fn *_aaxMP3CvtFromIntl = _aaxMPG123CvtFromIntl;
+static _file_set_param_fn *_aaxMP3SetParam = _aaxMPG123SetParam;
+
 #endif
 
 	/** libmpg123: both Linxu and Windows */
@@ -104,6 +108,7 @@ DECL_FUNCTION(mpg123_format_none);
 DECL_FUNCTION(mpg123_getformat);
 DECL_FUNCTION(mpg123_length);
 DECL_FUNCTION(mpg123_set_filesize);
+DECL_FUNCTION(mpg123_feedseek);
 
 	/** lame: both Linxu and Windows */
 DECL_FUNCTION(lame_init);
@@ -141,6 +146,7 @@ _aaxDetectMP3File()
       rv->interfaces = _aaxMP3Interfaces;
 
       rv->get_param = _aaxMP3GetParam;
+      rv->set_param = _aaxMP3SetParam;
    }
    return rv;
 }
@@ -223,10 +229,10 @@ _aaxMP3Detect(int mode)
 
                if (acmMP3Support)
                {
-//                _aaxMP3Open = (_open_fn*)&_aaxMSACMFileOpen;
-//                _aaxMP3Close = (_close_fn*)&_aaxMSACMFileClose;
-//                _aaxMP3CvtFrom = (_update_fn*)&_aaxMSACMFileCvtFrom;
-//                _aaxMP3CvtTo = (_update_fn*)&_aaxMSACMFileCvtTo;
+//                _aaxMP3Open = (_open_fn*)&_aaxMSACMOpen;
+//                _aaxMP3Close = (_close_fn*)&_aaxMSACMClose;
+//                _aaxMP3CvtFrom = (_update_fn*)&_aaxMSACMCvtFrom;
+//                _aaxMP3CvtTo = (_update_fn*)&_aaxMSACMCvtTo;
                   rv = AAX_TRUE;
                }
             }
@@ -274,6 +280,7 @@ _aaxMP3Detect(int mode)
                   /* not required but useful */
                   TIE_FUNCTION(mpg123_length);
                   TIE_FUNCTION(mpg123_set_filesize);
+                  TIE_FUNCTION(mpg123_feedseek);
                }
             }
          }
@@ -368,11 +375,11 @@ _aaxMP3Interfaces(int mode)
    return (char *)rd[mode];
 }
 
-static unsigned int
+static off_t
 _aaxMP3GetParam(void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t rv = 0;
+   off_t rv = 0;
 
    switch(type)
    {
@@ -399,6 +406,7 @@ _aaxMP3GetParam(void *id, int type)
    }
    return rv;
 }
+
 
 static int
 getFormatFromMP3FileFormat(int enc)
@@ -451,6 +459,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                char *ptr = 0;
 
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
+               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS, 1);
                pmpg123_param(handle->id, MPG123_RESYNC_LIMIT, -1, 0.0);
                pmpg123_param(handle->id, MPG123_REMOVE_FLAGS,
                                          MPG123_AUTO_RESAMPLE, 0);
@@ -644,9 +653,34 @@ _aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    return res;
 }
 
+static off_t
+_aaxMPG123SetParam(void *id, int type, off_t value)
+{
+   _driver_t *handle = (_driver_t *)id;
+   off_t rv = 0;
+
+   switch(type)
+   {
+   case __F_POSITION:
+      
+      if (pmpg123_feedseek)
+      {
+         off_t inoffset;
+         rv = pmpg123_feedseek(handle->id, value, SEEK_SET, &inoffset);
+         if (rv ==  MPG123_NEED_MORE) rv = __F_PROCESS;
+         else if (rv < 0) rv = __F_EOF;
+      }
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+
 #ifdef WINXP
 static int
-_aaxMSACMFileOpen(void *id, const char* fname)
+_aaxMSACMOpen(void *id, const char* fname)
 {
    _driver_t *handle = (_driver_t *)id;
    int res = __F_EOF;
@@ -780,7 +814,7 @@ MSACMStreamDone:
 }
 
 static int
-_aaxMSACMFileClose(void *id)
+_aaxMSACMClose(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
@@ -801,7 +835,7 @@ _aaxMSACMFileClose(void *id)
 }
 
 static int
-_aaxMSACMFileCvtTo(void *id, void *data, size_t no_frames)
+_aaxMSACMCvtTo(void *id, void *data, size_t no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t frame_sz = handle->no_tracks*handle->bits_sample/8;
@@ -870,7 +904,7 @@ _aaxMSACMFileCvtTo(void *id, void *data, size_t no_frames)
 }
 
 static int
-_aaxMSACMFileCvtTo(void *id, void *data, size_t no_frames)
+_aaxMSACMCvtTo(void *id, void *data, size_t no_frames)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = __F_EOF;

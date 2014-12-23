@@ -60,6 +60,8 @@
 # define O_BINARY	0
 #endif
 
+#define USE_BATCHED_SEMAPHORE	0
+
 static _aaxDriverDetect _aaxFileDriverDetect;
 static _aaxDriverNewHandle _aaxFileDriverNewHandle;
 static _aaxDriverGetDevices _aaxFileDriverGetDevices;
@@ -69,6 +71,7 @@ static _aaxDriverDisconnect _aaxFileDriverDisconnect;
 static _aaxDriverSetup _aaxFileDriverSetup;
 static _aaxDriverCaptureCallback _aaxFileDriverCapture;
 static _aaxDriverPlaybackCallback _aaxFileDriverPlayback;
+static _aaxDriverSetPosition _aaxFileDriverSetPosition;
 static _aaxDriverGetName _aaxFileDriverGetName;
 static _aaxDriverRender _aaxFileDriverRender;
 static _aaxDriverState _aaxFileDriverState;
@@ -103,6 +106,7 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
+   (_aaxDriverSetPosition *)&_aaxFileDriverSetPosition,
 
    (_aaxDriverState *)&_aaxFileDriverState,
    (_aaxDriverParam *)&_aaxFileDriverParam,
@@ -127,7 +131,9 @@ typedef struct
    size_t buf_len;
 
    struct threat_t thread;
+#if USE_BATCHED_SEMAPHORE
    _aaxSemaphore *finished;
+#endif
    uint8_t buf[IOBUF_SIZE];
    size_t bufpos;
    size_t bytes_avail;
@@ -142,6 +148,8 @@ const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
 static _aaxFmtHandle* _aaxGetFormat(const char*, enum aaxRenderMode);
 static void* _aaxFileDriverWriteThread(void*);
 static void* _aaxFileDriverReadThread(void*);
+static void _aaxFileDriverWriteChunk(const void*);
+static ssize_t _aaxFileDriverReadChunk(const void*);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -384,11 +392,13 @@ _aaxFileDriverDisconnect(void *id)
          handle->render->close(handle->render->id);
       }
 
+#if USE_BATCHED_SEMAPHORE
       if (handle->finished)
       {
          _aaxSemaphoreDestroy(handle->finished);
          handle->finished = NULL;
       }
+#endif
 
       free(handle->fmt);
       free(handle->interfaces);
@@ -593,6 +603,13 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    handle->bytes_avail = res;
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
+#if !USE_BATCHED_SEMAPHORE
+   if (batched) {
+      _aaxFileDriverWriteChunk(id);
+   } else {
+      _aaxSignalTrigger(&handle->thread.signal);
+   }
+#else
    _aaxSignalTrigger(&handle->thread.signal);
    if (batched)
    {
@@ -601,6 +618,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
       }
       _aaxSemaphoreWait(handle->finished);
    }
+#endif
 
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
 }
@@ -691,6 +709,13 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
                handle->bufpos -= ret;
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
+#if !USE_BATCHED_SEMAPHORE
+               if (batched) {
+                  _aaxFileDriverReadChunk(id);
+               } else {
+                  _aaxSignalTrigger(&handle->thread.signal);
+               }
+#else
                _aaxSignalTrigger(&handle->thread.signal);
                if (batched)
                {
@@ -699,6 +724,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
                   }
                   _aaxSemaphoreWait(handle->finished);
                }
+#endif
 
                if (ret <= 0)
                {
@@ -840,6 +866,45 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
    return rv;
 }
 
+static int
+_aaxFileDriverSetPosition(const void *id, off_t pos)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int res, rv = AAX_FALSE;
+
+   res = lseek(handle->fd, 0, SEEK_CUR);
+   if (res != pos)
+   {
+//    handle->bufpos = 0;
+      res = lseek(handle->fd, 0, SEEK_SET);
+      if (res >= 0)
+      {
+         int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
+         int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS);
+         unsigned int samples = IOBUF_SIZE*8/(file_tracks*file_bits);
+         size_t seek;
+         while ((seek = handle->fmt->set_param(handle->fmt->id, __F_POSITION, pos))
+                   == __F_PROCESS)
+         {
+            unsigned char sbuf[IOBUF_SIZE][_AAX_MAX_SPEAKERS];
+            unsigned char buf[IOBUF_SIZE];
+
+            res = read(handle->fd, buf, IOBUF_SIZE);
+            if (res <= 0) break;
+
+            res = handle->fmt->cvt_from_intl(handle->fmt->id, (int32_ptrptr)sbuf,
+                                             buf, 0, file_tracks, samples);
+         }
+      
+         if ((seek >= 0) && (res >= 0)) {
+            rv = (lseek(handle->fd, seek, SEEK_SET) >= 0) ? AAX_TRUE : AAX_FALSE;
+         }
+      }
+   }
+
+   return rv;
+}
+
 static char *
 _aaxFileDriverGetDevices(const void *id, int mode)
 {
@@ -944,97 +1009,128 @@ _aaxGetFormat(const char *fname, enum aaxRenderMode mode)
    return rv;
 }
 
-static void*
-_aaxFileDriverWriteThread(void *id)
+static void
+_aaxFileDriverWriteChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   ssize_t avail;
+   ssize_t buffer_avail, avail;
+   size_t usize;
+   char *data;
    int bits;
 
-   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
-
-   _aaxMutexLock(handle->thread.signal.mutex);
    bits = handle->bits_sample;
+
+   data = (char*)handle->scratch;
+   avail = handle->bytes_avail;
+
+   if (handle->fmt->cvt_from_signed) {
+      handle->fmt->cvt_from_signed(handle->fmt->id, data, avail*8/bits);
+   }
+   if (handle->fmt->cvt_endianness) {
+      handle->fmt->cvt_endianness(handle->fmt->id, data, avail*8/bits);
+   }
+
+   buffer_avail = avail;
    do
    {
-      ssize_t buffer_avail;
-      size_t usize;
-      char *data;
+      usize = _MIN(buffer_avail, IOBUF_SIZE);
+      memcpy((char*)handle->buf+handle->bufpos, data, usize);
+      buffer_avail -= usize;
+      data += usize;
 
-      _aaxSignalWait(&handle->thread.signal);
-      data = (char*)handle->scratch;
-      avail = handle->bytes_avail;
-
-      if (handle->fmt->cvt_from_signed) {
-         handle->fmt->cvt_from_signed(handle->fmt->id, data, avail*8/bits);
-      }
-      if (handle->fmt->cvt_endianness) {
-         handle->fmt->cvt_endianness(handle->fmt->id, data, avail*8/bits);
-      }
-
-      if TEST_FOR_FALSE(handle->thread.started) {
-         break;
-      }
-      if (!avail) continue;
-
-      buffer_avail = avail;
-      do
+      handle->bufpos += usize;
+      if (handle->bufpos >= PERIOD_SIZE)
       {
-         usize = _MIN(buffer_avail, IOBUF_SIZE);
-         memcpy((char*)handle->buf+handle->bufpos, data, usize);
-         buffer_avail -= usize;
-         data += usize;
+         size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+         ssize_t res;
 
-         handle->bufpos += usize;
-         if (handle->bufpos >= PERIOD_SIZE)
+         res = write(handle->fd, handle->buf, wsize);
+         if (res > 0)
          {
-            size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
-            ssize_t res;
+            void *buf;
 
-            res = write(handle->fd, handle->buf, wsize);
-            if (res > 0)
+            memcpy(handle->buf, handle->buf+res, handle->bufpos-res);
+            handle->bufpos -= res;
+
+            if (handle->fmt->update)
             {
-               void *buf;
-
-               memcpy(handle->buf, handle->buf+res, handle->bufpos-res);
-               handle->bufpos -= res;
-
-               if (handle->fmt->update)
+               size_t spos = 0;
+               buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
+                                         AAX_FALSE);
+               if (buf)
                {
-                  size_t spos = 0;
-                  buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
-                                            AAX_FALSE);
-                  if (buf)
-                  {
-                     off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
-                     lseek(handle->fd, spos, SEEK_SET);
-                     res = write(handle->fd, buf, usize);
-                     lseek(handle->fd, floc, SEEK_SET);
-                  }
+                  off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
+                  lseek(handle->fd, spos, SEEK_SET);
+                  res = write(handle->fd, buf, usize);
+                  lseek(handle->fd, floc, SEEK_SET);
                }
-            }
-            else {
-               break;
             }
          }
          else {
             break;
          }
       }
-      while (buffer_avail >= 0);
-      handle->bytes_avail = 0;
+      else {
+         break;
+      }
+   }
+   while (buffer_avail >= 0);
+   handle->bytes_avail = 0;
 
+}  
+
+static void*
+_aaxFileDriverWriteThread(void *id)
+{
+   _driver_t *handle = (_driver_t*)id;
+
+   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
+
+   _aaxMutexLock(handle->thread.signal.mutex);
+   do
+   {
+      _aaxSignalWait(&handle->thread.signal);
+
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+
+      if (!handle->bytes_avail) {
+         continue;
+      }
+   
+      _aaxFileDriverWriteChunk(id);
+
+#if USE_BATCHED_SEMAPHORE
       if (handle->finished) {
          _aaxSemaphoreRelease(handle->finished);
       }
+#endif
    }
    while(handle->thread.started);
 
-   avail = write(handle->fd, handle->buf, handle->bufpos);
-   handle->bufpos -= avail;
+   if (handle->bytes_avail) {
+      _aaxFileDriverWriteChunk(id);
+   }
+
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle; 
+}
+
+static ssize_t
+_aaxFileDriverReadChunk(const void *id)
+{
+   _driver_t *handle = (_driver_t*)id;
+   size_t size = IOBUF_SIZE - handle->bufpos;
+   ssize_t res;
+
+   res = read(handle->fd, handle->buf+handle->bufpos, size);
+   if (res > 0) {
+      handle->bufpos += res;
+   }
+
+   return res;
 }
 
 static void*
@@ -1047,15 +1143,14 @@ _aaxFileDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
-      size_t size = IOBUF_SIZE - handle->bufpos;
-      ssize_t res = read(handle->fd, handle->buf+handle->bufpos, size);
+      ssize_t res = _aaxFileDriverReadChunk(id);
       if (res < 0) break;
 
-      handle->bufpos += res;
-
+#if USE_BATCHED_SEMAPHORE
       if (handle->finished) {
          _aaxSemaphoreRelease(handle->finished);
       }
+#endif
       _aaxSignalWait(&handle->thread.signal);
    }
    while(handle->thread.started);

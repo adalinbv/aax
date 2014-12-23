@@ -118,6 +118,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
+   NULL,
 
    (_aaxDriverState *)&_aaxWASAPIDriverState,
    (_aaxDriverParam *)&_aaxWASAPIDriverParam,

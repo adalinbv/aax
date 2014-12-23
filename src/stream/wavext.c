@@ -68,6 +68,7 @@ static _file_default_fname_fn _aaxWavInterfaces;
 static _file_extension_fn _aaxWavExtension;
 
 static _file_get_param_fn _aaxWavGetParam;
+static _file_set_param_fn _aaxWavSetParam;
 
 _aaxFmtHandle*
 _aaxDetectWavFile()
@@ -91,6 +92,7 @@ _aaxDetectWavFile()
       rv->interfaces = _aaxWavInterfaces;
 
       rv->get_param = _aaxWavGetParam;
+      rv->set_param = _aaxWavSetParam;
    }
    return rv;
 }
@@ -692,12 +694,11 @@ _aaxWavInterfaces(int mode)
    return (char *)rd[mode];
 }
 
-static unsigned int
+static off_t
 _aaxWavGetParam(void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
-
-   size_t rv = 0;
+   off_t rv = 0;
 
    switch(type)
    {
@@ -718,6 +719,22 @@ _aaxWavGetParam(void *id, int type)
       break;
    case __F_SAMPLES:
       rv = handle->max_samples;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+static  off_t
+_aaxWavSetParam(void *id, int type, off_t value)
+{
+   _driver_t *handle = (_driver_t *)id;
+   off_t rv = 0;
+
+   switch(type)
+   {
+   case __F_POSITION:
       break;
    default:
       break;
