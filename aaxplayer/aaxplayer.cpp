@@ -51,7 +51,7 @@ AeonWavePlayer::AeonWavePlayer(QWidget *parent) :
     recording(false),
     infiles_path(""),
     outfiles_path(""),
-    duration(0.0f)
+    max_samples(0)
 {
     ui = new Ui_AudioPlayer;
     ui->setupUi(this);
@@ -141,14 +141,18 @@ AeonWavePlayer::~AeonWavePlayer()
 void
 AeonWavePlayer::tick()
 {
-   if (indev)
+   if (indev && playing) {
+      playing = (aaxMixerGetState(indev) == AAX_PLAYING) ? true : false;
+   }
+
+   if (indev && playing)
    {
        float freq = (float)aaxMixerGetSetup(indev, AAX_FREQUENCY);
        float hour, minutes, seconds, pos;
 
-       pos = (float)aaxSensorGetOffset(indev, AAX_SAMPLES)/freq;
+       pos = (float)aaxSensorGetOffset(indev, AAX_SAMPLES);
 
-       seconds = pos;
+       seconds = floorf(pos/freq);
        hour = floorf(seconds/(60.0f*60.0f));
        seconds -= hour*60.0f*60.0f;
        minutes = floorf(seconds/60.0f);
@@ -157,7 +161,7 @@ AeonWavePlayer::tick()
        QString current = QString("%1:%2:%3").arg(hour,2,'f',0,'0').arg(minutes,2,'f',0,'0').arg(seconds,2,'f',0,'0');
        ui->timeCurrent->setText(current);
 
-       seconds = duration-pos;
+       seconds = _MAX(ceilf((max_samples-pos)/freq), 0);
        hour = floorf(seconds/(60.0f*60.0f));
        seconds -= hour*60.0f*60.0f;
        minutes = floorf(seconds/60.0f);
@@ -166,7 +170,7 @@ AeonWavePlayer::tick()
        QString remain = QString("%1:%2:%3").arg(hour,2,'f',0,'0').arg(minutes,2,'f',0,'0').arg(seconds,2,'f',0,'0');
        ui->timeRemaining->setText(remain);
 
-       ui->pctPlaying->setValue(100*pos/duration);
+       ui->pctPlaying->setValue(100*pos/max_samples);
 
        static const double MAX = 8388608;
        static const double MAXDIV = 1.0/MAX;
@@ -206,8 +210,8 @@ AeonWavePlayer::togglePlay()
         float freq = (float)aaxMixerGetSetup(indev, AAX_FREQUENCY);
         float hour, minutes, seconds;
 
-        duration = (float)aaxMixerGetSetup(indev, AAX_SAMPLES_MAX)/freq;
-        seconds = duration;
+        max_samples = (float)aaxMixerGetSetup(indev, AAX_SAMPLES_MAX);
+        seconds = max_samples/freq;
         hour = floorf(seconds/(60.0f*60.0f));
         seconds -= hour*60.0f*60.0f;
         minutes = floorf(seconds/60.0f);
@@ -236,7 +240,7 @@ AeonWavePlayer::toggleStop()
     playing = false;
     _ATB(aaxSensorSetState(indev, AAX_STOPPED));
     ui->timeTotal->setText("00:00:00");
-    duration = 0.0f;
+    max_samples = 0;
 }
 
 void
