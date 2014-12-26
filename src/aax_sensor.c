@@ -355,7 +355,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
          else if (handle->handle)	/* registered sensor */
          {
             if (state == AAX_SUSPENDED) {
-               _SET_STOPPED(handle);
+               _SET_PAUSED(handle);
             } else {
                _SET_PROCESSED(handle);
             }

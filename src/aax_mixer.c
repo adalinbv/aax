@@ -844,19 +844,23 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      if (rb)
                      {
                         float delay_sec = 1.0f / info->period_rate;
+                        float duration;
 
                         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
                         rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
                         rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
                         /* create a ringbuffer with a bit of overrun space */
+                        duration = rb->get_paramf(rb, RB_DURATION_SEC);
                         rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
 
-                        /* Do not initialize the RinBuffer yet, this would
-                         * assign memory to rb->tracks before the final
-                         * ringbuffer setup is know 
-                        rb->init(rb, AAX_TRUE);
+                        /* Do not initialize the RinBuffer if it wasn't already,
+                         * this would assign memory to rb->tracks before the
+                         * final ringbuffer setup is know
                          */
+                        if (duration > 0.0f) {
+                           rb->init(rb, AAX_TRUE);
+                        }
 
                         /* 
                          * Now set the actual duration, this will not alter the
@@ -938,6 +942,8 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
    if (handle)
    {
       _handle_t* sframe = get_read_handle(s);
+
+      aaxSensorSetState(s, AAX_SUSPENDED);
       if (sframe && sframe->mixer_pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

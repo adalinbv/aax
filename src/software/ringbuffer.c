@@ -195,7 +195,12 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
    rbd = rbi->sample;
 
-   if (!rbd->track)
+   /*
+    * When moving playing registered sensors from one output devcie
+    * to another rbd->track != NULL.  calculate it's new size, free
+    * the previous buffer and create a new one with the proper size
+    */
+   if (1) // !rbd->track)
    {
       unsigned int tracks;
       size_t no_samples, tracksize, dde_bytes;

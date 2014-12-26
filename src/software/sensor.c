@@ -76,7 +76,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          curr_pos_sec = smixer->curr_pos_sec;
          _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
-         if (_IS_PLAYING(device) && !_IS_STOPPED(device))
+         if (_IS_PLAYING(device))
          {
             if (!device->ringbuffer) {
                device->ringbuffer = be->get_ringbuffer(0.0f, smixer->info->mode);
@@ -188,7 +188,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                while(rv);
             }
          }
-         else if (!_IS_PLAYING(device) && _IS_PROCESSED(device))
+         else if (_IS_PROCESSED(device))
          {
             smixer->curr_pos_sec = 0.0f;
             smixer->curr_sample = 0;
