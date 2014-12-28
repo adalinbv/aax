@@ -1367,46 +1367,48 @@ _aaxMixerInit(_handle_t *handle)
       res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate,
                       rssr, periodrate);
 
-      if (TEST_FOR_TRUE(res) &&
-          ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
-           (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT)))
+      if (TEST_FOR_TRUE(res))
       {
-         const _intBufferData* dptr;
-         float old_rate, periods;
-
-         handle->valid |= AAX_TRUE;
-         info->bitrate = brate;
-         info->frequency = freq;
-         info->no_tracks = ch;
-         info->format = fmt;
-
-         info->period_rate = refrate;
-         old_rate = info->refresh_rate/info->update_rate;
-         info->update_rate = (uint8_t)rintf(refrate/old_rate);
-
-         // recalculate refresh_rate based on the number of periods
-         // and the new refresh-rate.
-         periods = rintf(refrate/info->refresh_rate);
-         info->refresh_rate = refrate/periods;
-
-         /* copy the hardware volume from the backend */
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         if ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
+             (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *mixer = sensor->mixer;
-            _aax2dProps *p2d = mixer->props2d;
-            float cur;
+            const _intBufferData* dptr;
+            float old_rate, periods;
 
-            cur = be->param(be_handle, DRIVER_VOLUME);
-            if (cur < 0.05f) cur = 1.0f;
-            _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+            handle->valid |= AAX_TRUE;
+            info->bitrate = brate;
+            info->frequency = freq;
+            info->no_tracks = ch;
+            info->format = fmt;
+
+            info->period_rate = refrate;
+            old_rate = info->refresh_rate/info->update_rate;
+            info->update_rate = (uint8_t)rintf(refrate/old_rate);
+
+            // recalculate refresh_rate based on the number of periods
+            // and the new refresh-rate.
+            periods = rintf(refrate/info->refresh_rate);
+            info->refresh_rate = refrate/periods;
+
+            /* copy the hardware volume from the backend */
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame *mixer = sensor->mixer;
+               _aax2dProps *p2d = mixer->props2d;
+               float cur;
+
+               cur = be->param(be_handle, DRIVER_VOLUME);
+               if (cur < 0.05f) cur = 1.0f;
+               _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
          }
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_SETUP);
-      }
+         else {
+            _aaxErrorSet(AAX_INVALID_SETUP);
+         }
+      } // be->setup() sets it's own error
    }
    else {
       _aaxErrorSet(AAX_INVALID_STATE);
