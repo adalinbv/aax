@@ -112,6 +112,7 @@ typedef struct
    int state;
    unsigned int be_pos;
    unsigned int mixer_pos;
+   int registered_sensors;
    void* handle;		/* assigned when registered to a (sub)mixer */
 
    char *devname[2];

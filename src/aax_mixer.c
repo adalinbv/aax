@@ -736,7 +736,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config);
    int rv = AAX_FALSE;
-   if (handle && VALID_MIXER(handle))
+   if (handle && (VALID_MIXER(handle) || handle->registered_sensors <= 1))
    {
       _handle_t* sframe = get_read_handle(s);
       if (sframe && !sframe->thread.started && (sframe != handle))
@@ -771,6 +771,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                   _aaxErrorSet(AAX_ERROR_NONE);
                   pos = _intBufAddData(hs, _AAX_DEVICE, sframe);
                   mixer->no_registered++;
+                  handle->registered_sensors++;
                }
                else {
                   _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -956,6 +957,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 
             _intBufRemove(hs, _AAX_DEVICE, sframe->mixer_pos, AAX_FALSE);
             mixer->no_registered--;
+            handle->registered_sensors--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
 
             dptr_sframe = _intBufGet(sframe->sensors, _AAX_SENSOR, 0);
