@@ -326,7 +326,21 @@ aaxDriverOpen(aaxConfig config)
                free(handle->backend.driver);
             }
             renderer = be->name(handle->backend.handle, mode);
-            handle->backend.driver = renderer ? renderer : _default_renderer;
+            if (!renderer) renderer = _default_renderer;
+
+            handle->backend.driver = malloc(strlen(be->driver)
+                                            +strlen(" on ")+strlen(renderer)+1);
+            if (handle->backend.driver)
+            {
+               sprintf(handle->backend.driver, "%s on %s", be->driver,renderer);
+               if (renderer != _default_renderer) {
+                  free(renderer);
+               }
+            }
+            else {
+                handle->backend.driver = renderer;
+            }
+
             if (_info == NULL) {
                _info =  handle->info;
             }
