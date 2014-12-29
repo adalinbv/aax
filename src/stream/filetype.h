@@ -33,6 +33,9 @@ enum _aaxFileParam
    __F_BLOCK,
    __F_SAMPLES,
 
+   __F_ARTIST = 0x0800,		/* get name strings */
+   __F_TITLE,
+
    __F_POSITION = 0x1000	/* set */
 };
 
@@ -41,6 +44,7 @@ typedef void* (_file_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
 typedef void* (_file_open_fn)(void*, void*, size_t*, size_t);
 typedef int (_file_close_fn)(void*);
 typedef void* (_file_update_fn)(void*, size_t*, size_t*, char);
+typedef char* (_file_get_name_fn)(void*, enum _aaxFileParam);
 
 typedef void (_file_cvt_fn)(void*, void_ptr, size_t);
 typedef size_t (_file_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
@@ -60,6 +64,7 @@ typedef struct
    _file_open_fn *open;
    _file_close_fn *close;
    _file_update_fn *update;
+   _file_get_name_fn *name;
 
    _file_cvt_fn *cvt_to_signed;
    _file_cvt_fn *cvt_from_signed;

@@ -479,6 +479,35 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          if (bufsize && res == bufsize)
          {
+            char *artist = handle->fmt->name(handle->fmt->id, __F_ARTIST);
+            char *title = handle->fmt->name(handle->fmt->id, __F_TITLE);
+            int sartist = artist ? strlen(artist) : 0;
+            int stitle = title ? strlen(title) : 0;
+            int stotal = sartist + stitle;
+            char *name;
+
+            if (stotal)
+            {
+               if ((sartist > 0) && (stitle > 0)) {
+                  stotal += strlen(" - ");
+               }
+
+               name = malloc(stotal+1);
+               if (name)
+               {
+                  if ((sartist >0) && (stitle > 0)) {
+                     snprintf(name, stotal, "%s - %s", artist, title);
+                  }
+                  else if (sartist > 0) {
+                     memcpy(name, artist, stotal+1);
+                  } else {
+                     memcpy(name, title, stotal+1);
+                  }
+                  free(handle->name);
+                  handle->name = name;
+               }
+            }
+
             rate = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
 
             handle->frequency = (float)rate;

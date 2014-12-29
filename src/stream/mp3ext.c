@@ -53,6 +53,7 @@ static _file_set_param_fn _aaxMPG123SetParam;
 
 static _file_detect_fn _aaxMP3Detect;
 static _file_new_handle_fn _aaxMP3Setup;
+static _file_get_name_fn _aaxMP3GetName;
 static _file_default_fname_fn _aaxMP3Interfaces;
 static _file_extension_fn _aaxMP3Extension;
 static _file_get_param_fn _aaxMP3GetParam;
@@ -156,6 +157,7 @@ _aaxDetectMP3File()
 typedef struct
 {
    void *id;
+   char *name;
 
    int mode;
    int capturing;
@@ -373,6 +375,13 @@ _aaxMP3Interfaces(int mode)
 {
    static const char *rd[2] = { "*.mp3\0", "*.mp3\0" };
    return (char *)rd[mode];
+}
+
+static char*
+_aaxMP3GetName(void *id, enum _aaxFileParam param)
+{
+   _driver_t *handle = (_driver_t *)id;
+   return handle->name;
 }
 
 static off_t

@@ -57,6 +57,7 @@ static _file_new_handle_fn _aaxWavSetup;
 static _file_open_fn _aaxWavOpen;
 static _file_close_fn _aaxWavClose;
 static _file_update_fn _aaxWavUpdate;
+static _file_get_name_fn _aaxWavGetName;
 
 static _file_cvt_to_fn _aaxWavCvtToIntl;
 static _file_cvt_from_fn _aaxWavCvtFromIntl;
@@ -81,6 +82,7 @@ _aaxDetectWavFile()
       rv->open = _aaxWavOpen;
       rv->close = _aaxWavClose;
       rv->update = _aaxWavUpdate;
+      rv->name = _aaxWavGetName;
 
       rv->cvt_from_intl = _aaxWavCvtFromIntl;
       rv->cvt_to_intl = _aaxWavCvtToIntl;
@@ -158,6 +160,9 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
 
 typedef struct
 {
+   char *artist;
+   char *title;
+
    int capturing;
 
    int no_tracks;
@@ -505,6 +510,8 @@ _aaxWavClose(void *id)
       else {
          free(handle->io.write.header);
       }
+      free(handle->artist);
+      free(handle->title);
       free(handle);
    }
 
@@ -694,6 +701,26 @@ _aaxWavInterfaces(int mode)
    return (char *)rd[mode];
 }
 
+static char*
+_aaxWavGetName(void *id, enum _aaxFileParam param)
+{
+   _driver_t *handle = (_driver_t *)id;
+   char *rv = NULL;
+
+   switch(param)
+   {
+   case __F_ARTIST:
+      rv = handle->artist;
+      break;
+   case __F_TITLE:
+      rv = handle->title;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
 static off_t
 _aaxWavGetParam(void *id, int type)
 {
@@ -865,6 +892,8 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
    }
    else if (curr == 0x5453494c)		/* LIST */
    {				// http://www.daubnet.com/en/file-format-riff
+      char *artist = NULL;
+      char *title = NULL;
       ssize_t size = bufsize;
 
       *step = 0;
@@ -897,13 +926,37 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
             switch(curr)
             {
             case 0x54524149:	/* IART: Artist              */
+               curr = BSWAP(header[1]);
+               size -= 2*sizeof(int32_t) + curr;
+               if (size < 0) break;
+
+               handle->artist = malloc(curr);
+               if (handle->artist) {
+                  memcpy(handle->artist, (char*)&header[2], curr);
+               }
+
+               *step += 2*sizeof(int32_t) + curr;
+               header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
+               break;
+            case 0x4d414e49:    /* INAM: Track Title         */
+               curr = BSWAP(header[1]);
+               size -= 2*sizeof(int32_t) + curr;
+               if (size < 0) break;
+
+               handle->title = malloc(curr);
+               if (handle->title) {
+                  memcpy(handle->title, (char*)&header[2], curr);
+               }
+
+               *step += 2*sizeof(int32_t) + curr;
+               header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
+               break;
             case 0x44525049: 	/* IPRD: Album Title/Product */
             case 0x4b525449:	/* ITRK: Track Number        */
             case 0x44524349:	/* ICRD: Date Created        */
             case 0x524e4749:	/* IGNR: Genre               */
             case 0x504f4349:	/* ICOP: Copyright           */
             case 0x54465349:	/* ISFT: Software            */
-            case 0x4d414e49:	/* INAM: Track Title         */
             case 0x544d4349:	/* ICMT: Comments            */
 
                curr = BSWAP(header[1]);
