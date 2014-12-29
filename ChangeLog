@@ -15,6 +15,7 @@
  * Fix a problem when a registered sensor had a different number of
    audio periods in relation to the playback device.
  * Fix an emitter looping bug introduced in version 2.4.1
+ * The file writing backend now refuses to write to files that already exsist.
 
  -- Erik Hofman <tech@adalin.org>  Fri, 12 Dec 2014 14:16:00 + 0100
 

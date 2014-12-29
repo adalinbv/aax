@@ -273,7 +273,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
    if (handle)
    {
       static const int _mode[] = {
-         O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
+         O_WRONLY|O_CREAT|O_EXCL|O_BINARY,
          O_RDONLY|O_BINARY
       };
       int m = (handle->mode > 0) ? 0 : 1;
@@ -535,7 +535,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       else
       {
-         _aaxFileDriverLog(id, 0, 0, "Unable to open the file");
+         if (handle->mode != AAX_MODE_READ) {
+            _aaxFileDriverLog(id, 0, 0, "File already exists");
+         } else {
+            _aaxFileDriverLog(id, 0, 0, "Unable to open the file for reading");
+         }
          free(handle->fmt->id);
          handle->fmt->id = 0;
       }
