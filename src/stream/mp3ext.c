@@ -135,6 +135,7 @@ _aaxDetectMP3File()
       rv->setup = _aaxMP3Setup;
       rv->open = _aaxMP3Open;
       rv->close = _aaxMP3Close;
+      rv->name = _aaxMP3GetName;
       rv->update = NULL;
 
       rv->cvt_from_intl = _aaxMP3CvtFromIntl;

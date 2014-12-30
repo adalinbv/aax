@@ -805,7 +805,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain,
 }
 
 static char *
-_aaxDMediaGetName(const void *id, int playback)
+_aaxDMediaGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
@@ -827,7 +827,7 @@ _aaxDMediaGetName(const void *id, int playback)
 #else
 
    /* TODO: distinguish between playback and record */
-   if (handle && handle->port[0].name) {
+   if (handle && handle->port[0].name && (mode < AAX_MODE_WRITE_MAX)) {
       ret = _aax_strdup(handle->port[0].name);
    }
 

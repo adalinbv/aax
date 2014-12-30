@@ -892,8 +892,6 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
    }
    else if (curr == 0x5453494c)		/* LIST */
    {				// http://www.daubnet.com/en/file-format-riff
-      char *artist = NULL;
-      char *title = NULL;
       ssize_t size = bufsize;
 
       *step = 0;

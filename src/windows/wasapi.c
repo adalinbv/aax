@@ -836,12 +836,12 @@ _aaxWASAPIDriverRender(const void* config)
 }
 
 static char *
-_aaxWASAPIDriverGetName(const void *id, int playback)
+_aaxWASAPIDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle && handle->pDevice) {
+   if (handle && handle->pDevice && (mode < AAX_MODE_WRITE_MAX)) {
       ret = _aaxMMDeviceNameToName(detect_devname(handle->pDevice));
    }
 

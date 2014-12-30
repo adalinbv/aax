@@ -73,7 +73,6 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
          break;
       case AAX_RENDERER_STRING:
-         rv = be->name(handle->backend.handle,handle->info->mode != 0 ? 1 : 0);
          if (rv)
          {
             if (handle->backend.driver != _default_renderer) {
@@ -94,6 +93,10 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       case AAX_VENDOR_STRING:
          rv = (char*)be->vendor;
          break;
+      case AAX_ARTIST_STRING:
+      case AAX_TITLE_STRING:
+          rv = be->name(handle->backend.handle, type);
+          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }

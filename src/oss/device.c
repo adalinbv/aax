@@ -669,12 +669,12 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain,
 }
 
 static char *
-_aaxOSSDriverGetName(const void *id, int playback)
+_aaxOSSDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle && handle->devnode)
+   if (handle && handle->devnode && (mode < AAX_MODE_WRITE_MAX))
       ret = _aax_strdup(handle->name);
 
    return ret;

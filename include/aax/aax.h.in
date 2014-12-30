@@ -234,8 +234,12 @@ enum aaxSetupType
    AAX_PERIODS_MIN,
    AAX_PERIODS_MAX,
    AAX_FREQUENCY_MIN,
-   AAX_FREQUENCY_MAX,           /* mixer capabilities */
+   AAX_FREQUENCY_MAX,
    AAX_SAMPLES_MAX,
+
+   /* File and track information */
+   AAX_ARTIST_STRING	      = 0x2000,
+   AAX_TITLE_STRING
 };
 
 enum aaxErrorType

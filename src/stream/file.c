@@ -479,35 +479,6 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          if (bufsize && res == bufsize)
          {
-            char *artist = handle->fmt->name(handle->fmt->id, __F_ARTIST);
-            char *title = handle->fmt->name(handle->fmt->id, __F_TITLE);
-            int sartist = artist ? strlen(artist) : 0;
-            int stitle = title ? strlen(title) : 0;
-            int stotal = sartist + stitle;
-            char *name;
-
-            if (stotal)
-            {
-               if ((sartist > 0) && (stitle > 0)) {
-                  stotal += strlen(" - ");
-               }
-
-               name = malloc(stotal+1);
-               if (name)
-               {
-                  if ((sartist >0) && (stitle > 0)) {
-                     snprintf(name, stotal, "%s - %s", artist, title);
-                  }
-                  else if (sartist > 0) {
-                     memcpy(name, artist, stotal+1);
-                  } else {
-                     memcpy(name, title, stotal+1);
-                  }
-                  free(handle->name);
-                  handle->name = name;
-               }
-            }
-
             rate = handle->fmt->get_param(handle->fmt->id, __F_FREQ);
 
             handle->frequency = (float)rate;
@@ -792,17 +763,36 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
 }
 
 static char *
-_aaxFileDriverGetName(const void *id, int playback)
+_aaxFileDriverGetName(const void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
    if (handle)
    {
-      if (handle->name) {
-         ret = _aax_strdup(handle->name);
-      } else {
-         ret = _aax_strdup("default");
+      assert (AAX_ARTIST_STRING > AAX_MODE_WRITE_MAX);
+
+      switch (type)
+      {
+      case AAX_MODE_READ:
+      case AAX_MODE_WRITE_STEREO:
+      case AAX_MODE_WRITE_SPATIAL:
+      case AAX_MODE_WRITE_SURROUND:
+      case AAX_MODE_WRITE_HRTF:
+         if (handle->name) {
+            ret = _aax_strdup(handle->name);
+         } else {
+            ret = _aax_strdup("default");
+         }
+         break;
+      case AAX_ARTIST_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
+         break;
+      case AAX_TITLE_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
+         break;
+      default:
+         break;
       }
    }
 

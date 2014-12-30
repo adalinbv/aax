@@ -1332,7 +1332,7 @@ _aaxALSADriverGetName(const void *id, int mode)
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle)
+   if (handle && (mode < AAX_MODE_WRITE_MAX))
    {
       if (handle->name) {
          ret = _aax_strdup(handle->name);

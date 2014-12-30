@@ -1027,12 +1027,12 @@ _aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain,
 }
 
 static char *
-_aaxLinuxDriverGetName(const void *id, int playback)
+_aaxLinuxDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle && handle->name) {
+   if (handle && handle->name && (mode < AAX_MODE_WRITE_MAX)) {
       ret = _aax_strdup(handle->name);
    }
 
