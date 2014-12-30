@@ -312,13 +312,13 @@ int main(int argc, char **argv)
         res = aaxSensorSetState(record, AAX_CAPTURING);
         testForState(res, "aaxSensorCaptureStart");
 
-        if (infile)
+        if (infile && verbose)
         {
             const char *artist = aaxDriverGetSetup(record, AAX_ARTIST_STRING);
             const char *title = aaxDriverGetSetup(record, AAX_TITLE_STRING);
             printf("Playing: %s\n", infile);
-            if (artist) printf(" Artist: %s\n", artist);
             if (title)  printf(" Title : %s\n", title);
+            if (artist) printf(" Artist: %s\n", artist);
         }
 
 
