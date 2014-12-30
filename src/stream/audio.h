@@ -185,6 +185,44 @@ enum mpg123_errors
   MPG123_INT_OVERFLOW
 };
 
+#define	MPG123_ID3	0x3
+#define MPG123_NEW_ID3	0x1
+
+typedef struct {
+   char* p;
+   size_t size;
+   size_t fill;
+} mpg123_string;
+
+typedef struct {
+   unsigned char version;
+   mpg123_string *title;
+   mpg123_string *artist;
+   mpg123_string *album;
+   mpg123_string *year;
+   mpg123_string *genre;
+   mpg123_string *comment;
+   /* Encountered ID3v2 fields are appended to these lists. */
+   void *comment_list;
+   size_t comments;
+   void *text;
+   size_t texts;
+   void *extra;
+   size_t extras;
+   void *picture;
+   size_t pictures;
+} mpg123_id3v2;
+
+typedef struct {
+   char tag[3];
+   char title[30];
+   char artist[30];
+   char album[30];
+   char year[4];
+   char comment[30];
+   unsigned char genre;
+} mpg123_id3v1;
+
 typedef int (*mpg123_init_proc)(void);
 typedef void (*mpg123_exit_proc)(void);
 typedef void* (*mpg123_new_proc)(const char*, int*);
@@ -192,16 +230,18 @@ typedef void (*mpg123_delete_proc)(void*);
 typedef int (*mpg123_open_fd_proc)(void*, int);
 typedef int (*mpg123_open_feed_proc)(void*);
 typedef int (*mpg123_read_proc)(void*, unsigned char*, size_t, size_t*);
+typedef int (*mpg123_feed_proc)(void*, const unsigned char*,  	size_t);
 typedef int (*mpg123_decode_proc)(void*, const unsigned char*, size_t, unsigned char*, size_t, size_t*);
 typedef int (*mpg123_param_proc)(void*, enum mpg123_parms, long, double);
 typedef int (*mpg123_getparam_proc)(void*, enum mpg123_parms, long*, double*);
 typedef int (*mpg123_feature_proc)(const enum mpg123_feature_set);
 typedef int (*mpg123_format_proc)(void*, long, int, int);
-typedef int (*mpg123_format_none_proc)(void*);
 typedef int (*mpg123_getformat_proc)(void*, long*, int*, int*);
 typedef int (*mpg123_set_filesize_proc)(void*, off_t);
 typedef off_t (*mpg123_length_proc)(void*);
 typedef off_t (*mpg123_feedseek_proc)(void*, off_t, int, off_t*);
+typedef int (*mpg123_meta_check_proc)(void*);
+typedef int (*mpg123_id3_proc)(void*, mpg123_id3v1**, mpg123_id3v2**);
 
 /* libmpg123 */
 

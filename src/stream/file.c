@@ -770,7 +770,7 @@ _aaxFileDriverGetName(const void *id, int type)
 
    if (handle)
    {
-      assert (AAX_ARTIST_STRING > AAX_MODE_WRITE_MAX);
+      assert ((int)AAX_ARTIST_STRING > (int)AAX_MODE_WRITE_MAX);
 
       switch (type)
       {

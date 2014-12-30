@@ -103,13 +103,16 @@ DECL_FUNCTION(mpg123_new);
 DECL_FUNCTION(mpg123_param);
 DECL_FUNCTION(mpg123_open_feed);
 DECL_FUNCTION(mpg123_decode);
+DECL_FUNCTION(mpg123_feed);
+DECL_FUNCTION(mpg123_read);
 DECL_FUNCTION(mpg123_delete);
 DECL_FUNCTION(mpg123_format);
-DECL_FUNCTION(mpg123_format_none);
 DECL_FUNCTION(mpg123_getformat);
 DECL_FUNCTION(mpg123_length);
 DECL_FUNCTION(mpg123_set_filesize);
 DECL_FUNCTION(mpg123_feedseek);
+DECL_FUNCTION(mpg123_meta_check);
+DECL_FUNCTION(mpg123_id3);
 
 	/** lame: both Linxu and Windows */
 DECL_FUNCTION(lame_init);
@@ -158,10 +161,12 @@ _aaxDetectMP3File()
 typedef struct
 {
    void *id;
-   char *name;
+   char *artist;
+   char *title;
 
    int mode;
    int capturing;
+   int id3_found;
 
    int frequency;
    int bitrate;
@@ -187,6 +192,7 @@ typedef struct
 
 } _driver_t;
 
+static void detect_mpg123_song_info(_driver_t*);
 
 static int
 _aaxMP3Detect(int mode)
@@ -268,9 +274,10 @@ _aaxMP3Detect(int mode)
                   TIE_FUNCTION(mpg123_param);
                   TIE_FUNCTION(mpg123_open_feed);
                   TIE_FUNCTION(mpg123_decode);
+                  TIE_FUNCTION(mpg123_feed);
+                  TIE_FUNCTION(mpg123_read);
                   TIE_FUNCTION(mpg123_delete);
                   TIE_FUNCTION(mpg123_format);
-                  TIE_FUNCTION(mpg123_format_none);
                   TIE_FUNCTION(mpg123_getformat);
 
                   error = _aaxGetSymError(0);
@@ -284,6 +291,8 @@ _aaxMP3Detect(int mode)
                   TIE_FUNCTION(mpg123_length);
                   TIE_FUNCTION(mpg123_set_filesize);
                   TIE_FUNCTION(mpg123_feedseek);
+                  TIE_FUNCTION(mpg123_meta_check);
+                  TIE_FUNCTION(mpg123_id3);
                }
             }
          }
@@ -382,7 +391,20 @@ static char*
 _aaxMP3GetName(void *id, enum _aaxFileParam param)
 {
    _driver_t *handle = (_driver_t *)id;
-   return handle->name;
+   char *rv = NULL;
+
+   switch(param)
+   {
+   case __F_ARTIST:
+      rv = handle->artist;
+      break;
+   case __F_TITLE:
+      rv = handle->title;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
 static off_t
@@ -468,16 +490,36 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
             {
                char *ptr = 0;
 
+#ifdef NDEBUG
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
+#endif
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS, 1);
                pmpg123_param(handle->id, MPG123_RESYNC_LIMIT, -1, 0.0);
                pmpg123_param(handle->id, MPG123_REMOVE_FLAGS,
                                          MPG123_AUTO_RESAMPLE, 0);
-               pmpg123_open_feed(handle->id);
-               handle->mp3BufSize = 16384;
 
-               handle->mp3ptr = _aax_malloc(&ptr, handle->mp3BufSize);
-               handle->mp3Buffer = ptr;
+               pmpg123_format(handle->id, handle->frequency,
+                                    MPG123_MONO | MPG123_STEREO,
+                                    MPG123_ENC_SIGNED_16);
+
+               if (pmpg123_open_feed(handle->id) == MPG123_OK)
+               {
+                  handle->mp3BufSize = 16384;
+                  handle->mp3ptr = _aax_malloc(&ptr, handle->mp3BufSize);
+                  handle->mp3Buffer = ptr;
+
+                  if (pmpg123_set_filesize) {
+                     pmpg123_set_filesize(handle->id, fsize);
+                  }
+                  if (!handle->id3_found) detect_mpg123_song_info(handle);
+               }
+               else
+               {
+                  _AAX_FILEDRVLOG("MP3File: Unable to initialize mpg123");
+                  pmpg123_delete(handle->id);
+                  handle->id = NULL;
+                  pmpg123_exit();
+               }
             }
          }
 
@@ -487,39 +529,28 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
             int ret;
 
             ret = pmpg123_decode(handle->id, buf, *bufsize, NULL, 0, &size);
+            if (!handle->id3_found) detect_mpg123_song_info(handle);
             if (ret == MPG123_NEW_FORMAT)
             {
                int enc, channels;
                long rate;
 
                ret = pmpg123_getformat(handle->id, &rate, &channels, &enc);
-               if (ret == MPG123_OK)
-               {
-                  pmpg123_format_none(handle->id);
-                  ret = pmpg123_format(handle->id, handle->frequency,
-                                       MPG123_MONO | MPG123_STEREO,
-                                       MPG123_ENC_SIGNED_16);
-
-                  if (ret == MPG123_OK &&
+               if ((ret == MPG123_OK) &&
                       (1000 <= rate) && (rate <= 192000) &&
                       (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
+               {
+                  handle->frequency = rate;
+                  handle->no_tracks = channels;
+                  handle->format = getFormatFromMP3FileFormat(enc);
+                  handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
+                  rv = buf;
+
+                  if (pmpg123_length)
                   {
-                     handle->frequency = rate;
-                     handle->no_tracks = channels;
-                     handle->format = getFormatFromMP3FileFormat(enc);
-                     handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
-                     rv = buf;
-
-                     if (pmpg123_set_filesize)
-                     {
-                        pmpg123_set_filesize(handle->id, fsize);
-                        if (pmpg123_length)
-                        {
-                           off_t length = pmpg123_length(handle->id);
-                           handle->max_samples = (length>0) ? length : UINT_MAX;
-                        }
-                     }
+                     off_t length = pmpg123_length(handle->id);
+                     handle->max_samples = (length > 0) ? length : UINT_MAX;
                   }
                }
                else {
@@ -630,7 +661,8 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t o
       if (bytes > bufsize) {
          bytes = bufsize;
       }
-      ret = pmpg123_decode(handle->id, NULL, 0, buf, bytes, &size);
+      ret = pmpg123_read(handle->id, buf, bytes, &size);
+      if (!handle->id3_found) detect_mpg123_song_info(handle);
       if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
       {
          rv = size/(tracks*bps);
@@ -639,7 +671,8 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t o
    }
    else
    {
-      ret = pmpg123_decode(handle->id, sptr, bytes, NULL, 0, &size);
+      ret = pmpg123_feed(handle->id, sptr, bytes);
+      if (!handle->id3_found) detect_mpg123_song_info(handle);
       if (ret == MPG123_OK) {
          rv = __F_PROCESS;
       }
@@ -963,3 +996,44 @@ acmDriverEnumCallback(HACMDRIVERID hadid, DWORD dwInstance, DWORD fdwSupport)
    return AAX_TRUE;
 }
 #endif /* WINXP */
+
+void
+detect_mpg123_song_info(_driver_t *handle)
+{
+   if (!pmpg123_meta_check || !pmpg123_id3) {
+      handle->id3_found = AAX_TRUE;
+   }
+
+   if (!handle->id3_found)
+   {
+      int meta = pmpg123_meta_check(handle->id);
+      mpg123_id3v1 *v1 = NULL;
+      mpg123_id3v2 *v2 = NULL;
+
+      if ((meta & MPG123_ID3) && (pmpg123_id3(handle->id, &v1, &v2) == MPG123_OK))
+      {
+         if (v2)
+         {
+            if (v2->artist != NULL && v2->artist->fill) {
+               handle->artist = strdup(v2->artist->p);
+            }
+            if (v2->title != NULL && v2->title->fill) {
+               handle->title = strdup(v2->title->p);
+            }
+            handle->id3_found = AAX_TRUE;
+         }
+         else if (v1)
+         {
+            handle->artist = malloc(32);
+            memcpy(handle->artist, v1->artist, sizeof(v1->artist));
+            handle->artist[31] = 0;
+
+            handle->title= malloc(32);
+            memcpy(handle->title, v1->title, sizeof(v1->title));
+            handle->title[31] = 0;
+            handle->id3_found = AAX_TRUE;
+         }
+      }
+   }
+}
+

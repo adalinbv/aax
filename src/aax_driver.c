@@ -73,14 +73,6 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
          break;
       case AAX_RENDERER_STRING:
-         if (rv)
-         {
-            if (handle->backend.driver != _default_renderer) {
-               free(handle->backend.driver);
-            }
-            handle->backend.driver = rv;
-         }
-
          if (handle->backend.driver) {
             rv = (char*)handle->backend.driver;
          } else {
