@@ -314,11 +314,29 @@ int main(int argc, char **argv)
 
         if (infile && verbose)
         {
-            const char *artist = aaxDriverGetSetup(record, AAX_ARTIST_STRING);
-            const char *title = aaxDriverGetSetup(record, AAX_TITLE_STRING);
-            printf("Playing: %s\n", infile);
-            if (title)  printf(" Title : %s\n", title);
-            if (artist) printf(" Artist: %s\n", artist);
+            const char *s = aaxDriverGetSetup(record, AAX_TRACK_TITLE_STRING);
+            if (s) printf(" Title : %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_MUSIC_ARTIST_STRING);
+            if (s) printf(" Artist: %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_ALBUM_NAME_STRING);
+            if (s) printf(" Album : %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_MUSIC_GENRE_STRING);
+            if (s) printf(" Genre : %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_RELEASE_DATE_STRING);
+            if (s) printf(" Release date: %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_TRACK_NUMBER_STRING);
+            if (s) printf(" Track number: %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_SONG_COPYRIGHT_STRING);
+            if (s) printf(" Coopyright:  %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_SONG_COMMENT_STRING);
+            if (s) printf(" Comments: %s\n", s);
         }
 
 
