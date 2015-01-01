@@ -111,6 +111,8 @@ _aaxDetectWavFile()
 #define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
 #define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
 
+#define __COPY(p, c, h) if ((p = malloc(c)) != NULL) memcpy(p, h, c)
+
 static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE] =
 {
     0x46464952,                 /*  0. "RIFF"                                */
@@ -162,6 +164,12 @@ typedef struct
 {
    char *artist;
    char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *copyright;
+   char *comments;
 
    int capturing;
 
@@ -512,6 +520,12 @@ _aaxWavClose(void *id)
       }
       free(handle->artist);
       free(handle->title);
+      free(handle->album);
+      free(handle->trackno);
+      free(handle->date);
+      free(handle->genre);
+      free(handle->copyright);
+      free(handle->comments);
       free(handle);
    }
 
@@ -714,6 +728,24 @@ _aaxWavGetName(void *id, enum _aaxFileParam param)
       break;
    case __F_TITLE:
       rv = handle->title;
+      break;
+   case __F_GENRE:
+      rv = handle->genre;
+      break;
+   case __F_TRACKNO:
+      rv = handle->trackno;
+      break;
+   case __F_ALBUM:
+      rv = handle->album;
+      break;
+   case __F_DATE:
+      rv = handle->date;
+      break;
+   case __F_COMMENT:
+      rv = handle->comments;
+      break;
+   case __F_COPYRIGHT:
+      rv = handle->copyright;
       break;
    default:
       break;
@@ -920,47 +952,52 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
 
          do
          {
-            curr = BSWAP(header[0]);
-            switch(curr)
+            int32_t head = BSWAP(header[0]);
+            switch(head)
             {
             case 0x54524149:	/* IART: Artist              */
-               curr = BSWAP(header[1]);
-               size -= 2*sizeof(int32_t) + curr;
-               if (size < 0) break;
-
-               handle->artist = malloc(curr);
-               if (handle->artist) {
-                  memcpy(handle->artist, (char*)&header[2], curr);
-               }
-
-               *step += 2*sizeof(int32_t) + curr;
-               header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
-               break;
-            case 0x4d414e49:    /* INAM: Track Title         */
-               curr = BSWAP(header[1]);
-               size -= 2*sizeof(int32_t) + curr;
-               if (size < 0) break;
-
-               handle->title = malloc(curr);
-               if (handle->title) {
-                  memcpy(handle->title, (char*)&header[2], curr);
-               }
-
-               *step += 2*sizeof(int32_t) + curr;
-               header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
-               break;
-            case 0x44525049: 	/* IPRD: Album Title/Product */
+            case 0x4d414e49:	/* INAM: Track Title         */
+            case 0x44525049:	/* IPRD: Album Title/Product */
             case 0x4b525449:	/* ITRK: Track Number        */
             case 0x44524349:	/* ICRD: Date Created        */
             case 0x524e4749:	/* IGNR: Genre               */
             case 0x504f4349:	/* ICOP: Copyright           */
-            case 0x54465349:	/* ISFT: Software            */
             case 0x544d4349:	/* ICMT: Comments            */
-
+            case 0x54465349:	/* ISFT: Software            */
                curr = BSWAP(header[1]);
                size -= 2*sizeof(int32_t) + curr;
                if (size < 0) break;
 
+               switch(head)
+               {
+               case 0x54524149:	/* IART: Artist              */
+                  __COPY(handle->artist, curr, (char*)&header[2]);
+                  break;
+               case 0x4d414e49:	/* INAM: Track Title         */
+                  __COPY(handle->title, curr, (char*)&header[2]);
+                  break;
+               case 0x44525049:	/* IPRD: Album Title/Product */
+                  __COPY(handle->album, curr, (char*)&header[2]);
+                  break;
+               case 0x4b525449:	/* ITRK: Track Number        */
+                  __COPY(handle->trackno, curr, (char*)&header[2]);
+                  break;
+               case 0x44524349:	/* ICRD: Date Created        */
+                  __COPY(handle->date, curr, (char*)&header[2]);
+                  break;
+               case 0x524e4749:	/* IGNR: Genre               */
+                  __COPY(handle->genre, curr, (char*)&header[2]);
+                  break;
+               case 0x504f4349:	/* ICOP: Copyright           */
+                  __COPY(handle->copyright, curr, (char*)&header[2]);
+                  break;
+               case 0x544d4349:	/* ICMT: Comments            */
+                  __COPY(handle->comments, curr, (char*)&header[2]);
+                  break;
+               case 0x54465349:	/* ISFT: Software            */
+               default:
+                  break;
+               }
                *step += 2*sizeof(int32_t) + curr;
                header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
                break;

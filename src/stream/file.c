@@ -785,11 +785,32 @@ _aaxFileDriverGetName(const void *id, int type)
             ret = _aax_strdup("default");
          }
          break;
-      case AAX_ARTIST_STRING:
+      case AAX_MUSIC_ARTIST_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
          break;
-      case AAX_TITLE_STRING:
+      case AAX_TRACK_TITLE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
+         break;
+      case AAX_MUSIC_GENRE_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
+         break;
+      case AAX_TRACK_NUMBER_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_TRACKNO);
+         break;
+      case AAX_ALBUM_NAME_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_ALBUM);
+         break;
+      case AAX_RELEASE_DATE_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_DATE);
+         break;
+      case AAX_SONG_COPYRIGHT_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
+         break;
+      case AAX_SONG_COMMENT_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_COMMENT);
+         break;
+      case AAX_COVER_IMAGE_DATA:
+         ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);
          break;
       default:
          break;

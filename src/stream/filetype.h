@@ -34,7 +34,14 @@ enum _aaxFileParam
    __F_SAMPLES,
 
    __F_ARTIST = 0x0800,		/* get name strings */
+   __F_GENRE,
    __F_TITLE,
+   __F_TRACKNO,
+   __F_ALBUM,
+   __F_DATE,
+   __F_COPYRIGHT,
+   __F_COMMENT, 
+   __F_IMAGE,
 
    __F_POSITION = 0x1000	/* set */
 };
