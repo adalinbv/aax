@@ -335,8 +335,8 @@ int main(int argc, char **argv)
             s = aaxDriverGetSetup(record, AAX_SONG_COPYRIGHT_STRING);
             if (s) printf(" Coopyright:  %s\n", s);
 
-            s = aaxDriverGetSetup(record, AAX_SONG_COMMENT_STRING);
-            if (s) printf(" Comments: %s\n", s);
+//          s = aaxDriverGetSetup(record, AAX_SONG_COMMENT_STRING);
+//          if (s) printf(" Comments: %s\n", s);
         }
 
 
