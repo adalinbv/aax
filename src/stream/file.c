@@ -770,7 +770,7 @@ _aaxFileDriverGetName(const void *id, int type)
 
    if (handle)
    {
-      assert ((int)AAX_ARTIST_STRING > (int)AAX_MODE_WRITE_MAX);
+      assert ((int)AAX_MUSIC_PERFORMER_STRING > (int)AAX_MODE_WRITE_MAX);
 
       switch (type)
       {
@@ -785,7 +785,7 @@ _aaxFileDriverGetName(const void *id, int type)
             ret = _aax_strdup("default");
          }
          break;
-      case AAX_MUSIC_ARTIST_STRING:
+      case AAX_MUSIC_PERFORMER_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
          break;
       case AAX_TRACK_TITLE_STRING:
@@ -803,11 +803,17 @@ _aaxFileDriverGetName(const void *id, int type)
       case AAX_RELEASE_DATE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_DATE);
          break;
+      case AAX_SONG_COMPOSER_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_COMPOSER);
+         break;
       case AAX_SONG_COPYRIGHT_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
          break;
       case AAX_SONG_COMMENT_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_COMMENT);
+         break;
+      case AAX_ORIGINAL_PERFORMER_STRING:
+         ret = handle->fmt->name(handle->fmt->id, __F_ORIGINAL);
          break;
       case AAX_COVER_IMAGE_DATA:
          ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);

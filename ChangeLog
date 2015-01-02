@@ -1,4 +1,4 @@
-* Fri Dec 12 2014 - tech@adalin.org
+* Fri Jan 02 2015 - tech@adalin.org
 - AeonWave (2.5.0) stable; urgency=low
  * Added a capabilities interface to detect the limits of the audio hardware
    by making calls to the aaxMixerGetSetup function.
@@ -16,8 +16,9 @@
    audio periods in relation to the playback device.
  * Fix an emitter looping bug introduced in version 2.4.1
  * The file writing backend now refuses to write to files that already exsist.
+ * The file backend can now return song meta data.
 
- -- Erik Hofman <tech@adalin.org>  Fri, 12 Dec 2014 14:16:00 + 0100
+ -- Erik Hofman <tech@adalin.org>  Fri, 02 Jan 2015 13:15:00 + 0100
 
 * Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low

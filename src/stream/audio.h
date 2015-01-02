@@ -195,6 +195,21 @@ typedef struct {
 } mpg123_string;
 
 typedef struct {
+   char lang[3];
+   char id[4];
+   mpg123_string description;
+   mpg123_string text;
+} mpg123_text;
+
+typedef struct {
+   char type;
+   mpg123_string description;
+   mpg123_string mime_type;
+   size_t size;
+   unsigned char *data;
+} mpg123_picture;
+
+typedef struct {
    unsigned char version;
    mpg123_string *title;
    mpg123_string *artist;
@@ -203,13 +218,13 @@ typedef struct {
    mpg123_string *genre;
    mpg123_string *comment;
    /* Encountered ID3v2 fields are appended to these lists. */
-   void *comment_list;
+   mpg123_text *comment_list;
    size_t comments;
-   void *text;
+   mpg123_text *text;
    size_t texts;
-   void *extra;
+   mpg123_text *extra;
    size_t extras;
-   void *picture;
+   mpg123_picture *picture;
    size_t pictures;
 } mpg123_id3v2;
 

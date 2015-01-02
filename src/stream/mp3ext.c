@@ -169,12 +169,15 @@ typedef struct
 {
    void *id;
    char *artist;
+   char *original;
    char *title;
    char *album;
    char *trackno;
    char *date;
    char *genre;
+   char *composer;
    char *comments;
+   char *copyright;
    char *image;
 
    int mode;
@@ -414,6 +417,9 @@ _aaxMP3GetName(void *id, enum _aaxFileParam param)
    case __F_TITLE:
       rv = handle->title;
       break;
+   case __F_COMPOSER:
+      rv = handle->composer;
+      break;
    case __F_GENRE:
       rv = handle->genre;
       break;
@@ -428,6 +434,12 @@ _aaxMP3GetName(void *id, enum _aaxFileParam param)
       break;
    case __F_COMMENT:
       rv = handle->comments;
+      break;
+   case __F_COPYRIGHT:
+      rv = handle->copyright;
+      break;
+   case __F_ORIGINAL:
+      rv = handle->original;
       break;
    case __F_IMAGE:
       rv = handle->image;
@@ -675,6 +687,9 @@ _aaxMPG123Close(void *id)
       free(handle->date);
       free(handle->genre);
       free(handle->comments);
+      free(handle->composer);
+      free(handle->copyright);
+      free(handle->original);
       free(handle->image);
       free(handle);
    }
@@ -1049,10 +1064,12 @@ detect_mpg123_song_info(_driver_t *handle)
       mpg123_id3v1 *v1 = NULL;
       mpg123_id3v2 *v2 = NULL;
 
-      if ((meta & MPG123_ID3) && (pmpg123_id3(handle->id, &v1, &v2) == MPG123_OK))
+      if ((meta & MPG123_ID3) && (pmpg123_id3(handle->id, &v1, &v2)==MPG123_OK))
       {
          if (v2)
          {
+            size_t i;
+
             __DUP(handle->artist, v2->artist);
             __DUP(handle->title, v2->title);
             __DUP(handle->album, v2->album);
@@ -1068,6 +1085,39 @@ detect_mpg123_song_info(_driver_t *handle)
                else handle->genre = strdup(v2->genre->p);
             }
             else __DUP(handle->genre, v2->genre);
+
+            for (i=0; i<v2->texts; i++)
+            {
+               if (v2->text[i].text.p != NULL)
+               {
+                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'R' &&
+                      v2->text[i].id[2] == 'C' && v2->text[i].id[3] == 'K')
+                  {
+                     handle->trackno = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'C'  &&
+                      v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'M')
+                  {
+                     handle->composer = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'O' &&
+                      v2->text[i].id[2] == 'P' && v2->text[i].id[3] == 'E')
+                  {
+                     handle->original = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'C' &&
+                      v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
+                  {
+                     handle->copyright = strdup(v2->text[i].text.p);
+                  }
+               }
+            }
+#if 0
+            for (i=0; i<v2->pictures; i++)
+            {
+               if (v2->picture[i].data != NULL) {};
+            }
+#endif
             handle->id3_found = AAX_TRUE;
          }
          else if (v1)
