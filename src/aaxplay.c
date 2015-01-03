@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2014 by Erik Hofman.
- * Copyright (C) 2009-2014 by Adalin B.V.
+ * Copyright (C) 2008-2015 by Erik Hofman.
+ * Copyright (C) 2009-2015 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -314,17 +314,25 @@ int main(int argc, char **argv)
 
         if (infile && verbose)
         {
-            const char *s = aaxDriverGetSetup(record, AAX_TRACK_TITLE_STRING);
-            if (s) printf(" Title : %s\n", s);
+            const char *s;
 
-            s = aaxDriverGetSetup(record, AAX_MUSIC_ARTIST_STRING);
-            if (s) printf(" Artist: %s\n", s);
+            s = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_STRING);
+            if (s) printf(" Performer: %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_TRACK_TITLE_STRING);
+            if (s) printf(" Title    : %s\n", s);
 
             s = aaxDriverGetSetup(record, AAX_ALBUM_NAME_STRING);
-            if (s) printf(" Album : %s\n", s);
+            if (s) printf(" Album    : %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_SONG_COMPOSER_STRING);
+            if (s) printf(" Composer : %s\n", s);
+
+            s = aaxDriverGetSetup(record, AAX_ORIGINAL_PERFORMER_STRING);
+            if (s) printf(" Original : %s\n", s);
 
             s = aaxDriverGetSetup(record, AAX_MUSIC_GENRE_STRING);
-            if (s) printf(" Genre : %s\n", s);
+            if (s) printf(" Genre    : %s\n", s);
 
             s = aaxDriverGetSetup(record, AAX_RELEASE_DATE_STRING);
             if (s) printf(" Release date: %s\n", s);
@@ -333,10 +341,10 @@ int main(int argc, char **argv)
             if (s) printf(" Track number: %s\n", s);
 
             s = aaxDriverGetSetup(record, AAX_SONG_COPYRIGHT_STRING);
-            if (s) printf(" Coopyright:  %s\n", s);
+            if (s) printf(" Copyright:  %s\n", s);
 
 //          s = aaxDriverGetSetup(record, AAX_SONG_COMMENT_STRING);
-//          if (s) printf(" Comments: %s\n", s);
+//          if (s) printf(" Comments : %s\n", s);
         }
 
 
