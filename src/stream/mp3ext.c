@@ -759,7 +759,7 @@ _aaxMPG123SetParam(void *id, int type, off_t value)
    switch(type)
    {
    case __F_POSITION:
-      
+#if 0
       if (pmpg123_feedseek)
       {
          off_t inoffset;
@@ -767,6 +767,7 @@ _aaxMPG123SetParam(void *id, int type, off_t value)
          if (rv ==  MPG123_NEED_MORE) rv = __F_PROCESS;
          else if (rv < 0) rv = __F_EOF;
       }
+#endif
       break;
    default:
       break;
