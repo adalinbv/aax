@@ -368,9 +368,9 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
             {
                while ((res = _aaxFileDriverReadHeader(handle,&step)) != __F_EOF)
                {
-                  memcpy(handle->io.read.wavBuffer,
-                         handle->io.read.wavBuffer+step,
-                         handle->io.read.wavBufPos-step);
+                  memmove(handle->io.read.wavBuffer,
+                          handle->io.read.wavBuffer+step,
+                          handle->io.read.wavBufPos-step);
                   handle->io.read.wavBufPos -= step;
                   if (res <= 0) break;
                }
@@ -642,8 +642,8 @@ _aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offs
 
       if (bytes > 0)
       {
-         memcpy(handle->io.read.wavBuffer, handle->io.read.wavBuffer+bytes,
-                handle->io.read.wavBufPos - bytes);
+         memmove(handle->io.read.wavBuffer, handle->io.read.wavBuffer+bytes,
+                 handle->io.read.wavBufPos - bytes);
          handle->io.read.wavBufPos -= bytes;
       }
 

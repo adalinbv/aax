@@ -709,7 +709,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
                _aaxMutexLock(handle->thread.signal.mutex);
                ret = _MIN(handle->bufpos, bufsize);
                memcpy(data, handle->buf, ret);
-               memcpy(handle->buf, handle->buf+ret, handle->bufpos-ret);
+               memmove(handle->buf, handle->buf+ret, handle->bufpos-ret);
                handle->bufpos -= ret;
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
@@ -1099,7 +1099,7 @@ _aaxFileDriverWriteChunk(const void *id)
          {
             void *buf;
 
-            memcpy(handle->buf, handle->buf+res, handle->bufpos-res);
+            memmove(handle->buf, handle->buf+res, handle->bufpos-res);
             handle->bufpos -= res;
 
             if (handle->fmt->update)

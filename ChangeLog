@@ -10,11 +10,11 @@
  * Add support for the ARM architecture including support for hardware FPU
    and NEON. Rendering performance is comparible with Intel/AMD Cores
    at a matching CPU frequency.
- * Support batched (fast, non-realtime) mode for Audio Files and Loopback.
  * Support defining a default output device in the confguration file.
  * Fix a problem when a registered sensor had a different number of
    audio periods in relation to the playback device.
  * Fix an emitter looping bug introduced in version 2.4.1
+ * Support batched (fast, non-realtime) mode for Audio Files and Loopback.
  * The file writing backend now refuses to write to files that already exsist.
  * The file backend can now return song meta data.
 

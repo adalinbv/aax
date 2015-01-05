@@ -2288,7 +2288,7 @@ _alsa_get_volume_range(_driver_t *handle)
             handle->outMixer = _aax_strdup(name);
             if (psnd_mixer_selem_has_playback_volume(elem))
             {
-               long min, max;
+               long min = -128, max = 0;
 
                psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
                handle->volumeMin = _db2lin((float)min*0.01f);
@@ -2421,7 +2421,7 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
               elem = psnd_mixer_elem_next(elem))
          {
             const char *name;
-            long volume;
+            long volume = 0;
 
             psnd_mixer_selem_get_id(elem, sid);
 
