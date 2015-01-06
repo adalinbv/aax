@@ -932,7 +932,7 @@ _aaxFileDriverSetPosition(const void *id, off_t pos)
          int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
          int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS);
          unsigned int samples = IOBUF_SIZE*8/(file_tracks*file_bits);
-         size_t seek;
+         ssize_t seek;
          while ((seek = handle->fmt->set_param(handle->fmt->id, __F_POSITION, pos))
                    == __F_PROCESS)
          {

@@ -788,7 +788,7 @@ _aaxWavGetParam(void *id, int type)
 static  off_t
 _aaxWavSetParam(void *id, int type, off_t value)
 {
-   _driver_t *handle = (_driver_t *)id;
+// _driver_t *handle = (_driver_t *)id;
    off_t rv = 0;
 
    switch(type)

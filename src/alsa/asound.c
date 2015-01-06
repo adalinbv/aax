@@ -747,7 +747,8 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    psnd_pcm_hw_params_malloc(&hwparams);
-   if (hwparams && handle->pcm)
+   psnd_pcm_sw_params_malloc(&swparams);
+   if (hwparams && swparams && handle->pcm)
    {
       snd_pcm_t *hid = handle->pcm;
       snd_pcm_format_t data_format;
@@ -762,6 +763,9 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          TRUN( psnd_pcm_hw_params_set_period_wakeup(hid, hwparams, 0),
             "unable to disable period wakeups" );
       }
+
+      TRUN( psnd_pcm_sw_params_current(hid, swparams),
+               "unable to set software config" );
 
       /* Set the prefered access method (rw/mmap interleaved/non-interleaved) */
       err = _alsa_set_access(handle, hwparams, swparams);
@@ -909,10 +913,6 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
       if (err >= 0)
       {
-         psnd_pcm_sw_params_malloc(&swparams);
-         TRUN( psnd_pcm_sw_params_current(hid, swparams),
-               "unable to set software config" );
-
          if (handle->use_timer)
          {
             handle->no_periods = periods = 2;

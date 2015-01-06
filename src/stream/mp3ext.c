@@ -753,7 +753,7 @@ _aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 static off_t
 _aaxMPG123SetParam(void *id, int type, off_t value)
 {
-   _driver_t *handle = (_driver_t *)id;
+// _driver_t *handle = (_driver_t *)id;
    off_t rv = 0;
 
    switch(type)
