@@ -142,6 +142,9 @@ typedef struct
    char *interfaces;
    _aaxRenderer *render;
 
+   void *out_header;
+   size_t out_hdr_size;
+
 } _driver_t;
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
@@ -273,7 +276,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
    if (handle)
    {
       static const int _mode[] = {
-         O_WRONLY|O_CREAT|O_EXCL|O_BINARY,
+         O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
          O_RDONLY|O_BINARY
       };
       int m = (handle->mode > 0) ? 0 : 1;
@@ -434,8 +437,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                                         *tracks, *fmt, period_frames, *bitrate);
    if (handle->fmt->id)
    {
-      handle->fd = open(handle->name, handle->fmode, 0644);
-      if (handle->fd >= 0)
+      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
+      if (!m) {
+         handle->fd = open(handle->name, handle->fmode, 0644);
+      }
+      if ((handle->fd >= 0) || m)
       {
          size_t no_samples = period_frames;
          void *header = NULL;
@@ -451,7 +457,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          do
          {
-            if (handle->mode == AAX_MODE_READ && header && bufsize)
+            if (!m && header && bufsize)
             {
                res = read(handle->fd, header, bufsize);
                if (res <= 0) break;
@@ -459,8 +465,19 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
             bufsize = res;
             buf = handle->fmt->open(handle->fmt->id, header, &bufsize, st.st_size);
-            res = bufsize;
+            if (m && buf)
+            {
+               handle->out_header = malloc(bufsize);
+               memcpy(handle->out_header, buf, bufsize);
+               handle->out_hdr_size = bufsize;
+               res = bufsize;
+               buf = NULL;
+            }
+            else {
+               res = bufsize;
+            }
 
+#if 0
             if (buf)
             {
                if (handle->mode != AAX_MODE_READ && buf) {
@@ -472,6 +489,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 //          else { 
 //             break;
 //          }
+#endif
          }
          while (handle->mode == AAX_MODE_READ && buf && bufsize);
 
@@ -565,6 +583,28 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
 
    assert(rb);
    assert(id != 0);
+
+   if (handle->out_header)
+   {
+      if (handle->fd < 0) {
+         handle->fd = open(handle->name, handle->fmode, 0644);
+      }
+      if (handle->fd)
+      {
+         res = write(handle->fd, handle->out_header, handle->out_hdr_size);
+         if (res == handle->out_hdr_size)
+         {
+            free(handle->out_header);
+            handle->out_header = NULL;
+         }
+         else {
+            return -1;
+         }
+      }
+      else {
+         return -1;
+      }
+   }
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
