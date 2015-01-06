@@ -573,16 +573,14 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
       {
          if (handle->info->mode != AAX_MODE_READ)
          {
-            dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            if (dptr_sensor)
+            if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
-               _sensor_t *sensor = _intBufGetDataPtr(dptr_sensor);
-               smixer = sensor->mixer;
-
-               if (smixer->emitters_3d || smixer->emitters_2d) {
+               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               if (dptr_sensor)
+               {
                   _aaxNoneDriverProcessFrame(smixer);
+                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
-               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
             }
          }
       }

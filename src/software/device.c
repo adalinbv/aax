@@ -633,9 +633,11 @@ _aaxNoneDriverThread(void* config)
    const _aaxDriverBackend *be;
    _intBufferData *dptr_sensor;
    _aaxRingBuffer *dest_rb;
-   _aaxAudioFrame* mixer;
+   _aaxAudioFrame* smixer;
    _sensor_t* sensor;
    float delay_sec;
+   ssize_t nsamps;
+   char batched;
    int res;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
@@ -650,13 +652,15 @@ _aaxNoneDriverThread(void* config)
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
+   batched = handle->finished ? AAX_TRUE : AAX_FALSE;
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
       sensor = _intBufGetDataPtr(dptr_sensor);
-      mixer = sensor->mixer;
+      smixer = sensor->mixer;
       handle->ringbuffer = dest_rb;
+      nsamps = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
    }
    else
@@ -672,22 +676,60 @@ _aaxNoneDriverThread(void* config)
          break;
       }
 
-      if ((mixer->emitters_3d || mixer->emitters_2d) && _IS_PLAYING(handle))
+      if (handle->info->mode != AAX_MODE_READ)
       {
-          dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-          if (dptr_sensor)
-          {
-            _aaxNoneDriverProcessFrame(mixer);
-            _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+         if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
+         {
+            dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr_sensor)
+            {
+               _aaxNoneDriverProcessFrame(smixer);
+
+               /** process registered devices */
+               if (smixer->devices)
+               {
+                  _aaxMixerInfo* info = smixer->info;
+                  _aaxSensorsProcess(dest_rb, smixer->devices, smixer->props2d,
+                                     info->track, batched);
+               }
+               _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+            }
          }
+         else
+         {
+            if (smixer->capturing)
+            {
+               _intBuffers *rbs = smixer->play_ringbuffers;
+               _aaxRingBuffer *rv;
+
+               rv = dest_rb->duplicate(dest_rb, AAX_TRUE, AAX_FALSE);
+               rv->set_state(rv, RB_STARTED);
+               rv->set_state(rv, RB_REWINDED);
+
+               _intBufAddData(rbs, _AAX_RINGBUFFER, rv);
+
+               _aaxSignalTrigger(&handle->buffer_ready);
+            }
+            smixer->curr_pos_sec += delay_sec;
+            smixer->curr_sample += nsamps;
+         }
+      }
+
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
       }
       res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
 
-   be->destroy_ringbuffer(dest_rb);
-   handle->ringbuffer = NULL;
    _aaxMutexUnLock(handle->thread.signal.mutex);
+
+   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
+   {
+      be->destroy_ringbuffer(handle->ringbuffer);
+      handle->ringbuffer = NULL;
+   }
 
    return handle;
 }
