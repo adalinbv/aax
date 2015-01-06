@@ -85,12 +85,13 @@ _aaxThreadSetAffinity(void *t, int core)
 int
 _aaxThreadSetPriority(void *t, int prio)
 {
+   pthread_t sid = pthread_self();
    pthread_t *id = t;
    int min, max, policy;
    int rv = 0;
 
    if (id == NULL) {
-     id = pthread_self();
+     id = &sid;
    }
 
    if (prio <= AAX_HIGHEST_PRIORITY) {
