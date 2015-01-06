@@ -194,7 +194,9 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
          {
             smixer->curr_pos_sec = 0.0f;
             smixer->curr_sample = 0;
-            be->set_position(be_handle, 0);
+            if (be->set_position) {
+               be->set_position(be_handle, 0);
+            }
          }
 //       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
       }
