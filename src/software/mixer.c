@@ -403,7 +403,8 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
 
    // NOTE: File backend must be first, it's the only backend that
    //       converts the buffer back to floats when done!
-   if (fbe) {	/* slaved file-out backend */
+   if (fbe)	/* slaved file-out backend */
+   {
       fbe->play(fbe_handle, dest_rb, 1.0f, gain, batched);
    }
    res = be->play(be_handle, dest_rb, 1.0f, gain, batched);
@@ -562,6 +563,27 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                            batched);
                _aax_aligned_free(sdp3d);
                _aax_aligned_free(sdp3d_m);
+
+               if (handle->file.driver)
+               {
+                  _handle_t *fhandle = (_handle_t*)handle->file.driver;
+                  if (_IS_PLAYING(fhandle))
+                  {
+                     _intBufferData *dptr;
+
+                     dptr = _intBufGet(fhandle->sensors, _AAX_SENSOR, 0);
+                     if (dptr)
+                     {
+                        _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                        _aaxAudioFrame *fmixer = sensor->mixer;
+                        float dt = smixer->info->period_rate;
+
+                        fmixer->curr_pos_sec += 1.0f/dt;
+                        fmixer->curr_sample += res;
+                        _intBufReleaseData(dptr, _AAX_SENSOR);
+                     }
+                  }
+               }
 
                if (smixer->capturing) {
                   _aaxSignalTrigger(&handle->buffer_ready);
