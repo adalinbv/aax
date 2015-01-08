@@ -168,7 +168,7 @@ _aaxFileDriverDetect(int mode)
       _aaxFmtHandle* type = ftype();
       if (type)
       {
-         rv = type->detect(mode);
+         rv = type->detect(type, mode);
          free(type);
          if (rv) break;
       }
@@ -190,7 +190,7 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
       if (ftype)
       {
          _aaxFmtHandle* type = ftype();
-         if (type && type->detect(mode)) {
+         if (type && type->detect(type, mode)) {
             handle->fmt = type;
          }
          else
@@ -282,6 +282,8 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       int m = (handle->mode > 0) ? 0 : 1;
 
       handle->fmode = _mode[m];
+
+      free(handle->fmt);
       handle->fmt = _aaxGetFormat(s, mode);
       if (handle->fmt)
       {
@@ -1024,7 +1026,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
          _aaxFmtHandle* type = ftype();
          if (type)
          {
-            if (type->detect(mode))
+            if (type->detect(type, mode))
             {
                char *ifs = type->interfaces(mode);
                size_t len = ifs ? strlen(ifs) : 0;
@@ -1087,7 +1089,7 @@ _aaxGetFormat(const char *fname, enum aaxRenderMode mode)
       while ((ftype = _aaxFileTypes[i++]) != NULL)
       {
          _aaxFmtHandle* type = ftype();
-         if (type && type->detect(mode) && type->supported(ext))
+         if (type && type->detect(type, mode) && type->supported(ext))
          {
             rv = type;
             break;
@@ -1249,119 +1251,4 @@ _aaxFileDriverReadThread(void *id)
 
    return handle;
 }
-
-#if 0
-/**
- * Write a canonical WAVE file from memory to a file.
- *
- * @param a pointer to the exact ascii file location
- * @param no_samples number of samples per audio track
- * @param fs sample frequency of the audio tracks
- * @param no_tracks number of audio tracks in the buffer
- * @param format audio format
- */
-#include <fcntl.h>		/* SEEK_*, O_* */
-int
-_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
-                          const int32_t **sbuf, size_t no_samples,
-                          unsigned int freq, char no_tracks,
-                          enum aaxFormat format)
-{
-   _aaxFmtHandle *fmt = _aaxGetFormat(file);
-   size_t rv = AAX_FALSE;
-   if (fmt)
-   {
-      char *buf, *data, *scratch;
-      size_t res, size, scratchlen;
-      int mode, fd, oflag;
-      unsigned int bits;
-      off_t floc, offs;
-
-      mode = AAX_MODE_WRITE_STEREO;
-      fmt->id = fmt->setup(mode, &size, freq, no_tracks, format, no_samples, 256);
-      if (!fmt->id)
-      {
-         printf("Error: Unable to setup the file stream handler,\n");
-         return rv;
-      }
-
-      oflag = O_CREAT|O_WRONLY|O_BINARY;
-      if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
-      else if (type == AAX_APPEND) oflag |= O_APPEND;
-
-      fd = open(file, oflag, 0644);
-      if (fd < 0)
-      {
-         printf("Error: Unable to write to file.\n");
-         return rv;
-      }
-
-      floc = lseek(fd, 0L, SEEK_END);
-      lseek(fd, 0L, SEEK_SET);
-
-      buf = fmt->open(fmt->id, NULL, &size);
-      if (buf && size)
-      {
-         res = write(fd, buf, size);
-         if (res == -1) {
-            _AAX_FILEDRVLOG(strerror(errno));
-         }
-      }
-
-      if (type == AAX_APPEND) {
-         lseek(fd, floc, SEEK_SET);
-      }
-
-      offs = 0;
-      bits = fmt->get_param(fmt->id, __F_BITS);
-      no_tracks = fmt->get_param(fmt->id, __F_TRACKS);
-      size = (no_samples*no_tracks*bits)/8;
-
-      scratchlen = (IOBUF_SIZE*no_tracks*sizeof(int32_t)*8)/bits;
-      scratch = _aax_aligned_alloc16(scratchlen);
-
-      data = _aax_aligned_alloc16(IOBUF_SIZE);
-      do
-      {
-         ssize_t cvt = _MIN(size, IOBUF_SIZE)*8/(no_tracks*bits);
-
-         /* returns the no. bytes that are ready for writing */
-         res = fmt->cvt_to_intl(fmt->id, data, sbuf, offs, no_tracks, cvt,
-                                scratch, scratchlen);
-         size -= res;
-         offs += cvt;
-
-         if (fmt->cvt_from_signed) {
-            fmt->cvt_from_signed(fmt->id, data, res*8/bits);
-         }
-         if (fmt->cvt_endianness) {
-            fmt->cvt_endianness(fmt->id, data, res*8/bits);
-         }
-
-         res = write(fd, data, res);
-      }
-      while ((res > 0) && size);
-      _aax_aligned_free(scratch);
-      _aax_aligned_free(data);
-
-      if (res >= 0 && fmt->update)
-      {
-         size_t offs;
-         handle->io.write.no_samples = no_samples * no_tracks;
-         void *buf = fmt->update(fmt->id, &offs, &size, AAX_TRUE);
-         if (buf)
-         {
-            lseek(fd, offs, SEEK_SET);
-            res = write(fd, buf, size);
-         }
-      }
-      rv = (res >= 0) ? AAX_TRUE : AAX_FALSE;
-
-      close(fd);
-      fmt->close(fmt->id);
-      free(fmt);
-   }
-   return rv;
-}
-#endif
 

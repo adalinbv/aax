@@ -41,6 +41,9 @@
 #include "filetype.h"
 #include "audio.h"
 
+// https://xiph.org/flac/api/index.html
+// https://xiph.org/flac/api/group__flac__stream__decoder.html
+
 DECL_FUNCTION(FLAC__stream_decoder_init_file);
 DECL_FUNCTION(mpg123_exit);
 DECL_FUNCTION(FLAC__stream_decoder_new);

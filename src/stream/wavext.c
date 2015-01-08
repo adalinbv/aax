@@ -226,7 +226,7 @@ void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, 
 void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
 static int
-_aaxWavDetect(int mode) {
+_aaxWavDetect(void *fmt, int mode) {
    return AAX_TRUE;
 }
 

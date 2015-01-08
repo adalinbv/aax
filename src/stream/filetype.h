@@ -48,7 +48,7 @@ enum _aaxFileParam
    __F_POSITION = 0x1000	/* set */
 };
 
-typedef int (_file_detect_fn)(int);
+typedef int (_file_detect_fn)(void*, int);
 typedef void* (_file_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
 typedef void* (_file_open_fn)(void*, void*, size_t*, size_t);
 typedef int (_file_close_fn)(void*);
