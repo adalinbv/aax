@@ -40,53 +40,50 @@ _aaxMSACMDetect(void *format, int m, void *_audio[2])
    int rv = AAX_FALSE;
 
 #ifdef WINXP
-   if (!_audio[m])
-   {
-      _aaxFmtHandle *fmt = (_aaxFmtHandle*)format;
+   _aaxFmtHandle *fmt = (_aaxFmtHandle*)format;
+
+   if (!_audio[m]) {
       _audio[m] = _aaxIsLibraryPresent("msacm32", NULL);
-      if (_audio[m])
+   }
+   if (_audio[m])
+   {
+      void *audio = _audio[m];
+      char *error;
+
+      _aaxGetSymError(0);
+
+      TIE_FUNCTION(acmDriverOpen);
+      if (pacmDriverOpen)
       {
-         void *audio = _audio[m];
-         char *error;
+         TIE_FUNCTION(acmDriverClose);
+         TIE_FUNCTION(acmDriverEnum);
+         TIE_FUNCTION(acmDriverDetailsA);
+         TIE_FUNCTION(acmStreamOpen);
+         TIE_FUNCTION(acmStreamClose);
+         TIE_FUNCTION(acmStreamSize);
+         TIE_FUNCTION(acmStreamConvert);
+         TIE_FUNCTION(acmStreamPrepareHeader);
+         TIE_FUNCTION(acmStreamUnprepareHeader);
+         TIE_FUNCTION(acmFormatTagDetailsA);
 
-         _aaxGetSymError(0);
-
-         TIE_FUNCTION(acmDriverOpen);
-         if (pacmDriverOpen)
+         error = _aaxGetSymError(0);
+         if (!error)
          {
-            TIE_FUNCTION(acmDriverClose);
-            TIE_FUNCTION(acmDriverEnum);
-            TIE_FUNCTION(acmDriverDetailsA);
-            TIE_FUNCTION(acmStreamOpen);
-            TIE_FUNCTION(acmStreamClose);
-            TIE_FUNCTION(acmStreamSize);
-            TIE_FUNCTION(acmStreamConvert);
-            TIE_FUNCTION(acmStreamPrepareHeader);
-            TIE_FUNCTION(acmStreamUnprepareHeader);
-            TIE_FUNCTION(acmFormatTagDetailsA);
+            if (!acmMP3Support) {
+               pacmDriverEnum(acmDriverEnumCallback, 0, 0);
+            }
 
-            error = _aaxGetSymError(0);
-            if (!error)
+            if (acmMP3Support)
             {
-               if (!acmMP3Support) {
-                  pacmDriverEnum(acmDriverEnumCallback, 0, 0);
-               }
-
-               if (acmMP3Support)
-               {
-                  fmt->open = _aaxMSACMOpen;
-                  fmt->close = _aaxMSACMClose;
-                  fmt->cvt_from_intl = _aaxMSACMCvtFrom;
-                  fmt->cvt_to_intl = _aaxMSACMCvtTo;
-                  fmt->set_param = aaxMSACMSetParam;
-                  rv = AAX_TRUE;
-               }
+               fmt->open = _aaxMSACMOpen;
+               fmt->close = _aaxMSACMClose;
+               fmt->cvt_from_intl = _aaxMSACMCvtFrom;
+               fmt->cvt_to_intl = _aaxMSACMCvtTo;
+               fmt->set_param = aaxMSACMSetParam;
+               rv = AAX_TRUE;
             }
          }
       }
-   } /* !audio[m] */
-   else {
-      rv = AAX_TRUE;
    }
 #endif
    return rv;

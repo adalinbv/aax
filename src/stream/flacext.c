@@ -43,6 +43,33 @@
 
 // https://xiph.org/flac/api/index.html
 // https://xiph.org/flac/api/group__flac__stream__decoder.html
+/*
+ * The basic usage of this decoder is as follows:
+ *
+ *   The program creates an instance of a decoder using
+ *       FLAC__stream_decoder_new().
+ *
+ *   The program overrides the default settings using
+ *       FLAC__stream_decoder_set_*() functions.
+ *
+ *   The program initializes the instance to validate the settings and prepare
+ *   for decoding using
+ *       FLAC__stream_decoder_init_stream() or FLAC__stream_decoder_init_FILE()
+ *       or FLAC__stream_decoder_init_file() for native FLAC,
+ *       FLAC__stream_decoder_init_ogg_stream() or
+ *       FLAC__stream_decoder_init_ogg_FILE() or 
+ *       FLAC__stream_decoder_init_ogg_file() for Ogg FLAC
+ *
+ *   The program calls the FLAC__stream_decoder_process_*() functions to
+ *   decode data, which subsequently calls the callbacks.
+ *   The program finishes the decoding with FLAC__stream_decoder_finish(),
+ *   which flushes the input and output and resets the decoder to the
+ *   uninitialized state.
+ *
+ *   The instance may be used again or deleted with
+ *    FLAC__stream_decoder_delete().
+ */
+
 
 DECL_FUNCTION(FLAC__stream_decoder_init_file);
 DECL_FUNCTION(mpg123_exit);

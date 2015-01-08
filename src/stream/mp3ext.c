@@ -148,18 +148,12 @@ _aaxMP3Detect(void *fmt, int mode)
    int m = (mode > 0) ? 1 : 0;
    int rv = AAX_FALSE;
 
-   if (!_audio[m])
-   {
 #ifdef WINXP
-      rv = _aaxMSACMDetect(fmt, m, _audio);
+   rv = _aaxMSACMDetect(fmt, m, _audio);
 #endif
-      /* if not found, try mpg123  with lame */
-      if (rv == AAX_FALSE) {
-         rv = _aaxMPG123Detect(fmt, m, _audio);
-      }
-   }
-   else {
-      rv = AAX_TRUE;
+   /* if not found, try mpg123  with lame */
+   if (rv == AAX_FALSE) {
+      rv = _aaxMPG123Detect(fmt, m, _audio);
    }
 
    return rv;

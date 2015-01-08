@@ -57,109 +57,107 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
    _aaxFmtHandle *fmt = (_aaxFmtHandle*)format;
    int rv = AAX_FALSE;
 
-   if (!_audio[m])
+   if (m == 0) /* read */
    {
-      if (m == 0) /* read */
-      {
+      if (!_audio[m]) {
          _audio[m] = _aaxIsLibraryPresent("mpg123", "0");
-         if (!_audio[m]) {
-            _audio[m] = _aaxIsLibraryPresent("libmpg123-0", "0");
-         }
-
-         if (_audio[m])
-         {
-            void *audio = _audio[m];
-            char *error;
-
-            _aaxGetSymError(0);
-
-            TIE_FUNCTION(mpg123_init);
-            if (pmpg123_init)
-            {
-               TIE_FUNCTION(mpg123_exit);
-               TIE_FUNCTION(mpg123_new);
-               TIE_FUNCTION(mpg123_param);
-               TIE_FUNCTION(mpg123_open_feed);
-               TIE_FUNCTION(mpg123_decode);
-               TIE_FUNCTION(mpg123_feed);
-               TIE_FUNCTION(mpg123_read);
-               TIE_FUNCTION(mpg123_delete);
-               TIE_FUNCTION(mpg123_format);
-               TIE_FUNCTION(mpg123_getformat);
-
-               error = _aaxGetSymError(0);
-               if (error) {
-                  _audio[m] = NULL;
-               }
-               else
-               {
-                  /* not required but useful */
-                  TIE_FUNCTION(mpg123_length);
-                  TIE_FUNCTION(mpg123_set_filesize);
-                  TIE_FUNCTION(mpg123_feedseek);
-                  TIE_FUNCTION(mpg123_meta_check);
-                  TIE_FUNCTION(mpg123_id3);
-
-                  fmt->open = _aaxMPG123Open;
-                  fmt->close = _aaxMPG123Close;
-                  fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
-                  fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
-                  fmt->set_param = _aaxMPG123SetParam;
-
-                  rv = AAX_TRUE;
-               }
-            }
-         }
       }
-      else /* write */
+      if (!_audio[m]) {
+         _audio[m] = _aaxIsLibraryPresent("libmpg123-0", "0");
+      }
+
+      if (_audio[m])
       {
-         _audio[m] = _aaxIsLibraryPresent("mp3lame", "0");
-         if (!_audio[m]) {
-            _audio[m] = _aaxIsLibraryPresent("libmp3lame", "0");
-         }
-         if (!_audio[m]) {
-            _audio[m] = _aaxIsLibraryPresent("lame_enc", "0");
-         }
+         void *audio = _audio[m];
+         char *error;
 
-         if (_audio[m])
+         _aaxGetSymError(0);
+
+         TIE_FUNCTION(mpg123_init);
+         if (pmpg123_init)
          {
-            void *audio = _audio[m];
-            char *error;
-            _aaxGetSymError(0);
+            TIE_FUNCTION(mpg123_exit);
+            TIE_FUNCTION(mpg123_new);
+            TIE_FUNCTION(mpg123_param);
+            TIE_FUNCTION(mpg123_open_feed);
+            TIE_FUNCTION(mpg123_decode);
+            TIE_FUNCTION(mpg123_feed);
+            TIE_FUNCTION(mpg123_read);
+            TIE_FUNCTION(mpg123_delete);
+            TIE_FUNCTION(mpg123_format);
+            TIE_FUNCTION(mpg123_getformat);
 
-            TIE_FUNCTION(lame_init);
-            if (plame_init)
+            error = _aaxGetSymError(0);
+            if (error) {
+               _audio[m] = NULL;
+            }
+            else
             {
-               TIE_FUNCTION(lame_init_params);
-               TIE_FUNCTION(lame_close);
-               TIE_FUNCTION(lame_set_num_samples);
-               TIE_FUNCTION(lame_set_in_samplerate);
-               TIE_FUNCTION(lame_set_num_channels);
-               TIE_FUNCTION(lame_set_brate);
-               TIE_FUNCTION(lame_set_VBR);
-               TIE_FUNCTION(lame_encode_buffer_interleaved);
-               TIE_FUNCTION(lame_encode_flush);
+               /* not required but useful */
+               TIE_FUNCTION(mpg123_length);
+               TIE_FUNCTION(mpg123_set_filesize);
+               TIE_FUNCTION(mpg123_feedseek);
+               TIE_FUNCTION(mpg123_meta_check);
+               TIE_FUNCTION(mpg123_id3);
 
-               error = _aaxGetSymError(0);
-               if (error) {
-                  _audio[m] = NULL;
-               }
-               else
-               {
-                  fmt->open = _aaxMPG123Open;
-                  fmt->close = _aaxMPG123Close;
-                  fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
-                  fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
-                  fmt->set_param = _aaxMPG123SetParam;
+               fmt->open = _aaxMPG123Open;
+               fmt->close = _aaxMPG123Close;
+               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
+               fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
+               fmt->set_param = _aaxMPG123SetParam;
 
-                  rv = AAX_TRUE;
-               }
+               rv = AAX_TRUE;
             }
          }
       }
    }
-   else {
-      rv = AAX_TRUE;
+   else /* write */
+   {
+      if (!_audio[m]) {
+         _audio[m] = _aaxIsLibraryPresent("mp3lame", "0");
+      }
+      if (!_audio[m]) {
+         _audio[m] = _aaxIsLibraryPresent("libmp3lame", "0");
+      }
+      if (!_audio[m]) {
+         _audio[m] = _aaxIsLibraryPresent("lame_enc", "0");
+      }
+
+      if (_audio[m])
+      {
+         void *audio = _audio[m];
+         char *error;
+         _aaxGetSymError(0);
+
+         TIE_FUNCTION(lame_init);
+         if (plame_init)
+         {
+            TIE_FUNCTION(lame_init_params);
+            TIE_FUNCTION(lame_close);
+            TIE_FUNCTION(lame_set_num_samples);
+            TIE_FUNCTION(lame_set_in_samplerate);
+            TIE_FUNCTION(lame_set_num_channels);
+            TIE_FUNCTION(lame_set_brate);
+            TIE_FUNCTION(lame_set_VBR);
+            TIE_FUNCTION(lame_encode_buffer_interleaved);
+            TIE_FUNCTION(lame_encode_flush);
+
+            error = _aaxGetSymError(0);
+            if (error) {
+               _audio[m] = NULL;
+            }
+            else
+            {
+               fmt->open = _aaxMPG123Open;
+               fmt->close = _aaxMPG123Close;
+               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
+               fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
+               fmt->set_param = _aaxMPG123SetParam;
+
+               rv = AAX_TRUE;
+            }
+         }
+      }
    }
 
    return rv;
