@@ -71,30 +71,28 @@
  */
 
 
-DECL_FUNCTION(FLAC__stream_decoder_init_file);
-DECL_FUNCTION(mpg123_exit);
+DECL_FUNCTION(FLAC__stream_decoder_init_stream);
 DECL_FUNCTION(FLAC__stream_decoder_new);
-DECL_FUNCTION(mpg123_open_fd);
-DECL_FUNCTION(mpg123_read);
-DECL_FUNCTION(mpg123_delete);
-DECL_FUNCTION(mpg123_format);
-DECL_FUNCTION(mpg123_getformat);
 
 static _detect_fn _aaxFLACFileDetect;
 
-static _default_fname_fn _aaxFLACFileInterfaces;
-static _extension_fn _aaxFLACFileExtension;
+static _file_new_handle_fn _aaxFLACSetup;
+static _file_open_fn _aaxFLACOpen;
+static _file_close_fn _aaxFLACClose;
+static _file_update_fn _aaxFLACUpdate;
+static _file_get_name_fn _aaxFLACGetName;
 
-static _get_param_fn _aaxFLACFileGetFormat;
-static _get_param_fn _aaxFLACFileGetNoTracks;
-static _get_param_fn _aaxFLACFileGetFrequency;
-static _get_param_fn _aaxFLACFileGetBitsPerSample;
+static _file_cvt_to_fn _aaxFLACCvtToIntl;
+static _file_cvt_from_fn _aaxFLACCvtFromIntl;
+static _file_cvt_fn _aaxFLACCvtEndianness;
+static _file_cvt_fn _aaxFLACCvtToSigned;
+static _file_cvt_fn _aaxFLACCvtFromSigned;
 
-	/** libmpg123 */
-static _new_handle_fn _aaxMPG123FileSetup;
-static _open_fn _aaxMPG123FileOpen;
-static _close_fn _aaxMPG123FileClose;
-static _update_fn _aaxMPG123FileReadWrite;
+static _file_default_fname_fn _aaxFLACInterfaces;
+static _file_extension_fn _aaxFLACExtension;
+
+static _file_get_param_fn _aaxFLACGetParam;
+static _file_set_param_fn _aaxFLACSetParam;
 
 /*
  * http://flac.sourceforge.net/api/group__flac__stream__decoder.html
@@ -107,24 +105,27 @@ static _update_fn _aaxMPG123FileReadWrite;
 _aaxFileHandle*
 _aaxDetectFLACFile()
 {
-   _aaxFileHandle* rv = NULL;
-
-   rv = calloc(1, sizeof(_aaxFileHandle));
+   _aaxFmtHandle* rv = calloc(1, sizeof(_aaxFmtHandle));
    if (rv)
    {
-      rv->detect = (_detect_fn*)&_aaxFLACFileDetect;
-      rv->setup = (_new_handle_fn*)&_aaxMPG123FileSetup;
-      rv->open = (_open_fn*)&_aaxMPG123FileOpen;
-      rv->close = (_close_fn*)&_aaxMPG123FileClose;
-      rv->update = (_update_fn*)&_aaxMPG123FileReadWrite;
+      rv->detect = _aaxFLACDetect;
+      rv->setup = _aaxFLACSetup;
+      rv->open = _aaxFLACOpen;
+      rv->close = _aaxFLACClose;
+      rv->update = _aaxFLACUpdate;
+      rv->name = _aaxFLACGetName;
 
-      rv->supported = (_extension_fn*)&_aaxFLACFileExtension;
-      rv->interfaces = (_default_fname_fn*)&_aaxFLACFileInterfaces;
+      rv->cvt_from_intl = _aaxFLACCvtFromIntl;
+      rv->cvt_to_intl = _aaxFLACCvtToIntl;
+      rv->cvt_endianness = _aaxFLACCvtEndianness;
+      rv->cvt_from_signed = _aaxFLACCvtFromSigned;
+      rv->cvt_to_signed = _aaxFLACCvtToSigned;
 
-      rv->get_format = (_get_param_fn*)&_aaxFLACFileGetFormat;
-      rv->get_no_tracks = (_get_param_fn*)&_aaxFLACFileGetNoTracks;
-      rv->get_frequency = (_get_param_fn*)&_aaxFLACFileGetFrequency;
-      rv->get_bits_per_sample = (_get_param_fn*)&_aaxFLACFileGetBitsPerSample;
+      rv->supported = _aaxFLACExtension;
+      rv->interfaces = _aaxFLACInterfaces;
+
+      rv->get_param = _aaxFLACGetParam;
+      rv->set_param = _aaxFLACSetParam;
    }
    return rv;
 }
@@ -133,18 +134,26 @@ _aaxDetectFLACFile()
 
 typedef struct
 {
-   char *name;
+   char *artist;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *copyright;
+   char *comments;
    void *id;
 
-   int fd;
-   int mode;
    int capturing;
 
+   int no_tracks;
+   int bits_sample;
    int frequency;
    enum aaxFormat format;
-// uint16_t blocksize;
-   uint8_t no_tracks;
-   uint8_t bits_sample;
+   size_t blocksize;
+   size_t max_samples;
+
+   int mode;
 
    unsigned char *blockbuf;
    unsigned int offset_samples;
@@ -169,17 +178,10 @@ _aaxFLACFileDetect(int mode)
       char *error;
       _aaxGetSymError(0);
 
-      TIE_FUNCTION(FLAC__stream_decoder_init_file);
-      if (pFLAC__stream_decoder_init_file)
+      TIE_FUNCTION(FLAC__stream_decoder_init_stream);
+      if (pFLAC__stream_decoder_init_stream)
       {
-         TIE_FUNCTION(mpg123_exit);
          TIE_FUNCTION(FLAC__stream_decoder_new);
-         TIE_FUNCTION(FLAC__stream_decoder_set_md5_checking);
-         TIE_FUNCTION(mpg123_open_fd);
-         TIE_FUNCTION(mpg123_read);
-         TIE_FUNCTION(mpg123_delete);
-         TIE_FUNCTION(mpg123_format);
-         TIE_FUNCTION(mpg123_getformat);
 
          error = _aaxGetSymError(0);
          if (!error) {
@@ -190,195 +192,168 @@ _aaxFLACFileDetect(int mode)
    return rv;
 }
 
+static void*
+_aaxFLACOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
+{
+   _driver_t *handle = (_driver_t *)id;
+   void *rv = NULL;
+
+   assert(bufsize);
+
+   if (handle)
+   {
+   }
+   else
+   {
+      _AAX_FILEDRVLOG("WAVFile: Internal error: handle id equals 0");
+   }
+
+   return rv;
+}
+
+static int
+_aaxFLACClose(void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int res = AAX_TRUE;
+
+   if (handle)
+   {
+   }
+
+   return res;
+}
+
+static void*
+_aaxFLACSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
+{
+   int bits_sample = aaxGetBitsPerSample(format);
+   _driver_t *handle = NULL;
+
+   return (void*)handle;
+}
+
+static void*
+_aaxFLACUpdate(void *id, size_t *offs, size_t *size, char close)
+{
+   _driver_t *handle = (_driver_t *)id;
+   void *rv = NULL;
+
+   return rv;
+}
+
+static size_t
+_aaxFLACCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+{
+   _driver_t *handle = (_driver_t *)id;
+   size_t rv  = 0;
+
+   return rv;
+}
+
+static size_t
+_aaxFLACCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
+{
+   _driver_t *handle = (_driver_t *)id;
+   size_t rv = 0;
+
+   return rv;
+}
+
 static int
 _aaxFLACFileExtension(char *ext) {
-   return (ext && !strcasecmp(ext, "mp3")) ? 1 : 0;
+   return (ext && !strcasecmp(ext, "flac")) ? 1 : 0;
 }
 
 static char*
 _aaxFLACFileInterfaces(int mode)
 {
-   static const char *rd[2] = { "*.mp3\0", "\0" };
+   static const char *rd[2] = { "*.flac\0", "*.flac\0" };
    return (char *)rd[mode];
 }
 
-static unsigned int
-_aaxFLACFileGetFormat(void *id)
+static char*
+_aaxFLACGetName(void *id, enum _aaxFileParam param)
 {
-   _handle_t *handle = (_handle_t *)id;
-   return handle->format;
-}
+   _driver_t *handle = (_driver_t *)id;
+   char *rv = NULL;
 
-static unsigned int
-_aaxFLACFileGetNoTracks(void *id)
-{
-   _handle_t *handle = (_handle_t *)id;
-   return handle->no_tracks;
-}
-
-static unsigned int
-_aaxFLACFileGetFrequency(void *id)
-{
-   _handle_t *handle = (_handle_t *)id;
-   return handle->frequency;
-}
-
-static unsigned int
-_aaxFLACFileGetBitsPerSample(void *id)
-{
-   _handle_t *handle = (_handle_t *)id;
-   return handle->bits_sample;
-}
-
-
-	/** libmpg123 */
-
-#define BLOCKSIZE		32768
-
-int
-getFormatFromFileFormat(int enc)
-{
-   int rv;
-   switch (enc)
+   switch(param)
    {
-   case MPG123_ENC_8:
-      rv = AAX_PCM8S;
+   case __F_ARTIST:
+      rv = handle->artist;
       break;
-   case MPG123_ENC_ULAW_8:
-      rv = AAX_MULAW;
+   case __F_TITLE:
+      rv = handle->title;
       break;
-   case MPG123_ENC_ALAW_8:
-      rv = AAX_ALAW;
+   case __F_GENRE:
+      rv = handle->genre;
       break;
-   case MPG123_ENC_SIGNED_16:
-      rv = AAX_PCM16S;
+   case __F_TRACKNO:
+      rv = handle->trackno;
       break;
-   case MPG123_ENC_SIGNED_24:
-      rv = AAX_PCM24S;
+   case __F_ALBUM:
+      rv = handle->album;
       break;
-   case MPG123_ENC_SIGNED_32:
-      rv = AAX_PCM32S;
+   case __F_DATE:
+      rv = handle->date;
+      break;
+   case __F_COMMENT:
+      rv = handle->comments;
+      break;
+   case __F_COPYRIGHT:
+      rv = handle->copyright;
       break;
    default:
-      rv = AAX_FORMAT_NONE;
+      break;
    }
    return rv;
 }
 
-static int
-_aaxMPG123FileOpen(void *id, const char* fname)
+static off_t
+_aaxFLACGetParam(void *id, int type)
 {
-   _handle_t *handle = (_handle_t *)id;
-   int res = -1;
-
-   if (handle && fname)
+   _driver_t *handle = (_driver_t *)id;
+   off_t rv = 0;
+   switch(type)
    {
-      handle->fd = open(fname, handle->mode, 0644);
-      if (handle->fd >= 0)
-      {
-         handle->name = strdup(fname);
-         if (handle->capturing)
-         {
-            handle->id = pFLAC__stream_decoder_new();
-            if (handle->id)
-            {
-               int enc, channels;
-               long rate;
-
-               pmpg123_open_fd(handle->id, handle->fd); 
-
-               pmpg123_format(handle->id, handle->frequency,
-                              MPG123_MONO | MPG123_STEREO,
-                              MPG123_ENC_SIGNED_16);
-               pmpg123_getformat(handle->id, &rate, &channels, &enc);
-
-               handle->frequency = rate;
-               handle->no_tracks = channels;
-               handle->format = getFormatFromFileFormat(enc);
-               handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
-               res = AAX_TRUE;
-            }
-         }
-         else {
-            close(handle->fd); /* no mp3 write support (yet) */
-         }
-      }
+   case __F_FMT:
+      rv = handle->format;
+      break;
+   case __F_TRACKS:
+      rv = handle->no_tracks;
+      break;
+   case __F_FREQ:
+      rv = handle->frequency;
+      break;
+   case __F_BITS:
+      rv = handle->bits_sample;
+      break;
+   case __F_BLOCK:
+      rv = handle->blocksize;
+      break;
+   case __F_SAMPLES:
+      rv = handle->max_samples;
+      break;
+   default:
+      break;
    }
-
-   return (res >= 0) ? AAX_TRUE : AAX_FALSE;
+   return rv;
 }
 
-static int
-_aaxMPG123FileClose(void *id)
+static  off_t
+_aaxFLACSetParam(void *id, int type, off_t value)
 {
-   _handle_t *handle = (_handle_t *)id;
-   int ret = AAX_TRUE;
+// _driver_t *handle = (_driver_t *)id;
+   off_t rv = 0;
 
-   if (handle)
+   switch(type)
    {
-      if (handle->capturing)
-      {
-         pmpg123_delete(handle->id);
-         handle->id = NULL;
-         pmpg123_exit();
-
-         free(handle->blockbuf);
-      }
-      close(handle->fd);
-      free(handle->name);
-      free(handle);
+   case __F_POSITION:
+      break;
+   default:
+      break;
    }
-
-   return ret;
-}
-
-static void*
-_aaxMPG123FileSetup(int mode, int freq, int tracks, int format)
-{
-   _handle_t *handle = NULL;
-   handle = calloc(1, sizeof(_handle_t));
-   if (handle && mode == 0)
-   {
-      static const int _mode[] = {
-         0,
-         O_RDONLY|O_BINARY
-      };
-      handle->capturing = 1;
-      handle->mode = _mode[handle->capturing];
-      handle->frequency = freq;
-      handle->no_tracks = tracks;
-      handle->format = format;
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
-   }
-
-   return (void*)handle;
-}
-
-static int
-_aaxMPG123FileReadWrite(void *id, void *data, unsigned int no_frames)
-{
-   _handle_t *handle = (_handle_t *)id;
-   int rv = 0;
-
-   if (handle->capturing)
-   {
-      int framesz_bits = handle->no_tracks*handle->bits_sample;
-      size_t blocksize = (no_frames*framesz_bits)/8;
-      size_t size = 0;
-      int ret;
-
-      ret = pmpg123_read(handle->id, data, blocksize, &size);
-      if (ret == MPG123_OK) {
-         rv = size;
-      }
-      else
-      {
-//       _AAX_SYSLOG("mp3; unable to read data");
-         rv = -1;
-      }
-   }
-
    return rv;
 }
 
