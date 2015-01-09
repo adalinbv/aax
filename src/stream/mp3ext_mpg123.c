@@ -187,9 +187,13 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
 #endif
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS, 1);
+               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_SEEKBUFFER,1);
+               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_FUZZY, 1);
+               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_PICTURE, 1);
                pmpg123_param(handle->id, MPG123_RESYNC_LIMIT, -1, 0.0);
                pmpg123_param(handle->id, MPG123_REMOVE_FLAGS,
                                          MPG123_AUTO_RESAMPLE, 0);
+               pmpg123_param(handle->id, MPG123_RVA, MPG123_RVA_MIX, 0.0);
 
                pmpg123_format(handle->id, handle->frequency,
                                     MPG123_MONO | MPG123_STEREO,
