@@ -392,6 +392,7 @@ _aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    int res;
 
    assert(scratchlen >= num*tracks*sizeof(int32_t));
+
    _batch_cvt16_intl_24(scratch, sptr, offset, tracks, num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, num,
                                          handle->mp3Buffer, handle->mp3BufSize);

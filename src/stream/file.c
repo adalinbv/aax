@@ -586,11 +586,11 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    assert(rb);
    assert(id != 0);
 
+   if (handle->fd < 0) {
+      handle->fd = open(handle->name, handle->fmode, 0644);
+   }
    if (handle->out_header)
    {
-      if (handle->fd < 0) {
-         handle->fd = open(handle->name, handle->fmode, 0644);
-      }
       if (handle->fd)
       {
          res = write(handle->fd, handle->out_header, handle->out_hdr_size);
@@ -634,6 +634,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
 
    // NOTE: Need RB_RW in case it is used as a slaved file-backend
    //       See _aaxSoftwareMixerPlay
+
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    if (fabs(gain - 1.0f) > 0.05f)
    {
@@ -649,6 +650,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    handle->bytes_avail = res;
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
+
 #if !USE_BATCHED_SEMAPHORE
    if (batched) {
       _aaxFileDriverWriteChunk(id);
@@ -1126,43 +1128,53 @@ _aaxFileDriverWriteChunk(const void *id)
    do
    {
       usize = _MIN(buffer_avail, IOBUF_SIZE);
-      memcpy((char*)handle->buf+handle->bufpos, data, usize);
-      buffer_avail -= usize;
-      data += usize;
-
-      handle->bufpos += usize;
-      if (handle->bufpos >= PERIOD_SIZE)
+      if (handle->bufpos+usize <= IOBUF_SIZE)
       {
-         size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
-         ssize_t res;
+         memcpy((char*)handle->buf+handle->bufpos, data, usize);
+         buffer_avail -= usize;
+         data += usize;
 
-         res = write(handle->fd, handle->buf, wsize);
-         if (res > 0)
+         handle->bufpos += usize;
+         if (handle->bufpos >= PERIOD_SIZE)
          {
-            void *buf;
+            size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+            ssize_t res;
 
-            memmove(handle->buf, handle->buf+res, handle->bufpos-res);
-            handle->bufpos -= res;
-
-            if (handle->fmt->update)
+            res = write(handle->fd, handle->buf, wsize);
+            if (res > 0)
             {
-               size_t spos = 0;
-               buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
-                                         AAX_FALSE);
-               if (buf)
+               void *buf;
+
+               memmove(handle->buf, handle->buf+res, handle->bufpos-res);
+               handle->bufpos -= res;
+
+               if (handle->fmt->update)
                {
-                  off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
-                  lseek(handle->fd, spos, SEEK_SET);
-                  res = write(handle->fd, buf, usize);
-                  lseek(handle->fd, floc, SEEK_SET);
+                  size_t spos = 0;
+                  buf = handle->fmt->update(handle->fmt->id, &spos, &usize,
+                                            AAX_FALSE);
+                  if (buf)
+                  {
+                     off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
+                     lseek(handle->fd, spos, SEEK_SET);
+                     res = write(handle->fd, buf, usize);
+                     lseek(handle->fd, floc, SEEK_SET);
+                  }
                }
+            }
+            else
+            {
+               _AAX_FILEDRVLOG(strerror(errno));
+               break;
             }
          }
          else {
             break;
          }
       }
-      else {
+      else
+      {
+         _AAX_FILEDRVLOG("Internal buffer overflow");
          break;
       }
    }
