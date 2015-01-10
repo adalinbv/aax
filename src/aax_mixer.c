@@ -310,6 +310,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   f = be->param(handle->backend.handle, DRIVER_BATCHED_MODE);
                   rv = f ? AAX_TRUE : AAX_FALSE;
                   break;
+               case AAX_SEEKABLE_SUPPORT:
+                  f = be->param(handle->backend.handle,DRIVER_SEEKABLE_SUPPORT);
+                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  break;
                case AAX_TRACKS_MIN:
                   f = be->param(handle->backend.handle, DRIVER_MIN_TRACKS);
                   rv = (int)f;

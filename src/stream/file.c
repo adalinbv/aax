@@ -948,7 +948,7 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* boolean */
-      case DRIVER_SEEKABLE_MODE:
+      case DRIVER_SEEKABLE_SUPPORT:
          if (handle->fmt->get_param(handle->fmt->id, __F_POSITION) != 0) {
             rv =  (float)AAX_TRUE;
          }
