@@ -228,6 +228,7 @@ enum aaxSetupType
    AAX_SHARED_MODE            = 0x1000,
    AAX_TIMER_MODE,
    AAX_BATCHED_MODE,
+   AAX_SEEKABLE_MODE,
 
    AAX_TRACKS_MIN             = 0x1200,
    AAX_TRACKS_MAX,

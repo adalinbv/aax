@@ -948,6 +948,11 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* boolean */
+      case DRIVER_SEEKABLE_MODE:
+         if (handle->fmt->get_param(handle->fmt->id, __F_POSITION) != 0) {
+            rv =  (float)AAX_TRUE;
+         }
+         break;
       case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
          rv = (float)AAX_TRUE;

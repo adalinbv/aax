@@ -779,6 +779,7 @@ _aaxWavGetParam(void *id, int type)
    case __F_SAMPLES:
       rv = handle->max_samples;
       break;
+   case __F_POSITION:
    default:
       break;
    }

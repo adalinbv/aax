@@ -96,9 +96,9 @@ extern _aaxExtensionDetect* _aaxFileTypes[];
 
 _aaxExtensionDetect _aaxDetectWavFile;
 _aaxExtensionDetect _aaxDetectMP3File;
+_aaxExtensionDetect _aaxDetectFLACFile;
 #if 0
 _aaxExtensionDetect _aaxDetectAiffFile;
-_aaxExtensionDetect _aaxDetectFLACFile;
 _aaxExtensionDetect _aaxDetectVorbisFile;
 #endif
 
