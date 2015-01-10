@@ -447,6 +447,7 @@ SET( AEONWAVE_OBJS
      src/stream/filetype.c
      src/stream/wavext.c
      src/stream/mp3ext.c
+     src/stream/flacext.c
      src/android/opensl.c
      src/software/device.c
      src/software/arch.c

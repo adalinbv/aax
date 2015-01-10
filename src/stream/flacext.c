@@ -22,23 +22,17 @@
 #  include <strings.h>   /* strcasecmp */
 # endif
 #endif
-#include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
 #include <errno.h>
-#if HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#ifdef HAVE_IO_H
-# include <io.h>
-#endif
 
-#include <aax/aax.h>
-
-#include <ringbuffer.h>
 #include <base/dlsym.h>
+
 #include <arch.h>
+#include <devices.h>
+#include <ringbuffer.h>
 
 #include "filetype.h"
+#include "flacext.h"
 #include "audio.h"
 
 // https://xiph.org/flac/api/index.html
@@ -69,30 +63,27 @@
  *   The instance may be used again or deleted with
  *    FLAC__stream_decoder_delete().
  */
-
-
-DECL_FUNCTION(FLAC__stream_decoder_init_stream);
 DECL_FUNCTION(FLAC__stream_decoder_new);
+DECL_FUNCTION(FLAC__stream_decoder_set_metadata_respond);
+DECL_FUNCTION(FLAC__stream_decoder_set_metadata_ignore);
+DECL_FUNCTION(FLAC__stream_decoder_init_stream);
+DECL_FUNCTION(FLAC__stream_decoder_process_single);
+DECL_FUNCTION(FLAC__stream_decoder_finish);
+DECL_FUNCTION(FLAC__stream_decoder_delete);
 
-static _detect_fn _aaxFLACFileDetect;
 
+static _file_detect_fn _aaxFLACDetect;
 static _file_new_handle_fn _aaxFLACSetup;
 static _file_open_fn _aaxFLACOpen;
 static _file_close_fn _aaxFLACClose;
 static _file_update_fn _aaxFLACUpdate;
 static _file_get_name_fn _aaxFLACGetName;
-
-static _file_cvt_to_fn _aaxFLACCvtToIntl;
-static _file_cvt_from_fn _aaxFLACCvtFromIntl;
-static _file_cvt_fn _aaxFLACCvtEndianness;
-static _file_cvt_fn _aaxFLACCvtToSigned;
-static _file_cvt_fn _aaxFLACCvtFromSigned;
-
 static _file_default_fname_fn _aaxFLACInterfaces;
 static _file_extension_fn _aaxFLACExtension;
-
 static _file_get_param_fn _aaxFLACGetParam;
 static _file_set_param_fn _aaxFLACSetParam;
+static _file_cvt_to_fn _aaxFLACCvtToIntl;
+static _file_cvt_from_fn _aaxFLACCvtFromIntl;
 
 /*
  * http://flac.sourceforge.net/api/group__flac__stream__decoder.html
@@ -102,7 +93,7 @@ static _file_set_param_fn _aaxFLACSetParam;
  * http://ffmpeg.org/doxygen/trunk/libavcodec_2flacdec_8c_source.html
  */
 
-_aaxFileHandle*
+_aaxFmtHandle*
 _aaxDetectFLACFile()
 {
    _aaxFmtHandle* rv = calloc(1, sizeof(_aaxFmtHandle));
@@ -117,9 +108,9 @@ _aaxDetectFLACFile()
 
       rv->cvt_from_intl = _aaxFLACCvtFromIntl;
       rv->cvt_to_intl = _aaxFLACCvtToIntl;
-      rv->cvt_endianness = _aaxFLACCvtEndianness;
-      rv->cvt_from_signed = _aaxFLACCvtFromSigned;
-      rv->cvt_to_signed = _aaxFLACCvtToSigned;
+      rv->cvt_endianness = NULL;
+      rv->cvt_from_signed = NULL;
+      rv->cvt_to_signed = NULL;
 
       rv->supported = _aaxFLACExtension;
       rv->interfaces = _aaxFLACInterfaces;
@@ -142,6 +133,7 @@ typedef struct
    char *genre;
    char *copyright;
    char *comments;
+   void *picture;
    void *id;
 
    int capturing;
@@ -153,15 +145,19 @@ typedef struct
    size_t blocksize;
    size_t max_samples;
 
-   int mode;
-
    unsigned char *blockbuf;
    unsigned int offset_samples;
 
-} _handle_t;
+} _driver_t;
+
+static FLAC__StreamDecoderReadCallback _flac_read_cb;
+static FLAC__StreamDecoderWriteCallback _flac_write_cb;
+static FLAC__StreamDecoderEofCallback _flac_eof_cb;
+static FLAC__StreamDecoderMetadataCallback _flac_metadata_cb;
+static FLAC__StreamDecoderErrorCallback _flac_error_cb;
 
 static int
-_aaxFLACFileDetect(int mode)
+_aaxFLACDetect(void *fmt, int mode)
 {
    static void *audio = NULL;
    int rv = AAX_FALSE;
@@ -178,10 +174,15 @@ _aaxFLACFileDetect(int mode)
       char *error;
       _aaxGetSymError(0);
 
-      TIE_FUNCTION(FLAC__stream_decoder_init_stream);
-      if (pFLAC__stream_decoder_init_stream)
+      TIE_FUNCTION(FLAC__stream_decoder_new);
+      if (pFLAC__stream_decoder_new)
       {
-         TIE_FUNCTION(FLAC__stream_decoder_new);
+         TIE_FUNCTION(FLAC__stream_decoder_set_metadata_respond);
+         TIE_FUNCTION(FLAC__stream_decoder_set_metadata_ignore);
+         TIE_FUNCTION(FLAC__stream_decoder_init_stream);
+         TIE_FUNCTION(FLAC__stream_decoder_process_single);
+         TIE_FUNCTION(FLAC__stream_decoder_finish);
+         TIE_FUNCTION(FLAC__stream_decoder_delete);
 
          error = _aaxGetSymError(0);
          if (!error) {
@@ -202,6 +203,25 @@ _aaxFLACOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
+      handle->id = pFLAC__stream_decoder_new();
+      if (handle->id)
+      {
+         FLAC__StreamDecoderInitStatus res;
+         res = pFLAC__stream_decoder_init_stream(handle->id,
+                                                 _flac_read_cb,
+                                                 NULL, NULL, NULL,
+                                                 _flac_eof_cb,
+                                                 _flac_write_cb,
+                                                 _flac_metadata_cb,
+                                                 _flac_error_cb,
+                                                 handle);
+         if (res == FLAC__STREAM_DECODER_INIT_STATUS_OK)
+         {
+
+            pFLAC__stream_decoder_process_single(handle->id);
+            rv = buf;
+         }
+      }
    }
    else
    {
@@ -219,6 +239,20 @@ _aaxFLACClose(void *id)
 
    if (handle)
    {
+      free(handle->artist);
+      free(handle->title);
+      free(handle->album);
+      free(handle->trackno);
+      free(handle->date);
+      free(handle->genre);
+      free(handle->copyright);
+      free(handle->comments);
+      free(handle->picture);
+      free(handle->blockbuf);
+
+      pFLAC__stream_decoder_finish(handle->id);
+      pFLAC__stream_decoder_delete(handle->id);
+      free(handle);
    }
 
    return res;
@@ -227,7 +261,7 @@ _aaxFLACClose(void *id)
 static void*
 _aaxFLACSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
-   int bits_sample = aaxGetBitsPerSample(format);
+// int bits_sample = aaxGetBitsPerSample(format);
    _driver_t *handle = NULL;
 
    return (void*)handle;
@@ -236,7 +270,7 @@ _aaxFLACSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_
 static void*
 _aaxFLACUpdate(void *id, size_t *offs, size_t *size, char close)
 {
-   _driver_t *handle = (_driver_t *)id;
+// _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
 
    return rv;
@@ -245,7 +279,7 @@ _aaxFLACUpdate(void *id, size_t *offs, size_t *size, char close)
 static size_t
 _aaxFLACCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
-   _driver_t *handle = (_driver_t *)id;
+// _driver_t *handle = (_driver_t *)id;
    size_t rv  = 0;
 
    return rv;
@@ -254,19 +288,19 @@ _aaxFLACCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t off
 static size_t
 _aaxFLACCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
 {
-   _driver_t *handle = (_driver_t *)id;
+// _driver_t *handle = (_driver_t *)id;
    size_t rv = 0;
 
    return rv;
 }
 
 static int
-_aaxFLACFileExtension(char *ext) {
+_aaxFLACExtension(char *ext) {
    return (ext && !strcasecmp(ext, "flac")) ? 1 : 0;
 }
 
 static char*
-_aaxFLACFileInterfaces(int mode)
+_aaxFLACInterfaces(int mode)
 {
    static const char *rd[2] = { "*.flac\0", "*.flac\0" };
    return (char *)rd[mode];
@@ -355,5 +389,24 @@ _aaxFLACSetParam(void *id, int type, off_t value)
       break;
    }
    return rv;
+}
+
+
+void
+_flac_metadatcb(const void *id, const FLAC__StreamMetadata *metadata, void *d)
+{
+   _driver_t *handle = (_driver_t *)d;
+
+   if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
+   {
+      FLAC__StreamMetadata_StreamInfo *data;
+
+      data = (FLAC__StreamMetadata_StreamInfo*)&metadata->data;
+      handle->no_tracks = data->channels;
+      handle->bits_sample = data->bits_per_sample;
+      handle->frequency = data->sample_rate;
+//    handle->blocksize = 
+      handle->max_samples = data->total_samples;
+   }
 }
 

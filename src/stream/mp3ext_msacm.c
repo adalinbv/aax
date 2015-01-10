@@ -9,6 +9,8 @@
  * permission of Adalin B.V.
  */
 
+#include "mp3ext_msacm.h"
+
 #ifdef WINXP
 	/** windows (xp and later) native */
 static _file_open_fn _aaxMSACMOpen;

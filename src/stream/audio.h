@@ -23,9 +23,6 @@ extern "C" {
 #include <base/dlsym.h>
 #include <driver.h>
 
-#include "mp3ext_mpg123.h"
-#include "mp3ext_msacm.h"
-
 #ifdef WIN32
 // TODO: Needs fixing # define WINXP
 #endif

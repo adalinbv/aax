@@ -9,6 +9,8 @@
  * permission of Adalin B.V.
  */
 
+#include "mp3ext_mpg123.h"
+
 // libmpg123 for mp3 input
 // liblame for mp3 output
 // both Linux and Windows
