@@ -35,6 +35,8 @@
 #include "flacext.h"
 #include "audio.h"
 
+#define IOBUFFER_SIZE	16384
+
 // https://xiph.org/flac/api/index.html
 // https://xiph.org/flac/api/group__flac__stream__decoder.html
 /*
@@ -70,13 +72,13 @@ DECL_FUNCTION(FLAC__stream_decoder_init_stream);
 DECL_FUNCTION(FLAC__stream_decoder_process_single);
 DECL_FUNCTION(FLAC__stream_decoder_finish);
 DECL_FUNCTION(FLAC__stream_decoder_delete);
-
+DECL_FUNCTION(FLAC__stream_decoder_flush);
+DECL_FUNCTION(FLAC__stream_decoder_get_state);
 
 static _file_detect_fn _aaxFLACDetect;
 static _file_new_handle_fn _aaxFLACSetup;
 static _file_open_fn _aaxFLACOpen;
 static _file_close_fn _aaxFLACClose;
-static _file_update_fn _aaxFLACUpdate;
 static _file_get_name_fn _aaxFLACGetName;
 static _file_default_fname_fn _aaxFLACInterfaces;
 static _file_extension_fn _aaxFLACExtension;
@@ -103,7 +105,7 @@ _aaxDetectFLACFile()
       rv->setup = _aaxFLACSetup;
       rv->open = _aaxFLACOpen;
       rv->close = _aaxFLACClose;
-      rv->update = _aaxFLACUpdate;
+      rv->update = NULL;
       rv->name = _aaxFLACGetName;
 
       rv->cvt_from_intl = _aaxFLACCvtFromIntl;
@@ -145,16 +147,18 @@ typedef struct
    size_t blocksize;
    size_t max_samples;
 
-   unsigned char *blockbuf;
-   unsigned int offset_samples;
+   uint32_t flacBufSize;
+   uint32_t flacBufferPos;
+   uint8_t flacBuffer[IOBUFFER_SIZE];
+   int32_t **ptr;
 
 } _driver_t;
 
-static FLAC__StreamDecoderReadCallback _flac_read_cb;
-static FLAC__StreamDecoderWriteCallback _flac_write_cb;
-static FLAC__StreamDecoderEofCallback _flac_eof_cb;
-static FLAC__StreamDecoderMetadataCallback _flac_metadata_cb;
-static FLAC__StreamDecoderErrorCallback _flac_error_cb;
+static FLAC__StreamDecoderReadStatus _flac_read_cb(const void*, uint8_t[], size_t*, void*);
+static FLAC__StreamDecoderWriteStatus _flac_write_cb(const void*, const FLAC__Frame*, const int32_t *const buffer[], void*);
+static int _flac_eof_cb(const void*, void*);
+static void _flac_metadata_cb(const void*, const FLAC__StreamMetadata*, void*);
+static void _flac_error_cb(const void*, FLAC__StreamDecoderErrorStatus, void*);
 
 static int
 _aaxFLACDetect(void *fmt, int mode)
@@ -183,6 +187,8 @@ _aaxFLACDetect(void *fmt, int mode)
          TIE_FUNCTION(FLAC__stream_decoder_process_single);
          TIE_FUNCTION(FLAC__stream_decoder_finish);
          TIE_FUNCTION(FLAC__stream_decoder_delete);
+         TIE_FUNCTION(FLAC__stream_decoder_flush);
+         TIE_FUNCTION(FLAC__stream_decoder_get_state);
 
          error = _aaxGetSymError(0);
          if (!error) {
@@ -199,7 +205,7 @@ _aaxFLACOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
    _driver_t *handle = (_driver_t *)id;
    void *rv = NULL;
 
-   assert(bufsize);
+   assert(*bufsize == IOBUFFER_SIZE);
 
    if (handle)
    {
@@ -217,8 +223,17 @@ _aaxFLACOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
                                                  handle);
          if (res == FLAC__STREAM_DECODER_INIT_STATUS_OK)
          {
+            if (handle->capturing) {
+               memcpy(handle->flacBuffer, buf, *bufsize);
+            }
 
             pFLAC__stream_decoder_process_single(handle->id);
+
+            if (!handle->capturing)
+            {
+               *bufsize = handle->flacBufSize;
+               memcpy(buf, handle->flacBuffer, *bufsize);
+            }
             rv = buf;
          }
       }
@@ -248,7 +263,6 @@ _aaxFLACClose(void *id)
       free(handle->copyright);
       free(handle->comments);
       free(handle->picture);
-      free(handle->blockbuf);
 
       pFLAC__stream_decoder_finish(handle->id);
       pFLAC__stream_decoder_delete(handle->id);
@@ -261,26 +275,71 @@ _aaxFLACClose(void *id)
 static void*
 _aaxFLACSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
-// int bits_sample = aaxGetBitsPerSample(format);
+   int bits_sample = aaxGetBitsPerSample(format);
    _driver_t *handle = NULL;
 
+   if (bits_sample)
+   {
+      handle = calloc(1, sizeof(_driver_t));
+      if (handle)
+      {
+         handle->capturing = (mode > 0) ? 0 : 1;
+         *bufsize = IOBUFFER_SIZE;
+      }
+      else {
+         _AAX_FILEDRVLOG("FLACFile: Insufficient memory");
+      }
+   }
+   else {
+      _AAX_FILEDRVLOG("FLACFile: Unsupported format");
+   }
+
    return (void*)handle;
-}
-
-static void*
-_aaxFLACUpdate(void *id, size_t *offs, size_t *size, char close)
-{
-// _driver_t *handle = (_driver_t *)id;
-   void *rv = NULL;
-
-   return rv;
 }
 
 static size_t
 _aaxFLACCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
-// _driver_t *handle = (_driver_t *)id;
-   size_t rv  = 0;
+   _driver_t *handle = (_driver_t *)id;
+   int bits, ret, rv = __F_EOF;
+   size_t bytes;
+
+   bits = handle->bits_sample;
+   bytes = _MIN(num*tracks*bits/8, IOBUFFER_SIZE);
+
+   handle->ptr = dptr;
+   handle->flacBufferPos = 0;
+   handle->flacBufSize = bytes;
+   memcpy(handle->flacBuffer, sptr, bytes);
+   ret = pFLAC__stream_decoder_process_single(handle->id);
+   if (!ret)
+   {
+      FLAC__StreamDecoderState state;
+      state = pFLAC__stream_decoder_get_state(handle->id);
+      switch (state)
+      {
+      case FLAC__STREAM_DECODER_ABORTED:
+         // aborted by the read callback
+         // this means the decoder needs more data
+         rv = __F_PROCESS;
+         break;
+      case FLAC__STREAM_DECODER_SEEK_ERROR:
+         pFLAC__stream_decoder_flush(handle->id);
+         rv = __F_PROCESS;
+         break;
+      case FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR:
+         _AAX_FILEDRVLOG("FLACFile: unable to allocate memory.");
+         // break not needed
+      case FLAC__STREAM_DECODER_END_OF_STREAM:
+         rv = __F_EOF;
+         break;
+      default:
+         break;
+      }
+   }
+   else {
+      rv = handle->flacBufferPos;
+   }
 
    return rv;
 }
@@ -288,8 +347,15 @@ _aaxFLACCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t off
 static size_t
 _aaxFLACCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
 {
-// _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    size_t rv = 0;
+
+   pFLAC__stream_decoder_process_single(handle->id);
+
+   if (!handle->capturing)
+   {
+//    memcpy(buf, handle->flacBuffer, *bufsize);
+   }
 
    return rv;
 }
@@ -392,8 +458,17 @@ _aaxFLACSetParam(void *id, int type, off_t value)
 }
 
 
+/*
+ * This function will be called when the decoder has decoded a metadata block.
+ * In a valid FLAC file there will always be one STREAMINFO block, followed by
+ * zero or more other metadata blocks. These will be supplied by the decoder in
+ * the same order as they appear in the stream and always before the first audio
+ * frame (i.e. write callback). The metadata block that is passed in must not
+ * be modified, and it doesn't live beyond the callback, so you should make a
+ * copy of it with FLAC__metadata_object_clone() if you will need it elsewhere.
+ */
 void
-_flac_metadatcb(const void *id, const FLAC__StreamMetadata *metadata, void *d)
+_flac_metadata_cb(const void *id, const FLAC__StreamMetadata *metadata, void *d)
 {
    _driver_t *handle = (_driver_t *)d;
 
@@ -408,5 +483,57 @@ _flac_metadatcb(const void *id, const FLAC__StreamMetadata *metadata, void *d)
 //    handle->blocksize = 
       handle->max_samples = data->total_samples;
    }
+}
+
+/*
+ * This function will be called when the decoder needs more input data. The
+ * address of the buffer to be filled is supplied, along with the number of
+ * bytes the buffer can hold. The callback may choose to supply less data and
+ * modify the byte count but must be careful not to overflow the buffer.
+ */
+static FLAC__StreamDecoderReadStatus
+_flac_read_cb(const void *id, uint8_t buffer[], size_t *bytes, void *d)
+{
+// _driver_t *handle = (_driver_t *)d;
+   FLAC__StreamDecoderReadStatus rv;
+
+      rv = FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+// rv = FLAC__STREAM_DECODER_READ_STATUS_ABORT  // need more data
+
+   return rv;
+}
+
+/*
+ * This function will be called when the decoder has decoded a single audio
+ * frame. The decoder will pass the frame metadata as well as an array of
+ * pointers (one for each channel) pointing to the decoded audio.
+ */
+static FLAC__StreamDecoderWriteStatus
+_flac_write_cb(const void *id, const FLAC__Frame *frame, const int32_t *const buffer[], void *d)
+{
+// _driver_t *handle = (_driver_t *)d;
+   FLAC__StreamDecoderWriteStatus rv;
+
+// handle->flacBufferPos = 0;
+// handle->flacBufSize = bytes;
+// handle->flacBuffer // source
+// handle->ptr  // destenation int32_t**
+
+      rv = FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+// rv = FLAC__STREAM_DECODER_WRITE_STATUS_ABORT  // need more data
+
+   return rv;
+}
+
+static int
+_flac_eof_cb(const void *id, void *d)
+{
+   return 0; // or 1 if at the end of the file
+}
+
+static void
+_flac_error_cb(const void *id, FLAC__StreamDecoderErrorStatus status, void *d)
+{
+   _AAX_FILEDRVLOG(FLAC__StreamDecoderErrorStatusString[status]);
 }
 

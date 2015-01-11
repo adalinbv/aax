@@ -357,13 +357,12 @@ static size_t
 _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
-   int bps, ret, rv = __F_EOF;
-   size_t bytes;
-   size_t size = 0;
+   int bits, ret, rv = __F_EOF;
+   size_t bytes, size = 0;
 
-   bps = handle->bits_sample/8;
-   bytes = num*tracks*bps;
-   if (!sptr)
+   bits = handle->bits_sample;
+   bytes = num*tracks*bits/8;
+   if (!sptr)	/* decode from our own buffer */
    {
       unsigned char *buf = (unsigned char*)handle->mp3Buffer;
       size_t bufsize = handle->mp3BufSize;
@@ -375,11 +374,11 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t o
       if (!handle->id3_found) detect_mpg123_song_info(handle);
       if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
       {
-         rv = size/(tracks*bps);
+         rv = size*8/(tracks*bits);
          _batch_cvt24_16_intl(dptr, buf, offset, tracks, rv);
       }
    }
-   else
+   else /* provide the next chunk to our own buffer */
    {
       ret = pmpg123_feed(handle->id, sptr, bytes);
       if (!handle->id3_found) detect_mpg123_song_info(handle);

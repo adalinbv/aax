@@ -492,7 +492,7 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
       case AAX_IMA4_ADPCM:
          break;
       default:
-         _AAX_FILEDRVLOG("File: Unsupported format");
+         _AAX_FILEDRVLOG("WAVFile: Unsupported format");
          break;
       }
    }

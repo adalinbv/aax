@@ -26,6 +26,8 @@
 #define FLAC__MAX_LPC_ORDER		(32u)
 #define FLAC__MAX_CHANNELS		(8u)
 
+extern const char *const FLAC__StreamDecoderErrorStatusString[];
+
 typedef enum
 {
   FLAC__STREAM_DECODER_READ_STATUS_CONTINUE = 0,
@@ -122,6 +124,20 @@ typedef enum
   FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE,
   FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED
 } FLAC__StreamDecoderInitStatus;
+
+typedef enum
+{
+  FLAC__STREAM_DECODER_SEARCH_FOR_METADATA = 0,
+  FLAC__STREAM_DECODER_READ_METADATA, 
+  FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC,
+  FLAC__STREAM_DECODER_READ_FRAME,
+  FLAC__STREAM_DECODER_END_OF_STREAM,
+  FLAC__STREAM_DECODER_OGG_ERROR,
+  FLAC__STREAM_DECODER_SEEK_ERROR,
+  FLAC__STREAM_DECODER_ABORTED,
+  FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
+  FLAC__STREAM_DECODER_UNINITIALIZED
+} FLAC__StreamDecoderState;
 
 typedef struct
 {
@@ -320,6 +336,9 @@ typedef FLAC__StreamDecoderInitStatus (*FLAC__stream_decoder_init_stream_proc)(v
 typedef int (*FLAC__stream_decoder_process_single_proc)(void*);
 typedef int (*FLAC__stream_decoder_finish_proc)(void*);
 typedef void (*FLAC__stream_decoder_delete_proc)(void*);
+typedef int (*FLAC__stream_decoder_flush_proc)(void*);
+
+typedef FLAC__StreamDecoderState (*FLAC__stream_decoder_get_state_proc)(const void*);
 
 #endif /* __FILE_EXT_FLAC_H */
 
