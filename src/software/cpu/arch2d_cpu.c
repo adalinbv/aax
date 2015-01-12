@@ -1215,6 +1215,7 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t d
    assert(d != 0);
    assert(dmin < dmax);
    assert(freq_factor >= 1.0f);
+   assert(freq_factor < 10.0f);
    assert(0.0f <= smu && smu < 1.0f);
 
    d += dmin;

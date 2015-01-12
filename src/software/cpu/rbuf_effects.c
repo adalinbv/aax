@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2005-2015 by Erik Hofman.
+ * Copyright 2009-2015 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -46,7 +46,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
 {
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = delay;
-   size_t ds = effect ? ddesamps : 0;	/* 0 for frequency filtering */
+   size_t ds = delay ? ddesamps : 0;	/* 0 for frequency filtering */
    MIX_T *psrc = src;
    MIX_T *pdst = dst;
 
@@ -215,7 +215,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       MIX_T *dptr = d + start;
 
       offs = effect->delay.sample_offs[track];
-      assert(offs < ds);
+      assert(start || (offs < ds));
       if (offs >= ds) offs = ds-1;
 
       if (start) {
@@ -289,7 +289,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
          size_t doffs = noffs - offs;
          float fact;
 
-         fact = _MAX((float)((size_t)end-doffs)/(float)(end), 0.0f);
+         fact = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
          if (fact == 1.0f) {
             rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
          }
