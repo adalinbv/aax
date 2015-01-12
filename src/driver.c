@@ -196,7 +196,7 @@ enum aaxFormat
 getAudioFormat(int argc, char **argv, enum aaxFormat format)
 {
    char *fn = getCommandLineOption(argc, argv, "-f");
-   enum aaxFormat rv = format;
+   enum aaxFormat rv = 0;
 
    if (!fn) fn = getCommandLineOption(argc, argv, "--format");
    if (fn)
@@ -241,6 +241,8 @@ getAudioFormat(int argc, char **argv, enum aaxFormat format)
          rv |= AAX_PCM24U;
       } else if (!strcasecmp(fn, "AAX_PCM32U")) {
          rv |= AAX_PCM32U;
+      } else {
+         rv = format;
       }
    }
 
