@@ -444,7 +444,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
       void* fbe_handle = handle->file.handle;
       _aaxAudioFrame *smixer = NULL;
 
-      if (_IS_PLAYING(handle))
+      if (handle->info->mode == AAX_MODE_READ)
+      {
+         _aaxSensorsProcessSensor(handle, rb, NULL, 0, 0);
+      }
+      else if (_IS_PLAYING(handle))
       {
          dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
          if (dptr_sensor)
@@ -452,47 +456,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             _sensor_t *sensor = _intBufGetDataPtr(dptr_sensor);
 
             smixer = sensor->mixer;
-            if (handle->info->mode == AAX_MODE_READ)
-            {
-               float gain, rr, dt = 1.0f/smixer->info->period_rate;
-               ssize_t nsamps = 0;
-               void *rv;
-
-               gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
-               gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
-               rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_AGC_RESPONSE_RATE);
-               rv = _aaxSensorCapture(rb, be, be_handle, &dt, rr,
-                                      smixer->info->track,
-                                      smixer->curr_pos_sec, gain, &nsamps,
-                                      batched);
-               if (dt == 0.0f)
-               {
-                  _SET_STOPPED(handle);
-                  _SET_PROCESSED(handle);
-               }
-
-               dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-               if (dptr_sensor)
-               {
-                  _intBuffers *rbs = smixer->play_ringbuffers;
-                  if (rb != rv)
-                  {
-                     rb->set_state(rb, RB_STARTED);
-                     rb->set_state(rb, RB_REWINDED);
-
-                     _intBufAddData(rbs, _AAX_RINGBUFFER, rb);
-                     handle->ringbuffer = rv;
-
-                     if (smixer->capturing) {
-                        _aaxSignalTrigger(&handle->buffer_ready);
-                     }
-                  }
-                  smixer->curr_pos_sec += dt;
-                  smixer->curr_sample += nsamps;
-                  _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-               }
-            }
-            else if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
+            if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
                _aaxDelayed3dProps *sdp3d, *sdp3d_m;
                _aax2dProps sp2d;

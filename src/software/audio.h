@@ -40,6 +40,7 @@ void    _linear2adpcm(int16_t*, int16_t, uint8_t*, uint8_t*);
 void  _sw_bufcpy_ima_adpcm(void*, const void*, unsigned char, size_t);
 
 /* sensor */
+void _aaxSensorsProcessSensor(void*, _aaxRingBuffer*, _aax2dProps*, int, char);
 void _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*, _aax2dProps*, int, char);
 void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
                         float*, float, int, float, float, ssize_t*, char);

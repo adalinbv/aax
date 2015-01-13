@@ -35,177 +35,209 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
    num = _intBufGetMaxNum(hd, _AAX_DEVICE);
    for (i=0; i<num; i++)
    {
-      const _intBufferData *dptr_sensor = NULL;
-      const _aaxDriverBackend *be;
       _intBufferData *dptr;
       _handle_t* device;
-      void *be_handle;
 
       dptr = _intBufGet(hd, _AAX_DEVICE, i);
       if (!dptr) continue;
 
       device = _intBufGetDataPtr(dptr);
-      be = device->backend.ptr;
-      be_handle = device->backend.handle;
+      _aaxSensorsProcessSensor(device, drb, props2d, dest_track, batched);
+      _intBufReleaseData(dptr, _AAX_DEVICE);
+   }
+   _intBufReleaseNum(hd, _AAX_DEVICE);
+}
 
-      // It's tempting to test if the device is processed and then continue
-      // but the device might still have several unprocessed ringbuffers
-      // in the queue. We have to process them first.
+void
+_aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int dest_track, char batched)
+{
+   _handle_t* device = (_handle_t*)id;
+   const _intBufferData *dptr_sensor = NULL;
+   _aax2dProps *props2d = p2d;
+   const _aaxDriverBackend *be;
+   char unregistered_ssr;
+   void *be_handle;
 
-      if (be->state(be_handle, DRIVER_AVAILABLE) != AAX_FALSE) {
-         dptr_sensor = _intBufGet(device->sensors, _AAX_SENSOR, 0);
-      }
+   be = device->backend.ptr;
+   be_handle = device->backend.handle;
+   unregistered_ssr = props2d ? AAX_FALSE : AAX_TRUE;
 
-      if (dptr_sensor)
+   // It's tempting to test if the device is processed and then continue
+   // but the device might still have several unprocessed ringbuffers
+   // in the queue. We have to process them first.
+
+   if (be->state(be_handle, DRIVER_AVAILABLE) != AAX_FALSE) {
+      dptr_sensor = _intBufGet(device->sensors, _AAX_SENSOR, 0);
+   }
+
+   if (dptr_sensor)
+   {
+      float gain, dt, rr, curr_pos_sec;
+      const _intBufferData* sptr_rb;
+      _aaxRingBuffer *srb;
+      _aaxAudioFrame *smixer;
+      _sensor_t* sensor;
+      _intBuffers *srbs;
+      ssize_t nsamps;
+      void *rv;
+
+      sensor = _intBufGetDataPtr(dptr_sensor);
+      smixer = sensor->mixer;
+      srb = smixer->ringbuffer;
+      dt = 1.0f / smixer->info->period_rate;
+      srbs = smixer->play_ringbuffers;
+      curr_pos_sec = smixer->curr_pos_sec;
+
+      if (unregistered_ssr)
       {
-         _aax2dProps *p2d = (_aax2dProps*)props2d;
-         float gain, dt, rr, curr_pos_sec;
-         const _intBufferData* sptr_rb;
-         _aaxRingBuffer *srb;
-         _aaxAudioFrame *smixer;
-         _sensor_t* sensor;
-         _intBuffers *srbs;
-         ssize_t nsamps;
-         void *rv;
+         p2d = smixer->props2d;
+         dest_track = smixer->info->track;
+         batched = device->finished ? AAX_TRUE : AAX_FALSE;
+         srb = drb;
+      }
+      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
-         sensor = _intBufGetDataPtr(dptr_sensor);
-         smixer = sensor->mixer;
-         srb = smixer->ringbuffer;
-         dt = 1.0f / smixer->info->period_rate;
-         srbs = smixer->play_ringbuffers;
-         curr_pos_sec = smixer->curr_pos_sec;
-         _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-
-         if (_IS_PLAYING(device))
-         {
-            if (!device->ringbuffer) {
-               device->ringbuffer = be->get_ringbuffer(0.0f, smixer->info->mode);
-            }
-
-            nsamps = 0;
-            gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
-            gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
-            rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER,
-                                              AAX_AGC_RESPONSE_RATE);
-            rv = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
-                                   curr_pos_sec, gain, &nsamps, batched);
-            if (dt == 0.0f)
-            {
-               _SET_STOPPED(device);
-               _SET_PROCESSED(device);
-               smixer->curr_pos_sec = 0.0f;
-               smixer->curr_sample = 0;
-               if (be->set_position) {
-                  be->set_position(be_handle, 0);
-               }
-            }
-
-            if (device->ringbuffer)
-            {
-               _aaxRingBuffer *drb = device->ringbuffer;
-               _aaxRingBuffer *rb = rv;
-               int track, tracks;
-
-               tracks = rb->get_parami(rb, RB_NO_TRACKS);
-               for (track=0; track<tracks; track++)
-               {
-                  float f = rb->get_paramf(rb, RB_AVERAGE_VALUE+track);
-                  drb->set_paramf(drb, RB_AVERAGE_VALUE+track, f);
-
-                  f = rb->get_paramf(rb, RB_PEAK_VALUE+track);
-                  drb->set_paramf(drb, RB_PEAK_VALUE+track, f);
-               }
-            }
-
-            dptr_sensor = _intBufGetNoLock(device->sensors, _AAX_SENSOR, 0);
-            if (rv != srb)
-            {
-               /**
-                * Add the new buffer to the buffer queue and pop the
-                * first buffer from the queue when needed (below).
-                * This way pitch effects (< 1.0) can be processed safely.
-                */
-               srb->set_paramf(srb, RB_FREQUENCY, device->info->frequency);
-               srb->set_state(srb, RB_STARTED);
-               srb->set_state(srb, RB_REWINDED);
-
-               _intBufAddData(srbs, _AAX_RINGBUFFER, srb);
-               smixer->ringbuffer = rv;
-            }
-            smixer->curr_pos_sec += dt;
-            smixer->curr_sample += nsamps;
-
-            sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
-            if (sptr_rb)
-            {
-               _aaxRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
-               size_t rv = 0;
-
-               do
-               {
-                  _aaxRingBufferLFOData *lfo;
-
-                  lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
-                  if (lfo)
-                  {
-                     p2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
-                     p2d->final.pitch_lfo -= lfo->min;
-                  } else {
-                     p2d->final.pitch_lfo = 1.0f;
-                  }
-                  lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
-                  if (lfo && !lfo->envelope) {
-                     p2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
-                  } else {
-                     p2d->final.gain_lfo = 1.0f;
-                  }
-                  rv = drb->mix2d(drb, ssr_rb, smixer->props2d, props2d, 0, 0);
-                  _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
-
-                  if (rv) /* true if a new buffer is required */
-                  {
-                     _intBufferData *rbuf;
-
-                     rbuf = _intBufPop(srbs, _AAX_RINGBUFFER);
-                     if (rbuf)
-                     {
-                        _aaxRingBuffer *rb = _intBufGetDataPtr(rbuf);
-
-                        // TODO: store in a reasuable ringbuffer queue
-                        be->destroy_ringbuffer(rb);
-                        _intBufDestroyDataNoLock(rbuf);
-                     }
-
-                     if ((sptr_rb =_intBufGet(srbs, _AAX_RINGBUFFER,0)) != NULL)
-                     {
-                        ssr_rb = _intBufGetDataPtr(sptr_rb);
-                        /* since rv == AAX_TRUE this will be unlocked 
-                           after rb->mix2d */
-                     }
-                     else {
-                        rv = 0;
-                     }
-                  }
-               }
-               while(rv);
-            }
+      if (_IS_PLAYING(device))
+      {
+         if (!device->ringbuffer) {
+            device->ringbuffer = be->get_ringbuffer(0.0f, smixer->info->mode);
          }
-         else if (_IS_PROCESSED(device))
+
+         nsamps = 0;
+         gain = _FILTER_GET(smixer->props2d, VOLUME_FILTER, AAX_GAIN);
+         gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
+         rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER,
+                                           AAX_AGC_RESPONSE_RATE);
+         rv = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
+                                curr_pos_sec, gain, &nsamps, batched);
+         if (dt == 0.0f)
          {
+            _SET_STOPPED(device);
+            _SET_PROCESSED(device);
             smixer->curr_pos_sec = 0.0f;
             smixer->curr_sample = 0;
             if (be->set_position) {
                be->set_position(be_handle, 0);
             }
          }
-//       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
+         if (device->ringbuffer)
+         {
+            _aaxRingBuffer *drb = device->ringbuffer;
+            _aaxRingBuffer *rb = rv;
+            int track, tracks;
+
+            tracks = rb->get_parami(rb, RB_NO_TRACKS);
+            for (track=0; track<tracks; track++)
+            {
+               float f = rb->get_paramf(rb, RB_AVERAGE_VALUE+track);
+               drb->set_paramf(drb, RB_AVERAGE_VALUE+track, f);
+
+               f = rb->get_paramf(rb, RB_PEAK_VALUE+track);
+               drb->set_paramf(drb, RB_PEAK_VALUE+track, f);
+            }
+         }
+
+         dptr_sensor = _intBufGetNoLock(device->sensors, _AAX_SENSOR, 0);
+         if (rv != srb)
+         {
+            /**
+             * Add the new buffer to the buffer queue and pop the
+             * first buffer from the queue when needed (below).
+             * This way pitch effects (< 1.0) can be processed safely.
+             */
+            srb->set_paramf(srb, RB_FREQUENCY, device->info->frequency);
+            srb->set_state(srb, RB_STARTED);
+            srb->set_state(srb, RB_REWINDED);
+
+            _intBufAddData(srbs, _AAX_RINGBUFFER, srb);
+            if (unregistered_ssr)
+            {
+               if (smixer->capturing)
+               {
+                  device->ringbuffer = rv;
+                  _aaxSignalTrigger(&device->buffer_ready);
+               }
+            }
+            else {
+               smixer->ringbuffer = rv;
+            }
+         }
+         smixer->curr_pos_sec += dt;
+         smixer->curr_sample += nsamps;
+
+         if (unregistered_ssr) {
+            sptr_rb = NULL;
+         } else {
+            sptr_rb = _intBufGet(srbs, _AAX_RINGBUFFER, 0);
+         }
+         if (sptr_rb)
+         {
+            _aaxRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
+            size_t rv = 0;
+
+            do
+            {
+               _aaxRingBufferLFOData *lfo;
+
+               lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+               if (lfo)
+               {
+                  p2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+                  p2d->final.pitch_lfo -= lfo->min;
+               } else {
+                  p2d->final.pitch_lfo = 1.0f;
+               }
+               lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+               if (lfo && !lfo->envelope) {
+                  p2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+               } else {
+                  p2d->final.gain_lfo = 1.0f;
+               }
+               rv = drb->mix2d(drb, ssr_rb, smixer->props2d, p2d, 0, 0);
+               _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
+
+               if (rv) /* true if a new buffer is required */
+               {
+                  _intBufferData *rbuf;
+
+                  rbuf = _intBufPop(srbs, _AAX_RINGBUFFER);
+                  if (rbuf)
+                  {
+                     _aaxRingBuffer *rb = _intBufGetDataPtr(rbuf);
+
+                     // TODO: store in a reasuable ringbuffer queue
+                     be->destroy_ringbuffer(rb);
+                     _intBufDestroyDataNoLock(rbuf);
+                     }
+
+                  if ((sptr_rb =_intBufGet(srbs, _AAX_RINGBUFFER,0)) != NULL)
+                  {
+                     ssr_rb = _intBufGetDataPtr(sptr_rb);
+                     /* since rv == AAX_TRUE this will be unlocked 
+                        after rb->mix2d */
+                  }
+                  else {
+                     rv = 0;
+                  }
+               }
+            }
+            while(rv);
+         }
       }
-      else {
-         _SET_PROCESSED(device);
+      else if (_IS_PROCESSED(device))
+      {
+         smixer->curr_pos_sec = 0.0f;
+         smixer->curr_sample = 0;
+         if (be->set_position) {
+            be->set_position(be_handle, 0);
+         }
       }
-      _intBufReleaseData(dptr, _AAX_DEVICE);
+//    _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
    }
-   _intBufReleaseNum(hd, _AAX_DEVICE);
+   else {
+      _SET_PROCESSED(device);
+   }
 }
 
 void*
