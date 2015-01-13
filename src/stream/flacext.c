@@ -65,6 +65,7 @@
  *   The instance may be used again or deleted with
  *    FLAC__stream_decoder_delete().
  */
+DECL_VARIABLE(FLAC__StreamDecoderErrorStatusString);
 DECL_FUNCTION(FLAC__stream_decoder_new);
 DECL_FUNCTION(FLAC__stream_decoder_set_metadata_respond);
 DECL_FUNCTION(FLAC__stream_decoder_set_metadata_ignore);
@@ -152,6 +153,9 @@ typedef struct
    uint8_t flacBuffer[IOBUFFER_SIZE];
    int32_t **ptr;
 
+   _batch_cvt_to_proc cvt_to;
+   _batch_cvt_from_proc cvt_from;
+
 } _driver_t;
 
 static FLAC__StreamDecoderReadStatus _flac_read_cb(const void*, uint8_t[], size_t*, void*);
@@ -189,6 +193,7 @@ _aaxFLACDetect(void *fmt, int mode)
          TIE_FUNCTION(FLAC__stream_decoder_delete);
          TIE_FUNCTION(FLAC__stream_decoder_flush);
          TIE_FUNCTION(FLAC__stream_decoder_get_state);
+         TIE_VARIABLE(FLAC__StreamDecoderErrorStatusString);
 
          error = _aaxGetSymError(0);
          if (!error) {
@@ -477,11 +482,30 @@ _flac_metadata_cb(const void *id, const FLAC__StreamMetadata *metadata, void *d)
       FLAC__StreamMetadata_StreamInfo *data;
 
       data = (FLAC__StreamMetadata_StreamInfo*)&metadata->data;
-      handle->no_tracks = data->channels;
+      handle->no_tracks = _MIN(data->channels, _AAX_MAX_SPEAKERS);
       handle->bits_sample = data->bits_per_sample;
       handle->frequency = data->sample_rate;
-//    handle->blocksize = 
       handle->max_samples = data->total_samples;
+//    handle->blocksize = data->max_blocksize;
+
+      switch (handle->bits_sample)
+      {
+      case 24:
+         handle->cvt_to = (_batch_cvt_to_proc)_batch_cvt24_24;
+         handle->cvt_from = (_batch_cvt_from_proc)_batch_cvt24_24;
+         break;
+      case 32:
+         handle->cvt_to = _batch_cvt32_24;
+         handle->cvt_from = _batch_cvt24_32;
+         break;
+      case 16:
+         handle->cvt_to = _batch_cvt16_24;
+         handle->cvt_from = _batch_cvt24_16;
+         break;
+      default:
+         _AAX_FILEDRVLOG("FLACFile: unsupported hardware format\n");
+         break;
+      }
    }
 }
 
@@ -511,16 +535,32 @@ _flac_read_cb(const void *id, uint8_t buffer[], size_t *bytes, void *d)
 static FLAC__StreamDecoderWriteStatus
 _flac_write_cb(const void *id, const FLAC__Frame *frame, const int32_t *const buffer[], void *d)
 {
-// _driver_t *handle = (_driver_t *)d;
+   _driver_t *handle = (_driver_t *)d;
    FLAC__StreamDecoderWriteStatus rv;
 
-// handle->flacBufferPos = 0;
-// handle->flacBufSize = bytes;
-// handle->flacBuffer // source
-// handle->ptr  // destenation int32_t**
+   if (handle->cvt_from)
+   {
+      int t, num, pos;
 
+      pos = handle->flacBufferPos;
+      num = frame->header.blocksize*8/(handle->no_tracks*handle->bits_sample);
+      num = _MIN(num, handle->flacBufSize);
+      handle->flacBufSize = num;
+
+      for (t=0; t<handle->no_tracks; t++) {
+         handle->cvt_from(handle->ptr[t]+pos, buffer[t], num);
+      }
+
+      if (frame->header.blocksize <= handle->flacBufSize) {
+         rv = FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+      }
+      else {			// too much data for one run
+         rv = FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+      }
+   }
+   else {
       rv = FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
-// rv = FLAC__STREAM_DECODER_WRITE_STATUS_ABORT  // need more data
+   }
 
    return rv;
 }
@@ -534,6 +574,7 @@ _flac_eof_cb(const void *id, void *d)
 static void
 _flac_error_cb(const void *id, FLAC__StreamDecoderErrorStatus status, void *d)
 {
-   _AAX_FILEDRVLOG(FLAC__StreamDecoderErrorStatusString[status]);
+   char **const _err_str = (char **const)pFLAC__StreamDecoderErrorStatusString;
+   _AAX_FILEDRVLOG(_err_str[status]);
 }
 

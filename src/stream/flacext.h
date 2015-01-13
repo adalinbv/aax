@@ -26,8 +26,6 @@
 #define FLAC__MAX_LPC_ORDER		(32u)
 #define FLAC__MAX_CHANNELS		(8u)
 
-extern const char *const FLAC__StreamDecoderErrorStatusString[];
-
 typedef enum
 {
   FLAC__STREAM_DECODER_READ_STATUS_CONTINUE = 0,
