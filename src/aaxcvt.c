@@ -60,8 +60,8 @@ static const char* _format_s[][2] = {
     { " AAX_PCM16S", "\tsigned, 16-bits per sample" },
     { " AAX_PCM24S", "\tsigned, 24-bits per sample, 32-bit encoded" },
     { " AAX_PCM32S", "\tsigned, 32-bits per sample" },
-    { " AAX_FLOAT", "\t32-bit floating point, -1.0f to 1.0f" },
-    { " AAX_DOUBLE", "\t64-bit floating point, -1.0f to 1.0f" },
+    { " AAX_FLOAT", "\t32-bit floating point, range: -1.0 to 1.0" },
+    { " AAX_DOUBLE", "\t64-bit floating point, range: -1.0 to 1.0" },
     { " AAX_MULAW", "\tmulaw, 16-bit with 2:1 compression" },
     { " AAX_ALAW", "\talaw, 16-bit with 2:1 compression" },
     { " AAX_IMA4_ADPCM", "IMA4 ADPCM, 16-bit with 4:1 compression" }
@@ -76,7 +76,7 @@ static const char* _format_us[][2] = {
 
 static const char* _mask_s[MAX_LOOPS][2] = {
     { "Native format", ":\t" },
-    { "Unigned format", ":\t" },
+    { "Unsigned format", ":\t" },
     { "Little endian, signed", "_LE:" },
     { "Little endian, unsigned", "_LE:" },
     { "Big endian, signed", "_BE:" },
