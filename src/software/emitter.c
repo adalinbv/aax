@@ -157,7 +157,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
       {
          _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
          _aaxRingBuffer *srb = embuf->ringbuffer;
-         unsigned int res = 0;
+         int res = 0;
          int ctr;
 
          ctr = --src->update_ctr;
@@ -186,7 +186,6 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             }
 
             ep2d->curr_pos_sec = src->curr_pos_sec;
-            src->curr_pos_sec += data->dt;
              
             /* 3d mixing */
             if (stage == 2)
@@ -250,6 +249,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             }
          }
          while (res);
+         src->curr_pos_sec += data->dt;
          _intBufReleaseData(dptr_sbuf, _AAX_EMITTER_BUFFER);
       }
       _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);

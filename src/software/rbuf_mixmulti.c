@@ -124,6 +124,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
    if (srbi->playing == 0 && srbi->stopped == 1)
    {
       /* the ringbuffer was already flagged as stopped */
+      /* but sptr still needs to get mixed             */
       ret = -1;
    }
    else if (!env && srbi->stopped == 1)
