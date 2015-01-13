@@ -660,8 +660,10 @@ _aaxALSADriverDisconnect(void *id)
       _aax_free(handle->outMixer);
       handle->outMixer = NULL;
 
-      if (handle->render) {
+      if (handle->render)
+      {
          handle->render->close(handle->render->id);
+         free(handle->render);
       }
 
       if (handle->pcm) {

@@ -353,8 +353,10 @@ _aaxSLESDriverDisconnect(void *id)
          (*handle->engineObjItf)->Destroy(handle->engineObjItf);
       }
 
-      if (handle->render) {
+      if (handle->render)
+      {
          handle->render->close(handle->render->id);
+         free(handle->render);
       }
 
       _aaxSemaphoreDestroy(handle->worker_start);

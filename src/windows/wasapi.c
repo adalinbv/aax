@@ -560,8 +560,10 @@ _aaxWASAPIDriverDisconnect(void *id)
          pCoUninitialize();
       }
 
-      if (handle->render) {
+      if (handle->render)
+      {
          handle->render->close(handle->render->id);
+         free(handle->render);
       }
 
       free(handle);

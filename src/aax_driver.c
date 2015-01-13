@@ -210,6 +210,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
                name = _aax_strdup(cfg->node[0].devname);
                handle->backend.driver = _aax_strdup(cfg->node[0].devname);
             }
+            _aaxDriverBackendClearConfigSettings(cfg);
          }
 
          if ((name != NULL) && strcasecmp(name, "default")

@@ -243,6 +243,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
          handle->stage = stage;
          handle->max_emitters = no_emitters ? max_emitters : 0;
          handle->data = data;
+assert (data->drb);
 
          // wake up the worker threads
          num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);

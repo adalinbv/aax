@@ -516,8 +516,10 @@ _aaxDMediaDriverDisconnect(void *id)
          }
       }
 
-      if (handle->render) {
+      if (handle->render)
+      {
          handle->render->close(handle->render->id);
+         free(handle->render);
       }
 
       free(handle->scratch);

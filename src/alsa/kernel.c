@@ -474,8 +474,10 @@ _aaxLinuxDriverDisconnect(void *id)
       }
 #endif
 
-      if (handle->render) {
+      if (handle->render)
+      {
          handle->render->close(handle->render->id);
+         free(handle->render);
       }
 
       close(handle->fd);
