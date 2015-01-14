@@ -41,6 +41,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#define SLEEP_TIME		(0.05f)
 #define FILE_PATH		SRC_PATH"/stereo.wav"
 
 int main(int argc, char **argv)
@@ -130,8 +131,8 @@ int main(int argc, char **argv)
             q = 0;
             do
             {
-                msecSleep(50);
-                dt += 0.05f;
+                msecSleep(SLEEP_TIME*1000);
+                dt += SLEEP_TIME;
 
                 if (++q > 10)
                 {
@@ -194,8 +195,8 @@ int main(int argc, char **argv)
             dt = 0.0f;
             do
             {
-                msecSleep(50);
-                dt += 0.05f;
+                msecSleep(SLEEP_TIME*1000);
+                dt += SLEEP_TIME;
 
                 if (++q > 10)
                 {

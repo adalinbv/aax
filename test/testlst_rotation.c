@@ -58,11 +58,12 @@ int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
-    int res;
+    int res, mode;
 
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
-    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+    mode = getMode(argc, argv);
+    config = aaxDriverOpenByName(devname, mode);
     testForError(config, "No default audio device available.");
 
     if (config)

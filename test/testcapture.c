@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
             ul = aaxSensorGetOffset(record, AAX_MICROSECONDS);
             dt = (float)ul * 1e-6f;
-            printf("Record buffer position: %5.2f sec\r", dt);
+//          printf("Record buffer position: %5.2f sec\r", dt);
 
             buffer = aaxSensorGetBuffer(record);
             testForError(buffer, "aaxSensorGetBuffer");
