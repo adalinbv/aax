@@ -124,8 +124,8 @@ enum aaxFormat
 
    /* AeonWave Auto-generated XML Sound */
    AAX_AAXS = AAX_SPECIAL,
-   AAX_AAXS16S = (AAX_AAXS|AAX_PCM16S),
-   AAX_AAXS24S = (AAX_AAXS|AAX_PCM24S)
+   AAX_AAXS16S = (AAX_AAXS | AAX_PCM16S),
+   AAX_AAXS24S = (AAX_AAXS | AAX_PCM24S)
 };
 
 enum aaxType
@@ -309,14 +309,14 @@ enum aaxDistanceModel
    AAX_DISTANCE_MODEL_MAX,
 
    AAX_DISTANCE_DELAY = 0x8000,
-   AAX_EXPONENTIAL_DISTANCE_DELAY = AAX_EXPONENTIAL_DISTANCE|AAX_DISTANCE_DELAY,
+   AAX_EXPONENTIAL_DISTANCE_DELAY=(AAX_EXPONENTIAL_DISTANCE|AAX_DISTANCE_DELAY),
 
-   AAX_AL_INVERSE_DISTANCE = 1000,		/* a mistake we need to keep */
+   AAX_AL_INVERSE_DISTANCE = 1000,	/* (0x3E8) a mistake we need to keep */
    AAX_AL_INVERSE_DISTANCE_CLAMPED,
    AAX_AL_LINEAR_DISTANCE,
    AAX_AL_LINEAR_DISTANCE_CLAMPED,
    AAX_AL_EXPONENT_DISTANCE,
-   AAX_AL_EXPONENT_DISTANCE_CLAMPED,
+   AAX_AL_EXPONENT_DISTANCE_CLAMPED,	/*(0x3ED) */
 
    AAX_AL_DISTANCE_MODEL_MAX
 };
@@ -416,14 +416,14 @@ enum aaxWaveformType
    AAX_BROWNIAN_NOISE	= 0x0100,
    AAX_LAST_WAVEFORM	= AAX_BROWNIAN_NOISE,
 
-   AAX_INVERSE_TRIANGLE_WAVE	= AAX_INVERSE | AAX_TRIANGLE_WAVE,
-   AAX_INVERSE_SINE_WAVE	= AAX_INVERSE | AAX_SINE_WAVE,
-   AAX_INVERSE_SQUARE_WAVE	= AAX_INVERSE | AAX_SQUARE_WAVE,
-   AAX_INVERSE_SAWTOOTH_WAVE	= AAX_INVERSE | AAX_SAWTOOTH_WAVE,
-   AAX_INVERSE_IMPULSE_WAVE	= AAX_INVERSE | AAX_IMPULSE_WAVE,
+   AAX_INVERSE_TRIANGLE_WAVE	= (AAX_INVERSE | AAX_TRIANGLE_WAVE),
+   AAX_INVERSE_SINE_WAVE	= (AAX_INVERSE | AAX_SINE_WAVE),
+   AAX_INVERSE_SQUARE_WAVE	= (AAX_INVERSE | AAX_SQUARE_WAVE),
+   AAX_INVERSE_SAWTOOTH_WAVE	= (AAX_INVERSE | AAX_SAWTOOTH_WAVE),
+   AAX_INVERSE_IMPULSE_WAVE	= (AAX_INVERSE | AAX_IMPULSE_WAVE),
 
    AAX_ENVELOPE_FOLLOW  = 0x0800,
-   AAX_INVERSE_ENVELOPE_FOLLOW 	= AAX_INVERSE | AAX_ENVELOPE_FOLLOW,
+   AAX_INVERSE_ENVELOPE_FOLLOW 	= (AAX_INVERSE | AAX_ENVELOPE_FOLLOW),
 
    AAX_MAX_WAVE		= 9
 };
@@ -749,6 +749,7 @@ AAX_API aaxFilter AAX_APIENTRY aaxFilterApply(aaxFilterFn, void *, aaxFilter);
 /* Pointer-to-function types */
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERCREATE)(aaxConfig, enum aaxFilterType);
 typedef int (AAX_APIENTRY *PFNAAXFILTERDESTROY)(aaxFilter);
+typedef const char* (AAX_APIENTRY *PFNAAXFILTERGETNAMEBYTYPE)(aaxConfig, enum aaxFilterType);
 typedef int (AAX_APIENTRY *PFNAAXFILTERSETPARAM)(aaxFilter, int, int, float);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERSETSLOTPARAMS)(aaxFilter, unsigned, int, aaxVec4f);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERSETSLOT)(aaxFilter, unsigned, int, float, float, float, float);
@@ -757,7 +758,7 @@ typedef float (AAX_APIENTRY *PFNAAXFILTERGETPARAM)(const aaxFilter, int, int);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERGETSLOTPARAMS)(const aaxFilter, unsigned, int, aaxVec4f);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERGETSLOT)(const aaxFilter, unsigned, int, float*, float*, float*, float*);
 typedef int (AAX_APIENTRY *PFNAAXFILTERGETSTATE)(aaxFilter);
-
+typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERAPPLY)(aaxFilterFn, void *, aaxFilter);
 
 /*
  * Effect support
@@ -780,6 +781,7 @@ AAX_API aaxEffect AAX_APIENTRY aaxEffectApply(aaxEffectFn, void *, aaxEffect);
 /* Pointer-to-function types */
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTCREATE)(aaxConfig, enum aaxEffectType);
 typedef int (AAX_APIENTRY *PFNAAXEFFECTDESTROY)(aaxEffect);
+typedef const char* (AAX_APIENTRY *APFNAXEFFECTGETNAMEBYTYPE)(aaxConfig, enum aaxEffectType);
 typedef int (AAX_APIENTRY *PFNAAXEFFECTSETPARAM)(aaxEffect, int, int, float);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTSETSLOTPARAMS)(aaxEffect, unsigned, int, aaxVec4f);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTSETSLOT)(aaxEffect, unsigned, int, float, float, float, float);
@@ -788,7 +790,7 @@ typedef float (AAX_APIENTRY *PFNAAXEFFECTGETPARAM)(const aaxEffect, int, int);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTGETSLOTPARAMS)(const aaxEffect, unsigned, int, aaxVec4f);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTGETSLOT)(const aaxEffect, unsigned, int, float*, float*, float*, float*);
 typedef int (AAX_APIENTRY *PFNAAXEFFECTGETSTATE)(aaxEffect);
-
+typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTAPPLY)(aaxEffectFn, void *, aaxEffect);
 
 /*
  * Matrix operations
