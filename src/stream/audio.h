@@ -9,8 +9,8 @@
  * permission of Adalin B.V.
  */
 
-#ifndef __FILE_EXT_AUDIO_H
-#define __FILE_EXT_AUDIO_H 1
+#ifndef __STREAM_AUDIO_H
+#define __STREAM_AUDIO_H 1
 
 #if defined(__cplusplus)
 extern "C" {
@@ -67,13 +67,13 @@ enum wavFormat
 
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
 };
-enum aaxFormat getFormatFromWAVFileFormat(unsigned int, int);
+enum aaxFormat getFormatFromWAVFormat(unsigned int, int);
 
 
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
 
-#endif /* __FILE_EXT_AUDIO_H */
+#endif /* __STREAM_AUDIO_H */
 
 

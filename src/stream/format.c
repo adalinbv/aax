@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2014 by Erik Hofman.
- * Copyright 2012-2014 by Adalin B.V.
+ * Copyright 2012-2015 by Erik Hofman.
+ * Copyright 2012-2015 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -13,15 +13,15 @@
 # include "config.h"
 #endif
 
-#include "filetype.h"
+#include "format.h"
 
-_aaxExtensionDetect* _aaxFileTypes[] =
+_aaxExtensionDetect* _aaxFormatTypes[] =
 {
-   _aaxDetectWavFile,
-   _aaxDetectMP3File,
-/* _aaxDetectAiffFile, */
-/* _aaxDetectFLACFile, */
-/* _aaxDetectVorbisFile, */
+   _aaxDetectWavFormat,
+   _aaxDetectMP3Format,
+/* _aaxDetectAiffFormat, */
+/* _aaxDetectFLACFormat, */
+/* _aaxDetectVorbisFormat, */
 
    0		/* Must be last */
 };

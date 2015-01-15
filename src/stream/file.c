@@ -43,7 +43,7 @@
 
 #include <software/renderer.h>
 #include "file.h"
-#include "filetype.h"
+#include "format.h"
 #include "audio.h"
 
 #define BACKEND_NAME_OLD	"File"
@@ -163,7 +163,7 @@ _aaxFileDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __FUNCTION__);
 
    i = 0;
-   while ((ftype = _aaxFileTypes[i++]) != NULL)
+   while ((ftype = _aaxFormatTypes[i++]) != NULL)
    {
       _aaxFmtHandle* type = ftype();
       if (type)
@@ -183,7 +183,7 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
    if (handle)
    {
-      _aaxExtensionDetect *ftype = _aaxFileTypes[0];
+      _aaxExtensionDetect *ftype = _aaxFormatTypes[0];
 
       handle->fd = -1;
       handle->mode = mode;
@@ -1030,7 +1030,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
       ptr = interfaces;
       buflen = 2048;
 
-      while ((ftype = _aaxFileTypes[i++]) != NULL)
+      while ((ftype = _aaxFormatTypes[i++]) != NULL)
       {
          _aaxFmtHandle* type = ftype();
          if (type)
@@ -1095,7 +1095,7 @@ _aaxGetFormat(const char *fname, enum aaxRenderMode mode)
       int i = 0;
 
       ext++;
-      while ((ftype = _aaxFileTypes[i++]) != NULL)
+      while ((ftype = _aaxFormatTypes[i++]) != NULL)
       {
          _aaxFmtHandle* type = ftype();
          if (type && type->detect(type, mode) && type->supported(ext))

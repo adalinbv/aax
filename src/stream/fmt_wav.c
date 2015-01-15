@@ -38,7 +38,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
-#include "filetype.h"
+#include "format.h"
 #include "audio.h"
 #include "software/audio.h"
 
@@ -51,28 +51,28 @@ do
 #endif
 
 
-static _file_detect_fn _aaxWavDetect;
+static _fmt_detect_fn _aaxWavDetect;
 
-static _file_new_handle_fn _aaxWavSetup;
-static _file_open_fn _aaxWavOpen;
-static _file_close_fn _aaxWavClose;
-static _file_update_fn _aaxWavUpdate;
-static _file_get_name_fn _aaxWavGetName;
+static _fmt_new_handle_fn _aaxWavSetup;
+static _fmt_open_fn _aaxWavOpen;
+static _fmt_close_fn _aaxWavClose;
+static _fmt_update_fn _aaxWavUpdate;
+static _fmt_get_name_fn _aaxWavGetName;
 
-static _file_cvt_to_fn _aaxWavCvtToIntl;
-static _file_cvt_from_fn _aaxWavCvtFromIntl;
-static _file_cvt_fn _aaxWavCvtEndianness;
-static _file_cvt_fn _aaxWavCvtToSigned;
-static _file_cvt_fn _aaxWavCvtFromSigned;
+static _fmt_cvt_to_fn _aaxWavCvtToIntl;
+static _fmt_cvt_from_fn _aaxWavCvtFromIntl;
+static _fmt_cvt_fn _aaxWavCvtEndianness;
+static _fmt_cvt_fn _aaxWavCvtToSigned;
+static _fmt_cvt_fn _aaxWavCvtFromSigned;
 
-static _file_default_fname_fn _aaxWavInterfaces;
-static _file_extension_fn _aaxWavExtension;
+static _fmt_default_fname_fn _aaxWavInterfaces;
+static _fmt_extension_fn _aaxWavExtension;
 
-static _file_get_param_fn _aaxWavGetParam;
-static _file_set_param_fn _aaxWavSetParam;
+static _fmt_get_param_fn _aaxWavGetParam;
+static _fmt_set_param_fn _aaxWavSetParam;
 
 _aaxFmtHandle*
-_aaxDetectWavFile()
+_aaxDetectWavFormat()
 {
    _aaxFmtHandle* rv = calloc(1, sizeof(_aaxFmtHandle));
    if (rv)
@@ -217,9 +217,9 @@ typedef struct
 
 } _driver_t;
 
-static int _aaxFileDriverReadHeader(_driver_t*, size_t*);
-static void* _aaxFileDriverUpdateHeader(_driver_t*, size_t *);
-static size_t getFileFormatFromFormat(enum aaxFormat);
+static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
+static void* _aaxFormatDriverUpdateHeader(_driver_t*, size_t *);
+static size_t getWAVFormatFromFormat(enum aaxFormat);
 
 size_t _batch_cvt24_adpcm_intl(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t*);
 void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
@@ -323,13 +323,13 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
                                           _bswap32(handle->io.write.header[11]);
                }
             }
-            _aaxFileDriverUpdateHeader(handle, bufsize);
+            _aaxFormatDriverUpdateHeader(handle, bufsize);
 
             *bufsize = size;
             rv = handle->io.write.header;
          }
          else {
-            _AAX_FILEDRVLOG("WAVFile: Insufficient memory");
+            _AAX_FILEDRVLOG("WAV: Insufficient memory");
          }
       }
       else /* handle->capturing */
@@ -366,7 +366,7 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
             
             do
             {
-               while ((res = _aaxFileDriverReadHeader(handle,&step)) != __F_EOF)
+               while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
                {
                   memmove(handle->io.read.wavBuffer,
                           handle->io.read.wavBuffer+step,
@@ -397,7 +397,7 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
                }
                else if (size)
                {
-                  _AAX_FILEDRVLOG("WAVFile: Incorrect format");
+                  _AAX_FILEDRVLOG("WAV: Incorrect format");
                   return rv;
                }
             }
@@ -492,13 +492,13 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
       case AAX_IMA4_ADPCM:
          break;
       default:
-         _AAX_FILEDRVLOG("WAVFile: Unsupported format");
+         _AAX_FILEDRVLOG("WAV: Unsupported format");
          break;
       }
    }
    else
    {
-      _AAX_FILEDRVLOG("WAVFile: Internal error: handle id equals 0");
+      _AAX_FILEDRVLOG("WAV: Internal error: handle id equals 0");
    }
 
    return rv;
@@ -553,7 +553,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
 
          if (!handle->capturing)
          {
-            handle->io.write.format = getFileFormatFromFormat(format);
+            handle->io.write.format = getWAVFormatFromFormat(format);
             *bufsize = 0;
          }
          else
@@ -564,11 +564,11 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          }
       }
       else {
-         _AAX_FILEDRVLOG("WAVFile: Insufficient memory");
+         _AAX_FILEDRVLOG("WAV: Insufficient memory");
       }
    }
    else {
-      _AAX_FILEDRVLOG("WAVFile: Unsupported format");
+      _AAX_FILEDRVLOG("WAV: Unsupported format");
    }
 
    return (void*)handle;
@@ -587,7 +587,7 @@ _aaxWavUpdate(void *id, size_t *offs, size_t *size, char close)
       if ((handle->io.write.update_dt >= 1.0f) || close)
       {
          handle->io.write.update_dt -= 1.0f;      
-         rv = _aaxFileDriverUpdateHeader(handle, size);
+         rv = _aaxFormatDriverUpdateHeader(handle, size);
       }
    }
 
@@ -716,7 +716,7 @@ _aaxWavInterfaces(int mode)
 }
 
 static char*
-_aaxWavGetName(void *id, enum _aaxFileParam param)
+_aaxWavGetName(void *id, enum _aaxFormatParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
@@ -804,7 +804,7 @@ _aaxWavSetParam(void *id, int type, off_t value)
 
 // http://wiki.audacityteam.org/wiki/WAV
 int
-_aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
+_aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
    uint32_t *header = handle->io.read.wavBuffer;
    size_t size, bufsize = handle->io.read.wavBufPos;
@@ -906,7 +906,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
 
             bits = handle->bits_sample;
             fmt = handle->io.read.format;
-            handle->format = getFormatFromWAVFileFormat(fmt, bits);
+            handle->format = getFormatFromWAVFormat(fmt, bits);
             switch(handle->format)
             {
             case AAX_FORMAT_NONE:
@@ -1045,7 +1045,7 @@ _aaxFileDriverReadHeader(_driver_t *handle, size_t *step)
 }
 
 static void*
-_aaxFileDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
+_aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
 {
    void *res = NULL;
 
@@ -1150,7 +1150,7 @@ getMSChannelMask(uint16_t nChannels)
 }
 
 enum aaxFormat
-getFormatFromWAVFileFormat(unsigned int format, int bits_sample)
+getFormatFromWAVFormat(unsigned int format, int bits_sample)
 {
    enum aaxFormat rv = AAX_FORMAT_NONE;
    int big_endian = is_bigendian();
@@ -1189,7 +1189,7 @@ getFormatFromWAVFileFormat(unsigned int format, int bits_sample)
 }
 
 static size_t
-getFileFormatFromFormat(enum aaxFormat format)
+getWAVFormatFromFormat(enum aaxFormat format)
 {
    size_t rv = UNSUPPORTED;
    switch (format & AAX_FORMAT_NATIVE)
@@ -1448,7 +1448,7 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, un
  */
 #include <fcntl.h>		/* SEEK_*, O_* */
 void
-_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
+_aaxFormatDriverWrite(const char *file, enum aaxProcessingType type,
                           void *data, size_t no_samples,
                           size_t freq, char no_tracks,
                           enum aaxFormat format)

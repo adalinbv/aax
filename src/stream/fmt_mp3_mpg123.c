@@ -9,16 +9,16 @@
  * permission of Adalin B.V.
  */
 
-#include "mp3ext_mpg123.h"
+#include "fmt_mp3_mpg123.h"
 
 // libmpg123 for mp3 input
 // liblame for mp3 output
 // both Linux and Windows
-static _file_open_fn _aaxMPG123Open;
-static _file_close_fn _aaxMPG123Close;
-static _file_cvt_to_fn _aaxMPG123CvtToIntl;
-static _file_cvt_from_fn _aaxMPG123CvtFromIntl;
-static _file_set_param_fn _aaxMPG123SetParam;
+static _fmt_open_fn _aaxMPG123Open;
+static _fmt_close_fn _aaxMPG123Close;
+static _fmt_cvt_to_fn _aaxMPG123CvtToIntl;
+static _fmt_cvt_from_fn _aaxMPG123CvtFromIntl;
+static _fmt_set_param_fn _aaxMPG123SetParam;
 
 DECL_FUNCTION(mpg123_init);
 DECL_FUNCTION(mpg123_exit);
@@ -50,7 +50,7 @@ DECL_FUNCTION(lame_encode_flush);
 
 /* -------------------------------------------------------------------------- */
 
-static int getFormatFromMP3FileFormat(int);
+static int getFormatFromMP3Format(int);
 static void detect_mpg123_song_info(_driver_t*);
 
 static int
@@ -214,7 +214,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                }
                else
                {
-                  _AAX_FILEDRVLOG("MP3File: Unable to initialize mpg123");
+                  _AAX_FILEDRVLOG("MPG123: Unable to initialize mpg123");
                   pmpg123_delete(handle->id);
                   handle->id = NULL;
                   pmpg123_exit();
@@ -241,7 +241,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                {
                   handle->frequency = rate;
                   handle->no_tracks = channels;
-                  handle->format = getFormatFromMP3FileFormat(enc);
+                  handle->format = getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
                   rv = buf;
@@ -253,7 +253,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                   }
                }
                else {
-                  _AAX_FILEDRVLOG("MP3File: file may be corrupt");
+                  _AAX_FILEDRVLOG("MPG123: file may be corrupt");
                }
             }
             else if (ret == MPG123_NEED_MORE) {
@@ -262,7 +262,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
             // else we're done decoding, return NULL
          }
          else {
-            _AAX_FILEDRVLOG("MP3File: Unable to create a handler");
+            _AAX_FILEDRVLOG("MPG123: Unable to create a handler");
          }
       }
       else
@@ -305,7 +305,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
    }
    else
    {
-      _AAX_FILEDRVLOG("MP3File: Internal error: handle id equals 0");
+      _AAX_FILEDRVLOG("MPG123: Internal error: handle id equals 0");
    }
 
    return rv;
@@ -433,7 +433,7 @@ _aaxMPG123SetParam(void *id, int type, off_t value)
 
 
 static int
-getFormatFromMP3FileFormat(int enc)
+getFormatFromMP3Format(int enc)
 {
    int rv;
    switch (enc)

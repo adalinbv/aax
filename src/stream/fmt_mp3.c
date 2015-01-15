@@ -40,7 +40,7 @@
 #include <arch.h>
 #include <ringbuffer.h>
 
-#include "filetype.h"
+#include "format.h"
 #include "audio.h"
 
 #define	MAX_ID3V1_GENRES	192
@@ -50,21 +50,21 @@
    } while(0);
 const char *_mp3v1_genres[MAX_ID3V1_GENRES];
 
-static _file_detect_fn _aaxMP3Detect;
-static _file_new_handle_fn _aaxMP3Setup;
-static _file_get_name_fn _aaxMP3GetName;
-static _file_default_fname_fn _aaxMP3Interfaces;
-static _file_extension_fn _aaxMP3Extension;
-static _file_get_param_fn _aaxMP3GetParam;
+static _fmt_detect_fn _aaxMP3Detect;
+static _fmt_new_handle_fn _aaxMP3Setup;
+static _fmt_get_name_fn _aaxMP3GetName;
+static _fmt_default_fname_fn _aaxMP3Interfaces;
+static _fmt_extension_fn _aaxMP3Extension;
+static _fmt_get_param_fn _aaxMP3GetParam;
 
-static _file_open_fn *_aaxMP3Open;
-static _file_close_fn *_aaxMP3Close;
-static _file_cvt_to_fn *_aaxMP3CvtToIntl;
-static _file_cvt_from_fn *_aaxMP3CvtFromIntl;
-static _file_set_param_fn *_aaxMP3SetParam;
+static _fmt_open_fn *_aaxMP3Open;
+static _fmt_close_fn *_aaxMP3Close;
+static _fmt_cvt_to_fn *_aaxMP3CvtToIntl;
+static _fmt_cvt_from_fn *_aaxMP3CvtFromIntl;
+static _fmt_set_param_fn *_aaxMP3SetParam;
 
 _aaxFmtHandle*
-_aaxDetectMP3File()
+_aaxDetectMP3Format()
 {
    _aaxFmtHandle* rv = NULL;
 
@@ -138,8 +138,8 @@ typedef struct
 
 } _driver_t;
 
-#include "mp3ext_mpg123.c"
-#include "mp3ext_msacm.c"
+#include "fmt_mp3_mpg123.c"
+#include "fmt_mp3_msacm.c"
 
 static int
 _aaxMP3Detect(void *fmt, int mode)
@@ -185,11 +185,11 @@ _aaxMP3Setup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          }
       }
       else {
-         _AAX_FILEDRVLOG("MP3File: Insufficient memory");
+         _AAX_FILEDRVLOG("MP3: Insufficient memory");
       }
    }
    else {
-      _AAX_FILEDRVLOG("MP3File: playback is not supported");
+      _AAX_FILEDRVLOG("MP3: playback is not supported");
    }
 
    return (void*)handle;
@@ -208,7 +208,7 @@ _aaxMP3Interfaces(int mode)
 }
 
 static char*
-_aaxMP3GetName(void *id, enum _aaxFileParam param)
+_aaxMP3GetName(void *id, enum _aaxFormatParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;

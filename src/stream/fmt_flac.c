@@ -31,8 +31,8 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
-#include "filetype.h"
-#include "flacext.h"
+#include "format.h"
+#include "fmt_flac.h"
 #include "audio.h"
 
 #define IOBUFFER_SIZE	16384
@@ -76,17 +76,17 @@ DECL_FUNCTION(FLAC__stream_decoder_delete);
 DECL_FUNCTION(FLAC__stream_decoder_flush);
 DECL_FUNCTION(FLAC__stream_decoder_get_state);
 
-static _file_detect_fn _aaxFLACDetect;
-static _file_new_handle_fn _aaxFLACSetup;
-static _file_open_fn _aaxFLACOpen;
-static _file_close_fn _aaxFLACClose;
-static _file_get_name_fn _aaxFLACGetName;
-static _file_default_fname_fn _aaxFLACInterfaces;
-static _file_extension_fn _aaxFLACExtension;
-static _file_get_param_fn _aaxFLACGetParam;
-static _file_set_param_fn _aaxFLACSetParam;
-static _file_cvt_to_fn _aaxFLACCvtToIntl;
-static _file_cvt_from_fn _aaxFLACCvtFromIntl;
+static _fmt_detect_fn _aaxFLACDetect;
+static _fmt_new_handle_fn _aaxFLACSetup;
+static _fmt_open_fn _aaxFLACOpen;
+static _fmt_close_fn _aaxFLACClose;
+static _fmt_get_name_fn _aaxFLACGetName;
+static _fmt_default_fname_fn _aaxFLACInterfaces;
+static _fmt_extension_fn _aaxFLACExtension;
+static _fmt_get_param_fn _aaxFLACGetParam;
+static _fmt_set_param_fn _aaxFLACSetParam;
+static _fmt_cvt_to_fn _aaxFLACCvtToIntl;
+static _fmt_cvt_from_fn _aaxFLACCvtFromIntl;
 
 /*
  * http://flac.sourceforge.net/api/group__flac__stream__decoder.html
@@ -97,7 +97,7 @@ static _file_cvt_from_fn _aaxFLACCvtFromIntl;
  */
 
 _aaxFmtHandle*
-_aaxDetectFLACFile()
+_aaxDetectFLACFormat()
 {
    _aaxFmtHandle* rv = calloc(1, sizeof(_aaxFmtHandle));
    if (rv)
@@ -245,7 +245,7 @@ _aaxFLACOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
    }
    else
    {
-      _AAX_FILEDRVLOG("WAVFile: Internal error: handle id equals 0");
+      _AAX_FILEDRVLOG("WAVFormat: Internal error: handle id equals 0");
    }
 
    return rv;
@@ -292,11 +292,11 @@ _aaxFLACSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_
          *bufsize = IOBUFFER_SIZE;
       }
       else {
-         _AAX_FILEDRVLOG("FLACFile: Insufficient memory");
+         _AAX_FILEDRVLOG("FLAC: Insufficient memory");
       }
    }
    else {
-      _AAX_FILEDRVLOG("FLACFile: Unsupported format");
+      _AAX_FILEDRVLOG("FLAC: Unsupported format");
    }
 
    return (void*)handle;
@@ -333,7 +333,7 @@ _aaxFLACCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t off
          rv = __F_PROCESS;
          break;
       case FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR:
-         _AAX_FILEDRVLOG("FLACFile: unable to allocate memory.");
+         _AAX_FILEDRVLOG("FLAC: unable to allocate memory.");
          // break not needed
       case FLAC__STREAM_DECODER_END_OF_STREAM:
          rv = __F_EOF;
@@ -378,7 +378,7 @@ _aaxFLACInterfaces(int mode)
 }
 
 static char*
-_aaxFLACGetName(void *id, enum _aaxFileParam param)
+_aaxFLACGetName(void *id, enum _aaxFormatParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
@@ -503,7 +503,7 @@ _flac_metadata_cb(const void *id, const FLAC__StreamMetadata *metadata, void *d)
          handle->cvt_from = _batch_cvt24_16;
          break;
       default:
-         _AAX_FILEDRVLOG("FLACFile: unsupported hardware format\n");
+         _AAX_FILEDRVLOG("FLAC: unsupported hardware format\n");
          break;
       }
    }

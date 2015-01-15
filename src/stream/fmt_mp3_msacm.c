@@ -9,14 +9,14 @@
  * permission of Adalin B.V.
  */
 
-#include "mp3ext_msacm.h"
+#include "fmt_mp3_msacm.h"
 
 #ifdef WINXP
 	/** windows (xp and later) native */
-static _file_open_fn _aaxMSACMOpen;
-static _file_close_fn _aaxMSACMClose;
-static _file_update_fn _aaxMSACMCvtFrom;
-static _file_update_fn _aaxMSACMCvtTo;
+static _fmt_open_fn _aaxMSACMOpen;
+static _fmt_close_fn _aaxMSACMClose;
+static _fmt_update_fn _aaxMSACMCvtFrom;
+static _fmt_update_fn _aaxMSACMCvtTo;
 
 DECL_FUNCTION(acmDriverOpen);
 DECL_FUNCTION(acmDriverClose);
@@ -184,8 +184,8 @@ _aaxMSACMOpen(void *id, const char* fname)
                   handle->no_tracks = pcmFmt.nChannels;
                   handle->frequency = pcmFmt.nSamplesPerSec;
                   handle->bits_sample = pcmFmt.wBitsPerSample;
-                  handle->format = getFormatFromWAVFileFormat(PCM_WAVE_FILE,
-                                                           handle->bits_sample);
+                  handle->format = getFormatFromWAVFormat(PCM_WAVE_FILE,
+                                                          handle->bits_sample);
                   res = AAX_TRUE;
                }
                else {
@@ -206,20 +206,20 @@ MSACMStreamDone:
          }
          else
          {
-            _AAX_FILEDRVLOG("MP3File: playback is not supported");
+            _AAX_FILEDRVLOG("ACM: playback is not supported");
             close(handle->fd); /* no mp3 write support (yet) */
          }
       }
       else {
-         _AAX_FILEDRVLOG("MP3File: file not found");
+         _AAX_FILEDRVLOG("ACM: file not found");
       }
    }
    else
    {
       if (!fname) {
-         _AAX_FILEDRVLOG("MP3File: No filename provided");
+         _AAX_FILEDRVLOG("ACM: No filename provided");
       } else {
-         _AAX_FILEDRVLOG("MP3File: Internal error: handle id equals 0");
+         _AAX_FILEDRVLOG("ACM: Internal error: handle id equals 0");
       }
    }
 

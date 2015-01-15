@@ -444,10 +444,10 @@ SET( AEONWAVE_OBJS
      src/dmedia/device.c
      src/oss/device.c
      src/stream/file.c
-     src/stream/filetype.c
-     src/stream/wavext.c
-     src/stream/mp3ext.c
-     src/stream/flacext.c
+     src/stream/format.c
+     src/stream/fmt_wav.c
+     src/stream/fmt_mp3.c
+     src/stream/fmt_flac.c
      src/android/opensl.c
      src/software/device.c
      src/software/arch.c
