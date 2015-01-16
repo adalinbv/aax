@@ -124,44 +124,51 @@ _socket_stat(int fd, void *stat)
    return -1;
 }
 
+/* NOTE: modifies url, make sure to strdup it before calling this function */
 _protocol_t
-_url_split(const char *url, char **protocol, char **server, char **path, int *port)
+_url_split(char *url, char **protocol, char **server, char **path, int *port)
 {
-   char *pname, *sname;
    _protocol_t rv;
+   char *ptr;
 
-   sname = strstr(url, "://");
-   if (sname)
+   *protocol = NULL;
+   *server = NULL;
+   *path = NULL;
+   *port = 0;
+
+   ptr = strstr(url, "://");
+   if (ptr)
    {
       *protocol = (char*)url;
-      *sname = '\0';
-      sname += strlen("://");
+      *ptr = '\0';
+      url = ptr + strlen("://");
    }
-   else
+
+   if (*url != '/')
    {
-      sname = (char*)url;
-      *protocol = "file";
+      *server = url;
+      ptr = strchr(url, ':');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *port = atoi(ptr);
+         url = ptr;
+      }
+      ptr = strchr(url, '/');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         url = ptr;
+      }
    }
-   *server = sname;
+   *path = url;
 
-   *path = strchr(sname, '/');
-   if (*path) {
-      *(*path++) = 0;
-   }
-
-   pname = strchr(sname, ':');
-   if (pname)
+   if (!strcasecmp(*protocol, "http"))
    {
-      *pname++ = '\0';
-      *port = atoi(pname);
-   }
-   else {
-      *port = 0;
-   }
-
-   if (!strcasecmp(*protocol, "http")) {
       rv = PROTOCOL_HTTP;
-   } else if (!protocol || !strcasecmp(*protocol, "file")) {
+      if (*port <= 0) *port = 80;
+   }
+   else if (!protocol || !strcasecmp(*protocol, "file")) {
       rv = PROTOCOL_FILE;
    } else {
       rv = PROTOCOL_UnSUPPORTED;
@@ -202,8 +209,6 @@ http_open(_io_t *io, const char *sname, const char *path, int *result)
 
    if (io->protocol == PROTOCOL_HTTP)
    {
-      if (port <= 0) port = 80;
-
       fd = io->open(sname, O_RDWR, port);
       if (fd >= 0)
       {

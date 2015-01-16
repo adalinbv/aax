@@ -77,7 +77,7 @@ typedef enum
    PROTOCOL_HTTP
 } _protocol_t;
 
-_protocol_t _url_split(const char*, char**, char**, char**, int*);
+_protocol_t _url_split(char*, char**, char**, char**, int*);
 
 typedef int _open_fn(const char*, int, ...);
 typedef int _close_fn(int);
