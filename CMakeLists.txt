@@ -444,6 +444,7 @@ SET( AEONWAVE_OBJS
      src/dmedia/device.c
      src/oss/device.c
      src/stream/file.c
+     src/stream/socket.c
      src/stream/format.c
      src/stream/fmt_wav.c
      src/stream/fmt_mp3.c

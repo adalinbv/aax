@@ -70,7 +70,16 @@ enum wavFormat
 enum aaxFormat getFormatFromWAVFormat(unsigned int, int);
 
 /* I/O related: file, socket, etc */
-typedef int _open_fn(const char*, int, ... );
+typedef enum
+{
+   PROTOCOL_UnSUPPORTED = -1,
+   PROTOCOL_FILE = 0,
+   PROTOCOL_HTTP
+} _protocol_t;
+
+_protocol_t _url_split(const char*, char**, char**, char**, int*);
+
+typedef int _open_fn(const char*, int, ...);
 typedef int _close_fn(int);
 typedef ssize_t _read_fn(int, void*, size_t);
 typedef ssize_t _write_fn(int, const void*, size_t);
@@ -85,8 +94,15 @@ typedef struct
    _write_fn *write;
    _seek_fn *seek;
    _stat_fn *stat;
+
+   _protocol_t protocol;
 } _io_t;
 
+/* HTTP */
+int http_open(_io_t*, const char*, const char*, int*);
+void http_close(_io_t*, int);
+int http_send_request(_io_t*, int, const char*, const char*, const char*);
+int http_get_response(_io_t*, int, char*, int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
