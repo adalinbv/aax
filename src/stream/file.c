@@ -145,6 +145,8 @@ typedef struct
    void *out_header;
    size_t out_hdr_size;
 
+   _io_t io;
+
 } _driver_t;
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
@@ -190,8 +192,15 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
       if (ftype)
       {
          _aaxFmtHandle* type = ftype();
-         if (type && type->detect(type, mode)) {
+         if (type && type->detect(type, mode))
+          {
             handle->fmt = type;
+            handle->io.open = open;
+            handle->io.close = close;
+            handle->io.read = read;
+            handle->io.write = write;
+            handle->io.seek = lseek;
+            handle->io.stat = lstat;
          }
          else
          {
@@ -386,12 +395,12 @@ _aaxFileDriverDisconnect(void *id)
          }
          if (buf)
          {
-            lseek(handle->fd, offs, SEEK_SET);
-            ret = write(handle->fd, buf, size);
+            handle->io.seek(handle->fd, offs, SEEK_SET);
+            ret = handle->io.write(handle->fd, buf, size);
          }
          handle->fmt->close(handle->fmt->id);
       }
-      close(handle->fd);
+      handle->io.close(handle->fd);
 
       if (handle->render)
       {
@@ -443,7 +452,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
    {
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
       if (!m) {
-         handle->fd = open(handle->name, handle->fmode, 0644);
+         handle->fd = handle->io.open(handle->name, handle->fmode, 0644);
       }
       if ((handle->fd >= 0) || m)
       {
@@ -453,7 +462,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
          struct stat st;
          int res = AAX_TRUE;
 
-         fstat(handle->fd, &st);
+         handle->io.stat(handle->fd, &st);
 
          if (bufsize) {
             header = malloc(bufsize);
@@ -463,7 +472,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
          {
             if (!m && header && bufsize)
             {
-               res = read(handle->fd, header, bufsize);
+               res = handle->io.read(handle->fd, header, bufsize);
                if (res <= 0) break;
             }
 
@@ -485,9 +494,9 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (buf)
             {
                if (handle->mode != AAX_MODE_READ && buf) {
-                  res = write(handle->fd, buf, bufsize);
+                  res = handle->io.write(handle->fd, buf, bufsize);
                } else if (handle->mode == AAX_MODE_READ && !buf) {
-                  res = lseek(handle->fd, bufsize, SEEK_SET);
+                  res = handle->io.seek(handle->fd, bufsize, SEEK_SET);
                }
             }
 //          else { 
@@ -549,7 +558,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          if (!rv)
          {
-            close(handle->fd);
+            handle->io.close(handle->fd);
             handle->fd = -1;
             free(handle->fmt->id);
             handle->fmt->id = 0;
@@ -589,13 +598,13 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    assert(id != 0);
 
    if (handle->fd < 0) {
-      handle->fd = open(handle->name, handle->fmode, 0644);
+      handle->fd = handle->io.open(handle->name, handle->fmode, 0644);
    }
    if (handle->out_header)
    {
       if (handle->fd)
       {
-         res = write(handle->fd, handle->out_header, handle->out_hdr_size);
+         res = handle->io.write(handle->fd, handle->out_header, handle->out_hdr_size);
          if (res == handle->out_hdr_size)
          {
             free(handle->out_header);
@@ -973,11 +982,11 @@ _aaxFileDriverSetPosition(const void *id, off_t pos)
    _driver_t *handle = (_driver_t *)id;
    int res, rv = AAX_FALSE;
 
-   res = lseek(handle->fd, 0, SEEK_CUR);
+   res = handle->io.seek(handle->fd, 0, SEEK_CUR);
    if (res != pos)
    {
 //    handle->bufpos = 0;
-      res = lseek(handle->fd, 0, SEEK_SET);
+      res = handle->io.seek(handle->fd, 0, SEEK_SET);
       if (res >= 0)
       {
          int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
@@ -990,7 +999,7 @@ _aaxFileDriverSetPosition(const void *id, off_t pos)
             unsigned char sbuf[IOBUF_SIZE][_AAX_MAX_SPEAKERS];
             unsigned char buf[IOBUF_SIZE];
 
-            res = read(handle->fd, buf, IOBUF_SIZE);
+            res = handle->io.read(handle->fd, buf, IOBUF_SIZE);
             if (res <= 0) break;
 
             res = handle->fmt->cvt_from_intl(handle->fmt->id, (int32_ptrptr)sbuf,
@@ -998,7 +1007,7 @@ _aaxFileDriverSetPosition(const void *id, off_t pos)
          }
       
          if ((seek >= 0) && (res >= 0)) {
-            rv = (lseek(handle->fd, seek, SEEK_SET) >= 0) ? AAX_TRUE : AAX_FALSE;
+            rv = (handle->io.seek(handle->fd, seek, SEEK_SET) >= 0) ? AAX_TRUE : AAX_FALSE;
          }
       }
    }
@@ -1147,7 +1156,7 @@ _aaxFileDriverWriteChunk(const void *id)
             size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
             ssize_t res;
 
-            res = write(handle->fd, handle->buf, wsize);
+            res = handle->io.write(handle->fd, handle->buf, wsize);
             if (res > 0)
             {
                void *buf;
@@ -1162,10 +1171,10 @@ _aaxFileDriverWriteChunk(const void *id)
                                             AAX_FALSE);
                   if (buf)
                   {
-                     off_t floc = lseek(handle->fd, 0L, SEEK_CUR);
-                     lseek(handle->fd, spos, SEEK_SET);
-                     res = write(handle->fd, buf, usize);
-                     lseek(handle->fd, floc, SEEK_SET);
+                     off_t floc = handle->io.seek(handle->fd, 0L, SEEK_CUR);
+                     handle->io.seek(handle->fd, spos, SEEK_SET);
+                     res = handle->io.write(handle->fd, buf, usize);
+                     handle->io.seek(handle->fd, floc, SEEK_SET);
                   }
                }
             }
@@ -1236,7 +1245,7 @@ _aaxFileDriverReadChunk(const void *id)
    size_t size = IOBUF_SIZE - handle->bufpos;
    ssize_t res;
 
-   res = read(handle->fd, handle->buf+handle->bufpos, size);
+   res = handle->io.read(handle->fd, handle->buf+handle->bufpos, size);
    if (res > 0) {
       handle->bufpos += res;
    }

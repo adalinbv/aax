@@ -69,6 +69,24 @@ enum wavFormat
 };
 enum aaxFormat getFormatFromWAVFormat(unsigned int, int);
 
+/* I/O related: file, socket, etc */
+typedef int _open_fn(const char*, int, ... );
+typedef int _close_fn(int);
+typedef ssize_t _read_fn(int, void*, size_t);
+typedef ssize_t _write_fn(int, const void*, size_t);
+typedef off_t _seek_fn(int, off_t, int);
+typedef int _stat_fn(int, void*);
+
+typedef struct
+{
+   _open_fn *open;
+   _close_fn *close;
+   _read_fn *read;
+   _write_fn *write;
+   _seek_fn *seek;
+   _stat_fn *stat;
+} _io_t;
+
 
 #if defined(__cplusplus)
 }  /* extern "C" */
