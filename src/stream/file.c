@@ -451,8 +451,46 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (handle->fmt->id)
    {
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-      if (!m) {
-         handle->fd = handle->io.open(handle->name, handle->fmode, 0644);
+      if (!m)
+      {
+         char *s, *protocol, *server, *path;
+         int port;
+
+         s = strdup(handle->name);
+         handle->io.protocol = _url_split(s, &protocol, &server, &path, &port);
+         switch (handle->io.protocol)
+         {
+         case PROTOCOL_HTTP:
+            handle->io.open = _socket_open;
+            handle->io.close = _socket_close;
+            handle->io.read = _socket_read;
+            handle->io.write = _socket_write;
+            handle->io.seek = _socket_seek;
+            handle->io.stat = _socket_stat;
+            handle->fd = handle->io.open(server, O_RDWR, port);
+            if (handle->fd >= 0)
+            {
+               int res = http_send_request(&handle->io, handle->fd,
+                                           "GET", path, "");
+               if (res > 0)
+               {
+                  char buf[4096];
+                  res = http_get_response(&handle->io, handle->fd, buf, 40960);
+                  if (res != 200)
+                  {
+                     handle->io.close(handle->fd);
+                     handle->fd = -1;
+                  }
+               }
+            }
+            break;
+         case PROTOCOL_FILE:
+            handle->fd = handle->io.open(path, handle->fmode, 0644);
+            break;
+         default:
+            break;
+         }
+         free(s);
       }
       if ((handle->fd >= 0) || m)
       {
@@ -1093,12 +1131,24 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static _aaxFmtHandle*
-_aaxGetFormat(const char *fname, enum aaxRenderMode mode)
+_aaxGetFormat(const char *url, enum aaxRenderMode mode)
 {
+   char *s, *protocol, *server, *path;
    _aaxFmtHandle *rv = NULL;
+   int port, res;
    char *ext;
 
-   if (fname && ((ext = strrchr(fname, '.')) != 0))
+   s = strdup(url);
+   res = _url_split(s, &protocol, &server, &path, &port);
+   if (res == PROTOCOL_HTTP) {
+      ext = ".mp3";
+   } else if (res == PROTOCOL_FILE && path) {
+      ext = strrchr(path, '.');
+   } else {
+      ext = NULL;
+   }
+
+   if (ext)
    {
       _aaxExtensionDetect* ftype;
       int i = 0;
@@ -1115,6 +1165,7 @@ _aaxGetFormat(const char *fname, enum aaxRenderMode mode)
          free(type);
       }
    }
+   free(s);
 
    return rv;
 }

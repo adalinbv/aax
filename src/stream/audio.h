@@ -86,6 +86,13 @@ typedef ssize_t _write_fn(int, const void*, size_t);
 typedef off_t _seek_fn(int, off_t, int);
 typedef int _stat_fn(int, void*);
 
+int _socket_open(const char*, int, ...);
+int _socket_close(int);
+ssize_t _socket_read(int, void*, size_t);
+ssize_t _socket_write(int, const void*, size_t);
+off_t _socket_seek(int, off_t, int);
+int _socket_stat(int, void*);
+
 typedef struct
 {
    _open_fn *open;
@@ -99,8 +106,6 @@ typedef struct
 } _io_t;
 
 /* HTTP */
-int http_open(_io_t*, const char*, const char*, int*);
-void http_close(_io_t*, int);
 int http_send_request(_io_t*, int, const char*, const char*, const char*);
 int http_get_response(_io_t*, int, char*, int);
 

@@ -125,7 +125,7 @@ _protocol_t
 _url_split(char *url, char **protocol, char **server, char **path, int *port)
 {
    _protocol_t rv;
-   char *ptr;
+   char *ptr, *ptr2;
 
    *protocol = NULL;
    *server = NULL;
@@ -140,32 +140,34 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       url = ptr + strlen("://");
    }
 
-   if (*url != '/')
+   ptr2 = strchr(url, '/');
+   if (ptr2) {
+      *ptr2 = '\0';
+   }
+
+   if (strchr(url, '.'))
    {
       *server = url;
 
-      ptr = strchr(url, '/');
-      if (ptr)
-      {
-         *ptr++ = '\0';
-         url = ptr;
-      }
-
-      ptr = strchr(*server, ':');
+      ptr = strchr(url, ':');
       if (ptr)
       {
          *ptr++ = '\0';
          *port = atoi(ptr);
       }
+      *path = ptr2+1;
    }
-   *path = url;
-
-   if (!strcasecmp(*protocol, "http"))
+   else
    {
+      *ptr2 = '/';
+      *path = url;
+   }
+
+   if (*protocol && !strcasecmp(*protocol, "http")) {
       rv = PROTOCOL_HTTP;
       if (*port <= 0) *port = 80;
    }
-   else if (!protocol || !strcasecmp(*protocol, "file")) {
+   else if (!*protocol || !strcasecmp(*protocol, "file")) {
       rv = PROTOCOL_FILE;
    } else {
       rv = PROTOCOL_UnSUPPORTED;
@@ -196,43 +198,6 @@ http_get_response_data(_io_t *io, int fd, char *buf, int size)
    }
    *buf = '\0';
    return i;
-}
-
-int
-http_open(_io_t *io, const char *sname, const char *path, int *result)
-{
-   int port = *result;
-   int fd = -1;
-
-   if (io->protocol == PROTOCOL_HTTP)
-   {
-      fd = io->open(sname, O_RDWR, port);
-#if 0
-      if (fd >= 0)
-      {
-         int res = http_send_request(io, fd, "HEAD", path, "");
-         if (res >= 0)
-         {
-            char buf[MAX_BUFFER];
-
-            *result = http_get_response(io, fd, buf, MAX_BUFFER-1);
-            if (*result <= 0)
-            {
-               io->close(fd);
-               fd = -1;
-            }
-         }
-      }
-#endif
-   }
-
-   return fd;
-}
-
-void
-http_close(_io_t *io, int fd)
-{
-   io->close(fd);
 }
 
 int
