@@ -34,41 +34,31 @@
 #include "audio.h"
 
 int
-_socket_open(const char *sname, int oflag, ...)
+_socket_open(const char *server, int oflags, ...)
 {
-   int flags = 0;
    int port = 0;
    int fd = -1;
    va_list ap;
 
-   va_start(ap, oflag);
-   if (oflag >= 1)
-   {
-      flags = va_arg(ap, int);
-      if (oflag >= 2) {
-         port = va_arg(ap, int);
-      }
+   va_start(ap, oflags);
+   if (oflags >= 1) {
+      port = va_arg(ap, int);
    }
    va_end(ap);
 
-   if (sname && (flags == O_RDWR) && (port > 0))
+   if (server && (oflags == O_RDWR) && (port > 0))
    {
-      int slen = strlen(sname);
+      int slen = strlen(server);
       if (slen < 256)
       {
          struct addrinfo *host;
-         struct addrinfo conn;
          char sport[16];
          int res;
 
          snprintf(sport, 15, "%d", port);
          sport[15] = '\0';
 
-         conn.ai_flags = 0;
-         conn.ai_protocol = 0;
-         conn.ai_family = AF_INET6;
-         conn.ai_socktype = SOCK_STREAM;
-         res = getaddrinfo(sname, (port > 0) ? sport : NULL, &conn, &host);
+         res = getaddrinfo(server, (port > 0) ? sport : NULL, NULL, &host);
          if (res == 0)
          {
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
@@ -81,8 +71,11 @@ _socket_open(const char *sname, int oflag, ...)
                   fd = -1;
                }
             }
+            freeaddrinfo(host);
          }
-         freeaddrinfo(host);
+         else {
+            errno = -res;
+         }
       }
       else {
          errno = ENAMETOOLONG;
@@ -214,6 +207,7 @@ http_open(_io_t *io, const char *sname, const char *path, int *result)
    if (io->protocol == PROTOCOL_HTTP)
    {
       fd = io->open(sname, O_RDWR, port);
+#if 0
       if (fd >= 0)
       {
          int res = http_send_request(io, fd, "HEAD", path, "");
@@ -229,6 +223,7 @@ http_open(_io_t *io, const char *sname, const char *path, int *result)
             }
          }
       }
+#endif
    }
 
    return fd;
