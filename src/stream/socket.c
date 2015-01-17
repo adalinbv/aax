@@ -38,7 +38,7 @@ _socket_open(const char *sname, int oflag, ...)
 {
    int flags = 0;
    int port = 0;
-   int rv = -1;
+   int fd = -1;
    va_list ap;
 
    va_start(ap, oflag);
@@ -56,30 +56,33 @@ _socket_open(const char *sname, int oflag, ...)
       int slen = strlen(sname);
       if (slen < 256)
       {
-         struct sockaddr_in sa;
-         struct hostent *host;
+         struct addrinfo *host;
+         struct addrinfo conn;
+         char sport[16];
+         int res;
 
-         host = gethostbyname(sname);
-         if (host)
+         snprintf(sport, 15, "%d", port);
+         sport[15] = '\0';
+
+         conn.ai_flags = 0;
+         conn.ai_protocol = 0;
+         conn.ai_family = AF_INET6;
+         conn.ai_socktype = SOCK_STREAM;
+         res = getaddrinfo(sname, sport, &conn, &host);
+         if (res == 0)
          {
-            int size = sizeof(struct sockaddr_in);
-
-            memset(&sa, 0, size);
-            memcpy(&sa.sin_addr, host->h_addr, host->h_length);
-            sa.sin_family = host->h_addrtype;
-            sa.sin_port = htons(port);
-
-            rv = socket(AF_INET, SOCK_STREAM, 0);
-            if (rv >= 0)
+            fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
+            if (fd >= 0)
             {
-               setsockopt(rv, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
-               if (connect(rv, (struct sockaddr*)&sa, size) < 0)
+               setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
+               if (connect(fd, host->ai_addr, host->ai_addrlen) < 0)
                {
-                  close(rv);
-                  rv = -1;
+                  close(fd);
+                  fd = -1;
                }
             }
          }
+         freeaddrinfo(host);
       }
       else {
          errno = ENAMETOOLONG;
@@ -89,7 +92,7 @@ _socket_open(const char *sname, int oflag, ...)
       errno = EACCES;
    }
 
-   return rv;
+   return fd;
 }
 
 int
@@ -147,18 +150,19 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
    if (*url != '/')
    {
       *server = url;
-      ptr = strchr(url, ':');
-      if (ptr)
-      {
-         *ptr++ = '\0';
-         *port = atoi(ptr);
-         url = ptr;
-      }
+
       ptr = strchr(url, '/');
       if (ptr)
       {
          *ptr++ = '\0';
          url = ptr;
+      }
+
+      ptr = strchr(*server, ':');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *port = atoi(ptr);
       }
    }
    *path = url;
