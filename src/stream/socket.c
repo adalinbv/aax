@@ -68,7 +68,7 @@ _socket_open(const char *sname, int oflag, ...)
          conn.ai_protocol = 0;
          conn.ai_family = AF_INET6;
          conn.ai_socktype = SOCK_STREAM;
-         res = getaddrinfo(sname, sport, &conn, &host);
+         res = getaddrinfo(sname, (port > 0) ? sport : NULL, &conn, &host);
          if (res == 0)
          {
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
