@@ -522,16 +522,16 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   const char *s;
 
-                  s = _get_json(header, bufsize, "Content-Type");
-                  if (s)
+                  s = _get_json(header, bufsize-1, "Content-Type");
+                  if (s && !strcasecmp(s, "audio/mpeg"))
                   {
-                     s = _get_json(header, bufsize, "icy-name");
+                     s = _get_json(header, bufsize-1, "icy-name");
                      handle->artist = strdup(s);
 
-                     s = _get_json(header, bufsize, "icy-description");
+                     s = _get_json(header, bufsize-1, "icy-description");
                      handle->title = strdup(s);
 
-                     s = _get_json(header, bufsize, "icy-genre");
+                     s = _get_json(header, bufsize-1, "icy-genre");
                      handle->genre = strdup(s);
                   }
                }
