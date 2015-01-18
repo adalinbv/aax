@@ -118,6 +118,9 @@ typedef struct
    int fd;
    int fmode;
    char *name;
+   char *artist;
+   char *title;
+   char *genre;
 
    int mode;
    float latency;
@@ -155,6 +158,7 @@ static void* _aaxFileDriverWriteThread(void*);
 static void* _aaxFileDriverReadThread(void*);
 static void _aaxFileDriverWriteChunk(const void*);
 static ssize_t _aaxFileDriverReadChunk(const void*);
+static const char *_get_json(const char*, size_t, const char*);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -416,6 +420,9 @@ _aaxFileDriverDisconnect(void *id)
       }
 #endif
 
+      free(handle->artist);
+      free(handle->title);
+      free(handle->genre);
       free(handle->fmt);
       free(handle->interfaces);
       free(handle);
@@ -511,7 +518,26 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (!m && header && bufsize)
             {
                res = handle->io.read(handle->fd, header, bufsize);
-               if (res <= 0) break;
+               if (res > 0)
+               {
+                  const char *s;
+
+                  s = _get_json(header, bufsize, "Content-Type");
+                  if (s)
+                  {
+                     s = _get_json(header, bufsize, "icy-name");
+                     handle->artist = strdup(s);
+
+                     s = _get_json(header, bufsize, "icy-description");
+                     handle->title = strdup(s);
+
+                     s = _get_json(header, bufsize, "icy-genre");
+                     handle->genre = strdup(s);
+                  }
+               }
+               else {
+                  break;
+               }
             }
 
             bufsize = res;
@@ -880,12 +906,15 @@ _aaxFileDriverGetName(const void *id, int type)
          break;
       case AAX_MUSIC_PERFORMER_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
+         if (!ret) ret = handle->artist;
          break;
       case AAX_TRACK_TITLE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
+         if (!ret) ret = handle->title;
          break;
       case AAX_MUSIC_GENRE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
+         if (!ret) ret = handle->genre;
          break;
       case AAX_TRACK_NUMBER_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_TRACKNO);
@@ -1129,6 +1158,71 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 }
 
 /*-------------------------------------------------------------------------- */
+
+static char *
+_memncasestr(const char *haystack,  size_t haystacklen,
+                  const char *needle)
+{
+    size_t needlelen = strlen(needle);
+    char *rptr = 0;
+
+    if (haystack && needle && haystacklen && needlelen)
+    {
+        char *hs = (char *)haystack;
+        char *ns = (char *)needle;
+        size_t i = haystacklen;
+
+        do
+        {
+            char *hss = hs, *nss = ns;
+            int j = needlelen;
+            while (--i && --j && (*hss++ == *nss++));
+            if (j == 0)
+            {
+                rptr = hs;
+                break;
+            }
+            hs = hss;
+        }
+        while (--i);
+    }
+
+    return rptr;
+}
+
+static const char*
+_get_json(const char *haystack, size_t haystacklen, const char *needle)
+{
+   static char buf[64];
+   char *start, *end;
+   size_t pos;
+
+   buf[0] = '\0';
+   start = _memncasestr(haystack, haystacklen, needle);
+   if (start)
+   {
+      start += strlen(needle);
+      pos = start - haystack;
+
+      while ((++pos < haystacklen) && (*start == ':' || *start == ' ')) {
+         start++;
+      }
+
+      end = start;
+      while ((++pos < haystacklen) &&
+             (*end != '\0' && *end != '\n' && *end != '\r')) {
+         end++;
+      }
+
+      if ((end-start) > 63) {
+         end = start + 63;
+      }
+      memcpy(buf, start, (end-start));
+      buf[end-start] = '\0';
+   }
+
+   return (buf[0] != '\0') ? buf : NULL;
+}
 
 static _aaxFmtHandle*
 _aaxGetFormat(const char *url, enum aaxRenderMode mode)
