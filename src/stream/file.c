@@ -121,6 +121,7 @@ typedef struct
    char *artist;
    char *title;
    char *genre;
+   char *website;
 
    int mode;
    float latency;
@@ -423,6 +424,7 @@ _aaxFileDriverDisconnect(void *id)
       free(handle->artist);
       free(handle->title);
       free(handle->genre);
+      free(handle->website);
       free(handle->fmt);
       free(handle->interfaces);
       free(handle);
@@ -533,6 +535,9 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
                      s = _get_json(header, res, "icy-genre");
                      if (s) handle->genre = strdup(s);
+
+                     s = _get_json(header, res, "icy-url");
+                     if (s) handle->website = strdup(s);
                   }
                }
                else if (res <= 0) {
@@ -937,6 +942,9 @@ _aaxFileDriverGetName(const void *id, int type)
       case AAX_ORIGINAL_PERFORMER_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_ORIGINAL);
          break;
+      case AAX_WEBSITE_STRING:
+         ret = handle->website;
+         break;
       case AAX_COVER_IMAGE_DATA:
          ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);
          break;
@@ -1163,7 +1171,7 @@ static char *
 _memncasestr(const char *haystack,  size_t haystacklen,
                   const char *needle)
 {
-    size_t needlelen = strlen(needle);
+    size_t needlelen = needle ? strlen(needle) : 0;
     char *rptr = 0;
 
     if (haystack && needle && haystacklen && needlelen)
@@ -1171,18 +1179,24 @@ _memncasestr(const char *haystack,  size_t haystacklen,
         char *hs = (char *)haystack;
         char *ns = (char *)needle;
         size_t i = haystacklen;
+        char *hss = hs;
 
         do
         {
-            char *hss = hs, *nss = ns;
-            int j = needlelen;
-            while (--i && --j && (*hss++ == *nss++));
-            if (j == 0)
+            while (--i && (*hss++ != *ns));
+            if (i)
             {
-                rptr = hs;
-                break;
+                char *nss = ns;
+                int j = needlelen;
+                hs = --hss;
+                while (--i && --j && (*hss++ == *nss++));
+                if (j == 0)
+                {
+                    rptr = hs;
+                    break;
+                }
+                hs = hss;
             }
-            hs = hss;
         }
         while (i && --i);
     }
@@ -1208,17 +1222,20 @@ _get_json(const char *haystack, size_t haystacklen, const char *needle)
          start++;
       }
 
-      end = start;
-      while ((++pos < haystacklen) &&
-             (*end != '\0' && *end != '\n' && *end != '\r')) {
-         end++;
-      }
+      if (pos < haystacklen)
+      {
+         end = start;
+         while ((++pos < haystacklen) &&
+                (*end != '\0' && *end != '\n' && *end != '\r')) {
+            end++;
+         }
 
-      if ((end-start) > 63) {
-         end = start + 63;
+         if ((end-start) > 63) {
+            end = start + 63;
+         }
+         memcpy(buf, start, (end-start));
+         buf[end-start] = '\0';
       }
-      memcpy(buf, start, (end-start));
-      buf[end-start] = '\0';
    }
 
    return (buf[0] != '\0') ? buf : NULL;

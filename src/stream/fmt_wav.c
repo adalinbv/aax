@@ -1448,7 +1448,7 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, un
  */
 #include <fcntl.h>		/* SEEK_*, O_* */
 void
-_aaxFormatDriverWrite(const char *file, enum aaxProcessingType type,
+_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
                           void *data, size_t no_samples,
                           size_t freq, char no_tracks,
                           enum aaxFormat format)

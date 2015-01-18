@@ -95,6 +95,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       case AAX_SONG_COPYRIGHT_STRING:
       case AAX_SONG_COMMENT_STRING:
       case AAX_ORIGINAL_PERFORMER_STRING:
+      case AAX_WEBSITE_STRING:
       case AAX_COVER_IMAGE_DATA:
           rv = be->name(handle->backend.handle, type);
           break;

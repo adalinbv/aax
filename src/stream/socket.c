@@ -125,7 +125,7 @@ _protocol_t
 _url_split(char *url, char **protocol, char **server, char **path, int *port)
 {
    _protocol_t rv;
-   char *ptr, *ptr2;
+   char *ptr;
 
    *protocol = NULL;
    *server = NULL;
