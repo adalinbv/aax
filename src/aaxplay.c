@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <math.h>
 
 #include <aax/aax.h>
@@ -187,6 +188,7 @@ int main(int argc, char **argv)
         float pitch = getPitch(argc, argv);
         float dhour, hour, minutes, seconds;
         float duration, freq;
+        unsigned int max_samples;
         aaxFrame frame = NULL;
         aaxEffect effect;
         aaxFilter filter;
@@ -343,8 +345,8 @@ int main(int argc, char **argv)
             s = aaxDriverGetSetup(record, AAX_SONG_COPYRIGHT_STRING);
             if (s) printf(" Copyright:  %s\n", s);
 
-//          s = aaxDriverGetSetup(record, AAX_SONG_COMMENT_STRING);
-//          if (s) printf(" Comments : %s\n", s);
+            s = aaxDriverGetSetup(record, AAX_WEBSITE_STRING);
+            if (s) printf(" Website  : %s\n", s);
         }
 
 
@@ -359,20 +361,29 @@ int main(int argc, char **argv)
 
         set_mode(1);
         freq = (float)aaxMixerGetSetup(record, AAX_FREQUENCY);
-        duration = (float)aaxMixerGetSetup(record, AAX_SAMPLES_MAX)/freq;
-        seconds = duration;
-        dhour = floorf(seconds/(60.0f*60.0f));
-        seconds -= dhour*60.0f*60.0f;
-        minutes = floorf(seconds/60.0f);
-        seconds -= minutes*60.0f;
-        if (dhour) {
-           snprintf(tstr, 80, "%s  %02.0f:%02.0f:%02.0f %s\r",
-                              "pos: % 5.1f (%02.0f:%02.0f:%04.1f) of ",
-                              dhour, minutes, seconds, " % 3.0f%");
-        } else {
-           snprintf(tstr, 80, "%s  %02.0f:%02.0f %s\r",
-                              "pos: % 5.1f (%02.0f:%04.1f) of ",
-                              minutes, seconds, " % 3.0f%");
+        max_samples = aaxMixerGetSetup(record, AAX_SAMPLES_MAX);
+        if (max_samples < UINT_MAX)
+        {
+            duration = (float)max_samples/freq;
+            seconds = duration;
+            dhour = floorf(seconds/(60.0f*60.0f));
+            seconds -= dhour*60.0f*60.0f;
+            minutes = floorf(seconds/60.0f);
+            seconds -= minutes*60.0f;
+            if (dhour) {
+               snprintf(tstr, 80, "%s  %02.0f:%02.0f:%02.0f %s\r",
+                                  "pos: % 5.1f (%02.0f:%02.0f:%04.1f) of ",
+                                  dhour, minutes, seconds, " % 3.0f%");
+            } else {
+               snprintf(tstr, 80, "%s  %02.0f:%02.0f %s\r",
+                                  "pos: % 5.1f (%02.0f:%04.1f) of ",
+                                  minutes, seconds, " % 3.0f%");
+           }
+        }
+        else
+        {
+           dhour = duration = AAX_FPINFINITE;
+           snprintf(tstr, 80, "%s\r", "pos: % 5.1f (%02.0f:%02.0f:%04.1f)");
         }
 
         do
@@ -381,15 +392,27 @@ int main(int argc, char **argv)
             {
                 float pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
 
-                seconds = duration-pos;
-                hour = floorf(seconds/(60.0f*60.0f));
-                seconds -= hour*60.0f*60.0f;
-                minutes = floorf(seconds/60.0f);
-                seconds -= minutes*60.0f;
-                if (dhour) {
-                   printf(tstr, pos, hour, minutes, seconds, 100*pos/duration);
-                } else {
-                   printf(tstr, pos, minutes, seconds, 100*pos/duration);
+                if (duration != AAX_FPINFINITE)
+                {
+                    seconds = duration-pos;
+                    hour = floorf(seconds/(60.0f*60.0f));
+                    seconds -= hour*60.0f*60.0f;
+                    minutes = floorf(seconds/60.0f);
+                    seconds -= minutes*60.0f;
+                    if (dhour) {
+                       printf(tstr, pos, hour, minutes, seconds, 100*pos/duration);
+                    } else {
+                       printf(tstr, pos, minutes, seconds, 100*pos/duration);
+                    }
+                }
+                else
+                {
+                    seconds = pos;
+                    hour = floorf(seconds/(60.0f*60.0f));
+                    seconds -= hour*60.0f*60.0f;
+                    minutes = floorf(seconds/60.0f);
+                    seconds -= minutes*60.0f;
+                    printf(tstr, pos, hour, minutes, seconds);
                 }
                 fflush(stdout);
             }
