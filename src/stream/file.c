@@ -518,24 +518,24 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (!m && header && bufsize)
             {
                res = handle->io.read(handle->fd, header, bufsize);
-               if (res > 0)
+               if ((res > 0) && (handle->io.protocol == PROTOCOL_HTTP))
                {
                   const char *s;
 
-                  s = _get_json(header, bufsize-1, "Content-Type");
+                  s = _get_json(header, res, "Content-Type");
                   if (s && !strcasecmp(s, "audio/mpeg"))
                   {
-                     s = _get_json(header, bufsize-1, "icy-name");
-                     handle->artist = strdup(s);
+                     s = _get_json(header, res, "icy-name");
+                     if (s) handle->artist = strdup(s);
 
-                     s = _get_json(header, bufsize-1, "icy-description");
-                     handle->title = strdup(s);
+                     s = _get_json(header, res, "icy-description");
+                     if (s) handle->title = strdup(s);
 
-                     s = _get_json(header, bufsize-1, "icy-genre");
-                     handle->genre = strdup(s);
+                     s = _get_json(header, res, "icy-genre");
+                     if (s) handle->genre = strdup(s);
                   }
                }
-               else {
+               else if (res <= 0) {
                   break;
                }
             }
@@ -1184,7 +1184,7 @@ _memncasestr(const char *haystack,  size_t haystacklen,
             }
             hs = hss;
         }
-        while (--i);
+        while (i && --i);
     }
 
     return rptr;
@@ -1231,6 +1231,8 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
    _aaxFmtHandle *rv = NULL;
    int port, res;
    char *ext;
+
+   if (!url) return rv;
 
    s = strdup(url);
    res = _url_split(s, &protocol, &server, &path, &port);

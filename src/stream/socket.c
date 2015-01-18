@@ -14,7 +14,7 @@
 #endif
 
 #ifdef HAVE_UNISTD_H
-# include <unistd.h>           /* read, write, close, lseek */
+# include <unistd.h>           /* read, write, close, lseek, access */
 #endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
@@ -139,15 +139,20 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       *ptr = '\0';
       url = ptr + strlen("://");
    }
-
-   ptr2 = strchr(url, '/');
-   if (ptr2) {
-      *ptr2 = '\0';
+   else if (access(url, F_OK) != -1) {
+      *path = url;
    }
 
-   if (strchr(url, '.'))
+   if (!*path)
    {
       *server = url;
+
+      ptr = strchr(url, '/');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *path = ptr;
+      }
 
       ptr = strchr(url, ':');
       if (ptr)
@@ -155,15 +160,9 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
          *ptr++ = '\0';
          *port = atoi(ptr);
       }
-      *path = ptr2+1;
-   }
-   else
-   {
-      *ptr2 = '/';
-      *path = url;
    }
 
-   if (*protocol && !strcasecmp(*protocol, "http")) {
+   if ((*protocol && !strcasecmp(*protocol, "http")) || *server) {
       rv = PROTOCOL_HTTP;
       if (*port <= 0) *port = 80;
    }
