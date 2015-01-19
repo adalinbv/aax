@@ -14,6 +14,8 @@
  * Fix a problem when a registered sensor had a different number of
    audio periods in relation to the playback device.
  * Fix an emitter looping bug introduced in version 2.4.1
+ * Support URL parsing for the file backend and properly handle HTTP streaming
+   (READ mode only).
  * Support batched (fast, non-realtime) mode for Audio Files and Loopback.
  * The file writing backend postpones writing of the file header to until
    after the state is set to AAX_PLAYING.
