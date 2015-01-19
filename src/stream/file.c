@@ -954,7 +954,8 @@ _aaxFileDriverGetName(const void *id, int type)
          ret = handle->fmt->name(handle->fmt->id, __F_ORIGINAL);
          break;
       case AAX_WEBSITE_STRING:
-         ret = handle->website;
+         ret = handle->fmt->name(handle->fmt->id, __F_WEBSITE);
+         if (!ret) ret = handle->website;
          break;
       case AAX_COVER_IMAGE_DATA:
          ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);

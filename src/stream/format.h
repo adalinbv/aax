@@ -44,6 +44,7 @@ enum _aaxFormatParam
    __F_COMMENT, 
    __F_COMPOSER,
    __F_ORIGINAL,
+   __F_WEBSITE,
 
    __F_IS_STREAM = 0x1000,	/* set */
    __F_POSITION

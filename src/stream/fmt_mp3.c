@@ -108,6 +108,7 @@ typedef struct
    char *composer;
    char *comments;
    char *copyright;
+   char *website;
    char *image;
 
    char capturing;
@@ -244,6 +245,9 @@ _aaxMP3GetName(void *id, enum _aaxFormatParam param)
       break;
    case __F_ORIGINAL:
       rv = handle->original;
+      break;
+   case __F_WEBSITE:
+      rv = handle->website;
       break;
    case __F_IMAGE:
       rv = handle->image;

@@ -353,6 +353,7 @@ _aaxMPG123Close(void *id)
       free(handle->composer);
       free(handle->copyright);
       free(handle->original);
+      free(handle->website);
       free(handle->image);
       free(handle);
    }
@@ -530,6 +531,26 @@ detect_mpg123_song_info(_driver_t *handle)
                       v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
                   {
                      handle->copyright = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
+                      v2->text[i].id[2] == 'A' && v2->text[i].id[3] == 'R')
+                  {
+                     free(handle->website);
+                     handle->website = strdup(v2->text[i].text.p);
+                  }
+                  else if (!handle->website &&
+                         v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'P' &&
+                         v2->text[i].id[2] == 'U' && v2->text[i].id[3] == 'B')
+                  {
+                     free(handle->website);
+                     handle->website = strdup(v2->text[i].text.p);
+                  }
+                  else if (!handle->website &&
+                         v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
+                         v2->text[i].id[2] == 'R' && v2->text[i].id[3] == 'S')
+                  {
+                     free(handle->website);
+                     handle->website = strdup(v2->text[i].text.p);
                   }
                }
             }
