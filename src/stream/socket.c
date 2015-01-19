@@ -225,8 +225,12 @@ http_get_response(_io_t *io, int fd, char *buf, int size)
    if (rv > 0)
    {
       int res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
-      if (res != 1) {
-         rv = -1;
+      if (res != 1)
+      {
+         res =  sscanf(buf, "ICY %03d", (int*)&rv);
+         if (res != 1) {
+            rv = -1;
+         }
       }
    }
 
