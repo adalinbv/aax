@@ -28,6 +28,7 @@
 #include <io.h>
 #endif
 #include <sys/stat.h>
+#include <ctype.h>		/* toupper */
 #include <errno.h>		/* for ETIMEDOUT, errno */
 #include <fcntl.h>		/* SEEK_*, O_* */
 #include <assert.h>		/* assert */
@@ -467,6 +468,13 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          s = strdup(handle->name);
          handle->io.protocol = _url_split(s, &protocol, &server, &path, &port);
+#if 0
+ printf("name: '%s'\n", handle->name);
+ printf("protocol: '%s'\n", protocol);
+ printf("server: '%s'\n", server);
+ printf("path: '%s'\n", path);
+ printf("port: %i\n", port);
+#endif
          switch (handle->io.protocol)
          {
          case PROTOCOL_HTTP:
@@ -527,7 +535,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   const char *s;
 
-                  s = _get_json(header, res, "Content-Type");
+                  s = _get_json(header, res, "content-type");
                   if (s && !strcasecmp(s, "audio/mpeg"))
                   {
                      s = _get_json(header, res, "icy-name");
@@ -1171,8 +1179,7 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static char *
-_memncasestr(const char *haystack,  size_t haystacklen,
-                  const char *needle)
+_memncasestr(const char *haystack,  size_t haystacklen, const char *needle)
 {
     size_t needlelen = needle ? strlen(needle) : 0;
     char *rptr = 0;
@@ -1186,13 +1193,13 @@ _memncasestr(const char *haystack,  size_t haystacklen,
 
         do
         {
-            while (--i && (*hss++ != *ns));
+            while (--i && (toupper(*hss++) != toupper(*ns)));
             if (i)
             {
                 char *nss = ns;
                 int j = needlelen;
                 hs = --hss;
-                while (--i && --j && (*hss++ == *nss++));
+                while (--i && --j && toupper(*hss++) == toupper(*nss++));
                 if (j == 0)
                 {
                     rptr = hs;
