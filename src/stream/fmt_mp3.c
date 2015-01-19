@@ -110,18 +110,18 @@ typedef struct
    char *copyright;
    char *image;
 
-   int mode;
-   int capturing;
-   int id3_found;
+   char capturing;
+   char id3_found;
+   char streaming;
 
-   int frequency;
-   int bitrate;
-   size_t no_samples;
-   size_t max_samples;
-   enum aaxFormat format;
-   int blocksize;
    uint8_t no_tracks;
    uint8_t bits_sample;
+   int frequency;
+   int bitrate;
+   int blocksize;
+   enum aaxFormat format;
+   size_t no_samples;
+   size_t max_samples;
 
    size_t mp3BufSize;
    void *mp3Buffer;

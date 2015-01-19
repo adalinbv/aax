@@ -188,7 +188,14 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
 #ifdef NDEBUG
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
 #endif
-               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS, 1);
+               // http://sourceforge.net/p/mpg123/mailman/message/26864747/
+               // MPG123_GAPLESS could be bad for http streams
+               if (handle->streaming) {
+                  pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS,0);
+               } else {
+                  pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS,1);
+               }
+
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_SEEKBUFFER,1);
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_FUZZY, 1);
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_PICTURE, 1);
@@ -409,11 +416,14 @@ _aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 static off_t
 _aaxMPG123SetParam(void *id, int type, off_t value)
 {
-// _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    off_t rv = 0;
 
    switch(type)
    {
+   case __F_IS_STREAM:
+      handle->streaming = AAX_TRUE;
+      break;
    case __F_POSITION:
 #if 0
       if (pmpg123_feedseek)

@@ -485,7 +485,10 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   char buf[4096];
                   res = http_get_response(&handle->io, handle->fd, buf, 40960);
-                  if (res != 200)
+                  if (res == 200) {
+                     handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
+                  }
+                  else
                   {
                      handle->io.close(handle->fd);
                      handle->fd = -1;

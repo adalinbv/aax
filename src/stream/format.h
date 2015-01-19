@@ -45,7 +45,8 @@ enum _aaxFormatParam
    __F_COMPOSER,
    __F_ORIGINAL,
 
-   __F_POSITION = 0x1000	/* set */
+   __F_IS_STREAM = 0x1000,	/* set */
+   __F_POSITION
 };
 
 typedef int (_fmt_detect_fn)(void*, int);
