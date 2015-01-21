@@ -362,7 +362,7 @@ int main(int argc, char **argv)
         set_mode(1);
         freq = (float)aaxMixerGetSetup(record, AAX_FREQUENCY);
         max_samples = aaxMixerGetSetup(record, AAX_SAMPLES_MAX);
-        if (max_samples < UINT_MAX)
+        if (max_samples)
         {
             duration = (float)max_samples/freq;
             seconds = duration;
