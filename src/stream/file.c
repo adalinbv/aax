@@ -123,14 +123,18 @@ typedef struct
    char *title;
    char *genre;
    char *website;
+   char metadata_changed;
 
+   uint8_t no_channels;
+   uint8_t bits_sample;
+   enum aaxFormat format;
    int mode;
    float latency;
    float frequency;
-   enum aaxFormat format;
-   uint8_t no_channels;
-   uint8_t bits_sample;
    size_t no_samples;
+
+   size_t meta_pos;
+   size_t meta_interval;
 
    char *ptr, *scratch;
    size_t buf_len;
@@ -161,6 +165,7 @@ static void* _aaxFileDriverReadThread(void*);
 static void _aaxFileDriverWriteChunk(const void*);
 static ssize_t _aaxFileDriverReadChunk(const void*);
 static const char *_get_json(const char*, size_t, const char*);
+static char *_memncasestr(const char*, size_t, const char*);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -488,11 +493,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->fd >= 0)
             {
                int res = http_send_request(&handle->io, handle->fd,
-                                           "GET", path, "");
+                                           "GET", path, "Icy-MetaData:1");
                if (res > 0)
                {
                   char buf[4096];
-                  res = http_get_response(&handle->io, handle->fd, buf, 40960);
+                  res = http_get_response(&handle->io, handle->fd, buf, 4096);
                   if (res == 200) {
                      handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
                   }
@@ -512,6 +517,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
          }
          free(s);
       }
+
       if ((handle->fd >= 0) || m)
       {
          size_t no_samples = period_frames;
@@ -531,9 +537,17 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (!m && header && bufsize)
             {
                res = handle->io.read(handle->fd, header, bufsize);
+               if (res > 0) handle->meta_pos += res;
                if ((res > 0) && (handle->io.protocol == PROTOCOL_HTTP))
                {
-                  const char *s;
+                  const char *s, *end;
+
+                  end = _memncasestr(header, bufsize, "\r\n\r\n");
+                  if (end)
+                  {
+                     end += strlen("\r\n");
+                     res = ((char*)end-(char*)header);
+                  }
 
                   s = _get_json(header, res, "content-type");
                   if (s && !strcasecmp(s, "audio/mpeg"))
@@ -549,6 +563,29 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
                      s = _get_json(header, res, "icy-url");
                      if (s) handle->website = strdup(s);
+
+                     s = _get_json(header, res, "icy-metaint");
+                     if (s)
+                     {
+                        char *p = NULL;
+
+                        handle->meta_interval = atoi(s);
+                        handle->meta_pos = 0;
+
+                        if (end)
+                        {
+                           p = strstr(header, "icy-metaint:");
+                           if (p)
+                           {
+                              p = strstr(p, "\r\n");
+                              if (p)
+                              {
+                                 p += strlen("\r\n");
+                                 handle->meta_pos += end-p;
+                              }
+                           }
+                        }
+                     }
                   }
                }
                else if (res <= 0) {
@@ -1068,6 +1105,7 @@ _aaxFileDriverSetPosition(const void *id, off_t pos)
 {
    _driver_t *handle = (_driver_t *)id;
    int res, rv = AAX_FALSE;
+return rv;
 
    res = handle->io.seek(handle->fd, 0, SEEK_CUR);
    if (res != pos)
@@ -1180,7 +1218,7 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static char *
-_memncasestr(const char *haystack,  size_t haystacklen, const char *needle)
+_memncasestr(const char *haystack, size_t haystacklen, const char *needle)
 {
     size_t needlelen = needle ? strlen(needle) : 0;
     char *rptr = 0;
@@ -1194,22 +1232,26 @@ _memncasestr(const char *haystack,  size_t haystacklen, const char *needle)
 
         do
         {
-            while (--i && (toupper(*hss++) != toupper(*ns)));
+            int nc = toupper(*ns);
+            while ((toupper(*hss) != nc) && --i) ++hss;
+
             if (i)
             {
                 char *nss = ns;
                 int j = needlelen;
-                hs = --hss;
-                while (--i && --j && toupper(*hss++) == toupper(*nss++));
+
+                hs = hss+1;
+                while ((toupper(*hss) == toupper(*nss)) && --i && --j) {
+                   ++hss; ++nss;
+                }
                 if (j == 0)
                 {
-                    rptr = hs;
+                    rptr = hs-1;
                     break;
                 }
-                hs = hss;
             }
         }
-        while (i && --i);
+        while (i);
     }
 
     return rptr;
@@ -1226,17 +1268,18 @@ _get_json(const char *haystack, size_t haystacklen, const char *needle)
    start = _memncasestr(haystack, haystacklen, needle);
    if (start)
    {
+++start;
       start += strlen(needle);
       pos = start - haystack;
 
-      while ((++pos < haystacklen) && (*start == ':' || *start == ' ')) {
+      while ((pos++ < haystacklen) && (*start == ':' || *start == ' ')) {
          start++;
       }
 
       if (pos < haystacklen)
       {
          end = start;
-         while ((++pos < haystacklen) &&
+         while ((pos++ < haystacklen) &&
                 (*end != '\0' && *end != '\n' && *end != '\r')) {
             end++;
          }
@@ -1421,8 +1464,65 @@ _aaxFileDriverReadChunk(const void *id)
    ssize_t res;
 
    res = handle->io.read(handle->fd, handle->buf+handle->bufpos, size);
-   if (res > 0) {
+   if (res > 0)
+   {
       handle->bufpos += res;
+
+      if (handle->meta_interval)
+      {
+         handle->meta_pos += res;
+         while ((int)handle->meta_pos >= (int)handle->meta_interval)
+         {
+            size_t offs = handle->meta_pos - handle->meta_interval;
+            char *ptr = (char*)handle->buf;
+            int slen, blen;
+
+            ptr += handle->bufpos;
+            ptr -= offs;
+
+            slen = *ptr * 16;
+
+            if ((ptr+slen) >= ((char*)handle->buf+IOBUF_SIZE)) break;
+
+            if (slen)
+            {
+               char *artist = ptr+1 + strlen("StreamTitle='");
+               if (artist)
+               {
+                  char *title = strstr(artist, " - ");
+                  if (title)
+                  {
+                     char *end;
+
+                     *title = '\0';
+                     title += strlen(" - ");
+                     end = strchr(title, '\'');
+                     if (end)
+                     {
+                        *end = '\0';
+
+                        free(handle->artist);
+                        handle->artist = strdup(artist);
+
+                        free(handle->title);
+                        handle->title = strdup(title);
+
+                        handle->metadata_changed = AAX_TRUE;
+                     }
+                  }
+               }
+            }
+
+            slen++;	// dd the slen-byte itself
+            handle->meta_pos -= (handle->meta_interval+slen);
+
+            /* move the rest of the buffer len-bytes back */
+            handle->bufpos -= slen;
+            blen = handle->bufpos;
+            blen -= (ptr - (char*)handle->buf);
+            memmove(ptr, ptr+slen, blen);
+         }
+      }
    }
 
    return res;

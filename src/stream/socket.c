@@ -205,9 +205,15 @@ http_send_request(_io_t *io, int fd, const char *command, const char *path, cons
    char header[MAX_BUFFER];
    int hlen, rv = 0;
 
-   snprintf(header, MAX_BUFFER,
-                    "%s /%.256s HTTP/1.0\r\n User-Agent: %s\r\n%s\r\n",
-                    command, path, AAX_VERSION_STR, extra);
+   if (extra && *extra != '\0') {
+      snprintf(header, MAX_BUFFER,
+               "%s /%.256s HTTP/1.0 \r\nUser-Agent: %s\r\n%s\r\n\r\n",
+               command, path, AAX_VERSION_STR, extra);
+   } else {
+       snprintf(header, MAX_BUFFER,
+                "%s /%.256s HTTP/1.0 \r\nUser-Agent: %s\r\n\r\n",
+                command, path, AAX_VERSION_STR);
+   }
 
    hlen = strlen(header);
    rv = io->write(fd, header, hlen);
