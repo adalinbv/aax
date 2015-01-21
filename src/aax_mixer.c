@@ -341,8 +341,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   break;
                case AAX_SAMPLES_MAX:
                   f = be->param(handle->backend.handle, DRIVER_MAX_SAMPLES);
-                  if (f == AAX_FPINFINITE) rv = UINT_MAX;
-                  else rv = rintf(f);
+                  rv = rintf(f);
                   break;
                default:
                   _aaxErrorSet(AAX_INVALID_ENUM);

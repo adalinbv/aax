@@ -190,7 +190,7 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
             break;
          case AAX_FRAMES:
          case AAX_SAMPLES:
-            rv = (smixer->curr_sample > UINT_MAX) ?
+            rv = (smixer->curr_sample >= UINT_MAX) ?
                    UINT_MAX : smixer->curr_sample;
             break;
          case AAX_BYTES:
@@ -200,7 +200,7 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
             if (dptr_rb)
             {
                _aaxRingBuffer *rb = _intBufGetDataPtr(dptr_rb);
-               rv = (smixer->curr_sample > UINT_MAX) ?
+               rv = (smixer->curr_sample >= UINT_MAX) ?
                       UINT_MAX : smixer->curr_sample;
                rv *= rb->get_parami(rb, RB_BYTES_SAMPLE);
             }
