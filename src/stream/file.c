@@ -407,7 +407,7 @@ _aaxFileDriverDisconnect(void *id)
          if (handle->fmt->update && handle->fmt->id) {
             buf = handle->fmt->update(handle->fmt->id, &offs, &size, AAX_TRUE);
          }
-         if (buf)
+         if (buf && (handle && handle->io.protocol == PROTOCOL_FILE))
          {
             handle->io.seek(handle->fd, offs, SEEK_SET);
             ret = handle->io.write(handle->fd, buf, size);
@@ -502,9 +502,16 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                                            aaxGetVersionString((aaxConfig)id));
                if (res > 0)
                {
-                  char buf[4096];
-                  res = http_get_response(&handle->io, handle->fd, buf, 4096);
-                  if (res == 200) {
+                  char buf[24];
+                  res = http_get_response(&handle->io, handle->fd, buf, 24);
+                  if (res == 200)
+                  {
+                     char *ext = ".wav";
+                     char elen = strlen(ext);
+                     int slen = strlen(path);
+                     if (!strcasecmp(path+slen-elen, ext)) {
+                        http_skip_header(&handle->io, handle->fd);
+                     }
                      handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
                   }
                   else
@@ -556,13 +563,16 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                if (res > 0)
                {
                   handle->meta_pos += res;
-                  if (handle->io.protocol == PROTOCOL_FILE)
+                  switch (handle->io.protocol)
+                  {
+                  case PROTOCOL_FILE:
                   {
                      struct stat st;
                      handle->io.stat(handle->fd, &st);
                      handle->no_bytes = st.st_size;
+                     break;
                   }
-                  else if (handle->io.protocol == PROTOCOL_HTTP)
+                  case PROTOCOL_HTTP:
                   {
                      const char *s, *end;
 
@@ -623,6 +633,9 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         }
                      }
                   }
+                  default:
+                     break;
+                  }
                }
                else {
                   break;
@@ -643,20 +656,6 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             else {
                res = bufsize;
             }
-
-#if 0
-            if (buf)
-            {
-               if (handle->mode != AAX_MODE_READ && buf) {
-                  res = handle->io.write(handle->fd, buf, bufsize);
-               } else if (handle->mode == AAX_MODE_READ && !buf) {
-                  res = handle->io.seek(handle->fd, bufsize, SEEK_SET);
-               }
-            }
-//          else { 
-//             break;
-//          }
-#endif
          }
          while (handle->mode == AAX_MODE_READ && buf && bufsize);
 
@@ -741,14 +740,21 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    assert(rb);
    assert(id != 0);
 
+   /*
+    * Opening the  file for playback is delayed until actual playback to
+    * prevent setting the file size to zero just bij running aaxinfo -d
+    * which always opens a file in playback mode.
+    */
    if (handle->fd < 0) {
       handle->fd = handle->io.open(handle->name, handle->fmode, 0644);
    }
+
    if (handle->out_header)
    {
       if (handle->fd)
       {
-         res = handle->io.write(handle->fd, handle->out_header, handle->out_hdr_size);
+         res = handle->io.write(handle->fd, handle->out_header,
+                                            handle->out_hdr_size);
          if (res == handle->out_hdr_size)
          {
             free(handle->out_header);
@@ -1132,11 +1138,12 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
 static int
 _aaxFileDriverSetPosition(const void *id, off_t pos)
 {
-   _driver_t *handle = (_driver_t *)id;
-   int res, rv = AAX_FALSE;
-return rv;
+// _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
-   res = handle->io.seek(handle->fd, 0, SEEK_CUR);
+// TODO: we probably need a protocol dependend way to set a new position
+#if 0
+   int res = handle->io.seek(handle->fd, 0, SEEK_CUR);
    if (res != pos)
    {
 //    handle->bufpos = 0;
@@ -1165,7 +1172,7 @@ return rv;
          }
       }
    }
-
+#endif
    return rv;
 }
 
@@ -1429,6 +1436,7 @@ _aaxFileDriverWriteChunk(const void *id)
                                             AAX_FALSE);
                   if (buf)
                   {
+// TODO: Can't do seek for PROTOCOL_HTTP
                      off_t floc = handle->io.seek(handle->fd, 0L, SEEK_CUR);
                      handle->io.seek(handle->fd, spos, SEEK_SET);
                      res = handle->io.write(handle->fd, buf, usize);

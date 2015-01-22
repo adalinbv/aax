@@ -240,7 +240,7 @@ http_send_request(_io_t *io, int fd, const char *command, const char *server, co
 int
 http_get_response(_io_t *io, int fd, char *buf, int size)
 {
-   int res, rv = http_get_response_data(io, fd, buf, size);
+   int rv = http_get_response_data(io, fd, buf, size);
    if (rv > 0)
    {
       int res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
@@ -252,10 +252,26 @@ http_get_response(_io_t *io, int fd, char *buf, int size)
          }
       }
    }
-#if 0
-   if (rv != 200) {
-      io->read(fd, buf, size);
-   }
-#endif
    return rv;
 }
+
+int
+http_skip_header(_io_t *io, int fd)
+{
+   static char end[4] = "\r\n\r\n";
+   int found = 0;
+   char buf;
+
+   while (found < sizeof(end))
+   {
+      if (io->read(fd, &buf, 1) == 1)
+      {
+         if (buf == end[found]) found++;
+         else found = 0;
+      }
+      else break;
+   }
+
+   return (found == sizeof(end)) ? AAX_TRUE : AAX_FALSE;
+}
+

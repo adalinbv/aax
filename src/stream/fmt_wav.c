@@ -1436,7 +1436,6 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, un
 }
 
 
-#if 1
 /**
  * Write a canonical WAVE file from memory to a file.
  *
@@ -1511,5 +1510,4 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    close(fd);
    _aaxWavClose(handle);
 }
-#endif
 
