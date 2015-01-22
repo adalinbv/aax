@@ -119,6 +119,8 @@ typedef struct
    int fd;
    int fmode;
    char *name;
+   char *station;
+   char *description;
    char *artist;
    char *title;
    char *genre;
@@ -427,6 +429,8 @@ _aaxFileDriverDisconnect(void *id)
       }
 #endif
 
+      free(handle->station);
+      free(handle->description);
       free(handle->artist);
       free(handle->title);
       free(handle->genre);
@@ -567,10 +571,18 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   if (s && !strcasecmp(s, "audio/mpeg"))
                   {
                      s = _get_json(header, res, "icy-name");
-                     if (s) handle->artist = strdup(s);
+                     if (s)
+                     {
+                        handle->artist = strdup(s);
+                        handle->station = strdup(s);
+                     }
 
                      s = _get_json(header, res, "icy-description");
-                     if (s) handle->title = strdup(s);
+                     if (s)
+                     {
+                        handle->title = strdup(s);
+                        handle->description = strdup(s);
+                     }
 
                      s = _get_json(header, res, "icy-genre");
                      if (s) handle->genre = strdup(s);
@@ -983,12 +995,14 @@ _aaxFileDriverGetName(const void *id, int type)
          break;
       case AAX_ALBUM_NAME_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_ALBUM);
+         if (!ret) ret = handle->description;
          break;
       case AAX_RELEASE_DATE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_DATE);
          break;
       case AAX_SONG_COMPOSER_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_COMPOSER);
+         if (!ret) ret = handle->station;
          break;
       case AAX_SONG_COPYRIGHT_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
