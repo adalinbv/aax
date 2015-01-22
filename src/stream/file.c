@@ -1524,25 +1524,27 @@ _aaxFileDriverReadChunk(const void *id)
                if (artist)
                {
                   char *title = strstr(artist, " - ");
+                  char *end = strchr(artist, '\'');
                   if (title)
                   {
-                     char *end;
-
                      *title = '\0';
                      title += strlen(" - ");
-                     end = strchr(title, '\'');
-                     if (end)
-                     {
-                        *end = '\0';
+                  }
+                  if (end) {
+                     *end = '\0';
+                  }
 
-                        free(handle->artist);
-                        handle->artist = strdup(artist);
-
-                        free(handle->title);
-                        handle->title = strdup(title);
-
-                        handle->metadata_changed = AAX_TRUE;
-                     }
+                  if (artist && end)
+                  {
+                     free(handle->artist);
+                     handle->artist = strdup(artist);
+                     handle->metadata_changed = AAX_TRUE;
+                  }
+                  if (title && end)
+                  {
+                     free(handle->title);
+                     handle->title = strdup(title);
+                     handle->metadata_changed = AAX_TRUE;
                   }
                }
             }
