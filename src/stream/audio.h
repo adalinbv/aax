@@ -106,7 +106,7 @@ typedef struct
 } _io_t;
 
 /* HTTP */
-int http_send_request(_io_t*, int, const char*, const char*, const char*);
+int http_send_request(_io_t*, int, const char*, const char*, const char*, const char*, const char*);
 int http_get_response(_io_t*, int, char*, int);
 
 #if defined(__cplusplus)

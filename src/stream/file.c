@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2005-2015 by Erik Hofman.
+ * Copyright 2009-2015 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -492,8 +492,9 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->fd = handle->io.open(server, O_RDWR, port);
             if (handle->fd >= 0)
             {
-               int res = http_send_request(&handle->io, handle->fd,
-                                           "GET", path, "Icy-MetaData:1");
+               int res = http_send_request(&handle->io, handle->fd, "GET",
+                                           server, path, "Icy-MetaData:1",
+                                           aaxGetVersionString((aaxConfig)id));
                if (res > 0)
                {
                   char buf[4096];
@@ -505,12 +506,25 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   {
                      handle->io.close(handle->fd);
                      handle->fd = -1;
+                     _aaxFileDriverLog(id, 0, 0, buf+strlen("HTTP/1.0 "));
+                     free(handle->fmt->id);
+                     handle->fmt->id = 0;
                   }
                }
             }
             break;
          case PROTOCOL_FILE:
             handle->fd = handle->io.open(path, handle->fmode, 0644);
+            if (handle->fd < 0)
+            {
+               if (handle->mode != AAX_MODE_READ) {
+                  _aaxFileDriverLog(id, 0, 0, "File already exists");
+               } else {
+                  _aaxFileDriverLog(id, 0, 0, "File read error");
+               }
+               free(handle->fmt->id);
+               handle->fmt->id = 0;
+            }
             break;
          default:
             break;
@@ -586,6 +600,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                            }
                         }
                      }
+                  }
+                  else
+                  {
+                     s = _get_json(header, res, "content-length");
+//                   if (s) handle->no_bytes = atoi(s);
                   }
                }
                else if (res <= 0) {
@@ -680,16 +699,6 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             free(handle->fmt->id);
             handle->fmt->id = 0;
          }
-      }
-      else
-      {
-         if (handle->mode != AAX_MODE_READ) {
-            _aaxFileDriverLog(id, 0, 0, "File already exists");
-         } else {
-            _aaxFileDriverLog(id, 0, 0, "Unable to open the file for reading");
-         }
-         free(handle->fmt->id);
-         handle->fmt->id = 0;
       }
    }
    else {
@@ -1204,9 +1213,14 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
 char *
 _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 {
+   _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
 
-   snprintf(_errstr, 256, "File: %s\n", str);
+   if (handle && handle->io.protocol == PROTOCOL_HTTP) {
+       snprintf(_errstr, 256, "HTTP: %s\n", str);
+   } else {
+      snprintf(_errstr, 256, "File: %s\n", str);
+   }
    _errstr[255] = '\0';  /* always null terminated */
 
    __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
@@ -1305,14 +1319,20 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
 
    if (!url) return rv;
 
+   ext = NULL;
    s = strdup(url);
    res = _url_split(s, &protocol, &server, &path, &port);
-   if (res == PROTOCOL_HTTP) {
-      ext = ".mp3";
-   } else if (res == PROTOCOL_FILE && path) {
-      ext = strrchr(path, '.');
-   } else {
-      ext = NULL;
+   switch (res)
+   {
+   case PROTOCOL_HTTP:
+      if (path) ext = strrchr(path, '.');
+      if (!ext) ext = ".mp3";
+      break;
+   case PROTOCOL_FILE:
+      if (path) ext = strrchr(path, '.');
+      break;
+   default:
+      break;
    }
 
    if (ext)

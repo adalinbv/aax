@@ -51,14 +51,16 @@ _socket_open(const char *server, int oflags, ...)
       int slen = strlen(server);
       if (slen < 256)
       {
-         struct addrinfo *host;
+         struct addrinfo hints, *host;
          char sport[16];
          int res;
 
          snprintf(sport, 15, "%d", port);
          sport[15] = '\0';
 
-         res = getaddrinfo(server, (port > 0) ? sport : NULL, NULL, &host);
+         memset(&hints, 0, sizeof hints);
+         hints.ai_socktype = SOCK_STREAM;
+         res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
          if (res == 0)
          {
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
@@ -200,20 +202,24 @@ http_get_response_data(_io_t *io, int fd, char *buf, int size)
 }
 
 int
-http_send_request(_io_t *io, int fd, const char *command, const char *path, const char *extra)
+http_send_request(_io_t *io, int fd, const char *command, const char *server, const char *path, const char *extra, const char *user_agent)
 {
    char header[MAX_BUFFER];
    int hlen, rv = 0;
 
-   if (extra && *extra != '\0') {
+   if (extra && *extra != '\0')
+   {
       snprintf(header, MAX_BUFFER,
-               "%s /%.256s HTTP/1.0 \r\nUser-Agent: %s\r\n%s\r\n\r\n",
-               command, path, AAX_VERSION_STR, extra);
-   } else {
-       snprintf(header, MAX_BUFFER,
-                "%s /%.256s HTTP/1.0 \r\nUser-Agent: %s\r\n\r\n",
-                command, path, AAX_VERSION_STR);
+              "%s /%.256s HTTP/1.0\r\nUser-Agent: %s\r\nHost: %s\r\n%s\r\n\r\n",
+              command, path, user_agent, server, extra);
    }
+   else
+   {
+       snprintf(header, MAX_BUFFER,
+               "%s /%.256s HTTP/1.0\r\nUser-Agent: %s\r\nHost: %s\r\n\r\n",
+               command, path, user_agent, server);
+   }
+   header[MAX_BUFFER-1] = '\0';
 
    hlen = strlen(header);
    rv = io->write(fd, header, hlen);
@@ -227,7 +233,7 @@ http_send_request(_io_t *io, int fd, const char *command, const char *path, cons
 int
 http_get_response(_io_t *io, int fd, char *buf, int size)
 {
-   int rv = http_get_response_data(io, fd, buf, size);
+   int res, rv = http_get_response_data(io, fd, buf, size);
    if (rv > 0)
    {
       int res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
@@ -239,6 +245,10 @@ http_get_response(_io_t *io, int fd, char *buf, int size)
          }
       }
    }
-
+#if 0
+   if (rv != 200) {
+      io->read(fd, buf, size);
+   }
+#endif
    return rv;
 }
