@@ -167,8 +167,7 @@ static void* _aaxFileDriverWriteThread(void*);
 static void* _aaxFileDriverReadThread(void*);
 static void _aaxFileDriverWriteChunk(const void*);
 static ssize_t _aaxFileDriverReadChunk(const void*);
-static const char *_get_json(const char*, size_t, const char*);
-static char *_memncasestr(const char*, size_t, const char*);
+static const char *_get_json(const char*, const char*);
 
 static int
 _aaxFileDriverDetect(int mode)
@@ -502,17 +501,47 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                                            aaxGetVersionString((aaxConfig)id));
                if (res > 0)
                {
-                  char buf[24];
-                  res = http_get_response(&handle->io, handle->fd, buf, 24);
+                  char buf[4096];
+                  res = http_get_response(&handle->io, handle->fd, buf, 4096);
                   if (res == 200)
                   {
-                     char *ext = ".wav";
-                     char elen = strlen(ext);
-                     int slen = strlen(path);
-                     if (!strcasecmp(path+slen-elen, ext)) {
-                        http_skip_header(&handle->io, handle->fd);
-                     }
+                     const char *s;
+
                      handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
+
+                     s = _get_json(buf, "content-length");
+                     if (s) handle->no_bytes = atoi(s);
+
+                     s = _get_json(buf, "content-type");
+                     if (s && !strcasecmp(s, "audio/mpeg"))
+                     {
+                        s = _get_json(buf, "icy-name");
+                        if (s)
+                        {
+                           handle->artist = strdup(s);
+                           handle->station = strdup(s);
+                        }
+
+                        s = _get_json(buf, "icy-description");
+                        if (s)
+                        {
+                           handle->title = strdup(s);
+                           handle->description = strdup(s);
+                        }
+
+                        s = _get_json(buf, "icy-genre");
+                        if (s) handle->genre = strdup(s);
+
+                        s = _get_json(buf, "icy-url");
+                        if (s) handle->website = strdup(s);
+
+                        s = _get_json(buf, "icy-metaint");
+                        if (s)
+                        {
+                           handle->meta_interval = atoi(s);
+                           handle->meta_pos = 0;
+                        }
+                     }
                   }
                   else
                   {
@@ -573,66 +602,6 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                      break;
                   }
                   case PROTOCOL_HTTP:
-                  {
-                     const char *s, *end;
-
-                     end = _memncasestr(header, bufsize, "\r\n\r\n");
-                     if (end)
-                     {
-                        end += strlen("\r\n");
-                        res = ((char*)end-(char*)header);
-                     }
-
-                     s = _get_json(header, res, "content-length");
-                     if (s) handle->no_bytes = atoi(s);
-
-                     s = _get_json(header, res, "content-type");
-                     if (s && !strcasecmp(s, "audio/mpeg"))
-                     {
-                        s = _get_json(header, res, "icy-name");
-                        if (s)
-                        {
-                           handle->artist = strdup(s);
-                           handle->station = strdup(s);
-                        }
-
-                        s = _get_json(header, res, "icy-description");
-                        if (s)
-                        {
-                           handle->title = strdup(s);
-                           handle->description = strdup(s);
-                        }
-
-                        s = _get_json(header, res, "icy-genre");
-                        if (s) handle->genre = strdup(s);
-
-                        s = _get_json(header, res, "icy-url");
-                        if (s) handle->website = strdup(s);
-
-                        s = _get_json(header, res, "icy-metaint");
-                        if (s)
-                        {
-                           char *p = NULL;
-
-                           handle->meta_interval = atoi(s);
-                           handle->meta_pos = 0;
-
-                           if (end)
-                           {
-                              p = strstr(header, "icy-metaint:");
-                              if (p)
-                              {
-                                 p = strstr(p, "\r\n");
-                                 if (p)
-                                 {
-                                    p += strlen("\r\n");
-                                    handle->meta_pos += end-p;
-                                 }
-                              }
-                           }
-                        }
-                     }
-                  }
                   default:
                      break;
                   }
@@ -1258,61 +1227,23 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 
 /*-------------------------------------------------------------------------- */
 
-static char *
-_memncasestr(const char *haystack, size_t haystacklen, const char *needle)
-{
-    size_t needlelen = needle ? strlen(needle) : 0;
-    char *rptr = 0;
-
-    if (haystack && needle && haystacklen && needlelen)
-    {
-        char *hs = (char *)haystack;
-        char *ns = (char *)needle;
-        size_t i = haystacklen;
-        char *hss = hs;
-
-        do
-        {
-            int nc = toupper(*ns);
-            while ((toupper(*hss) != nc) && --i) ++hss;
-
-            if (i)
-            {
-                char *nss = ns;
-                int j = needlelen;
-
-                hs = hss+1;
-                while ((toupper(*hss) == toupper(*nss)) && --i && --j) {
-                   ++hss; ++nss;
-                }
-                if (j == 0)
-                {
-                    rptr = hs-1;
-                    break;
-                }
-            }
-        }
-        while (i);
-    }
-
-    return rptr;
-}
-
 static const char*
-_get_json(const char *haystack, size_t haystacklen, const char *needle)
+_get_json(const char *haystack, const char *needle)
 {
    static char buf[64];
    char *start, *end;
    size_t pos;
 
    buf[0] = '\0';
-   start = _memncasestr(haystack, haystacklen, needle);
+   start = strcasestr(haystack, needle);
    if (start)
    {
-++start;
+      size_t haystacklen;
+
       start += strlen(needle);
       pos = start - haystack;
 
+      haystacklen = strlen(haystack);
       while ((pos++ < haystacklen) && (*start == ':' || *start == ' ')) {
          start++;
       }
@@ -1548,18 +1479,21 @@ _aaxFileDriverReadChunk(const void *id)
                      *end = '\0';
                   }
 
-                  if (artist && end)
-                  {
-                     free(handle->artist);
+                  free(handle->artist);
+                  free(handle->title);
+
+                  if (artist && end) {
                      handle->artist = strdup(artist);
-                     handle->metadata_changed = AAX_TRUE;
+                  } else {
+                     handle->artist = NULL;
                   }
-                  if (title && end)
-                  {
-                     free(handle->title);
+
+                  if (title && end) {
                      handle->title = strdup(title);
-                     handle->metadata_changed = AAX_TRUE;
+                  } else {
+                     handle->title = NULL;
                   }
+                  handle->metadata_changed = AAX_TRUE;
                }
             }
 

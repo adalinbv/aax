@@ -251,27 +251,30 @@ http_get_response(_io_t *io, int fd, char *buf, int size)
             rv = -1;
          }
       }
-   }
-   return rv;
-}
 
-int
-http_skip_header(_io_t *io, int fd)
-{
-   static char end[4] = "\r\n\r\n";
-   int found = 0;
-   char buf;
-
-   while (found < sizeof(end))
-   {
-      if (io->read(fd, &buf, 1) == 1)
+      if (rv)
       {
-         if (buf == end[found]) found++;
-         else found = 0;
+         static char end[4] = "\r\n\r\n";
+         int found = 0;
+         int i = 0;
+
+         buf[size-1] = '\0';
+         while ((i < size) && (found < sizeof(end)))
+         {
+            i++;
+            if (io->read(fd, buf, 1) == 1)
+            {
+               if (*buf == end[found]) found++;
+               else found = 0;
+            }
+            else break;
+            ++buf;
+         }
+
+        *buf = '\0';
       }
-      else break;
    }
 
-   return (found == sizeof(end)) ? AAX_TRUE : AAX_FALSE;
+   return rv;
 }
 
