@@ -210,13 +210,20 @@ http_send_request(_io_t *io, int fd, const char *command, const char *server, co
    if (extra && *extra != '\0')
    {
       snprintf(header, MAX_BUFFER,
-              "%s /%.256s HTTP/1.0\r\nUser-Agent: %s\r\nHost: %s\r\n%s\r\n\r\n",
+              "%s /%.256s HTTP/1.0\r\n"
+              "User-Agent: %s\r\n"
+              "Host: %s\r\n"
+              "%s\r\n"
+              "\r\n",
               command, path, user_agent, server, extra);
    }
    else
    {
        snprintf(header, MAX_BUFFER,
-               "%s /%.256s HTTP/1.0\r\nUser-Agent: %s\r\nHost: %s\r\n\r\n",
+               "%s /%.256s HTTP/1.0\r\n"
+               "User-Agent: %s\r\n"
+               "Host: %s\r\n"
+               "\r\n",
                command, path, user_agent, server);
    }
    header[MAX_BUFFER-1] = '\0';

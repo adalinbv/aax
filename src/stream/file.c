@@ -134,6 +134,7 @@ typedef struct
    float latency;
    float frequency;
    size_t no_samples;
+   size_t no_bytes;
 
    size_t meta_pos;
    size_t meta_interval;
@@ -213,7 +214,7 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
             handle->io.read = read;
             handle->io.write = write;
             handle->io.seek = lseek;
-            handle->io.stat = lstat;
+            handle->io.stat = fstat;
          }
          else
          {
@@ -541,10 +542,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
          size_t no_samples = period_frames;
          void *header = NULL;
          void *buf = NULL;
-         struct stat st;
          int res = AAX_TRUE;
-
-         handle->io.stat(handle->fd, &st);
 
          if (bufsize) {
             header = malloc(bufsize);
@@ -555,77 +553,85 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (!m && header && bufsize)
             {
                res = handle->io.read(handle->fd, header, bufsize);
-               if (res > 0) handle->meta_pos += res;
-               if ((res > 0) && (handle->io.protocol == PROTOCOL_HTTP))
+               if (res > 0)
                {
-                  const char *s, *end;
-
-                  end = _memncasestr(header, bufsize, "\r\n\r\n");
-                  if (end)
+                  handle->meta_pos += res;
+                  if (handle->io.protocol == PROTOCOL_FILE)
                   {
-                     end += strlen("\r\n");
-                     res = ((char*)end-(char*)header);
+                     struct stat st;
+                     handle->io.stat(handle->fd, &st);
+                     handle->no_bytes = st.st_size;
                   }
-
-                  s = _get_json(header, res, "content-type");
-                  if (s && !strcasecmp(s, "audio/mpeg"))
+                  else if (handle->io.protocol == PROTOCOL_HTTP)
                   {
-                     s = _get_json(header, res, "icy-name");
-                     if (s)
+                     const char *s, *end;
+
+                     end = _memncasestr(header, bufsize, "\r\n\r\n");
+                     if (end)
                      {
-                        handle->artist = strdup(s);
-                        handle->station = strdup(s);
+                        end += strlen("\r\n");
+                        res = ((char*)end-(char*)header);
                      }
 
-                     s = _get_json(header, res, "icy-description");
-                     if (s)
+                     s = _get_json(header, res, "content-length");
+                     if (s) handle->no_bytes = atoi(s);
+
+                     s = _get_json(header, res, "content-type");
+                     if (s && !strcasecmp(s, "audio/mpeg"))
                      {
-                        handle->title = strdup(s);
-                        handle->description = strdup(s);
-                     }
-
-                     s = _get_json(header, res, "icy-genre");
-                     if (s) handle->genre = strdup(s);
-
-                     s = _get_json(header, res, "icy-url");
-                     if (s) handle->website = strdup(s);
-
-                     s = _get_json(header, res, "icy-metaint");
-                     if (s)
-                     {
-                        char *p = NULL;
-
-                        handle->meta_interval = atoi(s);
-                        handle->meta_pos = 0;
-
-                        if (end)
+                        s = _get_json(header, res, "icy-name");
+                        if (s)
                         {
-                           p = strstr(header, "icy-metaint:");
-                           if (p)
+                           handle->artist = strdup(s);
+                           handle->station = strdup(s);
+                        }
+
+                        s = _get_json(header, res, "icy-description");
+                        if (s)
+                        {
+                           handle->title = strdup(s);
+                           handle->description = strdup(s);
+                        }
+
+                        s = _get_json(header, res, "icy-genre");
+                        if (s) handle->genre = strdup(s);
+
+                        s = _get_json(header, res, "icy-url");
+                        if (s) handle->website = strdup(s);
+
+                        s = _get_json(header, res, "icy-metaint");
+                        if (s)
+                        {
+                           char *p = NULL;
+
+                           handle->meta_interval = atoi(s);
+                           handle->meta_pos = 0;
+
+                           if (end)
                            {
-                              p = strstr(p, "\r\n");
+                              p = strstr(header, "icy-metaint:");
                               if (p)
                               {
-                                 p += strlen("\r\n");
-                                 handle->meta_pos += end-p;
+                                 p = strstr(p, "\r\n");
+                                 if (p)
+                                 {
+                                    p += strlen("\r\n");
+                                    handle->meta_pos += end-p;
+                                 }
                               }
                            }
                         }
                      }
                   }
-                  else
-                  {
-                     s = _get_json(header, res, "content-length");
-//                   if (s) handle->no_bytes = atoi(s);
-                  }
                }
-               else if (res <= 0) {
+               else {
                   break;
                }
             }
 
             bufsize = res;
-            buf = handle->fmt->open(handle->fmt->id, header, &bufsize, st.st_size);
+            buf = handle->fmt->open(handle->fmt->id, header, &bufsize,
+                                    handle->no_bytes);
             if (m && buf)
             {
                handle->out_header = malloc(bufsize);
