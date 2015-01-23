@@ -538,8 +538,6 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         s = _get_json(buf, "icy-metaint");
                         if (s)
                         {
-                           char *p;
-
                            handle->meta_interval = atoi(s);
                            handle->meta_pos = 0;
                         }
@@ -603,7 +601,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   msecSleep(50);
                }
                while (res == 0);
-               if (res < 0) break;
+               if (res < 0)
+               {
+                  _aaxFileDriverLog(id, 0, 0, "Timeout");
+                  break;
+               }
 
                handle->meta_pos += res;
             }

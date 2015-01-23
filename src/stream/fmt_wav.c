@@ -848,7 +848,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             header[i] = _bswap32(header[i]);
          }
       }
-#if 1
+#if 0
 {
    char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
