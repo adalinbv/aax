@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include <base/types.h>
 
@@ -182,22 +183,31 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
 #define MAX_BUFFER	512
 
 static int
-http_get_response_data(_io_t *io, int fd, char *buf, int size)
+http_get_response_data(_io_t *io, int fd, char *response, int size)
 {
+   static char end[4] = "\r\n\r\n";
+   char *buf = response;
+   int found = 0;
    int i = 0;
-   while (i < size)
+
+   do
    {
-      if (io->read(fd, buf, 1) != 1)
+      i++;
+      if (io->read(fd, buf, 1) == 1)
       {
-         i = -i;
-         break;
+         if (*buf == end[found]) found++;
+         else found = 0;
       }
-      ++i;
-      if (*buf == '\r') continue;       // ignore CR
-      if (*buf == '\n') break;          // end of line
+      else break;
       ++buf;
    }
-   *buf = '\0';
+   while ((i < size) && (found < sizeof(end)));
+
+   if (i < size) {
+      *buf = '\0';
+   }
+   response[size-1] = '\0';
+
    return i;
 }
 
@@ -240,38 +250,18 @@ http_send_request(_io_t *io, int fd, const char *command, const char *server, co
 int
 http_get_response(_io_t *io, int fd, char *buf, int size)
 {
-   int rv = http_get_response_data(io, fd, buf, size);
-   if (rv > 0)
+   int res, rv = -1;
+
+   res = http_get_response_data(io, fd, buf, size);
+   if (res > 0)
    {
-      int res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
+      res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
       if (res != 1)
       {
          res =  sscanf(buf, "ICY %03d", (int*)&rv);
          if (res != 1) {
             rv = -1;
          }
-      }
-
-      if (rv)
-      {
-         static char end[4] = "\r\n\r\n";
-         int found = 0;
-         int i = 0;
-
-         buf[size-1] = '\0';
-         while ((i < size) && (found < sizeof(end)))
-         {
-            i++;
-            if (io->read(fd, buf, 1) == 1)
-            {
-               if (*buf == end[found]) found++;
-               else found = 0;
-            }
-            else break;
-            ++buf;
-         }
-
-        *buf = '\0';
       }
    }
 

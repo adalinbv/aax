@@ -538,6 +538,8 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         s = _get_json(buf, "icy-metaint");
                         if (s)
                         {
+                           char *p;
+
                            handle->meta_interval = atoi(s);
                            handle->meta_pos = 0;
                         }
@@ -556,7 +558,13 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             break;
          case PROTOCOL_FILE:
             handle->fd = handle->io.open(path, handle->fmode, 0644);
-            if (handle->fd < 0)
+            if (handle->fd >= 0)
+            {
+               struct stat st;
+               handle->io.stat(handle->fd, &st);
+               handle->no_bytes = st.st_size;
+            }
+            else
             {
                if (handle->mode != AAX_MODE_READ) {
                   _aaxFileDriverLog(id, 0, 0, "File already exists");
@@ -589,26 +597,9 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (!m && header && bufsize)
             {
                res = handle->io.read(handle->fd, header, bufsize);
-               if (res > 0)
-               {
-                  handle->meta_pos += res;
-                  switch (handle->io.protocol)
-                  {
-                  case PROTOCOL_FILE:
-                  {
-                     struct stat st;
-                     handle->io.stat(handle->fd, &st);
-                     handle->no_bytes = st.st_size;
-                     break;
-                  }
-                  case PROTOCOL_HTTP:
-                  default:
-                     break;
-                  }
-               }
-               else {
-                  break;
-               }
+               if (res <= 0) break;
+
+               handle->meta_pos += res;
             }
 
             bufsize = res;
@@ -1441,6 +1432,8 @@ _aaxFileDriverReadChunk(const void *id)
    _driver_t *handle = (_driver_t*)id;
    size_t size = IOBUF_SIZE - handle->bufpos;
    ssize_t res;
+
+   assert(handle->bufpos < IOBUF_SIZE);
 
    res = handle->io.read(handle->fd, handle->buf+handle->bufpos, size);
    if (res > 0)
