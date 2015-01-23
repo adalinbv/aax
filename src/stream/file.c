@@ -493,7 +493,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io.write = _socket_write;
             handle->io.seek = _socket_seek;
             handle->io.stat = _socket_stat;
-            handle->fd = handle->io.open(server, O_RDWR, port);
+            handle->fd = handle->io.open(server, O_RDWR, port, (int)period_ms);
             if (handle->fd >= 0)
             {
                int res = http_send_request(&handle->io, handle->fd, "GET",
@@ -596,8 +596,14 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
          {
             if (!m && header && bufsize)
             {
-               res = handle->io.read(handle->fd, header, bufsize);
-               if (res <= 0) break;
+               do
+               {
+                  res = handle->io.read(handle->fd, header, bufsize);
+                  if (res > 0) break;
+                  msecSleep(50);
+               }
+               while (res == 0);
+               if (res < 0) break;
 
                handle->meta_pos += res;
             }

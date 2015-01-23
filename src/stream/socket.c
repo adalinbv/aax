@@ -31,12 +31,14 @@
 #include <assert.h>
 
 #include <base/types.h>
+#include <base/timer.h>
 
 #include "audio.h"
 
 int
 _socket_open(const char *server, int oflags, ...)
 {
+   int timeout_ms = 3000;  // defaults to 3 sec.
    int port = 0;
    int fd = -1;
    va_list ap;
@@ -44,6 +46,9 @@ _socket_open(const char *server, int oflags, ...)
    va_start(ap, oflags);
    if (oflags >= 1) {
       port = va_arg(ap, int);
+      if (oflags >=2) {
+         timeout_ms =  va_arg(ap, int);
+      }
    }
    va_end(ap);
 
@@ -67,6 +72,11 @@ _socket_open(const char *server, int oflags, ...)
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
             if (fd >= 0)
             {
+               struct timeval tv;
+               
+               tv.tv_sec = timeout_ms / 1000;
+               tv.tv_usec = (timeout_ms * 1000) % 1000000;              
+               setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
                if (connect(fd, host->ai_addr, host->ai_addrlen) < 0)
                {
@@ -100,7 +110,11 @@ _socket_close(int fd)
 ssize_t
 _socket_read(int fd, void *buf, size_t size)
 {
-   return read(fd, buf, size);
+   ssize_t res = read(fd, buf, size);
+   if ((res < 0) && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+      res = 0;
+   }
+   return res;
 }
 
 ssize_t
@@ -188,12 +202,21 @@ http_get_response_data(_io_t *io, int fd, char *response, int size)
    static char end[4] = "\r\n\r\n";
    char *buf = response;
    int found = 0;
-   int i = 0;
+   int res, i = 0;
 
    do
    {
       i++;
-      if (io->read(fd, buf, 1) == 1)
+      
+      do
+      {
+         res = io->read(fd, buf, 1);
+         if (res > 0) break;
+         msecSleep(50);
+      }
+      while (res == 0);
+
+      if (res == 1)
       {
          if (*buf == end[found]) found++;
          else found = 0;
