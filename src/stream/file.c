@@ -517,9 +517,8 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         if (s)
                         {
                            int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
-                           memcpy(handle->artist, s, len); 
+                           memcpy(handle->artist, s, len);
                            handle->artist[len-1] = '\0';
-
                            handle->station = strdup(s);
                         }
 
@@ -529,7 +528,6 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                            int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
                            memcpy(handle->title, s, len);
                            handle->title[len-1] = '\0';
-
                            handle->description = strdup(s);
                         }
 
@@ -966,11 +964,11 @@ _aaxFileDriverGetName(const void *id, int type)
          break;
       case AAX_MUSIC_PERFORMER_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
-         if (!ret) ret = handle->artist;
+         if (!ret && handle->artist[0] != '\0') ret = handle->artist;
          break;
       case AAX_TRACK_TITLE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
-         if (!ret) ret = handle->title;
+         if (!ret && handle->title[0] != '\0') ret = handle->title;
          break;
       case AAX_MUSIC_GENRE_STRING:
          ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
