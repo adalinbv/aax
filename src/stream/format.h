@@ -22,6 +22,17 @@ extern "C" {
 
 #include <base/types.h>
 
+/*
+ * Calling sequence:
+ * -----------------
+ * 1.    _aaxWavDetect
+ * 2.    _aaxWavSetup
+ * 3.    _aaxWavOpen	// reads the file header
+ *
+ * (n-1) _aaxWavUpdate
+ * (n)   _aaxWavClose
+ */
+
 enum _aaxFormatParam
 {
    __F_PROCESS = -2,		/* get */
