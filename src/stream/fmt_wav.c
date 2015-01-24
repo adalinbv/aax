@@ -176,6 +176,7 @@ typedef struct
    int no_tracks;
    int bits_sample;
    int frequency;
+   int bitrate;
    enum aaxFormat format;
    size_t blocksize;
    size_t max_samples;
@@ -214,6 +215,9 @@ typedef struct
    _batch_cvt_proc cvt_endianness;
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
+
+   _aaxFmtHandle *fmt;
+   int wav_format;  
 
 } _driver_t;
 
@@ -410,90 +414,124 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
          }
       }
 
-      need_endian_swap = AAX_FALSE;
-      if ( ((handle->format & AAX_FORMAT_LE) && is_bigendian()) ||
-           ((handle->format & AAX_FORMAT_BE) && !is_bigendian()) )
+      if (handle->wav_format != MP3_WAVE_FILE)
       {
-         need_endian_swap = AAX_TRUE;
-      }
+         need_endian_swap = AAX_FALSE;
+         if ( ((handle->format & AAX_FORMAT_LE) && is_bigendian()) ||
+              ((handle->format & AAX_FORMAT_BE) && !is_bigendian()) )
+         {
+            need_endian_swap = AAX_TRUE;
+         }
 
-      need_sign_swap = AAX_FALSE;
-      if (handle->format & AAX_FORMAT_UNSIGNED) {
-         need_sign_swap = AAX_TRUE;
-      }
+         need_sign_swap = AAX_FALSE;
+         if (handle->format & AAX_FORMAT_UNSIGNED) {
+            need_sign_swap = AAX_TRUE;
+         }
 
-      switch (handle->format & AAX_FORMAT_NATIVE)
+         switch (handle->format & AAX_FORMAT_NATIVE)
+         {
+         case AAX_PCM8S:
+            handle->cvt_to_intl = _batch_cvt8_intl_24;
+            handle->cvt_from_intl = _batch_cvt24_8_intl;
+            if (need_sign_swap)
+            {
+               handle->cvt_to_signed = _batch_cvt8u_8s;
+               handle->cvt_from_signed = _batch_cvt8s_8u;
+            }
+            break;
+         case AAX_PCM16S:
+            handle->cvt_to_intl = _batch_cvt16_intl_24;
+            handle->cvt_from_intl = _batch_cvt24_16_intl;
+            if (need_endian_swap) {
+               handle->cvt_endianness = _batch_endianswap16;
+            }
+            if (need_sign_swap)
+            {
+               handle->cvt_to_signed = _batch_cvt16u_16s;
+               handle->cvt_from_signed = _batch_cvt16s_16u;
+            }
+            break;
+         case AAX_PCM24S:
+            handle->cvt_to_intl = _batch_cvt24_3intl_24;
+            handle->cvt_from_intl = _batch_cvt24_24_3intl;
+            if (need_endian_swap) {
+               handle->cvt_endianness = _batch_endianswap32;
+            }
+            if (need_sign_swap)
+            {
+               handle->cvt_to_signed = _batch_cvt32u_32s;
+               handle->cvt_from_signed = _batch_cvt32s_32u;
+            }
+            break;
+         case AAX_PCM32S:
+            handle->cvt_to_intl = _batch_cvt32_intl_24;
+            handle->cvt_from_intl = _batch_cvt24_32_intl;
+            if (need_sign_swap)
+            {
+               handle->cvt_to_signed = _batch_cvt32u_32s;
+               handle->cvt_from_signed = _batch_cvt32s_32u;
+            }
+            if (need_endian_swap) {
+               handle->cvt_endianness = _batch_endianswap32;
+            }
+            break;
+         case AAX_FLOAT:
+            handle->cvt_to_intl = _batch_cvtps_intl_24;
+            handle->cvt_from_intl = _batch_cvt24_ps_intl;
+            if (need_endian_swap) {
+               handle->cvt_endianness = _batch_endianswap32;
+            }
+            break;
+         case AAX_DOUBLE:
+            handle->cvt_to_intl = _batch_cvtpd_intl_24;
+            handle->cvt_from_intl = _batch_cvt24_pd_intl;
+            if (need_endian_swap) {
+               handle->cvt_endianness = _batch_endianswap64;
+            }
+            break;
+         case AAX_ALAW:
+            handle->cvt_from_intl = _batch_cvt24_alaw_intl;
+            break;
+         case AAX_MULAW:
+            handle->cvt_from_intl = _batch_cvt24_mulaw_intl;
+            break;
+         case AAX_IMA4_ADPCM:
+            break;
+         default:
+            _AAX_FILEDRVLOG("WAV: Unsupported format");
+            break;
+         }
+      }
+      else
       {
-       case AAX_PCM8S:
-         handle->cvt_to_intl = _batch_cvt8_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_8_intl;
-         if (need_sign_swap)
+#if 0
+         handle->fmt = _aaxDetectMP3Format();
+         if (handle->fmt && handle->fmt->detect(handle->fmt, mode))
          {
-            handle->cvt_to_signed = _batch_cvt8u_8s;
-            handle->cvt_from_signed = _batch_cvt8s_8u;
+            size_t bufsize;
+            handle->fmt->id =  handle->fmt->setup(handle->mode, &bufsize,
+                                                  handle->frequency,
+                                                  handle->no_tracks,
+                                                  handle->format,
+                                                  handle->no_samples,
+                                                  handle->bitrate);
+            if (handle->fmt->id)
+            {
+               buf = handle->fmt->open(handle->fmt->id, header, &bufsize,
+                                    handle->no_bytes);
+            }
+            else
+            {
+               free(handle->fmt->id);
+               handle->fmt->id = 0;
+               _aaxFileDriverLog(id, 0, 0, "Error intializing the extended format");
+            }
          }
-         break;
-      case AAX_PCM16S:
-         handle->cvt_to_intl = _batch_cvt16_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_16_intl;
-         if (need_endian_swap) {
-            handle->cvt_endianness = _batch_endianswap16;
+         else {
+            free(handle->fmt);
          }
-         if (need_sign_swap)
-         {
-            handle->cvt_to_signed = _batch_cvt16u_16s;
-            handle->cvt_from_signed = _batch_cvt16s_16u;
-         }
-         break;
-      case AAX_PCM24S:
-         handle->cvt_to_intl = _batch_cvt24_3intl_24;
-         handle->cvt_from_intl = _batch_cvt24_24_3intl;
-         if (need_endian_swap) {
-            handle->cvt_endianness = _batch_endianswap32;
-         }
-         if (need_sign_swap)
-         {
-            handle->cvt_to_signed = _batch_cvt32u_32s;
-            handle->cvt_from_signed = _batch_cvt32s_32u;
-         }
-         break;
-      case AAX_PCM32S:
-         handle->cvt_to_intl = _batch_cvt32_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_32_intl;
-         if (need_sign_swap)
-         {
-            handle->cvt_to_signed = _batch_cvt32u_32s;
-            handle->cvt_from_signed = _batch_cvt32s_32u;
-         }
-         if (need_endian_swap) {
-            handle->cvt_endianness = _batch_endianswap32;
-         }
-         break;
-      case AAX_FLOAT:
-         handle->cvt_to_intl = _batch_cvtps_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_ps_intl;
-         if (need_endian_swap) {
-            handle->cvt_endianness = _batch_endianswap32;
-         }
-         break;
-      case AAX_DOUBLE:
-         handle->cvt_to_intl = _batch_cvtpd_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_pd_intl;
-         if (need_endian_swap) {
-            handle->cvt_endianness = _batch_endianswap64;
-         }
-         break;
-      case AAX_ALAW:
-         handle->cvt_from_intl = _batch_cvt24_alaw_intl;
-         break;
-      case AAX_MULAW:
-         handle->cvt_from_intl = _batch_cvt24_mulaw_intl;
-         break;
-      case AAX_IMA4_ADPCM:
-         break;
-      default:
-         _AAX_FILEDRVLOG("WAV: Unsupported format");
-         break;
+#endif
+         _aaxFileDriverLog(id, 0, 0, "Error intializing the extended format");
       }
    }
    else
@@ -549,6 +587,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
+         handle->bitrate = bitrate;
          handle->max_samples = UINT_MAX;
 
          if (!handle->capturing)
@@ -808,8 +847,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
    uint32_t *header = handle->io.read.wavBuffer;
    size_t size, bufsize = handle->io.read.wavBufPos;
-   int fmt, bits, res = -1;
    int32_t curr, init_tag;
+   int bits, res = -1;
    char extfmt;
 
    *step = 0;
@@ -848,7 +887,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             header[i] = _bswap32(header[i]);
          }
       }
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
@@ -892,31 +931,42 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       {
          handle->frequency = header[6];
          handle->no_tracks = header[5] >> 16;
-         handle->bits_sample = extfmt ? (header[9] >> 16) : (header[8] >> 16);
+         handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
+         handle->wav_format = handle->io.read.format;
+         switch(handle->wav_format)
+         {
+         case MP3_WAVE_FILE:
+            handle->bits_sample = 16;
+            break;
+         default:
+            handle->bits_sample = extfmt? (header[9] >> 16) : (header[8] >> 16);
+            break;
+         }
 
          if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
              (handle->frequency >= 4000 && handle->frequency <= 256000) &&
              (handle->no_tracks >= 1 && handle->no_tracks <= _AAX_MAX_SPEAKERS))
          {
-            handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
             handle->blocksize = header[8] & 0xFFFF;
-            if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8)) {
+            if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8))
+            {
                handle->blocksize = 0;
             }
 
             bits = handle->bits_sample;
-            fmt = handle->io.read.format;
-            handle->format = getFormatFromWAVFormat(fmt, bits);
+            handle->wav_format = handle->io.read.format;
+            handle->format = getFormatFromWAVFormat(handle->wav_format, bits);
             switch(handle->format)
             {
             case AAX_FORMAT_NONE:
                return __F_EOF;
                break;
-            case AAX_IMA4_ADPCM:
-               break;
             default: 
                break;
             }
+         }
+         else {
+            return -1;
          }
       }
       else {
@@ -1181,6 +1231,9 @@ getFormatFromWAVFormat(unsigned int format, int bits_sample)
 // case MSADPCM_WAVE_FILE:
    case IMA4_ADPCM_WAVE_FILE:
       rv = AAX_IMA4_ADPCM;
+      break;
+   case MP3_WAVE_FILE:
+      rv = AAX_PCM16S;
       break;
    default:
       break;

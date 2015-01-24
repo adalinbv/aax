@@ -61,7 +61,6 @@
 # define O_BINARY	0
 #endif
 
-#define USE_BATCHED_SEMAPHORE	0
 
 static _aaxDriverDetect _aaxFileDriverDetect;
 static _aaxDriverNewHandle _aaxFileDriverNewHandle;
@@ -143,9 +142,6 @@ typedef struct
    size_t buf_len;
 
    struct threat_t thread;
-#if USE_BATCHED_SEMAPHORE
-   _aaxSemaphore *finished;
-#endif
    uint8_t buf[IOBUF_SIZE];
    size_t bufpos;
    size_t bytes_avail;
@@ -421,14 +417,6 @@ _aaxFileDriverDisconnect(void *id)
          free(handle->render);
       }
 
-#if USE_BATCHED_SEMAPHORE
-      if (handle->finished)
-      {
-         _aaxSemaphoreDestroy(handle->finished);
-         handle->finished = NULL;
-      }
-#endif
-
       free(handle->station);
       free(handle->description);
       free(handle->genre);
@@ -689,7 +677,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
    }
    else {
-      _aaxFileDriverLog(id, 0, 0, " Unable to intialize the file format");
+      _aaxFileDriverLog(id, 0, 0, "Unable to intialize the file format");
    }
 
    return rv;
@@ -782,22 +770,11 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
-#if !USE_BATCHED_SEMAPHORE
    if (batched) {
       _aaxFileDriverWriteChunk(id);
    } else {
       _aaxSignalTrigger(&handle->thread.signal);
    }
-#else
-   _aaxSignalTrigger(&handle->thread.signal);
-   if (batched)
-   {
-      if (!handle->finished) {
-         handle->finished = _aaxSemaphoreCreate(0);
-      }
-      _aaxSemaphoreWait(handle->finished);
-   }
-#endif
 
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
 }
@@ -890,22 +867,11 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
                handle->bufpos -= ret;
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
-#if !USE_BATCHED_SEMAPHORE
                if (batched) {
                   _aaxFileDriverReadChunk(id);
                } else {
                   _aaxSignalTrigger(&handle->thread.signal);
                }
-#else
-               _aaxSignalTrigger(&handle->thread.signal);
-               if (batched)
-               {
-                  if (!handle->finished) {
-                     handle->finished = _aaxSemaphoreCreate(0);
-                  }
-                  _aaxSemaphoreWait(handle->finished);
-               }
-#endif
 
                if (ret <= 0)
                {
@@ -1420,12 +1386,6 @@ _aaxFileDriverWriteThread(void *id)
       }
    
       _aaxFileDriverWriteChunk(id);
-
-#if USE_BATCHED_SEMAPHORE
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
-      }
-#endif
    }
    while(handle->thread.started);
 
@@ -1442,11 +1402,14 @@ static ssize_t
 _aaxFileDriverReadChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   size_t size = IOBUF_SIZE - handle->bufpos;
+   size_t size;
    ssize_t res;
 
-   assert(handle->bufpos < IOBUF_SIZE);
+   if (handle->bufpos >= IOBUF_SIZE) {
+      return 0;
+   }
 
+   size = IOBUF_SIZE - handle->bufpos;
    res = handle->io.read(handle->fd, handle->buf+handle->bufpos, size);
    if (res > 0)
    {
@@ -1533,11 +1496,6 @@ _aaxFileDriverReadThread(void *id)
       ssize_t res = _aaxFileDriverReadChunk(id);
       if (res < 0) break;
 
-#if USE_BATCHED_SEMAPHORE
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
-      }
-#endif
       _aaxSignalWait(&handle->thread.signal);
    }
    while(handle->thread.started);
