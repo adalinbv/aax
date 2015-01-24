@@ -121,11 +121,11 @@ typedef struct
    char *name;
    char *station;
    char *description;
-   char *artist;
-   char *title;
    char *genre;
    char *website;
    char metadata_changed;
+   char artist[MAX_ID_STRLEN];
+   char title[MAX_ID_STRLEN];
 
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -431,8 +431,6 @@ _aaxFileDriverDisconnect(void *id)
 
       free(handle->station);
       free(handle->description);
-      free(handle->artist);
-      free(handle->title);
       free(handle->genre);
       free(handle->website);
       free(handle->fmt);
@@ -518,14 +516,20 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         s = _get_json(buf, "icy-name");
                         if (s)
                         {
-                           handle->artist = strdup(s);
+                           int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
+                           memcpy(handle->artist, s, len); 
+                           handle->artist[len-1] = '\0';
+
                            handle->station = strdup(s);
                         }
 
                         s = _get_json(buf, "icy-description");
                         if (s)
                         {
-                           handle->title = strdup(s);
+                           int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
+                           memcpy(handle->title, s, len);
+                           handle->title[len-1] = '\0';
+
                            handle->description = strdup(s);
                         }
 
@@ -1482,19 +1486,22 @@ _aaxFileDriverReadChunk(const void *id)
                      *end = '\0';
                   }
 
-                  free(handle->artist);
-                  free(handle->title);
-
-                  if (artist && end) {
-                     handle->artist = strdup(artist);
+                  if (artist && end)
+                  {
+                     int len = _MAX(strlen(artist)+1, MAX_ID_STRLEN);
+                     memcpy(handle->artist, artist, len);
+                     handle->artist[len-1] = '\0';
                   } else {
-                     handle->artist = NULL;
+                     handle->artist[0] = '\0';
                   }
 
-                  if (title && end) {
-                     handle->title = strdup(title);
+                  if (title && end)
+                  {
+                     int len = _MAX(strlen(title)+1, MAX_ID_STRLEN);
+                     memcpy(handle->title, title, len);
+                     handle->title[len-1] = '\0';
                   } else {
-                     handle->title = NULL;
+                     handle->title[0] = '\0';
                   }
                   handle->metadata_changed = AAX_TRUE;
                }
