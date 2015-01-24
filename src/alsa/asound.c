@@ -1117,7 +1117,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 #undef TRUN
 
-static size_t
+static ssize_t
 _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -1127,7 +1127,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    ssize_t offs = *offset;
    ssize_t init_offs = offs;
    size_t period_frames;
-   size_t rv = 0;
+   ssize_t rv = 0;
    int res;
 
    if ((handle->mode != AAX_MODE_READ) || (req_frames == 0) || (data == 0))

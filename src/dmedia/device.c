@@ -662,7 +662,7 @@ _aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
    return AAX_TRUE;
 }
 
-static size_t
+static ssize_t
 _aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;

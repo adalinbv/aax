@@ -500,12 +500,12 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
    return (res == SL_RESULT_SUCCESS) ? AAX_TRUE : AAX_FALSE;
 }
 
-static size_t
+static ssize_t
 _aaxSLESDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain)
 {
 // _driver_t *handle = (_driver_t *)id;
 // ssize_t offs = *offset;
-   size_t rv = AAX_FALSE;
+   ssize_t rv = AAX_FALSE;
 
    assert(handle->mode == AAX_MODE_READ);
 

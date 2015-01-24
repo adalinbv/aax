@@ -496,8 +496,8 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->fd = handle->io.open(server, O_RDWR, port, (int)period_ms);
             if (handle->fd >= 0)
             {
-               int res = http_send_request(&handle->io, handle->fd, "GET",
-                                           server, path, "Icy-MetaData:1",
+               int res = http_send_request(&handle->io, handle->fd,
+                                           "GET", server, path,
                                            aaxGetVersionString((aaxConfig)id));
                if (res > 0)
                {
@@ -800,12 +800,12 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
 }
 
-static size_t
+static ssize_t
 _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
-   size_t bytes = 0;
+   ssize_t bytes = 0;
 
    assert(*frames);
 
@@ -905,7 +905,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
 
                if (ret <= 0)
                {
-                  bytes = -1;
+                  _aaxSignalTrigger(&handle->thread.signal);
+                  bytes = 0; // -1;
                   break;
                }
                samples = ret*8/frame_bits;

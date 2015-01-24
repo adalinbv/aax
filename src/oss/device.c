@@ -541,12 +541,12 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 
-static size_t
+static ssize_t
 _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
-   size_t rv = AAX_FALSE;
+   ssize_t rv = AAX_FALSE;
  
    assert(handle->mode == O_RDONLY);
 

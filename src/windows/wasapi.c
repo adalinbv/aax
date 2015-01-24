@@ -634,13 +634,13 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
    return rv;
 }
 
-static size_t
+static ssize_t
 _aaxWASAPIDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    size_t no_samples;
    ssize_t offs = *offset;
-   size_t rv = AAX_FALSE;
+   ssize_t rv = AAX_FALSE;
 
    if (!handle || !handle->scratch_ptr || !req_frames || !data) {
       return AAX_FALSE;

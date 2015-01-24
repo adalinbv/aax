@@ -825,13 +825,13 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 
-static size_t
+static ssize_t
 _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_sframes_t avail;
    ssize_t offs = *offset;
-   size_t rv = AAX_FALSE;
+   ssize_t rv = AAX_FALSE;
    int ret;
  
    assert(handle->mode == AAX_MODE_READ);

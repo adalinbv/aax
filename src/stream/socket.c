@@ -235,30 +235,20 @@ http_get_response_data(_io_t *io, int fd, char *response, int size)
 }
 
 int
-http_send_request(_io_t *io, int fd, const char *command, const char *server, const char *path, const char *extra, const char *user_agent)
+http_send_request(_io_t *io, int fd, const char *command, const char *server, const char *path, const char *user_agent)
 {
    char header[MAX_BUFFER];
    int hlen, rv = 0;
 
-   if (extra && *extra != '\0')
-   {
-      snprintf(header, MAX_BUFFER,
-              "%s /%.256s HTTP/1.0\r\n"
-              "User-Agent: %s\r\n"
-              "Host: %s\r\n"
-              "%s\r\n"
-              "\r\n",
-              command, path, user_agent, server, extra);
-   }
-   else
-   {
-       snprintf(header, MAX_BUFFER,
-               "%s /%.256s HTTP/1.0\r\n"
-               "User-Agent: %s\r\n"
-               "Host: %s\r\n"
-               "\r\n",
-               command, path, user_agent, server);
-   }
+   snprintf(header, MAX_BUFFER,
+            "%s /%.256s HTTP/1.0\r\n"
+            "User-Agent: %s\r\n"
+            "Accept: */*\r\n"
+            "Host: %s\r\n"
+            "Connection: Keep-Alive\r\n"
+            "Icy-MetaData:1\r\n"
+            "\r\n",
+            command, path, user_agent, server);
    header[MAX_BUFFER-1] = '\0';
 
    hlen = strlen(header);
