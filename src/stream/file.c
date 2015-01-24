@@ -833,6 +833,8 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
          bufsize = (scratchlen/frame_bits)*frame_bits;
       }
 
+      _aaxSignalTrigger(&handle->thread.signal);
+
       bytes = 0;
       data = NULL;
       samples = no_samples;
@@ -905,7 +907,6 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
 
                if (ret <= 0)
                {
-                  _aaxSignalTrigger(&handle->thread.signal);
                   bytes = 0; // -1;
                   break;
                }
