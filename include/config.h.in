@@ -45,6 +45,10 @@
 #undef HAVE_POLL_H
 #cmakedefine HAVE_POLL_H @HAVE_POLL_H@
 
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+#cmakedefine HAVE_SYS_SOCKET_H @HAVE_SYS_SOCKET_H@
+
 /* Define to 1 if you have the <Winsock2.h> header file. */
 #undef HAVE_WINSOCK2_H
 #cmakedefine HAVE_WINSOCK2_H @HAVE_WINSOCK2_H@

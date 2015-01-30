@@ -128,6 +128,7 @@ uint64_t _bswap64(uint64_t x);
 # include <stdio.h>
 # include <string.h>
 # include <errno.h>
+# include <ctype.h>
 
 # define rintf(v) (int)(v+0.5f)
 # ifdef _MSC_VER
@@ -138,8 +139,10 @@ uint64_t _bswap64(uint64_t x);
 #  define strcasecmp _stricmp
 #  define strncasecmp _strnicmp
 # endif
+# define strcasestr _aax_strcasestr
 
-int _aax_snprintf(char *str,size_t size,const char *fmt,...);
+char* strcasestr(const char*, const char*);
+int _aax_snprintf(char*, size_t, const char*, ...);
 
 typedef long	off_t;
 # if SIZEOF_SIZE_T == 4

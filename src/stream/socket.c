@@ -22,9 +22,18 @@
 # include <string.h>
 #endif
 #include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
+#if HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <netdb.h>
+#endif
+#if HAVE_WINSOCK2_H
+# include <w32api.h>
+# define WINVER WindowsXP
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# define EWOULDBLOCK WSAEWOULDBLOCK
+#endif
 #include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>

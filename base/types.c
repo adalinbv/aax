@@ -98,5 +98,25 @@ int _aax_snprintf(char *str, size_t size, const char *fmt, ...)
    va_end(ap);
    return ret;
 }
+
+char*
+_aax_strcasestr(const char *dst, const char *src)
+{
+   int len, dc, sc;
+
+   if(src[0] == '\0')
+      return (char*)(uintptr_t)dst;
+
+   len = strlen(src) - 1;
+   sc  = tolower(src[0]);
+   for(; (dc = *dst); dst++)
+   {
+      dc = tolower(dc);
+      if(sc == dc && (len == 0 || !strncasecmp(dst+1, src+1, len)))
+         return (char*)(uintptr_t)dst;
+   }
+   return NULL;
+}
+
 #endif  /* if defined(WIN32) */
 
