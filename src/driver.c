@@ -33,6 +33,7 @@
 # include "config.h"
 #endif
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>	/* strrchr */
@@ -297,7 +298,6 @@ getCommandLineOption(int argc, char **argv, char *option)
 
 #ifndef _WIN32
 # include <termios.h>
-# include <math.h>
 
 # if USE_NANOSLEEP
 #  include <time.h>		/* for nanosleep */
