@@ -298,6 +298,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerRegisterSensor file out");
         }
 
+#if 0
         /** set capturing Auto-Gain Control (AGC): 0dB */
         filter = aaxMixerGetFilter(record, AAX_VOLUME_FILTER);
         if (filter)
@@ -306,6 +307,7 @@ int main(int argc, char **argv)
             aaxMixerSetFilter(record, filter);
             res = aaxFilterDestroy(filter);
         }
+#endif
 
         /** must be called after aaxMixerRegisterSensor */
         res = aaxMixerSetState(record, AAX_INITIALIZED);
