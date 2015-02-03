@@ -18,8 +18,8 @@ SET(CPACK_COMPONENT_HEADERS_DESCRIPTION
    "Development header files and library components for use with the software")
 
 # Dependecies
-SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
-SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
+#SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
+#SET(CPACK_COMPONENT_APPLICATIONS_DEPENDS Libraries)
 
 # Component grouping
 IF(WIN32)
