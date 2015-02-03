@@ -150,22 +150,23 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
 
 # Man pages
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxcvt.1.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/aaxcvt.1")
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxplay.1.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/aaxplay.1")
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxinfo.1.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/aaxinfo.1")
+IF (UNIX AND NOT WIN32)
+  CONFIGURE_FILE(
+      "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxcvt.1.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/aaxcvt.1")
+  CONFIGURE_FILE(
+      "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxplay.1.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/aaxplay.1")
+  CONFIGURE_FILE(
+      "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxinfo.1.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/aaxinfo.1")
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/aaxcvt.1
-              ${CMAKE_CURRENT_BINARY_DIR}/aaxplay.1
-              ${CMAKE_CURRENT_BINARY_DIR}/aaxinfo.1
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/man/man1"
-        COMPONENT Applications)
-
+  INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/aaxcvt.1
+                ${CMAKE_CURRENT_BINARY_DIR}/aaxplay.1
+                ${CMAKE_CURRENT_BINARY_DIR}/aaxinfo.1
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/man/man1"
+          COMPONENT Applications)
+ENDIF()
 
 SET(BASE_OBJS
      base/logging.c
