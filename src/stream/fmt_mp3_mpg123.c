@@ -65,6 +65,9 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
          _audio[m] = _aaxIsLibraryPresent("mpg123", "0");
       }
       if (!_audio[m]) {
+         _audio[m] = _aaxIsLibraryPresent("libmpg123", "0");
+      }
+      if (!_audio[m]) {
          _audio[m] = _aaxIsLibraryPresent("libmpg123-0", "0");
       }
 
