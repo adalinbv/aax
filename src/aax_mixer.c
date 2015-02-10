@@ -1352,7 +1352,7 @@ _aaxMixerInit(_handle_t *handle)
    if (res != 0) {
       _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
    }
-   _aaxProcessSetPriority(AAX_NORMAL_PRIORITY);
+   _aaxThreadSetPriority(NULL, AAX_NORMAL_PRIORITY);
 
    if ((handle->valid & AAX_TRUE) == 0)
    {
