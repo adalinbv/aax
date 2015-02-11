@@ -13,6 +13,12 @@
 # include "config.h"
 #endif
 
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+#endif
+
 #include "renderer.h"
 
 _aaxRenderer*

@@ -567,7 +567,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
   int rv = 0;
 
    _aaxMutexLock(signal->mutex);
-   if (!signal->triggered) //  && signal->waiting)
+   if (!signal->triggered)
    {
       /* signaling a condition which isn't waiting gets lost */
       /* try to prevent this situation anyhow.               */
@@ -575,11 +575,6 @@ _aaxSignalTrigger(_aaxSignal *signal)
       signal->waiting = AAX_FALSE;
       rv =  pthread_cond_signal(signal->condition);
    }
-#if 0
-   else if (!signal->triggered) {
-      signal->triggered++;
-   } 
-#endif
    _aaxMutexUnLock(signal->mutex);
 
    return rv;
@@ -1112,11 +1107,13 @@ _aaxSignalTrigger(_aaxSignal *signal)
    _aaxMutexLock(signal->mutex);
    if (!signal->triggered)
    {
+      signal->triggered = 1;
+      signal->waiting = AAX_FALSE;
       rv = SetEvent(signal->condition);
-      signal->triggered = rv ? 0 : 1;
-   }
-   else {
-      signal->triggered++;
+
+      /* same return value as pthread_cond_signal() */
+      if (rv) rv = 0;
+      else rv = GetLastError();
    }
    _aaxMutexUnLock(signal->mutex);
 

@@ -19,6 +19,7 @@
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
+# include <stdlib.h>
 # include <string.h>
 # if HAVE_STRINGS_H
 #  include <strings.h>
