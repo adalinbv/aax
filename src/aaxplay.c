@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     devname = getDeviceName(argc, argv);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "Audio output device is not available.");
-    if (!config || !aaxIsValid(config, AAX_CONFIG_HD))
+    if (!config) // || !aaxIsValid(config, AAX_CONFIG_HD))
     {
     // TODO: fall back to buffer streaming mode
         if (!config) {
