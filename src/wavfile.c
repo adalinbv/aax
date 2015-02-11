@@ -37,6 +37,7 @@
 #ifdef _WIN32
 # include <io.h>
 #endif
+#include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
 #ifdef HAVE_UNISTD_H
