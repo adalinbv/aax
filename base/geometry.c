@@ -577,14 +577,14 @@ AAX_API ALIGN16 aaxVec4f aaxAxisUnitVec ALIGN16C = {
     1.0f, 1.0f, 1.0f, 0.0f
 };
 
-AAX_API ALIGN16 aaxMtx4d aaxIdentityMatrix64 ALIGN16C = {
+AAX_API ALIGN32 aaxMtx4d aaxIdentityMatrix64 ALIGN32C = {
   { 1.0, 0.0, 0.0, 0.0 },
   { 0.0, 1.0, 0.0, 0.0 },
   { 0.0, 0.0, 1.0, 0.0 },
   { 0.0, 0.0, 0.0, 1.0 },
 };
 
-AAX_API ALIGN16 aaxMtx4f aaxIdentityMatrix ALIGN16C = {
+AAX_API ALIGN32 aaxMtx4f aaxIdentityMatrix ALIGN32C = {
   { 1.0f, 0.0f, 0.0f, 0.0f },
   { 0.0f, 1.0f, 0.0f, 0.0f },
   { 0.0f, 0.0f, 1.0f, 0.0f },

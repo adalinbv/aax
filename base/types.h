@@ -37,17 +37,25 @@ extern "C" {
 #define MEMMASK			(MEMALIGN-1)
 
 #ifdef _MSC_VER
-# define ALIGN16        __declspec(align(MEMALIGN))
+# define ALIGN16        __declspec(align(16))
 # define ALIGN16C
+# define ALIGN32	__declspec(align(32))
+# define ALIGN32C
 #elif defined(__GNUC__)
 # define ALIGN16
-# define ALIGN16C        __attribute__((aligned(MEMALIGN)))
+# define ALIGN16C        __attribute__((aligned(16)))
+# define ALIGN32
+# define ALIGN32C	__attribute__((aligned(32)))
 #elif defined(__APPLE__)
 # define ALIGN16
-# define ALIGN16C	__attribute__ ((aligned(MEMALIGN)))
+# define ALIGN16C	__attribute__ ((aligned(16)))
+# define ALIGN32
+# define ALIGN32C	__attribute__ ((aligned(32)))
 #else
 # define ALIGN16
 # define ALIGN16C
+# define ALIGN32
+# define ALIGN32C
 #endif
 
 #ifdef HAVE_RMALLOC_H
