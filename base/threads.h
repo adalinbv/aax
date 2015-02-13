@@ -98,11 +98,15 @@ int _aaxProcessSetPriority(int);
 
  typedef struct _aaxMutex
  {
-# ifndef NDEBUG
-   HANDLE mutex;
-# else
+   char initialized;
+# if defined(NDEBUG)
    CRITICAL_SECTION mutex;
-   char ready;
+# else
+   HANDLE mutex;
+   const char *name;
+   const char *function;
+   const char *last_file;
+   size_t last_line;
 # endif
  } _aaxMutex;
 

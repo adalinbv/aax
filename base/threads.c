@@ -26,7 +26,8 @@
 #define DEBUG_TIMEOUT		3
 static char __threads_enabled = 0;
 
-#if HAVE_PTHREAD_H
+#if HAVE_PTHREAD_H	/* UNIX */
+
 # include <sys/time.h>
 # include <sys/resource.h>
 # ifdef HAVE_RMALLOC_H
@@ -58,7 +59,6 @@ void *
 _aaxThreadCreate()
 {
    void *ret  = malloc(sizeof(_aaxThread));
-
    return ret;
 }
 
@@ -76,6 +76,7 @@ _aaxThreadSetAffinity(void *t, int core)
 
    CPU_ZERO(&cpus);
    CPU_SET(core, &cpus);
+
    return pthread_setaffinity_np(*id, sizeof(cpu_set_t), &cpus);
 #else
 # pragma waring implement me
@@ -94,9 +95,9 @@ _aaxThreadSetPriority(void *t, int prio)
      id = &sid;
    }
 
-   if (prio <= AAX_HIGHEST_PRIORITY) {
+   if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
       policy = SCHED_FIFO;
-   } else if (prio == AAX_HIGH_PRIORITY) {
+   } else if (prio < ((AAX_NORMAL_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
       policy = SCHED_RR;
    } else {
       policy = SCHED_OTHER;
@@ -195,7 +196,8 @@ _aaxMutexCreate(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
-   if (!m) {
+   if (!m)
+   {
       m = calloc(1, sizeof(_aaxMutex));
       if (m) {
          pthread_mutex_init(&m->mutex, NULL);
@@ -214,7 +216,8 @@ _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
    if (!m)
    {
       m = calloc(1, sizeof(_aaxMutex));
-      if (m) {
+      if (m)
+      {
          pthread_mutex_init(&m->mutex, NULL);
          m->name = (char *)name;
          m->function = fn;
@@ -649,20 +652,23 @@ _aaxProcessSetPriority(int prio)
    DWORD curr_priority = GetPriorityClass(GetCurrentProcess());
    DWORD new_priority;
 
-   if (prio <= AAX_HIGHEST_PRIORITY) {
+   if (prio < ((AAX_HIGHEST_PRIORITY+AAX_TIME_CRITICAL_PRIORITY)/2)) {
       new_priority = HIGH_PRIORITY_CLASS;
-   } else if (prio <= AAX_HIGH_PRIORITY) {
+   }
+   else if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
       new_priority = ABOVE_NORMAL_PRIORITY_CLASS;
-   } else if (prio >= AAX_LOWEST_PRIORITY) {
-      new_priority = IDLE_PRIORITY_CLASS;
-   } else if (prio >= AAX_LOW_PRIORITY) {
-      new_priority = BELOW_NORMAL_PRIORITY_CLASS;
-   } else {
+   }
+   else if (prio < ((AAX_LOWEST_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
       new_priority = NORMAL_PRIORITY_CLASS;
    }
+   else if (prio < ((AAX_IDLE_PRIORITY+AAX_LOWEST_PRIORITY)/2)) {
+      new_priority = BELOW_NORMAL_PRIORITY_CLASS;
+   }
+   else {
+      new_priority = IDLE_PRIORITY_CLASS;
+   }
 
-   if (new_priority > curr_priority)
-   {
+   if (new_priority > curr_priority) {
       rv = SetPriorityClass(GetCurrentProcess(), new_priority);
    }
 
@@ -717,20 +723,26 @@ _aaxThreadSetPriority(void *t, int prio)
 // DWORD curr_priority = GetThreadPriority(GetCurrentThread());
    DWORD new_priority;
 
-   if (prio == AAX_TIME_CRITICAL_PRIORITY) {
+   if (prio < ((AAX_HIGHEST_PRIORITY+AAX_TIME_CRITICAL_PRIORITY)/2)) {
       new_priority = THREAD_PRIORITY_TIME_CRITICAL;
-   } else if (prio == AAX_IDLE_PRIORITY) {
-      new_priority = THREAD_PRIORITY_IDLE;
-   } else if (prio <= AAX_HIGHEST_PRIORITY) {
+   }
+   else if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
       new_priority = THREAD_PRIORITY_HIGHEST;
-   } else if (prio <= AAX_HIGH_PRIORITY) {
+   }
+   else if (prio < ((AAX_NORMAL_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
       new_priority = THREAD_PRIORITY_ABOVE_NORMAL;
-   } else if (prio >= AAX_LOWEST_PRIORITY) {
-      new_priority = THREAD_PRIORITY_LOWEST;
-   } else if (prio >= AAX_LOW_PRIORITY) {
-      new_priority = THREAD_PRIORITY_BELOW_NORMAL;
-   } else {
+   }
+   else if (prio < ((AAX_LOW_PRIORITY+AAX_NORMAL_PRIORITY)/2)) {
       new_priority = THREAD_PRIORITY_NORMAL;
+   }
+   else if (prio < ((AAX_LOWEST_PRIORITY+AAX_LOW_PRIORITY)/2)) {
+      new_priority = THREAD_PRIORITY_BELOW_NORMAL;
+   }
+   else if (prio < ((AAX_IDLE_PRIORITY+AAX_LOWEST_PRIORITY)/2)) {
+      new_priority = THREAD_PRIORITY_LOWEST;
+   }
+   else {
+      new_priority = THREAD_PRIORITY_IDLE;
    }
 
    SetThreadPriority(thread, new_priority);
@@ -844,41 +856,58 @@ _aaxThreadJoin(void *t)
  * In release mode use critical sections which could be way faster
  *    for single process applications.
  */
-#ifndef NDEBUG
-void *
-_aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
-{
-   _aaxMutex *m = (_aaxMutex *)mutex;
-
-   if (!m) {
-      m = calloc(1, sizeof(_aaxMutex));
-   }
-
-   if (m && !m->mutex) {
-      m->mutex = CreateMutex(NULL, FALSE, NULL);
-   }
-
-   return m;
-}
-#else /* !NDEBUG */
+#if defined(NDEBUG)
 void *
 _aaxMutexCreate(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
 
-   if (!m) {
+   if (!m)
+   {
       m = calloc(1, sizeof(_aaxMutex));
+      if (m) {
+         InitializeCriticalSection(&m->mutex);
+      }
    }
 
-   if (m && !m->ready)
+   return m;
+}
+#else
+void *
+_aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+
+   if (!m)
    {
-      InitializeCriticalSection(&m->mutex);
-      m->ready = 1;
+      m = calloc(1, sizeof(_aaxMutex));
+      if (m)
+      {
+         m->mutex = CreateMutex(NULL, FALSE, NULL);
+         m->name = (char *)name;
+         m->function = fn;
+      }
    }
 
    return m;
 }
 #endif
+
+_aaxMutex *
+_aaxMutexCreateInt(_aaxMutex *m)
+{
+   if (m && m->initialized == 0)
+   {
+#if defined(NDEBUG)
+      InitializeCriticalSection(&m->mutex);
+#else
+      m->mutex = CreateMutex(NULL, FALSE, NULL);
+#endif
+       m->initialized = (m->mutex) ? 1 : 0;
+   }
+
+   return m;  
+}
 
 void
 _aaxMutexDestroy(void *mutex)
@@ -887,11 +916,10 @@ _aaxMutexDestroy(void *mutex)
 
    if (m)
    {
-#ifndef NDEBUG
-      CloseHandle(m->mutex);
-#else
+#if defined(NDEBUG)
       DeleteCriticalSection(&m->mutex);
-      m->ready = 0;
+#else
+      CloseHandle(m->mutex);
 #endif
       free(m);
    }
@@ -899,20 +927,41 @@ _aaxMutexDestroy(void *mutex)
    m = 0;
 }
 
-#ifndef NDEBUG
+#if defined(NDEBUG)
+int
+_aaxMutexLock(void *mutex)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (m)
+   {
+      if (m->initialized == 0) {
+         m = _aaxMutexCreateInt(m);
+      }
+
+      if (m->initialized != 0) {
+         EnterCriticalSection(&m->mutex);
+      }
+   }
+   return r;
+}
+#endif
+
 int
 _aaxMutexLockDebug(void *mutex, char *file, int line)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m)
+   if (&& m)
    {
-      if (!m->mutex) {
-         m = _aaxMutexCreate(m);
+      if (m->initialized == 0) {
+         m = _aaxMutexCreateInt(m);
       }
 
-      if (m->mutex) {
+      if (m->initialized != 0)
+      {
          r = WaitForSingleObject(m->mutex, DEBUG_TIMEOUT*1000);
          switch (r)
          {
@@ -934,47 +983,33 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    return r;
 }
 
-int
-_aaxMutexUnLockDebug(void *mutex, char *file, int line)
-{
-   _aaxMutex *m = (_aaxMutex *)mutex;
-   int r = EINVAL;
-
-   if (__threads_enabled && m)
-   {
-      ReleaseMutex(m->mutex);
-      r = 0;
-   }
-   return r;
-}
-#else	/* !NDEBUG */
-int
-_aaxMutexLock(void *mutex)
-{
-   _aaxMutex *m = (_aaxMutex *)mutex;
-   int r = 0;
-
-   if (__threads_enabled && m)
-   {
-      if (!m->ready) {
-         m = _aaxMutexCreate(m);
-      }
-
-      if (m->ready) {
-         EnterCriticalSection(&m->mutex);
-      }
-   }
-   return r;
-}
-
+#if defined(NDEBUG)
 int
 _aaxMutexUnLock(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (__threads_enabled && m) {
+   if (m) {
       LeaveCriticalSection(&m->mutex);
+   }
+   return r;
+}
+
+#else
+int
+_aaxMutexUnLockDebug(void *mutex, char *file, int line)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = EINVAL;
+
+   if (m)
+   {
+      ReleaseMutex(m->mutex);
+      r = 0;
+
+      m->last_file = file;
+      m->last_line = line;
    }
    return r;
 }
@@ -1031,9 +1066,14 @@ _aaxSignalWait(_aaxSignal *signal)
       _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
       DWORD hr;
 
-      _aaxMutexUnLock(mutex);
-      hr = WaitForSingleObject(signal->condition, INFINITE);
-      _aaxMutexLock(mutex);
+      signal->waiting = AAX_TRUE;
+      do
+      {
+         _aaxMutexUnLock(mutex);
+         hr = WaitForSingleObject(signal->condition, INFINITE);
+         _aaxMutexLock(mutex);
+      }
+      while (signal->waiting == AAX_TRUE);
 
       switch (hr)
       {
@@ -1068,9 +1108,14 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
       timeout *= 1000.0f; 		/* from seconds to ms */
       if (timeout > 0.0f)	
       {
-         _aaxMutexUnLock(mutex);
-         hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
-         _aaxMutexLock(mutex);
+         signal->waiting = AAX_TRUE;
+         do
+         {
+            _aaxMutexUnLock(mutex);
+            hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
+            _aaxMutexLock(mutex);
+         }
+         while (signal->waiting == AAX_TRUE);
 
          switch (hr)
          {
