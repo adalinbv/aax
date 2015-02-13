@@ -900,10 +900,11 @@ _aaxMutexCreateInt(_aaxMutex *m)
    {
 #if defined(NDEBUG)
       InitializeCriticalSection(&m->mutex);
+      m->initialized = 1;
 #else
       m->mutex = CreateMutex(NULL, FALSE, NULL);
+      m->initialized = (m->mutex) ? 1 : 0;
 #endif
-       m->initialized = (m->mutex) ? 1 : 0;
    }
 
    return m;  
@@ -954,7 +955,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (&& m)
+   if (m)
    {
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
@@ -962,7 +963,12 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 
       if (m->initialized != 0)
       {
+#if defined(NDEBUG)
+         EnterCriticalSection(&m->mutex);
+         r = WAIT_OBJECT_0;
+#else
          r = WaitForSingleObject(m->mutex, DEBUG_TIMEOUT*1000);
+#endif
          switch (r)
          {
          case WAIT_OBJECT_0:
