@@ -1055,8 +1055,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             default:		// we're done
                size = 0;
                *step -= sizeof(int32_t);
-               if (curr == 0x61746164) {	 /* data */
-                  
+               if (head == 0x61746164) {	 /* data */
                   res = *step;
                } else {
                   res = __F_EOF;
