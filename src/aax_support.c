@@ -24,18 +24,21 @@
 #include "arch.h"
 #include "software/audio.h"
 
+#define _AAX_MAX_ERROR		10
+
 typedef struct {
    char supported_lite;
    const char *name;
 } ef_type; 
 
+const char *_aax_id_s[_AAX_MAX_ID];
+const char *_aaxErrorStrings[_AAX_MAX_ERROR];
+
+static const ef_type _aax_filter_s[AAX_FILTER_MAX+1];
+static const ef_type _aax_effect_s[AAX_EFFECT_MAX+1];
+
 static const char* __aaxErrorSetFunctionOrBackendString(const char*);
 
-static const ef_type _aax_filter_s[];
-static const ef_type _aax_effect_s[];
-
-const char *_aax_id_s[_AAX_MAX_ID];
-const char* _aaxErrorStrings[];
 
 AAX_API void AAX_APIENTRY
 aaxFree(void *mm)
@@ -402,7 +405,7 @@ const char *_aax_id_s[_AAX_MAX_ID] =
    "_AAX_EXTENSION"
 };
 
-const char* _aaxErrorStrings[] =
+const char* _aaxErrorStrings[_AAX_MAX_ERROR] =
 {
    "No Error",
    "Invalid device",

@@ -140,7 +140,7 @@ _socket_seek(int fd, off_t offs, int whence)
 }
 
 int
-_socket_stat(int fd, void *stat)
+_socket_stat(int fd, struct stat *stat)
 {
    errno = EPERM;
    return -1;

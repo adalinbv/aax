@@ -24,7 +24,7 @@ extern "C" {
 # endif
 #else
 # define AAX_APIENTRY
-# if __GNUC__ >= 4
+# if (__GNUC__ >= 4) || defined(__TINYC__)
 #  define AAX_API __attribute__((visibility("default")))
 # else
 #  define AAX_API extern

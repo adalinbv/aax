@@ -41,7 +41,7 @@ extern "C" {
 # define ALIGN16C
 # define ALIGN32	__declspec(align(32))
 # define ALIGN32C
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__TINYC__)
 # define ALIGN16
 # define ALIGN16C        __attribute__((aligned(16)))
 # define ALIGN32

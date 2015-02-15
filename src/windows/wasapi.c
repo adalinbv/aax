@@ -2183,6 +2183,7 @@ _wasapi_setup(_driver_t *handle, size_t *frames, int registered)
       /* first detect the minimum and maximum configuration f the endpoint */
       nChannels = pfmt->nChannels;
       nSamplesPerSec = pfmt->nSamplesPerSec;
+
       handle->min_tracks = pfmt->nChannels = 0;
       handle->min_frequency = pfmt->nSamplesPerSec = 4000;
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
@@ -2200,10 +2201,11 @@ _wasapi_setup(_driver_t *handle, size_t *frames, int registered)
          handle->max_tracks = (*cfmt)->nChannels;
          handle->max_frequency = (*cfmt)->nSamplesPerSec;
       }
-      pfmt->nChannels = nChannels;
-      pfmt->nSamplesPerSec = nSamplesPerSec;
-      
+
       /* Now do the acutal testing of the requested format */
+      pfmt->nSamplesPerSec = nSamplesPerSec;
+      pfmt->nChannels = nChannels;
+
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
       if (hr == S_FALSE)
       {
