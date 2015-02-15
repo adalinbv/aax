@@ -59,7 +59,7 @@ typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, size_t, size_t,
 
 typedef void (*_aax_aligned_free_proc)(void*);
 void* _aax_aligned_alloc16(size_t);
-_aax_aligned_free_proc _aax_aligned_free;
+extern _aax_aligned_free_proc _aax_aligned_free;
 
 extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;

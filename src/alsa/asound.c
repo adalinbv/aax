@@ -736,6 +736,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    periods = handle->no_periods;
    if (!registered) {
+//    period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
       period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
    } else {
       period_frames = get_pow2((size_t)rintf((rate*periods)/period_rate));

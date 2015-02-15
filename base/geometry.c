@@ -19,7 +19,9 @@
 #include <math.h>
 #endif
 
+#include <aax/aax.h>
 #include "geometry.h"
+#include "types.h"
 
 
 void

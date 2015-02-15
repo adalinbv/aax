@@ -42,7 +42,7 @@ typedef signed long                 sl_int32_t;
 typedef long long                   sl_int64_t;
 
 #ifndef SLAPIENTRY
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__TINYC__)
 #define SLAPIENTRY                 /* override per-platform */
 #else
 #define SLAPIENTRY __declspec(dllimport)
