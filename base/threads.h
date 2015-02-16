@@ -42,6 +42,9 @@ typedef struct
 
 int _aaxProcessSetPriority(int);
 
+# define _aaxAtomicIntIncrement(a)      (_aaxAtomicIntAdd((a),1)+1)
+# define _aaxAtomicIntDecrement(a)      (_aaxAtomicIntAdd((a),-1)-1)
+# define _aaxAtomicIntSub(a,b)          _aaxAtomicIntAdd((a),-(b))
 
 #if HAVE_PTHREAD_H
 # include <pthread.h>			/* UNIX */
@@ -63,10 +66,10 @@ int _aaxProcessSetPriority(int);
 #endif
  } _aaxMutex;
 
-# define _aaxAtomicIntIncrement(a)	__sync_add_and_fetch((a),1)
-# define _aaxAtomicIntDecrement(a)	__sync_sub_and_fetch((a),1)
+#ifdef __TINYC__
+int __sync_fetch_and_add(int*, int);
+#endif
 # define _aaxAtomicIntAdd(a,b)		__sync_fetch_and_add((a),(b))
-# define _aaxAtomicIntSub(a,b)		__sync_fetch_and_sub((a),(b))
 
 #elif defined( WIN32 )
 # include <windows.h>			/* WINDOWS */
@@ -114,10 +117,7 @@ int _aaxProcessSetPriority(int);
  AvRevertMmThreadCharacteristics_proc pAvRevertMmThreadCharacteristics;
  AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
 
-# define _aaxAtomicIntIncrement(a)	InterlockedIncrement(a)
-# define _aaxAtomicIntDecrement(a)	InterlockedDecrement(a)
 # define _aaxAtomicIntAdd(a,b)          InterlockedExchangeAdd(a,b)
-# define _aaxAtomicIntSub(a,b)          InterlockedExchangeAdd(a,-(b))
 
 #endif
 

@@ -264,11 +264,11 @@ _aaxGetSSELevel()
 
          res = _aaxArchDetectSSE3();
          if (res) sse_level = res;
-#if 0
+# if 0
 // We don't have any useful SSE4 code
          res = _aaxArchDetectSSE4();
          if (res) sse_level = res;
-#endif
+# endif
          res = _aaxArchDetectAVX();
          if (res) sse_level = res;
       }
@@ -282,6 +282,7 @@ _aaxGetSIMDSupportString()
 {
    uint32_t level = AAX_NO_SIMD;
 
+# ifndef __TINYC__
    level = _aaxGetSSELevel();
    if (_aax_arch_capabilities & AAX_ARCH_SSE)
    {
@@ -304,17 +305,17 @@ _aaxGetSIMDSupportString()
       _batch_cvt16_24 = _batch_cvt16_24_sse2;
       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
-# if RB_FLOAT_DATA
+#  if RB_FLOAT_DATA
       _batch_fmadd = _batch_fmadd_sse2;
       _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
       _batch_freqfilter_float = _batch_freqfilter_float_sse2;
       _batch_resample_float = _batch_resample_float_sse2;
-# else
+#  else
       _batch_imadd = _batch_imadd_sse2;
       _batch_freqfilter = _batch_freqfilter_sse2;
       _batch_resample = _batch_resample_sse2;
-# endif
+#  endif
    }
    if (_aax_arch_capabilities & AAX_ARCH_SSE3)
    {
@@ -323,11 +324,11 @@ _aaxGetSIMDSupportString()
       _batch_imul_value = _batch_imul_value_sse3;
       _batch_fmul_value = _batch_fmul_value_sse3;
 
-# if RB_FLOAT_DATA
+#  if RB_FLOAT_DATA
 //    _batch_resample_float = _batch_resample_float_sse3;
-# else
+#  else
       _batch_resample = _batch_resample_sse3;
-# endif
+#  endif
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_SSE41)
@@ -338,10 +339,10 @@ _aaxGetSIMDSupportString()
       vec3Normalize = _vec3Normalize_sse41;
    }
 
-# if SIZEOF_SIZE_T == 8
+#  if SIZEOF_SIZE_T == 8
    if (_aax_arch_capabilities & AAX_ARCH_AVX)
    {
-#  if 0
+#   if 0
     /* Prefer FMA3 over FMA4 so detect FMA4 first */
 #   ifdef __FMA4__
       if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
@@ -353,13 +354,14 @@ _aaxGetSIMDSupportString()
          _batch_fmadd = _batch_fma3_avx;
       }
 #   endif
-#  endif
-#  if RB_FLOAT_DATA
+#   endif
+#   if RB_FLOAT_DATA
       _batch_resample_float = _batch_resample_float_avx;
-#  else
+#   else
       _batch_resample = _batch_resample_avx;
-#  endif
+#   endif
    }
+#  endif
 # endif
    return _aaxArchSIMDSupportString[level];
 }

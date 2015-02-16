@@ -36,6 +36,17 @@ static char __threads_enabled = 0;
 #  include <string.h>	/* for memcpy */
 # endif
 
+# ifdef __TINYC__
+int
+__sync_fetch_and_add(int *variable, int value) {
+   asm volatile("lock; xaddl %%eax, %2;"
+                  :"=a" (value)                  //Output
+                  :"a" (value), "m" (*variable)  //Input
+                  :"memory");
+   return value;
+}
+# endif
+
 int                     /* Prio is a value in the range -20 to 19 */
 _aaxProcessSetPriority(int prio)
 {
