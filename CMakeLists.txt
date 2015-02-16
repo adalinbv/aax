@@ -200,6 +200,8 @@ IF(MSVC)
 ELSE(MSVC)
     IF(GCC AND LTO)
        SET(C_FLAGS "${C_FLAGS} -flto")
+    ELSEIF (TINYCC)
+       SET(C_FLAGS "${C_FLAGS} -b -Wall")
     ENDIF(GCC AND LTO)
 
     IF(NOT MINGW)
