@@ -656,6 +656,14 @@ _aaxSemaphoreRelease(_aaxSemaphore *sem)
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
 
 #include <base/dlsym.h> 
+
+# ifndef __MINGW32__
+int
+__sync_fetch_and_add(int *variable, int value) {
+   return InterlockedExchangeAdd(variable, value);
+}
+#endif
+
 							/* --- WINDOWS --- */
 int                     /* Prio is a value in the range -20 to 19 */
 _aaxProcessSetPriority(int prio)
