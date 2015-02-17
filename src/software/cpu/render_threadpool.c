@@ -90,9 +90,8 @@ typedef struct
 
    int worker_no;
    int no_workers;
-   long workers_busy;
-
-   long max_emitters;
+   int workers_busy;
+   int max_emitters;
    int stage;
    
    struct threat_t thread[_AAX_MAX_NO_WORKERS];
@@ -237,13 +236,12 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       if (no_emitters)
 #endif
       {
-         unsigned int num;
+         int num;
 
          handle->he = he;
          handle->stage = stage;
          handle->max_emitters = no_emitters ? max_emitters : 0;
          handle->data = data;
-assert (data->drb);
 
          // wake up the worker threads
          num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);
@@ -294,8 +292,8 @@ _aaxWorkerThread(void *id)
    _aaxSemaphoreWait(handle->worker_start);
    if (thread->started == AAX_TRUE)
    {
-      long *busy = &handle->workers_busy;
-      long *num = &handle->max_emitters;
+      int *busy = &handle->workers_busy;
+      int *num = &handle->max_emitters;
        _aaxRendererData *data;
       _aaxRingBuffer *drb;
 
