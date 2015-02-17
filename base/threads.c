@@ -37,6 +37,7 @@ static char __threads_enabled = 0;
 # endif
 
 # ifdef __TINYC__
+#  if defined( __x86_64__ ) || defined( __i386 )
 int
 __sync_fetch_and_add(int *variable, int value) {
    asm volatile("lock; xaddl %%eax, %2;"
@@ -45,6 +46,7 @@ __sync_fetch_and_add(int *variable, int value) {
                   :"memory");
    return value;
 }
+#  endif
 # endif
 
 int                     /* Prio is a value in the range -20 to 19 */
