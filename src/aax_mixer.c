@@ -1342,7 +1342,6 @@ _aaxMixerInit(_handle_t *handle)
    float refrate = info->refresh_rate;
    float ms = rintf(1000.0f/refrate);
 
-
    /* test if we have enough privileges to set the requested priority */
    if (ms < 5) {
       res = _aaxThreadSetPriority(NULL, AAX_HIGHEST_PRIORITY);
@@ -1371,6 +1370,7 @@ _aaxMixerInit(_handle_t *handle)
       rssr = (handle->handle) ? AAX_TRUE : AAX_FALSE;
       res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate,
                       rssr, periodrate);
+
 
       if (TEST_FOR_TRUE(res))
       {
