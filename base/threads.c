@@ -781,14 +781,6 @@ _aaxThreadDestroy(void *t)
 
    assert(t);
 
-   if (thread->task)
-   {
-      if (pAvRevertMmThreadCharacteristics) {
-         pAvRevertMmThreadCharacteristics(thread->task);
-      }
-      thread->task = 0;
-   }
-
    if (thread->handle)
    {
       CloseHandle(thread->handle);
@@ -819,6 +811,14 @@ _callback_handler(LPVOID t)
    }
 
    thread->callback_fn(thread->callback_data);
+
+   if (thread->task)
+   {
+     if (pAvRevertMmThreadCharacteristics) {
+         pAvRevertMmThreadCharacteristics(thread->task);
+      }
+      thread->task = NULL;
+   }
 
    return 0;
 }
