@@ -1438,7 +1438,8 @@ _aaxFileDriverReadChunk(const void *id)
                if (artist)
                {
                   char *title = strstr(artist, " - ");
-                  char *end = strchr(artist, '\'');
+                  char *end = strstr(artist, "\';");
+                  if (!end) end = strstr(artist, "\'\0");
                   if (title)
                   {
                      *title = '\0';
