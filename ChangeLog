@@ -20,6 +20,7 @@
  * The file writing backend postpones writing of the file header to until
    after the state is set to AAX_PLAYING.
  * The file backend can now return song meta data.
+ * Install to the proper system directory on 64-bit Windows
 
  -- Erik Hofman <tech@adalin.org>  Fri, 02 Jan 2015 13:15:00 + 0100
 
