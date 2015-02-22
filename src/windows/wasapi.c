@@ -589,6 +589,11 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
    bits = aaxGetBitsPerSample(*fmt);
    frame_sz = tracks*bits/8;
 
+   // TODO: WASAPI < 4ms causes problems. Fix it.
+   if (*refresh_rate > 250) {
+      *refresh_rate = 250;
+   }
+
    handle->Fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
    handle->Fmt.Format.nSamplesPerSec = rate;
    handle->Fmt.Format.nChannels = tracks;
