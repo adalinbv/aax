@@ -353,6 +353,12 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
       handle->driver_init = AAX_TRUE;
       handle->driver_connected = AAX_FALSE;
       handle->driver_reinit = AAX_FALSE;
+
+      handle->periods = DEFAULT_PERIODS;
+      handle->min_periods = DEFAULT_PERIODS;
+      handle->max_periods = DEFAULT_PERIODS;
+      handle->min_frequency = 8000;
+      handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
    }
 
    return handle;
@@ -564,35 +570,38 @@ _aaxWASAPIDriverDisconnect(void *id)
 }
 
 static int
-_aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
-                      unsigned int *channels, float *speed, int *bitrate,
+_aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *format,
+                      unsigned int *tracks, float *speed, int *bitrate,
                       int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int tracks, rate, bits, frame_sz, periods;
+   int channels, bps, frame_sz, rate, periods;
    size_t period_frames = 1024;
-   AUDCLNT_SHAREMODE mode;
-   DWORD nSamplesPerSec;
-   WAVEFORMATEX **cfmt;
-   WAVEFORMATEX *pfmt;
-   WORD nChannels;
-   HRESULT hr;
    int rv = AAX_FALSE;
 
    assert(handle);
 
-   rate = (unsigned int)*speed;
-   tracks = *channels;
-   if (tracks > handle->Fmt.Format.nChannels) {
-      tracks = handle->Fmt.Format.nChannels;
+   rate = *speed;
+   periods = handle->periods;
+   if (!registered) {
+      period_frames = SIZETO16((size_t)rintf(rate*periods/(*refresh_rate)));
+   } else {
+      period_frames = (size_t)rintf((rate*periods)/period_rate);
    }
-   bits = aaxGetBitsPerSample(*fmt);
-   frame_sz = tracks*bits/8;
+   if (handle->Mode == eRender) period_frames /= periods;
+
+   channels = *tracks;
+   if (channels > handle->Fmt.Format.nChannels) {
+      channels = handle->Fmt.Format.nChannels;
+   }
+
+   bps = aaxGetBytesPerSample(*format);
+   frame_sz = channels * bps;
 
    handle->Fmt.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
    handle->Fmt.Format.nSamplesPerSec = rate;
-   handle->Fmt.Format.nChannels = tracks;
-   handle->Fmt.Format.wBitsPerSample = bits;
+   handle->Fmt.Format.nChannels = channels;
+   handle->Fmt.Format.wBitsPerSample = bps*8;
    handle->Fmt.Format.nBlockAlign = frame_sz;
    handle->Fmt.Format.nAvgBytesPerSec = handle->Fmt.Format.nSamplesPerSec *
                                         handle->Fmt.Format.nBlockAlign;
@@ -602,139 +611,16 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->Fmt.dwChannelMask = getMSChannelMask(handle->Fmt.Format.nChannels);
    handle->Fmt.SubFormat = aax_KSDATAFORMAT_SUBTYPE_PCM;
 
-   handle->periods = DEFAULT_PERIODS;
-   handle->min_tracks = 0;
-   handle->max_tracks = _AAX_MAX_SPEAKERS;
-   handle->min_periods = DEFAULT_PERIODS;
-   handle->max_periods = DEFAULT_PERIODS;
-   handle->min_frequency = 4000;
-   handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
-
-   /* keep a backup */
-   nChannels = handle->Fmt.Format.nChannels;
-   nSamplesPerSec = handle->Fmt.Format.nSamplesPerSec;
-
-   /* detect the minimum configuration for the endpoint */
-   pfmt = &handle->Fmt.Format;
-   if (handle->exclusive)
-   {
-      cfmt = NULL;
-      mode = AUDCLNT_SHAREMODE_EXCLUSIVE;
-   }
-   else
-   {
-      mode = AUDCLNT_SHAREMODE_SHARED;
-      cfmt = &pfmt;
-   }
-   pfmt->nChannels = handle->min_tracks;
-   pfmt->nSamplesPerSec = handle->min_frequency;
-   hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
-   if (hr == S_FALSE)
-   {
-      handle->min_tracks = (*cfmt)->nChannels;
-      handle->min_frequency = (*cfmt)->nSamplesPerSec;
-   }
-
-   /* detect the maximum configuration for the endpoint */
-   pfmt = &handle->Fmt.Format;
-   if (handle->exclusive) {
-      cfmt = NULL;
-   } else {
-      cfmt = &pfmt;
-   }
-   pfmt->nChannels = handle->max_tracks;
-   pfmt->nSamplesPerSec = handle->max_frequency;
-   hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
-   if (hr == S_FALSE)
-   {
-      handle->max_tracks = (*cfmt)->nChannels;
-      handle->max_frequency = (*cfmt)->nSamplesPerSec;
-   }
-
-   /* restore the backup within the proper boundaries */
-   handle->Fmt.Format.nSamplesPerSec = _MINMAX(nSamplesPerSec,
-                                               handle->min_frequency,
-                                               handle->max_frequency);
-   handle->Fmt.Format.nChannels = _MINMAX(nChannels,
-                                          handle->min_tracks,
-                                          handle->max_tracks);
-
-   periods = handle->periods;
-   rate = (float)pfmt->nSamplesPerSec;
-   if (!registered) {
-      period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
-   } else {
-      period_frames = SIZETO16((size_t)rintf((rate*periods)/period_rate));
-   }
-   if (handle->Mode == eRender) {
-      period_frames *= 2;
-   }
-
    rv = _wasapi_setup(handle, &period_frames, registered);
    if (rv == AAX_TRUE)
    {
-      bits = handle->Fmt.Format.wBitsPerSample;
-      rate = handle->Fmt.Format.nSamplesPerSec;
-      tracks = handle->Fmt.Format.nChannels;
-      periods = handle->periods;
+      *speed = (float)handle->Fmt.Format.nSamplesPerSec;
+      *tracks = handle->Fmt.Format.nChannels;
 
-      *channels = tracks;
-      *speed = (float)rate;
-      if (!registered)
-      {
-         *refresh_rate = rate/(float)(period_frames);
-         period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
-      }
-      else
-      {
+      if (!registered) {
+         *refresh_rate = rate/(float)period_frames;
+      } else {
          *refresh_rate = period_rate;
-         period_frames = SIZETO16((size_t)rintf((rate*periods)/period_rate));
-      }
-
-      switch (bits)
-      {
-      case 16:
-         handle->cvt_to_intl = _batch_cvt16_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_16_intl;
-         break;
-      case 32:
-         if (IsEqualGUID(&handle->Fmt.SubFormat,
-                         pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
-         {
-            handle->cvt_to_intl = _batch_cvtps_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_ps_intl;
-         }
-         else if (handle->Fmt.Samples.wValidBitsPerSample == 24)
-         {
-            handle->cvt_to_intl = _batch_cvt24_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_24_intl;
-         }
-         else
-         {
-            handle->cvt_to_intl = _batch_cvt32_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_32_intl;
-         }
-         break;
-      case 24:
-         handle->cvt_to_intl = _batch_cvt24_3intl_24;
-         handle->cvt_from_intl = _batch_cvt24_24_3intl;
-         break;
-      case 8:
-         handle->cvt_to_intl = _batch_cvt8_intl_24;
-         handle->cvt_from_intl = _batch_cvt24_8_intl;
-         break;
-      default:
-         _AAX_DRVLOG(WASAPI_UNSUPPORTED_FORMAT);
-         break;
-      }
-
-      handle->render = _aaxSoftwareInitRenderer(handle->hnsLatency/10000000.0f,
-                                                handle->setup, registered);
-      if (handle->render)
-      {
-         const char *rstr = handle->render->info(handle->render->id);
-
-         snprintf(_wasapi_id_str,MAX_ID_STRLEN, "%s %s",DEFAULT_RENDERER,rstr);
       }
    }
 
@@ -1049,8 +935,10 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->max_tracks;
          break;
       case DRIVER_MIN_PERIODS:
+         rv = (float)handle->min_periods;
+         break;
       case DRIVER_MAX_PERIODS:
-         rv = (float)DEFAULT_PERIODS;
+         rv = (float)handle->max_periods;
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
@@ -2221,23 +2109,23 @@ _wasapi_close(_driver_t *handle)
 }
 
 static int
-_wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
+_wasapi_setup(_driver_t *handle, size_t *frames, int registered)
 {
    _driver_t *id = handle;
    int co_init, rv = AAX_FALSE;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
+   size_t period_frames;
    AUDCLNT_SHAREMODE mode;
    WAVEFORMATEX *wfx;
    HRESULT hr, init;
-   size_t frames;
    DWORD stream;
-   float rate;
+   float freq;
 
    assert(handle);
    assert(frames);
 
-   frames = *period_frames;
+   period_frames = *frames;
 
    co_init = AAX_FALSE;
    hr = pCoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
@@ -2248,8 +2136,10 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
    init = S_OK;
    do
    {
-      const WAVEFORMATEX *pfmt;
+      WAVEFORMATEX *pfmt;
       WAVEFORMATEX **cfmt;
+      DWORD nSamplesPerSec;
+      WORD nChannels;
 
       /*
        * For shared mode set wfx to point to a valid, non-NULL pointer variable.
@@ -2272,8 +2162,34 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
          mode = AUDCLNT_SHAREMODE_SHARED;
          cfmt = &wfx;
       }
-
       pfmt = &handle->Fmt.Format;
+
+      /* first detect the minimum and maximum configuration f the endpoint */
+      nChannels = pfmt->nChannels;
+      nSamplesPerSec = pfmt->nSamplesPerSec;
+
+      handle->min_tracks = pfmt->nChannels = 0;
+      handle->min_frequency = pfmt->nSamplesPerSec = 4000;
+      hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
+      if (hr == S_FALSE)
+      {
+         handle->min_tracks = (*cfmt)->nChannels;
+         handle->min_frequency = (*cfmt)->nSamplesPerSec;
+      }
+
+      handle->max_tracks = pfmt->nChannels = _AAX_MAX_SPEAKERS;
+      handle->max_frequency = pfmt->nSamplesPerSec = _AAX_MAX_MIXER_FREQUENCY;
+      hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
+      if (hr == S_FALSE)
+      {
+         handle->max_tracks = (*cfmt)->nChannels;
+         handle->max_frequency = (*cfmt)->nSamplesPerSec;
+      }
+
+      /* Now do the acutal testing of the requested format */
+      pfmt->nSamplesPerSec = nSamplesPerSec;
+      pfmt->nChannels = nChannels;
+
       hr = pIAudioClient_IsFormatSupported(handle->pAudioClient,mode,pfmt,cfmt);
       if (hr == S_FALSE)
       {
@@ -2360,7 +2276,6 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
       }
 
       /*
-       * hnsBufferDuration [in]
        * The buffer capacity as a time value. This parameter is of type
        * REFERENCE_TIME and is expressed in 100-nanosecond units. This
        * parameter contains the buffer size that the caller requests for the
@@ -2369,32 +2284,17 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
        * the call succeeds, the method allocates a buffer that is a least this
        * large.
        *
-       * hnsPeriodicity [in]
-       * The device period. This parameter can be nonzero only in exclusive
-       * mode. In shared mode, always set this parameter to 0. In exclusive
-       * mode, this parameter specifies the requested scheduling period for
-       * successive buffer accesses by the audio endpoint device. If the
-       * requested device period lies outside the range that is set by the
-       * device's minimum period and the system's maximum period, then the
-       * method clamps the period to that range. If this parameter is 0, the
-       * method sets the device period to its default value. To obtain the
-       * default device period, call the IAudioClient::GetDevicePeriod method.
-       * If the AUDCLNT_STREAMFLAGS_EVENTCALLBACK stream flag is set and
-       * AUDCLNT_SHAREMODE_EXCLUSIVE is set as the ShareMode, then
-       * hnsPeriodicity must be nonzero and equal to hnsBufferDuration.
-       *
-       *
        * For a shared-mode stream that uses event-driven buffering, the caller
        * must set both hnsPeriodicity and hnsBufferDuration to 0. The
        * Initialize method determines how large a buffer to allocate based
        * on the scheduling period of the audio engine.
        */
       stream = 0;
-      rate = (float)handle->Fmt.Format.nSamplesPerSec;
-      hnsBufferDuration = (REFERENCE_TIME)rintf(frames*(10000000.0f/rate));
+      freq = (float)handle->Fmt.Format.nSamplesPerSec;
+      hnsBufferDuration = (REFERENCE_TIME)rintf(period_frames*(10000000.0f/freq));
       hnsPeriodicity = hnsBufferDuration;
 
-      if ((rate > 44000 && rate < 44200) || (rate > 21000 && rate < 22000)) {
+      if ((freq > 44000 && freq < 44200) || (freq > 21000 && freq < 22000)) {
          hnsBufferDuration = 3*hnsBufferDuration/2;
       }
 
@@ -2422,10 +2322,11 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
          /* make periods exact ms to match the lowest timer resolution */
          hnsBufferDuration = (hnsBufferDuration/10000) & 0xFFFFFFFE;
          hnsBufferDuration = (2 + hnsBufferDuration)*10000;
-         hnsBufferDuration *= handle->periods;
 
          hnsPeriodicity = (hnsPeriodicity/10000) & 0xFFFFFFFE;
          hnsPeriodicity = (2 + hnsPeriodicity)*10000;
+         hnsBufferDuration *= handle->periods;
+
          if (!handle->exclusive) {
             hnsPeriodicity = 0;
          }
@@ -2486,7 +2387,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
       else if (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED && init == S_OK)
       {
          init = hr;
-         hr = pIAudioClient_GetBufferSize(handle->pAudioClient, &frames);
+         hr = pIAudioClient_GetBufferSize(handle->pAudioClient, &period_frames);
          _AAX_DRVLOG(WASAPI_UNSUPPORTED_BUFFER_SIZE);
       }
       else {
@@ -2531,16 +2432,17 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
       }
 
       /* get the actual buffer size */
-      periodFrameCnt = (UINT32)rintf(hnsPeriodicity*rate/10000000.0f);
+//    periodFrameCnt = (UINT32)((hnsPeriodicity*freq + 10000000-1)/10000000);
+      periodFrameCnt = (UINT32)floorf(hnsPeriodicity*freq);
       hr = pIAudioClient_GetBufferSize(handle->pAudioClient, &bufferFrameCnt);
       if (hr == S_OK)
       {
-         handle->periods = rintf((float)bufferFrameCnt/(float)periodFrameCnt);
-         if (handle->periods < 1)
+         int periods = rintf((float)bufferFrameCnt/(float)periodFrameCnt);
+         if (periods < 1)
          {
             _AAX_DRVLOG(WASAPI_UNSUPPORTED_NO_PERIODS);
             periodFrameCnt = bufferFrameCnt;
-            handle->periods = 1;
+            handle->periods = periods = 1;
          }
          handle->min_periods = _MIN(handle->min_periods, handle->periods);
          handle->max_periods = _MAX(handle->max_periods, handle->periods);
@@ -2548,18 +2450,17 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
          handle->hw_buffer_frames = bufferFrameCnt;
          handle->buffer_frames = 4*bufferFrameCnt;
          handle->hnsPeriod = hnsPeriodicity;
-
          if (handle->Mode == eRender)
          {
-            *period_frames = periodFrameCnt;
+            if (frames) *frames = periodFrameCnt;
             hr = pIAudioClient_GetService(handle->pAudioClient,
                                           pIID_IAudioRenderClient,
                                           (void**)&handle->uType.pRender);
          }
          else /* handle->Mode == eCapture */
          {
-            handle->threshold = *period_frames*5/4;	/* same as ALSA */
-            handle->packet_sz = (hnsPeriodicity*rate + 10000000-1)/10000000;
+            handle->threshold = *frames*5/4;            /* same as ALSA */
+            handle->packet_sz = (hnsPeriodicity*freq + 10000000-1)/10000000;
 
             hr = pIAudioClient_GetService(handle->pAudioClient,
                                           pIID_IAudioCaptureClient,
@@ -2631,6 +2532,53 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
    }
    else {
       _AAX_DRVLOG(WASAPI_INITIALIZATION_FAILED);
+   }
+
+   switch (handle->Fmt.Format.wBitsPerSample)
+   {
+   case 16:
+      handle->cvt_to_intl = _batch_cvt16_intl_24;
+      handle->cvt_from_intl = _batch_cvt24_16_intl;
+      break;
+   case 32:
+      if (IsEqualGUID(&handle->Fmt.SubFormat,
+                      pKSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+      {
+         handle->cvt_to_intl = _batch_cvtps_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_ps_intl;
+      }
+      else if (handle->Fmt.Samples.wValidBitsPerSample == 24)
+      {
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_24_intl;
+      }
+      else
+      {
+         handle->cvt_to_intl = _batch_cvt32_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_32_intl;
+      }
+      break;
+   case 24:
+      handle->cvt_to_intl = _batch_cvt24_3intl_24;
+      handle->cvt_from_intl = _batch_cvt24_24_3intl;
+      break;
+   case 8:
+      handle->cvt_to_intl = _batch_cvt8_intl_24;
+      handle->cvt_from_intl = _batch_cvt24_8_intl;
+      break;
+   default:
+      _AAX_DRVLOG(WASAPI_UNSUPPORTED_FORMAT);
+
+      break;
+   }
+
+   handle->render = _aaxSoftwareInitRenderer(handle->hnsLatency/10000000.0f,
+                                             handle->setup, registered);
+   if (handle->render)
+   {
+      const char *rstr = handle->render->info(handle->render->id);
+
+      snprintf(_wasapi_id_str, MAX_ID_STRLEN, "%s %s", DEFAULT_RENDERER, rstr);
    }
 
    if (co_init) {
