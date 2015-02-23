@@ -68,14 +68,22 @@ _socket_open(const char *server, int oflags, ...)
       {
          struct addrinfo hints, *host;
          char sport[16];
-         int res;
+         int res = 0;
 
-         snprintf(sport, 15, "%d", port);
-         sport[15] = '\0';
+#ifdef WIN32
+         WSADATA wsaData;
+         res = WSAStartup(MAKEWORD(1,1), &wsaData);
+#endif
 
-         memset(&hints, 0, sizeof hints);
-         hints.ai_socktype = SOCK_STREAM;
-         res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
+         if (res == 0)
+         {
+            snprintf(sport, 15, "%d", port);
+            sport[15] = '\0';
+
+            memset(&hints, 0, sizeof hints);
+            hints.ai_socktype = SOCK_STREAM;
+            res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
+         }
          if (res == 0)
          {
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
@@ -119,7 +127,7 @@ _socket_close(int fd)
 ssize_t
 _socket_read(int fd, void *buf, size_t size)
 {
-   ssize_t res = read(fd, buf, size);
+   ssize_t res = recv(fd, buf, size, 0);
    if ((res < 0) && (errno == EAGAIN || errno == EWOULDBLOCK)) {
       res = 0;
    }
@@ -129,7 +137,7 @@ _socket_read(int fd, void *buf, size_t size)
 ssize_t
 _socket_write(int fd, const void *buf, size_t size)
 {
-   return write(fd, buf, size);
+   return send(fd, buf, size, 0);
 }
 
 off_t
