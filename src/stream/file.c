@@ -929,50 +929,57 @@ _aaxFileDriverGetName(const void *id, int type)
             ret = _aax_strdup("default");
          }
          break;
-      case AAX_MUSIC_PERFORMER_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
-         if (!ret && handle->artist[0] != '\0') ret = handle->artist;
-         break;
-      case AAX_TRACK_TITLE_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
-         if (!ret && handle->title[0] != '\0') ret = handle->title;
-         break;
-      case AAX_MUSIC_GENRE_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
-         if (!ret) ret = handle->genre;
-         break;
-      case AAX_TRACK_NUMBER_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_TRACKNO);
-         break;
-      case AAX_ALBUM_NAME_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_ALBUM);
-         if (!ret) ret = handle->description;
-         break;
-      case AAX_RELEASE_DATE_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_DATE);
-         break;
-      case AAX_SONG_COMPOSER_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_COMPOSER);
-         if (!ret) ret = handle->station;
-         break;
-      case AAX_SONG_COPYRIGHT_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
-         break;
-      case AAX_SONG_COMMENT_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_COMMENT);
-         break;
-      case AAX_ORIGINAL_PERFORMER_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_ORIGINAL);
-         break;
-      case AAX_WEBSITE_STRING:
-         ret = handle->fmt->name(handle->fmt->id, __F_WEBSITE);
-         if (!ret) ret = handle->website;
-         break;
-      case AAX_COVER_IMAGE_DATA:
-         ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);
-         break;
       default:
-         break;
+         if (handle->fmt && handle->fmt->id)
+         {
+            switch (type)
+            {
+            case AAX_MUSIC_PERFORMER_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
+               if (!ret && handle->artist[0] != '\0') ret = handle->artist;
+               break;
+            case AAX_TRACK_TITLE_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
+               if (!ret && handle->title[0] != '\0') ret = handle->title;
+               break;
+            case AAX_MUSIC_GENRE_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
+               if (!ret) ret = handle->genre;
+               break;
+            case AAX_TRACK_NUMBER_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_TRACKNO);
+               break;
+            case AAX_ALBUM_NAME_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_ALBUM);
+               if (!ret) ret = handle->description;
+               break;
+            case AAX_RELEASE_DATE_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_DATE);
+               break;
+            case AAX_SONG_COMPOSER_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_COMPOSER);
+               if (!ret) ret = handle->station;
+                  break;
+            case AAX_SONG_COPYRIGHT_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
+               break;
+            case AAX_SONG_COMMENT_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_COMMENT);
+               break;
+            case AAX_ORIGINAL_PERFORMER_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_ORIGINAL);
+               break;
+            case AAX_WEBSITE_STRING:
+               ret = handle->fmt->name(handle->fmt->id, __F_WEBSITE);
+               if (!ret) ret = handle->website;
+               break;
+            case AAX_COVER_IMAGE_DATA:
+               ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);
+               break;
+            default:
+               break;
+            }
+         }
       }
    }
 
