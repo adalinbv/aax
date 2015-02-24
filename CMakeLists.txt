@@ -537,22 +537,23 @@ INSTALL(TARGETS ${LIBAEONWAVE}
 )
 IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "!include 'x64.nsh'
-      ${If} ${RunningX64}
-          CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
-      ${Else}
-          CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
-      ${EndIf}
-      ")
+    ${If} ${RunningX64}
+      CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
+    ${Else}
+      CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+    ${EndIf}
+    next1:
+    ")
   SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "!include 'x64.nsh'
-      ${If} ${RunningX64}
-          IfFileExists \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\" 0 next
-            Delete \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
-      ${Else}
-          IfFileExists \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\" 0 next
-            Delete \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
-      ${EndIf}
-      next:
-      ")
+    ${If} ${RunningX64}
+      IfFileExists \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\" 0 next2
+         Delete \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
+    ${Else}
+      IfFileExists \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\" 0 next2
+         Delete \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+    ${EndIf}
+    next2:
+    ")
 ENDIF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
 INSTALL(FILES 
