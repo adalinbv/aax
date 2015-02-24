@@ -361,7 +361,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
             }
             rv = AAX_TRUE;
          }
-         else				/* capture buffer on playback */
+         else if (handle->sensors)		/* capture buffer on playback */
          {
             const _intBufferData* dptr;
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
