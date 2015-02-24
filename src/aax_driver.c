@@ -214,21 +214,26 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
             _aaxDriverBackendClearConfigSettings(cfg);
          }
 
-         if ((name != NULL) && strcasecmp(name, "default")
-#ifdef WIN32
-              && strcasecmp(name, "Generic Software")
-              && strcasecmp(name, "Generic Hardware")
-#endif
-            )
+         if ((name != NULL) && strcasecmp(name, "default"))
          {
             char *ptr;
 
             handle->devname[0] = _aax_strdup(name);
+
             ptr = strstr(handle->devname[0], " on ");
             if (ptr)
             {
                *ptr = 0;
                handle->devname[1] = ptr+4;	/* 4 = strlen(" on ") */
+
+               if (!strcasecmp(handle->devname[0], "Generic Software") ||
+                   !strcasecmp(handle->devname[0], "Generic Hardware"))
+               {
+                  // strlen("WASAPI") is always less than
+                  // strlen("Generic Hardware")
+                  sprintf(handle->devname[0], "WASAPI\0");
+                  _aaxConnectorDeviceToDeviceConnector(handle->devname[1]);
+               }
             }
             handle->backend.ptr = _aaxGetDriverBackendByName(handle->backends,
                                                             handle->devname[0],

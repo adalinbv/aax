@@ -1,4 +1,10 @@
-* Fri Jan 02 2015 - tech@adalin.org
+* Tue Feb 24 2015 - tech@adalin.org
+- AeonWave (2.5.1) stable; urgency=low
+ * Better support for 'Generic Software' and 'Generic Hardware' on Windows.
+
+ -- Erik Hofman <tech@adalin.org>  Tue, 24 Feb 2015 13:41:00 + 0100
+
+* Fri Feb 20 2015 - tech@adalin.org
 - AeonWave (2.5.0) stable; urgency=low
  * Added a capabilities interface to detect the limits of the audio hardware
    by making calls to the aaxMixerGetSetup function.
@@ -22,7 +28,7 @@
  * The file backend can now return song meta data.
  * Install to the proper system directory on 64-bit Windows
 
- -- Erik Hofman <tech@adalin.org>  Fri, 02 Jan 2015 13:15:00 + 0100
+ -- Erik Hofman <tech@adalin.org>  Fri, 20 Feb 2015 09:15:00 + 0100
 
 * Tue Jun 10 2014 - tech@adalin.org
 - AeonWave (2.4.1) stable; urgency=low

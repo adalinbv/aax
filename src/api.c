@@ -261,3 +261,27 @@ _aaxDeviceConnectorToBackendDriver(char **device, char **iface)
    }
 }
 
+/*
+ * Input: <connector> (<card>)
+ * Output: <card>: <connector>
+ */
+void
+_aaxConnectorDeviceToDeviceConnector(char *iface)
+{
+   char _str[2048], *ptr;
+
+   assert(iface);
+
+   snprintf(_str, 2048, "%s", iface);
+   ptr = strstr(_str, " (");
+   if (ptr)
+   {
+      *ptr = 0;
+      ptr += strlen(ptr+1);
+      if (*ptr == ')')
+      {
+         *ptr = 0;
+         sprintf(iface, "%s: %s", ptr, _str);
+      }
+   }
+}
