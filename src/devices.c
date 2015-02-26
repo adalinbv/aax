@@ -28,7 +28,7 @@
 
 #include <base/logging.h>
 
-#include "stream/file.h"
+#include "stream/device.h"
 #include "dmedia/device.h"
 #include "alsa/device.h"
 #include "oss/device.h"
@@ -637,7 +637,7 @@ _aaxIntDriverGetBackends()
       if (r == UINT_MAX) return NULL;
 
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxNoneDriverBackend);
-      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxFileDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxStreamDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLoopbackDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);

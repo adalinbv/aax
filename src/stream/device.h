@@ -23,11 +23,18 @@ extern "C" {
 
 #include <driver.h>
 
+#define MAX_ID_STRLEN	64
+#define PERIOD_SIZE	4096
+#define IOBUF_SIZE	4*PERIOD_SIZE
+#ifndef O_BINARY
+# define O_BINARY	0
+#endif
+
 extern const _aaxDriverBackend _aaxNoneDriverBackend;
 extern const _aaxDriverBackend _aaxLoopbackDriverBackend;
-extern const _aaxDriverBackend _aaxFileDriverBackend;
-extern const _intBuffers _aaxFileDriverExtensionString;
-extern const _intBuffers _aaxFileDriverEnumValues;
+extern const _aaxDriverBackend _aaxStreamDriverBackend;
+extern const _intBuffers _aaxStreamDriverExtensionString;
+extern const _intBuffers _aaxStreamDriverEnumValues;
 
 #if defined(__cplusplus)
 }  /* extern "C" */

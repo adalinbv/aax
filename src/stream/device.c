@@ -44,7 +44,7 @@
 #include <arch.h>
 
 #include <software/renderer.h>
-#include "file.h"
+#include "device.h"
 #include "format.h"
 #include "audio.h"
 
@@ -53,33 +53,28 @@
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 #define MAX_ID_STRLEN		64
 
-#define PERIOD_SIZE		4096
-#define IOBUF_SIZE		4*PERIOD_SIZE
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
 #define WAVE_EXT_HEADER_SIZE	17
-#ifndef O_BINARY
-# define O_BINARY	0
-#endif
 
 
-static _aaxDriverDetect _aaxFileDriverDetect;
-static _aaxDriverNewHandle _aaxFileDriverNewHandle;
-static _aaxDriverGetDevices _aaxFileDriverGetDevices;
-static _aaxDriverGetInterfaces _aaxFileDriverGetInterfaces;
-static _aaxDriverConnect _aaxFileDriverConnect;
-static _aaxDriverDisconnect _aaxFileDriverDisconnect;
-static _aaxDriverSetup _aaxFileDriverSetup;
-static _aaxDriverCaptureCallback _aaxFileDriverCapture;
-static _aaxDriverPlaybackCallback _aaxFileDriverPlayback;
-static _aaxDriverSetPosition _aaxFileDriverSetPosition;
-static _aaxDriverGetName _aaxFileDriverGetName;
-static _aaxDriverRender _aaxFileDriverRender;
-static _aaxDriverState _aaxFileDriverState;
-static _aaxDriverParam _aaxFileDriverParam;
+static _aaxDriverDetect _aaxStreamDriverDetect;
+static _aaxDriverNewHandle _aaxStreamDriverNewHandle;
+static _aaxDriverGetDevices _aaxStreamDriverGetDevices;
+static _aaxDriverGetInterfaces _aaxStreamDriverGetInterfaces;
+static _aaxDriverConnect _aaxStreamDriverConnect;
+static _aaxDriverDisconnect _aaxStreamDriverDisconnect;
+static _aaxDriverSetup _aaxStreamDriverSetup;
+static _aaxDriverCaptureCallback _aaxStreamDriverCapture;
+static _aaxDriverPlaybackCallback _aaxStreamDriverPlayback;
+static _aaxDriverSetPosition _aaxStreamDriverSetPosition;
+static _aaxDriverGetName _aaxStreamDriverGetName;
+static _aaxDriverRender _aaxStreamDriverRender;
+static _aaxDriverState _aaxStreamDriverState;
+static _aaxDriverParam _aaxStreamDriverParam;
 
 static char _file_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
-const _aaxDriverBackend _aaxFileDriverBackend =
+const _aaxDriverBackend _aaxStreamDriverBackend =
 {
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
@@ -89,29 +84,29 @@ const _aaxDriverBackend _aaxFileDriverBackend =
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
-   (_aaxDriverDetect *)&_aaxFileDriverDetect,
-   (_aaxDriverNewHandle *)&_aaxFileDriverNewHandle,
-   (_aaxDriverGetDevices *)&_aaxFileDriverGetDevices,
-   (_aaxDriverGetInterfaces *)&_aaxFileDriverGetInterfaces,
+   (_aaxDriverDetect *)&_aaxStreamDriverDetect,
+   (_aaxDriverNewHandle *)&_aaxStreamDriverNewHandle,
+   (_aaxDriverGetDevices *)&_aaxStreamDriverGetDevices,
+   (_aaxDriverGetInterfaces *)&_aaxStreamDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxFileDriverGetName,
-   (_aaxDriverRender *)&_aaxFileDriverRender,
+   (_aaxDriverGetName *)&_aaxStreamDriverGetName,
+   (_aaxDriverRender *)&_aaxStreamDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
-   (_aaxDriverConnect *)&_aaxFileDriverConnect,
-   (_aaxDriverDisconnect *)&_aaxFileDriverDisconnect,
-   (_aaxDriverSetup *)&_aaxFileDriverSetup,
-   (_aaxDriverCaptureCallback *)&_aaxFileDriverCapture,
-   (_aaxDriverPlaybackCallback *)&_aaxFileDriverPlayback,
+   (_aaxDriverConnect *)&_aaxStreamDriverConnect,
+   (_aaxDriverDisconnect *)&_aaxStreamDriverDisconnect,
+   (_aaxDriverSetup *)&_aaxStreamDriverSetup,
+   (_aaxDriverCaptureCallback *)&_aaxStreamDriverCapture,
+   (_aaxDriverPlaybackCallback *)&_aaxStreamDriverPlayback,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
-   (_aaxDriverSetPosition *)&_aaxFileDriverSetPosition,
+   (_aaxDriverSetPosition *)&_aaxStreamDriverSetPosition,
 
-   (_aaxDriverState *)&_aaxFileDriverState,
-   (_aaxDriverParam *)&_aaxFileDriverParam,
-   (_aaxDriverLog *)&_aaxFileDriverLog
+   (_aaxDriverState *)&_aaxStreamDriverState,
+   (_aaxDriverParam *)&_aaxStreamDriverParam,
+   (_aaxDriverLog *)&_aaxStreamDriverLog
 };
 
 typedef struct
@@ -158,16 +153,21 @@ typedef struct
 
 } _driver_t;
 
-const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
+static _protocol_t _url_split(char*, char**, char**, char**, int*);
+static int http_send_request(_io_t*, int, const char*, const char*, const char*, const char*);
+static int http_get_response(_io_t*, int, char*, int);
 static _aaxFmtHandle* _aaxGetFormat(const char*, enum aaxRenderMode);
-static void* _aaxFileDriverWriteThread(void*);
-static void* _aaxFileDriverReadThread(void*);
-static void _aaxFileDriverWriteChunk(const void*);
-static ssize_t _aaxFileDriverReadChunk(const void*);
+
+static void* _aaxStreamDriverWriteThread(void*);
+static void* _aaxStreamDriverReadThread(void*);
+static void _aaxStreamDriverWriteChunk(const void*);
+static ssize_t _aaxStreamDriverReadChunk(const void*);
 static const char *_get_json(const char*, const char*);
 
+const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
+
 static int
-_aaxFileDriverDetect(int mode)
+_aaxStreamDriverDetect(int mode)
 {
    _aaxExtensionDetect* ftype;
    int i, rv = AAX_FALSE;
@@ -190,7 +190,7 @@ _aaxFileDriverDetect(int mode)
 }
 
 static void *
-_aaxFileDriverNewHandle(enum aaxRenderMode mode)
+_aaxStreamDriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
    if (handle)
@@ -225,7 +225,7 @@ _aaxFileDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
+_aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;
@@ -289,7 +289,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
    }
 
    if (!handle) {
-      handle = _aaxFileDriverNewHandle(mode);
+      handle = _aaxStreamDriverNewHandle(mode);
    }
 
    if (handle)
@@ -361,8 +361,8 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
       }
       else
       {
-         _aaxFileDriverLog(id, 0, 0, "Unsupported file format");
-         _aaxFileDriverDisconnect(handle);
+         _aaxStreamDriverLog(id, 0, 0, "Unsupported file format");
+         _aaxStreamDriverDisconnect(handle);
          handle = 0;
       }
    }
@@ -371,7 +371,7 @@ _aaxFileDriverConnect(const void *id, void *xid, const char *device, enum aaxRen
 }
 
 static int
-_aaxFileDriverDisconnect(void *id)
+_aaxStreamDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int ret = AAX_TRUE;
@@ -431,7 +431,7 @@ _aaxFileDriverDisconnect(void *id)
 }
 
 static int
-_aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
+_aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                     unsigned int *tracks, float *speed, int *bitrate,
                     int registered, float period_rate)
 {
@@ -538,7 +538,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   {
                      handle->io.close(handle->fd);
                      handle->fd = -1;
-                     _aaxFileDriverLog(id, 0, 0, buf+strlen("HTTP/1.0 "));
+                     _aaxStreamDriverLog(id, 0, 0, buf+strlen("HTTP/1.0 "));
                      free(handle->fmt->id);
                      handle->fmt->id = 0;
                   }
@@ -556,9 +556,9 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             else
             {
                if (handle->mode != AAX_MODE_READ) {
-                  _aaxFileDriverLog(id, 0, 0, "File already exists");
+                  _aaxStreamDriverLog(id, 0, 0, "File already exists");
                } else {
-                  _aaxFileDriverLog(id, 0, 0, "File read error");
+                  _aaxStreamDriverLog(id, 0, 0, "File read error");
                }
                free(handle->fmt->id);
                handle->fmt->id = 0;
@@ -594,7 +594,7 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                while (res == 0);
                if (res < 0)
                {
-                  _aaxFileDriverLog(id, 0, 0, "Timeout");
+                  _aaxStreamDriverLog(id, 0, 0, "Timeout");
                   break;
                }
 
@@ -641,10 +641,10 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
             _aaxSignalInit(&handle->thread.signal);
             if (handle->mode == AAX_MODE_READ) {
                res = _aaxThreadStart(handle->thread.ptr,
-                                     _aaxFileDriverReadThread, handle, 20);
+                                     _aaxStreamDriverReadThread, handle, 20);
             } else {
                res = _aaxThreadStart(handle->thread.ptr,
-                                     _aaxFileDriverWriteThread, handle, 20);
+                                     _aaxStreamDriverWriteThread, handle, 20);
             }
 
             if (res == 0)
@@ -661,11 +661,11 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
                rv = AAX_TRUE;
             }
             else {
-               _aaxFileDriverLog(id, 0, 0, "Internal error: thread failed");
+               _aaxStreamDriverLog(id, 0, 0, "Internal error: thread failed");
             }
          }
          else {
-            _aaxFileDriverLog(id, 0, 0, "Incorrect header");
+            _aaxStreamDriverLog(id, 0, 0, "Incorrect header");
          }
 
          if (!rv)
@@ -678,14 +678,14 @@ _aaxFileDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
    }
    else {
-      _aaxFileDriverLog(id, 0, 0, "Unable to intialize the file format");
+      _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
    }
 
    return rv;
 }
 
 static size_t
-_aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
+_aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
                        char batched)
 {
    _driver_t *handle = (_driver_t *)id;  
@@ -772,7 +772,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
    if (batched) {
-      _aaxFileDriverWriteChunk(id);
+      _aaxStreamDriverWriteChunk(id);
    } else {
       _aaxSignalTrigger(&handle->thread.signal);
    }
@@ -781,7 +781,7 @@ _aaxFileDriverPlayback(const void *id, void *src, float pitch, float gain,
 }
 
 static ssize_t
-_aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
+_aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
@@ -869,7 +869,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
                if (batched) {
-                  _aaxFileDriverReadChunk(id);
+                  _aaxStreamDriverReadChunk(id);
                } else {
                   _aaxSignalTrigger(&handle->thread.signal);
                }
@@ -907,7 +907,7 @@ _aaxFileDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *fr
 }
 
 static char *
-_aaxFileDriverGetName(const void *id, int type)
+_aaxStreamDriverGetName(const void *id, int type)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
@@ -987,7 +987,7 @@ _aaxFileDriverGetName(const void *id, int type)
 }
 
 _aaxRenderer*
-_aaxFileDriverRender(const void* config)
+_aaxStreamDriverRender(const void* config)
 {
    _driver_t *handle = (_driver_t *)config;
    return handle->render;
@@ -995,7 +995,7 @@ _aaxFileDriverRender(const void* config)
 
 
 static int
-_aaxFileDriverState(const void *id, enum _aaxDriverState state)
+_aaxStreamDriverState(const void *id, enum _aaxDriverState state)
 {
    int rv = AAX_FALSE;
    switch(state)
@@ -1016,7 +1016,7 @@ _aaxFileDriverState(const void *id, enum _aaxDriverState state)
 }
 
 static float
-_aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
+_aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    float rv = 0.0f;
@@ -1082,7 +1082,7 @@ _aaxFileDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static int
-_aaxFileDriverSetPosition(const void *id, off_t pos)
+_aaxStreamDriverSetPosition(const void *id, off_t pos)
 {
 // _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -1123,14 +1123,14 @@ _aaxFileDriverSetPosition(const void *id, off_t pos)
 }
 
 static char *
-_aaxFileDriverGetDevices(const void *id, int mode)
+_aaxStreamDriverGetDevices(const void *id, int mode)
 {
    static const char *rd[2] = { BACKEND_NAME"\0\0", BACKEND_NAME"\0\0" };
    return (char *)rd[mode];
 }
 
 static char *
-_aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxStreamDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
@@ -1184,7 +1184,7 @@ _aaxFileDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 char *
-_aaxFileDriverLog(const void *id, int prio, int type, const char *str)
+_aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
@@ -1203,6 +1203,147 @@ _aaxFileDriverLog(const void *id, int prio, int type, const char *str)
 }
 
 /*-------------------------------------------------------------------------- */
+
+#define MAX_BUFFER	512
+
+/* NOTE: modifies url, make sure to strdup it before calling this function */
+static _protocol_t
+_url_split(char *url, char **protocol, char **server, char **path, int *port)
+{
+   _protocol_t rv;
+   char *ptr;
+
+   *protocol = NULL;
+   *server = NULL;
+   *path = NULL;
+   *port = 0;
+
+   ptr = strstr(url, "://");
+   if (ptr)
+   {
+      *protocol = (char*)url;
+      *ptr = '\0';
+      url = ptr + strlen("://");
+   }
+   else if (access(url, F_OK) != -1) {
+      *path = url;
+   }
+
+   if (!*path)
+   {
+      *server = url;
+
+      ptr = strchr(url, '/');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *path = ptr;
+      }
+
+      ptr = strchr(url, ':');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *port = atoi(ptr);
+      }
+   }
+   if ((*protocol && !strcasecmp(*protocol, "http")) || *server) {
+      rv = PROTOCOL_HTTP;
+      if (*port <= 0) *port = 80;
+   }
+   else if (!*protocol || !strcasecmp(*protocol, "file")) {
+      rv = PROTOCOL_FILE;
+   } else {
+      rv = PROTOCOL_UnSUPPORTED;
+   }
+
+   return rv;
+}
+
+static int
+http_get_response_data(_io_t *io, int fd, char *response, int size)
+{
+   static char end[4] = "\r\n\r\n";
+   char *buf = response;
+   int found = 0;
+   int res, i = 0;
+
+   do
+   {
+      i++;
+
+      do
+      {
+         res = io->read(fd, buf, 1);
+         if (res > 0) break;
+         msecSleep(50);
+      }
+      while (res == 0);
+
+      if (res == 1)
+      {
+         if (*buf == end[found]) found++;
+         else found = 0;
+      }
+      else break;
+      ++buf;
+   }
+   while ((i < size) && (found < sizeof(end)));
+
+   if (i < size) {
+      *buf = '\0';
+   }
+   response[size-1] = '\0';
+
+   return i;
+}
+
+static int
+http_send_request(_io_t *io, int fd, const char *command, const char *server, const char *path, const char *user_agent)
+{
+   char header[MAX_BUFFER];
+   int hlen, rv = 0;
+
+   snprintf(header, MAX_BUFFER,
+            "%s /%.256s HTTP/1.0\r\n"
+            "User-Agent: %s\r\n"
+            "Accept: */*\r\n"
+            "Host: %s\r\n"
+            "Connection: Keep-Alive\r\n"
+            "Icy-MetaData:1\r\n"
+            "\r\n",
+            command, path, user_agent, server);
+   header[MAX_BUFFER-1] = '\0';
+
+   hlen = strlen(header);
+   rv = io->write(fd, header, hlen);
+   if (rv != hlen) {
+      rv = -1;
+   }
+
+   return rv;
+}
+
+static int
+http_get_response(_io_t *io, int fd, char *buf, int size)
+{
+   int res, rv = -1;
+
+   res = http_get_response_data(io, fd, buf, size);
+   if (res > 0)
+   {
+      res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
+      if (res != 1)
+      {
+         res =  sscanf(buf, "ICY %03d", (int*)&rv);
+         if (res != 1) {
+            rv = -1;
+         }
+      }
+   }
+
+   return rv;
+}
 
 static const char*
 _get_json(const char *haystack, const char *needle)
@@ -1293,7 +1434,7 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
 }
 
 static void
-_aaxFileDriverWriteChunk(const void *id)
+_aaxStreamDriverWriteChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
    ssize_t buffer_avail, avail;
@@ -1374,7 +1515,7 @@ _aaxFileDriverWriteChunk(const void *id)
 }  
 
 static void*
-_aaxFileDriverWriteThread(void *id)
+_aaxStreamDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
 
@@ -1393,12 +1534,12 @@ _aaxFileDriverWriteThread(void *id)
          continue;
       }
    
-      _aaxFileDriverWriteChunk(id);
+      _aaxStreamDriverWriteChunk(id);
    }
    while(handle->thread.started);
 
    if (handle->bytes_avail) {
-      _aaxFileDriverWriteChunk(id);
+      _aaxStreamDriverWriteChunk(id);
    }
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
@@ -1407,7 +1548,7 @@ _aaxFileDriverWriteThread(void *id)
 }
 
 static ssize_t
-_aaxFileDriverReadChunk(const void *id)
+_aaxStreamDriverReadChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
    size_t size;
@@ -1493,7 +1634,7 @@ _aaxFileDriverReadChunk(const void *id)
 }
 
 static void*
-_aaxFileDriverReadThread(void *id)
+_aaxStreamDriverReadThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
 
@@ -1502,7 +1643,7 @@ _aaxFileDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
-      ssize_t res = _aaxFileDriverReadChunk(id);
+      ssize_t res = _aaxStreamDriverReadChunk(id);
       if (res < 0) break;
 
       _aaxSignalWait(&handle->thread.signal);

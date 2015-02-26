@@ -231,7 +231,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
                {
                   // strlen("WASAPI") is always less than
                   // strlen("Generic Hardware")
-                  sprintf(handle->devname[0], "WASAPI\0");
+                  sprintf(handle->devname[0], "WASAPI");
                   _aaxConnectorDeviceToDeviceConnector(handle->devname[1]);
                }
             }
