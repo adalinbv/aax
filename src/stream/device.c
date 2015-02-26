@@ -901,6 +901,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
          }
       }
+      *offset = _MINMAX(IOBUF_THRESHOLD-1-(ssize_t)handle->bytes_avail, -1, 1);
    }
 
    return bytes;
@@ -1057,7 +1058,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MAX_SAMPLES:
          rv = (float)handle->fmt->get_param(handle->fmt->id, __F_SAMPLES);
-         if (rv == UINT_MAX) rv = AAX_FPINFINITE;
+         if (rv == UINT_MAX) rv = 0.0f;
          break;
       case DRIVER_SAMPLE_DELAY:
          rv = (float)handle->no_samples;
@@ -1558,7 +1559,7 @@ _aaxStreamDriverReadChunk(const void *id)
       return 0;
    }
 
-   size = IOBUF_SIZE - handle->bytes_avail;
+   size = IOBUF_THRESHOLD - handle->bytes_avail;
    res = handle->io.read(handle->fd, handle->buf+handle->bytes_avail, size);
 
    if (res > 0)
@@ -1579,7 +1580,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
             slen = *ptr * 16;
 
-            if ((ptr+slen) >= ((char*)handle->buf+IOBUF_SIZE)) {
+            if ((ptr+slen) >= ((char*)handle->buf+IOBUF_THRESHOLD)) {
                break;
             }
 
@@ -1649,11 +1650,12 @@ _aaxStreamDriverReadThread(void *id)
    /* read all bytes already sent from the server */
    if (handle->io.protocol != PROTOCOL_FILE)
    {
-      do {
-         res = _aaxStreamDriverReadChunk(id);
+      do
+      {
          handle->bytes_avail = 0;
+         res = _aaxStreamDriverReadChunk(id);
       }
-      while (res > IOBUF_THRESHOLD);
+      while (res > PERIOD_SIZE);
    }
 
    do
