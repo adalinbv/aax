@@ -34,9 +34,9 @@
 #include <base/timer.h>		/* for msecSleep, etc */
 
 #include "api.h"
-#include "devices.h"
-#include "stream/file.h"
 #include "arch.h"
+#include "devices.h"
+#include "stream/device.h"
 #include "ringbuffer.h"
 
 static int _aaxMixerInit(_handle_t*);
@@ -889,7 +889,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
       {
          sframe = get_write_handle(s);
          if (sframe && !sframe->thread.started && (sframe != handle) &&
-             (sframe->backend.ptr == &_aaxFileDriverBackend))
+             (sframe->backend.ptr == &_aaxStreamDriverBackend))
          {
             _intBufferData *dptr;
 

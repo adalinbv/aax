@@ -417,6 +417,7 @@ SET( AEONWAVE_OBJS
      base/gmath.c
      base/logging.c
 #    base/memory.c
+     base/socket.c
      base/threads.c
      base/timer.c
      base/types.c
@@ -442,8 +443,7 @@ SET( AEONWAVE_OBJS
      src/alsa/kernel.c
      src/dmedia/device.c
      src/oss/device.c
-     src/stream/file.c
-     src/stream/socket.c
+     src/stream/device.c
      src/stream/format.c
      src/stream/fmt_wav.c
      src/stream/fmt_mp3.c

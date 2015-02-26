@@ -524,14 +524,14 @@ _aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
             {
                free(handle->fmt->id);
                handle->fmt->id = 0;
-               _aaxFileDriverLog(id, 0, 0, "Error intializing the extended format");
+               _aaxStreamDriverLog(id, 0, 0, "Error intializing the extended format");
             }
          }
          else {
             free(handle->fmt);
          }
 #endif
-         _aaxFileDriverLog(id, 0, 0, "Error intializing the extended format");
+         _aaxStreamDriverLog(id, 0, 0, "Error intializing the extended format");
       }
    }
    else

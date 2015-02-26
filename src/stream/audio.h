@@ -53,8 +53,8 @@ extern "C" {
 #define KSDATAFORMAT_SUBTYPE3           0x00389b71
 
 
-#define _AAX_FILEDRVLOG(a)          _aaxFileDriverLog(NULL, 0, 0, a);
-_aaxDriverLog _aaxFileDriverLog;
+#define _AAX_FILEDRVLOG(a)          _aaxStreamDriverLog(NULL, 0, 0, a);
+_aaxDriverLog _aaxStreamDriverLog;
 
 
 enum wavFormat
@@ -79,8 +79,6 @@ typedef enum
    PROTOCOL_FILE = 0,
    PROTOCOL_HTTP
 } _protocol_t;
-
-_protocol_t _url_split(char*, char**, char**, char**, int*);
 
 typedef int _open_fn(const char*, int, ...);
 typedef int _close_fn(int);
@@ -107,10 +105,6 @@ typedef struct
 
    _protocol_t protocol;
 } _io_t;
-
-/* HTTP */
-int http_send_request(_io_t*, int, const char*, const char*, const char*, const char*);
-int http_get_response(_io_t*, int, char*, int);
 
 
 #if defined(__cplusplus)
