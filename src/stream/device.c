@@ -862,10 +862,10 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                data = scratch;
 
                _aaxMutexLock(handle->thread.signal.mutex);
-               ret = _MIN(handle->bufpos, bufsize);
+               ret = _MIN(handle->bytes_avail, bufsize);
                memcpy(data, handle->buf, ret);
-               memmove(handle->buf, handle->buf+ret, handle->bufpos-ret);
-               handle->bufpos -= ret;
+               memmove(handle->buf, handle->buf+ret, handle->bytes_avail-ret);
+               handle->bytes_avail -= ret;
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
                if (batched) {
@@ -1554,15 +1554,16 @@ _aaxStreamDriverReadChunk(const void *id)
    size_t size;
    ssize_t res;
 
-   if (handle->bufpos >= IOBUF_SIZE) {
+   if (handle->bytes_avail >= IOBUF_SIZE) {
       return 0;
    }
 
-   size = IOBUF_SIZE - handle->bufpos;
-   res = handle->io.read(handle->fd, handle->buf+handle->bufpos, size);
+   size = IOBUF_SIZE - handle->bytes_avail;
+   res = handle->io.read(handle->fd, handle->buf+handle->bytes_avail, size);
+
    if (res > 0)
    {
-      handle->bufpos += res;
+      handle->bytes_avail += res;
 
       if (handle->meta_interval)
       {
@@ -1573,12 +1574,14 @@ _aaxStreamDriverReadChunk(const void *id)
             char *ptr = (char*)handle->buf;
             int slen, blen;
 
-            ptr += handle->bufpos;
+            ptr += handle->bytes_avail;
             ptr -= offs;
 
             slen = *ptr * 16;
 
-            if ((ptr+slen) >= ((char*)handle->buf+IOBUF_SIZE)) break;
+            if ((ptr+slen) >= ((char*)handle->buf+IOBUF_SIZE)) {
+               break;
+            }
 
             if (slen)
             {
@@ -1622,8 +1625,8 @@ _aaxStreamDriverReadChunk(const void *id)
             handle->meta_pos -= (handle->meta_interval+slen);
 
             /* move the rest of the buffer len-bytes back */
-            handle->bufpos -= slen;
-            blen = handle->bufpos;
+            handle->bytes_avail -= slen;
+            blen = handle->bytes_avail;
             blen -= (ptr - (char*)handle->buf);
             memmove(ptr, ptr+slen, blen);
          }
@@ -1637,10 +1640,22 @@ static void*
 _aaxStreamDriverReadThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
+   size_t res;
 
    _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
    _aaxMutexLock(handle->thread.signal.mutex);
+
+   /* read all bytes already sent from the server */
+   if (handle->io.protocol != PROTOCOL_FILE)
+   {
+      do {
+         res = _aaxStreamDriverReadChunk(id);
+         handle->bytes_avail = 0;
+      }
+      while (res > IOBUF_THRESHOLD);
+   }
+
    do
    {
       ssize_t res = _aaxStreamDriverReadChunk(id);
