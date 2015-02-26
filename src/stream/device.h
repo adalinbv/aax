@@ -25,7 +25,8 @@ extern "C" {
 
 #define MAX_ID_STRLEN	64
 #define PERIOD_SIZE	4096
-#define IOBUF_SIZE	4*PERIOD_SIZE
+#define IOBUF_THRESHOLD	(2*PERIOD_SIZE)
+#define IOBUF_SIZE	(2*IOBUF_THRESHOLD)
 #ifndef O_BINARY
 # define O_BINARY	0
 #endif
