@@ -178,7 +178,7 @@ _aaxMP3Setup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          handle->bitrate = bitrate;
          handle->format = format;
          handle->no_samples = no_samples;
-         handle->max_samples = UINT_MAX;
+         handle->max_samples = 0;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
          if (mode == 0) {
