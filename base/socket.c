@@ -42,6 +42,8 @@
 #include <base/types.h>
 #include <base/timer.h>
 
+#include "socket.h"
+
 int
 _socket_open(const char *server, int rate, int port, int timeout_ms)
 {
@@ -81,9 +83,9 @@ _socket_open(const char *server, int rate, int port, int timeout_ms)
                
                tv.tv_sec = timeout_ms / 1000;
                tv.tv_usec = (timeout_ms * 1000) % 1000000;              
-               setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
-               setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(int));
+               setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+               setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
 #if 0
 unsigned int m;
 int n;

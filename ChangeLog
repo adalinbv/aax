@@ -1,8 +1,13 @@
-* Tue Feb 24 2015 - tech@adalin.org
+* Fri Feb 27 2015 - tech@adalin.org
 - AeonWave (2.5.1) stable; urgency=low
- * Better support for 'Generic Software' and 'Generic Hardware' on Windows.
+ * Better support for 'Generic Software' and 'Generic Hardware' for Windows
+   OpenAL emulation.
+ * Fix stream length reporting on 32-bit architerctures.
+ * Lower the socket receive buffer to minimize stream delays.
+ * Set the network timeout to at least 0.5 seconds.
+ * Fix a rare crash when destroying the sensor.
 
- -- Erik Hofman <tech@adalin.org>  Tue, 24 Feb 2015 13:41:00 + 0100
+ -- Erik Hofman <tech@adalin.org>  Fri, 27 Feb 2015 12:27:00 + 0100
 
 * Fri Feb 20 2015 - tech@adalin.org
 - AeonWave (2.5.0) stable; urgency=low
