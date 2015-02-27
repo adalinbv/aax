@@ -43,11 +43,11 @@
 #include <base/timer.h>
 
 int
-_socket_open(const char *server, int oflags, int port, int timeout_ms)
+_socket_open(const char *server, int rate, int port, int timeout_ms)
 {
    int fd = -1;
 
-   if (server && (oflags == O_RDWR) && (port > 0))
+   if (server && (rate > 4000) && (port > 0))
    {
       int slen = strlen(server);
       if (slen < 256)
@@ -72,15 +72,26 @@ _socket_open(const char *server, int oflags, int port, int timeout_ms)
          }
          if (res == 0)
          {
+            if (timeout_ms < 500) timeout_ms = 500;
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
             if (fd >= 0)
             {
+               int size = 2*rate*timeout_ms/1000.0f;
                struct timeval tv;
                
                tv.tv_sec = timeout_ms / 1000;
                tv.tv_usec = (timeout_ms * 1000) % 1000000;              
                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
+               setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(int));
+#if 0
+unsigned int m;
+int n;
+
+m = sizeof(n);
+getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&n, &m);
+printf("socket receive buffer size: %u\n", n);
+#endif
                if (connect(fd, host->ai_addr, host->ai_addrlen) < 0)
                {
                   close(fd);
