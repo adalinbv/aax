@@ -1058,7 +1058,6 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MAX_SAMPLES:
          rv = (float)handle->fmt->get_param(handle->fmt->id, __F_SAMPLES);
-         if (rv == UINT_MAX) rv = 0.0f;
          break;
       case DRIVER_SAMPLE_DELAY:
          rv = (float)handle->no_samples;

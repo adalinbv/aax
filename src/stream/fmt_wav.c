@@ -588,7 +588,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          handle->no_tracks = tracks;
          handle->format = format;
          handle->bitrate = bitrate;
-         handle->max_samples = UINT_MAX;
+         handle->max_samples = 0;
 
          if (!handle->capturing)
          {
@@ -597,7 +597,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          }
          else
          {
-            handle->max_samples = UINT_MAX;
+            handle->max_samples = 0;
             handle->io.read.no_samples = UINT_MAX;
             *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
