@@ -480,7 +480,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io.write = _socket_write;
             handle->io.seek = _socket_seek;
             handle->io.stat = _socket_stat;
-            handle->fd = handle->io.open(server, O_RDWR, port, (int)period_ms);
+            handle->fd = handle->io.open(server, rate, port, (int)period_ms);
             if (handle->fd >= 0)
             {
                int res = http_send_request(&handle->io, handle->fd,
@@ -901,7 +901,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
          }
       }
-      *offset = _MINMAX(IOBUF_THRESHOLD-1-(ssize_t)handle->bytes_avail, -1, 1);
+      *offset = _MINMAX(IOBUF_THRESHOLD-(ssize_t)handle->bytes_avail, -1, 1);
    }
 
    return bytes;
@@ -1655,7 +1655,7 @@ _aaxStreamDriverReadThread(void *id)
          handle->bytes_avail = 0;
          res = _aaxStreamDriverReadChunk(id);
       }
-      while (res > PERIOD_SIZE);
+      while (res > IOBUF_THRESHOLD);
    }
 
    do
