@@ -316,7 +316,7 @@ int main(int argc, char **argv)
         res = aaxSensorSetState(record, AAX_CAPTURING);
         testForState(res, "aaxSensorCaptureStart");
 
-        if (infile && verbose)
+        if (record && verbose)
         {
             const char *s;
 
