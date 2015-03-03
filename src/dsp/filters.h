@@ -20,6 +20,9 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <base/geometry.h>
+#include "common.h"
+
 #define _AAX_MAX_FILTERS	2
 
 typedef struct
@@ -33,6 +36,25 @@ typedef struct
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int);
 void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[2]);
+
+typedef struct
+{
+  enum aaxFilterType type;
+  int pos;
+
+} _flt_cvt_tbl_t;
+
+typedef struct
+{
+   vec4_t min;
+   vec4_t max;
+
+} _flt_minmax_tbl_t;
+
+cvtfn_t filter_get_cvtfn(enum aaxFilterType, int, int, char);
+
+extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
+extern const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
 
 /* filters */
 #define _FILTER_GET_SLOT(F, s, p)       F->slot[s]->param[p]

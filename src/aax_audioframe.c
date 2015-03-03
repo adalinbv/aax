@@ -24,7 +24,8 @@
 
 #include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep */
-#include <dsp/common.h>
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 
 #include "ringbuffer.h"
 #include "arch.h"

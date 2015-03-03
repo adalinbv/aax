@@ -297,8 +297,6 @@ void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 #define FILTER_ID	0x887AFE21
 #define EFFECT_ID	0x21EFA788
 
-#define _MAX_FE_SLOTS	3
-
 typedef struct
 {
    int id;
