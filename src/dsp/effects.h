@@ -20,6 +20,10 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <base/geometry.h>
+
+#include "common.h"
+
 #define DELAY_EFFECTS_TIME      0.070f
 #define REVERB_EFFECTS_TIME     0.700f
 #if 0
@@ -38,6 +42,21 @@ typedef struct
 
 void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int);
+
+typedef struct {
+  enum aaxEffectType type;
+  int pos;
+} _eff_cvt_tbl_t;
+
+typedef struct {
+   vec4_t min;
+   vec4_t max;
+} _eff_minmax_tbl_t;
+
+cvtfn_t effect_get_cvtfn(enum aaxEffectType, int, int, char);
+
+extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
+extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 /* effects */
 #define _EFFECT_GET_SLOT                _FILTER_GET_SLOT

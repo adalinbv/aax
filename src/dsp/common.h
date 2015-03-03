@@ -22,18 +22,10 @@ extern "C" {
 
 #include <driver.h>
 
-#include "filters.h"
-#include "effects.h"
-
-#define DELAY_EFFECTS_TIME      0.070f
-#define REVERB_EFFECTS_TIME     0.700f
-
-#define _AAX_MAX_FILTERS        2
-#if 0
-#define NO_DELAY_EFFECTS_TIME
-#undef DELAY_EFFECTS_TIME
-#define DELAY_EFFECTS_TIME      0.0f
-#endif
+#define WRITEFN         0
+#define READFN		!WRITEFN
+#define EPS		1e-5
+#define _MAX_FE_SLOTS	3
 
 enum _aax3dFiltersEffects
 {
@@ -104,6 +96,8 @@ float _cos_deg2rad_2(float v);
 float _2acos_rad2deg(float v);
 float _cos_2(float v);
 float _2acos(float v);
+
+typedef float (*cvtfn_t)(float);
 
 #endif /* _AAX_FE_COMMON_H */
 

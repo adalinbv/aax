@@ -32,21 +32,6 @@
 #define EPS		1e-5
 #define READFN		!WRITEFN
 
-typedef struct {
-  enum aaxFilterType type;
-  int pos;
-} _flt_cvt_tbl_t;
-typedef struct {
-   vec4_t min;
-   vec4_t max;
-} _flt_minmax_tbl_t;
-typedef float (*cvtfn_t)(float);
-
-static cvtfn_t get_cvtfn(enum aaxFilterType, int, int, char);
-
-static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
-static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
-
 AAX_API aaxFilter AAX_APIENTRY
 aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
 {
@@ -207,7 +192,7 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
             {
                float min = _flt_minmax_tbl[slot][type].min[i];
                float max = _flt_minmax_tbl[slot][type].max[i];
-               cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, WRITEFN, i);
+               cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, WRITEFN, i);
                filter->slot[slot]->param[i] = _MINMAX(cvtfn(p[i]), min, max);
             }
          }
@@ -240,7 +225,7 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
          param &= 0xF;
          if ((param >= 0) && (param < 4))
          {
-            cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, WRITEFN, param);
+            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, WRITEFN, param);
             filter->slot[slot]->param[param] = cvtfn(value);
             if TEST_FOR_TRUE(filter->state) {
                aaxFilterSetState(filter, filter->state);
@@ -295,7 +280,7 @@ aaxFilterSetState(aaxFilter f, int state)
             {
                float min = _flt_minmax_tbl[slot][type].min[i];
                float max = _flt_minmax_tbl[slot][type].max[i];
-               cvtfn_t cvtfn = get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
+               cvtfn_t cvtfn = filter_get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
                filter->slot[slot]->param[i] =
                          _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
             }
@@ -880,7 +865,7 @@ aaxFilterGetParam(const aaxFilter f, int param, int ptype)
          param &= 0xF;
          if ((param >= 0) && (param < 4))
          {
-            cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, READFN, param);
+            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, READFN, param);
             rv = cvtfn(filter->slot[slot]->param[param]);
          }
          else {
@@ -921,7 +906,7 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
          int i;
          for (i=0; i<4; i++)
          {
-            cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, READFN, i);
+            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, READFN, i);
             p[i] = cvtfn(filter->slot[slot]->param[i]);
          }
          rv = filter;
@@ -937,91 +922,6 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 }
 
 /* -------------------------------------------------------------------------- */
-
-static const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] = 
-{
-  { AAX_FILTER_NONE,		MAX_STEREO_FILTER },
-  { AAX_EQUALIZER,		FREQUENCY_FILTER },
-  { AAX_VOLUME_FILTER,		VOLUME_FILTER },
-  { AAX_DYNAMIC_GAIN_FILTER,	DYNAMIC_GAIN_FILTER },
-  { AAX_TIMED_GAIN_FILTER,	TIMED_GAIN_FILTER },
-  { AAX_ANGULAR_FILTER,		ANGULAR_FILTER },
-  { AAX_DISTANCE_FILTER,	DISTANCE_FILTER },
-  { AAX_FREQUENCY_FILTER,	FREQUENCY_FILTER },
-  { AAX_GRAPHIC_EQUALIZER,	FREQUENCY_FILTER },
-  { AAX_COMPRESSOR,		DYNAMIC_GAIN_FILTER }
-};
-
-/* see above for the proper sequence */
-static const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX] =
-{   /* min[4] */	  /* max[4] */
-  {
-    /* AAX_FILTER_NONE      */
-    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,  0.0f,     0.0f } },
-    /* AAX_EQUALIZER        */
-    { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
-    /* AAX_VOLUME_FILTER    */
-    { {  0.0f,  0.0f, 0.0f, 0.0f }, {    10.0f,     1.0f, 10.0f,    10.0f } },
-    /* AAX_DYNAMIC_GAIN_FILTER   */
-    { { 0.0f,  0.01f, 0.0f, 0.0f }, {     0.0f,    50.0f,  1.0f,     1.0f } },
-    /* AAX_TIMED_GAIN_FILTER */
-    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
-    /* AAX_ANGULAR_FILTER   */
-    { { -1.0f, -1.0f, 0.0f, 0.0f }, {     1.0f,     1.0f,  1.0f,     0.0f } },
-    /* AAX_DISTANCE_FILTER  */
-    { {  0.0f,  0.1f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
-    /* AAX_FREQUENCY_FILTER */
-    { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
-    /* AAX_GRAPHIC_EQUALIZER */
-    { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,  2.0f,     2.0f } },
-    /* AAX_COMPRESSOR        */
-    { { 1e-3f, 1e-3f, 0.0f, 0.0f }, {   0.25f,     10.0f,  1.0f,     1.0f } },
-  },
-  {
-     /* AAX_FILTER_NONE      */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_EQUALIZER        */
-     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f,    10.0f, 100.0f } },
-     /* AAX_VOLUME_FILTER    */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_DYNAMIC_GAIN_FILTER   */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_TIMED_GAIN_FILTER */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,   4.0f, MAXFLOAT } },
-     /* AAX_ANGULAR_FILTER   */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_DISTANCE_FILTER  */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_FREQUENCY_FILTER */
-     { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  50.0f } },
-     /* AAX_GRAPHIC_EQUALIZER */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } },
-     /* AAX_COMPRESSOR        */
-     { {  0.0f, 1e-3f, 0.0f, 0.0f }, {    0.0f,     10.0f,     0.0f,   1.0f } },
-  },
-  {
-     /* AAX_FILTER_NONE      */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_EQUALIZER        */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_VOLUME_FILTER    */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_DYNAMIC_GAIN_FILTER   */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_TIMED_GAIN_FILTER */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,   4.0f, MAXFLOAT } },
-     /* AAX_ANGULAR_FILTER   */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_DISTANCE_FILTER  */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_FREQUENCY_FILTER */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_GRAPHIC_EQUALIZER */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
-     /* AAX_COMPRESSOR        */
-     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } }
-  }
-};
 
 /* internal use only, used by aaxdefs.h */
 AAX_API aaxFilter AAX_APIENTRY
@@ -1047,7 +947,7 @@ aaxFilterApplyParam(const aaxFilter f, int s, int p, int ptype)
       _filter_t* filter = get_filter(f);
       if (filter)
       {
-         cvtfn_t cvtfn = get_cvtfn(filter->type, ptype, READFN, p);
+         cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, READFN, p);
          rv = cvtfn(filter->slot[0]->param[p]);
          free(filter);
       }
@@ -1208,59 +1108,3 @@ get_filter(aaxFilter f)
    return NULL;
 }
 
-static cvtfn_t
-get_cvtfn(enum aaxFilterType type, int ptype, int mode, char param)
-{
-   cvtfn_t rv = _lin;
-   switch (type)
-   {
-   case AAX_TIMED_GAIN_FILTER:
-   case AAX_VOLUME_FILTER:
-      if (ptype == AAX_LOGARITHMIC)
-      {
-         if (mode == WRITEFN) {
-            rv = _lin2db;
-         } else {
-            rv = _db2lin;
-         }
-      }
-      break;
-   case AAX_FREQUENCY_FILTER:
-      if (param > 0)
-      {
-         if (ptype == AAX_LOGARITHMIC)
-         {
-            if (mode == WRITEFN) {
-               rv = _lin2db;
-            } else {
-               rv = _db2lin;
-            }
-         }
-      }
-      break;
-   case AAX_ANGULAR_FILTER:
-      if (param < 2)
-      {
-         if (ptype == AAX_DEGREES)
-         {
-            if (mode == WRITEFN) {
-               rv = _cos_deg2rad_2;
-            } else {
-               rv = _2acos_rad2deg;
-            }
-         }
-         else 
-         {
-            if (mode == WRITEFN) {
-               rv = _cos_2;
-            } else {
-               rv = _2acos;
-            }
-         }
-      }
-      break;
-   default:
-      break;
-   }
-   return rv;
-}

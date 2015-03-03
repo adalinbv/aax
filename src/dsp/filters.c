@@ -87,3 +87,147 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type)
    }
 }
 
+/* -------------------------------------------------------------------------- */
+
+const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
+{
+  { AAX_FILTER_NONE,            MAX_STEREO_FILTER },
+  { AAX_EQUALIZER,              FREQUENCY_FILTER },
+  { AAX_VOLUME_FILTER,          VOLUME_FILTER },
+  { AAX_DYNAMIC_GAIN_FILTER,    DYNAMIC_GAIN_FILTER },
+  { AAX_TIMED_GAIN_FILTER,      TIMED_GAIN_FILTER },
+  { AAX_ANGULAR_FILTER,         ANGULAR_FILTER },
+  { AAX_DISTANCE_FILTER,        DISTANCE_FILTER },
+  { AAX_FREQUENCY_FILTER,       FREQUENCY_FILTER },
+  { AAX_GRAPHIC_EQUALIZER,      FREQUENCY_FILTER },
+  { AAX_COMPRESSOR,             DYNAMIC_GAIN_FILTER }
+};
+
+/* see above for the proper sequence */
+const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX] =
+{   /* min[4] */          /* max[4] */
+  {
+    /* AAX_FILTER_NONE      */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,  0.0f,     0.0f } },
+    /* AAX_EQUALIZER        */
+    { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
+    /* AAX_VOLUME_FILTER    */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {    10.0f,     1.0f, 10.0f,    10.0f } },
+    /* AAX_DYNAMIC_GAIN_FILTER   */
+    { { 0.0f,  0.01f, 0.0f, 0.0f }, {     0.0f,    50.0f,  1.0f,     1.0f } },
+    /* AAX_TIMED_GAIN_FILTER */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
+    /* AAX_ANGULAR_FILTER   */
+    { { -1.0f, -1.0f, 0.0f, 0.0f }, {     1.0f,     1.0f,  1.0f,     0.0f } },
+    /* AAX_DISTANCE_FILTER  */
+    { {  0.0f,  0.1f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
+    /* AAX_FREQUENCY_FILTER */
+    { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f, 10.0f,   100.0f } },
+    /* AAX_GRAPHIC_EQUALIZER */
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,  2.0f,     2.0f } },
+    /* AAX_COMPRESSOR        */
+    { { 1e-3f, 1e-3f, 0.0f, 0.0f }, {   0.25f,     10.0f,  1.0f,     1.0f } },
+  },
+  {
+     /* AAX_FILTER_NONE      */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_EQUALIZER        */
+     { { 20.0f,  0.0f, 0.0f, 1.0f }, { 22050.0f,    10.0f,    10.0f, 100.0f } },
+     /* AAX_VOLUME_FILTER    */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DYNAMIC_GAIN_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_TIMED_GAIN_FILTER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,   4.0f, MAXFLOAT } },
+     /* AAX_ANGULAR_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DISTANCE_FILTER  */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_FREQUENCY_FILTER */
+     { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,     1.0f,     1.0f,  50.0f } },
+     /* AAX_GRAPHIC_EQUALIZER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {    2.0f,      2.0f,     2.0f,   2.0f } },
+     /* AAX_COMPRESSOR        */
+     { {  0.0f, 1e-3f, 0.0f, 0.0f }, {    0.0f,     10.0f,     0.0f,   1.0f } },
+  },
+  {
+     /* AAX_FILTER_NONE      */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_EQUALIZER        */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_VOLUME_FILTER    */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DYNAMIC_GAIN_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_TIMED_GAIN_FILTER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,   4.0f, MAXFLOAT } },
+     /* AAX_ANGULAR_FILTER   */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_DISTANCE_FILTER  */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_FREQUENCY_FILTER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_GRAPHIC_EQUALIZER */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } },
+     /* AAX_COMPRESSOR        */
+     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f,     0.0f,   0.0f } }
+  }
+};
+
+cvtfn_t
+filter_get_cvtfn(enum aaxFilterType type, int ptype, int mode, char param)
+{
+   cvtfn_t rv = _lin;
+   switch (type)
+   {
+   case AAX_TIMED_GAIN_FILTER:
+   case AAX_VOLUME_FILTER:
+      if (ptype == AAX_LOGARITHMIC)
+      {
+         if (mode == WRITEFN) {
+            rv = _lin2db;
+         } else {
+            rv = _db2lin;
+         }
+      }
+      break;
+   case AAX_FREQUENCY_FILTER:
+      if (param > 0)
+      {
+         if (ptype == AAX_LOGARITHMIC)
+         {
+            if (mode == WRITEFN) {
+               rv = _lin2db;
+            } else {
+               rv = _db2lin;
+            }
+         }
+      }
+      break;
+   case AAX_ANGULAR_FILTER:
+      if (param < 2)
+      {
+         if (ptype == AAX_DEGREES)
+         {
+            if (mode == WRITEFN) {
+               rv = _cos_deg2rad_2;
+            } else {
+               rv = _2acos_rad2deg;
+            }
+         }
+         else
+         {
+            if (mode == WRITEFN) {
+               rv = _cos_2;
+            } else {
+               rv = _2acos;
+            }
+         }
+      }
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+

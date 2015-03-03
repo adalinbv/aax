@@ -28,14 +28,15 @@
 
 #include <base/logging.h>
 
-#include "stream/device.h"
-#include "dmedia/device.h"
-#include "alsa/device.h"
-#include "oss/device.h"
+#include <stream/device.h>
+#include <dmedia/device.h>
+#include <alsa/device.h>
+#include <oss/device.h>
 #ifdef HAVE_WINDOWS_H
-# include "windows/wasapi.h"
+# include <windows/wasapi.h>
 #endif
-#include <dsp/common.h>
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 #include "api.h"
 #include "arch.h"
 #include "devices.h"

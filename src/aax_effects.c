@@ -29,25 +29,6 @@
 #include "api.h"
 #include "arch.h"
 
-#define WRITEFN		0
-#define EPS		1e-5
-#define READFN		!WRITEFN
-
-typedef struct {
-  enum aaxEffectType type;
-  int pos;
-} _eff_cvt_tbl_t;
-typedef struct {
-   vec4_t min;
-   vec4_t max;
-} _eff_minmax_tbl_t;
-typedef float (*cvtfn_t)(float);
-
-static cvtfn_t get_cvtfn(enum aaxEffectType, int, int, char);
-
-static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
-static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
-
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
@@ -193,7 +174,7 @@ aaxEffectSetSlotParams(aaxEffect f, unsigned slot, int ptype, aaxVec4f p)
             {
                float min = _eff_minmax_tbl[slot][type].min[i];
                float max = _eff_minmax_tbl[slot][type].max[i];
-               cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, WRITEFN, i);
+               cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, WRITEFN, i);
                effect->slot[slot]->param[i] = _MINMAX(cvtfn(p[i]), min, max);
             }
          }
@@ -226,7 +207,7 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
          param &= 0xF;
          if ((param >= 0) && (param < 4))
          {
-            cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, WRITEFN, param);
+            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, WRITEFN, param);
             effect->slot[slot]->param[param] = cvtfn(value);
             if TEST_FOR_TRUE(effect->state) {
                aaxEffectSetState(effect, effect->state);
@@ -282,7 +263,7 @@ aaxEffectSetState(aaxEffect e, int state)
             {
                float min = _eff_minmax_tbl[slot][type].min[i];
                float max = _eff_minmax_tbl[slot][type].max[i];
-               cvtfn_t cvtfn = get_cvtfn(effect->type, AAX_LINEAR, WRITEFN, i);
+               cvtfn_t cvtfn = effect_get_cvtfn(effect->type, AAX_LINEAR, WRITEFN, i);
                effect->slot[slot]->param[i] =
                          _MINMAX(cvtfn(effect->slot[slot]->param[i]), min, max);
             }
@@ -843,7 +824,7 @@ aaxEffectGetParam(const aaxEffect e, int param, int ptype)
          param &= 0xF;
          if ((param >= 0) && (param < 4))
          {
-            cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, READFN, param);
+            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, READFN, param);
             rv = cvtfn(effect->slot[slot]->param[param]);
          }
          else {
@@ -884,7 +865,7 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
          int i;
          for (i=0; i<4; i++)
          {
-            cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, READFN, i);
+            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, READFN, i);
             p[i] = cvtfn(effect->slot[slot]->param[i]);
          }
          rv = effect;
@@ -900,91 +881,6 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 }
 
 /* -------------------------------------------------------------------------- */
-
-static const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
-{
-  { AAX_EFFECT_NONE,		MAX_STEREO_EFFECT },
-  { AAX_PITCH_EFFECT,		PITCH_EFFECT },
-  { AAX_DYNAMIC_PITCH_EFFECT,	DYNAMIC_PITCH_EFFECT },
-  { AAX_TIMED_PITCH_EFFECT,	TIMED_PITCH_EFFECT },
-  { AAX_DISTORTION_EFFECT,	DISTORTION_EFFECT},
-  { AAX_PHASING_EFFECT,		DELAY_EFFECT },
-  { AAX_CHORUS_EFFECT,		DELAY_EFFECT },
-  { AAX_FLANGING_EFFECT,	DELAY_EFFECT },
-  { AAX_VELOCITY_EFFECT,	VELOCITY_EFFECT },
-  { AAX_REVERB_EFFECT,          REVERB_EFFECT }
-};
-
-
-static const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX] =
-{    /* min[4] */		   /* max[4] */
-  {
-    /* AAX_EFFECT_NONE      */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_PITCH_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {    1.99f,    1.99f, 0.0f,     0.0f } },
-    /* AAX_DYNAMIC_PITCH_EFFECT   */
-    { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    50.0f, 1.0f,     0.0f } },
-    /* AAX_TIMED_PITCH_EFFECT */
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
-    /* AAX_DISTORTION_EFFECT */
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f,     1.0f, 1.0f,     1.0f } },
-    /* AAX_PHASING_EFFECT   */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     1.0f } },
-    /* AAX_CHORUS_EFFECT    */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     1.0f } },
-    /* AAX_FLANGING_EFFECT  */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    10.0f, 1.0f,     1.0f } },
-    /* AAX_VELOCITY_EFFECT  */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { MAXFLOAT,    10.0f, 0.0f,     0.0f } },
-    /* AAX_REVERB_EFFECT     */
-    { {50.0f, 0.0f,  0.0f, 0.0f }, { 22000.0f,    0.07f, 1.0f,     0.7f } }
-  },
-  {
-    /* AAX_EFFECT_NONE      */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_PITCH_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_DYNAMIC_PITCH_EFFECT */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_TIMED_PITCH_EFFECT */
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
-    /* AAX_DISTORTION_EFFECT */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_PHASING_EFFECT   */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_CHORUS_EFFECT    */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_FLANGING_EFFECT  */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_VELOCITY_EFFECT  */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_REVERB_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } }
-  },
-  {
-    /* AAX_EFFECT_NONE      */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_PITCH_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_DYNAMIC_PITCH_EFFECT */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_TIMED_PITCH_EFFECT */
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
-    /* AAX_DISTORTION_EFFECT */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_PHASING_EFFECT   */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_CHORUS_EFFECT    */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_FLANGING_EFFECT  */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_VELOCITY_EFFECT  */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
-    /* AAX_REVERB_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } }
-  }
-};
 
 /* internal use only, used by aaxdefs.h */
 AAX_API aaxEffect AAX_APIENTRY
@@ -1010,7 +906,7 @@ aaxEffectApplyParam(const aaxEffect f, int s, int p, int ptype)
       _effect_t* effect = get_effect(f);
       if (effect)
       {
-         cvtfn_t cvtfn = get_cvtfn(effect->type, ptype, READFN, p);
+         cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, READFN, p);
          rv = cvtfn(effect->slot[0]->param[p]);
          free(effect);
       }
@@ -1131,26 +1027,3 @@ get_effect(const aaxEffect f)
    return NULL;
 }
 
-static cvtfn_t
-get_cvtfn(enum aaxEffectType type, int ptype, int mode, char param)
-{
-   cvtfn_t rv = _lin;
-   switch (type)
-   {
-   case AAX_PHASING_EFFECT:
-   case AAX_CHORUS_EFFECT:
-   case AAX_FLANGING_EFFECT:
-      if ((param == 0) && (ptype == AAX_LOGARITHMIC))
-      {
-         if (mode == WRITEFN) {
-            rv = _lin2db;
-         } else {
-            rv = _db2lin;
-         }
-      }
-      break;
-   default:
-      break;
-   }
-   return rv;
-}
