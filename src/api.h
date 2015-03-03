@@ -27,7 +27,6 @@ extern "C" {
 #include <base/threads.h>
 #include <base/gmath.h>
 
-#include "filters/effects.h"
 #include "ringbuffer.h"
 #include "objects.h"
 
@@ -305,7 +304,7 @@ typedef struct
    int id;
    int pos;
    int state;
-   int type;	// enum aaxFilterType or enum aaxEffectType
+   enum aaxFilterType type;
    _aaxFilterInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;
 } _filter_t;
@@ -314,7 +313,16 @@ _filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
 _filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 _filter_t* get_filter(aaxFilter);
 
-typedef _filter_t	_effect_t;
+typedef struct
+{
+   int id;
+   int pos;
+   int state;
+   enum aaxEffectType type;
+   _aaxEffectInfo* slot[_MAX_FE_SLOTS];
+   _aaxMixerInfo* info;
+} _effect_t;
+
 _effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
 _effect_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 _effect_t* get_effect(aaxEffect);

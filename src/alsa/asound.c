@@ -39,7 +39,6 @@
 #include <ringbuffer.h>
 
 #include <software/renderer.h>
-#include <filters/effects.h>
 #include "device.h"
 #include "audio.h"
 
