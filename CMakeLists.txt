@@ -427,18 +427,19 @@ SET( AEONWAVE_OBJS
      src/aax_audioframe.c
      src/aax_buffer.c
      src/aax_driver.c
-     src/aax_filters.c
      src/aax_matrix.c
      src/aax_mixer.c
      src/aax_scenery.c
      src/aax_sensor.c
      src/aax_support.c
-     src/aax_effects.c
      src/aax_emitter.c
      src/aax_eventmgr.c
      src/aax_instrument.c
      src/aax_midi.c
-     src/filters/effects.c
+     src/aax_filters.c
+     src/aax_effects.c
+     src/dsp/filters.c
+     src/dsp/effects.c
      src/alsa/asound.c
      src/alsa/kernel.c
      src/dmedia/device.c

@@ -21,10 +21,7 @@ extern "C" {
 #endif
 
 #include <base/geometry.h>
-// #include <base/threads.h>
-
-#include <filters/effects.h>
-
+#include <dsp/common.h>
 
 #define WRITE_BUFFER_TO_FILE(dptr, bufsz) \
  do { \
@@ -267,7 +264,7 @@ typedef struct
 
    /* 3d filters and effects */
    _aaxFilterInfo filter[MAX_3D_FILTER];
-   _aaxFilterInfo effect[MAX_3D_EFFECT];
+   _aaxEffectInfo effect[MAX_3D_EFFECT];
 
 } _aax3dProps;
 

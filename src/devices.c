@@ -35,11 +35,11 @@
 #ifdef HAVE_WINDOWS_H
 # include "windows/wasapi.h"
 #endif
+#include <dsp/common.h>
 #include "api.h"
 #include "arch.h"
 #include "devices.h"
 #include "ringbuffer.h"
-#include "filters/effects.h"
 
 static _intBuffers *_aaxIntDriverGetBackends();
 static char* _aaxDriverDetectConfigConnector(char*, char**, char*, char*);

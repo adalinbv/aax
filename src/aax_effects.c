@@ -61,10 +61,10 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
       switch (type)
       {
       case AAX_TIMED_PITCH_EFFECT:
-         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
+         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxEffectInfo);
          break;
       default:
-         size += sizeof(_aaxFilterInfo);
+         size += sizeof(_aaxEffectInfo);
          break;
       }
 
@@ -79,11 +79,11 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          if VALID_HANDLE(handle) eff->info = handle->info;
 
          ptr = (char*)eff + sizeof(_effect_t);
-         eff->slot[0] = (_aaxFilterInfo*)ptr;
+         eff->slot[0] = (_aaxEffectInfo*)ptr;
          eff->pos = _eff_cvt_tbl[type].pos;
          eff->type = type;
 
-         size = sizeof(_aaxFilterInfo);
+         size = sizeof(_aaxEffectInfo);
          switch (type)
          {
          case AAX_PITCH_EFFECT:
@@ -98,7 +98,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
          case AAX_TIMED_PITCH_EFFECT:
             for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
             {
-               eff->slot[i] = (_aaxFilterInfo*)(ptr + i*size);
+               eff->slot[i] = (_aaxEffectInfo*)(ptr + i*size);
                _aaxSetDefaultEffect2d(eff->slot[i], eff->pos);
             }
             break;
@@ -1029,10 +1029,10 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
       switch (type)
       {
       case AAX_TIMED_PITCH_EFFECT:
-         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
+         size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxEffectInfo);
          break;
       default:
-         size += sizeof(_aaxFilterInfo);
+         size += sizeof(_aaxEffectInfo);
          break;
       }
 
@@ -1043,12 +1043,12 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
 
          rv->id = EFFECT_ID;
          rv->info = info ? info : _info;
-         rv->slot[0] = (_aaxFilterInfo*)ptr;
+         rv->slot[0] = (_aaxEffectInfo*)ptr;
          rv->pos = _eff_cvt_tbl[type].pos;
          rv->state = p2d->effect[rv->pos].state;
          rv->type = type;
 
-         size = sizeof(_aaxFilterInfo);
+         size = sizeof(_aaxEffectInfo);
          switch (type)
          {
          case AAX_PITCH_EFFECT:
@@ -1083,9 +1083,9 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
             stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
             for (i=1; i<stages; i++)
             {
-               _aaxFilterInfo* slot;
+               _aaxEffectInfo* slot;
 
-               slot = (_aaxFilterInfo*)(ptr + i*size);
+               slot = (_aaxEffectInfo*)(ptr + i*size);
                rv->slot[i] = slot;
 
                no_steps = env->max_pos[2*i];

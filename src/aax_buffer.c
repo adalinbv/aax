@@ -26,11 +26,11 @@
 
 #include <xml.h>
 
-#include "api.h"
+#include <software/audio.h>
+#include <software/rbuf_int.h>
 #include "devices.h"
 #include "arch.h"
-#include "software/audio.h"
-#include "software/rbuf_int.h"
+#include "api.h"
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);

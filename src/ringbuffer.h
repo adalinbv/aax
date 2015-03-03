@@ -22,7 +22,6 @@ extern "C" {
 
 #include <base/geometry.h>
 
-#include <filters/effects.h>
 #include <driver.h>
 #include <objects.h>
 
