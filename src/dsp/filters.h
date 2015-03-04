@@ -56,6 +56,32 @@ cvtfn_t filter_get_cvtfn(enum aaxFilterType, int, int, char);
 extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
 extern const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
 
+typedef aaxFilter (*_aaxFilterCreate)(aaxConfig, enum aaxFilterType);
+typedef int (*_aaxFilterDestroy)(aaxFilter);
+typedef aaxFilter (*_aaxFilterSetState)(aaxFilter, int);
+typedef _effect_t* (*_aaxNewFilterHandle)(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+
+typedef struct
+{
+   const char *name;
+   _aaxFilterCreate *create;
+   _aaxFilterDestroy *destroy;
+   _aaxFilterSetState *state;
+   _aaxNewFilterHandle *handle;
+
+} _flt_function_tbl;
+
+extern _flt_function_tbl _aaxEqualizer;
+extern _flt_function_tbl _aaxGraphicEqualizer;
+extern _flt_function_tbl _aaxCompressor;
+extern _flt_function_tbl _aaxVolumeFilter;
+extern _flt_function_tbl _aaxFrequencyFilter;
+extern _flt_function_tbl _aaxDynamicGainFilter;
+extern _flt_function_tbl _aaxTimedGainFilter;
+extern _flt_function_tbl _aaxAngularFilter;
+extern _flt_function_tbl _aaxDistanceFilter;
+extern _flt_function_tbl *_aaxFilters[AAX_FILTERS_MAX];
+
 /* filters */
 #define _FILTER_GET_SLOT(F, s, p)       F->slot[s]->param[p]
 #define _FILTER_GET_SLOT_STATE(F)       F->slot[0]->state

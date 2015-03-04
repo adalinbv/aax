@@ -29,8 +29,8 @@
 #include "common.h"
 #include "api.h"
 
-AAX_API aaxFilter AAX_APIENTRY
-aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
+static aaxFilter
+_aaxVolumeFilterCreate(aaxConfig config, enum aaxFilterType type)
 {
    _handle_t *handle = get_handle(config);
    aaxFilter rv = NULL;
@@ -61,8 +61,8 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
-aaxFilterDestroy(aaxFilter f)
+static int
+_aaxVolumeFilterDestroy(aaxFilter f)
 {
    _filter_t* filter = get_filter(f);
    int rv = AAX_FALSE;
@@ -74,8 +74,8 @@ aaxFilterDestroy(aaxFilter f)
    return rv;
 }
 
-AAX_API aaxFilter AAX_APIENTRY
-aaxFilterSetState(aaxFilter f, int state)
+static aaxFilter
+_aaxVolumeFilterSetState(aaxFilter f, int state)
 {
    _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
@@ -110,10 +110,8 @@ aaxFilterSetState(aaxFilter f, int state)
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
-_filter_t*
-new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+static _filter_t*
+_aaxNewVolumeFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _filter_t* rv = NULL;
    if (type < AAX_FILTER_MAX)
@@ -139,4 +137,15 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d
    }
    return rv;
 }
+
+/* -------------------------------------------------------------------------- */
+
+_flt_function_tbl _aaxVolumeFilter =
+{
+   "AAX_volume_filter",
+   _aaxVolumeFilterCreate,
+   _aaxVolumeFilterDestroy,
+   _aaxVolumeFilterSetState,
+   _aaxNewVolumeFilterHandle
+};
 

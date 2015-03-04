@@ -58,6 +58,32 @@ cvtfn_t effect_get_cvtfn(enum aaxEffectType, int, int, char);
 extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
+typedef aaxEffect (*_aaxEffectCreate)(aaxConfig, enum aaxEffectType);
+typedef int (*_aaxEffectDestroy)(aaxEffect);
+typedef aaxEffect (*_aaxEffectSetState)(aaxEffect, int);
+typedef _effect_t* (*_aaxNewEffectHandle)(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+
+typedef struct
+{
+   const char *name;
+   _aaxEffectCreate *create;
+   _aaxEffectDestroy *destroy;
+   _aaxEffectSetState *state;
+   _aaxNewEffectHandle *handle;
+
+} _eff_function_tbl;
+
+extern _eff_function_tbl _aaxPitchEffect;
+extern _eff_function_tbl _aaxDynamicPitchEffect;
+extern _eff_function_tbl _aaxTimedPitchEffect;
+extern _eff_function_tbl _aaxDistortionEffect;
+extern _eff_function_tbl _aaxPhasingEffect;
+extern _eff_function_tbl _aaxChorusEffect;
+extern _eff_function_tbl _aaxFlangingEffect;
+extern _eff_function_tbl _aaxVelocityEffect;
+extern _eff_function_tbl _aaxReverbEffect;
+extern _eff_function_tbl *_aaxEffects[AAX_FILTERS_MAX];
+
 /* effects */
 #define _EFFECT_GET_SLOT                _FILTER_GET_SLOT
 #define _EFFECT_GET_SLOT_STATE          _FILTER_GET_SLOT_STATE

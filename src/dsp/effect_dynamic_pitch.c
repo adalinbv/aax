@@ -30,8 +30,8 @@
 #include "arch.h"
 
 
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
+static aaxEffect
+_aaxDynamicPitchEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t *handle = get_handle(config);
    aaxEffect rv = NULL;
@@ -63,8 +63,8 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
-aaxEffectDestroy(aaxEffect f)
+static int
+_aaxDynamicPitchEffectDestroy(aaxEffect f)
 {
    int rv = AAX_FALSE;
    _effect_t* effect = get_effect(f);
@@ -79,8 +79,8 @@ aaxEffectDestroy(aaxEffect f)
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectSetState(aaxEffect e, int state)
+static aaxEffect
+_aaxDynamicPitchEffectSetState(aaxEffect e, int state)
 {
    _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
@@ -214,10 +214,8 @@ aaxEffectSetState(aaxEffect e, int state)
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
-_effect_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+static _effect_t*
+_aaxNewDynamicPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _effect_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
@@ -243,4 +241,15 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
    }
    return rv;
 }
+
+/* -------------------------------------------------------------------------- */
+
+_eff_function_tbl _aaxDynamicPitchEffect =
+{
+   "AAX_dynamic_pitch_effect",
+   _aaxDynamicPitchEffectCreate,
+   _aaxDynamicPitchEffectDestroy,
+   _aaxDynamicPitchEffectSetState,
+   _aaxNewDynamicPitchEffectHandle
+};
 
