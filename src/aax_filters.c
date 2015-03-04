@@ -26,6 +26,8 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
+#include <dsp/filters.h>
+
 #include "api.h"
 
 #define WRITEFN		0

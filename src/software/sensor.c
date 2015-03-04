@@ -18,6 +18,8 @@
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 
 #include "cpu/arch2d_simd.h"
 #include "rbuf_int.h"

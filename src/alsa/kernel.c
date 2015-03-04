@@ -49,6 +49,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
+#include <dsp/effects.h>
 #include <software/renderer.h>
 #include "kernel.h"
 #include "device.h"

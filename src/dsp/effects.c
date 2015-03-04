@@ -23,17 +23,17 @@
 #include "common.h"
 #include "effects.h"
 
-_eff_function_tbl *_aaxEffects[AAX_FILTERS_MAX] =
+_eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
 {
-   _aaxPitchEffect,
-   _aaxDynamicPitchEffect.
-   _aaxTimedPitchEffect.
-   _aaxDistortionEffect,
-   _aaxPhasingEffect,
-   _aaxChorusEffect,
-   _aaxFlangingEffect,
-   _aaxVelocityEffect,
-   _aaxReverbEffect
+   &_aaxPitchEffect,
+   &_aaxDynamicPitchEffect,
+   &_aaxTimedPitchEffect,
+   &_aaxDistortionEffect,
+   &_aaxPhasingEffect,
+   &_aaxChorusEffect,
+   &_aaxFlangingEffect,
+   &_aaxVelocityEffect,
+   &_aaxReverbEffect
 };
 
 void

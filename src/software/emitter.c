@@ -18,6 +18,9 @@
 #include <objects.h>
 #include <api.h>
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include "ringbuffer.h"
 #include "renderer.h"
 #include "audio.h"

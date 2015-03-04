@@ -21,17 +21,12 @@ extern "C" {
 #endif
 
 #include <base/geometry.h>
+
+#include "driver.h"
+#include "objects.h"
 #include "common.h"
 
 #define _AAX_MAX_FILTERS	2
-
-typedef struct
-{
-   float param[4];
-   int state;
-   void* data;		/* filter specific interal data structure */
-
-} _aaxFilterInfo;
 
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int);
@@ -51,6 +46,20 @@ typedef struct
 
 } _flt_minmax_tbl_t;
 
+typedef struct
+{
+   int id;
+   int pos;
+   int state;
+   enum aaxFilterType type;
+   _aaxFilterInfo* slot[_MAX_FE_SLOTS];
+   _aaxMixerInfo* info;
+} _filter_t;
+
+_filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
+_filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+_filter_t* get_filter(aaxFilter);
+
 cvtfn_t filter_get_cvtfn(enum aaxFilterType, int, int, char);
 
 extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
@@ -59,7 +68,7 @@ extern const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
 typedef aaxFilter (*_aaxFilterCreate)(aaxConfig, enum aaxFilterType);
 typedef int (*_aaxFilterDestroy)(aaxFilter);
 typedef aaxFilter (*_aaxFilterSetState)(aaxFilter, int);
-typedef _effect_t* (*_aaxNewFilterHandle)(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+typedef _filter_t* (*_aaxNewFilterHandle)(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 
 typedef struct
 {
@@ -80,7 +89,7 @@ extern _flt_function_tbl _aaxDynamicGainFilter;
 extern _flt_function_tbl _aaxTimedGainFilter;
 extern _flt_function_tbl _aaxAngularFilter;
 extern _flt_function_tbl _aaxDistanceFilter;
-extern _flt_function_tbl *_aaxFilters[AAX_FILTERS_MAX];
+extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 
 /* filters */
 #define _FILTER_GET_SLOT(F, s, p)       F->slot[s]->param[p]

@@ -13,6 +13,9 @@
 #include "config.h"
 #endif
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include "api.h"
 
 #if 0

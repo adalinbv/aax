@@ -21,8 +21,7 @@ extern "C" {
 #endif
 
 #include <base/geometry.h>
-#include <dsp/filters.h>
-#include <dsp/effects.h>
+#include <dsp/common.h>
 
 #define WRITE_BUFFER_TO_FILE(dptr, bufsz) \
  do { \
