@@ -18,6 +18,8 @@
 
 #include <base/threads.h>
 #include <base/buffers.h>
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 
 #include <objects.h>
 #include <devices.h>

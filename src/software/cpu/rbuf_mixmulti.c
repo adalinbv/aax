@@ -18,6 +18,9 @@
 #include "config.h"
 #endif
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include <api.h>
 #include <ringbuffer.h>
 

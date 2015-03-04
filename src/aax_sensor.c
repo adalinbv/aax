@@ -21,6 +21,9 @@
 #include <base/gmath.h>
 #include <base/timer.h>		/* for msecSleep */
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include "api.h"
 #include "devices.h"
 

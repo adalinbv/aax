@@ -22,6 +22,7 @@ extern "C" {
 
 #include <base/geometry.h>
 
+#include "objects.h"
 #include "common.h"
 
 #define DELAY_EFFECTS_TIME      0.070f
@@ -31,14 +32,6 @@ extern "C" {
 #undef DELAY_EFFECTS_TIME
 #define DELAY_EFFECTS_TIME      0.0f
 #endif
-
-typedef struct
-{
-   float param[4];
-   int state;
-   void* data;		/* effect specific interal data structure */
-
-} _aaxEffectInfo;
 
 void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int);
@@ -54,6 +47,21 @@ typedef struct {
 } _eff_minmax_tbl_t;
 
 cvtfn_t effect_get_cvtfn(enum aaxEffectType, int, int, char);
+
+typedef struct
+{
+   int id;
+   int pos;
+   int state;
+   enum aaxEffectType type;
+   _aaxEffectInfo* slot[_MAX_FE_SLOTS];
+   _aaxMixerInfo* info;
+} _effect_t;
+
+_effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
+_effect_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+_effect_t* get_effect(aaxEffect);
+_effect_t* get_effect(aaxEffect);
 
 extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
@@ -82,12 +90,14 @@ extern _eff_function_tbl _aaxChorusEffect;
 extern _eff_function_tbl _aaxFlangingEffect;
 extern _eff_function_tbl _aaxVelocityEffect;
 extern _eff_function_tbl _aaxReverbEffect;
-extern _eff_function_tbl *_aaxEffects[AAX_FILTERS_MAX];
+extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 
 /* effects */
-#define _EFFECT_GET_SLOT                _FILTER_GET_SLOT
-#define _EFFECT_GET_SLOT_STATE          _FILTER_GET_SLOT_STATE
-#define _EFFECT_GET_SLOT_DATA           _FILTER_GET_SLOT_DATA
+#define _EFFECT_GET_SLOT(E, s, p)       E->slot[s]->param[p]
+#define _EFFECT_GET_SLOT_STATE(E)       E->slot[0]->state
+#define _EFFECT_GET_SLOT_DATA(E, s)     E->slot[s]->data
+#define _EFFECT_SET_SLOT(E, s, p, v)    E->slot[s]->param[p] = v
+#define _EFFECT_SET_SLOT_DATA(E, s, v)  E->slot[s]->data = v
 
 #define _EFFECT_GET(P, f, p)            P->effect[f].param[p]
 #define _EFFECT_GET_STATE(P, f)         P->effect[f].state

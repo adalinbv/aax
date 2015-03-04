@@ -22,6 +22,8 @@
 #include <assert.h>
 
 #include <base/threads.h>
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 
 #include <api.h>
 #include <arch.h>

@@ -19,6 +19,9 @@
 
 #include <aax/aax.h>
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include "api.h"
 #include "copyright.h"
 #include "arch.h"

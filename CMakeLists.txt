@@ -410,6 +410,8 @@ CONFIGURE_FILE(
     "${AeonWave_SOURCE_DIR}/include/config.h.in"
     "${AeonWave_BINARY_DIR}/include/config.h")
 
+ADD_SUBDIRECTORY(src/dsp)
+
 SET( AEONWAVE_OBJS
      base/buffers.c
      base/dlsym.c

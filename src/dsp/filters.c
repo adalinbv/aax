@@ -24,18 +24,18 @@
 #include "common.h"
 #include "filters.h"
 
-_flt_function_tbl *_aaxFilters[AAX_FILTERS_MAX] =
+_flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
 {
-   _aaxEqualizer,
-   _aaxVolumeFilter,
-   _aaxDynamicGainFilter,
-   _aaxTimedGainFilter,
-   _aaxAngularFilter,
-   _aaxDistanceFilter,
-   _aaxFrequencyFilter,
-   _aaxGraphicEqualizer,
-   _aaxCompressor
-}
+   &_aaxEqualizer,
+   &_aaxVolumeFilter,
+   &_aaxDynamicGainFilter,
+   &_aaxTimedGainFilter,
+   &_aaxAngularFilter,
+   &_aaxDistanceFilter,
+   &_aaxFrequencyFilter,
+   &_aaxGraphicEqualizer,
+   &_aaxCompressor
+};
 
 void
 _aaxSetDefaultEqualizer(_aaxFilterInfo filter[2])

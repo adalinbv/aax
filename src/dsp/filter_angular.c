@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -42,7 +43,6 @@ _aaxAngularFilterCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -142,9 +142,9 @@ _aaxNewAngularFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dP
 _flt_function_tbl _aaxAngularFilter =
 {
    "AAX_angular_filter",
-   _aaxAngularFilterCreate,
-   _aaxAngularFilterDestroy,
-   _aaxAngularFilterSetState,
-   _aaxNewAngularFilterHandle
+   (_aaxFilterCreate*)&_aaxAngularFilterCreate,
+   (_aaxFilterDestroy*)&_aaxAngularFilterDestroy,
+   (_aaxFilterSetState*)&_aaxAngularFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewAngularFilterHandle
 };
 

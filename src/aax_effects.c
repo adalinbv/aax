@@ -26,6 +26,8 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include <dsp/effects.h>
+
 #include "api.h"
 #include "arch.h"
 

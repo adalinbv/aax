@@ -31,6 +31,9 @@
 #include <base/logging.h>
 #include <base/threads.h>
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include <api.h>
 
 #include <ringbuffer.h>

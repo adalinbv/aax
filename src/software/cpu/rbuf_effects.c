@@ -18,6 +18,9 @@
 
 #include <base/logging.h>
 
+//#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
