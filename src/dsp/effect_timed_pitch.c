@@ -30,8 +30,8 @@
 #include "arch.h"
 
 
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
+static aaxEffect
+_aaxTimedPitchEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t *handle = get_handle(config);
    aaxEffect rv = NULL;
@@ -67,8 +67,8 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
-aaxEffectDestroy(aaxEffect f)
+static int
+_aaxTimedPitchEffectDestroy(aaxEffect f)
 {
    int rv = AAX_FALSE;
    _effect_t* effect = get_effect(f);
@@ -82,8 +82,8 @@ aaxEffectDestroy(aaxEffect f)
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectSetState(aaxEffect e, int state)
+static aaxEffect
+_aaxTimedPitchEffectSetState(aaxEffect e, int state)
 {
    _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
@@ -196,10 +196,8 @@ aaxEffectSetState(aaxEffect e, int state)
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
-_effect_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+static _effect_t*
+_aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _effect_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
@@ -259,4 +257,15 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
    }
    return rv;
 }
+
+/* -------------------------------------------------------------------------- */
+
+_eff_function_tbl _aaxTimedPitchEffect =
+{
+   "AAX_timed_pitch_effect",
+   _aaxTimedPitchEffectCreate,
+   _aaxTimedPitchEffectDestroy,
+   _aaxTimedPitchEffectSetState,
+   _aaxNewTimedPitchEffectHandle
+};
 

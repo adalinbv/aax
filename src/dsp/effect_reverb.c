@@ -30,8 +30,8 @@
 #include "arch.h"
 
 
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
+static aaxEffect
+_aaxReverbEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t *handle = get_handle(config);
    aaxEffect rv = NULL;
@@ -62,8 +62,8 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
-aaxEffectDestroy(aaxEffect f)
+static int
+_aaxReverbEffectDestroy(aaxEffect f)
 {
    int rv = AAX_FALSE;
    _effect_t* effect = get_effect(f);
@@ -79,8 +79,8 @@ aaxEffectDestroy(aaxEffect f)
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectSetState(aaxEffect e, int state)
+static aaxEffect
+_aaxReverbEffectSetState(aaxEffect e, int state)
 {
    _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
@@ -221,10 +221,8 @@ aaxEffectSetState(aaxEffect e, int state)
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
 _effect_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewReverbEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _effect_t* rv = NULL;
    if (type < AAX_EFFECT_MAX)
@@ -250,4 +248,15 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
    }
    return rv;
 }
+
+/* -------------------------------------------------------------------------- */
+
+_eff_function_tbl _aaxReverbEffect =
+{
+   "AAX_reverb_effect",
+   _aaxReverbEffectCreate,
+   _aaxReverbEffectDestroy,
+   _aaxReverbEffectSetState,
+   _aaxNewReverbEffectHandle
+};
 
