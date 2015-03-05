@@ -213,6 +213,7 @@ _aaxNewEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps
 
 _flt_function_tbl _aaxEqualizer =
 {
+   AAX_FALSE,
    "AAX_equalizer",
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,

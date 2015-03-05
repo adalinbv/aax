@@ -37,11 +37,7 @@ typedef struct {
 const char *_aax_id_s[_AAX_MAX_ID];
 const char *_aaxErrorStrings[_AAX_MAX_ERROR];
 
-static const ef_type _aax_filter_s[AAX_FILTER_MAX+1];
-static const ef_type _aax_effect_s[AAX_EFFECT_MAX+1];
-
 static const char* __aaxErrorSetFunctionOrBackendString(const char*);
-
 
 AAX_API void AAX_APIENTRY
 aaxFree(void *mm)
@@ -97,11 +93,11 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
       if (filter)
       {
          int i = 0;
-         while (_aax_filter_s[i].name)
+         while (_aaxFilters[i]->name)
          {
-            if (!strcasecmp(filter, _aax_filter_s[i].name))
+            if (!strcasecmp(filter, _aaxFilters[i]->name))
             {
-               if (_aax_filter_s[i].supported_lite || VALID_HANDLE(handle)) {
+               if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
                }
                break;
@@ -124,7 +120,7 @@ aaxFilterGetNameByType(aaxConfig cfg, enum aaxFilterType type)
 {
    const char *rv = NULL;
    if (type < AAX_FILTER_MAX) {
-       rv =  _aax_filter_s[type].name;
+       rv =  _aaxFilters[type]->name;
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -141,17 +137,16 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
    {
       if (effect)
       {
-         int i = 0;
-         while (_aax_effect_s[i].name)
+         int i;
+         for(i=0; i<AAX_EFFECT_MAX; i++)
          {
-            if (!strcasecmp(effect, _aax_effect_s[i].name))
+            if (!strcasecmp(effect, _aaxEffects[i]->name))
             {
-               if (_aax_effect_s[i].supported_lite || VALID_HANDLE(handle)) {
+               if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
                }
                break;
             }
-            i++;
          }
       }
       else {
@@ -169,7 +164,7 @@ aaxEffectGetNameByType(aaxConfig cfg, enum aaxEffectType type)
 {
    const char *rv = NULL;
    if (type < AAX_EFFECT_MAX) {
-       rv =  _aax_effect_s[type].name;
+       rv =  _aaxEffects[type]->name;
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -359,40 +354,6 @@ aaxGetNoCores(aaxConfig cfg)
 }
 
 /* -------------------------------------------------------------------------- */
-
-static const ef_type _aax_filter_s[AAX_FILTER_MAX+1] =
-{
-   { 1, "None" },
-   { 0, "AAX_equalizer" },
-   { 0, "AAX_graphic_equalizer" },
-   { 1, "AAX_compressor" },
-   { 1, "AAX_volume_filter" },
-   { 0, "AAX_dynamic_gain_filter" },
-   { 0, "AAX_timed_gain_filter" },
-   { 1, "AAX_frequency_filter" },
-
-   { 1, "AAX_angular_filter" },
-   { 1, "AAX_distance_filter" },
-
-   { 0, NULL }		/* always last */
-};
-
-static const ef_type _aax_effect_s[AAX_EFFECT_MAX+1] =
-{
-   { 1, "None" },
-   { 0, "AAX_reverb_effect" },
-   { 1, "AAX_pitch_effect" },
-   { 0, "AAX_dynamic_pitch_effect" },
-   { 0, "AAX_timed_pitch_effect" },
-   { 0, "AAX_phasing_effect" },
-   { 0, "AAX_chorus_effect" },
-   { 0, "AAX_flanging_effect" },
-   { 0, "AAX_distortion_effect" },
-
-   { 1, "AAX_velocity_effect" },
-
-   { 0, NULL }		/* always last */
-};
 
 const char *_aax_id_s[_AAX_MAX_ID] =
 {

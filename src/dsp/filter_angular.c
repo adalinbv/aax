@@ -141,6 +141,7 @@ _aaxNewAngularFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dP
 
 _flt_function_tbl _aaxAngularFilter =
 {
+   AAX_TRUE,
    "AAX_angular_filter",
    (_aaxFilterCreate*)&_aaxAngularFilterCreate,
    (_aaxFilterDestroy*)&_aaxAngularFilterDestroy,

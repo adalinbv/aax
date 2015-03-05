@@ -245,6 +245,7 @@ _aaxNewDynamicPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _a
 
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
+   AAX_FALSE,
    "AAX_dynamic_pitch_effect",
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,

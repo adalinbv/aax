@@ -241,6 +241,7 @@ _aaxNewGraphicEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax
 
 _flt_function_tbl _aaxGraphicEqualizer =
 {
+   AAX_FALSE,
    "AAX_graphic_equalizer",
    (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,

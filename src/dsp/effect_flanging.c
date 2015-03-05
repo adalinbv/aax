@@ -300,6 +300,7 @@ _aaxNewFlangingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
 
 _eff_function_tbl _aaxFlangingEffect =
 {
+   AAX_FALSE,
    "AAX_flanging_effect",
    (_aaxEffectCreate*)&_aaxFlangingEffectCreate,
    (_aaxEffectDestroy*)&_aaxFlangingEffectDestroy,

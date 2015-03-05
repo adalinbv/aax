@@ -297,6 +297,7 @@ _aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
 
 _flt_function_tbl _aaxFrequencyFilter =
 {
+   AAX_TRUE,
    "AAX_frequency_filter",
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,

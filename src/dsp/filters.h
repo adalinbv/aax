@@ -65,13 +65,15 @@ cvtfn_t filter_get_cvtfn(enum aaxFilterType, int, int, char);
 extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
 extern const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
 
-typedef aaxFilter (*_aaxFilterCreate)(aaxConfig, enum aaxFilterType);
-typedef int (*_aaxFilterDestroy)(aaxFilter);
-typedef aaxFilter (*_aaxFilterSetState)(aaxFilter, int);
-typedef _filter_t* (*_aaxNewFilterHandle)(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+
+typedef aaxFilter _aaxFilterCreate(aaxConfig, enum aaxFilterType);
+typedef int _aaxFilterDestroy(aaxFilter);
+typedef aaxFilter _aaxFilterSetState(aaxFilter, int);
+typedef _filter_t* _aaxNewFilterHandle(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 
 typedef struct
 {
+   char lite;
    const char *name;
    _aaxFilterCreate *create;
    _aaxFilterDestroy *destroy;

@@ -298,6 +298,7 @@ _aaxNewChorusEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
 
 _eff_function_tbl _aaxChorusEffect =
 {
+   AAX_FALSE,
    "AAX_chorus_effect",
    (_aaxEffectCreate*)&_aaxChorusEffectCreate,
    (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,

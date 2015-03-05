@@ -263,6 +263,7 @@ _aaxNewTimedGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
 
 _flt_function_tbl _aaxTimedGainFilter =
 {
+   AAX_FALSE,
    "AAX_timed_gain_filter",
    (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,

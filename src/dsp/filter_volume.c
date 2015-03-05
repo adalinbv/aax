@@ -142,6 +142,7 @@ _aaxNewVolumeFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dPr
 
 _flt_function_tbl _aaxVolumeFilter =
 {
+   AAX_TRUE,
    "AAX_volume_filter",
    (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
    (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
