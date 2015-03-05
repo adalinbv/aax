@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -42,7 +43,6 @@ _aaxFrequencyFilterCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -298,9 +298,9 @@ _aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
 _flt_function_tbl _aaxFrequencyFilter =
 {
    "AAX_frequency_filter",
-   _aaxFrequencyFilterCreate,
-   _aaxFrequencyFilterDestroy,
-   _aaxFrequencyFilterSetState,
-   _aaxNewFrequencyFilterHandle
+   (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
+   (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
+   (_aaxFilterSetState*)&_aaxFrequencyFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle
 };
 

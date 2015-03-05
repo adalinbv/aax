@@ -26,6 +26,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -38,12 +39,11 @@ _aaxReverbEffectCreate(aaxConfig config, enum aaxEffectType type)
    if (handle)
    {
       unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);;
-     _effect_t* eff calloc(1, size);
+     _effect_t* eff = calloc(1, size);
 
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -168,9 +168,9 @@ _aaxReverbEffectSetState(aaxEffect e, int state)
          do
          {
             _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
-            _aaxRingBufferFreqEffectData *flt = reverb->freq_filter;
+            _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
             if (!flt) {
-               flt = calloc(1, sizeof(_aaxRingBufferFreqEffectData));
+               flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
             }
 
             reverb->freq_filter = flt;
@@ -254,9 +254,9 @@ _aaxNewReverbEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
 _eff_function_tbl _aaxReverbEffect =
 {
    "AAX_reverb_effect",
-   _aaxReverbEffectCreate,
-   _aaxReverbEffectDestroy,
-   _aaxReverbEffectSetState,
-   _aaxNewReverbEffectHandle
+   (_aaxEffectCreate*)&_aaxReverbEffectCreate,
+   (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
+   (_aaxEffectSetState*)&_aaxReverbEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewReverbEffectHandle
 };
 

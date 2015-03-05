@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -44,7 +45,6 @@ _aaxGraphicEqualizerCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -242,9 +242,9 @@ _aaxNewGraphicEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax
 _flt_function_tbl _aaxGraphicEqualizer =
 {
    "AAX_graphic_equalizer",
-   _aaxGraphicEqualizerCreate,
-   _aaxGraphicEqualizerDestroy,
-   _aaxGraphicEqualizerSetState,
-   _aaxNewGraphicEqualizerHandle
+   (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
+   (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,
+   (_aaxFilterSetState*)&_aaxGraphicEqualizerSetState,
+   (_aaxNewFilterHandle*)&_aaxNewGraphicEqualizerHandle
 };
 

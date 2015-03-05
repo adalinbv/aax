@@ -26,6 +26,8 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -43,7 +45,6 @@ _aaxChorusEffectCreate(aaxConfig config, enum aaxEffectType type)
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -140,7 +141,6 @@ _aaxChorusEffectSetState(aaxEffect e, int state)
          {
             float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
             float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
-            unsigned int tracks = effect->info->no_tracks;
             float sign, range, step;
             float fs = 48000.0f;
 
@@ -299,9 +299,9 @@ _aaxNewChorusEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
 _eff_function_tbl _aaxChorusEffect =
 {
    "AAX_chorus_effect",
-   _aaxChorusEffectCreate,
-   _aaxChorusEffectDestroy,
-   _aaxChorusEffectSetState,
-   _aaxNewChorusEffectHandle
+   (_aaxEffectCreate*)&_aaxChorusEffectCreate,
+   (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,
+   (_aaxEffectSetState*)&_aaxChorusEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewChorusEffectHandle
 };
 
