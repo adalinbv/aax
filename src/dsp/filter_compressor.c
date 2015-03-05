@@ -294,6 +294,7 @@ _aaxNewCompressorHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProp
 
 _flt_function_tbl _aaxCompressor =
 {
+   AAX_TRUE,
    "AAX_compressor",
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,

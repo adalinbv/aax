@@ -144,6 +144,7 @@ _aaxNewVelocityEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
 
 _eff_function_tbl _aaxVelocityEffect =
 {
+   AAX_TRUE,
    "AAX_velocity_effect",
    (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,

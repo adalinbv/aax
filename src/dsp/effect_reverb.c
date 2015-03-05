@@ -253,6 +253,7 @@ _aaxNewReverbEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
 
 _eff_function_tbl _aaxReverbEffect =
 {
+   AAX_FALSE,
    "AAX_reverb_effect",
    (_aaxEffectCreate*)&_aaxReverbEffectCreate,
    (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
