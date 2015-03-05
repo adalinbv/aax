@@ -41,7 +41,7 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
    aaxFilter rv = NULL;
    if (type < AAX_FILTER_MAX)
    {
-      _flt_function_tbl *flt = _aaxFilters[type];
+      _flt_function_tbl *flt = _aaxFilters[type-1];
       rv = flt->create(config, type);
    }
    return rv;
@@ -53,7 +53,7 @@ aaxFilterDestroy(aaxFilter f)
    _filter_t* filter = get_filter(f);
    int rv = AAX_FALSE;
    if (filter) {
-      _flt_function_tbl *flt = _aaxFilters[filter->type];
+      _flt_function_tbl *flt = _aaxFilters[filter->type-1];
       rv = flt->destroy(f);
    }
    return rv;
@@ -142,7 +142,7 @@ aaxFilterSetState(aaxFilter f, int state)
    _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
    if (filter) {
-      _flt_function_tbl *flt = _aaxFilters[filter->type];
+      _flt_function_tbl *flt = _aaxFilters[filter->type-1];
       rv = flt->state(f, state);
    }
    return rv;
@@ -268,7 +268,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d
    _filter_t* rv = NULL;
    if (type <= AAX_FILTER_MAX)
    {
-      _flt_function_tbl *flt = _aaxFilters[type];
+      _flt_function_tbl *flt = _aaxFilters[type]-1;
       rv = flt->handle(info, type, p2d, p3d);
    }
    return rv;
