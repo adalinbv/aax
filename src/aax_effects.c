@@ -37,7 +37,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
    aaxEffect rv = NULL;
    if (type < AAX_EFFECT_MAX)
    {
-      _eff_function_tbl *eff = _aaxEffects[type];
+      _eff_function_tbl *eff = _aaxEffects[type-1];
       rv = eff->create(config, type);
    }
    return rv;
@@ -50,7 +50,7 @@ aaxEffectDestroy(aaxEffect e)
    _effect_t* effect = get_effect(e);
    int rv = AAX_FALSE;
    if (effect) {
-      _eff_function_tbl *eff = _aaxEffects[effect->type];
+      _eff_function_tbl *eff = _aaxEffects[effect->type-1];
       rv = eff->destroy(e);
    }
    return rv;
@@ -140,7 +140,7 @@ aaxEffectSetState(aaxEffect e, int state)
    _effect_t* effect = get_effect(e);
    aaxEffect rv = NULL;
    if (effect) {
-      _eff_function_tbl *eff = _aaxEffects[effect->type];
+      _eff_function_tbl *eff = _aaxEffects[effect->type-1];
       rv = eff->state(e, state);
    }
    return rv;
@@ -267,7 +267,7 @@ new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d
    _effect_t* rv = NULL;
    if (type <= AAX_EFFECT_MAX)
    {
-      _eff_function_tbl *eff = _aaxEffects[type];
+      _eff_function_tbl *eff = _aaxEffects[type-1];
       rv = eff->handle(info, type, p2d, p3d);
    }
    return rv;

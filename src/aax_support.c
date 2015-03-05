@@ -92,8 +92,8 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
    {
       if (filter)
       {
-         int i = 0;
-         while (_aaxFilters[i]->name)
+         int i;
+         for(i=0; i<AAX_FILTER_MAX-1; i++)
          {
             if (!strcasecmp(filter, _aaxFilters[i]->name))
             {
@@ -102,7 +102,6 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
                }
                break;
             }
-            i++;
          }
       }
       else {
@@ -120,7 +119,7 @@ aaxFilterGetNameByType(aaxConfig cfg, enum aaxFilterType type)
 {
    const char *rv = NULL;
    if (type < AAX_FILTER_MAX) {
-       rv =  _aaxFilters[type]->name;
+       rv =  _aaxFilters[type-1]->name;
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -138,7 +137,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
       if (effect)
       {
          int i;
-         for(i=0; i<AAX_EFFECT_MAX; i++)
+         for(i=0; i<AAX_EFFECT_MAX-1; i++)
          {
             if (!strcasecmp(effect, _aaxEffects[i]->name))
             {
@@ -164,7 +163,7 @@ aaxEffectGetNameByType(aaxConfig cfg, enum aaxEffectType type)
 {
    const char *rv = NULL;
    if (type < AAX_EFFECT_MAX) {
-       rv =  _aaxEffects[type]->name;
+       rv =  _aaxEffects[type-1]->name;
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
