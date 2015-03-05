@@ -26,6 +26,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -43,7 +44,6 @@ _aaxPhasingEffectCreate(aaxConfig config, enum aaxEffectType type)
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -140,7 +140,6 @@ _aaxPhasingEffectSetState(aaxEffect e, int state)
          {
             float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
             float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
-            unsigned int tracks = effect->info->no_tracks;
             float sign, range, step;
             float fs = 48000.0f;
 
@@ -299,9 +298,9 @@ _aaxNewPhasingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dP
 _eff_function_tbl _aaxPhasingEffect =
 {
    "AAX_phasing_effect",
-   _aaxPhasingEffectCreate,
-   _aaxPhasingEffectDestroy,
-   _aaxPhasingEffectSetState,
-   _aaxNewPhasingEffectHandle
+   (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
+   (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
+   (_aaxEffectSetState*)&_aaxPhasingEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewPhasingEffectHandle
 };
 

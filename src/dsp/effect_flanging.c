@@ -26,6 +26,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -43,7 +44,6 @@ _aaxFlangingEffectCreate(aaxConfig config, enum aaxEffectType type)
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -301,9 +301,9 @@ _aaxNewFlangingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
 _eff_function_tbl _aaxFlangingEffect =
 {
    "AAX_flanging_effect",
-   _aaxFlangingEffectCreate,
-   _aaxFlangingEffectDestroy,
-   _aaxFlangingEffectSetState,
-   _aaxNewFlangingEffectHandle
+   (_aaxEffectCreate*)&_aaxFlangingEffectCreate,
+   (_aaxEffectDestroy*)&_aaxFlangingEffectDestroy,
+   (_aaxEffectSetState*)&_aaxFlangingEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewFlangingEffectHandle
 };
 

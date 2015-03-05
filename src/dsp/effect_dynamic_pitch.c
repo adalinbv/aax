@@ -26,6 +26,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -44,7 +45,6 @@ _aaxDynamicPitchEffectCreate(aaxConfig config, enum aaxEffectType type)
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -74,7 +74,6 @@ _aaxDynamicPitchEffectDestroy(aaxEffect f)
       effect->slot[0]->data = NULL;
       free(effect);
       rv = AAX_TRUE;
-   }
    }
    return rv;
 }
@@ -247,9 +246,9 @@ _aaxNewDynamicPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _a
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
    "AAX_dynamic_pitch_effect",
-   _aaxDynamicPitchEffectCreate,
-   _aaxDynamicPitchEffectDestroy,
-   _aaxDynamicPitchEffectSetState,
-   _aaxNewDynamicPitchEffectHandle
+   (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
+   (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
+   (_aaxEffectSetState*)&_aaxDynamicPitchEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle
 };
 

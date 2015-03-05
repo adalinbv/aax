@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -42,7 +43,6 @@ _aaxVolumeFilterCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -143,9 +143,9 @@ _aaxNewVolumeFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dPr
 _flt_function_tbl _aaxVolumeFilter =
 {
    "AAX_volume_filter",
-   _aaxVolumeFilterCreate,
-   _aaxVolumeFilterDestroy,
-   _aaxVolumeFilterSetState,
-   _aaxNewVolumeFilterHandle
+   (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
+   (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
+   (_aaxFilterSetState*)&_aaxVolumeFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle
 };
 

@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -42,7 +43,6 @@ _aaxCompressorCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -295,9 +295,9 @@ _aaxNewCompressorHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProp
 _flt_function_tbl _aaxCompressor =
 {
    "AAX_compressor",
-   _aaxCompressorCreate,
-   _aaxCompressorDestroy,
-   _aaxCompressorSetState,
-   _aaxNewCompressorHandle
+   (_aaxFilterCreate*)&_aaxCompressorCreate,
+   (_aaxFilterDestroy*)&_aaxCompressorDestroy,
+   (_aaxFilterSetState*)&_aaxCompressorSetState,
+   (_aaxNewFilterHandle*)&_aaxNewCompressorHandle
 };
 

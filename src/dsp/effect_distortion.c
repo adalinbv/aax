@@ -26,6 +26,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -37,13 +38,12 @@ _aaxDistortionEffectCreate(aaxConfig config, enum aaxEffectType type)
    aaxEffect rv = NULL;
    if (handle)
    {
-      unsigned int size = sizeof(_effect_t) sizeof(_aaxEffectInfo);
+      unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
      _effect_t* eff = calloc(1, size);
 
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -186,9 +186,9 @@ _aaxNewDistortionEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
 _eff_function_tbl _aaxDistortionEffect =
 {
    "AAX_distortion_effect",
-   _aaxDistortionEffectCreate,
-   _aaxDistortionEffectDestroy,
-   _aaxDistortionEffectSetState,
-   _aaxNewDistortionEffectHandle
+   (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
+   (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
+   (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle
 };
 

@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -42,7 +43,6 @@ _aaxDynamicGainFilterCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -309,9 +309,9 @@ _aaxNewDynamicGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aa
 _flt_function_tbl _aaxDynamicGainFilter =
 {
    "AAX_dynamic_gain_filter",
-   _aaxDynamicGainFilterCreate,
-   _aaxDynamicGainFilterDestroy,
-   _aaxDynamicGainFilterSetState,
-   _aaxNewDynamicGainFilterHandle
+   (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
+   (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
+   (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewDynamicGainFilterHandle
 };
 

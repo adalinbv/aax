@@ -26,6 +26,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "effects.h"
 #include "api.h"
 #include "arch.h"
 
@@ -38,12 +39,11 @@ _aaxVelocityEffectCreate(aaxConfig config, enum aaxEffectType type)
    if (handle)
    {
       unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-     _effect_t* ef = calloc(1, size);
+     _effect_t* eff = calloc(1, size);
 
       if (eff)
       {
          char *ptr;
-         int i;
 
          eff->id = EFFECT_ID;
          eff->state = AAX_FALSE;
@@ -145,9 +145,9 @@ _aaxNewVelocityEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
 _eff_function_tbl _aaxVelocityEffect =
 {
    "AAX_velocity_effect",
-   _aaxVelocityEffectCreate,
-   _aaxVelocityEffectDestroy,
-   _aaxVelocityEffectSetState,
-   _aaxNewVelocityEffectHandle
+   (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
+   (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
+   (_aaxEffectSetState*)&_aaxVelocityEffectSetState,
+   (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle
 };
 

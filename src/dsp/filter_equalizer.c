@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -44,7 +45,6 @@ _aaxEqualizerCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -106,7 +106,7 @@ _aaxEqualizerSetState(aaxFilter f, int state)
          {
             float min = _flt_minmax_tbl[slot][type].min[i];
             float max = _flt_minmax_tbl[slot][type].max[i];
-            cvtfn_t cvtfn = filetr_get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
+            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
             filter->slot[slot]->param[i] =
                       _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
          }
@@ -214,9 +214,9 @@ _aaxNewEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps
 _flt_function_tbl _aaxEqualizer =
 {
    "AAX_equalizer",
-   _aaxEqualizerCreate,
-   _aaxEqualizerDestroy,
-   _aaxEqualizerSetState,
-   _aaxNewEqualizerHandle
+   (_aaxFilterCreate*)&_aaxEqualizerCreate,
+   (_aaxFilterDestroy*)&_aaxEqualizerDestroy,
+   (_aaxFilterSetState*)&_aaxEqualizerSetState,
+   (_aaxNewFilterHandle*)&_aaxNewEqualizerHandle
 };
 

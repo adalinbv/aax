@@ -27,6 +27,7 @@
 #include <base/gmath.h>
 
 #include "common.h"
+#include "filters.h"
 #include "api.h"
 
 static aaxFilter
@@ -42,7 +43,6 @@ _aaxDistanceFilterCreate(aaxConfig config, enum aaxFilterType type)
       if (flt)
       {
          char *ptr;
-         int i;
 
          flt->id = FILTER_ID;
          flt->state = AAX_FALSE;
@@ -162,10 +162,10 @@ _aaxNewDistanceFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2d
 _flt_function_tbl _aaxDistanceFilter =
 {
    "AAX_distance_filter",
-   _aaxDistanceFilterCreate,
-   _aaxDistanceFilterDestroy,
-   _aaxDistanceFilterSetState,
-   _aaxNewDistanceFilterHandle
+   (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
+   (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
+   (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewDistanceFilterHandle
 };
 
 

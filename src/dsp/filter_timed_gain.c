@@ -23,120 +23,119 @@
 
 #include <aax/aax.h>
 
-#include <base/types.h>		/*  for rintf */
+#include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
-#include "effects.h"
+#include "common.h"
+#include "filters.h"
 #include "api.h"
-#include "arch.h"
 
-
-static aaxEffect
-_aaxTimedPitchEffectCreate(aaxConfig config, enum aaxEffectType type)
+static aaxFilter
+_aaxTimedGainFilterCreate(aaxConfig config, enum aaxFilterType type)
 {
    _handle_t *handle = get_handle(config);
-   aaxEffect rv = NULL;
+   aaxFilter rv = NULL;
    if (handle)
    {
-      unsigned int size = sizeof(_effect_t);
-     _effect_t* eff;
+      unsigned int size = sizeof(_filter_t);
+      _filter_t* flt;
 
-      size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxEffectInfo);
-      eff = calloc(1, size);
-      if (eff)
+      size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
+      flt = calloc(1, size);
+      if (flt)
       {
          char *ptr;
          int i;
 
-         eff->id = EFFECT_ID;
-         eff->state = AAX_FALSE;
-         if VALID_HANDLE(handle) eff->info = handle->info;
+         flt->id = FILTER_ID;
+         flt->state = AAX_FALSE;
+         flt->info = handle->info ? handle->info : _info;
 
-         ptr = (char*)eff + sizeof(_effect_t);
-         eff->slot[0] = (_aaxEffectInfo*)ptr;
-         eff->pos = _eff_cvt_tbl[type].pos;
-         eff->type = type;
+         ptr = (char*)flt + sizeof(_filter_t);
+         flt->slot[0] = (_aaxFilterInfo*)ptr;
+         flt->pos = _flt_cvt_tbl[type].pos;
+         flt->type = type;
 
+         size = sizeof(_aaxFilterInfo);
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
-            eff->slot[i] = (_aaxEffectInfo*)(ptr + i*size);
-            _aaxSetDefaultEffect2d(eff->slot[i], eff->pos);
+            flt->slot[i] = (_aaxFilterInfo*)(ptr + i*size);
+            _aaxSetDefaultFilter2d(flt->slot[i], flt->pos);
          }
-         rv = (aaxEffect)eff;
+         rv = (aaxFilter)flt;
       }
    }
    return rv;
 }
 
 static int
-_aaxTimedPitchEffectDestroy(aaxEffect f)
+_aaxTimedGainFilterDestroy(aaxFilter f)
 {
+   _filter_t* filter = get_filter(f);
    int rv = AAX_FALSE;
-   _effect_t* effect = get_effect(f);
-   if (effect)
+   if (filter)
    {
-      free(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-      free(effect);
+      free(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+      free(filter);
       rv = AAX_TRUE;
    }
    return rv;
 }
 
-static aaxEffect
-_aaxTimedPitchEffectSetState(aaxEffect e, int state)
+static aaxFilter
+_aaxTimedGainFilterSetState(aaxFilter f, int state)
 {
-   _effect_t* effect = get_effect(e);
-   aaxEffect rv = AAX_FALSE;
+   _filter_t* filter = get_filter(f);
+   aaxFilter rv = NULL;
    unsigned slot;
 
-   assert(e);
+   assert(f);
 
-   effect->state = state;
-   effect->slot[0]->state = state;
+   filter->state = state;
+   filter->slot[0]->state = state;
 
    /*
     * Make sure parameters are actually within their expected boundaries.
     */
    slot = 0;
-   while ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
+   while ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
    {
-      int i, type = effect->type;
+      int i, type = filter->type;
       for(i=0; i<4; i++)
       {
-         if (!is_nan(effect->slot[slot]->param[i]))
+         if (!is_nan(filter->slot[slot]->param[i]))
          {
-            float min = _eff_minmax_tbl[slot][type].min[i];
-            float max = _eff_minmax_tbl[slot][type].max[i];
-            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, AAX_LINEAR, WRITEFN, i);
-            effect->slot[slot]->param[i] =
-                      _MINMAX(cvtfn(effect->slot[slot]->param[i]), min, max);
+            float min = _flt_minmax_tbl[slot][type].min[i];
+            float max = _flt_minmax_tbl[slot][type].max[i];
+            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
+            filter->slot[slot]->param[i] =
+                      _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
          }
       }
       slot++;
    }
 
 #if !ENABLE_LITE
-   if EBF_VALID(effect)
+   if EBF_VALID(filter)
    {
       if TEST_FOR_TRUE(state)
       {
-         _aaxRingBufferEnvelopeData* env = effect->slot[0]->data;
+         _aaxRingBufferEnvelopeData* env = filter->slot[0]->data;
          if (env == NULL)
          {
             env =  calloc(1, sizeof(_aaxRingBufferEnvelopeData));
-            effect->slot[0]->data = env;
+            filter->slot[0]->data = env;
          }
 
          if (env)
          {
-            float nextval = effect->slot[0]->param[AAX_LEVEL0];
-            float period = effect->info->period_rate;
+            float nextval = filter->slot[0]->param[AAX_LEVEL0];
+            float period = filter->info->period_rate;
             float timestep = 1.0f / period;
             int i;
 
             env->value = nextval;
-
             env->max_stages = _MAX_ENVELOPE_STAGES;
             for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
             {
@@ -144,7 +143,7 @@ _aaxTimedPitchEffectSetState(aaxEffect e, int state)
                uint32_t max_pos;
 
                max_pos = (uint32_t)-1;
-               dt = effect->slot[i]->param[AAX_TIME0];
+               dt = filter->slot[i]->param[AAX_TIME0];
                if (dt != MAXFLOAT)
                {
                   if (dt < timestep && dt > EPS) dt = timestep;
@@ -156,16 +155,16 @@ _aaxTimedPitchEffectSetState(aaxEffect e, int state)
                   break;
                }
 
-               nextval = effect->slot[i]->param[AAX_LEVEL1];
+               nextval = filter->slot[i]->param[AAX_LEVEL1];
                if (nextval == 0.0f) nextval = -1e-2f;
                env->step[2*i] = (nextval - value)/max_pos;
-               env->max_pos[2*i] = max_pos;
+               env->max_pos[2*i] = max_pos;;
 
                /* prevent a core dump for accessing an illegal slot */
                if (i == (_MAX_ENVELOPE_STAGES/2)-1) break;
 
                max_pos = (uint32_t)-1;
-               dt = effect->slot[i]->param[AAX_TIME1];
+               dt = filter->slot[i]->param[AAX_TIME1];
                if (dt != MAXFLOAT)
                {
                   if (dt < timestep && dt > EPS) dt = timestep;
@@ -178,7 +177,7 @@ _aaxTimedPitchEffectSetState(aaxEffect e, int state)
                }
 
                value = nextval;
-               nextval = effect->slot[i+1]->param[AAX_LEVEL0];
+               nextval = filter->slot[i+1]->param[AAX_LEVEL0];
                if (nextval == 0.0f) nextval = -1e-2f;
                env->step[2*i+1] = (nextval - value)/max_pos;
                env->max_pos[2*i+1] = max_pos;
@@ -188,59 +187,60 @@ _aaxTimedPitchEffectSetState(aaxEffect e, int state)
       }
       else
       {
-         effect->slot[0]->data = NULL;
+         free(filter->slot[0]->data);
+         filter->slot[0]->data = NULL;
       }
    }
 #endif
-
-   rv = effect;
+   rv = filter;
    return rv;
 }
 
-static _effect_t*
-_aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+static _filter_t*
+_aaxNewTimedGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
-   _effect_t* rv = NULL;
-   if (type < AAX_EFFECT_MAX)
+   _filter_t* rv = NULL;
+   if (type < AAX_FILTER_MAX)
    {
-      unsigned int size = sizeof(_effect_t);
+      unsigned int size = sizeof(_filter_t);
 
-      size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxEffectInfo);
+      size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
       rv = calloc(1, size);
       if (rv)
       {
-         char *ptr = (char*)rv + sizeof(_effect_t);
+         char *ptr = (char*)rv + sizeof(_filter_t);
          _aaxRingBufferEnvelopeData *env;
          unsigned int no_steps;
          float dt, value;
          int i, stages;
 
-         rv->id = EFFECT_ID;
+         rv->id = FILTER_ID;
          rv->info = info ? info : _info;
-         rv->slot[0] = (_aaxEffectInfo*)ptr;
-         rv->pos = _eff_cvt_tbl[type].pos;
-         rv->state = p2d->effect[rv->pos].state;
+         rv->slot[0] = (_aaxFilterInfo*)ptr;
+         rv->pos = _flt_cvt_tbl[type].pos;
+         rv->state = p2d->filter[rv->pos].state;
          rv->type = type;
 
-         size = sizeof(_aaxEffectInfo);
-         env = (_aaxRingBufferEnvelopeData*)p2d->effect[rv->pos].data;
-         memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+         size = sizeof(_aaxFilterInfo);
+
+         env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
+         memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
          rv->slot[0]->data = NULL;
 
          i = 0;
          if (env->max_pos[1] > env->max_pos[0]) i = 1;
-         dt = p2d->effect[rv->pos].param[2*i+1] / env->max_pos[i];
+         dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];
 
          no_steps = env->max_pos[1];
-         value = p2d->effect[rv->pos].param[AAX_LEVEL1]; 
+         value = p2d->filter[rv->pos].param[AAX_LEVEL1];
          value += env->step[1] * no_steps;
 
          stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
          for (i=1; i<stages; i++)
          {
-            _aaxEffectInfo* slot;
+            _aaxFilterInfo* slot;
 
-            slot = (_aaxEffectInfo*)(ptr + i*size);
+            slot = (_aaxFilterInfo*)(ptr + i*size);
             rv->slot[i] = slot;
 
             no_steps = env->max_pos[2*i];
@@ -261,12 +261,12 @@ _aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
 
 /* -------------------------------------------------------------------------- */
 
-_eff_function_tbl _aaxTimedPitchEffect =
+_flt_function_tbl _aaxTimedGainFilter =
 {
-   "AAX_timed_pitch_effect",
-   (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
-   (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,
-   (_aaxEffectSetState*)&_aaxTimedPitchEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewTimedPitchEffectHandle
+   "AAX_timed_gain_filter",
+   (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
+   (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,
+   (_aaxFilterSetState*)&_aaxTimedGainFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewTimedGainFilterHandle
 };
 
