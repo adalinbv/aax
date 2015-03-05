@@ -57,6 +57,7 @@ _aaxTimedPitchEffectCreate(aaxConfig config, enum aaxEffectType type)
          eff->pos = _eff_cvt_tbl[type].pos;
          eff->type = type;
 
+         size = sizeof(_aaxEffectInfo);
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
             eff->slot[i] = (_aaxEffectInfo*)(ptr + i*size);
