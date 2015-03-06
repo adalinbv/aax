@@ -1,3 +1,9 @@
+* Fri Mar 06 2015 - tech@adalin.org
+- AeonWave (2.5.2) stable; urgency=low
+ * Fix Auto-Wah and other time based effects
+
+-- Erik Hofman <tech@adalin.org>  Fri, 06 Mar 2015 13:46:00 + 0100
+
 * Fri Feb 27 2015 - tech@adalin.org
 - AeonWave (2.5.1) stable; urgency=low
  * Better support for 'Generic Software' and 'Generic Hardware' for Windows
