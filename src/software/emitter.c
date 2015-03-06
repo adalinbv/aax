@@ -30,7 +30,6 @@
  */
 
 
-#if 1
 /*
  * Threaded emitter rendering code using a thread pool with worker threads,
  * one thread epr physical CPU core.
@@ -63,70 +62,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
    return rv;
 }
-
-#else
-char
-_aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aax2dProps *fp2d,
-                    _aaxDelayed3dProps *fdp3d_m,
-                    _intBuffers *e2d, _intBuffers *e3d,
-                    const _aaxDriverBackend* be, void *be_handle)
-{
-   _aaxRendererData data;
-   unsigned int num, stage;
-   _intBuffers *he = e3d;
-   char rv = AAX_FALSE;
-
-   data.drb = drb;
-   data.info = info;
-   data.fdp3d_m = fdp3d_m;
-   data.fp2d = fp2d;
-   data.e2d = e2d;
-   data.e3d = e3d;
-   data.be = be;
-   data.be_handle = be_handle;
-
-   data.ssv = ssv;
-   data.sdf = sdf;
-   data.dt = drb->get_paramf(drb, RB_DURATION_SEC);
-
-   num = 0;
-   stage = 2;
-   do
-   {
-      unsigned int i, no_emitters;
-
-      no_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
-      num = _intBufGetNumNoLock(he, _AAX_EMITTER);
-
-      for (i=0; num && i<no_emitters; i++)
-      {
-         _intBufferData *dptr_src;
-
-         dptr_src = _intBufGet(he, _AAX_EMITTER, i);
-         if (!dptr_src) continue;
-
-         num--;
-
-         // _aaxProcessEmitter calls
-         // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-         rv = _aaxProcessEmitter(data.drb, &data, dptr_src, stage);
-      }
-      _intBufReleaseNum(he, _AAX_EMITTER);
-
-      /*
-       * stage == 2 is 3d positional audio
-       * stage == 1 is stereo audio
-       */
-      if (stage == 2) {
-         he = e2d;      /* switch to stereo */
-      }
-   }
-   while (--stage); /* process 3d positional and stereo emitters */
-
-   return rv;
-}
-#endif
 
 int
 _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *dptr_src, unsigned int stage)
@@ -161,11 +96,14 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
          int ctr;
 
          ctr = --src->update_ctr;
-         if ((stage == 2) && (ctr == 0))
+         if (ctr == 0)
          {
-            src->state3d |= data->fdp3d_m->state3d;
-            data->be->prepare3d(src, data->info, data->ssv, data->sdf,
-                                data->fp2d->speaker, data->fdp3d_m);
+            if (stage == 2)
+            {
+               src->state3d |= data->fdp3d_m->state3d;
+               data->be->prepare3d(src, data->info, data->ssv, data->sdf,
+                                   data->fp2d->speaker, data->fdp3d_m);
+            }
             src->update_ctr = src->update_rate;
          }
 
