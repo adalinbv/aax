@@ -47,7 +47,7 @@ extern const float _limiter_tbl[2][2048];
 void
 _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float asym)
 {
-   static const float df = (float)(int32_t)0x7FFFFFFF;
+   static const float df = (float)(65535.0f*256.0f);
    static const float rf = 1.0f/(65536.0f*12.0f);
    float osamp, imix, mix;
    size_t j, max;
@@ -98,19 +98,20 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
 #else
 /* arctan */
 void
-bufLimiter(void *d, size_t dmin, size_t dmax, float clip, float asym)
+_aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float asym)
 {
-   static const float df = 1.0f/2147483648.0f;
-   int32_t *ptr = (int32_t*)d;
+   static const float df = (float)(int32_t)0x7FFFFFFF;
+   static const float rf = 1.0f/(65536.0f*256.0f);
+   MIX_T *ptr = (MIX_T*)d;
    size_t j;
    float mix;
 
-   mix = 256.0f; // * _MINMAX(clip, 0.0, 1.0);
-   j = dmax-dmin;
+   mix = _MINMAX(clip, 0.0, 1.0);
+   j = *dmax - *dmin;
    do
    {
-      float samp = atan(*ptr*df*mix)*GMATH_1_PI_2;
-      *ptr++ = samp*8388608;
+      float samp = atan(*ptr*rf*mix)*GMATH_1_PI_2;
+      *ptr++ = samp*(65535.0f*256.0f);
    }
    while (--j);
 }
