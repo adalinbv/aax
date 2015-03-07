@@ -24,6 +24,8 @@
 #include <base/geometry.h>
 #include <base/logging.h>
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 #include <ringbuffer.h>
 #include <arch.h>
 

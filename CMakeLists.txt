@@ -440,6 +440,24 @@ SET( AEONWAVE_OBJS
      src/aax_effects.c
      src/dsp/filters.c
      src/dsp/effects.c
+     src/dsp/effect_chorus.c
+     src/dsp/effect_distortion.c
+     src/dsp/effect_dynamic_pitch.c
+     src/dsp/effect_flanging.c
+     src/dsp/effect_phasing.c
+     src/dsp/effect_pitch.c
+     src/dsp/effect_reverb.c
+     src/dsp/effect_timed_pitch.c
+     src/dsp/effect_velocity.c
+     src/dsp/filter_angular.c
+     src/dsp/filter_compressor.c
+     src/dsp/filter_distance.c
+     src/dsp/filter_dynamic_gain.c
+     src/dsp/filter_equalizer.c
+     src/dsp/filter_frequency.c
+     src/dsp/filter_graphic_equalizer.c
+     src/dsp/filter_timed_gain.c
+     src/dsp/filter_volume.c
      src/alsa/asound.c
      src/alsa/kernel.c
      src/dmedia/device.c

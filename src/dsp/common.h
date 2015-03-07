@@ -72,6 +72,23 @@ enum _aaxLimiterType
     RB_LIMITER_MAX
 };
 
+typedef struct
+{
+   float param[4];
+   int state;
+   void* data;          /* filter specific interal data structure */
+
+} _aaxFilterInfo;
+
+typedef struct
+{
+   float param[4];
+   int state;
+   void* data;          /* effect specific interal data structure */
+
+
+} _aaxEffectInfo;
+
 typedef float _aaxRingBufferPitchShiftFn(float, float, float);
 extern _aaxRingBufferPitchShiftFn* _aaxRingBufferDopplerFn[];
 

@@ -27,6 +27,9 @@
 
 #include <base/gmath.h>
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include "api.h"
 #include "devices.h"
 #include "arch.h"
