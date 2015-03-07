@@ -43,7 +43,7 @@
 
 
 #define ENABLE_EMITTER_FREQFILTER	1
-#define ENABLE_STATIC_FREQFILTER	1
+#define ENABLE_STATIC_FREQFILTER	0
 #define ENABLE_EMITTER_DISTORTION	1
 #define ENABLE_EMITTER_PHASING		0
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
             /* straight frequency filter */
             printf("Add frequency filter at 150Hz\n");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              200.0f, 1.0f, 0.5f, 2.0f);
+                                              5000.0f, 1.0f, 0.5f, 5.0f);
             testForError(filter, "aaxFilterSetSlot");
             filter = aaxFilterSetState(filter, AAX_TRUE);
             testForError(filter, "aaxFilterSetState");
@@ -104,11 +104,11 @@ int main(int argc, char **argv)
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("Add auto-wah\n");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              100.0f, 0.5f, 1.0f, 8.0f);
+                                              1500.0f, 1.1f, 0.1f, 2.0f);
             testForError(filter, "aaxFilterSetSlot 0");
 
             filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              550.0f, 0.0f, 0.0f, 1.0f);
+                                              5000.0f, 0.0f, 0.0f, 20.0f);
             testForError(filter, "aaxFilterSetSlot 1");
             filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
             testForError(filter, "aaxFilterSetState");
@@ -127,10 +127,10 @@ int main(int argc, char **argv)
 
             // distortion, clipping (soft-hard), mix, symmertry (sym-asym)
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              1.0f, 0.0f, 1.0f, 1.0f);
+                                              4.0f, 0.0f, 0.5f, 1.0f);
             testForError(effect, "aaxEffectSetSlot 0");
 
-            effect = aaxEffectSetState(effect, AAX_TRUE);
+            effect = aaxEffectSetState(effect, AAX_INVERSE_ENVELOPE_FOLLOW);
             testForError(effect, "aaxEffectSetState");
 
             res = aaxEmitterSetEffect(emitter, effect);
