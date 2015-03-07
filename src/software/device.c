@@ -24,6 +24,7 @@
 
 #include <base/threads.h>
 #include <base/types.h>
+#include <dsp/effects.h>
 
 #include <api.h>
 

@@ -26,6 +26,8 @@
 #endif
 #include <math.h>		/* for MAXFLOAT */
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 #include "objects.h"
 #include "arch.h"
 #include "api.h"

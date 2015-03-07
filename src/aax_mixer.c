@@ -33,6 +33,9 @@
 #include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep, etc */
 
+#include <dsp/filters.h>
+#include <dsp/effects.h>
+
 #include "api.h"
 #include "arch.h"
 #include "devices.h"
