@@ -268,7 +268,7 @@ new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d
    _filter_t* rv = NULL;
    if (type <= AAX_FILTER_MAX)
    {
-      _flt_function_tbl *flt = _aaxFilters[type]-1;
+      _flt_function_tbl *flt = _aaxFilters[type-1];
       rv = flt->handle(info, type, p2d, p3d);
    }
    return rv;
