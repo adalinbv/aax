@@ -51,8 +51,11 @@ fast_sin(float v)
 #endif
 
 unsigned
-get_pow2(unsigned n)
+get_pow2(uint32_t n)
 {
+#if defined(__GNUC__)
+    return 1 << (32 -__builtin_clzl(n-1));
+#else
    unsigned y, x = n;
 
    --x;
@@ -67,11 +70,15 @@ get_pow2(unsigned n)
    if (y < (x-n)) x >>= 1;
 
    return x;
+#endif
 }
 
 unsigned
-log2i(unsigned x)
+log2i(uint32_t x)
 {
+#if defined(__GNUC__)
+   return 31 -__builtin_clzl(x);
+#else
    int y = 0;
    while (x > 0)
    {
@@ -79,6 +86,7 @@ log2i(unsigned x)
       ++y;
    }
    return y;
+#endif
 }
 
 int
