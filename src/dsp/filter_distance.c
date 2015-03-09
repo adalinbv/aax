@@ -31,81 +31,44 @@
 #include "api.h"
 
 static aaxFilter
-_aaxDistanceFilterCreate(aaxConfig config, enum aaxFilterType type)
+_aaxDistanceFilterCreate(_handle_t *handle, enum aaxFilterType type)
 {
-   _handle_t *handle = get_handle(config);
+   unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
+   _filter_t* flt = calloc(1, size);
    aaxFilter rv = NULL;
-   if (handle)
+
+   if (flt)
    {
-      unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
-     _filter_t* flt = calloc(1, size);
+      char *ptr;
 
-      if (flt)
-      {
-         char *ptr;
+      flt->id = FILTER_ID;
+      flt->state = AAX_FALSE;
+      flt->info = handle->info ? handle->info : _info;
 
-         flt->id = FILTER_ID;
-         flt->state = AAX_FALSE;
-         flt->info = handle->info ? handle->info : _info;
+      ptr = (char*)flt + sizeof(_filter_t);
+      flt->slot[0] = (_aaxFilterInfo*)ptr;
+      flt->pos = _flt_cvt_tbl[type].pos;
+      flt->type = type;
 
-         ptr = (char*)flt + sizeof(_filter_t);
-         flt->slot[0] = (_aaxFilterInfo*)ptr;
-         flt->pos = _flt_cvt_tbl[type].pos;
-         flt->type = type;
-
-         size = sizeof(_aaxFilterInfo);
-         _aaxSetDefaultFilter3d(flt->slot[0], flt->pos);
-         rv = (aaxFilter)flt;
-      }
+      size = sizeof(_aaxFilterInfo);
+      _aaxSetDefaultFilter3d(flt->slot[0], flt->pos);
+      rv = (aaxFilter)flt;
    }
    return rv;
 }
 
 static int
-_aaxDistanceFilterDestroy(aaxFilter f)
+_aaxDistanceFilterDestroy(_filter_t* filter)
 {
-   _filter_t* filter = get_filter(f);
-   int rv = AAX_FALSE;
-   if (filter)
-   {
-      free(filter);
-      rv = AAX_TRUE;
-   }
-   return rv;
+   free(filter);
+
+   return AAX_TRUE;
 }
 
 static aaxFilter
-_aaxDistanceFilterSetState(aaxFilter f, int state)
+_aaxDistanceFilterSetState(_filter_t* filter, int state)
 {
-   _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
-   unsigned slot;
-
-   assert(f);
-
-   filter->state = state;
-   filter->slot[0]->state = state;
-
-   /*
-    * Make sure parameters are actually within their expected boundaries.
-    */
-   slot = 0;
-   while ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
-   {
-      int i, type = filter->type;
-      for(i=0; i<4; i++)
-      {
-         if (!is_nan(filter->slot[slot]->param[i]))
-         {
-            float min = _flt_minmax_tbl[slot][type].min[i];
-            float max = _flt_minmax_tbl[slot][type].max[i];
-            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
-            filter->slot[slot]->param[i] =
-                      _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
-         }
-      }
-      slot++;
-   }
 
    if ((state & ~AAX_DISTANCE_DELAY) < AAX_AL_DISTANCE_MODEL_MAX)
    {
@@ -132,27 +95,24 @@ _aaxDistanceFilterSetState(aaxFilter f, int state)
 static _filter_t*
 _aaxNewDistanceFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
-   _filter_t* rv = NULL;
-   if (type < AAX_FILTER_MAX)
+   unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
+   _filter_t* rv = calloc(1, size);
+
+   rv = calloc(1, size);
+   if (rv)
    {
-      unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
+      char *ptr = (char*)rv + sizeof(_filter_t);
 
-      rv = calloc(1, size);
-      if (rv)
-      {
-         char *ptr = (char*)rv + sizeof(_filter_t);
+      rv->id = FILTER_ID;
+      rv->info = info ? info : _info;
+      rv->slot[0] = (_aaxFilterInfo*)ptr;
+      rv->pos = _flt_cvt_tbl[type].pos;
+      rv->state = p2d->filter[rv->pos].state;
+      rv->type = type;
 
-         rv->id = FILTER_ID;
-         rv->info = info ? info : _info;
-         rv->slot[0] = (_aaxFilterInfo*)ptr;
-         rv->pos = _flt_cvt_tbl[type].pos;
-         rv->state = p2d->filter[rv->pos].state;
-         rv->type = type;
-
-         size = sizeof(_aaxFilterInfo);
-         memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
-         rv->state = p3d->filter[rv->pos].state;
-      }
+      size = sizeof(_aaxFilterInfo);
+      memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
+      rv->state = p3d->filter[rv->pos].state;
    }
    return rv;
 }

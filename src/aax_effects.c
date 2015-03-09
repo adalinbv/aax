@@ -34,11 +34,12 @@
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
+   _handle_t *handle = get_handle(config);
    aaxEffect rv = NULL;
-   if (type < AAX_EFFECT_MAX)
+   if (handle && (type < AAX_EFFECT_MAX))
    {
       _eff_function_tbl *eff = _aaxEffects[type-1];
-      rv = eff->create(config, type);
+      rv = eff->create(handle, type);
    }
    return rv;
 
@@ -49,7 +50,8 @@ aaxEffectDestroy(aaxEffect e)
 {
    _effect_t* effect = get_effect(e);
    int rv = AAX_FALSE;
-   if (effect) {
+   if (effect)
+   {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
       rv = eff->destroy(e);
    }
@@ -139,9 +141,41 @@ aaxEffectSetState(aaxEffect e, int state)
 {
    _effect_t* effect = get_effect(e);
    aaxEffect rv = NULL;
-   if (effect) {
+   if (effect)
+   {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      rv = eff->state(e, state);
+      if (eff->lite || EBF_VALID(effect))
+      {
+         unsigned slot;
+
+         effect->state = state;
+         effect->slot[0]->state = state;
+
+         /*
+          * Make sure parameters are actually within their expected boundaries.
+          */
+         slot = 0;
+         while ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
+         {
+            int i, type = effect->type;
+            for(i=0; i<4; i++)
+            {
+               if (!is_nan(effect->slot[slot]->param[i]))
+               {
+                  float min = _eff_minmax_tbl[slot][type].min[i];
+                  float max = _eff_minmax_tbl[slot][type].max[i];
+                  cvtfn_t cvtfn;
+
+                  cvtfn = effect_get_cvtfn(effect->type,AAX_LINEAR, WRITEFN, i);
+                  effect->slot[slot]->param[i] =
+                         _MINMAX(cvtfn(effect->slot[slot]->param[i]), min, max);
+               }
+            }
+            slot++;
+         }
+
+         rv = eff->state(effect, state);
+      }
    }
    return rv;
 }

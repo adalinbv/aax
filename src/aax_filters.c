@@ -38,11 +38,12 @@
 AAX_API aaxFilter AAX_APIENTRY
 aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
 {
+   _handle_t *handle = get_handle(config);
    aaxFilter rv = NULL;
-   if (type < AAX_FILTER_MAX)
+   if (handle && (type < AAX_FILTER_MAX))
    {
       _flt_function_tbl *flt = _aaxFilters[type-1];
-      rv = flt->create(config, type);
+      rv = flt->create(handle, type);
    }
    return rv;
 }
@@ -52,9 +53,10 @@ aaxFilterDestroy(aaxFilter f)
 {
    _filter_t* filter = get_filter(f);
    int rv = AAX_FALSE;
-   if (filter) {
+   if (filter)
+   {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-      rv = flt->destroy(f);
+      rv = flt->destroy(filter);
    }
    return rv;
 }
@@ -141,9 +143,41 @@ aaxFilterSetState(aaxFilter f, int state)
 {
    _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
-   if (filter) {
+   if (filter)
+   {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-      rv = flt->state(f, state);
+      if (flt->lite || EBF_VALID(filter))
+      {
+         unsigned slot;
+
+         filter->state = state;
+         filter->slot[0]->state = state;
+
+         /*
+          * Make sure parameters are actually within their expected boundaries.
+          */
+         slot = 0;
+         while ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
+         {
+            int i, type = filter->type;
+            for(i=0; i<4; i++)
+            {
+               if (!is_nan(filter->slot[slot]->param[i]))
+               {
+                  float min = _flt_minmax_tbl[slot][type].min[i];
+                  float max = _flt_minmax_tbl[slot][type].max[i];
+                  cvtfn_t cvtfn;
+
+                  cvtfn = filter_get_cvtfn(filter->type,AAX_LINEAR, WRITEFN, i);
+                  filter->slot[slot]->param[i] =
+                         _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
+               }
+            }
+            slot++;
+         }
+
+         rv = flt->state(filter, state);
+      }
    }
    return rv;
 }

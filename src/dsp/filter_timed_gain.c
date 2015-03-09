@@ -31,167 +31,125 @@
 #include "api.h"
 
 static aaxFilter
-_aaxTimedGainFilterCreate(aaxConfig config, enum aaxFilterType type)
+_aaxTimedGainFilterCreate(_handle_t *handle, enum aaxFilterType type)
 {
-   _handle_t *handle = get_handle(config);
+   unsigned int size = sizeof(_filter_t);
+   _filter_t* flt;
    aaxFilter rv = NULL;
-   if (handle)
+
+   size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
+   flt = calloc(1, size);
+   if (flt)
    {
-      unsigned int size = sizeof(_filter_t);
-      _filter_t* flt;
+      char *ptr;
+      int i;
 
-      size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
-      flt = calloc(1, size);
-      if (flt)
+      flt->id = FILTER_ID;
+      flt->state = AAX_FALSE;
+      flt->info = handle->info ? handle->info : _info;
+
+      ptr = (char*)flt + sizeof(_filter_t);
+      flt->slot[0] = (_aaxFilterInfo*)ptr;
+      flt->pos = _flt_cvt_tbl[type].pos;
+      flt->type = type;
+
+      size = sizeof(_aaxFilterInfo);
+      for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
       {
-         char *ptr;
-         int i;
-
-         flt->id = FILTER_ID;
-         flt->state = AAX_FALSE;
-         flt->info = handle->info ? handle->info : _info;
-
-         ptr = (char*)flt + sizeof(_filter_t);
-         flt->slot[0] = (_aaxFilterInfo*)ptr;
-         flt->pos = _flt_cvt_tbl[type].pos;
-         flt->type = type;
-
-         size = sizeof(_aaxFilterInfo);
-         for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
-         {
-            flt->slot[i] = (_aaxFilterInfo*)(ptr + i*size);
-            _aaxSetDefaultFilter2d(flt->slot[i], flt->pos);
-         }
-         rv = (aaxFilter)flt;
+         flt->slot[i] = (_aaxFilterInfo*)(ptr + i*size);
+         _aaxSetDefaultFilter2d(flt->slot[i], flt->pos);
       }
+      rv = (aaxFilter)flt;
    }
    return rv;
 }
 
 static int
-_aaxTimedGainFilterDestroy(aaxFilter f)
+_aaxTimedGainFilterDestroy(_filter_t* filter)
 {
-   _filter_t* filter = get_filter(f);
-   int rv = AAX_FALSE;
-   if (filter)
-   {
-      free(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-      free(filter);
-      rv = AAX_TRUE;
-   }
-   return rv;
+   free(filter->slot[0]->data);
+   filter->slot[0]->data = NULL;
+   free(filter);
+
+   return AAX_TRUE;
 }
 
 static aaxFilter
-_aaxTimedGainFilterSetState(aaxFilter f, int state)
+_aaxTimedGainFilterSetState(_filter_t* filter, int state)
 {
-   _filter_t* filter = get_filter(f);
    aaxFilter rv = NULL;
-   unsigned slot;
 
-   assert(f);
-
-   filter->state = state;
-   filter->slot[0]->state = state;
-
-   /*
-    * Make sure parameters are actually within their expected boundaries.
-    */
-   slot = 0;
-   while ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
+   if TEST_FOR_TRUE(state)
    {
-      int i, type = filter->type;
-      for(i=0; i<4; i++)
+      _aaxRingBufferEnvelopeData* env = filter->slot[0]->data;
+      if (env == NULL)
       {
-         if (!is_nan(filter->slot[slot]->param[i]))
-         {
-            float min = _flt_minmax_tbl[slot][type].min[i];
-            float max = _flt_minmax_tbl[slot][type].max[i];
-            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, AAX_LINEAR, WRITEFN, i);
-            filter->slot[slot]->param[i] =
-                      _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
-         }
+         env =  calloc(1, sizeof(_aaxRingBufferEnvelopeData));
+         filter->slot[0]->data = env;
       }
-      slot++;
-   }
 
-#if !ENABLE_LITE
-   if EBF_VALID(filter)
-   {
-      if TEST_FOR_TRUE(state)
+      if (env)
       {
-         _aaxRingBufferEnvelopeData* env = filter->slot[0]->data;
-         if (env == NULL)
-         {
-            env =  calloc(1, sizeof(_aaxRingBufferEnvelopeData));
-            filter->slot[0]->data = env;
-         }
+         float nextval = filter->slot[0]->param[AAX_LEVEL0];
+         float period = filter->info->period_rate;
+         float timestep = 1.0f / period;
+         int i;
 
-         if (env)
+         env->value = nextval;
+         env->max_stages = _MAX_ENVELOPE_STAGES;
+         for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
-            float nextval = filter->slot[0]->param[AAX_LEVEL0];
-            float period = filter->info->period_rate;
-            float timestep = 1.0f / period;
-            int i;
+            float dt, value = nextval;
+            uint32_t max_pos;
 
-            env->value = nextval;
-            env->max_stages = _MAX_ENVELOPE_STAGES;
-            for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
+            max_pos = (uint32_t)-1;
+            dt = filter->slot[i]->param[AAX_TIME0];
+            if (dt != MAXFLOAT)
             {
-               float dt, value = nextval;
-               uint32_t max_pos;
-
-               max_pos = (uint32_t)-1;
-               dt = filter->slot[i]->param[AAX_TIME0];
-               if (dt != MAXFLOAT)
-               {
-                  if (dt < timestep && dt > EPS) dt = timestep;
-                  max_pos = rintf(dt * period);
-               }
-               if (max_pos == 0)
-               {
-                  env->max_stages = 2*i;
-                  break;
-               }
-
-               nextval = filter->slot[i]->param[AAX_LEVEL1];
-               if (nextval == 0.0f) nextval = -1e-2f;
-               env->step[2*i] = (nextval - value)/max_pos;
-               env->max_pos[2*i] = max_pos;;
-
-               /* prevent a core dump for accessing an illegal slot */
-               if (i == (_MAX_ENVELOPE_STAGES/2)-1) break;
-
-               max_pos = (uint32_t)-1;
-               dt = filter->slot[i]->param[AAX_TIME1];
-               if (dt != MAXFLOAT)
-               {
-                  if (dt < timestep && dt > EPS) dt = timestep;
-                  max_pos = rintf(dt * period);
-               }
-               if (max_pos == 0)
-               {
-                  env->max_stages = 2*i+1;
-                  break;
-               }
-
-               value = nextval;
-               nextval = filter->slot[i+1]->param[AAX_LEVEL0];
-               if (nextval == 0.0f) nextval = -1e-2f;
-               env->step[2*i+1] = (nextval - value)/max_pos;
-               env->max_pos[2*i+1] = max_pos;
+               if (dt < timestep && dt > EPS) dt = timestep;
+               max_pos = rintf(dt * period);
             }
+            if (max_pos == 0)
+            {
+               env->max_stages = 2*i;
+               break;
+            }
+
+            nextval = filter->slot[i]->param[AAX_LEVEL1];
+            if (nextval == 0.0f) nextval = -1e-2f;
+            env->step[2*i] = (nextval - value)/max_pos;
+            env->max_pos[2*i] = max_pos;;
+
+            /* prevent a core dump for accessing an illegal slot */
+            if (i == (_MAX_ENVELOPE_STAGES/2)-1) break;
+
+            max_pos = (uint32_t)-1;
+            dt = filter->slot[i]->param[AAX_TIME1];
+            if (dt != MAXFLOAT)
+            {
+               if (dt < timestep && dt > EPS) dt = timestep;
+               max_pos = rintf(dt * period);
+            }
+            if (max_pos == 0)
+            {
+               env->max_stages = 2*i+1;
+               break;
+            }
+
+            value = nextval;
+            nextval = filter->slot[i+1]->param[AAX_LEVEL0];
+            if (nextval == 0.0f) nextval = -1e-2f;
+            env->step[2*i+1] = (nextval - value)/max_pos;
+            env->max_pos[2*i+1] = max_pos;
          }
-         else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       }
-      else
-      {
-         free(filter->slot[0]->data);
-         filter->slot[0]->data = NULL;
-      }
+      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
    }
-#endif
+   else
+   {
+      free(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+   }
    rv = filter;
    return rv;
 }
@@ -199,61 +157,58 @@ _aaxTimedGainFilterSetState(aaxFilter f, int state)
 static _filter_t*
 _aaxNewTimedGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
+   unsigned int size = sizeof(_filter_t);
    _filter_t* rv = NULL;
-   if (type < AAX_FILTER_MAX)
+
+   size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
+   rv = calloc(1, size);
+   if (rv)
    {
-      unsigned int size = sizeof(_filter_t);
+      char *ptr = (char*)rv + sizeof(_filter_t);
+      _aaxRingBufferEnvelopeData *env;
+      unsigned int no_steps;
+      float dt, value;
+      int i, stages;
 
-      size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
-      rv = calloc(1, size);
-      if (rv)
+      rv->id = FILTER_ID;
+      rv->info = info ? info : _info;
+      rv->slot[0] = (_aaxFilterInfo*)ptr;
+      rv->pos = _flt_cvt_tbl[type].pos;
+      rv->state = p2d->filter[rv->pos].state;
+      rv->type = type;
+
+      size = sizeof(_aaxFilterInfo);
+
+      env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
+      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->data = NULL;
+
+      i = 0;
+      if (env->max_pos[1] > env->max_pos[0]) i = 1;
+      dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];
+
+      no_steps = env->max_pos[1];
+      value = p2d->filter[rv->pos].param[AAX_LEVEL1];
+      value += env->step[1] * no_steps;
+
+      stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
+      for (i=1; i<stages; i++)
       {
-         char *ptr = (char*)rv + sizeof(_filter_t);
-         _aaxRingBufferEnvelopeData *env;
-         unsigned int no_steps;
-         float dt, value;
-         int i, stages;
+         _aaxFilterInfo* slot;
 
-         rv->id = FILTER_ID;
-         rv->info = info ? info : _info;
-         rv->slot[0] = (_aaxFilterInfo*)ptr;
-         rv->pos = _flt_cvt_tbl[type].pos;
-         rv->state = p2d->filter[rv->pos].state;
-         rv->type = type;
+         slot = (_aaxFilterInfo*)(ptr + i*size);
+         rv->slot[i] = slot;
 
-         size = sizeof(_aaxFilterInfo);
+         no_steps = env->max_pos[2*i];
+         slot->param[0] = value;
+         slot->param[1] = no_steps * dt;
 
-         env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
-         memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-         rv->slot[0]->data = NULL;
+         value += env->step[2*i] * no_steps;
+         no_steps = env->max_pos[2*i+1];
+         slot->param[2] = value;
+         slot->param[3] = no_steps * dt;
 
-         i = 0;
-         if (env->max_pos[1] > env->max_pos[0]) i = 1;
-         dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];
-
-         no_steps = env->max_pos[1];
-         value = p2d->filter[rv->pos].param[AAX_LEVEL1];
-         value += env->step[1] * no_steps;
-
-         stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
-         for (i=1; i<stages; i++)
-         {
-            _aaxFilterInfo* slot;
-
-            slot = (_aaxFilterInfo*)(ptr + i*size);
-            rv->slot[i] = slot;
-
-            no_steps = env->max_pos[2*i];
-            slot->param[0] = value;
-            slot->param[1] = no_steps * dt;
-
-            value += env->step[2*i] * no_steps;
-            no_steps = env->max_pos[2*i+1];
-            slot->param[2] = value;
-            slot->param[3] = no_steps * dt;
-
-            value += env->step[2*i+1] * no_steps;
-         }
+         value += env->step[2*i+1] * no_steps;
       }
    }
    return rv;

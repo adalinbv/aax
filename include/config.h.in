@@ -8,9 +8,6 @@
 /* Define this to enable nano debug messages. */
 #undef DEBUG
 
-/* Define this to enable lite version. */
-#undef ENABLE_LITE
-
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 

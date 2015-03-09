@@ -32,81 +32,44 @@
 
 
 static aaxEffect
-_aaxDistortionEffectCreate(aaxConfig config, enum aaxEffectType type)
+_aaxDistortionEffectCreate(_handle_t *handle, enum aaxEffectType type)
 {
-   _handle_t *handle = get_handle(config);
+   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
+   _effect_t* eff = calloc(1, size);
    aaxEffect rv = NULL;
-   if (handle)
+
+   if (eff)
    {
-      unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-     _effect_t* eff = calloc(1, size);
+      char *ptr;
 
-      if (eff)
-      {
-         char *ptr;
+      eff->id = EFFECT_ID;
+      eff->state = AAX_FALSE;
+      eff->info = handle->info ? handle->info : _info;
 
-         eff->id = EFFECT_ID;
-         eff->state = AAX_FALSE;
-         if VALID_HANDLE(handle) eff->info = handle->info;
+      ptr = (char*)eff + sizeof(_effect_t);
+      eff->slot[0] = (_aaxEffectInfo*)ptr;
+      eff->pos = _eff_cvt_tbl[type].pos;
+      eff->type = type;
 
-         ptr = (char*)eff + sizeof(_effect_t);
-         eff->slot[0] = (_aaxEffectInfo*)ptr;
-         eff->pos = _eff_cvt_tbl[type].pos;
-         eff->type = type;
-
-         size = sizeof(_aaxEffectInfo);
-         _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
-         rv = (aaxEffect)eff;
-      }
+      size = sizeof(_aaxEffectInfo);
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      rv = (aaxEffect)eff;
    }
    return rv;
 }
 
 static int
-_aaxDistortionEffectDestroy(aaxEffect f)
+_aaxDistortionEffectDestroy(_effect_t* effect)
 {
-   int rv = AAX_FALSE;
-   _effect_t* effect = get_effect(f);
-   if (effect)
-   {
-      free(effect);
-      rv = AAX_TRUE;
-   }
-   return rv;
+   free(effect);
+
+   return AAX_TRUE;
 }
 
 static aaxEffect
-_aaxDistortionEffectSetState(aaxEffect e, int state)
+_aaxDistortionEffectSetState(_effect_t* effect, int state)
 {
-   _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
-   unsigned slot;
-
-   assert(e);
-
-   effect->state = state;
-   effect->slot[0]->state = state;
-
-   /*
-    * Make sure parameters are actually within their expected boundaries.
-    */
-   slot = 0;
-   while ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
-   {
-      int i, type = effect->type;
-      for(i=0; i<4; i++)
-      {
-         if (!is_nan(effect->slot[slot]->param[i]))
-         {
-            float min = _eff_minmax_tbl[slot][type].min[i];
-            float max = _eff_minmax_tbl[slot][type].max[i];
-            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, AAX_LINEAR, WRITEFN, i);
-            effect->slot[slot]->param[i] =
-                      _MINMAX(cvtfn(effect->slot[slot]->param[i]), min, max);
-         }
-      }
-      slot++;
-   }
 
    switch (state & ~AAX_INVERSE)
    {
@@ -179,27 +142,23 @@ _aaxDistortionEffectSetState(aaxEffect e, int state)
 static _effect_t*
 _aaxNewDistortionEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
-   _effect_t* rv = NULL;
-   if (type < AAX_EFFECT_MAX)
+   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
+   _effect_t* rv = calloc(1, size);
+
+   if (rv)
    {
-      unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
+      char *ptr = (char*)rv + sizeof(_effect_t);
 
-      rv = calloc(1, size);
-      if (rv)
-      {
-         char *ptr = (char*)rv + sizeof(_effect_t);
+      rv->id = EFFECT_ID;
+      rv->info = info ? info : _info;
+      rv->slot[0] = (_aaxEffectInfo*)ptr;
+      rv->pos = _eff_cvt_tbl[type].pos;
+      rv->state = p2d->effect[rv->pos].state;
+      rv->type = type;
 
-         rv->id = EFFECT_ID;
-         rv->info = info ? info : _info;
-         rv->slot[0] = (_aaxEffectInfo*)ptr;
-         rv->pos = _eff_cvt_tbl[type].pos;
-         rv->state = p2d->effect[rv->pos].state;
-         rv->type = type;
-
-         size = sizeof(_aaxEffectInfo);
-         memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-         rv->slot[0]->data = NULL;
-      }
+      size = sizeof(_aaxEffectInfo);
+      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      rv->slot[0]->data = NULL;
    }
    return rv;
 }
