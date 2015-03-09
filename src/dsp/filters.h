@@ -25,6 +25,7 @@ extern "C" {
 #include "driver.h"
 #include "objects.h"
 #include "common.h"
+#include "api.h"
 
 #define _AAX_MAX_FILTERS	2
 
@@ -66,9 +67,9 @@ extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
 extern const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX];
 
 
-typedef aaxFilter _aaxFilterCreate(aaxConfig, enum aaxFilterType);
-typedef int _aaxFilterDestroy(aaxFilter);
-typedef aaxFilter _aaxFilterSetState(aaxFilter, int);
+typedef aaxFilter _aaxFilterCreate(_handle_t*, enum aaxFilterType);
+typedef int _aaxFilterDestroy(_filter_t*);
+typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
 typedef _filter_t* _aaxNewFilterHandle(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 
 typedef struct

@@ -30,8 +30,13 @@ extern "C" {
 #include "ringbuffer.h"
 #include "objects.h"
 
+#ifndef RELEASE
 #define USE_MIDI			AAX_FALSE
 #define USE_EVENTMGR			AAX_TRUE
+#else
+#define USE_MIDI			AAX_FALSE
+#define USE_EVENTMGR			AAX_FALSE
+#endif
 #define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
 #define	FADEDBAD			0xfadedbad
 

@@ -24,6 +24,7 @@ extern "C" {
 
 #include "objects.h"
 #include "common.h"
+#include "api.h"
 
 #define DELAY_EFFECTS_TIME      0.070f
 #define REVERB_EFFECTS_TIME     0.700f
@@ -67,9 +68,9 @@ extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 
-typedef aaxEffect _aaxEffectCreate(aaxConfig, enum aaxEffectType);
-typedef int _aaxEffectDestroy(aaxEffect);
-typedef aaxEffect _aaxEffectSetState(aaxEffect, int);
+typedef aaxEffect _aaxEffectCreate(_handle_t*, enum aaxEffectType);
+typedef int _aaxEffectDestroy(_effect_t*);
+typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef _effect_t* _aaxNewEffectHandle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 
 typedef struct
