@@ -37,8 +37,8 @@ int detect_zero_vec3(const float[3]);
 float fast_abs(float);
 #endif
 float fast_sin(float);
-unsigned get_pow2(unsigned);
-unsigned log2i(unsigned);
+unsigned get_pow2(uint32_t);
+unsigned log2i(uint32_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
