@@ -10,6 +10,8 @@ extern "C" {
 #endif
 #include <math.h>
 
+#include "types.h"
+
 #define __NAN__		(0.0f/0.0f)
 
 #ifndef MAXFLOAT
