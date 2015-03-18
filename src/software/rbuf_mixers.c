@@ -50,7 +50,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    MIX_T **track_ptr;
    char src_loops;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(no_samples);
    *no_samples = 0;

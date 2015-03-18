@@ -134,7 +134,7 @@ int _aaxThreadJoin(void *);
 
 /* -- Mutexes ---------------------------------------------------------- */
 #ifndef NDEBUG
-#define _aaxMutexCreate(a) _aaxMutexCreateDebug(a, __FILE__, __FUNCTION__)
+#define _aaxMutexCreate(a) _aaxMutexCreateDebug(a, __FILE__, __func__)
 #define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
 #define _aaxMutexUnLock(a) _aaxMutexUnLockDebug(a, __FILE__, __LINE__)
 void *_aaxMutexCreateDebug(void *, const char *, const char *);

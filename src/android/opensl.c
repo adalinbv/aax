@@ -160,7 +160,7 @@ _aaxSLESDriverDetect(int mode)
    static int rv = AAX_FALSE;
 // char *error = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if TEST_FOR_FALSE(rv) {
       audio = _aaxIsLibraryPresent("OpenSLES", 0);
@@ -181,7 +181,7 @@ _aaxSLESDriverNewHandle(enum aaxRenderMode mode)
    _driver_t *handle;
    size_t size;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -204,7 +204,7 @@ _aaxSLESDriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    _driver_t *handle = (_driver_t *)id;
    uint32_t res;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -333,7 +333,7 @@ _aaxSLESDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if (handle)
    {

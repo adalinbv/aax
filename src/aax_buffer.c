@@ -1237,7 +1237,7 @@ _bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, ch
    unsigned int fmt, bps, no_samples, no_tracks, tracksize;
    int32_t **tracks;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != 0);
    assert(data != 0);
@@ -1304,7 +1304,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
    unsigned int fmt, bps, no_samples, t, no_tracks;
    void **ptr, **tracks;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != 0);
    assert(data != 0);

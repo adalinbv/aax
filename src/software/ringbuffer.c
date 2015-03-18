@@ -51,7 +51,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
    _aaxRingBuffer *rb;
    size_t size;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    size = sizeof(_aaxRingBuffer) + sizeof(_aaxRingBufferData);
    rb = (_aaxRingBuffer *)calloc(1, size);
@@ -150,7 +150,7 @@ _aaxRingBufferDestroy(_aaxRingBuffer *rb)
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != 0);
 
@@ -188,7 +188,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 {
    _aaxRingBufferSample *rbd;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rbi != NULL);
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
@@ -254,7 +254,7 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -348,7 +348,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
    _aaxRingBufferSample *srbd;
    _aaxRingBuffer *drb;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(ringbuffer != 0);
 
@@ -420,7 +420,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    _aaxRingBufferSample *rbd;
    int32_t **rv = NULL;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -459,7 +459,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
    _aaxRingBufferSample *rbd;
 #endif
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -493,7 +493,7 @@ _aaxRingBufferGetScratchBufferPtr(_aaxRingBuffer *rb)
    _aaxRingBufferSample *rbd;
    void **rv = NULL;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -514,7 +514,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 {
    _aaxRingBufferData *rbi;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -573,7 +573,7 @@ _aaxRingBufferGetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
    _aaxRingBufferData *rbi;
    int rv = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -667,7 +667,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       else if (rbd->track == NULL) {
          printf("Unable to set no. tracks when rbd->track != NULL");
       } else {
-         printf("%s: Unknown error\n", __FUNCTION__);
+         printf("%s: Unknown error\n", __func__);
       }
 #endif
       break;
@@ -846,7 +846,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       else if (rbd->track == NULL) {
          printf("Unable to set no. tracks when rbd->track != NULL");
       } else {
-         printf("%s: Unknown error\n", __FUNCTION__);
+         printf("%s: Unknown error\n", __func__);
       }
 #endif
       break;
@@ -1023,7 +1023,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
    _aaxRingBufferData *rbi;
    int rv = AAX_TRUE;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != NULL);
 
@@ -1042,7 +1042,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
       rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
    }
 #ifndef NDEBUG
-   else printf("%s: Can't set value when rbd->track != NULL\n", __FUNCTION__);
+   else printf("%s: Can't set value when rbd->track != NULL\n", __func__);
 #endif
 
    return rv;
@@ -1219,7 +1219,7 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(drb);
    assert(srb);

@@ -56,10 +56,7 @@ extern "C" {
 
 
 /* --- Error support -- */
-#ifndef __FUNCTION__
-# define __FUNCTION__	__func__
-#endif
-#define _aaxErrorSet(a)		__aaxErrorSet(a,__FUNCTION__)
+#define _aaxErrorSet(a)		__aaxErrorSet(a,__func__)
 enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
 

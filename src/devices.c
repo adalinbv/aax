@@ -65,7 +65,7 @@ _aaxGetDriverBackends()
    _intBuffers *backends = NULL;
    unsigned int r;
 
-   _AAX_LOG(LOG_WARNING, __FUNCTION__);
+   _AAX_LOG(LOG_WARNING, __func__);
 
    r = _intBufCreate(&backends, _AAX_BACKEND);
    if (r != UINT_MAX)

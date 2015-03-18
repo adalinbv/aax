@@ -35,7 +35,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
    unsigned int track;
    float g;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    rbs_tracks = srbd->no_tracks;
    rbd_tracks = drbd->no_tracks;

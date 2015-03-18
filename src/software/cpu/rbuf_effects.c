@@ -110,7 +110,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
    const _aaxRingBufferReverbData *reverb = data;
    int snum;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);
    assert(sbuf != 0);
@@ -156,7 +156,7 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    const _aaxRingBufferReverbData *reverb = data;
    int snum;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);
    assert(dmin < dmax);
@@ -203,7 +203,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
    _aaxRingBufferDelayEffectData* effect = data;
    float volume;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);
    assert(d != 0);
@@ -317,7 +317,7 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
    _aaxRingBufferLFOData* lfo = dist_effect->data;
    float *params = dist_effect->param;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);
    assert(d != 0);
@@ -384,7 +384,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
 {
    _aaxRingBufferFreqFilterData *filter = data;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);
    assert(d != 0);

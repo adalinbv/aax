@@ -314,7 +314,7 @@ _aaxALSADriverDetect(int mode)
    static int rv = AAX_FALSE;
    char *error = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if TEST_FOR_FALSE(rv) {
       audio = _aaxIsLibraryPresent("asound", "2");
@@ -434,7 +434,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -473,7 +473,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    _driver_t *handle = (_driver_t *)id;
    int rdr_aax_fmt;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -625,7 +625,7 @@ _aaxALSADriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if (handle)
    {
@@ -702,7 +702,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
    unsigned int bits, periods;
    int err, rv = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(handle != 0);
 
@@ -2484,7 +2484,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
    const int32_t **sbuf;
    size_t offs, rv = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(handle != 0);
    if (handle->pause) return 0;
@@ -2591,7 +2591,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
    const int32_t **sbuf;
    size_t offs, rv = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(handle != 0);
    if (handle->pause) return 0;
@@ -2697,7 +2697,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain,
    ssize_t outbuf_size;
    size_t offs, rv = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(handle != 0);
    if (handle->pause) return 0;
@@ -2817,7 +2817,7 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain,
    size_t offs, rv = 0;
    char *data;
     
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(handle != 0);
    if (handle->pause) return 0;

@@ -38,7 +38,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 {
    unsigned int t;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
@@ -78,7 +78,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 {
    unsigned int t;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
@@ -141,7 +141,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 {
    unsigned int t;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
@@ -167,7 +167,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 {
    unsigned int t;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    for (t=0; t<drbd->no_tracks; t++)
    {

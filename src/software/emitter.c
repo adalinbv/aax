@@ -216,7 +216,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    _aax2dProps *ep2d;
    _aaxRingBufferDistFn* distfn;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(src);
    assert(info);
