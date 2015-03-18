@@ -64,10 +64,10 @@ typedef double vec3d[3];
 typedef ALIGN16 double mtx4d_t[4][4] ALIGN16C;
 typedef double mtx4d[4][4];
 
-AAX_API extern aaxVec4f aaxZeroVector;
-AAX_API extern aaxVec4f aaxAxisUnitVec;
-AAX_API extern aaxMtx4f aaxIdentityMatrix;
-AAX_API extern aaxMtx4d aaxIdentityMatrix64;
+AAX_API aaxVec4f aaxZeroVector;
+AAX_API aaxVec4f aaxAxisUnitVec;
+AAX_API aaxMtx4f aaxIdentityMatrix;
+AAX_API aaxMtx4d aaxIdentityMatrix64;
 
 typedef void (*vec3Copy_proc)(vec3 d, const vec3 v);
 typedef void (*vec3Add_proc)(vec3 d, vec3 v);
