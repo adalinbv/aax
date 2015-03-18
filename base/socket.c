@@ -13,6 +13,11 @@
 #include "config.h"
 #endif
 
+#include <fcntl.h>
+#include <errno.h>
+#include <stdarg.h>
+#include <assert.h>
+
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>           /* read, write, close, lseek, access */
 #endif
@@ -34,10 +39,6 @@
 # include <ws2tcpip.h>
 # define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
-#include <fcntl.h>
-#include <errno.h>
-#include <stdarg.h>
-#include <assert.h>
 
 #include <base/types.h>
 #include <base/timer.h>

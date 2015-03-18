@@ -227,6 +227,11 @@ ELSE(MSVC)
       SET(C_FLAGS "${C_FLAGS} -Qunused-arguments" CACHE STRING
           "Hide unised clang options"
           FORCE)
+    ELSEIF (MIPSPRO)
+      SET(CMAKE_C_COMPILER c99)
+      SET(C_FLAGS "${C_FLAGS} -c99 -Ofast -n32 -IPA" CACHE STRING
+          "fastest options"
+          FORCE)
     ENDIF(CLANG)
 
     IF (GCC OR CLANG)
