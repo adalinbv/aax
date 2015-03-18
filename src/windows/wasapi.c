@@ -60,7 +60,7 @@
 #define DEFAULT_DEVNAME		NULL
 #define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
 
-#define _AAX_DRVLOG(p)		_aaxWASAPIDriverLog(id, 0, p, __FUNCTION__)
+#define _AAX_DRVLOG(p)		_aaxWASAPIDriverLog(id, 0, p, __func__)
 #define _AAX_DRVLOG_VAR(args...)	_aaxWASAPIDriverLogVar(id, args);
 #define HW_VOLUME_SUPPORT(a)		(a->pEndpointVolume && (a->volumeMax))
 
@@ -314,7 +314,7 @@ _aaxWASAPIDriverDetect(int mode)
    static int rv = AAX_FALSE;
    void *audio = NULL;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if TEST_FOR_FALSE(rv) {
      audio = _aaxIsLibraryPresent("mmdevapi", 0);
@@ -334,7 +334,7 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -364,7 +364,7 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
    _driver_t *handle = (_driver_t *)id;
    WAVEFORMATEXTENSIBLE fmt;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -1968,7 +1968,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
    }
    else
    {
-      _aaxWASAPIDriverLog(NULL, 0, WASAPI_UNSUPPORTED_FORMAT, __FUNCTION__);
+      _aaxWASAPIDriverLog(NULL, 0, WASAPI_UNSUPPORTED_FORMAT, __func__);
       rv = AAX_FALSE;
    }
 

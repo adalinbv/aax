@@ -177,7 +177,7 @@ _aaxOSSDriverDetect(int mode)
    static void *audio = NULL;
    static int rv = AAX_FALSE;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
      
    if (TEST_FOR_FALSE(rv)) {
       audio = _aaxIsLibraryPresent(NULL, 0);
@@ -198,7 +198,7 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -223,7 +223,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
 {
    _driver_t *handle = (_driver_t *)id;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 

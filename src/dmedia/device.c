@@ -211,7 +211,7 @@ _aaxDMediaDriverDetect(int mode)
    static int rv = AAX_FALSE;
    void *audio = NULL;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if TEST_FOR_FALSE(rv) {
      audio = _aaxIsLibraryPresent("audio", 0);
@@ -279,7 +279,7 @@ _aaxDMediaDriverNewHandle(enum aaxRenderMode mode)
    _driver_t *handle;
    size_t size;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -307,7 +307,7 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
    unsigned int i;
    int res;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -484,7 +484,7 @@ _aaxDMediaDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if (handle)
    {
@@ -551,7 +551,7 @@ _aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
    unsigned int i;
    int result;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert (id != 0);
 
@@ -713,7 +713,7 @@ _aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain,
    const int32_t **sbuf;
    int16_t *data;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb);
    assert(id != 0);
@@ -853,7 +853,7 @@ _aaxDMediaDriverState(const void *id, enum _aaxDriverState state)
    unsigned int i;
    ALpv params;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert (id != 0);
 

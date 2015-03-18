@@ -58,7 +58,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *
    CONST_MIX_PTRPTR_T sptr;
    int ret = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(drb != NULL);
    assert(srb != NULL);

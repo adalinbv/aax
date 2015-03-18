@@ -223,7 +223,7 @@ _aaxLinuxDriverDetect(int mode)
    static int rv = AAX_FALSE;
    char *error = 0;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
 #if RELEASE
    if TEST_FOR_FALSE(rv)
@@ -259,7 +259,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 
@@ -302,7 +302,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
 {
    _driver_t *handle = (_driver_t *)id;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(mode < AAX_MODE_WRITE_MAX);
 

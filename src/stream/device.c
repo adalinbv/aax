@@ -172,7 +172,7 @@ _aaxStreamDriverDetect(int mode)
    _aaxExtensionDetect* ftype;
    int i, rv = AAX_FALSE;
 
-   _AAX_LOG(LOG_DEBUG, __FUNCTION__);
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    i = 0;
    while ((ftype = _aaxFormatTypes[i++]) != NULL)
