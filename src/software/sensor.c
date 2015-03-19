@@ -307,7 +307,8 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          _aaxRingBuffer *nrb;
          double rms;
 
-         nrb = drb->duplicate(drb, AAX_FALSE, AAX_FALSE);
+//TODO: Is it really necessary to create a dde buffer here?
+         nrb = drb->duplicate(drb, AAX_FALSE, AAX_TRUE);
          assert(nrb != 0);
 
          nrbi = nrb->handle;

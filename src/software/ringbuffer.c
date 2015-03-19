@@ -46,7 +46,7 @@ static int _aaxRingBufferClear(_aaxRingBufferData*);
 static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX];
 
 _aaxRingBuffer *
-_aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
+_aaxRingBufferAlloc()
 {
    _aaxRingBuffer *rb;
    size_t size;
@@ -66,6 +66,29 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
       rb->handle = rbi;
 
       rbd = (_aaxRingBufferSample *)calloc(1, sizeof(_aaxRingBufferSample));
+      rbi->sample = rbd;
+      if (!rbd)
+      {
+         free(rb);
+         rb = NULL;
+      }
+   }
+
+   return rb;
+}
+
+_aaxRingBuffer *
+_aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
+{
+   _aaxRingBuffer *rb;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   rb = _aaxRingBufferAlloc();
+   if (rb)
+   {
+      _aaxRingBufferData *rbi = rb->handle;
+      _aaxRingBufferSample *rbd = rbi->sample;
       if (rbd)
       {
          float ddesamps;
@@ -73,7 +96,6 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          /*
           * fill in the defaults
           */
-         rbi->sample = rbd;
          rbd->ref_counter = 1;
 
          rbi->playing = 0;
@@ -133,11 +155,6 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->scratch = NULL;
 
          _aaxRingBufferInitFunctions(rb);
-      }
-      else
-      {
-         free(rb);
-         rb = NULL;
       }
    }
 
@@ -345,7 +362,6 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 {
    _aaxRingBuffer *srb = ringbuffer;
    _aaxRingBufferData *srbi;
-   _aaxRingBufferSample *srbd;
    _aaxRingBuffer *drb;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -353,8 +369,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
    assert(ringbuffer != 0);
 
    srbi = srb->handle;
-   srbd = srbi->sample;
-   drb = _aaxRingBufferCreate(srbd->dde_sec, srbi->mode);
+   drb = _aaxRingBufferAlloc();
    if (drb)
    {
       _aaxRingBufferSample *srbd, *drbd;
@@ -378,6 +393,11 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       _aax_memcpy(drbd, srbd, sizeof(_aaxRingBufferSample));
       drbd->track = ptr;
       drbd->scratch = NULL;
+      if (!dde)
+      {
+         drbd->dde_sec = 0.0f;
+         drbd->dde_samples = 4*CUBIC_SAMPS;
+      }
 
       if (srbd->scratch)
       {
@@ -390,6 +410,8 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
             add_scratchbuf = AAX_TRUE;
          }
       }
+
+      _aaxRingBufferInitFunctions(drb);
       _aaxRingBufferInit(drb, add_scratchbuf);
 
       if (copy || dde)
