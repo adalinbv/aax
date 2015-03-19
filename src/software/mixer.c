@@ -343,41 +343,6 @@ _aaxSoftwareMixerThread(void* config)
 
 /*-------------------------------------------------------------------------- */
 
-size_t
-_aaxSoftwareMixerMixFrames(void *dest, _intBuffers *hf)
-{
-   _aaxRingBuffer *dest_rb = (_aaxRingBuffer *)dest;
-   unsigned int i, num = 0;
-   if (hf)
-   {
-      num = _intBufGetMaxNum(hf, _AAX_FRAME);
-      for (i=0; i<num; i++)
-      {
-         _intBufferData *dptr = _intBufGet(hf, _AAX_FRAME, i);
-         if (dptr)
-         {
-            _frame_t* frame = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *fmixer = frame->submix;
-
-            if (fmixer->capturing > 1)
-            {
-                _handle_t *handle = frame->handle;
-                const _aaxDriverBackend *be = handle->backend.ptr;
-                void *be_handle = handle->backend.handle;
-                _aax2dProps *p2d = fmixer->props2d;
-
-                _aaxAudioFrameMix(dest_rb, fmixer->play_ringbuffers,
-                                  p2d, be, be_handle);
-                fmixer->capturing = 1;
-            }
-            _intBufReleaseData(dptr, _AAX_FRAME);
-         }
-      }
-      _intBufReleaseNum(hf, _AAX_FRAME);
-   }
-   return num;
-}
-
 int
 _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, char batched)
 {
