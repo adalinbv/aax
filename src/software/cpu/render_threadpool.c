@@ -300,7 +300,8 @@ _aaxWorkerThread(void *id)
       data = handle->data;
       assert(data);
 
-      drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_FALSE);
+//TODO: Is it really necessary to create a dde buffer here?
+      drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_TRUE);
       drb->set_state(drb, RB_STARTED);
 
       _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
