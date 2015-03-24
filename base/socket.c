@@ -79,7 +79,7 @@ _socket_open(const char *server, int rate, int port, int timeout_ms)
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
             if (fd >= 0)
             {
-               int size = 2*rate*timeout_ms/1000.0f;
+               int size = 4*rate*timeout_ms/1000.0f;
                struct timeval tv;
                
                tv.tv_sec = timeout_ms / 1000;
