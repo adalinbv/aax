@@ -43,10 +43,11 @@
 
 
 #define ENABLE_EMITTER_FREQFILTER	1
-#define ENABLE_STATIC_FREQFILTER	0
+#define ENABLE_STATIC_FREQFILTER	1
 #define ENABLE_EMITTER_DISTORTION	1
 #define ENABLE_EMITTER_PHASING		0
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
+#define ENABLE_MIXER_EQUALIZER		1
 #define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
@@ -180,6 +181,29 @@ int main(int argc, char **argv)
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
+
+#if ENABLE_MIXER_EQUALIZER
+            /* speaker simulartion */
+            filter = aaxFilterCreate(config, AAX_EQUALIZER);
+            testForError(filter, "aaxFilterCreate");
+
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              60.0f, 0.3f, 1.0f, 1.2f);
+            testForError(filter, "aaxFilterSetSlot/0");
+
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                              5000.0f, 1.0f, 0.0f, 6.0f);
+            testForError(filter, "aaxFilterSetSlot/1");
+
+            filter = aaxFilterSetState(filter, AAX_TRUE);
+            testForError(filter, "aaxFilterSetState");
+
+            res = aaxMixerSetFilter(config, filter);
+            testForState(res, "aaxMixerSetFilter");
+
+            res = aaxFilterDestroy(filter);
+            testForState(res, "aaxFilterDestroy");
+#endif
 
             /** schedule the emitter for playback */
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
