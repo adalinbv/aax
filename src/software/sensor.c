@@ -284,6 +284,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
                         batched);
       drb->release_tracks_ptr(drb);	// convert to mixer format
 
+#if RB_FLOAT_DATA
       // be->capture can capture one extra sample to keep synchronised with
       // the capture buffer but it is in int32_t format while the mixer format
       // might be float. By setting those possible extra samples to zero here
@@ -293,10 +294,13 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          assert (offs == -1);
          for (track=0; track<no_tracks; track++)
          {
+            int32_t *iptr = (int32_t*)sbuf[track];
             MIX_T *ptr = (MIX_T*)sbuf[track];
-            *(ptr-1) = 0;
+            int32_t s = *(iptr-1);
+            *(ptr-1) = (MIX_T)s;
          }
       }
+#endif
 
       if (res && nframes)
       {
