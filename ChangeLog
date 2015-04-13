@@ -1,9 +1,9 @@
-* Sat Mar 21 2015 - tech@adalin.org
+* Wed Mar 25 2015 - tech@adalin.org
 - AeonWave (2.5.3) stable; urgency=low
  * Decrease memory consumption considerably for loopback-capture and
   slightly for streaming sensors.
 
--- Erik Hofman <tech@adalin.org>  Sat, 21 Mar 2015 15:33:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed, 25 Mar 2015 15:33:00 + 0100
 
 * Fri Mar 06 2015 - tech@adalin.org
 - AeonWave (2.5.2) stable; urgency=low
