@@ -34,139 +34,164 @@ static int _aaxSensorCaptureStop(_handle_t *);
 AAX_API int AAX_APIENTRY
 aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
 {
-   if (_client_release_mode) goto finish;
+   _handle_t *handle = get_handle(config);
+   int rv = __release_mode;
 
-   if (mtx && !detect_nan_mtx4((const float (*)[4])mtx))
-finish:
+   if (!rv)
    {
-      _handle_t *handle = get_handle(config);
-      if (handle)
-      {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* smixer = sensor->mixer;
-            mtx4Copy(smixer->props3d->dprops3d->matrix, mtx);
-            mtx4Copy(smixer->props3d->m_dprops3d->matrix, mtx);
-            _PROP_MTX_SET_CHANGED(smixer->props3d);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-            return AAX_TRUE;
-         }
-      }
-      else {
+      if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx || detect_nan_mtx4((const float (*)[4])mtx)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+
+   if (rv)
+   {
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame* smixer = sensor->mixer;
+         mtx4Copy(smixer->props3d->dprops3d->matrix, mtx);
+         mtx4Copy(smixer->props3d->m_dprops3d->matrix, mtx);
+         _PROP_MTX_SET_CHANGED(smixer->props3d);
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_STATE);
+         rv = AAX_FALSE;
+      }
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
 {
-   int rv = AAX_FALSE;
-   if (mtx)
+   _handle_t *handle = get_handle(config);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _handle_t *handle = get_handle(config);
-      if (handle)
-      {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* smixer = sensor->mixer;
-             mtx4Copy(mtx, smixer->props3d->dprops3d->matrix);
-             _PROP_MTX_SET_CHANGED(smixer->props3d);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
-         }
-      }
-      else {
+      if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+
+   if (rv)
+   {
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame* smixer = sensor->mixer;
+          mtx4Copy(mtx, smixer->props3d->dprops3d->matrix);
+          _PROP_MTX_SET_CHANGED(smixer->props3d);
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_STATE);
+         rv = AAX_FALSE;
+      }
    }
+
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
 {
-   if (_client_release_mode) goto finish;
+   _handle_t *handle = get_handle(config);
+   int rv = __release_mode;
 
-   if (velocity && !detect_nan_vec3(velocity))
-finish:
+   if (!rv)
    {
-      _handle_t *handle = get_handle(config);
-      if (handle)
-      {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            mtx4_t mtx;
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxDelayed3dProps *dp3d;
-
-            mtx4Copy(mtx, aaxIdentityMatrix);
-            vec3Copy(mtx[VELOCITY], velocity);
-            mtx[VELOCITY][3] = 0.0f;
-
-            dp3d = sensor->mixer->props3d->dprops3d;
-            mtx4InverseSimple(dp3d->velocity, mtx);
-            _PROP_SPEED_SET_CHANGED(sensor->mixer->props3d);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-            return AAX_TRUE;
-         }
-      }
-      else {
+      if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity || detect_nan_vec3(velocity)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+
+   if (rv)
+   {
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         mtx4_t mtx;
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxDelayed3dProps *dp3d;
+
+         mtx4Copy(mtx, aaxIdentityMatrix);
+         vec3Copy(mtx[VELOCITY], velocity);
+         mtx[VELOCITY][3] = 0.0f;
+
+         dp3d = sensor->mixer->props3d->dprops3d;
+         mtx4InverseSimple(dp3d->velocity, mtx);
+         _PROP_SPEED_SET_CHANGED(sensor->mixer->props3d);
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_STATE);
+         rv = AAX_FALSE;
+      }
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
 {
-   int rv = AAX_FALSE;
-   if (velocity)
+   _handle_t *handle = get_handle(config);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _handle_t *handle = get_handle(config);
-      if (handle)
-      {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            mtx4_t mtx;
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxDelayed3dProps *dp3d;
-
-            dp3d = sensor->mixer->props3d->dprops3d;
-            mtx4InverseSimple(mtx, dp3d->velocity);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-
-            vec3Copy(velocity, mtx[VELOCITY]);
-            rv = AAX_TRUE;
-         }
-      }
-      else {
+      if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+
+   if (rv)
+   {
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         mtx4_t mtx;
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxDelayed3dProps *dp3d;
+
+         dp3d = sensor->mixer->props3d->dprops3d;
+         mtx4InverseSimple(mtx, dp3d->velocity);
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+
+         vec3Copy(velocity, mtx[VELOCITY]);
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      }
    }
    return rv;
 }

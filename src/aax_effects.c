@@ -105,32 +105,32 @@ AAX_API int AAX_APIENTRY
 aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
 {
    _effect_t* effect = get_effect(e);
-   int rv = AAX_FALSE;
-   if (effect && !is_nan(value))
+   unsigned slot = param >> 4;
+   int rv = __release_mode;
+
+   param &= 0xF;
+   if (!rv)
    {
-      unsigned slot = param >> 4;
-      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
-      {
-         param &= 0xF;
-         if ((param >= 0) && (param < 4))
-         {
-            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, WRITEFN, param);
-            effect->slot[slot]->param[param] = cvtfn(value);
-            if TEST_FOR_TRUE(effect->state) {
-               aaxEffectSetState(effect, effect->state);
-            }
-            rv = AAX_TRUE;
-         }
-         else {
-            _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
-         }
-      }
-      else {
+      if (!effect) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if ((slot >=_MAX_FE_SLOTS) || !effect->slot[slot]) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (param < 0 || param >= 4) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (is_nan(value)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, WRITEFN, param);
+      effect->slot[slot]->param[param] = cvtfn(value);
+      if TEST_FOR_TRUE(effect->state) {
+         aaxEffectSetState(effect, effect->state);
+      }
    }
    return rv;
 }

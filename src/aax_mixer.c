@@ -456,86 +456,93 @@ AAX_API int AAX_APIENTRY
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config);
-   int rv = AAX_FALSE;
-   if (handle)
-   {
-      _filter_t* filter = get_filter(f);
-      if (filter)
-      {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            int type = filter->pos;
-            switch (filter->type)
-            {
-            case AAX_VOLUME_FILTER:
-            {
-               _aaxAudioFrame *mixer = sensor->mixer;
-               _aax2dProps *p2d = mixer->props2d;
-               _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-                   /* gain min and gain max are read-only for the mixer      */
-               /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
-               /* _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2)); */
-               _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-               _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-               _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
-               rv = AAX_TRUE;
-               break;
-            }
-            case AAX_COMPRESSOR:
-            case AAX_DYNAMIC_GAIN_FILTER:
-            case AAX_TIMED_GAIN_FILTER:
-            {
-               _aaxAudioFrame *mixer = sensor->mixer;
-               _aax2dProps *p2d = mixer->props2d;
-               _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-               _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-               _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-               _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-               _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-               _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
-               if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
-                   filter->type == AAX_COMPRESSOR)
-               {
-                  p2d->final.gain_lfo = 1.0f;
-               }
-               rv = AAX_TRUE;
-               break;
-            }
-            case AAX_EQUALIZER:
-            case AAX_GRAPHIC_EQUALIZER:
-               type = EQUALIZER_HF;
-               _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
-               _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
-               _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-               _FILTER_SET(sensor, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
-               _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 1);
+   _filter_t* filter = get_filter(f);
+   int rv = __release_mode;
 
-               /* frees both EQUALIZER_LF and EQUALIZER_HF */
-               type = EQUALIZER_LF;
-               _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-               _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-               _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-               _FILTER_SET(sensor, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-               _FILTER_SET_STATE(sensor, type, _FILTER_GET_SLOT_STATE(filter));
-               _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 0);
-               rv = AAX_TRUE;
-               break;
-            default:
-               _aaxErrorSet(AAX_INVALID_ENUM);
-            }
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-         }
-      }
-      else {
+   if (!rv)
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!filter) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         int type = filter->pos;
+         switch (filter->type)
+         {
+         case AAX_VOLUME_FILTER:
+         {
+            _aaxAudioFrame *mixer = sensor->mixer;
+            _aax2dProps *p2d = mixer->props2d;
+            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+                /* gain min and gain max are read-only for the mixer      */
+            /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
+            /* _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2)); */
+            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+            _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+            break;
+         }
+         case AAX_COMPRESSOR:
+         case AAX_DYNAMIC_GAIN_FILTER:
+         case AAX_TIMED_GAIN_FILTER:
+         {
+            _aaxAudioFrame *mixer = sensor->mixer;
+            _aax2dProps *p2d = mixer->props2d;
+            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+            _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+            _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+            _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+            if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
+                filter->type == AAX_COMPRESSOR)
+            {
+               p2d->final.gain_lfo = 1.0f;
+            }
+            break;
+         }
+         case AAX_EQUALIZER:
+         case AAX_GRAPHIC_EQUALIZER:
+            type = EQUALIZER_HF;
+            _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
+            _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
+            _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
+            _FILTER_SET(sensor, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
+            _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 1);
+
+            /* frees both EQUALIZER_LF and EQUALIZER_HF */
+            type = EQUALIZER_LF;
+            _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+            _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+            _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+            _FILTER_SET(sensor, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+            _FILTER_SET_STATE(sensor, type, _FILTER_GET_SLOT_STATE(filter));
+            _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 0);
+            break;
+         default:
+            _aaxErrorSet(AAX_INVALID_ENUM);
+            rv = AAX_FALSE;
+         }
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_STATE);
+         rv = AAX_FALSE;
+      }
    }
+
    return rv;
 }
 
@@ -580,53 +587,61 @@ AAX_API int AAX_APIENTRY
 aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 {
    _handle_t* handle = get_handle(config);
-   int rv = AAX_FALSE;
-   if (handle)
+   _effect_t* effect = get_effect(e);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _effect_t* effect = get_effect(e);
-      if (effect)
-      {
-         const _intBufferData* dptr;
-         switch (effect->type)
-         {
-         case AAX_PITCH_EFFECT:
-         case AAX_DYNAMIC_PITCH_EFFECT:
-         case AAX_DISTORTION_EFFECT:
-         case AAX_PHASING_EFFECT:
-         case AAX_CHORUS_EFFECT:
-         case AAX_FLANGING_EFFECT:
-         case AAX_REVERB_EFFECT:
-            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            if (dptr)
-            {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               _aaxAudioFrame *mixer = sensor->mixer;
-               _aax2dProps *p2d = mixer->props2d;
-               int type = effect->pos;
-               _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-               _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-               _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-               _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-               _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-               _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-               if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT)
-               {
-                  p2d->final.pitch_lfo = 1.0f;
-               }
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-               rv = AAX_TRUE;
-            }
-            break;
-         default:
-            _aaxErrorSet(AAX_INVALID_ENUM);
-         }
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!effect) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      const _intBufferData* dptr;
+      switch (effect->type)
+      {
+      case AAX_PITCH_EFFECT:
+      case AAX_DYNAMIC_PITCH_EFFECT:
+      case AAX_DISTORTION_EFFECT:
+      case AAX_PHASING_EFFECT:
+      case AAX_CHORUS_EFFECT:
+      case AAX_FLANGING_EFFECT:
+      case AAX_REVERB_EFFECT:
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *mixer = sensor->mixer;
+            _aax2dProps *p2d = mixer->props2d;
+            int type = effect->pos;
+            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
+            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+            if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT)
+            {
+               p2d->final.pitch_lfo = 1.0f;
+            }
+            _intBufReleaseData(dptr, _AAX_SENSOR);
+         }
+         else
+         {
+            _aaxErrorSet(AAX_INVALID_STATE);
+            rv = AAX_FALSE;
+         }
+         break;
+      default:
+         _aaxErrorSet(AAX_INVALID_ENUM);
+         rv = AAX_FALSE;
+      }
    }
    return rv;
 }
