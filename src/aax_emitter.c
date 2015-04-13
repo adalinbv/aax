@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2007-2015 by Erik Hofman.
+ * Copyright 2009-2015 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -150,56 +150,50 @@ AAX_API int AAX_APIENTRY
 aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 {
    _emitter_t* handle = get_emitter(emitter);
-   if (handle)
+   _buffer_t* buffer = get_buffer(buf);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _buffer_t* buffer = get_buffer(buf);
-      if (buffer)
-      {
-         _aaxRingBuffer *rb = buffer->ringbuffer;
-         const _aaxEmitter *src = handle->source;
-
-         if (_client_release_mode) goto finish;
-
-         if (rb->get_state(rb, RB_IS_VALID))
-         {
-            if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
-               handle->track = 0;
-            }
-
-            if (handle->track < rb->get_parami(rb, RB_NO_TRACKS))
-finish:
-            {
-               _embuffer_t* embuf = malloc(sizeof(_embuffer_t));
-               if (embuf)
-               {
-                  embuf->ringbuffer = rb->reference(rb);
-                  embuf->id = EMBUFFER_ID;
-                  embuf->buffer = buffer;
-                  buffer->ref_counter++;
-
-                  _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
-
-                  put_emitter(handle);
-                  return AAX_TRUE;
-               }
-               else {
-                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-               }
-            }
-            else {
-               _aaxErrorSet(AAX_INVALID_STATE);
-            }
-         }
-         else {
-            _aaxErrorSet(AAX_INVALID_STATE);
-         }
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!buffer) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
+      else
+      {
+         _aaxRingBuffer *rb = buffer->ringbuffer;
+         if (!rb->get_state(rb, RB_IS_VALID)) {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         } else {
+            rv = AAX_TRUE;
+         }
+      }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxRingBuffer *rb = buffer->ringbuffer;
+      const _aaxEmitter *src = handle->source;
+      _embuffer_t* embuf;
+
+      embuf = malloc(sizeof(_embuffer_t));
+      if (embuf)
+      {
+         embuf->ringbuffer = rb->reference(rb);
+         embuf->id = EMBUFFER_ID;
+         embuf->buffer = buffer;
+         buffer->ref_counter++;
+
+         _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
+      }
+      else
+      {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         rv = AAX_FALSE;
+      }
    }
    put_emitter(handle);
    return AAX_FALSE;
@@ -209,47 +203,61 @@ AAX_API int AAX_APIENTRY
 aaxEmitterRemoveBuffer(aaxEmitter emitter)
 {
    _emitter_t* handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _aaxEmitter *src = handle->source;
-      if (_IS_PROCESSED(src->props3d) || src->buffer_pos > 0)
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      }
+      else
       {
-         _intBufferData *buf;
-
-         buf = _intBufPop(src->buffers, _AAX_EMITTER_BUFFER);
-         if (buf)
-         {
-            _embuffer_t *embuf = _intBufGetDataPtr(buf);
-            if (embuf)
-            {
-               assert(embuf->id == EMBUFFER_ID);
-
-               free_buffer(embuf->buffer);
-               _aaxRingBufferFree(embuf->ringbuffer);
-               embuf->ringbuffer = NULL;
-               embuf->id = FADEDBAD;
-               free(embuf);
-            }
-            _intBufDestroyDataNoLock(buf);
-
-            if (src->buffer_pos > 0) {
-               src->buffer_pos--;
-            }
+         _aaxEmitter *src = handle->source;
+         if (!_IS_PROCESSED(src->props3d) && src->buffer_pos == 0) {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         } else {
             rv = AAX_TRUE;
          }
-         else {
-            _aaxErrorSet(AAX_INVALID_REFERENCE);
+      }
+   }
+
+   if (rv)
+   {
+      _aaxEmitter *src = handle->source;
+      _intBufferData *buf;
+
+      buf = _intBufPop(src->buffers, _AAX_EMITTER_BUFFER);
+      if (buf)
+      {
+         _embuffer_t *embuf = _intBufGetDataPtr(buf);
+         if (embuf)
+         {
+            assert(embuf->id == EMBUFFER_ID);
+
+            free_buffer(embuf->buffer);
+            _aaxRingBufferFree(embuf->ringbuffer);
+            embuf->ringbuffer = NULL;
+            embuf->id = FADEDBAD;
+            free(embuf);
+         }
+         _intBufDestroyDataNoLock(buf);
+
+         if (src->buffer_pos > 0) {
+            src->buffer_pos--;
+         }
+
+         if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
+            handle->track = 0; 
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_REFERENCE);
+         rv = AAX_FALSE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    put_emitter(handle);
+
    return rv;
 }
 
@@ -786,88 +794,89 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetMatrix(aaxEmitter emitter, aaxMtx4f mtx)
 {
    _emitter_t *handle = get_emitter(emitter);
-   if (handle)
-   {
-      if (_client_release_mode) goto finish;
+   int rv = __release_mode;
 
-      if (mtx && !detect_nan_mtx4((const float(*)[4])mtx))
-finish:
-      {
-         _aaxEmitter *src = handle->source;
-         mtx4Copy(src->props3d->dprops3d->matrix, mtx);
-         if (_IS_RELATIVE(src->props3d)) {
-            src->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
-         } else {
-            src->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
-         }
-         _PROP_MTX_SET_CHANGED(src->props3d);
- 
-         put_emitter(handle);
-         return AAX_TRUE;
-      }
-      else {
+   if (!rv)
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxEmitter *src = handle->source;
+      mtx4Copy(src->props3d->dprops3d->matrix, mtx);
+      if (_IS_RELATIVE(src->props3d)) {
+         src->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
+      } else {
+         src->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
+      }
+      _PROP_MTX_SET_CHANGED(src->props3d);
    }
    put_emitter(handle);
-   return AAX_FALSE;
+
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter);
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      if (_client_release_mode) goto finish;
-
-      if (velocity && !detect_nan_vec3(velocity))
-finish:
-      {
-         _aaxDelayed3dProps *dp3d;
- 
-         dp3d = handle->source->props3d->dprops3d;
-         vec3Copy(dp3d->velocity[VELOCITY], velocity);
-         _PROP_SPEED_SET_CHANGED(handle->source->props3d);
-
-         put_emitter(handle);
-         return AAX_TRUE;
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxDelayed3dProps *dp3d;
+
+      dp3d = handle->source->props3d->dprops3d;
+      vec3Copy(dp3d->velocity[VELOCITY], velocity);
+      _PROP_SPEED_SET_CHANGED(handle->source->props3d);
    }
    put_emitter(handle);
-   return AAX_FALSE;
+
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
 {
    _emitter_t *handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      if (mtx)
-      {
-         _aaxEmitter *src = handle->source;
-         mtx4Copy(mtx, src->props3d->dprops3d->matrix);
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
          rv = AAX_TRUE;
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxEmitter *src = handle->source;
+      mtx4Copy(mtx, src->props3d->dprops3d->matrix);
    }
    put_emitter(handle);
+
    return rv;
 }
 
@@ -963,61 +972,69 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 {
    _emitter_t* handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
-   if (handle)
-   {
-      if (!is_nan(offs))
-      {
-         _aaxEmitter *src = handle->source;
-         _intBufferData *dptr;
+   int rv = __release_mode;
 
-         _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
-         dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
+   if (!rv)
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (is_nan(offs)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aaxEmitter *src = handle->source;
+      _intBufferData *dptr;
+
+      _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
+      dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
+      if (dptr)
+      {
+         _embuffer_t *embuf = _intBufGetDataPtr(dptr);
+         _aaxRingBuffer *rb = embuf->ringbuffer;
+         unsigned int pos = 0;
+         float duration;
+
+         duration = rb->get_paramf(rb, RB_DURATION_SEC);
+         while (offs > duration)
+         {
+            pos++;
+            offs -= duration;
+            _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
+
+            dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, pos);
+            if (!dptr) break;
+
+            embuf = _intBufGetDataPtr(dptr);
+            rb = embuf->ringbuffer;
+            duration = rb->get_paramf(rb, RB_DURATION_SEC);
+         }
+
          if (dptr)
          {
-            _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _aaxRingBuffer *rb = embuf->ringbuffer;
-            unsigned int pos = 0;
-            float duration;
-
-            duration = rb->get_paramf(rb, RB_DURATION_SEC);
-            while (offs > duration)
-            {
-               pos++;
-               offs -= duration;
-               _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
-
-               dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, pos);
-               if (!dptr) break;
-
-               embuf = _intBufGetDataPtr(dptr);
-               rb = embuf->ringbuffer;
-               duration = rb->get_paramf(rb, RB_DURATION_SEC);
-            }
-            if (dptr)
-            {
-               handle->mixer_pos = pos;
-               rb->set_paramf(rb, RB_OFFSET_SEC, offs);
-               rv = AAX_TRUE;
-            }
-            else {
-               _aaxErrorSet(AAX_INVALID_PARAMETER);
-            }
-            _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
+            handle->mixer_pos = pos;
+            rb->set_paramf(rb, RB_OFFSET_SEC, offs);
          }
-         else {
-            _aaxErrorSet(AAX_INVALID_REFERENCE);
+         else
+         {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+            rv = AAX_FALSE;
          }
-         _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
+         _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_REFERENCE);
+         rv = AAX_FALSE;
       }
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
    }
    put_emitter(handle);
+
    return rv;
 }
 
@@ -1074,26 +1091,26 @@ AAX_API int AAX_APIENTRY
 aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      if (velocity)
-      {
-         _aaxDelayed3dProps *dp3d;
-
-         dp3d = handle->source->props3d->dprops3d;
-         vec3Copy(velocity, dp3d->velocity[VELOCITY]);
-
-         rv = AAX_TRUE;
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxDelayed3dProps *dp3d;
+
+      dp3d = handle->source->props3d->dprops3d;
+      vec3Copy(velocity, dp3d->velocity[VELOCITY]);
    }
    put_emitter(handle);
+
    return rv;
 }
 

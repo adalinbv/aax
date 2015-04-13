@@ -108,32 +108,32 @@ AAX_API int AAX_APIENTRY
 aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
 {
    _filter_t* filter = get_filter(f);
-   int rv = AAX_FALSE;
-   if (filter && !is_nan(value))
+   unsigned slot = param >> 4;
+   int rv = __release_mode;
+
+   param &= 0xF;
+   if (!rv)
    {
-      unsigned slot = param >> 4;
-      if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
-      {
-         param &= 0xF;
-         if ((param >= 0) && (param < 4))
-         {
-            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, WRITEFN, param);
-            filter->slot[slot]->param[param] = cvtfn(value);
-            if TEST_FOR_TRUE(filter->state) {
-               aaxFilterSetState(filter, filter->state);
-            }
-            rv = AAX_TRUE;
-         }
-         else {
-            _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
-         }
-      }
-      else {
+      if (!filter) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if ((slot >=_MAX_FE_SLOTS) || !filter->slot[slot]) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (param < 0 || param >= 4) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (is_nan(value)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, WRITEFN, param);
+      filter->slot[slot]->param[param] = cvtfn(value);
+      if TEST_FOR_TRUE(filter->state) {
+         aaxFilterSetState(filter, filter->state);
+      }
    }
    return rv;
 }

@@ -87,7 +87,7 @@ typedef struct
 #define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
 #define INTERVAL(a)		(rintf((a)/64)*64)
 
-extern int _client_release_mode;
+extern int __release_mode;
 extern _aaxMixerInfo* _info;
 
 struct backend_t

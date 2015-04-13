@@ -40,6 +40,7 @@ aaxAudioFrameCreate(aaxConfig config)
 {
    _handle_t *handle = get_handle(config);
    aaxFrame rv = NULL;
+
    if (handle && VALID_HANDLE(handle))
    {
       unsigned long size;
@@ -121,53 +122,55 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameDestroy(aaxFrame frame)
 {
    _frame_t* handle = get_frame(frame);
-   int rv = AAX_FALSE;
+   int rv = __release_mode;
 
-   aaxAudioFrameSetState(frame, AAX_STOPPED);
-   if (handle)
+   if (!rv)
    {
-      if (!handle->handle)
-      {
-         _aaxRingBufferDelayEffectData* effect;
-         _aaxAudioFrame* fmixer = handle->submix;
-
-         free(_FILTER_GET2D_DATA(fmixer, FREQUENCY_FILTER));
-         free(_FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER));
-         free(_FILTER_GET2D_DATA(fmixer, TIMED_GAIN_FILTER));
-         free(_EFFECT_GET2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT));
-
-         effect = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
-         if (effect) free(effect->history_ptr);
-         free(effect);
-
-         _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-         _aax_aligned_free(fmixer->props3d->dprops3d);
-         free(fmixer->props3d);
-
-         /* handle->ringbuffer gets removed bij the frame thread */
-         /* be->destroy_ringbuffer(handle->ringbuffer); */
-         _intBufErase(&fmixer->frames, _AAX_FRAME, free);
-         _intBufErase(&fmixer->devices, _AAX_DEVICE, free);
-         _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, free);
-         _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, free);
-         _intBufErase(&fmixer->play_ringbuffers, _AAX_RINGBUFFER,
-                      _aaxRingBufferFree);
-         _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
-                      _aaxRingBufferFree);
-
-         /* safeguard against using already destroyed handles */
-         handle->id = FADEDBAD;
-         free(handle);
-         handle = 0;
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (handle->handle) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else {
          rv = AAX_TRUE;
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_STATE);
-      }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   aaxAudioFrameSetState(frame, AAX_STOPPED);
+   if (rv)
+   {
+      _aaxRingBufferDelayEffectData* effect;
+      _aaxAudioFrame* fmixer = handle->submix;
+
+      free(_FILTER_GET2D_DATA(fmixer, FREQUENCY_FILTER));
+      free(_FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER));
+      free(_FILTER_GET2D_DATA(fmixer, TIMED_GAIN_FILTER));
+      free(_EFFECT_GET2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT));
+
+      effect = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
+      if (effect) free(effect->history_ptr);
+      free(effect);
+
+      _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
+      _aax_aligned_free(fmixer->props3d->dprops3d);
+      free(fmixer->props3d);
+
+      /* handle->ringbuffer gets removed bij the frame thread */
+      /* be->destroy_ringbuffer(handle->ringbuffer); */
+      _intBufErase(&fmixer->frames, _AAX_FRAME, free);
+      _intBufErase(&fmixer->devices, _AAX_DEVICE, free);
+      _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, free);
+      _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, free);
+      _intBufErase(&fmixer->play_ringbuffers, _AAX_RINGBUFFER,
+                   _aaxRingBufferFree);
+      _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
+                   _aaxRingBufferFree);
+
+      /* safeguard against using already destroyed handles */
+      handle->id = FADEDBAD;
+      free(handle);
+      handle = 0;
    }
+
    return rv;
 }
 
@@ -175,83 +178,83 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
 {
    _frame_t *handle = get_frame(frame);
+   int rv = __release_mode;
 
-   if (_client_release_mode) goto finish;
-
-   if (handle)
+   if (!rv)
    {
-      if (mtx && !detect_nan_mtx4((const float(*)[4])mtx))
-finish:
-      {
-         _aaxAudioFrame* fmixer = handle->submix;
-         _handle_t *parent = handle->handle;
-
-         if (parent && parent->id == HANDLE_ID)
-         {
-            const _intBufferData* dptr;
-            dptr = _intBufGet(parent->sensors, _AAX_SENSOR, 0);
-            if (dptr)
-            {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
-                        sensor->mixer->props3d->m_dprops3d->matrix);
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-            }
-         }
-         else if (parent && parent->id == AUDIOFRAME_ID)
-         {
-            _frame_t *parent = (_frame_t*)handle->handle;
-            mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
-                     parent->submix->props3d->m_dprops3d->matrix);
-         }
-
-         mtx4Copy(fmixer->props3d->dprops3d->matrix, mtx);
-         if (_IS_RELATIVE(handle))
-         {
-            fmixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
-            fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
-         }
-         else
-         {
-            fmixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
-            fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
-         }
-         _PROP_MTX_SET_CHANGED(fmixer->props3d);
-
-         put_frame(frame);
-         return AAX_TRUE;
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxAudioFrame* fmixer = handle->submix;
+      _handle_t *parent = handle->handle;
+
+      if (parent && parent->id == HANDLE_ID)
+      {
+         const _intBufferData* dptr;
+         dptr = _intBufGet(parent->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
+                     sensor->mixer->props3d->m_dprops3d->matrix);
+            _intBufReleaseData(dptr, _AAX_SENSOR);
+         }
+      }
+      else if (parent && parent->id == AUDIOFRAME_ID)
+      {
+         _frame_t *parent = (_frame_t*)handle->handle;
+         mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
+                  parent->submix->props3d->m_dprops3d->matrix);
+      }
+
+      mtx4Copy(fmixer->props3d->dprops3d->matrix, mtx);
+      if (_IS_RELATIVE(handle))
+      {
+         fmixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
+         fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+      }
+      else
+      {
+         fmixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
+         fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
+      }
+      _PROP_MTX_SET_CHANGED(fmixer->props3d);
    }
    put_frame(frame);
-   return AAX_FALSE;
+
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4f mtx)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      if (mtx)
-      {
-         mtx4Copy(mtx, handle->submix->props3d->dprops3d->matrix);
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
          rv = AAX_TRUE;
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv) {
+      mtx4Copy(mtx, handle->submix->props3d->dprops3d->matrix);
    }
    put_frame(frame);
+
    return rv;
 }
 
@@ -259,58 +262,59 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
 {
    _frame_t *handle = get_frame(frame);
+   int rv = __release_mode;
 
-   if (_client_release_mode) goto finish;
-
-   if (handle)
+   if (!rv)
    {
-      if (velocity && !detect_nan_vec3(velocity))
-finish:
-      {
-         _aaxDelayed3dProps *dp3d;
-
-         dp3d = handle->submix->props3d->dprops3d;
-         vec3Copy(dp3d->velocity[VELOCITY], velocity);
-         _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
-
-         put_frame(frame);
-         return AAX_TRUE;
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxDelayed3dProps *dp3d;
+
+      dp3d = handle->submix->props3d->dprops3d;
+      vec3Copy(dp3d->velocity[VELOCITY], velocity);
+      _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
    put_frame(frame);
-   return AAX_FALSE;
+
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      if (velocity)
-      {
-         _aaxDelayed3dProps *dp3d;
-
-         dp3d = handle->submix->props3d->dprops3d;
-         vec3Copy(velocity, dp3d->velocity[VELOCITY]);
-
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
          rv = AAX_TRUE;
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxDelayed3dProps *dp3d;
+
+      dp3d = handle->submix->props3d->dprops3d;
+      vec3Copy(velocity, dp3d->velocity[VELOCITY]);
    }
    put_frame(frame);
+
    return rv;
 }
 
@@ -325,45 +329,48 @@ AAX_API unsigned int AAX_APIENTRY
 aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
 {
    _frame_t *handle = get_frame(frame);
-   unsigned int rv = AAX_FALSE;
-   
-   if (handle)
+   unsigned int track = type & 0x3F;
+   unsigned int rv = __release_mode;
+
+   if (!rv)
    {
-      unsigned int track = type & 0x3F;
-      if (track < _AAX_MAX_SPEAKERS)
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (track >= _AAX_MAX_SPEAKERS) {
+         _aaxErrorSet(AAX_INVALID_ENUM);
+      } else {
+         rv = AAX_TRUE; 
+      }
+   }
+   
+   if (rv)
+   {
+      if (type & AAX_COMPRESSION_VALUE)
       {
-         if (type & AAX_COMPRESSION_VALUE)
-         {
-            _aaxAudioFrame* fmixer = handle->submix;
-            _aaxRingBufferLFOData *lfo;
+         _aaxAudioFrame* fmixer = handle->submix;
+         _aaxRingBufferLFOData *lfo;
 
-            lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-            if (lfo) {
-               rv = 256*32768*lfo->compression[track];
-            }
+         lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+         if (lfo) {
+            rv = 256*32768*lfo->compression[track];
          }
-         else if (type & AAX_GATE_ENABLED)
-         {
-            _aaxAudioFrame* fmixer = handle->submix;
-            _aaxRingBufferLFOData *lfo;
+      }
+      else if (type & AAX_GATE_ENABLED)
+      {
+         _aaxAudioFrame* fmixer = handle->submix;
+         _aaxRingBufferLFOData *lfo;
 
-            lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-            if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
-               rv = AAX_TRUE;
-            }
-         }
-         else {
-            _aaxErrorSet(AAX_INVALID_ENUM);
+         lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+         if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
+            rv = AAX_TRUE;
          }
       }
       else {
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    put_frame(frame);
+
    return rv;
 }
 
@@ -371,77 +378,80 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
-   {
-      _filter_t* filter = get_filter(f);
-      if (filter)
-      {
-         int type = filter->pos;
-         switch (filter->type)
-         {
-#if 0
-         case AAX_GRAPHIC_EQUALIZER:
-         case AAX_EQUALIZER:
-         {
-            _aax2dProps *p2d = handle->submix->props2d;
-            type = EQUALIZER_HF;
-            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
-            _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
-            _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
-            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p2d, EQUALIZER_HF, filter, 1);
+   _filter_t* filter = get_filter(f);
+   int rv = __release_mode;
 
-            type = EQUALIZER_LF;
-            /* break is not needed */
-         }
-#endif
-         case AAX_FREQUENCY_FILTER:
-         case AAX_DYNAMIC_GAIN_FILTER:
-         case AAX_VOLUME_FILTER:
-         case AAX_TIMED_GAIN_FILTER:
-         case AAX_COMPRESSOR:
-         {
-            _aax2dProps *p2d = handle->submix->props2d;
-            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
-            if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
-                filter->type == AAX_COMPRESSOR) {
-               p2d->final.gain_lfo = 1.0f;
-            }
-            rv = AAX_TRUE;
-            break;
-         }
-         case AAX_DISTANCE_FILTER:
-         case AAX_ANGULAR_FILTER:
-         {
-            _aax3dProps *p3d = handle->submix->props3d;
-            _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
-            rv = AAX_TRUE;
-            break;
-         }
-         default:
-            _aaxErrorSet(AAX_INVALID_ENUM);
-         }
-      }
-      else {
+   if (!rv) 
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!filter) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      int type = filter->pos;
+      switch (filter->type)
+      {
+#if 0
+      case AAX_GRAPHIC_EQUALIZER:
+      case AAX_EQUALIZER:
+      {
+         _aax2dProps *p2d = handle->submix->props2d;
+         type = EQUALIZER_HF;
+         _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
+         _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
+         _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
+         _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
+         _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT_DATA(p2d, EQUALIZER_HF, filter, 1);
+
+         type = EQUALIZER_LF;
+         /* break is not needed */
+      }
+#endif
+      case AAX_FREQUENCY_FILTER:
+      case AAX_DYNAMIC_GAIN_FILTER:
+      case AAX_VOLUME_FILTER:
+      case AAX_TIMED_GAIN_FILTER:
+      case AAX_COMPRESSOR:
+      {
+         _aax2dProps *p2d = handle->submix->props2d;
+         _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+         _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+         _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+         _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+         _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+         if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
+             filter->type == AAX_COMPRESSOR) {
+            p2d->final.gain_lfo = 1.0f;
+         }
+         break;
+      }
+      case AAX_DISTANCE_FILTER:
+      case AAX_ANGULAR_FILTER:
+      {
+         _aax3dProps *p3d = handle->submix->props3d;
+         _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+         _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+         _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+         _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+         _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+         break;
+      }
+      default:
+         _aaxErrorSet(AAX_INVALID_ENUM);
+         rv = AAX_FALSE;
+      }
    }
    put_frame(frame);
+
    return rv;
 }
 
@@ -482,48 +492,52 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   _effect_t* effect = get_effect(e);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _effect_t* effect = get_effect(e);
-      if (effect)
-      {
-         _aaxAudioFrame* fmixer = handle->submix;
-         int type = effect->pos;
-         switch (effect->type)
-         {
-         case AAX_DYNAMIC_PITCH_EFFECT:
-         case AAX_DISTORTION_EFFECT:
-         case AAX_PHASING_EFFECT:
-         case AAX_CHORUS_EFFECT:
-         case AAX_FLANGING_EFFECT:
-         case AAX_PITCH_EFFECT:
-         {
-            _aax2dProps *p2d = fmixer->props2d;
-            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-            if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
-               p2d->final.pitch_lfo = 1.0f;
-            }
-            rv = AAX_TRUE;
-            break;
-         }
-         default:
-            _aaxErrorSet(AAX_INVALID_ENUM);
-         }
-      }
-      else {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!effect) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
-      put_frame(handle);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxAudioFrame* fmixer = handle->submix;
+      int type = effect->pos;
+      switch (effect->type)
+      {
+      case AAX_DYNAMIC_PITCH_EFFECT:
+      case AAX_DISTORTION_EFFECT:
+      case AAX_PHASING_EFFECT:
+      case AAX_CHORUS_EFFECT:
+      case AAX_FLANGING_EFFECT:
+      case AAX_PITCH_EFFECT:
+      {
+         _aax2dProps *p2d = fmixer->props2d;
+         _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+         _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+         _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+         _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+         _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
+         _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+         if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
+            p2d->final.pitch_lfo = 1.0f;
+         }
+         break;
+      }
+      default:
+         _aaxErrorSet(AAX_INVALID_ENUM);
+         rv = AAX_FALSE;
+      }
    }
+   put_frame(handle);
+
    return rv;
 }
 
@@ -563,8 +577,18 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 {
    _frame_t *handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
    {
       _aaxAudioFrame* fmixer = handle->submix;
       switch(type)
@@ -583,17 +607,15 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
                fmixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
             }
          }
-         rv = AAX_TRUE;
          break;
       }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
+         rv = AAX_FALSE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    put_frame(handle);
+
    return rv;
 }
 
@@ -607,178 +629,185 @@ aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
 {
-   _frame_t* fhandle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (fhandle)
+   _handle_t* ssr_config = get_read_handle(sensor);
+   _frame_t* handle = get_frame(frame);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _handle_t* ssr_config = get_read_handle(sensor);
-      if (ssr_config && !ssr_config->thread.started)
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!ssr_config || ssr_config->thread.started) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else if (ssr_config->mixer_pos < UINT_MAX) {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aaxAudioFrame* fmixer = handle->submix;
+      _intBuffers *hd = fmixer->devices;
+      unsigned int pos = UINT_MAX;
+
+      if (hd == NULL)
       {
-         if (ssr_config->mixer_pos == UINT_MAX)
-         {
-            _aaxAudioFrame* fmixer = fhandle->submix;
-            _intBuffers *hd = fmixer->devices;
-            unsigned int pos = UINT_MAX;
+         unsigned int res;
 
-            if (hd == NULL)
-            {
-               unsigned int res;
-
-               res = _intBufCreate(&fmixer->devices, _AAX_DEVICE);
-               if (res != UINT_MAX) {
-                  hd = fmixer->devices;
-               }
-            }
-
-            if (hd && (fmixer->no_registered < fmixer->info->max_registered))
-            {
-               aaxBuffer buf; /* clear the sensors buffer queue */
-               while ((buf = aaxSensorGetBuffer(ssr_config)) != NULL) {
-                  aaxBufferDestroy(buf);
-               }
-               _aaxErrorSet(AAX_ERROR_NONE);
-               pos = _intBufAddData(hd, _AAX_DEVICE, ssr_config);
-               fmixer->no_registered++;
-            }
-            else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            }
-
-            if (pos != UINT_MAX)
-            {
-               _intBufferData *dptr;
-
-               dptr = _intBufGet(ssr_config->sensors, _AAX_SENSOR, 0);
-               if (dptr)
-               {
-                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
-                  _aax3dProps *mp3d, *sp3d;
-                  _aaxAudioFrame *smixer;
-                  _aaxRingBuffer *rb;
-
-                  smixer = sensor->mixer;
-
-                  mp3d = fmixer->props3d;
-                  sp3d = smixer->props3d;
-
-                  smixer->info->frequency = fmixer->info->frequency;
-                  while (smixer->info->frequency > 48000.0f) {
-                     smixer->info->frequency /= 2.0f;
-                  }
-                  smixer->info->period_rate = fmixer->info->period_rate;
-                  smixer->info->refresh_rate = fmixer->info->refresh_rate;
-                  smixer->info->update_rate = fmixer->info->update_rate;
-                  if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
-                  {
-                     _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
-                     _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
-                  }
-                  _aaxAudioFrameResetDistDelay(smixer, fmixer);
-
-                  if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
-                  {
-                     _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-                     _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
-                     _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
-                  }
-
-                  ssr_config->handle = fhandle;
-                  ssr_config->mixer_pos = pos;
-                  smixer->refcount++;
-
-                  if (!smixer->ringbuffer)
-                  {
-                     _handle_t *driver = get_driver_handle(frame);
-                     const _aaxDriverBackend *be = driver->backend.ptr;
-                     enum aaxRenderMode mode = driver->info->mode;
-                     float dt = DELAY_EFFECTS_TIME;
-
-                     smixer->ringbuffer = be->get_ringbuffer(dt, mode);
-                  }
-
-                  rb = smixer->ringbuffer;
-                  if (rb)
-                  {
-                     _aaxMixerInfo* info = smixer->info;
-                     float delay_sec = 1.0f / info->period_rate;
-
-                     rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
-                     rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
-                     rb->set_parami(rb, RB_NO_TRACKS, 2);
-
-                     /* create a ringbuffer with a but of overrun space */
-                     rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
-                     rb->init(rb, AAX_TRUE);
-
-                     /* 
-                      * Now set the actual duration, this will not alter the
-                      * allocated space since it is lower that the initial
-                      * duration.
-                      */
-                     rb->set_paramf(rb, RB_DURATION_SEC, delay_sec);
-                     rb->set_state(rb, RB_STARTED);
-                  }
-
-                  _intBufReleaseData(dptr, _AAX_SENSOR);
-                  rv = AAX_TRUE;
-               }
-            }
-            else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            }
+         res = _intBufCreate(&fmixer->devices, _AAX_DEVICE);
+         if (res != UINT_MAX) {
+            hd = fmixer->devices;
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+
+      if (hd && (fmixer->no_registered < fmixer->info->max_registered))
+      {
+         aaxBuffer buf; /* clear the sensors buffer queue */
+         while ((buf = aaxSensorGetBuffer(ssr_config)) != NULL) {
+            aaxBufferDestroy(buf);
+         }
+         _aaxErrorSet(AAX_ERROR_NONE);
+         pos = _intBufAddData(hd, _AAX_DEVICE, ssr_config);
+         fmixer->no_registered++;
       }
-      put_frame(fhandle);
+      else {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      }
+
+      if (pos != UINT_MAX)
+      {
+         _intBufferData *dptr;
+
+         dptr = _intBufGet(ssr_config->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aax3dProps *mp3d, *sp3d;
+            _aaxAudioFrame *smixer;
+            _aaxRingBuffer *rb;
+
+            smixer = sensor->mixer;
+
+            mp3d = fmixer->props3d;
+            sp3d = smixer->props3d;
+
+            smixer->info->frequency = fmixer->info->frequency;
+            while (smixer->info->frequency > 48000.0f) {
+               smixer->info->frequency /= 2.0f;
+            }
+            smixer->info->period_rate = fmixer->info->period_rate;
+            smixer->info->refresh_rate = fmixer->info->refresh_rate;
+            smixer->info->update_rate = fmixer->info->update_rate;
+            if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
+            {
+               _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
+               _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
+            }
+            _aaxAudioFrameResetDistDelay(smixer, fmixer);
+
+            if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
+            {
+               _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
+               _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+               _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
+            }
+
+            ssr_config->handle = handle;
+            ssr_config->mixer_pos = pos;
+            smixer->refcount++;
+
+            if (!smixer->ringbuffer)
+            {
+               _handle_t *driver = get_driver_handle(frame);
+               const _aaxDriverBackend *be = driver->backend.ptr;
+               enum aaxRenderMode mode = driver->info->mode;
+               float dt = DELAY_EFFECTS_TIME;
+
+               smixer->ringbuffer = be->get_ringbuffer(dt, mode);
+            }
+
+            rb = smixer->ringbuffer;
+            if (rb)
+            {
+               _aaxMixerInfo* info = smixer->info;
+               float delay_sec = 1.0f / info->period_rate;
+
+               rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+               rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
+               rb->set_parami(rb, RB_NO_TRACKS, 2);
+
+               /* create a ringbuffer with a but of overrun space */
+               rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
+               rb->init(rb, AAX_TRUE);
+
+               /* 
+                * Now set the actual duration, this will not alter the
+                * allocated space since it is lower that the initial
+                * duration.
+                */
+               rb->set_paramf(rb, RB_DURATION_SEC, delay_sec);
+               rb->set_state(rb, RB_STARTED);
+            }
+
+            _intBufReleaseData(dptr, _AAX_SENSOR);
+         }
+      }
+      else
+      {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         rv = AAX_FALSE;
+      }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
+   put_frame(handle);
+
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
 {
-   _frame_t* fhandle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (fhandle)
+   _handle_t* ssr_config = get_handle(sensor);
+   _frame_t* handle = get_frame(frame);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _handle_t* ssr_config = get_handle(sensor);
-      if (ssr_config && ssr_config->mixer_pos != UINT_MAX)
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!ssr_config || ssr_config->mixer_pos == UINT_MAX) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _intBuffers *hd = handle->submix->devices;
+      _handle_t* ptr;
+
+      ptr = _intBufRemove(hd, _AAX_DEVICE, ssr_config->mixer_pos, AAX_FALSE);
+      if (ptr)
       {
-         _intBuffers *hd = fhandle->submix->devices;
-         _handle_t* ptr;
+         _intBufferData *dptr;
 
-         ptr = _intBufRemove(hd, _AAX_DEVICE, ssr_config->mixer_pos, AAX_FALSE);
-         if (ptr)
+         handle->submix->no_registered--;
+         dptr = _intBufGet(ssr_config->sensors, _AAX_SENSOR, 0);
+         if (dptr)
          {
-            _intBufferData *dptr;
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            sensor->mixer->refcount--;
+            ssr_config->mixer_pos = UINT_MAX;
+            ssr_config->handle = NULL;
 
-            fhandle->submix->no_registered--;
-            dptr = _intBufGet(ssr_config->sensors, _AAX_SENSOR, 0);
-            if (dptr)
-            {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               sensor->mixer->refcount--;
-               ssr_config->mixer_pos = UINT_MAX;
-               ssr_config->handle = NULL;
-
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-               rv = AAX_TRUE;
-            }
+            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
-      put_frame(frame);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
+   put_frame(handle);
+
    return rv;
 }
 
@@ -786,272 +815,282 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
+   _emitter_t* emitter = get_emitter_unregistered(em);
    _frame_t* handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _emitter_t* emitter = get_emitter_unregistered(em);
-      if (emitter && !emitter->handle && emitter->mixer_pos == UINT_MAX)
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!emitter || emitter->handle || emitter->mixer_pos < UINT_MAX) {
+          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aaxAudioFrame* fmixer = handle->submix;
+      _aaxEmitter *src = emitter->source;
+      unsigned int pos = UINT_MAX;
+      unsigned int positional;
+      _intBuffers *he;
+
+      positional = _IS_POSITIONAL(src->props3d);
+      if (!positional) {
+         he = fmixer->emitters_2d;
+      } else {
+         he = fmixer->emitters_3d;
+      }
+
+      if (fmixer->no_registered < fmixer->info->max_registered)
       {
-         _aaxAudioFrame* fmixer = handle->submix;
+         if (_aaxGetEmitter())
+         {
+            pos = _intBufAddData(he, _AAX_EMITTER, emitter);
+            fmixer->no_registered++;
+         }
+      }
+
+      if (pos != UINT_MAX)
+      {
          _aaxEmitter *src = emitter->source;
-         unsigned int pos = UINT_MAX;
-         unsigned int positional;
-         _intBuffers *he;
+         emitter->handle = handle;
+         emitter->mixer_pos = pos;
 
-         positional = _IS_POSITIONAL(src->props3d);
-         if (!positional) {
-            he = fmixer->emitters_2d;
-         } else {
-            he = fmixer->emitters_3d;
-         }
-
-         if (fmixer->no_registered < fmixer->info->max_registered)
+         /*
+          * The mixer frequency is not know by the frequency filter
+          * (which needs it to properly compute the filter coefficients)
+          * until it has been registered to the mixer.
+          * So we need to update the filter coefficients one more time.
+          */
+         if (_FILTER_GET2D_DATA(src, FREQUENCY_FILTER))
          {
-            if (_aaxGetEmitter())
-            {
-               pos = _intBufAddData(he, _AAX_EMITTER, emitter);
-               fmixer->no_registered++;
-            }
+            aaxFilter f = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
+            _filter_t *filter = (_filter_t *)f;
+            aaxFilterSetState(f, filter->slot[0]->state);
+            aaxEmitterSetFilter(emitter, f);
          }
 
-         if (pos != UINT_MAX)
+         src->info = fmixer->info;
+         if (src->update_rate == 0) {
+            src->update_rate = fmixer->info->update_rate;
+         }
+         src->update_ctr = src->update_rate;
+
+         if (positional)
          {
-            _aaxEmitter *src = emitter->source;
-            emitter->handle = handle;
-            emitter->mixer_pos = pos;
+            _aax3dProps *ep3d = src->props3d;
+            _aax3dProps *mp3d = fmixer->props3d;
 
-            /*
-             * The mixer frequency is not know by the frequency filter
-             * (which needs it to properly compute the filter coefficients)
-             * until it has been registered to the mixer.
-             * So we need to update the filter coefficients one more time.
-             */
-            if (_FILTER_GET2D_DATA(src, FREQUENCY_FILTER))
+            if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL)
             {
-               aaxFilter f = aaxEmitterGetFilter(emitter, AAX_FREQUENCY_FILTER);
-               _filter_t *filter = (_filter_t *)f;
-               aaxFilterSetState(f, filter->slot[0]->state);
-               aaxEmitterSetFilter(emitter, f);
+               _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
+               _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
             }
+            _aaxEMitterResetDistDelay(src, fmixer);
 
-            src->info = fmixer->info;
-            if (src->update_rate == 0) {
-               src->update_rate = fmixer->info->update_rate;
-            }
-            src->update_ctr = src->update_rate;
-
-            if (positional)
+            if (_EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT) == NULL)
             {
-               _aax3dProps *ep3d = src->props3d;
-               _aax3dProps *mp3d = fmixer->props3d;
-
-               if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL)
-               {
-                  _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
-                  _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
-               }
-               _aaxEMitterResetDistDelay(src, fmixer);
-
-               if (_EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT) == NULL)
-               {
-                  _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-                  _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-                  _EFFECT_COPY_DATA(ep3d, mp3d, VELOCITY_EFFECT);
-               }
+               _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+               _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
+               _EFFECT_COPY_DATA(ep3d, mp3d, VELOCITY_EFFECT);
             }
-            rv = AAX_TRUE;
-         }
-         else {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
       }
-      else {
-//       if (emitter->handle) put_emitter(emitter);
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      else
+      {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         rv = AAX_FALSE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
-   put_frame(frame);
+   put_frame(handle);
+
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
+   _emitter_t* emitter = get_emitter(em);
    _frame_t* handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _emitter_t* emitter = get_emitter(em);
-      if (emitter && emitter->mixer_pos != UINT_MAX)
-      {
-         _aaxAudioFrame* fmixer = handle->submix;
-         _aaxEmitter *src = emitter->source;
-         _intBuffers *he;
-
-         if (_IS_POSITIONAL(src->props3d))
-         {
-            he = fmixer->emitters_3d;
-            _PROP_DISTQUEUE_CLEAR_DEFINED(src->props3d);
-         } else {
-            he = fmixer->emitters_2d;
-         }
-
-         /* Unlock the frame again to make sure locking is done in the  */
-         /* proper order by _intBufRemove                               */
-         _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
-         _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
-         _aaxPutEmitter();
-         fmixer->no_registered--;
-         emitter->mixer_pos = UINT_MAX;
-         emitter->handle = NULL;
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!emitter || emitter->mixer_pos == UINT_MAX) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
          rv = AAX_TRUE;
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
-      put_emitter(emitter);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _aaxAudioFrame* fmixer = handle->submix;
+      _aaxEmitter *src = emitter->source;
+      _intBuffers *he;
+
+      if (_IS_POSITIONAL(src->props3d))
+      {
+         he = fmixer->emitters_3d;
+         _PROP_DISTQUEUE_CLEAR_DEFINED(src->props3d);
+      } else {
+         he = fmixer->emitters_2d;
+      }
+
+      /* Unlock the frame again to make sure locking is done in the  */
+      /* proper order by _intBufRemove                               */
+      _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
+      _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
+      _aaxPutEmitter();
+      fmixer->no_registered--;
+      emitter->mixer_pos = UINT_MAX;
+      emitter->handle = NULL;
    }
    put_frame(frame);
+   put_emitter(emitter);
+
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
+   _frame_t* sframe = get_frame(subframe);
    _frame_t* handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _frame_t* sframe = get_frame(subframe);
-      if (sframe && !sframe->handle)
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!sframe || sframe->handle) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else if (sframe->mixer_pos < UINT_MAX) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aaxAudioFrame *fmixer =  handle->submix;
+      _intBuffers *hf = fmixer->frames;
+      unsigned int pos = UINT_MAX;
+
+      if (hf == NULL)
       {
-         if (sframe->mixer_pos == UINT_MAX)
-         {
-            _aaxAudioFrame *fmixer =  handle->submix;
-            _intBuffers *hf = fmixer->frames;
-            unsigned int pos = UINT_MAX;
+         unsigned int res;
 
-            if (hf == NULL)
-            {
-               unsigned int res;
-
-               res = _intBufCreate(&fmixer->frames, _AAX_FRAME);
-               if (res != UINT_MAX) {
-                  hf = fmixer->frames;
-               }
-            }
-
-            if (hf && (fmixer->no_registered < fmixer->info->max_registered))
-            {
-               aaxBuffer buf; /* clear the frames buffer queue */
-               while ((buf = aaxAudioFrameGetBuffer(sframe)) != NULL) {
-                  aaxBufferDestroy(buf);
-               }
-               pos = _intBufAddData(hf, _AAX_FRAME, sframe);
-               fmixer->no_registered++;
-            }
-            else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            }
-
-            if (pos != UINT_MAX)
-            {
-               _aax3dProps *mp3d, *fp3d;
-               _aaxAudioFrame *submix = sframe->submix;
-               const _aaxDriverBackend *be = NULL;
-               unsigned int be_pos;
-
-               be = _aaxGetDriverBackendLoopback(&be_pos);
-               if (be)
-               {
-                  mp3d = fmixer->props3d;
-                  fp3d = submix->props3d;
-
-                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
-                  {
-                     _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
-                     _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
-                  }
-                  _aaxAudioFrameResetDistDelay(submix, fmixer);
-
-                  if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
-                  {
-                     _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-                     _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
-                     _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
-                  }
-                  rv = AAX_TRUE;
-
-                  submix->refcount++;
-                  sframe->handle = handle;
-                  sframe->mixer_pos = pos;
-               }
-               else {
-                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-               }
-            }
-            else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            }
+         res = _intBufCreate(&fmixer->frames, _AAX_FRAME);
+         if (res != UINT_MAX) {
+            hf = fmixer->frames;
          }
+      }
 
-         /* No need to put the sframe since it was not registered yet.
-          * This means there is no lock to unlock 
-          * put_frame(sframe);
-          */
+      if (hf && (fmixer->no_registered < fmixer->info->max_registered))
+      {
+         aaxBuffer buf; /* clear the frames buffer queue */
+         while ((buf = aaxAudioFrameGetBuffer(sframe)) != NULL) {
+            aaxBufferDestroy(buf);
+         }
+         pos = _intBufAddData(hf, _AAX_FRAME, sframe);
+         fmixer->no_registered++;
+      }
+      else {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      }
+
+      if (pos != UINT_MAX)
+      {
+         _aax3dProps *mp3d, *fp3d;
+         _aaxAudioFrame *submix = sframe->submix;
+         const _aaxDriverBackend *be = NULL;
+         unsigned int be_pos;
+
+         be = _aaxGetDriverBackendLoopback(&be_pos);
+         if (be)
+         {
+            mp3d = fmixer->props3d;
+            fp3d = submix->props3d;
+
+            if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
+            {
+               _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
+               _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
+            }
+            _aaxAudioFrameResetDistDelay(submix, fmixer);
+
+            if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
+            {
+               _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
+               _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+               _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
+            }
+
+            submix->refcount++;
+            sframe->handle = handle;
+            sframe->mixer_pos = pos;
+         }
+         else
+         {
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            rv = AAX_FALSE;
+         }
       }
       else
       {
-         if (sframe->handle) put_frame(sframe);
-         _aaxErrorSet(AAX_INVALID_STATE);
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         rv = AAX_FALSE;
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
+   if (sframe->handle) put_frame(sframe);
    put_frame(handle);
+
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
+   _frame_t* sframe = get_frame(subframe);
    _frame_t* handle = get_frame(frame);
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      _frame_t* sframe = get_frame(subframe);
-      if (sframe && sframe->mixer_pos != UINT_MAX)
-      {
-         _intBuffers *hf = handle->submix->frames;
-
-         /* Unlock the frame again to make sure locking is done in the proper */
-         /* order by _intBufRemove                                            */
-         _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos);
-         _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
-         sframe->submix->refcount--;
-         sframe->mixer_pos = UINT_MAX;
-         sframe->handle = NULL;
-
-         handle->submix->no_registered--;
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!sframe || sframe->mixer_pos == UINT_MAX) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
          rv = AAX_TRUE;
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
-      put_frame(sframe);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+
+   if (rv)
+   {
+      _intBuffers *hf = handle->submix->frames;
+
+      /* Unlock the frame again to make sure locking is done in the proper */
+      /* order by _intBufRemove                                            */
+      _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos);
+      _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
+      sframe->submix->refcount--;
+      sframe->mixer_pos = UINT_MAX;
+      sframe->handle = NULL;
+
+      handle->submix->no_registered--;
    }
    put_frame(handle);
+   put_frame(sframe);
+
    return rv;
 }
 

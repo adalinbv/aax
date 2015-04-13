@@ -52,7 +52,7 @@ static _aaxFilterInfo _aaxMixerDefaultEqualizer[2];
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
-int _client_release_mode = 0;
+int __release_mode = AAX_FALSE;
 _aaxMixerInfo* _info = NULL;
 _intBuffers* _backends = NULL;
 time_t _tvnow = 0;
