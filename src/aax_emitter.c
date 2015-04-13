@@ -196,7 +196,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       }
    }
    put_emitter(handle);
-   return AAX_FALSE;
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
