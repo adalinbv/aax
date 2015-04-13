@@ -296,7 +296,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
       /* if the subframe actually did render something, mix the data */
       if (res)
       {
-         char dde = (_EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) != NULL);
+         char dde = 1; //(_EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) != NULL);
          _aaxDelayed3dProps *m_sfdp3d;
 
          fmixer->ringbuffer = _aaxAudioFrameSwapBuffers(frame_rb,
