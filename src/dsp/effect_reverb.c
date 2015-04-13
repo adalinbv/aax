@@ -112,8 +112,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
       assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
 
-printf("idepth_offs: %3.2f ms, idepth: %3.2f ms\n", effect->slot[0]->param[AAX_DELAY_DEPTH]*1000.0f, idepth*1000.0f);
-
       delays[0] = idepth_offs + idepth*0.9876543f;
       delays[2] = idepth_offs + idepth*0.5019726f;
       delays[1] = idepth_offs + idepth*0.3333333f;
