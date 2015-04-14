@@ -211,11 +211,12 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
       if (delay_effect)
       {
          /*
-          * can not use drbd->dde_samples since it's 10 times as big for the
-          * fial mixer to accomodate for reverb
+          * can not use drbd->dde_samples since it's 10 times too big for the
+          * final mixer to accomodate for reverb
           */
          // ddesamps = drbd->dde_samples;
          ddesamps = (size_t)ceilf(DELAY_EFFECTS_TIME*dfreq);
+         if (drbd->dde_samples < ddesamps) ddesamps = drbd->dde_samples;
       }
 
 #ifdef NDEBUG
