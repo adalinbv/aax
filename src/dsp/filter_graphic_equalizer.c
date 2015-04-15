@@ -110,6 +110,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                Q = 2.0f;
                fc = expf((float)pos*fband)*67.0f;
                iir_compute_coefs(fc,filter->info->frequency,cptr,&k,Q);
+               flt->no_sections = 1;
                flt->k = k;
             }
             while (--pos >= 0);

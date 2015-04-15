@@ -112,6 +112,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q);
          flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
+         flt->no_sections = 1;
          flt->k = k;
 
          /* HF frequency setup */
@@ -122,6 +123,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          iir_compute_coefs(fch, filter->info->frequency, cptr, &k, Q);
          flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
+         flt->no_sections = 1;
          flt->k = k;
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
