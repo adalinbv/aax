@@ -159,6 +159,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             dfact = powf(fc*0.00005f, 0.2f);
             flt->lf_gain = 1.75f-0.75f*dfact;
             flt->hf_gain = 0.33f*dfact;
+            flt->no_sections = 1;
             flt->lfo = 0;
             flt->fs = fs;
             flt->Q = Q;

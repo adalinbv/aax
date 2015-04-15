@@ -103,6 +103,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          iir_compute_coefs(fc, fs, cptr, &k, Q);
          flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
+         flt->no_sections = 1;
          flt->Q = Q;
          flt->k = k;
 
