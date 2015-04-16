@@ -128,6 +128,7 @@ int main(int argc, char **argv)
             res = aaxSensorSetState(record, AAX_CAPTURING);
             testForState(res, "aaxSensorSetState");
 
+            printf("start playback and capturing\n");
             q = 0;
             do
             {
@@ -152,6 +153,7 @@ int main(int argc, char **argv)
             res = aaxSensorSetState(record, AAX_STOPPED);
             testForState(res, "aaxSensorSetState");
 
+            printf("done playing, start receiving the buffers\n");
             do
             {
                 aaxBuffer buffer2 = aaxSensorGetBuffer(record);
