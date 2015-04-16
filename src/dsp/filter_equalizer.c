@@ -77,7 +77,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if TEST_FOR_TRUE(state)
+   if (state == AAX_TRUE || state == -1)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[EQUALIZER_LF]->data;
       if (flt == NULL)
@@ -109,7 +109,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          flt = filter->slot[EQUALIZER_LF]->data;
          cptr = flt->coeff;
          k = 1.0f;
-         stages = 1;
+         stages = (state == AAX_TRUE) ? 1 : 2;
          Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
          iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
@@ -129,13 +129,18 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          flt->k = k;
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      rv = filter;
    }
-   else
+   else if (state == AAX_FALSE)
    {
       free(filter->slot[EQUALIZER_LF]->data);
       filter->slot[EQUALIZER_LF]->data = NULL;
+      rv = filter;
    }
-   rv = filter;
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+
    return rv;
 }
 
