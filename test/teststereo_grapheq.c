@@ -95,14 +95,14 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_GRAPHIC_EQUALIZER);
             testForError(filter, "aaxFilterCreate");
 
-            printf("  0.5 |  1.5  |  1.5  |  0.8  |");
+            printf("  0.3 |  1.0  |  1.0  |  0.5  |");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.5f, 1.5f, 1.5f, 0.8f);
+                                              0.333f, 1.0f, 1.0f, 0.5333f);
             testForError(filter, "aaxFilterSetSlot/0");
 
-            printf("  1.0   |  1.0   |  1.2   |  1.0 \n\n");
+            printf("  0.7   |  0.7   |  0.8   |  0.7 \n\n");
             filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              1.0f, 1.0f, 1.2f, 1.0f);
+                                              0.6667f, 0.6667f, 0.8f, 0.6667f);
             testForError(filter, "aaxFilterSetSlot/1");
 
             filter = aaxFilterSetState(filter, AAX_TRUE);
