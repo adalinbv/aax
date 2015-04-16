@@ -98,12 +98,13 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float *cptr = flt->coeff;
          float fs = flt->fs; 
          float k = 1.0f;
+         int stages = 1;
 
 //       flt->fs = fs = filter->info->frequency;
-         iir_compute_coefs(fc, fs, cptr, &k, Q);
+         iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
-         flt->no_sections = 1;
+         flt->no_stages = stages;
          flt->Q = Q;
          flt->k = k;
 
