@@ -102,15 +102,17 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             {
                _aaxRingBufferFreqFilterData *flt;
                float *cptr, fc, k, Q;
+                int stages;
 
                flt = &eq->band[pos];
                cptr = flt->coeff;
 
                k = 1.0f;
                Q = 2.0f;
+               stages = 1;
                fc = expf((float)pos*fband)*67.0f;
-               iir_compute_coefs(fc,filter->info->frequency,cptr,&k,Q);
-               flt->no_sections = 1;
+               iir_compute_coefs(fc,filter->info->frequency,cptr,&k,Q,stages);
+               flt->no_stages = stages;
                flt->k = k;
             }
             while (--pos >= 0);

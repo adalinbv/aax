@@ -94,6 +94,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
       if (flt)
       {
          float *cptr, fcl, fch, k, Q;
+         int stages;
 
          fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
          fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
@@ -108,11 +109,12 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          flt = filter->slot[EQUALIZER_LF]->data;
          cptr = flt->coeff;
          k = 1.0f;
+         stages = 1;
          Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-         iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q);
+         iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
-         flt->no_sections = 1;
+         flt->no_stages = stages;
          flt->k = k;
 
          /* HF frequency setup */
@@ -120,10 +122,10 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          cptr = flt->coeff;
          k = 1.0f;
          Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-         iir_compute_coefs(fch, filter->info->frequency, cptr, &k, Q);
+         iir_compute_coefs(fch, filter->info->frequency, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
-         flt->no_sections = 1;
+         flt->no_stages = stages;
          flt->k = k;
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

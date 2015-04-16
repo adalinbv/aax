@@ -80,7 +80,35 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   /** Mix */
+   /** Mix 
+    * 1. Copy all channels to LFE and aplly a 40Hz-200Hz (80Hz default)
+    *    low pass filter. (It’s not that 100 Hz is really that easy to localize,
+    *    but that frequencies a bit above it are.)
+    * 2. Apply a high-pass filter with the same cut off frequency to all tracks
+    *    but the mains (front left and right) and the LFE.
+    *
+    * http://www.hometheaterhifi.com/volume_9_3/feature-article-multiple-crossovers-9-2002.html
+    * If you want consistent bass response from each channel of your 5.1 system,
+    * in our opinion, you're best to set all speakers to "Small", set them all
+    * to the same crossover point, and set that point no lower than what you
+    * are comfortable throwing away from the LFE channel.  If your main left
+    * and right speakers are genuinely full range (be honest now!), then you
+    * are better off running them full range as opposed to high-passing them
+    * at a ridiculously low frequency.
+    *
+    *http://www.hometheaterhifi.com/volume_12_2/feature-article-slope-troubles-6-2005.html
+    * The up front solution lies in getting receiver and processor manufacturers
+    * to start giving us a bass management scheme that caters to "full-range"
+    * speakers.  Taking the THX Linkwitz/Riley scheme as a good place to start,
+    * all they need to do is provide a choice of high-pass:  2nd order for THX
+    * speakers (and other true satellites), and 4th order for all others.  With
+    * such a crossover, the main speakers need only be reasonably flat to an
+    * octave below the chosen frequency, which, in the case of the common 80 Hz
+    * crossover, means being flat to 40 Hz.  Virtually all "full-range" speakers
+    * - even most of the smaller bookshelf models - qualify.
+    */
+
+// TODO: create HF filtered and LF filtered versions of sptr[ch]
    for (t=0; t<drbd->no_tracks; t++)
    {
       MIX_T *dptr = (MIX_T*)drbd->track[t] + offs;
@@ -130,6 +158,9 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
          v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
 
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+
+// TODO: add HF filtered version of sptr[ch] if (t != AAX_TRACK_LFE)
+// TODO: or add LF filtered verson of sptr[ch] if (t == AAX_TRACK_LFE)
          drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
       }
       while(0);

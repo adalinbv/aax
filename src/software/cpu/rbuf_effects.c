@@ -17,8 +17,8 @@
 #include <math.h>	/* tan */
 
 #include <base/logging.h>
+#include <base/geometry.h>
 
-//#include <dsp/filters.h>
 #include <dsp/effects.h>
 
 #include <api.h>
@@ -377,6 +377,35 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
 #endif /* !ENABLE_LITE */
 
 void
+iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int stages)
+{
+   static const float _b1[3][3] = {
+      { 1.4142f,    0.0f,      0.0f      },
+      { 0.765367,   1.847759,  0.0f      },
+      { 0.5176387f, 1.414214f, 1.931852f }
+   };
+   int i, pos = stages-1;
+   float k = 1.0f;
+
+   assert(stages <= _AAX_FILTER_SECTIONS);
+   assert(stages <= 3);
+
+   for (i=0; i<stages; i++)
+   {
+      float a0 = 1.0f;
+      float a1 = 0.0f;
+      float a2 = 0.0f;
+      float b0 = 1.0f;
+      float b1 = _b1[pos][i] / Q;
+      float b2 = 1.0f;
+
+      szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      coef += 4;
+   }
+   *gain = k;
+}
+
+void
 _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
                    MIX_PTR_T d, CONST_MIX_PTR_T s,
                    size_t dmin, size_t dmax, size_t ds,
@@ -402,43 +431,38 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       float lf = filter->lf_gain;
       float hf = filter->hf_gain;
       float k = filter->k;
+      int stages, num;
 
+      stages = filter->no_stages;
       if (filter->lfo && !ctr)
       {
          float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1.0f);
          float Q = filter->Q;
 
          k = 1.0f;
-         iir_compute_coefs(fc, filter->fs, cptr, &k, Q);
+         iir_compute_coefs(fc, filter->fs, cptr, &k, Q, stages);
          filter->k = k;
       }
 
-      rbd->freqfilter(dptr, sptr, dmax+ds-dmin, hist, lf, hf, k, cptr);
+      num = dmax+ds-dmin;
+      rbd->freqfilter(dptr, sptr, num, hist, lf, hf, k, cptr);
+      if (stages == 2) {
+         rbd->freqfilter(dptr, dptr, num, hist+2, 1.0, 0.0f, 1.0f, cptr+4);
+      }
    }
-}
-
-void
-iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q)
-{
-   float k = 1.0f;
-
-   float a0 = 1.0f;
-   float a1 = 0.0f;
-   float a2 = 0.0f;
-   float b0 = 1.0f;
-   float b1 = 1.4142f / Q;
-   float b2 = 1.0f;
-
-   szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
-
-   *gain = k;
 }
 
 /* -------------------------------------------------------------------------- */
 
-/*
- * From: http://www.gamedev.net/reference/articles/article845.asp
- *       http://www.gamedev.net/reference/articles/article846.asp
+/* Calculate a 2nd order (12 dB/oct) Butterworth IIR filter
+ *
+ * A common practice is to chain several 2nd order sections in order to achieve
+ * a higher order filter. So, for a 4th order (24dB/oct) filter  we need 2 of
+ * those sections in series.
+ *
+ * From:
+ *   http://www.gamedev.net/reference/articles/article846.asp
+ *   http://www.gamedev.net/reference/articles/article845.asp
  */
 static void
 bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
