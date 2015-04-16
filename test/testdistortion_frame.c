@@ -132,7 +132,7 @@ int main(int argc, char **argv)
             effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
             testForError(effect, "aaxEmitterGetEffect");
             effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              0.8f, 0.0f, 0.0f, 0.046f);
+                                              1.0f, 0.0f, 0.0f, 0.067f);
             testForError(effect, "aaxEffectSetSlot");
             effect = aaxEffectSetState(effect, AAX_TRUE);
             testForError(effect, "aaxEffectSetState");
