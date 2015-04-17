@@ -915,7 +915,7 @@ _batch_endianswap64_cpu(void* data, size_t num)
 }
 
 void
-_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -927,7 +927,7 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist
       h1 = hist[1];
       do
       {
-         smp = *s * k;
+         smp = *s++ * k;
          smp = smp - h0 * cptr[0];
          nsmp = smp - h1 * cptr[1];
          smp = nsmp + h0 * cptr[2];
@@ -935,8 +935,7 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist
 
          h1 = h0;
          h0 = nsmp;
-         *d++ = (int32_t)(smp*lfgain) + (int32_t)((*s-smp)*hfgain);
-         s++;
+         *d++ = smp;
       }
       while (--i);
 
@@ -946,7 +945,7 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist
 }
 
 void
-_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -958,7 +957,7 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, f
       h1 = hist[1];
       do
       {
-         smp = *s * k;
+         smp = *s++ * k;
          smp = smp - h0 * cptr[0];
          nsmp = smp - h1 * cptr[1];
          smp = nsmp + h0 * cptr[2];
@@ -966,8 +965,7 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, f
 
          h1 = h0;
          h0 = nsmp;
-         *d++ = (smp*lfgain) + (*s-smp)*hfgain;
-         s++;
+         *d++ = smp;
       }
       while (--i);
 

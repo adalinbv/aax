@@ -445,10 +445,16 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       }
 
       num = dmax+ds-dmin;
-      rbd->freqfilter(dptr, sptr, num, hist, lf, hf, k, cptr);
+      rbd->freqfilter(dptr, sptr, num, hist, k, cptr);
       if (stages == 2) {
-         rbd->freqfilter(dptr, dptr, num, hist+2, 1.0, 0.0f, 1.0f, cptr+4);
+         rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
       }
+
+      // original: *dptr = smp*lf + (*s - smp)*hf
+      //           *dptr = (smp * lf) + (*s * hf) + (smp * -hf)
+      // result:   *dptr = smp*(lf-hf) + *s * hf;
+      rbd->multiply(dptr, sizeof(MIX_T), num, (lf-hf));
+      rbd->add(dptr, sptr, num, hf, 0.0);
    }
 }
 
