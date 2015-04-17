@@ -427,8 +427,7 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
         smp = h0 + mpf[2]; smp += mpf[3]
 void
 _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
-                  float *hist, float lfgain, float hfgain, float k,
-                  const float *cptr)
+                  float *hist, float k, const float *cptr)
 {
    int32_t *s = (int32_t *)src;
    size_t i, step;
@@ -445,7 +444,7 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
    if (i)
    {
       float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
-      float32x4_t osmp0, osmp1, fact, dhist, coeff, lf, hf, tmp2;
+      float32x4_t osmp0, osmp1, fact, dhist, coeff, tmp2;
       float32_t *cfp = (float32_t *)cptr;
       float32_t *smp0, *mpf;
       float32x4x2_t tmp0;
@@ -456,8 +455,6 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
 
       fact = vdupq_n_f32(k);
       coeff = vrev64q_f32( vld1q_dup_f32(cfp) );
-      lf = vdupq_n_f32(lfgain);
-      hf = vdupq_n_f32(hfgain);
 
       do
       {
@@ -484,14 +481,8 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
          CALCULATE_NEW_SAMPLE(7, smp0[7]);
 
          nfr2d = vld2q_f32(smp0);		/* smp */
-         nfr1 = vmulq_f32(nfr2d.val[0], lf);	/* smp * lfgain */
-         nfr5 = vmulq_f32(nfr2d.val[1], lf);
-         nfr3 = vsubq_f32(osmp0, nfr2d.val[0]);	/* *s - smp */
-         nfr7 = vsubq_f32(osmp1, nfr2d.val[1]);
-         nfr2 = vmlaq_f32(nfr1, nfr3, hf);    /* smp*lfgain + (*s-smp)*hfgain */
-         nfr6 = vmlaq_f32(nfr5, nfr7, hf);
-         nir2_1.val[0] = vcvtq_s32_f32(nfr2);
-         nir2_1.val[1] = vcvtq_s32_f32(nfr6);
+         nir2_1.val[0] = vcvtq_s32_f32(nfr2d.val[0]);
+         nir2_1.val[1] = vcvtq_s32_f32(nfr2d.val[1]);
 
          vst2q_s32(d, nir2_1);
          d += 8;
@@ -505,17 +496,14 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
       i = num;
       do
       {
-         smp = *s * k;
+         smp = *s++ * k;
          smp = smp - h0 * cptr[0];
          nsmp = smp - h1 * cptr[1];
          smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         *d++ = smp + h1 * cptr[3];
 
          h1 = h0;
          h0 = nsmp;
-
-         *d++ = smp*lfgain + (*s-smp)*hfgain;
-         s++;
       }
       while (--i);
    }
@@ -525,7 +513,7 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
 }
 
 void
-_batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
    size_t i, step;
@@ -542,7 +530,7 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
    if (i)
    {
       float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
-      float32x4_t fact, dhist, coeff, lf, hf;
+      float32x4_t fact, dhist, coeff;
       float32_t *cfp = (float32_t *)cptr;
       float32x4_t tmp2;
       float32_t *smp0, *mpf;
@@ -553,8 +541,6 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
 
       fact = vdupq_n_f32(k);
       coeff = vrev64q_f32( vld1q_dup_f32(cfp) );
-      lf = vdupq_n_f32(lfgain);
-      hf = vdupq_n_f32(hfgain);
 
       do
       {
@@ -578,16 +564,7 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
          CALCULATE_NEW_SAMPLE(7, smp0[7]);
 
          nfr2d = vld2q_f32(smp0);               /* smp */
-         nfr1 = vmulq_f32(nfr2d.val[0], lf);    /* smp * lfgain */
-         nfr5 = vmulq_f32(nfr2d.val[1], lf);
-         nfr3 = vsubq_f32(nfr2_1.val[0], nfr2d.val[0]); /* *s - smp */
-         nfr7 = vsubq_f32(nfr2_1.val[1], nfr2d.val[1]);
-         nfr2 = vmlaq_f32(nfr1, nfr3, hf);    /* smp*lfgain + (*s-smp)*hfgain */
-         nfr6 = vmlaq_f32(nfr5, nfr7, hf);
-         nfr2_1.val[0] = nfr2;
-         nfr2_1.val[1] = nfr6;
-
-         vst2q_f32(d, nfr2_1);
+         vst2q_f32(d, nfr2d);
          d += step;
       }
       while (--i);
@@ -599,17 +576,14 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
       i = num;
       do
       {
-         smp = *s * k;
+         smp = *s++ * k;
          smp = smp - h0 * cptr[0];
          nsmp = smp - h1 * cptr[1];
          smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         *d++ = smp + h1 * cptr[3];
 
          h1 = h0;
          h0 = nsmp;
-
-         *d++ = smp*lfgain + (*s-smp)*hfgain;
-         s++;
       }
       while (--i);
    }

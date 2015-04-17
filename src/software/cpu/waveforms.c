@@ -365,6 +365,7 @@ __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
    unsigned int q = NO_FILTER_STEPS;
    int32_t *dst, *tmp, *ptr = data;
    dst = ptr + no_samples;
+
    do
    {
       float cptr[4], hist[2];
@@ -378,7 +379,10 @@ __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
       fc = expf((float)(q-1)*f)*100.0f;
       hist[0] = 0.0f; hist[1] = 0.0f;
       iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
-      _batch_freqfilter(dst, ptr, no_samples, hist, v1, v2, k, cptr);
+
+      _batch_freqfilter(dst, ptr, no_samples, hist, k, cptr);
+      _batch_imul_value(dst, sizeof(int32_t), no_samples, v1-v2);
+      _batch_imadd(dst, ptr, no_samples,  v2, 0.0);
 
       tmp = dst;
       dst = ptr;

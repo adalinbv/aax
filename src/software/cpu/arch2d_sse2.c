@@ -950,8 +950,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 
 void
 _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
-                  float *hist, float lfgain, float hfgain, float k,
-                  const float *cptr)
+                  float *hist, float k, const float *cptr)
 {
    int32_ptr s = (int32_ptr)sptr;
    size_t i, step;
@@ -977,17 +976,14 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
          num -= i;
          do
          {
-            smp = *s * k;
+            smp = *s++ * k;
             smp = smp - h0 * cptr[0];
             nsmp = smp - h1 * cptr[1];
             smp = nsmp + h0 * cptr[2];
-            smp = smp + h1 * cptr[3];
+            *d++ = smp + h1 * cptr[3];
 
             h1 = h0;
             h0 = nsmp;
-
-            *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
-            s++;
          }
          while (--i);
       }
@@ -998,7 +994,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
    if (i)
    {
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128 osmp0, osmp1, fact, dhist, coeff, lf, hf;
+      __m128 osmp0, osmp1, fact, dhist, coeff;
       __m128i xmm0i, xmm1i;
       __m128 tmp0, tmp1, tmp2;
       __m128i *sptr, *dptr;
@@ -1011,8 +1007,6 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
 
       fact = _mm_set1_ps(k);
       coeff = _mm_set_ps(cptr[3], cptr[2], cptr[1], cptr[0]);
-      lf = _mm_set1_ps(lfgain);
-      hf = _mm_set1_ps(hfgain);
 
       tmp = (size_t)s & 0xF;
       dptr = (__m128i *)d;
@@ -1048,18 +1042,8 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
          CALCULATE_NEW_SAMPLE(6, smp1[2]);
          CALCULATE_NEW_SAMPLE(7, smp1[3]);
 
-         xmm0 = _mm_load_ps(smp0);		/* smp */
-         xmm4 = _mm_load_ps(smp1);
-         xmm1 = _mm_mul_ps(xmm0, lf);		/* smp * lfgain */
-         xmm5 = _mm_mul_ps(xmm4, lf);
-         xmm2 = _mm_sub_ps(osmp0, xmm0);	/* *s - smp */
-         xmm6 = _mm_sub_ps(osmp1, xmm4);
-         xmm3 = _mm_mul_ps(xmm2, hf);		/* (*s-smp) * hfgain */
-         xmm7 = _mm_mul_ps(xmm6, hf);
-         xmm2 = _mm_add_ps(xmm1, xmm3);       /* smp*lfgain + (*s-smp)*hfgain */
-         xmm6 = _mm_add_ps(xmm5, xmm7);
-         xmm0i = _mm_cvtps_epi32(xmm2);
-         xmm1i = _mm_cvtps_epi32(xmm6);
+         xmm0i = _mm_cvtps_epi32(_mm_load_ps(smp0));
+         xmm1i = _mm_cvtps_epi32(_mm_load_ps(smp1));
 
          _mm_store_si128(dptr++, xmm0i);
          _mm_store_si128(dptr++, xmm1i);
@@ -1073,17 +1057,14 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
       i = num;
       do
       {
-         smp = *s * k;
+         smp = *s++ * k;
          smp = smp - h0 * cptr[0];
          nsmp = smp - h1 * cptr[1];
          smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         *d++ = smp + h1 * cptr[3];
 
          h1 = h0;
          h0 = nsmp;
-
-         *d++ = (int32_t)(smp*lfgain + (*s-smp)*hfgain);
-         s++;
       }
       while (--i);
    }
@@ -1093,7 +1074,7 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
 }
 
 void
-_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
    size_t i, step;
@@ -1119,16 +1100,14 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
          num -= i;
          do
          {
-            smp = *s * k;
+            smp = *s++ * k;
             smp = smp - h0 * cptr[0];
             nsmp = smp - h1 * cptr[1];
             smp = nsmp + h0 * cptr[2];
-            smp = smp + h1 * cptr[3];
+            *d++ = smp + h1 * cptr[3];
 
             h1 = h0;
             h0 = nsmp;
-            *d++ = (smp*lfgain) + (*s-smp)*hfgain;
-            s++;
          }
          while (--i);
       }
@@ -1139,7 +1118,7 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
    if (i)
    {
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128 osmp0, osmp1, fact, dhist, coeff, lf, hf;
+      __m128 osmp0, osmp1, fact, dhist, coeff;
       __m128 tmp0, tmp1, tmp2;
       __m128 *sptr, *dptr;
       float *smp0, *smp1, *mpf;
@@ -1151,8 +1130,6 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
 
       fact = _mm_set1_ps(k);
       coeff = _mm_set_ps(cptr[3], cptr[2], cptr[1], cptr[0]);
-      lf = _mm_set1_ps(lfgain);
-      hf = _mm_set1_ps(hfgain);
 
       tmp = (size_t)s & 0xF;
       dptr = (__m128 *)d;
@@ -1186,19 +1163,8 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
          CALCULATE_NEW_SAMPLE(6, smp1[2]);
          CALCULATE_NEW_SAMPLE(7, smp1[3]);
 
-         xmm0 = _mm_load_ps(smp0);              /* smp */
-         xmm4 = _mm_load_ps(smp1);
-         xmm1 = _mm_mul_ps(xmm0, lf);           /* smp * lfgain */
-         xmm5 = _mm_mul_ps(xmm4, lf);
-         xmm2 = _mm_sub_ps(osmp0, xmm0);        /* *s - smp */
-         xmm6 = _mm_sub_ps(osmp1, xmm4);
-         xmm3 = _mm_mul_ps(xmm2, hf);           /* (*s-smp) * hfgain */
-         xmm7 = _mm_mul_ps(xmm6, hf);
-         xmm2 = _mm_add_ps(xmm1, xmm3);       /* smp*lfgain + (*s-smp)*hfgain */
-         xmm6 = _mm_add_ps(xmm5, xmm7);
-
-         _mm_store_ps((float*)dptr++, xmm2);
-         _mm_store_ps((float*)dptr++, xmm6);
+         _mm_store_ps((float*)dptr++, _mm_load_ps(smp0));
+         _mm_store_ps((float*)dptr++, _mm_load_ps(smp1));
       }
       while (--i);
    }
@@ -1209,16 +1175,14 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
       i = num;
       do
       {
-         smp = *s * k;
+         smp = *s++ * k;
          smp = smp - h0 * cptr[0];
          nsmp = smp - h1 * cptr[1];
          smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         *d++ = smp + h1 * cptr[3];
 
          h1 = h0;
          h0 = nsmp;
-         *d++ = smp*lfgain + (*s-smp)*hfgain;
-         s++;
       }
       while (--i);
    }

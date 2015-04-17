@@ -51,8 +51,8 @@ typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, unsigned char, size_
 typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, size_t, float, float);
 typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, size_t, float, float);
 typedef void (*_batch_mul_value_proc)(void*, unsigned, size_t, float);
-typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, size_t, float*, float, float, float, const float*);
-typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float, float, float, const float*);
+typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, size_t, float*, float, const float*);
+typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float, const float*);
 typedef void (*_batch_resample_float_proc)(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 
