@@ -142,7 +142,7 @@ typedef struct
 typedef struct
 {
    unsigned int no_stages;
-   float Q, k, fs, lf_gain, hf_gain;
+   float Q, k, fs, lf_gain, hf_gain, hf_gain_prev;
    float coeff[4*_AAX_FILTER_SECTIONS];
    float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_FILTER_SECTIONS];
    _aaxRingBufferLFOData *lfo;

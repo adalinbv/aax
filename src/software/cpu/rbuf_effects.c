@@ -430,6 +430,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       float *cptr = filter->coeff;
       float lf = filter->lf_gain;
       float hf = filter->hf_gain;
+      float hf_prev = filter->hf_gain_prev;
       float k = filter->k;
       int stages, num;
 
@@ -460,8 +461,11 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       }
 
       // *s * hf
-      if (fabs(hf) > 0.00000039811f) { // -128dB
-         rbd->add(dptr, sptr, num, hf, 0.0);
+      if (hf > 0.00000039811f || hf_prev > 0.00000039811f)	// -128dB
+      {
+         float step = (hf - hf_prev)/num;
+         rbd->add(dptr, sptr, num, hf, step);
+         filter->hf_gain_prev = hf;
       }
    }
 }

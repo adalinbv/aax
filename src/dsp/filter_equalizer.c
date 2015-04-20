@@ -119,6 +119,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
+         flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->k = k;
 
@@ -130,6 +131,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          iir_compute_coefs(fch, filter->info->frequency, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
+         flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->k = k;
       }

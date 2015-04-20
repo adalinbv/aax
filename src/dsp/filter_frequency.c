@@ -76,7 +76,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
    switch (state & ~(AAX_INVERSE | AAX_FILTER_24DB_OCT | AAX_FILTER_48DB_OCT))
    {
-   case AAX_FILTER_12DB_OCT:
+   case AAX_TRUE:
    case AAX_TRIANGLE_WAVE:
    case AAX_SINE_WAVE:
    case AAX_SQUARE_WAVE:
@@ -109,6 +109,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
+         flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->Q = Q;
          flt->k = k;

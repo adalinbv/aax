@@ -134,12 +134,13 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
          eq = filter->slot[EQUALIZER_HF]->data;
          flt->hf_gain = gain_hf;
          flt->lf_gain = gain_lf;
+         flt->hf_gain_prev = 1.0f;
          do
          {
             int pos = s*4+b;
             float gain;
 
-            flt = &eq->band[pos-1];
+            flt = &eq->band[pos-1];	// next band
 
             gain_hf = gain_lf;
             gain_lf = filter->slot[s]->param[--b];
@@ -148,6 +149,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             gain = gain_lf - gain_hf;
             flt->hf_gain = 0.0f;
             flt->lf_gain = gain;
+            flt->hf_gain_prev = 1.0f;
 
             if (b == 0)
             {
