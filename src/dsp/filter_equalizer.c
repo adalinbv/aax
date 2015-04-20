@@ -77,7 +77,8 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_TRUE || state == -1)
+   if (state == AAX_FILTER_12DB_OCT || state == AAX_FILTER_24DB_OCT ||
+       state == AAX_FILTER_48DB_OCT)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[EQUALIZER_LF]->data;
       if (flt == NULL)
@@ -96,6 +97,10 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          float *cptr, fcl, fch, k, Q;
          int stages;
 
+         if (state == AAX_FILTER_48DB_OCT) stages = 3;
+         else if (state == AAX_FILTER_24DB_OCT) stages = 2;
+         else stages = 1;
+
          fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
          fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
          if (fabsf(fch - fcl) < 200.0f) {
@@ -109,7 +114,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          flt = filter->slot[EQUALIZER_LF]->data;
          cptr = flt->coeff;
          k = 1.0f;
-         stages = (state == AAX_TRUE) ? 1 : 2;
+
          Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
          iir_compute_coefs(fcl, filter->info->frequency, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
