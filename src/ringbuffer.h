@@ -128,7 +128,7 @@ typedef struct
  * Filtes and Effects
  */
 
-#define _AAX_FILTER_SECTIONS	2
+#define _AAX_FILTER_SECTIONS	3
 #define _AAX_MAX_DELAYS         8
 #define _AAX_MAX_LOOPBACKS      8
 #define _AAX_MAX_EQBANDS        8

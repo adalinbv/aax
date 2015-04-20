@@ -80,7 +80,8 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_TRUE || state == -1)
+   if (state == AAX_FILTER_12DB_OCT || state == AAX_FILTER_24DB_OCT ||
+       state == AAX_FILTER_48DB_OCT)
    {
       _aaxRingBufferEqualizerData *eq = filter->slot[EQUALIZER_HF]->data;
 
@@ -90,6 +91,12 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
+         int stages;
+
+         if (state == AAX_FILTER_48DB_OCT) stages = 3;
+         else if (state == AAX_FILTER_24DB_OCT) stages = 2;
+         else stages = 1;
+
          eq = calloc(1, sizeof(_aaxRingBufferEqualizerData));
          filter->slot[EQUALIZER_LF]->data = NULL;
          filter->slot[EQUALIZER_HF]->data = eq;
@@ -102,14 +109,12 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             {
                _aaxRingBufferFreqFilterData *flt;
                float *cptr, fc, k, Q;
-                int stages;
 
                flt = &eq->band[pos];
                cptr = flt->coeff;
 
                k = 1.0f;
                Q = 1.0f;
-               stages = (state == AAX_TRUE) ? 1 : 2;
                fc = expf((float)pos*fband)*67.0f;
                iir_compute_coefs(fc,filter->info->frequency,cptr,&k,Q,stages);
                flt->no_stages = stages;

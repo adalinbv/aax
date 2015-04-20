@@ -429,6 +429,13 @@ enum aaxWaveformType
    AAX_MAX_WAVE		= 9
 };
 
+enum aaxFrequencyFilterType
+{
+   AAX_FILTER_12DB_OCT = AAX_CONSTANT_VALUE,
+   AAX_FILTER_24DB_OCT = (AAX_CONSTANT_VALUE | AAX_PINK_NOISE),
+   AAX_FILTER_48DB_OCT = (AAX_CONSTANT_VALUE | AAX_BROWNIAN_NOISE)
+};
+
 enum aaxProcessingType
 {
    AAX_PROCESSING_NONE = 0,
