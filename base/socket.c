@@ -88,12 +88,12 @@ _socket_open(const char *server, int rate, int port, int timeout_ms)
                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
 #if 0
-unsigned int m;
-int n;
+ unsigned int m;
+ int n;
 
-m = sizeof(n);
-getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&n, &m);
-printf("socket receive buffer size: %u\n", n);
+ m = sizeof(n);
+ getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&n, &m);
+ printf("socket receive buffer size: %u\n", n);
 #endif
                if (connect(fd, host->ai_addr, host->ai_addrlen) < 0)
                {
