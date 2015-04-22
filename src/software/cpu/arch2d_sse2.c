@@ -940,6 +940,16 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    }
 }
 
+#if 1
+#define CALCULATE_NEW_SAMPLE(i, smp) \
+        dhist = _mm_set_ps(h1, h0, h1, h0);     \
+        h1 = h0;                                \
+        xmm##i = _mm_mul_ps(dhist, coeff);      \
+        _mm_store_ps(mpf, xmm##i);              \
+        h0 = smp - (mpf[0] + mpf[1]); \
+        smp = h0 + (mpf[2] + mpf[3]);
+#else
+	// original code
 #define CALCULATE_NEW_SAMPLE(i, smp) \
         dhist = _mm_set_ps(h1, h0, h1, h0);     \
         h1 = h0;                                \
@@ -947,7 +957,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
         _mm_store_ps(mpf, xmm##i);              \
         smp -=  mpf[0]; h0 = smp - mpf[1];      \
         smp = h0 + mpf[2]; smp += mpf[3]
-
+#endif
 void
 _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
                   float *hist, float k, const float *cptr)
@@ -1073,122 +1083,54 @@ _batch_freqfilter_sse2(int32_ptr d, const_int32_ptr sptr, size_t num,
    hist[1] = h1;
 }
 
+
 void
 _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
-   size_t i, step;
-   float h0, h1;
-   size_t tmp;
-
-   if (!num) return;
-
-   h0 = hist[0];
-   h1 = hist[1];
-
-   step = 2*sizeof(__m128)/sizeof(float);
-
-   /* work towards 16-byte aligned dptr */
-   tmp = (size_t)d & 0xF;
-   if (tmp && num)
-   {
-      float smp, nsmp;
-
-      i = (0x10 - tmp)/sizeof(float);
-      if (i <= num)
-      {
-         num -= i;
-         do
-         {
-            smp = *s++ * k;
-            smp = smp - h0 * cptr[0];
-            nsmp = smp - h1 * cptr[1];
-            smp = nsmp + h0 * cptr[2];
-            *d++ = smp + h1 * cptr[3];
-
-            h1 = h0;
-            h0 = nsmp;
-         }
-         while (--i);
-      }
-   }
-
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128 osmp0, osmp1, fact, dhist, coeff;
-      __m128 tmp0, tmp1, tmp2;
-      __m128 *sptr, *dptr;
-      float *smp0, *smp1, *mpf;
-
-      /* 16-byte aligned */
-      smp0 = (float *)&tmp0;
-      smp1 = (float *)&tmp1;
-      mpf = (float *)&tmp2;
-
-      fact = _mm_set1_ps(k);
-      coeff = _mm_set_ps(cptr[3], cptr[2], cptr[1], cptr[0]);
-
-      tmp = (size_t)s & 0xF;
-      dptr = (__m128 *)d;
-      sptr = (__m128 *)s;
-      do
-      {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FF, _MM_HINT_NTA);
-
-         if (tmp) {
-            osmp0 = _mm_loadu_ps((float*)sptr++);
-            osmp1 = _mm_loadu_ps((float*)sptr++);
-         } else {
-            osmp0 = _mm_load_ps((float*)sptr++);
-            osmp1 = _mm_load_ps((float*)sptr++);
-         }
-
-         xmm3 = _mm_mul_ps(osmp0, fact);        /* *s * k */
-         xmm7 = _mm_mul_ps(osmp1, fact);
-         _mm_store_ps(smp0, xmm3);
-         _mm_store_ps(smp1, xmm7);
-
-         s += step;
-         d += step;
-
-         CALCULATE_NEW_SAMPLE(0, smp0[0]);
-         CALCULATE_NEW_SAMPLE(1, smp0[1]);
-         CALCULATE_NEW_SAMPLE(2, smp0[2]);
-         CALCULATE_NEW_SAMPLE(3, smp0[3]);
-         CALCULATE_NEW_SAMPLE(4, smp1[0]);
-         CALCULATE_NEW_SAMPLE(5, smp1[1]);
-         CALCULATE_NEW_SAMPLE(6, smp1[2]);
-         CALCULATE_NEW_SAMPLE(7, smp1[3]);
-
-         _mm_store_ps((float*)dptr++, _mm_load_ps(smp0));
-         _mm_store_ps((float*)dptr++, _mm_load_ps(smp1));
-      }
-      while (--i);
-   }
 
    if (num)
    {
-      float smp, nsmp;
-      i = num;
-      do
-      {
-         smp = *s++ * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         *d++ = smp + h1 * cptr[3];
+      __m128 c = _mm_set_ps(cptr[3], -cptr[1], cptr[2], -cptr[0]);
+      __m128 h = _mm_set_ps(hist[1],  hist[1], hist[0],  hist[0]);
+      __m128 mk = _mm_set_ss(k);
+      size_t i = num;
 
-         h1 = h0;
-         h0 = nsmp;
+      do
+      {     
+         __m128 pz, smp, nsmp, tmp;
+
+         smp = _mm_load_ss(s);
+
+         // pz = { c[3]*h1, -c[1]*h1, c[2]*h0, -c[0]*h0 };
+         pz = _mm_mul_ps(c, h); // poles and zeros
+
+         // smp = *s++ * k;
+         smp = _mm_mul_ss(smp, mk);
+
+         // tmp[0] = -c[0]*h0 + -c[1]*h1;
+         tmp = _mm_add_ps(pz, _mm_shuffle_ps(pz, pz, _MM_SHUFFLE(1,3,0,2)));
+         s++;
+
+         // nsmp = smp - h0*c[0] - h1*c[1];
+         nsmp = _mm_add_ss(smp, tmp);
+
+         // h1 = h0, h0 = smp: h = { h0, h0, smp, smp };
+         h = _mm_shuffle_ps(nsmp, h, _MM_SHUFFLE(0,0,0,0));
+
+         // tmp[0] = -c[0]*h0 + -c[1]*h1 + c[2]*h0 + c[3]*h1;
+         tmp = _mm_add_ps(tmp, _mm_shuffle_ps(tmp, tmp, _MM_SHUFFLE(0,1,2,3)));
+
+         // smp = smp - h0*c[0] - h1*c[1] + h0*c[2] + h1*c[3];
+         smp = _mm_add_ss(smp, tmp);
+         _mm_store_ss(d++, smp);
       }
       while (--i);
-   }
 
-   hist[0] = h0;
-   hist[1] = h1;
+      _mm_store_ss(hist, h);
+      h = _mm_shuffle_ps(h, h, _MM_SHUFFLE(0,1,2,3));
+      _mm_store_ss(hist+1, h);
+   }
 }
 
 
