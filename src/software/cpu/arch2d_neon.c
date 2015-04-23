@@ -435,18 +435,21 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
       do
       {
          float32x4_t pz;
+         float32x2_t half;
          float smp, tmp;
 
          smp = *s++ * k;
 
          pz = vmulq_f32(c, h); // poles and zeros
-         tmp = pz.val[0] + pz.val[1];
+         half = vget_low_f32(pz);
+         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
 
          h2.val[1] = h2.val[0];
          h2.val[0] = smp + tmp;
          h = vcombine_f32(h2, h2);
 
-         tmp += pz.val[2] + pz.val[3];
+         half = vget_high_f32(pz);
+         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
          *d++ = smp + tmp;
       }
       while (--i);
@@ -474,18 +477,21 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
       do
       {
          float32x4_t pz;
+         float32x2_t half;
          float smp, tmp;
 
          smp = *s++ * k;
 
          pz = vmulq_f32(c, h); // poles and zeros
-         tmp = pz.val[0] + pz.val[1];
+         half = vget_low_f32(pz);
+         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
 
          h2.val[1] = h2.val[0];
          h2.val[0] = smp + tmp;
          h = vcombine_f32(h2, h2);
 
-         tmp += pz.val[2] + pz.val[3];
+         half = vget_high_f32(pz);
+         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
          *d++ = smp + tmp;
       }
       while (--i);
