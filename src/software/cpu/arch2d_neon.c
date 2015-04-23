@@ -415,181 +415,83 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
    }
 }
 
-#define CALCULATE_NEW_SAMPLE(i, smp) \
-        dhist = vsetq_lane_f32(h0, dhist, 0); \
-        dhist = vsetq_lane_f32(h1, dhist, 1); \
-        dhist = vsetq_lane_f32(h0, dhist, 2); \
-        dhist = vsetq_lane_f32(h1, dhist, 3); \
-        h1 = h0;                              \
-        nfr##i = vmulq_f32(dhist, coeff);     \
-        vst1q_f32(mpf, nfr##i);               \
-        smp -=  mpf[0]; h0 = smp - mpf[1];    \
-        smp = h0 + mpf[2]; smp += mpf[3]
 void
 _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
                   float *hist, float k, const float *cptr)
 {
    int32_t *s = (int32_t *)src;
-   size_t i, step;
-   float h0, h1;
-
-   if (!num) return;
-
-   h0 = hist[0];
-   h1 = hist[1];
-
-   step = sizeof(int32x4x2_t)/sizeof(int32_t);
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
-      float32x4_t osmp0, osmp1, fact, dhist, coeff, tmp2;
-      float32_t *cfp = (float32_t *)cptr;
-      float32_t *smp0, *mpf;
-      float32x4x2_t tmp0;
-
-      /* 16-byte aligned */
-      smp0 = (float32_t *)&tmp0;
-      mpf = (float32_t *)&tmp2;
-
-      fact = vdupq_n_f32(k);
-      coeff = vrev64q_f32( vld1q_dup_f32(cfp) );
-
-      do
-      {
-         int32x4x2_t nir2_1;
-         float32x4x2_t nfr2d;
-
-         nir2_1 = vld2q_s32(s);
-
-         osmp0 = vcvtq_f32_s32(nir2_1.val[0]);
-         osmp1 = vcvtq_f32_s32(nir2_1.val[1]);
-         nfr2d.val[0] = vmulq_f32(osmp0, fact);	/* *s * k */
-         nfr2d.val[1] = vmulq_f32(osmp1, fact);
-         vst2q_f32(smp0, nfr2d);
-
-         s += step;
-
-         CALCULATE_NEW_SAMPLE(0, smp0[0]);
-         CALCULATE_NEW_SAMPLE(1, smp0[1]);
-         CALCULATE_NEW_SAMPLE(2, smp0[2]);
-         CALCULATE_NEW_SAMPLE(3, smp0[3]);
-         CALCULATE_NEW_SAMPLE(4, smp0[4]);
-         CALCULATE_NEW_SAMPLE(5, smp0[5]);
-         CALCULATE_NEW_SAMPLE(6, smp0[6]);
-         CALCULATE_NEW_SAMPLE(7, smp0[7]);
-
-         nfr2d = vld2q_f32(smp0);		/* smp */
-         nir2_1.val[0] = vcvtq_s32_f32(nfr2d.val[0]);
-         nir2_1.val[1] = vcvtq_s32_f32(nfr2d.val[1]);
-
-         vst2q_s32(d, nir2_1);
-         d += 8;
-      }
-      while (--i);
-   }
 
    if (num)
    {
-      float smp, nsmp;
-      i = num;
+      float32x4_t c, h;
+      float32x2_t h2;
+      size_t i = num;
+
+      c = vld1q_f32(cptr);
+
+      h2 = vld1_f32(hist);
+      h = vcombine_f32(h2, h2);
+
       do
       {
-         smp = *s++ * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         *d++ = smp + h1 * cptr[3];
+         float32x4_t pz;
+         float smp, tmp;
 
-         h1 = h0;
-         h0 = nsmp;
+         smp = *s++ * k;
+
+         pz = vmulq_f32(c, h); // poles and zeros
+         tmp = pz.val[0] + pz.val[1];
+
+         h2.val[1] = h2.val[0];
+         h2.val[0] = smp + tmp;
+         h = vcombine_f32(h2, h2);
+
+         tmp += pz.val[2] + pz.val[3];
+         *d++ = smp + tmp;
       }
       while (--i);
-   }
 
-   hist[0] = h0;
-   hist[1] = h1;
+      vst1_f32(hist, h.val);
+   }
 }
 
 void
 _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    float32_ptr s = (float32_ptr)sptr;
-   size_t i, step;
-   float h0, h1;
-
-   if (!num) return;
-
-   h0 = hist[0];
-   h1 = hist[1];
-
-   step = sizeof(float32x4x2_t)/sizeof(float32_t);
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      float32x4_t nfr0, nfr1, nfr2, nfr3, nfr4, nfr5, nfr6, nfr7;
-      float32x4_t fact, dhist, coeff;
-      float32_t *cfp = (float32_t *)cptr;
-      float32x4_t tmp2;
-      float32_t *smp0, *mpf;
-      float32x4x2_t tmp0;
-
-      smp0 = (float *)&tmp0;
-      mpf = (float *)&tmp2;
-
-      fact = vdupq_n_f32(k);
-      coeff = vrev64q_f32( vld1q_dup_f32(cfp) );
-
-      do
-      {
-         float32x4x2_t nfr2_1;
-         float32x4x2_t nfr2d;
-
-         nfr2_1 = vld2q_f32(s);
-
-         nfr2d.val[0] = vmulq_f32(nfr2_1.val[0], fact); /* *s * k */
-         nfr2d.val[1] = vmulq_f32(nfr2_1.val[1], fact);
-         vst2q_f32(smp0, nfr2d);
-         s += step;
-
-         CALCULATE_NEW_SAMPLE(0, smp0[0]);
-         CALCULATE_NEW_SAMPLE(1, smp0[1]);
-         CALCULATE_NEW_SAMPLE(2, smp0[2]);
-         CALCULATE_NEW_SAMPLE(3, smp0[3]);
-         CALCULATE_NEW_SAMPLE(4, smp0[4]);
-         CALCULATE_NEW_SAMPLE(5, smp0[5]);
-         CALCULATE_NEW_SAMPLE(6, smp0[6]);
-         CALCULATE_NEW_SAMPLE(7, smp0[7]);
-
-         nfr2d = vld2q_f32(smp0);               /* smp */
-         vst2q_f32(d, nfr2d);
-         d += step;
-      }
-      while (--i);
-   }
 
    if (num)
    {
-      float smp, nsmp;
-      i = num;
+      float32x4_t c, h;
+      float32x2_t h2;
+      size_t i = num;
+
+      c = vld1q_f32(cptr);
+
+      h2 = vld1_f32(hist);
+      h = vcombine_f32(h2, h2);
+
       do
       {
-         smp = *s++ * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         *d++ = smp + h1 * cptr[3];
+         float32x4_t pz;
+         float smp, tmp;
 
-         h1 = h0;
-         h0 = nsmp;
+         smp = *s++ * k;
+
+         pz = vmulq_f32(c, h); // poles and zeros
+         tmp = pz.val[0] + pz.val[1];
+
+         h2.val[1] = h2.val[0];
+         h2.val[0] = smp + tmp;
+         h = vcombine_f32(h2, h2);
+
+         tmp += pz.val[2] + pz.val[3];
+         *d++ = smp + tmp;
       }
       while (--i);
-   }
 
-   hist[0] = h0;
-   hist[1] = h1;
+      vst1_f32(hist, h.val);
+   }
 }
 
 void
