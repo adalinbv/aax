@@ -2,6 +2,7 @@
 - AeonWave (2.5.4) stable; urgency=low
  * Add support for 24dB/oct and for 48dB/oct frequency filtering in addition to
    12dB/oct freqeucnty filtering which still is the default.
+ * Some spped improvements on filter execution time.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.
 
