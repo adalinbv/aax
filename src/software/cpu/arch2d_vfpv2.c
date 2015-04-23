@@ -324,7 +324,7 @@ _batch_cvtpd_intl_24_vfpv2(void_ptr dptr, const_int32_ptrptr sptr, size_t offset
 }
 
 void
-_batch_freqfilter_vfpv2(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_vfpv2(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -358,7 +358,7 @@ _batch_freqfilter_vfpv2(int32_ptr d, const_int32_ptr sptr, size_t num, float *hi
 }
 
 void
-_batch_freqfilter_float_vfpv2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float lfgain, float hfgain, float k, const float *cptr)
+_batch_freqfilter_float_vfpv2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
