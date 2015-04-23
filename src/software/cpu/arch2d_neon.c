@@ -495,8 +495,6 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
          *d++ = smp + tmp;
       }
       while (--i);
-
-      vst1_f32(hist, h.val);
    }
 }
 
