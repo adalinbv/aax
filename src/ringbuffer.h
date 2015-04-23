@@ -141,10 +141,10 @@ typedef struct
 
 typedef struct
 {
-   unsigned int no_stages;
-   float Q, k, fs, lf_gain, hf_gain, hf_gain_prev;
-   float coeff[4*_AAX_FILTER_SECTIONS];
+   ALIGN16 float coeff[4*_AAX_FILTER_SECTIONS] ALIGN16C;
    float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_FILTER_SECTIONS];
+   float Q, k, fs, lf_gain, hf_gain, hf_gain_prev;
+   unsigned int no_stages;
    _aaxRingBufferLFOData *lfo;
 } _aaxRingBufferFreqFilterData;
 

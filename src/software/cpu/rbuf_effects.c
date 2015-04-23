@@ -28,7 +28,7 @@
 #include "rbuf2d_effects.h"
 
 
-static void szxform(float *, float *, float *, float *, float *, float *,
+static void _aax_szxform(float *, float *, float *, float *, float *, float *,
                     float, float, float *, float *);
 
 /**
@@ -399,7 +399,7 @@ iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int sta
       float b1 = _b1[pos][i] / Q;
       float b2 = 1.0f;
 
-      szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      _aax_szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
@@ -483,7 +483,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
  *   http://www.gamedev.net/reference/articles/article845.asp
  */
 static void
-bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
+_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
              float *k, float fs, float *coef)
 {
    float ad, bd;
@@ -498,14 +498,16 @@ bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
 
    *k *= ad/bd;
 
-   *coef++ = (-2.0f*b2 + 2.0f*b0) / bd;
-   *coef++ = (b2 - b1 + b0) / bd;
-   *coef++ = (-2.0f*a2 + 2.0f*a0) / ad;
-   *coef   = (a2 - a1 + a0) / ad;
+   // modified: coef[0] and coef[1] are negated to prevent this should be
+   //           done every time the filter is applied.
+   *coef++ = -1.0f * (-2.0f*b2 + 2.0f*b0) / bd;
+   *coef++ = -1.0f * (b2 - b1 + b0) / bd;
+   *coef++ =         (-2.0f*a2 + 2.0f*a0) / ad;
+   *coef   =         (a2 - a1 + a0) / ad;
 }
 
 static void
-szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
+_aax_szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
         float fc, float fs, float *k, float *coef)
 {
    float wp;
@@ -516,7 +518,7 @@ szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
    *a1 /= wp;
    *b1 /= wp;
 
-   bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
+   _aax_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
 }
 
 
