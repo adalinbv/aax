@@ -444,8 +444,9 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
          half = vget_low_f32(pz);
          tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
 
-         h2.val[1] = h2.val[0];
-         h2.val[0] = smp + tmp;
+         hist[1] = hist[0];
+         hist[0] = smp + tmp;
+         h2 = vld1_f32(hist);
          h = vcombine_f32(h2, h2);
 
          half = vget_high_f32(pz);
@@ -453,8 +454,6 @@ _batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
          *d++ = smp + tmp;
       }
       while (--i);
-
-      vst1_f32(hist, h.val);
    }
 }
 
@@ -486,8 +485,9 @@ _batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, 
          half = vget_low_f32(pz);
          tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
 
-         h2.val[1] = h2.val[0];
-         h2.val[0] = smp + tmp;
+         hist[1] = hist[0];
+         hist[0] = smp + tmp;
+         h2 = vld1_f32(hist);
          h = vcombine_f32(h2, h2);
 
          half = vget_high_f32(pz);
