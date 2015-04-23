@@ -328,24 +328,27 @@ _batch_freqfilter_vfpv2(int32_ptr d, const_int32_ptr sptr, size_t num, float *hi
 {
    if (num)
    {
-      int32_ptr s = (int32_ptr)sptr;
-      float smp, nsmp, h0, h1;
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, h0, h1;
       size_t i = num;
+      float c0, c1, c2, c3;
+
+      // for original code see _batch_freqfilter_cpu
+      c0 = cptr[0];
+      c1 = cptr[1];
+      c2 = cptr[2];
+      c3 = cptr[3];
 
       h0 = hist[0];
       h1 = hist[1];
+
       do
       {
-         smp = *s * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+         *d++ = smp       + ((h0 * c2) + (h1 * c3));
 
          h1 = h0;
-         h0 = nsmp;
-         *d++ = (int32_t)(smp*lfgain) + (int32_t)((*s-smp)*hfgain);
-         s++;
+         h0 = smp;
       }
       while (--i);
 
@@ -360,23 +363,26 @@ _batch_freqfilter_float_vfpv2(float32_ptr d, const_float32_ptr sptr, size_t num,
    if (num)
    {
       float32_ptr s = (float32_ptr)sptr;
-      float smp, nsmp, h0, h1;
+      float smp, h0, h1;
       size_t i = num;
+      float c0, c1, c2, c3;
+
+      // for original code see _batch_freqfilter_cpu
+      c0 = cptr[0];
+      c1 = cptr[1];
+      c2 = cptr[2];
+      c3 = cptr[3];
 
       h0 = hist[0];
       h1 = hist[1];
+
       do
       {
-         smp = *s * k;
-         smp = smp - h0 * cptr[0];
-         nsmp = smp - h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+         *d++ = smp       + ((h0 * c2) + (h1 * c3));
 
          h1 = h0;
-         h0 = nsmp;
-         *d++ = (smp*lfgain) + (*s-smp)*hfgain;
-         s++;
+         h0 = smp;
       }
       while (--i);
 
