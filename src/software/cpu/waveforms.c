@@ -100,6 +100,7 @@ unsigned int WELLRNG512(void)
    return state[idx];
 }
 
+#define MAX_RANDOM	4294967295.0f
 static void
 _aax_srandom()
 {
@@ -125,10 +126,7 @@ _aax_srandom()
    }
 }
 
-static float
-_aax_random() {
-  return  (float)WELLRNG512() * (1.0f/4294967295.0f);
-}
+#define _aax_random()	((float)WELLRNG512()/MAX_RANDOM)
 
 
 /* -------------------------------------------------------------------------- */
@@ -136,9 +134,68 @@ _aax_random() {
 typedef float (*_calc_sample)(float *s, float g);
 typedef void (*_mix_fn)(void*, size_t, float, float, unsigned char, float, float, _calc_sample);
 
+
+#if 0
+/* Wichmen-Hill Random Number Generator
+ * http://support.microsoft.com/kb/828795/ru
+
+ * The global variables long int ix, iy ,iu are given values in range between
+ * 1 and 30000 until the first handling. The standart C/C++ function modf()
+ * separates the fractional part and the integer part of the value assigned
+ * to the variable amod
+ */
+static int ix = 2173;
+static int iy = 28126;
+static int iu = 9278;
+float frandom()
+{
+   double amod, x;
+   ix = (171*ix) % 30269;
+   iy = (172*iy) % 30307;
+   iu = (170*iz) % 30323;
+   amod  =(double)ix/30269.0 + (double)iy/30307.0 + (double)iz/30323.0;
+   return (float)modf(amod,&x);
+}
+#endif
+
+#define AVG	13
+#define MAX_AVG	256
 static float _rand_sample(float *s, float g)
 {
-   return g*(-1.0f + 2*_aax_random());
+   static unsigned int rvals[MAX_AVG];
+   static int init = 1;
+   double rv = g*(-1.0f + 2*_aax_random());
+
+   if (init)
+   {
+      int i = MAX_AVG-1;
+
+      srand(time(NULL));
+      do {
+         double r = rand();
+         rvals[i] = MAX_RANDOM*(r/2147483647.0f);
+      }
+      while(i--);
+      init = 0;
+   }
+   else
+   {
+      int i = AVG;
+      rv = 0.0f;
+      do
+      {
+         unsigned int rnd = WELLRNG512();
+         unsigned int pos = rnd % MAX_AVG;
+
+         rv += rvals[pos];
+         rvals[pos] = rnd;
+      }
+      while(--i);
+      rv = g*(-1.0f + 2*rv/(AVG*MAX_RANDOM));
+   }
+   while(0);
+
+   return (float)rv;
 }
 
 static float _sin_sample(float *s, float g)
