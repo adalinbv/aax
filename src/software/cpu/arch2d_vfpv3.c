@@ -326,9 +326,10 @@ _batch_cvtpd_intl_24_vfpv3(void_ptr dptr, const_int32_ptrptr sptr, size_t offset
 void
 _batch_freqfilter_vfpv3(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
+   int32_ptr s= (int32_ptr)sptr;
+
    if (num)
    {
-      float32_ptr s = (float32_ptr)sptr;
       float smp, h0, h1;
       size_t i = num;
       float c0, c1, c2, c3;
@@ -360,9 +361,10 @@ _batch_freqfilter_vfpv3(int32_ptr d, const_int32_ptr sptr, size_t num, float *hi
 void
 _batch_freqfilter_float_vfpv3(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
+   float32_ptr s = (float32_ptr)sptr;
+
    if (num)
    {
-      float32_ptr s = (float32_ptr)sptr;
       float smp, h0, h1;
       size_t i = num;
       float c0, c1, c2, c3;
