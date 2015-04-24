@@ -74,9 +74,12 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   switch (state & ~(AAX_INVERSE | AAX_FILTER_24DB_OCT | AAX_FILTER_48DB_OCT))
+   switch ((state & ~(AAX_INVERSE | AAX_FILTER_24DB_OCT | AAX_FILTER_48DB_OCT))
+          || state == AAX_FILTER_24DB_OCT || state == AAX_FILTER_48DB_OCT)
    {
-   case AAX_TRUE:
+   case AAX_FILTER_12DB_OCT:
+   case AAX_FILTER_24DB_OCT:
+   case AAX_FILTER_48DB_OCT:
    case AAX_TRIANGLE_WAVE:
    case AAX_SINE_WAVE:
    case AAX_SQUARE_WAVE:
