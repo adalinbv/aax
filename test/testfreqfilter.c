@@ -2,31 +2,6 @@
  * Copyright (C) 2008-2015 by Erik Hofman.
  * Copyright (C) 2009-2015 by Adalin B.V.
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *    1. Redistributions of source code must retain the above copyright notice,
- *        this list of conditions and the following disclaimer.
- * 
- *    2. Redistributions in binary form must reproduce the above copyright
- *        notice, this list of conditions and the following disclaimer in the
- *        documentation and/or other materials provided with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
- * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE 
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * The views and conclusions contained in the software and documentation are
- * those of the authors and should not be interpreted as representing official
- * policies, either expressed or implied, of Adalin B.V.
  */
 
 #if HAVE_CONFIG_H
@@ -35,10 +10,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>	// getenv
+#include <time.h>	// nanosleep
+#include <errno.h>	// EINTR
+
 
 #include <aax/aax.h>
 
 #define	SAMPLE_FREQ		48000
+
+// AAX_FALSE
+// AAX_FILTER_12DB_OCT
+// AAX_FILTER_24DB_OCT
+// AAX_FILTER_48DB_OCT
+#define FILTER_TYPE		AAX_FILTER_24DB_OCT
 
 void
 testForError(void *p, char *s)
@@ -66,31 +50,24 @@ testForState(int res, const char *func)
     }
 }
 
-#ifndef _WIN32
-# include <termios.h>
-
-# if USE_NANOSLEEP
-#  include <time.h>             /* for nanosleep */
-#  include <sys/time.h>         /* for struct timeval */
-#  include <errno.h>
-int msecSleep(unsigned long dt_ms)
+int msecSleep(unsigned int dt_ms)
+{
+   static struct timespec s;
+   if (dt_ms > 0)
    {
-       static struct timespec s;
-       s.tv_sec = (dt_ms/1000);
-       s.tv_nsec = (dt_ms % 1000)*1000000L;
-       while(nanosleep(&s,&s)==-1 && errno == EINTR)
-            continue;
-       return errno;
+      s.tv_sec = (dt_ms/1000);
+      s.tv_nsec = (dt_ms % 1000)*1000000L;
+      while(nanosleep(&s,&s)==-1 && errno == EINTR)
+         continue;
    }
-
-# else
-#  include <unistd.h>           /* usleep */
-int msecSleep(unsigned long dt_ms)
+   else
    {
-       return usleep(dt_ms*1000);
+      s.tv_sec = 0;
+      s.tv_nsec = 500000L;
+      return nanosleep(&s, 0);
    }
-# endif
-#endif
+   return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -127,6 +104,13 @@ int main(int argc, char **argv)
                                        AAX_OVERWRITE);
         testForState(res, "aaxBufferProcessWaveform");
 
+        /** mixer */
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
+        testForState(res, "aaxMixerInit");
+
+        res = aaxMixerSetState(config, AAX_PLAYING);
+        testForState(res, "aaxMixerStart");
+
         /** emitter */
         emitter = aaxEmitterCreate();
         testForError(emitter, "Unable to create a new emitter\n");
@@ -137,16 +121,24 @@ int main(int argc, char **argv)
         res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
         testForState(res, "aaxEmitterSetMode");
 
-        /** mixer */
-        res = aaxMixerSetState(config, AAX_INITIALIZED);
-        testForState(res, "aaxMixerInit");
+        /* frequency filter */
+        filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
+        testForError(filter, "aaxFilterCreate");
+
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                             10000.0f, 1.0f, 0.0f, 1.0f);
+        testForError(filter, "aaxFilterSetSlot");
+
+        filter = aaxFilterSetState(filter, AAX_FILTER_48DB_OCT);
+        testForError(filter, "aaxFilterSetState");
+
+        res = aaxEmitterSetFilter(emitter, filter);
+        testForState(res, "aaxEmitterSetFilter");
+
+        res = aaxFilterDestroy(filter);
 
         res = aaxMixerRegisterEmitter(config, emitter);
         testForState(res, "aaxMixerRegisterEmitter");
-
-        res = aaxMixerSetState(config, AAX_PLAYING);
-        testForState(res, "aaxMixerStart");
-
 
         printf("writing white noise to: %s\n", filename);
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
