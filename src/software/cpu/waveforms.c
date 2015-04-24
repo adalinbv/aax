@@ -159,12 +159,13 @@ float frandom()
 #endif
 
 #define AVG	13
-#define MAX_AVG	256
+#define MAX_AVG	64
 static float _rand_sample(float *s, float g)
 {
    static unsigned int rvals[MAX_AVG];
    static int init = 1;
-   double rv = g*(-1.0f + 2*_aax_random());
+   unsigned int i, r, p;
+   float rv;
 
    if (init)
    {
@@ -172,28 +173,24 @@ static float _rand_sample(float *s, float g)
 
       srand(time(NULL));
       do {
-         double r = rand();
-         rvals[i] = MAX_RANDOM*(r/2147483647.0f);
+         rv = rand();
+         rvals[i] = MAX_RANDOM*(rv/2147483647.0f);
       }
       while(i--);
       init = 0;
    }
-   else
-   {
-      int i = AVG;
-      rv = 0.0f;
-      do
-      {
-         unsigned int rnd = WELLRNG512();
-         unsigned int pos = rnd % MAX_AVG;
 
-         rv += rvals[pos];
-         rvals[pos] = rnd;
-      }
-      while(--i);
-      rv = g*(-1.0f + 2*rv/(AVG*MAX_RANDOM));
-   }
-   while(0);
+   i = AVG;
+   rv = 0.0f;
+   do {
+      rv += WELLRNG512();
+   } while(--i);
+   r = (unsigned int)rintf(rv/AVG);
+
+   p = (r >> 2) & (MAX_AVG-1);
+   rv = rvals[p];
+   rvals[p] = r;
+   rv = g*(-1.0f + 2*rv/MAX_RANDOM);
 
    return (float)rv;
 }
