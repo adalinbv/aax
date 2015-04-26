@@ -44,6 +44,7 @@ enum _aax2dFiltersEffects
     /* final mixer stage */
     EQUALIZER_LF = 0,
     EQUALIZER_HF,
+    SURROUND_CROSSOVER,
     EQUALIZER_MAX,
 
     /* stereo filters */

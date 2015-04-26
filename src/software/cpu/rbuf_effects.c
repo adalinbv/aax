@@ -461,7 +461,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       }
 
       // *s * hf
-      if (hf > 0.00000039811f || hf_prev > 0.00000039811f)	// -128dB
+      if (hf > GMATH_128DB || hf_prev > GMATH_128DB)
       {
          float step = (hf - hf_prev)/num;
          rbd->add(dptr, sptr, num, hf, step);
