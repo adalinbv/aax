@@ -134,7 +134,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    unsigned int track, no_tracks;
    size_t track_len_bytes;
    size_t no_samples;
-   char parametric, graphic;
+   char parametric, graphic, crossover;
    MIX_T **tracks, **scratch;
 // void *ptr = 0;
 // char *p;
@@ -149,24 +149,26 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    rbi = rb->handle;
    rbd = rbi->sample;
 
+   /* set up this way because we always need to apply compression */
+   track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+
    reverb = NULL;
-   parametric = graphic = 0;
+   crossover = parametric = graphic = 0;
    if (sensor)
    {
       reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
       parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
       graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
+      crossover = (_FILTER_GET_DATA(sensor, SURROUND_CROSSOVER) != NULL);
+      crossover &= (no_tracks >= AAX_TRACK_LFE);
    }
 
    if (reverb) {
       rb->limit(rb, RB_LIMITER_ELECTRONIC);
    }
-
-   /* set up this way because we always need to apply compression */
-   track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
    tracks = (MIX_T**)rbd->track;
    scratch = (MIX_T**)rb->get_scratch(rb);
@@ -190,12 +192,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
          _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                      0, no_samples, 0, track, filter, NULL, 0);
+         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1], 0,
+                                       no_samples, 0, track, filter, NULL, 0);
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                      0, no_samples, 0, track, filter, NULL, 0);
+         _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1], 0,
+                                       no_samples, 0, track, filter, NULL, 0);
          rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
       }
       else if (graphic)
@@ -208,30 +210,30 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          filter = &eq->band[b];
          _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
          _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                      0, no_samples, 0, track, filter, NULL, 0);
+                                     0, no_samples, 0, track, filter, NULL, 0);
          do
          {
             filter = &eq->band[--b];
-            if (filter->lf_gain || filter->hf_gain)
+            if (filter->lf_gain > GMATH_128DB || filter->hf_gain > GMATH_128DB)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                      0, no_samples, 0, track, filter, NULL, 0);
+                                     0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
 
             filter = &eq->band[--b];
-            if (filter->lf_gain || filter->hf_gain) 
+            if (filter->lf_gain > GMATH_128DB || filter->hf_gain > GMATH_128DB)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                      0, no_samples, 0, track, filter, NULL, 0);
+                                     0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
 
             filter = &eq->band[--b];
-            if (filter->lf_gain || filter->hf_gain) 
+            if (filter->lf_gain > GMATH_128DB || filter->hf_gain > GMATH_128DB)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                      0, no_samples, 0, track, filter, NULL, 0);
+                                     0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
             }
          }
@@ -240,6 +242,38 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    }
 
    rb->limit(rb, RB_LIMITER_ELECTRONIC);
+
+   // TODO: Surround Sound crossover filtering
+   //       1. copy all channels to AAX_TRACK_LFE
+   //       2. apply a highpass filter to all channels but the LFE
+   //       3. apply a lowpass filter to the LFE
+#if 1
+   if (crossover)
+   {
+      _aaxRingBufferFreqFilterData* filter;
+      MIX_T *lfe = tracks[AAX_TRACK_LFE];
+
+      filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
+      filter->lf_gain = 0.0f;
+      filter->hf_gain = 1.0f;
+      for (track=0; track<no_tracks; track++)
+      {
+         if (track != AAX_TRACK_LFE)
+         {
+            rbd->add(lfe, tracks[track], no_samples, 1.0f, 0.0f);
+
+            _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
+            _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
+                                     0, no_samples, 0, track, filter, NULL, 0);
+         }
+      }
+
+      filter->hf_gain = 0.0f;
+      filter->lf_gain = 1.0f/(no_tracks-1);
+      _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
+                                    0, AAX_TRACK_LFE, filter, NULL, 0);
+   }
+#endif
 }
 
 void*
