@@ -38,9 +38,11 @@ _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
 };
 
 void
-_aaxSetDefaultEqualizer(_aaxFilterInfo filter[2])
+_aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
 {
    int i;
+ 
+   /* parametric equalizer */
    for (i=0; i<2; i++)
    {
       filter[i].param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
@@ -49,6 +51,13 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[2])
       filter[i].param[AAX_RESONANCE] = 1.0f;
       filter[i].state = AAX_FALSE;
    }
+
+   /* Surround Crossover filter */
+   filter[SURROUND_CROSSOVER].param[AAX_CUTOFF_FREQUENCY] = 80.0f;
+   filter[SURROUND_CROSSOVER].param[AAX_LF_GAIN] = 1.0f;
+   filter[SURROUND_CROSSOVER].param[AAX_HF_GAIN] = 1.0f;
+   filter[SURROUND_CROSSOVER].param[AAX_RESONANCE] = 1.0f;
+   filter[SURROUND_CROSSOVER].state = AAX_FALSE;
 }
 
 void

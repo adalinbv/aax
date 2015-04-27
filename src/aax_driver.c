@@ -48,7 +48,6 @@ static void _aaxFreeSensor(void *);
 static int _aaxCheckKeyValidity(void*);
 static int _aaxCheckKeyValidityStr(char*);
 
-static _aaxFilterInfo _aaxMixerDefaultEqualizer[2];
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
@@ -366,6 +365,10 @@ aaxDriverOpen(aaxConfig config)
 
             if (_info == NULL) {
                _info =  handle->info;
+            }
+
+            if (handle->info->mode == AAX_MODE_WRITE_SURROUND) {
+               _FILTER_SET_STATE(handle, SURROUND_CROSSOVER, AAX_FILTER_24DB_OCT);
             }
          }
          _aaxDriverBackendClearConfigSettings(cfg);
@@ -813,7 +816,7 @@ _open_handle(aaxConfig config)
                _aaxAudioFrame* smixer;
 
                sensor->filter = handle->filter;
-               _aaxSetDefaultEqualizer(_aaxMixerDefaultEqualizer);
+               _aaxSetDefaultEqualizer(handle->filter);
 
                size = sizeof(_sensor_t);
                smixer = (_aaxAudioFrame*)((char*)sensor + size);
