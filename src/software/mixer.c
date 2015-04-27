@@ -269,7 +269,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       }
 
       filter->hf_gain = 0.0f;
-      filter->lf_gain = 1.0f/(no_tracks-1);
+      filter->lf_gain = 1.0f; // /(no_tracks-1);
       _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
                                     0, AAX_TRACK_LFE, filter, NULL, 0);
    }

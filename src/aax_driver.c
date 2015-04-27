@@ -367,8 +367,17 @@ aaxDriverOpen(aaxConfig config)
                _info =  handle->info;
             }
 
-            if (handle->info->mode == AAX_MODE_WRITE_SURROUND) {
-               _FILTER_SET_STATE(handle, SURROUND_CROSSOVER, AAX_FILTER_24DB_OCT);
+            if (handle->info->mode == AAX_MODE_WRITE_SURROUND)
+            {
+               int type = SURROUND_CROSSOVER;
+               _filter_t *filter;
+
+               filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+               filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                                 80.0f, 1.0f, 0.0f, 1.0f);
+               filter = aaxFilterSetState(filter, AAX_FILTER_24DB_OCT);
+               _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
+               aaxFilterDestroy(filter);
             }
          }
          _aaxDriverBackendClearConfigSettings(cfg);
