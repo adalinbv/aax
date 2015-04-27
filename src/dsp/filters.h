@@ -31,7 +31,7 @@ extern "C" {
 
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int);
-void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[2]);
+void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX]);
 
 typedef struct
 {

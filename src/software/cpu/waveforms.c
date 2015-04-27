@@ -180,7 +180,7 @@ static float _rand_sample(float *s, float g)
       init = 0;
    }
 
-   i = AVG;
+   i = AVG-1;
    rv = 0.0f;
    do {
       rv += WELLRNG512();

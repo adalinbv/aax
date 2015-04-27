@@ -17,6 +17,7 @@
 #include <aax/aax.h>
 
 #define	SAMPLE_FREQ		48000
+#define FILTER_FREQUENCY	 8000
 
 // AAX_FALSE
 // AAX_FILTER_12DB_OCT
@@ -126,10 +127,10 @@ int main(int argc, char **argv)
         testForError(filter, "aaxFilterCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                             10000.0f, 1.0f, 0.0f, 1.0f);
+                                          FILTER_FREQUENCY, 1.0f, 0.0f, 1.0f);
         testForError(filter, "aaxFilterSetSlot");
 
-        filter = aaxFilterSetState(filter, AAX_FILTER_48DB_OCT);
+        filter = aaxFilterSetState(filter, FILTER_TYPE);
         testForError(filter, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
