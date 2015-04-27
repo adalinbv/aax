@@ -439,7 +439,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
        * level == 2, requested device found
        * level == 3, requested device found with requested output port
        */
-      curlevel = 0;
+      curlevel = -1;
       xdid = xmlMarkId(xcid);
       dev_num = xmlNodeGetNum(xdid, "device");
       snprintf((char*)device_name, 255, "%s", config->backend.driver);
