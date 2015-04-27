@@ -1389,7 +1389,6 @@ _aaxMixerInit(_handle_t *handle)
       res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate,
                       rssr, periodrate);
 
-
       if (TEST_FOR_TRUE(res))
       {
          if ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
