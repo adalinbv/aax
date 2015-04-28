@@ -2,7 +2,9 @@
 - AeonWave (2.5.4) stable; urgency=low
  * Add support for 24dB/oct and for 48dB/oct frequency filtering in addition to
    12dB/oct freqeucnty filtering which still is the default.
- * Speed improvements on frequentie filter execution time.
+ * Add a surround sound crossover filter for 5.1 and 7.1 systems
+   defined at 80Hz and 24dB/oct
+ * Speed improvements on frequency filter execution time.
  * Improve noise frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.

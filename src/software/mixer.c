@@ -271,8 +271,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 
       filter->lf_gain = 1.0f;
       filter->hf_gain = 0.0f;
-      _aax_memcpy(scratch[1], lfe, track_len_bytes);
-      _aaxRingBufferFilterFrequency(rbd, lfe, scratch[1], 0, no_samples,
+      _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
                                     0, AAX_TRACK_LFE, filter, NULL, 0);
    }
 }
