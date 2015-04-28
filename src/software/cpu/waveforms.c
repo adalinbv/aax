@@ -101,6 +101,7 @@ unsigned int WELLRNG512(void)
 }
 
 #define MAX_RANDOM	4294967295.0f
+#define MAX_RANDOM_2	2147483647.5f
 static void
 _aax_srandom()
 {
@@ -146,17 +147,17 @@ typedef void (*_mix_fn)(void*, size_t, float, float, unsigned char, float, float
  */
 static int ix = 2173;
 static int iy = 28126;
-static int iu = 9278;
-float frandom()
+static int iz = 9278;
+float _rand_sample(float *s, float g)
 {
    double amod, x;
    ix = (171*ix) % 30269;
    iy = (172*iy) % 30307;
-   iu = (170*iz) % 30323;
+   iz = (170*iz) % 30323;
    amod  =(double)ix/30269.0 + (double)iy/30307.0 + (double)iz/30323.0;
-   return (float)modf(amod,&x);
+   return g*(float)modf(amod,&x);
 }
-#endif
+#else
 
 #define AVG	13
 #define MAX_AVG	64
@@ -164,36 +165,42 @@ static float _rand_sample(float *s, float g)
 {
    static unsigned int rvals[MAX_AVG];
    static int init = 1;
-   unsigned int i, r, p;
+   unsigned int r, p;
    float rv;
 
    if (init)
    {
-      int i = MAX_AVG-1;
-
-      srand(time(NULL));
-      do {
-         rv = rand();
-         rvals[i] = MAX_RANDOM*(rv/2147483647.0f);
+      p = MAX_AVG-1;
+      do
+      {
+         r = AVG-1;
+         rv = 0.0f;
+         do {
+            rv += WELLRNG512();
+         } while(--r);
+         r = (unsigned int)rintf(rv/AVG);
+         rvals[p] = r;
       }
-      while(i--);
+      while(p--);
       init = 0;
    }
 
-   i = AVG-1;
+   r = AVG-1;
    rv = 0.0f;
    do {
       rv += WELLRNG512();
-   } while(--i);
+   } while(--r);
    r = (unsigned int)rintf(rv/AVG);
 
    p = (r >> 2) & (MAX_AVG-1);
    rv = rvals[p];
    rvals[p] = r;
-   rv = g*(-1.0f + 2*rv/MAX_RANDOM);
 
-   return (float)rv;
+   rv = g*(-1.0f + 2.0*rv/MAX_RANDOM);
+
+   return rv;
 }
+#endif
 
 static float _sin_sample(float *s, float g)
 {

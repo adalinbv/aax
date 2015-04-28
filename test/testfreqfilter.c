@@ -23,7 +23,7 @@
 // AAX_FILTER_12DB_OCT
 // AAX_FILTER_24DB_OCT
 // AAX_FILTER_48DB_OCT
-#define FILTER_TYPE		AAX_FILTER_24DB_OCT
+#define FILTER_TYPE		AAX_FALSE
 
 void
 testForError(void *p, char *s)

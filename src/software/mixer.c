@@ -135,7 +135,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    size_t track_len_bytes;
    size_t no_samples;
    char parametric, graphic, crossover;
-   MIX_T **tracks, **scratch;
+   MIX_T *lfe, **tracks, **scratch;
 // void *ptr = 0;
 // char *p;
 
@@ -167,10 +167,11 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    }
 
    if (reverb) {
-      rb->limit(rb, RB_LIMITER_ELECTRONIC);
+      rb->limit(rb, RB_LIMITER_VALVE);
    }
 
    tracks = (MIX_T**)rbd->track;
+   lfe = tracks[AAX_TRACK_LFE];
    scratch = (MIX_T**)rb->get_scratch(rb);
    for (track=0; track<no_tracks; track++)
    {
@@ -239,6 +240,10 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          }
          while (b);
       }
+
+      if (crossover && track != AAX_TRACK_LFE) {
+         rbd->add(lfe, tracks[track], no_samples, 1.0f, 0.0f);
+      }
    }
 
    rb->limit(rb, RB_LIMITER_ELECTRONIC);
@@ -247,11 +252,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    //       1. copy all channels to AAX_TRACK_LFE
    //       2. apply a highpass filter to all channels but the LFE
    //       3. apply a lowpass filter to the LFE
-#if 1
    if (crossover)
    {
       _aaxRingBufferFreqFilterData* filter;
-      MIX_T *lfe = tracks[AAX_TRACK_LFE];
 
       filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
       filter->lf_gain = 0.0f;
@@ -260,20 +263,18 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       {
          if (track != AAX_TRACK_LFE)
          {
-            rbd->add(lfe, tracks[track], no_samples, 1.0f, 0.0f);
-
             _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
             _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
                                      0, no_samples, 0, track, filter, NULL, 0);
          }
       }
 
+      filter->lf_gain = 1.0f;
       filter->hf_gain = 0.0f;
-      filter->lf_gain = 1.0f; // /(no_tracks-1);
-      _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
+      _aax_memcpy(scratch[1], lfe, track_len_bytes);
+      _aaxRingBufferFilterFrequency(rbd, lfe, scratch[1], 0, no_samples,
                                     0, AAX_TRACK_LFE, filter, NULL, 0);
    }
-#endif
 }
 
 void*
