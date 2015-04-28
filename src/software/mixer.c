@@ -241,8 +241,19 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          while (b);
       }
 
-      if (crossover && track != AAX_TRACK_LFE) {
+      if (crossover && track != AAX_TRACK_LFE)
+      {
+         _aaxRingBufferFreqFilterData* filter;
+
          rbd->add(lfe, tracks[track], no_samples, 1.0f, 0.0f);
+
+         filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
+         filter->lf_gain = 0.0f;
+         filter->hf_gain = 1.0f;
+         filter->hf_gain_prev = 1.0f;
+         _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
+         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
+                                     0, no_samples, 0, track, filter, NULL, 0);
       }
    }
 
@@ -251,26 +262,17 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    // TODO: Surround Sound crossover filtering
    //       1. copy all channels to AAX_TRACK_LFE
    //       2. apply a highpass filter to all channels but the LFE
-   //       3. apply a lowpass filter to the LFE
+   //       3. apply limiter
+   //       4. apply a lowpass filter to the LFE
    if (crossover)
    {
       _aaxRingBufferFreqFilterData* filter;
 
       filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
-      filter->lf_gain = 0.0f;
-      filter->hf_gain = 1.0f;
-      for (track=0; track<no_tracks; track++)
-      {
-         if (track != AAX_TRACK_LFE)
-         {
-            _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
-            _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                     0, no_samples, 0, track, filter, NULL, 0);
-         }
-      }
 
       filter->lf_gain = 1.0f;
       filter->hf_gain = 0.0f;
+      filter->hf_gain_prev = 1.0f;
       _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
                                     0, AAX_TRACK_LFE, filter, NULL, 0);
    }
