@@ -173,7 +173,7 @@ static float _rand_sample(float *s, float g)
       p = MAX_AVG-1;
       do
       {
-         r = AVG-1;
+         r = AVG;
          rv = 0.0f;
          do {
             rv += WELLRNG512();
@@ -185,7 +185,7 @@ static float _rand_sample(float *s, float g)
       init = 0;
    }
 
-   r = AVG-1;
+   r = AVG;
    rv = 0.0f;
    do {
       rv += WELLRNG512();
@@ -196,7 +196,7 @@ static float _rand_sample(float *s, float g)
    rv = rvals[p];
    rvals[p] = r;
 
-   rv = g*(-1.0f + 2.0*rv/MAX_RANDOM);
+   rv = g*(-1.0f + rv/MAX_RANDOM_2);
 
    return rv;
 }
