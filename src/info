@@ -1,0 +1,11 @@
+software/device.c:   dt = 1.0f/frame->info->period_rate;
+software/device.c:   he = frame->emitters_3d;
+software/device.c:         he = frame->emitters_2d;
+software/frame.c:      _aaxAudioFrame *sfmixer = subframe->submix;
+software/frame.c:   _aax3dProps* fp3d = frame->props3d;
+software/frame.c:      _aax2dProps* fp2d = frame->props2d;
+software/frame.c:      _intBufAddData(frame->p3dq, _AAX_DELAYED3D, fdp3d);
+software/frame.c:      if (frame->curr_pos_sec > fp2d->dist_delay_sec)
+software/frame.c:               buf3dq = _intBufPop(frame->p3dq, _AAX_DELAYED3D);
+stream/fmt_flac.c:      num = frame->header.blocksize*8/(handle->no_tracks*handle->bits_sample);
+stream/fmt_flac.c:      if (frame->header.blocksize <= handle->flacBufSize) {

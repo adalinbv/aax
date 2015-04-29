@@ -63,14 +63,14 @@
  * @param streaming weather the emitter has one buffer or more
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int streaming, float pos_sec)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int streaming, float pos_sec)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
-   size_t offs, dno_samples;
    _aaxRingBufferEnvelopeData* env;
    _aaxRingBufferLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
+   size_t offs, dno_samples;
    float gain, svol, evol;
    float pitch, max, nvel;
    int ret = 0;
@@ -201,7 +201,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Mix */
-   drbd->mix1n(drbd, sptr, ep2d, ch, offs, dno_samples, gain, svol, evol);
+   drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples, gain, svol, evol);
 
    if (drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;

@@ -27,7 +27,7 @@
 #include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    _aaxRingBufferLFOData *lfo;
    unsigned int rbd_tracks;
@@ -65,7 +65,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
    {
       unsigned int rbs_track = track % rbs_tracks;
       unsigned int rbd_track = track % rbd_tracks;
-      MIX_T *dptr = (MIX_T*)drbd->track[rbd_track] + offs;
+      MIX_T *dptr = (MIX_T*)drbd->track[router[rbd_track]] + offs;
       float vstart, vend, vstep;
 
       vstart = g*gain * svol * ep2d->prev_gain[track];

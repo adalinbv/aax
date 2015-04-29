@@ -34,7 +34,7 @@
 #include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -43,7 +43,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
    /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
    {
-      MIX_T *dptr = (MIX_T*)drbd->track[t] + offs;
+      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
       float vstart, vend, vstep;
       float dir_fact;
 
@@ -74,7 +74,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 }
 
 void
-_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -106,12 +106,12 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
     * octave below the chosen frequency, which, in the case of the common 80 Hz
     * crossover, means being flat to 40 Hz.  Virtually all "full-range" speakers
     * - even most of the smaller bookshelf models - qualify.
+    *
+    * This is applied in src/software/mixer.c: _aaxSoftwareMixerPostProcess()
     */
-
-// TODO: create HF filtered and LF filtered versions of sptr[ch]
    for (t=0; t<drbd->no_tracks; t++)
    {
-      MIX_T *dptr = (MIX_T*)drbd->track[t] + offs;
+      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
       float vstart, vend, vstep;
       float dir_fact;
       float hrtf_volume[3];
@@ -168,7 +168,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 }
 
 void
-_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -177,7 +177,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
    /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
    {
-      MIX_T *dptr = (MIX_T*)drbd->track[t] + offs;
+      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
       float vstart, vend, vstep;
       float dir_fact;
 
@@ -194,7 +194,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 }
 
 void
-_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float gain, float svol, float evol)
 {
    unsigned int t;
 
@@ -202,7 +202,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 
    for (t=0; t<drbd->no_tracks; t++)
    {
-      MIX_T *track = drbd->track[t];
+      MIX_T *track = drbd->track[router[t]];
       float dir_fact, hrtf_volume[3];
       const MIX_T *ptr;
       MIX_T *dptr;
