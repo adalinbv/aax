@@ -127,17 +127,17 @@ void
 _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
+   _sensor_t *sensor = (_sensor_t*)s;
+   _aaxAudioFrame* smixer = sensor->mixer;
+   _aaxMixerInfo *info = smixer->info;
+   unsigned char *router = info->router;
+   unsigned int track, no_tracks, lfe_track;
+   size_t no_samples, track_len_bytes;
+   char parametric, graphic, crossover;
+   _aaxRingBufferReverbData *reverb;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   _sensor_t *sensor = (_sensor_t*)s;
-   _aaxRingBufferReverbData *reverb;
-   unsigned int track, no_tracks;
-   size_t track_len_bytes;
-   size_t no_samples;
-   char parametric, graphic, crossover;
    MIX_T *lfe, **tracks, **scratch;
-// void *ptr = 0;
-// char *p;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -153,6 +153,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   lfe_track = router[AAX_TRACK_LFE];
 
    reverb = NULL;
    crossover = parametric = graphic = 0;
@@ -163,7 +164,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
       graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
       crossover = (_FILTER_GET_DATA(sensor, SURROUND_CROSSOVER) != NULL);
-      crossover &= (no_tracks >= AAX_TRACK_LFE);
+      crossover &= (no_tracks >= lfe_track);
    }
 
    if (reverb) {
@@ -171,7 +172,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
    }
 
    tracks = (MIX_T**)rbd->track;
-   lfe = tracks[AAX_TRACK_LFE];
+   lfe = tracks[lfe_track];
    scratch = (MIX_T**)rb->get_scratch(rb);
    for (track=0; track<no_tracks; track++)
    {
@@ -241,7 +242,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
          while (b);
       }
 
-      if (crossover && track != AAX_TRACK_LFE)
+      if (crossover && track != lfe_track)
       {
          _aaxRingBufferFreqFilterData* filter;
 
@@ -274,7 +275,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
       filter->hf_gain = 0.0f;
       filter->hf_gain_prev = 1.0f;
       _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
-                                    0, AAX_TRACK_LFE, filter, NULL, 0);
+                                    0, lfe_track, filter, NULL, 0);
    }
 }
 

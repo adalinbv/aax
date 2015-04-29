@@ -46,8 +46,10 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
    _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
 
-   size = _AAX_MAX_SPEAKERS;
-   memcpy(&info->router, &_aaxContextDefaultRouter, size);
+   size = _AAX_MAX_SPEAKERS-1;
+   do {
+      info->router[size] = size;
+   } while (size--);
 
    info->no_tracks = 2;
    info->track = AAX_TRACK_ALL;
@@ -183,9 +185,6 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 }
 
 /* -------------------------------------------------------------------------- */
-
-char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS] =
- { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 /* HRTF
  *

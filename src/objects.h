@@ -222,7 +222,7 @@ typedef ALIGN16 struct
    vec4_t speaker[2*_AAX_MAX_SPEAKERS];
    vec4_t *delay;
 
-   char router[_AAX_MAX_SPEAKERS];
+   unsigned char router[_AAX_MAX_SPEAKERS];
    unsigned no_tracks;
    int bitrate;
    int track;
@@ -372,7 +372,6 @@ extern vec4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS];
 extern vec4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS];
 extern vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS];
 extern vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS];
-extern char _aaxContextDefaultRouter[_AAX_MAX_SPEAKERS];
 
 void _aaxFreeSource(void *);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);

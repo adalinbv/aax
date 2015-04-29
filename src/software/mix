@@ -1,0 +1,1126 @@
+cpu/arch2d_avx.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_avx.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_avx.c:   samp = *sptr++;              // n+(step-1)
+cpu/arch2d_avx.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_avx.c:   i=dmax-dmin;
+cpu/arch2d_avx.c:      smu -= step;
+cpu/arch2d_avx.c:      sptr += step-1;
+cpu/arch2d_avx.c:      dsamp = *sptr - samp;
+cpu/arch2d_avx.c:   while (--i);
+cpu/arch2d_avx.c:      _aax_memcpy(d+dmin, s+sdesamps, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_avx.c:      i = dmax-dmin;
+cpu/arch2d_avx.c:            smu -= 1.0f;
+cpu/arch2d_avx.c:      while (--i);
+cpu/arch2d_avx.c:   dsamp = *sptr - samp;	// (n+1) - n
+cpu/arch2d_avx.c:   i = dmax-dmin;
+cpu/arch2d_avx.c:         smu -= 1.0;
+cpu/arch2d_avx.c:         dsamp = *sptr - samp;
+cpu/arch2d_avx.c:   while (--i);
+cpu/arch2d_avx.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_avx.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_avx.c:   a2 = y2 - y0;
+cpu/arch2d_avx.c:   i = dmax-dmin;
+cpu/arch2d_avx.c:         smu--;
+cpu/arch2d_avx.c:         a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_avx.c:         a1 = y0 - y1 - a0;
+cpu/arch2d_avx.c:         a2 = y2 - y0;
+cpu/arch2d_avx.c:   while (--i);
+cpu/arch2d_avx.c:   samp = *s++;			// n+(step-1)
+cpu/arch2d_avx.c:   dsamp = *s - samp;		// (n+1) - n
+cpu/arch2d_avx.c:   i = dmax-dmin;
+cpu/arch2d_avx.c:         smu -= step;
+cpu/arch2d_avx.c:         s += step-1;
+cpu/arch2d_avx.c:         dsamp = *s - samp;
+cpu/arch2d_avx.c:      while (--i);
+cpu/arch2d_avx.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+cpu/arch2d_avx.c:      i = dmax-dmin;
+cpu/arch2d_avx.c:               smu -= 1.0f;
+cpu/arch2d_avx.c:         while (--i);
+cpu/arch2d_avx.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_avx.c:   i = dmax-dmin;
+cpu/arch2d_avx.c:            smu -= 1.0;
+cpu/arch2d_avx.c:            dsamp = *sptr - samp;
+cpu/arch2d_avx.c:      while (--i);
+cpu/arch2d_avx.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_avx.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_avx.c:   a2 = y2 - y0;
+cpu/arch2d_avx.c:   i = dmax-dmin;
+cpu/arch2d_avx.c:            smu--;            a0 += y0;
+cpu/arch2d_avx.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_avx.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_avx.c:            a2 = y2 - y0;
+cpu/arch2d_avx.c:      while (--i);
+cpu/arch2d_cpu.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_cpu.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:            while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:            *d = (*s++ >> 16) - 127;
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:         int32_t samp = _MINMAX(*p, -8388607, 8388607);
+cpu/arch2d_cpu.c:      while(--i);
+cpu/arch2d_cpu.c:         *p++ -= 128;
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:         *p++ -= (int16_t)32768;
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:         *p++ -= (int32_t)8388608;
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:         *p++ -= (int32_t)2147483647;
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      } while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c: * @d 32-bit destination buffer
+cpu/arch2d_cpu.c: * @s 32-bit source buffer
+cpu/arch2d_cpu.c:   samp = *s++;			// n+(step-1)
+cpu/arch2d_cpu.c:   dsamp = *s - samp;		// (n+1) - n
+cpu/arch2d_cpu.c:   i=dmax-dmin;
+cpu/arch2d_cpu.c:         smu -= step;
+cpu/arch2d_cpu.c:         s += step-1;
+cpu/arch2d_cpu.c:         dsamp = *s - samp;
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_cpu.c:      i = dmax-dmin;
+cpu/arch2d_cpu.c:               smu -= 1.0f;
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:   dsamp = *s - samp;	// (n+1) - n
+cpu/arch2d_cpu.c:   i = dmax-dmin;
+cpu/arch2d_cpu.c:            smu -= 1.0f;
+cpu/arch2d_cpu.c:            dsamp = *s - samp;
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c: printf("dptr: %x, d+dmax: %x, dptr-d: %i (%x)\n", d, dptr+dmax, d-dptr, samp);
+cpu/arch2d_cpu.c:    if (d[i] != 0x333300) printf("->d[%i] = %x\n", i, d[i]);
+cpu/arch2d_cpu.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_cpu.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_cpu.c:   a2 = y2 - y0;
+cpu/arch2d_cpu.c:   i = dmax-dmin;
+cpu/arch2d_cpu.c:            smu--;
+cpu/arch2d_cpu.c:            s -= 3;
+cpu/arch2d_cpu.c:            a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_cpu.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_cpu.c:            a2 = y2 - y0;
+cpu/arch2d_cpu.c:            a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_cpu.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_cpu.c:            a2 = y2 - y0;
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:   samp = *s++;                 // n+(step-1)
+cpu/arch2d_cpu.c:   dsamp = *s - samp;           // (n+1) - n
+cpu/arch2d_cpu.c:   i = dmax-dmin;
+cpu/arch2d_cpu.c:         smu -= step;
+cpu/arch2d_cpu.c:         s += step-1;
+cpu/arch2d_cpu.c:         dsamp = *s - samp;
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c:      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
+cpu/arch2d_cpu.c:      i = dmax-dmin;
+cpu/arch2d_cpu.c:               smu -= 1.0f;
+cpu/arch2d_cpu.c:         while (--i);
+cpu/arch2d_cpu.c:   dsamp = *s - samp;   // (n+1) - n
+cpu/arch2d_cpu.c:   i = dmax-dmin;
+cpu/arch2d_cpu.c:            smu -= 1.0f;
+cpu/arch2d_cpu.c:            dsamp = *s - samp;
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_cpu.c: printf("dptr: %x, d+dmax: %x, dptr-d: %i (%f)\n", d, dptr+dmax, d-dptr, samp);
+cpu/arch2d_cpu.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_cpu.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_cpu.c:   a2 = y2 - y0;
+cpu/arch2d_cpu.c:   i = dmax-dmin;
+cpu/arch2d_cpu.c:            smu--;
+cpu/arch2d_cpu.c:            s -= 3;
+cpu/arch2d_cpu.c:            a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_cpu.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_cpu.c:            a2 = y2 - y0;
+cpu/arch2d_cpu.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_cpu.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_cpu.c:            a2 = y2 - y0;
+cpu/arch2d_cpu.c:      while (--i);
+cpu/arch2d_fma3.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_fma3.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_fma3.c:      while (--i);
+cpu/arch2d_fma3.c:   /* work towards a 16-byte aligned dptr (and hence 16-byte aligned sptr) */
+cpu/arch2d_fma3.c:      i = (0x10 - dtmp)/sizeof(int32_t);
+cpu/arch2d_fma3.c:      num -= i;
+cpu/arch2d_fma3.c:      } while(--i);
+cpu/arch2d_fma3.c:      while(--i);
+cpu/arch2d_fma3.c:   i = num - size*step;
+cpu/arch2d_fma3.c:      } while(--i);
+cpu/arch2d_fma4.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_fma4.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_fma4.c:      while (--i);
+cpu/arch2d_fma4.c:   /* work towards a 16-byte aligned dptr (and hence 16-byte aligned sptr) */
+cpu/arch2d_fma4.c:      i = (0x10 - dtmp)/sizeof(int32_t);
+cpu/arch2d_fma4.c:      num -= i;
+cpu/arch2d_fma4.c:      } while(--i);
+cpu/arch2d_fma4.c:      while(--i);
+cpu/arch2d_fma4.c:   i = num - size*step;
+cpu/arch2d_fma4.c:      } while(--i);
+cpu/arch2d_neon.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_neon.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_neon.c:   num -= i*step;
+cpu/arch2d_neon.c:      while(--i);
+cpu/arch2d_neon.c:         } while (--i);
+cpu/arch2d_neon.c:   num -= i*step;
+cpu/arch2d_neon.c:      while(--i);
+cpu/arch2d_neon.c:         } while (--i);
+cpu/arch2d_neon.c:      while(--i);
+cpu/arch2d_neon.c:   i = num - size*step;
+cpu/arch2d_neon.c:      } while(--i);
+cpu/arch2d_neon.c:   num -= i*step;
+cpu/arch2d_neon.c:      while(--i);
+cpu/arch2d_neon.c:      } while(--i);
+cpu/arch2d_neon.c:   num -= i*step;
+cpu/arch2d_neon.c:         /* widen 16-bit to 32-bit */
+cpu/arch2d_neon.c:         /* shift from 16-bit to 24-bit */
+cpu/arch2d_neon.c:      } while (--i);
+cpu/arch2d_neon.c:      } while (--i);
+cpu/arch2d_neon.c:   num -= i*step;
+cpu/arch2d_neon.c:         /* shift from 24-bit to 16-bit */
+cpu/arch2d_neon.c:      } while (--i);
+cpu/arch2d_neon.c:      } while (--i);
+cpu/arch2d_neon.c:   num -= i*step;
+cpu/arch2d_neon.c:         /* shift from 24-bit to 16-bit */
+cpu/arch2d_neon.c:      } while (--i);
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:         while (--i);
+cpu/arch2d_neon.c:         while (--i);
+cpu/arch2d_neon.c:   samp = *sptr++;              // n+(step-1)
+cpu/arch2d_neon.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_neon.c:   i=dmax-dmin;
+cpu/arch2d_neon.c:         smu -= step;
+cpu/arch2d_neon.c:         sptr += step-1;
+cpu/arch2d_neon.c:         dsamp = *sptr - samp;
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_neon.c:      i = dmax-dmin;
+cpu/arch2d_neon.c:               smu -= 1.0f;
+cpu/arch2d_neon.c:         while (--i);
+cpu/arch2d_neon.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_neon.c:   i = dmax-dmin;
+cpu/arch2d_neon.c:            smu -= 1.0;
+cpu/arch2d_neon.c:            dsamp = *sptr - samp;
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_neon.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_neon.c:   a2 = y2 - y0;
+cpu/arch2d_neon.c:   i = dmax-dmin;
+cpu/arch2d_neon.c:            smu--;
+cpu/arch2d_neon.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_neon.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_neon.c:            a2 = y2 - y0;
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:   samp = *s++;                 // n+(step-1)
+cpu/arch2d_neon.c:   dsamp = *s - samp;           // (n+1) - n
+cpu/arch2d_neon.c:   i = dmax-dmin;
+cpu/arch2d_neon.c:         smu -= step;
+cpu/arch2d_neon.c:         s += step-1;
+cpu/arch2d_neon.c:         dsamp = *s - samp;
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+cpu/arch2d_neon.c:      i = dmax-dmin;
+cpu/arch2d_neon.c:               smu -= 1.0f;
+cpu/arch2d_neon.c:         while (--i);
+cpu/arch2d_neon.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_neon.c:   i = dmax-dmin;
+cpu/arch2d_neon.c:            smu -= 1.0;
+cpu/arch2d_neon.c:            dsamp = *sptr - samp;
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_neon.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_neon.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_neon.c:   a2 = y2 - y0;
+cpu/arch2d_neon.c:   i = dmax-dmin;
+cpu/arch2d_neon.c:            smu--;
+cpu/arch2d_neon.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_neon.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_neon.c:            a2 = y2 - y0;
+cpu/arch2d_neon.c:      while (--i);
+cpu/arch2d_simd.h: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_simd.h: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_sse2.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_sse2.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_sse2.c:      num -= i*step;
+cpu/arch2d_sse2.c:         while(--i);
+cpu/arch2d_sse2.c:         } while (--i);
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+cpu/arch2d_sse2.c:      i = (0x10 - dtmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:         num -= i;
+cpu/arch2d_sse2.c:         } while(--i);
+cpu/arch2d_sse2.c:      num -= i*step;
+cpu/arch2d_sse2.c:         while(--i);
+cpu/arch2d_sse2.c:         } while (--i);
+cpu/arch2d_sse2.c:      num -= i*step;
+cpu/arch2d_sse2.c:         while(--i);
+cpu/arch2d_sse2.c:         } while (--i);
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+cpu/arch2d_sse2.c:      i = (0x10 - dtmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:         num -= i;
+cpu/arch2d_sse2.c:         } while(--i);
+cpu/arch2d_sse2.c:      num -= i*step;
+cpu/arch2d_sse2.c:         while(--i);
+cpu/arch2d_sse2.c:         } while (--i);
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+cpu/arch2d_sse2.c:      i = (0x10 - dtmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:         num -= i;
+cpu/arch2d_sse2.c:         } while(--i);
+cpu/arch2d_sse2.c:   num -= i*step;
+cpu/arch2d_sse2.c:      while(--i);
+cpu/arch2d_sse2.c:      } while(--i);
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+cpu/arch2d_sse2.c:      i = (0x10 - dtmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:         num -= i;
+cpu/arch2d_sse2.c:         } while(--i);
+cpu/arch2d_sse2.c:   num -= i*step;
+cpu/arch2d_sse2.c:      while(--i);
+cpu/arch2d_sse2.c:      } while(--i);
+cpu/arch2d_sse2.c:    * work towards 16-byte aligned d
+cpu/arch2d_sse2.c:      i = (0x10 - tmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:         num -= i;
+cpu/arch2d_sse2.c:         } while(--i);
+cpu/arch2d_sse2.c:   num -= i*step;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:      } while (--i);
+cpu/arch2d_sse2.c:    * work towards 16-byte aligned sptr
+cpu/arch2d_sse2.c:      i = (0x10 - tmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:         num -= i;
+cpu/arch2d_sse2.c:         } while(--i);
+cpu/arch2d_sse2.c:   num -= i*step;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:      } while (--i);
+cpu/arch2d_sse2.c:         while (--i);
+cpu/arch2d_sse2.c:    * work towards 16-byte aligned sptr
+cpu/arch2d_sse2.c:      i = (0x10 - tmp)/sizeof(int32_t);
+cpu/arch2d_sse2.c:      num -= i;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   num -= i*step;
+cpu/arch2d_sse2.c:      } while (--i);
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:         // pz = { c[3]*h1, -c[1]*h1, c[2]*h0, -c[0]*h0 };
+cpu/arch2d_sse2.c:         // tmp[0] = -c[0]*h0 + -c[1]*h1;
+cpu/arch2d_sse2.c:         // nsmp = smp - h0*c[0] - h1*c[1];
+cpu/arch2d_sse2.c:         // tmp[0] = -c[0]*h0 + -c[1]*h1 + c[2]*h0 + c[3]*h1;
+cpu/arch2d_sse2.c:         // smp = smp - h0*c[0] - h1*c[1] + h0*c[2] + h1*c[3];
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:         // pz = { c[3]*h1, -c[1]*h1, c[2]*h0, -c[0]*h0 };
+cpu/arch2d_sse2.c:         // tmp[0] = -c[0]*h0 + -c[1]*h1;
+cpu/arch2d_sse2.c:         // nsmp = smp - h0*c[0] - h1*c[1];
+cpu/arch2d_sse2.c:         // tmp[0] = -c[0]*h0 + -c[1]*h1 + c[2]*h0 + c[3]*h1;
+cpu/arch2d_sse2.c:         // smp = smp - h0*c[0] - h1*c[1] + h0*c[2] + h1*c[3];
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c: * optimized memcpy for 16-byte aligned destination buffer
+cpu/arch2d_sse2.c: * fall back tobuildt-in  memcpy otherwise.
+cpu/arch2d_sse2.c:    * work towards a 16-byte aligned dptr and possibly sptr
+cpu/arch2d_sse2.c:      i = (0x10 - tmp);
+cpu/arch2d_sse2.c:      num -= i;
+cpu/arch2d_sse2.c:   num -= i*step;
+cpu/arch2d_sse2.c:         while(--i);
+cpu/arch2d_sse2.c:      else	/* both buffers are 16-byte aligned */
+cpu/arch2d_sse2.c:         while(--i);
+cpu/arch2d_sse2.c:   samp = *sptr++;              // n+(step-1)
+cpu/arch2d_sse2.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_sse2.c:   i=dmax-dmin;
+cpu/arch2d_sse2.c:         smu -= step;
+cpu/arch2d_sse2.c:         sptr += step-1;
+cpu/arch2d_sse2.c:         dsamp = *sptr - samp;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_sse2.c:      i = dmax-dmin;
+cpu/arch2d_sse2.c:               smu -= 1.0f;
+cpu/arch2d_sse2.c:         while (--i);
+cpu/arch2d_sse2.c:   dsamp = *sptr - samp;	// (n+1) - n
+cpu/arch2d_sse2.c:   i = dmax-dmin;
+cpu/arch2d_sse2.c:            smu -= 1.0;
+cpu/arch2d_sse2.c:            dsamp = *sptr - samp;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_sse2.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_sse2.c:   a2 = y2 - y0;
+cpu/arch2d_sse2.c:   i = dmax-dmin;
+cpu/arch2d_sse2.c:            smu--;
+cpu/arch2d_sse2.c:            a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_sse2.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_sse2.c:            a2 = y2 - y0;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   samp = *s++;			// n+(step-1)
+cpu/arch2d_sse2.c:   dsamp = *s - samp;		// (n+1) - n
+cpu/arch2d_sse2.c:   i = dmax-dmin;
+cpu/arch2d_sse2.c:         smu -= step;
+cpu/arch2d_sse2.c:         s += step-1;
+cpu/arch2d_sse2.c:         dsamp = *s - samp;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+cpu/arch2d_sse2.c:      i = dmax-dmin;
+cpu/arch2d_sse2.c:               smu -= 1.0f;
+cpu/arch2d_sse2.c:         while (--i);
+cpu/arch2d_sse2.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_sse2.c:   i = dmax-dmin;
+cpu/arch2d_sse2.c:            smu -= 1.0;
+cpu/arch2d_sse2.c:            dsamp = *sptr - samp;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse2.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_sse2.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_sse2.c:   a2 = y2 - y0;
+cpu/arch2d_sse2.c:   i = dmax-dmin;
+cpu/arch2d_sse2.c:            smu--;
+cpu/arch2d_sse2.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_sse2.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_sse2.c:            a2 = y2 - y0;
+cpu/arch2d_sse2.c:      while (--i);
+cpu/arch2d_sse3.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_sse3.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:   samp = *sptr++;              // n+(step-1)
+cpu/arch2d_sse3.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_sse3.c:   i=dmax-dmin;
+cpu/arch2d_sse3.c:         smu -= step;
+cpu/arch2d_sse3.c:         sptr += step-1;
+cpu/arch2d_sse3.c:         dsamp = *sptr - samp;
+cpu/arch2d_sse3.c:      while (--i);
+cpu/arch2d_sse3.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_sse3.c:      i = dmax-dmin;
+cpu/arch2d_sse3.c:               smu -= 1.0f;
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_sse3.c:   i = dmax-dmin;
+cpu/arch2d_sse3.c:            smu -= 1.0;
+cpu/arch2d_sse3.c:            dsamp = *sptr - samp;
+cpu/arch2d_sse3.c:      while (--i);
+cpu/arch2d_sse3.c:   const __m128 y1m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
+cpu/arch2d_sse3.c:   const __m128 y2m = _mm_set_ps( 2.0f,-2.0f, 1.0f,-1.0f);
+cpu/arch2d_sse3.c:   const __m128 y3m = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);
+cpu/arch2d_sse3.c:    * a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_sse3.c:    * a1 = y0 - y1 - a0;
+cpu/arch2d_sse3.c:    * a2 = y2 - y0;
+cpu/arch2d_sse3.c:   i = dmax-dmin;
+cpu/arch2d_sse3.c:             * a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_sse3.c:             * a1 = y0 - y1 - a0;
+cpu/arch2d_sse3.c:             * a2 = y2 - y0;
+cpu/arch2d_sse3.c:            smu--;
+cpu/arch2d_sse3.c:      while (--i);
+cpu/arch2d_sse3.c:   samp = *sptr++;              // n+(step-1)
+cpu/arch2d_sse3.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_sse3.c:   i=dmax-dmin;
+cpu/arch2d_sse3.c:         smu -= step;
+cpu/arch2d_sse3.c:         sptr += step-1;
+cpu/arch2d_sse3.c:         dsamp = *sptr - samp;
+cpu/arch2d_sse3.c:      while (--i);
+cpu/arch2d_sse3.c:      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+cpu/arch2d_sse3.c:      i = dmax-dmin;
+cpu/arch2d_sse3.c:               smu -= 1.0f;
+cpu/arch2d_sse3.c:         while (--i);
+cpu/arch2d_sse3.c:   dsamp = *sptr - samp;        // (n+1) - n
+cpu/arch2d_sse3.c:   i = dmax-dmin;
+cpu/arch2d_sse3.c:            smu -= 1.0;
+cpu/arch2d_sse3.c:            dsamp = *sptr - samp;
+cpu/arch2d_sse3.c:      while (--i);
+cpu/arch2d_sse3.c:   const __m128 y1m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
+cpu/arch2d_sse3.c:   const __m128 y2m = _mm_set_ps( 2.0f,-2.0f, 1.0f,-1.0f);
+cpu/arch2d_sse3.c:   const __m128 y3m = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);
+cpu/arch2d_sse3.c:    * a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_sse3.c:    * a1 = y0 - y1 - a0;
+cpu/arch2d_sse3.c:    * a2 = y2 - y0;
+cpu/arch2d_sse3.c:   i = dmax-dmin;
+cpu/arch2d_sse3.c:             * a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_sse3.c:             * a1 = y0 - y1 - a0;
+cpu/arch2d_sse3.c:             * a2 = y2 - y0;
+cpu/arch2d_sse3.c:            smu--;
+cpu/arch2d_sse3.c:      while (--i);
+cpu/arch2d_vfpv2.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_vfpv2.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:      } while (--i);
+cpu/arch2d_vfpv2.c:      } while (--i);
+cpu/arch2d_vfpv2.c:      } while (--i);
+cpu/arch2d_vfpv2.c:      } while (--i);
+cpu/arch2d_vfpv2.c:      } while (--i);
+cpu/arch2d_vfpv2.c:            while (--i);
+cpu/arch2d_vfpv2.c:            while (--i);
+cpu/arch2d_vfpv2.c:      } while (--i);
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c: * @d 32-bit destination buffer
+cpu/arch2d_vfpv2.c: * @s 32-bit source buffer
+cpu/arch2d_vfpv2.c:   samp = *s++;			// n+(step-1)
+cpu/arch2d_vfpv2.c:   dsamp = *s - samp;		// (n+1) - n
+cpu/arch2d_vfpv2.c:   i=dmax-dmin;
+cpu/arch2d_vfpv2.c:         smu -= step;
+cpu/arch2d_vfpv2.c:         s += step-1;
+cpu/arch2d_vfpv2.c:         dsamp = *s - samp;
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c:      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_vfpv2.c:      i = dmax-dmin;
+cpu/arch2d_vfpv2.c:               smu -= 1.0f;
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:   dsamp = *s - samp;	// (n+1) - n
+cpu/arch2d_vfpv2.c:   i = dmax-dmin;
+cpu/arch2d_vfpv2.c:            smu -= 1.0f;
+cpu/arch2d_vfpv2.c:            dsamp = *s - samp;
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c: printf("dptr: %x, d+dmax: %x, dptr-d: %i (%x)\n", d, dptr+dmax, d-dptr, samp);
+cpu/arch2d_vfpv2.c:    if (d[i] != 0x333300) printf("->d[%i] = %x\n", i, d[i]);
+cpu/arch2d_vfpv2.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv2.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv2.c:   a2 = y2 - y0;
+cpu/arch2d_vfpv2.c:   i = dmax-dmin;
+cpu/arch2d_vfpv2.c:            smu--;
+cpu/arch2d_vfpv2.c:            s -= 3;
+cpu/arch2d_vfpv2.c:            a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv2.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv2.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv2.c:            a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_vfpv2.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv2.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c:   samp = *s++;                 // n+(step-1)
+cpu/arch2d_vfpv2.c:   dsamp = *s - samp;           // (n+1) - n
+cpu/arch2d_vfpv2.c:   i = dmax-dmin;
+cpu/arch2d_vfpv2.c:         smu -= step;
+cpu/arch2d_vfpv2.c:         s += step-1;
+cpu/arch2d_vfpv2.c:         dsamp = *s - samp;
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c:      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
+cpu/arch2d_vfpv2.c:      i = dmax-dmin;
+cpu/arch2d_vfpv2.c:               smu -= 1.0f;
+cpu/arch2d_vfpv2.c:         while (--i);
+cpu/arch2d_vfpv2.c:   dsamp = *s - samp;   // (n+1) - n
+cpu/arch2d_vfpv2.c:   i = dmax-dmin;
+cpu/arch2d_vfpv2.c:            smu -= 1.0f;
+cpu/arch2d_vfpv2.c:            dsamp = *s - samp;
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv2.c: printf("dptr: %x, d+dmax: %x, dptr-d: %i (%f)\n", d, dptr+dmax, d-dptr, samp);
+cpu/arch2d_vfpv2.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv2.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv2.c:   a2 = y2 - y0;
+cpu/arch2d_vfpv2.c:   i = dmax-dmin;
+cpu/arch2d_vfpv2.c:            smu--;
+cpu/arch2d_vfpv2.c:            s -= 3;
+cpu/arch2d_vfpv2.c:            a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv2.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv2.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv2.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_vfpv2.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv2.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv2.c:      while (--i);
+cpu/arch2d_vfpv3.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch2d_vfpv3.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:      } while (--i);
+cpu/arch2d_vfpv3.c:      } while (--i);
+cpu/arch2d_vfpv3.c:      } while (--i);
+cpu/arch2d_vfpv3.c:      } while (--i);
+cpu/arch2d_vfpv3.c:      } while (--i);
+cpu/arch2d_vfpv3.c:            while (--i);
+cpu/arch2d_vfpv3.c:            while (--i);
+cpu/arch2d_vfpv3.c:      } while (--i);
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c: * @d 32-bit destination buffer
+cpu/arch2d_vfpv3.c: * @s 32-bit source buffer
+cpu/arch2d_vfpv3.c:   samp = *s++;			// n+(step-1)
+cpu/arch2d_vfpv3.c:   dsamp = *s - samp;		// (n+1) - n
+cpu/arch2d_vfpv3.c:   i=dmax-dmin;
+cpu/arch2d_vfpv3.c:         smu -= step;
+cpu/arch2d_vfpv3.c:         s += step-1;
+cpu/arch2d_vfpv3.c:         dsamp = *s - samp;
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c:      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
+cpu/arch2d_vfpv3.c:      i = dmax-dmin;
+cpu/arch2d_vfpv3.c:               smu -= 1.0f;
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:   dsamp = *s - samp;	// (n+1) - n
+cpu/arch2d_vfpv3.c:   i = dmax-dmin;
+cpu/arch2d_vfpv3.c:            smu -= 1.0f;
+cpu/arch2d_vfpv3.c:            dsamp = *s - samp;
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c: printf("dptr: %x, d+dmax: %x, dptr-d: %i (%x)\n", d, dptr+dmax, d-dptr, samp);
+cpu/arch2d_vfpv3.c:    if (d[i] != 0x333300) printf("->d[%i] = %x\n", i, d[i]);
+cpu/arch2d_vfpv3.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv3.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv3.c:   a2 = y2 - y0;
+cpu/arch2d_vfpv3.c:   i = dmax-dmin;
+cpu/arch2d_vfpv3.c:            smu--;
+cpu/arch2d_vfpv3.c:            s -= 3;
+cpu/arch2d_vfpv3.c:            a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv3.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv3.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv3.c:            a0 = -a0 + y3;			/* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_vfpv3.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv3.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c:   samp = *s++;                 // n+(step-1)
+cpu/arch2d_vfpv3.c:   dsamp = *s - samp;           // (n+1) - n
+cpu/arch2d_vfpv3.c:   i = dmax-dmin;
+cpu/arch2d_vfpv3.c:         smu -= step;
+cpu/arch2d_vfpv3.c:         s += step-1;
+cpu/arch2d_vfpv3.c:         dsamp = *s - samp;
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c:      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
+cpu/arch2d_vfpv3.c:      i = dmax-dmin;
+cpu/arch2d_vfpv3.c:               smu -= 1.0f;
+cpu/arch2d_vfpv3.c:         while (--i);
+cpu/arch2d_vfpv3.c:   dsamp = *s - samp;   // (n+1) - n
+cpu/arch2d_vfpv3.c:   i = dmax-dmin;
+cpu/arch2d_vfpv3.c:            smu -= 1.0f;
+cpu/arch2d_vfpv3.c:            dsamp = *s - samp;
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch2d_vfpv3.c: printf("dptr: %x, d+dmax: %x, dptr-d: %i (%f)\n", d, dptr+dmax, d-dptr, samp);
+cpu/arch2d_vfpv3.c:   a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv3.c:   a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv3.c:   a2 = y2 - y0;
+cpu/arch2d_vfpv3.c:   i = dmax-dmin;
+cpu/arch2d_vfpv3.c:            smu--;
+cpu/arch2d_vfpv3.c:            s -= 3;
+cpu/arch2d_vfpv3.c:            a0 = y3 - y2 - y0 + y1;
+cpu/arch2d_vfpv3.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv3.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv3.c:            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+cpu/arch2d_vfpv3.c:            a1 = y0 - y1 - a0;
+cpu/arch2d_vfpv3.c:            a2 = y2 - y0;
+cpu/arch2d_vfpv3.c:      while (--i);
+cpu/arch3d_neon.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch3d_neon.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch3d_simd.h: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch3d_simd.h: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch3d_sse2.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch3d_sse2.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch3d_sse3.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch3d_sse3.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch3d_sse41.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch3d_sse41.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch3d_sse.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/arch3d_sse.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/arch3d_sse.c:// http://fastcpp.blogspot.nl/2011/04/vector-cross-product-using-sse-code.html
+cpu/arch3d_vfpv2.c:   d[0] = -v[0];
+cpu/arch3d_vfpv2.c:   d[1] = -v[1];
+cpu/arch3d_vfpv2.c:   d[2] = -v[2];
+cpu/arch3d_vfpv2.c:   d[0] = -v[0];
+cpu/arch3d_vfpv2.c:   d[1] = -v[1];
+cpu/arch3d_vfpv2.c:   d[2] = -v[2];
+cpu/arch3d_vfpv2.c:   d[3] = -v[3];
+cpu/arch3d_vfpv2.c:   d[0] -= v[0];
+cpu/arch3d_vfpv2.c:   d[1] -= v[1];
+cpu/arch3d_vfpv2.c:   d[2] -= v[2];
+cpu/arch3d_vfpv2.c:   d[0] -= v[0];
+cpu/arch3d_vfpv2.c:   d[1] -= v[1];
+cpu/arch3d_vfpv2.c:   d[2] -= v[2];
+cpu/arch3d_vfpv2.c:   d[3] -= v[3];
+cpu/arch3d_vfpv2.c:   d[0] = v1[1]*v2[2] - v1[2]*v2[1];
+cpu/arch3d_vfpv2.c:   d[1] = v1[2]*v2[0] - v1[0]*v2[2];
+cpu/arch3d_vfpv2.c:   d[2] = v1[0]*v2[1] - v1[1]*v2[0];
+cpu/arch3d_vfpv2.c: * Note: this doe not work for non-uniform scaling (that means scaling by
+cpu/arch3d_vfpv2.c:      --i;
+cpu/arch3d_vfpv2.c:      --i;
+cpu/arch3d_vfpv2.c:   dst[3][0] = -vec3DotProduct(mtx[3], mtx[0]);
+cpu/arch3d_vfpv2.c:   dst[3][1] = -vec3DotProduct(mtx[3], mtx[1]);
+cpu/arch3d_vfpv2.c:   dst[3][2] = -vec3DotProduct(mtx[3], mtx[2]);
+cpu/arch3d_vfpv2.c:   dst[3][0] = -vec3dDotProduct(mtx[3], mtx[0]);
+cpu/arch3d_vfpv2.c:   dst[3][1] = -vec3dDotProduct(mtx[3], mtx[1]);
+cpu/arch3d_vfpv2.c:   dst[3][2] = -vec3dDotProduct(mtx[3], mtx[2]);
+cpu/arch3d_vfpv2.c:      float t = 1.0f - c;
+cpu/arch3d_vfpv2.c:      m[0][2] = axis[0]*axis[2]*t - axis[1]*s;
+cpu/arch3d_vfpv2.c:      m[1][0] = axis[1]*axis[0]*t - axis[2]*s;
+cpu/arch3d_vfpv2.c:      m[2][1] = axis[2]*axis[1]*t - axis[0]*s;
+cpu/arch3d_vfpv2.c:      double t = 1.0 - c;
+cpu/arch3d_vfpv2.c:      m[0][2] = axis[0]*axis[2]*t - axis[1]*s;
+cpu/arch3d_vfpv2.c:      m[1][0] = axis[1]*axis[0]*t - axis[2]*s;
+cpu/arch3d_vfpv2.c:      m[2][1] = axis[2]*axis[1]*t - axis[0]*s;
+cpu/arch3d_vfpv3.c:   d[0] = -v[0];
+cpu/arch3d_vfpv3.c:   d[1] = -v[1];
+cpu/arch3d_vfpv3.c:   d[2] = -v[2];
+cpu/arch3d_vfpv3.c:   d[0] = -v[0];
+cpu/arch3d_vfpv3.c:   d[1] = -v[1];
+cpu/arch3d_vfpv3.c:   d[2] = -v[2];
+cpu/arch3d_vfpv3.c:   d[3] = -v[3];
+cpu/arch3d_vfpv3.c:   d[0] -= v[0];
+cpu/arch3d_vfpv3.c:   d[1] -= v[1];
+cpu/arch3d_vfpv3.c:   d[2] -= v[2];
+cpu/arch3d_vfpv3.c:   d[0] -= v[0];
+cpu/arch3d_vfpv3.c:   d[1] -= v[1];
+cpu/arch3d_vfpv3.c:   d[2] -= v[2];
+cpu/arch3d_vfpv3.c:   d[3] -= v[3];
+cpu/arch3d_vfpv3.c:   d[0] = v1[1]*v2[2] - v1[2]*v2[1];
+cpu/arch3d_vfpv3.c:   d[1] = v1[2]*v2[0] - v1[0]*v2[2];
+cpu/arch3d_vfpv3.c:   d[2] = v1[0]*v2[1] - v1[1]*v2[0];
+cpu/arch3d_vfpv3.c: * Note: this doe not work for non-uniform scaling (that means scaling by
+cpu/arch3d_vfpv3.c:      --i;
+cpu/arch3d_vfpv3.c:      --i;
+cpu/arch3d_vfpv3.c:   dst[3][0] = -vec3DotProduct(mtx[3], mtx[0]);
+cpu/arch3d_vfpv3.c:   dst[3][1] = -vec3DotProduct(mtx[3], mtx[1]);
+cpu/arch3d_vfpv3.c:   dst[3][2] = -vec3DotProduct(mtx[3], mtx[2]);
+cpu/arch3d_vfpv3.c:   dst[3][0] = -vec3dDotProduct(mtx[3], mtx[0]);
+cpu/arch3d_vfpv3.c:   dst[3][1] = -vec3dDotProduct(mtx[3], mtx[1]);
+cpu/arch3d_vfpv3.c:   dst[3][2] = -vec3dDotProduct(mtx[3], mtx[2]);
+cpu/arch3d_vfpv3.c:      float t = 1.0f - c;
+cpu/arch3d_vfpv3.c:      m[0][2] = axis[0]*axis[2]*t - axis[1]*s;
+cpu/arch3d_vfpv3.c:      m[1][0] = axis[1]*axis[0]*t - axis[2]*s;
+cpu/arch3d_vfpv3.c:      m[2][1] = axis[2]*axis[1]*t - axis[0]*s;
+cpu/arch3d_vfpv3.c:      double t = 1.0 - c;
+cpu/arch3d_vfpv3.c:      m[0][2] = axis[0]*axis[2]*t - axis[1]*s;
+cpu/arch3d_vfpv3.c:      m[1][0] = axis[1]*axis[0]*t - axis[2]*s;
+cpu/arch3d_vfpv3.c:      m[2][1] = axis[2]*axis[1]*t - axis[0]*s;
+cpu/rbuf2d_effects.h: * Copyright 2005-2014 by Erik Hofman.
+cpu/rbuf2d_effects.h: * Copyright 2009-2014 by Adalin B.V.
+cpu/rbuf_effects.c: * Copyright 2005-2015 by Erik Hofman.
+cpu/rbuf_effects.c: * Copyright 2009-2015 by Adalin B.V.
+cpu/rbuf_effects.c: * - dst and scratch point to the beginning of a buffer containing room for
+cpu/rbuf_effects.c: * - start is the starting pointer
+cpu/rbuf_effects.c: * - end is the end pointer (end-start is the number of smaples)
+cpu/rbuf_effects.c: * - dmax does not include ds
+cpu/rbuf_effects.c:   if (effect && !effect->loopback && effect->history_ptr)	/* streaming */
+cpu/rbuf_effects.c:      DBG_MEMCLR(1, src-ds, ds+start, bps);
+cpu/rbuf_effects.c:      _aax_memcpy(src+start-ds, effect->delay_history[track], ds*bps);
+cpu/rbuf_effects.c://    DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
+cpu/rbuf_effects.c:      _aax_memcpy(effect->delay_history[track], src+start+no_samples-ds,ds*bps);
+cpu/rbuf_effects.c:      if (effect->loopback) {		/*    flanging     */
+cpu/rbuf_effects.c:      DBG_MEMCLR(1, dst-ds, ds+end, bps);
+cpu/rbuf_effects.c:   snum = reverb->no_delays;
+cpu/rbuf_effects.c:      _aaxRingBufferFreqFilterData* filter = reverb->freq_filter;
+cpu/rbuf_effects.c:      dmax -= dmin;
+cpu/rbuf_effects.c:         float volume = reverb->delay[q].gain / (snum+1);
+cpu/rbuf_effects.c:         if ((volume > 0.001f) || (volume < -0.001f))
+cpu/rbuf_effects.c:            size_t offs = reverb->delay[q].sample_offs[track];
+cpu/rbuf_effects.c://          if (samples >= ds) samples = ds-1;
+cpu/rbuf_effects.c:            rbd->add(scratch, sptr-offs, dmax, volume, 0.0f);
+cpu/rbuf_effects.c:      rbd->add(sptr, sbuf2, dmax, 0.5f, 0.0f);
+cpu/rbuf_effects.c:   snum = reverb->no_loopbacks;
+cpu/rbuf_effects.c:      _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
+cpu/rbuf_effects.c:         size_t samples = reverb->loopback[q].sample_offs[track];
+cpu/rbuf_effects.c:         float volume = reverb->loopback[q].gain / (snum+1);
+cpu/rbuf_effects.c:         if (samples >= ds) samples = ds-1;
+cpu/rbuf_effects.c:         rbd->add(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
+cpu/rbuf_effects.c:      _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
+cpu/rbuf_effects.c: * - d and s point to a buffer containing the delay effects buffer prior to
+cpu/rbuf_effects.c: * - start is the starting pointer
+cpu/rbuf_effects.c: * - end is the end pointer (end-start is the number of samples)
+cpu/rbuf_effects.c: * - no_samples is the number of samples to process this run
+cpu/rbuf_effects.c: * - dmax does not include ds
+cpu/rbuf_effects.c:   volume =  effect->delay.gain;
+cpu/rbuf_effects.c:      offs = effect->delay.sample_offs[track];
+cpu/rbuf_effects.c:      if (offs >= ds) offs = ds-1;
+cpu/rbuf_effects.c:         noffs = effect->curr_noffs[track];
+cpu/rbuf_effects.c:         noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
+cpu/rbuf_effects.c:         effect->delay.sample_offs[track] = noffs;
+cpu/rbuf_effects.c:         effect->curr_noffs[track] = noffs;
+cpu/rbuf_effects.c:         size_t sign = (noffs < offs) ? -1 : 1;
+cpu/rbuf_effects.c:         size_t doffs = abs(noffs - offs);
+cpu/rbuf_effects.c:            step = effect->curr_step[track];
+cpu/rbuf_effects.c:            coffs = effect->curr_coffs[track];
+cpu/rbuf_effects.c:         effect->curr_step[track] = step;
+cpu/rbuf_effects.c:         DBG_MEMCLR(1, s-ds, ds+start, bps);
+cpu/rbuf_effects.c:         _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
+cpu/rbuf_effects.c:               rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
+cpu/rbuf_effects.c:               diff = (float)*ptr - (float)*(ptr-1);
+cpu/rbuf_effects.c:               *(ptr-1) += (6.0f/7.0f)*diff;
+cpu/rbuf_effects.c:               *(ptr-2) += (5.0f/7.0f)*diff;
+cpu/rbuf_effects.c:               *(ptr-3) += (4.0f/7.0f)*diff;
+cpu/rbuf_effects.c:               *(ptr-4) += (3.0f/7.0f)*diff;
+cpu/rbuf_effects.c:               *(ptr-5) += (2.0f/7.0f)*diff;
+cpu/rbuf_effects.c:               *(ptr-6) += (1.0f/7.0f)*diff;
+cpu/rbuf_effects.c:               i -= step;
+cpu/rbuf_effects.c:            rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
+cpu/rbuf_effects.c://       DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
+cpu/rbuf_effects.c:         _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
+cpu/rbuf_effects.c:         effect->curr_coffs[track] = coffs;
+cpu/rbuf_effects.c:         size_t doffs = noffs - offs;
+cpu/rbuf_effects.c:         fact = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+cpu/rbuf_effects.c:            rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
+cpu/rbuf_effects.c:            DBG_MEMCLR(1, scratch-ds, ds+end, bps);
+cpu/rbuf_effects.c:            rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, fact);
+cpu/rbuf_effects.c:            rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
+cpu/rbuf_effects.c:   _aaxRingBufferLFOData* lfo = dist_effect->data;
+cpu/rbuf_effects.c:   float *params = dist_effect->param;
+cpu/rbuf_effects.c:      CONST_MIX_PTR_T sptr = s - ds + dmin;
+cpu/rbuf_effects.c:      MIX_T *dptr = d - ds + dmin;
+cpu/rbuf_effects.c:      no_samples = dmax+ds-dmin;
+cpu/rbuf_effects.c:      DBG_MEMCLR(1, d-ds, ds+dmax, bps);
+cpu/rbuf_effects.c:         lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
+cpu/rbuf_effects.c:            rbd->multiply(dptr, bps, no_samples, 1.0f+64.0f*fact);
+cpu/rbuf_effects.c:         rbd->multiply(dptr, bps, no_samples, mix_factor);
+cpu/rbuf_effects.c:            rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+cpu/rbuf_effects.c:   int i, pos = stages-1;
+cpu/rbuf_effects.c:   if (filter->k)
+cpu/rbuf_effects.c:      CONST_MIX_PTR_T sptr = s - ds + dmin;
+cpu/rbuf_effects.c:      MIX_T *dptr = d - ds + dmin;
+cpu/rbuf_effects.c:      float *hist = filter->freqfilter_history[track];
+cpu/rbuf_effects.c:      float *cptr = filter->coeff;
+cpu/rbuf_effects.c:      float lf = filter->lf_gain;
+cpu/rbuf_effects.c:      float hf = filter->hf_gain;
+cpu/rbuf_effects.c:      float hf_prev = filter->hf_gain_prev;
+cpu/rbuf_effects.c:      float k = filter->k;
+cpu/rbuf_effects.c:      stages = filter->no_stages;
+cpu/rbuf_effects.c:      if (filter->lfo && !ctr)
+cpu/rbuf_effects.c:         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1.0f);
+cpu/rbuf_effects.c:         float Q = filter->Q;
+cpu/rbuf_effects.c:         iir_compute_coefs(fc, filter->fs, cptr, &k, Q, stages);
+cpu/rbuf_effects.c:         filter->k = k;
+cpu/rbuf_effects.c:      // original: *dptr = smp*lf + (*s - smp)*hf
+cpu/rbuf_effects.c:      //           *dptr = (smp * lf) + (*s * hf) + (smp * -hf)
+cpu/rbuf_effects.c:      // result:   *dptr = smp*(lf-hf) + *s * hf;
+cpu/rbuf_effects.c:      num = dmax+ds-dmin;
+cpu/rbuf_effects.c:      // *dptr = smp*(lf-hf)
+cpu/rbuf_effects.c:      rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
+cpu/rbuf_effects.c:      if (--stages)
+cpu/rbuf_effects.c:         rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
+cpu/rbuf_effects.c:         if (--stages) {
+cpu/rbuf_effects.c:            rbd->freqfilter(dptr, dptr, num, hist+4, 1.0f, cptr+8);
+cpu/rbuf_effects.c://       float step = (hf - hf_prev)/num; /* TODO: Fix or remove */
+cpu/rbuf_effects.c:         rbd->add(dptr, sptr, num, hf, step);
+cpu/rbuf_effects.c:         filter->hf_gain_prev = hf;
+cpu/rbuf_effects.c:/* -------------------------------------------------------------------------- */
+cpu/rbuf_effects.c:   *coef++ = -1.0f * (-2.0f*b2 + 2.0f*b0) / bd;
+cpu/rbuf_effects.c:   *coef++ = -1.0f * (b2 - b1 + b0) / bd;
+cpu/rbuf_effects.c:   *coef++ =         (-2.0f*a2 + 2.0f*a0) / ad;
+cpu/rbuf_effects.c:   *coef   =         (a2 - a1 + a0) / ad;
+cpu/rbuf_effects.c:      if (reverb->history_ptr == 0) {
+cpu/rbuf_effects.c:         _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
+cpu/rbuf_effects.c:                                           reverb->reverb_history,
+cpu/rbuf_effects.c:         reverb->gain = igain;
+cpu/rbuf_effects.c:         reverb->no_delays = num;
+cpu/rbuf_effects.c:            if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
+cpu/rbuf_effects.c:                  reverb->delay[i].sample_offs[j] = (ssize_t)(delays[i] * fs);
+cpu/rbuf_effects.c:               reverb->delay[i].gain = gains[i];
+cpu/rbuf_effects.c:               reverb->no_delays--;
+cpu/rbuf_effects.c:         reverb->loopback[0].gain = lb_gain*0.95015f;	// conrete/brick = 0.95
+cpu/rbuf_effects.c:         reverb->loopback[1].gain = lb_gain*0.87075f;
+cpu/rbuf_effects.c:         reverb->loopback[2].gain = lb_gain*0.91917f;
+cpu/rbuf_effects.c:         reverb->loopback[3].gain = lb_gain*0.72317f;	// carpet     = 0.853
+cpu/rbuf_effects.c:         reverb->loopback[4].gain = lb_gain*0.80317f;
+cpu/rbuf_effects.c:         reverb->loopback[5].gain = lb_gain*0.73317f;
+cpu/rbuf_effects.c:         reverb->loopback[6].gain = lb_gain*0.88317f;
+cpu/rbuf_effects.c:         dlbp = (REVERB_EFFECTS_TIME-dlb)*lb_depth;
+cpu/rbuf_effects.c:         dlbp = _MINMAX(dlbp, 0.01f, REVERB_EFFECTS_TIME-0.01f);
+cpu/rbuf_effects.c:         reverb->no_loopbacks = num;
+cpu/rbuf_effects.c:            reverb->loopback[0].sample_offs[j] = (dlbp + dlb*0.9876543f);
+cpu/rbuf_effects.c:            reverb->loopback[1].sample_offs[j] = (dlbp + dlb*0.4901861f);
+cpu/rbuf_effects.c:            reverb->loopback[2].sample_offs[j] = (dlbp + dlb*0.3333333f);
+cpu/rbuf_effects.c:            reverb->loopback[3].sample_offs[j] = (dlbp + dlb*0.2001743f);
+cpu/rbuf_effects.c:            reverb->loopback[4].sample_offs[j] = (dlbp + dlb*0.1428571f);
+cpu/rbuf_effects.c:            reverb->loopback[5].sample_offs[j] = (dlbp + dlb*0.0909091f);
+cpu/rbuf_effects.c:            reverb->loopback[6].sample_offs[j] = (dlbp + dlb*0.0769231f);
+cpu/rbuf_effects.c:      reverb->no_delays = 0;
+cpu/rbuf_effects.c:      reverb->no_loopbacks = 0;
+cpu/rbuf_effects.c:      reverb->delay[0].gain = 1.0f;
+cpu/rbuf_effects.c:      free(reverb->history_ptr);
+cpu/rbuf_effects.c:      free(reverb->freq_filter);
+cpu/rbuf_effects.c:      reverb->freq_filter = 0;
+cpu/rbuf_effects.c:      reverb->history_ptr = 0;
+cpu/rbuf_effects.c:   if (rb->reverb)
+cpu/rbuf_effects.c:      assert(n < rb->reverb->no_delays);
+cpu/rbuf_effects.c:      rb->reverb->no_delays--;
+cpu/rbuf_effects.c:      size = rb->reverb->no_delays - n;
+cpu/rbuf_effects.c:      memcpy(&rb->reverb->delay[n], &rb->reverb->delay[n+1], size);
+cpu/rbuf_limiter.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/rbuf_limiter.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/rbuf_limiter.c:#define SHIFT		(31-BITS)
+cpu/rbuf_limiter.c:#define START		((1<<SHIFT)-1)
+cpu/rbuf_limiter.c:#define FACT		(float)(23-SHIFT)/(float)(1<<(31-SHIFT))
+cpu/rbuf_limiter.c:   imix = (1.0f - mix);
+cpu/rbuf_limiter.c:   j = max = *dmax - *dmin;
+cpu/rbuf_limiter.c:      asamp = (samp < 0) ? abs(samp-iasym) : abs(samp);
+cpu/rbuf_limiter.c:      rise = _MINMAX((osamp-samp)*rf, 0.3f, 303.3f);
+cpu/rbuf_limiter.c:      fact1 = (1.0f-sdf)*_limiter_tbl[0][pos-1];
+cpu/rbuf_limiter.c:      fact2 = (1.0f-sdf)*_limiter_tbl[1][pos-1];
+cpu/rbuf_limiter.c:   while (--j);
+cpu/rbuf_limiter.c:   j = *dmax - *dmin;
+cpu/rbuf_limiter.c:   while (--j);
+cpu/rbuf_limiter_tables.c:  * Copyright 2005-2014 by Erik Hofman.
+cpu/rbuf_limiter_tables.c:  * Copyright 2009-2014 by Adalin B.V.
+cpu/rbuf_mixmulti.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/rbuf_mixmulti.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/rbuf_mixmulti.c:   rbs_tracks = srbd->no_tracks;
+cpu/rbuf_mixmulti.c:   rbd_tracks = drbd->no_tracks;
+cpu/rbuf_mixmulti.c:   if (lfo && lfo->envelope)				// envelope follow
+cpu/rbuf_mixmulti.c:         gain = 1.0f-lfo->get(lfo, env, sptr[rbs_track]+offs, track, dno_samples);
+cpu/rbuf_mixmulti.c:         if (lfo->inv) g = 1.0f/gain;
+cpu/rbuf_mixmulti.c:      MIX_T *dptr = (MIX_T*)drbd->track[router[rbd_track]] + offs;
+cpu/rbuf_mixmulti.c:      vstart = g*gain * svol * ep2d->prev_gain[track];
+cpu/rbuf_mixmulti.c:      vstep = (vend - vstart) / dno_samples;
+cpu/rbuf_mixmulti.c:      drbd->add(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
+cpu/rbuf_mixmulti.c:      ep2d->prev_gain[track] = gain;
+cpu/rbuf_mixsingle.c: * Copyright 2005-2014 by Erik Hofman.
+cpu/rbuf_mixsingle.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/rbuf_mixsingle.c:   for (t=0; t<drbd->no_tracks; t++)
+cpu/rbuf_mixsingle.c:      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
+cpu/rbuf_mixsingle.c:      dir_fact = _MINMAX(ep2d->speaker[t][DIR_RIGHT], 0.0f, 1.0f);
+cpu/rbuf_mixsingle.c:      dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
+cpu/rbuf_mixsingle.c:      vstart = dir_fact * svol * ep2d->prev_gain[t];
+cpu/rbuf_mixsingle.c:      vstep  = (vend - vstart) / dno_samples;
+cpu/rbuf_mixsingle.c://    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+cpu/rbuf_mixsingle.c:      drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+cpu/rbuf_mixsingle.c:      ep2d->prev_gain[t] = gain;
+cpu/rbuf_mixsingle.c:    * 1. Copy all channels to LFE and aplly a 40Hz-200Hz (80Hz default)
+cpu/rbuf_mixsingle.c:    * 2. Apply a high-pass filter with the same cut off frequency to all tracks
+cpu/rbuf_mixsingle.c:    * http://www.hometheaterhifi.com/volume_9_3/feature-article-multiple-crossovers-9-2002.html
+cpu/rbuf_mixsingle.c:    * are better off running them full range as opposed to high-passing them
+cpu/rbuf_mixsingle.c:    *http://www.hometheaterhifi.com/volume_12_2/feature-article-slope-troubles-6-2005.html
+cpu/rbuf_mixsingle.c:    * to start giving us a bass management scheme that caters to "full-range"
+cpu/rbuf_mixsingle.c:    * all they need to do is provide a choice of high-pass:  2nd order for THX
+cpu/rbuf_mixsingle.c:    * crossover, means being flat to 40 Hz.  Virtually all "full-range" speakers
+cpu/rbuf_mixsingle.c:    * - even most of the smaller bookshelf models - qualify.
+cpu/rbuf_mixsingle.c:   for (t=0; t<drbd->no_tracks; t++)
+cpu/rbuf_mixsingle.c:      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
+cpu/rbuf_mixsingle.c:       * horizontal positioning, left-right
+cpu/rbuf_mixsingle.c:      dir_fact = ep2d->speaker[t][DIR_RIGHT];
+cpu/rbuf_mixsingle.c:      dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
+cpu/rbuf_mixsingle.c:      vstart = svol * ep2d->prev_gain[t];
+cpu/rbuf_mixsingle.c:      vstep = (vend - vstart) / dno_samples;
+cpu/rbuf_mixsingle.c:      drbd->add(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+cpu/rbuf_mixsingle.c:      ep2d->prev_gain[t] = vend;
+cpu/rbuf_mixsingle.c:      dir_fact = ep2d->speaker[t][DIR_UPWD];
+cpu/rbuf_mixsingle.c:      i = DIR_UPWD;			/* skip left-right and back-front */
+cpu/rbuf_mixsingle.c:         ssize_t diff = (ssize_t)ep2d->hrtf[t][i];
+cpu/rbuf_mixsingle.c:         if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0)) {
+cpu/rbuf_mixsingle.c:         assert(diff < (ssize_t)drbd->dde_samples);
+cpu/rbuf_mixsingle.c:         assert(diff > -(ssize_t)dno_samples);
+cpu/rbuf_mixsingle.c:         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
+cpu/rbuf_mixsingle.c:         v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
+cpu/rbuf_mixsingle.c://       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+cpu/rbuf_mixsingle.c:         drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
+cpu/rbuf_mixsingle.c:   for (t=0; t<drbd->no_tracks; t++)
+cpu/rbuf_mixsingle.c:      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
+cpu/rbuf_mixsingle.c:      dir_fact = ep2d->speaker[t][DIR_RIGHT];
+cpu/rbuf_mixsingle.c:      vstart = dir_fact * svol * ep2d->prev_gain[t];
+cpu/rbuf_mixsingle.c:      vstep  = (vend - vstart) / dno_samples;
+cpu/rbuf_mixsingle.c://    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+cpu/rbuf_mixsingle.c:      drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+cpu/rbuf_mixsingle.c:      ep2d->prev_gain[t] = gain;
+cpu/rbuf_mixsingle.c:   for (t=0; t<drbd->no_tracks; t++)
+cpu/rbuf_mixsingle.c:      MIX_T *track = drbd->track[router[t]];
+cpu/rbuf_mixsingle.c:       * horizontal positioning, left-right
+cpu/rbuf_mixsingle.c:      dir_fact = ep2d->speaker[t][DIR_RIGHT];
+cpu/rbuf_mixsingle.c:      dir_fact = (ep2d->speaker[t][DIR_UPWD]);
+cpu/rbuf_mixsingle.c:       * horizontal positioning, back-front
+cpu/rbuf_mixsingle.c:      dir_fact = (ep2d->speaker[t][DIR_BACK]);
+cpu/rbuf_mixsingle.c: printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t][0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t][1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t][2]/44100.0f);
+cpu/rbuf_mixsingle.c:         ssize_t diff = (ssize_t)ep2d->hrtf[t][i];
+cpu/rbuf_mixsingle.c:         if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0))
+cpu/rbuf_mixsingle.c:         assert(diff < (ssize_t)drbd->dde_samples);
+cpu/rbuf_mixsingle.c:         assert(diff > -(ssize_t)dno_samples);
+cpu/rbuf_mixsingle.c:         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
+cpu/rbuf_mixsingle.c:         v_start = ep2d->prev_gain[3*t+i] * svol;
+cpu/rbuf_mixsingle.c:         v_step = (v_end - v_start)/dno_samples;
+cpu/rbuf_mixsingle.c://       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+cpu/rbuf_mixsingle.c:         drbd->add(dptr, ptr-diff, dno_samples, v_start, v_step);
+cpu/rbuf_mixsingle.c:         ep2d->prev_gain[3*t+i] = hrtf_volume[i] * gain;
+cpu/render_monolithic.c: * Copyright 2013-2014 by Erik Hofman.
+cpu/render_monolithic.c: * Copyright 2013-2014 by Adalin B.V.
+cpu/render_monolithic.c:      rv->detect = _aaxCPUDetect;
+cpu/render_monolithic.c:      rv->setup = _aaxCPUSetup;
+cpu/render_monolithic.c:      rv->info = _aaxCPUInfo;
+cpu/render_monolithic.c:      rv->open = _aaxCPUOpen;
+cpu/render_monolithic.c:      rv->close = _aaxCPUClose;
+cpu/render_monolithic.c:      rv->process = _aaxCPUProcess;
+cpu/render_monolithic.c:/* -------------------------------------------------------------------------- */
+cpu/render_monolithic.c:   return (void*)-1;
+cpu/render_monolithic.c:   _intBuffers *he = data->e3d;
+cpu/render_monolithic.c:               _aaxProcessEmitter(data->drb, data, dptr_src, stage);
+cpu/render_monolithic.c:         while (--no_emitters);
+cpu/render_monolithic.c:         he = data->e2d;	/* switch to stereo */
+cpu/render_monolithic.c:   while (--stage); /* process 3d positional and stereo emitters */
+cpu/render_threadpool.c: * Copyright 2013-2014 by Erik Hofman.
+cpu/render_threadpool.c: * Copyright 2013-2014 by Adalin B.V.
+cpu/render_threadpool.c://   http://docs.oracle.com/cd/E19683-01/806-6867/sync-27385/index.html
+cpu/render_threadpool.c://   http://msdn.microsoft.com/en-us/library/windows/desktop/ms686946%28v=vs.85%29.aspx
+cpu/render_threadpool.c:         rv->detect = _aaxWorkerDetect;
+cpu/render_threadpool.c:         rv->setup = _aaxWorkerSetup;
+cpu/render_threadpool.c:         rv->info = _aaxWorkerInfo;
+cpu/render_threadpool.c:         rv->open = _aaxWorkerOpen;
+cpu/render_threadpool.c:         rv->close = _aaxWorkerClose;
+cpu/render_threadpool.c:         rv->process = _aaxWorkerProcess;
+cpu/render_threadpool.c:/* -------------------------------------------------------------------------- */
+cpu/render_threadpool.c:   // set all worker-threads to inactive
+cpu/render_threadpool.c:   for (i=0; i<handle->no_workers; i++)
+cpu/render_threadpool.c:      struct threat_t *thread = &handle->thread[i];
+cpu/render_threadpool.c:      thread->started = AAX_FALSE;
+cpu/render_threadpool.c:   // signal and wait for the worker-threads to quit
+cpu/render_threadpool.c:   for (i=0; i<handle->no_workers; i++)
+cpu/render_threadpool.c:      _aaxSemaphoreRelease(handle->worker_start);
+cpu/render_threadpool.c:      _aaxSemaphoreWait(handle->worker_ready);
+cpu/render_threadpool.c:   for (i=0; i<handle->no_workers; i++)
+cpu/render_threadpool.c:      struct threat_t *thread = &handle->thread[i];
+cpu/render_threadpool.c:      _aaxThreadJoin(thread->ptr);
+cpu/render_threadpool.c:      if (thread->ptr) {
+cpu/render_threadpool.c:         _aaxThreadDestroy(thread->ptr);
+cpu/render_threadpool.c:   _aaxSemaphoreDestroy(handle->worker_start);
+cpu/render_threadpool.c:   _aaxSemaphoreDestroy(handle->worker_ready);
+cpu/render_threadpool.c:   _aaxMutexDestroy(handle->mutex);
+cpu/render_threadpool.c:      handle->no_workers = _MIN(_aaxGetNoCores(), _AAX_MAX_NO_WORKERS);
+cpu/render_threadpool.c:      handle->mutex = _aaxMutexCreate(NULL);
+cpu/render_threadpool.c:      handle->worker_start = _aaxSemaphoreCreate(0);
+cpu/render_threadpool.c:      handle->worker_ready = _aaxSemaphoreCreate(0);
+cpu/render_threadpool.c:      for (i=0; i<handle->no_workers; i++)
+cpu/render_threadpool.c:         struct threat_t *thread = &handle->thread[i];
+cpu/render_threadpool.c:         handle->worker_no = i;
+cpu/render_threadpool.c:         thread->ptr = _aaxThreadCreate();
+cpu/render_threadpool.c:         res = _aaxThreadStart(thread->ptr, _aaxWorkerThread, handle, dt);
+cpu/render_threadpool.c:            while (q-- && thread->started != AAX_TRUE) {
+cpu/render_threadpool.c:      handle->worker_no = 0;
+cpu/render_threadpool.c:      snprintf(info, 32, "FP %s using %i cores", hwstr, handle->no_workers);
+cpu/render_threadpool.c:      snprintf(info, 32, "%s using %i cores", hwstr, handle->no_workers);
+cpu/render_threadpool.c:   _render_t *handle = renderer->id;
+cpu/render_threadpool.c:   _intBuffers *he = data->e3d;
+cpu/render_threadpool.c:         handle->he = he;
+cpu/render_threadpool.c:         handle->stage = stage;
+cpu/render_threadpool.c:         handle->max_emitters = no_emitters ? max_emitters : 0;
+cpu/render_threadpool.c:         handle->data = data;
+cpu/render_threadpool.c:         num = _MIN(handle->no_workers, num);
+cpu/render_threadpool.c:         _aaxAtomicIntAdd(&handle->workers_busy, num);
+cpu/render_threadpool.c:            _aaxSemaphoreRelease(handle->worker_start);
+cpu/render_threadpool.c:         while (--num);
+cpu/render_threadpool.c:         _aaxSemaphoreWait(handle->worker_ready);
+cpu/render_threadpool.c:         he = data->e2d;	/* switch to stereo */
+cpu/render_threadpool.c:   while (--stage); /* process 3d positional and stereo emitters */
+cpu/render_threadpool.c:/* ------------------------------------------------------------------------- */
+cpu/render_threadpool.c:   worker_no = handle->worker_no;
+cpu/render_threadpool.c:   thread = &handle->thread[worker_no];
+cpu/render_threadpool.c:   _aaxThreadSetAffinity(thread->ptr, worker_no % _aaxGetNoCores());
+cpu/render_threadpool.c:   thread->started = AAX_TRUE;
+cpu/render_threadpool.c:   _aaxSemaphoreWait(handle->worker_start);
+cpu/render_threadpool.c:   if (thread->started == AAX_TRUE)
+cpu/render_threadpool.c:      int *busy = &handle->workers_busy;
+cpu/render_threadpool.c:      int *num = &handle->max_emitters;
+cpu/render_threadpool.c:      data = handle->data;
+cpu/render_threadpool.c:      drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_TRUE);
+cpu/render_threadpool.c:      drb->set_state(drb, RB_STARTED);
+cpu/render_threadpool.c:      _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
+cpu/render_threadpool.c:         if (handle->max_emitters)
+cpu/render_threadpool.c:               pos = max - _AAX_MIN_EMITTERS_PER_WORKER;
+cpu/render_threadpool.c:                     dptr_src =_intBufGet(handle->he, _AAX_EMITTER, pos);
+cpu/render_threadpool.c:                        _aaxProcessEmitter(drb, data, dptr_src, handle->stage);
+cpu/render_threadpool.c:            _aaxMutexLock(handle->mutex);
+cpu/render_threadpool.c:            data->drb->data_mix(data->drb, drb, NULL);
+cpu/render_threadpool.c:            _aaxMutexUnLock(handle->mutex);
+cpu/render_threadpool.c:            drb->data_clear(drb);
+cpu/render_threadpool.c:            drb->set_state(drb, RB_REWINDED);
+cpu/render_threadpool.c:             _aaxSemaphoreRelease(handle->worker_ready);
+cpu/render_threadpool.c:         _aaxSemaphoreWait(handle->worker_start);
+cpu/render_threadpool.c:      while (thread->started == AAX_TRUE);
+cpu/render_threadpool.c:      drb->destroy(drb);
+cpu/render_threadpool.c:   _aaxSemaphoreRelease(handle->worker_ready);
+cpu/waveforms.c: * Copyright 2007-2014 by Erik Hofman.
+cpu/waveforms.c: * Copyright 2009-2014 by Adalin B.V.
+cpu/waveforms.c: * state in a user-maintained structure instead of static memory, so          *
+cpu/waveforms.c:#define MT(i) mt->array[i]
+cpu/waveforms.c:      MT(i) = (1812433253 * (MT(i-1) ^ (MT(i-1) >> 30)) + i);
+cpu/waveforms.c:   mt->index = MT_N+1;
+cpu/waveforms.c:   if(mt->index >= MT_N)
+cpu/waveforms.c:      mt->index = 0;
+cpu/waveforms.c:   y = MT(mt->index++);
+cpu/waveforms.c:   static int init = -1;
+cpu/waveforms.c:/* -------------------------------------------------------------------------- */
+cpu/waveforms.c:/* Wichmen-Hill Random Number Generator
+cpu/waveforms.c:      p = MAX_AVG-1;
+cpu/waveforms.c:         } while(--r);
+cpu/waveforms.c:      while(p--);
+cpu/waveforms.c:   } while(--r);
+cpu/waveforms.c:   p = (r >> 2) & (MAX_AVG-1);
+cpu/waveforms.c:   rv = g*(-1.0f + rv/MAX_RANDOM_2);
+cpu/waveforms.c:#define MIX(a,b,c)		_MINMAX((a)+(b),-(c), (c))
+cpu/waveforms.c:   float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
+cpu/waveforms.c:      i -= (int)rnd_skip;
+cpu/waveforms.c:      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+cpu/waveforms.c:   float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
+cpu/waveforms.c:      i -= (int)rnd_skip;
+cpu/waveforms.c:      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+cpu/waveforms.c:   float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
+cpu/waveforms.c:      i -= (int)rnd_skip;
+cpu/waveforms.c:      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+cpu/waveforms.c:   float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
+cpu/waveforms.c:      i -= (int)rnd_skip;
+cpu/waveforms.c:      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+cpu/waveforms.c:   float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
+cpu/waveforms.c:      i -= (int)rnd_skip;
+cpu/waveforms.c:      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+cpu/waveforms.c:   float mul = _MINMAX(gain, -1.0f, 1.0f) * max;
+cpu/waveforms.c:      i -= (int)rnd_skip;
+cpu/waveforms.c:      if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+cpu/waveforms.c:   samp = *(s+smax-1);
+cpu/waveforms.c:   dsamp = *(++s) - samp;
+cpu/waveforms.c:            smu -= 1.0f;
+cpu/waveforms.c:            dsamp = *s - samp;
+cpu/waveforms.c:      while (--i);
+cpu/waveforms.c:         float fact = 0.5f - (float)i/(4.0f*AVERAGE_SAMPS);
+cpu/waveforms.c:         int32_t dst = dptr[dmax-i-1];
+cpu/waveforms.c:         dptr[dmax-i-1] = fact*src + (1.0f - fact)*dst;
+cpu/waveforms.c:         dptr[i] = (1.0f - fact)*src + fact*dst;
+cpu/waveforms.c:      fc = expf((float)(q-1)*f)*100.0f;
+cpu/waveforms.c:      _batch_freqfilter(dst, ptr, no_samples, hist, k*(v1-v2), cptr);
+cpu/waveforms.c:   while (--q);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:            } while (--i);
+cpu/waveforms.c:         } while (--j);
+cpu/waveforms.c:         } while (--j);
+cpu/waveforms.c:            float nfreq = freq/(2*j-1);
+cpu/waveforms.c:            float ngain = gain/(2*j-1);
+cpu/waveforms.c:         } while (--j);
+cpu/waveforms.c:      float m = -1;
+cpu/waveforms.c:            float nfreq = freq/(2*j-1);
+cpu/waveforms.c:            m *= -1.0f;
+cpu/waveforms.c:         } while (--j);

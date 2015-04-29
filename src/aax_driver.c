@@ -43,7 +43,7 @@ static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int);
 static void _aaxContextSetupHRTF(void *, unsigned int);
-static void _aaxContextSetupSpeakers(void **, unsigned int);
+static void _aaxContextSetupSpeakers(void **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
 static int _aaxCheckKeyValidity(void*);
 static int _aaxCheckKeyValidityStr(char*);
@@ -1133,7 +1133,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                {
                   int t;
 
-                  _aaxContextSetupSpeakers(config->node[0].speaker,info->no_tracks);
+                  _aaxContextSetupSpeakers(config->node[0].speaker,
+                                           info->router, info->no_tracks);
                   for (t=0; t<handle->info->no_tracks; t++)
                   {
                      float gain = vec3Normalize(info->speaker[t],
@@ -1220,7 +1221,7 @@ _aaxContextSetupHRTF(void *xid, unsigned int n)
 }
 
 static void
-_aaxContextSetupSpeakers(void **speaker, unsigned int n)
+_aaxContextSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
 {
    unsigned int i;
 
@@ -1236,7 +1237,8 @@ _aaxContextSetupSpeakers(void **speaker, unsigned int n)
 
          channel = xmlNodeGetInt(xsid, "channel");
          if (channel >= n) channel = n-1;
-         _aaxContextDefaultRouter[i] = channel;
+
+         router[i] = channel;
 
          f = (float)xmlNodeGetDouble(xsid, "volume-norm");
          if (f) {
