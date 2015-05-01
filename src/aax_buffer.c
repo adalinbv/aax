@@ -28,6 +28,7 @@
 
 #include <software/audio.h>
 #include <software/rbuf_int.h>
+#include <stream/device.h>
 #include "devices.h"
 #include "arch.h"
 #include "api.h"
@@ -553,6 +554,53 @@ aaxBufferDestroy(aaxBuffer buffer)
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
+   return rv;
+}
+
+AAX_API aaxBuffer AAX_APIENTRY
+aaxBufferReadFromStream(aaxConfig config, const char *url)
+{
+   const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
+   _handle_t *handle = (_handle_t*)config;
+   aaxBuffer rv = NULL;
+
+   if (stream)
+   {
+      void *id = stream->new_handle(AAX_MODE_READ);
+
+      id = stream->connect(id, NULL, url, AAX_MODE_READ);
+      if (id)
+      {
+         _aaxMixerInfo* info = handle->info;
+         float refrate = info->refresh_rate;
+         float periodrate = info->period_rate;
+         unsigned ch = info->no_tracks;
+         float freq = info->frequency;
+         int brate = info->bitrate;
+         int fmt = info->format;
+         int res;
+
+         res = stream->setup(id, &refrate, &fmt, &ch, &freq, &brate,
+                                 AAX_FALSE, periodrate);
+         if (res)
+         {
+            size_t no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+            void *data = malloc(no_samples*ch*aaxGetBitsPerSample(fmt)/8);
+            if (data)
+            {
+               rv = aaxBufferCreate(config, no_samples, ch, fmt);
+               if (rv)
+               {
+                   res = aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
+                   res = aaxBufferSetData(rv, data);
+               }
+               free(data);
+            }
+         }
+         stream->disconnect(id);
+      }
+   }
+
    return rv;
 }
 
