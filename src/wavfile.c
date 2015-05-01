@@ -287,6 +287,10 @@ fileLoad(const char *file, unsigned int *no_samples,
 aaxBuffer
 bufferFromFile(aaxConfig config, const char *infile)
 {
+#if 1
+   printf("Reading %s\n", infile);
+   return aaxBufferReadFromStream(config, infile);
+#else
     aaxBuffer buffer = NULL;
     unsigned int fmt, no_samples;
     enum aaxFormat format;
@@ -322,6 +326,7 @@ bufferFromFile(aaxConfig config, const char *infile)
     free(data);
 
     return buffer;
+#endif
 }
 
 

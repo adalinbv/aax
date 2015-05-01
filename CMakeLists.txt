@@ -65,10 +65,6 @@ ENDIF(WIN32)
 # ZIP
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAXUTILS_VERSION}" CACHE INTERNAL "tarball basename")
 
-IF(NOT SINGLE_PACKAGE)
-  INCLUDE (CPack)
-ENDIF(NOT SINGLE_PACKAGE)
-
 # Add definitions, compiler switches, etc.
 ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
 IF(WERROR)
@@ -176,6 +172,10 @@ SET(BASE_OBJS
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
+
+IF(NOT SINGLE_PACKAGE)
+  INCLUDE (CPack)
+ENDIF(NOT SINGLE_PACKAGE)
 
 #-----------------------------------------------------------------------------
 ### uninstall target

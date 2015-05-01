@@ -179,7 +179,7 @@ getInputFile(int argc, char **argv, const char *filename)
 
     if (!fn) fn = getCommandLineOption(argc, argv, "--input");
     if (!fn) fn = (char *)filename;
-    if (access(fn, F_OK|R_OK) < 0) fn = NULL;
+//  if (access(fn, F_OK|R_OK) < 0) fn = NULL;
     return fn;
 }
 
