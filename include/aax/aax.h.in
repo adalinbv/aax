@@ -617,6 +617,7 @@ AAX_API int AAX_APIENTRY aaxBufferSetData(aaxBuffer, const void*);
 AAX_API void** AAX_APIENTRY aaxBufferGetData(const aaxBuffer);
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer, float, enum aaxWaveformType, float, enum aaxProcessingType);
+AAX_API aaxBuffer AAX_APIENTRY aaxBufferReadFromStream(aaxConfig, const char*);
 AAX_API int AAX_APIENTRY aaxBufferWriteToFile(aaxBuffer, const char*, enum aaxProcessingType);
 
 /* Pointer-to-function types */
