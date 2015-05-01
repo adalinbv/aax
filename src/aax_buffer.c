@@ -557,6 +557,12 @@ aaxBufferDestroy(aaxBuffer buffer)
    return rv;
 }
 
+/**
+ * This creates a buffer from an audio file indicated by an URL
+ *
+ * Warning: the function always favors rendering speed over memeory usage
+ *          which means the buffer format is ewual to the mixer format
+ */
 AAX_API aaxBuffer AAX_APIENTRY
 aaxBufferReadFromStream(aaxConfig config, const char *url)
 {
@@ -585,16 +591,28 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
          if (res)
          {
             size_t no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-            void *data = malloc(no_samples*ch*aaxGetBitsPerSample(fmt)/8);
-            if (data)
+            size_t scratchlen = no_samples*ch*aaxGetBitsPerSample(fmt)/8;
+            void *scratch = _aax_aligned_alloc16(scratchlen);
+            if (scratch)
             {
-               rv = aaxBufferCreate(config, no_samples, ch, fmt);
+               rv = aaxBufferCreate(config, no_samples, ch, AAX_PCM24S);
                if (rv)
                {
-                   res = aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
-                   res = aaxBufferSetData(rv, data);
+                  _buffer_t* buf = (_buffer_t*)rv;
+                  _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
+                  ssize_t len, offs = 0;
+                  void **tracks;
+
+                  buf->frequency = freq;
+                  rb->set_paramf(rb, RB_FREQUENCY, freq);
+                  rb->init(rb, AAX_FALSE);
+
+                  tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
+                  len = stream->capture(id, tracks, &offs, &no_samples,
+                                           scratch, scratchlen, 1.0f, AAX_TRUE);
+                  rb->release_tracks_ptr(rb);
                }
-               free(data);
+               _aax_aligned_free(scratch);
             }
          }
          stream->disconnect(id);
