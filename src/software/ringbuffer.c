@@ -239,6 +239,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       tracksize = SIZETO16(tracksize);
 
       tracks = rbd->no_tracks;
+
       ptr2 = (char*)(tracks * sizeof(void*));
       ptr = _aax_calloc(&ptr2, tracks, sizeof(void*) + tracksize);
 #else
