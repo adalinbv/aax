@@ -84,7 +84,7 @@ int main(int argc, char **argv)
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
-            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
+            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_FALSE);
             testForState(res, "aaxEmitterSetMode");
 
 
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
                 }
                 state = aaxEmitterGetState(emitter);
             }
-            while ((dt < 15.0f) && (state == AAX_PLAYING));
+            while ((dt < 60.0f) && (state == AAX_PLAYING));
 
             res = aaxEmitterSetState(emitter, AAX_STOPPED);
             testForState(res, "aaxEmitterStop");
