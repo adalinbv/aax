@@ -124,12 +124,11 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 }
 
 void
-_aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s)
+_aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
    _sensor_t *sensor = (_sensor_t*)s;
-   _aaxAudioFrame* smixer = sensor->mixer;
-   _aaxMixerInfo *info = smixer->info;
+   _aaxMixerInfo *info = (_aaxMixerInfo*)i;
    unsigned char *router = info->router;
    unsigned int track, no_tracks, lfe_track;
    size_t no_samples, track_len_bytes;

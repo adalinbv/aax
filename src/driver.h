@@ -119,7 +119,7 @@ typedef size_t _aaxDriverPlaybackCallback(const void*, void*, float, float, char
 typedef ssize_t _aaxDriverCaptureCallback(const void*, void**, ssize_t*, size_t*, void*, size_t, float, char);
 
 typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*);
-typedef void _aaxDriverPostProcess(const void*, void*, const void*);
+typedef void _aaxDriverPostProcess(const void*, void*, const void*, void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*);
 
 typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
@@ -178,7 +178,7 @@ void _aaxNoneDriverProcessFrame(void*);
 
 void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
-void _aaxSoftwareMixerPostProcess(const void *, void *, const void *);
+void _aaxSoftwareMixerPostProcess(const void *, void *, const void *, void*);
 void _aaxSoftwareMixerApplyEffects(const void *, const void *, void *, const void *);
 
 
