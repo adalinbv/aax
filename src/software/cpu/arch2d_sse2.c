@@ -1007,7 +1007,12 @@ _batch_freqfilter_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, 
       size_t i = num;
 
 //    c = _mm_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-      c = _mm_load_ps(cptr);
+      if (((size_t)cptr & 0xF) == 0) {
+         c = _mm_load_ps(cptr);
+      } else {
+         c = _mm_loadu_ps(cptr);
+      }
+
       c = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3,1,2,0));
 
 //    h = _mm_set_ps(hist[1], hist[1], hist[0], hist[0]);
