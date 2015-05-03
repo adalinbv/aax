@@ -244,37 +244,37 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
       if (crossover && track != lfe_track)
       {
          _aaxRingBufferFreqFilterData* filter;
+         float *hist, *cptr;
+         MIX_T *dptr, *sptr;
 
-         rbd->add(lfe, tracks[track], no_samples, 1.0f, 0.0f);
+         sptr = scratch[1];
+         dptr = tracks[track];
+         rbd->add(lfe, dptr, no_samples, 1.0f, 0.0f);
 
          filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
-         filter->lf_gain = 0.0f;
-         filter->hf_gain = 1.0f;
-         filter->hf_gain_prev = 1.0f;
-         _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
-         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                     0, no_samples, 0, track, filter, NULL, 0);
+         hist = filter->freqfilter_history[track];
+         cptr = filter->coeff;
+
+         _aax_memcpy(sptr, dptr, track_len_bytes);
+         rbd->freqfilter(dptr, sptr, no_samples, hist, -1.0f*filter->k, cptr);
+         rbd->freqfilter(dptr, dptr, no_samples, hist+2, 1.0f, cptr+4);
+         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
       }
    }
 
    rb->limit(rb, RB_LIMITER_ELECTRONIC);
 
-   // TODO: Surround Sound crossover filtering
-   //       1. copy all channels to AAX_TRACK_LFE
-   //       2. apply a highpass filter to all channels but the LFE
-   //       3. apply limiter
-   //       4. apply a lowpass filter to the LFE
    if (crossover)
    {
       _aaxRingBufferFreqFilterData* filter;
+      float *cptr, *hist;
 
       filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
+      hist = filter->freqfilter_history[lfe_track];
+      cptr = filter->coeff;
 
-      filter->lf_gain = 1.0f;
-      filter->hf_gain = 0.0f;
-      filter->hf_gain_prev = 1.0f;
-      _aaxRingBufferFilterFrequency(rbd, lfe, lfe, 0, no_samples,
-                                    0, lfe_track, filter, NULL, 0);
+      rbd->freqfilter(lfe, lfe, no_samples, hist, filter->k, cptr);
+      rbd->freqfilter(lfe, lfe, no_samples, hist+2, 1.0f, cptr+4);
    }
 }
 
