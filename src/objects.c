@@ -81,15 +81,22 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    size = _AAX_MAX_SPEAKERS*sizeof(vec4_t);
    memset(p2d->speaker, 0, 2*size);
 
-   /* heade setup, unused for emitters */
-   size = sizeof(vec4_t);
-   memset(p2d->head, 0, size);
-
-   /* hrtf sample offsets */
+   /* HRTF sample offsets */
    size = 2*sizeof(vec4_t);
    memset(p2d->hrtf, 0, size);
    memset(p2d->hrtf_prev, 0, size);
 
+   /* HRTF head shadow */
+   size = 4*sizeof(float);
+   memset(p2d->coeff, 0, size);
+
+   size = 2*_AAX_MAX_SPEAKERS*sizeof(float);
+   memset(p2d->freqfilter_history, 0, size);
+
+   p2d->k = 0.0f;
+   p2d->hf_gain_prev = 1.0f;
+
+   /* stereo filters */
    for (pos=0; pos<MAX_STEREO_FILTER; pos++) {
       _aaxSetDefaultFilter2d(&p2d->filter[pos], pos);
    }
