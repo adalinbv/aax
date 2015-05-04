@@ -18,16 +18,16 @@
 #include "arch2d_simd.h"
 
 void
-_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, float vstep)
+_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, float vstep)
 {
-   if (num && (v > GMATH_128DB || vstep > GMATH_128DB))
+   if (num && (f > GMATH_128DB || vstep > GMATH_128DB))
    {
       int32_t* s = (int32_t* )sptr;
       int32_t* d = dptr;
       size_t i = num;
 
       /* f == 1.0f && step = 0.0f */
-      if (fabs(v - 1.0f) < GMATH_128DB && vstep < GMATH_128DB)
+      if (fabs(f - 1.0f) < GMATH_128DB && vstep < GMATH_128DB)
       {
          do {
             *d++ += *s++;
@@ -37,7 +37,6 @@ _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, floa
       else
       {
          int32_t v = (int32_t)(f*1024.0f);
-
          do {
             *d++ += ((*s++ >> 2) * v) >> 8;
          }
