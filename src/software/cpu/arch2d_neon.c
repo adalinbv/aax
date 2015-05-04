@@ -126,13 +126,57 @@ _batch_cvt24_ps24_neon(void_ptr dst, const_void_ptr src, size_t num)
    }
 }
 
+static void
+_batch_iadd_neon(int32_ptr d, const_int32_ptr src, size_t num)
+{
+   int32_t *s = (int32_t *)src;
+   size_t i, size, step;
+
+   step = sizeof(int32x4x4_t)/sizeof(int32_t);
+
+   i = size = num/step;
+   if (i)
+   {
+      int32x4x4_t nir4;
+
+      do
+      {
+         int32x4x4_t nir4d, nir4s;
+
+         nir4s = vld4q_s32(s);
+         nir4d = vld4q_s32(d);
+         s += 4*4;
+
+         nir4d.val[0] = vaddq_s32(nir4d.val[0], nir4s.val[0]);
+         nir4d.val[1] = vaddq_s32(nir4d.val[1], nir4s.val[1]);
+         nir4d.val[2] = vaddq_s32(nir4d.val[2], nir4s.val[2]);
+         nir4d.val[3] = vaddq_s32(nir4d.val[3], nir4s.val[3]);
+
+         vst4q_s32(d, nir4);
+         d += 4*4;
+      }
+      while(--i);
+   }
+
+   i = num - size*step;
+   if (i) {
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
 void
 _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float fstep)
 {
    int32_t *s = (int32_t *)src;
    size_t i, size, step;
 
-   if (!num) return;
+   if (!num || (v < GMATH_128DB && vstep < GMATH_128DB)) return;
+   if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
+      _batch_iadd_neon(dst, src, num);
+      return;
+   }
 
    step = 2*sizeof(int32x4_t)/sizeof(int32_t);
 
@@ -161,6 +205,7 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
 
          f += fstep;
 
+         nir4 = vld4q_s32(d);
          nnir4.val[0] = vcvtq_s32_f32(nfr[0]);
          nnir4.val[1] = vcvtq_s32_f32(nfr[1]);
          nnir4.val[2] = vcvtq_s32_f32(nfr[2]);
@@ -190,7 +235,7 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
 }
 
 static void
-_batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
+_batch_fadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
 {
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
@@ -236,7 +281,7 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
-   if (!num || v < GMATH_128DB) return;
+   if (!num || (v < GMATH_128DB && vstep < GMATH_128DB)) return;
    if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
       _batch_fadd_neon(dst, src, num);
       return;
