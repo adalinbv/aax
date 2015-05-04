@@ -189,12 +189,58 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
    }
 }
 
+static void
+_batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
+{
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step;
+
+   step = sizeof(float32x4x4_t)/sizeof(float);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      float32x4x4_t sfr4, dfr4;
+
+      do
+      {
+         sfr4 = vld4q_f32(s);   // load s
+         dfr4 = vld4q_f32(d);   // load d
+         s += step;
+
+         dfr4.val[0] = vaddq_f32(dfr4.val[0], sfr4.val[0]);
+         dfr4.val[1] = vaddq_f32(dfr4.val[1], sfr4.val[1]);
+         dfr4.val[2] = vaddq_f32(dfr4.val[2], sfr4.val[2]);
+         dfr4.val[3] = vaddq_f32(dfr4.val[3], sfr4.val[3]);
+
+         vst4q_f32(d, dfr4);    // store d
+         d += step;
+      }
+      while(--i);
+   }
+
+   if (num) {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
 void
 _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
+
+   if (!num || v < GMATH_128DB) return;
+   if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
+      _batch_fadd_neon(dst, src, num);
+      return;
+   }
 
    step = sizeof(float32x4x4_t)/sizeof(float);
 
@@ -236,7 +282,6 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          v += vstep;
       } while(--i);
    }
-
 }
 
 void
