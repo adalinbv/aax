@@ -130,13 +130,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    _sensor_t *sensor = (_sensor_t*)s;
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
    unsigned char *router = info->router;
-   unsigned int track, no_tracks, lfe_track;
+   unsigned int track, no_tracks;
    size_t no_samples, track_len_bytes;
    char parametric, graphic, crossover;
+   unsigned char  lfe_track;
+   MIX_T *lfe, **tracks, **scratch;
    _aaxRingBufferReverbData *reverb;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   MIX_T *lfe, **tracks, **scratch;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -152,9 +153,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   lfe_track = router[AAX_TRACK_LFE];
 
    reverb = NULL;
+   lfe_track = router[AAX_TRACK_LFE];
    crossover = parametric = graphic = 0;
    if (sensor)
    {
@@ -171,7 +172,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    }
 
    tracks = (MIX_T**)rbd->track;
-   lfe = tracks[lfe_track];
+   if (crossover)
+   {
+      lfe = tracks[lfe_track];
+      memset(lfe, 0, track_len_bytes);
+   }
+
    scratch = (MIX_T**)rb->get_scratch(rb);
    for (track=0; track<no_tracks; track++)
    {
@@ -256,7 +262,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          cptr = filter->coeff;
 
          _aax_memcpy(sptr, dptr, track_len_bytes);
-         rbd->freqfilter(dptr, sptr, no_samples, hist, -1.0f*filter->k, cptr);
+         rbd->freqfilter(dptr, sptr, no_samples, hist, -filter->k, cptr);
          rbd->freqfilter(dptr, dptr, no_samples, hist+2, 1.0f, cptr+4);
          rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
       }
