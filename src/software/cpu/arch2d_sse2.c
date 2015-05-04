@@ -419,15 +419,91 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 }
 
+static void
+_batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)
+{
+   int32_ptr d = (int32_ptr)dst;
+   int32_ptr s = (int32_ptr)src;
+   size_t i, step, dtmp, stmp;
+
+   dtmp = (size_t)d & 0xF;
+   stmp = (size_t)s & 0xF;
+   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      i = num;
+      do {
+         *d++ += *s++;
+      } while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+   if (dtmp && num)
+   {
+      i = (0x10 - dtmp)/sizeof(int32_t);
+      if (i <= num)
+      {
+         num -= i;
+         do
+         {
+            *d++ += *s++;
+         } while(--i);
+      }
+   }
+
+   step = 2*sizeof(__m128i)/sizeof(int32_t);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      __m128i *sptr = (__m128i *)s;
+      __m128i *dptr = (__m128i *)d;
+      __m128i xmm0i, xmm3i, xmm4i, xmm7i;
+
+      do
+      {
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+         xmm0i = _mm_load_si128(sptr++);
+         xmm4i = _mm_load_si128(sptr++);
+
+         s += step;
+
+         xmm3i = _mm_load_si128(dptr);
+         xmm7i = _mm_load_si128(dptr+1);
+
+         d += step;
+
+         xmm0i = _mm_add_epi32(xmm0i, xmm3i);
+         xmm4i = _mm_add_epi32(xmm4i, xmm7i);
+
+         _mm_store_si128(dptr++, xmm0i);
+         _mm_store_si128(dptr++, xmm4i);
+      }
+      while(--i);
+   }
+
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
 void
 _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float vstep)
 {
    int32_ptr d = (int32_ptr)dst;
    int32_ptr s = (int32_ptr)src;
-   size_t i, step;
-   size_t dtmp, stmp;
+   size_t i, step, dtmp, stmp;
 
-   if (!num) return;
+   if (!num || v < GMATH_128DB) return;
+   if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
+      _batch_iadd_sse2(dst, src, num);
+      return;
+   }
 
    dtmp = (size_t)d & 0xF;
    stmp = (size_t)s & 0xF;
@@ -517,15 +593,133 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    }
 }
 
+static void
+_batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
+{
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step, dtmp, stmp;
+
+   dtmp = (size_t)d & 0xF;
+   stmp = (size_t)s & 0xF;
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      i = num;                          /* improperly aligned,            */
+      do                                /* let the compiler figure it out */
+      {
+         *d++ += *s++;
+      }
+      while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+   if (dtmp && num)
+   {
+      i = (0x10 - dtmp)/sizeof(int32_t);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += *s++;
+         } while(--i);
+      }
+   }
+
+#if !SSE_16BUFFERS
+   step = 4*sizeof(__m128)/sizeof(float);
+#else
+   step = 8*sizeof(__m128)/sizeof(float);
+#endif
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      __m128* sptr = (__m128*)s;
+      __m128 *dptr = (__m128*)d;
+      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+#if SSE_16BUFFERS
+      __m128 xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
+#endif
+
+      do
+      {
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+
+         xmm0 = _mm_load_ps((const float*)sptr++);
+         xmm1 = _mm_load_ps((const float*)sptr++);
+         xmm4 = _mm_load_ps((const float*)sptr++);
+         xmm5 = _mm_load_ps((const float*)sptr++);
+#if SSE_16BUFFERS
+         xmm10 = _mm_load_ps((const float*)sptr++);
+         xmm11 = _mm_load_ps((const float*)sptr++);
+         xmm14 = _mm_load_ps((const float*)sptr++);
+         xmm15 = _mm_load_ps((const float*)sptr++);
+#endif
+
+         s += step;
+         d += step;
+
+         xmm2 = _mm_load_ps((const float*)dptr);
+         xmm3 = _mm_load_ps((const float*)(dptr+1));
+         xmm6 = _mm_load_ps((const float*)(dptr+2));
+         xmm7 = _mm_load_ps((const float*)(dptr+3));
+#if SSE_16BUFFERS
+         xmm8 = _mm_load_ps((const float*)dptr+4);
+         xmm9 = _mm_load_ps((const float*)(dptr+5));
+         xmm12 = _mm_load_ps((const float*)(dptr+6));
+         xmm13 = _mm_load_ps((const float*)(dptr+7));
+#endif
+
+         xmm2 = _mm_add_ps(xmm2, xmm0);
+         xmm3 = _mm_add_ps(xmm3, xmm1);
+         xmm6 = _mm_add_ps(xmm6, xmm4);
+         xmm7 = _mm_add_ps(xmm7, xmm5);
+#if SSE_16BUFFERS
+         xmm8 = _mm_add_ps(xmm8, xmm10);
+         xmm9 = _mm_add_ps(xmm9, xmm11);
+         xmm12 = _mm_add_ps(xmm12, xmm14);
+         xmm13 = _mm_add_ps(xmm13, xmm15);
+#endif
+
+         _mm_store_ps((float*)dptr++, xmm2);
+         _mm_store_ps((float*)dptr++, xmm3);
+         _mm_store_ps((float*)dptr++, xmm6);
+         _mm_store_ps((float*)dptr++, xmm7);
+#if SSE_16BUFFERS
+         _mm_store_ps((float*)dptr++, xmm8);
+         _mm_store_ps((float*)dptr++, xmm9);
+         _mm_store_ps((float*)dptr++, xmm12);
+         _mm_store_ps((float*)dptr++, xmm13);
+#endif
+      }
+      while(--i);
+   }
+
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
+
 void
 _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
-   size_t i, step;
-   size_t dtmp, stmp;
+   size_t i, step, dtmp, stmp;
 
-   if (!num) return;
+   if (!num || v < GMATH_128DB) return;
+   if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
+      _batch_fadd_sse2(dst, src, num);
+      return;
+   }
 
    dtmp = (size_t)d & 0xF;
    stmp = (size_t)s & 0xF;
