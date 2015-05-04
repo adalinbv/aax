@@ -372,10 +372,25 @@ aaxDriverOpen(aaxConfig config)
                int type = SURROUND_CROSSOVER;
                _filter_t *filter;
 
+               /* crossover filter at 80Hz, 4th orer (24dB/oct) */
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
                filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                                  80.0f, 1.0f, 0.0f, 1.0f);
                filter = aaxFilterSetState(filter, AAX_FILTER_24DB_OCT);
+               _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
+               aaxFilterDestroy(filter);
+            }
+            else if (handle->info->mode == AAX_MODE_WRITE_HRTF)
+            {
+               int type = HRTF_HEADSHADOW;
+               _filter_t *filter;
+
+// http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
+               /* head shadow filter at 1kHz, 1st order (6dB/oct) max */
+               filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+               filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                                 1000.0f, 1.0f, 0.0f, 1.0f);
+               filter = aaxFilterSetState(filter, AAX_FILTER_12DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
                aaxFilterDestroy(filter);
             }

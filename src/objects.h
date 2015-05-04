@@ -243,14 +243,6 @@ typedef ALIGN16 struct
 
 } _aaxMixerInfo ALIGN16C;
 
-/* head shadow frequency filter at 750Hz, 1st order */
-typedef struct
-{
-   vec4_t coeff;
-   float freqfilter_history[2];
-   float k, hf_gain_prev;
-} _aaxHeadShadowFilterData;
-
 typedef ALIGN16 struct
 {
    /* modelview matrix and velocity */
@@ -287,15 +279,19 @@ typedef ALIGN16 struct
       /* head[1] up delay sec      */
       /* head[2] forward delay sec */
       /* head[3] up offset sec     */
-   vec4_t head;
    vec4_t hrtf[2];
    vec4_t hrtf_prev[2];
-   _aaxHeadShadowFilterData shadow;
+
+   /* HRTF head shadow */
+   float coeff[4];	// better if it's first so it is 16-byte aligned
+   float freqfilter_history[_AAX_MAX_SPEAKERS][2];
+   float k, hf_gain_prev;
 
    /* stereo filters */
    _aaxFilterInfo filter[MAX_STEREO_FILTER];
    _aaxEffectInfo effect[MAX_STEREO_EFFECT];
 
+   /* smooth transition between volume and pitch values */
    float prev_gain[_AAX_MAX_SPEAKERS];
    float prev_freq_fact;
 
