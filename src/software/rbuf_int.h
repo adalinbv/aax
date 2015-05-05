@@ -83,7 +83,7 @@ _aaxRingBufferMixMNFn(struct _aaxRingBufferSample_t*, const struct _aaxRingBuffe
  * @param evol volume at the end of the mixing process (envelope following)
  */
 typedef void
-_aaxRingBufferMix1NFn(struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const unsigned char*, _aax2dProps*, unsigned char, size_t, size_t, float, float, float);
+_aaxRingBufferMix1NFn(struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const unsigned char*, _aax2dProps*, unsigned char, size_t, size_t, float, float, float, float);
 
 
 enum

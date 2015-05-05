@@ -283,9 +283,7 @@ typedef ALIGN16 struct
    vec4_t hrtf_prev[2];
 
    /* HRTF head shadow */
-   float coeff[4];	// better if it's first so it is 16-byte aligned
-   float freqfilter_history[_AAX_MAX_SPEAKERS][2];
-   float k, hf_gain_prev;
+   float freqfilter_history[_AAX_MAX_SPEAKERS];
 
    /* stereo filters */
    _aaxFilterInfo filter[MAX_STEREO_FILTER];
