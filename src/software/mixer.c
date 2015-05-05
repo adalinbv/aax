@@ -168,7 +168,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    }
 
    if (reverb) {
-      rb->limit(rb, RB_LIMITER_VALVE);
+      rb->limit(rb, RB_LIMITER_ELECTRONIC);
    }
 
    tracks = (MIX_T**)rbd->track;
