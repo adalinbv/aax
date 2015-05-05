@@ -72,11 +72,19 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
 static aaxFilter
 _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
+   int mask, istate, wstate;
    aaxFilter rv = NULL;
 
-   switch ((state & ~(AAX_INVERSE | AAX_FILTER_24DB_OCT | AAX_FILTER_48DB_OCT))
-          || state == AAX_FILTER_24DB_OCT || state == AAX_FILTER_48DB_OCT)
+   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE |
+          AAX_ENVELOPE_FOLLOW;
+
+   istate = state & ~AAX_INVERSE;
+   wstate = istate & mask;
+
+   switch (wstate || state == AAX_FILTER_6DB_OCT || state == AAX_FILTER_12DB_OCT
+                || state == AAX_FILTER_24DB_OCT || state == AAX_FILTER_48DB_OCT)
    {
+   case AAX_FILTER_6DB_OCT:
    case AAX_FILTER_12DB_OCT:
    case AAX_FILTER_24DB_OCT:
    case AAX_FILTER_48DB_OCT:
@@ -98,6 +106,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
       if (state & AAX_FILTER_48DB_OCT) stages = 3;
       else if (state & AAX_FILTER_24DB_OCT) stages = 2;
+      else if (state & AAX_FILTER_6DB_OCT) stages = 0;
       else stages = 1;
 
       if (flt)
@@ -108,18 +117,24 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float fs = flt->fs; 
          float k = 1.0f;
 
-//       flt->fs = fs = filter->info->frequency;
-         iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
          flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
          flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->Q = Q;
-         flt->k = k;
+         if (stages) // 2nd, 4th or 8th order filter
+         {
+            iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
+            flt->k = k;
+         }
+         else // 1st order filter
+         {
+            mavg_compute(fc, fs, &k);
+            flt->k = k;
+         }
 
          // Non-Manual only
-         if ((state & ~AAX_INVERSE) != AAX_TRUE && EBF_VALID(filter)
-             && filter->slot[1])
+         if (wstate && EBF_VALID(filter) && filter->slot[1])
          {
             _aaxRingBufferLFOData* lfo = flt->lfo;
 
@@ -131,8 +146,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
             {
                int t;
 
-               lfo->min=filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-               lfo->max=filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+               lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+               lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
                if (fabsf(lfo->max - lfo->min) < 200.0f)
                { 
                   lfo->min = 0.5f*(lfo->min + lfo->max);
@@ -156,7 +171,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                   lfo->step[t] *= (lfo->max - lfo->min);
                   lfo->step[t] /= filter->info->period_rate;
                   lfo->value[t] = lfo->max;
-                  switch (state & ~AAX_INVERSE)
+                  switch (wstate)
                   {
                   case AAX_SAWTOOTH_WAVE:
                      lfo->step[t] *= 0.5f;
@@ -173,7 +188,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->get = _aaxRingBufferLFOGetFixedValue;
                if ((lfo->max - lfo->min) > 0.01f)
                {
-                  switch (state & ~AAX_INVERSE)
+                  switch (wstate)
                   {
                   case AAX_TRIANGLE_WAVE:
                      lfo->get = _aaxRingBufferLFOGetTriangle;
@@ -198,7 +213,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                }
             } /* flt->lfo */
          } /* flt */
-         else if ((state & ~AAX_INVERSE) == AAX_TRUE)
+         else if (wstate == AAX_FALSE)
          {
             free(flt->lfo);
             flt->lfo = NULL;

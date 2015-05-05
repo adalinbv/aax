@@ -98,6 +98,7 @@ typedef float _aaxRingBufferDistFn(float, float, float, float, float, float);
 extern _aaxRingBufferDistFn* _aaxRingBufferDistanceFn[];
 extern _aaxRingBufferDistFn* _aaxRingBufferALDistanceFn[];
 
+void mavg_compute(float, float, float*);
 void iir_compute_coefs(float, float, float*, float*, float, int);
 void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 void _aaxRingBufferDelaysRemove(void**);

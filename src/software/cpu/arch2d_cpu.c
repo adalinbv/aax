@@ -938,6 +938,29 @@ _batch_endianswap64_cpu(void* data, size_t num)
    }
 }
 
+/* 1st order: 6dB/oct (X[k] = a*X[k-1] + (1-a)*Y[k]) */
+/* http://lorien.ncl.ac.uk/ming/filter/fillpass.htm  */
+void
+_batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      int32_ptr s = (int32_ptr)sptr;
+      float smp, a0 = 1.0f - a1;
+      size_t i = num;
+
+      smp = *hist;
+      do
+      {
+         smp = a0*smp + a1*(*s++);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+/* 2nd order: 12dB/oct */
 void
 _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
@@ -965,6 +988,26 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist
 
       hist[0] = h0;
       hist[1] = h1;
+   }
+}
+
+void
+_batch_movingavg_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, a0 = 1.0f - a1;
+      size_t i = num;
+
+      smp = *hist;
+      do
+      {
+         smp = a0*smp + a1*(*s++);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
    }
 }
 

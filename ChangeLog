@@ -1,15 +1,15 @@
-* Mon Apr 20  2015 - tech@adalin.org
+* Mon May 05  2015 - tech@adalin.org
 - AeonWave (2.5.4) stable; urgency=low
- * Add support for 24dB/oct and for 48dB/oct frequency filtering in addition to
-   12dB/oct freqeucnty filtering which still is the default.
+ * Add support for 6db/oct, 24dB/oct and 48dB/oct frequency filtering
+   12dB/oct is still the default.
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
    defined at 80Hz and 24dB/oct
  * Speed improvements on frequency filter execution time.
- * Improve noise frequency spectrum spread.
+ * Improve (white)noise waveform frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.
 
--- Erik Hofman <tech@adalin.org>  Mon, 20 Apr  2015 15:00:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon, 05 May  2015 15:00:00 + 0200
 
 * Wed Mar 25 2015 - tech@adalin.org
 - AeonWave (2.5.3) stable; urgency=low

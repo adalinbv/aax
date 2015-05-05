@@ -83,8 +83,11 @@ _batch_imadd_proc _batch_imadd = _batch_imadd_cpu;
 _batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
 _batch_mul_value_proc _batch_imul_value = _batch_imul_value_cpu;
 _batch_mul_value_proc _batch_fmul_value = _batch_fmul_value_cpu;
+_batch_movingavg_proc _batch_movingavg = _batch_movingavg_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
+_batch_movingavg_float_proc _batch_movingavg_float = _batch_movingavg_float_cpu;
 _batch_freqfilter_float_proc _batch_freqfilter_float = _batch_freqfilter_float_cpu;
+
 
 #if RB_FLOAT_DATA
 _batch_cvt_from_proc _batch_cvt24_ps24 = _batch_cvt24_ps24_cpu;
