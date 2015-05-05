@@ -386,10 +386,11 @@ mavg_compute(float fc, float fs, float *a)
 void
 iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int stages)
 {
+   // http://www.electronics-tutorials.ws/filter/filter_8.html
    static const float _b1[3][3] = {
-      { 1.4142f,    0.0f,      0.0f      },
-      { 0.765367,   1.847759,  0.0f      },
-      { 0.5176387f, 1.414214f, 1.931852f }
+      { 1.4142f,    0.0f,      0.0f      },	// 2nd order
+      { 0.765367,   1.847759,  0.0f      },	// 4th order
+      { 0.5176387f, 1.414214f, 1.931852f }	// 6th roder
    };
    int i, pos = stages-1;
    float k = 1.0f;
@@ -524,7 +525,7 @@ _aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
    *coef   =         (a2 - a1 + a0) / ad;
 }
 
-static void
+static void // pre-warp
 _aax_szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
         float fc, float fs, float *k, float *coef)
 {
