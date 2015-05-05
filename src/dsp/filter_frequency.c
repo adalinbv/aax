@@ -82,12 +82,12 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    wstate = istate & mask;
 
    switch (wstate || state == AAX_FILTER_6DB_OCT || state == AAX_FILTER_12DB_OCT
-                || state == AAX_FILTER_24DB_OCT || state == AAX_FILTER_48DB_OCT)
+                || state == AAX_FILTER_24DB_OCT || state == AAX_FILTER_36DB_OCT)
    {
    case AAX_FILTER_6DB_OCT:
    case AAX_FILTER_12DB_OCT:
    case AAX_FILTER_24DB_OCT:
-   case AAX_FILTER_48DB_OCT:
+   case AAX_FILTER_36DB_OCT:
    case AAX_TRIANGLE_WAVE:
    case AAX_SINE_WAVE:
    case AAX_SQUARE_WAVE:
@@ -104,7 +104,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          filter->slot[0]->data = flt;
       }
 
-      if (state & AAX_FILTER_48DB_OCT) stages = 3;
+      if (state & AAX_FILTER_36DB_OCT) stages = 3;
       else if (state & AAX_FILTER_24DB_OCT) stages = 2;
       else if (state & AAX_FILTER_6DB_OCT) stages = 0;
       else stages = 1;
