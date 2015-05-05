@@ -377,6 +377,13 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
 #endif /* !ENABLE_LITE */
 
 void
+mavg_compute(float fc, float fs, float *a)
+{
+   fc *= GMATH_2PI;
+   *a = fc/(fc+fs);
+}
+
+void
 iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int stages)
 {
    static const float _b1[3][3] = {
@@ -437,11 +444,15 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       stages = filter->no_stages;
       if (filter->lfo && !ctr)
       {
-         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1.0f);
+         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
          float Q = filter->Q;
 
          k = 1.0f;
-         iir_compute_coefs(fc, filter->fs, cptr, &k, Q, stages);
+         if (!stages) {
+            mavg_compute(fc, filter->fs, &k);
+         } else {
+            iir_compute_coefs(fc, filter->fs, cptr, &k, Q, stages);
+         }
          filter->k = k;
       }
 
@@ -450,13 +461,19 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       // result:   *dptr = smp*(lf-hf) + *s * hf;
       num = dmax+ds-dmin;
 
-      // *dptr = smp*(lf-hf)
-      rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
-      if (--stages)
+      if (!stages) {
+         rbd->movingavg(dptr, sptr, num, hist, k);
+      }
+      else
       {
-         rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
-         if (--stages) {
-            rbd->freqfilter(dptr, dptr, num, hist+4, 1.0f, cptr+8);
+         // *dptr = smp*(lf-hf)
+         rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
+         if (--stages)
+         {
+            rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
+            if (--stages) {
+               rbd->freqfilter(dptr, dptr, num, hist+4, 1.0f, cptr+8);
+            }
          }
       }
 

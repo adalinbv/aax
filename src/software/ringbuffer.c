@@ -122,11 +122,13 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
          rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
 #if RB_FLOAT_DATA
+         rbd->movingavg = _batch_movingavg_float;
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
          rbd->multiply = _batch_fmul_value;
          rbd->add = _batch_fmadd;
 #else
+         rbd->movingavg = _batch_movingavg;
          rbd->freqfilter = _batch_freqfilter;
          rbd->resample = _batch_resample;
          rbd->multiply = _batch_imul_value;
