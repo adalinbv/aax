@@ -20,14 +20,14 @@
 void
 _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, float vstep)
 {
-   if (num && (f > GMATH_128DB || vstep > GMATH_128DB))
+   if (num && (f != 0.0f || vstep != 0.0f))
    {
       int32_t* s = (int32_t* )sptr;
       int32_t* d = dptr;
       size_t i = num;
 
       /* f == 1.0f && step = 0.0f */
-      if (fabs(f - 1.0f) < GMATH_128DB && vstep < GMATH_128DB)
+      if (fabs(f - 1.0f) < GMATH_128DB && vstep == 0.0f)
       {
          do {
             *d++ += *s++;
@@ -48,14 +48,14 @@ _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, floa
 void
 _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
-   if (num && (v > GMATH_128DB || vstep > GMATH_128DB))
+   if (num && (v != 0.0f || vstep != 0.0f))
    {
       float *s = (float*)sptr;
       float *d = dptr;
       size_t i = num;
 
       /* v == 1.0f && step = 0.0f */
-      if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB)
+      if (fabs(v - 1.0f) <GMATH_128DB && vstep == 0.0f)
       {
          do {
             *d++ += *s++;

@@ -499,8 +499,8 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    int32_ptr s = (int32_ptr)src;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v < GMATH_128DB && vstep < GMATH_128DB)) return;
-   if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
+   if (!num || (v == 0.0f && vstep == 0.0f)) return;
+   if (fabs(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
       _batch_iadd_sse2(dst, src, num);
       return;
    }
@@ -715,8 +715,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v < GMATH_128DB && vstep < GMATH_128DB)) return;
-   if (fabs(v - 1.0f) <GMATH_128DB && vstep < GMATH_128DB) {
+   if (!num || (v == 0.0f && vstep == 0.0f)) return;
+   if (fabs(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
       _batch_fadd_sse2(dst, src, num);
       return;
    }
