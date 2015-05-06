@@ -193,6 +193,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
    }
 }
 
+// http://www.sfu.ca/sonic-studio/handbook/Binaural_Hearing.html
 void
 _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, float svol, float evol)
 {
@@ -210,27 +211,26 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 
       /*
        * IID; Interaural Intensitive Differenc
-       * TODO: Implement 'head shadow' _frequency_ filter
        */
 
       /**
        * vertical positioning
        **/
       dir_fact = (ep2d->speaker[t][DIR_UPWD]);
-      hrtf_volume[DIR_UPWD] = 0.3f;
+      hrtf_volume[DIR_UPWD] = _MIN(0.5f + dir_fact, 1.0f);
 
       /**
        * horizontal positioning, back-front
        **/
       dir_fact = (ep2d->speaker[t][DIR_BACK]);
-      hrtf_volume[DIR_BACK] = 0.33f + dir_fact;
+      hrtf_volume[DIR_BACK] = _MIN(0.5f + dir_fact, 1.0f);
 
       /**
        * horizontal positioning, left-right
        * must be last: dir_fact is used for head shadow filtering
        **/
       dir_fact = ep2d->speaker[t][DIR_RIGHT];
-      hrtf_volume[DIR_RIGHT] = 0.66f + dir_fact;
+      hrtf_volume[DIR_RIGHT] = _MIN(0.66f + dir_fact, 1.0f);
 
 #if 0
  printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t][0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t][1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t][2]/44100.0f);
@@ -262,7 +262,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          ep2d->prev_gain[3*t+i] = hrtf_volume[i] * gain;
       }
 
-      // HEAD shadow
+      /* HEAD shadow frequency filter */
       if (dir_fact < 0.0f)
       {
          float *hist, fc, k;
@@ -270,8 +270,8 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          hist = &ep2d->freqfilter_history[t];
          k = 1.0f;
 
-         // dir_fact = 0: 20kHz, dir_fact = -0.33: 1kHz
-         fc = 20000.0f + 3*19000.0f*dir_fact;
+         // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 1kHz
+         fc = 20000.0f + 19000.0f*dir_fact;
          mavg_compute(fc, fs, &k);
 
          drbd->movingavg(dptr, dptr, dno_samples, hist, k);
