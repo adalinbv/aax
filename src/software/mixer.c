@@ -221,7 +221,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          do
          {
             filter = &eq->band[--b];
-            if (filter->lf_gain > GMATH_128DB || filter->hf_gain > GMATH_128DB)
+            if (filter->lf_gain || filter->hf_gain)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
                                      0, no_samples, 0, track, filter, NULL, 0);
@@ -229,7 +229,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
             }
 
             filter = &eq->band[--b];
-            if (filter->lf_gain > GMATH_128DB || filter->hf_gain > GMATH_128DB)
+            if (filter->lf_gain || filter->hf_gain)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
                                      0, no_samples, 0, track, filter, NULL, 0);
@@ -237,7 +237,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
             }
 
             filter = &eq->band[--b];
-            if (filter->lf_gain > GMATH_128DB || filter->hf_gain > GMATH_128DB)
+            if (filter->lf_gain || filter->hf_gain)
             {
                _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
                                      0, no_samples, 0, track, filter, NULL, 0);

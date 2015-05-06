@@ -118,7 +118,9 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float k = 1.0f;
 
          flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
+         if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
          flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
+         if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->Q = Q;
