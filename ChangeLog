@@ -1,9 +1,10 @@
 * Mon May 05  2015 - tech@adalin.org
 - AeonWave (2.5.4) stable; urgency=low
- * Add support for 6db/oct, 24dB/oct and 48dB/oct frequency filtering
+ * Add support for 6db/oct, 24dB/oct and 36dB/oct frequency filtering
    12dB/oct is still the default.
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
-   defined at 80Hz and 24dB/oct
+   defined at 80Hz and 24dB/oct.
+ * Tweaked HRTF support.
  * Speed improvements on frequency filter execution time.
  * Improve (white)noise waveform frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
