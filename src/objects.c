@@ -221,8 +221,8 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 vec4_t _aaxContextDefaultHead[2] = 
 {
 //     RIGHT     UP        BACK
-   { 0.000640f,-0.000110f, 0.000065f, 0.0f },	/* head delay factors */
-   { 0.000000f, 0.000200f, 0.000015f, 0.0f }	/* head delay offsets */
+   { 0.000640f,-0.000110f, 0.000120f, 0.0f },	/* head delay factors */
+   { 0.000000f, 0.000200f, 0.000010f, 0.0f }	/* head delay offsets */
 };
 
 vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
