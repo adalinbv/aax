@@ -27,6 +27,8 @@ extern "C" {
 #define EPS		1e-5
 #define _MAX_FE_SLOTS	3
 
+#define GMATH_128DB	0.00000039811f
+
 enum _aax3dFiltersEffects
 {
     /* 3d filters */
@@ -100,6 +102,7 @@ extern _aaxRingBufferDistFn* _aaxRingBufferALDistanceFn[];
 
 void mavg_compute(float, float, float*);
 void iir_compute_coefs(float, float, float*, float*, float, int);
+
 void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 void _aaxRingBufferDelaysRemove(void**);
 void _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], float, int, float);

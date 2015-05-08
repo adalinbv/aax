@@ -274,8 +274,6 @@ _aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
 _flt_function_tbl _aaxFrequencyFilter =
 {
    AAX_TRUE,
@@ -286,3 +284,209 @@ _flt_function_tbl _aaxFrequencyFilter =
    (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle
 };
 
+/* -------------------------------------------------------------------------- */
+
+/* 1st order: 6dB/oct (X[k] = a*X[k-1] + (1-a)*Y[k]) */
+/* http://lorien.ncl.ac.uk/ming/filter/fillpass.htm  */
+void
+_batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      int32_ptr s = (int32_ptr)sptr;
+      float smp, a0 = 1.0f - a1;
+      size_t i = num;
+
+      smp = *hist;
+      do
+      {
+         smp = a0*smp + a1*(*s++);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+/* 2nd order: 12dB/oct */
+void
+_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+{
+   if (num)
+   {
+      int32_ptr s = (int32_ptr)sptr;
+      float smp, nsmp, h0, h1;
+      size_t i = num;
+
+      h0 = hist[0];
+      h1 = hist[1];
+      do
+      {
+         smp = *s++ * k;
+         smp = smp + h0 * cptr[0];
+         nsmp = smp + h1 * cptr[1];
+         smp = nsmp + h0 * cptr[2];
+         smp = smp + h1 * cptr[3];
+
+         h1 = h0;
+         h0 = nsmp;
+         *d++ = smp;
+      }
+      while (--i);
+
+      hist[0] = h0;
+      hist[1] = h1;
+   }
+}
+
+void
+_batch_movingavg_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, a0 = 1.0f - a1;
+      size_t i = num;
+
+      smp = *hist;
+      do
+      {
+         smp = a0*smp + a1*(*s++);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+void
+_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, h0, h1;
+      size_t i = num;
+      float c0, c1, c2, c3;
+
+      // for original code see _batch_freqfilter_cpu
+      c0 = cptr[0];
+      c1 = cptr[1];
+      c2 = cptr[2];
+      c3 = cptr[3];
+
+      h0 = hist[0];
+      h1 = hist[1];
+
+      do
+      {
+         smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+         *d++ = smp       + ((h0 * c2) + (h1 * c3));
+
+         h1 = h0;
+         h0 = smp;
+      }
+      while (--i);
+
+      hist[0] = h0;
+      hist[1] = h1;
+   }
+}
+
+void
+mavg_compute(float fc, float fs, float *a)
+{
+   fc *= GMATH_2PI;
+   *a = fc/(fc+fs);
+}
+
+/* Calculate a 2nd order (12 dB/oct) Butterworth IIR filter
+ *
+ * A common practice is to chain several 2nd order sections in order to achieve
+ * a higher order filter. So, for a 4th order (24dB/oct) filter  we need 2 of
+ * those sections in series.
+ *
+ * From:
+ *   http://www.gamedev.net/reference/articles/article846.asp
+ *   http://www.gamedev.net/reference/articles/article845.asp
+ */
+static void
+_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
+             float *k, float fs, float *coef)
+{
+   float ad, bd;
+
+   a2 *= (4.0f * fs*fs);
+   b2 *= (4.0f * fs*fs);
+   a1 *= (2.0f * fs);
+   b1 *= (2.0f * fs);
+
+   ad = a2 + a1 + a0;
+   bd = b2 + b1 + b0;
+
+   *k *= ad/bd;
+
+   // modified: coef[0] and coef[1] are negated to prevent this should be
+   //           done every time the filter is applied.
+   *coef++ = -1.0f * (-2.0f*b2 + 2.0f*b0) / bd;
+   *coef++ = -1.0f * (b2 - b1 + b0) / bd;
+   *coef++ =         (-2.0f*a2 + 2.0f*a0) / ad;
+   *coef   =         (a2 - a1 + a0) / ad;
+}
+
+static void // pre-warp
+_aax_szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
+        float fc, float fs, float *k, float *coef)
+{
+   float wp;
+
+   // http://unicorn.us.com/trading/allpolefilters.html
+   /* To get a highpass filter, use ω0 = 1 ⁄ tan[pi*fc⁄(c*fs)] as the adjusted
+    * digital cutoff frequency (that is, invert c before applying to fc and
+    * invert the tangent to get ω0), and calculate the lowpass coefficients.
+    * Then, negate the coefficients a1 and b1 — but be sure you calculate b2
+    * before negating those coefficients! Applying these coefficients in the
+    * final filter formula above, will result in a highpass filter with a 3 dB
+    * cutoff at fc
+    */
+
+   // highass: wp = 2.0f*fs * 1.0f/tanf(GMATH_PI * -fc/fs);
+   // lowpass: wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
+   wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
+   *a2 /= wp*wp;
+   *b2 /= wp*wp;
+   *a1 /= wp;
+   *b1 /= wp;
+
+   _aax_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
+}
+
+void
+iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int stages)
+{
+   // http://www.electronics-tutorials.ws/filter/filter_8.html
+   static const float _b1[3][3] = {
+      { 1.4142f,    0.0f,      0.0f      },     // 2nd order
+      { 0.765367,   1.847759,  0.0f      },     // 4th order
+      { 0.5176387f, 1.414214f, 1.931852f }      // 6th roder
+   };
+   int i, pos = stages-1;
+   float k = 1.0f;
+
+   assert(stages <= _AAX_FILTER_SECTIONS);
+   assert(stages <= 3);
+
+   for (i=0; i<stages; i++)
+   {
+      float a0 = 1.0f;
+      float a1 = 0.0f;
+      float a2 = 0.0f;
+      float b0 = 1.0f;
+      float b1 = _b1[pos][i] / Q;
+      float b2 = 1.0f;
+
+      _aax_szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      coef += 4;
+   }
+   *gain = k;
+}
