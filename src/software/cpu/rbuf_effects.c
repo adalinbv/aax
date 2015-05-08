@@ -28,9 +28,6 @@
 #include "rbuf2d_effects.h"
 
 
-static void _aax_szxform(float *, float *, float *, float *, float *, float *,
-                    float, float, float *, float *);
-
 /**
  * - dst and scratch point to the beginning of a buffer containing room for
  *   the delay effects prior to the pointer.
@@ -377,43 +374,6 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
 #endif /* !ENABLE_LITE */
 
 void
-mavg_compute(float fc, float fs, float *a)
-{
-   fc *= GMATH_2PI;
-   *a = fc/(fc+fs);
-}
-
-void
-iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int stages)
-{
-   // http://www.electronics-tutorials.ws/filter/filter_8.html
-   static const float _b1[3][3] = {
-      { 1.4142f,    0.0f,      0.0f      },	// 2nd order
-      { 0.765367,   1.847759,  0.0f      },	// 4th order
-      { 0.5176387f, 1.414214f, 1.931852f }	// 6th roder
-   };
-   int i, pos = stages-1;
-   float k = 1.0f;
-
-   assert(stages <= _AAX_FILTER_SECTIONS);
-   assert(stages <= 3);
-
-   for (i=0; i<stages; i++)
-   {
-      float a0 = 1.0f;
-      float a1 = 0.0f;
-      float a2 = 0.0f;
-      float b0 = 1.0f;
-      float b1 = _b1[pos][i] / Q;
-      float b2 = 1.0f;
-
-      _aax_szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
-      coef += 4;
-   }
-   *gain = k;
-}
-
-void
 _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
                    MIX_PTR_T d, CONST_MIX_PTR_T s,
                    size_t dmin, size_t dmax, size_t ds,
@@ -490,56 +450,6 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
 }
 
 /* -------------------------------------------------------------------------- */
-
-/* Calculate a 2nd order (12 dB/oct) Butterworth IIR filter
- *
- * A common practice is to chain several 2nd order sections in order to achieve
- * a higher order filter. So, for a 4th order (24dB/oct) filter  we need 2 of
- * those sections in series.
- *
- * From:
- *   http://www.gamedev.net/reference/articles/article846.asp
- *   http://www.gamedev.net/reference/articles/article845.asp
- */
-static void
-_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
-             float *k, float fs, float *coef)
-{
-   float ad, bd;
-
-   a2 *= (4.0f * fs*fs);
-   b2 *= (4.0f * fs*fs);
-   a1 *= (2.0f * fs);
-   b1 *= (2.0f * fs);
-
-   ad = a2 + a1 + a0;
-   bd = b2 + b1 + b0;
-
-   *k *= ad/bd;
-
-   // modified: coef[0] and coef[1] are negated to prevent this should be
-   //           done every time the filter is applied.
-   *coef++ = -1.0f * (-2.0f*b2 + 2.0f*b0) / bd;
-   *coef++ = -1.0f * (b2 - b1 + b0) / bd;
-   *coef++ =         (-2.0f*a2 + 2.0f*a0) / ad;
-   *coef   =         (a2 - a1 + a0) / ad;
-}
-
-static void // pre-warp
-_aax_szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
-        float fc, float fs, float *k, float *coef)
-{
-   float wp;
-
-   wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
-   *a2 /= wp*wp;
-   *b2 /= wp*wp;
-   *a1 /= wp;
-   *b1 /= wp;
-
-   _aax_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
-}
-
 
 void
 _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, size_t num, float igain, float lb_depth, float lb_gain)

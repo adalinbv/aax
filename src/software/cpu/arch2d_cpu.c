@@ -15,6 +15,7 @@
 
 #include <math.h>	/* rinft */
 
+#include <dsp/common.h>
 #include "arch2d_simd.h"
 
 void
@@ -937,114 +938,6 @@ _batch_endianswap64_cpu(void* data, size_t num)
       while (--i);
    }
 }
-
-/* 1st order: 6dB/oct (X[k] = a*X[k-1] + (1-a)*Y[k]) */
-/* http://lorien.ncl.ac.uk/ming/filter/fillpass.htm  */
-void
-_batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
-{
-   if (num)
-   {
-      int32_ptr s = (int32_ptr)sptr;
-      float smp, a0 = 1.0f - a1;
-      size_t i = num;
-
-      smp = *hist;
-      do
-      {
-         smp = a0*smp + a1*(*s++);
-         *d++ = smp;
-      }
-      while (--i);
-      *hist = smp;
-   }
-}
-
-/* 2nd order: 12dB/oct */
-void
-_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
-{
-   if (num)
-   {
-      int32_ptr s = (int32_ptr)sptr;
-      float smp, nsmp, h0, h1;
-      size_t i = num;
-
-      h0 = hist[0];
-      h1 = hist[1];
-      do
-      {
-         smp = *s++ * k;
-         smp = smp + h0 * cptr[0];
-         nsmp = smp + h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
-
-         h1 = h0;
-         h0 = nsmp;
-         *d++ = smp;
-      }
-      while (--i);
-
-      hist[0] = h0;
-      hist[1] = h1;
-   }
-}
-
-void
-_batch_movingavg_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
-{
-   if (num)
-   {
-      float32_ptr s = (float32_ptr)sptr;
-      float smp, a0 = 1.0f - a1;
-      size_t i = num;
-
-      smp = *hist;
-      do
-      {
-         smp = a0*smp + a1*(*s++);
-         *d++ = smp;
-      }
-      while (--i);
-      *hist = smp;
-   }
-}
-
-void
-_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
-{
-   if (num)
-   {
-      float32_ptr s = (float32_ptr)sptr;
-      float smp, h0, h1;
-      size_t i = num;
-      float c0, c1, c2, c3;
-
-      // for original code see _batch_freqfilter_cpu
-      c0 = cptr[0];
-      c1 = cptr[1];
-      c2 = cptr[2];
-      c3 = cptr[3];
-
-      h0 = hist[0];
-      h1 = hist[1];
-
-      do
-      {
-         smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-         *d++ = smp       + ((h0 * c2) + (h1 * c3));
-
-         h1 = h0;
-         h0 = smp;
-      }
-      while (--i);
-
-      hist[0] = h0;
-      hist[1] = h1;
-   }
-}
-
 
 /**
  * A mixer callback function mixes the audio from one mono source track and
