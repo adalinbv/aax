@@ -126,12 +126,12 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->Q = Q;
          if (stages) // 2nd, 4th or 8th order filter
          {
-            iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
+            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages);
             flt->k = k;
          }
          else // 1st order filter
          {
-            mavg_compute(fc, fs, &k);
+            _aax_movingaverage_fir_compute(fc, fs, &k);
             flt->k = k;
          }
 
@@ -394,7 +394,7 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, f
 }
 
 void
-mavg_compute(float fc, float fs, float *a)
+_aax_movingaverage_fir_compute(float fc, float fs, float *a)
 {
    fc *= GMATH_2PI;
    *a = fc/(fc+fs);
@@ -411,7 +411,7 @@ mavg_compute(float fc, float fs, float *a)
  *   http://www.gamedev.net/reference/articles/article845.asp
  */
 static void
-_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
+_aax_butterworth_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
              float *k, float fs, float *coef)
 {
    float ad, bd;
@@ -435,7 +435,7 @@ _aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
 }
 
 static void // pre-warp
-_aax_szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
+_aax_butterworth_iir_prewarp(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
         float fc, float fs, float *k, float *coef)
 {
    float wp;
@@ -458,11 +458,11 @@ _aax_szxform(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
    *a1 /= wp;
    *b1 /= wp;
 
-   _aax_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
+   _aax_butterworth_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
 }
 
 void
-iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int stages)
+_aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages)
 {
    // http://www.electronics-tutorials.ws/filter/filter_8.html
    static const float _b1[3][3] = {
@@ -485,7 +485,7 @@ iir_compute_coefs(float fc, float fs, float *coef, float *gain, float Q, int sta
       float b1 = _b1[pos][i] / Q;
       float b2 = 1.0f;
 
-      _aax_szxform(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      _aax_butterworth_iir_prewarp(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;

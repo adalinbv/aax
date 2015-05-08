@@ -272,7 +272,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 
          // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 1kHz
          fc = 20000.0f + 19000.0f*dir_fact;
-         mavg_compute(fc, fs, &k);
+         _aax_movingaverage_fir_compute(fc, fs, &k);
 
          drbd->movingavg(dptr, dptr, dno_samples, hist, k);
       }

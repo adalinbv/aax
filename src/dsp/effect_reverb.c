@@ -156,7 +156,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             Q = 0.6f;
             stages = 1;
             fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-            iir_compute_coefs(fc, fs, cptr, &k, Q, stages);
+            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages);
 
             dfact = powf(fc*0.00005f, 0.2f);
             flt->lf_gain = 1.75f-0.75f*dfact;
