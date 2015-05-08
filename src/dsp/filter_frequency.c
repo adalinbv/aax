@@ -286,8 +286,16 @@ _flt_function_tbl _aaxFrequencyFilter =
 
 /* -------------------------------------------------------------------------- */
 
-/* 1st order: 6dB/oct (X[k] = a*X[k-1] + (1-a)*Y[k]) */
-/* http://lorien.ncl.ac.uk/ming/filter/fillpass.htm  */
+/**
+ * 1st order, 6dB/octave moving average Butterwordth FIR filter
+ *
+ * X[k] = a*X[k-1] + (1-a)*Y[k]
+ * http://lorien.ncl.ac.uk/ming/filter/fillpass.htm
+ *
+ * Used for:
+ *  - frequency filtering (frames and emitters)
+ *  - HRTF head shadow filtering
+ */
 void
 _batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
 {
@@ -308,7 +316,49 @@ _batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist,
    }
 }
 
-/* 2nd order: 12dB/oct */
+void
+_batch_movingavg_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, a0 = 1.0f - a1;
+      size_t i = num;
+
+      smp = *hist;
+      do
+      {
+         smp = a0*smp + a1*(*s++);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+void
+_aax_movingaverage_fir_compute(float fc, float fs, float *a)
+{
+   fc *= GMATH_2PI;
+   *a = fc/(fc+fs);
+}
+
+
+/**
+ * 2nd order, 12dB/octave biquad IIR Butterworth filter
+ *
+ * A common practice is to chain several 2nd order sections in order to achieve
+ * a higher order filter. So, for a 4th order (24dB/oct) filter  we need 2 of
+ * those sections in series.
+ *
+ * From:
+ *   http://www.gamedev.net/reference/articles/article846.asp
+ *   http://www.gamedev.net/reference/articles/article845.asp
+ *
+ * Used for:
+ * - frequency filtering (frames and emitters)
+ * - equalizer (graphic and parametric)
+ */
 void
 _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
@@ -336,26 +386,6 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist
 
       hist[0] = h0;
       hist[1] = h1;
-   }
-}
-
-void
-_batch_movingavg_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
-{
-   if (num)
-   {
-      float32_ptr s = (float32_ptr)sptr;
-      float smp, a0 = 1.0f - a1;
-      size_t i = num;
-
-      smp = *hist;
-      do
-      {
-         smp = a0*smp + a1*(*s++);
-         *d++ = smp;
-      }
-      while (--i);
-      *hist = smp;
    }
 }
 
@@ -393,23 +423,6 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, f
    }
 }
 
-void
-_aax_movingaverage_fir_compute(float fc, float fs, float *a)
-{
-   fc *= GMATH_2PI;
-   *a = fc/(fc+fs);
-}
-
-/* Calculate a 2nd order (12 dB/oct) Butterworth IIR filter
- *
- * A common practice is to chain several 2nd order sections in order to achieve
- * a higher order filter. So, for a 4th order (24dB/oct) filter  we need 2 of
- * those sections in series.
- *
- * From:
- *   http://www.gamedev.net/reference/articles/article846.asp
- *   http://www.gamedev.net/reference/articles/article845.asp
- */
 static void
 _aax_butterworth_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
              float *k, float fs, float *coef)
@@ -440,18 +453,6 @@ _aax_butterworth_iir_prewarp(float *a0, float *a1, float *a2, float *b0, float *
 {
    float wp;
 
-   // http://unicorn.us.com/trading/allpolefilters.html
-   /* To get a highpass filter, use ω0 = 1 ⁄ tan[pi*fc⁄(c*fs)] as the adjusted
-    * digital cutoff frequency (that is, invert c before applying to fc and
-    * invert the tangent to get ω0), and calculate the lowpass coefficients.
-    * Then, negate the coefficients a1 and b1 — but be sure you calculate b2
-    * before negating those coefficients! Applying these coefficients in the
-    * final filter formula above, will result in a highpass filter with a 3 dB
-    * cutoff at fc
-    */
-
-   // highass: wp = 2.0f*fs * 1.0f/tanf(GMATH_PI * -fc/fs);
-   // lowpass: wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
    wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
    *a2 /= wp*wp;
    *b2 /= wp*wp;
@@ -490,3 +491,13 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
    }
    *gain = k;
 }
+
+// http://unicorn.us.com/trading/allpolefilters.html
+   /* To get a highpass filter, use ω0 = 1 ⁄ tan[pi*fc⁄(c*fs)] as the adjusted
+    * digital cutoff frequency (that is, invert c before applying to fc and
+    * invert the tangent to get ω0), and calculate the lowpass coefficients.
+    * Then, negate the coefficients a1 and b1 — but be sure you calculate b2
+    * before negating those coefficients! Applying these coefficients in the
+    * final filter formula above, will result in a highpass filter with a 3 dB
+    * cutoff at fc
+    */
