@@ -117,10 +117,14 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float fs = flt->fs; 
          float k = 1.0f;
 
-         flt->lf_gain = filter->slot[0]->param[AAX_LF_GAIN];
+         flt->lf_gain = fabs(filter->slot[0]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         flt->hf_gain = filter->slot[0]->param[AAX_HF_GAIN];
+         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
+
+         flt->hf_gain = fabs(filter->slot[0]->param[AAX_HF_GAIN]);
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
+         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
+
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->Q = Q;
@@ -297,7 +301,7 @@ _flt_function_tbl _aaxFrequencyFilter =
  *  - HRTF head shadow filtering
  */
 void
-_batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
+_batch_movingaverage_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
 {
    if (num)
    {
@@ -317,7 +321,7 @@ _batch_movingavg_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist,
 }
 
 void
-_batch_movingavg_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+_batch_movingaverage_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
 {
    if (num)
    {
@@ -355,12 +359,43 @@ _aax_movingaverage_fir_compute(float fc, float fs, float *a)
  *   http://www.gamedev.net/reference/articles/article846.asp
  *   http://www.gamedev.net/reference/articles/article845.asp
  *
+ * When we construct a 24 db/oct filter, we take to 2nd order
+ * sections and compute the coefficients separately for each section.
+ *
+ *  n       Polinomials
+ * --------------------------------------------------------------------
+ *  2       s^2 + 1.4142s +1
+ *  4       (s^2 + 0.765367s + 1) (s^2 + 1.847759s + 1)
+ *  6       (s^2 + 0.5176387s + 1) (s^2 + 1.414214 + 1) (s^2 + 1.931852s + 1)
+ *
+ * Where n is a filter order.
+ * For n=4, or two second order sections, we have following equasions for each
+ * 2nd order stage:
+ *
+ * (1 / (s^2 + (1/Q) * 0.765367s + 1)) * (1 / (s^2 + (1/Q) * 1.847759s + 1))
+ *
+ * Where Q is filter quality factor in the range of 1 to 1000.
+ * The overall filter Q is a product of all 2nd order stages.
+ * For example, the 6th order filter (3 stages, or biquads) with individual
+ * Q of 2 will have filter Q = 2 * 2 * 2 = 8.
+ *
+ * The nominator part is just 1.
+ * The denominator coefficients for stage 1 of filter are:
+ *  b2 = 1; b1 = 0.765367; b0 = 1;
+ * numerator is
+ *  a2 = 0; a1 = 0; a0 = 1;
+ *
+ * The denominator coefficients for stage 1 of filter are:
+ *  b2 = 1; b1 = 1.847759; b0 = 1;
+ * numerator is
+ *  a2 = 0; a1 = 0; a0 = 1;
+ *
  * Used for:
  * - frequency filtering (frames and emitters)
  * - equalizer (graphic and parametric)
  */
 void
-_batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_butterworth_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -390,7 +425,7 @@ _batch_freqfilter_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist
 }
 
 void
-_batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_butterworth_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -399,7 +434,7 @@ _batch_freqfilter_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, f
       size_t i = num;
       float c0, c1, c2, c3;
 
-      // for original code see _batch_freqfilter_cpu
+      // for original code see _batch_butterworth_iir_cpu
       c0 = cptr[0];
       c1 = cptr[1];
       c2 = cptr[2];
@@ -439,8 +474,8 @@ _aax_butterworth_iir_bilinear(float a0, float a1, float a2, float b0, float b1, 
 
    *k *= ad/bd;
 
-   // modified: coef[0] and coef[1] are negated to prevent this should be
-   //           done every time the filter is applied.
+   // modified: coef[0] and coef[1] are negated to prevent this is required
+   //           every time the filter is applied.
    *coef++ = -1.0f * (-2.0f*b2 + 2.0f*b0) / bd;
    *coef++ = -1.0f * (b2 - b1 + b0) / bd;
    *coef++ =         (-2.0f*a2 + 2.0f*a0) / ad;
@@ -462,6 +497,20 @@ _aax_butterworth_iir_prewarp(float *a0, float *a1, float *a2, float *b0, float *
    _aax_butterworth_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
 }
 
+/*
+ * The Butterworth polynomial requires the least amount of work because the
+ * frequency-scaling factor is always equal to one.
+ * From a filter-table listing for Butterworth, we can find the zeroes of the
+ * second-order Butterworth polynomial:
+ *  z1 = -0.707 + j0.707, z1* = -0.707 -j0.707,
+ *
+ * which are used with the factored form of the polynomial. Alternately, we
+ * find the coefficients of the polynomial:
+ *  a0 = 1, a1 = 1.414
+ *
+ * It can be easily confirmed that
+ *  (s+0.707 + j0.707) (s+0.707 -j0.707) = s2 + 1.414s + 1.
+ */
 void
 _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages)
 {
@@ -492,12 +541,56 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
    *gain = k;
 }
 
-// http://unicorn.us.com/trading/allpolefilters.html
-   /* To get a highpass filter, use ω0 = 1 ⁄ tan[pi*fc⁄(c*fs)] as the adjusted
-    * digital cutoff frequency (that is, invert c before applying to fc and
-    * invert the tangent to get ω0), and calculate the lowpass coefficients.
-    * Then, negate the coefficients a1 and b1 — but be sure you calculate b2
-    * before negating those coefficients! Applying these coefficients in the
-    * final filter formula above, will result in a highpass filter with a 3 dB
-    * cutoff at fc
-    */
+/**
+ * nth order, (n*6)dB/octave linear phase Bessel IIR filter
+ *
+ * 1 pass: y[k] = a0*x[k] + a1*x[k−1] + a2*x[k−2] + b1*y[k−1] + b2*y[k−2]
+ * http://unicorn.us.com/trading/allpolefilters.html
+ *
+ * http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
+ * Referring to a table listing the zeros of the second-order Bessel polynomial,
+ * we find:
+ * z1 = -1.103 + j0.6368, z1* = -1.103 - j0.6368;
+ *
+ * a table of coefficients provides:
+ *  a0 = 1.622 and a1 = 2.206.
+ *
+ * Again, using the coefficient form lends itself to our standard form, so that
+ * the realization of a second-order low-pass Bessel filter is made by a
+ * circuit with the transfer function:
+ *
+ * Butterworth: FSF = 1.0, Q = 1/0.7071
+ * Bessel: FSF = 1/1.274, Q / 1/0.577
+ */
+void
+_aax_bessel_iir_compute(float f0, float fs, float *coef, float *gain, int n)
+{
+   float c, fc;
+
+   c = powf(sqrt(powf(2, 1.0f/n)-0.75f)-0.5f, -0.5f)/sqrtf(3.0f);
+   fc = c*f0/fs;
+
+   // filter is stable
+   if (0.0f < fc && fc < 0.125f)
+   {
+      float K1, K2, A0, A1, A2, B1, B2;
+      float w0 = tanf(GMATH_PI*fc);
+      float g = 3.0f, p = 3.0f;
+
+      K1 = p*w0;
+      K2 = g*w0*w0;
+
+      A0 = K2/(1 + K1 + K2);
+      A1 = 2*A0;
+      A2 = A0;
+
+      B1 = 2*A0*(1.0f/(K2 - 1.0f));
+      B2 = 1.0f - (A0 + A1 + A2 + B1);
+
+      coef[0] = A0;
+      coef[1] = A1;
+      coef[2] = A2;
+      coef[3] = B1;
+      coef[4] = B2;
+   }
+}

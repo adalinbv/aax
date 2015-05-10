@@ -117,10 +117,15 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
          Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
          _aax_butterworth_iir_compute(fcl, filter->info->frequency, cptr, &k, Q, stages);
-         flt->lf_gain = filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN];
+
+         flt->lf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         flt->hf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
+         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
+
+         flt->hf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN]);
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
+         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
+
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->k = k;
@@ -131,10 +136,15 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          k = 1.0f;
          Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
          _aax_butterworth_iir_compute(fch, filter->info->frequency, cptr, &k, Q, stages);
-         flt->lf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
+
+         flt->lf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         flt->hf_gain = filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN];
+         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
+
+         flt->hf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN]);
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
+         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
+
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->k = k;
