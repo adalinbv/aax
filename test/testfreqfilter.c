@@ -22,7 +22,7 @@
 // Order: AAX_6DB_OCT, AAX_12DB_OCT, AAX_24DB_OCT, AAX_36DB_OCT, AAX_48DB_OCT
 // Type:  AAX_BUTTERWORTH, AAX_BESSEL
 #define FILTER_ORDER		AAX_12DB_OCT
-#define FILTER_TYPE		AAX_BESSEL
+#define FILTER_TYPE		AAX_BUTTERWORTH
 #define FILTER_STATE		(FILTER_TYPE|FILTER_ORDER)
 
 void
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
         testForError(filter, "aaxFilterCreate");
 
         filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                         FILTER_FREQUENCY, 1.0f, 0.0f, 1.0f);
+                                         FILTER_FREQUENCY, 0.0f, 1.0f, 1.0f);
         testForError(filter, "aaxFilterSetSlot");
 
         filter = aaxFilterSetState(filter, FILTER_STATE);

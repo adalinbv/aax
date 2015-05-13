@@ -131,18 +131,27 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->Q = Q;
+
+         flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
+         if (flt->lp == AAX_FALSE)
+         {
+            float f = flt->lf_gain;
+            flt->lf_gain = flt->hf_gain;
+            flt->hf_gain = f;
+         }
+
          if (stages) // 2nd, 4th, 6th or 8th order filter
          {
             if (state & AAX_BESSEL) {
-                _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages);
+                _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
             } else {
-               _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages);
+               _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
             }
             flt->k = k;
          }
          else // 1st order filter
          {
-            _aax_movingaverage_fir_compute(fc, fs, &k);
+            _aax_movingaverage_fir_compute(fc, fs, &k, flt->lp);
             flt->k = k;
          }
 
@@ -348,7 +357,7 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 }
 
 void
-_aax_movingaverage_fir_compute(float fc, float fs, float *a)
+_aax_movingaverage_fir_compute(float fc, float fs, float *a, char lowpass)
 {
    fc *= GMATH_2PI;
    *a = fc/(fc+fs);
@@ -467,41 +476,44 @@ _batch_freqfilter_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 
 static void
 _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
-             float *k, float fs, float *coef)
+                  float *k, float *coef)
 {
    float ad, bd;
 
-   a2 *= (4.0f * fs*fs);
-   b2 *= (4.0f * fs*fs);
-   a1 *= (2.0f * fs);
-   b1 *= (2.0f * fs);
+   a2 *= 4.0f;
+   b2 *= 4.0f;
+   a1 *= 2.0f;
+   b1 *= 2.0f;
 
    ad = a2 + a1 + a0;
    bd = b2 + b1 + b0;
 
    *k *= ad/bd;
 
-   // modified: coef[0] and coef[1] are negated to prevent this is required
-   //           every time the filter is applied.
-   *coef++ = -1.0f * (-2.0f*b2 + 2.0f*b0) / bd;
-   *coef++ = -1.0f * (b2 - b1 + b0) / bd;
-   *coef++ =         (-2.0f*a2 + 2.0f*a0) / ad;
-   *coef   =         (a2 - a1 + a0) / ad;
+   coef[0] = (-2.0f*b2 + 2.0f*b0) / bd;
+   coef[1] = (b2 - b1 + b0) / bd;
+   coef[2] = (-2.0f*a2 + 2.0f*a0) / ad;
+   coef[3] = (a2 - a1 + a0) / ad;
+
+   // negate to prevent this is required every time the filter is applied.
+   coef[0] = -coef[0];
+   coef[1] = -coef[1];
 }
 
 static void // pre-warp
-_aax_iir_s_to_z(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
-        float fc, float fs, float *k, float *coef)
+_aax_iir_s_to_z(float *a0, float *a1, float *a2,
+                float *b0, float *b1, float *b2,
+                float fc, float fs, float *k, float *coef)
 {
    float wp;
 
-   wp = 2.0f*fs * tanf(GMATH_PI * fc/fs);
+   wp = 2.0f*tanf(GMATH_PI * fc/fs);
    *a2 /= wp*wp;
    *b2 /= wp*wp;
    *a1 /= wp;
    *b1 /= wp;
 
-   _aax_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
+   _aax_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, coef);
 }
 
 /*
@@ -519,26 +531,25 @@ _aax_iir_s_to_z(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2
  *  (s+0.707 + j0.707) (s+0.707 -j0.707) = s2 + 1.414s + 1.
  */
 void
-_aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages)
+_aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char lowpass)
 {
-   // http://www.electronics-tutorials.ws/filter/filter_8.html
-   static const float _Q[4][4] = {
-      { 0.7071f, 0.0f,    0.0f,    0.0f    },	// 2nd order
-      { 0.5412f, 1.3605f, 0.0f,    0.0f    },	// 4th order
-      { 0.5177f, 0.7071f, 1.9320f, 0.0f    },	// 6th roder
+   // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
+   static const float _Q[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
+      { 0.7071f, 1.0f,    1.0f,    1.0f    },	// 2nd order
+      { 0.5412f, 1.3605f, 1.0f,    1.0f    },	// 4th order
+      { 0.5177f, 0.7071f, 1.9320f, 1.0f    },	// 6th roder
       { 0.5098f, 0.6013f, 0.8999f, 2.5628f }	// 8th order
    };
    int i, pos = stages-1;
    float k = 1.0f;
 
    assert(stages <= _AAX_MAX_STAGES);
-   assert(stages <= 3);
 
    for (i=0; i<stages; i++)
    {
-      float a0 = 1.0f;
+      float a0 = lowpass ? 1.0f : 0.0f;
       float a1 = 0.0f;
-      float a2 = 0.0f;
+      float a2 = lowpass ? 0.0f : 1.0f;
       float b0 = 1.0f;
       float b1 = 1.0f/(_Q[pos][i] * Q);
       float b2 = 1.0f;
@@ -571,32 +582,31 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
  * Bessel: FSF = 1/1.274, Q / 1/0.577
  */
 void
-_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages)
+_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char lowpass)
 {
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
-   static const float _FSF[4][4] = {
-      { 1.2736f, 0.0f,    0.0f,    0.0f    },	// 2nd order
-      { 1.4192f, 1.5912f, 0.0f,    0.0f    },	// 4th order
-      { 1.6060f, 1.6913f, 1.9071f, 0.0f    },	// 6th roder
+   static const float _FSF[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
+      { 1.2736f, 1.0f,    1.0f,    1.0f    },	// 2nd order
+      { 1.4192f, 1.5912f, 1.0f,    1.0f    },	// 4th order
+      { 1.6060f, 1.6913f, 1.9071f, 1.0f    },	// 6th roder
       { 1.7837f, 2.1953f, 1.9591f, 1.8376f }	// 8th order
    };
-   static const float _Q[4][4] = {
-      { 0.5773f, 0.0f,    0.0f,    0.0f    },	// 2nd order
-      { 0.5219f, 0.8055f, 0.0f,    0.0f    },	// 4th order
-      { 0.5103f, 0.6112f, 1.0234f, 0.0f    }, 	// 6th roder
+   static const float _Q[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
+      { 0.5773f, 1.0f,    1.0f,    1.0f    },	// 2nd order
+      { 0.5219f, 0.8055f, 1.0f,    1.0f    },	// 4th order
+      { 0.5103f, 0.6112f, 1.0234f, 1.0f    }, 	// 6th roder
       { 0.5060f, 1.2258f, 0.7109f, 0.5596f }	// 8th order
    };
    int i, pos = stages-1;
    float k = 1.0f;
 
-   assert(stages <= _AAX_FILTER_SECTIONS);
-   assert(stages <= 3);
+   assert(stages <= _AAX_MAX_STAGES);
 
    for (i=0; i<stages; i++)
    {
-      float a0 = 1.0f;
+      float a0 = lowpass ? 1.0f : 0.0f;
       float a1 = 0.0f;
-      float a2 = 0.0f;
+      float a2 = lowpass ? 0.0f : 1.0f;
       float b0 = 1.0f;
       float b1 = 1.0f/((_FSF[pos][i] * _Q[pos][i]) * Q);
       float b2 = 1.0f/_FSF[pos][i];

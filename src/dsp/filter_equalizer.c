@@ -113,11 +113,9 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
          /* LF frequency setup */
          flt = filter->slot[EQUALIZER_LF]->data;
+         Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
          cptr = flt->coeff;
          k = 1.0f;
-
-         Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-         _aax_butterworth_iir_compute(fcl, filter->info->frequency, cptr, &k, Q, stages);
 
          flt->lf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
@@ -127,16 +125,24 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
+         flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
+         if (flt->lp == AAX_FALSE)
+         {
+            float f = flt->lf_gain;
+            flt->lf_gain = flt->hf_gain;
+            flt->hf_gain = f;
+         }
+         _aax_butterworth_iir_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->lp);
+
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->k = k;
 
          /* HF frequency setup */
          flt = filter->slot[EQUALIZER_HF]->data;
+         Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
          cptr = flt->coeff;
          k = 1.0f;
-         Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-         _aax_butterworth_iir_compute(fch, filter->info->frequency, cptr, &k, Q, stages);
 
          flt->lf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
@@ -145,6 +151,15 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          flt->hf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN]);
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
+
+         flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
+         if (flt->lp == AAX_FALSE)
+         {
+            float f = flt->lf_gain;
+            flt->lf_gain = flt->hf_gain;
+            flt->hf_gain = f;
+         }
+         _aax_butterworth_iir_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->lp);
 
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
