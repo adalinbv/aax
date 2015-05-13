@@ -121,6 +121,7 @@ typedef float (*cvtfn_t)(float);
 
 /* frequency filters */
 void _aax_movingaverage_fir_compute(float, float, float*);
+void _aax_bessel_iir_compute(float, float, float*, float*, float, int);
 void _aax_butterworth_iir_compute(float, float, float*, float*, float, int);
 
 

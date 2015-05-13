@@ -434,6 +434,9 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
             rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
             if (--stages) {
                rbd->freqfilter(dptr, dptr, num, hist+4, 1.0f, cptr+8);
+               if (--stages) {
+                  rbd->freqfilter(dptr, dptr, num, hist+6, 1.0f, cptr+12);
+               }
             }
          }
       }

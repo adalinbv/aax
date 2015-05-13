@@ -80,8 +80,8 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_FILTER_12DB_OCT || state == AAX_FILTER_24DB_OCT ||
-       state == AAX_FILTER_36DB_OCT)
+   if (state == AAX_12DB_OCT || state == AAX_24DB_OCT ||
+       state == AAX_36DB_OCT || state == AAX_48DB_OCT)
    {
       _aaxRingBufferEqualizerData *eq = filter->slot[EQUALIZER_HF]->data;
 
@@ -93,8 +93,9 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
       {
          int stages;
 
-         if (state == AAX_FILTER_36DB_OCT) stages = 3;
-         else if (state == AAX_FILTER_24DB_OCT) stages = 2;
+         if (state == AAX_48DB_OCT) stages = 4;
+         else if (state == AAX_36DB_OCT) stages = 3;
+         else if (state == AAX_24DB_OCT) stages = 2;
          else stages = 1;
 
          eq = calloc(1, sizeof(_aaxRingBufferEqualizerData));

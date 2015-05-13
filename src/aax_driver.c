@@ -376,7 +376,7 @@ aaxDriverOpen(aaxConfig config)
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
                filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                                  80.0f, 1.0f, 0.0f, 1.0f);
-               filter = aaxFilterSetState(filter, AAX_FILTER_24DB_OCT);
+               filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
                aaxFilterDestroy(filter);
             }
@@ -390,7 +390,7 @@ aaxDriverOpen(aaxConfig config)
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
                filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                                  1000.0f, 1.0f, 0.0f, 1.0f);
-               filter = aaxFilterSetState(filter, AAX_FILTER_12DB_OCT);
+               filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_6DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
                aaxFilterDestroy(filter);
             }

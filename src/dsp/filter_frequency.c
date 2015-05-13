@@ -78,16 +78,18 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE |
           AAX_ENVELOPE_FOLLOW;
 
-   istate = state & ~AAX_INVERSE;
+   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL);
    wstate = istate & mask;
 
-   switch (wstate || state == AAX_FILTER_6DB_OCT || state == AAX_FILTER_12DB_OCT
-                || state == AAX_FILTER_24DB_OCT || state == AAX_FILTER_36DB_OCT)
+   switch (wstate || istate == AAX_6DB_OCT || istate == AAX_12DB_OCT
+                  || istate == AAX_24DB_OCT || istate == AAX_36DB_OCT
+                  || istate == AAX_48DB_OCT)
    {
-   case AAX_FILTER_6DB_OCT:
-   case AAX_FILTER_12DB_OCT:
-   case AAX_FILTER_24DB_OCT:
-   case AAX_FILTER_36DB_OCT:
+   case AAX_6DB_OCT:
+   case AAX_12DB_OCT:
+   case AAX_24DB_OCT:
+   case AAX_36DB_OCT:
+   case AAX_48DB_OCT:
    case AAX_TRIANGLE_WAVE:
    case AAX_SINE_WAVE:
    case AAX_SQUARE_WAVE:
@@ -104,9 +106,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          filter->slot[0]->data = flt;
       }
 
-      if (state & AAX_FILTER_36DB_OCT) stages = 3;
-      else if (state & AAX_FILTER_24DB_OCT) stages = 2;
-      else if (state & AAX_FILTER_6DB_OCT) stages = 0;
+      if (state & AAX_48DB_OCT) stages = 4;
+      else if (state & AAX_36DB_OCT) stages = 3;
+      else if (state & AAX_24DB_OCT) stages = 2;
+      else if (state & AAX_6DB_OCT) stages = 0;
       else stages = 1;
 
       if (flt)
@@ -128,9 +131,13 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->Q = Q;
-         if (stages) // 2nd, 4th or 8th order filter
+         if (stages) // 2nd, 4th, 6th or 8th order filter
          {
-            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages);
+            if (state & AAX_BESSEL) {
+                _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages);
+            } else {
+               _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages);
+            }
             flt->k = k;
          }
          else // 1st order filter
@@ -301,7 +308,7 @@ _flt_function_tbl _aaxFrequencyFilter =
  *  - HRTF head shadow filtering
  */
 void
-_batch_movingaverage_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
+_batch_freqfilter_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
 {
    if (num)
    {
@@ -321,7 +328,7 @@ _batch_movingaverage_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, floa
 }
 
 void
-_batch_movingaverage_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+_batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
 {
    if (num)
    {
@@ -395,7 +402,7 @@ _aax_movingaverage_fir_compute(float fc, float fs, float *a)
  * - equalizer (graphic and parametric)
  */
 void
-_batch_butterworth_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_freqfilter_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -425,7 +432,7 @@ _batch_butterworth_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float 
 }
 
 void
-_batch_butterworth_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_freqfilter_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
 {
    if (num)
    {
@@ -434,7 +441,7 @@ _batch_butterworth_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t n
       size_t i = num;
       float c0, c1, c2, c3;
 
-      // for original code see _batch_butterworth_iir_cpu
+      // for original code see _batch_freqfilter_iir_cpu
       c0 = cptr[0];
       c1 = cptr[1];
       c2 = cptr[2];
@@ -459,7 +466,7 @@ _batch_butterworth_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t n
 }
 
 static void
-_aax_butterworth_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
+_aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
              float *k, float fs, float *coef)
 {
    float ad, bd;
@@ -483,7 +490,7 @@ _aax_butterworth_iir_bilinear(float a0, float a1, float a2, float b0, float b1, 
 }
 
 static void // pre-warp
-_aax_butterworth_iir_prewarp(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
+_aax_iir_s_to_z(float *a0, float *a1, float *a2, float *b0, float *b1, float *b2,
         float fc, float fs, float *k, float *coef)
 {
    float wp;
@@ -494,7 +501,7 @@ _aax_butterworth_iir_prewarp(float *a0, float *a1, float *a2, float *b0, float *
    *a1 /= wp;
    *b1 /= wp;
 
-   _aax_butterworth_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
+   _aax_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, fs, coef);
 }
 
 /*
@@ -515,15 +522,16 @@ void
 _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages)
 {
    // http://www.electronics-tutorials.ws/filter/filter_8.html
-   static const float _b1[3][3] = {
-      { 1.4142f,    0.0f,      0.0f      },     // 2nd order
-      { 0.765367,   1.847759,  0.0f      },     // 4th order
-      { 0.5176387f, 1.414214f, 1.931852f }      // 6th roder
+   static const float _Q[4][4] = {
+      { 0.7071f, 0.0f,    0.0f,    0.0f    },	// 2nd order
+      { 0.5412f, 1.3605f, 0.0f,    0.0f    },	// 4th order
+      { 0.5177f, 0.7071f, 1.9320f, 0.0f    },	// 6th roder
+      { 0.5098f, 0.6013f, 0.8999f, 2.5628f }	// 8th order
    };
    int i, pos = stages-1;
    float k = 1.0f;
 
-   assert(stages <= _AAX_FILTER_SECTIONS);
+   assert(stages <= _AAX_MAX_STAGES);
    assert(stages <= 3);
 
    for (i=0; i<stages; i++)
@@ -532,10 +540,10 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
       float a1 = 0.0f;
       float a2 = 0.0f;
       float b0 = 1.0f;
-      float b1 = _b1[pos][i] / Q;
+      float b1 = 1.0f/(_Q[pos][i] * Q);
       float b2 = 1.0f;
 
-      _aax_butterworth_iir_prewarp(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
@@ -563,34 +571,38 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
  * Bessel: FSF = 1/1.274, Q / 1/0.577
  */
 void
-_aax_bessel_iir_compute(float f0, float fs, float *coef, float *gain, int n)
+_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages)
 {
-   float c, fc;
+   // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
+   static const float _FSF[4][4] = {
+      { 1.2736f, 0.0f,    0.0f,    0.0f    },	// 2nd order
+      { 1.4192f, 1.5912f, 0.0f,    0.0f    },	// 4th order
+      { 1.6060f, 1.6913f, 1.9071f, 0.0f    },	// 6th roder
+      { 1.7837f, 2.1953f, 1.9591f, 1.8376f }	// 8th order
+   };
+   static const float _Q[4][4] = {
+      { 0.5773f, 0.0f,    0.0f,    0.0f    },	// 2nd order
+      { 0.5219f, 0.8055f, 0.0f,    0.0f    },	// 4th order
+      { 0.5103f, 0.6112f, 1.0234f, 0.0f    }, 	// 6th roder
+      { 0.5060f, 1.2258f, 0.7109f, 0.5596f }	// 8th order
+   };
+   int i, pos = stages-1;
+   float k = 1.0f;
 
-   c = powf(sqrt(powf(2, 1.0f/n)-0.75f)-0.5f, -0.5f)/sqrtf(3.0f);
-   fc = c*f0/fs;
+   assert(stages <= _AAX_FILTER_SECTIONS);
+   assert(stages <= 3);
 
-   // filter is stable
-   if (0.0f < fc && fc < 0.125f)
+   for (i=0; i<stages; i++)
    {
-      float K1, K2, A0, A1, A2, B1, B2;
-      float w0 = tanf(GMATH_PI*fc);
-      float g = 3.0f, p = 3.0f;
+      float a0 = 1.0f;
+      float a1 = 0.0f;
+      float a2 = 0.0f;
+      float b0 = 1.0f;
+      float b1 = 1.0f/((_FSF[pos][i] * _Q[pos][i]) * Q);
+      float b2 = 1.0f/_FSF[pos][i];
 
-      K1 = p*w0;
-      K2 = g*w0*w0;
-
-      A0 = K2/(1 + K1 + K2);
-      A1 = 2*A0;
-      A2 = A0;
-
-      B1 = 2*A0*(1.0f/(K2 - 1.0f));
-      B2 = 1.0f - (A0 + A1 + A2 + B1);
-
-      coef[0] = A0;
-      coef[1] = A1;
-      coef[2] = A2;
-      coef[3] = B1;
-      coef[4] = B2;
+      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      coef += 4;
    }
+   *gain = k;
 }

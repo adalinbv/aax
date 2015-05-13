@@ -128,7 +128,7 @@ typedef struct
  * Filtes and Effects
  */
 
-#define _AAX_FILTER_SECTIONS	3
+#define _AAX_MAX_STAGES		4
 #define _AAX_MAX_DELAYS         8
 #define _AAX_MAX_LOOPBACKS      8
 #define _AAX_MAX_EQBANDS        8
@@ -141,8 +141,8 @@ typedef struct
 
 typedef struct
 {
-   float coeff[4*_AAX_FILTER_SECTIONS];
-   float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_FILTER_SECTIONS];
+   float coeff[4*_AAX_MAX_STAGES];
+   float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
    float Q, k, fs, lf_gain, hf_gain, hf_gain_prev;
    unsigned int no_stages;
    _aaxRingBufferLFOData *lfo;
