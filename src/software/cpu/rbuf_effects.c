@@ -410,9 +410,9 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
 
          k = 1.0f;
          if (!stages) {
-            _aax_movingaverage_fir_compute(fc, filter->fs, &k);
+            _aax_movingaverage_fir_compute(fc, filter->fs, &k, filter->lp);
          } else {
-            _aax_butterworth_iir_compute(fc, filter->fs, cptr, &k, Q, stages);
+            _aax_butterworth_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->lp);
          }
          filter->k = k;
       }
