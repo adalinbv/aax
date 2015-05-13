@@ -93,14 +93,14 @@ int main(int argc, char **argv)
             testForError(filter, "aaxFilterCreate");
 
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              500.0f, 1.0f, 0.1f, 5.0f);
+                                              500.0f, 1.0f, 0.1f, 2.0f);
             testForError(filter, "aaxFilterSetSlot/0");
 
             filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              8000.0f, 0.1f, 0.5f, 5.0f);
+                                              8000.0f, 0.1f, 0.5f, 2.0f);
             testForError(filter, "aaxFilterSetSlot/1");
 
-            filter = aaxFilterSetState(filter, AAX_TRUE);
+            filter = aaxFilterSetState(filter, AAX_24DB_OCT);
             testForError(filter, "aaxFilterSetState");
 
             res = aaxMixerSetFilter(config, filter);
