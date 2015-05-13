@@ -19,12 +19,11 @@
 #define	SAMPLE_FREQ		48000
 #define FILTER_FREQUENCY	 1000
 
-// AAX_FALSE
-// AAX_FILTER_6DB_OCT
-// AAX_FILTER_12DB_OCT
-// AAX_FILTER_24DB_OCT
-// AAX_FILTER_36DB_OCT
-#define FILTER_TYPE		AAX_FILTER_12DB_OCT
+// Order: AAX_6DB_OCT, AAX_12DB_OCT, AAX_24DB_OCT, AAX_36DB_OCT, AAX_48DB_OCT
+// Type:  AAX_BUTTERWORTH, AAX_BESSEL
+#define FILTER_ORDER		AAX_12DB_OCT
+#define FILTER_TYPE		AAX_BESSEL
+#define FILTER_STATE		(FILTER_TYPE|FILTER_ORDER)
 
 void
 testForError(void *p, char *s)
@@ -131,7 +130,7 @@ int main(int argc, char **argv)
                                          FILTER_FREQUENCY, 1.0f, 0.0f, 1.0f);
         testForError(filter, "aaxFilterSetSlot");
 
-        filter = aaxFilterSetState(filter, FILTER_TYPE);
+        filter = aaxFilterSetState(filter, FILTER_STATE);
         testForError(filter, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);

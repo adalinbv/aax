@@ -77,8 +77,8 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_FILTER_12DB_OCT || state == AAX_FILTER_24DB_OCT ||
-       state == AAX_FILTER_36DB_OCT)
+   if (state == AAX_12DB_OCT || state == AAX_24DB_OCT ||
+       state == AAX_36DB_OCT || state == AAX_48DB_OCT)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[EQUALIZER_LF]->data;
       if (flt == NULL)
@@ -97,8 +97,9 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          float *cptr, fcl, fch, k, Q;
          int stages;
 
-         if (state == AAX_FILTER_36DB_OCT) stages = 3;
-         else if (state == AAX_FILTER_24DB_OCT) stages = 2;
+         if (state == AAX_48DB_OCT) stages = 4;
+         else if (state == AAX_36DB_OCT) stages = 3;
+         else if (state == AAX_24DB_OCT) stages = 2;
          else stages = 1;
 
          fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
