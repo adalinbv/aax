@@ -230,7 +230,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
        * WARNING: must be last: dir_fact is used for head shadow filtering
        **/
       dir_fact = ep2d->speaker[t][DIR_RIGHT];
-      hrtf_volume[DIR_RIGHT] = _MIN(0.66f + dir_fact, 1.0f);
+      hrtf_volume[DIR_RIGHT] = dir_fact; // _MIN(0.66f + dir_fact, 1.0f);
 
 #if 0
  printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t][0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t][1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t][2]/44100.0f);
