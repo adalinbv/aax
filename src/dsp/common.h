@@ -46,8 +46,9 @@ enum _aax2dFiltersEffects
     /* final mixer stage */
     EQUALIZER_LF = 0,
     EQUALIZER_HF,
-    SURROUND_CROSSOVER,
-    HRTF_HEADSHADOW = SURROUND_CROSSOVER,
+    HRTF_HEADSHADOW,
+    SURROUND_CROSSOVER_LP = HRTF_HEADSHADOW,
+    SURROUND_CROSSOVER_HP,
     EQUALIZER_MAX,
 
     /* stereo filters */
