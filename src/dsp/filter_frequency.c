@@ -474,6 +474,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
    }
 }
 
+# if 1
 static void
 _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
                   float *k, float *coef)
@@ -490,9 +491,9 @@ _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
 
    *k *= ad/bd;
 
-   coef[0] = (-2.0f*b2 + 2.0f*b0) / bd;
+   coef[0] = 2.0f*(-b2 + b0) / bd;
    coef[1] = (b2 - b1 + b0) / bd;
-   coef[2] = (-2.0f*a2 + 2.0f*a0) / ad;
+   coef[2] = 2.0f*(-a2 + a0) / ad;
    coef[3] = (a2 - a1 + a0) / ad;
 
    // negate to prevent this is required every time the filter is applied.
@@ -500,14 +501,44 @@ _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
    coef[1] = -coef[1];
 }
 
+#else
+static void	// original code
+_aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2, float *k, float fs, float *coef)
+{
+   float ad, bd;
+
+                /* alpha (Numerator in s-domain) */
+   ad = 4.f * a2 + 2.f * a1 + a0;
+                /* beta (Denominator in s-domain) */
+   bd = 4.f * b2 + 2.f * b1 + b0;
+
+                /* update gain constant for this section */
+   *k *= ad/bd;
+
+                /* Denominator */
+   coef[0] = (2.f * b0 - 8.f * b2) / bd;	/* beta1 */
+   coef[1] = (4.f * b2 - 2.f * b1 + b0) / bd;	/* beta2 */
+
+                /* Nominator */
+   coef[2] = (2.f * a0 - 8.f * a2) / ad;	/* alpha1 */
+   coef[3] = (4.f * a2 - 2.f * a1 + a0) / ad;	/* alpha2 */
+
+   // negate to prevent this is required every time the filter is applied.
+   coef[0] = -coef[0];
+   coef[1] = -coef[1];
+}
+#endif
+
 static void // pre-warp
 _aax_iir_s_to_z(float *a0, float *a1, float *a2,
                 float *b0, float *b1, float *b2,
-                float fc, float fs, float *k, float *coef)
+                float fc, float fs, float *k, float *coef, char lowpass)
 {
    float wp;
 
+   // prewarp
    wp = 2.0f*tanf(GMATH_PI * fc/fs);
+
    *a2 /= wp*wp;
    *b2 /= wp*wp;
    *a1 /= wp;
@@ -554,7 +585,7 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
       float b1 = 1.0f/(_Q[pos][i] * Q);
       float b2 = 1.0f;
 
-      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef, lowpass);
       coef += 4;
    }
    *gain = k;
@@ -584,6 +615,7 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
 void
 _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char lowpass)
 {
+// http://www.eevblog.com/forum/projects/sallen-key-lpf-frequency-scaling-factor
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
    static const float _FSF[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
       { 1.2736f, 1.0f,    1.0f,    1.0f    },	// 2nd order
@@ -608,10 +640,16 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       float a1 = 0.0f;
       float a2 = lowpass ? 0.0f : 1.0f;
       float b0 = 1.0f;
-      float b1 = 1.0f/((_FSF[pos][i] * _Q[pos][i]) * Q);
-      float b2 = 1.0f/_FSF[pos][i];
-
-      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      float b1 = 1.0f/(_Q[pos][i] * Q);
+      float b2 = 1.0f;
+      float nfc;
+      
+      if (lowpass) {
+         nfc = fc * _FSF[pos][i];
+      } else {
+         nfc = fc / _FSF[pos][i];
+      }
+      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, nfc, fs, &k, coef, lowpass);
       coef += 4;
    }
    *gain = k;

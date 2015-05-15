@@ -163,7 +163,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
       parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
       graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
-      crossover = (_FILTER_GET_DATA(sensor, SURROUND_CROSSOVER) != NULL);
+      crossover = (_FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP) != NULL);
       crossover &= (no_tracks >= lfe_track);
    }
 
@@ -250,21 +250,25 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
       if (crossover && track != lfe_track)
       {
          _aaxRingBufferFreqFilterData* filter;
+         unsigned char stages;
          float *hist, *cptr;
-         MIX_T *dptr, *sptr;
+         MIX_T *dptr;
 
-         sptr = scratch[1];
          dptr = tracks[track];
          rbd->add(lfe, dptr, no_samples, 1.0f, 0.0f);
 
-         filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
+         filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_HP);
          hist = filter->freqfilter_history[track];
          cptr = filter->coeff;
 
-         _aax_memcpy(sptr, dptr, track_len_bytes);
-         rbd->freqfilter(dptr, sptr, no_samples, hist, -filter->k, cptr);
-         rbd->freqfilter(dptr, dptr, no_samples, hist+2, 1.0f, cptr+4);
-         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+         stages = filter->no_stages;
+         rbd->freqfilter(dptr, dptr, no_samples, hist, filter->k, cptr);
+         while (--stages)
+         {
+            hist += 2;
+            cptr += 4;
+            rbd->freqfilter(dptr, dptr, no_samples, hist, 1.0f, cptr);
+         }
       }
    }
 
@@ -273,14 +277,21 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    if (crossover)
    {
       _aaxRingBufferFreqFilterData* filter;
+      unsigned char stages;
       float *cptr, *hist;
 
-      filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER);
+      filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
       hist = filter->freqfilter_history[lfe_track];
       cptr = filter->coeff;
 
+      stages = filter->no_stages;
       rbd->freqfilter(lfe, lfe, no_samples, hist, filter->k, cptr);
-      rbd->freqfilter(lfe, lfe, no_samples, hist+2, 1.0f, cptr+4);
+      while (--stages)
+      {
+         hist += 2;
+         cptr += 4;
+         rbd->freqfilter(lfe, lfe, no_samples, hist, 1.0f, cptr);
+      }
    }
 }
 
