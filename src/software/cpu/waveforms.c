@@ -439,7 +439,7 @@ __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
       v2 = powf(0.90f, q);
       fc = expf((float)(q-1)*f)*100.0f;
       hist[0] = 0.0f; hist[1] = 0.0f;
-      _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, AAX_TRUE);
+      _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, AAX_TRUE);
 
       _batch_freqfilter(dst, ptr, no_samples, hist, k*(v1-v2), cptr);
       _batch_imadd(dst, ptr, no_samples,  v2, 0.0);
