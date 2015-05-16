@@ -356,11 +356,16 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
    }
 }
 
+// http://www.dsprelated.com/showarticle/182.php
 void
 _aax_movingaverage_fir_compute(float fc, float fs, float *a, char lowpass)
 {
-   fc *= GMATH_2PI;
-   *a = fc/(fc+fs);
+   // exact
+   float c = cosf(GMATH_2PI*fc/fs);
+   *a = c - 1.0f + sqrtf(c*c - 4.0f*c + 3.0f);
+
+   // approx
+// *a = 1.0f - expf(-GMATH_2PI*fc/fs);
 }
 
 
@@ -643,7 +648,7 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       float b1 = 1.0f/(_Q[pos][i] * Q);
       float b2 = 1.0f;
       float nfc;
-      
+
       if (lowpass) {
          nfc = fc * _FSF[pos][i];
       } else {
