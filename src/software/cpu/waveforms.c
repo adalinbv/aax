@@ -196,7 +196,7 @@ static float _rand_sample(float *s, float g)
    rv = rvals[p];
    rvals[p] = r;
 
-   rv = g*(-1.0f + rv/MAX_RANDOM_2);
+   rv = 7.0f*g*(-1.0f + rv/MAX_RANDOM_2);
 
    return rv;
 }
@@ -436,7 +436,7 @@ __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
       int stages = 1;
 
       v1 = powf(1.003f, q);
-      v2 = powf(0.93f, q);
+      v2 = powf(0.90f, q);
       fc = expf((float)(q-1)*f)*100.0f;
       hist[0] = 0.0f; hist[1] = 0.0f;
       _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, AAX_TRUE);
@@ -524,6 +524,7 @@ _bufferMixPinkNoise(void** data, void *scratch0, size_t no_samples, char bps, in
          mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
 
          __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+         _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 1.5f);
          _resample_32bps(ptr, ptr2, no_samples, pitch);
 
          i = no_samples;
@@ -567,6 +568,7 @@ _bufferMixBrownianNoise(void** data, void *scratch0, size_t no_samples, char bps
       for(track=0; track<tracks; track++)
       {
          int32_t *ptr, *ptr2;
+         float hist, k;
          size_t i;
 
          ptr = scratch;
@@ -574,8 +576,12 @@ _bufferMixBrownianNoise(void** data, void *scratch0, size_t no_samples, char bps
          memset(ptr2, 0, noise_samples*sizeof(int32_t));
          mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
 
-         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
-         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+         k = 1.0f;
+         hist = 0.0f;
+         _aax_movingaverage_fir_compute(100.0f, fs, &k, AAX_TRUE);
+         _batch_movingavg(ptr2, ptr2, no_samples, &hist, k);
+         _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
+
          _resample_32bps(ptr, ptr2, no_samples, pitch);
 
          i = no_samples;		/* convert and add */
