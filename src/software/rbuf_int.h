@@ -120,13 +120,11 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     _batch_fmadd_proc add;
     _batch_mul_value_proc multiply;
     _batch_resample_float_proc resample;
-    _batch_movingavg_float_proc movingavg;
     _batch_freqfilter_float_proc freqfilter;
 #else
     _batch_imadd_proc add;
     _batch_mul_value_proc multiply;
     _batch_resample_proc resample;
-    _batch_movingavg_proc movingavg;
     _batch_freqfilter_proc freqfilter;
 #endif
 

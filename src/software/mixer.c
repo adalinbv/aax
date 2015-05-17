@@ -262,6 +262,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          cptr = filter->coeff;
 
          stages = filter->no_stages;
+         if (!stages) stages++;
          rbd->freqfilter(dptr, dptr, no_samples, hist, filter->k, cptr);
          while (--stages)
          {
@@ -285,6 +286,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
       cptr = filter->coeff;
 
       stages = filter->no_stages;
+      if (!stages) stages++;
       rbd->freqfilter(lfe, lfe, no_samples, hist, filter->k, cptr);
       while (--stages)
       {
