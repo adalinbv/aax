@@ -409,34 +409,29 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
          float Q = filter->Q;
 
          k = 1.0f;
-         if (!stages) {
-            _aax_movingaverage_fir_compute(fc, filter->fs, &k, filter->lp);
+         if (filter->state) {
+            _aax_bessel_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->lp);
          } else {
             _aax_butterworth_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->lp);
          }
          filter->k = k;
       }
+      if (!stages) stages++;
 
       // original: *dptr = smp*lf + (*s - smp)*hf
       //           *dptr = (smp * lf) + (*s * hf) + (smp * -hf)
       // result:   *dptr = smp*(lf-hf) + *s * hf;
       num = dmax+ds-dmin;
 
-      if (!stages) {
-         rbd->movingavg(dptr, sptr, num, hist, k);
-      }
-      else
+      // *dptr = smp*(lf-hf)
+      rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
+      if (--stages)
       {
-         // *dptr = smp*(lf-hf)
-         rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
-         if (--stages)
-         {
-            rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
+         rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
+         if (--stages) {
+            rbd->freqfilter(dptr, dptr, num, hist+4, 1.0f, cptr+8);
             if (--stages) {
-               rbd->freqfilter(dptr, dptr, num, hist+4, 1.0f, cptr+8);
-               if (--stages) {
-                  rbd->freqfilter(dptr, dptr, num, hist+6, 1.0f, cptr+12);
-               }
+               rbd->freqfilter(dptr, dptr, num, hist+6, 1.0f, cptr+12);
             }
          }
       }

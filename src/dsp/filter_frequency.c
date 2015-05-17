@@ -129,7 +129,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
          flt->hf_gain_prev = 1.0f;
-         flt->no_stages = stages;
          flt->Q = Q;
 
          flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
@@ -140,20 +139,14 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
             flt->hf_gain = f;
          }
 
-         if (stages) // 2nd, 4th, 6th or 8th order filter
-         {
-            if (state & AAX_BESSEL) {
-                _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
-            } else {
-               _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
-            }
-            flt->k = k;
+         if (state & AAX_BESSEL) {
+             _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
+         } else {
+            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
          }
-         else // 1st order filter
-         {
-            _aax_movingaverage_fir_compute(fc, fs, &k, flt->lp);
-            flt->k = k;
-         }
+         flt->no_stages = stages;
+         filter->state = state >> 24;
+         flt->k = k;
 
          // Non-Manual only
          if (wstate && EBF_VALID(filter) && filter->slot[1])
@@ -576,16 +569,20 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
       { 0.5177f, 0.7071f, 1.9320f, 1.0f    },	// 6th roder
       { 0.5098f, 0.6013f, 0.8999f, 2.5628f }	// 8th order
    };
-   int i, pos = stages-1;
+   float a2, a1, a0;
    float k = 1.0f;
+   int i, pos;
 
    assert(stages <= _AAX_MAX_STAGES);
 
+   a0 = lowpass ? 1.0f : 0.0f;
+   a1 = stages ? 0.0f : 1.0f;
+   a2 = lowpass ? 0.0f : 1.0f;
+   if (!stages) stages++;
+
+   pos = stages-1;
    for (i=0; i<stages; i++)
    {
-      float a0 = lowpass ? 1.0f : 0.0f;
-      float a1 = 0.0f;
-      float a2 = lowpass ? 0.0f : 1.0f;
       float b0 = 1.0f;
       float b1 = 1.0f/(_Q[pos][i] * Q);
       float b2 = 1.0f;
@@ -634,16 +631,20 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       { 0.5103f, 0.6112f, 1.0234f, 1.0f    }, 	// 6th roder
       { 0.5060f, 1.2258f, 0.7109f, 0.5596f }	// 8th order
    };
-   int i, pos = stages-1;
+   float a2, a1, a0;
    float k = 1.0f;
+   int i, pos;
 
    assert(stages <= _AAX_MAX_STAGES);
 
+   a0 = lowpass ? 1.0f : 0.0f;
+   a1 = stages ? 0.0f : 1.0f;
+   a2 = lowpass ? 0.0f : 1.0f;
+   if (!stages) stages++;
+
+   pos = stages-1;
    for (i=0; i<stages; i++)
    {
-      float a0 = lowpass ? 1.0f : 0.0f;
-      float a1 = 0.0f;
-      float a2 = lowpass ? 0.0f : 1.0f;
       float b0 = 1.0f;
       float b1 = 1.0f/(_Q[pos][i] * Q);
       float b2 = 1.0f;
