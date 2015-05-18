@@ -350,15 +350,18 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 }
 
 // http://www.dsprelated.com/showarticle/182.php
+// only used for per emitter HRTF calculation
 void
 _aax_movingaverage_fir_compute(float fc, float fs, float *a, char lowpass)
 {
+#if 0
    // exact
    float c = cosf(GMATH_2PI*fc/fs);
    *a = c - 1.0f + sqrtf(c*c - 4.0f*c + 3.0f);
-
-   // approx
-// *a = 1.0f - expf(-GMATH_2PI*fc/fs);
+#else
+   // approx.: good enough for HRTF
+   *a = 1.0f - expf(-GMATH_2PI*fc/fs);
+#endif
 }
 
 
