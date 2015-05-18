@@ -194,6 +194,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 }
 
 // http://www.sfu.ca/sonic-studio/handbook/Binaural_Hearing.html
+//  http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
 void
 _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, float svol, float evol)
 {
@@ -270,8 +271,8 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          hist = &ep2d->freqfilter_history[t];
          k = 1.0f;
 
-         // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 1kHz
-         fc = 20000.0f + 19000.0f*dir_fact;
+         // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 500Hz
+         fc = 20000.0f + 19500.0f*dir_fact;
          _aax_movingaverage_fir_compute(fc, fs, &k, AAX_TRUE);
 
 #if RB_FLOAT_DATA
