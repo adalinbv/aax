@@ -117,8 +117,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
          float Q = filter->slot[0]->param[AAX_RESONANCE];
          float *cptr = flt->coeff;
-         float fs = flt->fs; 
-         float k = 1.0f;
+         float k, fs = flt->fs; 
 
          flt->lf_gain = fabs(filter->slot[0]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
@@ -128,24 +127,24 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
-         flt->hf_gain_prev = 1.0f;
-         flt->Q = Q;
-
-         flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
-         if (flt->lp == AAX_FALSE)
+         flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
+         if (flt->type == HIGHPASS)
          {
-            float f = flt->lf_gain;
+            k = flt->lf_gain;
             flt->lf_gain = flt->hf_gain;
-            flt->hf_gain = f;
+            flt->hf_gain = k;
          }
 
+         k = flt->hf_gain/flt->lf_gain;
+printf("k: %f\n", k);
          if (state & AAX_BESSEL) {
-             _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
+             _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->type);
          } else {
-            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, flt->lp);
+            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, flt->type);
          }
          flt->no_stages = stages;
          filter->state = state >> 24;
+         flt->Q = Q;
          flt->k = k;
 
          // Non-Manual only
@@ -352,7 +351,7 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 // http://www.dsprelated.com/showarticle/182.php
 // only used for per emitter HRTF calculation
 void
-_aax_movingaverage_fir_compute(float fc, float fs, float *a, char lowpass)
+_aax_movingaverage_fir_compute(float fc, float fs, float *a)
 {
 #if 0
    // exact
@@ -533,7 +532,7 @@ _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2, fl
 static void // pre-warp
 _aax_iir_s_to_z(float *a0, float *a1, float *a2,
                 float *b0, float *b1, float *b2,
-                float fc, float fs, float *k, float *coef, char lowpass)
+                float fc, float fs, float *k, float *coef)
 {
    float wp;
 
@@ -563,7 +562,7 @@ _aax_iir_s_to_z(float *a0, float *a1, float *a2,
  *  (s+0.707 + j0.707) (s+0.707 -j0.707) = s2 + 1.414s + 1.
  */
 void
-_aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char lowpass)
+_aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
    static const float _Q[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
@@ -572,25 +571,84 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
       { 0.5177f, 0.7071f, 1.9320f, 1.0f    },	// 6th roder
       { 0.5098f, 0.6013f, 0.8999f, 2.5628f }	// 8th order
    };
+   int i, pos, first_order;
    float a2, a1, a0;
+   float A = *gain;
    float k = 1.0f;
-   int i, pos;
 
    assert(stages <= _AAX_MAX_STAGES);
 
-   a0 = lowpass ? 1.0f : 0.0f;
-   a1 = stages ? 0.0f : 1.0f;
-   a2 = lowpass ? 0.0f : 1.0f;
+   first_order = stages ? AAX_FALSE : AAX_TRUE;
    if (!stages) stages++;
 
    pos = stages-1;
    for (i=0; i<stages; i++)
    {
-      float b0 = 1.0f;
-      float b1 = 1.0f/(_Q[pos][i] * Q);
-      float b2 = 1.0f;
+      float b2, b1, b0;
 
-      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef, lowpass);
+      if (A > GMATH_128DB)	// shelf or allpass filter
+      {
+         switch (type)
+         {
+         case BANDPASS:
+            a2 = 1.0f;
+            a1 = A/(_Q[pos][i] * Q);
+            a0 = 1.0f;
+
+            b2 = 1.0f;
+            b1 = A/(_Q[pos][i] * Q);
+            b0 = 1.0f;
+            break;
+         case HIGHPASS:
+            a2 = 1.0f;
+            a1 = sqrtf(A)/(_Q[pos][i] * Q);
+            a0 = A;
+            k *= A;
+
+            b2 = A;
+            b1 = sqrtf(A)/(_Q[pos][i] * Q);
+            b0 = 1.0f;
+            break;
+         case LOWPASS:
+         default:
+            a2 = A;
+            a1 = sqrtf(A)/(_Q[pos][i] * Q);
+            a0 = 1.0f; 
+            k *= A;
+
+            b2 = 1.0f;
+            b1 = sqrtf(A)/(_Q[pos][i] * Q);
+            b0 = A;
+            break;
+         }
+      }
+      else
+      {
+         switch (type)
+         {
+         case BANDPASS:
+            a2 = 0.0f;
+            a1 = 1.0f;
+            a0 = 0.0f;
+            break;
+         case HIGHPASS:
+            a2 = 1.0f;
+            a1 = first_order ? 1.0f : 0.0f;
+            a0 = 0.0f;
+            break;
+         case LOWPASS:
+         default:
+            a2 = 0.0f;
+            a1 = first_order ? 1.0f : 0.0f;
+            a0 = 1.0f;
+            break;
+         }
+         b2 = 1.0f;
+         b1 = 1.0f/(_Q[pos][i] * Q);
+         b0 = 1.0f;
+      }
+
+      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
@@ -618,7 +676,7 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
  * Bessel: FSF = 1/1.274, Q / 1/0.577
  */
 void
-_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char lowpass)
+_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
 // http://www.eevblog.com/forum/projects/sallen-key-lpf-frequency-scaling-factor
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
@@ -634,31 +692,90 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       { 0.5103f, 0.6112f, 1.0234f, 1.0f    }, 	// 6th roder
       { 0.5060f, 1.2258f, 0.7109f, 0.5596f }	// 8th order
    };
+   int i, pos, first_order;
    float a2, a1, a0;
+   float A = *gain;
    float k = 1.0f;
-   int i, pos;
 
    assert(stages <= _AAX_MAX_STAGES);
 
-   a0 = lowpass ? 1.0f : 0.0f;
-   a1 = stages ? 0.0f : 1.0f;
-   a2 = lowpass ? 0.0f : 1.0f;
+   first_order = stages ? AAX_FALSE : AAX_TRUE;
    if (!stages) stages++;
 
    pos = stages-1;
    for (i=0; i<stages; i++)
    {
-      float b0 = 1.0f;
-      float b1 = 1.0f/(_Q[pos][i] * Q);
-      float b2 = 1.0f;
+      float b2, b1, b0;
       float nfc;
 
-      if (lowpass) {
-         nfc = fc * _FSF[pos][i];
-      } else {
-         nfc = fc / _FSF[pos][i];
+      if (A >  GMATH_128DB)	// shelf or allpass filter
+      {
+         switch (type)
+         {
+         case BANDPASS:
+            a2 = 1.0f;
+            a1 = A/(_Q[pos][i] * Q);
+            a0 = 1.0f;
+
+            b2 = 1.0f;
+            b1 = A/(_Q[pos][i] * Q);
+            b0 = 1.0f;
+            break;
+         case HIGHPASS:
+            a2 = 1.0f;
+            a1 = sqrtf(A)/(_Q[pos][i] * Q);
+            a0 = A;
+            k *= A;
+
+            b2 = A;
+            b1 = sqrtf(A)/(_Q[pos][i] * Q);
+            b0 = 1.0f;
+            break;
+         case LOWPASS:
+         default:
+            a2 = A;
+            a1 = sqrtf(A)/(_Q[pos][i] * Q);
+            a0 = 1.0f;
+            k *= A;
+
+            b2 = 1.0f;
+            b1 = sqrtf(A)/(_Q[pos][i] * Q);
+            b0 = A;
+            break;
+         }
       }
-      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, nfc, fs, &k, coef, lowpass);
+      else
+      {
+         switch (type)
+         {
+         case BANDPASS:
+            a2 = 0.0f;
+            a1 = 1.0f;
+            a0 = 0.0f;
+            break;
+         case HIGHPASS:
+            a2 = 1.0f;
+            a1 = first_order ? 1.0f : 0.0f;
+            a0 = 0.0f;
+            break;
+         case LOWPASS:
+         default:
+            a2 = 0.0f;
+            a1 = first_order ? 1.0f : 0.0f;
+            a0 = 1.0f;
+            break;
+         }
+         b2 = 1.0f;
+         b1 = 1.0f/(_Q[pos][i] * Q);
+         b0 = 1.0f;
+      }
+
+      if (type == HIGHPASS) {
+         nfc = fc / _FSF[pos][i];
+      } else {
+         nfc = fc * _FSF[pos][i];
+      }
+      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, nfc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
