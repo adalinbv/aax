@@ -578,7 +578,7 @@ _bufferMixBrownianNoise(void** data, void *scratch0, size_t no_samples, char bps
 
          k = 1.0f;
          hist = 0.0f;
-         _aax_movingaverage_fir_compute(100.0f, fs, &k, AAX_TRUE);
+         _aax_movingaverage_fir_compute(100.0f, fs, &k);
          _batch_movingavg(ptr2, ptr2, no_samples, &hist, k);
          _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
 

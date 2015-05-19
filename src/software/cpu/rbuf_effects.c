@@ -398,7 +398,6 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       float *cptr = filter->coeff;
       float lf = filter->lf_gain;
       float hf = filter->hf_gain;
-      float hf_prev = filter->hf_gain_prev;
       float k = filter->k;
       int stages, num;
 
@@ -410,9 +409,9 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
 
          k = 1.0f;
          if (filter->state) {
-            _aax_bessel_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->lp);
+            _aax_bessel_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->type);
          } else {
-            _aax_butterworth_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->lp);
+            _aax_butterworth_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->type);
          }
          filter->k = k;
       }
@@ -424,7 +423,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       num = dmax+ds-dmin;
 
       // *dptr = smp*(lf-hf)
-      rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
+      rbd->freqfilter(dptr, sptr, num, hist, k*lf, cptr);
       if (--stages)
       {
          rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
@@ -434,15 +433,6 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
                rbd->freqfilter(dptr, dptr, num, hist+6, 1.0f, cptr+12);
             }
          }
-      }
-
-      // *s * hf
-      if (hf > GMATH_128DB || hf_prev > GMATH_128DB)
-      {
-//       float step = (hf - hf_prev)/num; /* TODO: Fix or remove */
-         float step = 0.0f;
-         rbd->add(dptr, sptr, num, hf, step);
-         filter->hf_gain_prev = hf;
       }
    }
 }

@@ -115,7 +115,6 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          flt = filter->slot[EQUALIZER_LF]->data;
          Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
          cptr = flt->coeff;
-         k = 1.0f;
 
          flt->lf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN]);
          if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
@@ -125,16 +124,17 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
-         flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
-         if (flt->lp == AAX_FALSE)
+         flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
+         if (flt->type == HIGHPASS)
          {
             float f = flt->lf_gain;
             flt->lf_gain = flt->hf_gain;
             flt->hf_gain = f;
          }
-         _aax_butterworth_iir_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->lp);
 
-         flt->hf_gain_prev = 1.0f;
+         k = 0.0f; // for now
+         _aax_butterworth_iir_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->type);
+
          flt->no_stages = stages;
          flt->k = k;
 
@@ -152,16 +152,15 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
-         flt->lp = (flt->lf_gain >= flt->hf_gain) ? AAX_TRUE : AAX_FALSE;
-         if (flt->lp == AAX_FALSE)
+         flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
+         if (flt->type == HIGHPASS)
          {
             float f = flt->lf_gain;
             flt->lf_gain = flt->hf_gain;
             flt->hf_gain = f;
          }
-         _aax_butterworth_iir_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->lp);
+         _aax_butterworth_iir_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->type);
 
-         flt->hf_gain_prev = 1.0f;
          flt->no_stages = stages;
          flt->k = k;
       }
