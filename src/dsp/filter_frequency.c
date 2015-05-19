@@ -474,6 +474,42 @@ _batch_freqfilter_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
    }
 }
 
+void
+_batch_freqfilter_iir_reverse_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      float smp, h0, h1;
+      size_t i = num;
+      float c0, c1, c2, c3;
+
+      // for original code see _batch_freqfilter_iir_cpu
+      c0 = cptr[0];
+      c1 = cptr[1];
+      c2 = cptr[2];
+      c3 = cptr[3];
+
+      h0 = hist[0];
+      h1 = hist[1];
+
+      s += num-1;
+      d += num-1;
+      do
+      {
+         smp = (*s-- * k) + ((h0 * c0) + (h1 * c1));
+         *d-- = smp       + ((h0 * c2) + (h1 * c3));
+
+         h1 = h0;
+         h0 = smp;
+      }
+      while (--i);
+
+      hist[0] = h0;
+      hist[1] = h1;
+   }
+}
+
 # if 1
 static void
 _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,

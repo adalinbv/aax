@@ -80,6 +80,7 @@ extern _batch_movingavg_proc _batch_movingavg;
 extern _batch_freqfilter_proc _batch_freqfilter;
 extern _batch_movingavg_float_proc _batch_movingavg_float;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
+extern _batch_freqfilter_float_proc _batch_freqfilter_reverse_float;
 extern _batch_resample_proc _batch_resample;
 extern _batch_resample_float_proc _batch_resample_float;
 

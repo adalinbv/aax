@@ -84,6 +84,7 @@ void _batch_freqfilter_fir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float
 void _batch_freqfilter_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float, const float*);
 void _batch_freqfilter_fir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_iir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float, const float*);
+void _batch_freqfilter_iir_reverse_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float, const float*);
 #if RB_FLOAT_DATA
 void _batch_cvt24_ps24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_cpu(void_ptr, const_void_ptr, size_t);

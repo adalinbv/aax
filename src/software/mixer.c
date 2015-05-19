@@ -264,11 +264,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          stages = filter->no_stages;
          if (!stages) stages++;
          rbd->freqfilter(dptr, dptr, no_samples, hist, filter->k, cptr);
-         while (--stages)
+         if (--stages)
          {
+            hist[2] = hist[0];
+            hist[3] = hist[1];
             hist += 2;
             cptr += 4;
-            rbd->freqfilter(dptr, dptr, no_samples, hist, 1.0f, cptr);
+//          rbd->freqfilter(dptr, dptr, no_samples, hist, 1.0f, cptr);
+            _batch_freqfilter_reverse_float(dptr, dptr, no_samples, hist, 1.0f, cptr);
          }
       }
    }
@@ -288,11 +291,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
       stages = filter->no_stages;
       if (!stages) stages++;
       rbd->freqfilter(lfe, lfe, no_samples, hist, filter->k, cptr);
-      while (--stages)
+      if (--stages)
       {
+         hist[2] = hist[0];
+         hist[3] = hist[1];
          hist += 2;
          cptr += 4;
-         rbd->freqfilter(lfe, lfe, no_samples, hist, 1.0f, cptr);
+//       rbd->freqfilter(lfe, lfe, no_samples, hist, 1.0f, cptr);
+         _batch_freqfilter_reverse_float(lfe, lfe, no_samples, hist, 1.0f, cptr);
       }
    }
 }
