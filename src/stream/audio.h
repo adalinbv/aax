@@ -48,9 +48,9 @@ extern "C" {
 #define SPEAKER_TOP_BACK_CENTER         0x10000
 #define SPEAKER_TOP_BACK_RIGHT          0x20000
 
-#define KSDATAFORMAT_SUBTYPE1           0x00000010
-#define KSDATAFORMAT_SUBTYPE2           0x800000aa
-#define KSDATAFORMAT_SUBTYPE3           0x00389b71
+#define KSDATAFORMAT_SUBTYPE1           0x00100000
+#define KSDATAFORMAT_SUBTYPE2           0xaa000080
+#define KSDATAFORMAT_SUBTYPE3           0x719b3800
 
 
 #define _AAX_FILEDRVLOG(a)          _aaxStreamDriverLog(NULL, 0, 0, a);
