@@ -174,6 +174,13 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    tracks = (MIX_T**)rbd->track;
    if (crossover)
    {
+      _aaxRingBufferFreqFilterData* filter;
+      float k = 1.0f;
+
+      filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
+      _aax_movingaverage_fir_compute(80.0f, filter->fs, &k);
+      filter->k = k;
+
       lfe = tracks[lfe_track];
       memset(lfe, 0, track_len_bytes);
    }
@@ -247,60 +254,43 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          while (b);
       }
 
-      if (crossover && track != lfe_track)
+      if (crossover)
       {
          _aaxRingBufferFreqFilterData* filter;
          unsigned char stages;
-         float *hist, *cptr;
-         MIX_T *dptr;
+         MIX_T *dptr, *tmp;
+         float *hist, k;
 
          dptr = tracks[track];
-         rbd->add(lfe, dptr, no_samples, 1.0f, 0.0f);
+         tmp = scratch[SCRATCH_BUFFER1];
 
-         filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_HP);
+         filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
          hist = filter->freqfilter_history[track];
-         cptr = filter->coeff;
-
          stages = filter->no_stages;
-         if (!stages) stages++;
-         rbd->freqfilter(dptr, dptr, no_samples, hist, filter->k, cptr);
-         if (--stages)
+         k = filter->k;
+
+# if RB_FLOAT_DATA
+         _batch_movingavg_float(tmp, dptr, no_samples, hist++, k);
+# else
+         _batch_movingavg(tmp, dptr, no_samples, hist++, k);
+#endif
+         do
          {
-            hist[2] = hist[0];
-            hist[3] = hist[1];
-            hist += 2;
-            cptr += 4;
-//          rbd->freqfilter(dptr, dptr, no_samples, hist, 1.0f, cptr);
-            _batch_freqfilter_reverse_float(dptr, dptr, no_samples, hist, 1.0f, cptr);
+# if RB_FLOAT_DATA
+            _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
+            _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
+# else
+            _batch_movingavg(tmp, tmp, no_samples, hist++, k);
+            _batch_movingavg(tmp, tmp, no_samples, hist++, k);
+# endif
          }
+         while (--stages);
+         rbd->add(lfe, tmp, no_samples, 1.0f, 0.0f);
+         rbd->add(dptr, tmp, no_samples, -1.0f, 0.0f);
       }
    }
 
    rb->limit(rb, RB_LIMITER_ELECTRONIC);
-
-   if (crossover)
-   {
-      _aaxRingBufferFreqFilterData* filter;
-      unsigned char stages;
-      float *cptr, *hist;
-
-      filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
-      hist = filter->freqfilter_history[lfe_track];
-      cptr = filter->coeff;
-
-      stages = filter->no_stages;
-      if (!stages) stages++;
-      rbd->freqfilter(lfe, lfe, no_samples, hist, filter->k, cptr);
-      if (--stages)
-      {
-         hist[2] = hist[0];
-         hist[3] = hist[1];
-         hist += 2;
-         cptr += 4;
-//       rbd->freqfilter(lfe, lfe, no_samples, hist, 1.0f, cptr);
-         _batch_freqfilter_reverse_float(lfe, lfe, no_samples, hist, 1.0f, cptr);
-      }
-   }
 }
 
 void*
