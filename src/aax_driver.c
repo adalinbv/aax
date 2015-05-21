@@ -379,14 +379,6 @@ aaxDriverOpen(aaxConfig config)
                filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, SURROUND_CROSSOVER_LP, filter, 0);
                aaxFilterDestroy(filter);
-
-               /* crossover highpass filter at 80Hz, 4th orer (24dB/oct) */
-               filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
-               filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                                 fc, 0.0f, 1.0f, Q);
-               filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
-               _FILTER_SWAP_SLOT_DATA(handle, SURROUND_CROSSOVER_HP, filter, 0);
-               aaxFilterDestroy(filter);
             }
             else if (handle->info->mode == AAX_MODE_WRITE_HRTF)
             {

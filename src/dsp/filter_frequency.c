@@ -314,13 +314,13 @@ _batch_freqfilter_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *
    if (num)
    {
       int32_ptr s = (int32_ptr)sptr;
-      float smp, a0 = 1.0f - a1;
+      float smp, b1 = 1.0f - a1;
       size_t i = num;
 
       smp = *hist;
       do
       {
-         smp = a0*smp + a1*(*s++);
+         smp = a1*(*s++) + b1*smp;
          *d++ = smp;
       }
       while (--i);
@@ -334,13 +334,13 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
    if (num)
    {
       float32_ptr s = (float32_ptr)sptr;
-      float smp, a0 = 1.0f - a1;
+      float smp, b1 = 1.0f - a1;
       size_t i = num;
 
       smp = *hist;
       do
       {
-         smp = a0*smp + a1*(*s++);
+         smp = a1*(*s++) + b1*smp;
          *d++ = smp;
       }
       while (--i);
@@ -348,8 +348,10 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
    }
 }
 
+// exponential moving average filter:  y[n] = a*x[n] + (1-a)*y[n-1]
 // http://www.dsprelated.com/showarticle/182.php
-// only used for per emitter HRTF calculation
+// used for per emitter HRTF calculation
+// and for surround crossover
 void
 _aax_movingaverage_fir_compute(float fc, float fs, float *a)
 {
@@ -511,8 +513,8 @@ _batch_freqfilter_iir_reverse_float_cpu(float32_ptr d, const_float32_ptr sptr, s
 }
 
 # if 1
-static void
-_aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
+static inline void
+_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
                   float *k, float *coef)
 {
    float ad, bd;
@@ -539,7 +541,7 @@ _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
 
 #else
 static void	// original code
-_aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2, float *k, float fs, float *coef)
+_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2, float *k, float fs, float *coef)
 {
    float ad, bd;
 
@@ -565,8 +567,8 @@ _aax_iir_bilinear(float a0, float a1, float a2, float b0, float b1, float b2, fl
 }
 #endif
 
-static void // pre-warp
-_aax_iir_s_to_z(float *a0, float *a1, float *a2,
+static inline void // pre-warp
+_aax_bilinear_s2z(float *a0, float *a1, float *a2,
                 float *b0, float *b1, float *b2,
                 float fc, float fs, float *k, float *coef)
 {
@@ -580,7 +582,7 @@ _aax_iir_s_to_z(float *a0, float *a1, float *a2,
    *a1 /= wp;
    *b1 /= wp;
 
-   _aax_iir_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, coef);
+   _aax_bilinear(*a0, *a1, *a2, *b0, *b1, *b2, k, coef);
 }
 
 /*
@@ -684,7 +686,7 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
          b0 = 1.0f;
       }
 
-      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+      _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
@@ -811,7 +813,8 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       } else {
          nfc = fc * _FSF[pos][i];
       }
-      _aax_iir_s_to_z(&a0, &a1, &a2, &b0, &b1, &b2, nfc, fs, &k, coef);
+//    _aax_matched_s2z(&a0, &a1, &a2, &b0, &b1, &b2, nfc, fs, &k, coef);
+      _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
