@@ -460,6 +460,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
       h0 = hist[0];
       h1 = hist[1];
 
+      // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
       do
       {
          smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
@@ -711,7 +712,56 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
  *
  * Butterworth: FSF = 1.0, Q = 1/0.7071
  * Bessel: FSF = 1/1.274, Q / 1/0.577
+ *
+ * Note: The benefit of the Bessel filter is linear phase shifting in the
+ *       cut-band. Unfortunately this is only true for anaologue Bessel
+ *       filters but digital bilinear filters use prewrapping which spoils
+ *       the advantage.
+ *
+ *       Because of this Bessel is now implemented using cascading
+ *       exponential moving average filters.
  */
+#if 1
+void
+_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+{
+    float k = 1.0f, alpha = 1.0f;
+
+    _aax_movingaverage_fir_compute(fc, fs, &alpha);
+
+printf("alpha: %f (1 - alpha: %f\n", alpha, 1.0f-alpha);
+#if 1
+   k = alpha;
+
+   coef[0] = 1.0f - alpha;
+   coef[1] = 0.0f;
+   coef[2] = 0.0f;
+   coef[3] = 0.0f;
+
+#else
+{
+   float a2, a1, a0, b2, b1, b0;
+
+   a2 = 0.0f;
+   a1 = 0.0f;
+   a0 = 1.0f - alpha;
+
+   b2 = 0.0f;
+   b1 = alpha;
+   b0 = 0.0f;
+   
+   _aax_bilinear(a0, a1, a2, b0, b1, b2, &k, coef);
+}
+#endif
+printf("k: %f, coeff: %f, %f | %f, %f\n", *gain, coef[0], coef[1], coef[2], coef[3]);
+
+   *gain = k;
+}
+#else
+void
+_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+{
+
 void
 _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
@@ -812,9 +862,9 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       } else {
          nfc = fc * _FSF[pos][i];
       }
-//    _aax_matched_s2z(&a0, &a1, &a2, &b0, &b1, &b2, nfc, fs, &k, coef);
       _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
       coef += 4;
    }
    *gain = k;
 }
+#endif
