@@ -58,12 +58,6 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
    filter[SURROUND_CROSSOVER_LP].param[AAX_HF_GAIN] = 0.0f;
    filter[SURROUND_CROSSOVER_LP].param[AAX_RESONANCE] = 1.0f;
    filter[SURROUND_CROSSOVER_LP].state = AAX_FALSE;
-
-   filter[SURROUND_CROSSOVER_HP].param[AAX_CUTOFF_FREQUENCY] = 80.0f;
-   filter[SURROUND_CROSSOVER_HP].param[AAX_LF_GAIN] = 0.0f;
-   filter[SURROUND_CROSSOVER_HP].param[AAX_HF_GAIN] = 1.0f;
-   filter[SURROUND_CROSSOVER_HP].param[AAX_RESONANCE] = 1.0f;
-   filter[SURROUND_CROSSOVER_HP].state = AAX_FALSE;
 }
 
 void

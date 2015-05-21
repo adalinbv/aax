@@ -174,13 +174,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    tracks = (MIX_T**)rbd->track;
    if (crossover)
    {
-      _aaxRingBufferFreqFilterData* filter;
-      float k = 1.0f;
-
-      filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
-      _aax_movingaverage_fir_compute(80.0f, filter->fs, &k);
-      filter->k = k;
-
       lfe = tracks[lfe_track];
       memset(lfe, 0, track_len_bytes);
    }
