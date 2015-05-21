@@ -247,7 +247,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          while (b);
       }
 
-      if (crossover)
+      if (crossover && track != AAX_TRACK_FRONT_LEFT
+                    && track != AAX_TRACK_FRONT_RIGHT)
       {
          _aaxRingBufferFreqFilterData* filter;
          unsigned char stages;
@@ -264,10 +265,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
 
 # if RB_FLOAT_DATA
          _batch_movingavg_float(tmp, dptr, no_samples, hist++, k);
+         _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
 # else
          _batch_movingavg(tmp, dptr, no_samples, hist++, k);
+         _batch_movingavg(tmp, tmp, no_samples, hist++, k);
 #endif
-         do
+         if (--stages)
          {
 # if RB_FLOAT_DATA
             _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
@@ -277,7 +280,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
             _batch_movingavg(tmp, tmp, no_samples, hist++, k);
 # endif
          }
-         while (--stages);
          rbd->add(lfe, tmp, no_samples, 1.0f, 0.0f);
          rbd->add(dptr, tmp, no_samples, -1.0f, 0.0f);
       }

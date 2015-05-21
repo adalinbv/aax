@@ -136,7 +136,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          }
 
          k = flt->hf_gain/flt->lf_gain;
-printf("k: %f\n", k);
          if (state & AAX_BESSEL) {
              _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->type);
          } else {
