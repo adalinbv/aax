@@ -726,34 +726,29 @@ void
 _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
     float k = 1.0f, alpha = 1.0f;
+    float beta;
 
-    _aax_movingaverage_fir_compute(fc, fs, &alpha);
+   _aax_movingaverage_fir_compute(fc, fs, &alpha);
+   beta = 1.0f - alpha;
 
-printf("alpha: %f (1 - alpha: %f\n", alpha, 1.0f-alpha);
-#if 1
-   k = alpha;
+   if (stages == 0)
+   {
+      k = alpha;
 
-   coef[0] = 1.0f - alpha;
-   coef[1] = 0.0f;
-   coef[2] = 0.0f;
-   coef[3] = 0.0f;
+      coef[0] = beta;
+      coef[1] = 0.0f;
+      coef[2] = 0.0f;
+      coef[3] = 0.0f;
+   }
+   else
+   {
+      k = alpha*alpha;
 
-#else
-{
-   float a2, a1, a0, b2, b1, b0;
-
-   a2 = 0.0f;
-   a1 = 0.0f;
-   a0 = 1.0f - alpha;
-
-   b2 = 0.0f;
-   b1 = alpha;
-   b0 = 0.0f;
-   
-   _aax_bilinear(a0, a1, a2, b0, b1, b2, &k, coef);
-}
-#endif
-printf("k: %f, coeff: %f, %f | %f, %f\n", *gain, coef[0], coef[1], coef[2], coef[3]);
+      coef[0] = 2*beta;
+      coef[1] = -beta*beta;
+      coef[2] = 0.0f;
+      coef[3] = 0.0f;
+   }
 
    *gain = k;
 }
