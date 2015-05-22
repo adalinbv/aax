@@ -333,13 +333,17 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
    if (num)
    {
       float32_ptr s = (float32_ptr)sptr;
-      float smp, b1 = 1.0f - a1;
+      float smp; // b1 = 1.0f - a1;
       size_t i = num;
 
       smp = *hist;
       do
       {
+#if 0
          smp = a1*(*s++) + b1*smp;
+#else
+         smp += a1*(*s++ - smp);	// smp = a1*(*s++ - smp) + smp;
+#endif
          *d++ = smp;
       }
       while (--i);
@@ -354,11 +358,10 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 void
 _aax_movingaverage_fir_compute(float fc, float fs, float *a)
 {
-#if 0
    // exact
    float c = cosf(GMATH_2PI*fc/fs);
    *a = c - 1.0f + sqrtf(c*c - 4.0f*c + 3.0f);
-#else
+#if 0
    // approx.: good enough for HRTF
    *a = 1.0f - expf(-GMATH_2PI*fc/fs);
 #endif
@@ -687,6 +690,7 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
       }
 
       _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
+
       coef += 4;
    }
    *gain = k;
@@ -731,23 +735,30 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
    _aax_movingaverage_fir_compute(fc, fs, &alpha);
    beta = 1.0f - alpha;
 
-   if (stages == 0)
+   if (stages == 0)	// 1st order exponential moving average filter
    {
-      k = alpha;
+      k = 1.0f - alpha;
 
       coef[0] = beta;
       coef[1] = 0.0f;
       coef[2] = 0.0f;
       coef[3] = 0.0f;
    }
-   else
+   else			// 2nd, 4th, 6th or 8th order exp. mov. avg. filter
    {
-      k = alpha*alpha;
+      int i;
 
-      coef[0] = 2*beta;
-      coef[1] = -beta*beta;
-      coef[2] = 0.0f;
-      coef[3] = 0.0f;
+      k = powf(alpha, 2.0f*stages); // alpha*alpha for 2nd order
+
+      for (i=0; i<stages; i++)
+      {
+         coef[0] = 2*beta;
+         coef[1] = -beta*beta;
+         coef[2] = 0.0f;
+         coef[3] = 0.0f;
+
+         coef += 4;
+      }
    }
 
    *gain = k;
