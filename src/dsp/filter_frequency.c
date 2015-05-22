@@ -358,9 +358,13 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 void
 _aax_movingaverage_fir_compute(float fc, float fs, float *a)
 {
+   float s = *a;
+
    // exact
    float c = cosf(GMATH_2PI*fc/fs);
-   *a = c - 1.0f + sqrtf(c*c - 4.0f*c + 3.0f);
+// *a = c - 1.0f + sqrtf(c*c - 4.0f*c + 3.0f);
+   *a = c - 1.0f + sqrtf(0.5f*c*c*s - 2.0f*c*s + 1.5f*s);
+
 #if 0
    // approx.: good enough for HRTF
    *a = 1.0f - expf(-GMATH_2PI*fc/fs);
@@ -732,9 +736,10 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
     float k = 1.0f, alpha = 1.0f;
     float beta;
 
+   if (stages > 0) alpha = 2.0f*stages;
    _aax_movingaverage_fir_compute(fc, fs, &alpha);
-   beta = 1.0f - alpha;
 
+   beta = 1.0f - alpha;
    if (stages == 0)	// 1st order exponential moving average filter
    {
       k = 1.0f - alpha;
