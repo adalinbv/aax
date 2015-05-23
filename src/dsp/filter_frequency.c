@@ -706,9 +706,9 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
     float beta;
 
    if (stages > 0) alpha = 2.0f*stages;
-   if (type == HIGHPASS) alpha = _MAX(fc/1000.0f, 1.0f)/alpha;
+   if (type == HIGHPASS) alpha = 1.0f/alpha;
 
-   _aax_EMA_compute(fc, fs, &alpha);
+   _aax_EMA_compute(_MIN(fc, 4800.0f), fs, &alpha);
    beta = 1.0f - alpha;
 
    if (stages == 0)	// 1st order exponential moving average filter
