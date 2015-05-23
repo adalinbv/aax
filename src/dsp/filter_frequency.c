@@ -514,7 +514,6 @@ _batch_freqfilter_iir_reverse_float_cpu(float32_ptr d, const_float32_ptr sptr, s
    }
 }
 
-# if 1
 static inline void
 _aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
                   float *k, float *coef)
@@ -540,34 +539,6 @@ _aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,
    coef[0] = -coef[0];
    coef[1] = -coef[1];
 }
-
-#else
-static void	// original code
-_aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2, float *k, float fs, float *coef)
-{
-   float ad, bd;
-
-                /* alpha (Numerator in s-domain) */
-   ad = 4.f * a2 + 2.f * a1 + a0;
-                /* beta (Denominator in s-domain) */
-   bd = 4.f * b2 + 2.f * b1 + b0;
-
-                /* update gain constant for this section */
-   *k *= ad/bd;
-
-                /* Denominator */
-   coef[0] = (2.f * b0 - 8.f * b2) / bd;	/* beta1 */
-   coef[1] = (4.f * b2 - 2.f * b1 + b0) / bd;	/* beta2 */
-
-                /* Nominator */
-   coef[2] = (2.f * a0 - 8.f * a2) / ad;	/* alpha1 */
-   coef[3] = (4.f * a2 - 2.f * a1 + a0) / ad;	/* alpha2 */
-
-   // negate to prevent this is required every time the filter is applied.
-   coef[0] = -coef[0];
-   coef[1] = -coef[1];
-}
-#endif
 
 static inline void // pre-warp
 _aax_bilinear_s2z(float *a0, float *a1, float *a2,
@@ -723,6 +694,9 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
  *
  *       Because of this Bessel is now implemented using cascading
  *       exponential moving average filters.
+ *
+ * Note: coef[0] and coef[1] are negate to prevent this is required every
+ *       time the filter is applied.
  */
 #if 1
 void
@@ -732,30 +706,38 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
     float beta;
 
    if (stages > 0) alpha = 2.0f*stages;
-   _aax_EMA_compute(fc, fs, &alpha);
+   if (type == HIGHPASS) alpha = 1.0f/alpha;
 
+   _aax_EMA_compute(fc, fs, &alpha);
    beta = 1.0f - alpha;
+
    if (stages == 0)	// 1st order exponential moving average filter
    {
-      k = 1.0f - alpha;
+      k = (type == HIGHPASS) ? beta : alpha;
 
       coef[0] = beta;
       coef[1] = 0.0f;
-      coef[2] = 0.0f;
+      coef[2] = (type == HIGHPASS) ? -1.0f : 0.0f;
       coef[3] = 0.0f;
    }
    else			// 2nd, 4th, 6th or 8th order exp. mov. avg. filter
    {
+      float g = (type == HIGHPASS) ? beta : alpha;
       int i;
 
-      k = powf(alpha, 2.0f*stages); // alpha*alpha for 2nd order
+      k = powf(g, 2.0f*stages); // alpha*alpha for 2nd order
 
       for (i=0; i<stages; i++)
       {
          coef[0] = 2*beta;
          coef[1] = -beta*beta;
-         coef[2] = 0.0f;
-         coef[3] = 0.0f;
+
+         if      (type == HIGHPASS) coef[2] = -2.0f;
+         else if (type == BANDPASS) coef[2] = -1.0f;
+         else                       coef[2] =  0.0f;
+
+         if (type == HIGHPASS)      coef[3] =  1.0f;
+         else                       coef[3] =  0.0f;
 
          coef += 4;
       }
