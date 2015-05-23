@@ -370,19 +370,19 @@ aaxDriverOpen(aaxConfig config)
             if (handle->info->mode == AAX_MODE_WRITE_SURROUND)
             {
                _aaxRingBufferFreqFilterData *freqfilter;
-               float Q = 1.0f, k = 1.0f, fc = 80.0f;
+               float k, fc = 80.0f;
                _filter_t *filter;
 
                /* crossover lowpass filter at 80Hz, 4th orer (24dB/oct) */
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
                filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                                 fc, 1.0f, 0.0f, Q);
+                                                 fc, 1.0f, 0.0f, 1.0f);
                filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, SURROUND_CROSSOVER_LP, filter, 0);
                aaxFilterDestroy(filter);
 
                freqfilter = _FILTER_GET_DATA(handle, SURROUND_CROSSOVER_LP);
-               _aax_movingaverage_fir_compute(fc, freqfilter->fs, &k);
+               k = _aax_movingaverage_compute(fc, freqfilter->fs);
                freqfilter->k = k;
             }
             else if (handle->info->mode == AAX_MODE_WRITE_HRTF)

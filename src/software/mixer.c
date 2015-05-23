@@ -134,7 +134,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    size_t no_samples, track_len_bytes;
    char parametric, graphic, crossover;
    unsigned char  lfe_track;
-   MIX_T *lfe, **tracks, **scratch;
+   MIX_T **tracks, **scratch;
    _aaxRingBufferReverbData *reverb;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -172,10 +172,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    }
 
    tracks = (MIX_T**)rbd->track;
-   if (crossover)
-   {
-      lfe = tracks[lfe_track];
-      memset(lfe, 0, track_len_bytes);
+   if (crossover) {
+      memset(tracks[lfe_track], 0, track_len_bytes);
    }
 
    scratch = (MIX_T**)rb->get_scratch(rb);
@@ -264,23 +262,23 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          k = filter->k;
 
 # if RB_FLOAT_DATA
-         _batch_movingavg_float(tmp, dptr, no_samples, hist++, k);
-         _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
+         _batch_movingaverage_float(tmp, dptr, no_samples, hist++, k);
+         _batch_movingaverage_float(tmp, tmp, no_samples, hist++, k);
 # else
-         _batch_movingavg(tmp, dptr, no_samples, hist++, k);
-         _batch_movingavg(tmp, tmp, no_samples, hist++, k);
+         _batch_movingaverage(tmp, dptr, no_samples, hist++, k);
+         _batch_movingaverage(tmp, tmp, no_samples, hist++, k);
 #endif
          if (--stages)
          {
 # if RB_FLOAT_DATA
-            _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
-            _batch_movingavg_float(tmp, tmp, no_samples, hist++, k);
+            _batch_movingaverage_float(tmp, tmp, no_samples, hist++, k);
+            _batch_movingaverage_float(tmp, tmp, no_samples, hist++, k);
 # else
-            _batch_movingavg(tmp, tmp, no_samples, hist++, k);
-            _batch_movingavg(tmp, tmp, no_samples, hist++, k);
+            _batch_movingaverage(tmp, tmp, no_samples, hist++, k);
+            _batch_movingaverage(tmp, tmp, no_samples, hist++, k);
 # endif
          }
-         rbd->add(lfe, tmp, no_samples, 1.0f, 0.0f);
+         rbd->add(tracks[lfe_track], tmp, no_samples, 1.0f, 0.0f);
          rbd->add(dptr, tmp, no_samples, -1.0f, 0.0f);
       }
    }

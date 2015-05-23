@@ -298,7 +298,7 @@ _flt_function_tbl _aaxFrequencyFilter =
 /* -------------------------------------------------------------------------- */
 
 /**
- * 1st order, 6dB/octave moving average Butterwordth FIR filter
+ * 1st order, 6dB/octave exponential moving average Butterwordth FIR filter
  *
  * X[k] = a*X[k-1] + (1-a)*Y[k]
  * http://lorien.ncl.ac.uk/ming/filter/fillpass.htm
@@ -308,7 +308,7 @@ _flt_function_tbl _aaxFrequencyFilter =
  *  - HRTF head shadow filtering
  */
 void
-_batch_freqfilter_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
+_batch_ema_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float a1)
 {
    if (num)
    {
@@ -328,7 +328,7 @@ _batch_freqfilter_fir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *
 }
 
 void
-_batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+_batch_ema_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
 {
    if (num)
    {
@@ -355,20 +355,15 @@ _batch_freqfilter_fir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t nu
 // http://www.dsprelated.com/showarticle/182.php
 // used for per emitter HRTF calculation
 // and for surround crossover
-void
-_aax_movingaverage_fir_compute(float fc, float fs, float *a)
+static void
+_aax_EMA_compute(float fc, float fs, float *a)
 {
-   float s = *a;
+   float n = *a;
 
    // exact
    float c = cosf(GMATH_2PI*fc/fs);
 // *a = c - 1.0f + sqrtf(c*c - 4.0f*c + 3.0f);
-   *a = c - 1.0f + sqrtf(0.5f*c*c*s - 2.0f*c*s + 1.5f*s);
-
-#if 0
-   // approx.: good enough for HRTF
-   *a = 1.0f - expf(-GMATH_2PI*fc/fs);
-#endif
+   *a = c - 1.0f + sqrtf((0.5f*c*c - 2.0f*c + 1.5f)*n);
 }
 
 
@@ -737,7 +732,7 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
     float beta;
 
    if (stages > 0) alpha = 2.0f*stages;
-   _aax_movingaverage_fir_compute(fc, fs, &alpha);
+   _aax_EMA_compute(fc, fs, &alpha);
 
    beta = 1.0f - alpha;
    if (stages == 0)	// 1st order exponential moving average filter

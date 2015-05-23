@@ -397,7 +397,6 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       float *hist = filter->freqfilter_history[track];
       float *cptr = filter->coeff;
       float lf = filter->lf_gain;
-      float hf = filter->hf_gain;
       float k = filter->k;
       int stages, num;
 
@@ -417,12 +416,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       }
       if (!stages) stages++;
 
-      // original: *dptr = smp*lf + (*s - smp)*hf
-      //           *dptr = (smp * lf) + (*s * hf) + (smp * -hf)
-      // result:   *dptr = smp*(lf-hf) + *s * hf;
       num = dmax+ds-dmin;
-
-      // *dptr = smp*(lf-hf)
       rbd->freqfilter(dptr, sptr, num, hist, k*lf, cptr);
       if (--stages)
       {
