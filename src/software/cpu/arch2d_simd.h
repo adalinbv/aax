@@ -80,9 +80,9 @@ void _batch_imul_value_cpu(void*, unsigned, size_t, float);
 void _batch_fmul_value_cpu(void*, unsigned, size_t, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_cpu(float32_ptr, const_float32_ptr, size_t, float, float);
-void _batch_freqfilter_fir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float);
+void _batch_ema_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float, const float*);
-void _batch_freqfilter_fir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float);
+void _batch_ema_iir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_iir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float, const float*);
 void _batch_freqfilter_iir_reverse_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float, const float*);
 #if RB_FLOAT_DATA

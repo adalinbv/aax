@@ -127,9 +127,10 @@ float _2acos(float v);
 typedef float (*cvtfn_t)(float);
 
 /* frequency filters */
+#define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))
+
 #define _QfromBW(fc, BW)		((fc)/(BW))
 #define _QfromF1F2(f1, f2)		_QfromBW(0.5f*((f1)+(f2)), (f2)-(f1))
-void _aax_movingaverage_fir_compute(float, float, float*);
 void _aax_bessel_iir_compute(float, float, float*, float*, float, int, char);
 void _aax_butterworth_iir_compute(float, float, float*, float*, float, int, char);
 

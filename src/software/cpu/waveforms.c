@@ -576,10 +576,9 @@ _bufferMixBrownianNoise(void** data, void *scratch0, size_t no_samples, char bps
          memset(ptr2, 0, noise_samples*sizeof(int32_t));
          mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
 
-         k = 1.0f;
          hist = 0.0f;
-         _aax_movingaverage_fir_compute(100.0f, fs, &k);
-         _batch_movingavg(ptr2, ptr2, no_samples, &hist, k);
+         k = _aax_movingaverage_compute(100.0f, fs);
+         _batch_movingaverage(ptr2, ptr2, no_samples, &hist, k);
          _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
 
          _resample_32bps(ptr, ptr2, no_samples, pitch);

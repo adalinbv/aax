@@ -600,7 +600,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                {
                   _buffer_t* buf = (_buffer_t*)rv;
                   _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
-                  ssize_t len, offs = 0;
+                  ssize_t offs = 0;
                   void **tracks;
 
                   buf->frequency = freq;
@@ -608,7 +608,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                   rb->init(rb, AAX_FALSE);
 
                   tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
-                  len = stream->capture(id, tracks, &offs, &no_samples,
+                  stream->capture(id, tracks, &offs, &no_samples,
                                            scratch, scratchlen, 1.0f, AAX_TRUE);
                   rb->release_tracks_ptr(rb);
                }
