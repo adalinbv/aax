@@ -406,7 +406,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
          float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
          float Q = filter->Q;
 
-         k = 1.0f;
+         k = filter->hf_gain/filter->lf_gain;
          if (filter->state) {
             _aax_bessel_iir_compute(fc, filter->fs, cptr, &k, Q, stages, filter->type);
          } else {
