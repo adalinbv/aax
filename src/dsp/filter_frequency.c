@@ -592,12 +592,16 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
    first_order = stages ? AAX_FALSE : AAX_TRUE;
    if (!stages) stages++;
 
+   if (A > GMATH_128DB) {	// // shelf or allpass filter
+      A = powf(10.0f, 0.5f*log10f(A*(1.5f*stages)));
+   }
+
    pos = stages-1;
    for (i=0; i<stages; i++)
    {
       float b2, b1, b0;
 
-      if (A > GMATH_128DB)	// shelf or allpass filter
+      if (A > GMATH_128DB)
       {
          switch (type)
          {
@@ -702,12 +706,11 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
 void
 _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
-    float k = 1.0f, alpha = 1.0f;
-    float beta;
+   float k = 1.0f, alpha = 1.0f;
+   float beta;
 
    if (stages > 0) alpha = 2.0f*stages;
    if (type == HIGHPASS) alpha = 1.0f/alpha;
-
    _aax_EMA_compute(_MIN(fc, 4800.0f), fs, &alpha);
    beta = 1.0f - alpha;
 
@@ -726,11 +729,12 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
       int i;
 
       k = powf(g, 2.0f*stages); // alpha*alpha for 2nd order
+      if (type == BANDPASS) k *= powf(10000.0f/fc, stages);
 
       for (i=0; i<stages; i++)
       {
-         coef[0] = 2*beta;
-         coef[1] = -beta*beta;
+         coef[0] = 2.0f*beta;
+         coef[1] = -beta*beta; 
 
          if      (type == HIGHPASS) coef[2] = -2.0f;
          else if (type == BANDPASS) coef[2] = -1.0f;
