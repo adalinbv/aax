@@ -117,7 +117,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                k = 1.0f;
                Q = 1.0f;
                fc = expf((float)pos*fband)*67.0f;
-               _aax_butterworth_iir_compute(fc,filter->info->frequency,cptr,&k,Q,stages, AAX_TRUE);
+               _aax_butterworth_compute(fc,filter->info->frequency,cptr,&k,Q,stages, AAX_TRUE);
                flt->no_stages = stages;
                flt->k = k;
             }
