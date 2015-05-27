@@ -128,19 +128,25 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
          flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
-         if (flt->type == HIGHPASS)
+         if (state & AAX_BESSEL)
          {
-            k = flt->lf_gain;
-            flt->lf_gain = flt->hf_gain;
-            flt->hf_gain = k;
+             k = 1.0f;
+             _aax_bessel_compute(fc, fs, cptr, &k, Q, stages, flt->type);
+         }
+         else
+         {
+            if (flt->type == HIGHPASS)
+            {
+               k = flt->lf_gain;
+               flt->lf_gain = flt->hf_gain;
+               flt->hf_gain = k;
+            }
+
+            k = flt->hf_gain/flt->lf_gain;
+            _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
+            flt->hf_gain = 0.0f;
          }
 
-         k = flt->hf_gain/flt->lf_gain;
-         if (state & AAX_BESSEL) {
-             _aax_bessel_iir_compute(fc, fs, cptr, &k, Q, stages, flt->type);
-         } else {
-            _aax_butterworth_iir_compute(fc, fs, cptr, &k, Q, stages, flt->type);
-         }
          flt->no_stages = stages;
          filter->state = state >> 24;
          flt->Q = Q;
@@ -573,7 +579,7 @@ _aax_bilinear_s2z(float *a0, float *a1, float *a2,
  *  (s+0.707 + j0.707) (s+0.707 -j0.707) = s2 + 1.414s + 1.
  */
 void
-_aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+_aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
    static const float _Q[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
@@ -668,6 +674,7 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
       coef += 4;
    }
    *gain = k;
+printf("A: %f, k: %f, \n", A, k);
 }
 
 /**
@@ -704,10 +711,16 @@ _aax_butterworth_iir_compute(float fc, float fs, float *coef, float *gain, float
  */
 #if 1
 void
-_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+_aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
    float k = 1.0f, alpha = 1.0f;
    float beta;
+
+   // highpass filtering is more a high-shelve type.
+   // fix this by using a lowpass filter and subtracting it from the source
+   if (type == HIGHPASS) {
+      type = LOWPASS;
+   }
 
    if (stages > 0) alpha = 2.0f*stages;
    if (type == HIGHPASS) alpha = 1.0f/alpha;
@@ -751,11 +764,11 @@ _aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, i
 }
 #else
 void
-_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+_aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
 
 void
-_aax_bessel_iir_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+_aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
 // http://www.eevblog.com/forum/projects/sallen-key-lpf-frequency-scaling-factor
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf

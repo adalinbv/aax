@@ -17,14 +17,14 @@
 #include <aax/aax.h>
 
 #define	SAMPLE_FREQ		48000
-#define FILTER_FREQUENCY	 1000
+#define FILTER_FREQUENCY	1000
 
 // Order: AAX_6DB_OCT, AAX_12DB_OCT, AAX_24DB_OCT, AAX_36DB_OCT, AAX_48DB_OCT
 // Type:  AAX_BUTTERWORTH, AAX_BESSEL
 #define Q			1.0f
-#define LF_GAIN			1.0f
-#define HF_GAIN			0.0f
-#define FILTER_ORDER		AAX_48DB_OCT
+#define LF_GAIN			0.1f
+#define HF_GAIN			1.0f
+#define FILTER_ORDER		AAX_24DB_OCT
 #define FILTER_TYPE		AAX_BESSEL
 #define FILTER_STATE		(FILTER_TYPE|FILTER_ORDER)
 

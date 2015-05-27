@@ -131,8 +131,8 @@ typedef float (*cvtfn_t)(float);
 
 #define _QfromBW(fc, BW)		((fc)/(BW))
 #define _QfromF1F2(f1, f2)		_QfromBW(0.5f*((f1)+(f2)), (f2)-(f1))
-void _aax_bessel_iir_compute(float, float, float*, float*, float, int, char);
-void _aax_butterworth_iir_compute(float, float, float*, float*, float, int, char);
+void _aax_bessel_compute(float, float, float*, float*, float, int, char);
+void _aax_butterworth_compute(float, float, float*, float*, float, int, char);
 
 
 #endif /* _AAX_FE_COMMON_H */

@@ -133,7 +133,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          }
 
          k = 0.0f; // for now
-         _aax_butterworth_iir_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->type);
+         _aax_butterworth_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->type);
 
          flt->no_stages = stages;
          flt->k = k;
@@ -159,7 +159,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             flt->lf_gain = flt->hf_gain;
             flt->hf_gain = f;
          }
-         _aax_butterworth_iir_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->type);
+         _aax_butterworth_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->type);
 
          flt->no_stages = stages;
          flt->k = k;
