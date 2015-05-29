@@ -109,38 +109,42 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             do
             {
                _aaxRingBufferFreqFilterData *flt;
-               float *cptr, fc, k, Q;
+               float *cptr, fc, fs, k, Q;
 
                flt = &eq->band[pos];
                cptr = flt->coeff;
 
-               k = 1.0f;
-               Q = 1.0f;
-               fc = expf((float)pos*fband)*67.0f;
-               _aax_butterworth_compute(fc,filter->info->frequency,cptr,&k,Q,stages, AAX_TRUE);
+               k = 0;
+               if (pos == 7)
+               {
+                  flt->type = HIGHPASS;
+                  k = flt->lf_gain;
+                  flt->lf_gain = flt->hf_gain;
+                  flt->hf_gain = k;
+                  k = flt->hf_gain/flt->lf_gain;
+               }
+               else if (pos == 0) flt->type = LOWPASS;
+               else flt->type = BANDPASS;
+
+               Q = 2.0f;
+               fs = filter->info->frequency;
+               fc = expf((float)(pos-1)*fband)*67.0f;
+               _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
                flt->no_stages = stages;
+               flt->hf_gain = 0.0f;
+               flt->fs = fs;
                flt->k = k;
             }
-            while (--pos >= 0);
+            while (pos--);
          }
       }
 
       if (eq)		/* fill in the gains */
       {
-         float gain_hf = filter->slot[EQUALIZER_HF]->param[AAX_GAIN_BAND3];
-         float gain_lf = filter->slot[EQUALIZER_HF]->param[AAX_GAIN_BAND2];
          _aaxRingBufferFreqFilterData *flt = &eq->band[6];
-         int s = EQUALIZER_HF, b = AAX_GAIN_BAND2;
+         int s = EQUALIZER_HF, b = AAX_GAIN_BAND3+1;
 
          eq = filter->slot[EQUALIZER_HF]->data;
-
-         flt->lf_gain = fabs(gain_lf);
-         if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
-
-         flt->hf_gain = fabs(gain_hf);
-         if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
-         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
          do
          {
@@ -149,17 +153,10 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 
             flt = &eq->band[pos-1];	// next band
 
-            gain_hf = gain_lf;
-            gain_lf = filter->slot[s]->param[--b];
-
-            /* gain_hf can never get below 0.001f */
-            gain = gain_lf - gain_hf;
-            flt->hf_gain = 0.0f;
-
+            gain = filter->slot[s]->param[--b];
+            if (gain < GMATH_128DB) gain = 0.0f;
+            else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
             flt->lf_gain = gain;
-            if (fabs(flt->lf_gain) < GMATH_128DB) flt->lf_gain = 0.0f;
-            else if (fabs(flt->lf_gain-1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
-            else if (fabs(flt->lf_gain+1.0f) < GMATH_128DB) flt->lf_gain =-1.0f;
 
             if (b == 0)
             {

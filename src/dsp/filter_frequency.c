@@ -674,7 +674,6 @@ _aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, 
       coef += 4;
    }
    *gain = k;
-printf("A: %f, k: %f, \n", A, k);
 }
 
 /**

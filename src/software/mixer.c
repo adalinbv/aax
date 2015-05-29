@@ -130,7 +130,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    _sensor_t *sensor = (_sensor_t*)s;
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
    unsigned char *router = info->router;
-   unsigned int track, no_tracks;
+   unsigned int t, no_tracks;
    size_t no_samples, track_len_bytes;
    char parametric, graphic, crossover;
    unsigned char  lfe_track;
@@ -177,87 +177,94 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    }
 
    scratch = (MIX_T**)rb->get_scratch(rb);
-   for (track=0; track<no_tracks; track++)
+   for (t=0; t<no_tracks; t++)
    {
+      MIX_T *dptr = tracks[t];
+      MIX_T *sptr = scratch[0];
+      MIX_T *tmp = scratch[1];
+
       if (reverb)
       {
          size_t ds = rb->get_parami(rb, RB_DDE_SAMPLES);
 
          /* level out previous filters and effects */
-         _aaxRingBufferEffectReflections(rbd, tracks[track],
-                                         scratch[0], scratch[1], 
-                                         0, no_samples, ds, track, reverb);
-         _aaxRingBufferEffectReverb(rbd, tracks[track], 0, no_samples,
-                                    ds, track, reverb);
+         _aaxRingBufferEffectReflections(rbd, dptr, sptr, tmp, 0, no_samples,
+                                                      ds, t, reverb);
+         _aaxRingBufferEffectReverb(rbd, dptr, 0, no_samples, ds, t, reverb);
       }
 
       if (parametric)
       {
          _aaxRingBufferFreqFilterData* filter;
+         float k, lf, *cptr, *hist;
 
-         _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
+         _aax_memcpy(sptr, dptr, track_len_bytes);
+
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1], 0,
-                                       no_samples, 0, track, filter, NULL, 0);
+         hist = filter->freqfilter_history[t];
+         cptr = filter->coeff;
+         lf = filter->lf_gain;
+         k = filter->k;
+         rbd->freqfilter(dptr, sptr, no_samples, hist, k*lf, cptr);
 
          filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1], 0,
-                                       no_samples, 0, track, filter, NULL, 0);
-         rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
+         hist = filter->freqfilter_history[t];
+         cptr = filter->coeff;
+         lf = filter->lf_gain;
+         k = filter->k;
+         rbd->freqfilter(tmp, sptr, no_samples, hist, k*lf, cptr);
+
+         rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
       }
       else if (graphic)
       {
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
-         int b = 6;
+         float k, lf, *cptr, *hist;
+         int stages, b = 8;
+
 
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
          filter = &eq->band[b];
-         _aax_memcpy(scratch[1], tracks[track], track_len_bytes);
-         _aaxRingBufferFilterFrequency(rbd, tracks[track], scratch[1],
-                                     0, no_samples, 0, track, filter, NULL, 0);
+
+         _aax_memcpy(sptr, dptr, track_len_bytes);
+         memset(dptr, 0, track_len_bytes);
          do
          {
             filter = &eq->band[--b];
-            if (filter->lf_gain || filter->hf_gain)
-            {
-               _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                     0, no_samples, 0, track, filter, NULL, 0);
-               rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
-            }
 
-            filter = &eq->band[--b];
-            if (filter->lf_gain || filter->hf_gain)
-            {
-               _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                     0, no_samples, 0, track, filter, NULL, 0);
-               rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
-            }
+            hist = filter->freqfilter_history[t];
+            cptr = filter->coeff;
+            lf = filter->lf_gain;
+            k = filter->k;
 
-            filter = &eq->band[--b];
-            if (filter->lf_gain || filter->hf_gain)
+            stages = filter->no_stages;
+            if (!stages) stages++;
+
+            rbd->freqfilter(tmp, sptr, no_samples, hist, k*lf, cptr);
+            if (--stages)
             {
-               _aaxRingBufferFilterFrequency(rbd, scratch[0], scratch[1],
-                                     0, no_samples, 0, track, filter, NULL, 0);
-               rbd->add(tracks[track], scratch[0], no_samples, 1.0f, 0.0f);
+               rbd->freqfilter(tmp, tmp, no_samples, hist+2, 1.0f, cptr+4);
+               if (--stages) {
+                  rbd->freqfilter(tmp, tmp, no_samples, hist+4, 1.0f, cptr+8);
+                  if (--stages) {
+                     rbd->freqfilter(tmp, tmp, no_samples, hist+6, 1.0f, cptr+12);
+                  }
+               }
             }
+            rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
          }
-         while (b);
+         while(b);
       }
 
-      if (crossover && track != AAX_TRACK_FRONT_LEFT
-                    && track != AAX_TRACK_FRONT_RIGHT)
+      if (crossover && t != AAX_TRACK_FRONT_LEFT && t != AAX_TRACK_FRONT_RIGHT)
       {
          _aaxRingBufferFreqFilterData* filter;
          unsigned char stages;
-         MIX_T *dptr, *tmp;
          float *hist, k;
 
-         dptr = tracks[track];
-         tmp = scratch[SCRATCH_BUFFER1];
-
          filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
-         hist = filter->freqfilter_history[track];
+         hist = filter->freqfilter_history[t];
          stages = filter->no_stages;
          k = filter->k;
 
