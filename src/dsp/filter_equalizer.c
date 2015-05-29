@@ -132,9 +132,10 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             flt->hf_gain = f;
          }
 
-         k = 0.0f; // for now
+         k = flt->hf_gain/flt->lf_gain;
          _aax_butterworth_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->type);
 
+         flt->hf_gain = 0.0f;
          flt->no_stages = stages;
          flt->k = k;
 
@@ -153,14 +154,17 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
 
          flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
+
          if (flt->type == HIGHPASS)
          {
             float f = flt->lf_gain;
             flt->lf_gain = flt->hf_gain;
             flt->hf_gain = f;
          }
+         k = flt->hf_gain/flt->lf_gain;
          _aax_butterworth_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->type);
 
+         flt->hf_gain = 0.0f;
          flt->no_stages = stages;
          flt->k = k;
       }
