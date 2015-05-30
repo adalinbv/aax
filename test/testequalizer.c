@@ -28,11 +28,6 @@
 #define HF_GAIN			0.5f
 #define HF_Q			5.0f
 
-// Order: AAX_6DB_OCT, AAX_12DB_OCT, AAX_24DB_OCT, AAX_36DB_OCT, AAX_48DB_OCT
-// Type:  AAX_BUTTERWORTH, AAX_BESSEL
-#define FILTER_ORDER		AAX_12DB_OCT
-#define FILTER_TYPE		AAX_BUTTERWORTH
-#define FILTER_STATE		(FILTER_TYPE|FILTER_ORDER)
 
 void
 testForError(void *p, char *s)
@@ -143,7 +138,7 @@ int main(int argc, char **argv)
                                              MF_GAIN , HF_GAIN, HF_Q);
         testForError(filter, "aaxFilterSetSlot 1");
 
-        filter = aaxFilterSetState(filter, FILTER_STATE);
+        filter = aaxFilterSetState(filter, AAX_TRUE);
         testForError(filter, "aaxFilterSetState");
 
         res = aaxMixerSetFilter(config, filter);
