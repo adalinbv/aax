@@ -223,12 +223,33 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          float k, lf, *cptr, *hist;
          int stages, b = 8;
 
+         _aax_memcpy(sptr, dptr, track_len_bytes);
 
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         filter = &eq->band[b];
+         filter = &eq->band[--b];
 
-         _aax_memcpy(sptr, dptr, track_len_bytes);
-         memset(dptr, 0, track_len_bytes);
+         hist = filter->freqfilter_history[t];
+         cptr = filter->coeff;
+         lf = filter->lf_gain;
+         k = filter->k;
+
+         stages = filter->no_stages;
+         if (!stages) stages++;
+
+         // first band straight into dptr to save a bzero
+         // this also saves a rbd->add()
+         rbd->freqfilter(dptr, sptr, no_samples, hist, k*lf, cptr);
+         if (--stages)
+         {
+            rbd->freqfilter(dptr, dptr, no_samples, hist+2, 1.0f, cptr+4);
+            if (--stages) {
+               rbd->freqfilter(dptr, dptr, no_samples, hist+4, 1.0f, cptr+8);
+               if (--stages) {
+                  rbd->freqfilter(dptr, dptr, no_samples, hist+6, 1.0f, cptr+12);
+               }
+            }
+         }
+
          do
          {
             filter = &eq->band[--b];

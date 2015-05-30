@@ -77,8 +77,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_12DB_OCT || state == AAX_24DB_OCT ||
-       state == AAX_36DB_OCT || state == AAX_48DB_OCT)
+   if (state == AAX_12DB_OCT)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[EQUALIZER_LF]->data;
       if (flt == NULL)

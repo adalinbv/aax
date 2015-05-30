@@ -1,18 +1,20 @@
-* Mon May 05  2015 - tech@adalin.org
-- AeonWave (2.5.4) stable; urgency=low
- * Add support for 6db/oct, 24dB/oct, 36dB/oct and 48dB/oct frequency filtering,
-   12dB/oct is still the default.
- * Add support for both Butterworth and Bessel filter types,
-   Butterworth is still the default.
+* Fri May 29  2015 - tech@adalin.org
+- AeonWave (2.6.0) stable; urgency=low
+ * A major overhaul of the frequency filter
+   - Speed up the filter execution time.
+   - Add support for 6db/oct, 24dB/oct, 36dB/oct and 48dB/oct filtering,
+     12dB/oct is the default.
+   - Add support for both Butterworth and Bessel filter types,
+     Butterworth is the default.
+ * Speed up the graphic and paramtetric equalizer execution times.
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
    defined at 80Hz and 24dB/oct.
  * Tweaked HRTF support.
- * Speed improvements on frequency filter execution time.
  * Improve (white)noise waveform frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.
 
--- Erik Hofman <tech@adalin.org>  Mon, 05 May  2015 15:00:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri, 29 May  2015 13:51:00 + 0200
 
 * Wed Mar 25 2015 - tech@adalin.org
 - AeonWave (2.5.3) stable; urgency=low
@@ -125,8 +127,8 @@
 * Sun Nov 14 2013 - tech@adalin.org
 - AeonWave (2.3.1) stable; urgency=high
  * Complete rewrite of the File backend
-  - Add mp3 file output support if libmp3lame is found.
-  - Add support for more WAV file types and fix mulaw and alaw decoding.
+   - Add mp3 file output support if libmp3lame is found.
+   - Add support for more WAV file types and fix mulaw and alaw decoding.
  * Add the option to register one sensor opened in write mode (file only) at
    the mixer to support a dedicated record to file option.
  * Fix a major registered-sensor bug (most noticeable on Windows).
