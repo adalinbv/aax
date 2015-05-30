@@ -79,28 +79,29 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
    if (state == AAX_12DB_OCT)
    {
-      _aaxRingBufferFreqFilterData *flt = filter->slot[EQUALIZER_LF]->data;
-      if (flt == NULL)
+      _aaxRingBufferFreqFilterData *flt_lf = filter->slot[EQUALIZER_LF]->data;
+      _aaxRingBufferFreqFilterData *flt_hf = filter->slot[EQUALIZER_HF]->data;
+      if (flt_lf == NULL)
       {
          char *ptr;
-         flt=calloc(EQUALIZER_MAX,sizeof(_aaxRingBufferFreqFilterData));
-         filter->slot[EQUALIZER_LF]->data = flt;
+         flt_lf = calloc(EQUALIZER_MAX,sizeof(_aaxRingBufferFreqFilterData));
+         flt_lf->no_stages = 1;
+         filter->slot[EQUALIZER_LF]->data = flt_lf;
 
-         ptr = (char*)flt + sizeof(_aaxRingBufferFreqFilterData);
-         flt = (_aaxRingBufferFreqFilterData*)ptr;
-         filter->slot[EQUALIZER_HF]->data = flt;
+         ptr = (char*)flt_lf + sizeof(_aaxRingBufferFreqFilterData);
+         flt_hf = (_aaxRingBufferFreqFilterData*)ptr;
+         flt_lf->no_stages = 1;
+         filter->slot[EQUALIZER_HF]->data = flt_hf;
       }
 
-      if (flt)
+      if (flt_lf && flt_hf)
       {
-         float *cptr, fcl, fch, k, Q;
-         int stages;
+         float lf_gain, mf_gain, hf_gain;
+         float *cptr, fs, fcl, fch, k, Q;
 
-         if (state == AAX_48DB_OCT) stages = 4;
-         else if (state == AAX_36DB_OCT) stages = 3;
-         else if (state == AAX_24DB_OCT) stages = 2;
-         else stages = 1;
+         fs = filter->info->frequency;
 
+         /* frequencies */
          fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
          fch = filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY];
          if (fabsf(fch - fcl) < 200.0f) {
@@ -109,63 +110,61 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             float f = fch; fch = fcl; fcl = f;
          }
          filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY] = fcl;
+         filter->slot[EQUALIZER_HF]->param[AAX_CUTOFF_FREQUENCY] = fch;
+
+         /* gains */
+         lf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN]);
+         if (fabs(lf_gain - 1.0f) < GMATH_128DB) lf_gain = 1.0f;
+         else if (lf_gain < GMATH_128DB) lf_gain = 0.0f;
+
+         mf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN] +
+                        filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN])*0.5f;
+         if (fabs(mf_gain - 1.0f) < GMATH_128DB) mf_gain = 1.0f;
+         else if (mf_gain < GMATH_128DB) mf_gain = 0.0f;
+
+         hf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN]);
+         if (fabs(hf_gain - 1.0f) < GMATH_128DB) hf_gain = 1.0f;
+         else if (hf_gain < GMATH_128DB) hf_gain = 0.0f;
 
          /* LF frequency setup */
-         flt = filter->slot[EQUALIZER_LF]->data;
          Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-         cptr = flt->coeff;
-
-         flt->lf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN]);
-         if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
-
-         flt->hf_gain = fabs(filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN]);
-         if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
-         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
-
-         flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
-         if (flt->type == HIGHPASS)
+         cptr = flt_lf->coeff;
+         if (lf_gain >= mf_gain)
          {
-            float f = flt->lf_gain;
-            flt->lf_gain = flt->hf_gain;
-            flt->hf_gain = f;
+            flt_lf->type = LOWPASS;
+            flt_lf->lf_gain = lf_gain;
+            flt_lf->hf_gain = mf_gain;
          }
-
-         k = flt->hf_gain/flt->lf_gain;
-         _aax_butterworth_compute(fcl, filter->info->frequency, cptr, &k, Q, stages, flt->type);
-
-         flt->hf_gain = 0.0f;
-         flt->no_stages = stages;
-         flt->k = k;
+         else
+         {
+            flt_lf->type = HIGHPASS;
+            flt_lf->lf_gain = mf_gain;
+            flt_lf->hf_gain = lf_gain;
+         }
+         k = flt_lf->hf_gain/flt_lf->lf_gain;
+         _aax_butterworth_compute(fcl, fs, cptr, &k, Q, 1, flt_lf->type);
+         flt_lf->hf_gain = 0.0f;
+         flt_lf->k = k;
 
          /* HF frequency setup */
-         flt = filter->slot[EQUALIZER_HF]->data;
          Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-         cptr = flt->coeff;
-         k = 1.0f;
-
-         flt->lf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN]);
-         if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
-
-         flt->hf_gain = fabs(filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN]);
-         if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
-         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
-
-         flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
-
-         if (flt->type == HIGHPASS)
+         cptr = flt_hf->coeff;
+         if (mf_gain >= hf_gain)
          {
-            float f = flt->lf_gain;
-            flt->lf_gain = flt->hf_gain;
-            flt->hf_gain = f;
+            flt_hf->type = LOWPASS;
+            flt_hf->lf_gain = mf_gain;
+            flt_hf->hf_gain = hf_gain;
          }
-         k = flt->hf_gain/flt->lf_gain;
-         _aax_butterworth_compute(fch, filter->info->frequency, cptr, &k, Q, stages, flt->type);
-
-         flt->hf_gain = 0.0f;
-         flt->no_stages = stages;
-         flt->k = k;
+         else
+         {
+            flt_hf->type = HIGHPASS;
+            flt_hf->lf_gain = hf_gain;
+            flt_hf->hf_gain = mf_gain;
+         }
+         k = flt_hf->hf_gain/flt_hf->lf_gain;
+         _aax_butterworth_compute(fch, fs, cptr, &k, Q, 1, flt_hf->type);
+         flt_hf->hf_gain = 0.0f;
+         flt_hf->k = k;
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       rv = filter;

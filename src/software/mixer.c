@@ -213,7 +213,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          lf = filter->lf_gain;
          k = filter->k;
          rbd->freqfilter(tmp, sptr, no_samples, hist, k*lf, cptr);
-
          rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
       }
       else if (graphic)
@@ -221,58 +220,29 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
          float k, lf, *cptr, *hist;
-         int stages, b = 8;
+         int b = 8;
 
          _aax_memcpy(sptr, dptr, track_len_bytes);
 
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         filter = &eq->band[--b];
 
+         // first band, straight into dptr to save a bzero() and rbd->add()
+         filter = &eq->band[--b];
          hist = filter->freqfilter_history[t];
          cptr = filter->coeff;
          lf = filter->lf_gain;
          k = filter->k;
-
-         stages = filter->no_stages;
-         if (!stages) stages++;
-
-         // first band straight into dptr to save a bzero
-         // this also saves a rbd->add()
          rbd->freqfilter(dptr, sptr, no_samples, hist, k*lf, cptr);
-         if (--stages)
-         {
-            rbd->freqfilter(dptr, dptr, no_samples, hist+2, 1.0f, cptr+4);
-            if (--stages) {
-               rbd->freqfilter(dptr, dptr, no_samples, hist+4, 1.0f, cptr+8);
-               if (--stages) {
-                  rbd->freqfilter(dptr, dptr, no_samples, hist+6, 1.0f, cptr+12);
-               }
-            }
-         }
 
+         // next 7 bands
          do
          {
             filter = &eq->band[--b];
-
             hist = filter->freqfilter_history[t];
             cptr = filter->coeff;
             lf = filter->lf_gain;
             k = filter->k;
-
-            stages = filter->no_stages;
-            if (!stages) stages++;
-
             rbd->freqfilter(tmp, sptr, no_samples, hist, k*lf, cptr);
-            if (--stages)
-            {
-               rbd->freqfilter(tmp, tmp, no_samples, hist+2, 1.0f, cptr+4);
-               if (--stages) {
-                  rbd->freqfilter(tmp, tmp, no_samples, hist+4, 1.0f, cptr+8);
-                  if (--stages) {
-                     rbd->freqfilter(tmp, tmp, no_samples, hist+6, 1.0f, cptr+12);
-                  }
-               }
-            }
             rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
          }
          while(b);
