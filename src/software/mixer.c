@@ -195,31 +195,40 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
 
       if (parametric)
       {
-         _aaxRingBufferFreqFilterData* filter;
-         float k, lf, *cptr, *hist;
+         _aaxRingBufferFreqFilterData *lf, *hf;
+         float k, gain, *cptr, *hist;
 
-         _aax_memcpy(sptr, dptr, track_len_bytes);
+         lf = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
+         hf = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
 
-         filter = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         hist = filter->freqfilter_history[t];
-         cptr = filter->coeff;
-         lf = filter->lf_gain;
-         k = filter->k;
-         rbd->freqfilter(dptr, sptr, no_samples, hist, k*lf, cptr);
+         if (lf->type == LOWPASS && hf->type == HIGHPASS) {
+            _aax_memcpy(sptr, dptr, track_len_bytes);
+         }
 
-         filter = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-         hist = filter->freqfilter_history[t];
-         cptr = filter->coeff;
-         lf = filter->lf_gain;
-         k = filter->k;
-         rbd->freqfilter(tmp, sptr, no_samples, hist, k*lf, cptr);
-         rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
+         hist = lf->freqfilter_history[t];
+         cptr = lf->coeff;
+         gain = lf->high_gain;
+         k = lf->k;
+         rbd->freqfilter(dptr, dptr, no_samples, hist, k*gain, cptr);
+
+         hist = hf->freqfilter_history[t];
+         cptr = hf->coeff;
+         gain = hf->high_gain;
+         k = hf->k;
+         if (lf->type == LOWPASS && hf->type == HIGHPASS)
+         {
+            rbd->freqfilter(tmp, sptr, no_samples, hist, k*gain, cptr);
+            rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
+         }
+         else {
+            rbd->freqfilter(dptr, dptr, no_samples, hist, k*gain, cptr);
+         }
       }
       else if (graphic)
       {
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
-         float k, lf, *cptr, *hist;
+         float k, gain, *cptr, *hist;
          int b = 8;
 
          _aax_memcpy(sptr, dptr, track_len_bytes);
@@ -230,9 +239,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          filter = &eq->band[--b];
          hist = filter->freqfilter_history[t];
          cptr = filter->coeff;
-         lf = filter->lf_gain;
+         gain = filter->high_gain;
          k = filter->k;
-         rbd->freqfilter(dptr, sptr, no_samples, hist, k*lf, cptr);
+         rbd->freqfilter(dptr, sptr, no_samples, hist, k*gain, cptr);
 
          // next 7 bands
          do
@@ -240,9 +249,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
             filter = &eq->band[--b];
             hist = filter->freqfilter_history[t];
             cptr = filter->coeff;
-            lf = filter->lf_gain;
+            gain = filter->high_gain;
             k = filter->k;
-            rbd->freqfilter(tmp, sptr, no_samples, hist, k*lf, cptr);
+            rbd->freqfilter(tmp, sptr, no_samples, hist, k*gain, cptr);
             rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
          }
          while(b);
