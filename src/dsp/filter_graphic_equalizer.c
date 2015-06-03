@@ -117,10 +117,10 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                if (pos == 7)
                {
                   flt->type = HIGHPASS;
-                  k = flt->lf_gain;
-                  flt->lf_gain = flt->hf_gain;
-                  flt->hf_gain = k;
-                  k = flt->hf_gain/flt->lf_gain;
+                  k = flt->high_gain;
+                  flt->high_gain = flt->low_gain;
+                  flt->low_gain = k;
+                  k = flt->low_gain/flt->high_gain;
                }
                else if (pos == 0) flt->type = LOWPASS;
                else flt->type = BANDPASS;
@@ -130,7 +130,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                fc = expf((float)(pos-1)*fband)*67.0f;
                _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
                flt->no_stages = stages;
-               flt->hf_gain = 0.0f;
+               flt->low_gain = 0.0f;
                flt->fs = fs;
                flt->k = k;
             }
@@ -155,7 +155,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             gain = filter->slot[s]->param[--b];
             if (gain < GMATH_128DB) gain = 0.0f;
             else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
-            flt->lf_gain = gain;
+            flt->high_gain = gain;
 
             if (b == 0)
             {

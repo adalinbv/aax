@@ -119,15 +119,15 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float *cptr = flt->coeff;
          float k, fs = flt->fs; 
 
-         flt->lf_gain = fabs(filter->slot[0]->param[AAX_LF_GAIN]);
-         if (flt->lf_gain < GMATH_128DB) flt->lf_gain = 0.0f;
-         else if (fabs(flt->lf_gain - 1.0f) < GMATH_128DB) flt->lf_gain = 1.0f;
+         flt->high_gain = fabs(filter->slot[0]->param[AAX_LF_GAIN]);
+         if (flt->high_gain < GMATH_128DB) flt->high_gain = 0.0f;
+         else if (fabs(flt->high_gain - 1.0f) < GMATH_128DB) flt->high_gain = 1.0f;
 
-         flt->hf_gain = fabs(filter->slot[0]->param[AAX_HF_GAIN]);
-         if (flt->hf_gain < GMATH_128DB) flt->hf_gain = 0.0f;
-         else if (fabs(flt->hf_gain - 1.0f) < GMATH_128DB) flt->hf_gain = 1.0f;
+         flt->low_gain = fabs(filter->slot[0]->param[AAX_HF_GAIN]);
+         if (flt->low_gain < GMATH_128DB) flt->low_gain = 0.0f;
+         else if (fabs(flt->low_gain - 1.0f) < GMATH_128DB) flt->low_gain = 1.0f;
 
-         flt->type = (flt->lf_gain >= flt->hf_gain) ? LOWPASS : HIGHPASS;
+         flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
          if (state & AAX_BESSEL)
          {
              k = 1.0f;
@@ -137,14 +137,14 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          {
             if (flt->type == HIGHPASS)
             {
-               k = flt->lf_gain;
-               flt->lf_gain = flt->hf_gain;
-               flt->hf_gain = k;
+               k = flt->high_gain;
+               flt->high_gain = flt->low_gain;
+               flt->low_gain = k;
             }
 
-            k = flt->hf_gain/flt->lf_gain;
+            k = flt->low_gain/flt->high_gain;
             _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
-            flt->hf_gain = 0.0f;
+            flt->low_gain = 0.0f;
          }
 
          flt->no_stages = stages;

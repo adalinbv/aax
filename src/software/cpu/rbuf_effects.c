@@ -396,8 +396,8 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       MIX_T *dptr = d - ds + dmin;
       float *hist = filter->freqfilter_history[track];
       float *cptr = filter->coeff;
-      float lf = filter->lf_gain;
-      float hf = filter->hf_gain;
+      float hgain = filter->high_gain;
+      float lgain = filter->low_gain;
       float k = filter->k;
       int stages, num;
 
@@ -407,7 +407,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
          float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
          float Q = filter->Q;
 
-         k = filter->hf_gain/filter->lf_gain;
+         k = filter->low_gain/filter->high_gain;
          if (filter->state) {
             _aax_bessel_compute(fc, filter->fs, cptr, &k, Q, stages, filter->type);
          } else {
@@ -418,7 +418,7 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
       if (!stages) stages++;
 
       num = dmax+ds-dmin;
-      rbd->freqfilter(dptr, sptr, num, hist, k*(lf-hf), cptr);
+      rbd->freqfilter(dptr, sptr, num, hist, k*(hgain-lgain), cptr);
       if (--stages)
       {
          rbd->freqfilter(dptr, dptr, num, hist+2, 1.0f, cptr+4);
@@ -430,8 +430,8 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
          }
       }
 
-      if (hf > GMATH_128DB) {
-         rbd->add(dptr, sptr, num, hf, 0.0f);
+      if (lgain > GMATH_128DB) {
+         rbd->add(dptr, sptr, num, lgain, 0.0f);
       }
    }
 }

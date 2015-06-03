@@ -143,7 +143,7 @@ typedef struct
 {
    float coeff[4*_AAX_MAX_STAGES];
    float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
-   float Q, k, fs, lf_gain, hf_gain;
+   float Q, k, fs, high_gain, low_gain;
    unsigned char no_stages, state;
    char type;
    _aaxRingBufferLFOData *lfo;
