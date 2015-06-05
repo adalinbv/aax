@@ -18,14 +18,14 @@
 
 #define	SAMPLE_FREQ		48000
 
-#define GAIN1			0.333f
+#define GAIN1			0.7f
 #define GAIN2			1.0f
-#define GAIN3			1.0f
-#define GAIN4			0.533f
-#define GAIN5			0.0667f
-#define GAIN6			0.6667f
-#define GAIN7			0.0f
-#define GAIN8			0.6667f
+#define GAIN3			0.7f
+#define GAIN4			0.3f
+#define GAIN5			0.1f
+#define GAIN6			0.4f
+#define GAIN7			0.8f
+#define GAIN8			1.0f
 
 
 void

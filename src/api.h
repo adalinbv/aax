@@ -161,6 +161,9 @@ typedef struct
 
    _aaxAudioFrame *submix;
 
+   /* parametric equalizer **/
+   _aaxFilterInfo *filter;
+
 } _frame_t;
 
 _frame_t* get_frame(aaxFrame);
@@ -170,7 +173,7 @@ int _aaxAudioFrameStop(_frame_t*);
 void* _aaxAudioFrameThread(void*);
 void* _aaxAudioFrameProcessThreadedFrame(_handle_t*, void*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
 void _aaxAudioFrameProcessFrame(_handle_t*, _frame_t*, _aaxAudioFrame*, _aaxAudioFrame*, _aaxAudioFrame*, const _aaxDriverBackend*);
-char _aaxAudioFrameProcess(_aaxRingBuffer*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _aax2dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char);
+char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _aax2dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char);
 char _aaxAudioFrameRender(_aaxRingBuffer *, _aaxAudioFrame *, _aax2dProps*, _aaxDelayed3dProps *, _intBuffers *, unsigned int, float, float, const _aaxDriverBackend*, void*, char);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);

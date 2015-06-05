@@ -6,7 +6,9 @@
      12dB/oct is the default.
    - Add support for both Butterworth and Bessel filter types,
      Butterworth is the default.
- * Speed up the graphic and paramtetric equalizer execution times.
+ * Allow the paramtertic equalizer parameters to be defined more flexible.
+ * Add the option to define a paramtertic equalizer at every audio-frame.
+ * Speed improvements for the graphic and paramtetric equalizers.
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
    defined at 80Hz and 24dB/oct.
  * Tweaked HRTF support.

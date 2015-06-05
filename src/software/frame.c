@@ -105,8 +105,9 @@ _aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, char dde)
  *       this function may alter it's contents.
  */
 char
-_aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
-                      _aaxAudioFrame *fmixer, float ssv, float sdf,
+_aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
+                      void *sensor,  _aaxAudioFrame *fmixer,
+                      float ssv, float sdf,
                       _aax2dProps *pp2d,
                       _aaxDelayed3dProps *pdp3d_m,
                       _aax2dProps *fp2d,
@@ -233,7 +234,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, void *sensor,
    if (fprocess && process)
    {
       be->effects(be, be_handle, dest_rb, fp2d);
-      be->postprocess(be_handle, dest_rb, sensor, fmixer->info);
+      be->postprocess(be_handle, dest_rb, sensor, subframe, fmixer->info);
    }
 
    return process;
@@ -289,7 +290,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
        * frames render in the ringbuffer of their parent and mix with
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
-      res = _aaxAudioFrameProcess(frame_rb, NULL, sfmixer, ssv, sdf,
+      res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
                                   fp2d, fdp3d_m, &sfp2d, sfdp3d, sfdp3d_m,
                                   be, be_handle, AAX_TRUE, batched);
 

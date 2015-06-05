@@ -1347,6 +1347,9 @@ _aaxFreeSensor(void *ssr)
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
    free(sensor->filter[EQUALIZER_LF].data);
 
+   /* frees both HRTF_HEADSHADOW and SURROUND_CROSSOVER_LP **/
+   free(sensor->filter[HRTF_HEADSHADOW].data);
+
    free(_FILTER_GET2D_DATA(smixer, FREQUENCY_FILTER));
    free(_FILTER_GET2D_DATA(smixer, DYNAMIC_GAIN_FILTER));
    free(_FILTER_GET2D_DATA(smixer, TIMED_GAIN_FILTER));
