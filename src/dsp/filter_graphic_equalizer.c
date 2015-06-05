@@ -104,66 +104,41 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
          if (eq)	/* fill in the fixed frequencies */
          {
             float fband = logf(44000.0f/67.0f)/8.0f;
-            int pos = 7;
+            float fs = filter->info->frequency;
+            int s, b, pos = _AAX_MAX_EQBANDS-1;
+
             do
             {
                _aaxRingBufferFreqFilterData *flt;
-               float *cptr, fc, fs, k, Q;
+               float *cptr, fc, k, Q, gain;
 
                flt = &eq->band[pos];
+
+               s = pos / 4;
+               b = pos % 4;
+
+               gain = filter->slot[s]->param[b];
+               if (gain < GMATH_128DB) gain = 0.0f;
+               else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
+               flt->high_gain = gain;
+               flt->low_gain = 0.0f;
+               flt->type = BANDPASS;
+
+               k = 0.0f;
+               Q = 1.414f;
+               stages = 1;
                cptr = flt->coeff;
-
-               k = 0;
-               if (pos == 7)
-               {
-                  flt->type = HIGHPASS;
-                  k = flt->high_gain;
-                  flt->high_gain = flt->low_gain;
-                  flt->low_gain = k;
-                  k = flt->low_gain/flt->high_gain;
-               }
-               else if (pos == 0) flt->type = LOWPASS;
-               else flt->type = BANDPASS;
-
-               Q = 2.0f;
-               fs = filter->info->frequency;
-               fc = expf((float)(pos-1)*fband)*67.0f;
+               fc = expf(((float)pos-0.5f)*fband)*67.0f;
                _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
                flt->no_stages = stages;
                flt->low_gain = 0.0f;
+               filter->state = 0;
                flt->fs = fs;
+               flt->Q = Q;
                flt->k = k;
             }
             while (pos--);
          }
-      }
-
-      if (eq)		/* fill in the gains */
-      {
-         _aaxRingBufferFreqFilterData *flt = &eq->band[6];
-         int s = EQUALIZER_HF, b = AAX_GAIN_BAND3+1;
-
-         eq = filter->slot[EQUALIZER_HF]->data;
-
-         do
-         {
-            int pos = s*4+b;
-            float gain;
-
-            flt = &eq->band[pos-1];	// next band
-
-            gain = filter->slot[s]->param[--b];
-            if (gain < GMATH_128DB) gain = 0.0f;
-            else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
-            flt->high_gain = gain;
-
-            if (b == 0)
-            {
-               b += 4;
-               s--;
-            }
-         }
-         while (s >= 0);
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       rv = filter;

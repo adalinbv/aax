@@ -63,7 +63,7 @@ enum _aax2dFiltersEffects
     DYNAMIC_PITCH_EFFECT,
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,
-    DELAY_EFFECT,               /* phasing, chorus, flanging  */
+    DELAY_EFFECT,               /* phasing, chorus or flanging  */
     MAX_STEREO_EFFECT,
 };
 

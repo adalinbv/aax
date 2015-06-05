@@ -18,14 +18,14 @@
 
 #define	SAMPLE_FREQ		48000
 
-#define LF_FILTER_FREQUENCY	 500
-#define LF_GAIN 		1.0f
+#define LF_FILTER_FREQUENCY	 100
+#define LF_GAIN 		0.0f
 #define LF_Q			5.0f
 
-#define MF_GAIN			0.1f
+#define MF_GAIN			1.0f
 
-#define HF_FILTER_FREQUENCY	8000
-#define HF_GAIN			0.5f
+#define HF_FILTER_FREQUENCY	1000
+#define HF_GAIN			0.6f
 #define HF_Q			5.0f
 
 

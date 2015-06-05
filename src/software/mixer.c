@@ -124,14 +124,15 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 }
 
 void
-_aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
+_aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void *f, void *i)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
    _sensor_t *sensor = (_sensor_t*)s;
+   const _frame_t *subframe = (_frame_t*)f;
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
    unsigned char *router = info->router;
    unsigned int t, no_tracks;
-   size_t no_samples, track_len_bytes;
+   size_t ds, no_samples, track_len_bytes;
    char parametric, graphic, crossover;
    unsigned char  lfe_track;
    MIX_T **tracks, **scratch;
@@ -167,6 +168,12 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
       crossover &= (no_tracks >= lfe_track);
    }
 
+   if (!parametric && subframe && subframe->filter)
+   {
+      parametric = (_FILTER_GET_DATA(subframe, EQUALIZER_HF) != NULL);
+      parametric &= (_FILTER_GET_DATA(subframe, EQUALIZER_LF) != NULL);
+   }
+
    if (reverb) {
       rb->limit(rb, RB_LIMITER_ELECTRONIC);
    }
@@ -177,6 +184,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
    }
 
    scratch = (MIX_T**)rb->get_scratch(rb);
+   ds = rb->get_parami(rb, RB_DDE_SAMPLES);
    for (t=0; t<no_tracks; t++)
    {
       MIX_T *dptr = tracks[t];
@@ -185,8 +193,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
 
       if (reverb)
       {
-         size_t ds = rb->get_parami(rb, RB_DDE_SAMPLES);
-
          /* level out previous filters and effects */
          _aaxRingBufferEffectReflections(rbd, dptr, sptr, tmp, 0, no_samples,
                                                       ds, t, reverb);
@@ -198,8 +204,16 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          _aaxRingBufferFreqFilterData *lf, *hf;
          float k, gain, *cptr, *hist;
 
-         lf = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-         hf = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
+         if (sensor)
+         {
+            lf = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
+            hf = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
+         }
+         else
+         {
+            lf = _FILTER_GET_DATA(subframe, EQUALIZER_LF);
+            hf = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
+         }
 
          if (lf->type == LOWPASS && hf->type == HIGHPASS) {
             _aax_memcpy(sptr, dptr, track_len_bytes);
@@ -229,7 +243,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, void *i)
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
          float k, gain, *cptr, *hist;
-         int b = 8;
+         int b = _AAX_MAX_EQBANDS;
 
          _aax_memcpy(sptr, dptr, track_len_bytes);
 
@@ -530,7 +544,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                rb->set_state(rb, RB_STARTED);
 
                /* process emitters and registered sensors */
-               res = _aaxAudioFrameProcess(rb, sensor, smixer, ssv, sdf,
+               res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
                                            NULL, NULL, &sp2d, sdp3d, sdp3d_m,
                                            be, be_handle, fprocess, batched);
                /*

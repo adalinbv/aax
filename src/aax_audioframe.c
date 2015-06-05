@@ -165,6 +165,9 @@ aaxAudioFrameDestroy(aaxFrame frame)
       _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
                    _aaxRingBufferFree);
 
+      /* frees both EQUALIZER_LF and EQUALIZER_HF */
+      free(handle->filter[EQUALIZER_LF].data);
+
       /* safeguard against using already destroyed handles */
       handle->id = FADEDBAD;
       free(handle);
@@ -397,23 +400,35 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       int type = filter->pos;
       switch (filter->type)
       {
-#if 0
-      case AAX_GRAPHIC_EQUALIZER:
+//    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
       {
-         _aax2dProps *p2d = handle->submix->props2d;
-         type = EQUALIZER_HF;
-         _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
-         _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
-         _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-         _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
-         _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-         _FILTER_SWAP_SLOT_DATA(p2d, EQUALIZER_HF, filter, 1);
+         if (!handle->filter) {		/* EQUALIZER_LF & EQUALIZER_HF */
+            handle->filter = calloc(2, sizeof(_aaxFilterInfo));
+         }
 
-         type = EQUALIZER_LF;
-         /* break is not needed */
+         if (handle->filter)
+         {
+            type = EQUALIZER_HF;
+            _FILTER_SET(handle, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
+            _FILTER_SET(handle, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
+            _FILTER_SET(handle, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
+            _FILTER_SET(handle, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
+            _FILTER_SWAP_SLOT_DATA(handle, EQUALIZER_HF, filter, 1);
+
+            type = EQUALIZER_LF;
+            _FILTER_SET(handle, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+            _FILTER_SET(handle, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+            _FILTER_SET(handle, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+            _FILTER_SET(handle, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+            _FILTER_SET_STATE(handle, type, _FILTER_GET_SLOT_STATE(filter));
+            _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
+            break;
+         }
+         else {
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         }
       }
-#endif
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_VOLUME_FILTER:

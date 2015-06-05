@@ -199,7 +199,7 @@ _aaxNoneDriverPrepare(const void *id, const void *hid, void *s, const void *l)
 }
 
 static void
-_aaxNoneDriverPostProcess(const void *id, void *s, const void *l, void *i)
+_aaxNoneDriverPostProcess(const void *id, void *s, const void *l, const void *f, void *i)
 {
 }
 
