@@ -25,7 +25,7 @@
 #define MF_GAIN			1.0f
 
 #define HF_FILTER_FREQUENCY	1000
-#define HF_GAIN			0.6f
+#define HF_GAIN			0.2f
 #define HF_Q			5.0f
 
 

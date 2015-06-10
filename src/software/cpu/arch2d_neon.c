@@ -506,85 +506,134 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
 }
 
 void
-_batch_freqfilter_neon(int32_ptr d, const_int32_ptr src, size_t num,
-                  float *hist, float k, const float *cptr)
+_batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
-   int32_t *s = (int32_t *)src;
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_int32_ptr s = sptr;
 
    if (num)
    {
       float32x4_t c, h;
       float32x2_t h2;
-      size_t i = num;
+      float k, *cptr, *hist;
+      int stage;
 
-      c = vld1q_f32(cptr);
+      cptr = filter->coeff;
+      hist = filter->freqfilter_history[t];
+      stage = filter->no_stages;
+      if (!stages) stages++;
 
-      h2 = vld1_f32(hist);
-      h = vcombine_f32(h2, h2);
+      if (filter->state) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
 
       do
       {
-         float32x4_t pz;
-         float32x2_t half;
-         float smp, tmp;
+         int32_ptr d = dptr;
+         size_t i = num;
 
-         smp = *s++ * k;
+         c = vld1q_f32(cptr);
 
-         pz = vmulq_f32(c, h); // poles and zeros
-         half = vget_low_f32(pz);
-         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
-
-         hist[1] = hist[0];
-         hist[0] = smp + tmp;
          h2 = vld1_f32(hist);
          h = vcombine_f32(h2, h2);
 
-         half = vget_high_f32(pz);
-         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
-         *d++ = smp + tmp;
+         do
+         {
+            float32x4_t pz;
+            float32x2_t half;
+            float smp, tmp;
+
+            smp = *s++ * k;
+
+            pz = vmulq_f32(c, h); // poles and zeros
+            half = vget_low_f32(pz);
+            tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
+
+            hist[1] = hist[0];
+            hist[0] = smp + tmp;
+            h2 = vld1_f32(hist);
+            h = vcombine_f32(h2, h2);
+
+            half = vget_high_f32(pz);
+            tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
+            *d++ = smp + tmp;
+         }
+         while (--i);
+
+         hist += 2;
+         cptr += 4;
+         k = 1.0f;
+         s = dptr;
       }
-      while (--i);
+      while (--stage);
    }
 }
 
 void
-_batch_freqfilter_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
-   float32_ptr s = (float32_ptr)sptr;
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_float32_ptr s = sptr;
 
    if (num)
    {
       float32x4_t c, h;
       float32x2_t h2;
-      size_t i = num;
+      float k, *cptr, *hist;
+      int stage;
 
-      c = vld1q_f32(cptr);
+      cptr = filter->coeff;
+      hist = filter->freqfilter_history[t];
+      stage = filter->no_stages;
+      if (!stages) stages++;
 
-      h2 = vld1_f32(hist);
-      h = vcombine_f32(h2, h2);
+      if (filter->state) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
 
       do
       {
-         float32x4_t pz;
-         float32x2_t half;
-         float smp, tmp;
+         float32_ptr d = dptr;
+         size_t i = num;
 
-         smp = *s++ * k;
+         c = vld1q_f32(cptr);
 
-         pz = vmulq_f32(c, h); // poles and zeros
-         half = vget_low_f32(pz);
-         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
-
-         hist[1] = hist[0];
-         hist[0] = smp + tmp;
          h2 = vld1_f32(hist);
          h = vcombine_f32(h2, h2);
 
-         half = vget_high_f32(pz);
-         tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
-         *d++ = smp + tmp;
+         do
+         {
+            float32x4_t pz;
+            float32x2_t half;
+            float smp, tmp;
+
+            smp = *s++ * k;
+
+            pz = vmulq_f32(c, h); // poles and zeros
+            half = vget_low_f32(pz);
+            tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
+
+            hist[1] = hist[0];
+            hist[0] = smp + tmp;
+            h2 = vld1_f32(hist);
+            h = vcombine_f32(h2, h2);
+
+            half = vget_high_f32(pz);
+            tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
+            *d++ = smp + tmp;
+         }
+         while (--i);
+
+         hist += 2;
+         cptr += 4;
+         k = 1.0f;
+         s = dptr;
       }
-      while (--i);
+      while (--stage);
    }
 }
 

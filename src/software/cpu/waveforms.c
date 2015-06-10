@@ -159,7 +159,7 @@ float _rand_sample(float *s, float g)
 }
 #else
 
-#define AVG	13
+#define AVG	14
 #define MAX_AVG	64
 static float _rand_sample(float *s, float g)
 {
@@ -196,7 +196,7 @@ static float _rand_sample(float *s, float g)
    rv = rvals[p];
    rvals[p] = r;
 
-   rv = 7.0f*g*(-1.0f + rv/MAX_RANDOM_2);
+   rv = 2.0f*g*(-1.0f + rv/MAX_RANDOM_2);
 
    return rv;
 }
@@ -423,25 +423,30 @@ void
 __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
 {
    float f = (float)logf(fs/100.0f)/(float)NO_FILTER_STEPS;
+   _aaxRingBufferFreqFilterData filter;
    unsigned int q = NO_FILTER_STEPS;
    int32_t *dst, *tmp, *ptr = data;
    dst = ptr + no_samples;
 
+   filter.type = LOWPASS;
+   filter.no_stages = 1;
+   filter.Q = 1.0f;
+   filter.fs = fs;
+
    do
    {
-      float cptr[4], hist[2];
       float fc, v1, v2;
-      float k = 1.0f;
-      float Q = 1.0f;
-      int stages = 1;
 
       v1 = powf(1.003f, q);
       v2 = powf(0.90f, q);
-      fc = expf((float)(q-1)*f)*100.0f;
-      hist[0] = 0.0f; hist[1] = 0.0f;
-      _aax_bessel_compute(fc, fs, cptr, &k, Q, stages, AAX_TRUE);
+      filter.high_gain = v1-v2;
+      filter.freqfilter_history[0][0] = 0.0f;
+      filter.freqfilter_history[0][1] = 0.0f;
+      filter.k = 1.0f;
 
-      _batch_freqfilter(dst, ptr, no_samples, hist, k*(v1-v2), cptr);
+      fc = expf((float)(q-1)*f)*100.0f;
+      _aax_bessel_compute(fc, &filter);
+      _batch_freqfilter(dst, ptr, 0, no_samples, &filter);
       _batch_imadd(dst, ptr, no_samples,  v2, 0.0);
 
       tmp = dst;

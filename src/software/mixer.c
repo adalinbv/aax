@@ -167,8 +167,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
       crossover = (_FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP) != NULL);
       crossover &= (no_tracks >= lfe_track);
    }
-
-   if (!parametric && subframe && subframe->filter)
+   else if (subframe && subframe->filter)
    {
       parametric = (_FILTER_GET_DATA(subframe, EQUALIZER_HF) != NULL);
       parametric &= (_FILTER_GET_DATA(subframe, EQUALIZER_LF) != NULL);
@@ -193,7 +192,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
 
       if (reverb)
       {
-         /* level out previous filters and effects */
          _aaxRingBufferEffectReflections(rbd, dptr, sptr, tmp, 0, no_samples,
                                                       ds, t, reverb);
          _aaxRingBufferEffectReverb(rbd, dptr, 0, no_samples, ds, t, reverb);
@@ -202,7 +200,6 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
       if (parametric)
       {
          _aaxRingBufferFreqFilterData *lf, *hf;
-         float k, gain, *cptr, *hist;
 
          if (sensor)
          {
@@ -215,34 +212,22 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
             hf = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
          }
 
-         if (lf->type == LOWPASS && hf->type == HIGHPASS) {
-            _aax_memcpy(sptr, dptr, track_len_bytes);
-         }
-
-         hist = lf->freqfilter_history[t];
-         cptr = lf->coeff;
-         gain = lf->high_gain;
-         k = lf->k;
-         rbd->freqfilter(dptr, dptr, no_samples, hist, k*gain, cptr);
-
-         hist = hf->freqfilter_history[t];
-         cptr = hf->coeff;
-         gain = hf->high_gain;
-         k = hf->k;
          if (lf->type == LOWPASS && hf->type == HIGHPASS)
          {
-            rbd->freqfilter(tmp, sptr, no_samples, hist, k*gain, cptr);
-            rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
+            rbd->freqfilter(sptr, dptr, t, no_samples, lf);
+            rbd->freqfilter(dptr, dptr, t, no_samples, hf);
+            rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
          }
-         else {
-            rbd->freqfilter(dptr, dptr, no_samples, hist, k*gain, cptr);
+         else
+         {
+            rbd->freqfilter(dptr, dptr, t, no_samples, lf);
+            rbd->freqfilter(dptr, dptr, t, no_samples, hf);
          }
       }
       else if (graphic)
       {
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
-         float k, gain, *cptr, *hist;
          int b = _AAX_MAX_EQBANDS;
 
          _aax_memcpy(sptr, dptr, track_len_bytes);
@@ -251,21 +236,13 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
 
          // first band, straight into dptr to save a bzero() and rbd->add()
          filter = &eq->band[--b];
-         hist = filter->freqfilter_history[t];
-         cptr = filter->coeff;
-         gain = filter->high_gain;
-         k = filter->k;
-         rbd->freqfilter(dptr, sptr, no_samples, hist, k*gain, cptr);
+         rbd->freqfilter(dptr, sptr, t, no_samples, filter);
 
          // next 7 bands
          do
          {
             filter = &eq->band[--b];
-            hist = filter->freqfilter_history[t];
-            cptr = filter->coeff;
-            gain = filter->high_gain;
-            k = filter->k;
-            rbd->freqfilter(tmp, sptr, no_samples, hist, k*gain, cptr);
+            rbd->freqfilter(tmp, sptr, t, no_samples, filter);
             rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
          }
          while(b);
