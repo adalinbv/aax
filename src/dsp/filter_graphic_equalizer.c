@@ -90,12 +90,12 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
-         int stages;
+         int stages = 1;
 
-         if (state == AAX_48DB_OCT) stages = 4;
-         else if (state == AAX_36DB_OCT) stages = 3;
-         else if (state == AAX_24DB_OCT) stages = 2;
-         else stages = 1;
+//       if (state == AAX_48DB_OCT) stages = 4;
+//       else if (state == AAX_36DB_OCT) stages = 3;
+//       else if (state == AAX_24DB_OCT) stages = 2;
+//       else stages = 1;
 
          eq = calloc(1, sizeof(_aaxRingBufferEqualizerData));
          filter->slot[EQUALIZER_LF]->data = NULL;
@@ -110,7 +110,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             do
             {
                _aaxRingBufferFreqFilterData *flt;
-               float *cptr, fc, k, Q, gain;
+               float fc, gain;
 
                flt = &eq->band[pos];
 
@@ -124,18 +124,13 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                flt->low_gain = 0.0f;
                flt->type = BANDPASS;
 
-               k = 0.0f;
-               Q = 1.414f;
-               stages = 1;
-               cptr = flt->coeff;
-               fc = expf(((float)pos-0.5f)*fband)*67.0f;
-               _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
-               flt->no_stages = stages;
-               flt->low_gain = 0.0f;
-               filter->state = 0;
+               flt->k = 0.0f;
+               flt->Q = 1.414f;
                flt->fs = fs;
-               flt->Q = Q;
-               flt->k = k;
+               filter->state = 0;
+               flt->no_stages = stages;
+               fc = expf(((float)pos-0.5f)*fband)*67.0f;
+               _aax_butterworth_compute(fc, flt);
             }
             while (pos--);
          }

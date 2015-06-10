@@ -137,8 +137,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          reverb->freq_filter = flt;
          if (flt)
          {
-            float *cptr = flt->coeff;
-            float dfact, fc, k, Q;
+            float dfact, fc;
 
             /* set up a cut-off frequency between 100Hz and 15000Hz
              * the lower the cut-off frequency, the more the low
@@ -151,21 +150,20 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
              * much to provide a bit smoother frequency response
              * around the cut-off frequency.
              */
-            k = 1.0f;
-            Q = 0.6f;
             fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+
+            flt->lfo = 0;
+            flt->fs = fs;
+            flt->Q = 0.6f;
+            flt->low_gain = 0.0f;
+            flt->no_stages = 1;
 
             dfact = powf(fc*0.00005f, 0.2f);
             flt->high_gain = 1.75f-0.75f*dfact;
             flt->low_gain = 0.33f*dfact;
-            k = flt->low_gain/flt->high_gain;
-            _aax_butterworth_compute(fc, fs, cptr, &k, Q, 1, AAX_TRUE);
-            flt->low_gain = 0.0f;
-            flt->no_stages = 1;
-            flt->lfo = 0;
-            flt->fs = fs;
-            flt->Q = Q;
-            flt->k = k;
+            flt->k = flt->low_gain/flt->high_gain;
+
+            _aax_butterworth_compute(fc, flt);
          }
       }
       while(0);

@@ -115,42 +115,31 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       if (flt)
       {
          float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-         float Q = filter->slot[0]->param[AAX_RESONANCE];
-         float *cptr = flt->coeff;
-         float k, fs = flt->fs; 
 
          flt->high_gain = fabs(filter->slot[0]->param[AAX_LF_GAIN]);
          if (flt->high_gain < GMATH_128DB) flt->high_gain = 0.0f;
-         else if (fabs(flt->high_gain - 1.0f) < GMATH_128DB) flt->high_gain = 1.0f;
 
          flt->low_gain = fabs(filter->slot[0]->param[AAX_HF_GAIN]);
          if (flt->low_gain < GMATH_128DB) flt->low_gain = 0.0f;
-         else if (fabs(flt->low_gain - 1.0f) < GMATH_128DB) flt->low_gain = 1.0f;
 
+         flt->no_stages = stages;
+         flt->state = state >> 24;
+         flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
-         if (state & AAX_BESSEL)
-         {
-             k = 1.0f;
-             _aax_bessel_compute(fc, fs, cptr, &k, Q, stages, flt->type);
+
+         if (state & AAX_BESSEL) {
+             _aax_bessel_compute(fc, flt);
          }
          else
          {
             if (flt->type == HIGHPASS)
             {
-               k = flt->high_gain;
+               float g = flt->high_gain;
                flt->high_gain = flt->low_gain;
-               flt->low_gain = k;
+               flt->low_gain = g;
             }
-
-            k = flt->low_gain/flt->high_gain;
-            _aax_butterworth_compute(fc, fs, cptr, &k, Q, stages, flt->type);
-            flt->low_gain = 0.0f;
+            _aax_butterworth_compute(fc, flt);
          }
-
-         flt->no_stages = stages;
-         filter->state = state >> 24;
-         flt->Q = Q;
-         flt->k = k;
 
          // Non-Manual only
          if (wstate && EBF_VALID(filter) && filter->slot[1])
@@ -420,103 +409,113 @@ _aax_EMA_compute(float fc, float fs, float *a)
  * - equalizer (graphic and parametric)
  */
 void
-_batch_freqfilter_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_freqfilter_iir_cpu(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_int32_ptr s = sptr;
+
    if (num)
    {
-      int32_ptr s = (int32_ptr)sptr;
+      float k, *cptr, *hist;
       float smp, nsmp, h0, h1;
-      size_t i = num;
+      int stage;
 
-      h0 = hist[0];
-      h1 = hist[1];
+      cptr = filter->coeff;
+      hist = filter->freqfilter_history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      if (filter->state) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
       do
       {
-         smp = *s++ * k;
-         smp = smp + h0 * cptr[0];
-         nsmp = smp + h1 * cptr[1];
-         smp = nsmp + h0 * cptr[2];
-         smp = smp + h1 * cptr[3];
+         int32_ptr d = dptr;
+         size_t i = num;
 
-         h1 = h0;
-         h0 = nsmp;
-         *d++ = smp;
+         h0 = hist[0];
+         h1 = hist[1];
+         do
+         {
+            smp = *s++ * k;
+            smp = smp + h0 * cptr[0];
+            nsmp = smp + h1 * cptr[1];
+            smp = nsmp + h0 * cptr[2];
+            smp = smp + h1 * cptr[3];
+
+            h1 = h0;
+            h0 = nsmp;
+            *d++ = smp;
+         }
+         while (--i);
+
+         *hist++ = h0;
+         *hist++ = h1;
+         cptr += 4;
+         k = 1.0f;
+         s = dptr;
       }
-      while (--i);
-
-      hist[0] = h0;
-      hist[1] = h1;
+      while (--stage);
    }
 }
 
 void
-_batch_freqfilter_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
+_batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
    if (num)
    {
-      float32_ptr s = (float32_ptr)sptr;
-      float smp, h0, h1;
-      size_t i = num;
+      const_float32_ptr s = sptr;
+      float k, *cptr, *hist;
       float c0, c1, c2, c3;
+      float smp, h0, h1;
+      int stage;
 
-      // for original code see _batch_freqfilter_iir_cpu
-      c0 = cptr[0];
-      c1 = cptr[1];
-      c2 = cptr[2];
-      c3 = cptr[3];
+      cptr = filter->coeff;
+      hist = filter->freqfilter_history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
 
-      h0 = hist[0];
-      h1 = hist[1];
+      if (filter->state) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
 
-      // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
       do
       {
-         smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-         *d++ = smp       + ((h0 * c2) + (h1 * c3));
+         float32_ptr d = dptr;
+         size_t i = num;
 
-         h1 = h0;
-         h0 = smp;
+         // for original code see _batch_freqfilter_iir_cpu
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
+         do
+         {
+            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+            *d++ = smp       + ((h0 * c2) + (h1 * c3));
+
+            h1 = h0;
+            h0 = smp;
+         }
+         while (--i);
+
+         *hist++ = h0;
+         *hist++ = h1;
+         k = 1.0f;
+         s = dptr;
       }
-      while (--i);
-
-      hist[0] = h0;
-      hist[1] = h1;
-   }
-}
-
-void
-_batch_freqfilter_iir_reverse_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float k, const float *cptr)
-{
-   if (num)
-   {
-      float32_ptr s = (float32_ptr)sptr;
-      float smp, h0, h1;
-      size_t i = num;
-      float c0, c1, c2, c3;
-
-      // for original code see _batch_freqfilter_iir_cpu
-      c0 = cptr[0];
-      c1 = cptr[1];
-      c2 = cptr[2];
-      c3 = cptr[3];
-
-      h0 = hist[0];
-      h1 = hist[1];
-
-      s += num-1;
-      d += num-1;
-      do
-      {
-         smp = (*s-- * k) + ((h0 * c0) + (h1 * c1));
-         *d-- = smp       + ((h0 * c2) + (h1 * c3));
-
-         h1 = h0;
-         h0 = smp;
-      }
-      while (--i);
-
-      hist[0] = h0;
-      hist[1] = h1;
+      while (--stage);
    }
 }
 
@@ -579,7 +578,7 @@ _aax_bilinear_s2z(float *a0, float *a1, float *a2,
  *  (s+0.707 + j0.707) (s+0.707 -j0.707) = s2 + 1.414s + 1.
  */
 void
-_aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+_aax_butterworth_compute(float fc, void *flt)
 {
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
    static const float _Q[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
@@ -588,18 +587,28 @@ _aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, 
       { 0.5177f, 0.7071f, 1.9320f, 1.0f    },	// 6th roder
       { 0.5098f, 0.6013f, 0.8999f, 2.5628f }	// 8th order
    };
-   int i, pos, first_order;
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   int i, pos, first_order, stages;
+   float k = 1.0f, A = 1.0f;
+   float fs, Q, *coef;
    float a2, a1, a0;
-   float A = *gain;
-   float k = 1.0f;
+
+   stages = filter->no_stages;
+   if (!stages) stages++;
 
    assert(stages <= _AAX_MAX_STAGES);
 
+   Q = filter->Q;
+   fs = filter->fs;
+   coef = filter->coeff;
    first_order = stages ? AAX_FALSE : AAX_TRUE;
-   if (!stages) stages++;
 
-   if (A > GMATH_128DB) {	// // shelf or allpass filter
-      A = powf(10.0f, 0.5f*log10f(A*(1.5f*stages)));
+   A = 0.0f;
+   if (filter->low_gain > GMATH_128DB)
+   {
+      // it's a shelf filter, adjust for correct dB
+      // derived from the audio EQ Cookbook
+      A = powf(filter->low_gain/filter->high_gain, 0.5f);
    }
 
    pos = stages-1;
@@ -609,7 +618,7 @@ _aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, 
 
       if (A > GMATH_128DB)
       {
-         switch (type)
+         switch (filter->type)
          {
          case BANDPASS:
             a2 = 1.0f;
@@ -645,7 +654,7 @@ _aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, 
       }
       else
       {
-         switch (type)
+         switch (filter->type)
          {
          case BANDPASS:
             a2 = 0.0f;
@@ -670,10 +679,10 @@ _aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, 
       }
 
       _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
-
       coef += 4;
    }
-   *gain = k;
+
+   filter->k = k;
 }
 
 /**
@@ -710,10 +719,17 @@ _aax_butterworth_compute(float fc, float fs, float *coef, float *gain, float Q, 
  */
 #if 1
 void
-_aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
+_aax_bessel_compute(float fc, void *flt)
 {
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
    float k = 1.0f, alpha = 1.0f;
-   float beta;
+   float beta, fs, *coef;
+   int stages, type;
+
+   fs = filter->fs;
+   coef = filter->coeff;
+   stages = filter->no_stages;
+   type = filter->type;
 
    // highpass filtering is more a high-shelve type.
    // fix this by using a lowpass filter and subtracting it from the source
@@ -759,7 +775,8 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
       }
    }
 
-   *gain = k;
+   filter->Q = 1.0f;
+   filter->k = k;
 }
 #else
 void

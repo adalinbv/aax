@@ -97,10 +97,10 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
       if (flt_lf && flt_hf)
       {
          float lf_gain, mf_gain, hf_gain;
-         float fcl, fch, Q;
-         float *cptr, fs, k;
+         float fcl, fch;
 
-         fs = filter->info->frequency;
+         flt_lf->fs = filter->info->frequency;
+         flt_hf->fs = filter->info->frequency;
 
          /* frequencies */
          fcl = filter->slot[EQUALIZER_LF]->param[AAX_CUTOFF_FREQUENCY];
@@ -180,78 +180,62 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          if (flt_lf->type == LOWPASS && flt_hf->type == HIGHPASS)
          {
             /* LF frequency setup */
-            cptr = flt_lf->coeff;
-            k = 0.5f*flt_lf->low_gain/flt_lf->high_gain;
-            Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fcl, fs, cptr, &k, Q, 1, flt_lf->type);
+            flt_lf->k = 0.5f*flt_lf->low_gain/flt_lf->high_gain;
+            flt_lf->Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fcl, flt_lf);
             flt_lf->low_gain = 0.0f;
-            flt_lf->k = k;
 
             /* HF frequency setup */
-            cptr = flt_hf->coeff;
-            k = 0.5f*flt_hf->low_gain/flt_hf->high_gain;
-            Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fch, fs, cptr, &k, Q, 1, flt_hf->type);
+            flt_hf->k = 0.5f*flt_hf->low_gain/flt_hf->high_gain;
+            flt_hf->Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fch, flt_hf);
             flt_hf->low_gain = 0.0f;
-            flt_hf->k = k;
          }
          else if (flt_lf->type == HIGHPASS && flt_hf->type == LOWPASS)
          {
             /* LF frequency setup */
-            cptr = flt_lf->coeff;
-            k = flt_lf->low_gain;
-            Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fcl, fs, cptr, &k, Q, 1, flt_lf->type);
+            flt_lf->k = flt_lf->low_gain;
+            flt_lf->Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fcl, flt_lf);
             flt_lf->low_gain = 0.0f;
-            flt_lf->k = k;
 
             /* HF frequency setup */
-            cptr = flt_hf->coeff;
-            k = flt_hf->low_gain/flt_hf->high_gain;
-            Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fch, fs, cptr, &k, Q, 1, flt_hf->type);
+            flt_hf->k = flt_hf->low_gain/flt_hf->high_gain;
+            flt_hf->Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fch, flt_hf);
             flt_hf->low_gain = 0.0f;
-            flt_hf->k = k;
          }
          else if (flt_lf->type == LOWPASS && flt_hf->type == LOWPASS)
          {
             /* LF frequency setup */
-            cptr = flt_lf->coeff;
-            k = 0.5f*flt_lf->low_gain/flt_lf->high_gain;
-            Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fcl, fs, cptr, &k, Q, 1, flt_lf->type);
+            flt_lf->k = 0.5f*flt_lf->low_gain/flt_lf->high_gain;
+            flt_lf->Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fcl, flt_lf);
             flt_lf->low_gain = 0.0f;
-            flt_lf->k = k;
 
             /* HF frequency setup */
             flt_lf->high_gain = 1.0f;
 
-            cptr = flt_hf->coeff;
-            k = flt_hf->low_gain/flt_lf->high_gain;
-            Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fch, fs, cptr, &k, Q, 1, flt_hf->type);
+            flt_hf->k = flt_hf->low_gain/flt_lf->high_gain;
+            flt_hf->Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fch, flt_hf);
             flt_hf->low_gain = 0.0f;
-            flt_hf->k = k;
          }
          else
          {
             /* LF frequency setup */
             flt_lf->high_gain = 1.0f;
 
-            cptr = flt_lf->coeff;
-            k = flt_lf->low_gain/flt_lf->high_gain;
-            Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fcl, fs, cptr, &k, Q, 1, flt_lf->type);
+            flt_lf->k = flt_lf->low_gain/flt_lf->high_gain;
+            flt_lf->Q = filter->slot[EQUALIZER_LF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fcl, flt_lf);
             flt_lf->low_gain = 0.0f;
-            flt_lf->k = k;
 
             /* HF frequency setup */
-            cptr = flt_hf->coeff;
-            k = 0.5f*flt_hf->low_gain/flt_lf->high_gain;
-            Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
-            _aax_butterworth_compute(fch, fs, cptr, &k, Q, 1, flt_hf->type);
+            flt_hf->k = 0.5f*flt_hf->low_gain/flt_lf->high_gain;
+            flt_hf->Q = filter->slot[EQUALIZER_HF]->param[AAX_RESONANCE];
+            _aax_butterworth_compute(fch, flt_hf);
             flt_hf->low_gain = 0.0f;
-            flt_hf->k = k;
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

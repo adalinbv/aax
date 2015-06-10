@@ -87,7 +87,6 @@ _batch_ema_proc _batch_movingaverage = _batch_ema_iir_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_iir_cpu;
 _batch_ema_float_proc _batch_movingaverage_float = _batch_ema_iir_float_cpu;
 _batch_freqfilter_float_proc _batch_freqfilter_float = _batch_freqfilter_iir_float_cpu;
-_batch_freqfilter_float_proc _batch_freqfilter_reverse_float = _batch_freqfilter_iir_reverse_float_cpu;
 
 
 #if RB_FLOAT_DATA
