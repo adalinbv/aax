@@ -186,9 +186,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    ds = rb->get_parami(rb, RB_DDE_SAMPLES);
    for (t=0; t<no_tracks; t++)
    {
+      MIX_T *sptr = scratch[SCRATCH_BUFFER0];
+      MIX_T *tmp = scratch[SCRATCH_BUFFER1];
       MIX_T *dptr = tracks[t];
-      MIX_T *sptr = scratch[0];
-      MIX_T *tmp = scratch[1];
 
       if (reverb)
       {
@@ -228,24 +228,24 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
       {
          _aaxRingBufferFreqFilterData* filter;
          _aaxRingBufferEqualizerData *eq;
-         int b = _AAX_MAX_EQBANDS;
-
-         _aax_memcpy(sptr, dptr, track_len_bytes);
+         int band;
 
          eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
+         _aax_memcpy(sptr, dptr, track_len_bytes);
 
          // first band, straight into dptr to save a bzero() and rbd->add()
-         filter = &eq->band[--b];
+         band = _AAX_MAX_EQBANDS;
+         filter = &eq->band[--band];
          rbd->freqfilter(dptr, sptr, t, no_samples, filter);
 
          // next 7 bands
          do
          {
-            filter = &eq->band[--b];
+            filter = &eq->band[--band];
             rbd->freqfilter(tmp, sptr, t, no_samples, filter);
             rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
          }
-         while(b);
+         while(band);
       }
 
       if (crossover && t != AAX_TRACK_FRONT_LEFT && t != AAX_TRACK_FRONT_RIGHT)
