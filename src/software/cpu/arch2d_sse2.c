@@ -1248,7 +1248,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          } else {
             c = _mm_loadu_ps(cptr);
          }
-
          c = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3,1,2,0));
 
 //       h = _mm_set_ps(hist[1], hist[1], hist[0], hist[0]);
@@ -1286,6 +1285,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          }
          while (--i);
 
+         h = _mm_shuffle_ps(h, h, _MM_SHUFFLE(3,1,2,0));
          _mm_storel_pi((__m64*)hist, h);
 
          hist += 2;
