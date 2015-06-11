@@ -90,7 +90,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
-         int stages = 1;
+         int stages = 2;
 
 //       if (state == AAX_48DB_OCT) stages = 4;
 //       else if (state == AAX_36DB_OCT) stages = 3;
@@ -120,12 +120,12 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                gain = filter->slot[s]->param[b];
                if (gain < GMATH_128DB) gain = 0.0f;
                else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
-               flt->high_gain = gain;
+               flt->high_gain = gain*stages;
                flt->low_gain = 0.0f;
                flt->type = BANDPASS;
 
                flt->k = 0.0f;
-               flt->Q = 1.414f;
+               flt->Q = 1.4142f/stages;
                flt->fs = fs;
                filter->state = 0;
                flt->no_stages = stages;
