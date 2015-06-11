@@ -90,7 +90,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
-         int stages = 2;
+         int stages = 4;
 
 //       if (state == AAX_48DB_OCT) stages = 4;
 //       else if (state == AAX_36DB_OCT) stages = 3;
@@ -120,16 +120,26 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                gain = filter->slot[s]->param[b];
                if (gain < GMATH_128DB) gain = 0.0f;
                else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
-               flt->high_gain = gain*stages;
+               flt->high_gain = gain;
                flt->low_gain = 0.0f;
-               flt->type = BANDPASS;
+               if (pos == 0)
+               {
+                  stages = 1;
+                  flt->type = LOWPASS;
+                  fc = expf((float)(pos)*fband)*67.0f;
+               }
+               else
+               {
+                  flt->high_gain *= 3.0f;
+                  flt->type = BANDPASS;
+                  fc = expf(((float)pos)*fband)*67.0f;
+               }
 
                flt->k = 0.0f;
-               flt->Q = 1.4142f/stages;
+               flt->Q = 0.9f; // _MAX(1.4142f/stages, 1.0f);
                flt->fs = fs;
                filter->state = 0;
                flt->no_stages = stages;
-               fc = expf(((float)pos-0.5f)*fband)*67.0f;
                _aax_butterworth_compute(fc, flt);
             }
             while (pos--);
