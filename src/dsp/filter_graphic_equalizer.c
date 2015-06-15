@@ -80,7 +80,8 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_12DB_OCT)
+printf("_aaxGraphicEqualizerSetState, state: %x\n", state);
+   if (state == AAX_TRUE)
    {
       _aaxRingBufferEqualizerData *eq = filter->slot[EQUALIZER_HF]->data;
 
@@ -90,62 +91,56 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
-         int stages = 4;
-
-//       if (state == AAX_48DB_OCT) stages = 4;
-//       else if (state == AAX_36DB_OCT) stages = 3;
-//       else if (state == AAX_24DB_OCT) stages = 2;
-//       else stages = 1;
-
          eq = calloc(1, sizeof(_aaxRingBufferEqualizerData));
          filter->slot[EQUALIZER_LF]->data = NULL;
          filter->slot[EQUALIZER_HF]->data = eq;
-
-         if (eq)	/* fill in the fixed frequencies */
-         {
-            float fband = logf(44000.0f/67.0f)/8.0f;
-            float fs = filter->info->frequency;
-            int s, b, pos = _AAX_MAX_EQBANDS-1;
-
-            do
-            {
-               _aaxRingBufferFreqFilterData *flt;
-               float fc, gain;
-
-               flt = &eq->band[pos];
-
-               s = pos / 4;
-               b = pos % 4;
-
-               gain = filter->slot[s]->param[b];
-               if (gain < GMATH_128DB) gain = 0.0f;
-               else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
-               flt->high_gain = gain;
-               flt->low_gain = 0.0f;
-               if (pos == 0)
-               {
-                  stages = 1;
-                  flt->type = LOWPASS;
-                  fc = expf((float)(pos)*fband)*67.0f;
-               }
-               else
-               {
-                  flt->high_gain *= 3.0f;
-                  flt->type = BANDPASS;
-                  fc = expf(((float)pos)*fband)*67.0f;
-               }
-
-               flt->k = 0.0f;
-               flt->Q = 0.9f; // _MAX(1.4142f/stages, 1.0f);
-               flt->fs = fs;
-               filter->state = 0;
-               flt->no_stages = stages;
-               _aax_butterworth_compute(fc, flt);
-            }
-            while (pos--);
-         }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+
+      if (eq)	/* fill in the fixed frequencies */
+      {
+         float fband = logf(44000.0f/67.0f)/8.0f;
+         float fs = filter->info->frequency;
+         int s, b, pos = _AAX_MAX_EQBANDS-1;
+         int stages = 4;
+
+         do
+         {
+            _aaxRingBufferFreqFilterData *flt;
+            float fc, gain;
+
+            flt = &eq->band[pos];
+
+            s = pos / 4;
+            b = pos % 4;
+
+            gain = filter->slot[s]->param[b];
+            if (gain < GMATH_128DB) gain = 0.0f;
+            else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
+            flt->high_gain = gain;
+            flt->low_gain = 0.0f;
+            if (pos == 0)
+            {
+               stages = 1;
+               flt->type = LOWPASS;
+               fc = expf((float)(pos)*fband)*67.0f;
+            }
+            else
+            {
+               flt->high_gain *= 3.0f;
+               flt->type = BANDPASS;
+               fc = expf(((float)pos)*fband)*67.0f;
+            }
+
+            flt->k = 0.0f;
+            flt->Q = 0.9f; // _MAX(1.4142f/stages, 1.0f);
+            flt->fs = fs;
+            filter->state = 0;
+            flt->no_stages = stages;
+            _aax_butterworth_compute(fc, flt);
+         }
+         while (pos--);
+      }
       rv = filter;
    }
    else if (state == AAX_FALSE)
