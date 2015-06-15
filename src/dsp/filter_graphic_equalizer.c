@@ -80,7 +80,6 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-printf("_aaxGraphicEqualizerSetState, state: %x\n", state);
    if (state == AAX_TRUE)
    {
       _aaxRingBufferEqualizerData *eq = filter->slot[EQUALIZER_HF]->data;
