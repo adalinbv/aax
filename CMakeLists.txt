@@ -544,8 +544,6 @@ TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
     ${XML_LIBRARY}
 )
 
-ADD_SUBDIRECTORY(test)
-
 # Create the copyright file
 EXECUTE_PROCESS(COMMAND "xxd" -include COPYING src/copyright.h
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes)
