@@ -76,6 +76,7 @@ typedef struct
 {
    char lite;
    const char *name;
+   float version;
    _aaxFilterCreate *create;
    _aaxFilterDestroy *destroy;
    _aaxFilterSetState *state;

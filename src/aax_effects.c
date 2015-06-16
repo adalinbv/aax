@@ -261,6 +261,29 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
    return rv;
 }
 
+AAX_API const char* AAX_APIENTRY
+aaxEffectGetNameByType(aaxConfig cfg, enum aaxEffectType type)
+{
+   static char _str[80];
+   const char *rv = NULL;
+   if (type < AAX_EFFECT_MAX)
+   {
+      if (_aaxEffects[type-1]->version > 1.0f)
+      {
+         snprintf(_str, 80, "%s (%2.1f)", _aaxEffects[type-1]->name,
+                                          _aaxEffects[type-1]->version);
+         rv = _str;
+      }
+      else {
+         rv = _aaxEffects[type-1]->name;
+      }
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 /* internal use only, used by aaxdefs.h */

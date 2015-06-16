@@ -263,7 +263,7 @@ _aaxNewDynamicGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aa
 _flt_function_tbl _aaxDynamicGainFilter =
 {
    AAX_FALSE,
-   "AAX_dynamic_gain_filter",
+   "AAX_dynamic_gain_filter", 1.0f,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
    (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,

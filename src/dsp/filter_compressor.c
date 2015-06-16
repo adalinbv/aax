@@ -249,7 +249,7 @@ _aaxNewCompressorHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProp
 _flt_function_tbl _aaxCompressor =
 {
    AAX_TRUE,
-   "AAX_compressor",
+   "AAX_compressor", 1.0f,
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,
    (_aaxFilterSetState*)&_aaxCompressorSetState,

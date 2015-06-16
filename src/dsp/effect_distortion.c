@@ -168,7 +168,7 @@ _aaxNewDistortionEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
 _eff_function_tbl _aaxDistortionEffect =
 {
    AAX_FALSE,
-   "AAX_distortion_effect",
+   "AAX_distortion_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
    (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
