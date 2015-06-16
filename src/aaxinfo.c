@@ -57,36 +57,6 @@
 #include "wavfile.h"
 #include "driver.h"
 
-static const char *_filter_s[AAX_FILTER_MAX] =
-{
-    "_",
-    "AAX_equalizer",		/* 2d filters */
-    "AAX_graphic_equalizer",
-    "AAX_compressor",
-    "AAX_volume_filter",
-    "AAX_dynamic_gain_filter",
-    "AAX_timed_gain_filter",
-    "AAX_frequency_filter",
-
-    "AAX_angular_filter",
-    "AAX_distance_filter"	/* 3d filters */
-};
-
-static const char *_effect_s[AAX_EFFECT_MAX] =
-{
-    "_",
-    "AAX_pitch_effect",		/* 2d effects */
-    "AAX_dynamic_pitch_effect",
-    "AAX_timed_pitch_effect",
-    "AAX_phasing_effect",
-    "AAX_chorus_effect",
-    "AAX_flanging_effect",
-    "AAX_distortion_effect",
-    "AAX_reverb_effect",
-
-    "AAX_velocity_effect"	/* 3d effects */
-};
-
 static int maximumWidth = 80;
 
 #if _WIN32
@@ -264,32 +234,34 @@ int main(int argc, char **argv)
             printf("\nSupported Filters:\n ");
             for (i=1; i<AAX_FILTER_MAX; i++)
             {
+                const char *s = aaxFilterGetNameByType(cfg, i);
                 static int len = 1;
-                if (aaxIsFilterSupported(cfg, _filter_s[i]))
+                if (aaxIsFilterSupported(cfg, s))
                 {
-                    len += strlen(_filter_s[i])+1;   /* one for leading space */
+                    len += strlen(s)+1;   /* one for leading space */
                     if (len >= maximumWidth)
                     {
                         printf("\n ");
-                        len = strlen(_filter_s[i])+1;
+                        len = strlen(s)+1;
                     }
-                    printf(" %s", _filter_s[i]);
+                    printf(" %s", s);
                 }
             }
 
             printf("\n\nSupported Effects:\n ");
             for (i=1; i<AAX_EFFECT_MAX; i++)
             {
+                const char *s = aaxEffectGetNameByType(cfg, i);
                 static int len = 1;
-                if (aaxIsEffectSupported(cfg, _effect_s[i]))
+                if (aaxIsEffectSupported(cfg, s))
                 {
-                    len += strlen(_effect_s[i])+1;   /* one for leading space */
+                    len += strlen(s)+1;   /* one for leading space */
                     if (len >= maximumWidth)
                     {
                         printf("\n ");
-                        len = strlen(_effect_s[i])+1;
+                        len = strlen(s)+1;
                     }
-                    printf(" %s", _effect_s[i]);
+                    printf(" %s", s);
                 }
             }
             printf("\n\n");
