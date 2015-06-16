@@ -101,7 +101,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
          float fband = logf(44000.0f/67.0f)/8.0f;
          float fs = filter->info->frequency;
          int s, b, pos = _AAX_MAX_EQBANDS-1;
-         int stages = 4;
+         int stages = 2;
 
          do
          {
@@ -120,19 +120,23 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             flt->low_gain = 0.0f;
             if (pos == 0)
             {
-               stages = 1;
                flt->type = LOWPASS;
-               fc = expf((float)(pos)*fband)*67.0f;
+               fc = expf((float)(pos-0.5f)*fband)*67.0f;
+            }
+            else if (pos == 7)
+            {
+               flt->type = HIGHPASS;
+               fc = expf((float)(pos-0.5f)*fband)*67.0f;
             }
             else
             {
-               flt->high_gain *= 3.0f;
+               flt->high_gain *= (2.0f*stages);
                flt->type = BANDPASS;
-               fc = expf(((float)pos)*fband)*67.0f;
+               fc = expf(((float)(pos-0.5f))*fband)*67.0f;
             }
 
             flt->k = 0.0f;
-            flt->Q = 0.9f; // _MAX(1.4142f/stages, 1.0f);
+            flt->Q = 0.66f; // _MAX(1.4142f/stages, 1.0f);
             flt->fs = fs;
             filter->state = 0;
             flt->no_stages = stages;
