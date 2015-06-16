@@ -25,8 +25,6 @@
 
 _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
 {
-   &_aaxReverbEffect,
-
    &_aaxPitchEffect,
    &_aaxDynamicPitchEffect,
    &_aaxTimedPitchEffect,
@@ -34,8 +32,8 @@ _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
    &_aaxPhasingEffect,
    &_aaxChorusEffect,
    &_aaxFlangingEffect,
-
-   &_aaxVelocityEffect
+   &_aaxVelocityEffect,
+   &_aaxReverbEffect
 };
 
 void

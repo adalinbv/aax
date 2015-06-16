@@ -27,16 +27,14 @@
 _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
 {
    &_aaxEqualizer,
-   &_aaxGraphicEqualizer,
-   &_aaxCompressor,
-
    &_aaxVolumeFilter,
    &_aaxDynamicGainFilter,
    &_aaxTimedGainFilter,
-   &_aaxFrequencyFilter,
-
    &_aaxAngularFilter,
-   &_aaxDistanceFilter
+   &_aaxDistanceFilter,
+   &_aaxFrequencyFilter,
+   &_aaxGraphicEqualizer,
+   &_aaxCompressor
 };
 
 void
