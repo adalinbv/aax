@@ -77,7 +77,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 {
    aaxFilter rv = NULL;
 
-   if (state == AAX_12DB_OCT)
+   if (state == AAX_TRUE)
    {
       _aaxRingBufferFreqFilterData *flt_lf = filter->slot[EQUALIZER_LF]->data;
       _aaxRingBufferFreqFilterData *flt_hf = filter->slot[EQUALIZER_HF]->data;
@@ -288,7 +288,7 @@ _aaxNewEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps
 _flt_function_tbl _aaxEqualizer =
 {
    AAX_FALSE,
-   "AAX_equalizer",
+   "AAX_equalizer", 1.0f,
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,
    (_aaxFilterSetState*)&_aaxEqualizerSetState,

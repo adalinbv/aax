@@ -103,7 +103,7 @@ _aaxNewPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPro
 _eff_function_tbl _aaxPitchEffect =
 {
    AAX_TRUE,
-   "AAX_pitch_effect",
+   "AAX_pitch_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxPitchEffectSetState,

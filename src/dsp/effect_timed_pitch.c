@@ -219,7 +219,7 @@ _aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
 _eff_function_tbl _aaxTimedPitchEffect =
 {
    AAX_FALSE,
-   "AAX_timed_pitch_effect",
+   "AAX_timed_pitch_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxTimedPitchEffectSetState,

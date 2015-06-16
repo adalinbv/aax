@@ -100,7 +100,7 @@ _aaxNewVelocityEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
 _eff_function_tbl _aaxVelocityEffect =
 {
    AAX_TRUE,
-   "AAX_velocity_effect",
+   "AAX_velocity_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
    (_aaxEffectSetState*)&_aaxVelocityEffectSetState,

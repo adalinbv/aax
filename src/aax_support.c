@@ -95,7 +95,20 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
          int i;
          for(i=0; i<AAX_FILTER_MAX-1; i++)
          {
-            if (!strcasecmp(filter, _aaxFilters[i]->name))
+            char *p = strchr(filter, ' ');
+            if (p && !strncasecmp(filter, _aaxFilters[i]->name, p-filter))
+            {
+               float version = atof(p+2);
+               float v = version - _aaxFilters[i]->version;
+               if (v >= 0 && v < 1)
+               {
+                  if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
+                     rv = AAX_TRUE;
+                  }
+               }
+               break;
+            }
+            else if (!strcasecmp(filter, _aaxFilters[i]->name))
             {
                if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
@@ -114,19 +127,6 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
    return rv;
 }
 
-AAX_API const char* AAX_APIENTRY
-aaxFilterGetNameByType(aaxConfig cfg, enum aaxFilterType type)
-{
-   const char *rv = NULL;
-   if (type < AAX_FILTER_MAX) {
-       rv =  _aaxFilters[type-1]->name;
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
-   }
-   return rv;
-}
-
 AAX_API int AAX_APIENTRY
 aaxIsEffectSupported(aaxConfig cfg, const char *effect)
 {
@@ -139,7 +139,20 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
          int i;
          for(i=0; i<AAX_EFFECT_MAX-1; i++)
          {
-            if (!strcasecmp(effect, _aaxEffects[i]->name))
+            char *p = strchr(effect, ' ');
+            if (p && !strncasecmp(effect, _aaxEffects[i]->name, p-effect))
+            {
+               float version = atof(p+2);
+               float v = version - _aaxEffects[i]->version;
+               if (v >= 0 && v < 1)
+               {
+                  if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
+                     rv = AAX_TRUE;
+                  }  
+               }  
+               break;
+            }  
+            else if (!strcasecmp(effect, _aaxEffects[i]->name))
             {
                if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
@@ -154,19 +167,6 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
-   return rv;
-}
-
-AAX_API const char* AAX_APIENTRY
-aaxEffectGetNameByType(aaxConfig cfg, enum aaxEffectType type)
-{
-   const char *rv = NULL;
-   if (type < AAX_EFFECT_MAX) {
-       rv =  _aaxEffects[type-1]->name;
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
    return rv;
 }

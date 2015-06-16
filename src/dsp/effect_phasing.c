@@ -252,7 +252,7 @@ _aaxNewPhasingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dP
 _eff_function_tbl _aaxPhasingEffect =
 {
    AAX_FALSE,
-   "AAX_phasing_effect",
+   "AAX_phasing_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
    (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
    (_aaxEffectSetState*)&_aaxPhasingEffectSetState,

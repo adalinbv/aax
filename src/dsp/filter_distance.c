@@ -122,7 +122,7 @@ _aaxNewDistanceFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2d
 _flt_function_tbl _aaxDistanceFilter =
 {
    AAX_TRUE,
-   "AAX_distance_filter",
+   "AAX_distance_filter", 1.0f,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
    (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
