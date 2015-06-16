@@ -271,7 +271,8 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          hist = &ep2d->freqfilter_history[t];
 
          // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 500Hz
-         fc = 20000.0f + 19750.0f*dir_fact;
+         // log10(19750) = 4.295567
+         fc = 20000.0f - _log2lin(-4.295567f*dir_fact);
          k = _aax_movingaverage_compute(fc, fs);
 #if RB_FLOAT_DATA
          _batch_movingaverage_float(dptr, dptr, dno_samples, hist, k);
