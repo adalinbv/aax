@@ -208,6 +208,7 @@ static float _kernel_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sf
 static int _kernel_get_volume(_driver_t*);
 
 
+static const char *_const_kernel_default_pcm = DEFAULT_PCM_NAME;
 static const char *_const_kernel_default_name = DEFAULT_DEVNAME;
 static int _kernel_default_cardnum = DEFAULT_PCM_NUM;
 static int _get_pagesize();
@@ -268,7 +269,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       char m = (mode == AAX_MODE_READ) ? 0 : 1;
       const char *name;
 
-      handle->pcm = DEFAULT_PCM_NAME;
+      handle->pcm = (char*)_const_kernel_default_pcm;
       handle->name = (char*)_const_kernel_default_name;
       handle->frequency_hz = (float)48000.0f;
       handle->bits_sample = 16;
@@ -462,26 +463,21 @@ _aaxLinuxDriverDisconnect(void *id)
          }
       }
 
+      free(handle->ifname[handle->mode ? 1 : 0]);
+
       if (handle->name != _const_kernel_default_name) {
          free(handle->name);
       }
-#if 0
-      if (handle->pcm)
-      {
-         if (handle->pcm != _const_kernel_default_name) {
-            free(handle->pcm);
-         }
-         handle->pcm = 0;
+
+      if (handle->pcm != _const_kernel_default_pcm) {
+         free(handle->pcm);
       }
-#endif
 
       if (handle->render)
       {
          handle->render->close(handle->render->id);
          free(handle->render);
       }
-
-      free(handle->ifname[handle->mode ? 1 : 0]);
 
       close(handle->fd);
       free(handle);
@@ -1547,7 +1543,7 @@ detect_pcm(_driver_t *handle, char m)
    }
    else
    {
-      handle->pcm = DEFAULT_PCM_NAME;
+      handle->pcm = (char*)_const_kernel_default_pcm;
       handle->cardnum = 0;
       handle->devnum = 0;
       rv = AAX_TRUE;
