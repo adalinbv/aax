@@ -89,6 +89,7 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    /* HRTF head shadow */
    size = _AAX_MAX_SPEAKERS*sizeof(float);
    memset(p2d->freqfilter_history, 0, size);
+   p2d->k = 0.0f;
 
    /* stereo filters */
    for (pos=0; pos<MAX_STEREO_FILTER; pos++) {

@@ -201,7 +201,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
    }
 
    /* Mix */
-   drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples, info->frequency, gain, svol, evol);
+   drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples, info->frequency, gain, svol, evol, ctr);
 
    if (drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;

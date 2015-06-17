@@ -181,7 +181,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       srbi->playing = 0;
    }
 
-   drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples, gain, svol, evol);
+   drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples, gain, svol, evol, ctr);
 
    if (drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;

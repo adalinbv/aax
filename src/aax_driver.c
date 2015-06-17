@@ -390,7 +390,6 @@ aaxDriverOpen(aaxConfig config)
                int type = HRTF_HEADSHADOW;
                _filter_t *filter;
 
-// http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
                /* head shadow filter at 1kHz, 1st order (6dB/oct) max */
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
                filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,

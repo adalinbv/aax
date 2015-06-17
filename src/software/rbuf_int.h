@@ -67,7 +67,7 @@ _aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR
  * @param evol volume at the end of the mixing process (envelope following)
  */
 typedef void
-_aaxRingBufferMixMNFn(struct _aaxRingBufferSample_t*, const struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const unsigned char*, _aax2dProps*, size_t, size_t, float, float, float);
+_aaxRingBufferMixMNFn(struct _aaxRingBufferSample_t*, const struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const unsigned char*, _aax2dProps*, size_t, size_t, float, float, float, char);
 
 /**
  * 1:N channel ringbuffer data manipulation
@@ -83,7 +83,7 @@ _aaxRingBufferMixMNFn(struct _aaxRingBufferSample_t*, const struct _aaxRingBuffe
  * @param evol volume at the end of the mixing process (envelope following)
  */
 typedef void
-_aaxRingBufferMix1NFn(struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const unsigned char*, _aax2dProps*, unsigned char, size_t, size_t, float, float, float, float);
+_aaxRingBufferMix1NFn(struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const unsigned char*, _aax2dProps*, unsigned char, size_t, size_t, float, float, float, float, char);
 
 
 enum
