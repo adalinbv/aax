@@ -284,6 +284,7 @@ typedef ALIGN16 struct
 
    /* HRTF head shadow */
    float freqfilter_history[_AAX_MAX_SPEAKERS];
+   float k;
 
    /* stereo filters */
    _aaxFilterInfo filter[MAX_STEREO_FILTER];
