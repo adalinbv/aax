@@ -481,6 +481,8 @@ _aaxLinuxDriverDisconnect(void *id)
          free(handle->render);
       }
 
+      free(handle->ifname[handle->mode ? 1 : 0]);
+
       close(handle->fd);
       free(handle);
 
