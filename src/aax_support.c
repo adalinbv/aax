@@ -95,11 +95,12 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
          int i;
          for(i=0; i<AAX_FILTER_MAX-1; i++)
          {
-            char *p = strchr(filter, ' ');
+            char *p = strchr(filter, '.');
+            while (p > filter && *p != '_') --p;
             if (p && !strncasecmp(filter, _aaxFilters[i]->name, p-filter))
             {
-               float version = atof(p+2);
-               float v = version - _aaxFilters[i]->version;
+               float version = atof(p+1);
+               float v = _aaxFilters[i]->version - version;
                if (v >= 0 && v < 1)
                {
                   if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
@@ -139,10 +140,11 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
          int i;
          for(i=0; i<AAX_EFFECT_MAX-1; i++)
          {
-            char *p = strchr(effect, ' ');
+            char *p = strchr(effect, '.');
+            while (p > effect && *p != '_') --p;
             if (p && !strncasecmp(effect, _aaxEffects[i]->name, p-effect))
             {
-               float version = atof(p+2);
+               float version = atof(p+1);
                float v = version - _aaxEffects[i]->version;
                if (v >= 0 && v < 1)
                {
