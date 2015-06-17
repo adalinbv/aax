@@ -265,19 +265,9 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 AAX_API const char* AAX_APIENTRY
 aaxFilterGetNameByType(aaxConfig cfg, enum aaxFilterType type)
 {
-   static char _str[80];
    const char *rv = NULL;
-   if (type < AAX_FILTER_MAX)
-   {
-      if (_aaxFilters[type-1]->version > 1.0f) 
-      {
-         snprintf(_str, 80, "%s (%2.1f)", _aaxFilters[type-1]->name,
-                                          _aaxFilters[type-1]->version);
-         rv = _str;
-      } 
-      else {
-         rv = _aaxFilters[type-1]->name;
-      }
+   if (type < AAX_FILTER_MAX) {
+      rv = _aaxFilters[type-1]->name;
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
