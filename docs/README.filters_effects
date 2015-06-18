@@ -1,0 +1,9 @@
+
+* AAX_equalizer_1.01
+  - Add the option to add a parametric-equalizer to audio-frames
+
+
+* AAX_frequency_filter_1.1
+  - Add support for both Butterworth and Bessel type filters
+  - Add the option to define the filter steepness: 12dB/oct is default.
+    (6dB/oct, 12dB/oct, 24dB/oct, 36dB/oct and 48dB/oct)
