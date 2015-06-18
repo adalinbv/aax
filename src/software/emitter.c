@@ -35,7 +35,7 @@
 
 /*
  * Threaded emitter rendering code using a thread pool with worker threads,
- * one thread epr physical CPU core.
+ * one thread for every physical CPU core.
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,

@@ -309,6 +309,7 @@ _aaxWorkerThread(void *id)
          if (handle->max_emitters)
          {
             int pos, min, max;
+            data = handle->data;
             do
             {
                max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
