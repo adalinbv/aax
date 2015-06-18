@@ -62,6 +62,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
 
    assert(drb != NULL);
    assert(srb != NULL);
+   assert(info != NULL);
 
    drbi = drb->handle;
    srbi = srb->handle;
