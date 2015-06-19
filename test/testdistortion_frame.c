@@ -48,6 +48,7 @@
 #define ENABLE_FRAME_DYNAMIC_PITCH	1
 #define ENABLE_FRAME_DYNAMIC_GAIN	0
 #define ENABLE_FRAME_FREQFILTER		1
+#define ENABLE_FRAME_EQUALIZER		1
 #define ENABLE_STATIC_FREQFILTER	1
 #define FILE_PATH			SRC_PATH"/wasp.wav"
 
@@ -103,6 +104,28 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetState(frame, AAX_PLAYING);
             testForState(res, "aaxAudioFrameStart");
 
+            /* equalizer */
+#if ENABLE_FRAME_EQUALIZER
+            filter = aaxFilterCreate(config, AAX_EQUALIZER);
+            testForError(filter, "aaxFilterCreate");
+
+            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              60.0f, 0.3f, 1.0f, 1.2f);
+            testForError(filter, "aaxFilterSetSlot/0");
+
+            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                              5000.0f, 1.0f, 0.0f, 6.0f);
+            testForError(filter, "aaxFilterSetSlot/1");
+
+            filter = aaxFilterSetState(filter, AAX_TRUE);
+            testForError(filter, "aaxFilterSetState");
+
+            res = aaxAudioFrameSetFilter(frame, filter);
+            testForState(res, "aaxMixerSetFilter");
+
+            res = aaxFilterDestroy(filter);
+            testForState(res, "aaxFilterDestroy");
+#endif
 
             /** emitter */
             emitter = aaxEmitterCreate();
