@@ -92,12 +92,16 @@ int main(int argc, char **argv)
         aaxConfig file = NULL;
         aaxBuffer buffer[MAX_WAVES];
         aaxEmitter emitter;
+        aaxFilter filter;
         int state, buf, i;
+        float pitch;
         aaxMtx4f mtx;
 
         tmp = getenv("TEMP");
         if (!tmp) tmp = getenv("TMP");
         if (!tmp) tmp = "/tmp";
+
+        pitch = getPitch(argc, argv);
 
         for (i=0; i<MAX_WAVES; i++)
         {
@@ -112,7 +116,7 @@ int main(int argc, char **argv)
             res = aaxBufferSetFrequency(buffer[i], SAMPLE_FREQ);
             testForState(res, "aaxBufferSetFrequency");
 
-            res = aaxBufferProcessWaveform(buffer[i], rate, type, 1.0f,
+            res = aaxBufferProcessWaveform(buffer[i], pitch*rate, type, 1.0f,
                                            AAX_OVERWRITE);
             testForState(res, "aaxBufferProcessWaveform");
 
@@ -148,6 +152,24 @@ int main(int argc, char **argv)
 
         res = aaxMixerSetState(config, AAX_PLAYING);
         testForState(res, "aaxMixerStart");
+
+        /* frequency filter */
+#if 0
+        filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
+        testForError(filter, "aaxFilterCreate");
+
+        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 500.0f,
+                                             0.33f, 3.33f, 1.0);
+        testForError(filter, "aaxFilterSetSlot");
+
+        filter = aaxFilterSetState(filter, AAX_24DB_OCT);
+        testForError(filter, "aaxFilterSetState");
+
+        res = aaxEmitterSetFilter(emitter, filter);
+        testForState(res, "aaxEmitterSetFilter");
+
+        res = aaxFilterDestroy(filter);
+#endif
 
         outfile = getOutputFile(argc, argv, NULL);
         if (outfile)
