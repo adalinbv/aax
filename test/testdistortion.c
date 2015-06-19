@@ -42,12 +42,21 @@
 #include "wavfile.h"
 
 
+// Order: AAX_6DB_OCT, AAX_12DB_OCT, AAX_24DB_OCT, AAX_36DB_OCT, AAX_48DB_OCT
+// Type:  AAX_BUTTERWORTH, AAX_BESSEL
+#define Q			5.0f
+#define LF_GAIN			1.0f
+#define HF_GAIN			0.1f
+#define FILTER_ORDER		AAX_12DB_OCT
+#define FILTER_TYPE		AAX_BESSEL
+#define FILTER_STATE		(FILTER_TYPE|FILTER_ORDER)
+
 #define ENABLE_EMITTER_FREQFILTER	1
-#define ENABLE_STATIC_FREQFILTER	1
+#define ENABLE_STATIC_FREQFILTER	0
 #define ENABLE_EMITTER_DISTORTION	1
 #define ENABLE_EMITTER_PHASING		0
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
-#define ENABLE_MIXER_EQUALIZER		1
+#define ENABLE_MIXER_EQUALIZER		0
 #define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
@@ -97,15 +106,15 @@ int main(int argc, char **argv)
             /* straight frequency filter */
             printf("Add frequency filter at 150Hz\n");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              5000.0f, 1.0f, 0.5f, 5.0f);
+                                              5000.0f, LF_GAIN, HF_GAIN, Q);
             testForError(filter, "aaxFilterSetSlot");
-            filter = aaxFilterSetState(filter, AAX_TRUE);
+            filter = aaxFilterSetState(filter, FILTER_STATE);
             testForError(filter, "aaxFilterSetState");
 # else
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("Add auto-wah\n");
             filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              1500.0f, 1.1f, 0.1f, 2.0f);
+                                              1500.0f, LF_GAIN, HF_GAIN, Q);
             testForError(filter, "aaxFilterSetSlot 0");
 
             filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
