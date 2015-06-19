@@ -49,3 +49,7 @@ CREATE_TEST(testwaves)
 CREATE_TEST(testdistortion_frame)
 CREATE_TEST(testregisteredsensor)
 CREATE_TEST(testregisteredsensor_frame)
+
+CREATE_TEST(testnoise_equalizer)
+CREATE_TEST(testnoise_grapicequalizer)
+CREATE_TEST(testnoise_frequencyfilter)
