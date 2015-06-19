@@ -46,14 +46,15 @@
 #define UPDATE_DELAY		0.001f
 #define SPEED_OF_SOUND		343.0f
 #define SPEED			(0.145f*SPEED_OF_SOUND)
-#define INITIAL_DIST		(2.0f*SPEED_OF_SOUND)
+#define INITIAL_DIST		4000.0f
+//(5.0f*SPEED_OF_SOUND)a
 #define STEP			(SPEED*UPDATE_DELAY)
 
 #define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3f EmitterPos = { -INITIAL_DIST, 100.0f, -100.0f };
-aaxVec3f EmitterDir = {          1.0f,   0.0f,    0.0f };
-aaxVec3f EmitterVel = {         SPEED,   0.0f,    0.0f };
+aaxVec3f EmitterPos = { -INITIAL_DIST,  300.0f,  -500.0f };
+aaxVec3f EmitterDir = {          1.0f,    0.0f,     0.0f };
+aaxVec3f EmitterVel = {         SPEED,    0.0f,     0.0f };
 
 aaxVec3f SensorPos = {-1.0f, 2.0f, -1.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
@@ -90,9 +91,11 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
+#if 0
             res = aaxScenerySetDistanceModel(config,
                                              AAX_EXPONENTIAL_DISTANCE_DELAY);
             testForState(res, "aaxScenerySetDistanceModel");
+#endif
 
             /** dopller settings */
             res = aaxScenerySetSoundVelocity(config, SPEED_OF_SOUND);
@@ -126,10 +129,10 @@ int main(int argc, char **argv)
             res = aaxEmitterSetVelocity(emitter, EmitterVel);
             testForState(res, "aaxEmitterSetVelocity");
 
-            res = aaxEmitterSetReferenceDistance(emitter, 50.0f);
+            res = aaxEmitterSetReferenceDistance(emitter, 30.0f);
             testForState(res, "aaxEmitterSetReferenceDistance");
 
-            res = aaxEmitterSetMaxDistance(emitter, 500.0f);
+            res = aaxEmitterSetMaxDistance(emitter, 5000.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
 
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
@@ -170,7 +173,7 @@ int main(int argc, char **argv)
 
                 EmitterPos[0] = -dist;
                 dist -= STEP;
-#if 0
+#if 1
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n",
                             _vec3Magnitude(EmitterPos),
                             EmitterPos[0]-SensorPos[0],
