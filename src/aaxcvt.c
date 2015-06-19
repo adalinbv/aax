@@ -97,6 +97,7 @@ help()
     printf("  -i, --input <file>\t\tconvert audio from this WAV file\n");
     printf("  -o, --output <file>\t\twrite the audio to this file\n");
     printf("  -r, --raw\t\t\tdo not write the WAV file header if specified\n");
+    printf("  -p, --playfs\t\t\tspecifies the playback sample rate in Hz\n");
     printf("  -f, --format <format>\t\tspecifies the output format\n");
     printf("  -l, --list\t\t\tshow a list of all supported formats\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
@@ -164,7 +165,7 @@ int main(int argc, char **argv)
        list();
     }
 
-    if ((argc < 7) || (argc > 8))  {
+    if ((argc < 7) || (argc > 9))  {
         help();
     }
 
@@ -185,9 +186,16 @@ int main(int argc, char **argv)
     format = getAudioFormat(argc, argv, AAX_FORMAT_NONE);
     if (format != AAX_FORMAT_NONE)
     {
+        char *rfs = getCommandLineOption(argc, argv, "-p");
         aaxConfig config;
-        config= aaxDriverOpenByName("AeonWave Loopback", AAX_MODE_WRITE_STEREO);
-        aaxBuffer buffer = bufferFromFile(config, infile);
+        aaxBuffer buffer;
+
+        config=aaxDriverOpenByName("AeonWave Loopback", AAX_MODE_WRITE_STEREO);
+        if (rfs) {
+            aaxMixerSetSetup(config, AAX_FREQUENCY, atoi(rfs));
+         }
+
+        buffer = bufferFromFile(config, infile);
         if (buffer)
         {
             aaxBufferSetSetup(buffer, AAX_FORMAT, format);
