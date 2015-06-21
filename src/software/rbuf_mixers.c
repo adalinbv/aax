@@ -131,10 +131,11 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          else
          {
             // new_srb_pos_sec = fmodf(new_srb_pos_sec, sduration);
-            float loop_length_sec = srbd->loop_end_sec - srbd->loop_start_sec;
-            new_srb_pos_sec -= srbd->loop_start_sec;
-            new_srb_pos_sec = fmodf(new_srb_pos_sec, loop_length_sec);
-            new_srb_pos_sec += srbd->loop_start_sec;
+            float loop_start_sec = srbd->loop_start_sec;
+            float loop_length_sec = srbd->loop_end_sec - loop_start_sec;
+            new_srb_pos_sec -= loop_start_sec;
+            new_srb_pos_sec = fmodf(new_srb_pos_sec+eps, loop_length_sec)-eps;
+            new_srb_pos_sec += loop_start_sec;
             new_drb_pos_sec = 0.0f;
          }
       }  
