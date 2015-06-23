@@ -178,7 +178,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                   lfo->step[t] = 2.0f * lfo->f;
                   lfo->step[t] *= (lfo->max - lfo->min);
                   lfo->step[t] /= filter->info->period_rate;
-                  lfo->value[t] = lfo->inv ? 0.0f : 1.0f;
+                  lfo->value[t] = lfo->max;
                   switch (wstate)
                   {
                   case AAX_SAWTOOTH_WAVE:
@@ -186,6 +186,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                      break;
                   case AAX_ENVELOPE_FOLLOW:
                      lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
+                     lfo->value[t] = 0.0f;
                      break;
                   default:
                      break;
