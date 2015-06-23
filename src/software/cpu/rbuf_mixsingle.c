@@ -264,6 +264,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       }
 
       /* HEAD shadow frequency filter */
+#if 1
       if (dir_fact < 0.0f)
       {
          float *hist;
@@ -274,8 +275,8 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
             float fc;
 
             // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 250Hz
-            // log10(20000 - 250) = 4.2955671
-            fc = 20000.0f - _log2lin(-4.2955671f*dir_fact);
+            // log10(20000 - 1000) = 4.2787541
+            fc = 20000.0f - _log2lin(-4.278754f*dir_fact);
             ep2d->k = _aax_movingaverage_compute(fc, fs);
          }
 
@@ -286,6 +287,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          _batch_movingaverage(dptr, dptr, dno_samples, hist, ep2d->k);
 #endif
       }
+#endif
    }
 }
 
