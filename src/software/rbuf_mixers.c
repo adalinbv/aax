@@ -285,7 +285,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
                }
 
                DBG_MEMCLR(1,scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               srbi->codec((int32_t*)scratch0, sptr, srbd->codec, src_pos,
+               srbi->codec((int32_t*)scratch0-cdesamps, sptr, srbd->codec, src_pos,
                                 sstart, sno_samples, cdesamps, cno_samples,
                                 sbps, src_loops);
 #if RB_FLOAT_DATA
@@ -297,14 +297,17 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
             } else {
                scratch0 = sptr+src_pos-1;
             }
+
 #if RB_FLOAT_DATA
             DBG_TESTNAN(scratch0, cno_samples);
             DBG_TESTNAN(scratch0-cdesamps-offs, cno_samples+cdesamps);
 #endif
+
             dst = eff ? scratch1 : dptr;
             DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
             drbd->resample(dst-ddesamps, scratch0-cdesamps-offs,
                            dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
+
 #if RB_FLOAT_DATA
             DBG_TESTNAN(dst-ddesamps+dest_pos, dno_samples+ddesamps);
 #endif
