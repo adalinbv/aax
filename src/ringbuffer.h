@@ -34,6 +34,7 @@ enum _aaxRingBufferParam
    RB_FREQUENCY,
    RB_DURATION_SEC,
    RB_OFFSET_SEC,
+   RB_FORWARD_SEC,	/* takes looping into acount, and stops if necessary */
    RB_LOOPPOINT_START,
    RB_LOOPPOINT_END,
    RB_LOOPING,
