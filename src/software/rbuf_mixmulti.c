@@ -113,7 +113,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
  }
 }
 #endif
-   sptr = drbi->mix(drbi, srbi, ep2d, pitch, &offs, &dno_samples, ctr, streaming);
+   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, streaming);
    if (sptr == NULL || dno_samples == 0)
    {
       if (srbi->playing == 0 && srbi->stopped == 1) {

@@ -47,7 +47,7 @@ extern "C" {
 typedef struct _aaxRingBufferData_t __aaxRingBufferData;
 typedef struct _aaxRingBufferSample_t __aaxRingBufferSample;
 
-typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(struct _aaxRingBufferData_t*, struct _aaxRingBufferData_t*, _aax2dProps*, float, size_t*, size_t*, unsigned char, unsigned int);
+typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, float, size_t*, size_t*, unsigned char, unsigned int);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
 typedef void
 _aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, unsigned char, void*, void*, void*, void*);
@@ -192,7 +192,7 @@ void _aaxRingBufferEffectsApply(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX
 
 /** MIXER */
 
-CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBufferData*, _aaxRingBufferData*, _aax2dProps*, float, size_t*, size_t*, unsigned char, unsigned int);
+CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, float, size_t*, size_t*, unsigned char, unsigned int);
 
 _aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Stereo;

@@ -41,8 +41,9 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, unsigned int streaming)
+_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, unsigned int streaming)
 {
+   _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
    float dfreq, dduration, drb_pos_sec, new_drb_pos_sec, fact;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec, eps;
@@ -55,6 +56,11 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    assert(no_samples);
    *no_samples = 0;
 
+   assert(drb);
+   assert(srb);
+   drbi = drb->handle;
+   srbi = srb->handle;
+
    srbd = srbi->sample;
    drbd = drbi->sample;
    track_ptr = (MIX_T**)drbd->scratch;
@@ -63,17 +69,16 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    assert(srbd->no_tracks >= 1);
    assert(drbd->no_tracks >= 1);
 
-   if (pitch_norm < 0.01f)
+   drb_pos_sec = drbi->curr_pos_sec;
+   dduration = drbd->duration_sec - drb_pos_sec;
+   if (dduration == 0)
    {
-      srbi->curr_pos_sec += drbd->duration_sec;
-      if (srbi->curr_pos_sec > srbd->duration_sec)
-      {
-         srbi->curr_pos_sec = srbd->duration_sec;
-         srbi->playing = 0;
-         srbi->stopped = 1;
-      }
+      _AAX_SYSLOG("remaining duration of the destination buffer = 0.0.");
       return NULL;
    }
+
+   srb->set_paramf(srb, RB_FORWARD_SEC, dduration*pitch_norm);
+   if (pitch_norm < 0.01f) return NULL;
 
    srb_pos_sec = srbi->curr_pos_sec;
    src_loops = (srbi->looping && !srbi->streaming);
@@ -93,75 +98,25 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
    /* source */
    sfreq = srbd->frequency_hz;
    sduration = srbd->duration_sec;
-   if (srb_pos_sec >= sduration)
-   {
-      // This can (only) happen if there's just one buffer in the stream-queue
-      srbi->curr_pos_sec = srbd->duration_sec;
-      srbi->playing = 0;
-      srbi->stopped = 1;
-      return NULL;
-   }
+   new_srb_pos_sec = srb->get_paramf(srb, RB_OFFSET_SEC);
 
    /* destination */
    dfreq = drbd->frequency_hz;
-   drb_pos_sec = drbi->curr_pos_sec;
-   new_drb_pos_sec = drb_pos_sec;
-   dduration = drbd->duration_sec - drb_pos_sec;
-   if (dduration == 0)
+   drb->set_paramf(drb, RB_FORWARD_SEC, (sduration - srb_pos_sec)/pitch_norm);
+   new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
+
+   eps = 1.1f/sfreq;
+   if (new_srb_pos_sec >= (srbd->duration_sec-eps))	/* streaming */
    {
-      _AAX_SYSLOG("remaining duration of the destination buffer = 0.0.");
-      return NULL;
+      if (new_drb_pos_sec < drbd->duration_sec) {
+         dduration = (sduration - srb_pos_sec)/pitch_norm;
+      }
    }
 
    /* sample conversion factor */
    fact = (sfreq * pitch_norm*srbi->pitch_norm) / dfreq;
    if (fact < 0.01f) fact = 0.01f;
 // else if (fact > 2.0f) fact = 2.0f;
-
-   eps = 1.1f/sfreq;
-   new_srb_pos_sec = srb_pos_sec + dduration*pitch_norm;
-   if (new_srb_pos_sec >= (srbd->loop_end_sec-eps))
-   {
-      if (src_loops)
-      {
-         srbi->loop_no++;
-         if (srbi->loop_max && (srbi->loop_no >= srbi->loop_max)) {
-            srbi->looping = AAX_FALSE;
-         }
-         else
-         {
-            // new_srb_pos_sec = fmodf(new_srb_pos_sec, sduration);
-            float loop_start_sec = srbd->loop_start_sec;
-            float loop_length_sec = srbd->loop_end_sec - loop_start_sec;
-            new_srb_pos_sec -= loop_start_sec;
-            new_srb_pos_sec = fmodf(new_srb_pos_sec+eps, loop_length_sec);
-            new_srb_pos_sec += loop_start_sec;
-            new_drb_pos_sec = 0.0f;
-         }
-      }  
-      else if (new_srb_pos_sec >= (srbd->duration_sec-eps))	/* streaming */
-      {  
-         float dt = (sduration - srb_pos_sec)/pitch_norm;
-
-         srbi->playing = 0;
-         srbi->stopped = 1;
-         new_srb_pos_sec = sduration;
-
-         new_drb_pos_sec = drbi->curr_pos_sec + dt;
-         if (new_drb_pos_sec >= (drbd->duration_sec-(1.1f/dfreq)))
-         {
-            new_drb_pos_sec = 0.0f;
-            drbi->playing = 0;
-            drbi->stopped = 1;
-         }
-         else {
-            dduration = dt;
-         }
-      }
-   }
-   else {
-      new_drb_pos_sec += (sduration - srb_pos_sec)/pitch_norm;
-   }
 
    /*
     * Test if the remaining start delay is smaller than the duration of the
@@ -206,7 +161,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
          }
       }
 
-      delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);	// phasing, etc.
+      delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);  // phasing, etc.
       freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
       dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
       if (delay_effect)
@@ -323,17 +278,7 @@ _aaxRingBufferProcessMixer(_aaxRingBufferData *drbi, _aaxRingBufferData *srbi, _
 #endif
             }
          }
-         drbi->curr_pos_sec += dno_samples/dfreq;
       }
-
-      if (new_srb_pos_sec >= (sduration-eps))
-      {
-         new_srb_pos_sec = sduration;
-         srbi->playing = 0;
-         srbi->stopped = 1;
-      }
-      srbi->curr_pos_sec = new_srb_pos_sec;
-      srbi->curr_sample = floorf(new_srb_pos_sec * sfreq);
 
       *start = dest_pos;
       *no_samples = dno_samples;
