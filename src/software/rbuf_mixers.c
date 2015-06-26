@@ -47,7 +47,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    _aaxRingBufferSample *srbd, *drbd;
    float dfreq, dduration, drb_pos_sec, new_drb_pos_sec, fact;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec, eps;
-   size_t ddesamps = *start;
+   size_t src_pos, ddesamps = *start;
    MIX_T **track_ptr;
    char src_loops;
 
@@ -77,11 +77,13 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       return NULL;
    }
 
+   src_pos = srbi->curr_sample;
+   srb_pos_sec = srbi->curr_pos_sec;
+   src_loops = (srbi->looping && !srbi->streaming);
+
    srb->set_paramf(srb, RB_FORWARD_SEC, dduration*pitch_norm);
    if (pitch_norm < 0.01f) return NULL;
 
-   srb_pos_sec = srbi->curr_pos_sec;
-   src_loops = (srbi->looping && !srbi->streaming);
 #ifndef NDEBUG
    /*
     * Note: This may happen for a registered sensor but it will work in
@@ -192,11 +194,10 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
          void *env, *distortion_effect = NULL;
-         size_t src_pos, offs, cno_samples, cdesamps = 0;
+         size_t offs, cno_samples, cdesamps = 0;
          unsigned int track;
          float smu;
 
-         src_pos = srbi->curr_sample;
          smu = _MAX((srb_pos_sec*sfreq) - src_pos, 0.0f);
 
          cdesamps = (size_t)floorf(ddesamps*fact);
@@ -262,7 +263,6 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
             drbd->resample(dst-ddesamps, scratch0-cdesamps-offs,
                            dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
-
 #if RB_FLOAT_DATA
             DBG_TESTNAN(dst-ddesamps+dest_pos, dno_samples+ddesamps);
 #endif
