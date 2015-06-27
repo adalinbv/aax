@@ -63,7 +63,7 @@
  * @param streaming weather the emitter has one buffer or more
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int streaming, float pos_sec)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int streaming)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
