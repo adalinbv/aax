@@ -740,7 +740,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
          rbi->stopped = 1;
       }
       rbi->curr_pos_sec = fval;
-      rbi->curr_sample = rintf(fval*rbd->frequency_hz);
+      rbi->curr_sample = floorf(fval*rbd->frequency_hz);
    default:
       if ((param >= RB_PEAK_VALUE) &&
           (param <= RB_PEAK_VALUE_MAX))
