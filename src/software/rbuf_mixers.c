@@ -41,7 +41,7 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, unsigned int nbuf)
+_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
@@ -97,22 +97,21 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    }
 #endif
 
-   /* source */
+   /* source time offset */
    sfreq = srbd->frequency_hz;
    sduration = srbd->duration_sec;
    new_srb_pos_sec = srb->get_paramf(srb, RB_OFFSET_SEC);
 
-   /* destination */
+   /* destination time offset */
    dfreq = drbd->frequency_hz;
    drb->set_paramf(drb, RB_FORWARD_SEC, (sduration - srb_pos_sec)/pitch_norm);
    new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
 
    eps = 1.1f/sfreq;
-   if (new_srb_pos_sec >= (srbd->duration_sec-eps))	/* streaming */
+   if ((new_srb_pos_sec >= (srbd->duration_sec-eps)) &&
+       (new_drb_pos_sec < drbd->duration_sec))
    {
-      if (new_drb_pos_sec < drbd->duration_sec) {
-         dduration = (sduration - srb_pos_sec)/pitch_norm;
-      }
+      dduration = (sduration - srb_pos_sec)/pitch_norm;
    }
 
    /* sample conversion factor */
@@ -222,7 +221,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             }
          }
 
-         smu = _MAX((srb_pos_sec*sfreq) - src_pos, 0.0f);
+         smu = (srb_pos_sec*sfreq) - src_pos;
          for (track=0; track<sno_tracks; track++)
          {
             MIX_T *sptr = (MIX_T*)srbd->track[track];
@@ -231,12 +230,6 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             /* needed for automatic file streaming with registered sensors */
             if (!srbd->mixer_fmt)
             {
-               if (nbuf == 0)
-               {
-//                sptr -= CUBIC_SAMPS;
-//                sno_samples += CUBIC_SAMPS;
-               }
-
                DBG_MEMCLR(1,scratch0-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->codec((int32_t*)scratch0-cdesamps, sptr, srbd->codec,
                             src_pos, sstart, sno_samples, cdesamps, cno_samples,

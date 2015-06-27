@@ -60,10 +60,9 @@
  *       interval rate. Updating of 3d properties and the like is done
  *       once every 'ctr' frame updates. so if ctr == 1, updates are
  *       done every frame.
- * @param streaming weather the emitter has one buffer or more
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, unsigned int streaming)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
@@ -120,7 +119,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
 
    /** Resample */
    offs = (drbi->mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
-   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, streaming);
+   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr);
    if (sptr == NULL || dno_samples == 0)
    {
       if (srbi->playing == 0 && srbi->stopped == 1) {
