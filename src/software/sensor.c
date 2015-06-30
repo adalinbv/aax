@@ -208,7 +208,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                   {
                      _aaxRingBuffer *rb = _intBufGetDataPtr(rbuf);
 
-                     // TODO: store in a reasuable ringbuffer queue
+                     // TODO: store in a reusable ringbuffer queue
                      be->destroy_ringbuffer(rb);
                      _intBufDestroyDataNoLock(rbuf);
                      }

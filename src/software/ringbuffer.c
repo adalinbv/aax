@@ -570,17 +570,17 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->curr_sample = rbi->sample->no_samples;
       break;
    case RB_STARTED:
-//    rbi->playing = 1;
+      rbi->playing = 1;
       rbi->stopped = 0;
       rbi->streaming = 0;
       break;
    case RB_STOPPED:
-//    rbi->playing = 0;
+      rbi->playing = 0;
       rbi->stopped = 1;
       rbi->streaming = 0;
       break;
    case RB_STARTED_STREAMING:
-//    rbi->playing = 1;
+      rbi->playing = 1;
       rbi->stopped = 0;
       rbi->streaming = 1;
       break;
@@ -741,6 +741,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       }
       rbi->curr_pos_sec = fval;
       rbi->curr_sample = floorf(fval*rbd->frequency_hz);
+      break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
           (param <= RB_PEAK_VALUE_MAX))
