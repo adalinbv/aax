@@ -1833,6 +1833,22 @@ _alsa_pcm_open(_driver_t *handle, int m)
             psnd_mixer_close(handle->mixer);
             handle->mixer = NULL;
          }
+
+         if (m)
+         {
+            snd_pcm_t *pcm;
+            int res;
+
+            // test if this device has hardware mixing,
+            // if so set shared to AAX_TRUE.
+            res = psnd_pcm_open(&pcm, handle->devname, _alsa_mode[m],
+                                SND_PCM_NONBLOCK);
+            if (res >= 0)
+            {
+               handle->shared = AAX_TRUE;
+               psnd_pcm_close(pcm);
+            }
+         }
       }
       else
       {
