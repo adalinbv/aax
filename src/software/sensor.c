@@ -149,7 +149,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
              * This way pitch effects (< 1.0) can be processed safely.
              */
             srb->set_paramf(srb, RB_FREQUENCY, device->info->frequency);
-            srb->set_state(srb, RB_STARTED);
+            srb->set_state(srb, RB_STARTED_STREAMING);
             srb->set_state(srb, RB_REWINDED);
 
             _intBufAddData(srbs, _AAX_RINGBUFFER, srb);
