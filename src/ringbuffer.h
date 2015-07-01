@@ -346,7 +346,7 @@ _aaxRingBufferCopyDelyEffectsDataFn(struct _aaxRingBuffer_t*, const struct _aaxR
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned int);
+_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char);
 
 /**
  * Single channel ringbuffer mixer.
@@ -371,7 +371,7 @@ _aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, co
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, unsigned int);
+_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char);
 
 
 /**

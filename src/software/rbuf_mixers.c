@@ -113,9 +113,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    {
       dduration = (sduration - srb_pos_sec)/pitch_norm;
    }
-   else {
-      drb->set_state(drb, RB_REWINDED);
-   }
+   drb->set_state(drb, RB_REWINDED);
 
    /* sample conversion factor */
    fact = (sfreq * pitch_norm*srbi->pitch_norm) / dfreq;
