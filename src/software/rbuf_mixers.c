@@ -169,19 +169,22 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
           */
          // ddesamps = drbd->dde_samples;
          ddesamps = (size_t)ceilf(DELAY_EFFECTS_TIME*dfreq);
-         if (drbd->dde_samples < ddesamps) ddesamps = drbd->dde_samples;
-         cdesamps = (size_t)floorf(ddesamps*fact);
+         if (drbd->dde_samples < ddesamps) {
+            ddesamps = drbd->dde_samples;
+         }
+
+         if (src_pos) {
+            cdesamps = CUBIC_SAMPS + (size_t)floorf(ddesamps*fact);
+         } else { // optimization
+            cdesamps = 0;
+         }
       }
       else
       {
          ddesamps = 0;
-         if (!(srbi->streaming && (sno_samples < dend)))
-         {
-            if (!ddesamps) {
-               cdesamps = CUBIC_SAMPS;
-            }
-         }
-         else if (dest_pos > 0) { // optimization
+         if (!(srbi->streaming && (sno_samples < dend))) {
+            cdesamps = CUBIC_SAMPS;
+         } else { // optimization
             cdesamps = 0;
          }
       }
