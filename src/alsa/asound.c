@@ -1839,8 +1839,13 @@ _alsa_pcm_open(_driver_t *handle, int m)
             snd_pcm_t *pcm;
             int res;
 
-            // test if this device has hardware mixing,
-            // if so set shared to AAX_TRUE.
+            /**
+             * Test whether this device has hardware mixing,
+             * if so set handle->shared to AAX_TRUE.
+             *
+             * This is after detecting the proper device name so it only
+             * affects volume handling and not timing or which device to choose.
+             */
             res = psnd_pcm_open(&pcm, handle->devname, _alsa_mode[m],
                                 SND_PCM_NONBLOCK);
             if (res >= 0)
