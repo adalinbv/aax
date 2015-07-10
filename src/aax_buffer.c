@@ -37,7 +37,7 @@ static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
 static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
-static void _bufFillInterleaved(_aaxRingBuffer*, const void*, unsigned, char);
+static void _bufFillInterleaved(_aaxRingBuffer*, const void*, unsigned);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
@@ -387,7 +387,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                   }
                }
             }
-            _bufFillInterleaved(rb, data, blocksize, 0);
+            _bufFillInterleaved(rb, data, blocksize);
             rv = AAX_TRUE;
             _aax_free(ptr);
          }
@@ -1298,7 +1298,7 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
 }
 
 void
-_bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, char looping)
+_bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize)
 {
    unsigned int fmt, bps, no_samples, no_tracks, tracksize;
    int32_t **tracks;
@@ -1309,7 +1309,6 @@ _bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize, ch
    assert(data != 0);
 
    rb->set_state(rb, RB_CLEARED);
-   rb->set_parami(rb, RB_LOOPING, looping);
 
    fmt = rb->get_parami(rb, RB_FORMAT);
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
