@@ -47,22 +47,28 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = delay;
    size_t ds = delay ? ddesamps : 0;	/* 0 for frequency filtering */
-   MIX_T *psrc = src;
-   MIX_T *pdst = dst;
+   MIX_T *psrc = src; /* might change further in the code */
+   MIX_T *pdst = dst; /* might change further in the code */
 
-   if (effect && !effect->loopback && effect->history_ptr)	/* streaming */
+   src += start;
+   dst += start;
+
+   /* streaming emitters with delay effects need the source history */
+   if (effect && !effect->loopback && effect->history_ptr)
    {
-      DBG_MEMCLR(1, src-ds, ds+start, bps);
-      _aax_memcpy(src+start-ds, effect->delay_history[track], ds*bps);
+      // copy the delay effects history to src
+      DBG_MEMCLR(1, src-ds, ds, bps);
+      _aax_memcpy(src-ds, effect->delay_history[track], ds*bps);
 
-//    DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
-      _aax_memcpy(effect->delay_history[track], src+start+no_samples-ds,ds*bps);
+      // copy the new delay effects history back
+      _aax_memcpy(effect->delay_history[track], src+no_samples-ds, ds*bps);
    }
 
    /* Apply frequency filter first */
    if (freq)
    {
-      _aaxRingBufferFilterFrequency(rbd, pdst, psrc, start, end, ds, track, freq, env, ctr);
+      _aaxRingBufferFilterFrequency(rbd, pdst, psrc, start, end, ds, track,
+                                    freq, env, ctr);
       BUFSWAP(pdst, psrc);
    }
 
@@ -93,7 +99,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
       DBG_MEMCLR(1, dst-ds, ds+end, bps);
-      _aax_memcpy(dst+start, src+start, no_samples*bps);
+      _aax_memcpy(dst, src, no_samples*bps);
    }
 }
 

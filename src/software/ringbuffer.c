@@ -40,8 +40,8 @@
 # define _DEBUG		0
 #endif
 
-static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 static int _aaxRingBufferClear(_aaxRingBufferData*);
+static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 
 static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX];
 
@@ -696,17 +696,13 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    }
    case RB_LOOPPOINT_START:
-      if (fval < rbd->loop_end_sec)
-      {
+      if (fval < rbd->loop_end_sec) {
          rbd->loop_start_sec = fval;
-//       _aaxRingBufferAddLooping(rb);
       }
       break;
    case RB_LOOPPOINT_END:
-      if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec))
-      {
+      if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec)) {
          rbd->loop_end_sec = fval;
-//       _aaxRingBufferAddLooping(rb);
       }
       break;
    case RB_OFFSET_SEC:
@@ -718,7 +714,10 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    case RB_FORWARD_SEC:
    {
-      float eps = 1.1f/rbd->frequency_hz;
+      float eps = 0.0f;
+      if (rbi->streaming) {
+         1.1f/rbd->frequency_hz;
+      }
 
       fval += rbi->curr_pos_sec;
       if (rbi->looping && (fval >= rbd->loop_end_sec))
@@ -829,11 +828,6 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_LOOPING:
       rbi->looping = val ? AAX_TRUE : AAX_FALSE;
       rbi->loop_max = (val > AAX_TRUE) ? val : 0;
-#if 0
-      if (loops) {
-         _aaxRingBufferAddLooping(rb);
-      }
-#endif
       rv = AAX_TRUE;
       break;
    case RB_LOOPPOINT_START:
@@ -842,7 +836,6 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       if (fval < rbd->loop_end_sec)
       {
          rbd->loop_start_sec = fval;
-//       _aaxRingBufferAddLooping(rb);
          rv = AAX_TRUE;
       }
       break;
@@ -853,7 +846,6 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       if ((rbd->loop_start_sec < fval) && (val <= rbd->no_samples))
       {
          rbd->loop_end_sec = fval;
-//       _aaxRingBufferAddLooping(rb);
          rv = AAX_TRUE;
       }
       break;

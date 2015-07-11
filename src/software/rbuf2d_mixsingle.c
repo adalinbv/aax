@@ -117,7 +117,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.0f, max);
 
-   /** Resample */
+   /** DECODE, resample and apply effects */
    offs = (drbi->mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
    sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr);
    if (sptr == NULL || dno_samples == 0)
@@ -200,7 +200,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
    }
 
    /* Mix */
-   drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples, info->frequency, gain, svol, evol, ctr);
+   drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
+               info->frequency, gain, svol, evol, ctr);
 
    if (drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;
