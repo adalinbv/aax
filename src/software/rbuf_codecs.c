@@ -89,62 +89,45 @@ extern const int8_t _linear2mulaw_table[256];
  * @src_loops boolean, 0 = no srource looping, otherwise the source loops.
  */
 void
-_aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
+_aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
                  size_t src_pos, size_t loop_start, size_t sno_samples,
                  size_t ddesamps, size_t dno_samples, unsigned char sbps,
                  char src_loops)
 {
    static const int dbps = sizeof(int32_t);
+   unsigned int sdebytes = ddesamps*sbps;
    const size_t sbuflen = sno_samples - loop_start;
-   size_t new_len, dbuflen = dno_samples + ddesamps;
-   int32_t *dptr = d;
-   char *sptr;
+   size_t new_len, dbuflen = dno_samples;
+   char *sptr, *s = (char*)src - sdebytes;
+   int32_t *dptr = dst - ddesamps;
 
-   /*
-    * calculate the actual starting position in the src and dst buffer
-    * and fill dde samples of the source buffer
-    */
-   if (src_loops)
-   {
-      if(src_pos > loop_start) 
-      {
-         /* if src_pos is large enough there is no need to fold back into
-          * the source buffer 
-          */
-         if (src_pos >= (ddesamps+loop_start)) {
-             src_pos -= ddesamps;
-         }
-         else
-         {
-            new_len = (ddesamps - (src_pos - loop_start)) % sbuflen;
-            src_pos = loop_start + (sbuflen - new_len);
-         }
-         dbuflen += ddesamps;
-         dptr -= ddesamps;
-      }
+   assert (src_pos <= sno_samples);
+
+   if (dbuflen >= (sno_samples-src_pos)) {
+      new_len = sno_samples - src_pos;
+   } else {
+      new_len = dbuflen;
    }
 
    /*
     * convert the number of samples that is still available in the
     * source buffer at the current source position
     */
-   new_len = (dbuflen>(sno_samples-src_pos)) ? (sno_samples-src_pos) : dbuflen;
-   if (src_pos <= sno_samples)
-   {
-      sptr = (char *)s + src_pos*sbps;
-      codecfn(dptr, sptr, sbps, new_len);
-      dbuflen -= new_len;
-      dptr += new_len;
-   }
+   sptr = s + src_pos*sbps;
+   codecfn(dptr, sptr, sbps, new_len+ddesamps);
+   dbuflen -= new_len;
 
    if (dbuflen && src_loops)
    {
+      dptr += (new_len + ddesamps);
+      s += sdebytes;
+
       /*
        * convert the remaining samples for the destination buffer or one
        * complete source buffer starting at the start of the source buffer
        */
       new_len = (dbuflen > sbuflen) ? sbuflen : dbuflen;
-      sptr = (char *)s + loop_start*sbps;
+      sptr = s + loop_start*sbps;
       codecfn(dptr, sptr, sbps, new_len);
 
       dbuflen -= new_len;
@@ -154,7 +137,7 @@ _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
          dptr += new_len;
          if (dbuflen > sbuflen)
          {
-            /* copy the source buffer multiple times if needed */
+            /* copy the source buffer multiple times if required */
             new_len = dbuflen;
             do
             {
@@ -171,13 +154,10 @@ _aaxRingBufferProcessCodec(int32_t* d, void *s, _batch_codec_proc codecfn,
          }
          else
          {
-            sptr = (char *)s + loop_start*sbps;
+            sptr = s + loop_start*sbps;
             codecfn(dptr, sptr, sbps, dbuflen);
          }
       }
-   }
-   else if (dbuflen) {
-      memset(dptr, 0, dbuflen*dbps);
    }
 }
 
