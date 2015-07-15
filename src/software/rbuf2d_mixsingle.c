@@ -62,7 +62,7 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
@@ -119,7 +119,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
 
    /** DECODE, resample and apply effects */
    offs = (drbi->mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
-   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr);
+   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (srbi->playing == 0 && srbi->stopped == 1) {

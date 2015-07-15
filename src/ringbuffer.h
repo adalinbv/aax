@@ -25,6 +25,7 @@ extern "C" {
 #include <driver.h>
 #include <objects.h>
 
+
 enum _aaxRingBufferParam
 {
    RB_VOLUME = 0,
@@ -330,7 +331,7 @@ _aaxRingBufferCopyDelyEffectsDataFn(struct _aaxRingBuffer_t*, const struct _aaxR
  * This function does all the preparations like audio format conversion to the
  * internal format of the mixer, resampling in case of different frequences or
  * pitch settings, gain and pitch calculation and status updates.
- * Actual rendering is done in the struct _aaxRingBuffer_tMixMNFn* call;
+ * Actual rendering is done in the struct _aaxRingBufferMixMNFn* call;
  *
  * @param drb multi track destination buffer
  * @param srb multi track source buffer
@@ -342,11 +343,12 @@ _aaxRingBufferCopyDelyEffectsDataFn(struct _aaxRingBuffer_t*, const struct _aaxR
  *       once every 'ctr' frame updates. so if ctr == 1, updates are
  *       done every frame.
  * @param nbuf number of buffers in the source queue (>1 means streaming)
+ * @param history holds the last CUBIC_SAMPS of the previous run for every track
  *
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char);
+_aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 
 /**
  * Single channel ringbuffer mixer.
@@ -366,12 +368,13 @@ _aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, co
  *       interval rate. Updating of 3d properties and the like is done
  *       once every 'ctr' frame updates. so if ctr == 1, updates are
  *       done every frame.
- * @param nbuf number of buffers in the source queue (>1 means streaming)
+ * @param nbuf number of buffers in the source queue (>1 means streaming)r
+ * @param history holds the last CUBIC_SAMPS of the previous run for every track
  *
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char);
+_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 
 
 /**

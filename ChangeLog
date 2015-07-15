@@ -12,7 +12,7 @@
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
    defined at 80Hz and 24dB/oct.
  * Tweaked HRTF support.
- * Make the loop-point and buffer switching code more robust again.
+ * Rewrote the loop-point and buffer switching code for better loop handling.
  * Improve (white)noise waveform frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.

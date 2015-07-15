@@ -46,7 +46,7 @@
  * @fp2d mixer 2d properties
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
 {
    _aaxRingBufferSample *drbd, *srbd;
    size_t offs, dno_samples;
@@ -113,7 +113,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
  }
 }
 #endif
-   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr);
+   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (srbi->playing == 0 && srbi->stopped == 1) {
