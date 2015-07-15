@@ -369,6 +369,8 @@ typedef struct
    } reverb;
 #endif
 
+   int32_t history[_AAX_MAX_SPEAKERS][4];	// 4 = CUBIC_SAMPS
+
 } _aaxEmitter;
 
 

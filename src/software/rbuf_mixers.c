@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 
-#include <math.h>       /* floorf */
+#include <math.h>       /* floorf, rintf, ceilf */
 #include <assert.h>
 
 #include <api.h>
@@ -41,11 +41,11 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr)
+_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
-   float dfreq, dduration, drb_pos_sec, new_drb_pos_sec, fact;
+   float dfreq, dadvance, dduration, drb_pos_sec, fact;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
    size_t src_pos, ddesamps = *start;
    MIX_T **track_ptr;
@@ -84,19 +84,6 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    srb->set_paramf(srb, RB_FORWARD_SEC, dduration*pitch_norm);
    if (pitch_norm < 0.01f) return NULL;
 
-#ifndef NDEBUG
-   /*
-    * Note: This may happen for a registered sensor but it will work in
-    *       non debugging mode.
-    * TODO: Fix this behaviour
-    */
-   if ((srb_pos_sec > srbd->duration_sec) && !src_loops)
-   {
-      _AAX_SYSLOG("Sound should have stopped playing by now.");
-      return NULL;
-   }
-#endif
-
    /* source time offset */
    sfreq = srbd->frequency_hz;
    sduration = srbd->duration_sec;
@@ -104,13 +91,13 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
    /* destination time offset */
    dfreq = drbd->frequency_hz;
-   drb->set_paramf(drb, RB_FORWARD_SEC, (sduration - srb_pos_sec)/pitch_norm);
-   new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
-
+   dadvance = (sduration - srb_pos_sec)/pitch_norm;
+   drb->set_paramf(drb, RB_FORWARD_SEC, dadvance);
    if (new_srb_pos_sec == srbd->duration_sec)
    {
+      float new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
       if (new_drb_pos_sec < drbd->duration_sec) {
-         dduration = (sduration - srb_pos_sec)/pitch_norm;
+         dduration = dadvance;
       } else {
          drb->set_state(drb, RB_REWINDED);
       }
@@ -130,7 +117,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       _aaxRingBufferDelayEffectData* delay_effect;
       _aaxRingBufferFreqFilterData* freq_filter;
       size_t dest_pos, dno_samples, dend;
-      size_t cdesamps, sno_samples, sstart;
+      size_t cdesamps, cno_samples;
+      size_t sstart, sno_samples;
       unsigned int sno_tracks;
       unsigned char sbps;
       int dist_state;
@@ -152,29 +140,49 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          sno_samples = rintf(srbd->loop_end_sec*sfreq);
       }
 
-      /* destination */
-      dend = drbd->no_samples;
-      dno_samples = rintf(dduration*dfreq);
-      if (srb_pos_sec >= 0) {
-         dest_pos = rintf(drb_pos_sec * dfreq);
-      } else {					/* distance delay ended */
-         dest_pos = rintf((drb_pos_sec + srb_pos_sec)*dfreq);
+      /* delay effects buffer */
+      ddesamps = 0;
+      cdesamps = CUBIC_SAMPS;
+      if (srbi->streaming)
+      {
+         if (delay_effect)
+         {
+            /*
+             * we are unable to use drbd->dde_samples since it's 10 times
+             * too big for the final mixer to accomodate for reverb
+             */
+
+            // ddesamps = drbd->dde_samples
+            ddesamps = (size_t)ceilf(DELAY_EFFECTS_TIME*dfreq);
+            if (drbd->dde_samples < ddesamps) {
+               ddesamps = drbd->dde_samples;
+            }
+            cdesamps = _MAX((size_t)floorf(ddesamps*fact), CUBIC_SAMPS);
+         }
       }
 
-      ddesamps = cdesamps = 0;
-      if (delay_effect && !dest_pos)
+      /* number of samples */
+      dno_samples = rintf(dduration*dfreq);
+      cno_samples = rintf(dno_samples*fact);
+      if (!src_loops && (cno_samples > (sno_samples-src_pos)))
       {
-         /*
-          * can not use drbd->dde_samples since it's 10 times too big for the
-          * final mixer to accomodate for reverb
-          */
+         size_t new_dno_samples;
 
-         // ddesamps = drbd->dde_samples
-         ddesamps = (size_t)ceilf(DELAY_EFFECTS_TIME*dfreq);
-         if (drbd->dde_samples < ddesamps) {
-            ddesamps = drbd->dde_samples;
+         cno_samples = sno_samples-src_pos;
+         new_dno_samples = rintf((cno_samples)/fact);
+         if (new_dno_samples < dno_samples) {
+            dno_samples = new_dno_samples;
          }
-         cdesamps = CUBIC_SAMPS + (size_t)floorf(ddesamps*fact);
+      }
+      if (delay_effect) {
+         dno_samples++;      // TODO: Why is this required?
+      }
+
+      dend = drbd->no_samples;
+      if (srb_pos_sec >= 0) {
+         dest_pos = rintf(drb_pos_sec * dfreq);
+      } else {                                  /* distance delay ended */
+         dest_pos = rintf((drb_pos_sec + srb_pos_sec)*dfreq);
       }
 
 #ifdef NDEBUG
@@ -193,25 +201,12 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
          void *env, *distortion_effect = NULL;
-         size_t cno_samples;
          unsigned int track;
          float smu;
 
          env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
          if (dist_state) {
              distortion_effect = &p2d->effect[DISTORTION_EFFECT];
-         }
-
-         cno_samples = (size_t)ceilf(dno_samples*fact)+CUBIC_SAMPS;
-         if (!src_loops && (cno_samples > (sno_samples-src_pos)))
-        {
-            size_t new_dno_samples;
-
-            cno_samples = sno_samples-src_pos;
-            new_dno_samples = rintf(cno_samples/fact);
-            if (new_dno_samples < dno_samples) {
-               dno_samples = new_dno_samples;
-            }
          }
 
          smu = (srb_pos_sec*sfreq) - (float)src_pos;
@@ -226,16 +221,25 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             }
             else
             {
-               DBG_MEMCLR(1, scratch0-cdesamps, cdesamps+dend, sizeof(int32_t));
+               DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
                srbi->codec((int32_t*)scratch0, sptr, srbd->codec,
-                            src_pos, sstart, sno_samples, cdesamps, cno_samples,
+                            src_pos, sstart, sno_samples, 0, cno_samples,
                             sbps, src_loops);
 #if RB_FLOAT_DATA
                // convert from int32_t to float
-               _batch_cvtps24_24(scratch0-cdesamps, scratch0-cdesamps,
-                                 cno_samples+cdesamps);
-               DBG_TESTNAN(scratch0-cdesamps, cno_samples+cdesamps);
+               _batch_cvtps24_24(scratch0, scratch0, cno_samples);
+               DBG_TESTNAN(scratch0-cdesamps, cno_samples);
 #endif
+            }
+
+            /* update the history */
+            if (!delay_effect && history)
+            {
+               size_t size = CUBIC_SAMPS*sizeof(MIX_T);
+               MIX_T *ptr = scratch0-CUBIC_SAMPS;
+
+               _aax_memcpy(ptr, history[track], size);
+               _aax_memcpy(history[track], ptr+cno_samples, size);
             }
 
             dst = eff ? scratch1 : dptr;

@@ -91,7 +91,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
       _aaxRingBufferSample *rbd = rbi->sample;
       if (rbd)
       {
-         float ddesamps;
+         size_t ddesamps;
 
          /*
           * fill in the defaults
@@ -151,7 +151,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          }
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
-         rbd->dde_samples = (size_t)ddesamps;
+         rbd->dde_samples = ddesamps ? ddesamps : CUBIC_SAMPS;
          rbd->scratch = NULL;
 
          _aaxRingBufferInitFunctions(rb);
@@ -226,8 +226,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = TEST_FOR_TRUE(rbd->dde_sec) ? (rbd->dde_samples * bps) : 0;
-      dde_bytes = SIZETO16(dde_bytes);
+      dde_bytes = SIZETO16(rbd->dde_samples * bps);
 
       /*
        * Create one buffer that can hold the data for all channels.
@@ -294,6 +293,7 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
       dde_bytes = rbd->dde_samples*bps;
       dde_bytes = SIZETO16(dde_bytes);
 
+      // scratch buffers have two delay effects sections
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
@@ -397,7 +397,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       if (!dde)
       {
          drbd->dde_sec = 0.0f;
-         drbd->dde_samples = 4*CUBIC_SAMPS;
+         drbd->dde_samples = CUBIC_SAMPS;
       }
 
       if (srbd->scratch)
@@ -653,6 +653,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rbd->frequency_hz = fval;
       rbd->duration_sec = (float)rbd->no_samples / rbd->frequency_hz;
       rbd->dde_samples = (size_t)ceilf(rbd->dde_sec * rbd->frequency_hz);
+      if (!rbd->dde_samples) rbd->dde_samples = CUBIC_SAMPS;
       break;
    case RB_DURATION_SEC:
    {
@@ -714,10 +715,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    case RB_FORWARD_SEC:
    {
-      float eps = 0.0f;
-      if (rbi->streaming) {
-         1.1f/rbd->frequency_hz;
-      }
+      float eps = rbi->streaming ? (1.1f/rbd->frequency_hz) : 0.0f;
 
       fval += rbi->curr_pos_sec;
       if (rbi->looping && (fval >= rbd->loop_end_sec))

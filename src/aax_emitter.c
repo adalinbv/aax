@@ -606,7 +606,6 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
             _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
             _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
             _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-            if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) > 1)
             {
                _aaxRingBufferDelayEffectData* data;
                data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
