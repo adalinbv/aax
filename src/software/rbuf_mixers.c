@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 
-#include <math.h>       /* floorf, rintf, ceilf */
+#include <math.h>       /* rintf */
 #include <assert.h>
 
 #include <api.h>
@@ -104,20 +104,18 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    }
 
    /* sample conversion factor */
-   fact = (sfreq * pitch_norm*srbi->pitch_norm) / dfreq;
-   if (fact < 0.01f) fact = 0.01f;
-// else if (fact > 2.0f) fact = 2.0f;
+   fact = _MAX((sfreq * pitch_norm*srbi->pitch_norm)/dfreq, 0.001f);
 
    /*
     * Test if the remaining start delay is smaller than the duration of the
-    * destination buffer.
+    * destination buffer (distance delay).
     */
    if (new_srb_pos_sec >= -dduration)
    {
       _aaxRingBufferDelayEffectData* delay_effect;
       _aaxRingBufferFreqFilterData* freq_filter;
       size_t dest_pos, dno_samples, dend;
-      size_t cdesamps, cno_samples;
+      size_t rdesamps, cno_samples;
       size_t sstart, sno_samples;
       unsigned int sno_tracks;
       unsigned char sbps;
@@ -141,24 +139,16 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       }
 
       /* delay effects buffer */
-      ddesamps = 0;
-      cdesamps = CUBIC_SAMPS;
-      if (srbi->streaming)
+      ddesamps = rdesamps = 0;
+      if (delay_effect)
       {
-         if (delay_effect)
-         {
-            /*
-             * we are unable to use drbd->dde_samples since it's 10 times
-             * too big for the final mixer to accomodate for reverb
-             */
+         float dde = DELAY_EFFECTS_TIME*dfreq;
 
-            // ddesamps = drbd->dde_samples
-            ddesamps = (size_t)ceilf(DELAY_EFFECTS_TIME*dfreq);
-            if (drbd->dde_samples < ddesamps) {
-               ddesamps = drbd->dde_samples;
-            }
-            cdesamps = _MAX((size_t)floorf(ddesamps*fact), CUBIC_SAMPS);
+         ddesamps = (size_t)ceilf(dde);
+         if (drbd->dde_samples < ddesamps) {
+            ddesamps = drbd->dde_samples;
          }
+         rdesamps = (size_t)floorf(dde*fact);
       }
 
       /* number of samples */
@@ -169,14 +159,14 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          size_t new_dno_samples;
 
          cno_samples = sno_samples-src_pos;
-         new_dno_samples = rintf((cno_samples)/fact);
-         if (new_dno_samples < dno_samples) {
+         new_dno_samples = rintf(cno_samples/fact);
+         if (new_dno_samples < dno_samples)
+         {
             dno_samples = new_dno_samples;
+            cno_samples = rintf(dno_samples*fact);
          }
       }
-      if (delay_effect) {
-         dno_samples++;      // TODO: Why is this required?
-      }
+      cno_samples += CUBIC_SAMPS;
 
       dend = drbd->no_samples;
       if (srb_pos_sec >= 0) {
@@ -215,20 +205,23 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             MIX_T *sptr = (MIX_T*)srbd->track[track];
             MIX_T *dst, *dptr = track_ptr[track];
 
-            /* needed for automatic file streaming with registered sensors */
+            /* short-cut for automatic file streaming with registered sensors */
             if (srbd->mixer_fmt) {
                 scratch0 = sptr+src_pos; // -1;
             }
             else
             {
+               size_t samples = cno_samples+CUBIC_SAMPS;
+               MIX_T *ptr = scratch0;
+
                DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
-               srbi->codec((int32_t*)scratch0, sptr, srbd->codec,
-                            src_pos, sstart, sno_samples, 0, cno_samples,
+               srbi->codec((int32_t*)ptr, sptr, srbd->codec,
+                            src_pos, sstart, sno_samples, 0, samples,
                             sbps, src_loops);
 #if RB_FLOAT_DATA
-               // convert from int32_t to float
-               _batch_cvtps24_24(scratch0, scratch0, cno_samples);
-               DBG_TESTNAN(scratch0-cdesamps, cno_samples);
+               // convert from int32_t to float32
+               _batch_cvtps24_24(ptr, ptr, samples);
+               DBG_TESTNAN(ptr, samples);
 #endif
             }
 
@@ -244,7 +237,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
             dst = eff ? scratch1 : dptr;
             DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
-            drbd->resample(dst-ddesamps, scratch0-cdesamps,
+
+            drbd->resample(dst-ddesamps, scratch0-rdesamps,
                            dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
 #if RB_FLOAT_DATA
             DBG_TESTNAN(dst-ddesamps+dest_pos, dno_samples+ddesamps);
@@ -252,10 +246,14 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
             if (eff)
             {
+#if 0
+memcpy(dptr, dst, dno_samples*sizeof(MIX_T));
+#else
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->effects(srbi->sample, dptr, dst, scratch0,
                              dest_pos, dend, dno_samples, ddesamps, track, ctr,
                              freq_filter, delay_effect, distortion_effect, env);
+#endif
 #if RB_FLOAT_DATA
                DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
 #endif
