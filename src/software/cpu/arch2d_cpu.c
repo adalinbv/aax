@@ -995,6 +995,7 @@ _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_
    }
 }
 
+#if 0
 static inline void
 _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -1033,6 +1034,7 @@ _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, si
       }
    }
 }
+#endif
 
 static inline void
 _aaxBufResampleLinear_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
@@ -1160,7 +1162,8 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, fl
    else if (fact > 1.0f) {
       _aaxBufResampleSkip_cpu(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_cpu(d, s, dmin, dmax, smu, fact);
+//    _aaxBufResampleNearest_cpu(d, s, dmin, dmax, smu, fact);
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
    }
 }
 
@@ -1206,6 +1209,7 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t d
    }
 }
 
+#if 0
 static inline void
 _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -1244,6 +1248,7 @@ _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_
       }
    }
 }
+#endif
 
 static inline void
 _aaxBufResampleLinear_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
@@ -1370,6 +1375,7 @@ _batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, size_t dmin, size_
    else if (fact > 1.0f) {
       _aaxBufResampleSkip_float_cpu(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, smu, fact);
+//    _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, smu, fact);
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
    }
 }
