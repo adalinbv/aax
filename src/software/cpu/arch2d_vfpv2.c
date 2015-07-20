@@ -494,6 +494,7 @@ _aaxBufResampleSkip_vfpv2(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, siz
    }
 }
 
+#if 0
 static inline void
 _aaxBufResampleNearest_vfpv2(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -532,6 +533,7 @@ _aaxBufResampleNearest_vfpv2(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, 
       }
    }
 }
+#endif
 
 static inline void
 _aaxBufResampleLinear_vfpv2(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
@@ -659,7 +661,8 @@ _batch_resample_vfpv2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, 
    else if (fact > 1.0f) {
       _aaxBufResampleSkip_vfpv2(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_vfpv2(d, s, dmin, dmax, smu, fact);
+//    _aaxBufResampleNearest_vfpv2(d, s, dmin, dmax, smu, fact);
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 
@@ -704,6 +707,7 @@ _aaxBufResampleSkip_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, size_t
    }
 }
 
+#if 0
 static inline void
 _aaxBufResampleNearest_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -742,6 +746,7 @@ _aaxBufResampleNearest_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, siz
       }
    }
 }
+#endif
 
 static inline void
 _aaxBufResampleLinear_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
@@ -868,7 +873,8 @@ _batch_resample_float_vfpv2(float32_ptr d, const_float32_ptr s, size_t dmin, siz
    else if (fact > 1.0f) {
       _aaxBufResampleSkip_float_vfpv2(d, s, dmin, dmax, smu, fact);
    } else {
-      _aaxBufResampleNearest_float_vfpv2(d, s, dmin, dmax, smu, fact);
+//    _aaxBufResampleNearest_float_vfpv2(d, s, dmin, dmax, smu, fact);
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 # endif /* RB_FLOAT_DATA */

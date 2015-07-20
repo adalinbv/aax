@@ -711,7 +711,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
          fval = rbd->duration_sec;
       }
       rbi->curr_pos_sec = fval;
-      rbi->curr_sample = rintf(fval*rbd->frequency_hz);
+      rbi->curr_sample = floorf(fval*rbd->frequency_hz);
       break;
    case RB_FORWARD_SEC:
    {
