@@ -69,6 +69,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    assert(srbd->no_tracks >= 1);
    assert(drbd->no_tracks >= 1);
 
+   pitch_norm *= srbi->pitch_norm;
+
    drb_pos_sec = drbi->curr_pos_sec;
    dduration = drbd->duration_sec - drb_pos_sec;
    if (dduration == 0)
@@ -84,37 +86,23 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    srb->set_paramf(srb, RB_FORWARD_SEC, dduration*pitch_norm);
    if (pitch_norm < 0.01f) return NULL;
 
+
    /* source time offset */
    sfreq = srbd->frequency_hz;
    sduration = srbd->duration_sec;
-   new_srb_pos_sec = srb->get_paramf(srb, RB_OFFSET_SEC);
+   new_srb_pos_sec = srb_pos_sec + dduration*pitch_norm;
 
    /* destination time offset */
    dfreq = drbd->frequency_hz;
    dadvance = (sduration - srb_pos_sec)/pitch_norm;
    drb->set_paramf(drb, RB_FORWARD_SEC, dadvance);
-#if 1
-{
-   float new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
-   if (new_drb_pos_sec < drbd->duration_sec) {
-      dduration = dadvance;
-   }
-   else {
+
+   if (!srbi->streaming || (drbi->curr_pos_sec == drbd->duration_sec)) {
       drb->set_state(drb, RB_REWINDED);
    }
-}
-#else  
-   if (new_srb_pos_sec == srbd->duration_sec)
-   {
-      float new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
-      if (new_drb_pos_sec < drbd->duration_sec) {
-         dduration = dadvance;
-      }
-   }
-#endif
 
    /* sample conversion factor */
-   fact = _MAX((sfreq * pitch_norm*srbi->pitch_norm)/dfreq, 0.001f);
+   fact = _MAX((sfreq * pitch_norm)/dfreq, 0.001f);
 
    /*
     * Test if the remaining start delay is smaller than the duration of the
