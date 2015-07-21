@@ -210,11 +210,16 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             else
             {
                size_t samples = cno_samples+CUBIC_SAMPS;
+               size_t send = sno_samples;
                MIX_T *ptr = scratch0;
+
+               if (srbi->streaming) {
+                  send += CUBIC_SAMPS;
+               }
 
                DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
                srbi->codec((int32_t*)ptr, sptr, srbd->codec,
-                            src_pos, sstart, sno_samples, 0, samples,
+                            src_pos, sstart, send, 0, samples,
                             sbps, src_loops);
 #if RB_FLOAT_DATA
                // convert from int32_t to float32
