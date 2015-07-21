@@ -107,7 +107,7 @@ const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX] =
     /* AAX_EFFECT_NONE      */
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f,     0.0f } },
     /* AAX_PITCH_EFFECT     */
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, {    1.99f,    1.99f, 0.0f,     0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {    2.00f,    2.00f, 0.0f,     0.0f } },
     /* AAX_DYNAMIC_PITCH_EFFECT   */
     { { 1.0f, 0.01f, 0.0f, 0.0f }, {     1.0f,    50.0f, 1.0f,     0.0f } },
     /* AAX_TIMED_PITCH_EFFECT */
