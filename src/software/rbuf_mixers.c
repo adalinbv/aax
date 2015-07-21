@@ -93,15 +93,25 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    dfreq = drbd->frequency_hz;
    dadvance = (sduration - srb_pos_sec)/pitch_norm;
    drb->set_paramf(drb, RB_FORWARD_SEC, dadvance);
+#if 1
+{
+   float new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
+   if (new_drb_pos_sec < drbd->duration_sec) {
+      dduration = dadvance;
+   }
+   else {
+      drb->set_state(drb, RB_REWINDED);
+   }
+}
+#else  
    if (new_srb_pos_sec == srbd->duration_sec)
    {
       float new_drb_pos_sec = srb->get_paramf(drb, RB_OFFSET_SEC);
       if (new_drb_pos_sec < drbd->duration_sec) {
          dduration = dadvance;
-      } else {
-         drb->set_state(drb, RB_REWINDED);
       }
    }
+#endif
 
    /* sample conversion factor */
    fact = _MAX((sfreq * pitch_norm*srbi->pitch_norm)/dfreq, 0.001f);
