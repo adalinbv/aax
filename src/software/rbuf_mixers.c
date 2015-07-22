@@ -183,7 +183,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       else
 #endif
 #endif
-      if (track_ptr)
+      if (track_ptr && dno_samples)
       {
          char eff = (freq_filter || delay_effect || dist_state) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
@@ -250,7 +250,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             if (eff)
             {
 #if 0
-memcpy(dptr, dst, dno_samples*sizeof(MIX_T));
+memcpy(dptr+dest_pos, dst, dno_samples*sizeof(MIX_T));
 #else
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->effects(srbi->sample, dptr, dst, scratch0,
