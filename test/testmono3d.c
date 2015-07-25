@@ -44,7 +44,7 @@
 #include "wavfile.h"
 
 #define RADIUS			20.0f
-#define FILE_PATH		SRC_PATH"/tictac.wav"
+#define FILE_PATH		SRC_PATH"/sine-440Hz-1period.wav"
 
 #define XEPOS		00000.0f
 #define YEPOS		-0000.0f
