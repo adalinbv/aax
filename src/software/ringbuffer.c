@@ -661,7 +661,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
 
       rbd->duration_sec = fval;
       fval *= rbd->frequency_hz;
-      val = rintf(fval);
+      val = ceilf(fval);
 
       // same code as for _aaxRingBufferSetParami with RB_NO_SAMPLES
       if (rbd->track == NULL)
@@ -699,11 +699,13 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
    case RB_LOOPPOINT_START:
       if (fval < rbd->loop_end_sec) {
          rbd->loop_start_sec = fval;
+         rv = AAX_TRUE;
       }
       break;
    case RB_LOOPPOINT_END:
       if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec)) {
          rbd->loop_end_sec = fval;
+         rv = AAX_TRUE;
       }
       break;
    case RB_OFFSET_SEC:
@@ -711,7 +713,8 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
          fval = rbd->duration_sec;
       }
       rbi->curr_pos_sec = fval;
-      rbi->curr_sample = rintf(fval*rbd->frequency_hz);
+      rbi->curr_sample = floorf(fval*rbd->frequency_hz);
+      rv = AAX_TRUE;
       break;
    case RB_FORWARD_SEC:
       fval += rbi->curr_pos_sec;
@@ -737,7 +740,8 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
          rbi->stopped = 1;
       }
       rbi->curr_pos_sec = fval;
-      rbi->curr_sample = rintf(fval*rbd->frequency_hz);
+      rbi->curr_sample = floorf(fval*rbd->frequency_hz);
+      rv = AAX_TRUE;
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
@@ -837,7 +841,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_LOOPPOINT_END:
    {
       float fval = val/rbd->frequency_hz;
-      if ((rbd->loop_start_sec < fval) && (val <= rbd->no_samples))
+      if ((rbd->loop_start_sec < fval) && (val <= rbd->duration_sec))
       {
          rbd->loop_end_sec = fval;
          rv = AAX_TRUE;
@@ -1016,10 +1020,10 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbd->format;
       break;
    case RB_LOOPPOINT_START:
-      rv = (size_t)(rbd->loop_start_sec * rbd->frequency_hz);
+      rv = (size_t)floorf(rbd->loop_start_sec * rbd->frequency_hz);
       break;
    case RB_LOOPPOINT_END:
-      rv = (size_t)(rbd->loop_end_sec * rbd->frequency_hz);
+      rv = (size_t)ceilf(rbd->loop_end_sec * rbd->frequency_hz);
       break;
    case RB_OFFSET_SAMPLES:
       rv = rbi->curr_sample;

@@ -45,7 +45,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
-   float dfreq, dadvance, dduration, drb_pos_sec, fact;
+   float dfreq, dadvance, dduration, drb_pos_sec, fact, dremain;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
    size_t src_pos, ddesamps = *start;
    MIX_T **track_ptr;
@@ -71,16 +71,16 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
    pitch_norm *= srbi->pitch_norm;
 
-   drb_pos_sec = drbi->curr_pos_sec;
-   dduration = drbd->duration_sec - drb_pos_sec;
+   drb_pos_sec = drb->get_paramf(drb, RB_OFFSET_SEC); // drbi->curr_pos_sec
+   dduration = drb->get_paramf(drb, RB_DURATION_SEC) - drb_pos_sec;
    if (dduration == 0)
    {
       _AAX_SYSLOG("remaining duration of the destination buffer = 0.0.");
       return NULL;
    }
 
-   src_pos = srbi->curr_sample;
-   srb_pos_sec = srbi->curr_pos_sec;
+   src_pos = srb->get_parami(srb, RB_OFFSET_SAMPLES); // srbi->curr_sample
+   srb_pos_sec = srb->get_paramf(srb, RB_OFFSET_SEC); // srbi->curr_pos_sec
    src_loops = (srbi->looping && !srbi->streaming);
 
    srb->set_paramf(srb, RB_FORWARD_SEC, dduration*pitch_norm);
@@ -88,16 +88,18 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
 
    /* source time offset */
-   sfreq = srbd->frequency_hz;
-   sduration = srbd->duration_sec;
+   sfreq = srb->get_paramf(srb, RB_FREQUENCY); // srbd->frequency_hz
+   sduration = srb->get_paramf(srb, RB_DURATION_SEC); // srbd->duration_sec
    new_srb_pos_sec = srb_pos_sec + dduration*pitch_norm;
 
    /* destination time offset */
-   dfreq = drbd->frequency_hz;
+   dfreq = drb->get_paramf(drb, RB_FREQUENCY); // drbd->frequency_hz
    dadvance = (sduration - srb_pos_sec)/pitch_norm;
    drb->set_paramf(drb, RB_FORWARD_SEC, dadvance);
 
-   if (!srbi->streaming || (drbi->curr_pos_sec == drbd->duration_sec)) {
+   dremain = drb->get_paramf(drb, RB_DURATION_SEC);
+   dremain -= drb->get_paramf(drb, RB_OFFSET_SEC);
+   if (!srbi->streaming || dremain == 0.0f) {
       drb->set_state(drb, RB_REWINDED);
    }
 
@@ -125,39 +127,50 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
       /* source */
       sstart = 0;
-      sbps = srbd->bytes_sample;
-      sno_tracks = srbd->no_tracks;
-      sno_samples = srbd->no_samples;
+      sbps = srb->get_parami(srb, RB_BYTES_SAMPLE); // srbd->bytes_sample;
+      sno_tracks = srb->get_parami(srb, RB_NO_TRACKS); // srbd->no_tracks;
+      sno_samples = srb->get_parami(srb, RB_NO_SAMPLES); // srbd->no_samples;
       if (src_loops)
       {
-         if (srb_pos_sec >= srbd->loop_start_sec) {
-            sstart = rintf(srbd->loop_start_sec*sfreq);
+         size_t loop_start = srb->get_parami(srb, RB_LOOPPOINT_START);
+         if (src_pos >= loop_start) {
+            sstart = loop_start;
          }
-         sno_samples = rintf(srbd->loop_end_sec*sfreq);
+         sno_samples = srb->get_parami(srb, RB_LOOPPOINT_END) - loop_start;
       }
 
       /* delay effects buffer */
+      if (srb_pos_sec >= 0) {
+         dest_pos = rintf(drb_pos_sec * dfreq);
+      } else {		/* distance delay ended */
+         dest_pos = rintf((drb_pos_sec + srb_pos_sec)*dfreq);
+      }
+//    drb->set_parami(drb, RB_OFFSET_SAMPLES,
+//                         rintf(drb->get_paramf(drb, RB_OFFSET_SEC)*dfreq));
+
       ddesamps = rdesamps = 0;
       if (delay_effect)
       {
          float dde = DELAY_EFFECTS_TIME*dfreq;
 
-         ddesamps = (size_t)ceilf(dde);
-         if (drbd->dde_samples < ddesamps) {
-            ddesamps = drbd->dde_samples;
+         ddesamps = (size_t)floorf(dde);
+         if (drb->get_parami(drb, RB_DDE_SAMPLES) < ddesamps) {
+            ddesamps = drb->get_parami(drb, RB_DDE_SAMPLES); //drbd->dde_samples
          }
          rdesamps = (size_t)floorf(dde*fact);
       }
 
       /* number of samples */
-      dno_samples = rintf(dduration*dfreq);
+      dend = drb->get_parami(drb, RB_NO_SAMPLES);
+      dno_samples = dend - dest_pos;
+
       cno_samples = rintf(dno_samples*fact);
       if (!src_loops && (cno_samples > (sno_samples-src_pos)))
       {
          size_t new_dno_samples;
 
          cno_samples = sno_samples-src_pos;
-         new_dno_samples = rintf(cno_samples/fact);
+         new_dno_samples = rintf(sfreq*(sduration-srb_pos_sec)/fact);
          if (new_dno_samples < dno_samples)
          {
             dno_samples = new_dno_samples;
@@ -165,13 +178,6 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          }
       }
       cno_samples += CUBIC_SAMPS;
-
-      dend = drbd->no_samples;
-      if (srb_pos_sec >= 0) {
-         dest_pos = rintf(drb_pos_sec * dfreq);
-      } else {                                  /* distance delay ended */
-         dest_pos = rintf((drb_pos_sec + srb_pos_sec)*dfreq);
-      }
 
 #ifdef NDEBUG
 #if 0
@@ -194,7 +200,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
          env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
          if (dist_state) {
-             distortion_effect = &p2d->effect[DISTORTION_EFFECT];
+            distortion_effect = &p2d->effect[DISTORTION_EFFECT];
          }
 
          smu = (srb_pos_sec*sfreq) - (float)src_pos;
@@ -250,7 +256,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             if (eff)
             {
 #if 0
-memcpy(dptr+dest_pos, dst, dno_samples*sizeof(MIX_T));
+memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 #else
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->effects(srbi->sample, dptr, dst, scratch0,
