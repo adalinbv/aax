@@ -136,7 +136,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          if (src_pos >= loop_start) {
             sstart = loop_start;
          }
-         sno_samples = srb->get_parami(srb, RB_LOOPPOINT_END) - loop_start;
+         sno_samples = srb->get_parami(srb, RB_LOOPPOINT_END);
       }
 
       /* delay effects buffer */
