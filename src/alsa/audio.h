@@ -212,6 +212,7 @@ typedef long snd_pcm_sframes_t;
 typedef unsigned long snd_pcm_uframes_t;
 
 typedef void snd_hctl_t;
+typedef void snd_ctl_t;
 typedef void snd_pcm_info_t;
 typedef void snd_hctl_elem_t;
 
@@ -232,6 +233,9 @@ typedef int (*snd_pcm_drop_proc)(snd_pcm_t *);
 typedef int (*snd_pcm_info_malloc_proc)(snd_pcm_info_t **);
 typedef void (*snd_pcm_info_free_proc)(snd_pcm_info_t *);
 typedef int (*snd_pcm_info_proc)(snd_pcm_t *, snd_pcm_info_t *);
+typedef int (*snd_ctl_open_proc)(snd_ctl_t **, const char *, int);
+typedef int (*snd_ctl_close_proc)(snd_ctl_t *);
+typedef int (*snd_ctl_pcm_info_proc)(snd_ctl_t *, snd_pcm_info_t *);
 typedef const char *(*snd_pcm_info_get_subdevice_name_proc)(const snd_pcm_info_t *);
 typedef unsigned int (*snd_pcm_info_get_subdevice_proc)(const snd_pcm_info_t *);
 typedef unsigned int (*snd_pcm_info_get_subdevices_avail_proc)(const snd_pcm_info_t *);

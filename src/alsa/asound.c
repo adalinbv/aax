@@ -149,6 +149,7 @@ typedef struct
     char interleaved;
     char playing;
     char shared;
+    char shared_volume;
     char use_timer;
 
     _batch_cvt_to_proc cvt_to;
@@ -256,6 +257,13 @@ DECL_FUNCTION(snd_mixer_selem_set_capture_volume_all);
 DECL_FUNCTION(snd_mixer_selem_get_id);
 DECL_FUNCTION(snd_mixer_selem_id_get_name);
 DECL_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
+
+DECL_FUNCTION(snd_pcm_info_malloc);
+DECL_FUNCTION(snd_pcm_info_free);
+DECL_FUNCTION(snd_ctl_open);
+DECL_FUNCTION(snd_ctl_close);
+DECL_FUNCTION(snd_ctl_pcm_info);
+DECL_FUNCTION(snd_pcm_info_get_subdevices_count);
 #ifndef NDEBUG
 DECL_FUNCTION(snd_pcm_dump);
 DECL_FUNCTION(snd_output_stdio_attach);
@@ -407,6 +415,13 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_config_update);				//
          TIE_FUNCTION(snd_lib_error_set_handler);			//
          TIE_FUNCTION(snd_asoundlib_version);				//
+
+         TIE_FUNCTION(snd_pcm_info_malloc);				//
+         TIE_FUNCTION(snd_pcm_info_free);				//
+         TIE_FUNCTION(snd_ctl_open);					//
+         TIE_FUNCTION(snd_ctl_close);					//
+         TIE_FUNCTION(snd_ctl_pcm_info);				//
+         TIE_FUNCTION(snd_pcm_info_get_subdevices_count);		//
 //       TIE_FUNCTION(snd_output_stdio_attach);
       }
 
@@ -523,6 +538,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
 
          if (xmlNodeTest(xid, "shared")) {
             handle->shared = xmlNodeGetBool(xid, "shared");
+            handle->shared_volume = handle->shared;
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -1806,6 +1822,39 @@ _alsa_pcm_open(_driver_t *handle, int m)
 {
    int err;
 
+   /**
+    * Test whether this device has hardware mixing,
+    * if so set handle->shared_volume to AAX_TRUE.
+    *
+    * This is after detecting the proper device name so it only
+    * affects volume handling and not timing or which device to choose.
+    */
+   if (m && !handle->pcm)
+   {
+      snd_pcm_info_t *pcminfo;
+      snd_ctl_t *ctl;
+      int res;
+
+      res = psnd_pcm_info_malloc(&pcminfo);
+      if (res >= 0)
+      {
+         char name[32];
+         sprintf(name, "hw:%d", handle->devnum);
+         res = psnd_ctl_open(&ctl, name, _alsa_mode[m]);
+         if (res >= 0)
+         {
+            res = psnd_ctl_pcm_info(ctl, pcminfo);
+            if (res >= 0)
+            {
+               res = psnd_pcm_info_get_subdevices_count(pcminfo);
+               if (res > 1) handle->shared_volume = AAX_TRUE;
+            }
+            psnd_ctl_close(ctl);
+         }
+         psnd_pcm_info_free(pcminfo);
+      }
+   }
+
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
    if (err >= 0)
@@ -1832,27 +1881,6 @@ _alsa_pcm_open(_driver_t *handle, int m)
          {
             psnd_mixer_close(handle->mixer);
             handle->mixer = NULL;
-         }
-
-         if (m)
-         {
-            snd_pcm_t *pcm;
-            int res;
-
-            /**
-             * Test whether this device has hardware mixing,
-             * if so set handle->shared to AAX_TRUE.
-             *
-             * This is after detecting the proper device name so it only
-             * affects volume handling and not timing or which device to choose.
-             */
-            res = psnd_pcm_open(&pcm, handle->devname, _alsa_mode[m],
-                                SND_PCM_NONBLOCK);
-            if (res >= 0)
-            {
-               handle->shared = AAX_TRUE;
-               psnd_pcm_close(pcm);
-            }
          }
       }
       else
@@ -2351,7 +2379,7 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
    float hwgain = gain;
    float rv = 0;
 
-   if (handle && handle->mixer && !handle->shared && handle->volumeMax)
+   if (handle && handle->mixer && !handle->shared_volume && handle->volumeMax)
    {
       hwgain = _MINMAX(fabsf(gain), handle->volumeMin, handle->volumeMax);
 
