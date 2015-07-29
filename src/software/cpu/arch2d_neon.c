@@ -32,6 +32,8 @@
  *  PLD (data load), PLI (instruction), PST (data store)
  *  Level l1, l2, l3
  *  KEEP (retained), STRM (streaming)
+ *
+ * Note: In NEON, the SIMD supports up to 16 operations at the same time.
  */
 
 void
@@ -178,9 +180,9 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
       return;
    }
 
-   step = 2*sizeof(int32x4_t)/sizeof(int32_t);
+   step = sizeof(int32x4x4_t)/sizeof(int32_t);
 
-   fstep *= 4*4;                                  /* 8 samples at a time */
+   fstep *= step;                                 /* 16 samples at a time */
    i = size = num/step;
    if (i)
    {
@@ -198,6 +200,8 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
          nfr[2] = vcvtq_f32_s32(nir4.val[2]);
          nfr[3] = vcvtq_f32_s32(nir4.val[3]);
 
+         s += step;
+
          nfr[0] = vmulq_f32(nfr[0], tv);
          nfr[1] = vmulq_f32(nfr[1], tv);
          nfr[2] = vmulq_f32(nfr[2], tv);
@@ -211,14 +215,14 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
          nnir4.val[2] = vcvtq_s32_f32(nfr[2]);
          nnir4.val[3] = vcvtq_s32_f32(nfr[3]);
 
+         d += step;
+
          nir4.val[0] = vaddq_s32(nir4.val[0], nnir4.val[0]);
          nir4.val[1] = vaddq_s32(nir4.val[1], nnir4.val[1]);
          nir4.val[2] = vaddq_s32(nir4.val[2], nnir4.val[2]);
          nir4.val[3] = vaddq_s32(nir4.val[3], nnir4.val[3]);
          vst4q_s32(d, nir4);
 
-         s += 4*4;
-         d += 4*4;
          tv = vdupq_n_f32(f);
       }
       while(--i);
@@ -226,7 +230,7 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
 
    i = num - size*step;
    if (i) {
-      fstep /= 8;
+      fstep /= 16;
       do {
          *d++ += *s++ * f;
          f += fstep;
