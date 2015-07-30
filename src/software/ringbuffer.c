@@ -718,7 +718,11 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    case RB_FORWARD_SEC:
    {
-      float eps = 1.1f/rbd->frequency_hz;
+      float eps = 0.0f;
+
+      if (rbi->streaming) {
+         eps = 1.1f/rbd->frequency_hz;
+      }
 
       fval += rbi->curr_pos_sec;
       if (rbi->looping && (fval >= rbd->loop_end_sec))
