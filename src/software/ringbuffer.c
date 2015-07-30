@@ -717,6 +717,9 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rv = AAX_TRUE;
       break;
    case RB_FORWARD_SEC:
+   {
+      float eps = 1.1f/rbd->frequency_hz;
+
       fval += rbi->curr_pos_sec;
       if (rbi->looping && (fval >= rbd->loop_end_sec))
       {
@@ -733,7 +736,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
          }
       }
 
-      if (fval >= rbd->duration_sec)
+      if (fval >= (rbd->duration_sec-eps))
       {
          fval = rbd->duration_sec;
          rbi->playing = 0;
@@ -743,6 +746,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rbi->curr_sample = floorf(fval*rbd->frequency_hz);
       rv = AAX_TRUE;
       break;
+   }
    default:
       if ((param >= RB_PEAK_VALUE) &&
           (param <= RB_PEAK_VALUE_MAX))
