@@ -334,11 +334,11 @@ _batch_freqfilter_vfpv3(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
       float k, *cptr, *hist;
       float c0, c1, c2, c3;
       float smp, h0, h1;
-      int stage;
+      int stages;
 
       cptr = filter->coeff;
       hist = filter->freqfilter_history[t];
-      stage = filter->no_stages;
+      stages = filter->no_stages;
       if (!stages) stages++;
 
       if (filter->state) {
@@ -376,7 +376,7 @@ _batch_freqfilter_vfpv3(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
          k = 1.0f;
          s = dptr;
       }
-      while (--stage);
+      while (--stages);
    }
 }
 
@@ -391,11 +391,11 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
       float k, *cptr, *hist;
       float c0, c1, c2, c3;
       float smp, h0, h1;
-      int stage;
+      int stages;
 
       cptr = filter->coeff;
       hist = filter->freqfilter_history[t];
-      stage = filter->no_stages;
+      stages = filter->no_stages;
       if (!stages) stages++;
 
       if (filter->state) {
@@ -433,7 +433,7 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          k = 1.0f;
          s = dptr;
       }
-      while (--stage);
+      while (--stages);
    }
 }
 

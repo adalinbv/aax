@@ -169,9 +169,10 @@ _batch_iadd_neon(int32_ptr d, const_int32_ptr src, size_t num)
 }
 
 void
-_batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float fstep)
+_batch_imadd_neon(int32_ptr dst, const_int32_ptr src, size_t num, float v, float vstep)
 {
-   int32_t *s = (int32_t *)src;
+   int32_ptr d = (int32_ptr)dst;
+   int32_ptr s = (int32_t *)src;
    size_t i, size, step;
 
    if (!num || (v == 0.0f && vstep == 0.0f)) return;
@@ -182,11 +183,11 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
 
    step = sizeof(int32x4x4_t)/sizeof(int32_t);
 
-   fstep *= step;                                 /* 16 samples at a time */
+   vstep *= step;                                 /* 16 samples at a time */
    i = size = num/step;
    if (i)
    {
-      float32x4_t tv = vdupq_n_f32(f);
+      float32x4_t tv = vdupq_n_f32(v);
       int32x4x4_t nir4;
 
       do
@@ -207,7 +208,7 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
          nfr[2] = vmulq_f32(nfr[2], tv);
          nfr[3] = vmulq_f32(nfr[3], tv);
 
-         f += fstep;
+         v += vstep;
 
          nir4 = vld4q_s32(d);
          nnir4.val[0] = vcvtq_s32_f32(nfr[0]);
@@ -223,17 +224,17 @@ _batch_imadd_neon(int32_ptr d, const_int32_ptr src, size_t num, float f, float f
          nir4.val[3] = vaddq_s32(nir4.val[3], nnir4.val[3]);
          vst4q_s32(d, nir4);
 
-         tv = vdupq_n_f32(f);
+         tv = vdupq_n_f32(v);
       }
       while(--i);
    }
 
    i = num - size*step;
    if (i) {
-      fstep /= 16;
+      vstep /= 16;
       do {
-         *d++ += *s++ * f;
-         f += fstep;
+         *d++ += *s++ * v;
+         v += vstep;
       } while(--i);
    }
 }
@@ -520,11 +521,11 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
       float32x4_t c, h;
       float32x2_t h2;
       float k, *cptr, *hist;
-      int stage;
+      int stages;
 
       cptr = filter->coeff;
       hist = filter->freqfilter_history[t];
-      stage = filter->no_stages;
+      stages = filter->no_stages;
       if (!stages) stages++;
 
       if (filter->state) {
@@ -571,7 +572,7 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
          k = 1.0f;
          s = dptr;
       }
-      while (--stage);
+      while (--stages);
    }
 }
 
@@ -586,11 +587,11 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
       float32x4_t c, h;
       float32x2_t h2;
       float k, *cptr, *hist;
-      int stage;
+      int stages;
 
       cptr = filter->coeff;
       hist = filter->freqfilter_history[t];
-      stage = filter->no_stages;
+      stages = filter->no_stages;
       if (!stages) stages++;
 
       if (filter->state) {
@@ -637,7 +638,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          k = 1.0f;
          s = dptr;
       }
-      while (--stage);
+      while (--stages);
    }
 }
 
