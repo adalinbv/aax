@@ -1,5 +1,7 @@
 * Fri May 29  2015 - tech@adalin.org
 - AeonWave (2.6.0) stable; urgency=low
+ * Rewrote the loop-point and buffer switching code for better loop handling.
+ * Don't use hardware volume when the number of subdevices exceeds 1 for ALSA.
  * A major overhaul of the frequency filter
    - Speed up the filter execution time.
    - Add support for 6db/oct, 24dB/oct, 36dB/oct and 48dB/oct filtering,
@@ -12,7 +14,6 @@
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
    defined at 80Hz and 24dB/oct.
  * Tweaked HRTF support.
- * Rewrote the loop-point and buffer switching code for better loop handling.
  * Improve (white)noise waveform frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.
