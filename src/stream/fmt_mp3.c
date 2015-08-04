@@ -285,6 +285,14 @@ _aaxMP3GetParam(void *id, int type)
       rv = handle->max_samples;
       break;
    default:
+      if (type & __F_NAME_CHANGED)
+      {
+         switch (type & ~__F_NAME_CHANGED)
+         {
+         default:
+            break;
+         }
+      }
       break;
    }
    return rv;

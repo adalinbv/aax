@@ -119,8 +119,10 @@ typedef struct
    char *genre;
    char *website;
    char metadata_changed;
-   char artist[MAX_ID_STRLEN];
-   char title[MAX_ID_STRLEN];
+      // artist[0] = AAX_TRUE if changed since the last get
+   char artist[MAX_ID_STRLEN+1];
+      // title[0] = AAX_TRUE if changed since the last get
+   char title[MAX_ID_STRLEN+1];
 
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -506,8 +508,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         if (s)
                         {
                            int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
-                           memcpy(handle->artist, s, len);
-                           handle->artist[len-1] = '\0';
+                           memcpy(handle->artist+1, s, len);
+                           handle->artist[len] = '\0';
+                           handle->artist[0] = AAX_TRUE;
                            handle->station = strdup(s);
                         }
 
@@ -515,8 +518,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         if (s)
                         {
                            int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
-                           memcpy(handle->title, s, len);
-                           handle->title[len-1] = '\0';
+                           memcpy(handle->title+1, s, len);
+                           handle->title[len] = '\0';
+                           handle->title[0] = AAX_TRUE;
                            handle->description = strdup(s);
                         }
 
@@ -937,11 +941,19 @@ _aaxStreamDriverGetName(const void *id, int type)
             {
             case AAX_MUSIC_PERFORMER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
-               if (!ret && handle->artist[0] != '\0') ret = handle->artist;
+               if (handle->artist[0] == AAX_TRUE)
+               {
+                  ret = handle->artist+1;
+                  handle->artist[0] = AAX_FALSE;
+               }
                break;
             case AAX_TRACK_TITLE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
-               if (!ret && handle->title[0] != '\0') ret = handle->title;
+               if (handle->title[0] == AAX_TRUE)
+               {
+                  ret = handle->title+1;
+                  handle->title[0] = AAX_FALSE;
+               }
                break;
             case AAX_MUSIC_GENRE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
@@ -1603,8 +1615,9 @@ _aaxStreamDriverReadChunk(const void *id)
                   if (artist && end)
                   {
                      int len = _MAX(strlen(artist)+1, MAX_ID_STRLEN);
-                     memcpy(handle->artist, artist, len);
-                     handle->artist[len-1] = '\0';
+                     memcpy(handle->artist+1, artist, len);
+                     handle->artist[len] = '\0';
+                     handle->artist[0] = AAX_TRUE;
                   } else {
                      handle->artist[0] = '\0';
                   }
@@ -1612,8 +1625,9 @@ _aaxStreamDriverReadChunk(const void *id)
                   if (title && end)
                   {
                      int len = _MAX(strlen(title)+1, MAX_ID_STRLEN);
-                     memcpy(handle->title, title, len);
-                     handle->title[len-1] = '\0';
+                     memcpy(handle->title+1, title, len);
+                     handle->title[len] = '\0';
+                     handle->title[0] = AAX_TRUE;
                   } else {
                      handle->title[0] = '\0';
                   }
