@@ -44,7 +44,8 @@ enum _aaxFormatParam
    __F_BLOCK,
    __F_SAMPLES,
 
-   __F_IMAGE =  0x0800,		/* get name strings */
+   __F_NAME_CHANGED = 0x0400, /* set if the name changed since the last get */
+   __F_IMAGE = 0x0800,		/* get info name strings */
    __F_ARTIST,
    __F_GENRE,
    __F_TITLE,
