@@ -393,6 +393,17 @@ int main(int argc, char **argv)
             if (verbose)
             {
                 float pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
+                const char *p, *t;
+
+                p = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_STRING);
+                t = aaxDriverGetSetup(record, AAX_TRACK_TITLE_STRING);
+                if (p && t) {
+                    printf(" Playing  : %s - %s\n", p, t);
+                } else if (p) {
+                    printf(" Performer: %s\n", p);
+                } else if (t) {
+                    printf(" Title    : %s\n", t);
+                }
 
                 if (duration != AAX_FPINFINITE)
                 {
