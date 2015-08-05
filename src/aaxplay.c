@@ -398,11 +398,11 @@ int main(int argc, char **argv)
                 p = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_STRING);
                 t = aaxDriverGetSetup(record, AAX_TRACK_TITLE_STRING);
                 if (p && t) {
-                    printf(" Playing  : %s - %s\n", p, t);
+                    printf("\033[K Playing  : %s - %s\n", p, t);
                 } else if (p) {
-                    printf(" Performer: %s\n", p);
+                    printf("\033[K Performer: %s\n", p);
                 } else if (t) {
-                    printf(" Title    : %s\n", t);
+                    printf("\033[K Title    : %s\n", t);
                 }
 
                 if (duration != AAX_FPINFINITE)
