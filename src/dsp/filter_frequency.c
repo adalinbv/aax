@@ -81,20 +81,21 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL);
    wstate = istate & mask;
 
-   switch (wstate || istate == AAX_6DB_OCT || istate == AAX_12DB_OCT
-                  || istate == AAX_24DB_OCT || istate == AAX_36DB_OCT
-                  || istate == AAX_48DB_OCT)
-   {
-   case AAX_6DB_OCT:
-   case AAX_12DB_OCT:
-   case AAX_24DB_OCT:
-   case AAX_36DB_OCT:
-   case AAX_48DB_OCT:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
-   case AAX_ENVELOPE_FOLLOW:
+   if (wstate == AAX_6DB_OCT         ||
+       wstate == AAX_12DB_OCT        ||
+       wstate == AAX_24DB_OCT        ||
+       wstate == AAX_36DB_OCT        ||
+       wstate == AAX_48DB_OCT        ||
+       wstate == AAX_TRIANGLE_WAVE   ||
+       wstate == AAX_SINE_WAVE       ||
+       wstate == AAX_SQUARE_WAVE     ||
+       wstate == AAX_SAWTOOTH_WAVE   ||
+       wstate == AAX_ENVELOPE_FOLLOW ||
+       istate == AAX_6DB_OCT         ||
+       istate == AAX_12DB_OCT        ||
+       istate == AAX_24DB_OCT        ||
+       istate == AAX_36DB_OCT        ||
+       istate == AAX_48DB_OCT)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
       int stages;
@@ -229,15 +230,14 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-      break;
    }
-   case AAX_FALSE:
+   else if (wstate == AAX_FALSE)
+   {
       free(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
-      break;
-   default:
+   }
+   else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
-      break;
    }
    rv = filter;
    return rv;
