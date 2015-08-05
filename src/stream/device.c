@@ -941,6 +941,13 @@ _aaxStreamDriverGetName(const void *id, int type)
             {
             case AAX_MUSIC_PERFORMER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
+               if (!ret && handle->artist[1] != '\0')
+               {
+                  ret = handle->artist+1;
+                  handle->artist[0] = AAX_FALSE;
+               }
+               break;
+            case AAX_MUSIC_PERFORMER_UPDATE:
                if (handle->artist[0] == AAX_TRUE)
                {
                   ret = handle->artist+1;
@@ -949,6 +956,13 @@ _aaxStreamDriverGetName(const void *id, int type)
                break;
             case AAX_TRACK_TITLE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
+               if (!ret && handle->title[1] != '\0')
+               {
+                  ret = handle->title+1;
+                  handle->title[0] = AAX_FALSE;
+               }
+               break;
+            case AAX_TRACK_TITLE_UPDATE:
                if (handle->title[0] == AAX_TRUE)
                {
                   ret = handle->title+1;

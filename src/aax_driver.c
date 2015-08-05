@@ -88,8 +88,10 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          rv = (char*)be->vendor;
          break;
       case AAX_MUSIC_PERFORMER_STRING:
+      case AAX_MUSIC_PERFORMER_UPDATE:
       case AAX_MUSIC_GENRE_STRING:
       case AAX_TRACK_TITLE_STRING:
+      case AAX_TRACK_TITLE_UPDATE:
       case AAX_TRACK_NUMBER_STRING:
       case AAX_ALBUM_NAME_STRING:
       case AAX_RELEASE_DATE_STRING:
