@@ -287,8 +287,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
 #if RB_FLOAT_DATA
       // be->capture can capture one extra sample to keep synchronised with
       // the capture buffer but it is in int32_t format while the mixer format
-      // might be float. By setting those possible extra samples to zero here
-      // we prevent reinterpreting an int32_t as a float which may cause a NaN.
+      // might be float. Convert this sample to float ourselves.
       if (offs < 0)
       {
          assert (offs == -1);
@@ -311,7 +310,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          _aaxRingBuffer *nrb;
          double rms;
 
-//TODO: Is it really necessary to create a dde buffer here?
          nrb = drb->duplicate(drb, AAX_FALSE, AAX_TRUE);
          assert(nrb != 0);
 
