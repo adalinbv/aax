@@ -8,12 +8,14 @@
      12dB/oct is the default.
    - Add support for both Butterworth and Bessel filter types,
      Butterworth is the default.
- * Allow the paramtertic equalizer parameters to be defined more flexible.
- * Add the option to define a paramtertic equalizer at every audio-frame.
+ * Allow the paramtertic equalizer parameters to be defined more flexible by
+   allowig LP-LP-HP type setups in addition to HP-LP-HP.
+ * Add the option to define a paramtertic equalizer at every audio-frame which
+   will be applied after all filters and effects (incl. the frequency filter).
  * Speed improvements for the graphic and paramtetric equalizers.
  * Add a surround sound crossover filter for 5.1 and 7.1 systems
    defined at 80Hz and 24dB/oct.
- * Tweaked HRTF support.
+ * HRTF improvements.
  * Improve (white)noise waveform frequency spectrum spread.
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.

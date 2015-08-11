@@ -149,8 +149,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          dest_pos = rintf((drb_pos_sec + srb_pos_sec)*dfreq);
       }
 
-      ddesamps = rdesamps = 0;
-      if (delay_effect)
+      rdesamps = 0;
+      if (ddesamps || delay_effect)
       {
          float dde = DELAY_EFFECTS_TIME*dfreq;
 
