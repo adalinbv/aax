@@ -118,7 +118,12 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
    pitch = _MINMAX(pitch, 0.0f, max);
 
    /** DECODE, resample and apply effects */
-   offs = (drbi->mode == AAX_MODE_WRITE_HRTF) ? drbi->sample->dde_samples : 0;
+   offs = 0;
+   if (drbi->mode == AAX_MODE_WRITE_HRTF ||
+       drbi->mode == AAX_MODE_WRITE_SURROUND /* also uses HRTF for up-down */)
+   {
+      offs = drbi->sample->dde_samples;
+   }
    sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
