@@ -230,11 +230,11 @@ vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (volume)                          --- */
    { 1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
-   { 0.00f,-0.50f, 0.00f, 1.0f }, 	 /* up-down              */
+   { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
    { 0.00f, 0.00f, 1.00f, 1.0f }, 	 /* back-front           */
    /* right headphone shell (volume)                         --- */
    {-1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
-   { 0.00f,-0.50f, 0.00f, 1.0f }, 	 /* up-down              */
+   { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
    { 0.00f, 0.00f, 1.00f, 1.0f }, 	 /* back-front           */
    /* unused                                                     */
    { 0.00f, 0.00f, 0.00f, 0.0f },
