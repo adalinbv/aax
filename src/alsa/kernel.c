@@ -450,6 +450,8 @@ _aaxLinuxDriverDisconnect(void *id)
    {
       int page_size = _get_pagesize();
 
+      close(handle->fd);
+
       if (handle->sync) {
          free(handle->sync);
       }
@@ -479,7 +481,7 @@ _aaxLinuxDriverDisconnect(void *id)
          free(handle->render);
       }
 
-      close(handle->fd);
+      free(handle->ptr);
       free(handle);
 
       return AAX_TRUE;
