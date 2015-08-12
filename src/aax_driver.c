@@ -211,8 +211,11 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
          if (!name)
          {
             _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode);
-            if (cfg->node[0].devname) {
+            if (cfg->node[0].devname)
+            {
                name = _aax_strdup(cfg->node[0].devname);
+
+               free(handle->backend.driver);
                handle->backend.driver = _aax_strdup(cfg->node[0].devname);
             }
             _aaxDriverBackendClearConfigSettings(cfg);
@@ -1001,6 +1004,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          if (be || (handle->devname[0] != _aax_default_devname)) {
             handle->backend.ptr = be;
          }
+
+         free(handle->backend.driver);
          handle->backend.driver = _aax_strdup(config->backend.driver);
 
          key ^= 0x21051974;
