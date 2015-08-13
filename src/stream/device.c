@@ -1584,9 +1584,12 @@ _aaxStreamDriverReadChunk(const void *id)
       return 0;
    }
 
+   if (handle->bytes_avail >= IOBUF_THRESHOLD) {
+      return 0;
+   }
+
    size = IOBUF_THRESHOLD - handle->bytes_avail;
    res = handle->io.read(handle->fd, handle->buf+handle->bytes_avail, size);
-
    if (res > 0)
    {
       handle->bytes_avail += res;
