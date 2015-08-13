@@ -284,7 +284,7 @@ _batch_cvt24_8_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, u
 
             do
             {
-               *d++ = ((int32_t)*s + 127) << 16;
+               *d++ = ((int32_t)*s + 128) << 16;
                s += tracks;
             }
             while (--i);
@@ -612,7 +612,7 @@ _batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, u
 
          do
          {
-            *d = (*s++ >> 16) - 127;
+            *d = (*s++ >> 16) - 128;
             d += tracks;
          }
          while (--i);
