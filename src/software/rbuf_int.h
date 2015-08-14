@@ -184,7 +184,6 @@ typedef struct {
 } _aaxFormat_t;
 
 extern _batch_codec_proc _aaxRingBufferCodecs[];
-extern _batch_codec_proc _aaxRingBufferCodecs_w8s[];
 
 void _aaxRingBufferProcessCodec(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
 void _aaxRingBufferEffectsApply(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, unsigned char, void*, void*, void*, void*);
