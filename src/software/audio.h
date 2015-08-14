@@ -37,7 +37,7 @@ int16_t _mulaw2linear(uint8_t);
 int16_t _adpcm2linear (uint8_t, int16_t*, uint8_t*);
 void    _linear2adpcm(int16_t*, int16_t, uint8_t*, uint8_t*);
 
-void  _sw_bufcpy_ima_adpcm(void*, const void*, unsigned char, size_t);
+void  _sw_bufcpy_ima_adpcm(void*, const void*, size_t);
 
 /* sensor */
 void _aaxSensorsProcessSensor(void*, _aaxRingBuffer*, _aax2dProps*, int, char);

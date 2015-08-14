@@ -1278,7 +1278,7 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
    {
       for (t=0; t<tracks; t++)
       {
-         _sw_bufcpy_ima_adpcm(d[t], s, 1, block_smp);
+         _sw_bufcpy_ima_adpcm(d[t], s, block_smp);
          d[t] += block_smp;
          s += blocksize;
       }
@@ -1291,7 +1291,7 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
       int t;
       for (t=0; t<tracks; t++)
       {
-         _sw_bufcpy_ima_adpcm(d[t], s, 1, no_samples);
+         _sw_bufcpy_ima_adpcm(d[t], s, no_samples);
          s += blocksize;
       }
    }

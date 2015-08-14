@@ -29,14 +29,14 @@
 #include "audio.h"
 #include "cpu/arch2d_simd.h"
 
-static void _sw_bufcpy_8s(void_ptr, const_void_ptr, unsigned char, size_t);
-static void _sw_bufcpy_16s(void_ptr, const_void_ptr, unsigned char, size_t);
-static void _sw_bufcpy_24s(void_ptr, const_void_ptr, unsigned char, size_t);
+static void _sw_bufcpy_8s(void_ptr, const_void_ptr, size_t);
+static void _sw_bufcpy_16s(void_ptr, const_void_ptr, size_t);
+static void _sw_bufcpy_24s(void_ptr, const_void_ptr, size_t);
 #if 0
-static void _sw_bufcpy_32a(void_ptr, const_void_ptr, unsigned char, size_t)s;
+static void _sw_bufcpy_32a(void_ptr, const_void_ptr, size_t)s;
 #endif
-static void _sw_bufcpy_mulaw(void_ptr, const_void_ptr, unsigned char, size_t);
-static void _sw_bufcpy_alaw(void_ptr, const_void_ptr, unsigned char, size_t);
+static void _sw_bufcpy_mulaw(void_ptr, const_void_ptr, size_t);
+static void _sw_bufcpy_alaw(void_ptr, const_void_ptr, size_t);
 
 _batch_codec_proc _aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 {
@@ -114,7 +114,7 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
     * source buffer at the current source position
     */
    sptr = s + src_pos*sbps;
-   codecfn(dptr, sptr, sbps, new_len+ddesamps);
+   codecfn(dptr, sptr, new_len+ddesamps);
    dbuflen -= new_len;
 
    if (dbuflen && src_loops)
@@ -128,7 +128,7 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
        */
       new_len = (dbuflen > sbuflen) ? sbuflen : dbuflen;
       sptr = s + loop_start*sbps;
-      codecfn(dptr, sptr, sbps, new_len);
+      codecfn(dptr, sptr, new_len);
 
       dbuflen -= new_len;
       if (dbuflen)
@@ -155,7 +155,7 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
          else
          {
             sptr = s + loop_start*sbps;
-            codecfn(dptr, sptr, sbps, dbuflen);
+            codecfn(dptr, sptr, dbuflen);
          }
       }
    }
@@ -164,23 +164,20 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
 /* -------------------------------------------------------------------------- */
 
 static void
-_sw_bufcpy_8s(void *dst, const void *src, unsigned char sbps, size_t l)
+_sw_bufcpy_8s(void *dst, const void *src, size_t l)
 {
-   assert(sbps == 1);
    _batch_cvt24_8(dst, src, l);
 }
 
 static void
-_sw_bufcpy_16s(void *dst, const void *src, unsigned char sbps, size_t l)
+_sw_bufcpy_16s(void *dst, const void *src, size_t l)
 {
-   assert(sbps == 2);
    _batch_cvt24_16(dst, src, l);
 }
 
 static void
-_sw_bufcpy_24s(void *dst, const void *src, unsigned char sbps, size_t l)
+_sw_bufcpy_24s(void *dst, const void *src, size_t l)
 {
-   assert (sbps == 4);
    _batch_cvt24_24(dst, src, l);
 }
 
@@ -203,25 +200,22 @@ _mulaw2linear(uint8_t ulaw)
 }
 
 static void
-_sw_bufcpy_mulaw(void *dst, const void *src, unsigned char sbps, size_t l)
+_sw_bufcpy_mulaw(void *dst, const void *src, size_t l)
 {
-   if (sbps == 1)
-   {
-      int32_t *d = (int32_t *)dst;
-      uint8_t *s = (uint8_t *)src;
-      size_t i = l;
-      do {
-         /*
-          * Lookup tables for A-law and u-law look attractive, until you
-          * consider the impact on the CPU cache. If it causes a substantial
-          * area of your processor cache to get hit too often, cache sloshing
-          * will severely slow things down.
-          */
-//       *d++ = _mulaw2linear_table[*s++] << 8;
-         *d++ = _mulaw2linear(*s++) << 8;
-      }     
-      while (--i);
-   }
+   int32_t *d = (int32_t *)dst;
+   uint8_t *s = (uint8_t *)src;
+   size_t i = l;
+   do {
+      /*
+       * Lookup tables for A-law and u-law look attractive, until you
+       * consider the impact on the CPU cache. If it causes a substantial
+       * area of your processor cache to get hit too often, cache sloshing
+       * will severely slow things down.
+       */
+//    *d++ = _mulaw2linear_table[*s++] << 8;
+      *d++ = _mulaw2linear(*s++) << 8;
+   }     
+   while (--i);
 }
 
 #define ALAW_AMI_MASK   0x55
@@ -242,25 +236,22 @@ _alaw2linear(uint8_t alaw)
 }
 
 static void
-_sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, size_t l)
+_sw_bufcpy_alaw(void *dst, const void *src, size_t l)
 {
-   if (sbps == 1)
-   {
-      int32_t *d = (int32_t *)dst;
-      uint8_t *s = (uint8_t *)src;
-      size_t i = l;
-      do {
-         /*
-          * Lookup tables for A-law and u-law look attractive, until you
-          * consider the impact on the CPU cache. If it causes a substantial
-          * area of your processor cache to get hit too often, cache sloshing
-          * will severely slow things down.
-          */
-//       *d++ = _alaw2linear_table[*s++] << 8;
-         *d++ = _alaw2linear(*s++) << 8;
-      }
-      while (--i);
+   int32_t *d = (int32_t *)dst;
+   uint8_t *s = (uint8_t *)src;
+   size_t i = l;
+   do {
+      /*
+       * Lookup tables for A-law and u-law look attractive, until you
+       * consider the impact on the CPU cache. If it causes a substantial
+       * area of your processor cache to get hit too often, cache sloshing
+       * will severely slow things down.
+       */
+//    *d++ = _alaw2linear_table[*s++] << 8;
+      *d++ = _alaw2linear(*s++) << 8;
    }
+   while (--i);
 }
 
 /*
@@ -269,7 +260,7 @@ _sw_bufcpy_alaw(void *dst, const void *src, unsigned char sbps, size_t l)
  * l is the block length in samples;
  */
 void
-_sw_bufcpy_ima_adpcm(void *dst, const void *src, unsigned char sbps, size_t l)
+_sw_bufcpy_ima_adpcm(void *dst, const void *src, size_t l)
 {
    uint8_t *s = (uint8_t *)src;
    int16_t *d = (int16_t *)dst;
