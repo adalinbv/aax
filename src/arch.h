@@ -45,7 +45,7 @@ typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, size_t);
 typedef void (*_batch_cvt_from_intl_proc)(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 typedef void (*_batch_cvt_to_proc)(void_ptr, const_void_ptr, size_t);
 typedef void (*_batch_cvt_to_intl_proc)(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
-typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, unsigned char, size_t);
+typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, size_t);
 
 
 typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, size_t, float, float);
