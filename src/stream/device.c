@@ -165,6 +165,7 @@ static void* _aaxStreamDriverReadThread(void*);
 static void _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
 static const char *_get_json(const char*, const char*);
+static char *strnstr(const char*, const char*, size_t);
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
 
@@ -499,7 +500,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                      handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
 
                      s = _get_json(buf, "content-length");
-                     if (s) handle->no_bytes = atoi(s);
+                     if (s) handle->no_bytes = strtol(s, NULL, 10);
 
                      s = _get_json(buf, "content-type");
                      if (s && !strcasecmp(s, "audio/mpeg"))
@@ -533,8 +534,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         s = _get_json(buf, "icy-metaint");
                         if (s)
                         {
-                           handle->meta_interval = atoi(s);
+                           errno = 0;
+                           handle->meta_interval = strtol(s, NULL, 10);
                            handle->meta_pos = 0;
+                           if (errno == ERANGE) {
+                              _AAX_SYSLOG("stream meta out of range");
+                           }
                         }
                      }
                   }
@@ -1051,7 +1056,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
    {
       switch(param)
       {
-		/* float */
+      /* float */
       case DRIVER_LATENCY:
          rv = handle->latency;
          break;
@@ -1065,7 +1070,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 1.0f;
          break;
 
-		/* int */
+      /* int */
       case DRIVER_MIN_FREQUENCY:
          rv = 8000.0f;
          break;
@@ -1089,7 +1094,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->no_samples;
          break;
 
-		/* boolean */
+      /* boolean */
       case DRIVER_SEEKABLE_SUPPORT:
          if (handle->fmt->get_param(handle->fmt->id, __F_POSITION) != 0) {
             rv =  (float)AAX_TRUE;
@@ -1270,7 +1275,7 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       if (ptr)
       {
          *ptr++ = '\0';
-         *port = atoi(ptr);
+         *port = strtol(ptr, NULL, 10);
       }
    }
    if ((*protocol && !strcasecmp(*protocol, "http")) || *server) {
@@ -1369,6 +1374,39 @@ http_get_response(_io_t *io, int fd, char *buf, int size)
    }
 
    return rv;
+}
+
+/*
+ * Taken from FreeBSD:
+ * http://src.gnu-darwin.org/src/lib/libc/string/strnstr.c.html
+ */
+static char *
+strnstr(const char *s, const char *find, size_t slen)
+{
+   char c, sc;
+   size_t len;
+
+   if ((c = *find++) != '\0')
+   {
+      len = strlen(find);
+      do
+      {
+         do
+         {
+            if (slen-- < 1 || (sc = *s++) == '\0') {
+               return (NULL);
+            }
+         }
+         while (sc != c);
+
+         if (len > slen) {
+            return (NULL);
+         }
+      }
+      while (strncmp(s, find, len) != 0);
+      s--;
+   }
+   return ((char *)s);
 }
 
 static const char*
@@ -1612,14 +1650,14 @@ _aaxStreamDriverReadChunk(const void *id)
                break;
             }
 
-            if (slen)
+            if (slen > strlen("StreamTitle=''"))
             {
                char *artist = ptr+1 + strlen("StreamTitle='");
                if (artist)
                {
-                  char *title = strstr(artist, " - ");
-                  char *end = strstr(artist, "\';");
-                  if (!end) end = strstr(artist, "\'\0");
+                  char *title = strnstr(artist, " - ", slen);
+                  char *end = strnstr(artist, "\';", slen);
+                  if (!end) end = strnstr(artist, "\'\0", slen);
                   if (title)
                   {
                      *title = '\0';
@@ -1652,10 +1690,10 @@ _aaxStreamDriverReadChunk(const void *id)
                }
             }
 
-            slen++;	// dd the slen-byte itself
+            slen++;	// add the slen-byte itself
             handle->meta_pos -= (handle->meta_interval+slen);
 
-            /* move the rest of the buffer len-bytes back */
+            /* move the rest of the buffer slen-bytes back */
             handle->bytes_avail -= slen;
             blen = handle->bytes_avail;
             blen -= (ptr - (char*)handle->buf);

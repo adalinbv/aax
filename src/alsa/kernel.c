@@ -1600,7 +1600,7 @@ detect_cardnum(const char *devname)
    int rv = _kernel_default_cardnum;
 
    if (devname && !strncasecmp(devname, "/dev/snd/pcmC", 13) ) {
-       rv = atoi(devname+13);
+       rv = strtol(devname+13, NULL, 10);
    }
    else if (devname && strcasecmp(devname, "Linux") &&
                        strcasecmp(devname, "default"))
