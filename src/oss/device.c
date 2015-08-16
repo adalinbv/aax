@@ -1280,7 +1280,7 @@ detect_nodenum(const char *devname)
    int rv = _oss_default_nodenum;
 
    if (devname && !strncasecmp(devname, "/dev/dsp", 8) ) {
-       rv = atoi(devname+8);
+       rv = strtol(devname+8, NULL, 10);
    }
    else if (devname && strcasecmp(devname, "OSS") &&
                        strcasecmp(devname, "default"))
