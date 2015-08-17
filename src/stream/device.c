@@ -1673,8 +1673,11 @@ _aaxStreamDriverReadChunk(const void *id)
                      memcpy(handle->artist+1, artist, len);
                      handle->artist[len] = '\0';
                      handle->artist[0] = AAX_TRUE;
-                  } else {
-                     handle->artist[0] = '\0';
+                  }
+                  else if (handle->artist[1] != '\0')
+                  {
+                     handle->artist[1] = '\0';
+                     handle->artist[0] = AAX_TRUE;
                   }
 
                   if (title && end)
@@ -1683,8 +1686,11 @@ _aaxStreamDriverReadChunk(const void *id)
                      memcpy(handle->title+1, title, len);
                      handle->title[len] = '\0';
                      handle->title[0] = AAX_TRUE;
-                  } else {
-                     handle->title[0] = '\0';
+                  }
+                  else if (handle->title[1] != '\0')
+                  {
+                     handle->title[1] = '\0';
+                     handle->title[0] = AAX_TRUE;
                   }
                   handle->metadata_changed = AAX_TRUE;
                }
