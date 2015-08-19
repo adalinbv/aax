@@ -508,7 +508,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         s = _get_json(buf, "icy-name");
                         if (s)
                         {
-                           int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
+                           int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
                            memcpy(handle->artist+1, s, len);
                            handle->artist[len] = '\0';
                            handle->artist[0] = AAX_TRUE;
@@ -518,7 +518,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         s = _get_json(buf, "icy-description");
                         if (s)
                         {
-                           int len = _MAX(strlen(s)+1, MAX_ID_STRLEN);
+                           int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
                            memcpy(handle->title+1, s, len);
                            handle->title[len] = '\0';
                            handle->title[0] = AAX_TRUE;
@@ -1635,7 +1635,7 @@ _aaxStreamDriverReadChunk(const void *id)
       if (handle->meta_interval)
       {
          handle->meta_pos += res;
-         while ((int)handle->meta_pos >= (int)handle->meta_interval)
+         while (handle->meta_pos > handle->meta_interval)
          {
             size_t offs = handle->meta_pos - handle->meta_interval;
             char *ptr = (char*)handle->buf;
@@ -1645,8 +1645,7 @@ _aaxStreamDriverReadChunk(const void *id)
             ptr -= offs;
 
             slen = *ptr * 16;
-
-            if ((ptr+slen) >= ((char*)handle->buf+IOBUF_THRESHOLD)) {
+            if ((size_t)(ptr+slen) >= (size_t)(handle->buf+IOBUF_THRESHOLD)) {
                break;
             }
 
@@ -1669,7 +1668,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
                   if (artist && end)
                   {
-                     int len = _MAX(strlen(artist)+1, MAX_ID_STRLEN);
+                     int len = _MIN(strlen(artist)+1, MAX_ID_STRLEN);
                      memcpy(handle->artist+1, artist, len);
                      handle->artist[len] = '\0';
                      handle->artist[0] = AAX_TRUE;
@@ -1682,7 +1681,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
                   if (title && end)
                   {
-                     int len = _MAX(strlen(title)+1, MAX_ID_STRLEN);
+                     int len = _MIN(strlen(title)+1, MAX_ID_STRLEN);
                      memcpy(handle->title+1, title, len);
                      handle->title[len] = '\0';
                      handle->title[0] = AAX_TRUE;
@@ -1703,6 +1702,7 @@ _aaxStreamDriverReadChunk(const void *id)
             handle->bytes_avail -= slen;
             blen = handle->bytes_avail;
             blen -= (ptr - (char*)handle->buf);
+
             memmove(ptr, ptr+slen, blen);
          }
       }
