@@ -84,11 +84,10 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
       int streaming;
 
       rv = AAX_TRUE;
-
       nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
       assert(nbuf > 0);
 
-      streaming = (nbuf > 1);
+      streaming = (nbuf > 1) ? AAX_TRUE : AAX_FALSE;
       dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
                                            src->buffer_pos);
       if (dptr_sbuf)
@@ -337,7 +336,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
  PRINT_MATRIX(edp3d_m->velocity);
  printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 # else
- printf("doppler: %f, ve: %f, vs: %f\r", df, ve, vs/sdf);
+ printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
 # endif
 #endif
          pitch *= df;
