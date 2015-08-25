@@ -102,6 +102,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type)
       filter->param[AAX_INNER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_GAIN] = 1.0f;
+      filter->param[AAX_FORWARD_GAIN] = 1.0f;
       filter->state = AAX_TRUE;
       break;
    default:
@@ -140,7 +141,7 @@ const _flt_minmax_tbl_t _flt_minmax_tbl[_MAX_FE_SLOTS][AAX_FILTER_MAX] =
     /* AAX_TIMED_GAIN_FILTER */
     { {  0.0f,  0.0f, 0.0f, 0.0f }, {     4.0f, MAXFLOAT,  4.0f, MAXFLOAT } },
     /* AAX_ANGULAR_FILTER   */
-    { { -1.0f, -1.0f, 0.0f, 0.0f }, {     1.0f,     1.0f,  1.0f,     0.0f } },
+    { { -1.0f, -1.0f, 0.0f, 0.0f }, {     1.0f,     1.0f,  1.0f,     1.0f } },
     /* AAX_DISTANCE_FILTER  */
     { {  0.0f,  0.1f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT,  1.0f,     0.0f } },
     /* AAX_FREQUENCY_FILTER */

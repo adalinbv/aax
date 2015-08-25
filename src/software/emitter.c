@@ -416,15 +416,20 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
       /*
        * audio cone recalculaion
+       * version 2.6 adds forward gain which allows for donut shaped cones
        */
       if (_PROP3D_CONE_IS_DEFINED(edp3d))
       {
-         float inner_vec, tmp = -edp3d_m->matrix[DIR_BACK][2];
+         float tmp, forward_gain, inner_vec, cone_volume = 1.0f;
 
+         forward_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_FORWARD_GAIN);
          inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
+         tmp = -edp3d_m->matrix[DIR_BACK][2];
+
          if (tmp < inner_vec)
          {
-            float outer_vec, outer_gain, cone_volume;
+            float outer_vec, outer_gain;
+
             outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
             outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
             if (outer_vec < tmp)
@@ -436,8 +441,15 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             } else {
                cone_volume = outer_gain;
             }
-            gain *= cone_volume;
          }
+         else if (forward_gain != 1.0f)
+         {
+            tmp -= inner_vec;
+
+            tmp /= (1.0f - inner_vec);
+            cone_volume = (1.0f - tmp) + tmp*forward_gain;
+         }
+         gain *= cone_volume;
       }
 
       min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
