@@ -2,6 +2,7 @@
 - AeonWave (2.6.0) stable; urgency=low
  * Rewrote the loop-point and buffer switching code for better loop handling.
  * Don't use hardware volume when the number of subdevices exceeds 1 for ALSA.
+ * Add a AAX_FORWARD_GAIN parameter for donut shaped sound distribution.
  * A major overhaul of the frequency filter
    - Speed up the filter execution time.
    - Add support for 6db/oct, 24dB/oct, 36dB/oct and 48dB/oct filtering,
