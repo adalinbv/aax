@@ -260,7 +260,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          else _aaxErrorSet(AAX_INVALID_STATE);
          break;
       case AAX_NO_SAMPLES:
-          if (buf->frequency)
+         if (buf->frequency)
          {
             float fact = 1.0f;
             if (rb) {
