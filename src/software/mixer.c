@@ -395,27 +395,28 @@ _aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, co
    float gain;
    int res;
 
-   /** play back all mixed audio */
-   gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+   /** create a new ringbuffer when capturing */
    if TEST_FOR_TRUE(capturing)
    {
       _intBuffers *mixer_ringbuffers = (_intBuffers*)ringbuffers;
       _aaxRingBuffer *new_rb;
 
       new_rb = dest_rb->duplicate(dest_rb, AAX_TRUE, AAX_FALSE);
-
-      dest_rb->set_state(new_rb, RB_REWINDED);
-      _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
-
+      new_rb->set_state(new_rb, RB_REWINDED);
       dest_rb = new_rb;
+
+      _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, dest_rb);
    }
 
    // NOTE: File backend must be first, it's the only backend that
    //       converts the buffer back to floats when done!
+   gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (fbe)	/* slaved file-out backend */
    {
       fbe->play(fbe_handle, dest_rb, 1.0f, gain, batched);
    }
+
+   /** play back all mixed audio */
    res = be->play(be_handle, dest_rb, 1.0f, gain, batched);
 
    return res;
