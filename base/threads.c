@@ -528,7 +528,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
    int rv;
 
-   if (!signal->triggered)
+   if (!signal->triggered && timeout > 0.0f)
    {
       _aaxMutex *m = (_aaxMutex *)signal->mutex;
       struct timespec ts;
@@ -568,7 +568,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          break;
       }
    }
-   else
+   else if (signal->triggered > 0)
    {
       signal->triggered--;
       rv = AAX_TRUE;
@@ -1127,7 +1127,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
    int rv;
 
-   if (!signal->triggered)
+   if (!signal->triggered && timeout > 0.0f)
    {
       _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
       DWORD hr;
@@ -1162,7 +1162,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          rv = AAX_TIMEOUT;
       }
    }
-   else
+   else if (signal->triggered > 0)
    {
       signal->triggered--;
       rv = AAX_TRUE;
