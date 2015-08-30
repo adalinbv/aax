@@ -234,7 +234,10 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
                handle->devname[1] = ptr+4;	/* 4 = strlen(" on ") */
 
                if (!strcasecmp(handle->devname[0], "Generic Software") ||
-                   !strcasecmp(handle->devname[0], "Generic Hardware"))
+                   !strcasecmp(handle->devname[0], "Generic Hardware") ||
+                   !strcasecmp(handle->devname[0], "DirectSound3D") ||
+                   !strcasecmp(handle->devname[0], "DirectSound") ||
+                   !strcasecmp(handle->devname[0], "MMSYSTEM"))
                {
                   // strlen("WASAPI") is always less than
                   // strlen("Generic Hardware")
