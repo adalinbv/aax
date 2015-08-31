@@ -1,4 +1,4 @@
-* Fri May 29  2015 - tech@adalin.org
+* Mon Aug 31  2015 - tech@adalin.org
 - AeonWave (2.6.0) stable; urgency=low
  * Rewrote the loop-point and buffer switching code for better loop handling.
  * Don't use hardware volume when the number of subdevices exceeds 1 for ALSA.
@@ -21,7 +21,7 @@
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.
 
--- Erik Hofman <tech@adalin.org>  Fri, 29 May  2015 13:51:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon, 31 Aug  2015 17:53:00 + 0200
 
 * Wed Mar 25 2015 - tech@adalin.org
 - AeonWave (2.5.3) stable; urgency=low
