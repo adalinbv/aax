@@ -526,7 +526,7 @@ _aaxSignalWait(_aaxSignal *signal)
 int
 _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
-   int rv;
+   int rv = AAX_FALSE;
 
    if (!signal->triggered && timeout > 0.0f)
    {
@@ -1125,7 +1125,7 @@ _aaxSignalWait(_aaxSignal *signal)
 int
 _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
-   int rv;
+   int rv = AAX_FALSE;
 
    if (!signal->triggered && timeout > 0.0f)
    {
