@@ -258,6 +258,20 @@ _aaxNewDynamicGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aa
    return rv;
 }
 
+float
+_aaxDynamicGainFilterSet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
+float
+_aaxDynamicGainFilterGet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxDynamicGainFilter =
@@ -267,6 +281,8 @@ _flt_function_tbl _aaxDynamicGainFilter =
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
    (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewDynamicGainFilterHandle
+   (_aaxNewFilterHandle*)&_aaxNewDynamicGainFilterHandle,
+   (_aaxFilterConvert*)&_aaxDynamicGainFilterSet,
+   (_aaxFilterConvert*)&_aaxDynamicGainFilterGet
 };
 

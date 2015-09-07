@@ -117,6 +117,20 @@ _aaxNewDistanceFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2d
    return rv;
 }
 
+float
+_aaxDistanceFilterSet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
+float
+_aaxDistanceFilterGet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxDistanceFilter =
@@ -126,7 +140,9 @@ _flt_function_tbl _aaxDistanceFilter =
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
    (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewDistanceFilterHandle
+   (_aaxNewFilterHandle*)&_aaxNewDistanceFilterHandle,
+   (_aaxFilterConvert*)&_aaxDistanceFilterSet,
+   (_aaxFilterConvert*)&_aaxDistanceFilterGet
 };
 
 
