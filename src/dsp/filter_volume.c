@@ -96,6 +96,26 @@ _aaxNewVolumeFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dPr
    return rv;
 }
 
+float
+_aaxVolumeFilterSet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+
+float
+_aaxVolumeFilterGet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxVolumeFilter =
@@ -105,6 +125,8 @@ _flt_function_tbl _aaxVolumeFilter =
    (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
    (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
    (_aaxFilterSetState*)&_aaxVolumeFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle
+   (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle,
+   (_aaxFilterConvert*)&_aaxVolumeFilterSet,
+   (_aaxFilterConvert*)&_aaxVolumeFilterGet
 };
 

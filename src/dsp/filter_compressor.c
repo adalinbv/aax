@@ -215,8 +215,6 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
 static _filter_t*
 _aaxNewCompressorHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
@@ -244,6 +242,20 @@ _aaxNewCompressorHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProp
    return rv;
 }
 
+float
+_aaxCompressorSet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
+float
+_aaxCompressorGet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxCompressor =
@@ -253,6 +265,8 @@ _flt_function_tbl _aaxCompressor =
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,
    (_aaxFilterSetState*)&_aaxCompressorSetState,
-   (_aaxNewFilterHandle*)&_aaxNewCompressorHandle
+   (_aaxNewFilterHandle*)&_aaxNewCompressorHandle,
+   (_aaxFilterConvert*)&_aaxCompressorSet,
+   (_aaxFilterConvert*)&_aaxCompressorGet
 };
 
