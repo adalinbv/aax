@@ -214,6 +214,26 @@ _aaxNewTimedGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
    return rv;
 }
 
+float
+_aaxTimedGainFilterSet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+
+float
+_aaxTimedGainFilterGet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxTimedGainFilter =
@@ -223,6 +243,8 @@ _flt_function_tbl _aaxTimedGainFilter =
    (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,
    (_aaxFilterSetState*)&_aaxTimedGainFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewTimedGainFilterHandle
+   (_aaxNewFilterHandle*)&_aaxNewTimedGainFilterHandle,
+   (_aaxFilterConvert*)&_aaxTimedGainFilterSet,
+   (_aaxFilterConvert*)&_aaxTimedGainFilterGet
 };
 

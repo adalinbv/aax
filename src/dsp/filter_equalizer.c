@@ -283,6 +283,21 @@ _aaxNewEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps
    return rv;
 }
 
+float
+_aaxEqualizerSet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
+float
+_aaxEqualizerGet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxEqualizer =
@@ -292,6 +307,8 @@ _flt_function_tbl _aaxEqualizer =
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,
    (_aaxFilterSetState*)&_aaxEqualizerSetState,
-   (_aaxNewFilterHandle*)&_aaxNewEqualizerHandle
+   (_aaxNewFilterHandle*)&_aaxNewEqualizerHandle,
+   (_aaxFilterConvert*)&_aaxEqualizerSet,
+   (_aaxFilterConvert*)&_aaxEqualizerGet
 };
 
