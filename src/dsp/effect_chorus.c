@@ -248,6 +248,26 @@ _aaxNewChorusEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
    return rv;
 }
 
+float
+_aaxChorusEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+   
+float
+_aaxChorusEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxChorusEffect =
@@ -257,6 +277,8 @@ _eff_function_tbl _aaxChorusEffect =
    (_aaxEffectCreate*)&_aaxChorusEffectCreate,
    (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,
    (_aaxEffectSetState*)&_aaxChorusEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewChorusEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewChorusEffectHandle,
+   (_aaxEffectConvert*)&_aaxChorusEffectSet,
+   (_aaxEffectConvert*)&_aaxChorusEffectGet
 };
 
