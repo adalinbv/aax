@@ -72,8 +72,6 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
    return effect;
 }
 
-/* -------------------------------------------------------------------------- */
-
 static _effect_t*
 _aaxNewPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
@@ -98,6 +96,20 @@ _aaxNewPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPro
    return rv;
 }
 
+float
+_aaxPitchEffectSet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
+float
+_aaxPitchEffectGet(float val, int ptype, char param)
+{
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxPitchEffect =
@@ -107,6 +119,8 @@ _eff_function_tbl _aaxPitchEffect =
    (_aaxEffectCreate*)&_aaxPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxPitchEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewPitchEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewPitchEffectHandle,
+   (_aaxEffectConvert*)&_aaxPitchEffectSet,
+   (_aaxEffectConvert*)&_aaxPitchEffectGet
 };
 

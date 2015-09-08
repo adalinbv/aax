@@ -95,6 +95,20 @@ _aaxNewVelocityEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
    return rv;
 }
 
+float
+_aaxVelocityEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+   
+float
+_aaxVelocityEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxVelocityEffect =
@@ -104,6 +118,8 @@ _eff_function_tbl _aaxVelocityEffect =
    (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
    (_aaxEffectSetState*)&_aaxVelocityEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle,
+   (_aaxEffectConvert*)&_aaxVelocityEffectSet,
+   (_aaxEffectConvert*)&_aaxVelocityEffectGet
 };
 
