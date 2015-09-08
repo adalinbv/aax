@@ -247,6 +247,26 @@ _aaxNewPhasingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dP
    return rv;
 }
 
+float
+_aaxPhasingEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+   
+float
+_aaxPhasingEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxPhasingEffect =
@@ -256,6 +276,8 @@ _eff_function_tbl _aaxPhasingEffect =
    (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
    (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
    (_aaxEffectSetState*)&_aaxPhasingEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewPhasingEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewPhasingEffectHandle,
+   (_aaxEffectConvert*)&_aaxPhasingEffectSet,
+   (_aaxEffectConvert*)&_aaxPhasingEffectGet
 };
 

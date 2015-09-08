@@ -85,7 +85,7 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
                float min = _flt_minmax_tbl[slot][type].min[i];
                float max = _flt_minmax_tbl[slot][type].max[i];
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-               filter->slot[slot]->param[i] = _MINMAX(flt->get(p[i], ptype,i), min, max);
+               filter->slot[slot]->param[i] = _MINMAX(flt->get(p[i], ptype, i), min, max);
             }
          }
          if TEST_FOR_TRUE(filter->state) {
