@@ -194,6 +194,20 @@ _aaxNewDynamicPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _a
    return rv;
 }
 
+float
+_aaxDynamicPitchEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+   
+float
+_aaxDynamicPitchEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxDynamicPitchEffect =
@@ -203,6 +217,8 @@ _eff_function_tbl _aaxDynamicPitchEffect =
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxDynamicPitchEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle,
+   (_aaxEffectConvert*)&_aaxDynamicPitchEffectSet,
+   (_aaxEffectConvert*)&_aaxDynamicPitchEffectGet
 };
 
