@@ -248,8 +248,8 @@ _aaxNewChorusEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
    return rv;
 }
 
-float
-_aaxChorusEffectSet(float val, int ptype, char param)
+static float
+_aaxChorusEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
@@ -258,14 +258,31 @@ _aaxChorusEffectSet(float val, int ptype, char param)
    return rv;
 }
    
-float
-_aaxChorusEffectGet(float val, int ptype, char param)
+static float
+_aaxChorusEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
       rv = _db2lin(val);
    }
    return rv;
+}
+
+static float
+_aaxChorusEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxChorusRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 1.0f, 10.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
+   };
+
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+
+   return _MINMAX(val, _aaxChorusRange[slot].min[param],
+                       _aaxChorusRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -279,6 +296,7 @@ _eff_function_tbl _aaxChorusEffect =
    (_aaxEffectSetState*)&_aaxChorusEffectSetState,
    (_aaxNewEffectHandle*)&_aaxNewChorusEffectHandle,
    (_aaxEffectConvert*)&_aaxChorusEffectSet,
-   (_aaxEffectConvert*)&_aaxChorusEffectGet
+   (_aaxEffectConvert*)&_aaxChorusEffectGet,
+   (_aaxEffectConvert*)&_aaxChorusEffectMinMax
 };
 

@@ -30,6 +30,8 @@
 #include "filters.h"
 #include "api.h"
 
+static float _aaxCompressorMinMax(float, int, unsigned char);
+
 static aaxFilter
 _aaxCompressorCreate(_handle_t *handle, enum aaxFilterType type)
 {
@@ -133,22 +135,18 @@ _aaxCompressorSetState(_filter_t* filter, int state)
                if (filter->type == AAX_COMPRESSOR)
                {		// 10dB
                   float dt = 3.16228f/filter->info->period_rate;
-                  float min, max, rate;
+                  float rate;
 
                   /*
                    * We're implementing an upward dynamic range
                    * compressor, which means that attack is down!
                    */
-                  min = _flt_minmax_tbl[0][AAX_COMPRESSOR].min[AAX_RELEASE_RATE];
-                  max = _flt_minmax_tbl[0][AAX_COMPRESSOR].max[AAX_RELEASE_RATE];
                   rate = filter->slot[0]->param[AAX_RELEASE_RATE];
-                  rate = _MINMAX(rate, min, max);
+                  rate = _aaxCompressorMinMax(rate, 0, AAX_RELEASE_RATE);
                   lfo->step[t] = _MIN(dt/rate, 2.0f);
 
-                  min = _flt_minmax_tbl[0][AAX_COMPRESSOR].min[AAX_ATTACK_RATE];
-                  max = _flt_minmax_tbl[0][AAX_COMPRESSOR].max[AAX_ATTACK_RATE];
                   rate = filter->slot[0]->param[AAX_ATTACK_RATE];
-                  rate = _MINMAX(rate, min, max);
+                  rate = _aaxCompressorMinMax(rate, 0, AAX_ATTACK_RATE);
                   lfo->down[t] = _MIN(dt/rate, 2.0f);
                }
                else {
@@ -169,18 +167,14 @@ _aaxCompressorSetState(_filter_t* filter, int state)
                if (filter->type == AAX_COMPRESSOR)
                {
                   float dt = 1.0f/filter->info->period_rate;
-                  float min, max, f;
+                  float f;
 
-                  min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_PERIOD & 0xF];
-                  max = _flt_minmax_tbl[1][AAX_COMPRESSOR].max[AAX_GATE_PERIOD & 0xF];
                   f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
-                  f = _MINMAX(f, min, max);
+                  f = _aaxCompressorMinMax(f, 1, AAX_GATE_PERIOD & 0xF);
                   lfo->gate_period = GMATH_E1 * _MIN(dt/f, 2.0f);
 
-                  min = _flt_minmax_tbl[1][AAX_COMPRESSOR].min[AAX_GATE_THRESHOLD & 0xF];            
-                  max = _flt_minmax_tbl[1][AAX_COMPRESSOR].max[AAX_GATE_THRESHOLD & 0xF];
                   f = filter->slot[1]->param[AAX_GATE_THRESHOLD & 0xF];
-                  f = _MINMAX(f, min, max);
+                  f = _aaxCompressorMinMax(f, 1, AAX_GATE_THRESHOLD & 0xF);
                   lfo->gate_threshold = f;
 
                   lfo->get = _aaxRingBufferLFOGetCompressor;
@@ -242,18 +236,35 @@ _aaxNewCompressorHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProp
    return rv;
 }
 
-float
-_aaxCompressorSet(float val, int ptype, char param)
+static float
+_aaxCompressorSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    return rv;
 }
 
-float
-_aaxCompressorGet(float val, int ptype, char param)
+static float
+_aaxCompressorGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    return rv;
+}
+
+static float
+_aaxCompressorMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxCompressorRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 1e-3f, 1e-3f, 0.0f, 0.0f }, { 0.25f, 10.0f, 1.0f, 1.0f } },
+    { {  0.0f, 1e-3f, 0.0f, 0.0f }, { 0.0f,  10.0f, 0.0f, 1.0f } },
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } }
+   };
+
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+
+   return _MINMAX(val, _aaxCompressorRange[slot].min[param],
+                       _aaxCompressorRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -267,6 +278,7 @@ _flt_function_tbl _aaxCompressor =
    (_aaxFilterSetState*)&_aaxCompressorSetState,
    (_aaxNewFilterHandle*)&_aaxNewCompressorHandle,
    (_aaxFilterConvert*)&_aaxCompressorSet,
-   (_aaxFilterConvert*)&_aaxCompressorGet
+   (_aaxFilterConvert*)&_aaxCompressorGet,
+   (_aaxFilterConvert*)&_aaxCompressorMinMax
 };
 

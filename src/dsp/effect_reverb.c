@@ -206,18 +206,35 @@ _aaxNewReverbEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
    return rv;
 }
 
-float
-_aaxReverbEffectSet(float val, int ptype, char param)
+static float
+_aaxReverbEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
 }
    
-float
-_aaxReverbEffectGet(float val, int ptype, char param)
+static float
+_aaxReverbEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
+}
+
+static float
+_aaxReverbEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f, 0.07f, 1.0f, 0.7f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxReverbRange[slot].min[param],
+                       _aaxReverbRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -231,6 +248,7 @@ _eff_function_tbl _aaxReverbEffect =
    (_aaxEffectSetState*)&_aaxReverbEffectSetState,
    (_aaxNewEffectHandle*)&_aaxNewReverbEffectHandle,
    (_aaxEffectConvert*)&_aaxReverbEffectSet,
-   (_aaxEffectConvert*)&_aaxReverbEffectGet
+   (_aaxEffectConvert*)&_aaxReverbEffectGet,
+   (_aaxEffectConvert*)&_aaxReverbEffectMinMax
 };
 

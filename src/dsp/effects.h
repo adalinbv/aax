@@ -69,7 +69,7 @@ typedef aaxEffect _aaxEffectCreate(_handle_t*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef _effect_t* _aaxNewEffectHandle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
-typedef float _aaxEffectConvert(float, int, char);
+typedef float _aaxEffectConvert(float, int, unsigned char);
 
 typedef struct
 {
@@ -83,6 +83,7 @@ typedef struct
 
    _aaxEffectConvert *set;
    _aaxEffectConvert *get;
+   _aaxEffectConvert *limit;
 
 } _eff_function_tbl;
 

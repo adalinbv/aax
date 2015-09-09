@@ -214,18 +214,35 @@ _aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
    return rv;
 }
 
-float
-_aaxTimedPitchEffectSet(float val, int ptype, char param)
+static float
+_aaxTimedPitchEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
 }
    
-float
-_aaxTimedPitchEffectGet(float val, int ptype, char param)
+static float
+_aaxTimedPitchEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
+}
+
+static float
+_aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxTimedPitchRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, MAXFLOAT, 4.0f, MAXFLOAT } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxTimedPitchRange[slot].min[param],
+                       _aaxTimedPitchRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -239,6 +256,7 @@ _eff_function_tbl _aaxTimedPitchEffect =
    (_aaxEffectSetState*)&_aaxTimedPitchEffectSetState,
    (_aaxNewEffectHandle*)&_aaxNewTimedPitchEffectHandle,
    (_aaxEffectConvert*)&_aaxTimedPitchEffectSet,
-   (_aaxEffectConvert*)&_aaxTimedPitchEffectGet
+   (_aaxEffectConvert*)&_aaxTimedPitchEffectGet,
+   (_aaxEffectConvert*)&_aaxTimedPitchEffectMinMax
 };
 

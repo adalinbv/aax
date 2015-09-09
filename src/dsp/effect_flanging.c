@@ -250,8 +250,8 @@ _aaxNewFlangingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
    return rv;
 }
 
-float
-_aaxFlangingEffectSet(float val, int ptype, char param)
+static float
+_aaxFlangingEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
@@ -260,14 +260,31 @@ _aaxFlangingEffectSet(float val, int ptype, char param)
    return rv;
 }
    
-float
-_aaxFlangingEffectGet(float val, int ptype, char param)
+static float
+_aaxFlangingEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
       rv = _db2lin(val);
    }
    return rv;
+}
+
+static float
+_aaxFlangingEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxFlangingRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 1.0f, 10.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxFlangingRange[slot].min[param],
+                       _aaxFlangingRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -281,6 +298,7 @@ _eff_function_tbl _aaxFlangingEffect =
    (_aaxEffectSetState*)&_aaxFlangingEffectSetState,
    (_aaxNewEffectHandle*)&_aaxNewFlangingEffectHandle,
    (_aaxEffectConvert*)&_aaxFlangingEffectSet,
-   (_aaxEffectConvert*)&_aaxFlangingEffectGet
+   (_aaxEffectConvert*)&_aaxFlangingEffectGet,
+   (_aaxEffectConvert*)&_aaxFlangingEffectMinMax
 };
 

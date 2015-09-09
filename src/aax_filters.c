@@ -77,15 +77,14 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
    {
       if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
-         int i, type = filter->type;
+         int i;
          for (i=0; i<4; i++)
          {
             if (!is_nan(p[i]))
             {
-               float min = _flt_minmax_tbl[slot][type].min[i];
-               float max = _flt_minmax_tbl[slot][type].max[i];
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-               filter->slot[slot]->param[i] = _MINMAX(flt->get(p[i], ptype, i), min, max);
+               filter->slot[slot]->param[i] =
+                                  flt->limit(flt->get(p[i], ptype, i), slot, i);
             }
          }
          if TEST_FOR_TRUE(filter->state) {
@@ -159,15 +158,13 @@ aaxFilterSetState(aaxFilter f, int state)
          slot = 0;
          while ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
          {
-            int i, type = filter->type;
+            int i;
             for(i=0; i<4; i++)
             {
                if (!is_nan(filter->slot[slot]->param[i]))
                {
-                  float min = _flt_minmax_tbl[slot][type].min[i];
-                  float max = _flt_minmax_tbl[slot][type].max[i];
                   filter->slot[slot]->param[i] =
-                                _MINMAX(filter->slot[slot]->param[i], min, max);
+                              flt->limit(filter->slot[slot]->param[i], slot, i);
                }
             }
             slot++;
