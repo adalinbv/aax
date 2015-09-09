@@ -94,6 +94,36 @@ _aaxNewAngularFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dP
    return rv;
 }
 
+float
+_aaxAngularFilterSet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (param < 2)
+   {
+      if (ptype == AAX_DEGREES) {
+         rv = _cos_deg2rad_2(val);
+      } else {
+         rv = _cos_2(val);
+      }
+   }
+   return rv;
+}
+
+float
+_aaxAngularFilterGet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (param < 2)
+   {
+      if (ptype == AAX_DEGREES) {
+         rv = _2acos_rad2deg(val);
+      } else {
+         rv = _2acos(val);
+      }
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxAngularFilter =
@@ -103,6 +133,8 @@ _flt_function_tbl _aaxAngularFilter =
    (_aaxFilterCreate*)&_aaxAngularFilterCreate,
    (_aaxFilterDestroy*)&_aaxAngularFilterDestroy,
    (_aaxFilterSetState*)&_aaxAngularFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewAngularFilterHandle
+   (_aaxNewFilterHandle*)&_aaxNewAngularFilterHandle,
+   (_aaxFilterConvert*)&_aaxAngularFilterSet,
+   (_aaxFilterConvert*)&_aaxAngularFilterGet
 };
 

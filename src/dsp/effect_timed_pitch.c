@@ -214,6 +214,20 @@ _aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
    return rv;
 }
 
+float
+_aaxTimedPitchEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+   
+float
+_aaxTimedPitchEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxTimedPitchEffect =
@@ -223,6 +237,8 @@ _eff_function_tbl _aaxTimedPitchEffect =
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxTimedPitchEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewTimedPitchEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewTimedPitchEffectHandle,
+   (_aaxEffectConvert*)&_aaxTimedPitchEffectSet,
+   (_aaxEffectConvert*)&_aaxTimedPitchEffectGet
 };
 

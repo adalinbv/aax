@@ -159,8 +159,6 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
    return rv;
 }
 
-/* -------------------------------------------------------------------------- */
-
 static _filter_t*
 _aaxNewGraphicEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
@@ -191,6 +189,26 @@ _aaxNewGraphicEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax
    return rv;
 }
 
+float
+_aaxGraphicEqualizerSet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+
+float
+_aaxGraphicEqualizerGet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxGraphicEqualizer =
@@ -200,6 +218,8 @@ _flt_function_tbl _aaxGraphicEqualizer =
    (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,
    (_aaxFilterSetState*)&_aaxGraphicEqualizerSetState,
-   (_aaxNewFilterHandle*)&_aaxNewGraphicEqualizerHandle
+   (_aaxNewFilterHandle*)&_aaxNewGraphicEqualizerHandle,
+   (_aaxFilterConvert*)&_aaxGraphicEqualizerSet,
+   (_aaxFilterConvert*)&_aaxGraphicEqualizerGet
 };
 

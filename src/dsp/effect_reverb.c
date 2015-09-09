@@ -206,6 +206,20 @@ _aaxNewReverbEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dPr
    return rv;
 }
 
+float
+_aaxReverbEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+   
+float
+_aaxReverbEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxReverbEffect =
@@ -215,6 +229,8 @@ _eff_function_tbl _aaxReverbEffect =
    (_aaxEffectCreate*)&_aaxReverbEffectCreate,
    (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
    (_aaxEffectSetState*)&_aaxReverbEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewReverbEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewReverbEffectHandle,
+   (_aaxEffectConvert*)&_aaxReverbEffectSet,
+   (_aaxEffectConvert*)&_aaxReverbEffectGet
 };
 
