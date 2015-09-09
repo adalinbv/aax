@@ -117,18 +117,35 @@ _aaxNewDistanceFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2d
    return rv;
 }
 
-float
-_aaxDistanceFilterSet(float val, int ptype, char param)
+static float
+_aaxDistanceFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    return rv;
 }
 
-float
-_aaxDistanceFilterGet(float val, int ptype, char param)
+static float
+_aaxDistanceFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    return rv;
+}
+
+static float
+_aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxDistanceRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.1f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT, 1.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } }
+   };
+
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+
+   return _MINMAX(val, _aaxDistanceRange[slot].min[param],
+                       _aaxDistanceRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,7 +159,8 @@ _flt_function_tbl _aaxDistanceFilter =
    (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewDistanceFilterHandle,
    (_aaxFilterConvert*)&_aaxDistanceFilterSet,
-   (_aaxFilterConvert*)&_aaxDistanceFilterGet
+   (_aaxFilterConvert*)&_aaxDistanceFilterGet,
+   (_aaxFilterConvert*)&_aaxDistanceFilterMinMax
 };
 
 
