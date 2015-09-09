@@ -267,13 +267,13 @@ _aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
       /* reconstruct rv->slot[1] */
       if (freq && freq->lfo)
       {
-         rv->slot[1]->param[AAX_RESONANCE] = freq->lfo->f;
-         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY] = freq->lfo->max;
+         rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = freq->lfo->f;
+         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = freq->lfo->max;
       }
       else
       {
-         int type = AAX_FREQUENCY_FILTER;
-         memcpy(rv->slot[1], &_flt_minmax_tbl[1][type], size);
+         rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = 1.0f;
+         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = 22050.0f;
       }
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       rv->slot[0]->data = NULL;
@@ -281,8 +281,8 @@ _aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
    return rv;
 }
 
-float
-_aaxFrequencyFilterSet(float val, int ptype, char param)
+static float
+_aaxFrequencyFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param > 0 && ptype == AAX_LOGARITHMIC) {
@@ -291,14 +291,31 @@ _aaxFrequencyFilterSet(float val, int ptype, char param)
    return rv;
 }
 
-float
-_aaxFrequencyFilterGet(float val, int ptype, char param)
+static float
+_aaxFrequencyFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param > 0 && ptype == AAX_LOGARITHMIC) {
       rv = _db2lin(val);
    }
    return rv;
+}
+
+static float
+_aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxFrequencyRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 20.0f, 0.0f, 0.0f, 1.0f  }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
+    { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,  1.0f,  1.0f,  50.0f } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f  }, {     0.0f,  0.0f,  0.0f,   0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxFrequencyRange[slot].min[param],
+                       _aaxFrequencyRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -312,7 +329,8 @@ _flt_function_tbl _aaxFrequencyFilter =
    (_aaxFilterSetState*)&_aaxFrequencyFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle,
    (_aaxFilterConvert*)&_aaxFrequencyFilterSet,
-   (_aaxFilterConvert*)&_aaxFrequencyFilterGet
+   (_aaxFilterConvert*)&_aaxFrequencyFilterGet,
+   (_aaxFilterConvert*)&_aaxFrequencyFilterMinMax
 };
 
 

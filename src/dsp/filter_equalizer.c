@@ -283,20 +283,36 @@ _aaxNewEqualizerHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps
    return rv;
 }
 
-float
-_aaxEqualizerSet(float val, int ptype, char param)
+static float
+_aaxEqualizerSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    return rv;
 }
 
-float
-_aaxEqualizerGet(float val, int ptype, char param)
+static float
+_aaxEqualizerGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    return rv;
 }
 
+static float
+_aaxEqualizerMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxEqualizerRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
+    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f,  0.0f,   0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxEqualizerRange[slot].min[param],
+                       _aaxEqualizerRange[slot].max[param]);
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -309,6 +325,7 @@ _flt_function_tbl _aaxEqualizer =
    (_aaxFilterSetState*)&_aaxEqualizerSetState,
    (_aaxNewFilterHandle*)&_aaxNewEqualizerHandle,
    (_aaxFilterConvert*)&_aaxEqualizerSet,
-   (_aaxFilterConvert*)&_aaxEqualizerGet
+   (_aaxFilterConvert*)&_aaxEqualizerGet,
+   (_aaxFilterConvert*)&_aaxEqualizerMinMax
 };
 
