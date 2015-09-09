@@ -81,8 +81,8 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
             {
                float min = _eff_minmax_tbl[slot][type].min[i];
                float max = _eff_minmax_tbl[slot][type].max[i];
-               cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, WRITEFN, i);
-               effect->slot[slot]->param[i] = _MINMAX(cvtfn(p[i]), min, max);
+               _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+               effect->slot[slot]->param[i] = _MINMAX(eff->get(p[i], ptype, i), min, max);
             }
          }
          if TEST_FOR_TRUE(effect->state) {
@@ -126,8 +126,9 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
 
    if (rv)
    {
-      cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, WRITEFN, param);
-      effect->slot[slot]->param[param] = cvtfn(value);
+      _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+      effect->slot[slot]->param[param] = eff->get(value, ptype, param);
+      
       if TEST_FOR_TRUE(effect->state) {
          aaxEffectSetState(effect, effect->state);
       }
@@ -164,11 +165,8 @@ aaxEffectSetState(aaxEffect e, int state)
                {
                   float min = _eff_minmax_tbl[slot][type].min[i];
                   float max = _eff_minmax_tbl[slot][type].max[i];
-                  cvtfn_t cvtfn;
-
-                  cvtfn = effect_get_cvtfn(effect->type,AAX_LINEAR, WRITEFN, i);
                   effect->slot[slot]->param[i] =
-                         _MINMAX(cvtfn(effect->slot[slot]->param[i]), min, max);
+                         _MINMAX(effect->slot[slot]->param[i], min, max);
                }
             }
             slot++;
@@ -205,8 +203,8 @@ aaxEffectGetParam(const aaxEffect e, int param, int ptype)
          param &= 0xF;
          if ((param >= 0) && (param < 4))
          {
-            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, READFN, param);
-            rv = cvtfn(effect->slot[slot]->param[param]);
+            _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+            rv = eff->set(effect->slot[slot]->param[param], ptype, param);
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
@@ -246,8 +244,8 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
          int i;
          for (i=0; i<4; i++)
          {
-            cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, READFN, i);
-            p[i] = cvtfn(effect->slot[slot]->param[i]);
+            _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+            p[i] = eff->set(effect->slot[slot]->param[i], ptype, i);
          }
          rv = effect;
       }
@@ -300,8 +298,8 @@ aaxEffectApplyParam(const aaxEffect e, int s, int p, int ptype)
       _effect_t* effect = get_effect(e);
       if (effect)
       {
-         cvtfn_t cvtfn = effect_get_cvtfn(effect->type, ptype, READFN, p);
-         rv = cvtfn(effect->slot[0]->param[p]);
+         _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+         rv = eff->set(effect->slot[0]->param[p], ptype, p);
          free(effect);
       }
    }

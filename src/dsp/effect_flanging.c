@@ -250,6 +250,26 @@ _aaxNewFlangingEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
    return rv;
 }
 
+float
+_aaxFlangingEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+   
+float
+_aaxFlangingEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxFlangingEffect =
@@ -259,6 +279,8 @@ _eff_function_tbl _aaxFlangingEffect =
    (_aaxEffectCreate*)&_aaxFlangingEffectCreate,
    (_aaxEffectDestroy*)&_aaxFlangingEffectDestroy,
    (_aaxEffectSetState*)&_aaxFlangingEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewFlangingEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewFlangingEffectHandle,
+   (_aaxEffectConvert*)&_aaxFlangingEffectSet,
+   (_aaxEffectConvert*)&_aaxFlangingEffectGet
 };
 

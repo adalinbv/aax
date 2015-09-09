@@ -163,6 +163,20 @@ _aaxNewDistortionEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
    return rv;
 }
 
+float
+_aaxDistortionEffectSet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+   
+float
+_aaxDistortionEffectGet(float val, int ptype, char param)
+{  
+   float rv = val;
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 _eff_function_tbl _aaxDistortionEffect =
@@ -172,6 +186,8 @@ _eff_function_tbl _aaxDistortionEffect =
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
    (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
-   (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle
+   (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle,
+   (_aaxEffectConvert*)&_aaxDistortionEffectSet,
+   (_aaxEffectConvert*)&_aaxDistortionEffectGet
 };
 

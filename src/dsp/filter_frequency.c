@@ -281,6 +281,28 @@ _aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
    return rv;
 }
 
+float
+_aaxFrequencyFilterSet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (param > 0 && ptype == AAX_LOGARITHMIC) {
+      rv = _lin2db(val);
+   }
+   return rv;
+}
+
+float
+_aaxFrequencyFilterGet(float val, int ptype, char param)
+{
+   float rv = val;
+   if (param > 0 && ptype == AAX_LOGARITHMIC) {
+      rv = _db2lin(val);
+   }
+   return rv;
+}
+
+/* -------------------------------------------------------------------------- */
+
 _flt_function_tbl _aaxFrequencyFilter =
 {
    AAX_TRUE,
@@ -288,10 +310,11 @@ _flt_function_tbl _aaxFrequencyFilter =
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
    (_aaxFilterSetState*)&_aaxFrequencyFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle
+   (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle,
+   (_aaxFilterConvert*)&_aaxFrequencyFilterSet,
+   (_aaxFilterConvert*)&_aaxFrequencyFilterGet
 };
 
-/* -------------------------------------------------------------------------- */
 
 /**
  * 1st order, 6dB/octave exponential moving average Butterwordth FIR filter

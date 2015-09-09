@@ -84,8 +84,8 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
             {
                float min = _flt_minmax_tbl[slot][type].min[i];
                float max = _flt_minmax_tbl[slot][type].max[i];
-               cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, WRITEFN, i);
-               filter->slot[slot]->param[i] = _MINMAX(cvtfn(p[i]), min, max);
+               _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+               filter->slot[slot]->param[i] = _MINMAX(flt->get(p[i], ptype, i), min, max);
             }
          }
          if TEST_FOR_TRUE(filter->state) {
@@ -129,8 +129,8 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
 
    if (rv)
    {
-      cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, WRITEFN, param);
-      filter->slot[slot]->param[param] = cvtfn(value);
+      _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+      filter->slot[slot]->param[param] = flt->get(value, ptype, param);
       if TEST_FOR_TRUE(filter->state) {
          aaxFilterSetState(filter, filter->state);
       }
@@ -166,11 +166,8 @@ aaxFilterSetState(aaxFilter f, int state)
                {
                   float min = _flt_minmax_tbl[slot][type].min[i];
                   float max = _flt_minmax_tbl[slot][type].max[i];
-                  cvtfn_t cvtfn;
-
-                  cvtfn = filter_get_cvtfn(filter->type,AAX_LINEAR, WRITEFN, i);
                   filter->slot[slot]->param[i] =
-                         _MINMAX(cvtfn(filter->slot[slot]->param[i]), min, max);
+                                _MINMAX(filter->slot[slot]->param[i], min, max);
                }
             }
             slot++;
@@ -206,8 +203,8 @@ aaxFilterGetParam(const aaxFilter f, int param, int ptype)
          param &= 0xF;
          if ((param >= 0) && (param < 4))
          {
-            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, READFN, param);
-            rv = cvtfn(filter->slot[slot]->param[param]);
+            _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+            rv = flt->set(filter->slot[slot]->param[param], ptype, param);
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
@@ -247,8 +244,8 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
          int i;
          for (i=0; i<4; i++)
          {
-            cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, READFN, i);
-            p[i] = cvtfn(filter->slot[slot]->param[i]);
+            _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+            p[i] = flt->set(filter->slot[slot]->param[i], ptype, i);
          }
          rv = filter;
       }
@@ -301,8 +298,8 @@ aaxFilterApplyParam(const aaxFilter f, int s, int p, int ptype)
       _filter_t* filter = get_filter(f);
       if (filter)
       {
-         cvtfn_t cvtfn = filter_get_cvtfn(filter->type, ptype, READFN, p);
-         rv = cvtfn(filter->slot[0]->param[p]);
+         _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+         rv = flt->set(filter->slot[0]->param[p], ptype, p);
          free(filter);
       }
    }

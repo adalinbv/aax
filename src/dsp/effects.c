@@ -171,27 +171,3 @@ const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX] =
   }
 };
 
-cvtfn_t
-effect_get_cvtfn(enum aaxEffectType type, int ptype, int mode, char param)
-{
-   cvtfn_t rv = _lin;
-   switch (type)
-   {
-   case AAX_PHASING_EFFECT:
-   case AAX_CHORUS_EFFECT:
-   case AAX_FLANGING_EFFECT:
-      if ((param == 0) && (ptype == AAX_LOGARITHMIC))
-      {
-         if (mode == WRITEFN) {
-            rv = _lin2db;
-         } else {
-            rv = _db2lin;
-         }
-      }
-      break;
-   default:
-      break;
-   }
-   return rv;
-}
-

@@ -47,8 +47,6 @@ typedef struct {
    vec4_t max;
 } _eff_minmax_tbl_t;
 
-cvtfn_t effect_get_cvtfn(enum aaxEffectType, int, int, char);
-
 typedef struct
 {
    int id;
@@ -62,7 +60,6 @@ typedef struct
 _effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
 _effect_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 _effect_t* get_effect(aaxEffect);
-_effect_t* get_effect(aaxEffect);
 
 extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
@@ -72,6 +69,7 @@ typedef aaxEffect _aaxEffectCreate(_handle_t*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef _effect_t* _aaxNewEffectHandle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+typedef float _aaxEffectConvert(float, int, char);
 
 typedef struct
 {
@@ -82,6 +80,9 @@ typedef struct
    _aaxEffectDestroy *destroy;
    _aaxEffectSetState *state;
    _aaxNewEffectHandle *handle;
+
+   _aaxEffectConvert *set;
+   _aaxEffectConvert *get;
 
 } _eff_function_tbl;
 
