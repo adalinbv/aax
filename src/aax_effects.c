@@ -157,15 +157,13 @@ aaxEffectSetState(aaxEffect e, int state)
          slot = 0;
          while ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
          {
-            int i, type = effect->type;
+            int i;
             for(i=0; i<4; i++)
             {
                if (!is_nan(effect->slot[slot]->param[i]))
                {
-                  float min = _eff_minmax_tbl[slot][type].min[i];
-                  float max = _eff_minmax_tbl[slot][type].max[i];
                   effect->slot[slot]->param[i] =
-                         _MINMAX(effect->slot[slot]->param[i], min, max);
+                              eff->limit(effect->slot[slot]->param[i], slot, i);
                }
             }
             slot++;
