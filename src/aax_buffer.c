@@ -110,7 +110,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
       switch(type)
       {
       case AAX_FREQUENCY:
-         if ((setup > 1000) && (setup < 96000))
+         if ((setup >= 1000) && (setup <= 96000))
          {
             if (rb && !buf->frequency) {
                rb->set_paramf(rb, RB_FREQUENCY, (float)setup);
@@ -121,7 +121,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       case AAX_TRACKS:
-         if ((setup > 0) && (setup < _AAX_MAX_SPEAKERS))
+         if ((setup > 0) && (setup <= _AAX_MAX_SPEAKERS))
          {
             if (rb)
             {
