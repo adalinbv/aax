@@ -110,7 +110,7 @@ static float
 _aaxVolumeFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (param < 3 && ptype == AAX_LOGARITHMIC) {
       rv = _db2lin(val);
    }
    return rv;
