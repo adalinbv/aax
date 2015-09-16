@@ -295,7 +295,7 @@ static float
 _aaxFrequencyFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (param > 0 && ptype == AAX_LOGARITHMIC) {
+   if ((param == AAX_LF_GAIN || param == AAX_HF_GAIN) && ptype == AAX_LOGARITHMIC) {
       rv = _db2lin(val);
    }
    return rv;
