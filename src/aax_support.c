@@ -109,7 +109,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
                }
                break;
             }
-            else if (!strcasecmp(filter, _aaxFilters[i]->name))
+            else if (!strncasecmp(filter, _aaxFilters[i]->name, strlen(filter)))
             {
                if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
@@ -154,7 +154,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
                }  
                break;
             }  
-            else if (!strcasecmp(effect, _aaxEffects[i]->name))
+            else if (!strncasecmp(effect, _aaxEffects[i]->name, strlen(effect)))
             {
                if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
                   rv = AAX_TRUE;
