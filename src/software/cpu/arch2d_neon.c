@@ -139,8 +139,6 @@ _batch_iadd_neon(int32_ptr d, const_int32_ptr src, size_t num)
    i = size = num/step;
    if (i)
    {
-      int32x4x4_t nir4;
-
       do
       {
          int32x4x4_t nir4d, nir4s;
@@ -154,7 +152,7 @@ _batch_iadd_neon(int32_ptr d, const_int32_ptr src, size_t num)
          nir4d.val[2] = vaddq_s32(nir4d.val[2], nir4s.val[2]);
          nir4d.val[3] = vaddq_s32(nir4d.val[3], nir4s.val[3]);
 
-         vst4q_s32(d, nir4);
+         vst4q_s32(d, nir4d);
          d += 4*4;
       }
       while(--i);
