@@ -220,6 +220,7 @@ typedef void snd_hctl_elem_t;
 typedef void (*snd_lib_error_handler_t)(const char *, int, const char *, int, const char *,...);
 
 typedef int (*snd_pcm_open_proc)(snd_pcm_t **, const char *, snd_pcm_stream_t, int);
+typedef const char* (*snd_pcm_name_proc)(snd_pcm_t *);
 typedef int (*snd_pcm_wait_proc)(snd_pcm_t *, int);
 typedef int (*snd_pcm_nonblock_proc)(snd_pcm_t *, int);
 typedef int (*snd_pcm_prepare_proc)(snd_pcm_t *);
