@@ -19,13 +19,14 @@ SET(PACKAGE_NAME "AeonWave")
 SET(PACKAGE "libaax2")
 
 OPTION(LTO "Enabel linkt-time optimizations" OFF)
-option(RELEASE "Enable for final release builds" OFF)
+OPTION(RELEASE "Enable for final release builds" OFF)
 OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
 OPTION(WERROR "Treat compile warnings as errors"   OFF)
 OPTION(RMALLOC "Enable memory debugging functions" OFF)
 
 ADD_DEFINITIONS(-D_XOPEN_SOURCE=600)
 IF(WIN32)
+  SET(CMAKE_GNUtoMS ON)
   SET(EXTRA_LIBS ${EXTRA_LIBS} "-lwsock32 -lws2_32 -lwinmm")
   ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
   ADD_DEFINITIONS(-D_WIN32 -DWIN32)
@@ -34,8 +35,6 @@ ELSE(WIN32)
   ADD_DEFINITIONS(-D_GNU_SOURCE=1)
   SET(LIBAEONWAVE aax)
 ENDIF(WIN32)
-
-message("Architecure: ${CMAKE_SYSTEM_PROCESSOR}")
 
 IF(NOT LIBTYPE)
   SET(LIBTYPE SHARED)
@@ -86,7 +85,6 @@ INCLUDE(CPack_Defaults)
 INCLUDE(inline)
 
 IF (WIN32)
-
 ELSE(WIN32)
 
   # DEBIAN
