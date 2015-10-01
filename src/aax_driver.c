@@ -67,6 +67,12 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       const _aaxDriverBackend *be = handle->backend.ptr;
       switch(type)
       {
+      case AAX_VERSION_STRING:
+         rv = (char*)be->version;
+         break;
+      case AAX_VENDOR_STRING:
+         rv = (char*)be->vendor;
+         break;
       case AAX_DRIVER_STRING:
          if (handle->backend.driver) {
             rv = (char*)be->renderer;
@@ -75,17 +81,15 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
          break;
       case AAX_RENDERER_STRING:
-         if (handle->backend.driver) {
-            rv = (char*)handle->backend.driver;
-         } else {
-            rv = (char*)be->driver;
+         rv = be->name(handle->backend.handle, type);
+         if (!rv)
+         {
+            if (handle->backend.driver) {
+               rv = (char*)handle->backend.driver;
+            } else {
+               rv = (char*)be->driver;
+            }
          }
-         break;
-      case AAX_VERSION_STRING:
-         rv = (char*)be->version;
-         break;
-      case AAX_VENDOR_STRING:
-         rv = (char*)be->vendor;
          break;
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
@@ -261,7 +265,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
             handle->backend.ptr = be;
             if (be) { /* be == NULL should never happen */
                handle->devname[0] = _aax_strdup(be->driver);
-               handle->devname[1] = be->name(handle->backend.handle, mode);
+               handle->devname[1] = be->name(handle->backend.handle, mode?1:0);
             }
          }
 
@@ -352,7 +356,7 @@ aaxDriverOpen(aaxConfig config)
             if (handle->backend.driver != _default_renderer) {
                free(handle->backend.driver);
             }
-            renderer = be->name(handle->backend.handle, mode);
+            renderer = be->name(handle->backend.handle, mode?1:0);
             if (!renderer) renderer = _default_renderer;
 
             handle->backend.driver = malloc(strlen(be->driver)
@@ -598,7 +602,7 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
             if (handle->backend.driver != _default_renderer) {
                free(handle->backend.driver);
             }
-            renderer = be->name(handle->backend.handle, mode);
+            renderer = be->name(handle->backend.handle, mode?1:0);
             handle->backend.driver = renderer ? renderer : _default_renderer;
          }
 
