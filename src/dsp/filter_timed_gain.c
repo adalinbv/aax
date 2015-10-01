@@ -214,8 +214,8 @@ _aaxNewTimedGainFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2
    return rv;
 }
 
-float
-_aaxTimedGainFilterSet(float val, int ptype, char param)
+static float
+_aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -224,14 +224,31 @@ _aaxTimedGainFilterSet(float val, int ptype, char param)
    return rv;
 }
 
-float
-_aaxTimedGainFilterGet(float val, int ptype, char param)
+static float
+_aaxTimedGainFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
       rv = _db2lin(val);
    }
    return rv;
+}
+
+static float
+_aaxTimedGainFilterMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxTimedGainRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, MAXFLOAT, 4.0f, MAXFLOAT } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, MAXFLOAT, 4.0f, MAXFLOAT } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxTimedGainRange[slot].min[param],
+                       _aaxTimedGainRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -245,6 +262,7 @@ _flt_function_tbl _aaxTimedGainFilter =
    (_aaxFilterSetState*)&_aaxTimedGainFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewTimedGainFilterHandle,
    (_aaxFilterConvert*)&_aaxTimedGainFilterSet,
-   (_aaxFilterConvert*)&_aaxTimedGainFilterGet
+   (_aaxFilterConvert*)&_aaxTimedGainFilterGet,
+   (_aaxFilterConvert*)&_aaxTimedGainFilterMinMax
 };
 

@@ -94,8 +94,8 @@ _aaxNewAngularFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dP
    return rv;
 }
 
-float
-_aaxAngularFilterSet(float val, int ptype, char param)
+static float
+_aaxAngularFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param < 2)
@@ -109,8 +109,8 @@ _aaxAngularFilterSet(float val, int ptype, char param)
    return rv;
 }
 
-float
-_aaxAngularFilterGet(float val, int ptype, char param)
+static float
+_aaxAngularFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param < 2)
@@ -124,6 +124,23 @@ _aaxAngularFilterGet(float val, int ptype, char param)
    return rv;
 }
 
+static float
+_aaxAngularFilterMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxAngularRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { -1.0f, -1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+   };
+
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+
+   return _MINMAX(val, _aaxAngularRange[slot].min[param],
+                       _aaxAngularRange[slot].max[param]);
+}
+
 /* -------------------------------------------------------------------------- */
 
 _flt_function_tbl _aaxAngularFilter =
@@ -135,6 +152,7 @@ _flt_function_tbl _aaxAngularFilter =
    (_aaxFilterSetState*)&_aaxAngularFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewAngularFilterHandle,
    (_aaxFilterConvert*)&_aaxAngularFilterSet,
-   (_aaxFilterConvert*)&_aaxAngularFilterGet
+   (_aaxFilterConvert*)&_aaxAngularFilterGet,
+   (_aaxFilterConvert*)&_aaxAngularFilterMinMax
 };
 

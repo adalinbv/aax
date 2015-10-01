@@ -96,8 +96,8 @@ _aaxNewVolumeFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dPr
    return rv;
 }
 
-float
-_aaxVolumeFilterSet(float val, int ptype, char param)
+static float
+_aaxVolumeFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -106,14 +106,31 @@ _aaxVolumeFilterSet(float val, int ptype, char param)
    return rv;
 }
 
-float
-_aaxVolumeFilterGet(float val, int ptype, char param)
+static float
+_aaxVolumeFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (param < 3 && ptype == AAX_LOGARITHMIC) {
       rv = _db2lin(val);
    }
    return rv;
+}
+
+static float
+_aaxVolumeFilterMinMax(float val, int slot, unsigned char param)
+{
+  static const _flt_minmax_tbl_t _aaxVolumeRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 10.0f, 1.0f, 10.0f, 10.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {  0.0f, 0.0f,  0.0f,  0.0f } }, 
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {  0.0f, 0.0f,  0.0f,  0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxVolumeRange[slot].min[param],
+                       _aaxVolumeRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -127,6 +144,7 @@ _flt_function_tbl _aaxVolumeFilter =
    (_aaxFilterSetState*)&_aaxVolumeFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle,
    (_aaxFilterConvert*)&_aaxVolumeFilterSet,
-   (_aaxFilterConvert*)&_aaxVolumeFilterGet
+   (_aaxFilterConvert*)&_aaxVolumeFilterGet,
+    (_aaxFilterConvert*)&_aaxVolumeFilterMinMax
 };
 

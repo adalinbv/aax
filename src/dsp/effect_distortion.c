@@ -86,18 +86,16 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       {
          int t;
 
-         lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          lfo->convert = _linear; // _log2lin;
          lfo->min = 0.15f;
          lfo->max = 0.99f;
+         lfo->f = 0.33f;
 
          for(t=0; t<_AAX_MAX_SPEAKERS; t++)
          {
-            lfo->step[t] = 2.0f * lfo->f;
-            lfo->step[t] *= (lfo->max - lfo->min);
-            lfo->step[t] /= effect->info->period_rate;
-            lfo->value[t] = lfo->max;
+            lfo->step[t] = 0.0f;
+            lfo->value[t] = 0.0f;
             switch (state & ~AAX_INVERSE)
             {
             case AAX_SAWTOOTH_WAVE:
@@ -163,18 +161,35 @@ _aaxNewDistortionEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
    return rv;
 }
 
-float
-_aaxDistortionEffectSet(float val, int ptype, char param)
+static float
+_aaxDistortionEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
 }
    
-float
-_aaxDistortionEffectGet(float val, int ptype, char param)
+static float
+_aaxDistortionEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
+}
+
+static float
+_aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxDistortionRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, 1.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxDistortionRange[slot].min[param],
+                       _aaxDistortionRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -188,6 +203,7 @@ _eff_function_tbl _aaxDistortionEffect =
    (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
    (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle,
    (_aaxEffectConvert*)&_aaxDistortionEffectSet,
-   (_aaxEffectConvert*)&_aaxDistortionEffectGet
+   (_aaxEffectConvert*)&_aaxDistortionEffectGet,
+   (_aaxEffectConvert*)&_aaxDistortionEffectMinMax
 };
 
