@@ -74,15 +74,14 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
    {
       if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
-         int i, type = effect->type;
+         int i;
          for(i=0; i<4; i++)
          {
             if (!is_nan(p[i]))
             {
-               float min = _eff_minmax_tbl[slot][type].min[i];
-               float max = _eff_minmax_tbl[slot][type].max[i];
                _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-               effect->slot[slot]->param[i] = _MINMAX(eff->get(p[i], ptype, i), min, max);
+               effect->slot[slot]->param[i] =
+                                  eff->limit(eff->get(p[i], ptype, i), slot, i);
             }
          }
          if TEST_FOR_TRUE(effect->state) {
@@ -158,15 +157,13 @@ aaxEffectSetState(aaxEffect e, int state)
          slot = 0;
          while ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
          {
-            int i, type = effect->type;
+            int i;
             for(i=0; i<4; i++)
             {
                if (!is_nan(effect->slot[slot]->param[i]))
                {
-                  float min = _eff_minmax_tbl[slot][type].min[i];
-                  float max = _eff_minmax_tbl[slot][type].max[i];
                   effect->slot[slot]->param[i] =
-                         _MINMAX(effect->slot[slot]->param[i], min, max);
+                              eff->limit(effect->slot[slot]->param[i], slot, i);
                }
             }
             slot++;

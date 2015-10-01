@@ -95,18 +95,35 @@ _aaxNewVelocityEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2d
    return rv;
 }
 
-float
-_aaxVelocityEffectSet(float val, int ptype, char param)
+static float
+_aaxVelocityEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
 }
    
-float
-_aaxVelocityEffectGet(float val, int ptype, char param)
+static float
+_aaxVelocityEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
+}
+
+static float
+_aaxVelocityEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxVelocityRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { MAXFLOAT, 10.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } }
+   };
+   
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+   
+   return _MINMAX(val, _aaxVelocityRange[slot].min[param],
+                       _aaxVelocityRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -120,6 +137,7 @@ _eff_function_tbl _aaxVelocityEffect =
    (_aaxEffectSetState*)&_aaxVelocityEffectSetState,
    (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle,
    (_aaxEffectConvert*)&_aaxVelocityEffectSet,
-   (_aaxEffectConvert*)&_aaxVelocityEffectGet
+   (_aaxEffectConvert*)&_aaxVelocityEffectGet,
+   (_aaxEffectConvert*)&_aaxVelocityEffectMinMax
 };
 
