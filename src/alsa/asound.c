@@ -503,7 +503,9 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       if (rdr_aax_fmt) {
          handle->name = _aax_strdup((char*)renderer);
       }
-      else {
+      else
+      {
+         handle->devname = _aax_strdup(renderer);
          renderer = handle->name = _aaxALSADriverGetDefaultInterface(handle, mode);
       }
 
@@ -622,8 +624,6 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       handle->devnum = detect_devnum(handle, m);
       if (rdr_aax_fmt) {
          handle->devname = detect_devname(handle, m);
-      } else {
-         handle->devname = _aax_strdup(renderer ? renderer : "default");
       }
     
       err = _alsa_pcm_open(handle, m);
@@ -1699,7 +1699,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 static char *
 _aaxALSADriverGetDefaultInterface(const void *id, int mode)
 {
-// _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
    char rv[1024]  = "default";
    size_t len = 1024;
@@ -1720,17 +1720,35 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name)
             {
-               if ((!m && (!strcmp(name, "default:") ||
-                          !strcmp(name, "sysdefault:")))
-                    || !strcmp(name, "front:")
-                  )
-               {
-                  char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *iface;
- 
-                  if (!desc) desc = name;
-                  iface = strstr(desc, ", ");
+               char *desc = psnd_device_name_get_hint(*lst, "DESC");
+               if (!desc) desc = name;
 
+#if 0
+               if ((!m && (!strncmp(name, "default:", strlen("default:")) ||
+                          !strncmp(name, "sysdefault:", strlen("sysdefault:"))))
+                    || !strncmp(name, "front:", strlen("front:"))
+                    || (handle && (!strcasecmp(handle->devname, name) ||
+                                   !strcasecmp(handle->devname, desc)) ||
+                                   (!strcasecmp(handle->devname, "default")
+                                     && strstr(name, "default")))
+                  )
+#else
+                if (handle && (!strcasecmp(handle->devname, name) ||
+                                   !strcasecmp(handle->devname, desc) ||
+                                   (!strcasecmp(handle->devname, "default")
+                                     && strstr(name, "default"))))
+#endif
+               {
+                  char *iface;
+                  if (handle && !strcmp(desc, handle->devname))
+                  {
+                     free(handle->devname);
+                     handle->devname = _aax_strdup(name);
+                     snprintf(rv, len, "%s", desc);
+                     found = 1;
+                  }
+ 
+                  iface = strstr(desc, ", ");
                   if (iface && (len > (iface-desc)))
                   {
                      char *s = rv;
@@ -1770,7 +1788,7 @@ static char *
 _aaxALSADriverGetInterfaceName(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   char rv[1024]  = "default";
+   char *rv = NULL;
    size_t len = 1024;
    void **hints;
    int res;
@@ -1789,8 +1807,9 @@ _aaxALSADriverGetInterfaceName(const void *id)
             {
                if (!strcmp(name, handle->devname))
                {
+                  char rvname[1024]  = "default";
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                  char *iface, *s = rv;
+                  char *iface, *s = rvname;
 
                   if (!desc) desc = name;
                   iface = strstr(desc, ", ");
@@ -1809,6 +1828,7 @@ _aaxALSADriverGetInterfaceName(const void *id)
                   }
                   if (desc != name) _sys_free(desc);
                   found = 1;
+                  rv = _aax_strdup(rvname);
                }
                _sys_free(name);
             }
@@ -1819,7 +1839,7 @@ _aaxALSADriverGetInterfaceName(const void *id)
       res = psnd_device_name_free_hint(hints);
    }
 
-   return _aax_strdup(rv);
+   return rv;
 }
 
 
