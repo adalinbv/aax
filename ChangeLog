@@ -4,6 +4,7 @@
  * Make sure testing for 'AAX_frequency_filter' also works even though 
    'AAX_frequency_filter_1.1' is defined.
  * Fix a mostly unnoticeable mistake for envelope following distortion filter.
+ * Provide a more verbose renderer string for ALSA
 
 -- Erik Hofman <tech@adalin.org>  Fri, 17 Sep  2015 12:02:00 + 0200
 
