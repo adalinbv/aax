@@ -1009,7 +1009,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                *refresh_rate = period_rate;
             }
 
-            if (!handle->use_timer)
+            if (!handle->use_timer && strcmp(handle->devname, "default"))
             {
                handle->latency = (float)(period_frames*periods)/(float)rate;
                if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
@@ -1908,7 +1908,10 @@ static const snd_pcm_stream_t _alsa_mode[2] = {
 static int
 _alsa_pcm_open(_driver_t *handle, int m)
 {
+   char name[32];
    int err;
+
+   sprintf(name, "hw:%d", handle->devnum);
 
    /**
     * Test whether this device has hardware mixing,
@@ -1926,8 +1929,6 @@ _alsa_pcm_open(_driver_t *handle, int m)
       res = psnd_pcm_info_malloc(&pcminfo);
       if (res >= 0)
       {
-         char name[32];
-         sprintf(name, "hw:%d", handle->devnum);
          res = psnd_ctl_open(&ctl, name, _alsa_mode[m]);
          if (res >= 0)
          {
@@ -1943,6 +1944,11 @@ _alsa_pcm_open(_driver_t *handle, int m)
       }
    }
 
+   if (!strcmp(handle->devname, "default"))
+   {
+      free(handle->devname);
+      handle->devname = _aax_strdup(name);
+   }
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
    if (err >= 0)
