@@ -1,12 +1,12 @@
-* Fri Sep 17  2015 - tech@adalin.org
-- AeonWave (2.6.0) stable; urgency=low
+* Fri oct 15  2015 - tech@adalin.org
+- AeonWave (2.6.1) stable; urgency=low
  * Fix a few border case tests for mixer configuration.
  * Make sure testing for 'AAX_frequency_filter' also works even though 
    'AAX_frequency_filter_1.1' is defined.
  * Fix a mostly unnoticeable mistake for envelope following distortion filter.
  * Provide a more verbose renderer string for ALSA
 
--- Erik Hofman <tech@adalin.org>  Fri, 17 Sep  2015 12:02:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri, 15 Oct  2015 10:49:00 + 0200
 
 * Mon Aug 31  2015 - tech@adalin.org
 - AeonWave (2.6.0) stable; urgency=low
