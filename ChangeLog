@@ -1,4 +1,4 @@
-* Fri oct 15  2015 - tech@adalin.org
+* Fri Oct 15  2015 - tech@adalin.org
 - AeonWave (2.6.1) stable; urgency=low
  * Fix a few border case tests for mixer configuration.
  * Make sure testing for 'AAX_frequency_filter' also works even though 

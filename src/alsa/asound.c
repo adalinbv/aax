@@ -1793,15 +1793,17 @@ _aaxALSADriverGetInterfaceName(const void *id)
    void **hints;
    int res;
 
-   res = psnd_device_name_hint(-1, "pcm", &hints);
-   if (!res && hints)
+   if (handle)
    {
-      void **lst = hints;
-      int found = 0;
-
-      do
+      res = psnd_device_name_hint(-1, "pcm", &hints);
+      if (!res && hints)
       {
-         char *type = psnd_device_name_get_hint(*lst, "IOID");
+         void **lst = hints;
+         int found = 0;
+
+         do
+         {
+            char *type = psnd_device_name_get_hint(*lst, "IOID");
             char *name = psnd_device_name_get_hint(*lst, "NAME");
             if (name)
             {
@@ -1832,11 +1834,12 @@ _aaxALSADriverGetInterfaceName(const void *id)
                }
                _sys_free(name);
             }
-         _sys_free(type);
-         ++lst;
-       }
-      while (!found && (*lst != NULL));
-      res = psnd_device_name_free_hint(hints);
+            _sys_free(type);
+            ++lst;
+         }
+         while (!found && (*lst != NULL));
+         res = psnd_device_name_free_hint(hints);
+      }
    }
 
    return rv;
