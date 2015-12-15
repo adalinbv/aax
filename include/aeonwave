@@ -1,0 +1,94 @@
+/*
+ * Copyright 2007-2012 by Adalin B.V.
+ * All Rights Reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
+ * the contents of this file may not be disclosed to third parties, copied or
+ * duplicated in any form, in whole or in part, without the prior written
+ * permission of Adalin B.V.
+ */
+
+#ifndef AEONWAVE
+#define AEONWAVE 1
+
+#include <aax/aax.h>
+
+namespace AAX
+{
+
+class AeonWave
+{
+public:
+    AeonWave(const char* n=0, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+        _c(aaxDriverOpenByName(n,m)),
+        _ec(0) {
+        new_enumeration();
+    }
+    ~AeonWave() {
+        aaxClose(_c); aaxDestory(_c); _c = 0;
+    }
+
+    inline bool close() {
+        return aaxDriverClose(_c) ? ((_c=0) != true) : false;
+    }
+    inline const char* get(enum aaxSetupType t) {
+        return aaxDriverGetSetup(_c,t);
+    }
+    inline bool get(enum aaxRenderMode m) {
+        return aaxDriverGetSupport(_c,m);
+    }
+    inline bool supports(const char* fe) {
+        return aaxIsFilterSupported(_c,fe) ? true : aaxIsEffectSupported(_c,fe);
+    }
+
+    // enumeration
+    inline void new_enumeration() {
+        _e[0] = _e[1] = _e[2] = 0;
+    }
+    inline const char* driver(enum aaxRenderMode m=AAX_WRITE_STEREO) {
+        aaxDriverClose(_ec); aaxDriverDestroy(_ec); _em = m;
+        _ec = aaxDriverGetByPos(_e[0]++,_em); _e[1] = 0;
+        return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
+    }
+    inline const char* device() {
+        _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]++,_em); _e[2] = 0;
+        return _ed;
+    }
+    inline const char* interface() {
+        return aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]++,_em);
+    }
+
+    // support
+    inline const char* version() {
+        return aaxGetversionString(_c);
+    }
+    static inline unsigned major_version() {
+        return aaxGetMajorversion();
+    }
+    static inline unsigned minor_version() {
+        return aaxGetMinorversion();
+    }
+    static inline unsigned int patch_level() {
+        return aaxGetPatchLevel();
+    }
+    static inline enum aaxErrorType error_no() {
+        return aaxGetErrorNo();
+    }
+    static inline const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
+        return aaxGetErrorString(e);
+    }
+
+private:
+    aaxConfig _c;
+
+    // enumeration
+    enum aaxRenderMode _em;
+    unsigned int _e[3];
+    const char* _ed;
+    aaxConfig _ec;
+};
+
+}
+
+#endif
+
