@@ -581,6 +581,7 @@ ENDIF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 INSTALL(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
+        include/aax/AeonWave.hpp
         DESTINATION include/aax
         COMPONENT Headers
 )
