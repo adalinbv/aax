@@ -243,7 +243,13 @@ public:
 
     AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : AeonWave(0,m) {}
 
-    ~AeonWave() {}
+    ~AeonWave() {
+        std::vector<Mixer*>::iterator it = _mixer.begin();
+        while (it != _mixer.end()) {
+            delete (*it); it = _mixer.erase(it);
+        } 
+        _mixer.clear();
+    }
 
     // ** enumeration ******
     inline const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
