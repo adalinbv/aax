@@ -10,7 +10,7 @@ INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
 INCLUDE (CheckIncludeFiles)
 
-PROJECT(aax-utils C)
+PROJECT(aax-utils C CXX)
 SET(PACKAGE_NAME "AeonWave-utils")
 SET(PACKAGE "aaxutils")
 

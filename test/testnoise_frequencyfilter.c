@@ -97,6 +97,16 @@ int main(int argc, char **argv)
         aaxFilter filter;
         float dt;
 
+        if (aaxIsFilterSupported(config, "AAX_frequency_filter") == 0) {
+           printf("AAX_frequency_filter not supported\n");
+        }
+        if (aaxIsFilterSupported(config, "AAX_frequency_filter_1.0") == 0) {
+           printf("AAX_frequency_filter version 1.0 not supported\n");
+        }
+        if (aaxIsFilterSupported(config, "AAX_frequency_filter_1.1") == 0) {
+           printf("AAX_frequency_filter version 1.1 not supported\n");
+        }
+
         no_samples = (unsigned int)(4*SAMPLE_FREQ);
         buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
         testForError(buffer, "Unable to generate buffer\n");

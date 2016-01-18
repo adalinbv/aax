@@ -47,14 +47,14 @@
 #define FILE_PATH		SRC_PATH"/sine-440Hz-1period.wav"
 
 #define XEPOS		00000.0f
-#define YEPOS		-0000.0f
+#define YEPOS		-1000.0f
 #define ZEPOS		00.0f
 
 aaxVec3f EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
 aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
 aaxVec3f EmitterVel = {     0.0f,     0.0f, 0.0f };
 
-aaxVec3f SensorPos = { 00000.0f, -0000.0f, 00.0f };
+aaxVec3f SensorPos = { 00000.0f,    YEPOS, 00.0f };
 aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
 aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
 aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };

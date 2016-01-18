@@ -47,7 +47,7 @@
 #define ENABLE_EMITTER_DISTORTION	1
 #define ENABLE_EMITTER_PHASING		1
 #define ENABLE_EMITTER_CHORUS		1
-#define ENABLE_EMITTER_FLANGING		1
+#define ENABLE_EMITTER_FLANGING		0
 #define ENABLE_MIXER_PHASING		1
 #define ENABLE_MIXER_CHORUS		1
 #define ENABLE_MIXER_FlANGING		1
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetPitch(emitter, pitch);
             testForState(res, "aaxEmitterSetPitch");
 
-            res = aaxEmitterSetGain(emitter, 0.7f);
+            res = aaxEmitterSetGain(emitter, 0.5f);
             testForState(res, "aaxEmitterSetGain");
 
             res = aaxMixerRegisterEmitter(config, emitter);

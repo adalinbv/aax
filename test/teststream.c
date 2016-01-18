@@ -72,6 +72,9 @@ int main(int argc, char **argv)
             res = aaxEmitterSetPitch(emitter, pitch);
             testForState(res, "aaxEmitterSetPitch");
 
+            res = aaxEmitterSetGain(emitter, 0.5f);
+            testForState(res, "aaxEmitterSetGain");
+
             /** buffer */
             for (i=0; i<NUM_BUFFERS; i++)
             {

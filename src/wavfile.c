@@ -180,17 +180,20 @@ fileLoad(const char *file, unsigned int *no_samples,
     do
     {
         res = read(fd, buf, 1);
-        if (res > 0 && buf[0] == 'd')
+        if (res > 0)
         {
-            res = read(fd, buf+1, 3);
-            if (res > 0 && buf[0] == 'd' && buf[1] == 'a'
-                 && buf[2] == 't' && buf[3] == 'a')
-            {
-                res = read(fd, &buflen, 4); /* chunk size */
-                if (__big_endian) buflen = BSWAP32(buflen);
-                break;
-            }
-        }
+           if (buf[0] == 'd')
+           {
+               res = read(fd, buf+1, 3);
+               if (res > 0 && buf[0] == 'd' && buf[1] == 'a'
+                    && buf[2] == 't' && buf[3] == 'a')
+               {
+                   res = read(fd, &buflen, 4); /* chunk size */
+                   if (__big_endian) buflen = BSWAP32(buflen);
+                   break;
+               }
+           }
+       }
     }
     while (1);
     *no_samples = (buflen * 8) / (*no_tracks * *bits_sample);
