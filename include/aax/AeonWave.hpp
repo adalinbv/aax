@@ -33,6 +33,7 @@
 #define AEONWAVE 1
 
 #include <memory>
+#include <vector>
 #include <algorithm>
 
 #include <aax/aax.h>
@@ -40,15 +41,19 @@
 namespace AAX
 {
 
-class AeonWave;
-
 class DSP
 {
 public:
-    DSP(AeonWave& a, enum aaxFilterType f) :
-        _e(0), _f(aaxFilterCreate(a.config(),f)) {}
-    DSP(AeonWave& a, enum aaxEffectType e) :
-        _f(0), _e(aaxEffectCreate(a.config(),e)) {}
+    DSP(aaxConfig c, enum aaxFilterType f) :
+        _e(0) {
+        if (aaxIsValid(c, AAX_FILTER)) _f = c;
+        else _f = aaxFilterCreate(c,f);
+    }
+    DSP(aaxConfig c, enum aaxEffectType e) :
+        _f(0) {
+        if (aaxIsValid(c, AAX_EFFECT)) _f = c;
+        else _f = aaxEffectCreate(c,e);
+    }
     ~DSP() {
         if (_f) aaxFilterDestroy(_f);
         else aaxEffectDestroy(_e);
@@ -87,6 +92,13 @@ public:
         else return  aaxEffectGetParam(_e,p,t);
     }
 
+    inline void* config() {
+        return _f ? _f : _e;
+    }
+    inline bool is_filter() {
+        return _f ? true : false;
+    }
+
 private:
     aaxFilter _f;
     aaxEffect _e;
@@ -117,6 +129,13 @@ public:
     inline bool get(enum aaxRenderMode m) {
         return aaxDriverGetSupport(_c,m);
     }
+
+    inline const char* supports(enum aaxFilterType f) {
+        return aaxFilterGetNameByType(_c,f);
+    }
+    inline const char* supports(enum aaxEffectType e) {
+        return aaxEffectGetNameByType(_c,e);
+    }
     inline bool supports(const char* fe) {
         return aaxIsFilterSupported(_c,fe) ? true : aaxIsEffectSupported(_c,fe);
     }
@@ -136,38 +155,23 @@ public:
         return aaxState(aaxMixerGetState(_c));
     }
 
-#if 0
     inline bool set(DSP dsp) {
-        return aaxMixerSetFilter(_c,f);
+        return dsp.is_filter() ? aaxMixerSetFilter(_c,dsp.config()) :
+                                 aaxMixerSetEffect(_c,dsp.config());
     }
-    inline const aaxFilter get(enum aaxFilterType t) {
-        return aaxMixerGetFilter(_c,t);
-    }
-    inline bool set(aaxEffect e) {
-        return aaxMixerSetEffect(_c,e);
-    }
-    inline const aaxEffect get(enum aaxEffectType t) {
-        return aaxMixerGetEffect(_c,t);
+    inline DSP get(enum aaxFilterType t) {
+        return DSP(aaxMixerGetFilter(_c,t),t);
     }
 
-    inline bool add(const aaxEmitter e) {
-        return aaxMixerRegisterEmitter(_c,e);
+    inline bool add(const aaxConfig c) {
+        if (aaxIsValid(c, AAX_EMITTER)) aaxMixerRegisterEmitter(_c,c);
+        else if (aaxIsValid(c, AAX_CONFIG)) aaxMixerRegisterSensor(_c,c);
+        else aaxMixerRegisterAudioFrame(_c,c);
     }
-    inline bool remove(const aaxEmitter e) {
-        return aaxMixerDeRegisterEmitter(_c,e);
-    }
-    inline bool add(const aaxFrame f) {
-        return aaxMixerRegisterAudioFrame(_c,f);
-    }
-    inline bool remove(const aaxFrame f) {
-        return aaxMixerDeRegisterAudioFrame(_c,f);
-    }
-#endif
-    inline bool add(const aaxConfig s) {
-        return aaxMixerRegisterSensor(_c,s);
-    }
-    inline bool remove(const aaxConfig s) {
-        return aaxMixerDeregisterSensor(_c,s);
+    inline bool remove(const aaxConfig c) {
+        if (aaxIsValid(c, AAX_EMITTER)) aaxMixerDeregisterEmitter(_c,c);
+        else if (aaxIsValid(c, AAX_CONFIG)) aaxMixerDeregisterSensor(_c,c);
+        else aaxMixerDeregisterAudioFrame(_c,c);
     }
 
     // ** sensor ******
@@ -214,7 +218,7 @@ public:
 
     // ** support ******
     inline const char* version() {
-        return aaxDriverGetSetup(_c,AAX_VERSION_STRING);
+        return aaxGetVersionString(_c);
     }
 
 
@@ -227,13 +231,13 @@ protected:
 };
 
 
-class AeonWave
+class AeonWave : public Mixer
 {
 public:
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+        Mixer(n,m),
         _ec(0)
     {
-        mixer.push_back(std::unique_ptr<Mixer>(new Mixer(n,m)));
         _e[0] = _e[1] = _e[2] = 0;
     }
 
@@ -242,36 +246,35 @@ public:
     ~AeonWave() {}
 
     // ** enumeration ******
-    inline const char* drivers(enum aaxRenderMode m=AAX_WRITE_STEREO) {
-        aaxDriverClose(_ec); aaxDriverDestroy(_ec); _em = m; _ec = _e[1] = 0;
+    inline const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+        aaxDriverClose(_ec); aaxDriverDestroy(_ec);
+        _em = m; _ec = 0; _e[1] = 0; _e[2] = 0;
         if (_e[0] < aaxDriverGetCount(_em)) {
             _ec = aaxDriverGetByPos(_e[0]++,_em);
-        }
+        }  else _e[0] = 0;
         return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
     }
-    inline const char* devices() { _ed  = _e[2] = 0;
-        if (_e[1] < aaxDriverGetDeviceCount(_ec,_em)) {
-            _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]++,_em);
+    inline const char* devices() {
+        _ed = _e[1] ? 0 : ""; _e[2] = 0;
+        if (_e[1]++ < aaxDriverGetDeviceCount(_ec,_em)) {
+            _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]-1,_em);
         }
         return _ed;
     }
     inline const char* interfaces() {
-        const char *ifs = 0;
-        if (_e[2] < aaxDriverGetInterfaceCount(_ec,_ed,_em)) {
-            ifs = aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]++,_em);
+        const char *ifs = _e[2] ? 0 : "";
+        if (_e[2]++ < aaxDriverGetInterfaceCount(_ec,_ed,_em)) {
+            ifs = aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]-1,_em);
         }
         return ifs;
     }
 
     // ** support ******
-    inline const char* version() {
-        return *mixer[0]->version();
-    }
     static unsigned major_version() {
-        return aaxGetMajorversion();
+        return aaxGetMajorVersion();
     }
     static unsigned minor_version() {
-        return aaxGetMinorversion();
+        return aaxGetMinorVersion();
     }
     static unsigned int patch_level() {
         return aaxGetPatchLevel();
@@ -286,15 +289,15 @@ public:
 
     // ** module management ******
     inline Mixer* mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        mixer.push_back(std::unique_ptr<Mixer>(new Mixer(n,m)));
-        return *mixer.back();
+        _mixer.push_back(new Mixer(n,m));
+        return _mixer.back();
     }
     inline destroy(Mixer* m) {
-        mixer.erase(std::remove(mixer.begin(),mixer.end(),*m),mixer.end());
+        _mixer.erase(std::remove(_mixer.begin(),_mixer.end(),m),_mixer.end());
     }
 
 private:
-    std::vector<std::unique_ptr<Mixer>> mixer;
+    std::vector<Mixer*> _mixer;
 
     // enumeration
     enum aaxRenderMode _em;
