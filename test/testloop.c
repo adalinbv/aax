@@ -65,10 +65,10 @@ int main(int argc, char **argv)
             float freq, dt = 0.0f;
             int q, state, num;
 
-            freq = (float)aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-            res = aaxBufferSetLoopPoints(buffer,
-                                         (unsigned int)(LOOP_START_SEC*freq),
-                                         (unsigned int)(LOOP_END_SEC*freq));
+//          freq = (float)aaxBufferGetSetup(buffer, AAX_FREQUENCY);
+            res = aaxBufferSetLoopPoints(buffer, 9201, 31641);
+//                                     (unsigned int)rintf(LOOP_START_SEC*freq),
+//                                     (unsigned int)rintf(LOOP_END_SEC*freq));
             testForState(res, "aaxBufferSetLoopPoints");
 
             /** emitter */

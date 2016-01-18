@@ -118,9 +118,28 @@ int main(int argc, char **argv)
             res = aaxEmitterSetPitch(emitter, pitch);
             testForState(res, "aaxEmitterSetPitch");
 
+            do
+            {
+               aaxFilter flt = aaxEmitterGetFilter(emitter, AAX_ANGULAR_FILTER);
+               testForError(flt, "aaxFilterCreate");
+
+               flt = aaxFilterSetSlot(flt, 0, AAX_LINEAR,
+                                      160.0f*GMATH_DEG_TO_RAD,
+                                      200.0f*GMATH_DEG_TO_RAD, 0.0f, 0.3f);
+               testForError(flt, "aaxFilterSetSlot");
+
+               res = aaxEmitterSetFilter(emitter, flt);
+               testForState(res, "aaxEmitterSetAudioCone");
+
+               res = aaxFilterDestroy(flt);
+
+            }
+            while (0);
+#if 0
             res = aaxEmitterSetAudioCone(emitter, 160.0f*GMATH_DEG_TO_RAD,
                                                  200.0f*GMATH_DEG_TO_RAD, 0.0f);
             testForState(res, "aaxEmitterSetAudioCone");
+#endif
 
             res = aaxMixerRegisterEmitter(config, emitter);
             testForState(res, "aaxMixerRegisterEmitter");

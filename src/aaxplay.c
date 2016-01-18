@@ -395,8 +395,8 @@ int main(int argc, char **argv)
                 float pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
                 const char *p, *t;
 
-                p = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_STRING);
-                t = aaxDriverGetSetup(record, AAX_TRACK_TITLE_STRING);
+                p = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_UPDATE);
+                t = aaxDriverGetSetup(record, AAX_TRACK_TITLE_UPDATE);
                 if (p && t) {
                     printf("\r\033[K Playing  : %s - %s\n", p, t);
                 } else if (p) {

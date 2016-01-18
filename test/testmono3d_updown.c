@@ -161,8 +161,8 @@ int main(int argc, char **argv)
 
                 msecSleep(50);
 
-                EmitterPos[0] = XEPOS + RADIUS * cosf(ang);
-//              EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
+//              EmitterPos[0] = XEPOS + RADIUS * cosf(ang);
+                EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
                 EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
 
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
