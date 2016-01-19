@@ -89,7 +89,6 @@ help()
         aaxDriverDestroy(cfgi);
     }
 
-    cfgo = aaxDriverGetByName("AeonWave on Audio Files", AAX_MODE_READ);
     if (cfgo)
     {
         const char *d, *s;

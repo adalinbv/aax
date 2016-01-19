@@ -107,10 +107,10 @@ int main(int argc, char **argv)
 
     std::cout << "Supported Filters:" << std::endl;
     enum aaxFilterType f = aaxFilterType(AAX_FILTER_NONE+1);
-    std::string str = " ";
+    std::string str = "  ";
+    size_t l = str.size();
     const char *s;
-    size_t l = 3;
-    while((s = aax.supports(f)) != 0) {
+    while(aax.supports(s = aax.info(f))) {
         std::string fs = s;
         if ((l + fs.size()) > maximumWidth) {
             fs = "\n   "+fs;
@@ -127,8 +127,8 @@ int main(int argc, char **argv)
     std::cout << "Supported Effects:" << std::endl;
     enum aaxEffectType e = aaxEffectType(AAX_EFFECT_NONE+1);
     str = "  ";
-    l = 3;
-    while((s = aax.supports(e)) != 0) {
+    l = str.size();
+    while(aax.supports(s = aax.info(e))) {
         std::string es = s;
         if ((l + es.size()) > maximumWidth) {
             es = "\n   "+es;

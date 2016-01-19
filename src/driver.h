@@ -32,6 +32,10 @@
 #ifndef __DRIVER_H_
 #define __DRIVER_H_
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #if HAVE_CONFIG_H
 # include "config.h"
 #endif
@@ -50,7 +54,7 @@ int get_key();
 
 char *getDeviceName(int, char **);
 char *getCaptureName(int, char **);
-char *getCommandLineOption(int, char **, char *);
+char *getCommandLineOption(int, char **, char const *);
 char *getInputFile(int, char **, const char *);
 char *getOutputFile(int, char**, const char *);
 enum aaxFormat getAudioFormat(int, char **, enum aaxFormat);
@@ -62,7 +66,7 @@ char *getRenderer(int, char **);
 int printCopyright(int, char **);
 char *strDup(const char *);
 
-void testForError(void *, char *);
+void testForError(void *, char const *);
 void testForState(int, const char *);
 void testForALCError(void *);
 void testForALError();
@@ -77,6 +81,10 @@ DWORD __attribute__((__stdcall__)) SleepEx(DWORD,BOOL);
 # define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
 #else
 int msecSleep(unsigned long);
+#endif
+
+#if defined(__cplusplus)
+}  /* extern "C" */
 #endif
 
 #endif
