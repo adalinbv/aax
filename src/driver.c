@@ -251,7 +251,7 @@ getAudioFormat(int argc, char **argv, enum aaxFormat format)
 }
 
 void
-testForError(void *p, char *s)
+testForError(void *p, char const *s)
 {
     if (p == NULL)
     {
@@ -277,7 +277,7 @@ testForState(int res, const char *func)
 }
 
 char *
-getCommandLineOption(int argc, char **argv, char *option)
+getCommandLineOption(int argc, char **argv, char const *option)
 {
     int slen = strlen(option);
     char *rv = 0;
