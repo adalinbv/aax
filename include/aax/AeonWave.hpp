@@ -34,6 +34,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 #include <algorithm>
 
 #include <aax/aax.h>
@@ -59,43 +60,43 @@ public:
         else aaxEffectDestroy(_e);
     }
 
-    inline bool set(int s) {
+    bool set(int s) {
         if (_f) return aaxFilterSetState(_f,s);
         else return aaxEffectSetState(_e,s);
     }
-    inline int get() {
+    int get() {
         if (_f) return aaxFilterGetState(_f);
         else aaxEffectGetState(_e);
     }
-    inline bool set(unsigned s, int t, float p1, float p2, float p3, float p4) {
+    bool set(unsigned s, int t, float p1, float p2, float p3, float p4) {
         if (_f) return aaxFilterSetSlot(_f,s,t,p1,p2,p3,p4);
         else return aaxEffectSetSlot(_e,s,t,p1,p2,p3,p4);
     }
-    inline bool get(unsigned s, int t, float* p1, float* p2, float* p3, float* p4) {
+    bool get(unsigned s, int t, float* p1, float* p2, float* p3, float* p4) {
         if (_f) aaxFilterGetSlot(_f,s,t,p1,p2,p3,p4);
         else aaxEffectGetSlot(_e,s,t,p1,p2,p3,p4);
     }
-    inline bool set(unsigned s, int t, aaxVec4f v) {
+    bool set(unsigned s, int t, aaxVec4f v) {
         if (_f) return aaxFilterSetSlotParams(_f,s,t,v);
         else return aaxEffectSetSlotParams(_e,s,t,v);
     }
-    inline bool get(unsigned s, int t, aaxVec4f v) {
+    bool get(unsigned s, int t, aaxVec4f v) {
         if (_f) return aaxFilterGetSlotParams(_f,s,t,v);
         else return aaxEffectGetSlotParams(_e,s,t,v);
     }
-    inline bool set(int p, int t, float v) {
+    bool set(int p, int t, float v) {
         if (_f) return aaxFilterSetParam(_f,p,t,v);
         else return  aaxEffectSetParam(_e,p,t,v);
     }
-    inline float get(int p, int t) {
+    float get(int p, int t) {
         if (_f) return aaxFilterGetParam(_f,p,t);
         else return  aaxEffectGetParam(_e,p,t);
     }
 
-    inline void* config() {
+    void* config() {
         return _f ? _f : _e;
     }
-    inline bool is_filter() {
+    bool is_filter() {
         return _f ? true : false;
     }
 
@@ -108,36 +109,39 @@ class Mixer
 {
 public:
     Mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        _c(aaxDriverOpenByName(n,m))
-    {}
+        _m(m), _c(aaxDriverOpenByName(n,m)) {}
 
-    Mixer(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Mixer(0, m)
-    {}
+    Mixer(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+        _c(aaxDriverOpenByName(s.empty() ? 0 : s.c_str(),m)) {}
+
+    Mixer(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : Mixer(0, m) {}
 
     ~Mixer() {
         aaxDriverClose(_c); aaxDriverDestroy(_c); _c = 0;
     }
 
     // ** driver ******
-    inline bool close() {
+    bool close() {
         return aaxDriverClose(_c) ? (((_c=0) == 0) ? false : true) : false;
-    }
-    inline const char* info(enum aaxSetupType t) {
-        return aaxDriverGetSetup(_c,t);
     }
     inline bool get(enum aaxRenderMode m) {
         return aaxDriverGetSupport(_c,m);
     }
+    inline const char* info(enum aaxSetupType t) {
+        return aaxDriverGetSetup(_c,t);
+    }
 
-    inline const char* supports(enum aaxFilterType f) {
+    inline const char* info(enum aaxFilterType f) {
         return aaxFilterGetNameByType(_c,f);
     }
-    inline const char* supports(enum aaxEffectType e) {
+    inline const char* info(enum aaxEffectType e) {
         return aaxEffectGetNameByType(_c,e);
     }
-    inline bool supports(const char* fe) {
+    bool supports(const char* fe) {
         return aaxIsFilterSupported(_c,fe) ? true : aaxIsEffectSupported(_c,fe);
+    }
+    inline bool supports(std::string& s) {
+        return supports(s.c_str());
     }
 
     // ** mixer ******
@@ -155,7 +159,7 @@ public:
         return aaxState(aaxMixerGetState(_c));
     }
 
-    inline bool set(DSP dsp) {
+    bool set(DSP dsp) {
         return dsp.is_filter() ? aaxMixerSetFilter(_c,dsp.config()) :
                                  aaxMixerSetEffect(_c,dsp.config());
     }
@@ -163,12 +167,14 @@ public:
         return DSP(aaxMixerGetFilter(_c,t),t);
     }
 
-    inline bool add(const aaxConfig c) {
+    bool add(Mixer* m) {
+        const aaxConfig c = m ? m->config() : 0;
         if (aaxIsValid(c, AAX_EMITTER)) aaxMixerRegisterEmitter(_c,c);
         else if (aaxIsValid(c, AAX_CONFIG)) aaxMixerRegisterSensor(_c,c);
         else aaxMixerRegisterAudioFrame(_c,c);
     }
-    inline bool remove(const aaxConfig c) {
+    bool remove(Mixer* m) {
+        const aaxConfig c = m ? m->config() : 0;
         if (aaxIsValid(c, AAX_EMITTER)) aaxMixerDeregisterEmitter(_c,c);
         else if (aaxIsValid(c, AAX_CONFIG)) aaxMixerDeregisterSensor(_c,c);
         else aaxMixerDeregisterAudioFrame(_c,c);
@@ -221,12 +227,26 @@ public:
         return aaxGetVersionString(_c);
     }
 
+    const char* device(unsigned d) {
+        return aaxDriverGetDeviceNameByPos(_c,d,_m);
+    }
+    const char* interface(int d, unsigned i) {
+        const char* ed = device(d);
+        return aaxDriverGetInterfaceNameByPos(_c,ed,i,_m);
+    }
+    const char* interface(const char* d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(_c,d,i,_m);
+    }
+    const char* interface(std::string& d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(_c,d.c_str(),i,_m);
+    }
 
     inline aaxConfig config() {
         return _c;
     }
 
 protected:
+    enum aaxRenderMode _m;
     aaxConfig _c;
 };
 
@@ -237,9 +257,10 @@ public:
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Mixer(n,m),
         _ec(0)
-    {
-        _e[0] = _e[1] = _e[2] = 0;
-    }
+    { _e[0] = _e[1] = _e[2] = 0; }
+
+    AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+        AeonWave(s.empty() ? 0 : s.c_str(),m) {}
 
     AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : AeonWave(0,m) {}
 
@@ -252,7 +273,7 @@ public:
     }
 
     // ** enumeration ******
-    inline const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+    const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         aaxDriverClose(_ec); aaxDriverDestroy(_ec);
         _em = m; _ec = 0; _e[1] = 0; _e[2] = 0;
         if (_e[0] < aaxDriverGetCount(_em)) {
@@ -260,14 +281,14 @@ public:
         }  else _e[0] = 0;
         return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
     }
-    inline const char* devices() {
+    const char* devices() {
         _ed = _e[1] ? 0 : ""; _e[2] = 0;
         if (_e[1]++ < aaxDriverGetDeviceCount(_ec,_em)) {
             _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]-1,_em);
         }
         return _ed;
     }
-    inline const char* interfaces() {
+    const char* interfaces() {
         const char *ifs = _e[2] ? 0 : "";
         if (_e[2]++ < aaxDriverGetInterfaceCount(_ec,_ed,_em)) {
             ifs = aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]-1,_em);
@@ -294,11 +315,14 @@ public:
 
 
     // ** module management ******
-    inline Mixer* mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+    Mixer* mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         _mixer.push_back(new Mixer(n,m));
         return _mixer.back();
     }
-    inline destroy(Mixer* m) {
+    inline Mixer* mixer(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+        return mixer(s.c_str(),m);
+    }
+    void destroy(Mixer* m) {
         _mixer.erase(std::remove(_mixer.begin(),_mixer.end(),m),_mixer.end());
     }
 
