@@ -261,25 +261,23 @@ public:
         const aaxFrame f = m ? m->config() : 0;
         return aaxAudioFrameRegisterAudioFrame(_f,f);
     }
+    bool remove(Mixer* m) {
+        const aaxFrame f = m ? m->config() : 0;
+        return aaxAudioFrameDeregisterAudioFrame(_f,f);
+    }
     bool add(Sensor* s) {
         const aaxConfig c = s ? s->config() : 0;
         return aaxAudioFrameRegisterSensor(_f,c);
-    }
-#if 0
-    bool add(Emitter* e) {
-        const aaxEmitter e = m ? m->config() : 0;
-        return aaxAudioFrameRegisterEmitter(_f,e);
-    }
-#endif
-    bool remove(Mixer* m) {
-        const aaxConfig c = m ? m->config() : 0;
-        return aaxAudioFrameDeregisterAudioFrame(_f,c);
     }
     bool remove(Sensor* s) {
         const aaxConfig c = s ? s->config() : 0;
         return aaxAudioFrameDeregisterSensor(_f,c);
     }
 #if 0
+    bool add(Emitter* e) {
+        const aaxEmitter e = m ? m->config() : 0;
+        return aaxAudioFrameRegisterEmitter(_f,e);
+    }
     bool remove(Emitter* e) {
         const aaxEmitter e = m ? m->config() : 0;
         return aaxAudioFrameDeregisterEmitter(_f,e);
@@ -328,16 +326,8 @@ public:
     AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : AeonWave(0,m) {}
 
     ~AeonWave() {
-        std::vector<Mixer*>::iterator itm = _mixer.begin();
-        while (itm != _mixer.end()) {
-            delete (*itm); itm = _mixer.erase(itm);
-        } 
-        std::vector<Sensor*>::iterator its = _sensor.begin();
-        while (its != _sensor.end()) {
-            delete (*its); its = _sensor.erase(its);
-        }
-        _mixer.clear();
-        _sensor.clear();
+        while (_mixer.size()) destroy(_mixer[0]);
+        while (_sensor.size()) destroy(_sensor[0]);
     }
 
     // ** enumeration ******
@@ -400,25 +390,23 @@ public:
         const aaxFrame f = m ? m->config() : 0;
         return aaxMixerRegisterAudioFrame(_c,f);
     }
+    bool remove(Mixer* m) {
+        const aaxFrame f = m ? m->config() : 0;
+        return aaxMixerDeregisterAudioFrame(_c,f);
+    }
     bool add(Sensor* s) {
         const aaxConfig c = s ? s->config() : 0;
         return aaxMixerRegisterSensor(_c,c);
-    }
-#if 0
-    bool add(Emitter* h) {
-        const aaxEmitter e = h ? h->config() : 0;
-        return aaxMixerRegisterEmitter(_c,e);
-    }
-#endif
-    bool remove(Mixer* m) {
-        const aaxConfig c = m ? m->config() : 0;
-        return aaxMixerDeregisterAudioFrame(_c,c);
     }
     bool remove(Sensor* s) {
          const aaxConfig c = s ? s->config() : 0;
         return aaxMixerDeregisterSensor(_c,c);
     }
 #if 0
+    bool add(Emitter* h) {
+        const aaxEmitter e = h ? h->config() : 0;
+        return aaxMixerRegisterEmitter(_c,e);
+    }
     bool remove(Emitter* h) {
         const aaxEmitter e = h ? h->config() : 0;
         return aaxMixerDeregisterEmitter(_c,c);
