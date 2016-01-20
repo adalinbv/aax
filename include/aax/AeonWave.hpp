@@ -108,6 +108,85 @@ private:
 };
 
 
+class Emitter
+{
+public:
+    Emitter() : _e(aaxEmitterCreate()) {}
+
+    ~Emitter() {
+        aaxEmitterDestroy(_e); _e = 0;
+    }
+
+    inline bool set(enum aaxModeType t, int m) {
+        return aaxEmitterSetMode(_e,t,m);
+    }
+    inline int get(enum aaxModeType t) {
+        return aaxEmitterGetMode(_e,t);
+    }
+    inline bool set(enum aaxState s) {
+        return aaxEmitterSetState(_e,s);
+    }
+    inline enum aaxState get() {
+        return aaxState(aaxEmitterGetState(_e));
+    }
+
+    // ** filters and effects ******
+    bool set(DSP dsp) {
+        return dsp.is_filter() ? aaxEmitterSetFilter(_e,dsp.config())
+                               : aaxEmitterSetEffect(_e,dsp.config());
+    }
+    inline DSP get(enum aaxFilterType t) {
+        return DSP(aaxEmitterGetFilter(_e,t),t);
+    }
+    inline DSP get(enum aaxEffectType t) {
+        return DSP(aaxEmitterGetEffect(_e,t),t);
+    }
+
+    // ** position and orientation ******
+    inline bool set(aaxMtx4f m) {
+        return aaxEmitterSetMatrix(_e,m);
+    }
+    inline bool get(aaxMtx4f m) {
+        return aaxEmitterGetMatrix(_e,m);
+    }
+    inline bool set(const aaxVec3f v) {
+        return aaxEmitterSetVelocity(_e,v);
+    }
+    inline bool get(aaxVec3f v) {
+        return aaxEmitterGetVelocity(_e,v);
+    }
+
+    // ** buffer handling ******
+    inline bool buffer(aaxBuffer b) {
+        return aaxEmitterAddBuffer(_e,b);
+    }
+    inline bool buffer() {
+        return aaxEmitterRemoveBuffer(_e);
+    }
+    inline aaxBuffer buffer(unsigned int p, int c=AAX_FALSE) {
+        return aaxEmitterGetBufferByPos(_e,p,c);
+    }
+    inline unsigned int buffers(enum aaxState s) {
+        return aaxEmitterGetNoBuffers(_e,s);
+    }
+    inline bool offset(unsigned long o, enum aaxType t) {
+        return aaxEmitterSetOffset(_e,o,t);
+    }
+    inline bool offset(float o) {
+        return aaxEmitterSetOffsetSec(_e,o);
+    }
+    inline unsigned long offset(enum aaxType t) {
+        return aaxEmitterGetOffset(_e,t);
+    }
+    inline float offset() {
+        return aaxEmitterGetOffsetSec(_e);
+    }
+
+private:
+    aaxEmitter _e;
+};
+
+
 class Sensor
 {
 public:
@@ -197,7 +276,7 @@ public:
     inline aaxBuffer buffer() {
         return aaxSensorGetBuffer(_c);
     }
-    inline float offset(enum aaxType t) {
+    inline unsigned long offset(enum aaxType t) {
         return aaxSensorGetOffset(_c,t);
     }
 
@@ -326,8 +405,8 @@ public:
     AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : AeonWave(0,m) {}
 
     ~AeonWave() {
-        while (_mixer.size()) delete destroy(_mixer[0]);
-        while (_sensor.size()) delete destroy(_sensor[0]);
+        while (_mixer.size()) destroy(_mixer[0]);
+        while (_sensor.size()) destroy(_sensor[0]);
     }
 
     // ** enumeration ******
@@ -434,11 +513,11 @@ public:
         _mixer.push_back(new Mixer(_c));
         return _mixer.back();
     }
-    Mixer* destroy(Mixer* m) {
+    void destroy(Mixer* m) {
         std::vector<Mixer*>::iterator it;
         it = std::remove(_mixer.begin(),_mixer.end(),m);
         _mixer.erase(it,_mixer.end());
-        return (*it);
+        delete (*it);
     }
     Sensor* mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         _sensor.push_back(new Sensor(n,m));
@@ -450,11 +529,11 @@ public:
     Sensor* mixer(enum aaxRenderMode m) {
         return mixer(0,m);
     }
-    Sensor* destroy(Sensor* m) {
+    void destroy(Sensor* m) {
         std::vector<Sensor*>::iterator it;
         it = std::remove(_sensor.begin(),_sensor.end(),m);
         _sensor.erase(it,_sensor.end());
-        return (*it);
+        delete (*it);
     }
 
 private:
