@@ -326,8 +326,8 @@ public:
     AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : AeonWave(0,m) {}
 
     ~AeonWave() {
-        while (_mixer.size()) destroy(_mixer[0]);
-        while (_sensor.size()) destroy(_sensor[0]);
+        while (_mixer.size()) delete destroy(_mixer[0]);
+        while (_sensor.size()) delete destroy(_sensor[0]);
     }
 
     // ** enumeration ******
@@ -434,8 +434,11 @@ public:
         _mixer.push_back(new Mixer(_c));
         return _mixer.back();
     }
-    void destroy(Mixer* m) {
-        _mixer.erase(std::remove(_mixer.begin(),_mixer.end(),m),_mixer.end());
+    Mixer* destroy(Mixer* m) {
+        std::vector<Mixer*>::iterator it;
+        it = std::remove(_mixer.begin(),_mixer.end(),m);
+        _mixer.erase(it,_mixer.end());
+        return (*it);
     }
     Sensor* mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         _sensor.push_back(new Sensor(n,m));
@@ -447,8 +450,11 @@ public:
     Sensor* mixer(enum aaxRenderMode m) {
         return mixer(0,m);
     }
-    void destroy(Sensor* m) {
-        _sensor.erase(std::remove(_sensor.begin(),_sensor.end(),m),_sensor.end());
+    Sensor* destroy(Sensor* m) {
+        std::vector<Sensor*>::iterator it;
+        it = std::remove(_sensor.begin(),_sensor.end(),m);
+        _sensor.erase(it,_sensor.end());
+        return (*it);
     }
 
 private:
