@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2015 by Erik Hofman.
- * Copyright (C) 2009-2015 by Adalin B.V.
+ * Copyright (C) 2008-2016 by Erik Hofman.
+ * Copyright (C) 2009-2016 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -358,6 +358,7 @@ int main(int argc, char **argv)
             res = frame->set(AAX_STOPPED);
             testForState(res, "aaxAudioFrameSetState");
         }
+
         res = record->set(AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
 
