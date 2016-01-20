@@ -166,7 +166,9 @@ aaxAudioFrameDestroy(aaxFrame frame)
                    _aaxRingBufferFree);
 
       /* frees both EQUALIZER_LF and EQUALIZER_HF */
-      free(handle->filter[EQUALIZER_LF].data);
+      if (handle->filter) {
+         free(handle->filter[EQUALIZER_LF].data);
+      }
 
       /* safeguard against using already destroyed handles */
       handle->id = FADEDBAD;
