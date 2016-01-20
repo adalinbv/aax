@@ -120,8 +120,8 @@ int main(int argc, char **argv)
 
     devname = getDeviceName(argc, argv);
     AAX::AeonWave config(devname);
-    AAX::Mixer *record = 0;
-    AAX::Mixer *file = 0;
+    AAX::Sensor* record = 0;
+    AAX::Sensor* file = 0;
 
     testForError(config.config(), "Audio output device is not available.");
     if (!config.config())
@@ -153,9 +153,6 @@ int main(int argc, char **argv)
         snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
         file = config.mixer(obuf);
     }
-    else {
-        file = NULL;
-    }
 
     if (config.config() && record && (rv >= 0))
     {
@@ -167,7 +164,7 @@ int main(int argc, char **argv)
         float dhour, hour, minutes, seconds;
         float duration, freq;
         unsigned int max_samples;
-        aaxFrame frame = NULL;
+        AAX::Mixer* frame = 0;
         aaxEffect effect;
         aaxFilter filter;
         char tstr[80];
@@ -187,24 +184,23 @@ int main(int argc, char **argv)
         res = config.set(AAX_PLAYING);
         testForState(res, "aaxMixerStart");
 
-#if 0
         if (fparam)
         {
             std::cout << "  using audio-frames" << std::endl;
 
             /** audio frame */
-            frame = aaxAudioFrameCreate(config);
+            frame = config.mixer();
             testForError(frame, "Unable to create a new audio frame");   
 
             /** register audio frame */
-            res = aaxMixerRegisterAudioFrame(config, frame);
+            res = config.add(frame);
             testForState(res, "aaxMixerRegisterAudioFrame");
 
-            res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+            res = frame->set(AAX_PLAYING);
             testForState(res, "aaxAudioFrameSetState");
 
             /** sensor */
-            res = aaxAudioFrameRegisterSensor(frame, record);
+            res = frame->add(record);
             testForState(res, "aaxAudioFrameRegisterSensor");
         }
         else
@@ -213,10 +209,6 @@ int main(int argc, char **argv)
             res = config.add(record);
             testForState(res, "aaxMixerRegisterSensor");
         }
-#else
-        res = config.add(record);
-        testForState(res, "aaxMixerRegisterSensor");
-#endif
 
         if (file)
         {
@@ -360,37 +352,28 @@ int main(int argc, char **argv)
 
         res = config.set(AAX_STOPPED);
         testForState(res, "aaxMixerSetState");
-#if 0
+
         if (frame)
         {
-            res = aaxAudioFrameSetState(frame, AAX_STOPPED);
+            res = frame->set(AAX_STOPPED);
             testForState(res, "aaxAudioFrameSetState");
         }
-#endif
         res = record->set(AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
 
-#if 0
         if (frame)
         {
-            res = aaxAudioFrameDeregisterSensor(frame, record);
+            res = frame->remove(record);
             testForState(res, "aaxAudioFrameDeregisterSensor");
 
-            res = aaxMixerDeregisterAudioFrame(config, frame);
+            res = config.remove(frame);
             testForState(res, "aaxMixerDeregisterAudioFrame");
-
-            res = aaxAudioFrameDestroy(frame);
-            testForState(res, "aaxAudioFrameDestroy");
         }
         else
         {
-            res = aaxMixerDeregisterSensor(config, record);
+            res = config.remove(record);
             testForState(res, "aaxMixerDeregisterSensor");
         }
-#else
-        res = config.remove(record);
-        testForState(res, "aaxMixerDeregisterSensor");
-#endif
     }
     else {
         std::cout << "Unable to open capture device." << std::endl;
