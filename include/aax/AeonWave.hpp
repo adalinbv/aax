@@ -47,13 +47,11 @@ namespace AAX
 class DSP
 {
 public:
-    DSP(aaxConfig c, enum aaxFilterType f) :
-        _e(0) {
+    DSP(aaxConfig c, enum aaxFilterType f) : _e(0) {
         if (aaxIsValid(c, AAX_FILTER)) _f = c;
         else _f = aaxFilterCreate(c,f);
     }
-    DSP(aaxConfig c, enum aaxEffectType e) :
-        _f(0) {
+    DSP(aaxConfig c, enum aaxEffectType e) : _f(0) {
         if (aaxIsValid(c, AAX_EFFECT)) _f = c;
         else _f = aaxEffectCreate(c,e);
     }
@@ -63,36 +61,32 @@ public:
     }
 
     bool set(int s) {
-        if (_f) return aaxFilterSetState(_f,s);
-        else return aaxEffectSetState(_e,s);
+        return _f ? aaxFilterSetState(_f,s) : aaxEffectSetState(_e,s);
     }
     int get() {
-        if (_f) return aaxFilterGetState(_f);
-        else aaxEffectGetState(_e);
+        return _f ? aaxFilterGetState(_f) : aaxEffectGetState(_e);
     }
     bool set(unsigned s, int t, float p1, float p2, float p3, float p4) {
-        if (_f) return aaxFilterSetSlot(_f,s,t,p1,p2,p3,p4);
-        else return aaxEffectSetSlot(_e,s,t,p1,p2,p3,p4);
+        return _f ? aaxFilterSetSlot(_f,s,t,p1,p2,p3,p4)
+                  : aaxEffectSetSlot(_e,s,t,p1,p2,p3,p4);
     }
     bool get(unsigned s, int t, float* p1, float* p2, float* p3, float* p4) {
-        if (_f) aaxFilterGetSlot(_f,s,t,p1,p2,p3,p4);
-        else aaxEffectGetSlot(_e,s,t,p1,p2,p3,p4);
+        return _f ? aaxFilterGetSlot(_f,s,t,p1,p2,p3,p4)
+                  : aaxEffectGetSlot(_e,s,t,p1,p2,p3,p4);
     }
     bool set(unsigned s, int t, aaxVec4f v) {
-        if (_f) return aaxFilterSetSlotParams(_f,s,t,v);
-        else return aaxEffectSetSlotParams(_e,s,t,v);
+        return _f ? aaxFilterSetSlotParams(_f,s,t,v)
+                  : aaxEffectSetSlotParams(_e,s,t,v);
     }
     bool get(unsigned s, int t, aaxVec4f v) {
-        if (_f) return aaxFilterGetSlotParams(_f,s,t,v);
-        else return aaxEffectGetSlotParams(_e,s,t,v);
+        return _f ? aaxFilterGetSlotParams(_f,s,t,v);
+                  : aaxEffectGetSlotParams(_e,s,t,v);
     }
     bool set(int p, int t, float v) {
-        if (_f) return aaxFilterSetParam(_f,p,t,v);
-        else return  aaxEffectSetParam(_e,p,t,v);
+        return _f ? aaxFilterSetParam(_f,p,t,v) : aaxEffectSetParam(_e,p,t,v);
     }
     float get(int p, int t) {
-        if (_f) return aaxFilterGetParam(_f,p,t);
-        else return  aaxEffectGetParam(_e,p,t);
+        return _f ? aaxFilterGetParam(_f,p,t) : aaxEffectGetParam(_e,p,t);
     }
 
     void* config() const {
