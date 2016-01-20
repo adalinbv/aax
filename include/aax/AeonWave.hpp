@@ -182,6 +182,11 @@ public:
         return aaxEmitterGetOffsetSec(_e);
     }
 
+    // ** support ******
+    aaxEmitter config() const {
+        return _e;
+    }
+
 private:
     aaxEmitter _e;
 };
@@ -352,16 +357,14 @@ public:
         const aaxConfig c = s ? s->config() : 0;
         return aaxAudioFrameDeregisterSensor(_f,c);
     }
-#if 0
-    bool add(Emitter* e) {
-        const aaxEmitter e = m ? m->config() : 0;
+    bool add(Emitter* h) {
+        const aaxEmitter e = h ? h->config() : 0;
         return aaxAudioFrameRegisterEmitter(_f,e);
     }
-    bool remove(Emitter* e) {
-        const aaxEmitter e = m ? m->config() : 0;
+    bool remove(Emitter* h) {
+        const aaxEmitter e = h ? h->config() : 0;
         return aaxAudioFrameDeregisterEmitter(_f,e);
     }
-#endif
 
     // ** position and orientation ******
     inline bool set(aaxMtx4f m) {
@@ -481,16 +484,14 @@ public:
          const aaxConfig c = s ? s->config() : 0;
         return aaxMixerDeregisterSensor(_c,c);
     }
-#if 0
     bool add(Emitter* h) {
         const aaxEmitter e = h ? h->config() : 0;
         return aaxMixerRegisterEmitter(_c,e);
     }
     bool remove(Emitter* h) {
         const aaxEmitter e = h ? h->config() : 0;
-        return aaxMixerDeregisterEmitter(_c,c);
+        return aaxMixerDeregisterEmitter(_c,e);
     }
-#endif
 
     // ** scenery ******
 #if 0
