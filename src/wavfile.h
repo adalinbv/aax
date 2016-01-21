@@ -32,6 +32,10 @@
 #ifndef __WAVEFILE_H
 #define __WAVEFILE_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <aax/aax.h>
 
 #define _OPENAL_SUPPORT		0
@@ -45,5 +49,10 @@ void *fileLoad(const char *, unsigned int *, unsigned *, int *, char *, char *, 
 
 void *fileDataConvertToInterleaved(void *, char, char, unsigned int);
 enum aaxFormat getFormatFromFileFormat(unsigned int, int);
+
+#if defined(__cplusplus)
+}
+#endif
+
 
 #endif
