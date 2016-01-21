@@ -180,7 +180,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
 }
 
 AAX_API int AAX_APIENTRY
-aaxAudioFrameSetMatrix(aaxFrame frame, aaxMtx4f mtx)
+aaxAudioFrameSetMatrix(aaxFrame frame, const aaxMtx4f mtx)
 {
    _frame_t *handle = get_frame(frame);
    int rv = __release_mode;
