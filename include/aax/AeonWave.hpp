@@ -44,6 +44,48 @@
 namespace AAX
 {
 
+class Buffer
+{
+public:
+    Buffer(aaxBuffer b) : _b(b) {}
+
+    Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
+        _b(aaxBufferCreate(c,n,t,f)) {}
+
+    ~Buffer() {
+        aaxBufferDestroy(_b);
+    }
+
+    inline bool set(enum aaxSetupType t, unsigned int s) {
+        return aaxBufferSetSetup(_b,t,s);
+    }
+    inline unsigned int get(enum aaxSetupType t) {
+        return aaxBufferGetSetup(_b,t);
+    }
+    inline bool set(const void* d) {
+        return aaxBufferSetData(_b,d);
+    }
+    inline void** get() {
+        return aaxBufferGetData(_b);
+    }
+
+    // ** buffer data mangling ******
+    inline bool process(float f, enum aaxWaveformType t, float r=0.5f, enum aaxProcessingType p=AAX_MIX) {
+        return aaxBufferProcessWaveform(_b,f,t,r,p);
+    }
+    inline bool process(float f, enum aaxWaveformType t, enum aaxProcessingType p, float r=0.5f) {
+        return aaxBufferProcessWaveform(_b,f,t,r,p);
+    }
+
+    // ** support ******
+    aaxBuffer config() const {
+        return _b;
+    }
+
+private:
+    aaxBuffer _b;
+};
+
 class DSP
 {
 public:
@@ -79,7 +121,7 @@ public:
                   : aaxEffectSetSlotParams(_e,s,t,v);
     }
     bool get(unsigned s, int t, aaxVec4f v) {
-        return _f ? aaxFilterGetSlotParams(_f,s,t,v);
+        return _f ? aaxFilterGetSlotParams(_f,s,t,v)
                   : aaxEffectGetSlotParams(_e,s,t,v);
     }
     bool set(int p, int t, float v) {
@@ -89,6 +131,7 @@ public:
         return _f ? aaxFilterGetParam(_f,p,t) : aaxEffectGetParam(_e,p,t);
     }
 
+    // ** support ******
     void* config() const {
         return _f ? _f : _e;
     }
@@ -108,7 +151,7 @@ public:
     Emitter() : _e(aaxEmitterCreate()) {}
 
     ~Emitter() {
-        aaxEmitterDestroy(_e); _e = 0;
+        aaxEmitterDestroy(_e);
     }
 
     inline bool set(enum aaxModeType t, int m) {
@@ -151,16 +194,16 @@ public:
     }
 
     // ** buffer handling ******
-    inline bool buffer(aaxBuffer b) {
-        return aaxEmitterAddBuffer(_e,b);
+    inline bool add(Buffer& b) {
+        return aaxEmitterAddBuffer(_e,b.config());
     }
-    inline bool buffer() {
+    inline bool remove() {
         return aaxEmitterRemoveBuffer(_e);
     }
-    inline aaxBuffer buffer(unsigned int p, int c=AAX_FALSE) {
-        return aaxEmitterGetBufferByPos(_e,p,c);
+    inline Buffer get(unsigned int p, int c=AAX_FALSE) {
+        return Buffer(aaxEmitterGetBufferByPos(_e,p,c));
     }
-    inline unsigned int buffers(enum aaxState s) {
+    inline unsigned int get(enum aaxState s) {
         return aaxEmitterGetNoBuffers(_e,s);
     }
     inline bool offset(unsigned long o, enum aaxType t) {
@@ -198,7 +241,7 @@ public:
     Sensor(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : Sensor(0,m) {}
 
     ~Sensor() {
-        aaxDriverClose(_c); aaxDriverDestroy(_c); _c = 0;
+        aaxDriverClose(_c); aaxDriverDestroy(_c);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -272,8 +315,8 @@ public:
     inline bool wait(float t) {
         return aaxSensorWaitForBuffer(_c,t);
     }
-    inline aaxBuffer buffer() {
-        return aaxSensorGetBuffer(_c);
+    inline Buffer buffer() {
+        return Buffer(aaxSensorGetBuffer(_c));
     }
     inline unsigned long offset(enum aaxType t) {
         return aaxSensorGetOffset(_c,t);
@@ -305,7 +348,7 @@ public:
     Mixer(aaxConfig c) : _f(aaxAudioFrameCreate(c)) {}
 
     ~Mixer() {
-        aaxAudioFrameDestroy(_f); _f = 0;
+        aaxAudioFrameDestroy(_f);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -377,8 +420,9 @@ public:
     // ** buffer handling ******
     inline bool wait(float t) {
         return aaxAudioFrameWaitForBuffer(_f,t);
-    }    inline aaxBuffer buffer() {
-        return aaxAudioFrameGetBuffer(_f);
+    }
+    inline Buffer buffer() {
+        return Buffer(aaxAudioFrameGetBuffer(_f));
     }
 
     // ** support ******
