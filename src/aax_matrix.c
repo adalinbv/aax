@@ -184,7 +184,7 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
 
 
 AAX_API int AAX_APIENTRY
-aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
+aaxMatrixMultiply(aaxMtx4f mtx1, const aaxMtx4f mtx2)
 {
    int rv = __release_mode;
 
@@ -211,7 +211,7 @@ aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
+aaxMatrix64Multiply(aaxMtx4d mtx1, const aaxMtx4d mtx2)
 {
    int rv = __release_mode;
 
@@ -415,7 +415,7 @@ aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrix64ToMatrix(aaxMtx4f mtx, aaxMtx4d mtx64)
+aaxMatrix64ToMatrix(aaxMtx4f mtx, const aaxMtx4d mtx64)
 {
    int rv = __release_mode;
 
