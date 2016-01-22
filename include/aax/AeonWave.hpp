@@ -101,8 +101,8 @@ public:
         else _f = aaxFilterCreate(c,f);
     }
     DSP(aaxConfig c, enum aaxEffectType e) : _f(0) {
-        if (aaxIsValid(c, AAX_EFFECT)) _f = c;
-        else _f = aaxEffectCreate(c,e);
+        if (aaxIsValid(c, AAX_EFFECT)) _e = c;
+        else _e = aaxEffectCreate(c,e);
     }
     ~DSP() {
         if (_f) aaxFilterDestroy(_f);
@@ -146,24 +146,21 @@ public:
     DSP& operator=(DSP& dsp) {
         if (_f) aaxFilterDestroy(_f);
         else aaxEffectDestroy(_e);
-        _f = _e = 0;
-        if (dsp.is_filter()) _f = dsp.config();
-        else _e = dsp.config();
-        dsp.clear();
+        *this = dsp = 0;
         return *this;
     }
     DSP& operator=(DSP dsp) {
         if (_f) aaxFilterDestroy(_f);
         else aaxEffectDestroy(_e);
-        _f = _e = 0;
-        if (dsp.is_filter()) _f = dsp.config();
-        else _e = dsp.config();
-        dsp.clear();
+        *this = dsp = 0;
         return *this;
     }
-
-    void clear() {
-        _f = _e = 0;
+    void* operator=(void* c) {
+        void* rv = _f ? _f : _e;
+        _e = _f = 0;
+        if (aaxIsValid(c, AAX_FILTER)) _f = c;
+        else if (aaxIsValid(c, AAX_EFFECT)) _e = c;
+        return rv;
     }
 
     void* config() {
