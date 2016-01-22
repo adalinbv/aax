@@ -13,3 +13,4 @@ ENDFUNCTION()
 
 CREATE_CPP_TEST(aaxinfo++)
 CREATE_CPP_TEST(aaxplay++)
+CREATE_CPP_TEST(testmono3d++)
