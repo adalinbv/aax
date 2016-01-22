@@ -29,13 +29,89 @@
  * policies, either expressed or implied, of Adalin B.V.
  */
 
-#ifndef AEONWAVE_MTX
-#define AEONWAVE_MTX 1
+#ifndef AEONWAVE_MATRIX
+#define AEONWAVE_MATRIX 1
 
 #include <aax/aax.h>
 
 namespace AAX
 {
+
+class Vector
+{
+public:
+    Vector() {
+        _v[0] = _v[1] = _v[2] = _v[3] = 0.0f;
+    }
+
+    Vector(aaxVec4f v) {
+        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
+    }
+
+    Vector(float x, float y, float z) {
+        _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = 0.0f;
+    }
+
+    Vector(float w, float x, float y, float z) {
+        _v[0] = w; _v[1] = x; _v[2] = y; _v[3] = z;
+    }
+
+    ~Vector() {}
+
+    // ** support ******
+    Vector& operator*=(Vector &v4) {
+        aaxVec4f& v = v4.config();
+        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2]; _v[3] *= v[3];
+        return *this;
+    }
+    Vector& operator/=(Vector &v4) {
+        aaxVec4f& v = v4.config();
+        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2]; _v[3] /= v[3];
+        return *this;
+    }
+    Vector& operator*=(aaxVec4f v) {
+        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2]; _v[3] *= v[3];
+        return *this;
+    }
+    Vector& operator/=(aaxVec4f v) {
+        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2]; _v[3] /= v[3];
+        return *this;
+    }
+    Vector& operator+=(Vector& v4) {
+        aaxVec4f& v = v4.config();
+        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2]; _v[3] += v[3];
+        return *this;
+    }
+    Vector& operator-=(Vector& v4) {
+        aaxVec4f& v = v4.config();
+        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2]; _v[3] -= v[3];
+        return *this;
+    }
+    Vector& operator+=(aaxVec4f v) {
+        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2]; _v[3] += v[3];
+        return *this;
+    }
+    Vector& operator-=(aaxVec4f v) {
+        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2]; _v[3] -= v[3];
+        return *this;
+    }
+    Vector& operator=(Vector &v4) {
+        aaxVec4f& v = v4.config();
+        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
+        return *this;
+    }
+    Vector& operator=(aaxVec4f v) {
+        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
+        return *this;
+    }
+
+    aaxVec4f& config() {
+        return _v;
+    }
+
+private:
+    aaxVec4f _v;
+};
 
 
 class Matrix
@@ -51,8 +127,14 @@ public:
 
     ~Matrix() {}
 
+    inline bool set(Vector& p, Vector& a) {
+        return aaxMatrixSetDirection(_m,p.config(),a.config());
+    }
     inline bool set(const aaxVec3f p, const aaxVec3f a) {
         return aaxMatrixSetDirection(_m,p,a);
+    }
+    inline bool set(Vector& p, Vector& a, Vector& u) {
+        return aaxMatrixSetOrientation(_m,p.config(),a.config(),u.config());
     }
     inline bool set(const aaxVec3f p, const aaxVec3f a, const aaxVec3f u) {
         return aaxMatrixSetOrientation(_m,p,a,u);
@@ -63,6 +145,13 @@ public:
 
     inline bool translate(float dx, float dy, float dz) {
         return aaxMatrixTranslate(_m,dx,dy,dz);
+    }
+    inline bool translate(Vector& tv) {
+        aaxVec4f& t = tv.config();
+        return aaxMatrixTranslate(_m,t[0],t[1],t[2]);
+    }
+    inline bool translate(const aaxVec3f t) {
+        return aaxMatrixTranslate(_m,t[0],t[1],t[2]);
     }
     inline bool rotate(float a, float x, float y, float z) {
         return aaxMatrixRotate(_m,a,x,y,z);
@@ -89,10 +178,10 @@ public:
         aaxMatrixMultiply(_m,im);
         return *this;
     }
-    Matrix& operator*=(aaxMtx4f m) {
+    Matrix& operator*=(aaxMtx4f& m) {
         aaxMatrixMultiply(_m,m);
     }
-    Matrix& operator/=(aaxMtx4f m) {
+    Matrix& operator/=(aaxMtx4f& m) {
         aaxMtx4f im;
         aaxMatrixCopyMatrix(im, m);
         aaxMatrixInverse(im);
@@ -129,5 +218,5 @@ private:
 
 }
 
-#endif
+#endif /* AEONWAVE_MATRIX */
 
