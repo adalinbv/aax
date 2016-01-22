@@ -50,14 +50,14 @@
 #define YEPOS		-1000.0f
 #define ZEPOS		00.0f
 
-aaxVec3f EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
-aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
-aaxVec3f EmitterVel = {     0.0f,     0.0f, 0.0f };
+AAX::Vector EmitterPos(   XEPOS ,   YEPOS, ZEPOS);
+AAX::Vector EmitterDir(    0.0f,     0.0f,  1.0f);
+AAX::Vector EmitterVel(    0.0f,     0.0f,  0.0f);
 
-aaxVec3f SensorPos = { 00000.0f,    YEPOS, 00.0f };
-aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
-aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
-aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };
+AAX::Vector SensorPos( 00000.0f,    YEPOS, 00.0f);
+AAX::Vector SensorAt(      0.0f,     0.0f, -1.0f);
+AAX::Vector SensorUp(      0.0f,     1.0f,  0.0f);
+AAX::Vector SensorVel(     0.0f,     0.0f,  0.0f);
 
 int main(int argc, char **argv)
 {
@@ -76,6 +76,7 @@ int main(int argc, char **argv)
         {
             AAX::Emitter emitter[256];
             AAX::Matrix mtx;
+            AAX::DSP dsp;
 
             /** mixer */
             res = config.set(AAX_INITIALIZED);
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
-            AAX::DSP dsp = config.scenery(AAX_DISTANCE_FILTER);
+            dsp = config.scenery(AAX_DISTANCE_FILTER);
             dsp.set(AAX_EXPONENTIAL_DISTANCE_DELAY);
             res = config.scenery(dsp);
             testForState(res, "aaxScenerySetDistanceModel");
@@ -134,12 +135,12 @@ int main(int argc, char **argv)
                 dsp.set(AAX_REF_DISTANCE, 3.0f);
                 res = emitter[i].set(dsp);
                 testForState(res, "aaxEmitterSetReferenceDistance");
-#if 0
+
                 dsp = emitter[i].get(AAX_PITCH_EFFECT);
                 dsp.set(AAX_PITCH, pitch);
                 res = emitter[i].set(dsp);
                 testForState(res, "aaxEmitterSetPitch");
-#endif
+
                 config.add(emitter[i]);
                 testForState(res, "aaxMixerRegisterEmitter");
 
