@@ -660,7 +660,7 @@ AAX_API int AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxEmitterSetSetup(aaxEmitter, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxEmitterGetSetup(const aaxEmitter, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetMatrix(aaxConfig, const aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxEmitterSetMatrix(aaxConfig, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxEmitterGetMatrix(aaxConfig, aaxMtx4f);
 
 AAX_API int AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, const aaxVec3f);
@@ -693,7 +693,7 @@ typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMODE)(aaxEmitter, enum aaxModeType, i
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMODE)(const aaxEmitter, enum aaxModeType);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETSETUP)(aaxEmitter, enum aaxSetupType, unsigned int);
 typedef unsigned int (AAX_APIENTRY *PFNAAXEMITTERGETSETUP)(const aaxEmitter, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMATRIX)(aaxConfig, const aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMATRIX)(aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMATRIX)(aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETVELOCITY)(aaxEmitter, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETVELOCITY)(const aaxEmitter, aaxVec3f);
@@ -724,7 +724,7 @@ AAX_API int AAX_APIENTRY aaxSensorGetMode(const aaxConfig, enum aaxModeType);
 AAX_API int AAX_APIENTRY aaxSensorSetSetup(aaxConfig, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxSensorGetSetup(const aaxConfig, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, const aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxSensorGetMatrix(const aaxConfig, aaxMtx4f);
 
 AAX_API int AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, const aaxVec3f);
@@ -742,7 +742,7 @@ typedef int (AAX_APIENTRY *PFNAAXSENSORSETMODE)(aaxConfig, enum aaxModeType, int
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETMODE)(const aaxConfig, enum aaxModeType);
 typedef int (AAX_APIENTRY *PFNAAXSENSORSETSETUP)(aaxConfig, enum aaxSetupType, unsigned int);
 typedef unsigned int (AAX_APIENTRY *PFNAAXSENSORGETSETUP)(const aaxConfig, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXSENSORSETMATRIX)(aaxConfig, const aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXSENSORSETMATRIX)(aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETMATRIX)(const aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORSETVELOCITY)(aaxConfig, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETVELOCITY)(const aaxConfig, aaxVec3f);
@@ -819,16 +819,17 @@ typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTAPPLY)(aaxEffectFn, void *, aaxEffe
 /*
  * Matrix operations
  */
-
+AAX_API int AAX_APIENTRY aaxMatrixCopyMatrix(aaxMtx4f, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixSetIdentityMatrix(aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixTranslate(aaxMtx4f, float, float, float);
 AAX_API int AAX_APIENTRY aaxMatrixRotate(aaxMtx4f, float, float, float, float);
-AAX_API int AAX_APIENTRY aaxMatrixMultiply(aaxMtx4f, const aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxMatrixMultiply(aaxMtx4f, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixInverse(aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixSetDirection(aaxMtx4f, const aaxVec3f, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxMatrixSetOrientation(aaxMtx4f, const aaxVec3f, const aaxVec3f, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxMatrixGetOrientation(aaxMtx4f, aaxVec3f, aaxVec3f, aaxVec3f);
 
+AAX_API int AAX_APIENTRY aaxMatrix64CopyMatrix64(aaxMtx4d, aaxMtx4d);
 AAX_API int AAX_APIENTRY aaxMatrix64SetIdentityMatrix(aaxMtx4d);
 AAX_API int AAX_APIENTRY aaxMatrix64Translate(aaxMtx4d, double, double, double);
 AAX_API int AAX_APIENTRY aaxMatrix64Rotate(aaxMtx4d, double, double, double, double);
@@ -840,7 +841,7 @@ AAX_API int AAX_APIENTRY aaxMatrix64ToMatrix(aaxMtx4f, const aaxMtx4d);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXSETIDENTITYMATRIX)(aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXTRANSLATE)(aaxMtx4f, float, float, float);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXROTATE)(aaxMtx4f, float, float, float, float);
-typedef int (AAX_APIENTRY *PFNAAXMATRIXMULTIPLY)(aaxMtx4f, const aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXMATRIXMULTIPLY)(aaxMtx4f, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXINVERSE)(aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXSETDIRECTION)(aaxMtx4f, const aaxVec3f, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXSETORIENTATION)(aaxMtx4f, const aaxVec3f, const aaxVec3f, const aaxVec3f);
@@ -868,7 +869,7 @@ AAX_API int AAX_APIENTRY aaxAudioFrameGetMode(const aaxFrame, enum aaxModeType);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetSetup(aaxFrame, enum aaxSetupType, unsigned int);
 AAX_API unsigned int aaxAudioFrameGetSetup(const aaxFrame, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, const aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetMatrix(aaxFrame, aaxMtx4f);
 
 AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, const aaxVec3f);
@@ -902,8 +903,8 @@ typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMODE)(aaxFrame, enum aaxModeType, 
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMODE)(const aaxFrame, enum aaxModeType);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETSETUP)(aaxFrame, enum aaxSetupType, unsigned int);
 typedef unsigned int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETSETUP)(const aaxFrame, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMATRIX)(aaxFrame, const aaxMtx4f);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMATRIX)(aaxFrame, const aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMATRIX)(aaxFrame, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMATRIX)(aaxFrame, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETVELOCITY)(aaxFrame, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETVELOCITY)(aaxFrame, aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETFILTER)(aaxFrame, aaxFilter);
