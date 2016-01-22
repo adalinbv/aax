@@ -106,7 +106,7 @@ public:
     }
     ~DSP() {
         if (_f) aaxFilterDestroy(_f);
-        else aaxEffectDestroy(_e);
+        else if(_e) aaxEffectDestroy(_e);
     }
 
     bool set(int s) {
@@ -123,6 +123,11 @@ public:
     bool get(unsigned s, int t, float* p1, float* p2, float* p3, float* p4) {
         return (_f) ? aaxFilterGetSlot(_f,s,t,p1,p2,p3,p4)
                   : aaxEffectGetSlot(_e,s,t,p1,p2,p3,p4);
+    }
+    bool set(unsigned s, int t, Vector& v4) {
+        aaxVec4f& v = v4.config();
+        return (_f) ? aaxFilterSetSlotParams(_f,s,t,v)
+                  : aaxEffectSetSlotParams(_e,s,t,v);
     }
     bool set(unsigned s, int t, aaxVec4f v) {
         return (_f) ? aaxFilterSetSlotParams(_f,s,t,v)
@@ -145,13 +150,13 @@ public:
     // ** support ******
     DSP& operator=(DSP& dsp) {
         if (_f) aaxFilterDestroy(_f);
-        else aaxEffectDestroy(_e);
+        else if (_e) aaxEffectDestroy(_e);
         *this = dsp = 0;
         return *this;
     }
     DSP& operator=(DSP dsp) {
         if (_f) aaxFilterDestroy(_f);
-        else aaxEffectDestroy(_e);
+        else if (_e) aaxEffectDestroy(_e);
         *this = dsp = 0;
         return *this;
     }
@@ -222,6 +227,10 @@ public:
     }
     inline bool get(aaxMtx4f m) {
         return aaxEmitterGetMatrix(_e,m);
+    }
+    inline bool set(Vector& v3) {
+        aaxVec4f& v = v3.config();
+        return aaxEmitterSetVelocity(_e,v);
     }
     inline bool set(const aaxVec3f v) {
         return aaxEmitterSetVelocity(_e,v);
@@ -343,6 +352,10 @@ public:
     }
     inline bool get(aaxMtx4f m) {
         return aaxSensorGetMatrix(_c,m);
+    }
+    inline bool set(Vector& v3) {
+        aaxVec4f& v = v3.config();
+        return aaxSensorSetVelocity(_c,v);
     }
     inline bool set(const aaxVec3f v) {
         return aaxSensorSetVelocity(_c,v);
@@ -466,6 +479,10 @@ public:
     }
     inline bool get(aaxMtx4f m) {
         return aaxAudioFrameGetMatrix(_f,m);
+    }
+    inline bool set(Vector& v3) {
+        aaxVec4f& v = v3.config();
+        return aaxAudioFrameSetVelocity(_f,v);
     }
     inline bool set(const aaxVec3f v) {
         return aaxAudioFrameSetVelocity(_f,v);

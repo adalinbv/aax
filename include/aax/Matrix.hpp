@@ -77,6 +77,14 @@ public:
         _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2]; _v[3] /= v[3];
         return *this;
     }
+    Vector& operator*=(float f) {
+        _v[0] *= f; _v[1] *= f; _v[2] *= f; _v[3] *= f;
+        return *this;
+    }
+    Vector& operator/=(float f) {
+        _v[0] /= f; _v[1] /= f; _v[2] /= f; _v[3] /= f;
+        return *this;
+    }
     Vector& operator+=(Vector& v4) {
         aaxVec4f& v = v4.config();
         _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2]; _v[3] += v[3];
@@ -95,6 +103,14 @@ public:
         _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2]; _v[3] -= v[3];
         return *this;
     }
+    Vector& operator+=(float f) {
+        _v[0] += f; _v[1] += f; _v[2] += f; _v[3] += f;
+        return *this;
+    }
+    Vector& operator-=(float f) {
+        _v[0] -= f; _v[1] -= f; _v[2] -= f; _v[3] -= f;
+        return *this;
+    }
     Vector& operator=(Vector &v4) {
         aaxVec4f& v = v4.config();
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
@@ -103,6 +119,13 @@ public:
     Vector& operator=(aaxVec4f v) {
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
         return *this;
+    }
+    Vector& operator=(float f) {
+        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
+        return *this;
+    }
+    inline float& operator[](unsigned p) {
+        return _v[p];
     }
 
     aaxVec4f& config() {
