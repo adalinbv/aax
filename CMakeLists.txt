@@ -582,6 +582,7 @@ INSTALL(FILES
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
         include/aax/AeonWave.hpp
+        include/aax/Matrix.hpp
         DESTINATION include/aax
         COMPONENT Headers
 )
@@ -614,5 +615,5 @@ CONFIGURE_FILE(
   "${AeonWave_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
   "${AeonWave_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
-#ADD_CUSTOM_TARGET(uninstall
-#  "${CMAKE_COMMAND}" -P "${AeonWave_BINARY_DIR}/cmake_uninstall.cmake")
+ADD_CUSTOM_TARGET(uninstall
+  "${CMAKE_COMMAND}" -P "${AeonWave_BINARY_DIR}/cmake_uninstall.cmake")
