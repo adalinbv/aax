@@ -32,6 +32,8 @@
 #ifndef AEONWAVE
 #define AEONWAVE 1
 
+#include <stdio.h>
+
 #include <memory>
 #include <vector>
 #include <string>
@@ -105,7 +107,6 @@ public:
     ~DSP() {
         if (_f) aaxFilterDestroy(_f);
         else aaxEffectDestroy(_e);
-        _f = _e = 0;
     }
 
     bool set(int s) {
@@ -142,6 +143,29 @@ public:
     }
 
     // ** support ******
+    DSP& operator=(DSP& dsp) {
+        if (_f) aaxFilterDestroy(_f);
+        else aaxEffectDestroy(_e);
+        _f = _e = 0;
+        if (dsp.is_filter()) _f = dsp.config();
+        else _e = dsp.config();
+        dsp.clear();
+        return *this;
+    }
+    DSP& operator=(DSP dsp) {
+        if (_f) aaxFilterDestroy(_f);
+        else aaxEffectDestroy(_e);
+        _f = _e = 0;
+        if (dsp.is_filter()) _f = dsp.config();
+        else _e = dsp.config();
+        dsp.clear();
+        return *this;
+    }
+
+    void clear() {
+        _f = _e = 0;
+    }
+
     void* config() {
         return _f ? _f : _e;
     }
