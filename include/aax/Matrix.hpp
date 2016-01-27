@@ -46,94 +46,105 @@ template <typename T>
 class VecBase
 {
 public:
-    VecBase() {
+    VecBase() : _v4(true) {
         _v[0] = _v[1] = _v[2] = _v[3] = 0;
     }
 
-    VecBase(T v[4]) {
+    VecBase(T v[4]) : _v4(true) {
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
     }
 
-    VecBase(T x, T y, T z) {
+    VecBase(T x, T y, T z) : _v4(false) {
         _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = 0;
     }
 
-    VecBase(T w, T x, T y, T z) {
+    VecBase(T w, T x, T y, T z) : _v4(true) {
         _v[0] = w; _v[1] = x; _v[2] = y; _v[3] = z;
+    }
+
+    VecBase(T f) : _v4(true) {
+        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
     }
 
     ~VecBase() {}
 
     // ** support ******
+    VecBase& operator=(VecBase<T>& v4) {
+        T (&v)[4] = v4.config();
+        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
+        _v4 = v4.is_v4();
+        return *this;
+    }
+
     VecBase& operator*=(VecBase<T>& v4) {
         T (&v)[4] = v4.config();
-        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2]; _v[3] *= v[3];
+        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2];
+        if (_v4) _v[3] *= v[3];
         return *this;
     }
     VecBase& operator/=(VecBase<T>& v4) {
         T (&v)[4] = v4.config();
-        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2]; _v[3] /= v[3];
+        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
+        if (_v4) _v[3] /= v[3];
         return *this;
     }
     VecBase& operator*=(T v[4]) {
-        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2]; _v[3] *= v[3];
+        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2];
+        if (_v4) _v[3] *= v[3];
         return *this;
     }
     VecBase& operator/=(T v[4]) {
-        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2]; _v[3] /= v[3];
+        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
+        if (_v4) _v[3] /= v[3];
         return *this;
     }
     VecBase& operator*=(T f) {
-        _v[0] *= f; _v[1] *= f; _v[2] *= f; _v[3] *= f;
+        _v[0] *= f; _v[1] *= f; _v[2] *= f;
+        if (_v4) _v[3] *= f;
         return *this;
     }
     VecBase& operator/=(T f) {
         T fi = 1/f;
-        _v[0] *= fi; _v[1] *= fi; _v[2] *= fi; _v[3] *= fi;
+        _v[0] *= fi; _v[1] *= fi; _v[2] *= fi;
+        if (_v4) _v[3] *= fi;
         return *this;
     }
     VecBase& operator+=(VecBase<T>& v4) {
         T (&v)[4] = v4.config();
-        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2]; _v[3] += v[3];
+        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
+        if (_v4) _v[3] += v[3];
         return *this;
     }
     VecBase& operator-=(VecBase<T>& v4) {
         T (&v)[4] = v4.config();
-        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2]; _v[3] -= v[3];
+        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
+        if (_v4) _v[3] -= v[3];
         return *this;
     }
     VecBase& operator+=(T v[4]) {
-        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2]; _v[3] += v[3];
+        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
+        if (_v4) _v[3] += v[3];
         return *this;
     }
     VecBase& operator-=(T v[4]) {
-        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2]; _v[3] -= v[3];
+        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
+        if (_v4) _v[3] -= v[3];
         return *this;
     }
     VecBase& operator+=(T f) {
-        _v[0] += f; _v[1] += f; _v[2] += f; _v[3] += f;
+        _v[0] += f; _v[1] += f; _v[2] += f;
+        if (_v4) _v[3] += f;
         return *this;
     }
     VecBase& operator-=(T f) {
-        _v[0] -= f; _v[1] -= f; _v[2] -= f; _v[3] -= f;
-        return *this;
-    }
-    VecBase& operator=(VecBase<T>& v4) {
-        T (&v)[4] = v4.config();
-        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
-        return *this;
-    }
-    VecBase& operator=(T v[4]) {
-        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
-        return *this;
-    }
-    VecBase& operator=(T f) {
-        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
+        _v[0] -= f; _v[1] -= f; _v[2] -= f;
+        if (_v4) _v[3] -= f;
         return *this;
     }
     VecBase<T> operator-() {
         VecBase<T> v4;
-        v4[0] = -_v[0]; v4[1] = -_v[1]; v4[2] = -_v[2]; v4[3] = -_v[3];
+        v4[0] = -_v[0]; v4[1] = -_v[1]; v4[2] = -_v[2];
+        if (_v4) v4[3] = -_v[3];
         return v4;
     }
     inline T& operator[](unsigned p) {
@@ -144,8 +155,13 @@ public:
         return _v;
     }
 
+    inline bool is_v4() {
+        return _v4;
+    }
+
 private:
     T _v[4];
+    bool _v4;
 };
 typedef VecBase<float> Vector;
 typedef VecBase<double> Vector64;
