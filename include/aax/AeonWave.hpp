@@ -40,6 +40,7 @@
 #include <algorithm>
 
 #include <aax/Matrix.hpp>
+#include <aax/aax.h>
 
 namespace AAX
 {
