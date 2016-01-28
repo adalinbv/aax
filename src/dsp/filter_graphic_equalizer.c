@@ -115,7 +115,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 
             gain = filter->slot[s]->param[b];
             if (gain < GMATH_128DB) gain = 0.0f;
-            else if (fabs(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
+            else if (fabsf(gain - 1.0f) < GMATH_128DB) gain = 1.0f;
             flt->high_gain = gain;
             flt->low_gain = 0.0f;
             if (pos == 0)

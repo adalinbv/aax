@@ -335,7 +335,7 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
          aaxVec3f up = { 0.0f, 1.0f, 0.0f }; 
          vec3_t side, upwd, fwd, back;
 
-         if ((fabs(at[0]) < FLT_EPSILON)  && (fabs(at[2]) < FLT_EPSILON))
+         if ((fabsf(at[0]) < FLT_EPSILON)  && (fabsf(at[2]) < FLT_EPSILON))
          {  
             up[1] = 0.0f;
             if (at[2] < 0.0f) up[2] = -1.0f;

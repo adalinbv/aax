@@ -765,7 +765,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
    //       See _aaxSoftwareMixerPlay
 
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
-   if (fabs(gain - 1.0f) > 0.05f)
+   if (fabsf(gain - 1.0f) > 0.05f)
    {
       int t;
       for (t=0; t<file_tracks; t++) {
@@ -902,7 +902,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       {
          /* gain is netagive for auto-gain mode */
          gain = fabsf(gain);
-         if (fabs(gain - 1.0f) > 0.05f)
+         if (fabsf(gain - 1.0f) > 0.05f)
          {
             int t;
             for (t=0; t<file_tracks; t++) {
