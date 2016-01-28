@@ -32,6 +32,10 @@
 #ifndef AEONWAVE_MATRIX
 #define AEONWAVE_MATRIX 1
 
+#include <stdio.h>
+
+#include <cmath>
+#include <cfloat>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
@@ -50,7 +54,11 @@ public:
         _v[0] = _v[1] = _v[2] = _v[3] = 0;
     }
 
-    VecBase(T v[4]) : _v4(true) {
+    VecBase(float v[4]) : _v4(true) {
+        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
+    }
+
+    VecBase(double v[4]) : _v4(true) {
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
     }
 
@@ -68,11 +76,60 @@ public:
 
     ~VecBase() {}
 
+    T magnitude() {
+        T m = _v[0]*_v[0] + _v[1]*_v[1] + _v[2]*_v[2];
+        if (_v4) m += _v[3]*_v[3];
+        return sqrt(m);
+    }
+
+    T normalize() {
+        float m = magnitude();
+        if (m) {
+            T fi = 1/m;
+            _v[0] *= fi; _v[1] *= fi; _v[2] *= fi;
+            if (_v4) _v[3] *= fi;
+        } else {
+            _v[0] = _v[1] = _v[2] = _v[3] = 0;
+        }
+        return m;
+    }
+
+    VecBase<T> normalized() {
+        VecBase<T> r;
+        float m = magnitude();
+        if (m) {
+            T fi = 1/m;
+            r[0] = _v[0]*fi; r[1] = _v[1]*fi; r[2] = _v[2]*fi;
+            if (_v4) r[3] = _v[3]*fi;
+        }
+        return r;
+    }
+
+    T dot(VecBase<T>& v) {
+        T d = _v[0]*v[0] + _v[1]*v[1] + _v[2]*v[2];
+        if (_v4) d += _v[3]*v[3];
+        return d;
+    }
+
+    VecBase<T> cross(VecBase<T>& v2) {
+        VecBase<T> r;
+        if (_v4 == false) {
+            r[0] = _v[1]*v2[2] - _v[2]*v2[1];
+            r[1] = _v[2]*v2[0] - _v[0]*v2[2];
+            r[2] = _v[0]*v2[1] - _v[1]*v2[0];
+        }
+        return r;
+    }
+
     // ** support ******
     VecBase& operator=(VecBase<T>& v4) {
         T (&v)[4] = v4.config();
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
         _v4 = v4.is_v4();
+        return *this;
+    }
+    VecBase& operator=(T f) {
+        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
         return *this;
     }
 
@@ -180,16 +237,16 @@ public:
 
     // ** support ******
     bool operator==(MtxBase<T>& m) {
-        return (memcmp(_m, m.config(), sizeof(T[4][4])) == 0);
+        return mtxcmp(m.config());
     }
     bool operator==(T (&m)[4][4]) {
-        return (memcmp(_m, m, sizeof(T[4][4])) == 0);
+        return mtxcmp(m);
     }
     bool operator!=(MtxBase<T>& m) {
-        return (memcmp(_m, m.config(), sizeof(T[4][4])) != 0);
+        return ~mtxcmp(m.config());
     }
     bool operator!=(T (&m)[4][4]) {
-        return (memcmp(_m, m, sizeof(T[4][4])) != 0);
+        return ~mtxcmp(m);
     }
 
     friend std::ostream& operator<<(std::ostream& s, MtxBase<T>& mtx) {
@@ -206,6 +263,16 @@ public:
 
 protected:
     T _m[4][4];
+
+private:
+    bool mtxcmp(T (&m)[4][4]) {
+        for(unsigned i=0; i<4; ++i) {
+            for(unsigned j=0; j<4; ++j) {
+                if (fabs(_m[i][j]-m[i][j])>DBL_EPSILON) return false;
+            }
+        }
+        return true;
+    }
 };
 
 
@@ -353,10 +420,39 @@ public:
 
     ~Matrix64() {}
 
+    bool set(Vector64& pos, Vector64& at) {
+        Vector64 up(0.0, 1.0, 0.0);
+        if (fabs(at[0])<DBL_EPSILON && fabs(at[2])<DBL_EPSILON) {
+            up[1] = 0.0f; up[2] = (at[2] < 0.0f) ? -1.0f : 1.0f;
+        }
+        return set(pos, at, up);
+    }
+
+    bool set(Vector64& p, Vector64& a, Vector64& u) {
+        Vector64 pos(p[0], p[1], p[2], -1.0);
+        Vector64 at(a[0], a[1], a[2]);
+        Vector64 up(u[0], u[1], u[2]);
+        Vector64 side = at.cross(up);
+        set(0, side.normalized());
+        set(1, up.normalized());
+        set(2, -at.normalized());
+        set(3, -pos);
+        return true;
+    }
+
+    bool set(double (&p)[3], double (&a)[3], double (&u)[3]) {
+        Vector64 pos = p, at = a, up = u;
+        return set(pos, at, up);
+    }
+    bool set(float (&p)[3], float (&a)[3], float (&u)[3]) {
+        Vector64 pos(p), at(a), up(u);
+        return set(pos, at, up);
+    }
+
     inline bool translate(double dx, double dy, double dz) {
         return aaxMatrix64Translate(_m,dx,dy,dz);
     }
-    bool translate(VecBase<double>& tv) {
+    bool translate(Vector64& tv) {
         double (&t)[4] = tv.config();
         return aaxMatrix64Translate(_m,t[0],t[1],t[2]);
     }
@@ -405,9 +501,15 @@ public:
         aaxMatrix64CopyMatrix64(_m,m.config());
         return *this;
     }
+
+private:
+    void set(unsigned p, Vector64 v) {
+        _m[p][0] = v[0]; _m[p][1] = v[1]; _m[p][2] = v[2];
+        if (v.is_v4()) _m[p][3] = v[3];
+    }
 };
 
-}
+} // namespace AAX
 
 #endif /* AEONWAVE_MATRIX */
 
