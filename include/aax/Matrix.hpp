@@ -268,7 +268,7 @@ private:
     bool mtxcmp(T (&m)[4][4]) {
         for(unsigned i=0; i<4; ++i) {
             for(unsigned j=0; j<4; ++j) {
-                if (fabs(_m[i][j]-m[i][j])>DBL_EPSILON) return false;
+                if (fabs(_m[i][j]-m[i][j])>(FLT_EPSILON)) return false;
             }
         }
         return true;
