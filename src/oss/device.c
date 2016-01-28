@@ -1178,7 +1178,7 @@ _oss_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_fra
    }
 
    /* software volume fallback */
-   if (sbuf && fabs(hwgain - gain) > 4e-3f)
+   if (sbuf && fabsf(hwgain - gain) > 4e-3f)
    {
       int t;
       for (t=0; t<no_tracks; t++) {

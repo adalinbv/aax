@@ -117,10 +117,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       {
          float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
 
-         flt->high_gain = fabs(filter->slot[0]->param[AAX_LF_GAIN]);
+         flt->high_gain = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
          if (flt->high_gain < GMATH_128DB) flt->high_gain = 0.0f;
 
-         flt->low_gain = fabs(filter->slot[0]->param[AAX_HF_GAIN]);
+         flt->low_gain = fabsf(filter->slot[0]->param[AAX_HF_GAIN]);
          if (flt->low_gain < GMATH_128DB) flt->low_gain = 0.0f;
 
          flt->no_stages = stages;
