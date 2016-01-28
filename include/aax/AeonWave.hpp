@@ -40,7 +40,6 @@
 #include <algorithm>
 
 #include <aax/Matrix.hpp>
-#include <aax/aax.h>
 
 namespace AAX
 {
@@ -536,6 +535,80 @@ public:
     }
     inline DSP scenery(enum aaxEffectType t) {
         return DSP(aaxSceneryGetEffect(_c,t),t);
+    }
+
+    // ** enumeration ******
+    const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+        aaxDriverClose(_ec); aaxDriverDestroy(_ec);
+        _em = m; _ec = 0; _e[1] = 0; _e[2] = 0;
+        if (_e[0] < aaxDriverGetCount(_em)) {
+            _ec = aaxDriverGetByPos(_e[0]++,_em);
+        }  else _e[0] = 0;
+        return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
+    }
+    const char* devices() {
+        _ed = _e[1] ? 0 : ""; _e[2] = 0;
+        if (_e[1]++ < aaxDriverGetDeviceCount(_ec,_em)) {
+            _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]-1,_em);
+        }
+        return _ed;
+    }
+    const char* interfaces() {
+        const char *ifs = _e[2] ? 0 : "";
+        if (_e[2]++ < aaxDriverGetInterfaceCount(_ec,_ed,_em)) {
+            ifs = aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]-1,_em);
+        }
+        return ifs;
+    }
+
+    const char* device(unsigned d) {
+        return aaxDriverGetDeviceNameByPos(_c,d,_m);
+    }
+    const char* interface(int d, unsigned i) {
+        const char* ed = device(d);
+        return aaxDriverGetInterfaceNameByPos(_c,ed,i,_m);
+    }
+    const char* interface(const char* d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(_c,d,i,_m);
+    }
+    const char* interface(std::string& d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(_c,d.c_str(),i,_m);
+    }
+
+    // ** support ******
+    static unsigned major_version() {
+        return aaxGetMajorVersion();
+    }
+    static unsigned minor_version() {
+        return aaxGetMinorVersion();
+    }
+    static unsigned int patch_level() {
+        return aaxGetPatchLevel();
+    }
+    static enum aaxErrorType error_no() {
+        return aaxGetErrorNo();
+    }
+    static const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
+        return aaxGetErrorString(e);
+    }
+
+    // ** mixing ******
+    bool add(Mixer* m) {
+        const aaxFrame f = m ? m->config() : 0;
+        return aaxMixerRegisterAudioFrame(_c,f);
+    }
+    bool remove(Mixer* m) {
+        const aaxFrame f = m ? m->config() : 0;
+        return aaxMixerDeregisterAudioFrame(_c,f);
+    }
+    bool add(Sensor* s) {
+        const aaxConfig c = s ? s->config() : 0;
+        return aaxMixerRegisterSensor(_c,c);
+    }
+    bool remove(Sensor* s) {
+         const aaxConfig c = s ? s->config() : 0;
+        return aaxMixerDeregisterSensor(_c,c);
+    }
     bool add(Emitter& e) {
         return aaxMixerRegisterEmitter(_c,e.config());
     }
