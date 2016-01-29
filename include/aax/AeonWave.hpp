@@ -513,7 +513,7 @@ class AeonWave : public Sensor
 {
 public:
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(n,m), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
+        Sensor(n,m), _play(0), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
 
     AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         AeonWave(s.empty() ? 0 : s.c_str(),m) {}
@@ -561,17 +561,17 @@ public:
         return ifs;
     }
 
-    const char* device(unsigned d) {
+    inline const char* device(unsigned d) {
         return aaxDriverGetDeviceNameByPos(_c,d,_m);
     }
-    const char* interface(int d, unsigned i) {
+    inline const char* interface(int d, unsigned i) {
         const char* ed = device(d);
         return aaxDriverGetInterfaceNameByPos(_c,ed,i,_m);
     }
-    const char* interface(const char* d, unsigned i) {
+    inline const char* interface(const char* d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(_c,d,i,_m);
     }
-    const char* interface(std::string& d, unsigned i) {
+    inline const char* interface(std::string& d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(_c,d.c_str(),i,_m);
     }
 
@@ -635,15 +635,15 @@ public:
         _mixer.erase(it,_mixer.end());
         delete (*it);
     }
-    Sensor* mixer(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+    Sensor* sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         _sensor.push_back(new Sensor(n,m));
         return _sensor.back();
     }
-    Sensor* mixer(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        return mixer(s.empty() ? 0 : s.c_str(),m);
+    Sensor* sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
+        return sensor(s.empty() ? 0 : s.c_str(),m);
     }
-    Sensor* mixer(enum aaxRenderMode m) {
-        return mixer(0,m);
+    Sensor* sensor(enum aaxRenderMode m) {
+        return sensor(0,m);
     }
     void destroy(Sensor* m) {
         std::vector<Sensor*>::iterator it;
@@ -652,9 +652,23 @@ public:
         delete (*it);
     }
 
+    bool play(std::string f) {
+        if (_play) { remove(_play); delete _play; }
+        f = "AeonWave on Audio Files: "+f;
+        _play = new Sensor(f, AAX_MODE_READ);
+        return add(_play) ? _play->set(AAX_INITIALIZED) ? _play->set(AAX_CAPTURING) : false : false;
+    }
+    bool stop() {
+        return _play ? _play->set(AAX_STOPPED) : false;
+    }
+    bool playing() {
+        return _play ? (_play->get() == AAX_PLAYING) : false;
+    }
+
 private:
     std::vector<Mixer*> _mixer;
     std::vector<Sensor*> _sensor;
+    Sensor *_play;
 
     // enumeration
     enum aaxRenderMode _em;
