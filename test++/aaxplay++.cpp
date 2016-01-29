@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        record = config.mixer(idevname, AAX_MODE_READ);
+        record = config.sensor(idevname, AAX_MODE_READ);
         if (!record)
         {
             std::cout << "File not found: " << infile << std::endl;
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     if (outfile)
     {
         snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
-        file = config.mixer(obuf);
+        file = config.sensor(obuf);
     }
 
     if (config.config() && record && (rv >= 0))
