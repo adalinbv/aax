@@ -378,6 +378,10 @@ public:
         return aaxSensorGetOffset(_c,t);
     }
 
+    float offset() {
+        return (float)offset(AAX_SAMPLES)/(float)get(AAX_FREQUENCY);
+    }
+
     // ** support ******
     inline const char* version() {
         return aaxGetVersionString(_c);
@@ -655,12 +659,14 @@ public:
     bool play(std::string f) {
         if (_play) { remove(_play); delete _play; }
         f = "AeonWave on Audio Files: "+f;
-        _play = new Sensor(f, AAX_MODE_READ);
-        return add(_play) ? _play->set(AAX_INITIALIZED) ? _play->set(AAX_CAPTURING) : false : false;
+        if ((_play = new Sensor(f, AAX_MODE_READ)) == false) return false;
+        return add(_play) ? (_play->set(AAX_INITIALIZED) ? _play->sensor(AAX_CAPTURING) : false) : false;
     }
+
     bool stop() {
         return _play ? _play->set(AAX_STOPPED) : false;
     }
+
     bool playing() {
         return _play ? (_play->get() == AAX_PLAYING) : false;
     }
