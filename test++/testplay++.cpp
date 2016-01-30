@@ -33,6 +33,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <unistd.h>
 #include <string>
 
@@ -41,7 +42,17 @@
 int main(int argc, char **argv)
 {
     AAX::AeonWave aax;
+    aax.set(AAX_INITIALIZED);
+    aax.set(AAX_PLAYING);
+
     aax.play(std::string(argv[1]));
-    while (aax.playing()) sleep(1);
+    do
+    {
+        printf("\rposition: %5.1f", aax.offset());
+        sleep(1);
+    }
+    while (aax.playing());
+
+    printf("\n");
     return 0;
 }
