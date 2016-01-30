@@ -395,7 +395,6 @@ protected:
     enum aaxRenderMode _m;
     aaxConfig _c;
 };
-static Sensor EMPTY;
 
 
 class Mixer
