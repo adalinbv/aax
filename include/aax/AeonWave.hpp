@@ -378,10 +378,6 @@ public:
         return aaxSensorGetOffset(_c,t);
     }
 
-    float offset() {
-        return (float)offset(AAX_SAMPLES)/(float)get(AAX_FREQUENCY);
-    }
-
     // ** support ******
     inline const char* version() {
         return aaxGetVersionString(_c);
@@ -668,6 +664,10 @@ public:
 
     bool playing() {
         return _play ? (_play->get() == AAX_PLAYING) : false;
+    }
+
+    float offset() {
+        return _play ? (float)_play->offset(AAX_SAMPLES)/(float)_play->get(AAX_FREQUENCY) : 0;
     }
 
 private:
