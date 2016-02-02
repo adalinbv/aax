@@ -1017,6 +1017,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          while ((buf = aaxAudioFrameGetBuffer(sframe)) != NULL) {
             aaxBufferDestroy(buf);
          }
+         _aaxErrorSet(AAX_ERROR_NONE);
          pos = _intBufAddData(hf, _AAX_FRAME, sframe);
          fmixer->no_registered++;
       }
