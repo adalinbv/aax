@@ -1232,7 +1232,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   while ((buf = aaxAudioFrameGetBuffer(frame)) != NULL) {
                      aaxBufferDestroy(buf);
                   }
-
+                  _aaxErrorSet(AAX_ERROR_NONE);
                   pos = _intBufAddData(hf, _AAX_FRAME, frame);
                   mixer->no_registered++;
                }
