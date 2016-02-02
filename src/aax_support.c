@@ -285,7 +285,7 @@ aaxGetBitsPerSample(enum aaxFormat format)
 AAX_API int AAX_APIENTRY
 aaxIsValid(const void* handle, enum aaxHandleType type)
 {
-   int rv = AAX_FALSE;
+   enum aaxErrorType rv = AAX_FALSE;
    if (handle)
    {
       switch(type)
@@ -335,9 +335,6 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
