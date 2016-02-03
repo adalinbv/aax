@@ -232,16 +232,6 @@ public:
     MtxBase() {}
     ~MtxBase() {}
 
-
-    T (&config())[4][4] {
-        return _m;
-    }
-#if 0
-    operator T*() const {
-        return _m;
-    }
-#endif
-
     // ** support ******
     bool operator==(MtxBase<T>& m) {
         return mtxcmp(m);
@@ -256,8 +246,12 @@ public:
         return ~mtxcmp(m);
     }
 
+    T (&ptr())[4][4] {
+        return _m;
+    }
+
     friend std::ostream& operator<<(std::ostream& s, MtxBase<T>& mtx) {
-        T (&m)[4][4] = mtx.config();
+        const T (&m)[4][4] = mtx.ptr();
         s << std::fixed << std::showpoint << std::setprecision(4);
         for (int j = 0; j<4; ++j) {
             s << "[";
@@ -273,7 +267,7 @@ protected:
 
 private:
     bool mtxcmp(MtxBase<T>& mtx) {
-        T (&m)[4][4] = mtx.config();
+        const T (&m)[4][4] = mtx.ptr();
         for(unsigned i=0; i<4; ++i) {
             for(unsigned j=0; j<4; ++j) {
                 if (fabs(_m[i][j]-m[i][j])>(FLT_EPSILON)) return false;
@@ -300,11 +294,11 @@ public:
     }
 
     Matrix(MtxBase<float>& m) {
-        aaxMatrixCopyMatrix(_m,m.config());
+        aaxMatrixCopyMatrix(_m,m.ptr());
     }
 
     Matrix(MtxBase<double>& m) {
-        aaxMatrix64ToMatrix(_m,m.config());
+        aaxMatrix64ToMatrix(_m,m.ptr());
     }
 
     ~Matrix() {}
@@ -338,7 +332,7 @@ public:
         return aaxMatrixRotate(_m,a,x,y,z);
     }
     inline bool multiply(Matrix& m) {
-        return aaxMatrixMultiply(_m,m.config());
+        return aaxMatrixMultiply(_m,m.ptr());
     }
     inline bool multiply(aaxMtx4f& m) {
         return aaxMatrixMultiply(_m,m);
@@ -349,7 +343,7 @@ public:
 
     // ** support ******
     Matrix& operator*=(Matrix& m) {
-        aaxMatrixMultiply(_m,m.config());
+        aaxMatrixMultiply(_m,m.ptr());
         return *this;
     }
     Matrix& operator*=(aaxMtx4f& m) {
@@ -358,7 +352,7 @@ public:
     }
     Matrix& operator/=(Matrix& m) {
         aaxMtx4f im;
-        aaxMatrixCopyMatrix(im,m.config());
+        aaxMatrixCopyMatrix(im,m.ptr());
         aaxMatrixInverse(im);
         aaxMatrixMultiply(_m,im);
         return *this;
@@ -397,7 +391,7 @@ public:
         return *this;
     }
     Matrix& operator=(MtxBase<double>& m) {
-        aaxMatrix64ToMatrix(_m, m.config());
+        aaxMatrix64ToMatrix(_m, m.ptr());
         return *this;
     }
     Matrix& operator=(aaxMtx4d m) {
@@ -422,7 +416,7 @@ public:
     }
 
     Matrix64(MtxBase<double>& m) {
-        aaxMatrix64CopyMatrix64(_m, m.config());
+        aaxMatrix64CopyMatrix64(_m, m.ptr());
     }
 
     ~Matrix64() {}
@@ -466,7 +460,7 @@ public:
         return aaxMatrix64Rotate(_m,a,x,y,z);
     }
     inline bool multiply(Matrix64& m) {
-        return aaxMatrix64Multiply(_m,m.config());
+        return aaxMatrix64Multiply(_m,m.ptr());
     }
     inline bool multiply(aaxMtx4d& m) {
         return aaxMatrix64Multiply(_m,m);
@@ -477,12 +471,12 @@ public:
 
     // ** support ******
     Matrix64& operator*=(Matrix64& m) {
-        aaxMatrix64Multiply(_m,m.config());
+        aaxMatrix64Multiply(_m,m.ptr());
         return *this;
     }
     Matrix64& operator/=(Matrix64& m) {
         aaxMtx4d im;
-        aaxMatrix64CopyMatrix64(im,m.config());
+        aaxMatrix64CopyMatrix64(im,m.ptr());
         aaxMatrix64Inverse(im);
         aaxMatrix64Multiply(_m,im);
         return *this;
@@ -504,7 +498,7 @@ public:
         return Matrix64(im);
     }
     Matrix64& operator=(Matrix64& m) {
-        aaxMatrix64CopyMatrix64(_m,m.config());
+        aaxMatrix64CopyMatrix64(_m,m.ptr());
         return *this;
     }
 

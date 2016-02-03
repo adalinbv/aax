@@ -221,13 +221,13 @@ public:
 
     // ** position and orientation ******
     inline bool set(Matrix& m) {
-        return aaxEmitterSetMatrix(_e,m.config());
+        return aaxEmitterSetMatrix(_e,m.ptr());
     }
     inline bool set(aaxMtx4f m) {
         return aaxEmitterSetMatrix(_e,m);
     }
     inline bool get(Matrix& m) {
-        return aaxEmitterGetMatrix(_e,m.config());
+        return aaxEmitterGetMatrix(_e,m.ptr());
     }
     inline bool get(aaxMtx4f m) {
         return aaxEmitterGetMatrix(_e,m);
@@ -356,13 +356,13 @@ public:
 
     // ** position and orientation ******
     inline bool set(Matrix& m) {
-        return aaxSensorSetMatrix(_c,m.config());
+        return aaxSensorSetMatrix(_c,m.ptr());
     }
     inline bool set(aaxMtx4f m) {
         return aaxSensorSetMatrix(_c,m);
     }
     inline bool get(Matrix& m) {
-        return aaxSensorGetMatrix(_c,m.config());
+        return aaxSensorGetMatrix(_c,m.ptr());
     }
     inline bool get(aaxMtx4f m) {
         return aaxSensorGetMatrix(_c,m);
@@ -485,13 +485,13 @@ public:
 
     // ** position and orientation ******
     inline bool set(Matrix& m) {
-        return aaxAudioFrameSetMatrix(_f,m.config());
+        return aaxAudioFrameSetMatrix(_f,m.ptr());
     }
     inline bool set(aaxMtx4f m) {
         return aaxAudioFrameSetMatrix(_f,m);
     }
     inline bool get(Matrix& m) {
-        return aaxAudioFrameGetMatrix(_f,m.config());
+        return aaxAudioFrameGetMatrix(_f,m.ptr());
     }
     inline bool get(aaxMtx4f m) {
         return aaxAudioFrameGetMatrix(_f,m);
@@ -515,11 +515,7 @@ public:
     }
 
     // ** support ******
-    aaxFrame config() const {
-        return _f;
-    }
-
-    operator aaxFrame() const {
+    operator void*() const {
         return _f;
     }
 
