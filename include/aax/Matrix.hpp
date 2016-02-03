@@ -123,7 +123,7 @@ public:
 
     // ** support ******
     VecBase& operator=(VecBase<T>& v4) {
-        T (&v)[4] = v4.config();
+        T (&v)[4] = v4;
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
         _v4 = v4.is_v4();
         return *this;
@@ -134,13 +134,13 @@ public:
     }
 
     VecBase& operator*=(VecBase<T>& v4) {
-        T (&v)[4] = v4.config();
+        T (&v)[4] = v4;
         _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2];
         if (_v4) _v[3] *= v[3];
         return *this;
     }
     VecBase& operator/=(VecBase<T>& v4) {
-        T (&v)[4] = v4.config();
+        T (&v)[4] = v4;
         _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
         if (_v4) _v[3] /= v[3];
         return *this;
@@ -167,13 +167,13 @@ public:
         return *this;
     }
     VecBase& operator+=(VecBase<T>& v4) {
-        T (&v)[4] = v4.config();
+        T (&v)[4] = v4;
         _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
         if (_v4) _v[3] += v[3];
         return *this;
     }
     VecBase& operator-=(VecBase<T>& v4) {
-        T (&v)[4] = v4.config();
+        T (&v)[4] = v4;
         _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
         if (_v4) _v[3] -= v[3];
         return *this;
@@ -208,7 +208,8 @@ public:
         return _v[p];
     }
 
-    T (&config())[4] {
+
+    operator T*() {
         return _v;
     }
 
@@ -231,19 +232,25 @@ public:
     MtxBase() {}
     ~MtxBase() {}
 
+
     T (&config())[4][4] {
         return _m;
     }
+#if 0
+    operator T*() const {
+        return _m;
+    }
+#endif
 
     // ** support ******
     bool operator==(MtxBase<T>& m) {
-        return mtxcmp(m.config());
+        return mtxcmp(m);
     }
     bool operator==(T (&m)[4][4]) {
         return mtxcmp(m);
     }
     bool operator!=(MtxBase<T>& m) {
-        return ~mtxcmp(m.config());
+        return ~mtxcmp(m);
     }
     bool operator!=(T (&m)[4][4]) {
         return ~mtxcmp(m);
@@ -265,7 +272,8 @@ protected:
     T _m[4][4];
 
 private:
-    bool mtxcmp(T (&m)[4][4]) {
+    bool mtxcmp(MtxBase<T>& mtx) {
+        T (&m)[4][4] = mtx.config();
         for(unsigned i=0; i<4; ++i) {
             for(unsigned j=0; j<4; ++j) {
                 if (fabs(_m[i][j]-m[i][j])>(FLT_EPSILON)) return false;
@@ -288,27 +296,27 @@ public:
     }
 
     Matrix(aaxMtx4d& m) {
-        aaxMatrix64ToMatrix(_m, m);
+        aaxMatrix64ToMatrix(_m,m);
     }
 
     Matrix(MtxBase<float>& m) {
-        aaxMatrixCopyMatrix(_m, m.config());
+        aaxMatrixCopyMatrix(_m,m.config());
     }
 
     Matrix(MtxBase<double>& m) {
-        aaxMatrix64ToMatrix(_m, m.config());
+        aaxMatrix64ToMatrix(_m,m.config());
     }
 
     ~Matrix() {}
 
     inline bool set(VecBase<float>& p, VecBase<float>& a) {
-        return aaxMatrixSetDirection(_m,p.config(),a.config());
+        return aaxMatrixSetDirection(_m,p,a);
     }
     inline bool set(const aaxVec3f& p, const aaxVec3f& a) {
         return aaxMatrixSetDirection(_m,p,a);
     }
     inline bool set(VecBase<float>& p, VecBase<float>& a, VecBase<float>& u) {
-        return aaxMatrixSetOrientation(_m,p.config(),a.config(),u.config());
+        return aaxMatrixSetOrientation(_m,p,a,u);
     }
     inline bool set(const aaxVec3f& p, const aaxVec3f& a, const aaxVec3f& u) {
         return aaxMatrixSetOrientation(_m,p,a,u);
@@ -320,8 +328,7 @@ public:
     inline bool translate(float dx, float dy, float dz) {
         return aaxMatrixTranslate(_m,dx,dy,dz);
     }
-    bool translate(VecBase<float>& tv) {
-        aaxVec4f& t = tv.config();
+    bool translate(VecBase<float>& t) {
         return aaxMatrixTranslate(_m,t[0],t[1],t[2]);
     }
     inline bool translate(const aaxVec3f& t) {
@@ -452,8 +459,7 @@ public:
     inline bool translate(double dx, double dy, double dz) {
         return aaxMatrix64Translate(_m,dx,dy,dz);
     }
-    bool translate(Vector64& tv) {
-        double (&t)[4] = tv.config();
+    bool translate(Vector64& t) {
         return aaxMatrix64Translate(_m,t[0],t[1],t[2]);
     }
     inline bool rotate(double a, double x, double y, double z) {
