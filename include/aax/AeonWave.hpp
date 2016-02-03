@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 
+#include <map>
 #include <memory>
 #include <vector>
 #include <string>
@@ -656,6 +657,7 @@ public:
         _mixer.erase(it,_mixer.end());
         delete (*it);
     }
+
     Sensor* sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         _sensor.push_back(new Sensor(n,m));
         return _sensor.back();
@@ -673,6 +675,23 @@ public:
         delete (*it);
     }
 
+    Buffer* buffer(const char* p) {
+        std::map<std::string,buffer_t>::iterator it = _buffer.find(p);
+        if (it != _buffer.end()) return ++it->second;
+        buffer_t b(aaxBufferReadFromStream(_c,p));
+        _buffer.insert(std::pair<std::string,buffer_t>(p,b));
+        return b.buf;
+    }
+    void destroy(Buffer* b) {
+        for(it_type it=_buffer.begin(); it!=_buffer.end(); it++) {
+            buffer_t buf = it->second;
+            if (buf.buf == b && !(--buf.ctr)) {
+                _buffer.erase(it); delete buf.buf;
+            }
+        }
+    }
+
+    // ** backgrpund music ******
     bool play(std::string f) {
         if (_play) { remove(_play); delete _play; }
         f = "AeonWave on Audio Files: "+f;
@@ -693,6 +712,16 @@ public:
     }
 
 private:
+    struct buffer_t {
+        size_t ctr;
+        Buffer *buf;
+        buffer_t(aaxBuffer b) : ctr(0), buf(new Buffer(b)) {}
+        Buffer* operator++() { ctr++; return buf; }
+        Buffer* operator--() { ctr--; return buf; }
+    };
+    std::map<std::string,buffer_t> _buffer;
+    typedef std::map<std::string,buffer_t>::iterator it_type;
+
     std::vector<Mixer*> _mixer;
     std::vector<Sensor*> _sensor;
     Sensor *_play;
