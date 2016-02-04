@@ -669,23 +669,16 @@ _aaxALSADriverDisconnect(void *id)
          handle->name = 0;
       }
 
-      if (handle->mixer)
-      {
-         _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
-         psnd_mixer_close(handle->mixer);
-      }
-      _aax_free(handle->outMixer);
-      handle->outMixer = NULL;
-
       if (handle->render)
       {
          handle->render->close(handle->render->id);
          free(handle->render);
       }
 
-      if (handle->pcm) {
-         psnd_pcm_close(handle->pcm);
-      }
+      _alsa_pcm_close(handle);
+      _aax_free(handle->outMixer);
+      handle->outMixer = NULL;
+
       _aax_free(handle->ptr);
       handle->ptr = 0;
       handle->pcm = 0;
@@ -1952,8 +1945,10 @@ _alsa_pcm_open(_driver_t *handle, int m)
       free(handle->devname);
       handle->devname = _aax_strdup(name);
    }
+
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
+
    if (err >= 0)
    {
       err = psnd_pcm_nonblock(handle->pcm, 1);
@@ -1982,7 +1977,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
       }
       else
       {
-         psnd_pcm_close(handle->pcm);
+         _alsa_pcm_close(handle);
          handle->pcm = NULL;
       }
    }
@@ -1997,13 +1992,16 @@ static int
 _alsa_pcm_close(_driver_t *handle)
 {
    int err = 0;
-   if (handle->mixer)
+   if (handle)
    {
-      _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
-      psnd_mixer_close(handle->mixer);
-   }
-   if (handle->pcm) {
-      err = psnd_pcm_close(handle->pcm);
+      if (handle->mixer)
+      {
+         _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
+         psnd_mixer_close(handle->mixer);
+      }
+      if (handle->pcm) {
+         err = psnd_pcm_close(handle->pcm);
+      }
    }
    return err;
 }
