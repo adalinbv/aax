@@ -290,9 +290,12 @@ fileLoad(const char *file, unsigned int *no_samples,
 aaxBuffer
 bufferFromFile(aaxConfig config, const char *infile)
 {
-#if 0
+#if 1
    printf("Reading %s\n", infile);
-   return aaxBufferReadFromStream(config, infile);
+   aaxBuffer rv = aaxBufferReadFromStream(config, infile);
+   aaxBufferWriteToFile(rv, "/tmp/test.wav", AAX_OVERWRITE);
+   return rv;
+// return aaxBufferReadFromStream(config, infile);
 #else
     aaxBuffer buffer = NULL;
     unsigned int fmt, no_samples;

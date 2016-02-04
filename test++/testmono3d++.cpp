@@ -67,12 +67,12 @@ int main(int argc, char **argv)
     char* infile = getInputFile(argc, argv, FILE_PATH);
 
     AAX::AeonWave config(devname, mode);
-    testForError(config.config(), "No default audio device available.");
+    testForError(config, "No default audio device available.");
 
-    if (config.config())
+    if (config)
     {
-        AAX::Buffer buffer(bufferFromFile(config.config(), infile));
-        if (buffer.config())
+        AAX::Buffer buffer(bufferFromFile(config, infile));
+        if (buffer)
         {
             AAX::Emitter emitter[256];
             AAX::Matrix mtx;
