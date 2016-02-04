@@ -588,6 +588,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
          res = stream->setup(id, &refrate, &fmt, &ch, &freq, &brate,
                                  AAX_FALSE, periodrate);
+         fmt = AAX_PCM24S;
          if (res)
          {
             size_t no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
@@ -595,7 +596,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
             void *scratch = _aax_aligned_alloc16(scratchlen);
             if (scratch)
             {
-               rv = aaxBufferCreate(config, no_samples, ch, AAX_PCM24S);
+               rv = aaxBufferCreate(config, no_samples, ch, fmt);
                if (rv)
                {
                   _buffer_t* buf = (_buffer_t*)rv;
