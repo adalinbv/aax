@@ -53,7 +53,8 @@ int main(int argc, char **argv)
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-    testForError(config, "No default audio device available.");
+    if (!config) printf("For device: '%s'\n", devname);
+    testForError(config, "Audio device is unavailable.");
 
     if (config)
     {

@@ -68,14 +68,14 @@ help()
 
     AAX::AeonWave rec("AeonWave on Audio Files", AAX_MODE_READ);
     AAX::AeonWave play("AeonWave on Audio Files");
-    if (rec.config() || play.config())
+    if (rec || play)
     {
         std::cout << "Supported file formats:" << std::endl;
-        if (rec.config()) {
+        if (rec) {
             std::cout << "  - input : " << rec.interface(0, 0) << std::endl;
         }
 
-        if (play.config()) {
+        if (play) {
             std::cout << "  - output: " << play.interface(0, 0) << std::endl;
         }
         std::cout << std::endl;
@@ -123,10 +123,10 @@ int main(int argc, char **argv)
     AAX::Sensor* record = 0;
     AAX::Sensor* file = 0;
 
-    testForError(config.config(), "Audio output device is not available.");
-    if (!config.config())
+    testForError(config, "Audio output device is not available.");
+    if (!config)
     {
-        if (!config.config()) {
+        if (!config) {
            std::cout << "Warning: " << config.error() << std::endl;
         }
         else
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
         file = config.sensor(obuf);
     }
 
-    if (config.config() && record && (rv >= 0))
+    if (config && record && (rv >= 0))
     {
         char batch = getCommandLineOption(argc, argv, "-b") ||
                      getCommandLineOption(argc, argv, "--batch");
