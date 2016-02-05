@@ -572,9 +572,13 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
    if (stream)
    {
+      static const char *xcfg = "<?xml?><c><_ctb8>1</_ctb8></c>";
       void *id = stream->new_handle(AAX_MODE_READ);
+      void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
+      void *xcid = xmlNodeGet(xid, "c");
 
-      id = stream->connect(id, NULL, url, AAX_MODE_READ);
+      id = stream->connect(id, xcid, url, AAX_MODE_READ);
+      xmlClose(xid);
       if (id)
       {
          _aaxMixerInfo* info = handle->info;
@@ -588,32 +592,32 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
          res = stream->setup(id, &refrate, &fmt, &ch, &freq, &brate,
                                  AAX_FALSE, periodrate);
-         fmt = AAX_PCM24S;
+printf("fromat: %x\n", fmt);
          if (res)
          {
+            int bits = aaxGetBitsPerSample(fmt);
             size_t no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-            size_t scratchlen = no_samples*ch*aaxGetBitsPerSample(fmt)/8;
-            void *scratch = _aax_aligned_alloc16(scratchlen);
-            if (scratch)
+            size_t tracksize = SIZETO16(no_samples*ch*bits/8);
+            char *ptr2 = (char*)(2 * sizeof(void*));
+            char *ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + tracksize);
+            if (ptr)
             {
+               void **dst = (void **)ptr;
+               ssize_t offs = 0;
+
+               dst[0] = ptr2;
+               ptr2 += tracksize;
+               dst[1] = ptr2;
+
+               stream->capture(id, dst, &offs, &no_samples, dst[1], tracksize,
+                                   1.0f, AAX_TRUE);
                rv = aaxBufferCreate(config, no_samples, ch, fmt);
                if (rv)
                {
-                  _buffer_t* buf = (_buffer_t*)rv;
-                  _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
-                  ssize_t offs = 0;
-                  void **tracks;
-
-                  buf->frequency = freq;
-                  rb->set_paramf(rb, RB_FREQUENCY, freq);
-                  rb->init(rb, AAX_FALSE);
-
-                  tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
-                  stream->capture(id, tracks, &offs, &no_samples,
-                                           scratch, scratchlen, 1.0f, AAX_TRUE);
-                  rb->release_tracks_ptr(rb);
+                   aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
+                   aaxBufferSetData(rv, dst[0]);
                }
-               _aax_aligned_free(scratch);
+               free(ptr);
             }
          }
          stream->disconnect(id);

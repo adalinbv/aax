@@ -59,8 +59,9 @@ static _fmt_close_fn _aaxWavClose;
 static _fmt_update_fn _aaxWavUpdate;
 static _fmt_get_name_fn _aaxWavGetName;
 
-static _fmt_cvt_to_fn _aaxWavCvtToIntl;
+static _fmt_cvt_from_fn _aaxWavCopy;
 static _fmt_cvt_from_fn _aaxWavCvtFromIntl;
+static _fmt_cvt_to_fn _aaxWavCvtToIntl;
 static _fmt_cvt_fn _aaxWavCvtEndianness;
 static _fmt_cvt_fn _aaxWavCvtToSigned;
 static _fmt_cvt_fn _aaxWavCvtFromSigned;
@@ -84,6 +85,7 @@ _aaxDetectWavFormat()
       rv->update = _aaxWavUpdate;
       rv->name = _aaxWavGetName;
 
+      rv->copy = _aaxWavCopy;
       rv->cvt_from_intl = _aaxWavCvtFromIntl;
       rv->cvt_to_intl = _aaxWavCvtToIntl;
       rv->cvt_endianness = _aaxWavCvtEndianness;
@@ -627,6 +629,59 @@ _aaxWavUpdate(void *id, size_t *offs, size_t *size, char close)
       {
          handle->io.write.update_dt -= 1.0f;      
          rv = _aaxFormatDriverUpdateHeader(handle, size);
+      }
+   }
+
+   return rv;
+}
+
+static size_t
+_aaxWavCopy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+{
+   _driver_t *handle = (_driver_t *)id;
+   size_t bufsize, bytes = 0;
+   unsigned char *buf;
+   size_t rv = __F_EOF;
+   int bits;
+
+   buf = (unsigned char*)handle->io.read.wavBuffer;
+   bits = handle->bits_sample;
+   if (sptr)
+   {
+      bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
+      bytes = _MIN(num*tracks*bits/8, bufsize);
+
+      memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos, sptr, bytes);
+      handle->io.read.wavBufPos += bytes;
+
+      rv = __F_PROCESS;
+   }
+   else
+   {
+      if (handle->io.read.no_samples < num) {
+         num = handle->io.read.no_samples;
+      }
+
+      bufsize = handle->io.read.wavBufPos*8/(tracks*bits);
+      if (num > bufsize) {
+         num = bufsize;
+      }
+
+      bytes = num*tracks*bits/8;
+      memcpy((char*)*dptr+offset*tracks*bits/8, buf, bytes);
+      rv = num;
+
+      if (bytes > 0)
+      {
+         memmove(handle->io.read.wavBuffer, handle->io.read.wavBuffer+bytes,
+                 handle->io.read.wavBufPos - bytes);
+         handle->io.read.wavBufPos -= bytes;
+      }
+
+      if (handle->io.read.no_samples >= num) {
+         handle->io.read.no_samples -= num;
+      } else {
+         handle->io.read.no_samples = 0;
       }
    }
 
