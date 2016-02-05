@@ -92,8 +92,9 @@ typedef struct
    _fmt_cvt_fn *cvt_to_signed;
    _fmt_cvt_fn *cvt_from_signed;
    _fmt_cvt_fn *cvt_endianness;
-   _fmt_cvt_to_fn *cvt_to_intl;
-   _fmt_cvt_from_fn *cvt_from_intl;
+   _fmt_cvt_to_fn *cvt_to_intl;			// convert to file format
+   _fmt_cvt_from_fn *cvt_from_intl;		// convert to mixer format
+   _fmt_cvt_from_fn *copy;			// copy raw sound data
 
    _fmt_extension_fn *supported;
    _fmt_default_fname_fn *interfaces;

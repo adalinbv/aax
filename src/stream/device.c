@@ -153,6 +153,8 @@ typedef struct
 
    _io_t io;
 
+   char copy_to_buffer;	// true if Capture has to copy the data unmodified
+
 } _driver_t;
 
 static _protocol_t _url_split(char*, char**, char**, char**, int*);
@@ -359,6 +361,10 @@ _aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxR
                   i = 16;
                }
                handle->bits_sample = i;
+            }
+
+            if (xmlNodeGetBool(xid, "_ctb8")) {
+               handle->copy_to_buffer = 1;
             }
          }
       }
@@ -830,14 +836,21 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       do
       {
          /* convert data still in the buffer */
-         if (handle->fmt->cvt_endianness) {
-            handle->fmt->cvt_endianness(handle->fmt->id, data, samples);
+         if (handle->copy_to_buffer) {
+             res = handle->fmt->copy(handle->fmt->id, sbuf, data,
+                                             offs, file_tracks, samples);
          }
-         if (handle->fmt->cvt_to_signed) {
-            handle->fmt->cvt_to_signed(handle->fmt->id, data, samples);
+         else
+         {
+            if (handle->fmt->cvt_endianness) {
+               handle->fmt->cvt_endianness(handle->fmt->id, data, samples);
+            }
+            if (handle->fmt->cvt_to_signed) {
+               handle->fmt->cvt_to_signed(handle->fmt->id, data, samples);
+            }
+            res = handle->fmt->cvt_from_intl(handle->fmt->id, sbuf, data,
+                                             offs, file_tracks, samples);
          }
-         res = handle->fmt->cvt_from_intl(handle->fmt->id, sbuf, data,
-                                          offs, file_tracks, samples);
 
          /* res holds the number of samples that are actually converted */
          /* or -2 if the next chunk can be processed                    */
@@ -878,7 +891,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
                if (batched) {
-                  _aaxStreamDriverReadChunk(id);
+                  ret =  _aaxStreamDriverReadChunk(id);
                } else {
                   _aaxSignalTrigger(&handle->thread.signal);
                }
