@@ -78,6 +78,7 @@ _aaxDetectMP3Format()
       rv->name = _aaxMP3GetName;
       rv->update = NULL;
 
+      rv->copy = _aaxMP3CvtFromIntl;
       rv->cvt_from_intl = _aaxMP3CvtFromIntl;
       rv->cvt_to_intl = _aaxMP3CvtToIntl;
       rv->cvt_endianness = NULL;

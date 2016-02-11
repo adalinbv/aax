@@ -166,6 +166,7 @@ static void* _aaxStreamDriverWriteThread(void*);
 static void* _aaxStreamDriverReadThread(void*);
 static void _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
+static void *_aaxStreamDriverMSADPCM_IMA4(void*, size_t, int, size_t*);
 static const char *_get_json(const char*, const char*);
 static char *strnstr(const char*, const char*, size_t);
 
@@ -809,7 +810,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    {
       int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
       int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS);
-      int file_block = handle->fmt->get_param(handle->fmt->id, __F_BLOCK);
+      size_t file_block = handle->fmt->get_param(handle->fmt->id, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
       int32_t **sbuf = (int32_t**)tracks;
       size_t no_samples, bufsize;
@@ -817,18 +818,15 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       void *data;
 
       no_samples = *frames;
-      if (!file_block) {
-         bufsize = no_samples*frame_bits/8;
-      }
-      else {
-         bufsize = file_block;
-      }
-
+      bufsize = no_samples*frame_bits/8;
+      bufsize = ((bufsize/file_block)+1)*file_block;
       if (bufsize > scratchlen) {
          bufsize = (scratchlen/frame_bits)*frame_bits;
       }
 
-      _aaxSignalTrigger(&handle->thread.signal);
+      if (!batched) {
+         _aaxSignalTrigger(&handle->thread.signal);
+      }
 
       bytes = 0;
       data = NULL;
@@ -872,12 +870,10 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             {
                ssize_t ret;
 
-               if (!file_block)
-               {
-                  bufsize = no_samples*frame_bits/8;
-                  if (bufsize > scratchlen) {
-                     bufsize = (scratchlen/frame_bits)*frame_bits;
-                  }
+               bufsize = no_samples*frame_bits/8;
+               bufsize = ((bufsize/file_block)+1)*file_block;
+               if (bufsize > scratchlen) {
+                  bufsize = (scratchlen/frame_bits)*frame_bits;
                }
 
                /* more data is requested */
@@ -891,7 +887,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
                if (batched) {
-                  ret =  _aaxStreamDriverReadChunk(id);
+                  ret = _aaxStreamDriverReadChunk(id);
                } else {
                   _aaxSignalTrigger(&handle->thread.signal);
                }
@@ -910,8 +906,15 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             break;
          }
       } while (no_samples);
- 
-      if (bytes > 0)
+
+      if (handle->copy_to_buffer)
+      {
+         if (handle->format == AAX_IMA4_ADPCM) {
+            _aaxStreamDriverMSADPCM_IMA4(sbuf[0], scratchlen,
+                                         file_tracks, &file_block);
+         }
+      }
+      else if (bytes > 0)
       {
          /* gain is netagive for auto-gain mode */
          gain = fabsf(gain);
@@ -1095,6 +1098,9 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MAX_TRACKS:
          rv = (float)_AAX_MAX_SPEAKERS;
+         break;
+      case DRIVER_BLOCK_SIZE:
+         rv = (float)handle->fmt->get_param(handle->fmt->id, __F_BLOCK);
          break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
@@ -1747,15 +1753,55 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
-      ssize_t res = _aaxStreamDriverReadChunk(id);
-      if (res < 0) break;
+      ssize_t res;
 
       _aaxSignalWait(&handle->thread.signal);
+      res = _aaxStreamDriverReadChunk(id);
+      if (res < 0) break;
    }
    while(handle->thread.started);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle;
+}
+
+void *
+_aaxStreamDriverMSADPCM_IMA4(void *data, size_t bufsize, int tracks, size_t *size)
+{
+   size_t blocksize = *size;
+   *size /= tracks;
+   if (tracks > 1)
+   {
+      int32_t *buf = (int32_t*)malloc(blocksize);
+      if (buf)
+      {
+         int32_t* dptr = (int32_t*)data;
+         size_t numBlocks, numChunks;
+         size_t blockNum;
+
+         numBlocks = bufsize/blocksize;
+         numChunks = blocksize/4;
+
+         for (blockNum=0; blockNum<numBlocks; blockNum++)
+         {
+            int t, i;
+
+            /* block shuffle */
+            memcpy(buf, dptr, blocksize);
+            for (t=0; t<tracks; t++)
+            {
+               int32_t *src = (int32_t*)buf + t;
+               for (i=0; i < numChunks; i++)
+               {
+                  *dptr++ = *src;
+                  src += tracks;
+               }
+            }
+         }
+         free(buf);
+      }
+   }
+   return data;
 }
 

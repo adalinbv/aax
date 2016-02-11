@@ -16,8 +16,9 @@
 // both Linux and Windows
 static _fmt_open_fn _aaxMPG123Open;
 static _fmt_close_fn _aaxMPG123Close;
-static _fmt_cvt_to_fn _aaxMPG123CvtToIntl;
+static _fmt_cvt_from_fn _aaxMPG123Copy;
 static _fmt_cvt_from_fn _aaxMPG123CvtFromIntl;
+static _fmt_cvt_to_fn _aaxMPG123CvtToIntl;
 static _fmt_set_param_fn _aaxMPG123SetParam;
 
 DECL_FUNCTION(mpg123_init);
@@ -107,8 +108,9 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
 
                fmt->open = _aaxMPG123Open;
                fmt->close = _aaxMPG123Close;
-               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
+               fmt->copy = _aaxMPG123Copy;
                fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
+               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
                fmt->set_param = _aaxMPG123SetParam;
 
                rv = AAX_TRUE;
@@ -155,8 +157,9 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
             {
                fmt->open = _aaxMPG123Open;
                fmt->close = _aaxMPG123Close;
-               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
+               fmt->copy = _aaxMPG123Copy;
                fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
+               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
                fmt->set_param = _aaxMPG123SetParam;
 
                rv = AAX_TRUE;
@@ -362,6 +365,47 @@ _aaxMPG123Close(void *id)
    }
 
    return ret;
+}
+
+static size_t
+_aaxMPG123Copy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int bits, ret, rv = __F_EOF;
+   size_t bytes, size = 0;
+
+   bits = handle->bits_sample;
+   bytes = num*tracks*bits/8;
+   if (!sptr)   /* decode from our own buffer */
+   {
+      unsigned char *buf = (unsigned char*)handle->mp3Buffer;
+      size_t bufsize = handle->mp3BufSize;
+
+      if (bytes > bufsize) {
+         bytes = bufsize;
+      }
+      ret = pmpg123_read(handle->id, buf, bytes, &size);
+      if (!handle->id3_found) detect_mpg123_song_info(handle);
+      if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
+      {
+printf("### mp3: %x (OK: %x, MORE: %x), size: %i\n", ret, MPG123_OK, MPG123_NEED_MORE, size);
+         rv = size*8/(tracks*bits);
+printf("### mp3: rv: %i\n", rv);
+         bytes = num*tracks*bits/8;
+         memcpy((char*)*dptr+offset*tracks*bits/8, buf, size);
+      }
+   }
+   else /* provide the next chunk to our own buffer */
+   {
+      ret = pmpg123_feed(handle->id, sptr, bytes);
+      if (!handle->id3_found) detect_mpg123_song_info(handle);
+      if (ret == MPG123_OK) {
+         rv = __F_PROCESS;
+      }
+   }
+
+printf("##< mp3: rv: %i\n", rv);
+   return rv;
 }
 
 static size_t
