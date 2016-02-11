@@ -559,9 +559,6 @@ aaxBufferDestroy(aaxBuffer buffer)
 
 /**
  * This creates a buffer from an audio file indicated by an URL
- *
- * Warning: the function always favors rendering speed over memeory usage
- *          which means the buffer format is ewual to the mixer format
  */
 AAX_API aaxBuffer AAX_APIENTRY
 aaxBufferReadFromStream(aaxConfig config, const char *url)
@@ -577,6 +574,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
       void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
       void *xcid = xmlNodeGet(xid, "c");
 
+      // xcid makes the stream return sound data in file format when capturing
       id = stream->connect(id, xcid, url, AAX_MODE_READ);
       xmlClose(xid);
       if (id)
@@ -584,37 +582,55 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
          _aaxMixerInfo* info = handle->info;
          float refrate = info->refresh_rate;
          float periodrate = info->period_rate;
-         unsigned ch = info->no_tracks;
+         unsigned tracks = info->no_tracks;
          float freq = info->frequency;
          int brate = info->bitrate;
          int fmt = info->format;
          int res;
 
-         res = stream->setup(id, &refrate, &fmt, &ch, &freq, &brate,
+         res = stream->setup(id, &refrate, &fmt, &tracks, &freq, &brate,
                                  AAX_FALSE, periodrate);
-printf("fromat: %x\n", fmt);
          if (res)
          {
-            int bits = aaxGetBitsPerSample(fmt);
-            size_t no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-            size_t tracksize = SIZETO16(no_samples*ch*bits/8);
-            char *ptr2 = (char*)(2 * sizeof(void*));
-            char *ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + tracksize);
+            size_t no_samples, no_bytes, blocksize, datasize, bits;
+            char *ptr, *ptr2;
+
+            bits = aaxGetBitsPerSample(fmt);
+            blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
+            no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+            no_bytes = no_samples*bits/8;
+
+            no_bytes = ((no_bytes/blocksize)+1)*blocksize;
+            datasize =  SIZETO16(tracks*no_bytes);
+
+            ptr2 = (char*)(2 * sizeof(void*));
+            ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
             if (ptr)
             {
                void **dst = (void **)ptr;
-               ssize_t offs = 0;
+               ssize_t res, offset = 0;
+               size_t packets = 512;
 
                dst[0] = ptr2;
-               ptr2 += tracksize;
+               ptr2 += datasize;
                dst[1] = ptr2;
 
-               stream->capture(id, dst, &offs, &no_samples, dst[1], tracksize,
-                                   1.0f, AAX_TRUE);
-               rv = aaxBufferCreate(config, no_samples, ch, fmt);
+               // capture now returns native file format instead of PCM24S
+               // in batched capturing mode
+               do
+               {
+                  ssize_t offs = offset;
+                  res = stream->capture(id, dst, &offs, &packets,
+                                            dst[1], datasize, 1.0f, AAX_TRUE);
+                  offset += res/blocksize;
+               }
+               while (res);
+
+               rv = aaxBufferCreate(config, no_samples, tracks, fmt);
                if (rv)
                {
                    aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
+                   aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
                    aaxBufferSetData(rv, dst[0]);
                }
                free(ptr);

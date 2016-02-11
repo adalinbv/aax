@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2005-2016 by Erik Hofman.
+ * Copyright 2009-2016 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -585,7 +585,7 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
       {
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
-         handle->blocksize = 0;
+         handle->blocksize = tracks*bits_sample/8;
          handle->frequency = freq;
          handle->no_tracks = tracks;
          handle->format = format;
@@ -639,13 +639,13 @@ static size_t
 _aaxWavCopy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t bufsize, bytes = 0;
+   size_t bufsize, bytes;
    unsigned char *buf;
    size_t rv = __F_EOF;
    int bits;
 
-   buf = (unsigned char*)handle->io.read.wavBuffer;
    bits = handle->bits_sample;
+   buf = (unsigned char*)handle->io.read.wavBuffer;
    if (sptr)
    {
       bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
@@ -666,9 +666,10 @@ _aaxWavCopy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, uns
       if (num > bufsize) {
          num = bufsize;
       }
-
       bytes = num*tracks*bits/8;
-      memcpy((char*)*dptr+offset*tracks*bits/8, buf, bytes);
+
+      offset = offset*tracks*bits/8;
+      memcpy((char*)dptr[0]+offset, buf, bytes);
       rv = num;
 
       if (bytes > 0)
@@ -1004,11 +1005,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
              (handle->no_tracks >= 1 && handle->no_tracks <= _AAX_MAX_SPEAKERS))
          {
             handle->blocksize = header[8] & 0xFFFF;
-            if (handle->blocksize == (handle->no_tracks*handle->bits_sample/8))
-            {
-               handle->blocksize = 0;
-            }
-
             bits = handle->bits_sample;
             handle->wav_format = handle->io.read.format;
             handle->format = getFormatFromWAVFormat(handle->wav_format, bits);
@@ -1325,45 +1321,6 @@ getWAVFormatFromFormat(enum aaxFormat format)
       break;
    }
    return rv;
-}
-
-void *
-_aaxMSADPCM_IMA4(void *data, size_t bufsize, int tracks, size_t *size)
-{
-   size_t blocksize = *size;
-   *size /= tracks;
-   if (tracks > 1)
-   {
-      int32_t *buf = (int32_t*)malloc(blocksize);
-      if (buf)
-      {
-         int32_t* dptr = (int32_t*)data;
-         size_t numBlocks, numChunks;
-         size_t blockNum;
-
-         numBlocks = bufsize/blocksize;
-         numChunks = blocksize/4;
-
-         for (blockNum=0; blockNum<numBlocks; blockNum++)
-         {
-            int t, i;
-
-            /* block shuffle */
-            memcpy(buf, dptr, blocksize);
-            for (t=0; t<tracks; t++)
-            {
-               int32_t *src = (int32_t*)buf + t;
-               for (i=0; i < numChunks; i++)
-               {
-                  *dptr++ = *src;
-                  src += tracks;
-               }
-            }
-         }
-         free(buf);
-      }
-   }
-   return data;
 }
 
 static size_t
