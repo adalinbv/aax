@@ -1734,7 +1734,7 @@ static void*
 _aaxStreamDriverReadThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   size_t res;
+   ssize_t res;
 
    _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
@@ -1751,15 +1751,16 @@ _aaxStreamDriverReadThread(void *id)
       while (res > IOBUF_THRESHOLD);
    }
 
+   if (!handle->copy_to_buffer) {
+      res = _aaxStreamDriverReadChunk(id);
+   }
+
    do
    {
-      ssize_t res;
-
       _aaxSignalWait(&handle->thread.signal);
       res = _aaxStreamDriverReadChunk(id);
-      if (res < 0) break;
    }
-   while(handle->thread.started);
+   while(res >= 0 && handle->thread.started);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 

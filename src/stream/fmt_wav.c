@@ -651,7 +651,7 @@ _aaxWavCopy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, uns
       bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
       bytes = _MIN(num*tracks*bits/8, bufsize);
 
-      memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos, sptr, bytes);
+      memcpy(buf+handle->io.read.wavBufPos, sptr, bytes);
       handle->io.read.wavBufPos += bytes;
 
       rv = __F_PROCESS;
@@ -674,9 +674,8 @@ _aaxWavCopy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, uns
 
       if (bytes > 0)
       {
-         memmove(handle->io.read.wavBuffer, handle->io.read.wavBuffer+bytes,
-                 handle->io.read.wavBufPos - bytes);
          handle->io.read.wavBufPos -= bytes;
+         memmove(buf, buf+bytes, handle->io.read.wavBufPos);
       }
 
       if (handle->io.read.no_samples >= num) {
@@ -705,7 +704,7 @@ _aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offs
       bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
       bytes = _MIN(num*tracks*bits/8, bufsize);
 
-      memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos, sptr, bytes);
+      memcpy(buf+handle->io.read.wavBufPos, sptr, bytes);
       handle->io.read.wavBufPos += bytes;
 
       rv = __F_PROCESS;
@@ -737,9 +736,8 @@ _aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offs
 
       if (bytes > 0)
       {
-         memmove(handle->io.read.wavBuffer, handle->io.read.wavBuffer+bytes,
-                 handle->io.read.wavBufPos - bytes);
          handle->io.read.wavBufPos -= bytes;
+         memmove(buf, buf+bytes, handle->io.read.wavBufPos);
       }
 
       if (handle->io.read.no_samples >= num) {
