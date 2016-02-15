@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <error.h>
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>           /* read, write, close, lseek, access */
@@ -43,11 +44,14 @@
 #include <base/types.h>
 #include <base/timer.h>
 
-#include "socket.h"
+#include "io.h"
 
 int
-_socket_open(const char *server, int rate, int port, int timeout_ms)
+_socket_open(_io_t *io, const char *server)
 {
+   int rate = io->param[_IO_SOCKET_RATE];
+   int port = io->param[_IO_SOCKET_PORT];
+   int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
    int fd = -1;
 
    if (server && (rate > 4000) && (port > 0))
@@ -95,7 +99,10 @@ _socket_open(const char *server, int rate, int port, int timeout_ms)
  getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&n, &m);
  printf("socket receive buffer size: %u\n", n);
 #endif
-               if (connect(fd, host->ai_addr, host->ai_addrlen) < 0)
+               if (connect(fd, host->ai_addr, host->ai_addrlen) >= 0) {
+                  io->fd = fd;
+               }
+               else
                {
                   close(fd);
                   fd = -1;
@@ -119,38 +126,50 @@ _socket_open(const char *server, int rate, int port, int timeout_ms)
 }
 
 int
-_socket_close(int fd)
+_socket_close(_io_t *io)
 {
-   return close(fd);
+   int rv = close(io->fd);
+   io->fd = -1;
+   return rv;
 }
 
 ssize_t
-_socket_read(int fd, void *buf, size_t size)
+_socket_read(_io_t *io, void *buf, size_t count)
 {
-   ssize_t res = recv(fd, buf, size, 0);
-   if ((res < 0) && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-      res = 0;
+   ssize_t rv = recv(io->fd, buf, count, 0);
+   if (rv == EINTR) rv = recv(io->fd, buf, count, 0);
+   if ((rv < 0) && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+      rv = 0;
    }
-   return res;
+   return rv;
 }
 
 ssize_t
-_socket_write(int fd, const void *buf, size_t size)
+_socket_write(_io_t *io, const void *buf, size_t size)
 {
-   return send(fd, buf, size, 0);
+   ssize_t rv = send(io->fd, buf, size, 0);
+   if (rv == EINTR) rv = send(io->fd, buf, size, 0);
+   return rv;
 }
 
 off_t
-_socket_seek(int fd, off_t offs, int whence)
+_socket_seek(_io_t *io, off_t offs, int whence)
 {
    errno = EPERM;
    return (off_t)-1;
 }
 
 int
-_socket_stat(int fd, struct stat *stat)
+_socket_stat(_io_t *io, struct stat *stat)
 {
    errno = EPERM;
    return -1;
+}
+
+int
+_socket_set(_io_t *io, int ptype, int param)
+{
+   io->param[ptype] = param;
+   return (_IO_PARAM_MAX - ptype);
 }
 

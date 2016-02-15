@@ -118,6 +118,23 @@ _aaxExtensionDetect _aaxDetectVorbisFormat;
 #endif
 
 
+/* WAV format */
+enum wavFormat
+{
+   UNSUPPORTED = 0,
+   PCM_WAVE_FILE = 1,
+   MSADPCM_WAVE_FILE = 2,
+   FLOAT_WAVE_FILE = 3,
+   ALAW_WAVE_FILE = 6,
+   MULAW_WAVE_FILE = 7,
+   IMA4_ADPCM_WAVE_FILE = 17,
+   MP3_WAVE_FILE = 85,
+
+   EXTENSIBLE_WAVE_FORMAT = 0xFFFE
+};
+enum aaxFormat getFormatFromWAVFormat(unsigned int, int);
+
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
