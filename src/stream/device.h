@@ -27,9 +27,6 @@ extern "C" {
 #define PERIOD_SIZE	4096
 #define IOBUF_THRESHOLD	(2*PERIOD_SIZE)
 #define IOBUF_SIZE	(2*IOBUF_THRESHOLD)
-#ifndef O_BINARY
-# define O_BINARY	0
-#endif
 
 extern const _aaxDriverBackend _aaxNoneDriverBackend;
 extern const _aaxDriverBackend _aaxLoopbackDriverBackend;

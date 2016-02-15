@@ -39,6 +39,7 @@ static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static void _bufFillInterleaved(_aaxRingBuffer*, const void*, unsigned);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
+static void _bufConvertMSADPCMToIMA4(void*, size_t, int, size_t*);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 
@@ -626,6 +627,10 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                }
                while (res);
 
+               if (fmt == AAX_IMA4_ADPCM) { // convert from MS to IMA ADPCM
+                  _bufConvertMSADPCMToIMA4(dst[0], datasize, tracks,&blocksize);
+               }
+
                rv = aaxBufferCreate(config, no_samples, tracks, fmt);
                if (rv)
                {
@@ -1014,6 +1019,44 @@ _aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 //    _alaw2linear_table[*data++] << 8;
       *ndata++ = _alaw2linear(*data++) << 8;
    } while (--i);
+}
+
+static void
+_bufConvertMSADPCMToIMA4(void *data, size_t bufsize, int tracks, size_t *size)
+{
+   size_t blocksize = *size;
+   *size /= tracks;
+   if (tracks > 1)
+   {
+      int32_t *buf = (int32_t*)malloc(blocksize);
+      if (buf)
+      {
+         int32_t* dptr = (int32_t*)data;
+         size_t numBlocks, numChunks;
+         size_t blockNum;
+
+         numBlocks = bufsize/blocksize;
+         numChunks = blocksize/4;
+
+         for (blockNum=0; blockNum<numBlocks; blockNum++)
+         {
+            int t, i;
+
+            /* block shuffle */
+            memcpy(buf, dptr, blocksize);
+            for (t=0; t<tracks; t++)
+            {
+               int32_t *src = (int32_t*)buf + t;
+               for (i=0; i < numChunks; i++)
+               {
+                  *dptr++ = *src;
+                  src += tracks;
+               }
+            }
+         }
+         free(buf);
+      }
+   }
 }
 
 static void

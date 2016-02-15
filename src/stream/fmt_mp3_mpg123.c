@@ -388,9 +388,7 @@ _aaxMPG123Copy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
       if (!handle->id3_found) detect_mpg123_song_info(handle);
       if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
       {
-printf("### mp3: %x (OK: %x, MORE: %x), size: %i\n", ret, MPG123_OK, MPG123_NEED_MORE, size);
          rv = size*8/(tracks*bits);
-printf("### mp3: rv: %i\n", rv);
          bytes = num*tracks*bits/8;
          memcpy((char*)*dptr+offset*tracks*bits/8, buf, size);
       }
@@ -404,7 +402,6 @@ printf("### mp3: rv: %i\n", rv);
       }
    }
 
-printf("##< mp3: rv: %i\n", rv);
    return rv;
 }
 

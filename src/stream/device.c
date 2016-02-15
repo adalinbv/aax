@@ -46,6 +46,7 @@
 #include <software/renderer.h>
 #include "device.h"
 #include "format.h"
+#include "io.h"
 #include "audio.h"
 
 #define BACKEND_NAME_OLD	"File"
@@ -111,8 +112,6 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
 
 typedef struct
 {
-   int fd;
-   int fmode;
    char *name;
    char *station;
    char *description;
@@ -151,22 +150,21 @@ typedef struct
    void *out_header;
    size_t out_hdr_size;
 
-   _io_t io;
+   _io_t *io;
 
    char copy_to_buffer;	// true if Capture has to copy the data unmodified
 
 } _driver_t;
 
 static _protocol_t _url_split(char*, char**, char**, char**, int*);
-static int http_send_request(_io_t*, int, const char*, const char*, const char*, const char*);
-static int http_get_response(_io_t*, int, char*, int);
+static int http_send_request(_io_t*, const char*, const char*, const char*, const char*);
+static int http_get_response(_io_t*, char*, int);
 static _aaxFmtHandle* _aaxGetFormat(const char*, enum aaxRenderMode);
 
 static void* _aaxStreamDriverWriteThread(void*);
 static void* _aaxStreamDriverReadThread(void*);
 static void _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
-static void *_aaxStreamDriverMSADPCM_IMA4(void*, size_t, int, size_t*);
 static const char *_get_json(const char*, const char*);
 static char *strnstr(const char*, const char*, size_t);
 
@@ -203,20 +201,12 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
    {
       _aaxExtensionDetect *ftype = _aaxFormatTypes[0];
 
-      handle->fd = -1;
       handle->mode = mode;
       if (ftype)
       {
          _aaxFmtHandle* type = ftype();
-         if (type && type->detect(type, mode))
-          {
+         if (type && type->detect(type, mode)) {
             handle->fmt = type;
-            handle->io.open = open;
-            handle->io.close = close;
-            handle->io.read = read;
-            handle->io.write = write;
-            handle->io.seek = lseek;
-            handle->io.stat = fstat;
          }
          else
          {
@@ -300,14 +290,6 @@ _aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxR
 
    if (handle)
    {
-      static const int _mode[] = {
-         O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
-         O_RDONLY|O_BINARY
-      };
-      int m = (handle->mode > 0) ? 0 : 1;
-
-      handle->fmode = _mode[m];
-
       free(handle->fmt);
       handle->fmt = _aaxGetFormat(s, mode);
       if (handle->fmt)
@@ -413,14 +395,20 @@ _aaxStreamDriverDisconnect(void *id)
          if (handle->fmt->update && handle->fmt->id) {
             buf = handle->fmt->update(handle->fmt->id, &offs, &size, AAX_TRUE);
          }
-         if (buf && (handle && handle->io.protocol == PROTOCOL_FILE))
+         if (buf && (handle && handle->io))
          {
-            handle->io.seek(handle->fd, offs, SEEK_SET);
-            ret = handle->io.write(handle->fd, buf, size);
+            if (handle->io->protocol == PROTOCOL_RAW)
+            {
+               handle->io->seek(handle->io, offs, SEEK_SET);
+               ret = handle->io->write(handle->io, buf, size);
+            }
          }
          handle->fmt->close(handle->fmt->id);
       }
-      handle->io.close(handle->fd);
+      if (handle->io) {
+         handle->io->close(handle->io);
+         handle->io = _io_free(handle->io);
+      }
 
       if (handle->render)
       {
@@ -469,11 +457,13 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
       if (!m)
       {
-         char *s, *protocol, *server, *path;
+         char *s, *protname, *server, *path;
+         _protocol_t protocol;
          int port;
 
          s = strdup(handle->name);
-         handle->io.protocol = _url_split(s, &protocol, &server, &path, &port);
+         protocol = _url_split(s, &protname, &server, &path, &port);
+         handle->io = _io_create(protocol);
 #if 0
  printf("name: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protocol);
@@ -481,25 +471,20 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("path: '%s'\n", path);
  printf("port: %i\n", port);
 #endif
-         switch (handle->io.protocol)
+         switch (handle->io->protocol)
          {
          case PROTOCOL_HTTP:
-            handle->io.open = _socket_open;
-            handle->io.close = _socket_close;
-            handle->io.read = _socket_read;
-            handle->io.write = _socket_write;
-            handle->io.seek = _socket_seek;
-            handle->io.stat = _socket_stat;
-            handle->fd = handle->io.open(server, rate, port, (int)period_ms);
-            if (handle->fd >= 0)
+            handle->io->set(handle->io, _IO_SOCKET_RATE, rate);
+            handle->io->set(handle->io, _IO_SOCKET_PORT, port);
+            handle->io->set(handle->io, _IO_SOCKET_TIMEOUT, (int)period_ms);
+            if (handle->io->open(handle->io, server) >= 0)
             {
-               int res = http_send_request(&handle->io, handle->fd,
-                                           "GET", server, path,
+               int res = http_send_request(handle->io, "GET", server, path,
                                            aaxGetVersionString((aaxConfig)id));
                if (res > 0)
                {
                   char buf[4096];
-                  res = http_get_response(&handle->io, handle->fd, buf, 4096);
+                  res = http_get_response(handle->io, buf, 4096);
                   if (res == 200)
                   {
                      const char *s;
@@ -552,8 +537,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   }
                   else
                   {
-                     handle->io.close(handle->fd);
-                     handle->fd = -1;
+                     handle->io->close(handle->io);
+                     handle->io = _io_free(handle->io);
                      _aaxStreamDriverLog(id, 0, 0, buf+strlen("HTTP/1.0 "));
                      free(handle->fmt->id);
                      handle->fmt->id = 0;
@@ -561,12 +546,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
             }
             break;
-         case PROTOCOL_FILE:
-            handle->fd = handle->io.open(path, handle->fmode, 0644);
-            if (handle->fd >= 0)
+         case PROTOCOL_RAW:
+            handle->io->set(handle->io, _IO_FILE_MODE, handle->mode);
+            if (handle->io->open(handle->io, path) >= 0)
             {
                struct stat st;
-               handle->io.stat(handle->fd, &st);
+               handle->io->stat(handle->io, &st);
                handle->no_bytes = st.st_size;
             }
             else
@@ -586,7 +571,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          free(s);
       }
 
-      if ((handle->fd >= 0) || m)
+      if ((handle->io->fd >= 0) || m)
       {
          size_t no_samples = period_frames;
          void *header = NULL;
@@ -603,7 +588,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             {
                do
                {
-                  res = handle->io.read(handle->fd, header, bufsize);
+                  res = handle->io->read(handle->io, header, bufsize);
                   if (res > 0) break;
                   msecSleep(50);
                }
@@ -686,8 +671,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          if (!rv)
          {
-            handle->io.close(handle->fd);
-            handle->fd = -1;
+            handle->io->close(handle->io);
+            handle->io = _io_free(handle->io);
             free(handle->fmt->id);
             handle->fmt->id = 0;
          }
@@ -720,15 +705,15 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
     * prevent setting the file size to zero just bij running aaxinfo -d
     * which always opens a file in playback mode.
     */
-   if (handle->fd < 0) {
-      handle->fd = handle->io.open(handle->name, handle->fmode, 0644);
+   if (handle->io->fd < 0) {
+      handle->io->open(handle->io, handle->name);
    }
 
    if (handle->out_header)
    {
-      if (handle->fd)
+      if (handle->io->fd >= 0)
       {
-         res = handle->io.write(handle->fd, handle->out_header,
+         res = handle->io->write(handle->io, handle->out_header,
                                             handle->out_hdr_size);
          if (res == handle->out_hdr_size)
          {
@@ -907,14 +892,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          }
       } while (no_samples);
 
-      if (handle->copy_to_buffer)
-      {
-         if (handle->format == AAX_IMA4_ADPCM) {
-            _aaxStreamDriverMSADPCM_IMA4(sbuf[0], scratchlen,
-                                         file_tracks, &file_block);
-         }
-      }
-      else if (bytes > 0)
+      if (!handle->copy_to_buffer && bytes > 0)
       {
          /* gain is netagive for auto-gain mode */
          gain = fabsf(gain);
@@ -1139,11 +1117,11 @@ _aaxStreamDriverSetPosition(const void *id, off_t pos)
 
 // TODO: we probably need a protocol dependend way to set a new position
 #if 0
-   int res = handle->io.seek(handle->fd, 0, SEEK_CUR);
+   int res = handle->io->seek(handle->io, 0, SEEK_CUR);
    if (res != pos)
    {
 //    handle->bufpos = 0;
-      res = handle->io.seek(handle->fd, 0, SEEK_SET);
+      res = handle->io->seek(handle->io, 0, SEEK_SET);
       if (res >= 0)
       {
          int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
@@ -1156,7 +1134,7 @@ _aaxStreamDriverSetPosition(const void *id, off_t pos)
             unsigned char sbuf[IOBUF_SIZE][_AAX_MAX_SPEAKERS];
             unsigned char buf[IOBUF_SIZE];
 
-            res = handle->io.read(handle->fd, buf, IOBUF_SIZE);
+            res = handle->io->read(handle->io, buf, IOBUF_SIZE);
             if (res <= 0) break;
 
             res = handle->fmt->cvt_from_intl(handle->fmt->id, (int32_ptrptr)sbuf,
@@ -1164,7 +1142,7 @@ _aaxStreamDriverSetPosition(const void *id, off_t pos)
          }
       
          if ((seek >= 0) && (res >= 0)) {
-            rv = (handle->io.seek(handle->fd, seek, SEEK_SET) >= 0) ? AAX_TRUE : AAX_FALSE;
+            rv = (handle->io->seek(handle->io, seek, SEEK_SET) >= 0) ? AAX_TRUE : AAX_FALSE;
          }
       }
    }
@@ -1239,7 +1217,7 @@ _aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
 
-   if (handle && handle->io.protocol == PROTOCOL_HTTP) {
+   if (handle && handle->io->protocol == PROTOCOL_HTTP) {
        snprintf(_errstr, 256, "HTTP: %s\n", str);
    } else {
       snprintf(_errstr, 256, "File: %s\n", str);
@@ -1302,16 +1280,16 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       if (*port <= 0) *port = 80;
    }
    else if (!*protocol || !strcasecmp(*protocol, "file")) {
-      rv = PROTOCOL_FILE;
+      rv = PROTOCOL_RAW;
    } else {
-      rv = PROTOCOL_UnSUPPORTED;
+      rv = PROTOCOL_UNSUPPORTED;
    }
 
    return rv;
 }
 
 static int
-http_get_response_data(_io_t *io, int fd, char *response, int size)
+http_get_response_data(_io_t *io, char *response, int size)
 {
    static char end[4] = "\r\n\r\n";
    char *buf = response;
@@ -1324,7 +1302,7 @@ http_get_response_data(_io_t *io, int fd, char *response, int size)
 
       do
       {
-         res = io->read(fd, buf, 1);
+         res = io->read(io, buf, 1);
          if (res > 0) break;
          msecSleep(50);
       }
@@ -1349,7 +1327,7 @@ http_get_response_data(_io_t *io, int fd, char *response, int size)
 }
 
 static int
-http_send_request(_io_t *io, int fd, const char *command, const char *server, const char *path, const char *user_agent)
+http_send_request(_io_t *io, const char *command, const char *server, const char *path, const char *user_agent)
 {
    char header[MAX_BUFFER];
    int hlen, rv = 0;
@@ -1366,7 +1344,7 @@ http_send_request(_io_t *io, int fd, const char *command, const char *server, co
    header[MAX_BUFFER-1] = '\0';
 
    hlen = strlen(header);
-   rv = io->write(fd, header, hlen);
+   rv = io->write(io, header, hlen);
    if (rv != hlen) {
       rv = -1;
    }
@@ -1375,11 +1353,11 @@ http_send_request(_io_t *io, int fd, const char *command, const char *server, co
 }
 
 static int
-http_get_response(_io_t *io, int fd, char *buf, int size)
+http_get_response(_io_t *io, char *buf, int size)
 {
    int res, rv = -1;
 
-   res = http_get_response_data(io, fd, buf, size);
+   res = http_get_response_data(io, buf, size);
    if (res > 0)
    {
       res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
@@ -1487,7 +1465,7 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
       if (path) ext = strrchr(path, '.');
       if (!ext) ext = ".mp3";
       break;
-   case PROTOCOL_FILE:
+   case PROTOCOL_RAW:
       if (path) ext = strrchr(path, '.');
       break;
    default:
@@ -1553,7 +1531,7 @@ _aaxStreamDriverWriteChunk(const void *id)
             size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
             ssize_t res;
 
-            res = handle->io.write(handle->fd, handle->buf, wsize);
+            res = handle->io->write(handle->io, handle->buf, wsize);
             if (res > 0)
             {
                void *buf;
@@ -1569,10 +1547,10 @@ _aaxStreamDriverWriteChunk(const void *id)
                   if (buf)
                   {
 // TODO: Can't do seek for PROTOCOL_HTTP
-                     off_t floc = handle->io.seek(handle->fd, 0L, SEEK_CUR);
-                     handle->io.seek(handle->fd, spos, SEEK_SET);
-                     res = handle->io.write(handle->fd, buf, usize);
-                     handle->io.seek(handle->fd, floc, SEEK_SET);
+                     off_t floc = handle->io->seek(handle->io, 0L, SEEK_CUR);
+                     handle->io->seek(handle->io, spos, SEEK_SET);
+                     res = handle->io->write(handle->io, buf, usize);
+                     handle->io->seek(handle->io, floc, SEEK_SET);
                   }
                }
             }
@@ -1646,7 +1624,7 @@ _aaxStreamDriverReadChunk(const void *id)
    }
 
    size = IOBUF_THRESHOLD - handle->bytes_avail;
-   res = handle->io.read(handle->fd, handle->buf+handle->bytes_avail, size);
+   res = handle->io->read(handle->io, handle->buf+handle->bytes_avail, size);
    if (res > 0)
    {
       handle->bytes_avail += res;
@@ -1741,7 +1719,7 @@ _aaxStreamDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.signal.mutex);
 
    /* read all bytes already sent from the server */
-   if (handle->io.protocol != PROTOCOL_FILE)
+   if (handle->io->protocol != PROTOCOL_RAW)
    {
       do
       {
@@ -1765,44 +1743,5 @@ _aaxStreamDriverReadThread(void *id)
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle;
-}
-
-void *
-_aaxStreamDriverMSADPCM_IMA4(void *data, size_t bufsize, int tracks, size_t *size)
-{
-   size_t blocksize = *size;
-   *size /= tracks;
-   if (tracks > 1)
-   {
-      int32_t *buf = (int32_t*)malloc(blocksize);
-      if (buf)
-      {
-         int32_t* dptr = (int32_t*)data;
-         size_t numBlocks, numChunks;
-         size_t blockNum;
-
-         numBlocks = bufsize/blocksize;
-         numChunks = blocksize/4;
-
-         for (blockNum=0; blockNum<numBlocks; blockNum++)
-         {
-            int t, i;
-
-            /* block shuffle */
-            memcpy(buf, dptr, blocksize);
-            for (t=0; t<tracks; t++)
-            {
-               int32_t *src = (int32_t*)buf + t;
-               for (i=0; i < numChunks; i++)
-               {
-                  *dptr++ = *src;
-                  src += tracks;
-               }
-            }
-         }
-         free(buf);
-      }
-   }
-   return data;
 }
 
