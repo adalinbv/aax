@@ -34,9 +34,8 @@ typedef int _open_fn(struct _io_st*, const char*);
 typedef int _close_fn(struct _io_st*);
 typedef ssize_t _read_fn(struct _io_st*, void*, size_t);
 typedef ssize_t _write_fn(struct _io_st*, const void*, size_t);
-typedef off_t _seek_fn(struct _io_st*, off_t, int);
-typedef int _stat_fn(struct _io_st*, struct stat*);
-typedef int _set_fn(struct _io_st*, int, int);
+typedef int _set_fn(struct _io_st*, int, ssize_t);
+typedef ssize_t _get_fn(struct _io_st*, int);
 
 enum {
    _IO_FILE_FLAGS = 1,
@@ -54,8 +53,7 @@ struct _io_st
    _close_fn *close;
    _read_fn *read;
    _write_fn *write;
-   _seek_fn *seek;
-   _stat_fn *stat;
+   _get_fn *get;
    _set_fn *set;
 
    _protocol_t protocol;
@@ -73,18 +71,16 @@ int _file_open(_io_t*, const char*);
 int _file_close(_io_t*);
 ssize_t _file_read(_io_t*, void*, size_t);
 ssize_t _file_write(_io_t*, const void*, size_t);
-off_t _file_seek(_io_t*, off_t, int);
-int _file_stat(_io_t*, struct stat*);
-int _file_set(_io_t*, int, int);
+int _file_set(_io_t*, int, ssize_t);
+ssize_t _file_get(_io_t*, int);
 
 /* socket */
 int _socket_open(_io_t*, const char*);
 int _socket_close(_io_t*);
 ssize_t _socket_read(_io_t*, void*, size_t);
 ssize_t _socket_write(_io_t*, const void*, size_t);
-off_t _socket_seek(_io_t*, off_t, int);
-int _socket_stat(_io_t*, struct stat*);
-int _socket_set(_io_t*, int, int);
+int _socket_set(_io_t*, int, ssize_t);
+ssize_t _socket_get(_io_t*, int);
 
 
 #endif /* !_AAX_IO_H */

@@ -30,26 +30,25 @@ _io_create(_protocol_t protocol)
          rv->close = _socket_close;
          rv->read = _socket_read;
          rv->write = _socket_write;
-         rv->seek = _socket_seek;
-         rv->stat = _socket_stat;
          rv->set = _socket_set;
+         rv->get = _socket_get;
 
          rv->param[_IO_SOCKET_RATE] = 0;
          rv->param[_IO_SOCKET_PORT] = 80;
          rv->param[_IO_SOCKET_TIMEOUT] = 1000;
          break;
-      case PROTOCOL_RAW:
-      default:
+      case PROTOCOL_FILE:
          rv->open = _file_open;
          rv->close = _file_close;
          rv->read = _file_read;
          rv->write = _file_write;
-         rv->seek = _file_seek;
-         rv->stat = _file_stat;
          rv->set = _file_set;
+         rv->get = _file_get;
 
-         rv->param[_IO_FILE_FLAGS] = 0644;
-         rv->param[_IO_FILE_MODE] = 0;
+         rv->param[_IO_FILE_FLAGS] = 0;
+         rv->param[_IO_FILE_MODE] = 0644;
+         break;
+      default:
          break;
       }
       rv->protocol = protocol;
