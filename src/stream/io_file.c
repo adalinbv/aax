@@ -17,17 +17,22 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include <errno.h>
 
 #include <aax/aax.h>
 
+#include "format.h"
 #include "io.h"
+
+#ifndef O_BINARY
+# define O_BINARY	0
+#endif
 
 int
 _file_open(_io_t *io, const char* pathname)
 {
-   io->fd = open(pathname, io->param[_IO_FILE_FLAGS],
-                               io->param[_IO_FILE_MODE]);
+   io->fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
    return io->fd;
 }
 
@@ -55,39 +60,53 @@ _file_write(_io_t *io, const void* buf, size_t count)
    return rv;
 }
 
-off_t
-_file_seek(_io_t *io, off_t offset, int whence)
-{
-   return lseek(io->fd, offset, whence);
-}
-
 int
-_file_stat(_io_t *io, struct stat* st)
+_file_set(_io_t *io, int ptype, ssize_t param)
 {
-   return fstat(io->fd, st);
-}
-
-
-#ifndef O_BINARY
-# define O_BINARY       0
-#endif
-int
-_file_set(_io_t *io, int ptype, int param)
-{
-   static const int _mode[] = {
+   static const int _flags[] = {
          O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
          O_RDONLY|O_BINARY
    };
+   int rv = -1;
 
    switch (ptype)
    {
-   case _IO_FILE_MODE:
-      io->param[ptype] = _mode[(param == AAX_MODE_READ) ? 1 : 0];
+   case __F_POSITION:
+      rv = (lseek(io->fd, param, SEEK_SET) >= 0) ? 0 : -1;
+      break;
+   case __F_FLAGS:
+      io->param[_IO_FILE_FLAGS] = _flags[(param == AAX_MODE_READ) ? 1 : 0];
+      rv = 0;
+      break;
+   case __F_MODE:
+      io->param[_IO_FILE_MODE] = param;
+      rv = 0;
       break;
    default:
-      io->param[ptype] = param;
       break;
    }
-   return (_IO_PARAM_MAX - ptype);
+   return rv;
 }
 
+ssize_t
+_file_get(_io_t *io, int ptype)
+{
+   ssize_t rv = 0;
+   switch (ptype)
+   {
+   case __F_NO_BYTES:
+   {
+      struct stat st;
+      if (fstat(io->fd, &st) == 0) {
+          rv = st.st_size;
+      }
+      break;
+   }
+   case __F_POSITION:
+      rv = lseek(io->fd, 0L, SEEK_CUR);
+      break;
+   default:
+      break;
+   }
+   return rv;
+}

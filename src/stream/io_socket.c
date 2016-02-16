@@ -44,6 +44,7 @@
 #include <base/types.h>
 #include <base/timer.h>
 
+#include "format.h"
 #include "io.h"
 
 int
@@ -152,24 +153,34 @@ _socket_write(_io_t *io, const void *buf, size_t size)
    return rv;
 }
 
-off_t
-_socket_seek(_io_t *io, off_t offs, int whence)
-{
-   errno = EPERM;
-   return (off_t)-1;
-}
-
 int
-_socket_stat(_io_t *io, struct stat *stat)
+_socket_set(_io_t *io, int ptype, ssize_t param)
 {
-   errno = EPERM;
-   return -1;
+   int rv = -1;
+   switch (ptype)
+   {
+   case __F_RATE:
+   case __F_PORT:
+   case __F_TIMEOUT:
+      io->param[ptype - __F_RATE] = param;
+      rv = 0;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
-int
-_socket_set(_io_t *io, int ptype, int param)
+ssize_t
+_socket_get(_io_t *io, int ptype)
 {
-   io->param[ptype] = param;
-   return (_IO_PARAM_MAX - ptype);
+   ssize_t rv = 0;
+   switch (ptype)
+   {
+   case __F_NO_BYTES:
+   case __F_POSITION:
+   default:
+      break;
+   }
+   return rv;
 }
-

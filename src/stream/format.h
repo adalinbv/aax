@@ -43,6 +43,13 @@ enum _aaxFormatParam
    __F_BITS,
    __F_BLOCK,
    __F_SAMPLES,
+   __F_NO_BYTES,
+
+   __F_RATE,
+   __F_PORT,
+   __F_TIMEOUT,
+   __F_FLAGS,
+   __F_MODE,
 
    __F_NAME_CHANGED = 0x0400, /* set if the name changed since the last get */
    __F_IMAGE = 0x0800,		/* get info name strings */

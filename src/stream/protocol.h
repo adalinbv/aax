@@ -28,7 +28,7 @@ extern "C" {
 typedef enum
 {
    PROTOCOL_UNSUPPORTED = -1,
-   PROTOCOL_RAW = 0,
+   PROTOCOL_FILE = 0,
    PROTOCOL_HTTP
 } _protocol_t;
 

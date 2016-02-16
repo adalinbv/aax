@@ -28,7 +28,6 @@
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
-#include <sys/stat.h>
 #include <ctype.h>		/* toupper */
 #include <errno.h>		/* for ETIMEDOUT, errno */
 #include <fcntl.h>		/* SEEK_*, O_* */
@@ -397,9 +396,9 @@ _aaxStreamDriverDisconnect(void *id)
          }
          if (buf && (handle && handle->io))
          {
-            if (handle->io->protocol == PROTOCOL_RAW)
+            if (handle->io->protocol == PROTOCOL_FILE)
             {
-               handle->io->seek(handle->io, offs, SEEK_SET);
+               handle->io->set(handle->io, __F_POSITION, 0L);
                ret = handle->io->write(handle->io, buf, size);
             }
          }
@@ -409,6 +408,7 @@ _aaxStreamDriverDisconnect(void *id)
          handle->io->close(handle->io);
          handle->io = _io_free(handle->io);
       }
+      free(handle->out_header);
 
       if (handle->render)
       {
@@ -455,28 +455,30 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (handle->fmt->id)
    {
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-      if (!m)
-      {
-         char *s, *protname, *server, *path;
-         _protocol_t protocol;
-         int port;
+      char *s, *protname, *server, *path;
+      _protocol_t protocol;
+      int port;
 
-         s = strdup(handle->name);
-         protocol = _url_split(s, &protname, &server, &path, &port);
-         handle->io = _io_create(protocol);
+      s = strdup(handle->name);
+      protocol = _url_split(s, &protname, &server, &path, &port);
+      handle->io = _io_create(protocol);
+      handle->io->set(handle->io, __F_FLAGS, handle->mode);
 #if 0
  printf("name: '%s'\n", handle->name);
- printf("protocol: '%s'\n", protocol);
+ printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
  printf("path: '%s'\n", path);
  printf("port: %i\n", port);
 #endif
+
+      if (!m)
+      {
          switch (handle->io->protocol)
          {
          case PROTOCOL_HTTP:
-            handle->io->set(handle->io, _IO_SOCKET_RATE, rate);
-            handle->io->set(handle->io, _IO_SOCKET_PORT, port);
-            handle->io->set(handle->io, _IO_SOCKET_TIMEOUT, (int)period_ms);
+            handle->io->set(handle->io, __F_RATE, rate);
+            handle->io->set(handle->io, __F_PORT, port);
+            handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
             if (handle->io->open(handle->io, server) >= 0)
             {
                int res = http_send_request(handle->io, "GET", server, path,
@@ -546,13 +548,10 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
             }
             break;
-         case PROTOCOL_RAW:
-            handle->io->set(handle->io, _IO_FILE_MODE, handle->mode);
-            if (handle->io->open(handle->io, path) >= 0)
-            {
-               struct stat st;
-               handle->io->stat(handle->io, &st);
-               handle->no_bytes = st.st_size;
+         case PROTOCOL_FILE:
+            handle->io->set(handle->io, __F_FLAGS, handle->mode);
+            if (handle->io->open(handle->io, path) >= 0) {
+               handle->no_bytes = handle->io->get(handle->io, __F_NO_BYTES);
             }
             else
             {
@@ -1275,12 +1274,14 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
          *port = strtol(ptr, NULL, 10);
       }
    }
-   if ((*protocol && !strcasecmp(*protocol, "http")) || *server) {
+   if ((*protocol && !strcasecmp(*protocol, "http")) ||
+       (*server && **server != 0))
+   {
       rv = PROTOCOL_HTTP;
       if (*port <= 0) *port = 80;
    }
    else if (!*protocol || !strcasecmp(*protocol, "file")) {
-      rv = PROTOCOL_RAW;
+      rv = PROTOCOL_FILE;
    } else {
       rv = PROTOCOL_UNSUPPORTED;
    }
@@ -1465,7 +1466,7 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
       if (path) ext = strrchr(path, '.');
       if (!ext) ext = ".mp3";
       break;
-   case PROTOCOL_RAW:
+   case PROTOCOL_FILE:
       if (path) ext = strrchr(path, '.');
       break;
    default:
@@ -1516,6 +1517,7 @@ _aaxStreamDriverWriteChunk(const void *id)
    }
 
    buffer_avail = avail;
+   if (handle->io)
    do
    {
       usize = _MIN(buffer_avail, IOBUF_SIZE);
@@ -1546,11 +1548,10 @@ _aaxStreamDriverWriteChunk(const void *id)
                                             AAX_FALSE);
                   if (buf)
                   {
-// TODO: Can't do seek for PROTOCOL_HTTP
-                     off_t floc = handle->io->seek(handle->io, 0L, SEEK_CUR);
-                     handle->io->seek(handle->io, spos, SEEK_SET);
+                     off_t floc = handle->io->get(handle->io, __F_POSITION);
+                     handle->io->set(handle->io, __F_POSITION, 0L);
                      res = handle->io->write(handle->io, buf, usize);
-                     handle->io->seek(handle->io, floc, SEEK_SET);
+                     handle->io->set(handle->io, __F_POSITION, floc);
                   }
                }
             }
@@ -1719,7 +1720,7 @@ _aaxStreamDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.signal.mutex);
 
    /* read all bytes already sent from the server */
-   if (handle->io->protocol != PROTOCOL_RAW)
+   if (handle->io->protocol != PROTOCOL_FILE)
    {
       do
       {
