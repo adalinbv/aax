@@ -25,6 +25,8 @@ extern "C" {
 #include <base/dlsym.h>
 #include <driver.h>
 
+#define MAX_ID_STRLEN			64
+
 #ifdef WIN32
 // TODO: Needs fixing # define WINXP
 #endif
@@ -55,6 +57,43 @@ extern "C" {
 
 #define _AAX_FILEDRVLOG(a)          _aaxStreamDriverLog(NULL, 0, 0, a);
 _aaxDriverLog _aaxStreamDriverLog;
+
+
+enum _aaxStreamParam
+{
+   __F_PROCESS = -2,            /* get */
+   __F_EOF = -1,
+   __F_FMT = 0,
+   __F_TRACKS,
+   __F_FREQ,
+   __F_BITS,
+   __F_BLOCK,
+   __F_SAMPLES,
+   __F_NO_BYTES,
+
+   __F_RATE,
+   __F_PORT,
+   __F_TIMEOUT,
+   __F_FLAGS,
+   __F_MODE,
+
+   __F_NAME_CHANGED = 0x0400, /* set if the name changed since the last get */
+   __F_IMAGE = 0x0800,          /* get info name strings */
+   __F_ARTIST,
+   __F_GENRE,
+   __F_TITLE,
+   __F_TRACKNO,
+   __F_ALBUM,
+   __F_DATE,
+   __F_COPYRIGHT,
+   __F_COMMENT,
+   __F_COMPOSER,
+   __F_ORIGINAL,
+   __F_WEBSITE,
+
+   __F_IS_STREAM = 0x1000,      /* set */
+   __F_POSITION
+};
 
 
 #if defined(__cplusplus)

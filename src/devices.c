@@ -28,6 +28,7 @@
 
 #include <base/logging.h>
 
+#include <software/device.h>
 #include <stream/device.h>
 #include <dmedia/device.h>
 #include <alsa/device.h>
@@ -41,6 +42,7 @@
 #include "arch.h"
 #include "devices.h"
 #include "ringbuffer.h"
+
 
 static _intBuffers *_aaxIntDriverGetBackends();
 static char* _aaxDriverDetectConfigConnector(char*, char**, char*, char*);

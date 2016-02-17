@@ -1,0 +1,420 @@
+/*
+ * Copyright 2005-2016 by Erik Hofman.
+ * Copyright 2009-2016 by Adalin B.V.
+ * All Rights Reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
+ * the contents of this file may not be disclosed to third parties, copied or
+ * duplicated in any form, in whole or in part, without the prior written
+ * permission of Adalin B.V.
+ */
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
+#include <errno.h>
+
+#include <api.h>
+
+#include "device.h"
+#include "protocol.h"
+
+#define MAX_BUFFER	512
+
+static int _http_send_request(_io_t*, const char*, const char*, const char*, const char*);
+static int _http_get_response(_io_t*, char*, int);
+static const char *_get_json(const char*, const char*);
+static char *strnstr(const char*, const char*, size_t);
+
+
+size_t
+_http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, const char *agent)
+{
+   int res = _http_send_request(io, "GET", server, path, agent);
+   if (res > 0)
+   {
+      char buf[4096];
+      res = _http_get_response(io, buf, 4096);
+      if (res == 200)
+      {
+         const char *s;
+
+         res = 0;
+         s = _get_json(buf, "content-length");
+         if (s)
+         {
+            prot->no_bytes = strtol(s, NULL, 10);
+            res = prot->no_bytes;
+         }
+
+         s = _get_json(buf, "content-type");
+         if (s && !strcasecmp(s, "audio/mpeg"))
+         {
+            s = _get_json(buf, "icy-name");
+            if (s)
+            {
+               int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
+               memcpy(prot->artist+1, s, len);
+               prot->artist[len] = '\0';
+               prot->artist[0] = AAX_TRUE;
+                           prot->station = strdup(s);
+            }
+
+            s = _get_json(buf, "icy-description");
+            if (s)
+            {
+               int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
+               memcpy(prot->title+1, s, len);
+               prot->title[len] = '\0';
+               prot->title[0] = AAX_TRUE;
+               prot->description = strdup(s);
+            }
+
+            s = _get_json(buf, "icy-genre");
+            if (s) prot->genre = strdup(s);
+
+            s = _get_json(buf, "icy-url");
+            if (s) prot->website = strdup(s);
+            s = _get_json(buf, "icy-metaint");
+            if (s)
+            {
+               errno = 0;
+               prot->meta_interval = strtol(s, NULL, 10);
+               prot->meta_pos = 0;
+               if (errno == ERANGE) {
+                  _AAX_SYSLOG("stream meta out of range");
+               }
+            }
+         }
+      }
+      else
+      {
+         _AAX_SYSLOG(buf+strlen("HTTP/1.0 "));
+         res = -res;
+      }
+   }
+   else {
+      res = -res;
+   }
+   return res;
+}
+
+int
+_http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
+{
+   int slen = 0;
+
+   if (prot->meta_interval)
+   {
+      prot->meta_pos += res;
+      while (prot->meta_pos > prot->meta_interval)
+      {
+         size_t offs = prot->meta_pos - prot->meta_interval;
+         uint8_t *ptr = buf;
+         int blen;
+
+         ptr += bytes_avail;
+         ptr -= offs;
+
+         slen = *ptr * 16;
+         if ((size_t)(ptr+slen) >= (size_t)(buf+IOBUF_THRESHOLD)) {
+            break;
+         }
+
+         if (slen > strlen("StreamTitle=''"))
+         {
+            char *artist = (char*)ptr+1 + strlen("StreamTitle='");
+            if (artist)
+            {
+               char *title = strnstr(artist, " - ", slen);
+               char *end = strnstr(artist, "\';", slen);
+               if (!end) end = strnstr(artist, "\'\0", slen);
+               if (title)
+               {
+                  *title = '\0';
+                  title += strlen(" - ");
+               }
+               if (end) {
+                  *end = '\0';
+               }
+
+               if (artist && end)
+               {
+                  int len = _MIN(strlen(artist)+1, MAX_ID_STRLEN);
+                  memcpy(prot->artist+1, artist, len);
+                  prot->artist[len] = '\0';
+                  prot->artist[0] = AAX_TRUE;
+               }
+               else if (prot->artist[1] != '\0')
+               {
+                  prot->artist[1] = '\0';
+                  prot->artist[0] = AAX_TRUE;
+               }
+
+               if (title && end)
+               {
+                  int len = _MIN(strlen(title)+1, MAX_ID_STRLEN);
+                  memcpy(prot->title+1, title, len);
+                  prot->title[len] = '\0';
+                  prot->title[0] = AAX_TRUE;
+               }
+               else if (prot->title[1] != '\0')
+               {
+                  prot->title[1] = '\0';
+                  prot->title[0] = AAX_TRUE;
+               }
+               prot->metadata_changed = AAX_TRUE;
+            }
+         }
+
+         slen++;     // add the slen-byte itself
+         prot->meta_pos -= (prot->meta_interval+slen);
+
+         /* move the rest of the buffer slen-bytes back */
+         bytes_avail -= slen;
+         blen = bytes_avail;
+         blen -= (ptr - buf);
+
+         memmove(ptr, ptr+slen, blen);
+      }
+   }
+   return slen;
+}
+
+int
+_http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
+{
+   int rv = -1;
+   switch (ptype)
+   {
+   case __F_POSITION:
+      prot->meta_pos += param;
+      rv = 0;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+char*
+_http_name(_prot_t *prot, enum _aaxStreamParam ptype)
+{
+   char *ret = NULL;
+   switch (ptype)
+   {
+   case __F_ARTIST:
+      if (prot->artist[1] != '\0')
+      {
+         ret = prot->artist+1;
+         prot->artist[0] = AAX_FALSE;
+      }
+      break;
+   case __F_TITLE:
+      if (prot->title[1] != '\0')
+      {
+         ret = prot->title+1;
+         prot->title[0] = AAX_FALSE;
+      }
+      break;
+   case __F_GENRE:
+      ret = prot->genre;
+      break;
+   case __F_ALBUM:
+      ret = prot->description;
+      break;
+   case __F_COMPOSER:
+      ret = prot->station;
+      break;
+   case __F_WEBSITE:
+      ret = prot->website;
+      break;
+   default:
+      switch (ptype | ~__F_NAME_CHANGED)
+      {
+      case (__F_ARTIST|__F_NAME_CHANGED):
+         if (prot->artist[0] == AAX_TRUE)
+         {
+            ret = prot->artist+1;
+            prot->artist[0] = AAX_FALSE;
+         }
+         break;
+      case (__F_TITLE|__F_NAME_CHANGED):
+         if (prot->title[0] == AAX_TRUE)
+         {
+            ret = prot->title+1;
+            prot->title[0] = AAX_FALSE;
+         }
+         break;
+      default:
+         break;
+      }
+      break;
+   }
+   return ret;
+}
+
+/* -------------------------------------------------------------------------- */
+
+static int
+_http_get_response_data(_io_t *io, char *response, int size)
+{
+   static char end[4] = "\r\n\r\n";
+   char *buf = response;
+   int found = 0;
+   int res, i = 0;
+
+   do
+   {
+      i++;
+
+      do
+      {
+         res = io->read(io, buf, 1);
+         if (res > 0) break;
+         msecSleep(50);
+      }
+      while (res == 0);
+
+      if (res == 1)
+      {
+         if (*buf == end[found]) found++;
+         else found = 0;
+      }
+      else break;
+      ++buf;
+   }
+   while ((i < size) && (found < sizeof(end)));
+
+   if (i < size) {
+      *buf = '\0';
+   }
+   response[size-1] = '\0';
+
+   return i;
+}
+
+int
+_http_send_request(_io_t *io, const char *command, const char *server, const char *path, const char *user_agent)
+{
+   char header[MAX_BUFFER];
+   int hlen, rv = 0;
+
+   snprintf(header, MAX_BUFFER,
+            "%s /%.256s HTTP/1.0\r\n"
+            "User-Agent: %s\r\n"
+            "Accept: */*\r\n"
+            "Host: %s\r\n"
+            "Connection: Keep-Alive\r\n"
+            "Icy-MetaData:1\r\n"
+            "\r\n",
+            command, path, user_agent, server);
+   header[MAX_BUFFER-1] = '\0';
+
+   hlen = strlen(header);
+   rv = io->write(io, header, hlen);
+   if (rv != hlen) {
+      rv = -1;
+   }
+
+   return rv;
+}
+
+int
+_http_get_response(_io_t *io, char *buf, int size)
+{
+   int res, rv = -1;
+
+   res = _http_get_response_data(io, buf, size);
+   if (res > 0)
+   {
+      res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
+      if (res != 1)
+      {
+         res =  sscanf(buf, "ICY %03d", (int*)&rv);
+         if (res != 1) {
+            rv = -1;
+         }
+      }
+   }
+
+   return rv;
+}
+
+static const char*
+_get_json(const char *haystack, const char *needle)
+{
+   static char buf[64];
+   char *start, *end;
+   size_t pos;
+
+   buf[0] = '\0';
+   start = strcasestr(haystack, needle);
+   if (start)
+   {
+      size_t haystacklen;
+
+      start += strlen(needle);
+      pos = start - haystack;
+
+      haystacklen = strlen(haystack);
+      while ((pos++ < haystacklen) && (*start == ':' || *start == ' ')) {
+         start++;
+      }
+
+      if (pos < haystacklen)
+      {
+         end = start;
+         while ((pos++ < haystacklen) &&
+                (*end != '\0' && *end != '\n' && *end != '\r')) {
+            end++;
+         }
+
+         if ((end-start) > 63) {
+            end = start + 63;
+         }
+         memcpy(buf, start, (end-start));
+         buf[end-start] = '\0';
+      }
+   }
+
+   return (buf[0] != '\0') ? buf : NULL;
+}
+
+/*
+ * Taken from FreeBSD:
+ * http://src.gnu-darwin.org/src/lib/libc/string/strnstr.c.html
+ */
+static char *
+strnstr(const char *s, const char *find, size_t slen)
+{
+   char c, sc;
+   size_t len;
+
+   if ((c = *find++) != '\0')
+   {
+      len = strlen(find);
+      do
+      {
+         do
+         {
+            if (slen-- < 1 || (sc = *s++) == '\0') {
+               return (NULL);
+            }
+         }
+         while (sc != c);
+
+         if (len > slen) {
+            return (NULL);
+         }
+      }
+      while (strncmp(s, find, len) != 0);
+      s--;
+   }
+   return ((char *)s);
+}
+

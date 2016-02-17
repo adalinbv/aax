@@ -378,7 +378,7 @@ _aaxFLACInterfaces(int mode)
 }
 
 static char*
-_aaxFLACGetName(void *id, enum _aaxFormatParam param)
+_aaxFLACGetName(void *id, enum _aaxStreamParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;

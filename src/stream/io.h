@@ -26,18 +26,7 @@ extern "C" {
 }  /* extern "C" */
 #endif
 
-struct _io_st;
-struct stat;
-
-/* I/O related: file, socket, etc */
-typedef int _open_fn(struct _io_st*, const char*);
-typedef int _close_fn(struct _io_st*);
-typedef ssize_t _read_fn(struct _io_st*, void*, size_t);
-typedef ssize_t _write_fn(struct _io_st*, const void*, size_t);
-typedef int _set_fn(struct _io_st*, int, ssize_t);
-typedef ssize_t _get_fn(struct _io_st*, int);
-
-enum {
+typedef enum {
    _IO_FILE_FLAGS = 1,
    _IO_FILE_MODE = 2,
    _IO_PARAM_MAX,
@@ -45,25 +34,36 @@ enum {
    _IO_SOCKET_RATE = 0,
    _IO_SOCKET_PORT = 1,
    _IO_SOCKET_TIMEOUT = 2
-};
+} _io_type_t;
+
+struct _io_st;
+struct stat;
+
+/* I/O related: file, socket, etc */
+typedef int _io_open_fn(struct _io_st*, const char*);
+typedef int _io_close_fn(struct _io_st*);
+typedef ssize_t _io_read_fn(struct _io_st*, void*, size_t);
+typedef ssize_t _io_write_fn(struct _io_st*, const void*, size_t);
+typedef int _io_set_fn(struct _io_st*, enum _aaxStreamParam, ssize_t);
+typedef ssize_t _io_get_fn(struct _io_st*, enum _aaxStreamParam);
 
 struct _io_st
 {
-   _open_fn *open;
-   _close_fn *close;
-   _read_fn *read;
-   _write_fn *write;
-   _get_fn *get;
-   _set_fn *set;
+   _io_open_fn *open;
+   _io_close_fn *close;
+   _io_read_fn *read;
+   _io_write_fn *write;
+   _io_get_fn *get;
+   _io_set_fn *set;
 
-   _protocol_t protocol;
+   int protocol;
    int param[_IO_PARAM_MAX];
    int fd;
 
 };
 typedef struct _io_st _io_t;
 
-_io_t* _io_create(_protocol_t);
+_io_t* _io_create(int);
 void* _io_free(_io_t*);
 
 /* file */
