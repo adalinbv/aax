@@ -51,7 +51,6 @@
 #define BACKEND_NAME_OLD	"File"
 #define BACKEND_NAME		"Audio Files"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
-#define MAX_ID_STRLEN		64
 
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
@@ -112,15 +111,6 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
 typedef struct
 {
    char *name;
-   char *station;
-   char *description;
-   char *genre;
-   char *website;
-   char metadata_changed;
-      // artist[0] = AAX_TRUE if changed since the last get
-   char artist[MAX_ID_STRLEN+1];
-      // title[0] = AAX_TRUE if changed since the last get
-   char title[MAX_ID_STRLEN+1];
 
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -130,9 +120,6 @@ typedef struct
    float frequency;
    size_t no_samples;
    size_t no_bytes;
-
-   size_t meta_pos;
-   size_t meta_interval;
 
    char *ptr, *scratch;
    size_t buf_len;
@@ -150,22 +137,18 @@ typedef struct
    size_t out_hdr_size;
 
    _io_t *io;
+   _prot_t *prot;
 
    char copy_to_buffer;	// true if Capture has to copy the data unmodified
 
 } _driver_t;
 
-static _protocol_t _url_split(char*, char**, char**, char**, int*);
-static int http_send_request(_io_t*, const char*, const char*, const char*, const char*);
-static int http_get_response(_io_t*, char*, int);
 static _aaxFmtHandle* _aaxGetFormat(const char*, enum aaxRenderMode);
 
 static void* _aaxStreamDriverWriteThread(void*);
 static void* _aaxStreamDriverReadThread(void*);
 static void _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
-static const char *_get_json(const char*, const char*);
-static char *strnstr(const char*, const char*, size_t);
 
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
 
@@ -295,7 +278,7 @@ _aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxR
       {
          handle->name = s;
 
-         snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
+         snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s",DEFAULT_RENDERER);
 
          if (xid)
          {
@@ -403,10 +386,15 @@ _aaxStreamDriverDisconnect(void *id)
             }
          }
          handle->fmt->close(handle->fmt->id);
+         free(handle->fmt);
       }
-      if (handle->io) {
+      if (handle->io)
+      {
          handle->io->close(handle->io);
          handle->io = _io_free(handle->io);
+      }
+      if (handle->prot) {
+         handle->prot = _prot_free(handle->prot);
       }
       free(handle->out_header);
 
@@ -416,11 +404,6 @@ _aaxStreamDriverDisconnect(void *id)
          free(handle->render);
       }
 
-      free(handle->station);
-      free(handle->description);
-      free(handle->genre);
-      free(handle->website);
-      free(handle->fmt);
       free(handle->interfaces);
       free(handle);
    }
@@ -473,78 +456,36 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       if (!m)
       {
-         switch (handle->io->protocol)
+         switch (protocol)
          {
          case PROTOCOL_HTTP:
+            handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
+
             handle->io->set(handle->io, __F_RATE, rate);
             handle->io->set(handle->io, __F_PORT, port);
             handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
             if (handle->io->open(handle->io, server) >= 0)
-            {
-               int res = http_send_request(handle->io, "GET", server, path,
-                                           aaxGetVersionString((aaxConfig)id));
-               if (res > 0)
+            {   
+               int res = 0;
+
+               handle->prot = _prot_create(protocol);
+               if (handle->prot)
                {
-                  char buf[4096];
-                  res = http_get_response(handle->io, buf, 4096);
-                  if (res == 200)
-                  {
-                     const char *s;
-
-                     handle->fmt->set_param(handle->fmt->id, __F_IS_STREAM, 1);
-
-                     s = _get_json(buf, "content-length");
-                     if (s) handle->no_bytes = strtol(s, NULL, 10);
-
-                     s = _get_json(buf, "content-type");
-                     if (s && !strcasecmp(s, "audio/mpeg"))
-                     {
-                        s = _get_json(buf, "icy-name");
-                        if (s)
-                        {
-                           int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
-                           memcpy(handle->artist+1, s, len);
-                           handle->artist[len] = '\0';
-                           handle->artist[0] = AAX_TRUE;
-                           handle->station = strdup(s);
-                        }
-
-                        s = _get_json(buf, "icy-description");
-                        if (s)
-                        {
-                           int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
-                           memcpy(handle->title+1, s, len);
-                           handle->title[len] = '\0';
-                           handle->title[0] = AAX_TRUE;
-                           handle->description = strdup(s);
-                        }
-
-                        s = _get_json(buf, "icy-genre");
-                        if (s) handle->genre = strdup(s);
-
-                        s = _get_json(buf, "icy-url");
-                        if (s) handle->website = strdup(s);
-
-                        s = _get_json(buf, "icy-metaint");
-                        if (s)
-                        {
-                           errno = 0;
-                           handle->meta_interval = strtol(s, NULL, 10);
-                           handle->meta_pos = 0;
-                           if (errno == ERANGE) {
-                              _AAX_SYSLOG("stream meta out of range");
-                           }
-                        }
-                     }
+                  const char *agent = aaxGetVersionString((aaxConfig)id);
+                  res = handle->prot->connect(handle->prot, handle->io,
+                                           server, path, agent);
+                  if (res > 0) {
+                     handle->no_bytes = res;
                   }
-                  else
-                  {
-                     handle->io->close(handle->io);
-                     handle->io = _io_free(handle->io);
-                     _aaxStreamDriverLog(id, 0, 0, buf+strlen("HTTP/1.0 "));
-                     free(handle->fmt->id);
-                     handle->fmt->id = 0;
-                  }
+               }
+
+               if (res < 0)
+               {
+                  handle->prot = _prot_free(handle->prot);
+                  handle->io->close(handle->io);
+                  handle->io = _io_free(handle->io);
+                  free(handle->fmt->id);
+                  handle->fmt->id = 0;
                }
             }
             break;
@@ -598,7 +539,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   break;
                }
 
-               handle->meta_pos += res;
+               if (handle->prot) {
+                  handle->prot->set(handle->prot, __F_POSITION, res);
+               }
             }
 
             bufsize = res;
@@ -939,51 +882,35 @@ _aaxStreamDriverGetName(const void *id, int type)
             {
             case AAX_MUSIC_PERFORMER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
-               if (!ret && handle->artist[1] != '\0')
-               {
-                  ret = handle->artist+1;
-                  handle->artist[0] = AAX_FALSE;
-               }
+               if (!ret) ret = handle->prot->name(handle->prot, __F_ARTIST);
                break;
             case AAX_MUSIC_PERFORMER_UPDATE:
-               if (handle->artist[0] == AAX_TRUE)
-               {
-                  ret = handle->artist+1;
-                  handle->artist[0] = AAX_FALSE;
-               }
+               ret = handle->prot->name(handle->prot, __F_ARTIST|__F_NAME_CHANGED);
                break;
             case AAX_TRACK_TITLE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
-               if (!ret && handle->title[1] != '\0')
-               {
-                  ret = handle->title+1;
-                  handle->title[0] = AAX_FALSE;
-               }
+               if (!ret) ret = handle->prot->name(handle->prot, __F_TITLE);
                break;
             case AAX_TRACK_TITLE_UPDATE:
-               if (handle->title[0] == AAX_TRUE)
-               {
-                  ret = handle->title+1;
-                  handle->title[0] = AAX_FALSE;
-               }
+               ret = handle->prot->name(handle->prot, __F_TITLE|__F_NAME_CHANGED);
                break;
             case AAX_MUSIC_GENRE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
-               if (!ret) ret = handle->genre;
+               if (!ret) ret = handle->prot->name(handle->prot, __F_GENRE);
                break;
             case AAX_TRACK_NUMBER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_TRACKNO);
                break;
             case AAX_ALBUM_NAME_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_ALBUM);
-               if (!ret) ret = handle->description;
+               if (!ret) ret = handle->prot->name(handle->prot, __F_ALBUM);
                break;
             case AAX_RELEASE_DATE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_DATE);
                break;
             case AAX_SONG_COMPOSER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_COMPOSER);
-               if (!ret) ret = handle->station;
+               if (!ret) ret = handle->prot->name(handle->prot, __F_COMPOSER);
                   break;
             case AAX_SONG_COPYRIGHT_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
@@ -996,7 +923,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                break;
             case AAX_WEBSITE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_WEBSITE);
-               if (!ret) ret = handle->website;
+               if (!ret) ret = handle->prot->name(handle->prot, __F_WEBSITE);
                break;
             case AAX_COVER_IMAGE_DATA:
                ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);
@@ -1231,222 +1158,6 @@ _aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
 
 /*-------------------------------------------------------------------------- */
 
-#define MAX_BUFFER	512
-
-/* NOTE: modifies url, make sure to strdup it before calling this function */
-static _protocol_t
-_url_split(char *url, char **protocol, char **server, char **path, int *port)
-{
-   _protocol_t rv;
-   char *ptr;
-
-   *protocol = NULL;
-   *server = NULL;
-   *path = NULL;
-   *port = 0;
-
-   ptr = strstr(url, "://");
-   if (ptr)
-   {
-      *protocol = (char*)url;
-      *ptr = '\0';
-      url = ptr + strlen("://");
-   }
-   else if (access(url, F_OK) != -1) {
-      *path = url;
-   }
-
-   if (!*path)
-   {
-      *server = url;
-
-      ptr = strchr(url, '/');
-      if (ptr)
-      {
-         *ptr++ = '\0';
-         *path = ptr;
-      }
-
-      ptr = strchr(url, ':');
-      if (ptr)
-      {
-         *ptr++ = '\0';
-         *port = strtol(ptr, NULL, 10);
-      }
-   }
-   if ((*protocol && !strcasecmp(*protocol, "http")) ||
-       (*server && **server != 0))
-   {
-      rv = PROTOCOL_HTTP;
-      if (*port <= 0) *port = 80;
-   }
-   else if (!*protocol || !strcasecmp(*protocol, "file")) {
-      rv = PROTOCOL_FILE;
-   } else {
-      rv = PROTOCOL_UNSUPPORTED;
-   }
-
-   return rv;
-}
-
-static int
-http_get_response_data(_io_t *io, char *response, int size)
-{
-   static char end[4] = "\r\n\r\n";
-   char *buf = response;
-   int found = 0;
-   int res, i = 0;
-
-   do
-   {
-      i++;
-
-      do
-      {
-         res = io->read(io, buf, 1);
-         if (res > 0) break;
-         msecSleep(50);
-      }
-      while (res == 0);
-
-      if (res == 1)
-      {
-         if (*buf == end[found]) found++;
-         else found = 0;
-      }
-      else break;
-      ++buf;
-   }
-   while ((i < size) && (found < sizeof(end)));
-
-   if (i < size) {
-      *buf = '\0';
-   }
-   response[size-1] = '\0';
-
-   return i;
-}
-
-static int
-http_send_request(_io_t *io, const char *command, const char *server, const char *path, const char *user_agent)
-{
-   char header[MAX_BUFFER];
-   int hlen, rv = 0;
-
-   snprintf(header, MAX_BUFFER,
-            "%s /%.256s HTTP/1.0\r\n"
-            "User-Agent: %s\r\n"
-            "Accept: */*\r\n"
-            "Host: %s\r\n"
-            "Connection: Keep-Alive\r\n"
-            "Icy-MetaData:1\r\n"
-            "\r\n",
-            command, path, user_agent, server);
-   header[MAX_BUFFER-1] = '\0';
-
-   hlen = strlen(header);
-   rv = io->write(io, header, hlen);
-   if (rv != hlen) {
-      rv = -1;
-   }
-
-   return rv;
-}
-
-static int
-http_get_response(_io_t *io, char *buf, int size)
-{
-   int res, rv = -1;
-
-   res = http_get_response_data(io, buf, size);
-   if (res > 0)
-   {
-      res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
-      if (res != 1)
-      {
-         res =  sscanf(buf, "ICY %03d", (int*)&rv);
-         if (res != 1) {
-            rv = -1;
-         }
-      }
-   }
-
-   return rv;
-}
-
-/*
- * Taken from FreeBSD:
- * http://src.gnu-darwin.org/src/lib/libc/string/strnstr.c.html
- */
-static char *
-strnstr(const char *s, const char *find, size_t slen)
-{
-   char c, sc;
-   size_t len;
-
-   if ((c = *find++) != '\0')
-   {
-      len = strlen(find);
-      do
-      {
-         do
-         {
-            if (slen-- < 1 || (sc = *s++) == '\0') {
-               return (NULL);
-            }
-         }
-         while (sc != c);
-
-         if (len > slen) {
-            return (NULL);
-         }
-      }
-      while (strncmp(s, find, len) != 0);
-      s--;
-   }
-   return ((char *)s);
-}
-
-static const char*
-_get_json(const char *haystack, const char *needle)
-{
-   static char buf[64];
-   char *start, *end;
-   size_t pos;
-
-   buf[0] = '\0';
-   start = strcasestr(haystack, needle);
-   if (start)
-   {
-      size_t haystacklen;
-
-      start += strlen(needle);
-      pos = start - haystack;
-
-      haystacklen = strlen(haystack);
-      while ((pos++ < haystacklen) && (*start == ':' || *start == ' ')) {
-         start++;
-      }
-
-      if (pos < haystacklen)
-      {
-         end = start;
-         while ((pos++ < haystacklen) &&
-                (*end != '\0' && *end != '\n' && *end != '\r')) {
-            end++;
-         }
-
-         if ((end-start) > 63) {
-            end = start + 63;
-         }
-         memcpy(buf, start, (end-start));
-         buf[end-start] = '\0';
-      }
-   }
-
-   return (buf[0] != '\0') ? buf : NULL;
-}
-
 static _aaxFmtHandle*
 _aaxGetFormat(const char *url, enum aaxRenderMode mode)
 {
@@ -1630,79 +1341,11 @@ _aaxStreamDriverReadChunk(const void *id)
    {
       handle->bytes_avail += res;
 
-      if (handle->meta_interval)
+      if (handle->prot)
       {
-         handle->meta_pos += res;
-         while (handle->meta_pos > handle->meta_interval)
-         {
-            size_t offs = handle->meta_pos - handle->meta_interval;
-            char *ptr = (char*)handle->buf;
-            int slen, blen;
-
-            ptr += handle->bytes_avail;
-            ptr -= offs;
-
-            slen = *ptr * 16;
-            if ((size_t)(ptr+slen) >= (size_t)(handle->buf+IOBUF_THRESHOLD)) {
-               break;
-            }
-
-            if (slen > strlen("StreamTitle=''"))
-            {
-               char *artist = ptr+1 + strlen("StreamTitle='");
-               if (artist)
-               {
-                  char *title = strnstr(artist, " - ", slen);
-                  char *end = strnstr(artist, "\';", slen);
-                  if (!end) end = strnstr(artist, "\'\0", slen);
-                  if (title)
-                  {
-                     *title = '\0';
-                     title += strlen(" - ");
-                  }
-                  if (end) {
-                     *end = '\0';
-                  }
-
-                  if (artist && end)
-                  {
-                     int len = _MIN(strlen(artist)+1, MAX_ID_STRLEN);
-                     memcpy(handle->artist+1, artist, len);
-                     handle->artist[len] = '\0';
-                     handle->artist[0] = AAX_TRUE;
-                  }
-                  else if (handle->artist[1] != '\0')
-                  {
-                     handle->artist[1] = '\0';
-                     handle->artist[0] = AAX_TRUE;
-                  }
-
-                  if (title && end)
-                  {
-                     int len = _MIN(strlen(title)+1, MAX_ID_STRLEN);
-                     memcpy(handle->title+1, title, len);
-                     handle->title[len] = '\0';
-                     handle->title[0] = AAX_TRUE;
-                  }
-                  else if (handle->title[1] != '\0')
-                  {
-                     handle->title[1] = '\0';
-                     handle->title[0] = AAX_TRUE;
-                  }
-                  handle->metadata_changed = AAX_TRUE;
-               }
-            }
-
-            slen++;	// add the slen-byte itself
-            handle->meta_pos -= (handle->meta_interval+slen);
-
-            /* move the rest of the buffer slen-bytes back */
-            handle->bytes_avail -= slen;
-            blen = handle->bytes_avail;
-            blen -= (ptr - (char*)handle->buf);
-
-            memmove(ptr, ptr+slen, blen);
-         }
+         int slen = handle->prot->process(handle->prot, handle->buf,
+                                          res, handle->bytes_avail);
+         handle->bytes_avail -= slen;
       }
    }
 

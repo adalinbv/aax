@@ -61,7 +61,7 @@ _file_write(_io_t *io, const void* buf, size_t count)
 }
 
 int
-_file_set(_io_t *io, int ptype, ssize_t param)
+_file_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
 {
    static const int _flags[] = {
          O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,
@@ -89,7 +89,7 @@ _file_set(_io_t *io, int ptype, ssize_t param)
 }
 
 ssize_t
-_file_get(_io_t *io, int ptype)
+_file_get(_io_t *io, enum _aaxStreamParam ptype)
 {
    ssize_t rv = 0;
    switch (ptype)

@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include <base/types.h>
+#include "audio.h"
 
 /*
  * Calling sequence:
@@ -33,48 +34,12 @@ extern "C" {
  * (n)   _aaxWavClose
  */
 
-enum _aaxFormatParam
-{
-   __F_PROCESS = -2,		/* get */
-   __F_EOF = -1,
-   __F_FMT = 0,
-   __F_TRACKS,
-   __F_FREQ,
-   __F_BITS,
-   __F_BLOCK,
-   __F_SAMPLES,
-   __F_NO_BYTES,
-
-   __F_RATE,
-   __F_PORT,
-   __F_TIMEOUT,
-   __F_FLAGS,
-   __F_MODE,
-
-   __F_NAME_CHANGED = 0x0400, /* set if the name changed since the last get */
-   __F_IMAGE = 0x0800,		/* get info name strings */
-   __F_ARTIST,
-   __F_GENRE,
-   __F_TITLE,
-   __F_TRACKNO,
-   __F_ALBUM,
-   __F_DATE,
-   __F_COPYRIGHT,
-   __F_COMMENT, 
-   __F_COMPOSER,
-   __F_ORIGINAL,
-   __F_WEBSITE,
-
-   __F_IS_STREAM = 0x1000,	/* set */
-   __F_POSITION
-};
-
 typedef int (_fmt_detect_fn)(void*, int);
 typedef void* (_fmt_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
 typedef void* (_fmt_open_fn)(void*, void*, size_t*, size_t);
 typedef int (_fmt_close_fn)(void*);
 typedef void* (_fmt_update_fn)(void*, size_t*, size_t*, char);
-typedef char* (_fmt_get_name_fn)(void*, enum _aaxFormatParam);
+typedef char* (_fmt_get_name_fn)(void*, enum _aaxStreamParam);
 
 typedef void (_fmt_cvt_fn)(void*, void_ptr, size_t);
 typedef size_t (_fmt_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);

@@ -210,7 +210,7 @@ _aaxMP3Interfaces(int mode)
 }
 
 static char*
-_aaxMP3GetName(void *id, enum _aaxFormatParam param)
+_aaxMP3GetName(void *id, enum _aaxStreamParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;

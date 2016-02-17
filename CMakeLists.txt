@@ -468,6 +468,8 @@ SET( AEONWAVE_OBJS
      src/stream/io.c
      src/stream/io_file.c
      src/stream/io_socket.c
+     src/stream/protocol.c
+     src/stream/prot_http.c
      src/stream/format.c
      src/stream/fmt_wav.c
      src/stream/fmt_mp3.c

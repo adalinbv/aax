@@ -809,7 +809,7 @@ _aaxWavInterfaces(int mode)
 }
 
 static char*
-_aaxWavGetName(void *id, enum _aaxFormatParam param)
+_aaxWavGetName(void *id, enum _aaxStreamParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
