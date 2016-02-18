@@ -22,8 +22,8 @@
 
 #include <aax/aax.h>
 
-#include "format.h"
 #include "io.h"
+#include "extension.h"
 
 #ifndef O_BINARY
 # define O_BINARY	0

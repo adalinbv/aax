@@ -34,45 +34,45 @@ extern "C" {
  * (n)   _aaxWavClose
  */
 
-typedef int (_fmt_detect_fn)(void*, int);
-typedef void* (_fmt_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
-typedef void* (_fmt_open_fn)(void*, void*, size_t*, size_t);
-typedef int (_fmt_close_fn)(void*);
-typedef void* (_fmt_update_fn)(void*, size_t*, size_t*, char);
-typedef char* (_fmt_get_name_fn)(void*, enum _aaxStreamParam);
+typedef int (_ext_detect_fn)(void*, int);
+typedef void* (_ext_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
+typedef void* (_ext_open_fn)(void*, void*, size_t*, size_t);
+typedef int (_ext_close_fn)(void*);
+typedef void* (_ext_update_fn)(void*, size_t*, size_t*, char);
+typedef char* (_ext_get_name_fn)(void*, enum _aaxStreamParam);
 
-typedef void (_fmt_cvt_fn)(void*, void_ptr, size_t);
-typedef size_t (_fmt_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
-typedef size_t (_fmt_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
+typedef void (_ext_cvt_fn)(void*, void_ptr, size_t);
+typedef size_t (_ext_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+typedef size_t (_ext_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
 
-typedef char* (_fmt_default_fname_fn)(int);
-typedef int (_fmt_extension_fn)(char*);
-typedef off_t (_fmt_get_param_fn)(void *, int);
-typedef off_t (_fmt_set_param_fn)(void *, int, off_t);
+typedef char* (_ext_default_fname_fn)(int);
+typedef int (_ext_extension_fn)(char*);
+typedef off_t (_ext_get_param_fn)(void *, int);
+typedef off_t (_ext_set_param_fn)(void *, int, off_t);
 
 typedef struct
 {
    void *id;
-   _fmt_detect_fn *detect;
-   _fmt_new_handle_fn *setup;
+   _ext_detect_fn *detect;
+   _ext_new_handle_fn *setup;
 
-   _fmt_open_fn *open;
-   _fmt_close_fn *close;
-   _fmt_update_fn *update;
-   _fmt_get_name_fn *name;
+   _ext_open_fn *open;
+   _ext_close_fn *close;
+   _ext_update_fn *update;
+   _ext_get_name_fn *name;
 
-   _fmt_cvt_fn *cvt_to_signed;
-   _fmt_cvt_fn *cvt_from_signed;
-   _fmt_cvt_fn *cvt_endianness;
-   _fmt_cvt_to_fn *cvt_to_intl;			// convert to file format
-   _fmt_cvt_from_fn *cvt_from_intl;		// convert to mixer format
-   _fmt_cvt_from_fn *copy;			// copy raw sound data
+   _ext_cvt_fn *cvt_to_signed;
+   _ext_cvt_fn *cvt_from_signed;
+   _ext_cvt_fn *cvt_endianness;
+   _ext_cvt_to_fn *cvt_to_intl;			// convert to file format
+   _ext_cvt_from_fn *cvt_from_intl;		// convert to mixer format
+   _ext_cvt_from_fn *copy;			// copy raw sound data
 
-   _fmt_extension_fn *supported;
-   _fmt_default_fname_fn *interfaces;
+   _ext_extension_fn *supported;
+   _ext_default_fname_fn *interfaces;
 
-   _fmt_get_param_fn *get_param;
-   _fmt_set_param_fn *set_param;
+   _ext_get_param_fn *get_param;
+   _ext_set_param_fn *set_param;
 
 } _aaxFmtHandle;
 

@@ -9,14 +9,14 @@
  * permission of Adalin B.V.
  */
 
-#include "fmt_mp3_msacm.h"
+#include "ext_mp3_msacm.h"
 
 #ifdef WINXP
 	/** windows (xp and later) native */
-static _fmt_open_fn _aaxMSACMOpen;
-static _fmt_close_fn _aaxMSACMClose;
-static _fmt_update_fn _aaxMSACMCvtFrom;
-static _fmt_update_fn _aaxMSACMCvtTo;
+static _ext_open_fn _aaxMSACMOpen;
+static _ext_close_fn _aaxMSACMClose;
+static _ext_update_fn _aaxMSACMCvtFrom;
+static _ext_update_fn _aaxMSACMCvtTo;
 
 DECL_FUNCTION(acmDriverOpen);
 DECL_FUNCTION(acmDriverClose);

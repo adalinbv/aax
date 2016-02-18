@@ -13,7 +13,7 @@
 # include "config.h"
 #endif
 
-#include "format.h"
+#include "extension.h"
 
 _aaxExtensionDetect* _aaxFormatTypes[] =
 {

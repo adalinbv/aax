@@ -23,6 +23,7 @@
 #endif
 #include <errno.h>
 #include <assert.h>
+#include <locale.h>
 
 #include <base/geometry.h>
 #include <base/threads.h>
@@ -37,6 +38,7 @@
 
 #if defined(WIN32)
 # define SYSTEM_DIR		getenv("PROGRAMFILES")
+# define USR_SYSTEM_DIR		getenv("PROGRAMFILES")
 # define AAX_DIR		"\\aax\\"
 
 # define LOCALAPP_DIR		getenv("LOCALAPPDATA")
@@ -46,6 +48,7 @@
 
 #else	/* !WIN32 */
 # define SYSTEM_DIR		"/etc"
+# define USR_SYSTEM_DIR		"/usr"SYSTEM_DIR
 # define AAX_DIR		"/aax/"
 
 # define LOCALAPP_DIR		getenv("HOME")
@@ -142,27 +145,57 @@ userConfigFile()
 }
 
 char*
-systemConfigFile()
+systemConfigFile(const char *file)
 {
-   char *global_path = SYSTEM_DIR;
+   char *global_path = file ? USR_SYSTEM_DIR : SYSTEM_DIR;
    char *rv = NULL;
 
    if (global_path)
    {
       size_t len;
 
+      if (!file) file = CONFIG_FILE;
+
       len = strlen(global_path);
       len += strlen(AAX_DIR);
-      len += strlen(CONFIG_FILE);
+      len += strlen(file);
       len++;
 
       rv = malloc(len);
       if (rv) {
-         snprintf(rv, len, "%s%s%s", global_path, AAX_DIR, CONFIG_FILE);
+         snprintf(rv, len, "%s%s%s", global_path, AAX_DIR, file);
       }
    }
 
    return rv;
+}
+
+char*
+systemLanguage(char **enc)
+{
+   static char _locale[65] = "C";
+   static char *language = NULL;
+   static char *encoding = NULL;
+
+   if (language == NULL)
+   {
+      setlocale(LC_ALL, "");
+
+      language = setlocale(LC_CTYPE, NULL);
+      snprintf(_locale, 64, "%s", language);
+
+      language = _locale;
+      if ((encoding = strchr(language, '.')) != NULL) {
+         *encoding++ = 0;
+      } else {
+         encoding = "";
+      }
+   }
+   if (enc) {
+      *enc = encoding;
+   }
+
+   return _locale;
 }
 
 #ifdef WIN32

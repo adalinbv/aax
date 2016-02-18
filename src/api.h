@@ -400,9 +400,9 @@ void _aaxDeviceConnecttorToBackendDriver(char **, char **);
 void _aaxConnectorDeviceToDeviceConnector(char *);
 
 const char* userHomeDir();
-char* systemConfigFile();
+char* systemConfigFile(const char*);
 char* userConfigFile();
-
+char* systemLanguage(char**);
 
 #ifdef WIN32
 char* _aaxGetEnv(const char*);

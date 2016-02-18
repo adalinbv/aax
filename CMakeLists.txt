@@ -470,10 +470,10 @@ SET( AEONWAVE_OBJS
      src/stream/io_socket.c
      src/stream/protocol.c
      src/stream/prot_http.c
-     src/stream/format.c
-     src/stream/fmt_wav.c
-     src/stream/fmt_mp3.c
-     src/stream/fmt_flac.c
+     src/stream/extension.c
+     src/stream/ext_wav.c
+     src/stream/ext_mp3.c
+     src/stream/ext_flac.c
      src/android/opensl.c
      src/software/device.c
      src/software/arch.c
@@ -582,6 +582,11 @@ IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     ")
 ENDIF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
+INSTALL(FILES
+        admin/presets/genres.xml
+        DESTINATION etc/aax
+        COMPONENT Libraries
+)
 INSTALL(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h

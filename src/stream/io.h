@@ -22,10 +22,6 @@ extern "C" {
 
 #include "protocol.h"
 
-#if defined(__cplusplus)
-}  /* extern "C" */
-#endif
-
 typedef enum {
    _IO_FILE_FLAGS = 1,
    _IO_FILE_MODE = 2,
@@ -82,6 +78,10 @@ ssize_t _socket_write(_io_t*, const void*, size_t);
 int _socket_set(_io_t*, int, ssize_t);
 ssize_t _socket_get(_io_t*, int);
 
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
 
 #endif /* !_AAX_IO_H */
 

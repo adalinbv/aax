@@ -44,8 +44,8 @@
 
 #include <software/renderer.h>
 #include "device.h"
-#include "format.h"
 #include "io.h"
+#include "extension.h"
 #include "audio.h"
 
 #define BACKEND_NAME_OLD	"File"
@@ -882,36 +882,50 @@ _aaxStreamDriverGetName(const void *id, int type)
             {
             case AAX_MUSIC_PERFORMER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_ARTIST);
-               if (!ret) ret = handle->prot->name(handle->prot, __F_ARTIST);
+               if (!ret && handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_ARTIST);
+               }
                break;
             case AAX_MUSIC_PERFORMER_UPDATE:
-               ret = handle->prot->name(handle->prot, __F_ARTIST|__F_NAME_CHANGED);
+               if (handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_ARTIST|__F_NAME_CHANGED);
+               }
                break;
             case AAX_TRACK_TITLE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_TITLE);
-               if (!ret) ret = handle->prot->name(handle->prot, __F_TITLE);
+               if (!ret && handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_TITLE);
+               }
                break;
             case AAX_TRACK_TITLE_UPDATE:
-               ret = handle->prot->name(handle->prot, __F_TITLE|__F_NAME_CHANGED);
+               if (handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_TITLE|__F_NAME_CHANGED);
+               }
                break;
             case AAX_MUSIC_GENRE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_GENRE);
-               if (!ret) ret = handle->prot->name(handle->prot, __F_GENRE);
+               if (!ret && handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_GENRE);
+               }
                break;
             case AAX_TRACK_NUMBER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_TRACKNO);
                break;
             case AAX_ALBUM_NAME_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_ALBUM);
-               if (!ret) ret = handle->prot->name(handle->prot, __F_ALBUM);
+               if (!ret && handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_ALBUM);
+               }
                break;
             case AAX_RELEASE_DATE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_DATE);
                break;
             case AAX_SONG_COMPOSER_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_COMPOSER);
-               if (!ret) ret = handle->prot->name(handle->prot, __F_COMPOSER);
-                  break;
+               if (!ret && handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_COMPOSER);
+               }
+               break;
             case AAX_SONG_COPYRIGHT_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_COPYRIGHT);
                break;
@@ -923,7 +937,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                break;
             case AAX_WEBSITE_STRING:
                ret = handle->fmt->name(handle->fmt->id, __F_WEBSITE);
-               if (!ret) ret = handle->prot->name(handle->prot, __F_WEBSITE);
+               if (!ret && handle->prot) {
+                  ret = handle->prot->name(handle->prot, __F_WEBSITE);
+               }
                break;
             case AAX_COVER_IMAGE_DATA:
                ret = handle->fmt->name(handle->fmt->id, __F_IMAGE);
