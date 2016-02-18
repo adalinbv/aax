@@ -234,16 +234,16 @@ _http_name(_prot_t *prot, enum _aaxStreamParam ptype)
       ret = prot->website;
       break;
    default:
-      switch (ptype | ~__F_NAME_CHANGED)
+      switch (ptype & ~__F_NAME_CHANGED)
       {
-      case (__F_ARTIST|__F_NAME_CHANGED):
+      case (__F_ARTIST):
          if (prot->artist[0] == AAX_TRUE)
          {
             ret = prot->artist+1;
             prot->artist[0] = AAX_FALSE;
          }
          break;
-      case (__F_TITLE|__F_NAME_CHANGED):
+      case (__F_TITLE):
          if (prot->title[0] == AAX_TRUE)
          {
             ret = prot->title+1;
