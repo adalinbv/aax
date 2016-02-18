@@ -31,8 +31,8 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
-#include "format.h"
-#include "fmt_flac.h"
+#include "extension.h"
+#include "ext_flac.h"
 #include "audio.h"
 
 #define IOBUFFER_SIZE	16384
@@ -76,17 +76,17 @@ DECL_FUNCTION(FLAC__stream_decoder_delete);
 DECL_FUNCTION(FLAC__stream_decoder_flush);
 DECL_FUNCTION(FLAC__stream_decoder_get_state);
 
-static _fmt_detect_fn _aaxFLACDetect;
-static _fmt_new_handle_fn _aaxFLACSetup;
-static _fmt_open_fn _aaxFLACOpen;
-static _fmt_close_fn _aaxFLACClose;
-static _fmt_get_name_fn _aaxFLACGetName;
-static _fmt_default_fname_fn _aaxFLACInterfaces;
-static _fmt_extension_fn _aaxFLACExtension;
-static _fmt_get_param_fn _aaxFLACGetParam;
-static _fmt_set_param_fn _aaxFLACSetParam;
-static _fmt_cvt_to_fn _aaxFLACCvtToIntl;
-static _fmt_cvt_from_fn _aaxFLACCvtFromIntl;
+static _ext_detect_fn _aaxFLACDetect;
+static _ext_new_handle_fn _aaxFLACSetup;
+static _ext_open_fn _aaxFLACOpen;
+static _ext_close_fn _aaxFLACClose;
+static _ext_get_name_fn _aaxFLACGetName;
+static _ext_default_fname_fn _aaxFLACInterfaces;
+static _ext_extension_fn _aaxFLACExtension;
+static _ext_get_param_fn _aaxFLACGetParam;
+static _ext_set_param_fn _aaxFLACSetParam;
+static _ext_cvt_to_fn _aaxFLACCvtToIntl;
+static _ext_cvt_from_fn _aaxFLACCvtFromIntl;
 
 /*
  * http://flac.sourceforge.net/api/group__flac__stream__decoder.html

@@ -9,17 +9,18 @@
  * permission of Adalin B.V.
  */
 
-#include "fmt_mp3_mpg123.h"
+#include <api.h>
+#include "ext_mp3_mpg123.h"
 
 // libmpg123 for mp3 input
 // liblame for mp3 output
 // both Linux and Windows
-static _fmt_open_fn _aaxMPG123Open;
-static _fmt_close_fn _aaxMPG123Close;
-static _fmt_cvt_from_fn _aaxMPG123Copy;
-static _fmt_cvt_from_fn _aaxMPG123CvtFromIntl;
-static _fmt_cvt_to_fn _aaxMPG123CvtToIntl;
-static _fmt_set_param_fn _aaxMPG123SetParam;
+static _ext_open_fn _aaxMPG123Open;
+static _ext_close_fn _aaxMPG123Close;
+static _ext_cvt_from_fn _aaxMPG123Copy;
+static _ext_cvt_from_fn _aaxMPG123CvtFromIntl;
+static _ext_cvt_to_fn _aaxMPG123CvtToIntl;
+static _ext_set_param_fn _aaxMPG123SetParam;
 
 DECL_FUNCTION(mpg123_init);
 DECL_FUNCTION(mpg123_exit);
@@ -223,7 +224,9 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                   if (pmpg123_set_filesize) {
                      pmpg123_set_filesize(handle->id, fsize);
                   }
-                  if (!handle->id3_found) detect_mpg123_song_info(handle);
+                  if (!handle->id3_found) {
+                     detect_mpg123_song_info(handle);
+                  }
                }
                else
                {
@@ -241,7 +244,9 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
             int ret;
 
             ret = pmpg123_decode(handle->id, buf, *bufsize, NULL, 0, &size);
-            if (!handle->id3_found) detect_mpg123_song_info(handle);
+            if (!handle->id3_found) {
+               detect_mpg123_song_info(handle);
+            }
             if (ret == MPG123_NEW_FORMAT)
             {
                int enc, channels;
@@ -350,6 +355,11 @@ _aaxMPG123Close(void *id)
       free(handle->pcmBuffer);
 #endif
 
+      if (handle->xid) {
+         xmlClose(handle->xid);
+      }
+
+      free(handle->trackno);
       free(handle->artist);
       free(handle->title);
       free(handle->album);
@@ -385,7 +395,9 @@ _aaxMPG123Copy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
          bytes = bufsize;
       }
       ret = pmpg123_read(handle->id, buf, bytes, &size);
-      if (!handle->id3_found) detect_mpg123_song_info(handle);
+      if (!handle->id3_found) {
+         detect_mpg123_song_info(handle);
+      }
       if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
       {
          rv = size*8/(tracks*bits);
@@ -396,7 +408,9 @@ _aaxMPG123Copy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
    else /* provide the next chunk to our own buffer */
    {
       ret = pmpg123_feed(handle->id, sptr, bytes);
-      if (!handle->id3_found) detect_mpg123_song_info(handle);
+      if (!handle->id3_found) {
+         detect_mpg123_song_info(handle);
+      }
       if (ret == MPG123_OK) {
          rv = __F_PROCESS;
       }
@@ -423,7 +437,9 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t o
          bytes = bufsize;
       }
       ret = pmpg123_read(handle->id, buf, bytes, &size);
-      if (!handle->id3_found) detect_mpg123_song_info(handle);
+      if (!handle->id3_found) {
+         detect_mpg123_song_info(handle);
+      }
       if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
       {
          rv = size*8/(tracks*bits);
@@ -433,7 +449,9 @@ _aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t o
    else /* provide the next chunk to our own buffer */
    {
       ret = pmpg123_feed(handle->id, sptr, bytes);
-      if (!handle->id3_found) detect_mpg123_song_info(handle);
+      if (!handle->id3_found) {
+         detect_mpg123_song_info(handle);
+      }
       if (ret == MPG123_OK) {
          rv = __F_PROCESS;
       }
@@ -532,6 +550,32 @@ detect_mpg123_song_info(_driver_t *handle)
 
       if ((meta & MPG123_ID3) && (pmpg123_id3(handle->id, &v1, &v2)==MPG123_OK))
       {
+         void *xmid = NULL, *xgid = NULL;
+
+         if (!handle->xid)
+         {
+            char *lang = systemLanguage(NULL);
+            char *path, fname[81];
+
+            snprintf(fname, 80, "genres-%s.xml", lang);
+            path = systemConfigFile(fname);
+            handle->xid = xmlOpen(path);
+            free(path);
+            if (!handle->xid)
+            {
+               path = systemConfigFile("genres.xml");
+               handle->xid = xmlOpen(path);
+               free(path);
+            }
+         }
+         if (handle->xid)
+         {
+            xmid = xmlNodeGet(handle->xid, "/genres/mp3");
+            if (xmid) {
+               xgid = xmlMarkId(xmid);
+            }
+         }
+
          if (v2)
          {
             size_t i;
@@ -545,8 +589,12 @@ detect_mpg123_song_info(_driver_t *handle)
             {
                char *end;
                unsigned char genre = strtol((char*)&v2->genre->p[1], &end, 10);
-               if ((genre < MAX_ID3V1_GENRES) && (*end == ')')) {
-                  handle->genre = strdup(_mp3v1_genres[genre]);
+               if (xgid && (genre < MAX_ID3V1_GENRES) && (*end == ')'))
+               {
+                  void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
+                  char *g = xmlGetString(xnid);
+                  handle->genre = strdup(g);
+                  xmlFree(g);
                }
                else handle->genre = strdup(v2->genre->p);
             }
@@ -616,11 +664,16 @@ detect_mpg123_song_info(_driver_t *handle)
             if (v1->comment[28] == '\0') {
                __COPY(handle->trackno, (char*)&v1->comment[29]);
             }
-            if (v1->genre < MAX_ID3V1_GENRES) {
-               handle->genre = strdup(_mp3v1_genres[v1->genre]);
+            if (xgid && v1->genre < MAX_ID3V1_GENRES) {
+               void *xnid = xmlNodeGetPos(handle->xid, xgid, "name", v1->genre);
+               char *g = xmlGetString(xnid);
+               handle->genre = strdup(g);
+               xmlFree(g);
             }
             handle->id3_found = AAX_TRUE;
          }
+         xmlFree(xgid);
+         xmlFree(xmid);
       }
    }
 }

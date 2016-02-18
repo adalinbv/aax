@@ -38,7 +38,7 @@
 #include <devices.h>
 #include <ringbuffer.h>
 
-#include "format.h"
+#include "extension.h"
 #include "audio.h"
 #include "software/audio.h"
 
@@ -51,26 +51,26 @@ do
 #endif
 
 
-static _fmt_detect_fn _aaxWavDetect;
+static _ext_detect_fn _aaxWavDetect;
 
-static _fmt_new_handle_fn _aaxWavSetup;
-static _fmt_open_fn _aaxWavOpen;
-static _fmt_close_fn _aaxWavClose;
-static _fmt_update_fn _aaxWavUpdate;
-static _fmt_get_name_fn _aaxWavGetName;
+static _ext_new_handle_fn _aaxWavSetup;
+static _ext_open_fn _aaxWavOpen;
+static _ext_close_fn _aaxWavClose;
+static _ext_update_fn _aaxWavUpdate;
+static _ext_get_name_fn _aaxWavGetName;
 
-static _fmt_cvt_from_fn _aaxWavCopy;
-static _fmt_cvt_from_fn _aaxWavCvtFromIntl;
-static _fmt_cvt_to_fn _aaxWavCvtToIntl;
-static _fmt_cvt_fn _aaxWavCvtEndianness;
-static _fmt_cvt_fn _aaxWavCvtToSigned;
-static _fmt_cvt_fn _aaxWavCvtFromSigned;
+static _ext_cvt_from_fn _aaxWavCopy;
+static _ext_cvt_from_fn _aaxWavCvtFromIntl;
+static _ext_cvt_to_fn _aaxWavCvtToIntl;
+static _ext_cvt_fn _aaxWavCvtEndianness;
+static _ext_cvt_fn _aaxWavCvtToSigned;
+static _ext_cvt_fn _aaxWavCvtFromSigned;
 
-static _fmt_default_fname_fn _aaxWavInterfaces;
-static _fmt_extension_fn _aaxWavExtension;
+static _ext_default_fname_fn _aaxWavInterfaces;
+static _ext_extension_fn _aaxWavExtension;
 
-static _fmt_get_param_fn _aaxWavGetParam;
-static _fmt_set_param_fn _aaxWavSetParam;
+static _ext_get_param_fn _aaxWavGetParam;
+static _ext_set_param_fn _aaxWavSetParam;
 
 _aaxFmtHandle*
 _aaxDetectWavFormat()

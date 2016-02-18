@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<genres>
+ <mp3 version="1">
+  <name>Blues</name>
+  <name>Classic Rock</name>
+  <name>Country</name>
+  <name>Dance</name>
+  <name>Disco</name>
+  <name>Funk</name>
+  <name>Grunge</name>
+  <name>Hip-Hop</name>
+  <name>Jazz</name>
+  <name>Metal</name>
+  <name>New Age</name>
+  <name>Oldies</name>
+  <name>Other</name>
+  <name>Pop</name>
+  <name>Rhythm and Blues</name>
+  <name>Rap</name>
+  <name>Reggae</name>
+  <name>Rock</name>
+  <name>Techno</name>
+  <name>Industrial</name>
+  <name>Alternative</name>
+  <name>Ska</name>
+  <name>Death Metal</name>
+  <name>Pranks</name>
+  <name>Soundtrack</name>
+  <name>Euro-Techno</name>
+  <name>Ambient</name>
+  <name>Trip-Hop</name>
+  <name>Vocal</name>
+  <name>Jazz and Funk</name>
+  <name>Fusion</name>
+  <name>Trance</name>
+  <name>Classical</name>
+  <name>Instrumental</name>
+  <name>Acid</name>
+  <name>House</name>
+  <name>Game</name>
+  <name>Sound Clip</name>
+  <name>Gospel</name>
+  <name>Noise</name>
+  <name>Alternative Rock</name>
+  <name>Bass</name>
+  <name>Soul</name>
+  <name>Punk rock</name>
+  <name>Space</name>
+  <name>Meditative</name>
+  <name>Instrumental Pop</name>
+  <name>Instrumental Rock</name>
+  <name>Ethnic</name>
+  <name>Gothic</name>
+  <name>Darkwave</name>
+  <name>Techno-Industrial</name>
+  <name>Electronic</name>
+  <name>Pop-Folk</name>
+  <name>Eurodance</name>
+  <name>Dream</name>
+  <name>Southern Rock</name>
+  <name>Comedy</name>
+  <name>Cult</name>
+  <name>Gangsta</name>
+  <name>Top 40</name>
+  <name>Christian Rap</name>
+  <name>Pop/Funk</name>
+  <name>Jungle</name>
+  <name>Native American</name>
+  <name>Cabaret</name>
+  <name>New Wave</name>
+  <name>Psychedelic</name>
+  <name>Rave</name>
+  <name>Showtunes</name>
+  <name>Trailer</name>
+  <name>Lo-Fi</name>
+  <name>Tribal</name>
+  <name>Acid Punk</name>
+  <name>Acid Jazz</name>
+  <name>Polka</name>
+  <name>Retro</name>
+  <name>Musical</name>
+  <name>Rock and Roll</name>
+  <name>Hard Rock</name>
+  <name>Folk</name>
+  <name>Folk-Rock</name>
+  <name>National Folk</name>
+  <name>Swing</name>
+  <name>Fast Fusion</name>
+  <name>Bebop</name>
+  <name>Latin</name>
+  <name>Revival</name>
+  <name>Celtic</name>
+  <name>Bluegrass</name>
+  <name>Avantgarde</name>
+  <name>Gothic Rock</name>
+  <name>Progressive Rock</name>
+  <name>Psychedelic Rock</name>
+  <name>Symphonic Rock</name>
+  <name>Slow Rock</name>
+  <name>Big Band</name>
+  <name>Chorus</name>
+  <name>Easy Listening</name>
+  <name>Acoustic</name>
+  <name>Humour</name>
+  <name>Speech</name>
+  <name>Chanson</name>
+  <name>Opera</name>
+  <name>Chamber Music</name>
+  <name>Sonata</name>
+  <name>Symphony</name>
+  <name>Booty Bass</name>
+  <name>Primus</name>
+  <name>Porn groove</name>
+  <name>Satire</name>
+  <name>Slow Jam</name>
+  <name>Club</name>
+  <name>Tango</name>
+  <name>Samba</name>
+  <name>Folklore</name>
+  <name>Ballad</name>
+  <name>Power Ballad</name>
+  <name>Rhythmic Soul</name>
+  <name>Freestyle</name>
+  <name>Duet</name>
+  <name>Punk rock</name>
+  <name>Drum Solo</name>
+  <name>A capella</name>
+  <name>Euro-House</name>
+  <name>Dance Hall</name>
+  <name>Goa Trance</name>
+  <name>Drum and Bass</name>
+  <name>Club-House</name>
+  <name>Hardcore Techno</name>
+  <name>Terror</name>
+  <name>Indie</name>
+  <name>BritPop</name>
+  <name>Afro-punk</name>
+  <name>Polsk Punk</name>
+  <name>Beat</name>
+  <name>Christian Gangsta Rap</name>
+  <name>Heavy Metal</name>
+  <name>Black Metal</name>
+  <name>Crossover</name>
+  <name>Contemporary Christian</name>
+  <name>Christian Rock</name>
+  <name>Merengue</name>
+  <name>Salsa</name>
+  <name>Thrash Metal</name>
+  <name>Anime</name>
+  <name>Jpop</name>
+  <name>Synthpop</name>
+  <name>Abstract</name>
+  <name>Art Rock</name>
+  <name>Baroque</name>
+  <name>Bhangra</name>
+  <name>Big Beat</name>
+  <name>Breakbeat</name>
+  <name>Chillout</name>
+  <name>Downtempo</name>
+  <name>Dub</name>
+  <name>EBM</name>
+  <name>Eclectic</name>
+  <name>Electro</name>
+  <name>Electroclash</name>
+  <name>Emo</name>
+  <name>Experimental</name>
+  <name>Garage</name>
+  <name>Global</name>
+  <name>IDM</name>
+  <name>Illbient</name>
+  <name>Industro-Goth</name>
+  <name>Jam Band</name>
+  <name>Krautrock</name>
+  <name>Leftfield</name>
+  <name>Lounge</name>
+  <name>Math Rock</name>
+  <name>New Romantic</name>
+  <name>Nu-Breakz</name>
+  <name>Post-Punk</name>
+  <name>Post-Rock</name>
+  <name>Psytrance</name>
+  <name>Shoegaze</name>
+  <name>Space Rock</name>
+  <name>Trop Rock</name>
+  <name>World Music</name>
+  <name>Neoclassical</name>
+  <name>Audiobook</name>
+  <name>Audio Theatre</name>
+  <name>Neue Deutsche Welle</name>
+  <name>Podcast</name>
+  <name>Indie Rock</name>
+  <name>G-Funk</name>
+  <name>Dubstep</name>
+  <name>Garage Rock</name>
+  <name>Psybient</name>
+ </mp3>
+</genres>

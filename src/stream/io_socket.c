@@ -44,8 +44,8 @@
 #include <base/types.h>
 #include <base/timer.h>
 
-#include "format.h"
 #include "io.h"
+#include "extension.h"
 
 int
 _socket_open(_io_t *io, const char *server)
