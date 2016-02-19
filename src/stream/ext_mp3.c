@@ -129,8 +129,6 @@ typedef struct
    void *mp3Buffer;
    void *mp3ptr;
 
-   void *xid;	// XML genre names
-
 #ifdef WINXP
    HACMSTREAM acmStream;
    ACMSTREAMHEADER acmStreamHeader;

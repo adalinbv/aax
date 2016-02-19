@@ -355,10 +355,6 @@ _aaxMPG123Close(void *id)
       free(handle->pcmBuffer);
 #endif
 
-      if (handle->xid) {
-         xmlClose(handle->xid);
-      }
-
       free(handle->trackno);
       free(handle->artist);
       free(handle->title);
@@ -550,27 +546,23 @@ detect_mpg123_song_info(_driver_t *handle)
 
       if ((meta & MPG123_ID3) && (pmpg123_id3(handle->id, &v1, &v2)==MPG123_OK))
       {
-         void *xmid = NULL, *xgid = NULL;
+         void *xid = NULL, *xmid = NULL, *xgid = NULL;
+         char *lang = systemLanguage(NULL);
+         char *path, fname[81];
 
-         if (!handle->xid)
+         snprintf(fname, 80, "genres-%s.xml", lang);
+         path = systemConfigFile(fname);
+         xid = xmlOpen(path);
+         free(path);
+         if (!xid)
          {
-            char *lang = systemLanguage(NULL);
-            char *path, fname[81];
-
-            snprintf(fname, 80, "genres-%s.xml", lang);
-            path = systemConfigFile(fname);
-            handle->xid = xmlOpen(path);
+            path = systemConfigFile("genres.xml");
+            xid = xmlOpen(path);
             free(path);
-            if (!handle->xid)
-            {
-               path = systemConfigFile("genres.xml");
-               handle->xid = xmlOpen(path);
-               free(path);
-            }
          }
-         if (handle->xid)
+         if (xid)
          {
-            xmid = xmlNodeGet(handle->xid, "/genres/mp3");
+            xmid = xmlNodeGet(xid, "/genres/mp3");
             if (xmid) {
                xgid = xmlMarkId(xmid);
             }
@@ -665,15 +657,19 @@ detect_mpg123_song_info(_driver_t *handle)
                __COPY(handle->trackno, (char*)&v1->comment[29]);
             }
             if (xgid && v1->genre < MAX_ID3V1_GENRES) {
-               void *xnid = xmlNodeGetPos(handle->xid, xgid, "name", v1->genre);
+               void *xnid = xmlNodeGetPos(xid, xgid, "name", v1->genre);
                char *g = xmlGetString(xnid);
                handle->genre = strdup(g);
                xmlFree(g);
             }
             handle->id3_found = AAX_TRUE;
          }
-         xmlFree(xgid);
-         xmlFree(xmid);
+         if (xid)
+         {
+            xmlFree(xgid);
+            xmlFree(xmid);
+            xmlClose(xid);
+         }
       }
    }
 }
