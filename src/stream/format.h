@@ -1,0 +1,88 @@
+/*
+ * Copyright 2012-2016 by Erik Hofman.
+ * Copyright 2012-2016 by Adalin B.V.
+ * All Rights Reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
+ * the contents of this file may not be disclosed to third parties, copied or
+ * duplicated in any form, in whole or in part, without the prior written
+ * permission of Adalin B.V.
+ */
+
+#ifndef _AAX_FORMAT_H
+#define _AAX_FORMAT_H 1
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <aax/aax.h>
+
+#include <base/types.h>
+
+typedef enum
+{
+   _FMT_PCM = 0,
+   _FMT_MP3,
+   _FMT_VORBIS,
+   _FMT_FLAC,
+
+   _FMT_MAX
+
+} _fmt_type_t;
+
+struct _fmt_st;
+
+typedef int (_fmt_setup_fn)(struct _fmt_st*, _fmt_type_t, enum aaxFormat);
+typedef void (_fmt_close_fn)(struct _fmt_st*);
+typedef void (_fmt_cvt_fn)(struct _fmt_st*, void_ptr, size_t);
+typedef size_t (_fmt_cvt_from_fn)(struct _fmt_st*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
+typedef size_t (_fmt_cvt_to_fn)(struct _fmt_st*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
+typedef size_t (_fmt_process_fn)(struct _fmt_st*, char_ptr, void_ptr, size_t, size_t, size_t);
+typedef size_t (_fmt_copy_fn)(struct _fmt_st*, int32_ptr, const_void_ptr, size_t, size_t);
+typedef int (_fmt_set_param_fn)(struct _fmt_st*, int, off_t);
+
+
+struct _fmt_st
+{
+   void *id;
+   _fmt_setup_fn *setup;
+   _fmt_close_fn *close;
+
+   _fmt_cvt_fn *cvt_to_signed;
+   _fmt_cvt_fn *cvt_from_signed;
+   _fmt_cvt_fn *cvt_endianness;
+   _fmt_cvt_to_fn *cvt_to_intl;			// convert to file format
+   _fmt_cvt_from_fn *cvt_from_intl;		// convert to mixer format
+   _fmt_process_fn *process;
+   _fmt_copy_fn *copy;				// copy raw sound data
+
+   _fmt_set_param_fn *set;
+};
+typedef struct _fmt_st _fmt_t;
+
+_fmt_t* _fmt_create(_fmt_type_t);
+void* _fmt_free(_fmt_t*);
+
+/* PCM */
+int _pcm_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
+void _pcm_close(_fmt_t*);
+void _pcm_cvt_to_signed(_fmt_t*, void_ptr, size_t);
+void _pcm_cvt_from_signed(_fmt_t*, void_ptr, size_t);
+void _pcm_cvt_endianness(_fmt_t*, void_ptr, size_t);
+size_t _pcm_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
+size_t _pcm_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
+size_t _pcm_process(_fmt_t*, char_ptr, void_ptr, size_t, size_t, size_t);
+size_t _pcm_copy(_fmt_t*, int32_ptr, const_void_ptr, size_t, size_t);
+int _pcm_set(_fmt_t*, int, off_t);
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif
+
+#endif /* !_AAX_FORMAT_H */
+

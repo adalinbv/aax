@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2015 by Erik Hofman.
- * Copyright 2012-2015 by Adalin B.V.
+ * Copyright 2012-2016 by Erik Hofman.
+ * Copyright 2012-2016 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -9,8 +9,8 @@
  * permission of Adalin B.V.
  */
 
-#ifndef _AAX_FORMAT_H
-#define _AAX_FORMAT_H 1
+#ifndef _AAX_EXTENSION_H
+#define _AAX_EXTENSION_H 1
 
 #if defined(__cplusplus)
 extern "C" {
@@ -21,36 +21,40 @@ extern "C" {
 #endif
 
 #include <base/types.h>
+
 #include "audio.h"
 
-/*
- * Calling sequence:
- * -----------------
- * 1.    _aaxWavDetect
- * 2.    _aaxWavSetup
- * 3.    _aaxWavOpen	// reads the file header
- *
- * (n-1) _aaxWavUpdate
- * (n)   _aaxWavClose
- */
+typedef enum {
+   _EXT_WAV = 0,
+   _EXT_MP3,
+   _EXT_OGG,
+   _EXT_FLAC,
 
-typedef int (_ext_detect_fn)(void*, int);
-typedef void* (_ext_new_handle_fn)(int, size_t*, int, int, int, size_t, int);
-typedef void* (_ext_open_fn)(void*, void*, size_t*, size_t);
-typedef int (_ext_close_fn)(void*);
-typedef void* (_ext_update_fn)(void*, size_t*, size_t*, char);
-typedef char* (_ext_get_name_fn)(void*, enum _aaxStreamParam);
+   _EXT_MAX
 
-typedef void (_ext_cvt_fn)(void*, void_ptr, size_t);
-typedef size_t (_ext_cvt_from_fn)(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
-typedef size_t (_ext_cvt_to_fn)(void*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
+} _ext_type_t;
+
+struct _ext_st;
+
+typedef int (_ext_detect_fn)(struct _ext_st*, int);
+typedef int (_ext_new_handle_fn)(struct _ext_st*, int, size_t*, int, int, int, size_t, int);
+typedef void* (_ext_open_fn)(struct _ext_st*, void_ptr, size_t*, size_t);
+typedef int (_ext_close_fn)(struct _ext_st*);
+typedef void* (_ext_update_fn)(struct _ext_st*, size_t*, size_t*, char);
+typedef char* (_ext_get_name_fn)(struct _ext_st*, enum _aaxStreamParam);
 
 typedef char* (_ext_default_fname_fn)(int);
 typedef int (_ext_extension_fn)(char*);
-typedef off_t (_ext_get_param_fn)(void *, int);
-typedef off_t (_ext_set_param_fn)(void *, int, off_t);
+typedef off_t (_ext_get_param_fn)(struct _ext_st*, int);
+typedef off_t (_ext_set_param_fn)(struct _ext_st*, int, off_t);
 
-typedef struct
+typedef size_t (_ext_process_fn)(struct _ext_st*, void_ptr, size_t);
+typedef size_t (_ext_copy_fn)(struct _ext_st*, int32_ptr, size_t, size_t);
+typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st*, int32_ptrptr, size_t, size_t);
+typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st*, void_ptr, const_int32_ptrptr , size_t, size_t, void_ptr, size_t);
+
+
+struct _ext_st
 {
    void *id;
    _ext_detect_fn *detect;
@@ -61,55 +65,43 @@ typedef struct
    _ext_update_fn *update;
    _ext_get_name_fn *name;
 
-   _ext_cvt_fn *cvt_to_signed;
-   _ext_cvt_fn *cvt_from_signed;
-   _ext_cvt_fn *cvt_endianness;
-   _ext_cvt_to_fn *cvt_to_intl;			// convert to file format
-   _ext_cvt_from_fn *cvt_from_intl;		// convert to mixer format
-   _ext_cvt_from_fn *copy;			// copy raw sound data
-
    _ext_extension_fn *supported;
    _ext_default_fname_fn *interfaces;
 
    _ext_get_param_fn *get_param;
    _ext_set_param_fn *set_param;
 
-} _aaxFmtHandle;
-
-
-typedef _aaxFmtHandle* (_aaxExtensionDetect)(void);
-
-extern _aaxExtensionDetect* _aaxFormatTypes[];
-
-_aaxExtensionDetect _aaxDetectWavFormat;
-_aaxExtensionDetect _aaxDetectMP3Format;
-_aaxExtensionDetect _aaxDetectFLACFormat;
-#if 0
-_aaxExtensionDetect _aaxDetectAiffFormat;
-_aaxExtensionDetect _aaxDetectVorbisFormat;
-#endif
-
-
-/* WAV format */
-enum wavFormat
-{
-   UNSUPPORTED = 0,
-   PCM_WAVE_FILE = 1,
-   MSADPCM_WAVE_FILE = 2,
-   FLOAT_WAVE_FILE = 3,
-   ALAW_WAVE_FILE = 6,
-   MULAW_WAVE_FILE = 7,
-   IMA4_ADPCM_WAVE_FILE = 17,
-   MP3_WAVE_FILE = 85,
-
-   EXTENSIBLE_WAVE_FORMAT = 0xFFFE
+   _ext_copy_fn *copy;
+   _ext_process_fn *process;
+   _ext_cvt_from_intl_fn *cvt_from_intl;
+   _ext_cvt_to_intl_fn *cvt_to_intl;
 };
-enum aaxFormat getFormatFromWAVFormat(unsigned int, int);
+typedef struct _ext_st _ext_t;
 
+_ext_t* _ext_create(_ext_type_t);
+void* _ext_free(_ext_t*);
+
+/* WAV */
+int _wav_detect(_ext_t*, int);
+int _wav_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _wav_open(_ext_t*, void*, size_t*, size_t);
+int _wav_close(_ext_t*);
+void* _wav_update(_ext_t*, size_t*, size_t*, char);
+char* _wav_name(_ext_t*, enum _aaxStreamParam);
+
+char* _wav_interfaces(int);
+int _wav_extension(char*);
+off_t _wav_get(_ext_t*, int);
+off_t _wav_set(_ext_t*, int, off_t);
+
+size_t _wav_copy(_ext_t*, int32_ptr, size_t, size_t);
+size_t _wav_process(_ext_t*, void_ptr, size_t);
+size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t);
+size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t, void_ptr, size_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
 
-#endif /* !_AAX_FORMAT_H */
+#endif /* !_AAX_EXTENSION_H */
 
