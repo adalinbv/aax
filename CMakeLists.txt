@@ -472,8 +472,10 @@ SET( AEONWAVE_OBJS
      src/stream/prot_http.c
      src/stream/extension.c
      src/stream/ext_wav.c
-     src/stream/ext_mp3.c
-     src/stream/ext_flac.c
+#     src/stream/ext_mp3.c
+#     src/stream/ext_flac.c
+     src/stream/format.c
+     src/stream/fmt_pcm.c
      src/android/opensl.c
      src/software/device.c
      src/software/arch.c
