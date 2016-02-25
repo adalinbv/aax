@@ -24,6 +24,10 @@
 #include "audio.h"
 #include "format.h"
 
+
+#define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
+#define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
+
 static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
 static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
@@ -280,9 +284,6 @@ _pcm_set(_fmt_t *fmt, int ptype, off_t param)
 }
 
 /* -------------------------------------------------------------------------- */
-
-#define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
-#define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
 
 static size_t
 _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)

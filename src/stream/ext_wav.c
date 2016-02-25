@@ -89,12 +89,11 @@ typedef struct
 
 } _driver_t;
 
-static enum aaxFormat getAAXFormatFromWAVFormat(unsigned int, int);
-static enum wavFormat getWAVFormatFromAAXFormat(enum aaxFormat);
-static _fmt_type_t getFmtFromWAVFormat(enum wavFormat);
+static enum aaxFormat _getAAXFormatFromWAVFormat(unsigned int, int);
+static enum wavFormat _getWAVFormatFromAAXFormat(enum aaxFormat);
+static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, size_t *);
-
 
 #define WAVE_HEADER_SIZE	(3+8)
 #define WAVE_EXT_HEADER_SIZE	(3+20)
@@ -130,7 +129,7 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 
          if (!handle->capturing)
          {
-            handle->io.write.format = getWAVFormatFromAAXFormat(format);
+            handle->io.write.format = _getWAVFormatFromAAXFormat(format);
             *bufsize = 0;
          }
          else
@@ -179,7 +178,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             handle->io.write.header_size = WAVE_HEADER_SIZE;
          }
 
-         fmt = getFmtFromWAVFormat(handle->wav_format);
+         fmt = _getFmtFromWAVFormat(handle->wav_format);
          handle->fmt = _fmt_create(fmt);
          if (!handle->fmt ||
              !handle->fmt->setup(handle->fmt, fmt, handle->format))
@@ -340,7 +339,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
                // We're done reading the file header
                // Now set up the data format handler
-               fmt = getFmtFromWAVFormat(handle->wav_format);
+               fmt = _getFmtFromWAVFormat(handle->wav_format);
                handle->fmt = _fmt_create(fmt);
                if (!handle->fmt ||
                    !handle->fmt->setup(handle->fmt, fmt, handle->format))
@@ -485,7 +484,6 @@ _wav_process(_ext_t *ext, void_ptr sptr, size_t num)
    num = bytes*8/(tracks*bits);
 
    bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
-
    handle->io.read.wavBufPos += bytes;
 
    return bytes;
@@ -824,7 +822,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             handle->blocksize = header[8] & 0xFFFF;
             bits = handle->bits_sample;
             handle->wav_format = handle->io.read.format;
-            handle->format = getAAXFormatFromWAVFormat(handle->wav_format,bits);
+            handle->format = _getAAXFormatFromWAVFormat(handle->wav_format,bits);
             switch(handle->format)
             {
             case AAX_FORMAT_NONE:
@@ -1068,7 +1066,7 @@ getMSChannelMask(uint16_t nChannels)
 }
 
 static enum aaxFormat
-getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
+_getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
 {
    enum aaxFormat rv = AAX_FORMAT_NONE;
    int big_endian = is_bigendian();
@@ -1110,7 +1108,7 @@ getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
 }
 
 static enum wavFormat
-getWAVFormatFromAAXFormat(enum aaxFormat format)
+_getWAVFormatFromAAXFormat(enum aaxFormat format)
 {
    enum wavFormat rv = UNSUPPORTED;
    switch (format & AAX_FORMAT_NATIVE)
@@ -1141,7 +1139,7 @@ getWAVFormatFromAAXFormat(enum aaxFormat format)
 }
 
 static _fmt_type_t
-getFmtFromWAVFormat(enum wavFormat fmt)
+_getFmtFromWAVFormat(enum wavFormat fmt)
 {
    _fmt_type_t rv = _FMT_PCM;
 
@@ -1162,3 +1160,20 @@ getFmtFromWAVFormat(enum wavFormat fmt)
    return rv;
 }
 
+/**
+ * Write a canonical WAVE file from memory to a file.
+ *
+ * @param a pointer to the exact ascii file location
+ * @param no_samples number of samples per audio track
+ * @param fs sample frequency of the audio tracks
+ * @param no_tracks number of audio tracks in the buffer
+ * @param format audio format
+ */
+#include <fcntl.h>              /* SEEK_*, O_* */
+void
+_aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
+                          void *data, size_t no_samples,
+                          size_t freq, char no_tracks,
+                          enum aaxFormat format)
+{
+}
