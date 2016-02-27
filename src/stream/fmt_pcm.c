@@ -55,6 +55,7 @@ typedef struct
 
 } _driver_t;
 
+
 int
 _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 {
@@ -264,11 +265,11 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, const_void_ptr sptr, size_t offset, size_
    return bytes;
 }
 
-int
+off_t
 _pcm_set(_fmt_t *fmt, int ptype, off_t param)
 {
    _driver_t *handle = fmt->id;
-   int rv = AAX_FALSE;
+   off_t rv = 0;
    switch(ptype)
    {
    case __F_BLOCK:

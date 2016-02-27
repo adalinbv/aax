@@ -99,6 +99,24 @@ size_t _wav_process(_ext_t*, void_ptr, size_t);
 size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t);
 size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t, void_ptr, size_t);
 
+/* MP3 */
+int _mp3_detect(_ext_t*, int);
+int _mp3_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _mp3_open(_ext_t*, void*, size_t*, size_t);
+int _mp3_close(_ext_t*);
+void* _mp3_update(_ext_t*, size_t*, size_t*, char);
+char* _mp3_name(_ext_t*, enum _aaxStreamParam);
+
+char* _mp3_interfaces(int);
+int _mp3_extension(char*);
+off_t _mp3_get(_ext_t*, int);
+off_t _mp3_set(_ext_t*, int, off_t);
+
+size_t _mp3_copy(_ext_t*, int32_ptr, size_t, size_t);
+size_t _mp3_process(_ext_t*, void_ptr, size_t);
+size_t _mp3_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t);
+size_t _mp3_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t, void_ptr, size_t);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

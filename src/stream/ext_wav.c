@@ -179,7 +179,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          }
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
-         handle->fmt = _fmt_create(fmt);
+         handle->fmt = _fmt_create(fmt, handle->capturing ? 1 : 0);
          if (!handle->fmt ||
              !handle->fmt->setup(handle->fmt, fmt, handle->format))
          {
@@ -340,7 +340,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                // We're done reading the file header
                // Now set up the data format handler
                fmt = _getFmtFromWAVFormat(handle->wav_format);
-               handle->fmt = _fmt_create(fmt);
+               handle->fmt = _fmt_create(fmt, handle->capturing ? 1 : 0);
                if (!handle->fmt ||
                    !handle->fmt->setup(handle->fmt, fmt, handle->format))
                {

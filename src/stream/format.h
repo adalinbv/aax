@@ -24,6 +24,8 @@ extern "C" {
 
 #include <base/types.h>
 
+#include "audio.h"
+
 typedef enum
 {
    _FMT_PCM = 0,
@@ -37,21 +39,27 @@ typedef enum
 
 struct _fmt_st;
 
+typedef int (_fmt_detect_fn)(struct _fmt_st*, int);
 typedef int (_fmt_setup_fn)(struct _fmt_st*, _fmt_type_t, enum aaxFormat);
+typedef void* (_fmt_open_fn)(struct _fmt_st*, void*, size_t*, size_t);
 typedef void (_fmt_close_fn)(struct _fmt_st*);
+typedef char* (_fmt_name_fn)(struct _fmt_st*, enum _aaxStreamParam);
 typedef void (_fmt_cvt_fn)(struct _fmt_st*, void_ptr, size_t);
 typedef size_t (_fmt_cvt_from_fn)(struct _fmt_st*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
-typedef size_t (_fmt_cvt_to_fn)(struct _fmt_st*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
+typedef size_t (_fmt_cvt_to_fn)(struct _fmt_st*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void_ptr, size_t);
 typedef size_t (_fmt_process_fn)(struct _fmt_st*, char_ptr, void_ptr, size_t, size_t, size_t);
 typedef size_t (_fmt_copy_fn)(struct _fmt_st*, int32_ptr, const_void_ptr, size_t, size_t);
-typedef int (_fmt_set_param_fn)(struct _fmt_st*, int, off_t);
-
+typedef off_t (_fmt_set_fn)(struct _fmt_st*, int, off_t);
+typedef off_t (_fmt_get_fn)(struct _fmt_st*, int);
 
 struct _fmt_st
 {
    void *id;
+   _fmt_detect_fn *detect;
    _fmt_setup_fn *setup;
+   _fmt_open_fn *open;
    _fmt_close_fn *close;
+   _fmt_name_fn *name;
 
    _fmt_cvt_fn *cvt_to_signed;
    _fmt_cvt_fn *cvt_from_signed;
@@ -61,11 +69,12 @@ struct _fmt_st
    _fmt_process_fn *process;
    _fmt_copy_fn *copy;				// copy raw sound data
 
-   _fmt_set_param_fn *set;
+   _fmt_set_fn *set;
+   _fmt_get_fn *get;
 };
 typedef struct _fmt_st _fmt_t;
 
-_fmt_t* _fmt_create(_fmt_type_t);
+_fmt_t* _fmt_create(_fmt_type_t, int);
 void* _fmt_free(_fmt_t*);
 
 /* PCM */
@@ -74,11 +83,25 @@ void _pcm_close(_fmt_t*);
 void _pcm_cvt_to_signed(_fmt_t*, void_ptr, size_t);
 void _pcm_cvt_from_signed(_fmt_t*, void_ptr, size_t);
 void _pcm_cvt_endianness(_fmt_t*, void_ptr, size_t);
-size_t _pcm_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void*, size_t);
+size_t _pcm_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void_ptr, size_t);
 size_t _pcm_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
 size_t _pcm_process(_fmt_t*, char_ptr, void_ptr, size_t, size_t, size_t);
 size_t _pcm_copy(_fmt_t*, int32_ptr, const_void_ptr, size_t, size_t);
-int _pcm_set(_fmt_t*, int, off_t);
+off_t _pcm_set(_fmt_t*, int, off_t);
+
+/* MP3 - mpg123 & lame */
+int _mpg123_detect(_fmt_t*, int);
+void* _mpg123_open(_fmt_t*, void*, size_t*, size_t);
+void _mpg123_close(_fmt_t*);
+size_t _mpg123_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void_ptr, size_t);
+size_t _mpg123_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
+size_t _mpg123_process(_fmt_t*, char_ptr, void_ptr, size_t, size_t, size_t);
+size_t _mpg123_copy(_fmt_t*, int32_ptr, const_void_ptr, size_t, size_t);
+char* _mpg123_name(_fmt_t*, enum _aaxStreamParam);
+off_t _mpg123_set(_fmt_t*, int, off_t);
+off_t _mpg123_get(_fmt_t*, int);
+
+// void* _mpg123_update(_fmt_t*, size_t*, size_t*, char);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
