@@ -168,7 +168,7 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
       handle->ext = _ext_create(_EXT_WAV);
       if (handle->ext)
       {
-         if (!handle->ext->detect(NULL, mode)) {
+         if (!handle->ext->detect(handle->ext, mode)) {
             handle->ext = _ext_free(handle->ext);
          }
       }
@@ -1176,13 +1176,13 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
       break;
    }
 
-   if (extension)
+   if (extension++)
    {
       int i;
       for (i=0; i<_EXT_MAX; i++)
       {
          rv = _ext_create(i);
-         if (rv && rv->detect(rv, mode) && rv->supported(++extension)) {
+         if (rv && rv->detect(rv, mode) && rv->supported(extension)) {
             break;
          }
          rv = _ext_free(rv);

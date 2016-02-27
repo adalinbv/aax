@@ -16,13 +16,13 @@
 #include "format.h"
 
 _fmt_t*
-_fmt_create(_fmt_type_t format)
+_fmt_create(_fmt_type_t format, int mode)
 {
    _fmt_t *rv = NULL;
    switch(format)
    {
    case _FMT_PCM:
-      rv = malloc(sizeof(_fmt_t));
+      rv = calloc(1, sizeof(_fmt_t));
       if (rv)
       {
          rv->id = NULL;
@@ -41,6 +41,34 @@ _fmt_create(_fmt_type_t format)
       }
       break;
    case _FMT_MP3:
+      rv = calloc(1, sizeof(_fmt_t));
+      if (rv)
+      {
+         if (_mpg123_detect(rv, mode))
+         {
+            rv->detect = _mpg123_detect;
+            rv->open = _mpg123_open;
+            rv->close = _mpg123_close;
+            rv->name = _mpg123_name;
+
+            rv->cvt_to_intl = _mpg123_cvt_to_intl;
+            rv->cvt_from_intl = _mpg123_cvt_from_intl;
+            rv->process = _mpg123_process;
+            rv->copy = _mpg123_copy;
+
+            rv->set = _mpg123_set;
+            rv->get = _mpg123_get;
+         }
+#ifdef WINXP
+//       else if (_aaxMSACMDetect(ext, mode)) {}
+#endif
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
+      }
+      break;
    case _FMT_VORBIS:
    case _FMT_FLAC:
    default:

@@ -46,6 +46,29 @@ _ext_create(_ext_type_t extension)
       }
       break;
    case _EXT_MP3:
+   rv = malloc(sizeof(_ext_t));
+      if (rv)
+      {
+         rv->id = NULL;
+         rv->detect = _mp3_detect;
+         rv->setup = _mp3_setup;
+         rv->open = _mp3_open;
+         rv->close = _mp3_close;
+         rv->update = _mp3_update;
+         rv->name = _mp3_name;
+
+         rv->supported = _mp3_extension;
+         rv->interfaces = _mp3_interfaces;
+
+         rv->get_param = _mp3_get;
+         rv->set_param = _mp3_set;
+
+         rv->copy = _mp3_copy;
+         rv->process = _mp3_process;
+         rv->cvt_from_intl = _mp3_cvt_from_intl;
+         rv->cvt_to_intl = _mp3_cvt_to_intl;
+      }
+      break;
    case _EXT_OGG:
    case _EXT_FLAC:
    default:
