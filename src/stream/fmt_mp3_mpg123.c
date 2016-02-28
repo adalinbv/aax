@@ -9,6 +9,7 @@
  * permission of Adalin B.V.
  */
 
+#include <string.h>
 #include <assert.h>
 #include <xml.h>
 
@@ -213,6 +214,12 @@ _mpg123_detect(_fmt_t *fmt, int mode)
    }
 
    return rv;
+}
+
+int
+_mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
+{
+   return AAX_TRUE;
 }
 
 void*

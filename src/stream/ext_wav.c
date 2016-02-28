@@ -48,6 +48,7 @@ typedef struct
    char *comments;
 
    int capturing;
+   int mode;
 
    int no_tracks;
    int bits_sample;
@@ -118,6 +119,7 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
       _driver_t *handle = calloc(1, sizeof(_driver_t));
       if (handle)
       {
+         handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
          handle->blocksize = tracks*bits_sample/8;
@@ -179,7 +181,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          }
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
-         handle->fmt = _fmt_create(fmt, handle->capturing ? 1 : 0);
+         handle->fmt = _fmt_create(fmt, handle->mode);
          if (!handle->fmt ||
              !handle->fmt->setup(handle->fmt, fmt, handle->format))
          {
@@ -281,9 +283,9 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
          if (handle->io.read.wavptr)
          {
-            size_t size = *bufsize;
+            size_t step, size = *bufsize;
             size_t avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
-            size_t step;
+            _fmt_type_t fmt;
             int res;
 
             avail =  _MIN(size, avail);
@@ -324,41 +326,51 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             }
             while (res > 0);
 
-            if (res < 0)
+            fmt = _getFmtFromWAVFormat(handle->wav_format);
+printf("fmt: %x\n", fmt);
+            handle->fmt = _fmt_create(fmt, handle->mode);
+            if (handle->fmt)
             {
-                _fmt_type_t fmt;
-
-               if (res == __F_PROCESS) {
-                  return buf;
+               if (handle->wav_format == MP3_WAVE_FILE) {
+                  rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
                }
-               else if (size)
+               else if (res < 0)
                {
-                  _AAX_FILEDRVLOG("WAV: Incorrect format");
-                  return rv;
-               }
+                  if (res == __F_PROCESS) {
+                     return buf;
+                  }
+                  else if (size)
+                  {
+                     _AAX_FILEDRVLOG("WAV: Incorrect format");
+                     return rv;
+                  }
 
-               // We're done reading the file header
-               // Now set up the data format handler
-               fmt = _getFmtFromWAVFormat(handle->wav_format);
-               handle->fmt = _fmt_create(fmt, handle->capturing ? 1 : 0);
-               if (!handle->fmt ||
-                   !handle->fmt->setup(handle->fmt, fmt, handle->format))
+                  // We're done reading the file header
+                  // Now set up the data format handler
+                   if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+                  {
+                     handle->fmt = _fmt_free(handle->fmt);
+                     return rv;
+                  }
+
+                  handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+                  if (handle->capturing) {
+                     handle->fmt->set(handle->fmt, __F_POSITION,
+                                                   handle->io.read.blockbufpos);
+                  }
+               }
+               else if (res > 0)
                {
-                  handle->fmt = _fmt_free(handle->fmt);
-                  return rv;
+                  *bufsize = 0;
+                   return buf;
                }
-
-               handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
-               if (handle->capturing) {
-                  handle->fmt->set(handle->fmt, __F_POSITION, handle->io.read.blockbufpos);
-               }
+               // else we're done decoding, return NULL
             }
-            else if (res > 0)
-            {
-               *bufsize = 0;
-                return buf;
-            }
-            // else we're done decoding, return NULL
+         }
+         else
+         {
+            _AAX_FILEDRVLOG("WAV: Incorrect format");
+            return rv;
          }
       }
    }
@@ -523,7 +535,7 @@ _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
       rv = num;
    }
 
-   if (bytes > 0)
+   if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
    {
       handle->io.read.wavBufPos -= bytes;
       memmove(src, src+bytes, handle->io.read.wavBufPos);

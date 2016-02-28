@@ -25,7 +25,7 @@ _prot_create(_protocol_t protocol)
    switch(protocol)
    {
    case PROTOCOL_HTTP:
-      rv = malloc(sizeof(_prot_t));
+      rv = calloc(1, sizeof(_prot_t));
       if (rv)
       {
          rv->connect = _http_connect;

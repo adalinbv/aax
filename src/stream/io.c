@@ -20,7 +20,7 @@
 _io_t*
 _io_create(_protocol_t protocol)
 {
-   _io_t* rv = malloc(sizeof(_io_t));
+   _io_t* rv = calloc(1, sizeof(_io_t));
    if (rv)
    {
       switch(protocol)

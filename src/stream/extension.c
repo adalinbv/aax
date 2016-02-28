@@ -22,7 +22,7 @@ _ext_create(_ext_type_t extension)
    switch(extension)
    {
    case _EXT_WAV:
-      rv = malloc(sizeof(_ext_t));
+      rv = calloc(1, sizeof(_ext_t));
       if (rv)
       {
          rv->id = NULL;
@@ -46,7 +46,7 @@ _ext_create(_ext_type_t extension)
       }
       break;
    case _EXT_MP3:
-   rv = malloc(sizeof(_ext_t));
+   rv = calloc(1, sizeof(_ext_t));
       if (rv)
       {
          rv->id = NULL;
