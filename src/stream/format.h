@@ -39,7 +39,6 @@ typedef enum
 
 struct _fmt_st;
 
-typedef int (_fmt_detect_fn)(struct _fmt_st*, int);
 typedef int (_fmt_setup_fn)(struct _fmt_st*, _fmt_type_t, enum aaxFormat);
 typedef void* (_fmt_open_fn)(struct _fmt_st*, void*, size_t*, size_t);
 typedef void (_fmt_close_fn)(struct _fmt_st*);
@@ -55,7 +54,6 @@ typedef off_t (_fmt_get_fn)(struct _fmt_st*, int);
 struct _fmt_st
 {
    void *id;
-   _fmt_detect_fn *detect;
    _fmt_setup_fn *setup;
    _fmt_open_fn *open;
    _fmt_close_fn *close;
@@ -79,6 +77,7 @@ void* _fmt_free(_fmt_t*);
 
 /* PCM */
 int _pcm_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
+void* _pcm_open(_fmt_t*, void*, size_t*, size_t);
 void _pcm_close(_fmt_t*);
 void _pcm_cvt_to_signed(_fmt_t*, void_ptr, size_t);
 void _pcm_cvt_from_signed(_fmt_t*, void_ptr, size_t);
@@ -91,6 +90,7 @@ off_t _pcm_set(_fmt_t*, int, off_t);
 
 /* MP3 - mpg123 & lame */
 int _mpg123_detect(_fmt_t*, int);
+int _mpg123_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
 void* _mpg123_open(_fmt_t*, void*, size_t*, size_t);
 void _mpg123_close(_fmt_t*);
 size_t _mpg123_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t, void_ptr, size_t);

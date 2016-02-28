@@ -177,6 +177,12 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
    return rv;
 }
 
+void*
+_pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+{
+   return NULL;
+}
+
 void
 _pcm_close(_fmt_t *fmt)
 {

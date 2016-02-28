@@ -27,6 +27,7 @@ _fmt_create(_fmt_type_t format, int mode)
       {
          rv->id = NULL;
          rv->setup = _pcm_setup;
+         rv->open = _pcm_open;
          rv->close = _pcm_close;
 
          rv->cvt_to_signed = _pcm_cvt_to_signed;
@@ -46,7 +47,7 @@ _fmt_create(_fmt_type_t format, int mode)
       {
          if (_mpg123_detect(rv, mode))
          {
-            rv->detect = _mpg123_detect;
+            rv->setup = _mpg123_setup;
             rv->open = _mpg123_open;
             rv->close = _mpg123_close;
             rv->name = _mpg123_name;
