@@ -476,10 +476,10 @@ _mpg123_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t
 }
 
 size_t
-_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr buf, size_t buf_offs, unsigned int tracks, size_t *num)
+_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bufsize, bytes, size = 0;
+   size_t bytes, size = 0;
    unsigned int bits;
    size_t rv = __F_EOF;
    int ret;
@@ -489,10 +489,10 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr bu
    bytes = *num*tracks*bits/8;
 
    buf = handle->mp3Buffer;
-   bufsize = handle->mp3BufSize;
+   buf_size = handle->mp3BufSize;
 
-   if (bytes > bufsize) {
-      bytes = bufsize;
+   if (bytes > buf_size) {
+      bytes = buf_size;
    }
    ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
    if (!handle->id3_found) {

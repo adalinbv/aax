@@ -27,7 +27,6 @@ _fmt_create(_fmt_type_t format, int mode)
       {
          rv->id = NULL;
          rv->setup = _pcm_setup;
-         rv->open = _pcm_open;
          rv->close = _pcm_close;
 
          rv->cvt_to_signed = _pcm_cvt_to_signed;

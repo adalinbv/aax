@@ -177,12 +177,6 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
    return rv;
 }
 
-void*
-_pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
-{
-   return NULL;
-}
-
 void
 _pcm_close(_fmt_t *fmt)
 {
@@ -244,14 +238,14 @@ _pcm_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t nu
 }
 
 size_t
-_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr buf, size_t buf_offs, unsigned int tracks, size_t *num)
+_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t rv = *num;
 
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      rv = _batch_cvt24_adpcm_intl(fmt, dptr, dptr_offs, buf, buf_offs,
+      rv = _batch_cvt24_adpcm_intl(fmt, dptr, dptr_offs, buf, buf_size,
                                         tracks, num);
    }
    else
