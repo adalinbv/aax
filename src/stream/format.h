@@ -77,7 +77,6 @@ void* _fmt_free(_fmt_t*);
 
 /* PCM */
 int _pcm_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _pcm_open(_fmt_t*, void*, size_t*, size_t);
 void _pcm_close(_fmt_t*);
 void _pcm_cvt_to_signed(_fmt_t*, void_ptr, size_t);
 void _pcm_cvt_from_signed(_fmt_t*, void_ptr, size_t);

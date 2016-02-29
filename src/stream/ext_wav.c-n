@@ -326,6 +326,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   if (res <= 0) break;
                }
 
+printf("size: %i\n", size);
                if (size)        // There's still some data left
                {
                   avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
@@ -345,16 +346,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             handle->fmt = _fmt_create(fmt, handle->mode);
             if (handle->fmt)
             {
-               if (handle->fmt->open)
-               {
-                  handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
-                  handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
-                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-                  handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
-                  handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
-                  rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
-               }
-               else if (res < 0)
+               if (res < 0)
                {
                   if (res == __F_PROCESS) {
                      return buf;
@@ -367,7 +359,18 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
                   // We're done reading the file header
                   // Now set up the data format handler
-                   if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+                  if (handle->fmt->open)
+                  {
+                     handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+                     handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+                     handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+                     handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
+                     handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
+avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
+
+                     return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+                  }
+                  else if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
                   {
                      handle->fmt = _fmt_free(handle->fmt);
                      return rv;
@@ -428,7 +431,7 @@ _wav_close(_ext_t *ext)
       if (handle->fmt)
       {
          handle->fmt->close(handle->fmt);
-         _fmt_free(handle->fmt);
+         handle->fmt = _fmt_free(handle->fmt);
       }
       free(handle);
    }
@@ -525,10 +528,10 @@ size_t
 _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
 {
    _driver_t *handle = ext->id;
-   char *src = (char*)handle->io.read.wavBuffer;
+   size_t samples, size, bytes;
    unsigned int tracks, bits;
-   size_t pos, size, bytes;
    size_t rv = __F_EOF;
+   char *src;
 
    if (handle->io.read.no_samples < num) {
       num = handle->io.read.no_samples;
@@ -536,39 +539,44 @@ _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
 
    bits = handle->bits_sample;
    tracks = handle->no_tracks;
-   pos = handle->io.read.wavBufPos;
-   size = pos*8/(tracks*bits);
-   if (num > size) {
-      num = size;
+   size = handle->io.read.wavBufPos;
+   samples = size*8/(tracks*bits);
+   if (num > samples) {
+      num = samples;
    }
 
-   bytes = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, src, pos,
+   src = (char*)handle->io.read.wavBuffer;
+   bytes = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, src, size,
                                                    tracks, &num);
    if (handle->wav_format == MP3_WAVE_FILE) {
-      return bytes;
-   }
-   if (handle->format == AAX_IMA4_ADPCM)
-   {
-      rv = num;
-      num /= tracks;
+      rv = bytes;
    }
    else
    {
-      bytes = num*tracks*bits/8;
-      rv = num;
-   }
+      if (handle->format == AAX_IMA4_ADPCM)
+      {
+         rv = num;
+         num /= tracks;
+      }
+      else
+      {
+         bytes = num*tracks*bits/8;
+         rv = num;
+      }
 
-   if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
-   {
-      handle->io.read.wavBufPos -= bytes;
-      memmove(src, src+bytes, handle->io.read.wavBufPos);
-   }
+      if (bytes > 0)
+      {
+         handle->io.read.wavBufPos -= bytes;
+         memmove(src, src+bytes, handle->io.read.wavBufPos);
+      }
 
-   if (handle->io.read.no_samples >= num) {
-      handle->io.read.no_samples -= num;
-   } else {
-      handle->io.read.no_samples = 0;
+      if (handle->io.read.no_samples >= num) {
+         handle->io.read.no_samples -= num;
+      } else {
+         handle->io.read.no_samples = 0;
+      }
    }
+printf("rv: %i\n", rv);
    return rv;
 }
 
