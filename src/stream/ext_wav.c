@@ -70,9 +70,9 @@ typedef struct
 
       struct
       {
-         uint32_t last_tag;
          size_t blockbufpos;
          size_t wavBufPos;
+         uint32_t last_tag;
       } read;
    } io;
 
@@ -159,7 +159,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
-      if (!handle->capturing)
+      if (!handle->capturing) // write
       {
          char *ptr, extfmt = AAX_FALSE;
          _fmt_type_t fmt;
@@ -278,7 +278,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             _AAX_FILEDRVLOG("WAV: Insufficient memory");
          }
       }
-      else /* handle->capturing */
+      else /* read: handle->capturing */
       {
          if (!handle->wavptr)
          {
@@ -297,7 +297,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             _fmt_type_t fmt;
             int res;
 
-            avail =  _MIN(size, avail);
+            avail = _MIN(size, avail);
             if (!avail) return NULL;
 
             memcpy(handle->wavBuffer+handle->io.read.wavBufPos,
