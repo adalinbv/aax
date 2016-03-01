@@ -124,7 +124,6 @@ typedef struct
    char *ptr, *scratch;
    size_t buf_len;
 
-   struct threat_t thread;
    uint8_t buf[IOBUF_SIZE];
    size_t bufpos;
    size_t bytes_avail;
@@ -132,6 +131,7 @@ typedef struct
    void *out_header;
    size_t out_hdr_size;
 
+   struct threat_t thread;
    _io_t *io;
    _prot_t *prot;
    _ext_t* ext;
