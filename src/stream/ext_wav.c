@@ -202,6 +202,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             handle->fmt->set(handle->fmt, __F_POSITION, handle->io.read.blockbufpos);
          }
 
+         ptr = 0;
          size = 4*handle->wavBufSize;
          handle->wavptr = _aax_malloc(&ptr, size);
          handle->wavBuffer = (uint32_t*)ptr;
