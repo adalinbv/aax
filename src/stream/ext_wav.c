@@ -569,7 +569,7 @@ _wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    size_t bytes, rv;
 
    tracks = handle->no_tracks;
-   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, tracks,
+   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, tracks, num,
                                               scratch, scratchlen);
    bytes = (rv*tracks*handle->bits_sample)/8;
 
