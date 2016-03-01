@@ -119,17 +119,18 @@ typedef struct
    float latency;
    float frequency;
    size_t no_samples;
-   size_t no_bytes;
+   unsigned int no_bytes;
 
-   char *ptr, *scratch;
-   size_t buf_len;
+   uint8_t dataBuf[IOBUF_SIZE];		// 16kB with a threshold at 8kB
+   unsigned int dataBufPos;
+   unsigned int dataBufSize;
 
-   uint8_t buf[IOBUF_SIZE];
-   size_t bufpos;
-   size_t bytes_avail;
+   char *scratch_ptr;
+   char *scratchBuf;
+   unsigned int scratchBufSize;
 
    void *out_header;
-   size_t out_hdr_size;
+   unsigned int out_hdr_size;
 
    struct threat_t thread;
    _io_t *io;
@@ -348,7 +349,7 @@ _aaxStreamDriverDisconnect(void *id)
          _aaxThreadDestroy(handle->thread.ptr);
       }
 
-      free(handle->ptr);
+      free(handle->scratch_ptr);
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
@@ -661,18 +662,18 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
    _aaxMutexLock(handle->thread.signal.mutex);
 
    outbuf_size = file_tracks * no_samples*_MAX(file_bps, rb_bps);
-   if ((handle->ptr == 0) || (handle->buf_len < outbuf_size))
+   if ((handle->scratch_ptr == 0) || (handle->scratchBufSize < outbuf_size))
    {
       char *p = 0;
 
-      _aax_free(handle->ptr);
-      handle->ptr = (char *)_aax_malloc(&p, 2*outbuf_size);
-      handle->scratch = (char *)p;
-      handle->buf_len = outbuf_size;
+      _aax_free(handle->scratch_ptr);
+      handle->scratch_ptr = (char *)_aax_malloc(&p, 2*outbuf_size);
+      handle->scratchBuf = (char *)p;
+      handle->scratchBufSize = outbuf_size;
    }
-   scratch = (char*)handle->scratch + outbuf_size;
+   scratch = (char*)handle->scratchBuf + outbuf_size;
 
-   assert(outbuf_size <= handle->buf_len);
+   assert(outbuf_size <= handle->scratchBufSize);
 
    // NOTE: Need RB_RW in case it is used as a slaved file-backend
    //       See _aaxSoftwareMixerPlay
@@ -685,11 +686,11 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
          _batch_imul_value(sbuf[t]+offs, sizeof(int32_t), no_samples, gain);
       }
    }
-   res = handle->ext->cvt_to_intl(handle->ext, handle->scratch,
+   res = handle->ext->cvt_to_intl(handle->ext, handle->scratchBuf,
                                   (const int32_t**)sbuf, offs, no_samples, 
-                                  scratch, handle->buf_len);
+                                  scratch, handle->scratchBufSize);
    rb->release_tracks_ptr(rb);
-   handle->bytes_avail = res;
+   handle->dataBufSize = res;
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
@@ -785,10 +786,10 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                data = scratch;
 
                _aaxMutexLock(handle->thread.signal.mutex);
-               ret = _MIN(handle->bytes_avail, bufsize);
-               memcpy(data, handle->buf, ret);
-               memmove(handle->buf, handle->buf+ret, handle->bytes_avail-ret);
-               handle->bytes_avail -= ret;
+               ret = _MIN(handle->dataBufSize, bufsize);
+               memcpy(data, handle->dataBuf, ret);
+               memmove(handle->dataBuf, handle->dataBuf+ret, handle->dataBufSize-ret);
+               handle->dataBufSize -= ret;
 
                _aaxMutexUnLock(handle->thread.signal.mutex);
                if (batched) {
@@ -824,7 +825,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
          }
       }
-      *offset = _MINMAX(IOBUF_THRESHOLD-(ssize_t)handle->bytes_avail, -1, 1);
+      *offset = _MINMAX(IOBUF_THRESHOLD-(ssize_t)handle->dataBufSize, -1, 1);
    }
 
    return bytes;
@@ -1040,7 +1041,7 @@ _aaxStreamDriverSetPosition(const void *id, off_t pos)
    int res = handle->io->seek(handle->io, 0, SEEK_CUR);
    if (res != pos)
    {
-//    handle->bufpos = 0;
+//    handle->dataBufPos = 0;
       res = handle->io->seek(handle->io, 0, SEEK_SET);
       if (res >= 0)
       {
@@ -1204,8 +1205,8 @@ _aaxStreamDriverWriteChunk(const void *id)
 
 // bits = handle->bits_sample;
 
-   data = (char*)handle->scratch;
-   avail = handle->bytes_avail;
+   data = (char*)handle->scratchBuf;
+   avail = handle->dataBufSize;
 
 #if 0
    if (handle->fmt->cvt_from_signed) {
@@ -1221,25 +1222,25 @@ _aaxStreamDriverWriteChunk(const void *id)
    do
    {
       usize = _MIN(buffer_avail, IOBUF_SIZE);
-      if (handle->bufpos+usize <= IOBUF_SIZE)
+      if (handle->dataBufPos+usize <= IOBUF_SIZE)
       {
-         memcpy((char*)handle->buf+handle->bufpos, data, usize);
+         memcpy((char*)handle->dataBuf+handle->dataBufPos, data, usize);
          buffer_avail -= usize;
          data += usize;
 
-         handle->bufpos += usize;
-         if (handle->bufpos >= PERIOD_SIZE)
+         handle->dataBufPos += usize;
+         if (handle->dataBufPos >= PERIOD_SIZE)
          {
-            size_t wsize = (handle->bufpos/PERIOD_SIZE)*PERIOD_SIZE;
+            size_t wsize = (handle->dataBufPos/PERIOD_SIZE)*PERIOD_SIZE;
             ssize_t res;
 
-            res = handle->io->write(handle->io, handle->buf, wsize);
+            res = handle->io->write(handle->io, handle->dataBuf, wsize);
             if (res > 0)
             {
                void *buf;
 
-               memmove(handle->buf, handle->buf+res, handle->bufpos-res);
-               handle->bufpos -= res;
+               memmove(handle->dataBuf, handle->dataBuf+res, handle->dataBufPos-res);
+               handle->dataBufPos -= res;
 
                if (handle->ext->update)
                {
@@ -1272,7 +1273,7 @@ _aaxStreamDriverWriteChunk(const void *id)
       }
    }
    while (buffer_avail >= 0);
-   handle->bytes_avail = 0;
+   handle->dataBufSize = 0;
 
 }  
 
@@ -1292,7 +1293,7 @@ _aaxStreamDriverWriteThread(void *id)
          break;
       }
 
-      if (!handle->bytes_avail) {
+      if (!handle->dataBufSize) {
          continue;
       }
    
@@ -1300,7 +1301,7 @@ _aaxStreamDriverWriteThread(void *id)
    }
    while(handle->thread.started);
 
-   if (handle->bytes_avail) {
+   if (handle->dataBufSize) {
       _aaxStreamDriverWriteChunk(id);
    }
 
@@ -1316,25 +1317,25 @@ _aaxStreamDriverReadChunk(const void *id)
    size_t size;
    ssize_t res;
 
-   if (handle->bytes_avail >= IOBUF_SIZE) {
+   if (handle->dataBufSize >= IOBUF_SIZE) {
       return 0;
    }
 
-   if (handle->bytes_avail >= IOBUF_THRESHOLD) {
+   if (handle->dataBufSize >= IOBUF_THRESHOLD) {
       return 0;
    }
 
-   size = IOBUF_THRESHOLD - handle->bytes_avail;
-   res = handle->io->read(handle->io, handle->buf+handle->bytes_avail, size);
+   size = IOBUF_THRESHOLD - handle->dataBufSize;
+   res = handle->io->read(handle->io, handle->dataBuf+handle->dataBufSize, size);
    if (res > 0)
    {
-      handle->bytes_avail += res;
+      handle->dataBufSize += res;
 
       if (handle->prot)
       {
-         int slen = handle->prot->process(handle->prot, handle->buf,
-                                          res, handle->bytes_avail);
-         handle->bytes_avail -= slen;
+         int slen = handle->prot->process(handle->prot, handle->dataBuf,
+                                          res, handle->dataBufSize);
+         handle->dataBufSize -= slen;
       }
    }
 
@@ -1356,7 +1357,7 @@ _aaxStreamDriverReadThread(void *id)
    {
       do
       {
-         handle->bytes_avail = 0;
+         handle->dataBufSize = 0;
          res = _aaxStreamDriverReadChunk(id);
       }
       while (res > IOBUF_THRESHOLD);
