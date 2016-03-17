@@ -28,7 +28,7 @@
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 #define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
 
-static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, size_t, char_ptr, size_t, unsigned int, size_t*);
+static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, char_ptr, size_t, unsigned int, size_t*);
 static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
@@ -238,15 +238,19 @@ _pcm_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t nu
 }
 
 size_t
-_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
+_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr buf, size_t pos, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t rv = *num;
 
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      rv = _batch_cvt24_adpcm_intl(fmt, dptr, dptr_offs, buf, buf_size,
-                                        tracks, num);
+      if (pos >= handle->blocksize) {
+         rv = _batch_cvt24_adpcm_intl(fmt, dptr, buf, dptr_offs, tracks, num);
+      }
+      else {
+         *num = rv = 0;
+      }
    }
    else
    {
@@ -309,7 +313,7 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, char_ptr src, size_
          sptr = (uint8_t*)s;                 /* read the block header */
          predictor = *sptr++;
          predictor |= *sptr++ << 8;
-            index = *sptr;
+         index = *sptr;
 
          s += tracks;                        /* skip the header      */
          sptr = (uint8_t*)s;
@@ -382,33 +386,27 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, char_ptr src, size_
 }
 
 static size_t
-_batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offs, char_ptr src, size_t pos, unsigned int tracks, size_t *n)
+_batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, char_ptr src, size_t offs, unsigned int tracks, size_t *n)
 {
    _driver_t *handle = fmt->id;
    size_t num = *n;
    size_t rv = 0;
 
-   if (num && pos >= handle->blocksize)
+   size_t block_smp, decode_smp, offs_smp;
+   size_t r;
+
+   offs_smp = handle->io.read.blockbufpos;
+   block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, tracks);
+   decode_smp = _MIN(block_smp-offs_smp, num);
+
+   r = _aaxWavMSADPCMBlockDecode(handle, dptr, src, offs_smp, decode_smp, offs, tracks);
+   handle->io.read.blockbufpos += r;
+   *n = r;
+
+   if (handle->io.read.blockbufpos >= block_smp)
    {
-      size_t block_smp, decode_smp, offs_smp;
-      size_t r;
-
-      offs_smp = handle->io.read.blockbufpos;
-      block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, tracks);
-      decode_smp = _MIN(block_smp-offs_smp, num);
-
-      r = _aaxWavMSADPCMBlockDecode(handle, dptr, src, offs_smp, decode_smp, offs, tracks);
-      handle->io.read.blockbufpos += r;
-      *n = r;
-
-      if (handle->io.read.blockbufpos >= block_smp)
-      {
-         handle->io.read.blockbufpos = 0;
-         rv = handle->blocksize;
-      }
-   }
-   else {
-      *n = rv = 0;
+      handle->io.read.blockbufpos = 0;
+      rv = handle->blocksize;
    }
 
    return rv;

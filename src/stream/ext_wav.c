@@ -503,12 +503,12 @@ _wav_process(_ext_t *ext, void_ptr sptr, size_t num)
    offset = handle->io.read.wavBufPos;
    size = handle->wavBufSize - offset;
    bytes = _MIN(num*tracks*bits/8, size);
-   num = bytes*8/(tracks*bits);
+// num = bytes*8/(tracks*bits);
 
    bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
    handle->io.read.wavBufPos += bytes;
 
-   return bytes;
+   return num; // bytes;
 }
 
 size_t
