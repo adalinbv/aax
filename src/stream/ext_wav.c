@@ -301,7 +301,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             avail = _MIN(size, avail);
             if (!avail) return NULL;
 
-            memcpy(handle->wavBuffer+handle->io.read.wavBufPos,
+            memcpy((void*)handle->wavBuffer+handle->io.read.wavBufPos,
                    buf, avail);
             handle->io.read.wavBufPos += avail;
             size -= avail;
@@ -315,7 +315,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
                {
                   memmove(handle->wavBuffer,
-                          handle->wavBuffer+step,
+                          (void*)handle->wavBuffer+step,
                           handle->io.read.wavBufPos-step);
                   handle->io.read.wavBufPos -= step;
                   if (res <= 0) break;
@@ -328,7 +328,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
                   avail = _MIN(size, avail);
 
-                  memcpy(handle->wavBuffer+handle->io.read.wavBufPos,
+                  memcpy((void*)handle->wavBuffer+handle->io.read.wavBufPos,
                          buf, avail);
                   handle->io.read.wavBufPos += avail;
                   size -= avail;
