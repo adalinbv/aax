@@ -675,18 +675,24 @@ public:
         delete (*it);
     }
 
-    Buffer* buffer(const char* p) {
-        std::map<std::string,buffer_t>::iterator it = _buffer.find(p);
-        if (it != _buffer.end()) return ++it->second;
-        buffer_t b(aaxBufferReadFromStream(_c,p));
-        _buffer.insert(std::pair<std::string,buffer_t>(p,b));
-        return b.buf;
+    // Get a shared buffer from the buffer cache if it's full path is already
+    // in the cache. Otherwise create a new one and add it to the cache.
+    Buffer& buffer(std::string path) {
+        _buffer_it it = _buffer_cache.find(path);
+        if (it == _buffer_cache.end()) {
+            aaxBuffer b = aaxBufferReadFromStream(_c,path.c_str());
+            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(path,std::make_pair(static_cast<size_t>(0),Buffer(b,false))));
+            it = ret.first;
+        }
+       it->second.first++;
+       return it->second.second;
     }
-    void destroy(Buffer* b) {
-        for(it_type it=_buffer.begin(); it!=_buffer.end(); it++) {
-            buffer_t buf = it->second;
-            if (buf.buf == b && !(--buf.ctr)) {
-                _buffer.erase(it); delete buf.buf;
+    void destroy(Buffer& b) {
+        for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++)
+        {
+            if (it->second.second == b && !(--it->second.first)) {
+                aaxBufferDestroy(it->second.second);
+                _buffer_cache.erase(it);
             }
         }
     }
@@ -712,15 +718,8 @@ public:
     }
 
 private:
-    struct buffer_t {
-        size_t ctr;
-        Buffer *buf;
-        buffer_t(aaxBuffer b) : ctr(0), buf(new Buffer(b)) {}
-        Buffer* operator++() { ctr++; return buf; }
-        Buffer* operator--() { ctr--; return buf; }
-    };
-    std::map<std::string,buffer_t> _buffer;
-    typedef std::map<std::string,buffer_t>::iterator it_type;
+    std::map<std::string,std::pair<size_t,Buffer> > _buffer_cache;
+    typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator _buffer_it;
 
     std::vector<Mixer*> _mixer;
     std::vector<Sensor*> _sensor;
