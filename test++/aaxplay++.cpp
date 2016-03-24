@@ -49,7 +49,7 @@ help()
     std::cout << "aaxplay version " << AAX_UTILS_MAJOR_VERSION << AAX_UTILS_MINOR_VERSION << AAX_UTILS_MICRO_VERSION << std::endl;
     std::cout << "Usage: aaxplay [options]" << std::endl;
     std::cout << "Plays audio from a file or from an audio input device." << std::endl;
-    std::cout << "Optionally writes the audio to an output file->" << std::endl;
+    std::cout << "Optionally writes the audio to an output file." << std::endl;
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
     std::cout << "  -i, --input <file>\t\tplayback audio from a file" << std::endl;
@@ -120,8 +120,8 @@ int main(int argc, char **argv)
 
     devname = getDeviceName(argc, argv);
     AAX::AeonWave config(devname);
-    AAX::Sensor* record = 0;
-    AAX::Sensor* file = 0;
+    AAX::Sensor record;
+    AAX::Sensor file;
 
     testForError(config, "Audio output device is not available.");
     if (!config)
@@ -217,60 +217,60 @@ int main(int argc, char **argv)
         }
 
         /** must be called after aaxMixerRegisterSensor */
-        res = record->set(AAX_INITIALIZED);
+        res = record.set(AAX_INITIALIZED);
         testForState(res, "aaxMixerSetInitialize");
 
-        res = record->sensor(AAX_CAPTURING);
+        res = record.sensor(AAX_CAPTURING);
         testForState(res, "aaxSensorCaptureStart");
 
         if (record && verbose)
         {
             const char *s;
 
-            s = record->info(AAX_MUSIC_PERFORMER_STRING);
+            s = record.info(AAX_MUSIC_PERFORMER_STRING);
             if (s) std::cout << " Performer: " << s << std::endl;
 
-            s = record->info(AAX_TRACK_TITLE_STRING);
+            s = record.info(AAX_TRACK_TITLE_STRING);
             if (s) std::cout << " Title    : " << s << std::endl;
 
-            s = record->info(AAX_ALBUM_NAME_STRING);
+            s = record.info(AAX_ALBUM_NAME_STRING);
             if (s) std::cout << " Album    : " << s << std::endl;
 
-            s = record->info(AAX_SONG_COMPOSER_STRING);
+            s = record.info(AAX_SONG_COMPOSER_STRING);
             if (s) std::cout << " Composer : " << s << std::endl;
 
-            s = record->info(AAX_ORIGINAL_PERFORMER_STRING);
+            s = record.info(AAX_ORIGINAL_PERFORMER_STRING);
             if (s) std::cout << " Original : " << s << std::endl;
 
-            s = record->info(AAX_MUSIC_GENRE_STRING);
+            s = record.info(AAX_MUSIC_GENRE_STRING);
             if (s) std::cout << " Genre    : " << s << std::endl;
 
-            s = record->info(AAX_RELEASE_DATE_STRING);
+            s = record.info(AAX_RELEASE_DATE_STRING);
             if (s) std::cout << " Release date: " << s << std::endl;
 
-            s = record->info(AAX_TRACK_NUMBER_STRING);
+            s = record.info(AAX_TRACK_NUMBER_STRING);
             if (s) std::cout << " Track number: " << s << std::endl;
 
-            s = record->info(AAX_SONG_COPYRIGHT_STRING);
+            s = record.info(AAX_SONG_COPYRIGHT_STRING);
             if (s) std::cout << " Copyright:  " << s << std::endl;
 
-            s = record->info(AAX_WEBSITE_STRING);
+            s = record.info(AAX_WEBSITE_STRING);
             if (s) std::cout << " Website  : " << s << std::endl;
         }
 
 
         if (file)
         {
-            res = file->set(AAX_INITIALIZED);
+            res = file.set(AAX_INITIALIZED);
             testForState(res, "aaxMixerSetInitialize");
 
-            res = file->set(AAX_PLAYING);
+            res = file.set(AAX_PLAYING);
             testForState(res, "aaxSensorCaptureStart");
         }
 
         set_mode(1);
-        freq = (float)record->get(AAX_FREQUENCY);
-        max_samples = record->get(AAX_SAMPLES_MAX);
+        freq = (float)record.get(AAX_FREQUENCY);
+        max_samples = record.get(AAX_SAMPLES_MAX);
         if (max_samples)
         {
             duration = (float)max_samples/freq;
@@ -299,11 +299,11 @@ int main(int argc, char **argv)
         {
             if (verbose)
             {
-                float pos = (float)record->offset(AAX_SAMPLES)/freq;
+                float pos = (float)record.offset(AAX_SAMPLES)/freq;
                 const char *p, *t;
 
-                p = record->info(AAX_MUSIC_PERFORMER_UPDATE);
-                t = record->info(AAX_TRACK_TITLE_UPDATE);
+                p = record.info(AAX_MUSIC_PERFORMER_UPDATE);
+                t = record.info(AAX_TRACK_TITLE_UPDATE);
                 if (p && t) {
                     std::cout << "\r\033[K Playing  : " << p << " - " << t << std::endl;
                 } else if (p) {
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
             } else {
                 msecSleep(250);
             }
-            state = record->get();
+            state = record.get();
         }
         while (state == AAX_PLAYING);
         std::cout << "" << std::endl;
@@ -359,7 +359,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxAudioFrameSetState");
         }
 
-        res = record->set(AAX_STOPPED);
+        res = record.set(AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
 
         if (frame)
@@ -382,7 +382,7 @@ int main(int argc, char **argv)
 
     if (file)
     {
-        res = file->set(AAX_STOPPED);
+        res = file.set(AAX_STOPPED);
         testForState(res, "aaxMixerSetState");
 
         res = config.remove(file);
