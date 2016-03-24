@@ -9,19 +9,22 @@
  * permission of Adalin B.V.
  */
 
+#include <string.h>
+#include <assert.h>
+#include <xml.h>
+
+#include <base/dlsym.h>
+
 #include <api.h>
-#include "ext_mp3_mpg123.h"
+#include <arch.h>
+
+#include "extension.h"
+#include "format.h"
+#include "fmt_mp3_mpg123.h"
 
 // libmpg123 for mp3 input
 // liblame for mp3 output
 // both Linux and Windows
-static _ext_open_fn _aaxMPG123Open;
-static _ext_close_fn _aaxMPG123Close;
-static _ext_cvt_from_fn _aaxMPG123Copy;
-static _ext_cvt_from_fn _aaxMPG123CvtFromIntl;
-static _ext_cvt_to_fn _aaxMPG123CvtToIntl;
-static _ext_set_param_fn _aaxMPG123SetParam;
-
 DECL_FUNCTION(mpg123_init);
 DECL_FUNCTION(mpg123_exit);
 DECL_FUNCTION(mpg123_new);
@@ -50,32 +53,67 @@ DECL_FUNCTION(lame_set_VBR);
 DECL_FUNCTION(lame_encode_buffer_interleaved);
 DECL_FUNCTION(lame_encode_flush);
 
-/* -------------------------------------------------------------------------- */
 
-static int getFormatFromMP3Format(int);
-static void detect_mpg123_song_info(_driver_t*);
-
-static int
-_aaxMPG123Detect(void *format, int m, void *_audio[2])
+typedef struct
 {
-   _aaxFmtHandle *fmt = (_aaxFmtHandle*)format;
+   void *id;
+   char *artist;
+   char *original;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *composer;
+   char *comments;
+   char *copyright;
+   char *website;
+   char *image;
+
+   void *audio;
+   int mode;
+
+   char capturing;
+   char id3_found;
+   char streaming;
+
+   uint8_t no_tracks;
+   uint8_t bits_sample;
+   int frequency;
+   int bitrate;
+   int blocksize;
+   enum aaxFormat format;
+   size_t no_samples;
+   size_t max_samples;
+
+   size_t mp3BufSize;
+   char *mp3Buffer;
+   char *mp3ptr;
+
+} _driver_t;
+
+static int _getFormatFromMP3Format(int);
+static void _detect_mpg123_song_info(_driver_t*);
+
+
+int
+_mpg123_detect(_fmt_t *fmt, int mode)
+{
+   void *audio = NULL;
    int rv = AAX_FALSE;
 
-   if (m == 0) /* read */
+   if (mode == 0) /* read */
    {
-      if (!_audio[m]) {
-         _audio[m] = _aaxIsLibraryPresent("mpg123", "0");
+      audio = _aaxIsLibraryPresent("mpg123", "0");
+      if (!audio) {
+         audio = _aaxIsLibraryPresent("libmpg123", "0");
       }
-      if (!_audio[m]) {
-         _audio[m] = _aaxIsLibraryPresent("libmpg123", "0");
-      }
-      if (!_audio[m]) {
-         _audio[m] = _aaxIsLibraryPresent("libmpg123-0", "0");
+      if (!audio) {
+         audio = _aaxIsLibraryPresent("libmpg123-0", "0");
       }
 
-      if (_audio[m])
+      if (audio)
       {
-         void *audio = _audio[m];
          char *error;
 
          _aaxGetSymError(0);
@@ -95,10 +133,7 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
             TIE_FUNCTION(mpg123_getformat);
 
             error = _aaxGetSymError(0);
-            if (error) {
-               _audio[m] = NULL;
-            }
-            else
+            if (!error)
             {
                /* not required but useful */
                TIE_FUNCTION(mpg123_length);
@@ -107,34 +142,39 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
                TIE_FUNCTION(mpg123_meta_check);
                TIE_FUNCTION(mpg123_id3);
 
-               fmt->open = _aaxMPG123Open;
-               fmt->close = _aaxMPG123Close;
-               fmt->copy = _aaxMPG123Copy;
-               fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
-               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
-               fmt->set_param = _aaxMPG123SetParam;
+               fmt->id = calloc(1, sizeof(_driver_t));
+               if (fmt->id)
+               {
+                  _driver_t *handle = fmt->id;
 
-               rv = AAX_TRUE;
+                  handle->audio = audio;
+                  handle->mode = mode;
+                  handle->capturing = (mode == 0) ? 1 : 0;
+                  handle->blocksize = 4096;
+
+                  rv = AAX_TRUE;
+               }             
+               else {
+                  _AAX_FILEDRVLOG("MPG123: Insufficient memory");
+               }
             }
          }
       }
    }
    else /* write */
    {
-      if (!_audio[m]) {
-         _audio[m] = _aaxIsLibraryPresent("mp3lame", "0");
+      audio = _aaxIsLibraryPresent("mp3lame", "0");
+      if (!audio) {
+         audio = _aaxIsLibraryPresent("libmp3lame", "0");
       }
-      if (!_audio[m]) {
-         _audio[m] = _aaxIsLibraryPresent("libmp3lame", "0");
-      }
-      if (!_audio[m]) {
-         _audio[m] = _aaxIsLibraryPresent("lame_enc", "0");
+      if (!audio) {
+         audio = _aaxIsLibraryPresent("lame_enc", "0");
       }
 
-      if (_audio[m])
+      if (audio)
       {
-         void *audio = _audio[m];
          char *error;
+
          _aaxGetSymError(0);
 
          TIE_FUNCTION(lame_init);
@@ -151,19 +191,23 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
             TIE_FUNCTION(lame_encode_flush);
 
             error = _aaxGetSymError(0);
-            if (error) {
-               _audio[m] = NULL;
-            }
-            else
+            if (!error)
             {
-               fmt->open = _aaxMPG123Open;
-               fmt->close = _aaxMPG123Close;
-               fmt->copy = _aaxMPG123Copy;
-               fmt->cvt_from_intl = _aaxMPG123CvtFromIntl;
-               fmt->cvt_to_intl = _aaxMPG123CvtToIntl;
-               fmt->set_param = _aaxMPG123SetParam;
+               fmt->id = calloc(1, sizeof(_driver_t));
+               if (fmt->id)
+               {
+                  _driver_t *handle = fmt->id;
 
-               rv = AAX_TRUE;
+                  handle->audio = audio;
+                  handle->mode = mode;
+                  handle->capturing = (mode == 0) ? 1 : 0;
+                  handle->blocksize = 4096;
+
+                  rv = AAX_TRUE;
+               }
+               else {
+                  _AAX_FILEDRVLOG("MPG123: Insufficient memory");
+               }
             }
          }
       }
@@ -172,10 +216,16 @@ _aaxMPG123Detect(void *format, int m, void *_audio[2])
    return rv;
 }
 
-static void*
-_aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
+int
+_mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 {
-   _driver_t *handle = (_driver_t *)id;
+   return AAX_TRUE;
+}
+
+void*
+_mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+{
+   _driver_t *handle = fmt->id;
    void *rv = NULL;
 
    assert(bufsize);
@@ -225,7 +275,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                      pmpg123_set_filesize(handle->id, fsize);
                   }
                   if (!handle->id3_found) {
-                     detect_mpg123_song_info(handle);
+                     _detect_mpg123_song_info(handle);
                   }
                }
                else
@@ -245,7 +295,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
 
             ret = pmpg123_decode(handle->id, buf, *bufsize, NULL, 0, &size);
             if (!handle->id3_found) {
-               detect_mpg123_song_info(handle);
+               _detect_mpg123_song_info(handle);
             }
             if (ret == MPG123_NEW_FORMAT)
             {
@@ -259,7 +309,7 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
                {
                   handle->frequency = rate;
                   handle->no_tracks = channels;
-                  handle->format = getFormatFromMP3Format(enc);
+                  handle->format = _getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
                   rv = buf;
@@ -329,11 +379,10 @@ _aaxMPG123Open(void *id, void *buf, size_t *bufsize, size_t fsize)
    return rv;
 }
 
-static int
-_aaxMPG123Close(void *id)
+void
+_mpg123_close(_fmt_t *fmt)
 {
-   _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_TRUE;
+   _driver_t *handle = fmt->id;
 
    if (handle)
    {
@@ -345,7 +394,7 @@ _aaxMPG123Close(void *id)
       }
       else
       {
-         plame_encode_flush(handle->id, handle->mp3Buffer, handle->mp3BufSize);
+         plame_encode_flush(handle->id, (unsigned char*)handle->mp3Buffer, handle->mp3BufSize);
          // plame_mp3_tags_fid(handle->id, mp3);
          plame_close(handle->id);
       }
@@ -369,117 +418,225 @@ _aaxMPG123Close(void *id)
       free(handle->image);
       free(handle);
    }
-
-   return ret;
 }
 
-static size_t
-_aaxMPG123Copy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+size_t
+_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, const_void_ptr sptr, size_t offset, size_t num)
 {
-   _driver_t *handle = (_driver_t *)id;
-   int bits, ret, rv = __F_EOF;
-   size_t bytes, size = 0;
+   _driver_t *handle = fmt->id;
+   size_t bytes, bufsize, size = 0;
+   unsigned int bits, tracks;
+   size_t rv = __F_EOF;
+   char *buf;
+   int ret;
 
+   tracks = handle->no_tracks;
    bits = handle->bits_sample;
    bytes = num*tracks*bits/8;
-   if (!sptr)   /* decode from our own buffer */
-   {
-      unsigned char *buf = (unsigned char*)handle->mp3Buffer;
-      size_t bufsize = handle->mp3BufSize;
 
-      if (bytes > bufsize) {
-         bytes = bufsize;
-      }
-      ret = pmpg123_read(handle->id, buf, bytes, &size);
-      if (!handle->id3_found) {
-         detect_mpg123_song_info(handle);
-      }
-      if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
-      {
-         rv = size*8/(tracks*bits);
-         bytes = num*tracks*bits/8;
-         memcpy((char*)*dptr+offset*tracks*bits/8, buf, size);
-      }
-   }
-   else /* provide the next chunk to our own buffer */
-   {
-      ret = pmpg123_feed(handle->id, sptr, bytes);
-      if (!handle->id3_found) {
-         detect_mpg123_song_info(handle);
-      }
-      if (ret == MPG123_OK) {
-         rv = __F_PROCESS;
-      }
-   }
+   buf = (char*)handle->mp3Buffer;
+   bufsize = handle->mp3BufSize;
 
+   if (bytes > bufsize) {
+      bytes = bufsize;
+   }
+   ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
+   if (!handle->id3_found) {
+      _detect_mpg123_song_info(handle);
+   }
+   if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
+   {
+      rv = size*8/(tracks*bits);
+      bytes = num*tracks*bits/8;
+      memcpy((char*)dptr+offset*tracks*bits/8, buf, size);
+   }
    return rv;
 }
 
-static size_t
-_aaxMPG123CvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+size_t
+_mpg123_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t num, size_t bytes)
 {
-   _driver_t *handle = (_driver_t *)id;
-   int bits, ret, rv = __F_EOF;
-   size_t bytes, size = 0;
+   _driver_t *handle = fmt->id;
+   unsigned int bits, tracks;
+   size_t rv = __F_EOF;
+   int ret;
 
+   tracks = handle->no_tracks;
    bits = handle->bits_sample;
    bytes = num*tracks*bits/8;
-   if (!sptr)	/* decode from our own buffer */
-   {
-      unsigned char *buf = (unsigned char*)handle->mp3Buffer;
-      size_t bufsize = handle->mp3BufSize;
 
-      if (bytes > bufsize) {
-         bytes = bufsize;
-      }
-      ret = pmpg123_read(handle->id, buf, bytes, &size);
-      if (!handle->id3_found) {
-         detect_mpg123_song_info(handle);
-      }
-      if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
-      {
-         rv = size*8/(tracks*bits);
-         _batch_cvt24_16_intl(dptr, buf, offset, tracks, rv);
-      }
+   ret = pmpg123_feed(handle->id, sptr, bytes);
+   if (!handle->id3_found) {
+      _detect_mpg123_song_info(handle);
    }
-   else /* provide the next chunk to our own buffer */
-   {
-      ret = pmpg123_feed(handle->id, sptr, bytes);
-      if (!handle->id3_found) {
-         detect_mpg123_song_info(handle);
-      }
-      if (ret == MPG123_OK) {
-         rv = __F_PROCESS;
-      }
+   if (ret == MPG123_OK) {
+      rv = __F_PROCESS;
    }
-
    return rv;
 }
 
-static size_t
-_aaxMPG123CvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
+size_t
+_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
 {
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = fmt->id;
+   size_t bytes, size = 0;
+   unsigned int bits;
+   size_t rv = __F_EOF;
+   int ret;
+
+   tracks = handle->no_tracks;
+   bits = handle->bits_sample;
+   bytes = *num*tracks*bits/8;
+
+   buf = handle->mp3Buffer;
+   buf_size = handle->mp3BufSize;
+
+   if (bytes > buf_size) {
+      bytes = buf_size;
+   }
+   ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
+   if (!handle->id3_found) {
+      _detect_mpg123_song_info(handle);
+   }
+   if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
+   {
+      rv = size*8/(tracks*bits);
+      _batch_cvt24_16_intl(dptr, buf, offset, tracks, rv);
+   }
+   return rv;
+}
+
+size_t
+//_mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
+_mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, unsigned int tracks, size_t num, void_ptr scratch, size_t scratchlen)
+{
+   _driver_t *handle = fmt->id;
    int res;
 
    assert(scratchlen >= num*tracks*sizeof(int32_t));
 
-   _batch_cvt16_intl_24(scratch, sptr, offset, tracks, num);
+   tracks = handle->no_tracks;
+   _batch_cvt16_intl_24(scratch, sptr, offs, tracks, num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, num,
-                                         handle->mp3Buffer, handle->mp3BufSize);
+                         (unsigned char*)handle->mp3Buffer, handle->mp3BufSize);
    _aax_memcpy(dptr, handle->mp3Buffer, res);
 
    return res;
 }
 
-static off_t
-_aaxMPG123SetParam(void *id, int type, off_t value)
+char*
+_mpg123_name(_fmt_t *fmt, enum _aaxStreamParam param)
 {
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = fmt->id;
+   char *rv = NULL;
+
+   switch(param)
+   {
+   case __F_ARTIST:
+      rv = handle->artist;
+      break;
+   case __F_TITLE:
+      rv = handle->title;
+      break;
+   case __F_COMPOSER:
+      rv = handle->composer;
+      break;
+   case __F_GENRE:
+      rv = handle->genre;
+      break;
+   case __F_TRACKNO:
+      rv = handle->trackno;
+      break;
+   case __F_ALBUM:
+      rv = handle->album;
+      break;
+   case __F_DATE:
+      rv = handle->date;
+      break;
+   case __F_COMMENT:
+      rv = handle->comments;
+      break;
+   case __F_COPYRIGHT:
+      rv = handle->copyright;
+      break;
+   case __F_ORIGINAL:
+      rv = handle->original;
+      break;
+   case __F_WEBSITE:
+      rv = handle->website;
+      break;
+   case __F_IMAGE:
+      rv = handle->image;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+off_t
+_mpg123_get(_fmt_t *fmt, int type)
+{
+   _driver_t *handle = fmt->id;
    off_t rv = 0;
 
    switch(type)
    {
+   case __F_FMT:
+      rv = handle->format;
+      break;
+   case __F_TRACKS:
+      rv = handle->no_tracks;
+      break;
+   case __F_FREQ:
+      rv = handle->frequency;
+      break;
+   case __F_BITS:
+      rv = handle->bits_sample;
+      break;
+   case __F_BLOCK:
+      rv = handle->blocksize;
+      break;
+   case __F_SAMPLES:
+      rv = handle->max_samples;
+      break;
+   default:
+      if (type & __F_NAME_CHANGED)
+      {
+         switch (type & ~__F_NAME_CHANGED)
+         {
+         default:
+            break;
+         }
+      }
+      break;
+   }
+   return rv;
+}
+
+off_t
+_mpg123_set(_fmt_t *fmt, int type, off_t value)
+{
+   _driver_t *handle = fmt->id;
+   off_t rv = 0;
+
+   switch(type)
+   {
+   case __F_FREQ:
+      handle->frequency = value;
+      break;
+   case __F_RATE:
+      handle->bitrate = value;
+      break;
+   case __F_TRACKS:
+      handle->no_tracks = value;
+      break;
+   case __F_SAMPLES:
+      handle->no_samples = value;
+      break;
+   case __F_BITS:
+      handle->bits_sample = value;
+      break;
    case __F_IS_STREAM:
       handle->streaming = AAX_TRUE;
       break;
@@ -500,9 +657,15 @@ _aaxMPG123SetParam(void *id, int type, off_t value)
    return rv;
 }
 
+/* -------------------------------------------------------------------------- */
+#define MAX_ID3V1_GENRES	192
+#define __DUP(a, b)	if ((b) != NULL && (b)->fill) a = strdup((b)->p);
+#define __COPY(a, b)	do { int s = sizeof(b); \
+      a = calloc(1, s+1); if (a) memcpy(a,b,s); \
+   } while(0);
 
 static int
-getFormatFromMP3Format(int enc)
+_getFormatFromMP3Format(int enc)
 {
    int rv;
    switch (enc)
@@ -532,7 +695,7 @@ getFormatFromMP3Format(int enc)
 }
 
 static void
-detect_mpg123_song_info(_driver_t *handle)
+_detect_mpg123_song_info(_driver_t *handle)
 {
    if (!pmpg123_meta_check || !pmpg123_id3) {
       handle->id3_found = AAX_TRUE;

@@ -13,153 +13,27 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
-#if HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <string.h>
-# if HAVE_STRINGS_H
-#  include <strings.h>		/* strcasecmp */
-# endif
-#endif
-#include <assert.h>		/* assert */
-#include <errno.h>
-#ifdef HAVE_IO_H
-# include <io.h>
-#endif
+#include <string.h>
+#include <assert.h>
 
-#include <base/types.h>
-
-#include <arch.h>
 #include <devices.h>
-#include <ringbuffer.h>
+#include <arch.h>
 
 #include "extension.h"
-#include "audio.h"
-#include "software/audio.h"
+#include "format.h"
 
-#if 0
-do             
-{              
-   char *ch = (char*)&header[2]; 
-   printf("%8x: %c%c%c%c\n", header[2], ch[0], ch[1], ch[2], ch[3]);
-} while(0);    
-#endif
-
-
-static _ext_detect_fn _aaxWavDetect;
-
-static _ext_new_handle_fn _aaxWavSetup;
-static _ext_open_fn _aaxWavOpen;
-static _ext_close_fn _aaxWavClose;
-static _ext_update_fn _aaxWavUpdate;
-static _ext_get_name_fn _aaxWavGetName;
-
-static _ext_cvt_from_fn _aaxWavCopy;
-static _ext_cvt_from_fn _aaxWavCvtFromIntl;
-static _ext_cvt_to_fn _aaxWavCvtToIntl;
-static _ext_cvt_fn _aaxWavCvtEndianness;
-static _ext_cvt_fn _aaxWavCvtToSigned;
-static _ext_cvt_fn _aaxWavCvtFromSigned;
-
-static _ext_default_fname_fn _aaxWavInterfaces;
-static _ext_extension_fn _aaxWavExtension;
-
-static _ext_get_param_fn _aaxWavGetParam;
-static _ext_set_param_fn _aaxWavSetParam;
-
-_aaxFmtHandle*
-_aaxDetectWavFormat()
+enum wavFormat
 {
-   _aaxFmtHandle* rv = calloc(1, sizeof(_aaxFmtHandle));
-   if (rv)
-   {
-      rv->detect = _aaxWavDetect;
-      rv->setup = _aaxWavSetup;
-      rv->open = _aaxWavOpen;
-      rv->close = _aaxWavClose;
-      rv->update = _aaxWavUpdate;
-      rv->name = _aaxWavGetName;
+   UNSUPPORTED = 0,
+   PCM_WAVE_FILE = 1,
+   MSADPCM_WAVE_FILE = 2,
+   FLOAT_WAVE_FILE = 3,
+   ALAW_WAVE_FILE = 6,
+   MULAW_WAVE_FILE = 7,
+   IMA4_ADPCM_WAVE_FILE = 17,
+   MP3_WAVE_FILE = 85,
 
-      rv->copy = _aaxWavCopy;
-      rv->cvt_from_intl = _aaxWavCvtFromIntl;
-      rv->cvt_to_intl = _aaxWavCvtToIntl;
-      rv->cvt_endianness = _aaxWavCvtEndianness;
-      rv->cvt_from_signed = _aaxWavCvtFromSigned;
-      rv->cvt_to_signed = _aaxWavCvtToSigned;
-
-      rv->supported = _aaxWavExtension;
-      rv->interfaces = _aaxWavInterfaces;
-
-      rv->get_param = _aaxWavGetParam;
-      rv->set_param = _aaxWavSetParam;
-   }
-   return rv;
-}
-
-/* -------------------------------------------------------------------------- */
-
-#define WAVE_FACT_CHUNK_SIZE		3
-#define WAVE_HEADER_SIZE        	(3+8)
-#define WAVE_EXT_HEADER_SIZE    	(3+20)
-#define DEFAULT_OUTPUT_RATE		22050
-#define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
-#define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
-
-#define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
-#define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
-
-#define __COPY(p, c, h) if ((p = malloc(c)) != NULL) memcpy(p, h, c)
-
-static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE] =
-{
-    0x46464952,                 /*  0. "RIFF"                                */
-    0x00000024,                 /*  1. (file_length - 8)                     */
-    0x45564157,                 /*  2. "WAVE"                                */
-
-    0x20746d66,                 /*  3. "fmt "                                */
-    0x00000010,                 /*  4. fmt chunk size                        */	
-    0x00020001,                 /*  5. PCM & stereo                          */
-    DEFAULT_OUTPUT_RATE,        /*  6.                                       */
-    0x0001f400,                 /*  7. (sample_rate*channels*bits_sample/8)  */
-    0x0010000F,                 /*  8. (channels*bits_sample/8)              *
-                                 *     & 16 bits per sample                  */
-    0x61746164,                 /*  9. "data"                                */
-    0                           /* 10. size of data block                    *
-                                 *     (sampels*channels*bits_sample/8)      */
-};
-
-static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
-{
-    0x46464952,                 /*  0. "RIFF"                                */
-    0x00000024,                 /*  1. (file_length - 8)                     */
-    0x45564157,                 /*  2. "WAVE"                                */
-
-    0x20746d66,                 /*  3. "fmt "                                */
-    0x00000028,                 /*  4. fmt chunk size                        */
-    0x0002fffe,                 /*  5. PCM & stereo                          */
-    DEFAULT_OUTPUT_RATE,        /*  6.                                       */
-    0x0001f400,                 /*  7. (sample_rate*channels*bits_sample/8)  */
-    0x0010000F,                 /*  8. (channels*bits_sample/8)              *
-                                 *     & 16 bits per sample                  */
-    0x00100016,                 /*  9. extension size & valid bits           */
-    0,                          /* 10. speaker mask                          */
-	/* sub-format */
-    PCM_WAVE_FILE,		/* 11-14 GUID                                */
-    KSDATAFORMAT_SUBTYPE1,
-    KSDATAFORMAT_SUBTYPE2,
-    KSDATAFORMAT_SUBTYPE3,
-
-    0x74636166,			/* 15. "fact"                                */
-    4,				/* 16. chunk size                            */
-    0,				/* 17. no. samples per track                 */
-
-    0x61746164,                 /* 18. "data"                                */
-    0,				/* 19. chunk size in bytes following thsi    */
+   EXTENSIBLE_WAVE_FORMAT = 0xFFFE
 };
 
 typedef struct
@@ -174,6 +48,7 @@ typedef struct
    char *comments;
 
    int capturing;
+   int mode;
 
    int no_tracks;
    int bits_sample;
@@ -181,408 +56,64 @@ typedef struct
    int bitrate;
    enum aaxFormat format;
    size_t blocksize;
+   size_t no_samples;
    size_t max_samples;
+
+   enum wavFormat wav_format;
 
    union
    {
       struct
       {
-         int16_t format;
-         uint32_t no_samples;
-
-         uint32_t *header;
-         size_t header_size;
          float update_dt;
       } write;
 
-      struct 
+      struct
       {
-         int16_t format;
-         uint32_t no_samples;
-
-         uint32_t last_tag;
-         size_t wavBufSize;
-         size_t wavBufPos;
          size_t blockbufpos;
-         void *wavBuffer;
-         void *wavptr;
-
-         int16_t predictor[_AAX_MAX_SPEAKERS];
-         uint8_t index[_AAX_MAX_SPEAKERS];
+         size_t wavBufPos;
+         uint32_t last_tag;
       } read;
    } io;
 
-   _batch_cvt_proc cvt_to_signed;
-   _batch_cvt_proc cvt_from_signed;
-   _batch_cvt_proc cvt_endianness;
-   _batch_cvt_to_intl_proc cvt_to_intl;
-   _batch_cvt_from_intl_proc cvt_from_intl;
+   void *wavptr;
+   uint32_t *wavBuffer;
+   size_t wavBufSize;
 
-   _aaxFmtHandle *fmt;
-   int wav_format;  
+   _fmt_t *fmt;
 
 } _driver_t;
 
+static enum aaxFormat _getAAXFormatFromWAVFormat(unsigned int, int);
+static enum wavFormat _getWAVFormatFromAAXFormat(enum aaxFormat);
+static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, size_t *);
-static size_t getWAVFormatFromFormat(enum aaxFormat);
 
-size_t _batch_cvt24_adpcm_intl(void*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t*);
-void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
-void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+#define WAVE_HEADER_SIZE	(3+8)
+#define WAVE_EXT_HEADER_SIZE	(3+20)
+static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE];
+static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE];
 
-static int
-_aaxWavDetect(void *fmt, int mode) {
+
+int
+_wav_detect(_ext_t *ext, int mode)
+{
    return AAX_TRUE;
 }
 
-static void*
-_aaxWavOpen(void *id, void *buf, size_t *bufsize, size_t fsize)
-{
-   _driver_t *handle = (_driver_t *)id;
-   void *rv = NULL;
-
-   assert(bufsize);
-
-   if (handle)
-   {
-      int need_endian_swap, need_sign_swap;
-
-      if (!handle->capturing)
-      {
-         char extfmt = AAX_FALSE;
-         size_t size;
-
-         if (handle->bits_sample > 16) extfmt = AAX_TRUE;
-         else if (handle->no_tracks > 2) extfmt = AAX_TRUE;
-         else if (handle->bits_sample < 8) extfmt = AAX_TRUE;
-
-         if (extfmt) {
-            handle->io.write.header_size = WAVE_EXT_HEADER_SIZE;
-         } else {
-            handle->io.write.header_size = WAVE_HEADER_SIZE;
-         }
-
-         size = 4*handle->io.write.header_size;
-         handle->io.write.header = malloc(size);
-         if (handle->io.write.header)
-         {
-            int32_t s;
-
-            if (extfmt)
-            {
-               memcpy(handle->io.write.header, _aaxDefaultExtWaveHeader, size);
-
-               s = (handle->no_tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
-               handle->io.write.header[5] = s;
-            }
-            else
-            {
-               memcpy(handle->io.write.header, _aaxDefaultWaveHeader, size);
-
-               s = (handle->no_tracks << 16) | handle->io.write.format;
-               handle->io.write.header[5] = s;
-            }
-
-            s = (uint32_t)handle->frequency;
-            handle->io.write.header[6] = s;
-
-            s *= handle->no_tracks * handle->bits_sample/8;
-            handle->io.write.header[7] = s;
-
-            s = (handle->no_tracks * handle->bits_sample/8);
-            s |= (handle->bits_sample/8)*8 << 16;
-            handle->io.write.header[8] = s;
-
-            if (extfmt)
-            {
-               s = handle->bits_sample;
-               handle->io.write.header[9] = s << 16 | 22;
-
-               s = getMSChannelMask(handle->no_tracks);
-               handle->io.write.header[10] = s;
-
-               s = handle->io.write.format;
-               handle->io.write.header[11] = s;
-            }
-
-            if (is_bigendian())
-            {
-               size_t i;
-               for (i=0; i<handle->io.write.header_size; i++)
-               {
-                  uint32_t tmp = _bswap32(handle->io.write.header[i]);
-                  handle->io.write.header[i] = tmp;
-               }
-
-               handle->io.write.header[5] =_bswap32(handle->io.write.header[5]);
-               handle->io.write.header[6] =_bswap32(handle->io.write.header[6]);
-               handle->io.write.header[7] =_bswap32(handle->io.write.header[7]);
-               handle->io.write.header[8] =_bswap32(handle->io.write.header[8]);
-               if (extfmt)
-               { 
-                  handle->io.write.header[9] =
-                                           _bswap32(handle->io.write.header[9]);
-                  handle->io.write.header[10] =
-                                          _bswap32(handle->io.write.header[10]);
-                  handle->io.write.header[11] =
-                                          _bswap32(handle->io.write.header[11]);
-               }
-            }
-            _aaxFormatDriverUpdateHeader(handle, bufsize);
-
-            *bufsize = size;
-            rv = handle->io.write.header;
-         }
-         else {
-            _AAX_FILEDRVLOG("WAV: Insufficient memory");
-         }
-      }
-      else /* handle->capturing */
-      {
-         if (!handle->io.read.wavptr)
-         {
-            char *ptr = 0;
-
-            handle->io.read.wavBufPos = 0;
-            handle->io.read.wavBufSize = 16384;
-            handle->io.read.wavptr = _aax_malloc(&ptr, handle->io.read.wavBufSize);
-            handle->io.read.wavBuffer = ptr;
-         }
-
-         if (handle->io.read.wavptr)
-         {
-            size_t size = *bufsize;
-            size_t avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
-            size_t step;
-            int res;
-
-            avail =  _MIN(size, avail);
-            if (!avail) return NULL;
-
-            memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos,
-                   buf, avail);
-            handle->io.read.wavBufPos += avail;
-            size -= avail;
-
-            /*
-             * read the file information and set the file-pointer to
-             * the start of the data section
-             */
-            
-            do
-            {
-               while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
-               {
-                  memmove(handle->io.read.wavBuffer,
-                          handle->io.read.wavBuffer+step,
-                          handle->io.read.wavBufPos-step);
-                  handle->io.read.wavBufPos -= step;
-                  if (res <= 0) break;
-               }
-
-               if (size)	// There's still some data left
-               {
-                  avail = handle->io.read.wavBufSize-handle->io.read.wavBufPos;
-                  if (!avail) break;
-
-                  avail = _MIN(size, avail);
-
-                  memcpy(handle->io.read.wavBuffer+handle->io.read.wavBufPos,
-                         buf, avail);
-                  handle->io.read.wavBufPos += avail;
-                  size -= avail;
-               }
-            }
-            while (res > 0);
-
-            if (res < 0)
-            {
-               if (res == __F_PROCESS) {
-                  return buf;
-               }
-               else if (size)
-               {
-                  _AAX_FILEDRVLOG("WAV: Incorrect format");
-                  return rv;
-               }
-            }
-            else if (res > 0)
-            {
-               *bufsize = 0;
-                return buf;
-            }
-            // else we're done decoding, return NULL
-         }
-      }
-
-      if (handle->wav_format != MP3_WAVE_FILE)
-      {
-         need_endian_swap = AAX_FALSE;
-         if ( ((handle->format & AAX_FORMAT_LE) && is_bigendian()) ||
-              ((handle->format & AAX_FORMAT_BE) && !is_bigendian()) )
-         {
-            need_endian_swap = AAX_TRUE;
-         }
-
-         need_sign_swap = AAX_FALSE;
-         if (handle->format & AAX_FORMAT_UNSIGNED) {
-            need_sign_swap = AAX_TRUE;
-         }
-
-         switch (handle->format & AAX_FORMAT_NATIVE)
-         {
-         case AAX_PCM8S:
-            handle->cvt_to_intl = _batch_cvt8_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_8_intl;
-            if (need_sign_swap)
-            {
-               handle->cvt_to_signed = _batch_cvt8u_8s;
-               handle->cvt_from_signed = _batch_cvt8s_8u;
-            }
-            break;
-         case AAX_PCM16S:
-            handle->cvt_to_intl = _batch_cvt16_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_16_intl;
-            if (need_endian_swap) {
-               handle->cvt_endianness = _batch_endianswap16;
-            }
-            if (need_sign_swap)
-            {
-               handle->cvt_to_signed = _batch_cvt16u_16s;
-               handle->cvt_from_signed = _batch_cvt16s_16u;
-            }
-            break;
-         case AAX_PCM24S:
-            handle->cvt_to_intl = _batch_cvt24_3intl_24;
-            handle->cvt_from_intl = _batch_cvt24_24_3intl;
-            if (need_endian_swap) {
-               handle->cvt_endianness = _batch_endianswap32;
-            }
-            if (need_sign_swap)
-            {
-               handle->cvt_to_signed = _batch_cvt32u_32s;
-               handle->cvt_from_signed = _batch_cvt32s_32u;
-            }
-            break;
-         case AAX_PCM32S:
-            handle->cvt_to_intl = _batch_cvt32_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_32_intl;
-            if (need_sign_swap)
-            {
-               handle->cvt_to_signed = _batch_cvt32u_32s;
-               handle->cvt_from_signed = _batch_cvt32s_32u;
-            }
-            if (need_endian_swap) {
-               handle->cvt_endianness = _batch_endianswap32;
-            }
-            break;
-         case AAX_FLOAT:
-            handle->cvt_to_intl = _batch_cvtps_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_ps_intl;
-            if (need_endian_swap) {
-               handle->cvt_endianness = _batch_endianswap32;
-            }
-            break;
-         case AAX_DOUBLE:
-            handle->cvt_to_intl = _batch_cvtpd_intl_24;
-            handle->cvt_from_intl = _batch_cvt24_pd_intl;
-            if (need_endian_swap) {
-               handle->cvt_endianness = _batch_endianswap64;
-            }
-            break;
-         case AAX_ALAW:
-            handle->cvt_from_intl = _batch_cvt24_alaw_intl;
-            break;
-         case AAX_MULAW:
-            handle->cvt_from_intl = _batch_cvt24_mulaw_intl;
-            break;
-         case AAX_IMA4_ADPCM:
-            break;
-         default:
-            _AAX_FILEDRVLOG("WAV: Unsupported format");
-            break;
-         }
-      }
-      else
-      {
-#if 0
-         handle->fmt = _aaxDetectMP3Format();
-         if (handle->fmt && handle->fmt->detect(handle->fmt, mode))
-         {
-            size_t bufsize;
-            handle->fmt->id =  handle->fmt->setup(handle->mode, &bufsize,
-                                                  handle->frequency,
-                                                  handle->no_tracks,
-                                                  handle->format,
-                                                  handle->no_samples,
-                                                  handle->bitrate);
-            if (handle->fmt->id)
-            {
-               buf = handle->fmt->open(handle->fmt->id, header, &bufsize,
-                                    handle->no_bytes);
-            }
-            else
-            {
-               free(handle->fmt->id);
-               handle->fmt->id = 0;
-               _aaxStreamDriverLog(id, 0, 0, "Error intializing the extended format");
-            }
-         }
-         else {
-            free(handle->fmt);
-         }
-#endif
-         _aaxStreamDriverLog(id, 0, 0, "Error intializing the extended format");
-      }
-   }
-   else
-   {
-      _AAX_FILEDRVLOG("WAV: Internal error: handle id equals 0");
-   }
-
-   return rv;
-}
-
-static int
-_aaxWavClose(void *id)
-{
-   _driver_t *handle = (_driver_t *)id;
-   int res = AAX_TRUE;
-
-   if (handle)
-   {
-      if (handle->capturing) {
-         free(handle->io.read.wavptr);
-      }
-      else {
-         free(handle->io.write.header);
-      }
-      free(handle->artist);
-      free(handle->title);
-      free(handle->album);
-      free(handle->trackno);
-      free(handle->date);
-      free(handle->genre);
-      free(handle->copyright);
-      free(handle->comments);
-      free(handle);
-   }
-
-   return res;
-}
-
-static void*
-_aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
+int
+_wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
-   _driver_t *handle = NULL;
+   int rv = AAX_FALSE;
 
    if (bits_sample)
    {
-      handle = calloc(1, sizeof(_driver_t));
+      _driver_t *handle = calloc(1, sizeof(_driver_t));
       if (handle)
       {
+         handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
          handle->blocksize = tracks*bits_sample/8;
@@ -590,19 +121,22 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
          handle->no_tracks = tracks;
          handle->format = format;
          handle->bitrate = bitrate;
+         handle->no_samples = no_samples;
          handle->max_samples = 0;
 
          if (!handle->capturing)
          {
-            handle->io.write.format = getWAVFormatFromFormat(format);
+            handle->wav_format = _getWAVFormatFromAAXFormat(format);
             *bufsize = 0;
          }
          else
          {
             handle->max_samples = 0;
-            handle->io.read.no_samples = UINT_MAX;
+            handle->no_samples = UINT_MAX;
             *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
+         ext->id = handle;
+         rv = AAX_TRUE;
       }
       else {
          _AAX_FILEDRVLOG("WAV: Insufficient memory");
@@ -612,22 +146,299 @@ _aaxWavSetup(int mode, size_t *bufsize, int freq, int tracks, int format, size_t
       _AAX_FILEDRVLOG("WAV: Unsupported format");
    }
 
-   return (void*)handle;
+   return rv;
 }
 
-static void*
-_aaxWavUpdate(void *id, size_t *offs, size_t *size, char close)
+void*
+_wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 {
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = ext->id;
+   void *rv = NULL;
+
+   assert(bufsize);
+
+   if (handle)
+   {
+      if (!handle->capturing) // write
+      {
+         char *ptr, extfmt = AAX_FALSE;
+         _fmt_type_t fmt;
+         size_t size;
+
+         if (handle->bits_sample > 16) extfmt = AAX_TRUE;
+         else if (handle->no_tracks > 2) extfmt = AAX_TRUE;
+         else if (handle->bits_sample < 8) extfmt = AAX_TRUE;
+
+         if (extfmt) {
+            handle->wavBufSize = WAVE_EXT_HEADER_SIZE;
+         } else {
+            handle->wavBufSize = WAVE_HEADER_SIZE;
+         }
+
+         fmt = _getFmtFromWAVFormat(handle->wav_format);
+         handle->fmt = _fmt_create(fmt, handle->mode);
+         if (!handle->fmt) {
+            return rv;
+         }
+
+         if (handle->fmt->open)
+         {
+            handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+            handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+            handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+            handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
+            handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
+
+            return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+         }
+         else if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+         {
+            handle->fmt = _fmt_free(handle->fmt);
+            return rv;
+         }
+
+         handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+         if (handle->capturing) {
+            handle->fmt->set(handle->fmt, __F_POSITION, handle->io.read.blockbufpos);
+         }
+
+         ptr = 0;
+         size = 4*handle->wavBufSize;
+         handle->wavptr = _aax_malloc(&ptr, size);
+         handle->wavBuffer = (uint32_t*)ptr;
+         if (handle->wavBuffer)
+         {
+            int32_t s;
+
+            if (extfmt)
+            {
+               memcpy(handle->wavBuffer, _aaxDefaultExtWaveHeader, size);
+
+               s = (handle->no_tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
+               handle->wavBuffer[5] = s;
+            }
+            else
+            {
+               memcpy(handle->wavBuffer, _aaxDefaultWaveHeader, size);
+
+               s = (handle->no_tracks << 16) | handle->wav_format;
+               handle->wavBuffer[5] = s;
+            }
+
+            s = (uint32_t)handle->frequency;
+            handle->wavBuffer[6] = s;
+
+            s *= handle->no_tracks * handle->bits_sample/8;
+            handle->wavBuffer[7] = s;
+
+            s = (handle->no_tracks * handle->bits_sample/8);
+            s |= (handle->bits_sample/8)*8 << 16;
+            handle->wavBuffer[8] = s;
+
+            if (extfmt)
+            {
+               s = handle->bits_sample;
+               handle->wavBuffer[9] = s << 16 | 22;
+
+               s = getMSChannelMask(handle->no_tracks);
+               handle->wavBuffer[10] = s;
+
+               s = handle->wav_format;
+               handle->wavBuffer[11] = s;
+            }
+
+            if (is_bigendian())
+            {
+               size_t i;
+               for (i=0; i<handle->wavBufSize; i++)
+               {
+                  uint32_t tmp = _bswap32(handle->wavBuffer[i]);
+                  handle->wavBuffer[i] = tmp;
+               }
+
+               handle->wavBuffer[5] =_bswap32(handle->wavBuffer[5]);
+               handle->wavBuffer[6] =_bswap32(handle->wavBuffer[6]);
+               handle->wavBuffer[7] =_bswap32(handle->wavBuffer[7]);
+               handle->wavBuffer[8] =_bswap32(handle->wavBuffer[8]);
+               if (extfmt)
+               {
+                  handle->wavBuffer[9] =
+                                           _bswap32(handle->wavBuffer[9]);
+                  handle->wavBuffer[10] =
+                                          _bswap32(handle->wavBuffer[10]);
+                  handle->wavBuffer[11] =
+                                          _bswap32(handle->wavBuffer[11]);
+               }
+            }
+            _aaxFormatDriverUpdateHeader(handle, bufsize);
+
+            *bufsize = size;
+            rv = handle->wavBuffer;
+         }
+         else {
+            _AAX_FILEDRVLOG("WAV: Insufficient memory");
+         }
+      }
+      else /* read: handle->capturing */
+      {
+         if (!handle->wavptr)
+         {
+            char *ptr = 0;
+
+            handle->io.read.wavBufPos = 0;
+            handle->wavBufSize = 16384;
+            handle->wavptr = _aax_malloc(&ptr, handle->wavBufSize);
+            handle->wavBuffer = (uint32_t*)ptr;
+         }
+
+         if (handle->wavptr)
+         {
+            size_t step, size = *bufsize;
+            size_t avail = handle->wavBufSize-handle->io.read.wavBufPos;
+            _fmt_type_t fmt;
+            int res;
+
+            avail = _MIN(size, avail);
+            if (!avail) return NULL;
+
+            memcpy((void*)handle->wavBuffer+handle->io.read.wavBufPos,
+                   buf, avail);
+            handle->io.read.wavBufPos += avail;
+            size -= avail;
+
+            /*
+             * read the file information and set the file-pointer to
+             * the start of the data section
+             */
+            do
+            {
+               while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
+               {
+                  memmove(handle->wavBuffer,
+                          (void*)handle->wavBuffer+step,
+                          handle->io.read.wavBufPos-step);
+                  handle->io.read.wavBufPos -= step;
+                  if (res <= 0) break;
+               }
+
+               if (size)        // There's still some data left
+               {
+                  avail = handle->wavBufSize-handle->io.read.wavBufPos;
+                  if (!avail) break;
+
+                  avail = _MIN(size, avail);
+
+                  memcpy((void*)handle->wavBuffer+handle->io.read.wavBufPos,
+                         buf, avail);
+                  handle->io.read.wavBufPos += avail;
+                  size -= avail;
+               }
+            }
+            while (res > 0);
+
+            fmt = _getFmtFromWAVFormat(handle->wav_format);
+            handle->fmt = _fmt_create(fmt, handle->mode);
+            if (handle->fmt)
+            {
+               if (handle->fmt->open)
+               {
+                  handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+                  handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+                  handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
+                  handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
+                  rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+               }
+               else if (res < 0)
+               {
+                  if (res == __F_PROCESS) {
+                     return buf;
+                  }
+                  else if (size)
+                  {
+                     _AAX_FILEDRVLOG("WAV: Incorrect format");
+                     return rv;
+                  }
+
+                  // We're done reading the file header
+                  // Now set up the data format handler
+                   if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+                  {
+                     handle->fmt = _fmt_free(handle->fmt);
+                     return rv;
+                  }
+
+                  handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+                  if (handle->capturing) {
+                     handle->fmt->set(handle->fmt, __F_POSITION,
+                                                   handle->io.read.blockbufpos);
+                  }
+               }
+               else if (res > 0)
+               {
+                  *bufsize = 0;
+                   return buf;
+               }
+               // else we're done decoding, return NULL
+            }
+         }
+         else
+         {
+            _AAX_FILEDRVLOG("WAV: Incorrect format");
+            return rv;
+         }
+      }
+   }
+   else {
+      _AAX_FILEDRVLOG("WAV: Internal error: handle id equals 0");
+   }
+
+   return rv;
+
+}
+
+int
+_wav_close(_ext_t *ext)
+{
+   _driver_t *handle = ext->id;
+   int res = AAX_TRUE;
+
+   if (handle)
+   {
+      free(handle->artist);
+      free(handle->title);
+      free(handle->album);
+      free(handle->trackno);
+      free(handle->date);
+      free(handle->genre);
+      free(handle->copyright);
+      free(handle->comments);
+
+      _aax_free(handle->wavptr);
+      if (handle->fmt)
+      {
+         handle->fmt->close(handle->fmt);
+         _fmt_free(handle->fmt);
+      }
+      free(handle);
+   }
+
+   return res;
+}
+
+void*
+_wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
+{
+   _driver_t *handle = ext->id;
    void *rv = NULL;
 
    *offs = 0;
    *size = 0;
-   if (!handle->capturing)
+   if (handle && !handle->capturing)
    {
       if ((handle->io.write.update_dt >= 1.0f) || close)
       {
-         handle->io.write.update_dt -= 1.0f;      
+         handle->io.write.update_dt -= 1.0f;
          rv = _aaxFormatDriverUpdateHeader(handle, size);
       }
    }
@@ -635,183 +446,144 @@ _aaxWavUpdate(void *id, size_t *offs, size_t *size, char close)
    return rv;
 }
 
-static size_t
-_aaxWavCopy(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+size_t
+_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t num)
 {
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = ext->id;
+   size_t rv = __F_EOF;
    size_t bufsize, bytes;
-   unsigned char *buf;
-   size_t rv = __F_EOF;
+   unsigned int tracks;
+   char *buf;
    int bits;
 
+   tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   buf = (unsigned char*)handle->io.read.wavBuffer;
-   if (sptr)
-   {
-      bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
-      bytes = _MIN(num*tracks*bits/8, bufsize);
+   buf = (char*)handle->wavBuffer;
 
-      memcpy(buf+handle->io.read.wavBufPos, sptr, bytes);
-      handle->io.read.wavBufPos += bytes;
-
-      rv = __F_PROCESS;
+   if (handle->no_samples < num) {
+      num = handle->no_samples;
    }
-   else
+
+   bufsize = handle->io.read.wavBufPos*8/(tracks*bits);
+   if (num > bufsize) {
+      num = bufsize;
+   }
+
+   offs = offs*tracks*bits/8;
+   bytes = num*tracks*bits/8;
+
+   bytes = handle->fmt->copy(handle->fmt, dptr, buf, offs, bytes);
+   num = bytes*8/(tracks*bits);
+   rv = num;
+
+   if (bytes > 0) 
    {
-      if (handle->io.read.no_samples < num) {
-         num = handle->io.read.no_samples;
-      }
+      handle->io.read.wavBufPos -= bytes;
+      memmove(buf, buf+bytes, handle->io.read.wavBufPos);
+   }
 
-      bufsize = handle->io.read.wavBufPos*8/(tracks*bits);
-      if (num > bufsize) {
-         num = bufsize;
-      }
-      bytes = num*tracks*bits/8;
+   if (handle->no_samples >= num) {
+      handle->no_samples -= num;
+   } else {
+      handle->no_samples = 0; 
+   }
 
-      offset = offset*tracks*bits/8;
-      memcpy((char*)dptr[0]+offset, buf, bytes);
+   return rv;
+}
+
+size_t
+_wav_process(_ext_t *ext, void_ptr sptr, size_t num)
+{
+   _driver_t *handle = ext->id;
+   char *dptr = (char*)handle->wavBuffer;
+   unsigned int tracks = handle->no_tracks;
+   int bits = handle->bits_sample;
+   size_t offset, size, bytes;
+
+   offset = handle->io.read.wavBufPos;
+   size = handle->wavBufSize - offset;
+   bytes = _MIN(num*tracks*bits/8, size);
+// num = bytes*8/(tracks*bits);
+
+   bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
+   handle->io.read.wavBufPos += bytes;
+
+   return num; // bytes;
+}
+
+size_t
+_wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
+{
+   _driver_t *handle = ext->id;
+   char *src = (char*)handle->wavBuffer;
+   unsigned int tracks, bits;
+   size_t pos, size, bytes;
+   size_t rv = __F_EOF;
+
+   if (handle->no_samples < num) {
+      num = handle->no_samples;
+   }
+
+   bits = handle->bits_sample;
+   tracks = handle->no_tracks;
+   pos = handle->io.read.wavBufPos;
+   size = pos*8/(tracks*bits);
+   if (num > size) {
+      num = size;
+   }
+
+   bytes = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, src, pos,
+                                                   tracks, &num);
+   if (handle->wav_format == MP3_WAVE_FILE) {
+      return bytes;
+   }
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
       rv = num;
-
-      if (bytes > 0)
-      {
-         handle->io.read.wavBufPos -= bytes;
-         memmove(buf, buf+bytes, handle->io.read.wavBufPos);
-      }
-
-      if (handle->io.read.no_samples >= num) {
-         handle->io.read.no_samples -= num;
-      } else {
-         handle->io.read.no_samples = 0;
-      }
-   }
-
-   return rv;
-}
-
-static size_t
-_aaxWavCvtFromIntl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
-{
-   _driver_t *handle = (_driver_t *)id;
-   size_t bufsize, bytes = 0;
-   unsigned char *buf;
-   size_t rv = __F_EOF;
-   int bits;
-
-   buf = (unsigned char*)handle->io.read.wavBuffer;
-   bits = handle->bits_sample;
-   if (sptr)
-   {
-      bufsize = handle->io.read.wavBufSize - handle->io.read.wavBufPos;
-      bytes = _MIN(num*tracks*bits/8, bufsize);
-
-      memcpy(buf+handle->io.read.wavBufPos, sptr, bytes);
-      handle->io.read.wavBufPos += bytes;
-
-      rv = __F_PROCESS;
+      num /= tracks;
    }
    else
    {
-      if (handle->io.read.no_samples < num) {
-         num = handle->io.read.no_samples;
-      }
-
-      bufsize = handle->io.read.wavBufPos*8/(tracks*bits);
-      if (num > bufsize) {
-         num = bufsize;
-      }
-      if (handle->format == AAX_IMA4_ADPCM) {
-         bytes = _batch_cvt24_adpcm_intl(id, dptr, buf, offset, tracks, &num);
-         rv = num;
-         num /= tracks;
-      }
-      else
-      {
-         if (handle->cvt_from_intl)
-         {
-            handle->cvt_from_intl(dptr, buf, offset, tracks, num);
-            bytes = num*tracks*bits/8;
-            rv = num;
-         }
-      }
-
-      if (bytes > 0)
-      {
-         handle->io.read.wavBufPos -= bytes;
-         memmove(buf, buf+bytes, handle->io.read.wavBufPos);
-      }
-
-      if (handle->io.read.no_samples >= num) {
-         handle->io.read.no_samples -= num;
-      } else {
-         handle->io.read.no_samples = 0;
-      }
+      bytes = num*tracks*bits/8;
+      rv = num;
    }
 
-   return rv;
-}
-
-static size_t
-_aaxWavCvtToIntl(void *id, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
-{
-   _driver_t *handle = (_driver_t *)id;
-   size_t rv = 0;
-   if (handle->cvt_to_intl)
+   if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
    {
-      size_t bytes = (num*tracks*handle->bits_sample)/8;
+      handle->io.read.wavBufPos -= bytes;
+      memmove(src, src+bytes, handle->io.read.wavBufPos);
+   }
 
-      handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
-
-      handle->io.write.update_dt += (float)num/handle->frequency;
-      handle->io.write.no_samples += num;
-
-      rv = bytes;
+   if (handle->no_samples >= num) {
+      handle->no_samples -= num;
+   } else {
+      handle->no_samples = 0;
    }
    return rv;
 }
 
-static void
-_aaxWavCvtEndianness(void *id, void_ptr dptr, size_t num)
+size_t
+_wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t num, void_ptr scratch, size_t scratchlen)
 {
-   _driver_t *handle = (_driver_t *)id;
-   if (dptr && handle->cvt_endianness) {
-      handle->cvt_endianness(dptr, num);
-   }
+   _driver_t *handle = ext->id;
+   unsigned int tracks;
+   size_t bytes, rv;
+
+   tracks = handle->no_tracks;
+   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, tracks, num,
+                                              scratch, scratchlen);
+   bytes = (rv*tracks*handle->bits_sample)/8;
+
+   handle->io.write.update_dt += (float)num/handle->frequency;
+   handle->no_samples += num;
+
+   return bytes;
 }
 
-static void
-_aaxWavCvtToSigned(void *id, void_ptr dptr, size_t num)
+char*
+_wav_name(_ext_t *ext, enum _aaxStreamParam param)
 {
-   _driver_t *handle = (_driver_t *)id;
-   if (dptr && handle->cvt_to_signed) {
-      handle->cvt_to_signed(dptr, num);
-   }
-}
-
-static void
-_aaxWavCvtFromSigned(void *id, void_ptr dptr, size_t num)
-{
-   _driver_t *handle = (_driver_t *)id;
-   if (dptr && handle->cvt_from_signed) {
-      handle->cvt_from_signed(dptr, num);
-   }
-}
-
-static int
-_aaxWavExtension(char *ext) {
-   return (ext && !strcasecmp(ext, "wav")) ? 1 : 0;
-}
-
-static char*
-_aaxWavInterfaces(int mode)
-{
-   static const char *rd[2] = { "*.wav\0", "*.wav\0" };
-   return (char *)rd[mode];
-}
-
-static char*
-_aaxWavGetName(void *id, enum _aaxStreamParam param)
-{
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = ext->id;
    char *rv = NULL;
 
    switch(param)
@@ -846,10 +618,23 @@ _aaxWavGetName(void *id, enum _aaxStreamParam param)
    return rv;
 }
 
-static off_t
-_aaxWavGetParam(void *id, int type)
+char*
+_wav_interfaces(int mode)
 {
-   _driver_t *handle = (_driver_t *)id;
+   static const char *rd[2] = { "*.wav\0", "*.wav\0" };
+   return (char *)rd[mode];
+}
+
+int
+_wav_extension(char *ext)
+{
+   return (ext && !strcasecmp(ext, "wav")) ? 1 : 0;
+}
+
+off_t
+_wav_get(_ext_t *ext, int type)
+{
+   _driver_t *handle = ext->id;
    off_t rv = 0;
 
    switch(type)
@@ -880,10 +665,10 @@ _aaxWavGetParam(void *id, int type)
    return rv;
 }
 
-static  off_t
-_aaxWavSetParam(void *id, int type, off_t value)
+off_t
+_wav_set(_ext_t *ext, int type, off_t value)
 {
-// _driver_t *handle = (_driver_t *)id;
+// _driver_t *handle = ext->id;
    off_t rv = 0;
 
    switch(type)
@@ -896,11 +681,68 @@ _aaxWavSetParam(void *id, int type, off_t value)
    return rv;
 }
 
+
+/* -------------------------------------------------------------------------- */
+#define WAVE_FACT_CHUNK_SIZE		3
+#define DEFAULT_OUTPUT_RATE		22050
+
+#define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
+#define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
+
+#define __COPY(p, c, h) if ((p = malloc(c)) != NULL) memcpy(p, h, c)
+
+static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE] =
+{
+    0x46464952,                 /*  0. "RIFF"                                */
+    0x00000024,                 /*  1. (file_length - 8)                     */
+    0x45564157,                 /*  2. "WAVE"                                */
+
+    0x20746d66,                 /*  3. "fmt "                                */
+    0x00000010,                 /*  4. fmt chunk size                        */
+    0x00020001,                 /*  5. PCM & stereo                          */
+    DEFAULT_OUTPUT_RATE,        /*  6.                                       */
+    0x0001f400,                 /*  7. (sample_rate*channels*bits_sample/8)  */
+    0x0010000F,                 /*  8. (channels*bits_sample/8)              *
+                                 *     & 16 bits per sample                  */
+    0x61746164,                 /*  9. "data"                                */
+    0                           /* 10. size of data block                    *
+                                 *     (sampels*channels*bits_sample/8)      */
+};
+
+static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
+{
+    0x46464952,                 /*  0. "RIFF"                                */
+    0x00000024,                 /*  1. (file_length - 8)                     */
+    0x45564157,                 /*  2. "WAVE"                                */
+
+    0x20746d66,                 /*  3. "fmt "                                */
+    0x00000028,                 /*  4. fmt chunk size                        */
+    0x0002fffe,                 /*  5. PCM & stereo                          */
+    DEFAULT_OUTPUT_RATE,        /*  6.                                       */
+    0x0001f400,                 /*  7. (sample_rate*channels*bits_sample/8)  */
+    0x0010000F,                 /*  8. (channels*bits_sample/8)              *
+                                 *     & 16 bits per sample                  */
+    0x00100016,                 /*  9. extension size & valid bits           */
+    0,                          /* 10. speaker mask                          */
+        /* sub-format */
+    PCM_WAVE_FILE,              /* 11-14 GUID                                */
+    KSDATAFORMAT_SUBTYPE1,
+    KSDATAFORMAT_SUBTYPE2,
+    KSDATAFORMAT_SUBTYPE3,
+
+    0x74636166,                 /* 15. "fact"                                */
+    4,                          /* 16. chunk size                            */
+    0,                          /* 17. no. samples per track                 */
+
+    0x61746164,                 /* 18. "data"                                */
+    0,                          /* 19. chunk size in bytes following thsi    */
+};
+
 // http://wiki.audacityteam.org/wiki/WAV
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
-   uint32_t *header = handle->io.read.wavBuffer;
+   uint32_t *header = handle->wavBuffer;
    size_t size, bufsize = handle->io.read.wavBufPos;
    int32_t curr, init_tag;
    int bits, res = -1;
@@ -915,7 +757,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    handle->io.read.last_tag = 0;
 
    /* Is it a RIFF file? */
-   if (curr == 0x46464952)		/* RIFF */
+   if (curr == 0x46464952)              /* RIFF */
    {
       if (bufsize < WAVE_HEADER_SIZE) {
          return res;
@@ -981,13 +823,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 }
 #endif
 
-      if (header[2] == 0x45564157 &&		/* WAVE */
-          header[3] == 0x20746d66) 		/* fmt  */
+      if (header[2] == 0x45564157 &&            /* WAVE */
+          header[3] == 0x20746d66)              /* fmt  */
       {
          handle->frequency = header[6];
          handle->no_tracks = header[5] >> 16;
-         handle->io.read.format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
-         handle->wav_format = handle->io.read.format;
+         handle->wav_format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
          switch(handle->wav_format)
          {
          case MP3_WAVE_FILE:
@@ -1004,14 +845,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          {
             handle->blocksize = header[8] & 0xFFFF;
             bits = handle->bits_sample;
-            handle->wav_format = handle->io.read.format;
-            handle->format = getFormatFromWAVFormat(handle->wav_format, bits);
+            handle->format = _getAAXFormatFromWAVFormat(handle->wav_format,bits);
             switch(handle->format)
             {
             case AAX_FORMAT_NONE:
                return __F_EOF;
                break;
-            default: 
+            default:
                break;
             }
          }
@@ -1023,8 +863,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          return -1;
       }
    }
-   else if (curr == 0x5453494c)		/* LIST */
-   {				// http://www.daubnet.com/en/file-format-riff
+   else if (curr == 0x5453494c)         /* LIST */
+   {                            // http://www.daubnet.com/en/file-format-riff
       ssize_t size = bufsize;
 
       *step = 0;
@@ -1040,7 +880,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
        * the last run couldn't finish due to lack of data and we did set
        * handle->io.read.last_tag to "LIST" ourselves.
        */
-      if (init_tag || BSWAP(header[2]) == 0x4f464e49)	/* INFO */
+      if (init_tag || BSWAP(header[2]) == 0x4f464e49)   /* INFO */
       {
          if (!init_tag)
          {
@@ -1056,56 +896,56 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             int32_t head = BSWAP(header[0]);
             switch(head)
             {
-            case 0x54524149:	/* IART: Artist              */
-            case 0x4d414e49:	/* INAM: Track Title         */
-            case 0x44525049:	/* IPRD: Album Title/Product */
-            case 0x4b525449:	/* ITRK: Track Number        */
-            case 0x44524349:	/* ICRD: Date Created        */
-            case 0x524e4749:	/* IGNR: Genre               */
-            case 0x504f4349:	/* ICOP: Copyright           */
-            case 0x544d4349:	/* ICMT: Comments            */
-            case 0x54465349:	/* ISFT: Software            */
+            case 0x54524149:    /* IART: Artist              */
+            case 0x4d414e49:    /* INAM: Track Title         */
+            case 0x44525049:    /* IPRD: Album Title/Product */
+            case 0x4b525449:    /* ITRK: Track Number        */
+            case 0x44524349:    /* ICRD: Date Created        */
+            case 0x524e4749:    /* IGNR: Genre               */
+            case 0x504f4349:    /* ICOP: Copyright           */
+            case 0x544d4349:    /* ICMT: Comments            */
+            case 0x54465349:    /* ISFT: Software            */
                curr = BSWAP(header[1]);
                size -= 2*sizeof(int32_t) + curr;
                if (size < 0) break;
 
                switch(head)
                {
-               case 0x54524149:	/* IART: Artist              */
+               case 0x54524149: /* IART: Artist              */
                   __COPY(handle->artist, curr, (char*)&header[2]);
                   break;
-               case 0x4d414e49:	/* INAM: Track Title         */
+               case 0x4d414e49: /* INAM: Track Title         */
                   __COPY(handle->title, curr, (char*)&header[2]);
                   break;
-               case 0x44525049:	/* IPRD: Album Title/Product */
+               case 0x44525049: /* IPRD: Album Title/Product */
                   __COPY(handle->album, curr, (char*)&header[2]);
                   break;
-               case 0x4b525449:	/* ITRK: Track Number        */
+               case 0x4b525449: /* ITRK: Track Number        */
                   __COPY(handle->trackno, curr, (char*)&header[2]);
                   break;
-               case 0x44524349:	/* ICRD: Date Created        */
+               case 0x44524349: /* ICRD: Date Created        */
                   __COPY(handle->date, curr, (char*)&header[2]);
                   break;
-               case 0x524e4749:	/* IGNR: Genre               */
+               case 0x524e4749: /* IGNR: Genre               */
                   __COPY(handle->genre, curr, (char*)&header[2]);
                   break;
-               case 0x504f4349:	/* ICOP: Copyright           */
+               case 0x504f4349: /* ICOP: Copyright           */
                   __COPY(handle->copyright, curr, (char*)&header[2]);
                   break;
-               case 0x544d4349:	/* ICMT: Comments            */
+               case 0x544d4349: /* ICMT: Comments            */
                   __COPY(handle->comments, curr, (char*)&header[2]);
                   break;
-               case 0x54465349:	/* ISFT: Software            */
+               case 0x54465349: /* ISFT: Software            */
                default:
                   break;
                }
                *step += 2*sizeof(int32_t) + curr;
                header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
                break;
-            default:		// we're done
+            default:            // we're done
                size = 0;
                *step -= sizeof(int32_t);
-               if (head == 0x61746164) {	 /* data */
+               if (head == 0x61746164) {         /* data */
                   res = *step;
                } else {
                   res = __F_EOF;
@@ -1125,17 +965,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          }
       }
    }
-   else if (curr == 0x74636166)		/* fact */
+   else if (curr == 0x74636166)         /* fact */
    {
       curr = BSWAP(header[2]);
-      handle->io.read.no_samples = curr;
+      handle->no_samples = curr;
       handle->max_samples = curr;
       *step = res = 3*sizeof(int32_t);
    }
-   else if (curr == 0x61746164)		/* data */
+   else if (curr == 0x61746164)         /* data */
    {
       curr = (8*header[1])/(handle->no_tracks*handle->bits_sample);
-      handle->io.read.no_samples = curr;
+      handle->no_samples = curr;
       handle->max_samples = curr;
       *step = res = 2*sizeof(int32_t);
    }
@@ -1148,73 +988,73 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
 {
    void *res = NULL;
 
-   if (handle->io.write.no_samples != 0)
+   if (handle->no_samples != 0)
    {
-      char extfmt = (handle->io.write.header_size == WAVE_HEADER_SIZE) ? 0 : 1;
+      char extfmt = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
       size_t size;
       uint32_t s;
 
-      size = (handle->io.write.no_samples*handle->no_tracks*handle->bits_sample)/8;
-      s =  4*handle->io.write.header_size + size - 8;
-      handle->io.write.header[1] = s;
+      size = (handle->no_samples*handle->no_tracks*handle->bits_sample)/8;
+      s =  4*handle->wavBufSize + size - 8;
+      handle->wavBuffer[1] = s;
 
       s = size;
       if (extfmt)
       {
-         handle->io.write.header[17] = handle->io.write.no_samples;
-         handle->io.write.header[19] = s;
+         handle->wavBuffer[17] = handle->no_samples;
+         handle->wavBuffer[19] = s;
       }
       else {
-         handle->io.write.header[10] = s;
+         handle->wavBuffer[10] = s;
       }
 
       if (is_bigendian())
       {
-         handle->io.write.header[1] = _bswap32(handle->io.write.header[1]);
+         handle->wavBuffer[1] = _bswap32(handle->wavBuffer[1]);
          if (extfmt)
          {
-            handle->io.write.header[17] = _bswap32(handle->io.write.header[17]);
-            handle->io.write.header[19] = _bswap32(handle->io.write.header[19]);
+            handle->wavBuffer[17] = _bswap32(handle->wavBuffer[17]);
+            handle->wavBuffer[19] = _bswap32(handle->wavBuffer[19]);
          }
          else {
-            handle->io.write.header[10] = _bswap32(handle->io.write.header[10]);
+            handle->wavBuffer[10] = _bswap32(handle->wavBuffer[10]);
          }
       }
 
-      *bufsize = 4*handle->io.write.header_size;
-      res = handle->io.write.header;
+      *bufsize = 4*handle->wavBufSize;
+      res = handle->wavBuffer;
 
 #if 0
    printf("Write %s Header:\n", extfmt ? "Extnesible" : "Canonical");
-   printf(" 0: %08x (ChunkID \"RIFF\")\n", handle->io.write.header[0]);
-   printf(" 1: %08x (ChunkSize: %i)\n", handle->io.write.header[1], handle->io.write.header[1]);
-   printf(" 2: %08x (Format \"WAVE\")\n", handle->io.write.header[2]);
-   printf(" 3: %08x (Subchunk1ID \"fmt \")\n", handle->io.write.header[3]);
-   printf(" 4: %08x (Subchunk1Size): %i\n", handle->io.write.header[4], handle->io.write.header[4]);
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", handle->io.write.header[5], handle->io.write.header[5] >> 16, handle->io.write.header[5] & 0xFFFF);
-   printf(" 6: %08x (SampleRate: %i)\n", handle->io.write.header[6], handle->io.write.header[6]);
-   printf(" 7: %08x (ByteRate: %i)\n", handle->io.write.header[7], handle->io.write.header[7]);
-   printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", handle->io.write.header[8], handle->io.write.header[8] >> 16, handle->io.write.header[8] & 0xFFFF);
+   printf(" 0: %08x (ChunkID \"RIFF\")\n", handle->wavBuffer[0]);
+   printf(" 1: %08x (ChunkSize: %i)\n", handle->wavBuffer[1], handle->wavBuffer[1]);
+   printf(" 2: %08x (Format \"WAVE\")\n", handle->wavBuffer[2]);
+   printf(" 3: %08x (Subchunk1ID \"fmt \")\n", handle->wavBuffer[3]);
+   printf(" 4: %08x (Subchunk1Size): %i\n", handle->wavBuffer[4], handle->wavBuffer[4]);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", handle->wavBuffer[5], handle->wavBuffer[5] >> 16, handle->wavBuffer[5] & 0xFFFF);
+   printf(" 6: %08x (SampleRate: %i)\n", handle->wavBuffer[6], handle->wavBuffer[6]);
+   printf(" 7: %08x (ByteRate: %i)\n", handle->wavBuffer[7], handle->wavBuffer[7]);
+   printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", handle->wavBuffer[8], handle->wavBuffer[8] >> 16, handle->wavBuffer[8] & 0xFFFF);
    if (!extfmt)
    {
-      printf(" 9: %08x (SubChunk2ID \"data\")\n", handle->io.write.header[9]);
-      printf("10: %08x (Subchunk2Size: %i)\n", handle->io.write.header[10], handle->io.write.header[10]);
+      printf(" 9: %08x (SubChunk2ID \"data\")\n", handle->wavBuffer[9]);
+      printf("10: %08x (Subchunk2Size: %i)\n", handle->wavBuffer[10], handle->wavBuffer[10]);
    }
    else
    {
-      printf(" 9: %08x (size: %i, nValidBits: %i)\n", handle->io.write.header[9], handle->io.write.header[9] >> 16, handle->io.write.header[9] & 0xFFFF);
-      printf("10: %08x (dwChannelMask: %i)\n", handle->io.write.header[10], handle->io.write.header[10]);
-      printf("11: %08x (GUID0)\n", handle->io.write.header[11]);
-      printf("12: %08x (GUID1)\n", handle->io.write.header[12]);
-      printf("13: %08x (GUID2)\n", handle->io.write.header[13]);
-      printf("14: %08x (GUID3)\n", handle->io.write.header[14]);
+      printf(" 9: %08x (size: %i, nValidBits: %i)\n", handle->wavBuffer[9], handle->wavBuffer[9] >> 16, handle->wavBuffer[9] & 0xFFFF);
+      printf("10: %08x (dwChannelMask: %i)\n", handle->wavBuffer[10], handle->wavBuffer[10]);
+      printf("11: %08x (GUID0)\n", handle->wavBuffer[11]);
+      printf("12: %08x (GUID1)\n", handle->wavBuffer[12]);
+      printf("13: %08x (GUID2)\n", handle->wavBuffer[13]);
+      printf("14: %08x (GUID3)\n", handle->wavBuffer[14]);
 
-      printf("15: %08x (SubChunk2ID \"fact\")\n", handle->io.write.header[15]);
-      printf("16: %08x (Subchunk2Size: %i)\n", handle->io.write.header[16], handle->io.write.header[16]);
-      printf("17: %08x (NumSamplesPerChannel: %i)\n", handle->io.write.header[17], handle->io.write.header[17]);
+      printf("15: %08x (SubChunk2ID \"fact\")\n", handle->wavBuffer[15]);
+      printf("16: %08x (Subchunk2Size: %i)\n", handle->wavBuffer[16], handle->wavBuffer[16]);
+      printf("17: %08x (NumSamplesPerChannel: %i)\n", handle->wavBuffer[17], handle->wavBuffer[17]);
 
-      printf("18: %08x (SubChunk3ID \"data\")\n", handle->io.write.header[18]);
-      printf("19: %08x (Subchunk3Size: %i)\n", handle->io.write.header[19], handle->io.write.header[19]);
+      printf("18: %08x (SubChunk3ID \"data\")\n", handle->wavBuffer[18]);
+      printf("19: %08x (Subchunk3Size: %i)\n", handle->wavBuffer[19], handle->wavBuffer[19]);
    }
 #endif
    }
@@ -1248,8 +1088,8 @@ getMSChannelMask(uint16_t nChannels)
    return rv;
 }
 
-enum aaxFormat
-getFormatFromWAVFormat(unsigned int format, int bits_sample)
+static enum aaxFormat
+_getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
 {
    enum aaxFormat rv = AAX_FORMAT_NONE;
    int big_endian = is_bigendian();
@@ -1290,10 +1130,10 @@ getFormatFromWAVFormat(unsigned int format, int bits_sample)
    return rv;
 }
 
-static size_t
-getWAVFormatFromFormat(enum aaxFormat format)
+static enum wavFormat
+_getWAVFormatFromAAXFormat(enum aaxFormat format)
 {
-   size_t rv = UNSUPPORTED;
+   enum wavFormat rv = UNSUPPORTED;
    switch (format & AAX_FORMAT_NATIVE)
    {
    case AAX_PCM8U:
@@ -1321,183 +1161,27 @@ getWAVFormatFromFormat(enum aaxFormat format)
    return rv;
 }
 
-static size_t
-_aaxWavMSADPCMBlockDecode(void *id, int32_t **dptr, size_t smp_offs, size_t num, size_t offset)
+static _fmt_type_t
+_getFmtFromWAVFormat(enum wavFormat fmt)
 {
-   _driver_t *handle = (_driver_t*)id;
-   size_t offs_smp, rv = 0;
+   _fmt_type_t rv = _FMT_PCM;
 
-   if (num)
+   switch(fmt)
    {
-      int32_t *src = handle->io.read.wavBuffer;
-      unsigned t, tracks = handle->no_tracks;
-
-      for (t=0; t<tracks; t++)
-      {
-         int16_t predictor = handle->io.read.predictor[t];
-         uint8_t index = handle->io.read.index[t];
-         size_t l, ctr = 4;
-         int32_t *d = dptr[t]+offset;
-         int32_t *s = src+t;
-         uint8_t *sptr;
-
-         l = num;
-         offs_smp = smp_offs;
-         if (!offs_smp)
-         {
-            sptr = (uint8_t*)s;			/* read the block header */
-            predictor = *sptr++;
-            predictor |= *sptr++ << 8;
-            index = *sptr;
-
-            s += tracks;			/* skip the header      */
-            sptr = (uint8_t*)s;
-         }
-         else
-         {
-            /* 8 samples per chunk of 4 bytes (int32_t) */
-            size_t offs_chunks = offs_smp/8;
-            size_t offs_bytes;
-
-            s += tracks;			/* skip the header      */
-            s += tracks*offs_chunks;		/* skip the data chunks */
-            sptr = (uint8_t*)s;
-
-            offs_smp -= offs_chunks*8;
-            offs_bytes = offs_smp/2;		/* two samples per byte */
-
-            sptr += offs_bytes;			/* add remaining offset */
-            ctr -= offs_bytes;
-
-            offs_smp -= offs_bytes*2;		/* skip two-samples (bytes) */
-            offs_bytes = offs_smp/2;
-
-            sptr += offs_bytes;
-            if (offs_smp)			/* offset is an odd number */
-            {
-               uint8_t nibble = *sptr++;
-               *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
-               if (--ctr == 0)
-               {
-                  ctr = 4;
-                  s += tracks;
-                  sptr = (uint8_t*)s;
-               }
-            }
-         }
-
-         if (l >= 2)			/* decode the (rest of the) blocks  */
-         {
-            do
-            {
-               uint8_t nibble = *sptr++;
-               *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
-               *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
-               if (--ctr == 0)
-               {
-                  ctr = 4;
-                  s += tracks;
-                  sptr = (uint8_t*)s;
-               }
-               l -= 2;
-            }
-            while (l >= 2);
-         }
-
-         if (l)				/* no. samples was an odd number */
-         {
-            uint8_t nibble = *sptr;
-            *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
-            l--;
-         }
-
-         handle->io.read.predictor[t] = predictor;
-         handle->io.read.index[t] = index;
-
-         rv = num-l;
-      }
+   case MP3_WAVE_FILE:
+      rv = _FMT_MP3;
+      break;
+   case PCM_WAVE_FILE:
+   case MSADPCM_WAVE_FILE:
+   case FLOAT_WAVE_FILE:
+   case ALAW_WAVE_FILE:
+   case MULAW_WAVE_FILE:
+   case IMA4_ADPCM_WAVE_FILE:
+   default:
+      break;
    }
-
    return rv;
 }
-
-size_t
-_batch_cvt24_adpcm_intl(void *id, int32_ptrptr dptr, const_void_ptr sptr, size_t offs, unsigned int tracks, size_t *n)
-{
-   _driver_t *handle = (_driver_t*)id;
-   size_t num = *n;
-   size_t rv = 0;
-
-   if (handle->io.read.wavBufPos >= handle->blocksize)
-   {
-      size_t block_smp, decode_smp, offs_smp;
-      size_t r;
-
-      offs_smp = handle->io.read.blockbufpos;
-      block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks);
-      decode_smp = _MIN(block_smp-offs_smp, num);
-
-      r = _aaxWavMSADPCMBlockDecode(handle, dptr, offs_smp, decode_smp, offs);
-      handle->io.read.blockbufpos += r;
-      *n = r;
-
-      if (handle->io.read.blockbufpos >= block_smp)
-      {
-         handle->io.read.blockbufpos = 0;
-         rv = handle->blocksize;
-      }
-   }
-   else {
-      *n = rv = 0;
-   }
-
-   return rv;
-}
-
-void
-_batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
-{
-   if (num)
-   {
-      size_t t;
-      for (t=0; t<tracks; t++)
-      {
-         int8_t *s = (int8_t *)sptr + t;
-         int32_t *d = dptr[t] + offset;
-         size_t i = num;
-
-         do
-         {
-            *d++ = _mulaw2linear(*s) << 8;
-            s += tracks;
-         }
-         while (--i);
-      }
-   }
-}
-
-void
-_batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
-{
-   if (num)
-   {
-      size_t t;
-      for (t=0; t<tracks; t++)
-      {
-         int8_t *s = (int8_t *)sptr + t;
-         int32_t *d = dptr[t] + offset;
-         size_t i = num;
-
-         do
-         {
-            *d++ = _alaw2linear(*s) << 8;
-            s += tracks;
-         }
-         while (--i);
-      }
-   }
-}
-
 
 /**
  * Write a canonical WAVE file from memory to a file.
@@ -1508,69 +1192,11 @@ _batch_cvt24_alaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, un
  * @param no_tracks number of audio tracks in the buffer
  * @param format audio format
  */
-#include <fcntl.h>		/* SEEK_*, O_* */
+#include <fcntl.h>              /* SEEK_*, O_* */
 void
 _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
                           void *data, size_t no_samples,
                           size_t freq, char no_tracks,
                           enum aaxFormat format)
 {
-   _driver_t *handle;
-   size_t size;
-   int fd, oflag;
-   int res, mode;
-   char *buf;
-
-   mode = AAX_MODE_WRITE_STEREO;
-   handle = _aaxWavSetup(mode, &size, freq, no_tracks, format, no_samples, 0);
-   if (!handle)
-   {
-      printf("Error: Unable to setup the file stream handler.\n");
-      return;
-   }
-
-   oflag = O_CREAT|O_WRONLY|O_BINARY;
-   if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
-   fd = open(file, oflag, 0644);
-   if (fd < 0)
-   {
-      printf("Error: Unable to write to file.\n");
-      return;
-   }
-
-   buf = _aaxWavOpen(handle, NULL, &size, 0);
-
-   res = write(fd, buf, size);
-   if (res == -1) {
-      _AAX_FILEDRVLOG(strerror(errno));
-   }
-
-   if (handle->cvt_from_signed) {
-      handle->cvt_from_signed(data, no_tracks*no_samples);
-   }
-   if (handle->cvt_endianness) {
-      handle->cvt_endianness(data, no_tracks*no_samples);
-   }
-
-   size = no_samples * no_tracks * handle->bits_sample/8;
-   res = write(fd, data, size);
-   if (res >= 0)
-   {
-      size_t offs;
-
-      handle->io.write.no_samples = no_samples * no_tracks;
-      buf = _aaxWavUpdate(handle, &offs, &size, AAX_TRUE);
-      if (buf)
-      {
-         lseek(fd, offs, SEEK_SET);
-         res = write(fd, buf, size);
-      }
-   }
-   else {
-      _AAX_FILEDRVLOG(strerror(errno));
-   }
-
-   close(fd);
-   _aaxWavClose(handle);
 }
-
