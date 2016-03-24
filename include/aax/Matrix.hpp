@@ -204,9 +204,9 @@ public:
         if (_v4) v4[3] = -_v[3];
         return v4;
     }
-    inline T& operator[](unsigned p) {
-        return _v[p];
-    }
+//  inline T& operator[](unsigned p) {
+//      return _v[p];
+//  }
 
 
     operator T*() {
