@@ -677,15 +677,15 @@ public:
 
     // Get a shared buffer from the buffer cache if it's full path is already
     // in the cache. Otherwise create a new one and add it to the cache.
-    Buffer& buffer(std::string path) {
+    Buffer buffer(std::string path) {
         _buffer_it it = _buffer_cache.find(path);
         if (it == _buffer_cache.end()) {
             aaxBuffer b = aaxBufferReadFromStream(_c,path.c_str());
-            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(path,std::make_pair(static_cast<size_t>(0),Buffer(b,false))));
+            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(path,std::make_pair(static_cast<size_t>(0),b)));
             it = ret.first;
         }
        it->second.first++;
-       return it->second.second;
+       return Buffer(it->second.second,false);
     }
     void destroy(Buffer& b) {
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++)
@@ -718,8 +718,8 @@ public:
     }
 
 private:
-    std::map<std::string,std::pair<size_t,Buffer> > _buffer_cache;
-    typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator _buffer_it;
+    std::map<std::string,std::pair<size_t,aaxBuffer> > _buffer_cache;
+    typedef std::map<std::string,std::pair<size_t,aaxBuffer> >::iterator _buffer_it;
 
     std::vector<Mixer*> _mixer;
     std::vector<Sensor*> _sensor;
