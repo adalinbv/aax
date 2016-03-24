@@ -651,6 +651,7 @@ public:
         _mixer.push_back(new Mixer(_c));
         return _mixer.back();
     }
+    inline Frame* frame() { return mixer(); }
     void destroy(Mixer* m) {
         std::vector<Mixer*>::iterator it;
         it = std::remove(_mixer.begin(),_mixer.end(),m);
