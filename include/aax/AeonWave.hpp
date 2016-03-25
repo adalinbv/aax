@@ -189,10 +189,12 @@ private:
 class Emitter
 {
 public:
-    Emitter() : _e(aaxEmitterCreate()) {}
+    Emitter() : _e(aaxEmitterCreate()), _owner(true) {}
+
+    Emitter(aaxEmitter e, bool o) : _e(e), _owner(o) {}
 
     ~Emitter() {
-        aaxEmitterDestroy(_e);
+        if (_owner) aaxEmitterDestroy(_e);
     }
 
     inline bool set(enum aaxModeType t, int m) {
@@ -280,17 +282,18 @@ public:
 
 private:
     aaxEmitter _e;
+    bool _owner;
 };
 
 
 class Sensor
 {
 public:
-    Sensor(aaxConfig c) :
-        _m(AAX_MODE_READ), _c(c),_owner(false) {}
+    Sensor(aaxConfig c, bool o) :
+        _m(AAX_MODE_READ), _c(c), _owner(o) {}
 
     Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(aaxDriverOpenByName(n,m)) { _m=m; _owner=true; }
+        Sensor(aaxDriverOpenByName(n,m),true) { _m=m; }
 
     Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(s.empty() ? 0 : s.c_str(),m) {}
@@ -299,7 +302,7 @@ public:
         Sensor("default",m) {}
 
     ~Sensor() {
-        if (_owner) { aaxDriverDestroy(_c); }
+        if (_owner) aaxDriverDestroy(_c);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -547,8 +550,10 @@ public:
         while (_sensor.size()) {
             aaxDriverDestroy(_sensor.back()); _sensor.pop_back();
         }
+        for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
+             aaxBufferDestroy(it->second.second); _buffer_cache.erase(it);
+        }
     }
-
 
     bool scenery(DSP dsp) {
         return dsp.is_filter() ? aaxScenerySetFilter(_c,dsp)
@@ -588,7 +593,7 @@ public:
     inline const char* device(unsigned d) {
         return aaxDriverGetDeviceNameByPos(_c,d,_m);
     }
-    inline const char* interface(int d, unsigned i) {
+    const char* interface(int d, unsigned i) {
         const char* ed = device(d);
         return aaxDriverGetInterfaceNameByPos(_c,ed,i,_m);
     }
@@ -645,22 +650,18 @@ public:
 
     // ** module management ******
     Mixer mixer() {
-        aaxFrame m = aaxAudioFrameCreate(_c);
-        _mixer.push_back(m);
+        aaxFrame m = aaxAudioFrameCreate(_c); _mixer.push_back(m);
         return Mixer(m,false);
     }
     inline Frame frame() { return mixer(); }
     void destroy(Mixer& m) {
-        std::vector<aaxFrame>::iterator it;
-        it = std::remove(_mixer.begin(),_mixer.end(),m);
-        _mixer.erase(it,_mixer.end());
-        aaxAudioFrameDestroy(*it);
+        _mixer_it it = std::remove(_mixer.begin(),_mixer.end(),m);
+        _mixer.erase(it,_mixer.end()); aaxAudioFrameDestroy(*it);
     }
 
     Sensor sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        aaxConfig c = aaxDriverOpenByName(n,m);
-        _sensor.push_back(c);
-        return Sensor(c);
+        aaxConfig c = aaxDriverOpenByName(n,m); _sensor.push_back(c);
+        return Sensor(c,false);
     }
     Sensor sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         return sensor(s.empty() ? 0 : s.c_str(),m);
@@ -669,10 +670,18 @@ public:
         return sensor(0,m);
     }
     void destroy(Sensor& s) {
-        std::vector<aaxConfig>::iterator it;
-        it = std::remove(_sensor.begin(),_sensor.end(),s);
-        _sensor.erase(it,_sensor.end());
-        aaxDriverDestroy(*it);
+        _sensor_it it = std::remove(_sensor.begin(),_sensor.end(),s);
+        _sensor.erase(it,_sensor.end()); aaxDriverDestroy(*it);
+    }
+
+    Emitter emitter() {
+        aaxEmitter e = aaxEmitterCreate(); _emitter.push_back(e);
+        return Emitter(e,false);
+    }
+
+    void destroy(Emitter& e) {
+        _emitter_it it = std::remove(_emitter.begin(),_emitter.end(),e);
+        _emitter.erase(it,_sensor.end()); aaxEmitterDestroy(*it);
     }
 
     // Get a shared buffer from the buffer cache if it's full path is already
@@ -721,7 +730,15 @@ private:
     typedef std::map<std::string,std::pair<size_t,aaxBuffer> >::iterator _buffer_it;
 
     std::vector<aaxFrame> _mixer;
+    typedef std::vector<aaxFrame>::iterator _mixer_it;
+
     std::vector<aaxConfig> _sensor;
+    typedef std::vector<aaxConfig>::iterator _sensor_it;
+
+    std::vector<aaxEmitter> _emitter;
+    typedef std::vector<aaxEmitter>::iterator _emitter_it;
+
+    // background music stream
     Sensor _play;
 
     // enumeration
