@@ -289,17 +289,16 @@ private:
 class Sensor
 {
 public:
+    Sensor() : _m(AAX_MODE_READ), _c(0), _owner(false) {}
+
     Sensor(aaxConfig c, bool o) :
         _m(AAX_MODE_READ), _c(c), _owner(o) {}
 
     Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(aaxDriverOpenByName(n,m),true) { _m=m; }
+        _m(m), _c(aaxDriverOpenByName(n,m)), _owner(true) {}
 
     Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(s.empty() ? 0 : s.c_str(),m) {}
-
-    Sensor(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor("default",m) {}
+        Sensor(s.empty() ? "default" : s.c_str(),m) {}
 
     ~Sensor() {
         if (_owner) aaxDriverDestroy(_c);
@@ -402,6 +401,11 @@ public:
     // ** support ******
     inline const char* version() {
         return aaxGetVersionString(_c);
+    }
+
+    Sensor& operator=(Sensor s) {
+        _c = s;
+        return *this;
     }
 
     operator void*() const {
@@ -708,8 +712,7 @@ public:
 
     // ** backgrpund music ******
     bool play(std::string f) {
-        f = "AeonWave on Audio Files: "+f;
-        if ((_play = Sensor(f, AAX_MODE_READ)) == false) return false;
+        f = "AeonWave on Audio Files: "+f; _play = Sensor(f, AAX_MODE_READ);
         return add(_play) ? (_play.set(AAX_INITIALIZED) ? _play.sensor(AAX_CAPTURING) : false) : false;
     }
 
