@@ -164,7 +164,7 @@ int main(int argc, char **argv)
         float dhour, hour, minutes, seconds;
         float duration, freq;
         unsigned int max_samples;
-        AAX::Mixer* frame = 0;
+        AAX::Mixer frame;
         aaxEffect effect;
         aaxFilter filter;
         char tstr[80];
@@ -196,11 +196,11 @@ int main(int argc, char **argv)
             res = config.add(frame);
             testForState(res, "aaxMixerRegisterAudioFrame");
 
-            res = frame->set(AAX_PLAYING);
+            res = frame.set(AAX_PLAYING);
             testForState(res, "aaxAudioFrameSetState");
 
             /** sensor */
-            res = frame->add(record);
+            res = frame.add(record);
             testForState(res, "aaxAudioFrameRegisterSensor");
         }
         else
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 
         if (frame)
         {
-            res = frame->set(AAX_STOPPED);
+            res = frame.set(AAX_STOPPED);
             testForState(res, "aaxAudioFrameSetState");
         }
 
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
 
         if (frame)
         {
-            res = frame->remove(record);
+            res = frame.remove(record);
             testForState(res, "aaxAudioFrameDeregisterSensor");
 
             res = config.remove(frame);
