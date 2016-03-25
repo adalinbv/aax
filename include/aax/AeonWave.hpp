@@ -49,10 +49,10 @@ namespace AAX
 class Buffer
 {
 public:
-    Buffer(aaxBuffer b, bool o=true) : _b(b), _owner(o) {}
+    Buffer(aaxBuffer b, bool o) : _b(b), _owner(o) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
-        _b(aaxBufferCreate(c,n,t,f)), _owner(true) {}
+        Buffer(aaxBufferCreate(c,n,t,f),true) {}
 
     ~Buffer() {
         if (_owner) aaxBufferDestroy(_b);
@@ -299,7 +299,7 @@ public:
         Sensor("default",m) {}
 
     ~Sensor() {
-        if (_owner) { aaxDriverClose(_c); aaxDriverDestroy(_c); }
+        if (_owner) { aaxDriverDestroy(_c); }
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -390,7 +390,7 @@ public:
         return aaxSensorWaitForBuffer(_c,t);
     }
     inline Buffer buffer() {
-        return Buffer(aaxSensorGetBuffer(_c));
+        return Buffer(aaxSensorGetBuffer(_c),true);
     }
     inline unsigned long offset(enum aaxType t) {
         return aaxSensorGetOffset(_c,t);
@@ -419,10 +419,14 @@ protected:
 class Mixer
 {
 public:
-    Mixer(aaxConfig c) : _f(aaxAudioFrameCreate(c)) {}
+    Mixer() : _f(0), _owner(false) {}
+
+    Mixer(aaxConfig c) : _f(aaxAudioFrameCreate(c)), _owner(true) {}
+
+    Mixer(aaxFrame f, bool o) : _f(f), _owner(o) {}
 
     ~Mixer() {
-        aaxAudioFrameDestroy(_f);
+        if (_owner) aaxAudioFrameDestroy(_f);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -458,13 +462,11 @@ public:
     }
 
     // ** sub-mixing ******
-    bool add(Mixer* m) {
-        const aaxFrame f = m ? m : 0;
-        return aaxAudioFrameRegisterAudioFrame(_f,f);
+    bool add(Mixer& m) {
+        return aaxAudioFrameRegisterAudioFrame(_f,m);
     }
-    bool remove(Mixer* m) {
-        const aaxFrame f = m ? m : 0;
-        return aaxAudioFrameDeregisterAudioFrame(_f,f);
+    bool remove(Mixer& m) {
+        return aaxAudioFrameDeregisterAudioFrame(_f,m);
     }
     bool add(Sensor& s) {
         return aaxAudioFrameRegisterSensor(_f,s);
@@ -475,15 +477,7 @@ public:
     bool add(Emitter& e) {
         return aaxAudioFrameRegisterEmitter(_f,e);
     }
-    bool add(Emitter* h) {
-        const aaxEmitter e = h ? h : 0;
-        return aaxAudioFrameRegisterEmitter(_f,e);
-    }
     bool remove(Emitter& e) {
-        return aaxAudioFrameDeregisterEmitter(_f,e);
-    }
-    bool remove(Emitter* h) {
-        const aaxEmitter e = h ? h : 0;
         return aaxAudioFrameDeregisterEmitter(_f,e);
     }
 
@@ -515,7 +509,7 @@ public:
         return aaxAudioFrameWaitForBuffer(_f,t);
     }
     inline Buffer buffer() {
-        return Buffer(aaxAudioFrameGetBuffer(_f));
+        return Buffer(aaxAudioFrameGetBuffer(_f),true);
     }
 
     // ** support ******
@@ -529,6 +523,7 @@ public:
 
 private:
     aaxFrame _f;
+    bool _owner;
 };
 typedef Mixer Frame;
 
@@ -542,11 +537,16 @@ public:
     AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         AeonWave(s.empty() ? 0 : s.c_str(),m) {}
 
-    AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : AeonWave(0,m) {}
+    AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+        AeonWave("default",m) {}
 
     ~AeonWave() {
-        while (_mixer.size()) destroy(_mixer[0]);
-        while (_sensor.size()) { aaxDriverClose(_sensor[0]); aaxDriverDestroy(_sensor[0]); }
+        while (_mixer.size()) {
+            aaxAudioFrameDestroy(_mixer.back()); _mixer.pop_back();
+        }
+        while (_sensor.size()) {
+            aaxDriverDestroy(_sensor.back()); _sensor.pop_back();
+        }
     }
 
 
@@ -563,7 +563,7 @@ public:
 
     // ** enumeration ******
     const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        aaxDriverClose(_ec); aaxDriverDestroy(_ec);
+        aaxDriverDestroy(_ec);
         _em = m; _ec = 0; _e[1] = 0; _e[2] = 0;
         if (_e[0] < aaxDriverGetCount(_em)) {
             _ec = aaxDriverGetByPos(_e[0]++,_em);
@@ -624,11 +624,11 @@ public:
     }
 
     // ** mixing ******
-    inline bool add(Mixer* m) {
-        return aaxMixerRegisterAudioFrame(_c,*m);
+    inline bool add(Mixer& m) {
+        return aaxMixerRegisterAudioFrame(_c,m);
     }
-    inline bool remove(Mixer* m) {
-        return aaxMixerDeregisterAudioFrame(_c,*m);
+    inline bool remove(Mixer& m) {
+        return aaxMixerDeregisterAudioFrame(_c,m);
     }
     inline bool add(Sensor& s) {
         return aaxMixerRegisterSensor(_c,s);
@@ -639,31 +639,26 @@ public:
     inline bool add(Emitter& e) {
         return aaxMixerRegisterEmitter(_c,e);
     }
-    inline bool add(Emitter* e) {
-        return aaxMixerRegisterEmitter(_c,e);
-    }
     inline bool remove(Emitter& e) {
-        return aaxMixerDeregisterEmitter(_c,e);
-    }
-    inline bool remove(Emitter* e) {
         return aaxMixerDeregisterEmitter(_c,e);
     }
 
     // ** module management ******
-    Mixer* mixer() {
-        _mixer.push_back(new Mixer(_c));
-        return _mixer.back();
+    Mixer mixer() {
+        aaxFrame m = aaxAudioFrameCreate(_c);
+        _mixer.push_back(m);
+        return Mixer(m,false);
     }
-    inline Frame* frame() { return mixer(); }
-    void destroy(Mixer* m) {
-        std::vector<Mixer*>::iterator it;
+    inline Frame frame() { return mixer(); }
+    void destroy(Mixer& m) {
+        std::vector<aaxFrame>::iterator it;
         it = std::remove(_mixer.begin(),_mixer.end(),m);
         _mixer.erase(it,_mixer.end());
-        delete (*it);
+        aaxAudioFrameDestroy(*it);
     }
 
     Sensor sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        aaxConfig c=aaxDriverOpenByName(n,m);
+        aaxConfig c = aaxDriverOpenByName(n,m);
         _sensor.push_back(c);
         return Sensor(c);
     }
@@ -673,9 +668,9 @@ public:
     Sensor sensor(enum aaxRenderMode m) {
         return sensor(0,m);
     }
-    void destroy(Sensor& m) {
+    void destroy(Sensor& s) {
         std::vector<aaxConfig>::iterator it;
-        it = std::remove(_sensor.begin(),_sensor.end(),m);
+        it = std::remove(_sensor.begin(),_sensor.end(),s);
         _sensor.erase(it,_sensor.end());
         aaxDriverDestroy(*it);
     }
@@ -725,7 +720,7 @@ private:
     std::map<std::string,std::pair<size_t,aaxBuffer> > _buffer_cache;
     typedef std::map<std::string,std::pair<size_t,aaxBuffer> >::iterator _buffer_it;
 
-    std::vector<Mixer*> _mixer;
+    std::vector<aaxFrame> _mixer;
     std::vector<aaxConfig> _sensor;
     Sensor _play;
 
