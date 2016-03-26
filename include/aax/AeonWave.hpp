@@ -82,8 +82,13 @@ public:
     }
 
     // ** support ******
+    bool operator=(bool o) {
+       bool r = _owner; _owner = o;
+       return r;
+    }
+
     Buffer& operator=(aaxBuffer& b) {
-        _b = b; b = 0; _owner = true;
+        _owner = b = false; _b = b;
         return *this;
     }
 
@@ -403,8 +408,13 @@ public:
         return aaxGetVersionString(_c);
     }
 
+    bool operator=(bool o) {
+        bool r = _owner; _owner = o;
+        return r;
+    }
+
     Sensor& operator=(Sensor s) {
-        _c = s;
+        _owner = s = false; _c = s;
         return *this;
     }
 
@@ -659,7 +669,7 @@ public:
     }
     inline Frame frame() { return mixer(); }
     void destroy(Mixer& m) {
-        _mixer_it it = std::remove(_mixer.begin(),_mixer.end(),m);
+        _void_it it = std::remove(_mixer.begin(),_mixer.end(),m);
         _mixer.erase(it,_mixer.end()); aaxAudioFrameDestroy(*it);
     }
 
@@ -674,7 +684,7 @@ public:
         return sensor(0,m);
     }
     void destroy(Sensor& s) {
-        _sensor_it it = std::remove(_sensor.begin(),_sensor.end(),s);
+        _void_it it = std::remove(_sensor.begin(),_sensor.end(),s);
         _sensor.erase(it,_sensor.end()); aaxDriverDestroy(*it);
     }
 
@@ -684,7 +694,7 @@ public:
     }
 
     void destroy(Emitter& e) {
-        _emitter_it it = std::remove(_emitter.begin(),_emitter.end(),e);
+        _void_it it = std::remove(_emitter.begin(),_emitter.end(),e);
         _emitter.erase(it,_sensor.end()); aaxEmitterDestroy(*it);
     }
 
@@ -733,13 +743,9 @@ private:
     typedef std::map<std::string,std::pair<size_t,aaxBuffer> >::iterator _buffer_it;
 
     std::vector<aaxFrame> _mixer;
-    typedef std::vector<aaxFrame>::iterator _mixer_it;
-
     std::vector<aaxConfig> _sensor;
-    typedef std::vector<aaxConfig>::iterator _sensor_it;
-
     std::vector<aaxEmitter> _emitter;
-    typedef std::vector<aaxEmitter>::iterator _emitter_it;
+    typedef std::vector<void*>::iterator _void_it;
 
     // background music stream
     Sensor _play;
