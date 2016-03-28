@@ -558,12 +558,6 @@ public:
         AeonWave("default",m) {}
 
     ~AeonWave() {
-        while (_mixer.size()) {
-            aaxAudioFrameDestroy(_mixer.back()); _mixer.pop_back();
-        }
-        while (_sensor.size()) {
-            aaxDriverDestroy(_sensor.back()); _sensor.pop_back();
-        }
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
              aaxBufferDestroy(it->second.second); _buffer_cache.erase(it);
         }
@@ -662,42 +656,7 @@ public:
         return aaxMixerDeregisterEmitter(_c,e);
     }
 
-    // ** module management ******
-    Mixer mixer() {
-        aaxFrame m = aaxAudioFrameCreate(_c); _mixer.push_back(m);
-        return Mixer(m,false);
-    }
-    inline Frame frame() { return mixer(); }
-    void destroy(Mixer& m) {
-        _void_it it = std::remove(_mixer.begin(),_mixer.end(),m);
-        _mixer.erase(it,_mixer.end()); aaxAudioFrameDestroy(*it);
-    }
-
-    Sensor sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        aaxConfig c = aaxDriverOpenByName(n,m); _sensor.push_back(c);
-        return Sensor(c,false);
-    }
-    Sensor sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        return sensor(s.empty() ? 0 : s.c_str(),m);
-    }
-    Sensor sensor(enum aaxRenderMode m) {
-        return sensor(0,m);
-    }
-    void destroy(Sensor& s) {
-        _void_it it = std::remove(_sensor.begin(),_sensor.end(),s);
-        _sensor.erase(it,_sensor.end()); aaxDriverDestroy(*it);
-    }
-
-    Emitter emitter() {
-        aaxEmitter e = aaxEmitterCreate(); _emitter.push_back(e);
-        return Emitter(e,false);
-    }
-
-    void destroy(Emitter& e) {
-        _void_it it = std::remove(_emitter.begin(),_emitter.end(),e);
-        _emitter.erase(it,_sensor.end()); aaxEmitterDestroy(*it);
-    }
-
+    // ** buffer management ******
     // Get a shared buffer from the buffer cache if it's full path is already
     // in the cache. Otherwise create a new one and add it to the cache.
     Buffer buffer(std::string path) {
@@ -741,11 +700,6 @@ public:
 private:
     std::map<std::string,std::pair<size_t,aaxBuffer> > _buffer_cache;
     typedef std::map<std::string,std::pair<size_t,aaxBuffer> >::iterator _buffer_it;
-
-    std::vector<aaxFrame> _mixer;
-    std::vector<aaxConfig> _sensor;
-    std::vector<aaxEmitter> _emitter;
-    typedef std::vector<void*>::iterator _void_it;
 
     // background music stream
     Sensor _play;
