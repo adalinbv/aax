@@ -28,7 +28,7 @@
 #define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 #define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
 
-static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, char_ptr, size_t, unsigned int, size_t*);
+static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, const_char_ptr, size_t, unsigned int, size_t*);
 static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
@@ -238,7 +238,7 @@ _pcm_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t nu
 }
 
 size_t
-_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr buf, size_t pos, unsigned int tracks, size_t *num)
+_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t rv = *num;
@@ -246,7 +246,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr bu
    if (handle->format == AAX_IMA4_ADPCM)
    {
       if (pos >= handle->blocksize) {
-         rv = _batch_cvt24_adpcm_intl(fmt, dptr, buf, dptr_offs, tracks, num);
+         rv = _batch_cvt24_adpcm_intl(fmt, dptr, sptr, dptr_offs, tracks, num);
       }
       else {
          *num = rv = 0;
@@ -255,7 +255,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr bu
    else
    {
       if (handle->cvt_from_intl) {
-         handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, rv);
+         handle->cvt_from_intl(dptr, sptr, dptr_offs, tracks, rv);
       }
    }
 
@@ -263,10 +263,16 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr bu
 }
 
 size_t
-_pcm_copy(_fmt_t *fmt, int32_ptr dptr, const_void_ptr sptr, size_t offset, size_t bytes)
+_pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
 {
-   memcpy((char*)dptr+offset, sptr, bytes);
-   return bytes;
+   _driver_t *handle = fmt->id;
+   size_t bytes, rv = *num;
+
+   dptr_offs *= handle->blocksize;
+   bytes = rv*handle->blocksize;
+   memcpy((char*)dptr+dptr_offs, sptr, bytes);
+
+   return rv;
 }
 
 off_t
@@ -291,7 +297,7 @@ _pcm_set(_fmt_t *fmt, int ptype, off_t param)
 /* -------------------------------------------------------------------------- */
 
 static size_t
-_aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
+_aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
 
 {
    size_t offs_smp, rv = 0;
@@ -386,7 +392,7 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, char_ptr src, size_
 }
 
 static size_t
-_batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, char_ptr src, size_t offs, unsigned int tracks, size_t *n)
+_batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size_t offs, unsigned int tracks, size_t *n)
 {
    _driver_t *handle = fmt->id;
    size_t num = *n;
