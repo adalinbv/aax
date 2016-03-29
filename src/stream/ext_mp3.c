@@ -126,7 +126,7 @@ size_t
 _mp3_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->copy(handle->fmt, dptr, NULL, offs, num);
+   return handle->fmt->copy(handle->fmt, dptr, offs, NULL, 0, 0, &num);
 }
 
 size_t

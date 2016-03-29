@@ -421,7 +421,7 @@ _mpg123_close(_fmt_t *fmt)
 }
 
 size_t
-_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, const_void_ptr sptr, size_t offset, size_t num)
+_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int channels, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
@@ -432,7 +432,7 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, const_void_ptr sptr, size_t offset, si
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   bytes = num*tracks*bits/8;
+   bytes = *num*tracks*bits/8;
 
    buf = (char*)handle->mp3Buffer;
    bufsize = handle->mp3BufSize;
@@ -446,9 +446,12 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, const_void_ptr sptr, size_t offset, si
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      rv = size*8/(tracks*bits);
-      bytes = num*tracks*bits/8;
-      memcpy((char*)dptr+offset*tracks*bits/8, buf, size);
+      unsigned int blocksize = tracks*bits/8;
+      rv = size/blocksize;
+
+      dptr_offs *= blocksize;
+      bytes = *num*blocksize;
+      memcpy((char*)dptr+dptr_offs, buf, size);
    }
    return rv;
 }
@@ -476,7 +479,7 @@ _mpg123_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t
 }
 
 size_t
-_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
+_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, const_char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, size = 0;
