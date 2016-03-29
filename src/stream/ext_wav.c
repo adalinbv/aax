@@ -1193,10 +1193,64 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
  * @param format audio format
  */
 #include <fcntl.h>              /* SEEK_*, O_* */
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
 void
 _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
                           void *data, size_t no_samples,
                           size_t freq, char no_tracks,
                           enum aaxFormat format)
 {
+   _ext_t* ext;
+   size_t size;
+   int fd, oflag;
+   int res, mode;
+   char *buf;
+
+   mode = AAX_MODE_WRITE_STEREO;
+   ext = _ext_create(_EXT_WAV);
+   res = _wav_setup(ext, mode, &size, freq, no_tracks, format, no_samples, 0);
+   if (!res)
+   {
+      printf("Error: Unable to setup the file stream handler.\n");
+      return;
+   }
+
+   oflag = O_CREAT|O_WRONLY|O_BINARY;
+   if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
+   fd = open(file, oflag, 0644);
+   if (fd < 0)
+   {
+      printf("Error: Unable to write to file.\n");
+      return;
+   }
+
+   buf = _wav_open(ext, NULL, &size, 0);
+
+   res = write(fd, buf, size);
+   if (res == -1) {
+      _AAX_FILEDRVLOG(strerror(errno));
+   }
+
+   size = no_samples * ext->get_param(ext, __F_BLOCK);
+   res = write(fd, data, size);
+   if (res >= 0)
+   {
+      size_t offs;
+
+      buf = _wav_update(ext, &offs, &size, AAX_TRUE);
+      if (buf)
+      {
+         lseek(fd, offs, SEEK_SET);
+         res = write(fd, buf, size);
+      }
+   }
+   else {
+      _AAX_FILEDRVLOG(strerror(errno));
+   }
+
+   close(fd);
+   _wav_close(ext);
+   _ext_free(ext);
 }
