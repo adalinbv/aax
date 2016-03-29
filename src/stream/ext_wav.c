@@ -447,47 +447,53 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t num)
+_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t num)
 {
    _driver_t *handle = ext->id;
+   char *src = (char*)handle->wavBuffer;
+   unsigned int tracks, bits;
+   size_t pos, size, bytes;
    size_t rv = __F_EOF;
-   size_t bufsize, bytes;
-   unsigned int tracks;
-   char *buf;
-   int bits;
-
-   tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   buf = (char*)handle->wavBuffer;
 
    if (handle->no_samples < num) {
       num = handle->no_samples;
    }
 
-   bufsize = handle->io.read.wavBufPos*8/(tracks*bits);
-   if (num > bufsize) {
-      num = bufsize;
+   bits = handle->bits_sample;
+   tracks = handle->no_tracks;
+   pos = handle->io.read.wavBufPos;
+   size = pos*8/(tracks*bits);
+   if (num > size) {
+      num = size;
    }
 
-   offs = offs*tracks*bits/8;
-   bytes = num*tracks*bits/8;
+   bytes = handle->fmt->copy(handle->fmt, dptr, offset, src, pos,
+                                                   tracks, &num);
+   if (handle->wav_format == MP3_WAVE_FILE) {
+      return bytes;
+   }
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
+      rv = num;
+      num /= tracks;
+   }
+   else
+   {
+      bytes = num*tracks*bits/8;
+      rv = num;
+   }
 
-   bytes = handle->fmt->copy(handle->fmt, dptr, buf, offs, bytes);
-   num = bytes*8/(tracks*bits);
-   rv = num;
-
-   if (bytes > 0) 
+   if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
    {
       handle->io.read.wavBufPos -= bytes;
-      memmove(buf, buf+bytes, handle->io.read.wavBufPos);
+      memmove(src, src+bytes, handle->io.read.wavBufPos);
    }
 
    if (handle->no_samples >= num) {
       handle->no_samples -= num;
    } else {
-      handle->no_samples = 0; 
+      handle->no_samples = 0;
    }
-
    return rv;
 }
 

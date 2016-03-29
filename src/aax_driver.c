@@ -417,7 +417,6 @@ aaxDriverOpen(aaxConfig config)
 
    if (!handle || !handle->backend.handle)
    {
-      aaxDriverClose(handle);
       aaxDriverDestroy(handle);
       handle = NULL;
 
