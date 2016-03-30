@@ -650,6 +650,7 @@ _wav_get(_ext_t *ext, int type)
    {
    case __F_FMT:
       rv = handle->format;
+      if (rv == AAX_PCM8U) rv = AAX_PCM8S;
       break;
    case __F_TRACKS:
       rv = handle->no_tracks;
