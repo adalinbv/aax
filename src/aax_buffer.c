@@ -610,7 +610,6 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
             {
                void **dst = (void **)ptr;
                ssize_t res, offset = 0;
-               size_t packets = 512;
 
                dst[0] = ptr2;
                ptr2 += datasize;
@@ -620,6 +619,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                // in batched capturing mode
                do
                {
+                  size_t packets = 512;
                   ssize_t offs = offset;
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);

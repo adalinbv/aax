@@ -204,7 +204,7 @@ ELSE(MSVC)
 
     IF(NOT MINGW)
        IF (GCC)
-         SET(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both")
+         SET(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both -Wpointer-arith")
        ENDIF(GCC)
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
