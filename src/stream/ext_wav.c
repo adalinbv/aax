@@ -301,7 +301,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             avail = _MIN(size, avail);
             if (!avail) return NULL;
 
-            memcpy((void*)handle->wavBuffer+handle->io.read.wavBufPos,
+            memcpy((char*)handle->wavBuffer+handle->io.read.wavBufPos,
                    buf, avail);
             handle->io.read.wavBufPos += avail;
             size -= avail;
@@ -314,21 +314,23 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             {
                while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
                {
-                  memmove(handle->wavBuffer,
-                          (void*)handle->wavBuffer+step,
-                          handle->io.read.wavBufPos-step);
                   handle->io.read.wavBufPos -= step;
+                  memmove(handle->wavBuffer, (char*)handle->wavBuffer+step,
+                          handle->io.read.wavBufPos);
                   if (res <= 0) break;
                }
 
-               if (size)        // There's still some data left
+               // The size of 'buf' may have been larger than the size of
+               // handle->wavBuffer and there's still some data left.
+               // Copy the next chunk and process it.
+               if (size)
                {
                   avail = handle->wavBufSize-handle->io.read.wavBufPos;
                   if (!avail) break;
 
                   avail = _MIN(size, avail);
 
-                  memcpy((void*)handle->wavBuffer+handle->io.read.wavBufPos,
+                  memcpy((char*)handle->wavBuffer+handle->io.read.wavBufPos,
                          buf, avail);
                   handle->io.read.wavBufPos += avail;
                   size -= avail;
@@ -503,13 +505,14 @@ _wav_process(_ext_t *ext, void_ptr sptr, size_t num)
    _driver_t *handle = ext->id;
    char *dptr = (char*)handle->wavBuffer;
    unsigned int tracks = handle->no_tracks;
-   int bits = handle->bits_sample;
+   unsigned int bits = handle->bits_sample;
+   unsigned int blocksize = tracks*bits/8;
    size_t offset, size, bytes;
 
    offset = handle->io.read.wavBufPos;
    size = handle->wavBufSize - offset;
-   bytes = _MIN(num*tracks*bits/8, size);
-// num = bytes*8/(tracks*bits);
+   bytes = _MIN(num*blocksize, size);
+// num = bytes/blocksize;
 
    bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
    handle->io.read.wavBufPos += bytes;
