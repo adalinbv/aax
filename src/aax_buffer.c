@@ -39,9 +39,9 @@ static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static void _bufFillInterleaved(_aaxRingBuffer*, const void*, unsigned);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
-static void _bufConvertMSADPCMToIMA4(void*, size_t, int, size_t*);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
+static void _bufConvertMSADPCMToIMA4(void*, size_t, int, size_t*);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -570,14 +570,14 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
    if (stream)
    {
-      static const char *xcfg = "<?xml?><c><_ctb8>1</_ctb8></c>";
+      static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
       void *id = stream->new_handle(AAX_MODE_READ);
       void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
-      void *xcid = xmlNodeGet(xid, "c");
 
-      // xcid makes the stream return sound data in file format when capturing
-      id = stream->connect(id, xcid, url, AAX_MODE_READ);
+      // xid makes the stream return sound data in file format when capturing
+      id = stream->connect(id, xid, url, AAX_MODE_READ);
       xmlClose(xid);
+
       if (id)
       {
          _aaxMixerInfo* info = handle->info;
@@ -623,7 +623,9 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                   ssize_t offs = offset;
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);
-                  offset += res/blocksize;
+                  if (res > 0) {
+                     offset += res*8/(bits*tracks);
+                  }
                }
                while (res);
 
@@ -637,6 +639,9 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                    aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
                    aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
                    aaxBufferSetData(rv, dst[0]);
+#if 1
+_aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, dst[0], no_samples, freq, tracks, fmt);
+#endif
                }
                free(ptr);
             }

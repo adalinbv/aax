@@ -257,11 +257,7 @@ _buffer_t* get_buffer(aaxBuffer);
 int free_buffer(_buffer_t*);
 
 
-#if 1
 int _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, unsigned int, unsigned int, char, enum aaxFormat);
-#else
-int _aaxFileDriverWrite(const char*, enum aaxProcessingType, const int32_t**, unsigned int, unsigned int, char, enum aaxFormat);
-#endif
 
 /* --- Emitter --- */
 #define EMITTER_ID	0x17F533AA
