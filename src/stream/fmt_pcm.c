@@ -247,8 +247,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, const_char_
    {
       if (pos >= handle->blocksize) {
          rv = _batch_cvt24_adpcm_intl(fmt, dptr, sptr, dptr_offs, tracks, num);
-      }
-      else {
+      } else {
          *num = rv = 0;
       }
    }
@@ -266,11 +265,27 @@ size_t
 _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, rv = *num;
+   size_t blocksize, bytes, rv = *num;
+   char *dst = (char*)dptr;
 
-   dptr_offs *= handle->blocksize;
-   bytes = rv*handle->blocksize;
-   memcpy((char*)dptr+dptr_offs, sptr, bytes);
+   blocksize = handle->blocksize;
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
+      if (pos >= handle->blocksize)
+      {
+         rv = bytes = blocksize;
+         memcpy(dst+dptr_offs, sptr, bytes);
+      }
+      else {
+         *num = rv = 0;
+      }
+   }
+   else
+   {
+      dptr_offs *= blocksize;
+      bytes = rv*blocksize;
+      memcpy(dst+dptr_offs, sptr, bytes);
+   }
 
    return rv;
 }
