@@ -35,7 +35,7 @@
 
 #include <ostream>
 
-#include <aax/AeonWave.hpp>
+#include <aax/AeonWave>
 
 #define LOG(a,b,c) \
     if (((a)==(b))==(c)) printf((c)?"M1 == M2, great\n":"M1 != M2, great\n"); \

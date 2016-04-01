@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/AeonWave.hpp>
+#include <aax/AeonWave>
 
 #include "base/types.h"
 #include "driver.h"
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
     if (config && (rv >= 0))
     {
-        AAX::Buffer buffer = bufferFromFile(config, infile);
+        AAX::Buffer buffer = config.buffer(infile);
         if (buffer)
         {
             float dt = 0.0f;
@@ -86,19 +86,19 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerInit");
 
             /** AudioFrame */
-            AAX::Mixer *frame = config.mixer();
-            testForError(frame, "aaxAudioFrameCreate");
+            AAX::Mixer mixer(config);
+            testForError(mixer, "aaxAudioFrameCreate");
 
-            /* register the audio-frame at the mixer */
-            res = config.add(frame);
+            /* register the audio-mixer at the mixer */
+            res = config.add(mixer);
             testForState(res, "aaxMixerRegisterAudioFrame");
 
             /* schedule the mixer for playback */
             res = config.set(AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
-            /* schedule the audio-frame for playback */
-            res = frame->set(AAX_PLAYING);
+            /* schedule the audio-mixer for playback */
+            res = mixer.set(AAX_PLAYING);
             testForState(res, "aaxAudioFrameStart");
 
             /* equalizer */
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
             res = dsp.set(AAX_TRUE);
             testForState(res, "aaxFilterSetState");
 
-            res = frame->set(dsp);
+            res = mixer.set(dsp);
             testForState(res, "aaxMixerSetFilter");
 #endif
 
@@ -143,8 +143,8 @@ int main(int argc, char **argv)
             res = emitter.set(AAX_PLAYING);
             testForState(res, "aaxEmitterStart");
 
-            /* register the emitter at the audio-frame */
-            res = frame->add(emitter);
+            /* register the emitter at the audio-mixer */
+            res = mixer.add(emitter);
             testForState(res, "aaxAudioFrameRegisterEmitter");
 
 #if ENABLE_EMITTER_PHASING
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 #endif
 
 #if ENABLE_FRAME_FREQFILTER
-            /* audio-frame frequency dsp */
+            /* audio-mixer frequency dsp */
             dsp = config.get(AAX_FREQUENCY_FILTER);
             testForError(dsp, "aaxFilterCreate");
 # if ENABLE_STATIC_FREQFILTER
@@ -203,13 +203,13 @@ int main(int argc, char **argv)
             res = dsp.set(AAX_INVERSE_ENVELOPE_FOLLOW);
             testForState(res, "aaxFilterSetState");
 # endif
-            res = frame->set(dsp);
+            res = mixer.set(dsp);
             testForState(res, "aaxAudioFrameSetFilter");
 #endif
 
 #if ENABLE_EMITTER_DISTORTION
-            /* audio-frame distortion dsp */
-            printf("audio-frame distortion\n");
+            /* audio-mixer distortion dsp */
+            printf("audio-mixer distortion\n");
             dsp = config.get(AAX_DISTORTION_EFFECT);
             testForError(dsp, "aaxEffectCreate");
 
@@ -219,21 +219,21 @@ int main(int argc, char **argv)
             res = dsp.set(AAX_TRUE);
             testForState(res, "aaxEffectSetState");
 
-            res = frame->set(dsp);
+            res = mixer.set(dsp);
             testForState(res, "aaxAudioFrameSetEffect");
 #endif
 
 # if ENABLE_FRAME_CHORUS
-            /* audio-frame delay dsp */
-            printf("audio-frame delay dsp\n");
-            dsp = frame->get(AAX_CHORUS_EFFECT);
+            /* audio-mixer delay dsp */
+            printf("audio-mixer delay dsp\n");
+            dsp = mixer.get(AAX_CHORUS_EFFECT);
             dsp.set(0, 0.5f, 0.1f, 0.08f, 0.15f);
             dsp.set(AAX_INVERSE_ENVELOPE_FOLLOW);
-            frame->set(dsp);
+            mixer.set(dsp);
 #endif
 
 #if ENABLE_FRAME_DYNAMIC_PITCH
-            /* dynamic pitch dsp for the audio-frame*/
+            /* dynamic pitch dsp for the audio-mixer*/
             dsp = config.get(AAX_DYNAMIC_PITCH_EFFECT);
             testForError(dsp, "aaxEffectCreate");
 
@@ -243,12 +243,12 @@ int main(int argc, char **argv)
             res = dsp.set(AAX_ENVELOPE_FOLLOW);
             testForState(res, "aaxEffectSetState");
 
-            res = frame->set(dsp);
+            res = mixer.set(dsp);
             testForState(res, "aaxAudioFrameSetEffect");
 #endif
 
 #if ENABLE_FRAME_DYNAMIC_GAIN
-            /* dynamic gain dsp for audio-frame (compressor) */
+            /* dynamic gain dsp for audio-mixer (compressor) */
             dsp = config.get(AAX_DYNAMIC_GAIN_FILTER);
             testForError(dsp, "aaxFilterCreate");
 
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
             res = dsp.set(AAX_ENVELOPE_FOLLOW);
             testForState(res, "aaxFilterSetState");
 
-            res = frame->set(dsp);
+            res = mixer.set(dsp);
             testForState(res, "aaxAudioFrameSetFilter");
 #endif
 
@@ -296,11 +296,10 @@ int main(int argc, char **argv)
             }
             while (state == AAX_PLAYING);
 
-            res = frame->set(AAX_STOPPED);
-            res = frame->remove(emitter);
-            res = config.remove(frame);
+            res = mixer.set(AAX_STOPPED);
+            res = mixer.remove(emitter);
+            res = config.remove(mixer);
             res = config.set(AAX_STOPPED);
-            config.destroy(frame);
         }
     }
 
