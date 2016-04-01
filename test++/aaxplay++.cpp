@@ -36,7 +36,7 @@
 #include <math.h>
 #include <iostream>
 
-#include <aax/AeonWave.hpp>
+#include <aax/AeonWave>
 
 #include <driver.h>
 
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        record = config.sensor(idevname, AAX_MODE_READ);
+        record = AAX::Sensor(idevname, AAX_MODE_READ);
         if (!record)
         {
             std::cout << "File not found: " << infile << std::endl;
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     if (outfile)
     {
         snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
-        file = config.sensor(obuf);
+        file = AAX::Sensor(obuf);
     }
 
     if (config && record && (rv >= 0))
@@ -159,12 +159,12 @@ int main(int argc, char **argv)
         char batch = getCommandLineOption(argc, argv, "-b") ||
                      getCommandLineOption(argc, argv, "--batch");
         char fparam = getCommandLineOption(argc, argv, "-f") ||
-                      getCommandLineOption(argc, argv, "-frame");
+                      getCommandLineOption(argc, argv, "-mixer");
         float pitch = getPitch(argc, argv);
         float dhour, hour, minutes, seconds;
         float duration, freq;
         unsigned int max_samples;
-        AAX::Mixer* frame = 0;
+        AAX::Mixer mixer;
         aaxEffect effect;
         aaxFilter filter;
         char tstr[80];
@@ -186,21 +186,21 @@ int main(int argc, char **argv)
 
         if (fparam)
         {
-            std::cout << "  using audio-frames" << std::endl;
+            std::cout << "  using audio-mixers" << std::endl;
 
-            /** audio frame */
-            frame = config.mixer();
-            testForError(frame, "Unable to create a new audio frame");   
+            /** audio mixer */
+            mixer = AAX::Mixer(config);
+            testForError(mixer, "Unable to create a new audio mixer");   
 
-            /** register audio frame */
-            res = config.add(frame);
+            /** register audio mixer */
+            res = config.add(mixer);
             testForState(res, "aaxMixerRegisterAudioFrame");
 
-            res = frame->set(AAX_PLAYING);
+            res = mixer.set(AAX_PLAYING);
             testForState(res, "aaxAudioFrameSetState");
 
             /** sensor */
-            res = frame->add(record);
+            res = mixer.add(record);
             testForState(res, "aaxAudioFrameRegisterSensor");
         }
         else
@@ -353,21 +353,21 @@ int main(int argc, char **argv)
         res = config.set(AAX_STOPPED);
         testForState(res, "aaxMixerSetState");
 
-        if (frame)
+        if (mixer)
         {
-            res = frame->set(AAX_STOPPED);
+            res = mixer.set(AAX_STOPPED);
             testForState(res, "aaxAudioFrameSetState");
         }
 
         res = record.set(AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
 
-        if (frame)
+        if (mixer)
         {
-            res = frame->remove(record);
+            res = mixer.remove(record);
             testForState(res, "aaxAudioFrameDeregisterSensor");
 
-            res = config.remove(frame);
+            res = config.remove(mixer);
             testForState(res, "aaxMixerDeregisterAudioFrame");
         }
         else

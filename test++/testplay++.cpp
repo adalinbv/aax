@@ -37,7 +37,7 @@
 #include <unistd.h>
 #include <string>
 
-#include <aax/AeonWave.hpp>
+#include <aax/AeonWave>
 
 int main(int argc, char **argv)
 {
@@ -45,7 +45,8 @@ int main(int argc, char **argv)
     aax.set(AAX_INITIALIZED);
     aax.set(AAX_PLAYING);
 
-    aax.play(std::string(argv[1]));
+    bool res = aax.play(std::string(argv[1]));
+    if (!res) printf("Error: %s\n", aax.error());
     do
     {
         printf("\rposition: %5.1f", aax.offset());

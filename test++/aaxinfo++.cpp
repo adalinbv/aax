@@ -36,23 +36,23 @@
 #include <iostream>
 #include <limits>
 
-#include <aax/AeonWave.hpp>
+#include <aax/AeonWave>
 
 static int maximumWidth = 80;
 
 int main(int argc, char **argv)
 {
-    AAX::AeonWave aax;
+    AAX::AeonWave aax(AAX_MODE_WRITE_STEREO);
 
     std::cout << "AeonWave version " << aax.major_version() << "." << aax.minor_version() << "-" << aax.patch_level() << std::endl;
     std::cout << "Run aaxinfo -copyright to read the copyright information." << std::endl << std::endl;
 
     std::cout << "Devices that support capture:" << std::endl;
     while (const char* d = aax.drivers(AAX_MODE_READ)) {
-        while (const char* dev = aax.devices()) {
+        while (const char* r = aax.devices()) {
             while (const char* i = aax.interfaces()) {
                 std::cout << " '" << d;
-                if (*dev) std::cout << " on " << dev;
+                if (*r) std::cout << " on " << r;
                 if (*i) std::cout << ": " << i ;
                 std::cout << "'" << std::endl;
             }
@@ -62,10 +62,10 @@ int main(int argc, char **argv)
 
     std::cout << "Devices that support playback:" << std::endl;
     while (const char* d = aax.drivers()) {
-        while (const char* dev = aax.devices()) {
+        while (const char* r = aax.devices()) {
             while (const char* i = aax.interfaces()) {
                 std::cout << " '" << d;
-                if (*dev) std::cout << " on " << dev;
+                if (*r) std::cout << " on " << r;
                 if (*i) std::cout << ": " << i ;
                 std::cout << "'" << std::endl;
             }

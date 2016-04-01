@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/AeonWave.hpp>
+#include <aax/AeonWave>
 
 #include "base/types.h"
 #include "base/geometry.h"
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     if (config)
     {
-        AAX::Buffer buffer(bufferFromFile(config, infile));
+        AAX::Buffer buffer = config.buffer(infile);
         if (buffer)
         {
             AAX::Emitter emitter[256];
@@ -196,6 +196,8 @@ int main(int argc, char **argv)
 
             res = config.set(AAX_STOPPED);
             testForState(res, "aaxMixerStop");
+
+            config.destroy(buffer);
         }
     }
 
