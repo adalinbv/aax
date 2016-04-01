@@ -196,11 +196,11 @@ int main(int argc, char **argv)
             res = config.add(mixer);
             testForState(res, "aaxMixerRegisterAudioFrame");
 
-            res = mixer.set(AAX_PLAYING);
+            res = frame.set(AAX_PLAYING);
             testForState(res, "aaxAudioFrameSetState");
 
             /** sensor */
-            res = mixer.add(record);
+            res = frame.add(record);
             testForState(res, "aaxAudioFrameRegisterSensor");
         }
         else
