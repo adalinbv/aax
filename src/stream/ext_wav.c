@@ -1037,7 +1037,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
       *bufsize = 4*handle->wavBufSize;
       res = handle->wavBuffer;
 
-#if 1
+#if 0
    printf("Write %s Header:\n", extfmt ? "Extnesible" : "Canonical");
    printf(" 0: %08x (ChunkID \"RIFF\")\n", handle->wavBuffer[0]);
    printf(" 1: %08x (ChunkSize: %i)\n", handle->wavBuffer[1], handle->wavBuffer[1]);

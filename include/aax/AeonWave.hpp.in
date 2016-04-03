@@ -40,7 +40,7 @@
 #include <string>
 #include <algorithm>
 
-#include <aax/Matrix.hpp>
+#include <aax/Matrix>
 
 namespace AAX
 {
@@ -554,8 +554,11 @@ public:
     AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         AeonWave(s.empty() ? 0 : s.c_str(),m) {}
 
-    AeonWave(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+    AeonWave(enum aaxRenderMode m) :
         AeonWave("default",m) {}
+
+    AeonWave() :
+        AeonWave("none",AAX_MODE_WRITE_STEREO) {}
 
     ~AeonWave() {
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
@@ -583,15 +586,15 @@ public:
         }  else _e[0] = 0;
         return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
     }
-    const char* devices() {
-        _ed = _e[1] ? 0 : ""; _e[2] = 0;
+    const char* devices(bool def=true) {
+        _e[2] = 0; _ed = def ? (_e[1] ? 0 : "") : 0;
         if (_e[1]++ < aaxDriverGetDeviceCount(_ec,_em)) {
             _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]-1,_em);
         }
         return _ed;
     }
-    const char* interfaces() {
-        const char *ifs = _e[2] ? 0 : "";
+    const char* interfaces(bool def=true) {
+        const char *ifs = def ? (_e[2] ? 0 : "") : 0;
         if (_e[2]++ < aaxDriverGetInterfaceCount(_ec,_ed,_em)) {
             ifs = aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]-1,_em);
         }
@@ -634,6 +637,10 @@ public:
     }
     inline bool valid(enum aaxHandleType t) {
         return aaxIsValid(_c,t);
+    }
+
+    inline unsigned long offset(enum aaxType t) {
+        return aaxSensorGetOffset(_c,t);
     }
 
     // ** mixing ******
