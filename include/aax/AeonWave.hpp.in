@@ -88,7 +88,7 @@ public:
     }
 
     Buffer& operator=(aaxBuffer& b) {
-        _owner = b = false; _b = b;
+        _b = b; _owner = b = false;
         return *this;
     }
 
@@ -325,7 +325,8 @@ public:
 
     // ** driver ******
     bool close() {
-        return aaxDriverClose(_c) ? (((_c=0) == 0) ? false : true) : false;
+        bool rv = aaxDriverDestroy(_c); _c = 0;
+        return rv;
     }
     inline bool get(enum aaxRenderMode m) {
         return aaxDriverGetSupport(_c,m);
@@ -333,7 +334,6 @@ public:
     inline const char* info(enum aaxSetupType t) {
         return aaxDriverGetSetup(_c,t);
     }
-
     inline const char* info(enum aaxFilterType f) {
         return aaxFilterGetNameByType(_c,f);
     }
@@ -414,7 +414,7 @@ public:
     }
 
     Sensor& operator=(Sensor s) {
-        _owner = s = false; _c = s;
+        _c = s; _owner = s = false;
         return *this;
     }
 
@@ -548,6 +548,8 @@ typedef Mixer Frame;
 class AeonWave : public Sensor
 {
 public:
+    AeonWave() : Sensor() {}
+
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(n,m), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
 
@@ -556,9 +558,6 @@ public:
 
     AeonWave(enum aaxRenderMode m) :
         AeonWave("default",m) {}
-
-    AeonWave() :
-        AeonWave("none",AAX_MODE_WRITE_STEREO) {}
 
     ~AeonWave() {
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
@@ -641,6 +640,21 @@ public:
 
     inline unsigned long offset(enum aaxType t) {
         return aaxSensorGetOffset(_c,t);
+    }
+
+    bool operator=(bool o) {
+        bool r = _owner; _owner = o;
+        return r;
+    }
+
+    // Note: _buffer_cache and _play will not be copied between instances
+    AeonWave& operator=(AeonWave c) {
+        _c = c; _owner = c = false;
+        return *this;
+    }
+
+    operator void*() const {
+        return _c;
     }
 
     // ** mixing ******
