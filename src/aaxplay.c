@@ -336,7 +336,6 @@ int main(int argc, char **argv)
 
             s = aaxDriverGetSetup(record, AAX_MUSIC_GENRE_STRING);
             if (s) printf(" Genre    : %s\n", s);
-
             s = aaxDriverGetSetup(record, AAX_RELEASE_DATE_STRING);
             if (s) printf(" Release date: %s\n", s);
 
@@ -349,7 +348,6 @@ int main(int argc, char **argv)
             s = aaxDriverGetSetup(record, AAX_WEBSITE_STRING);
             if (s) printf(" Website  : %s\n", s);
         }
-
 
         if (file)
         {
