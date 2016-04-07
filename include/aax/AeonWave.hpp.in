@@ -160,7 +160,7 @@ public:
     }
 
     // ** support ******
-    DSP& operator=(DSP dsp) {
+    DSP& operator=(DSP& dsp) {
         aaxConfig c = dsp;
         dsp = 0; *this = c;
         return *this;
@@ -216,7 +216,7 @@ public:
     }
 
     // ** filters and effects ******
-    bool set(DSP dsp) {
+    bool set(DSP& dsp) {
         return dsp.is_filter() ? aaxEmitterSetFilter(_e,dsp)
                                : aaxEmitterSetEffect(_e,dsp);
     }
@@ -348,7 +348,7 @@ public:
     }
 
     // ** filters and effects ******
-    bool set(DSP dsp) {
+    bool set(DSP& dsp) {
         int res = dsp.is_filter() ? aaxScenerySetFilter(_c,dsp)
                                   : aaxScenerySetEffect(_c,dsp);
         if (!res) res = dsp.is_filter() ? aaxMixerSetFilter(_c,dsp)
@@ -467,7 +467,7 @@ public:
     }
 
     // ** filters and effects ******
-    bool set(DSP dsp) {
+    bool set(DSP& dsp) {
         return dsp.is_filter() ? aaxAudioFrameSetFilter(_f,dsp)
                                : aaxAudioFrameSetEffect(_f,dsp);
     }
@@ -548,7 +548,7 @@ typedef Mixer Frame;
 class AeonWave : public Sensor
 {
 public:
-    AeonWave() : Sensor() {}
+    AeonWave() : Sensor(), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
 
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(n,m), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
@@ -565,7 +565,7 @@ public:
         }
     }
 
-    bool scenery(DSP dsp) {
+    bool scenery(DSP& dsp) {
         return dsp.is_filter() ? aaxScenerySetFilter(_c,dsp)
                                : aaxScenerySetEffect(_c,dsp);
     }
