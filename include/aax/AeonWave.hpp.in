@@ -87,7 +87,7 @@ public:
        return r;
     }
 
-    Buffer& operator=(aaxBuffer& b) {
+    Buffer& operator=(aaxBuffer b) {
         _b = b; _owner = b = false;
         return *this;
     }
@@ -231,22 +231,13 @@ public:
     inline bool set(Matrix& m) {
         return aaxEmitterSetMatrix(_e,m.ptr());
     }
-    inline bool set(aaxMtx4f m) {
-        return aaxEmitterSetMatrix(_e,m);
-    }
     inline bool get(Matrix& m) {
         return aaxEmitterGetMatrix(_e,m.ptr());
-    }
-    inline bool get(aaxMtx4f m) {
-        return aaxEmitterGetMatrix(_e,m);
     }
     inline bool set(Vector& v) {
         return aaxEmitterSetVelocity(_e,v);
     }
-    inline bool set(const aaxVec3f v) {
-        return aaxEmitterSetVelocity(_e,v);
-    }
-    inline bool get(aaxVec3f v) {
+    inline bool get(Vector& v) {
         return aaxEmitterGetVelocity(_e,v);
     }
 
@@ -370,22 +361,13 @@ public:
     inline bool set(Matrix& m) {
         return aaxSensorSetMatrix(_c,m.ptr());
     }
-    inline bool set(aaxMtx4f m) {
-        return aaxSensorSetMatrix(_c,m);
-    }
     inline bool get(Matrix& m) {
         return aaxSensorGetMatrix(_c,m.ptr());
-    }
-    inline bool get(aaxMtx4f m) {
-        return aaxSensorGetMatrix(_c,m);
     }
     inline bool set(Vector& v) {
         return aaxSensorSetVelocity(_c,v);
     }
-    inline bool set(const aaxVec3f v) {
-        return aaxSensorSetVelocity(_c,v);
-    }
-    inline bool get(aaxVec3f v) {
+    inline bool get(Vector& v) {
         return aaxSensorGetVelocity(_c,v);
     }
     inline bool sensor(enum aaxState s) {
@@ -502,22 +484,13 @@ public:
     inline bool set(Matrix& m) {
         return aaxAudioFrameSetMatrix(_f,m.ptr());
     }
-    inline bool set(aaxMtx4f m) {
-        return aaxAudioFrameSetMatrix(_f,m);
-    }
     inline bool get(Matrix& m) {
         return aaxAudioFrameGetMatrix(_f,m.ptr());
-    }
-    inline bool get(aaxMtx4f m) {
-        return aaxAudioFrameGetMatrix(_f,m);
     }
     inline bool set(Vector& v) {
         return aaxAudioFrameSetVelocity(_f,v);
     }
-    inline bool set(const aaxVec3f v) {
-        return aaxAudioFrameSetVelocity(_f,v);
-    }
-    inline bool get(aaxVec3f v) {
+    inline bool get(Vector& v) {
         return aaxAudioFrameGetVelocity(_f,v);
     }
 
