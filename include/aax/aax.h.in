@@ -271,7 +271,8 @@ enum aaxErrorType
    AAX_INSUFFICIENT_RESOURCES = 0x080,
    AAX_TIMEOUT                = 0x090,
    AAX_BACKEND_ERROR          = 0x0A0,
-   AAX_ERROR_MAX              = 0x0B0
+   AAX_DESTROYED_HANDLE       = 0x0B0,
+   AAX_ERROR_MAX              = 0x0C0
 };
 
 enum aaxEmitterMode

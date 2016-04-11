@@ -34,14 +34,12 @@ static int _aaxSensorCaptureStop(_handle_t *);
 AAX_API int AAX_APIENTRY
 aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!mtx || detect_nan_mtx4((const float (*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4((const float (*)[4])mtx)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -74,14 +72,12 @@ aaxSensorSetMatrix(aaxConfig config, aaxMtx4f mtx)
 AAX_API int AAX_APIENTRY
 aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!mtx) {
+      if (!mtx) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -113,14 +109,12 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
 AAX_API int AAX_APIENTRY
 aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!velocity || detect_nan_vec3(velocity)) {
+      if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -159,14 +153,12 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
 AAX_API int AAX_APIENTRY
 aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!velocity) {
+      if (!velocity) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -199,7 +191,7 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
 AAX_API unsigned long AAX_APIENTRY
 aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    unsigned long rv = 0;
 
    if (handle)
@@ -240,16 +232,13 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API aaxBuffer AAX_APIENTRY
 aaxSensorGetBuffer(const aaxConfig config)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxBuffer buffer = NULL;
 
    if (handle)
@@ -300,16 +289,13 @@ aaxSensorGetBuffer(const aaxConfig config)
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return buffer;
 }
 
 AAX_API int AAX_APIENTRY
 aaxSensorWaitForBuffer(aaxConfig config, float timeout)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -335,9 +321,6 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          }
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
 
    return rv;
 }
@@ -345,7 +328,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
 AAX_API int AAX_APIENTRY
 aaxSensorSetState(aaxConfig config, enum aaxState state)
 {
-   _handle_t *handle = get_valid_handle(config);
+   _handle_t *handle = get_valid_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -411,9 +394,6 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       default:
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }

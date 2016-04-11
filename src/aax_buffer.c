@@ -102,7 +102,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
 AAX_API int AAX_APIENTRY
 aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
 {
-   _buffer_t* buf = get_buffer(buffer);
+   _buffer_t* buf = get_buffer(buffer, __func__);
    unsigned int tmp;
    int rv = AAX_FALSE;
    if (buf)
@@ -222,16 +222,13 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API unsigned int AAX_APIENTRY
 aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
 {
-   _buffer_t* buf = get_buffer(buffer);
+   _buffer_t* buf = get_buffer(buffer, __func__);
    unsigned int rv = AAX_FALSE;
    if (buf)
    {
@@ -287,16 +284,13 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
-   _buffer_t* buf = get_buffer(buffer);
+   _buffer_t* buf = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
    if (buf && (buf->format & AAX_SPECIAL) && d)
    {				/* the data in *d isn't actual sample data */
@@ -400,9 +394,6 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -414,7 +405,7 @@ AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, 
 AAX_API void** AAX_APIENTRY
 aaxBufferGetData(const aaxBuffer buffer)
 {
-   _buffer_t* buf = get_buffer(buffer);
+   _buffer_t* buf = get_buffer(buffer, __func__);
    void** data = NULL;
    if (buf && buf->frequency)
    {
@@ -537,8 +528,6 @@ aaxBufferGetData(const aaxBuffer buffer)
    }
    else if (buf) {	/* buf->frequency is not set */
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
 
    return data;
@@ -547,13 +536,10 @@ aaxBufferGetData(const aaxBuffer buffer)
 AAX_API int AAX_APIENTRY
 aaxBufferDestroy(aaxBuffer buffer)
 {
-   _buffer_t* buf = get_buffer(buffer);
+   _buffer_t* buf = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
    if (buf) {
      rv = free_buffer(buf);
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -664,7 +650,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       unsigned int freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       char tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
 #if 0
-      _buffer_t* buf = get_buffer(buffer);
+      _buffer_t* buf = get_buffer(buffer, __func__);
       _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL);
       _aaxRingBufferSample *rbd = rb->sample;
       const int32_t **data;
@@ -701,13 +687,21 @@ static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
 };
 
 _buffer_t*
-get_buffer(aaxBuffer buffer)
+get_buffer(aaxBuffer buffer, const char *func)
 {
    _buffer_t *handle = (_buffer_t *)buffer;
    _buffer_t* rv  = NULL;
+
    if (handle && handle->id == BUFFER_ID) {
       rv = handle;
    }
+   else if (handle && handle->id == FADEDBAD) {
+      __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
+   }
+   else {
+      __aaxErrorSet(AAX_INVALID_HANDLE, func);
+   }
+
    return rv;
 }
 
@@ -903,7 +897,7 @@ _bufProcessAAXS(_buffer_t* buf, const void* d, float freq)
 static int
 _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float staticity, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   _buffer_t* buf = get_buffer(buffer);
+   _buffer_t* buf = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
 
    if (wtype > AAX_LAST_WAVEFORM) {
