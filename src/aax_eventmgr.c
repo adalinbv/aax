@@ -74,7 +74,7 @@ static aaxBuffer _aaxGetBufferFromCache(_aaxEventMgr*, const char*);
 AAX_API int AAX_APIENTRY
 aaxEventManagerCreate(aaxConfig config)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle && !handle->eventmgr)
    {
@@ -92,8 +92,6 @@ aaxEventManagerCreate(aaxConfig config)
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -101,7 +99,7 @@ aaxEventManagerCreate(aaxConfig config)
 AAX_API int AAX_APIENTRY
 aaxEventManagerDestory(aaxConfig config)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle && handle->eventmgr)
    {
@@ -116,8 +114,6 @@ aaxEventManagerDestory(aaxConfig config)
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -125,7 +121,7 @@ aaxEventManagerDestory(aaxConfig config)
 AAX_API int AAX_APIENTRY
 aaxEventManagerSetState(aaxConfig config, enum aaxState state)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle && handle->eventmgr)
    {
@@ -145,8 +141,6 @@ aaxEventManagerSetState(aaxConfig config, enum aaxState state)
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -154,7 +148,7 @@ aaxEventManagerSetState(aaxConfig config, enum aaxState state)
 AAX_API aaxFrame AAX_APIENTRY
 aaxEventManagerCreateAudioFrame(aaxConfig config)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxFrame rv = NULL;
    if (handle && handle->eventmgr)
    {
@@ -184,8 +178,6 @@ aaxEventManagerCreateAudioFrame(aaxConfig config)
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_HANDLE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -193,7 +185,7 @@ aaxEventManagerCreateAudioFrame(aaxConfig config)
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEventManagerRegisterEmitter(aaxFrame frame, const char *file)
 {
-   _frame_t* handle = get_frame(frame);
+   _frame_t* handle = get_frame(frame, __func__);
    aaxEmitter rv = NULL;
    if (handle)
    {
@@ -239,9 +231,6 @@ aaxEventManagerRegisterEmitter(aaxFrame frame, const char *file)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    put_frame(frame);
    return rv;
 }
@@ -249,7 +238,7 @@ aaxEventManagerRegisterEmitter(aaxFrame frame, const char *file)
 AAX_API int AAX_APIENTRY
 aaxEventManagerDestoryEmitter(aaxFrame frame, aaxEmitter emitter)
 {
-   _frame_t *handle = get_frame(frame);
+   _frame_t *handle = get_frame(frame, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -270,7 +259,7 @@ aaxEventManagerDestoryEmitter(aaxFrame frame, aaxEmitter emitter)
 AAX_API aaxEvent AAX_APIENTRY
 aaxEventManagerRegisterEvent(aaxConfig config, aaxEmitter emitter, enum aaxEventType event_type, aaxEventCallbackFn callback, void *user_data)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxEvent rv = NULL;
    if (handle && handle->eventmgr)
    {
@@ -278,7 +267,7 @@ aaxEventManagerRegisterEvent(aaxConfig config, aaxEmitter emitter, enum aaxEvent
       {
          if (callback)
          {
-            _emitter_t *em = get_emitter(emitter);
+            _emitter_t *em = get_emitter(emitter, __func__);
             if (em && em->cache_pos != UINT_MAX)
             {
                _aaxEventMgr *eventmgr = handle->eventmgr;
@@ -329,8 +318,6 @@ aaxEventManagerRegisterEvent(aaxConfig config, aaxEmitter emitter, enum aaxEvent
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 
@@ -339,7 +326,7 @@ aaxEventManagerRegisterEvent(aaxConfig config, aaxEmitter emitter, enum aaxEvent
 AAX_API int AAX_APIENTRY
 aaxEventManagerDeregisterEvent(aaxConfig config, aaxEvent eventmgr)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle && handle->eventmgr && eventmgr)
    {
@@ -347,8 +334,6 @@ aaxEventManagerDeregisterEvent(aaxConfig config, aaxEvent eventmgr)
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 
@@ -357,7 +342,7 @@ aaxEventManagerDeregisterEvent(aaxConfig config, aaxEvent eventmgr)
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEventManagerPlayTone(aaxConfig config, enum aaxWaveformType type, float frequency, float duration, float gain, float delay)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxEmitter rv = NULL;
    if (handle && handle->eventmgr)
    {
@@ -365,8 +350,6 @@ aaxEventManagerPlayTone(aaxConfig config, enum aaxWaveformType type, float frequ
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -374,7 +357,7 @@ aaxEventManagerPlayTone(aaxConfig config, enum aaxWaveformType type, float frequ
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEventManagerPlayFile(aaxConfig config, const char *file, float gain, float delay)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxEmitter rv = NULL;
    if (handle && handle->eventmgr)
    {
@@ -382,8 +365,6 @@ aaxEventManagerPlayFile(aaxConfig config, const char *file, float gain, float de
    }
    else if (handle) {
       _aaxErrorSet(AAX_INVALID_STATE);
-   } else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }

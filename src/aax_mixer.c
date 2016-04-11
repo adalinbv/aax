@@ -68,7 +68,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
    }
    else
    {
-      _handle_t *handle = get_handle(config);
+      _handle_t *handle = get_handle(config, __func__);
       if (handle && !handle->handle)
       {
          _aaxMixerInfo* info = handle->info;
@@ -204,9 +204,6 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             break;
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      }
    }
    return rv;
 }
@@ -235,7 +232,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
    }
    else
    {
-      _handle_t *handle = get_handle(config);
+      _handle_t *handle = get_handle(config, __func__);
       if (handle)
       {
          if (type < AAX_SETUP_TYPE_MAX)
@@ -431,9 +428,6 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      }
    }
    return rv;
 }
@@ -455,15 +449,13 @@ aaxMixerGetMode(const aaxConfig config, enum aaxModeType type)
 AAX_API int AAX_APIENTRY
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    _filter_t* filter = get_filter(f);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!filter) {
+      if (!filter) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -549,7 +541,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 AAX_API aaxFilter AAX_APIENTRY
 aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    aaxFilter rv = AAX_FALSE;
    if (handle)
    {
@@ -576,9 +568,6 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -586,15 +575,13 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 AAX_API int AAX_APIENTRY
 aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    _effect_t* effect = get_effect(e);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!effect) {
+      if (!effect) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -649,7 +636,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 AAX_API aaxEffect AAX_APIENTRY
 aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    aaxEffect rv = AAX_FALSE;
    if (handle)
    {
@@ -677,9 +664,6 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -690,9 +674,9 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
    _handle_t* handle;
 
    if (state == AAX_INITIALIZED) {
-      handle = get_handle(config);
+      handle = get_handle(config, __func__);
    } else {
-      handle = get_valid_handle(config);
+      handle = get_valid_handle(config, __func__);
    }
 
    if (handle)
@@ -725,9 +709,6 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -737,7 +718,7 @@ aaxMixerGetState(aaxConfig config)
    enum aaxState rv = AAX_INITIALIZED;
    _handle_t* handle;
 
-   handle = get_valid_handle(config);
+   handle = get_valid_handle(config, __func__);
    if (handle)
    {
       if (_IS_STOPPED(handle)) rv = AAX_STOPPED;
@@ -746,20 +727,17 @@ aaxMixerGetState(aaxConfig config)
       else if (_IS_PAUSED(handle)) rv = AAX_SUSPENDED;
       else if (_IS_PLAYING(handle)) rv = AAX_PLAYING;
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_write_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle && (VALID_MIXER(handle) || handle->registered_sensors <= 1))
    {
-      _handle_t* sframe = get_read_handle(s);
+      _handle_t* sframe = get_read_handle(s, __func__);
       if (sframe && !sframe->thread.started && (sframe != handle))
       {
          if (sframe->mixer_pos == UINT_MAX)
@@ -905,7 +883,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
       }
       else if (handle->file.ptr == NULL)
       {
-         sframe = get_write_handle(s);
+         sframe = get_write_handle(s, __func__);
          if (sframe && !sframe->thread.started && (sframe != handle) &&
              (sframe->backend.ptr == &_aaxStreamDriverBackend))
          {
@@ -950,20 +928,17 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_write_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
-      _handle_t* sframe = get_read_handle(s);
+      _handle_t* sframe = get_read_handle(s, __func__);
 
       aaxSensorSetState(s, AAX_SUSPENDED);
       if (sframe && sframe->mixer_pos != UINT_MAX)
@@ -996,7 +971,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
       }
       else if (handle->file.ptr != NULL)
       {
-         sframe = get_write_handle(s);
+         sframe = get_write_handle(s, __func__);
          if (sframe && (handle->file.ptr == sframe->backend.ptr))
          {
             handle->file.ptr = NULL;
@@ -1013,9 +988,6 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -1023,11 +995,11 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 AAX_API int AAX_APIENTRY
 aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_write_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
-      _emitter_t* emitter = get_emitter_unregistered(em);
+      _emitter_t* emitter = get_emitter_unregistered(em, __func__);
       if (emitter && emitter->mixer_pos == UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
@@ -1134,20 +1106,17 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_write_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
-      _emitter_t* emitter = get_emitter(em);
+      _emitter_t* emitter = get_emitter(em, __func__);
       if (emitter && emitter->mixer_pos != UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
@@ -1190,20 +1159,17 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
       }
       put_emitter(emitter);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_write_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle && VALID_MIXER(handle))
    {
-      _frame_t* frame = get_frame(f);
+      _frame_t* frame = get_frame(f, __func__);
       if (frame && !frame->handle)
       {
          if (frame->mixer_pos == UINT_MAX)
@@ -1295,14 +1261,11 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
           * put_frame(frame);
           */
       }
-      else
+      else if (frame)
       {
          if (frame->handle) put_frame(frame);
          _aaxErrorSet(AAX_INVALID_STATE);
       }
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }
@@ -1310,11 +1273,11 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 AAX_API int AAX_APIENTRY
 aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
-   _handle_t* handle = get_write_handle(config);
+   _handle_t* handle = get_write_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
-      _frame_t* frame = get_frame(f);
+      _frame_t* frame = get_frame(f, __func__);
       if (frame && frame->mixer_pos != UINT_MAX)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1342,9 +1305,6 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
       put_frame(frame);
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }

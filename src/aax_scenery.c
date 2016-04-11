@@ -22,7 +22,7 @@
 AAX_API int AAX_APIENTRY
 aaxScenerySetDiffuseFactor(aaxConfig config, float diffuse_factor)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -42,16 +42,13 @@ aaxScenerySetDiffuseFactor(aaxConfig config, float diffuse_factor)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE); 
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxScenerySetDimension(aaxConfig config, aaxVec3f dimension)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -71,16 +68,13 @@ aaxScenerySetDimension(aaxConfig config, aaxVec3f dimension)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxScenerySetPosition(aaxConfig config, aaxVec3f pos)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -100,9 +94,6 @@ aaxScenerySetPosition(aaxConfig config, aaxVec3f pos)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 #endif
@@ -110,7 +101,7 @@ aaxScenerySetPosition(aaxConfig config, aaxVec3f pos)
 AAX_API int AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -160,16 +151,13 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API aaxFilter AAX_APIENTRY
 aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    aaxFilter rv = AAX_FALSE;
    if (handle)
    {
@@ -192,16 +180,13 @@ aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxScenerySetEffect(aaxConfig config, aaxEffect e)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -239,16 +224,13 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
 AAX_API aaxEffect AAX_APIENTRY
 aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
 {
-   _handle_t* handle = get_handle(config);
+   _handle_t* handle = get_handle(config, __func__);
    aaxEffect rv = AAX_FALSE;
    if (handle)
    {
@@ -269,9 +251,6 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
       default:
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
 }

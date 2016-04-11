@@ -38,7 +38,7 @@
 AAX_API aaxFilter AAX_APIENTRY
 aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxFilter rv = NULL;
    if (handle && (type < AAX_FILTER_MAX))
    {
@@ -319,9 +319,14 @@ _filter_t*
 get_filter(aaxFilter f)
 {
    _filter_t* rv = (_filter_t*)f;
+
    if (rv && rv->id == FILTER_ID) {
       return rv;
    }
+   else if (rv && rv->id == FADEDBAD) {
+      _aaxErrorSet(AAX_DESTROYED_HANDLE);
+   }
+
    return NULL;
 }
 

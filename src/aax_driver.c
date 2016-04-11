@@ -60,7 +60,7 @@ time_t _tvnow = 0;
 AAX_API const char* AAX_APIENTRY
 aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    char *rv = NULL;
    if (handle)
    {
@@ -110,9 +110,6 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
-   }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return (const char*)rv;
 }
@@ -301,7 +298,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
 AAX_API int AAX_APIENTRY
 aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
 
    if (handle)
@@ -322,9 +319,6 @@ aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
    } 
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -453,7 +447,7 @@ aaxDriverOpenDefault(enum aaxRenderMode mode)
 AAX_API int AAX_APIENTRY
 aaxDriverDestroy(aaxConfig config)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
 
    aaxMixerSetState(handle, AAX_STOPPED);
@@ -501,16 +495,13 @@ aaxDriverDestroy(aaxConfig config)
    else if (handle) {
        _aaxErrorSet(AAX_INVALID_STATE);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 };
 
 AAX_API int AAX_APIENTRY
 aaxDriverClose(aaxConfig config)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
 
    if (handle && handle->backend.handle)
@@ -529,9 +520,6 @@ aaxDriverClose(aaxConfig config)
    else if (handle) {
        _aaxErrorSet(AAX_INVALID_STATE);
    }
-   else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
-   }
    return rv;
 }
 
@@ -542,7 +530,7 @@ aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
 
    if (mode < AAX_MODE_WRITE_MAX)
    {
-      _handle_t *handle = get_handle(config);
+      _handle_t *handle = get_handle(config, __func__);
       if (handle)
       {
          const _aaxDriverBackend *be = handle->backend.ptr;
@@ -559,9 +547,6 @@ aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
             }
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      }
    }
    else {
       _aaxErrorSet(AAX_INVALID_ENUM);
@@ -576,7 +561,7 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
 
    if (mode < AAX_MODE_WRITE_MAX)
    {
-      _handle_t *handle = get_handle(config);
+      _handle_t *handle = get_handle(config, __func__);
       if (handle)
       {
          const _aaxDriverBackend *be = handle->backend.ptr;
@@ -621,9 +606,6 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
             }
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      }
    }
    else {
       _aaxErrorSet(AAX_INVALID_ENUM);
@@ -638,7 +620,7 @@ aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aax
 
    if (mode < AAX_MODE_WRITE_MAX)
    {
-      _handle_t *handle = get_handle(config);
+      _handle_t *handle = get_handle(config, __func__);
       if (handle)
       {
          const _aaxDriverBackend *be = handle->backend.ptr;
@@ -655,9 +637,6 @@ aaxDriverGetInterfaceCount(const aaxConfig config, const char* devname, enum aax
             }
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      }
    }
    else {
       _aaxErrorSet(AAX_INVALID_ENUM);
@@ -672,7 +651,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
    if (mode < AAX_MODE_WRITE_MAX)
    {
-      _handle_t *handle = get_handle(config);
+      _handle_t *handle = get_handle(config, __func__);
       if (handle)
       {
          const _aaxDriverBackend *be = handle->backend.ptr;
@@ -694,9 +673,6 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
                _aaxErrorSet(AAX_INVALID_PARAMETER);
             }
          }
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
       }
    }
    else {
@@ -754,7 +730,7 @@ new_handle()
 }
 
 _handle_t*
-get_handle(aaxConfig config)
+get_handle(aaxConfig config, const char *func)
 {
    _handle_t *handle = (_handle_t *)config;
    _handle_t *rv = NULL;
@@ -762,12 +738,18 @@ get_handle(aaxConfig config)
    if (handle && handle->id == HANDLE_ID) {
       rv = handle;
    }
+   else if (handle && handle->id == FADEDBAD) {
+      __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
+   }
+   else {
+       __aaxErrorSet(AAX_INVALID_HANDLE, func);
+   }
 
    return rv;
 }
 
 _handle_t*
-get_valid_handle(aaxConfig config)
+get_valid_handle(aaxConfig config, const char *func)
 {
    _handle_t *handle = (_handle_t *)config;
    _handle_t *rv = NULL;
@@ -783,13 +765,19 @@ get_valid_handle(aaxConfig config)
       else if (handle->id == AUDIOFRAME_ID) {
          rv = handle;
       }
+      else if (handle->id == FADEDBAD) {
+         __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
+      }
+   }
+   else {
+      __aaxErrorSet(AAX_INVALID_HANDLE, func);
    }
 
    return rv;
 }
 
 _handle_t*
-get_write_handle(aaxConfig config)
+get_write_handle(aaxConfig config, const char *func)
 {
    _handle_t *handle = (_handle_t *)config;
    _handle_t *rv = NULL;
@@ -801,12 +789,18 @@ get_write_handle(aaxConfig config)
          rv = handle;
       }
    }
+   else if (handle && handle->id == FADEDBAD) {
+      __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
+   }
+   else {
+      __aaxErrorSet(AAX_INVALID_HANDLE, func);
+   }
 
    return rv;
 }
 
 _handle_t*
-get_read_handle(aaxConfig config)
+get_read_handle(aaxConfig config, const char *func)
 {
    _handle_t *handle = (_handle_t *)config;
    _handle_t *rv = NULL;
@@ -817,6 +811,12 @@ get_read_handle(aaxConfig config)
       if (handle->info->mode == AAX_MODE_READ) {
          rv = handle;
       }
+   }
+   else if (handle && handle->id == FADEDBAD) {
+      __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
+   }
+   else {
+      __aaxErrorSet(AAX_INVALID_HANDLE, func);
    }
 
    return rv;

@@ -142,10 +142,10 @@ typedef struct
 } _handle_t;
 
 _handle_t* new_handle();
-_handle_t* get_handle(aaxConfig);
-_handle_t* get_valid_handle(aaxConfig);
-_handle_t* get_read_handle(aaxConfig);
-_handle_t* get_write_handle(aaxConfig);
+_handle_t* get_handle(aaxConfig, const char*);
+_handle_t* get_valid_handle(aaxConfig, const char*);
+_handle_t* get_read_handle(aaxConfig, const char*);
+_handle_t* get_write_handle(aaxConfig, const char*);
 
 /* --- AudioFrame --- */
 #define AUDIOFRAME_ID   0x3137ABFF
@@ -166,7 +166,7 @@ typedef struct
 
 } _frame_t;
 
-_frame_t* get_frame(aaxFrame);
+_frame_t* get_frame(aaxFrame, const char*);
 void put_frame(aaxFrame);
 _handle_t *get_driver_handle(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
@@ -253,7 +253,7 @@ typedef struct
 } _buffer_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);
-_buffer_t* get_buffer(aaxBuffer);
+_buffer_t* get_buffer(aaxBuffer, const char*);
 int free_buffer(_buffer_t*);
 
 
@@ -285,8 +285,8 @@ typedef struct
    _aaxRingBuffer *ringbuffer;
 } _embuffer_t;
 
-_emitter_t* get_emitter(aaxEmitter);
-_emitter_t* get_emitter_unregistered(aaxEmitter);
+_emitter_t* get_emitter(aaxEmitter, const char*);
+_emitter_t* get_emitter_unregistered(aaxEmitter, const char*);
 void put_emitter(aaxEmitter);
 int destory_emitter(aaxEmitter);
 void emitter_remove_buffer(_aaxEmitter *);

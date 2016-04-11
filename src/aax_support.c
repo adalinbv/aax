@@ -27,7 +27,7 @@
 #include "arch.h"
 #include "software/audio.h"
 
-#define _AAX_MAX_ERROR		10
+#define _AAX_MAX_ERROR		12
 
 typedef struct {
    char supported_lite;
@@ -378,7 +378,9 @@ const char* _aaxErrorStrings[_AAX_MAX_ERROR] =
    "Invalid parameter value",
    "Invalid type reference",
    "Insufficient resources",
-   "Event timed out"
+   "Event timed out",
+   "Backend error",
+   "Handle was already destroyed"
 };
 
 static const char*

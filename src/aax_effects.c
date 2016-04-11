@@ -34,7 +34,7 @@
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
-   _handle_t *handle = get_handle(config);
+   _handle_t *handle = get_handle(config, __func__);
    aaxEffect rv = NULL;
    if (handle && (type < AAX_EFFECT_MAX))
    {
@@ -319,9 +319,14 @@ _effect_t*
 get_effect(const aaxEffect e)
 {
    _effect_t* rv = (_effect_t*)e;
+
    if (rv && rv->id == EFFECT_ID) {
       return rv;
    }
+   else if (rv && rv->id == FADEDBAD) {
+      _aaxErrorSet(AAX_DESTROYED_HANDLE);
+   }
+
    return NULL;
 }
 
