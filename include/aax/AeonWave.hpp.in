@@ -82,13 +82,11 @@ public:
     }
 
     // ** support ******
-    bool operator=(bool o) {
-       bool r = _owner; _owner = o;
-       return r;
-    }
-
-    Buffer& operator=(aaxBuffer b) {
-        _b = b; _owner = b = false;
+    Buffer& operator=(Buffer b) {
+        if (_b != b) {
+            if (_owner) aaxBufferDestroy(_b);
+            _b = b._b; _owner = b._owner; b._owner = false;
+        }
         return *this;
     }
 
@@ -160,17 +158,12 @@ public:
     }
 
     // ** support ******
-    DSP& operator=(DSP& dsp) {
-        aaxConfig c = dsp;
-        dsp = 0; *this = c;
-        return *this;
-    }
 
-    aaxConfig operator=(aaxConfig c) {
-        aaxConfig rv = _f ? _f : _e; _e = _f = 0;
-        if (aaxIsValid(c, AAX_FILTER)) _f = c;
-        else if (aaxIsValid(c, AAX_EFFECT)) _e = c;
-        return rv;
+    DSP& operator=(DSP dsp) {
+        if (_f) aaxFilterDestroy(_f);
+        else if(_e) aaxEffectDestroy(_e);
+        _f = dsp._f; _e = dsp._e; dsp._f = dsp._e = 0;
+        return *this;
     }
 
     operator void*() const {
@@ -390,13 +383,11 @@ public:
         return aaxGetVersionString(_c);
     }
 
-    bool operator=(bool o) {
-        bool r = _owner; _owner = o;
-        return r;
-    }
-
     Sensor& operator=(Sensor s) {
-        _c = s; _owner = s = false;
+        if (this != s) {
+            if (_owner) aaxDriverDestroy(_c);
+            _c = s._c; _owner = s._owner; s._owner = false;
+        }
         return *this;
     }
 
@@ -503,12 +494,20 @@ public:
     }
 
     // ** support ******
+    explicit operator bool() {
+        return _f ? true : false;
+    }
+
     operator void*() const {
         return _f;
     }
 
-    explicit operator bool() {
-        return _f ? true : false;
+    Mixer& operator=(Mixer f) {
+        if (this != f) {
+            if (_owner) aaxAudioFrameDestroy(_f);
+            _f = f._f; _owner = f._owner; f._owner = false;
+        }
+        return *this;
     }
 
 private:
@@ -615,14 +614,12 @@ public:
         return aaxSensorGetOffset(_c,t);
     }
 
-    bool operator=(bool o) {
-        bool r = _owner; _owner = o;
-        return r;
-    }
-
     // Note: _buffer_cache and _play will not be copied between instances
     AeonWave& operator=(AeonWave c) {
-        _c = c; _owner = c = false;
+        if (this != c) {
+            if (_owner) aaxDriverDestroy(_c);
+            _c = c._c; _owner = c._owner; c._owner = false;
+        }
         return *this;
     }
 
