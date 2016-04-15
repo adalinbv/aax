@@ -168,7 +168,8 @@ public:
     // ** support ******
     DSP& operator=(DSP o) {
         if (_close) _close(_p);
-        _p = o._p; _f = o._f; o._close = 0;
+        _close = o._close; o._close = 0;
+        _p = o._p; _f = o._f;
         return *this;
     }
 
@@ -266,7 +267,7 @@ public:
     Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(aaxDriverOpenByName(n,m), m) {}
 
-    Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+    Sensor(std::string s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(s.empty() ? "default" : s.c_str(),m) {}
 
     ~Sensor() {}
@@ -596,7 +597,7 @@ public:
 
     // ** backgrpund music ******
     bool play(std::string f) {
-        f = "AeonWave on Audio Files: "+f; _play = Sensor(f, AAX_MODE_READ);
+        _play = Sensor(std::string("AeonWave on Audio Files: ")+f, AAX_MODE_READ);
         return add(_play) ? (_play.set(AAX_INITIALIZED) ? _play.sensor(AAX_CAPTURING) : false) : false;
     }
 
@@ -605,7 +606,7 @@ public:
     }
 
     bool playing() {
-        return _play.get()== AAX_PLAYING;
+        return (_play.get() == AAX_PLAYING);
     }
 
     float offset() {
