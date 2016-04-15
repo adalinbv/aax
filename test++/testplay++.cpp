@@ -41,7 +41,7 @@
 
 int main(int argc, char **argv)
 {
-    AAX::AeonWave aax;
+    AAX::AeonWave aax(AAX_MODE_WRITE_STEREO);
     aax.set(AAX_INITIALIZED);
     aax.set(AAX_PLAYING);
 
