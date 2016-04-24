@@ -73,74 +73,80 @@ int main(int argc, char **argv)
     }
     std::cout << std::endl;
 
-    aax.set(AAX_INITIALIZED);
-    std::cout << "Driver  : " << aax.info(AAX_DRIVER_STRING) << std::endl;
-    std::cout << "Renderer: " << aax.info(AAX_RENDERER_STRING) << std::endl;
-    std::cout << "Version : " << aax.version() << " (" << aax.major_version() << "." << aax.minor_version() << ")" << std::endl;
-    std::cout << "Vendor  : " << aax.info(AAX_VENDOR_STRING) << std::endl;
-    std::cout << "Mixer timed mode support:   " << (aax.get(AAX_TIMER_MODE) ? "yes" : "no") << std::endl;
-    std::cout << "Mixer shared mode support:  " << (aax.get(AAX_SHARED_MODE) ? "yes" : "no") << std::endl;
-    std::cout << "Mixer batched mode support: " << (aax.get(AAX_BATCHED_MODE) ? "yes" : "no") << std::endl;
-    std::cout << "Mixer supported track range: " << aax.get(AAX_TRACKS_MIN) << " - " << aax.get(AAX_TRACKS_MAX) << " tracks" << std::endl;
-    std::cout << "Mixer frequency range: " << aax.get(AAX_FREQUENCY_MIN)/1000 << "kHz - " << aax.get(AAX_FREQUENCY_MAX)/1000 << "kHz" << std::endl;
-    std::cout << "Mixer frequency: " << aax.get(AAX_FREQUENCY) << " Hz" << std::endl;
-    std::cout << "Mixer refresh rate: " << aax.get(AAX_REFRESHRATE) << " Hz" << std::endl;
-    std::cout << "Mixer update rate:  " << aax.get(AAX_UPDATERATE) << " Hz" << std::endl;
-    std::cout << "Mixer latency: " << aax.get(AAX_LATENCY)*1e-3f << " ms" << std::endl;
+    if (aax.set(AAX_INITIALIZED))
+    {
+        std::cout << "Driver  : " << aax.info(AAX_DRIVER_STRING) << std::endl;
+        std::cout << "Renderer: " << aax.info(AAX_RENDERER_STRING) << std::endl;
+        std::cout << "Version : " << aax.version() << " (" << aax.major_version() << "." << aax.minor_version() << ")" << std::endl;
+        std::cout << "Vendor  : " << aax.info(AAX_VENDOR_STRING) << std::endl;
+        std::cout << "Mixer timed mode support:   " << (aax.get(AAX_TIMER_MODE) ? "yes" : "no") << std::endl;
+        std::cout << "Mixer shared mode support:  " << (aax.get(AAX_SHARED_MODE) ? "yes" : "no") << std::endl;
+        std::cout << "Mixer batched mode support: " << (aax.get(AAX_BATCHED_MODE) ? "yes" : "no") << std::endl;
+        std::cout << "Mixer supported track range: " << aax.get(AAX_TRACKS_MIN) << " - " << aax.get(AAX_TRACKS_MAX) << " tracks" << std::endl;
+        std::cout << "Mixer frequency range: " << aax.get(AAX_FREQUENCY_MIN)/1000 << "kHz - " << aax.get(AAX_FREQUENCY_MAX)/1000 << "kHz" << std::endl;
+        std::cout << "Mixer frequency: " << aax.get(AAX_FREQUENCY) << " Hz" << std::endl;
+        std::cout << "Mixer refresh rate: " << aax.get(AAX_REFRESHRATE) << " Hz" << std::endl;
+        std::cout << "Mixer update rate:  " << aax.get(AAX_UPDATERATE) << " Hz" << std::endl;
+        std::cout << "Mixer latency: " << aax.get(AAX_LATENCY)*1e-3f << " ms" << std::endl;
 
-    unsigned int x = aax.get(AAX_MONO_EMITTERS);
-    unsigned int uint_max = std::numeric_limits<unsigned int>::max();
-    std::cout << "Available mono emitters:   ";
-    if (x == uint_max) std::cout << "infinite" << std::endl;
-    else std::cout << x << std::endl;
+        unsigned int x = aax.get(AAX_MONO_EMITTERS);
+        unsigned int uint_max = std::numeric_limits<unsigned int>::max();
+        std::cout << "Available mono emitters:   ";
+        if (x == uint_max) std::cout << "infinite" << std::endl;
+        else std::cout << x << std::endl;
 
-    x = aax.get(AAX_STEREO_EMITTERS);
-    std::cout << "Available stereo emitters: "; 
-    if (x == uint_max/2) std::cout << "infinite" << std::endl;
-    else std::cout << x << std::endl;
+        x = aax.get(AAX_STEREO_EMITTERS);
+        std::cout << "Available stereo emitters: "; 
+        if (x == uint_max/2) std::cout << "infinite" << std::endl;
+        else std::cout << x << std::endl;
 
-    x = aax.get(AAX_AUDIO_FRAMES);
-    std::cout << "Available audio-frames:    ";
-    if (x == uint_max) std::cout << "infinite" << std::endl;
-    else std::cout << x << std::endl;
-    std::cout << std::endl;
+        x = aax.get(AAX_AUDIO_FRAMES);
+        std::cout << "Available audio-frames:    ";
+        if (x == uint_max) std::cout << "infinite" << std::endl;
+        else std::cout << x << std::endl;
+        std::cout << std::endl;
 
-    std::cout << "Supported Filters:" << std::endl;
-    enum aaxFilterType f = aaxFilterType(AAX_FILTER_NONE+1);
-    std::string str = "  ";
-    size_t l = str.size();
-    const char *s;
-    while(aax.supports(s = aax.info(f))) {
-        std::string fs = s;
-        if ((l + fs.size()) > maximumWidth) {
-            fs = "\n   "+fs;
-            l = fs.size()+3;
-        } else {
-            fs = " "+fs;
-            l += fs.size();
+        std::cout << "Supported Filters:" << std::endl;
+        enum aaxFilterType f = aaxFilterType(AAX_FILTER_NONE+1);
+        std::string str = "  ";
+        size_t l = str.size();
+        const char *s;
+        while(aax.supports(s = aax.info(f))) {
+            std::string fs = s;
+            if ((l + fs.size()) > maximumWidth) {
+                fs = "\n   "+fs;
+                l = fs.size()+3;
+            } else {
+                fs = " "+fs;
+                l += fs.size();
+            }
+            str += fs;
+            f = aaxFilterType(f+1);
         }
-        str += fs;
-        f = aaxFilterType(f+1);
-    }
-    std::cout << str << std::endl << std::endl;
+        std::cout << str << std::endl << std::endl;
 
-    std::cout << "Supported Effects:" << std::endl;
-    enum aaxEffectType e = aaxEffectType(AAX_EFFECT_NONE+1);
-    str = "  ";
-    l = str.size();
-    while(aax.supports(s = aax.info(e))) {
-        std::string es = s;
-        if ((l + es.size()) > maximumWidth) {
-            es = "\n   "+es;
-            l = es.size()+3;
-        } else {
-            es = " "+es;
-            l += es.size();
+        std::cout << "Supported Effects:" << std::endl;
+        enum aaxEffectType e = aaxEffectType(AAX_EFFECT_NONE+1);
+        str = "  ";
+        l = str.size();
+        while(aax.supports(s = aax.info(e))) {
+            std::string es = s;
+            if ((l + es.size()) > maximumWidth) {
+                es = "\n   "+es;
+                l = es.size()+3;
+            } else {
+                es = " "+es;
+                l += es.size();
+            }
+            str += es;
+            e = aaxEffectType(e+1);
         }
-        str += es;
-        e = aaxEffectType(e+1);
+        std::cout << str << std::endl << std::endl;
     }
-    std::cout << str << std::endl << std::endl;
+    else {
+        std::cout << "Error opening the default device: ";
+        std::cout << aax.error() << std::endl << std::endl;
+    }
 
     return 0;
 }
