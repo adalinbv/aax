@@ -58,12 +58,6 @@ public:
         if (_close) _close(_p);
     }
 
-    Object& operator=(Object o) {
-        if (_close) _close(_p);
-        _p = o._p; o._close = 0;
-        return *this;
-    }
-
     operator void*() const {
         return _p;
     }
@@ -111,6 +105,13 @@ public:
                         enum aaxProcessingType p, float r=0.5f) {
         return aaxBufferProcessWaveform(_p,f,t,r,p);
     }
+
+    // ** support ******
+    Buffer& operator=(Buffer o) {
+        if (_close) _close(_p);
+        _p = o._p; o._close = 0;
+        return *this;
+    }
 };
 
 
@@ -134,7 +135,7 @@ public:
                     : (aaxEffectSetState(_p,s) ? true : false);
     }
 
-    int get() {
+    int state() {
         return (_f) ? aaxFilterGetState(_p) : aaxEffectGetState(_p);
     }
 
@@ -198,7 +199,7 @@ public:
     inline bool set(enum aaxState s) {
         return aaxEmitterSetState(_p,s);
     }
-    inline enum aaxState get() {
+    inline enum aaxState state() {
         return aaxState(aaxEmitterGetState(_p));
     }
 
@@ -253,6 +254,13 @@ public:
     inline float offset() {
         return aaxEmitterGetOffsetSec(_p);
     }
+
+    // ** support ******
+    Emitter& operator=(Emitter o) {
+        if (_close) _close(_p);
+        _p = o._p; o._close = 0;
+        return *this;
+    }
 };
 
 
@@ -272,6 +280,12 @@ public:
 
     ~Sensor() {}
 
+    bool close() {
+        bool rv = _close ? _close(_p) : true;
+        _p = 0; _close = 0;
+        return rv;
+    }
+
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(_p,t,s);
     }
@@ -282,7 +296,7 @@ public:
     inline bool set(enum aaxState s) {
         return aaxMixerSetState(_p,s);
     }
-    inline enum aaxState get() {
+    inline enum aaxState state() {
         return aaxState(aaxMixerGetState(_p));
     }
 
@@ -388,7 +402,7 @@ public:
     inline bool set(enum aaxState s) {
         return aaxAudioFrameSetState(_p,s);
     }
-    inline enum aaxState get() {
+    inline enum aaxState state() {
         return aaxState(aaxAudioFrameGetState(_p));
     }
     inline bool set(enum aaxModeType t, int m) {
@@ -450,6 +464,13 @@ public:
     }
     inline Buffer buffer() {
         return Buffer(aaxAudioFrameGetBuffer(_p));
+    }
+
+    // ** support ******
+    Frame& operator=(Frame o) {
+        if (_close) _close(_p);
+        _p = o._p; o._close = 0;
+        return *this;
     }
 };
 typedef Frame Mixer;
@@ -552,6 +573,12 @@ public:
         return aaxSensorGetOffset(_p,t);
     }
 
+    AeonWave& operator=(AeonWave o) {
+        if (_close) _close(_p);
+        _p = o._p; _m = o._m; o._close = 0;
+        return *this;
+    }
+
     // ** mixing ******
     inline bool add(Frame& m) {
         return aaxMixerRegisterAudioFrame(_p,m);
@@ -606,7 +633,7 @@ public:
     }
 
     bool playing() {
-        return (_play.get() == AAX_PLAYING);
+        return (_play.state() == AAX_PLAYING);
     }
 
     float offset() {
