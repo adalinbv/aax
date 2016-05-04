@@ -41,14 +41,18 @@
 
 int main(int argc, char **argv)
 {
+    // Open the default device for playback
     AAX::AeonWave aax(AAX_MODE_WRITE_STEREO);
     aax.set(AAX_INITIALIZED);
     aax.set(AAX_PLAYING);
 
+    // Start the background music (file or http-stream)
     bool res = aax.play(std::string(argv[1]));
     if (!res) printf("Error: %s\n", aax.error());
     do
     {
+        // Your (game) code could be placed here
+
         printf("\rposition: %5.1f", aax.offset());
         sleep(1);
     }
