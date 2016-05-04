@@ -233,6 +233,9 @@ ELSE(MSVC)
     ENDIF(CLANG)
 
     IF (GCC OR CLANG)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
+          "Flags used by al build types."
+          FORCE)
       SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops" CACHE STRING
           "Flags used by al build types."
           FORCE)
