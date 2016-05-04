@@ -282,7 +282,7 @@ int main(int argc, char **argv)
                            "(%li samples/ %li bytes)\n", dt, off_s,
                            offs, offs_bytes);
                 }
-                state = emitter.get();
+                state = emitter.state();
             }
             while ((dt < 60.0f) && (state == AAX_PLAYING));
 
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
             do
             {
                 msecSleep(50);
-                state = emitter.get();
+                state = emitter.state();
             }
             while (state == AAX_PLAYING);
 

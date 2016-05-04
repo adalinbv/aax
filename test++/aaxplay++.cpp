@@ -344,7 +344,7 @@ int main(int argc, char **argv)
             } else {
                 msecSleep(250);
             }
-            state = record.get();
+            state = record.state();
         }
         while (state == AAX_PLAYING);
         std::cout << "" << std::endl;
