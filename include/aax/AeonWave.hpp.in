@@ -89,7 +89,7 @@ public:
     inline unsigned int get(enum aaxSetupType t) {
         return aaxBufferGetSetup(_p,t);
     }
-    inline bool set(const void* d) {
+    inline bool fill(const void* d) {
         return aaxBufferSetData(_p,d);
     }
     inline void** get() {
@@ -216,13 +216,13 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool set(Matrix& m) {
+    inline bool matrix(Matrix& m) {
         return aaxEmitterSetMatrix(_p,m.ptr());
     }
     inline bool get(Matrix& m) {
         return aaxEmitterGetMatrix(_p,m.ptr());
     }
-    inline bool set(Vector& v) {
+    inline bool velocity(Vector& v) {
         return aaxEmitterSetVelocity(_p,v);
     }
     inline bool get(Vector& v) {
@@ -340,13 +340,13 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool set(Matrix& m) {
+    inline bool matrix(Matrix& m) {
         return aaxSensorSetMatrix(_p,m.ptr());
     }
     inline bool get(Matrix& m) {
         return aaxSensorGetMatrix(_p,m.ptr());
     }
-    inline bool set(Vector& v) {
+    inline bool velocity(Vector& v) {
         return aaxSensorSetVelocity(_p,v);
     }
     inline bool get(Vector& v) {
@@ -445,13 +445,13 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool set(Matrix& m) {
+    inline bool matrix(Matrix& m) {
         return aaxAudioFrameSetMatrix(_p,m.ptr());
     }
     inline bool get(Matrix& m) {
         return aaxAudioFrameGetMatrix(_p,m.ptr());
     }
-    inline bool set(Vector& v) {
+    inline bool velocity(Vector& v) {
         return aaxAudioFrameSetVelocity(_p,v);
     }
     inline bool get(Vector& v) {
@@ -505,6 +505,14 @@ public:
     }
     inline DSP scenery(enum aaxEffectType t) {
         return DSP(aaxSceneryGetEffect(_p,t),t);
+    }
+
+    // ** position and orientation ******
+    inline bool sensor_matrix(Matrix& m) {
+        return matrix(m);
+    }
+    inline bool sensor_velocity(Vector& v) {
+        return velocity(v);
     }
 
     // ** enumeration ******
