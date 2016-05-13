@@ -98,10 +98,10 @@ int main(int argc, char **argv)
             res = mtx.inverse();
             testForState(res, "aaxMatrixInverse");
 
-            res = config.set(mtx);
+            res = config.sensor_matrix(mtx);
             testForState(res, "aaxSensorSetMatrix");
 
-            res = config.set(SensorVel);
+            res = config.sensor_velocity(SensorVel);
             testForState(res, "aaxSensorSetVelocity");
 
             /** emitter */
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 
                 mtx.set(EmitterPos, EmitterDir);
                 mtx.rotate(anglestep, 0.0f, 1.0f, 0.0f);
-                res = emitter[i].set(mtx);
+                res = emitter[i].matrix(mtx);
                 testForState(res, "aaxEmitterSetIdentityMatrix");
                 mul *= -1.0f;
 
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
                 i = 0;
                 do
                 {
-                    res = emitter[i].set(mtx);
+                    res = emitter[i].matrix(mtx);
                     testForState(res, "aaxSensorSetMatrix");
                 }
                 while (++i < num);
