@@ -33,6 +33,7 @@
 #define AEONWAVE 1
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <map>
 #include <memory>
@@ -76,12 +77,17 @@ class Buffer : public Object
 public:
     Buffer() : Object() {}
 
-    Buffer(aaxBuffer b, bool o=true) : Object(b, o ? aaxBufferDestroy : 0) {}
+    Buffer(aaxBuffer b, bool o=true) :
+        Object(b, o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
         Object(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
     ~Buffer() {}
+
+    inline set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
+        _p = aaxBufferCreate(c,n,t,f); _close = aaxBufferDestroy;
+    }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxBufferSetSetup(_p,t,s);
@@ -233,7 +239,7 @@ public:
     inline bool add(Buffer& b) {
         return aaxEmitterAddBuffer(_p,b);
     }
-    inline bool remove() {
+    inline bool remove_buffer() {
         return aaxEmitterRemoveBuffer(_p);
     }
     inline Buffer get(unsigned int p, int c=AAX_FALSE) {
@@ -322,20 +328,20 @@ public:
 
     // ** filters and effects ******
     bool set(DSP& dsp) {
-        int res = dsp.is_filter() ? aaxScenerySetFilter(_p,dsp)
-                                  : aaxScenerySetEffect(_p,dsp);
-        if (!res) res = dsp.is_filter() ? aaxMixerSetFilter(_p,dsp)
-                                        : aaxMixerSetEffect(_p,dsp);
+        int res = dsp.is_filter() ? aaxMixerSetFilter(_p,dsp)
+                                  : aaxMixerSetEffect(_p,dsp);
+        if (!res) res = dsp.is_filter() ? aaxScenerySetFilter(_p,dsp)
+                                        : aaxScenerySetEffect(_p,dsp);
         return res;
     }
     DSP get(enum aaxFilterType t) {
-        aaxFilter f = aaxSceneryGetFilter(_p,t);
-        if (!f) f = aaxMixerGetFilter(_p,t);
+        aaxFilter f = aaxMixerGetFilter(_p,t);
+        if (!f) f = aaxSceneryGetFilter(_p,t);
         return DSP(f,t);
     }
     DSP get(enum aaxEffectType t) {
-        aaxEffect e = aaxSceneryGetEffect(_p,t);
-        if (!e) e = aaxMixerGetEffect(_p,t);
+        aaxEffect e = aaxMixerGetEffect(_p,t);
+        if (!e) e = aaxSceneryGetEffect(_p,t);
         return DSP(e,t);
     }
 
@@ -475,7 +481,9 @@ public:
 };
 typedef Frame Mixer;
 
-
+#ifdef _WIN32
+# define realpath(p,r)	_fullpath((r),(p),_MAX_PATH)
+#endif
 class AeonWave : public Sensor
 {
 public:
@@ -494,17 +502,6 @@ public:
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
              aaxBufferDestroy(it->second.second); _buffer_cache.erase(it);
         }
-    }
-
-    bool scenery(DSP& dsp) {
-        return dsp.is_filter() ? aaxScenerySetFilter(_p,dsp)
-                               : aaxScenerySetEffect(_p,dsp);
-    }
-    inline DSP scenery(enum aaxFilterType t) {
-        return DSP(aaxSceneryGetFilter(_p,t),t);
-    }
-    inline DSP scenery(enum aaxEffectType t) {
-        return DSP(aaxSceneryGetEffect(_p,t),t);
     }
 
     // ** position and orientation ******
@@ -608,17 +605,16 @@ public:
     }
 
     // ** buffer management ******
-    // Get a shared buffer from the buffer cache if it's full path is already
+    // Get a shared buffer from the buffer cache if it's URL is already
     // in the cache. Otherwise create a new one and add it to the cache.
-    Buffer buffer(std::string path) {
-        _buffer_it it = _buffer_cache.find(path);
+    Buffer& buffer(std::string name) {
+        _buffer_it it = _buffer_cache.find(name);
         if (it == _buffer_cache.end()) {
-            aaxBuffer b = aaxBufferReadFromStream(_p,path.c_str());
-            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(path,std::make_pair(static_cast<size_t>(0),b)));
+            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(aaxBufferReadFromStream(_p,name.c_str()),false))));
             it = ret.first;
         }
-       it->second.first++;
-       return Buffer(it->second.second,false);
+        it->second.first++;
+        return it->second.second;
     }
     void destroy(Buffer& b) {
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++)
@@ -630,7 +626,7 @@ public:
         }
     }
 
-    // ** backgrpund music ******
+    // ** one background music stream ******
     bool play(std::string f) {
         _play = Sensor(std::string("AeonWave on Audio Files: ")+f, AAX_MODE_READ);
         return add(_play) ? (_play.set(AAX_INITIALIZED) ? _play.sensor(AAX_CAPTURING) : false) : false;
@@ -649,8 +645,8 @@ public:
     }
 
 private:
-    std::map<std::string,std::pair<size_t,aaxBuffer> > _buffer_cache;
-    typedef std::map<std::string,std::pair<size_t,aaxBuffer> >::iterator _buffer_it;
+    std::map<std::string,std::pair<size_t,Buffer> > _buffer_cache;
+    typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator _buffer_it;
 
     // background music stream
     Sensor _play;
