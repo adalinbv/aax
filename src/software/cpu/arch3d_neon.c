@@ -84,7 +84,7 @@ _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2)
 }
 
 void
-__vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
+__vec4Matrix4_neon(vec4 d, const vec4 v, const mtx4 m)
 {
    float32x4_t a_line, b_line, r_line;
    const float32_t *a = (const float32_t *)m;
@@ -110,7 +110,7 @@ __vec4Matrix4_neon(vec4 d, const vec4 v, mtx4 m)
 }
 
 void
-_pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m)
+_pt4Matrix4_neon(vec4 d, const vec4 p, const mtx4 m)
 {
    vec4_t v;
 
@@ -120,7 +120,7 @@ _pt4Matrix4_neon(vec4 d, const vec4 p, mtx4 m)
 }
 
 void
-_vec4Matrix4_neon(vec4 d, const vec4 vi, mtx4 m)
+_vec4Matrix4_neon(vec4 d, const vec4 vi, const mtx4 m)
 {
    vec4_t v;
 
@@ -131,7 +131,7 @@ _vec4Matrix4_neon(vec4 d, const vec4 vi, mtx4 m)
 
 
 void
-_mtx4Mul_neon(mtx4 d, mtx4 m1, mtx4 m2)
+_mtx4Mul_neon(mtx4 d, const mtx4 m1, const mtx4 m2)
 {
    float32x4_t a_line, b_line, r_line;
    const float32_t *a = (const float32_t *)m1;

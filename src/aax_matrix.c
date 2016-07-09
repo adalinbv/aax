@@ -21,7 +21,7 @@
 #include "api.h"
 
 AAX_API int AAX_APIENTRY
-aaxMatrixCopyMatrix(aaxMtx4f dmtx, aaxMtx4f smtx)
+aaxMatrixCopyMatrix(aaxMtx4f dmtx, const aaxMtx4f smtx)
 {
    int rv = AAX_FALSE;
    if (dmtx && smtx) {
@@ -31,7 +31,7 @@ aaxMatrixCopyMatrix(aaxMtx4f dmtx, aaxMtx4f smtx)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, aaxMtx4d smtx)
+aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, const aaxMtx4d smtx)
 {
    int rv = AAX_FALSE;
    if (dmtx && smtx) {
@@ -204,7 +204,7 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
 
 
 AAX_API int AAX_APIENTRY
-aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
+aaxMatrixMultiply(aaxMtx4f mtx1, const aaxMtx4f mtx2)
 {
    int rv = __release_mode;
 
