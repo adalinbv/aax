@@ -18,7 +18,7 @@
 #ifdef __SSE3__
 
 FN_PREALIGN void
-_vec4Matrix4_sse3(vec4_t d, const vec4_t pv, mtx4_t m)
+_vec4Matrix4_sse3(vec4_t d, const vec4_t pv, const mtx4_t m)
 {
    vec4_t vi;
    __m128 v;
@@ -35,7 +35,7 @@ _vec4Matrix4_sse3(vec4_t d, const vec4_t pv, mtx4_t m)
 }
 
 FN_PREALIGN void
-_pt4Matrix4_sse3(vec4_t d, const vec4_t pv, mtx4_t m)
+_pt4Matrix4_sse3(vec4_t d, const vec4_t pv, const mtx4_t m)
 {
    vec4_t vi;
    __m128 v;

@@ -80,7 +80,7 @@ vec4Negate(vec4 d, const vec4 v)
 
 
 void
-_vec3Add(vec3 d, vec3 v)
+_vec3Add(vec3 d, const vec3 v)
 {
    d[0] += v[0];
    d[1] += v[1];
@@ -97,7 +97,7 @@ _vec4Add(vec4 d, const vec4 v)
 }
 
 void
-_ivec4Add(ivec4 d, ivec4 v)
+_ivec4Add(ivec4 d, const ivec4 v)
 {
    d[0] += v[0];
    d[1] += v[1];
@@ -107,7 +107,7 @@ _ivec4Add(ivec4 d, ivec4 v)
 
 
 void
-_vec3Sub(vec3 d, vec3 v)
+_vec3Sub(vec3 d, const vec3 v)
 {
    d[0] -= v[0];
    d[1] -= v[1];
@@ -124,7 +124,7 @@ _vec4Sub(vec4 d, const vec4 v)
 }
 
 void
-_ivec4Sub(ivec4 d, ivec4 v)
+_ivec4Sub(ivec4 d, const ivec4 v)
 {
    d[0] -= v[0];
    d[1] -= v[1];
@@ -286,7 +286,7 @@ _vec3dNormalize(vec3d d, const vec3d v)
 
 
 void
-vec3Matrix3(vec3 d, const vec3 v, mtx3 m)
+vec3Matrix3(vec3 d, const vec3 v, const mtx3 m)
 {
    float v0 = v[0], v1 = v[1], v2 = v[2];
 
@@ -306,7 +306,7 @@ vec3Matrix3(vec3 d, const vec3 v, mtx3 m)
  * different amounts in the different axis)
  */
 void
-_vec4Matrix4(vec4 d, const vec4 v, mtx4 m)
+_vec4Matrix4(vec4 d, const vec4 v, const mtx4 m)
 {
    float v0 = v[0], v1 = v[1], v2 = v[2]; // v3 = 0.0f;
 
@@ -317,7 +317,7 @@ _vec4Matrix4(vec4 d, const vec4 v, mtx4 m)
 }
 
 void
-_pt4Matrix4(vec4 d, const vec4 p, mtx4 m)
+_pt4Matrix4(vec4 d, const vec4 p, const mtx4 m)
 {
    float p0 = p[0], p1 = p[1], p2 = p[2]; // p3 = 1.0f;
 
@@ -335,13 +335,13 @@ mtx3Copy(mtx3 d, mtx3 m)
 }
 
 void
-mtx4Copy(mtx4 d, void *m)
+mtx4Copy(mtx4 d, const void *m)
 {
    memcpy(d, m, sizeof(mtx4));
 }
 
 void
-mtx4dCopy(mtx4d d, void *m)
+mtx4dCopy(mtx4d d, const void *m)
 {
    memcpy(d, m, sizeof(mtx4d));
 }
@@ -364,7 +364,7 @@ mtx4MulVec4(vec4 d, mtx4 m, const vec4 v)
 }
 
 void
-_mtx4Mul(mtx4 dst, mtx4 mtx1, mtx4 mtx2)
+_mtx4Mul(mtx4 dst, const mtx4 mtx1, const mtx4 mtx2)
 {
    const float *m20 = mtx2[0], *m21 = mtx2[1], *m22 = mtx2[2], *m23 = mtx2[3];
    float m10i, m11i, m12i, m13i;
@@ -387,7 +387,7 @@ _mtx4Mul(mtx4 dst, mtx4 mtx1, mtx4 mtx2)
 }
 
 void
-_mtx4dMul(mtx4d dst, mtx4d mtx1, mtx4d mtx2)
+_mtx4dMul(mtx4d dst, const mtx4d mtx1, const mtx4d mtx2)
 {
    const double *m20 = mtx2[0], *m21 = mtx2[1], *m22 = mtx2[2], *m23 = mtx2[3];
    double m10i, m11i, m12i, m13i;
@@ -410,7 +410,7 @@ _mtx4dMul(mtx4d dst, mtx4d mtx1, mtx4d mtx2)
 }
 
 void
-mtx4InverseSimple(mtx4 dst, mtx4 mtx)
+mtx4InverseSimple(mtx4 dst, const mtx4 mtx)
 {
    /* side */
    dst[0][0] = mtx[0][0];

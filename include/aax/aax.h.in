@@ -474,7 +474,9 @@ typedef void* aaxEffect;
 typedef void* aaxFrame;
 
 typedef float aaxVec3f[3];
+typedef double aaxVec3d[3];
 typedef float aaxVec4f[4];
+typedef double aaxVec4d[4];
 typedef float aaxMtx4f[4][4];
 typedef double aaxMtx4d[4][4];
 
@@ -821,17 +823,17 @@ typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTAPPLY)(aaxEffectFn, void *, aaxEffe
 /*
  * Matrix operations
  */
-AAX_API int AAX_APIENTRY aaxMatrixCopyMatrix(aaxMtx4f, aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxMatrixCopyMatrix(aaxMtx4f, const aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixSetIdentityMatrix(aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixTranslate(aaxMtx4f, float, float, float);
 AAX_API int AAX_APIENTRY aaxMatrixRotate(aaxMtx4f, float, float, float, float);
-AAX_API int AAX_APIENTRY aaxMatrixMultiply(aaxMtx4f, aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxMatrixMultiply(aaxMtx4f, const aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixInverse(aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxMatrixSetDirection(aaxMtx4f, const aaxVec3f, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxMatrixSetOrientation(aaxMtx4f, const aaxVec3f, const aaxVec3f, const aaxVec3f);
 AAX_API int AAX_APIENTRY aaxMatrixGetOrientation(aaxMtx4f, aaxVec3f, aaxVec3f, aaxVec3f);
 
-AAX_API int AAX_APIENTRY aaxMatrix64CopyMatrix64(aaxMtx4d, aaxMtx4d);
+AAX_API int AAX_APIENTRY aaxMatrix64CopyMatrix64(aaxMtx4d, const aaxMtx4d);
 AAX_API int AAX_APIENTRY aaxMatrix64SetIdentityMatrix(aaxMtx4d);
 AAX_API int AAX_APIENTRY aaxMatrix64Translate(aaxMtx4d, double, double, double);
 AAX_API int AAX_APIENTRY aaxMatrix64Rotate(aaxMtx4d, double, double, double, double);

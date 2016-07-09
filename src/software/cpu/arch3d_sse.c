@@ -120,7 +120,7 @@ _vec4Mulvec4_sse(vec4_t r, const vec4_t v1, const vec4_t v2)
 }
 
 FN_PREALIGN void
-_vec4Matrix4_sse(vec4_t d, const vec4_t vi, mtx4_t m)
+_vec4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
 {
    __m128 a_line, b_line, r_line;
    vec4_t v;
@@ -153,7 +153,7 @@ _vec4Matrix4_sse(vec4_t d, const vec4_t vi, mtx4_t m)
 }
 
 FN_PREALIGN void
-_pt4Matrix4_sse(vec4_t d, const vec4_t vi, mtx4_t m)
+_pt4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
 {
    __m128 a_line, b_line, r_line;
    vec4_t v;
@@ -186,7 +186,7 @@ _pt4Matrix4_sse(vec4_t d, const vec4_t vi, mtx4_t m)
 }
 
 FN_PREALIGN void
-_mtx4Mul_sse(mtx4_t d, mtx4_t m1, mtx4_t m2)
+_mtx4Mul_sse(mtx4_t d, const mtx4_t m1, const mtx4_t m2)
 {
    __m128 a_line, b_line, r_line;
    const float *a = (const float *)m1;

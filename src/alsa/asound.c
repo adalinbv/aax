@@ -522,8 +522,10 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             {
                if (strcasecmp(s, "default")) {
                   handle->name = _aax_strdup(s);
+printf("A: '%s'\n", handle->name);
                } else {						/* 'default' */
                   handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
+printf("B: '%s'\n", handle->name);
                }
                xmlFree(s);
             }
@@ -607,7 +609,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
          }
       }
    }
-#if 0
+#if 1
  printf("\nrenderer: %s\n", handle->name);
  printf("frequency-hz: %f\n", handle->frequency_hz);
  printf("channels: %i\n", handle->no_tracks);
@@ -1098,7 +1100,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
          _AAX_SYSLOG(str);
-#if 0
+#if 1
  printf("alsa; driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -1946,6 +1948,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
       handle->devname = _aax_strdup(name);
    }
 
+printf(">> opening: '%s'\n", handle->devname);
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
 
