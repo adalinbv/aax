@@ -98,7 +98,7 @@ public:
     inline bool fill(const void* d) {
         return aaxBufferSetData(_p,d);
     }
-    inline void** get() {
+    inline void** ptr_get() {
         return aaxBufferGetData(_p);
     }
 
@@ -223,10 +223,10 @@ public:
 
     // ** position and orientation ******
     inline bool matrix(Matrix& m) {
-        return aaxEmitterSetMatrix(_p,m.ptr());
+        return aaxEmitterSetMatrix(_p,m.ptr_get());
     }
     inline bool get(Matrix& m) {
-        return aaxEmitterGetMatrix(_p,m.ptr());
+        return aaxEmitterGetMatrix(_p,m.ptr_set());
     }
     inline bool velocity(Vector& v) {
         return aaxEmitterSetVelocity(_p,v);
@@ -347,10 +347,10 @@ public:
 
     // ** position and orientation ******
     inline bool matrix(Matrix& m) {
-        return aaxSensorSetMatrix(_p,m.ptr());
+        return aaxSensorSetMatrix(_p,m.ptr_get());
     }
     inline bool get(Matrix& m) {
-        return aaxSensorGetMatrix(_p,m.ptr());
+        return aaxSensorGetMatrix(_p,m.ptr_set());
     }
     inline bool velocity(Vector& v) {
         return aaxSensorSetVelocity(_p,v);
@@ -452,10 +452,10 @@ public:
 
     // ** position and orientation ******
     inline bool matrix(Matrix& m) {
-        return aaxAudioFrameSetMatrix(_p,m.ptr());
+        return aaxAudioFrameSetMatrix(_p,m.ptr_get());
     }
     inline bool get(Matrix& m) {
-        return aaxAudioFrameGetMatrix(_p,m.ptr());
+        return aaxAudioFrameGetMatrix(_p,m.ptr_set());
     }
     inline bool velocity(Vector& v) {
         return aaxAudioFrameSetVelocity(_p,v);
