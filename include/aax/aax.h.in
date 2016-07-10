@@ -664,7 +664,7 @@ AAX_API int AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxEmitterSetSetup(aaxEmitter, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxEmitterGetSetup(const aaxEmitter, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetMatrix(aaxConfig, aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxEmitterSetMatrix(aaxConfig, const aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxEmitterGetMatrix(aaxConfig, aaxMtx4f);
 
 AAX_API int AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, const aaxVec3f);
@@ -697,7 +697,7 @@ typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMODE)(aaxEmitter, enum aaxModeType, i
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMODE)(const aaxEmitter, enum aaxModeType);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETSETUP)(aaxEmitter, enum aaxSetupType, unsigned int);
 typedef unsigned int (AAX_APIENTRY *PFNAAXEMITTERGETSETUP)(const aaxEmitter, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMATRIX)(aaxConfig, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXEMITTERSETMATRIX)(aaxConfig, const aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETMATRIX)(aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETVELOCITY)(aaxEmitter, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETVELOCITY)(const aaxEmitter, aaxVec3f);
@@ -728,7 +728,7 @@ AAX_API int AAX_APIENTRY aaxSensorGetMode(const aaxConfig, enum aaxModeType);
 AAX_API int AAX_APIENTRY aaxSensorSetSetup(aaxConfig, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxSensorGetSetup(const aaxConfig, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxSensorSetMatrix(aaxConfig, const aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxSensorGetMatrix(const aaxConfig, aaxMtx4f);
 
 AAX_API int AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, const aaxVec3f);
@@ -746,7 +746,7 @@ typedef int (AAX_APIENTRY *PFNAAXSENSORSETMODE)(aaxConfig, enum aaxModeType, int
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETMODE)(const aaxConfig, enum aaxModeType);
 typedef int (AAX_APIENTRY *PFNAAXSENSORSETSETUP)(aaxConfig, enum aaxSetupType, unsigned int);
 typedef unsigned int (AAX_APIENTRY *PFNAAXSENSORGETSETUP)(const aaxConfig, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXSENSORSETMATRIX)(aaxConfig, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXSENSORSETMATRIX)(aaxConfig, const aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETMATRIX)(const aaxConfig, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORSETVELOCITY)(aaxConfig, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXSENSORGETVELOCITY)(const aaxConfig, aaxVec3f);
@@ -763,7 +763,7 @@ AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
 AAX_API const char* AAX_APIENTRY aaxFilterGetNameByType(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
-AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, aaxVec4f);
+AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, const aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetState(aaxFilter, int);
 
@@ -779,7 +779,7 @@ typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERCREATE)(aaxConfig, enum aaxFilterTy
 typedef int (AAX_APIENTRY *PFNAAXFILTERDESTROY)(aaxFilter);
 typedef const char* (AAX_APIENTRY *PFNAAXFILTERGETNAMEBYTYPE)(aaxConfig, enum aaxFilterType);
 typedef int (AAX_APIENTRY *PFNAAXFILTERSETPARAM)(aaxFilter, int, int, float);
-typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERSETSLOTPARAMS)(aaxFilter, unsigned, int, aaxVec4f);
+typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERSETSLOTPARAMS)(aaxFilter, unsigned, int, const aaxVec4f);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERSETSLOT)(aaxFilter, unsigned, int, float, float, float, float);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERSETSTATE)(aaxFilter, int);
 typedef float (AAX_APIENTRY *PFNAAXFILTERGETPARAM)(const aaxFilter, int, int);
@@ -796,7 +796,7 @@ AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
 AAX_API const char* AAX_APIENTRY aaxEffectGetNameByType(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
-AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, aaxVec4f);
+AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, const aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetState(aaxEffect, int);
 AAX_API float AAX_APIENTRY aaxEffectGetParam(const aaxEffect, int , int);
@@ -811,7 +811,7 @@ typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTCREATE)(aaxConfig, enum aaxEffectTy
 typedef int (AAX_APIENTRY *PFNAAXEFFECTDESTROY)(aaxEffect);
 typedef const char* (AAX_APIENTRY *APFNAXEFFECTGETNAMEBYTYPE)(aaxConfig, enum aaxEffectType);
 typedef int (AAX_APIENTRY *PFNAAXEFFECTSETPARAM)(aaxEffect, int, int, float);
-typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTSETSLOTPARAMS)(aaxEffect, unsigned, int, aaxVec4f);
+typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTSETSLOTPARAMS)(aaxEffect, unsigned, int, const aaxVec4f);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTSETSLOT)(aaxEffect, unsigned, int, float, float, float, float);
 typedef aaxEffect (AAX_APIENTRY *PFNAAXEFFECTSETSTATE)(aaxEffect, int);
 typedef float (AAX_APIENTRY *PFNAAXEFFECTGETPARAM)(const aaxEffect, int, int);
@@ -845,7 +845,7 @@ AAX_API int AAX_APIENTRY aaxMatrix64ToMatrix(aaxMtx4f, const aaxMtx4d);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXSETIDENTITYMATRIX)(aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXTRANSLATE)(aaxMtx4f, float, float, float);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXROTATE)(aaxMtx4f, float, float, float, float);
-typedef int (AAX_APIENTRY *PFNAAXMATRIXMULTIPLY)(aaxMtx4f, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXMATRIXMULTIPLY)(aaxMtx4f, const aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXINVERSE)(aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXSETDIRECTION)(aaxMtx4f, const aaxVec3f, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXMATRIXSETORIENTATION)(aaxMtx4f, const aaxVec3f, const aaxVec3f, const aaxVec3f);
@@ -873,7 +873,7 @@ AAX_API int AAX_APIENTRY aaxAudioFrameGetMode(const aaxFrame, enum aaxModeType);
 AAX_API int AAX_APIENTRY aaxAudioFrameSetSetup(aaxFrame, enum aaxSetupType, unsigned int);
 AAX_API unsigned int aaxAudioFrameGetSetup(const aaxFrame, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, aaxMtx4f);
+AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix(aaxFrame, const aaxMtx4f);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetMatrix(aaxFrame, aaxMtx4f);
 
 AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, const aaxVec3f);
@@ -907,10 +907,10 @@ typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMODE)(aaxFrame, enum aaxModeType, 
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMODE)(const aaxFrame, enum aaxModeType);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETSETUP)(aaxFrame, enum aaxSetupType, unsigned int);
 typedef unsigned int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETSETUP)(const aaxFrame, enum aaxSetupType);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMATRIX)(aaxFrame, aaxMtx4f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETMATRIX)(aaxFrame, const aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETMATRIX)(aaxFrame, aaxMtx4f);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETVELOCITY)(aaxFrame, const aaxVec3f);
-typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETVELOCITY)(aaxFrame, aaxVec3f);
+typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETVELOCITY)(aaxFrame, const aaxVec3f);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETFILTER)(aaxFrame, aaxFilter);
 typedef aaxFilter (AAX_APIENTRY *PFNAAXAUDIOFRAMEGETFILTER)(const aaxFrame, enum aaxFilterType);
 typedef int (AAX_APIENTRY *PFNAAXAUDIOFRAMESETEFFECT)(aaxFrame, aaxEffect);
