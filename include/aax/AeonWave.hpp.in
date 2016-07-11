@@ -32,15 +32,7 @@
 #ifndef AEONWAVE
 #define AEONWAVE 1
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <map>
-#include <memory>
-#include <vector>
-#include <string>
-#include <algorithm>
-
 #include <aax/Matrix>
 
 namespace AAX
@@ -53,7 +45,7 @@ public:
 
     Object() : _p(0), _close(0) {}
 
-    Object(void *p, _close_fn* c) : _p(p), _close(c) {}
+    Object(void *p, const _close_fn* c) : _p(p), _close(c) {}
 
     ~Object() {
         if (_close) _close(_p);
@@ -98,7 +90,7 @@ public:
     inline bool fill(const void* d) {
         return aaxBufferSetData(_p,d);
     }
-    inline void** ptr_get() {
+    inline void** data() {
         return aaxBufferGetData(_p);
     }
 
@@ -126,11 +118,13 @@ class DSP : public Object
 public:
     DSP() : Object(), _f(true) {}
 
-    DSP(aaxFilter c, enum aaxFilterType f) : Object(c,aaxFilterDestroy), _f(1) {
+    DSP(aaxFilter c, enum aaxFilterType f) :
+        Object(c,aaxFilterDestroy), _f(true) {
         if (!aaxIsValid(c, AAX_FILTER)) _p = aaxFilterCreate(c,f);
     }
 
-    DSP(aaxEffect c, enum aaxEffectType e) : Object(c,aaxEffectDestroy), _f(0) {
+    DSP(aaxEffect c, enum aaxEffectType e) :
+        Object(c,aaxEffectDestroy), _f(false) {
         if (!aaxIsValid(c, AAX_EFFECT)) _p = aaxEffectCreate(c,e);
     }
 
@@ -157,7 +151,7 @@ public:
         return (_f) ? aaxFilterSetSlotParams(_p,s,t,v)
                     : aaxEffectSetSlotParams(_p,s,t,v);
     }
-    bool set(unsigned s, aaxVec4f v, int t=AAX_LINEAR) {
+    bool set(unsigned s, const aaxVec4f v, int t=AAX_LINEAR) {
         return (_f) ? aaxFilterSetSlotParams(_p,s,t,v)
                     : aaxEffectSetSlotParams(_p,s,t,v);
     }
@@ -223,10 +217,10 @@ public:
 
     // ** position and orientation ******
     inline bool matrix(Matrix& m) {
-        return aaxEmitterSetMatrix(_p,m.ptr_get());
+        return aaxEmitterSetMatrix(_p,m);
     }
     inline bool get(Matrix& m) {
-        return aaxEmitterGetMatrix(_p,m.ptr_set());
+        return aaxEmitterGetMatrix(_p,m);
     }
     inline bool velocity(Vector& v) {
         return aaxEmitterSetVelocity(_p,v);
@@ -281,7 +275,7 @@ public:
     Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(aaxDriverOpenByName(n,m), m) {}
 
-    Sensor(std::string s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+    Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(s.empty() ? "default" : s.c_str(),m) {}
 
     ~Sensor() {}
@@ -347,10 +341,10 @@ public:
 
     // ** position and orientation ******
     inline bool matrix(Matrix& m) {
-        return aaxSensorSetMatrix(_p,m.ptr_get());
+        return aaxSensorSetMatrix(_p,m);
     }
     inline bool get(Matrix& m) {
-        return aaxSensorGetMatrix(_p,m.ptr_set());
+        return aaxSensorGetMatrix(_p,m);
     }
     inline bool velocity(Vector& v) {
         return aaxSensorSetVelocity(_p,v);
@@ -452,10 +446,10 @@ public:
 
     // ** position and orientation ******
     inline bool matrix(Matrix& m) {
-        return aaxAudioFrameSetMatrix(_p,m.ptr_get());
+        return aaxAudioFrameSetMatrix(_p,m);
     }
     inline bool get(Matrix& m) {
-        return aaxAudioFrameGetMatrix(_p,m.ptr_set());
+        return aaxAudioFrameGetMatrix(_p,m);
     }
     inline bool velocity(Vector& v) {
         return aaxAudioFrameSetVelocity(_p,v);
@@ -481,9 +475,7 @@ public:
 };
 typedef Frame Mixer;
 
-#ifdef _WIN32
-# define realpath(p,r)	_fullpath((r),(p),_MAX_PATH)
-#endif
+
 class AeonWave : public Sensor
 {
 public:
@@ -626,9 +618,10 @@ public:
         }
     }
 
-    // ** one background music stream ******
+    // ** handles for a single background music stream ******
     bool play(std::string f) {
-        _play = Sensor(std::string("AeonWave on Audio Files: ")+f, AAX_MODE_READ);
+        std::string devname = std::string("AeonWave on Audio Files: ")+f;
+        _play = Sensor(devname, AAX_MODE_READ);
         return add(_play) ? (_play.set(AAX_INITIALIZED) ? _play.sensor(AAX_CAPTURING) : false) : false;
     }
 
