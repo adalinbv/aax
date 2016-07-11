@@ -95,7 +95,9 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
          *ptr++ = '\0';
          *port = strtol(ptr, NULL, 10);
       }
-   }   if ((*protocol && !strcasecmp(*protocol, "http")) ||
+   }
+
+   if ((*protocol && !strcasecmp(*protocol, "http")) ||
        (*server && **server != 0))
    {
       rv = PROTOCOL_HTTP;
