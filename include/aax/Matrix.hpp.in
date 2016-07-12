@@ -225,11 +225,11 @@ public:
     inline T operator[](unsigned p) const {
         return _v[p];
     }
-    operator T*() {
-        return (T*)_v;
+    operator const MT&() {
+        return _v;
     }
-    operator const T*() {
-        return (const T*)_v;
+    operator MT&() {
+        return _v;
     }
     inline bool is_v4() const {
         return _v4 ? true : false;
