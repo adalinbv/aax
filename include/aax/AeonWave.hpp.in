@@ -34,6 +34,7 @@
 
 #include <map>
 #include <aax/Matrix>
+#include <aax/aax.h>
 
 namespace AAX
 {
@@ -60,7 +61,7 @@ public:
     }
 
 protected:
-    _close_fn* _close;
+    mutable _close_fn* _close;
     void* _p;
 };
 
@@ -105,9 +106,9 @@ public:
     }
 
     // ** support ******
-    Buffer& operator=(Buffer o) {
+    Buffer& operator=(const Buffer& o) {
         if (_close) _close(_p);
-        _p = o._p; o._close = 0;
+        _p = o._p; _close = o._close; o._close = 0;
         return *this;
     }
 };
@@ -167,10 +168,9 @@ public:
     }
 
     // ** support ******
-    DSP& operator=(DSP o) {
+    DSP& operator=(const DSP& o) {
         if (_close) _close(_p);
-        _close = o._close; o._close = 0;
-        _p = o._p; _f = o._f;
+        _p = o._p; _f = o._f; _close = o._close; o._close = 0;
         return *this;
     }
 
@@ -256,9 +256,9 @@ public:
     }
 
     // ** support ******
-    Emitter& operator=(Emitter o) {
+    Emitter& operator=(const Emitter& o) {
         if (_close) _close(_p);
-        _p = o._p; o._close = 0;
+        _p = o._p; _close = o._close; o._close = 0;
         return *this;
     }
 };
@@ -372,9 +372,9 @@ public:
         return aaxGetVersionString(_p);
     }
 
-    Sensor& operator=(Sensor o) {
+    Sensor& operator=(const Sensor& o) {
         if (_close) _close(_p);
-        _p = o._p; _m = o._m; o._close = 0;
+        _p = o._p; _m = o._m; _close = o._close; o._close = 0;
         return *this;
     }
 
@@ -467,9 +467,9 @@ public:
     }
 
     // ** support ******
-    Frame& operator=(Frame o) {
+    Frame& operator=(const Frame& o) {
         if (_close) _close(_p);
-        _p = o._p; o._close = 0;
+        _p = o._p; _close = o._close; o._close = 0;
         return *this;
     }
 };
@@ -513,15 +513,15 @@ public:
         }  else _e[0] = 0;
         return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
     }
-    const char* devices(bool def=true) {
-        _e[2] = 0; _ed = def ? (_e[1] ? 0 : "") : 0;
+    const char* devices(bool c_str=false) {
+        _e[2] = 0; _ed = c_str ? 0 : (_e[1] ? 0 : "");
         if (_e[1]++ < aaxDriverGetDeviceCount(_ec,_em)) {
             _ed = aaxDriverGetDeviceNameByPos(_ec,_e[1]-1,_em);
         }
         return _ed;
     }
-    const char* interfaces(bool def=true) {
-        const char *ifs = def ? (_e[2] ? 0 : "") : 0;
+    const char* interfaces(bool c_str=false) {
+        const char *ifs = c_str ? 0 : (_e[2] ? 0 : "");
         if (_e[2]++ < aaxDriverGetInterfaceCount(_ec,_ed,_em)) {
             ifs = aaxDriverGetInterfaceNameByPos(_ec,_ed,_e[2]-1,_em);
         }
@@ -570,9 +570,9 @@ public:
         return aaxSensorGetOffset(_p,t);
     }
 
-    AeonWave& operator=(AeonWave o) {
+    AeonWave& operator=(const AeonWave& o) {
         if (_close) _close(_p);
-        _p = o._p; _m = o._m; o._close = 0;
+        _p = o._p; _m = o._m; _close = o._close; o._close = 0;
         return *this;
     }
 
