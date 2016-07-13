@@ -276,7 +276,7 @@ public:
         Sensor(aaxDriverOpenByName(n,m), m) {}
 
     Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(s.empty() ? "default" : s.c_str(),m) {}
+        Sensor(s.empty() ? NULL : s.c_str(),m) {}
 
     ~Sensor() {}
 
@@ -324,18 +324,19 @@ public:
     bool set(DSP& dsp) {
         int res = dsp.is_filter() ? aaxMixerSetFilter(_p,dsp)
                                   : aaxMixerSetEffect(_p,dsp);
-        if (!res) res = dsp.is_filter() ? aaxScenerySetFilter(_p,dsp)
-                                        : aaxScenerySetEffect(_p,dsp);
+        if (!res) { error_no();
+            res = dsp.is_filter() ? aaxScenerySetFilter(_p,dsp)
+                                  : aaxScenerySetEffect(_p,dsp); }
         return res;
     }
     DSP get(enum aaxFilterType t) {
         aaxFilter f = aaxMixerGetFilter(_p,t);
-        if (!f) f = aaxSceneryGetFilter(_p,t);
+        if (!f) { error_no(); f = aaxSceneryGetFilter(_p,t); }
         return DSP(f,t);
     }
     DSP get(enum aaxEffectType t) {
         aaxEffect e = aaxMixerGetEffect(_p,t);
-        if (!e) e = aaxSceneryGetEffect(_p,t);
+        if (!e) { error_no(); e = aaxSceneryGetEffect(_p,t); }
         return DSP(e,t);
     }
 
@@ -370,6 +371,12 @@ public:
     // ** support ******
     inline const char* version() {
         return aaxGetVersionString(_p);
+    }
+    static enum aaxErrorType error_no() {
+        return aaxGetErrorNo();
+    }
+    static const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
+        return aaxGetErrorString(e);
     }
 
     Sensor& operator=(const Sensor& o) {
@@ -488,7 +495,7 @@ public:
         AeonWave(s.empty() ? 0 : s.c_str(),m) {}
 
     AeonWave(enum aaxRenderMode m) :
-        AeonWave("default",m) {}
+        AeonWave(NULL,m) {}
 
     ~AeonWave() {
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
@@ -551,12 +558,6 @@ public:
     }
     static unsigned int patch_level() {
         return aaxGetPatchLevel();
-    }
-    static enum aaxErrorType error_no() {
-        return aaxGetErrorNo();
-    }
-    static const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
-        return aaxGetErrorString(e);
     }
 
     inline bool valid(aaxConfig c, enum aaxHandleType t=AAX_CONFIG) {
