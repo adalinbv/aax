@@ -522,10 +522,8 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
             {
                if (strcasecmp(s, "default")) {
                   handle->name = _aax_strdup(s);
-printf("A: '%s'\n", handle->name);
                } else {						/* 'default' */
                   handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
-printf("B: '%s'\n", handle->name);
                }
                xmlFree(s);
             }
@@ -609,7 +607,7 @@ printf("B: '%s'\n", handle->name);
          }
       }
    }
-#if 1
+#if 0
  printf("\nrenderer: %s\n", handle->name);
  printf("frequency-hz: %f\n", handle->frequency_hz);
  printf("channels: %i\n", handle->no_tracks);
@@ -779,9 +777,6 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
             "unable to disable period wakeups" );
       }
 
-      TRUN( psnd_pcm_sw_params_current(hid, swparams),
-               "unable to set software config" );
-
       /* Set the prefered access method (rw/mmap interleaved/non-interleaved) */
       err = _alsa_set_access(handle, hwparams, swparams);
 
@@ -948,6 +943,9 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->latency = (float)(period_frames*periods)/(float)rate;
          }
 
+         TRUN( psnd_pcm_sw_params_current(hid, swparams),
+               "unable to get software config" );
+
          TRUN( psnd_pcm_sw_params_set_avail_min(hid, swparams, period_frames),
                "wakeup treshold unsupported" );
 
@@ -978,7 +976,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->threshold = 5*period_frames/4;
 
          TRUN( psnd_pcm_sw_params(hid, swparams),
-               "unable to configure software" );
+               "unable to set software parameters" );
          if (err >= 0)
          {
             val1 = val2 = 0;
@@ -1100,7 +1098,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          _AAX_SYSLOG(str);
          snprintf(str,255,"  channels: %i, bits/sample: %i\n", tracks, handle->bits_sample);
          _AAX_SYSLOG(str);
-#if 1
+#if 0
  printf("alsa; driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
     printf("  output renderer: '%s'\n", handle->name);
@@ -1948,7 +1946,6 @@ _alsa_pcm_open(_driver_t *handle, int m)
       handle->devname = _aax_strdup(name);
    }
 
-printf(">> opening: '%s'\n", handle->devname);
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
 
