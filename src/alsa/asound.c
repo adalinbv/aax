@@ -21,7 +21,7 @@
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif
-#include <string.h>		/* strstr */
+#include <string.h>		/* strstr, strncmp */
 #include <stdarg.h>		/* va_start */
 
 #include <xml.h>
@@ -292,7 +292,7 @@ static char *_aaxALSADriverGetInterfaceName(const void *);
 
 static int _alsa_pcm_open(_driver_t*, int);
 static int _alsa_pcm_close(_driver_t*);
-static int _alsa_set_access(const void *, snd_pcm_hw_params_t *, snd_pcm_sw_params_t *);
+static int _alsa_set_access(const void *, snd_pcm_hw_params_t *);
 static void _alsa_error_handler(const char *, int, const char *, int, const char *,...);
 static void _alsa_error_handler_none(const char *, int, const char *, int, const char *,...);
 static int _alsa_get_volume_range(_driver_t*);
@@ -778,7 +778,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
 
       /* Set the prefered access method (rw/mmap interleaved/non-interleaved) */
-      err = _alsa_set_access(handle, hwparams, swparams);
+      err = _alsa_set_access(handle, hwparams);
 
       /* supported sample formats*/
       handle->can_pause = psnd_pcm_hw_params_can_pause(hwparams);
@@ -886,11 +886,11 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
 
-      TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
-            "unsupported sample rate" );
-
       TRUN( psnd_pcm_hw_params_set_channels(hid, hwparams, tracks),
             "unsupported no. tracks" );
+
+      TRUN( psnd_pcm_hw_params_set_rate_near(hid, hwparams, &rate, 0),
+            "unsupported sample rate" );
 
       /** set buffer and period sizes */
       if (handle->use_timer)
@@ -1536,6 +1536,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
                   if ((!colon &&
                           (strcmp(name, "null") && !strstr(name, "default")))
                       || (!STRCMP(name, "hw:") && strstr(name, ",DEV=0"))
+                      || (!STRCMP(name, "hdmi:") && strstr(name, ",DEV=0"))
                       || !STRCMP(name, "sysdefault:")
                      )
                   {
@@ -1638,19 +1639,19 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      {
                         size_t slen;
 
-                        if (m || strcmp(name, "front:"))
-                        {
-                           if (iface != desc) {
-                              iface = strchr(iface+2, '\n')+1;
-                           }
-                           snprintf(ptr, len, "%s", iface);
-                        }
-                        else
+                        if (!m || strcmp(name, "hdmi:") == 0)
                         {
                            if (iface != desc) iface += 2;
                            snprintf(ptr, len, "%s", iface);
                            iface = strchr(ptr, '\n');
                            if (iface) *iface = 0;
+                        }
+                        else
+                        {
+                           if (iface != desc) {
+                              iface = strchr(iface+2, '\n')+1;
+                           }
+                           snprintf(ptr, len, "%s", iface);
                         }
                         slen = strlen(ptr)+1; /* skip the trailing 0 */
                         if (slen > (len-1)) break;
@@ -1876,7 +1877,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 /*-------------------------------------------------------------------------- */
 
 static const char* ifname_prefix[] = {
-   "front:", "rear:", "center_lfe:", "side:", "iec958:", NULL
+   "front:", "rear:", "center_lfe:", "side:", "iec958:", "hdmi:", NULL
 };
 
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS] =
@@ -2007,7 +2008,7 @@ _alsa_pcm_close(_driver_t *handle)
 }
 
 static int
-_alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams, snd_pcm_sw_params_t *swparams)
+_alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams)
 {
    _driver_t *handle = (_driver_t*)id;
    snd_pcm_t *hid = handle->pcm;
@@ -2256,8 +2257,9 @@ detect_devnum(_driver_t *handle, int m)
 
       if (!res && hints)
       {
+         char card[MAX_ID_STRLEN] = "";
+         int found, ctr = -1;
          void **lst = hints;
-         int found, ctr = 0;
          size_t len;
          char *ptr;
 
@@ -2274,6 +2276,24 @@ detect_devnum(_driver_t *handle, int m)
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name)
                {
+                  char *p2, *p1 = strstr(name, "CARD=");
+                  if (p1)
+                  {
+                     int cardlen;
+                     p1 += strlen("CARD=");
+
+                     p2 = strchr(p1, ',');
+                     if (p2) cardlen = _MIN(p2-p1, MAX_ID_STRLEN-1);
+                     else cardlen = _MIN(strlen(p1), MAX_ID_STRLEN-1);
+
+                     if (strncmp(p1, card, cardlen) != 0)
+                     {
+                        memcpy(card, p1, cardlen);
+                        card[cardlen] = 0;
+                        ctr++;
+                     }
+                  }
+
                   if (!strcasecmp(devname, name))
                   {
                      _sys_free(name);
@@ -2305,7 +2325,6 @@ detect_devnum(_driver_t *handle, int m)
                            found = 1;
                         }
                         _sys_free(desc);
-                        ctr++;
                      }
                   }
                   else if (!STRCMP(name, "surround"))
