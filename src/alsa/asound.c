@@ -475,6 +475,11 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
          handle->use_timer = TIMER_BASED;
       }
 
+      handle->volumeInit = 1.0f;
+      handle->volumeCur  = 1.0f;
+      handle->volumeMin = 0.0f;
+      handle->volumeMax = 1.0f;
+
       handle->target[0] = FILL_FACTOR;
       handle->target[1] = FILL_FACTOR;
       handle->target[2] = AAX_FPINFINITE;
@@ -1908,7 +1913,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
    char name[32];
    int err;
 
-   sprintf(name, "hw:%d", handle->devnum);
+   snprintf(name, 32, "hw:%d", handle->devnum);
 
    /**
     * Test whether this device has hardware mixing,
@@ -1995,7 +2000,7 @@ _alsa_pcm_close(_driver_t *handle)
    int err = 0;
    if (handle)
    {
-      if (handle->mixer)
+      if (handle->mixer && !handle->shared_volume)
       {
          _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          psnd_mixer_close(handle->mixer);
@@ -2444,10 +2449,23 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem1,
             handle->volumeInit = _db2lin((float)max*0.01f);
             handle->volumeCur = _MAX(handle->volumeInit, 1.0f);
 
-            if (m) {
+            if (m)
+            {
                psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-            } else {
+               if (handle->shared_volume &&
+                   psnd_mixer_selem_has_playback_volume(elem))
+               {
+                   psnd_mixer_selem_set_playback_volume_all(elem, max/2);
+               }
+            }
+            else
+            {
                psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
+               if (handle->shared_volume &&
+                   psnd_mixer_selem_has_capture_volume(elem))
+               {
+                   psnd_mixer_selem_set_capture_volume_all(elem, max/2);
+               }
             }
             handle->volumeStep = 0.5f/((float)max-(float)min);
          }
