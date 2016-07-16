@@ -2455,7 +2455,7 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem1,
                if (handle->shared_volume &&
                    psnd_mixer_selem_has_playback_volume(elem))
                {
-                   psnd_mixer_selem_set_playback_volume_all(elem, max/2);
+                   psnd_mixer_selem_set_playback_volume_all(elem, 9*max/10);
                }
             }
             else
@@ -2464,7 +2464,7 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem1,
                if (handle->shared_volume &&
                    psnd_mixer_selem_has_capture_volume(elem))
                {
-                   psnd_mixer_selem_set_capture_volume_all(elem, max/2);
+                   psnd_mixer_selem_set_capture_volume_all(elem, 9*max/10);
                }
             }
             handle->volumeStep = 0.5f/((float)max-(float)min);
