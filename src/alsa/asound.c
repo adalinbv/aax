@@ -239,17 +239,20 @@ DECL_FUNCTION(snd_mixer_attach);
 DECL_FUNCTION(snd_mixer_load);
 DECL_FUNCTION(snd_mixer_selem_id_malloc);
 DECL_FUNCTION(snd_mixer_selem_id_free);
+DECL_FUNCTION(snd_mixer_selem_id_set_index);
+DECL_FUNCTION(snd_mixer_selem_id_set_name);
+DECL_FUNCTION(snd_mixer_find_selem);
 DECL_FUNCTION(snd_mixer_selem_register);
 DECL_FUNCTION(snd_mixer_first_elem);
 DECL_FUNCTION(snd_mixer_elem_next);
 DECL_FUNCTION(snd_mixer_selem_has_playback_volume);
-DECL_FUNCTION(snd_mixer_selem_get_playback_dB);
+DECL_FUNCTION(snd_mixer_selem_get_playback_volume);
 DECL_FUNCTION(snd_mixer_selem_get_playback_volume_range);
 DECL_FUNCTION(snd_mixer_selem_get_playback_dB_range);
 DECL_FUNCTION(snd_mixer_selem_ask_playback_dB_vol);
 DECL_FUNCTION(snd_mixer_selem_set_playback_volume_all);
 DECL_FUNCTION(snd_mixer_selem_has_capture_volume);
-DECL_FUNCTION(snd_mixer_selem_get_capture_dB);
+DECL_FUNCTION(snd_mixer_selem_get_capture_volume);
 DECL_FUNCTION(snd_mixer_selem_get_capture_volume_range);
 DECL_FUNCTION(snd_mixer_selem_get_capture_dB_range);
 DECL_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);
@@ -356,17 +359,20 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_mixer_load);					//
          TIE_FUNCTION(snd_mixer_selem_id_malloc);			//
          TIE_FUNCTION(snd_mixer_selem_id_free);				//
+         TIE_FUNCTION(snd_mixer_selem_id_set_index);			//
+         TIE_FUNCTION(snd_mixer_selem_id_set_name);			//
+         TIE_FUNCTION(snd_mixer_find_selem);				//
          TIE_FUNCTION(snd_mixer_selem_register);			//
          TIE_FUNCTION(snd_mixer_first_elem);				//
          TIE_FUNCTION(snd_mixer_elem_next);				//
          TIE_FUNCTION(snd_mixer_selem_has_playback_volume);		//
-         TIE_FUNCTION(snd_mixer_selem_get_playback_dB);			//
+         TIE_FUNCTION(snd_mixer_selem_get_playback_volume);		//
          TIE_FUNCTION(snd_mixer_selem_get_playback_volume_range);	//
          TIE_FUNCTION(snd_mixer_selem_get_playback_dB_range);		//
          TIE_FUNCTION(snd_mixer_selem_ask_playback_dB_vol);		//
          TIE_FUNCTION(snd_mixer_selem_set_playback_volume_all);		//
          TIE_FUNCTION(snd_mixer_selem_has_capture_volume);		//
-         TIE_FUNCTION(snd_mixer_selem_get_capture_dB);			//
+         TIE_FUNCTION(snd_mixer_selem_get_capture_volume);		//
          TIE_FUNCTION(snd_mixer_selem_get_capture_volume_range);	//
          TIE_FUNCTION(snd_mixer_selem_get_capture_dB_range);		//
          TIE_FUNCTION(snd_mixer_selem_ask_capture_dB_vol);		//
@@ -2403,74 +2409,53 @@ get_devices_avail(int mode)
 }
 
 static int
-_alsa_get_volume_range_element(_driver_t *handle, const char *elem1,
-                                                  const char *elem2,
+_alsa_get_volume_range_element(_driver_t *handle, const char *elem_name1,
+                                                  const char *elem_name2,
                                                   snd_mixer_selem_id_t *sid,
                                                   char m)
 {
    snd_mixer_elem_t *elem;
    int rv = 0;
 
-   for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-        elem = psnd_mixer_elem_next(elem))
+   psnd_mixer_selem_id_set_index(sid, 0);
+   psnd_mixer_selem_id_set_name(sid, elem_name1);
+   elem = psnd_mixer_find_selem(handle->mixer, sid);
+   if (!elem && elem_name2)
    {
-      if ((m && psnd_mixer_selem_has_playback_volume(elem)) ||
-          (!m && psnd_mixer_selem_has_capture_volume(elem)))
+      psnd_mixer_selem_id_set_name(sid, elem_name2);
+      elem = psnd_mixer_find_selem(handle->mixer, sid);
+   }
+
+   if (elem)
+   {
+      long min, max, init;
+      if (m)
       {
-         const char *name;
-
-         psnd_mixer_selem_get_id(elem, sid);
-         name = psnd_mixer_selem_id_get_name(sid);
-
-         if (name && (!strcasecmp(name, elem1) ||
-                      (elem2 && !strcasecmp(name, elem2))))
-         {
-            long min, max;
-
-            if (m)
-            {
-               free(handle->outMixer);
-               handle->outMixer = _aax_strdup(name);
-               psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
-            }
-            else {
-               psnd_mixer_selem_get_capture_dB_range(elem, &min, &max);
-            }
-            handle->volumeMin = _db2lin((float)min*0.01f);
-            handle->volumeMax = _db2lin((float)max*0.01f);
-
-            if (m) {
-               rv = psnd_mixer_selem_get_playback_dB(elem,
-                                                     SND_MIXER_SCHN_MONO, &max);
-            } else {
-               rv = psnd_mixer_selem_get_capture_dB(elem,
-                                                    SND_MIXER_SCHN_MONO, &max);
-            }
-            handle->volumeInit = _db2lin((float)max*0.01f);
-            handle->volumeCur = _MAX(handle->volumeInit, 1.0f);
-
-            if (m)
-            {
-               psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-               if (handle->shared_volume &&
-                   psnd_mixer_selem_has_playback_volume(elem))
-               {
-                   psnd_mixer_selem_set_playback_volume_all(elem, 9*max/10);
-               }
-            }
-            else
-            {
-               psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
-               if (handle->shared_volume &&
-                   psnd_mixer_selem_has_capture_volume(elem))
-               {
-                   psnd_mixer_selem_set_capture_volume_all(elem, 9*max/10);
-               }
-            }
-            handle->volumeStep = 0.5f/((float)max-(float)min);
+         rv = psnd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_MONO, &init);
+         psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+         if (init < 1 && handle->shared_volume &&
+             psnd_mixer_selem_has_playback_volume(elem)) {
+             psnd_mixer_selem_set_playback_volume_all(elem, init);
          }
       }
+      else
+      {
+         rv = psnd_mixer_selem_get_capture_volume(elem, SND_MIXER_SCHN_MONO, &init);
+         psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
+         if (init < 1 && handle->shared_volume &&
+             psnd_mixer_selem_has_capture_volume(elem)) {
+             psnd_mixer_selem_set_capture_volume_all(elem, init);
+         }
+      }
+
+      handle->volumeMin = (float)min*0.01f;
+      handle->volumeMax = (float)max*0.01f;
+      handle->volumeStep = 0.5f/((float)max-(float)min);
+
+      handle->volumeInit = (float)init*0.01f;
+      handle->volumeCur = _MAX(handle->volumeInit, 1.0f);
    }
+
    return rv;
 }
 
