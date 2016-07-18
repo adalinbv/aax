@@ -2433,19 +2433,13 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem_name1,
       {
          rv = psnd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_MONO, &init);
          psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-         if (init < 1 && handle->shared_volume &&
-             psnd_mixer_selem_has_playback_volume(elem)) {
-             psnd_mixer_selem_set_playback_volume_all(elem, init);
-         }
+//       psnd_mixer_selem_set_playback_volume_all(elem, init);
       }
       else
       {
          rv = psnd_mixer_selem_get_capture_volume(elem, SND_MIXER_SCHN_MONO, &init);
          psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
-         if (init < 1 && handle->shared_volume &&
-             psnd_mixer_selem_has_capture_volume(elem)) {
-             psnd_mixer_selem_set_capture_volume_all(elem, init);
-         }
+         psnd_mixer_selem_set_capture_volume_all(elem, init);
       }
 
       handle->volumeMin = (float)min*0.01f;
@@ -2519,60 +2513,42 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
 
       if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
       {
+         long volume = (long)(hwgain*100.0f);
          snd_mixer_selem_id_t *sid;
          snd_mixer_elem_t *elem;
 
          psnd_mixer_selem_id_malloc(&sid);
-         for (elem = psnd_mixer_first_elem(handle->mixer); elem;
-              elem = psnd_mixer_elem_next(elem))
+         psnd_mixer_selem_id_set_index(sid, 0);
+         if (handle->mode == AAX_MODE_READ)
          {
-            const char *name;
-            long volume = 0;
-
-            psnd_mixer_selem_get_id(elem, sid);
-
-            if ((handle->mode == AAX_MODE_READ) &&
-                 psnd_mixer_selem_has_capture_volume(elem))
-            {
-               long volumeDB;
-
-               name = psnd_mixer_selem_id_get_name(sid);
-               if (name && !strcasecmp(name, "Capture"))
-               {
-                  int dir = 0;
-
-                  volumeDB = (long)(_lin2db(hwgain)*100.0f);
-                  if (volumeDB > 0) dir = -1;
-                  else if (volumeDB < 0) dir = 1;
-                  psnd_mixer_selem_ask_capture_dB_vol(elem, volumeDB, dir,
-                                                      &volume);
-                  psnd_mixer_selem_set_capture_volume_all(elem, volume);
-                  break;
-               }
+            psnd_mixer_selem_id_set_name(sid, "Capture");
+            elem = psnd_mixer_find_selem(handle->mixer, sid);
+            if (elem && psnd_mixer_selem_has_capture_volume(elem)) {
+               psnd_mixer_selem_set_capture_volume_all(elem, volume);
             }
-            else if ((handle->mode != AAX_MODE_READ) &&
-                      psnd_mixer_selem_has_playback_volume(elem))
-            {
-               long volumeDB;
-
-               name = psnd_mixer_selem_id_get_name(sid);
-               if (name &&
-                   (!strcasecmp(name, handle->outMixer)
-                     || !strcasecmp(name, "Center")
-                     || !strcasecmp(name, "Surround")
-                     || !strcasecmp(name, "LFE")
-                     || !strcasecmp(name, "Side")))
-               {
-                  int dir = 0;
-
-                  volumeDB = (long)(_lin2db(hwgain)*100.0f);
-                  if (volumeDB > 0) dir = -1;
-                  else if (volumeDB < 0) dir = 1;
-                  psnd_mixer_selem_ask_playback_dB_vol(elem, volumeDB, dir,
-                                                       &volume);
-                  psnd_mixer_selem_set_playback_volume_all(elem, volume);
-               }
-            }             
+         }
+         else
+         {
+            psnd_mixer_selem_id_set_name(sid, "Center");
+            elem = psnd_mixer_find_selem(handle->mixer, sid);
+            if (elem && psnd_mixer_selem_has_playback_volume(elem)) {
+               psnd_mixer_selem_set_playback_volume_all(elem, volume);
+            }
+            psnd_mixer_selem_id_set_name(sid, "Surround");
+            elem = psnd_mixer_find_selem(handle->mixer, sid);
+            if (elem && psnd_mixer_selem_has_playback_volume(elem)) {
+               psnd_mixer_selem_set_playback_volume_all(elem, volume);
+            }
+            psnd_mixer_selem_id_set_name(sid, "LFE");
+            elem = psnd_mixer_find_selem(handle->mixer, sid);
+            if (elem && psnd_mixer_selem_has_playback_volume(elem)) {
+               psnd_mixer_selem_set_playback_volume_all(elem, volume);
+            }
+            psnd_mixer_selem_id_set_name(sid, "Side");
+            elem = psnd_mixer_find_selem(handle->mixer, sid);
+            if (elem && psnd_mixer_selem_has_playback_volume(elem)) {
+               psnd_mixer_selem_set_playback_volume_all(elem, volume);
+            }
          }
          psnd_mixer_selem_id_free(sid);
 
