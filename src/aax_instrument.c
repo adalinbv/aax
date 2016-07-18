@@ -651,11 +651,7 @@ _get_inst_num(const char* name)
 
     path = SYNTHCONFIG_PATH;
     rid = xmlOpen(path);
-    if (xmlErrorGetNo(rid, 0) != XML_NO_ERROR)
-    {
-        printf("%s\n", xmlErrorGetString(rid, 1));
-    }
-    else if (rid)
+    if (rid)
     {
         void *xsid = xmlNodeGet(rid, "soundbank");
         if (xsid)
@@ -704,11 +700,7 @@ _get_bank_num(const char* name)
 
     path = SYNTHCONFIG_PATH;
     rid = xmlOpen(path);
-    if (xmlErrorGetNo(rid, 0) != XML_NO_ERROR)
-    {
-        printf("%s\n", xmlErrorGetString(rid, 1));
-    }
-    else if (rid)
+    if (rid)
     {
         void *xsid = xmlNodeGet(rid, "soundbank");
         if (xsid)
