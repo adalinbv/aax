@@ -2415,13 +2415,17 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem_name1,
                                                   char m)
 {
    snd_mixer_elem_t *elem;
+   const char *mixer_name;
    int rv = 0;
 
    psnd_mixer_selem_id_set_index(sid, 0);
+
+   mixer_name = elem_name1;
    psnd_mixer_selem_id_set_name(sid, elem_name1);
    elem = psnd_mixer_find_selem(handle->mixer, sid);
    if (!elem && elem_name2)
    {
+      mixer_name = elem_name2;
       psnd_mixer_selem_id_set_name(sid, elem_name2);
       elem = psnd_mixer_find_selem(handle->mixer, sid);
    }
@@ -2431,19 +2435,22 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem_name1,
       long min, max, init;
       if (m)
       {
+         free(handle->outMixer);
+         handle->outMixer = _aax_strdup(mixer_name);
+
          rv = psnd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_MONO, &init);
-         psnd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-//       psnd_mixer_selem_set_playback_volume_all(elem, init);
+         psnd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+         psnd_mixer_selem_set_playback_volume_all(elem, init);
       }
       else
       {
          rv = psnd_mixer_selem_get_capture_volume(elem, SND_MIXER_SCHN_MONO, &init);
-         psnd_mixer_selem_get_capture_volume_range(elem, &min, &max);
+         psnd_mixer_selem_get_capture_dB_range(elem, &min, &max);
          psnd_mixer_selem_set_capture_volume_all(elem, init);
       }
 
-      handle->volumeMin = (float)min*0.01f;
-      handle->volumeMax = (float)max*0.01f;
+      handle->volumeMin = _db2lin((float)min*0.01f);
+      handle->volumeMax = _db2lin((float)max*0.01f);
       handle->volumeStep = 0.5f/((float)max-(float)min);
 
       handle->volumeInit = (float)init*0.01f;
