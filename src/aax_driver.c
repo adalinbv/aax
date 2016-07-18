@@ -942,10 +942,16 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          xid = xmlOpen(path);
          if (xid != NULL)
          {
-            int m = (mode > 0) ? 1 : 0;        
-            key = _aaxCheckKeyValidity(xid);
-            _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
-                                                path, m);
+            if (xmlNodeTest(xid, "/configuration"))
+            {
+               int m = (mode > 0) ? 1 : 0;
+               key = _aaxCheckKeyValidity(xid);
+               _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
+                                                   path, m);
+            }
+            else {
+               _AAX_SYSLOG("Invalid system configuration file.");
+            }
             xmlClose(xid);
          }
          free(path);
@@ -956,13 +962,19 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
       if (path)
       {
          xid = xmlOpen(path);
-         if (xid)
+         if (xid != NULL)
          {
-            int m = (mode > 0) ? 1 : 0;
-            int res = _aaxCheckKeyValidity(xid);
-            if ((key == AAX_TRUE) && res) key = res;
-            _aaxDriverBackendReadConfigSettings(xid, handle->devname,
-                                                config, path, m);
+            if (xmlNodeTest(xid, "/configuration"))
+            {
+               int m = (mode > 0) ? 1 : 0;
+               int res = _aaxCheckKeyValidity(xid);
+               if ((key == AAX_TRUE) && res) key = res;
+               _aaxDriverBackendReadConfigSettings(xid, handle->devname,
+                                                   config, path, m);
+            }
+            else {
+               _AAX_SYSLOG("Invalid user configuration file.");
+            }
             xmlClose(xid);
          }
          free(path);
