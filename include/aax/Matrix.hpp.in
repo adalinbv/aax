@@ -219,16 +219,10 @@ public:
         if (_v4) v4[3] = -_v[3];
         return v4;
     }
-    inline T& operator[](unsigned p) {
-        return _v[p];
-    }
-    inline T operator[](unsigned p) const {
-        return _v[p];
-    }
-    operator const MT&() {
+    operator const T*() const {
         return _v;
     }
-    operator MT&() {
+    operator T*() {
         return _v;
     }
     inline bool is_v4() const {
