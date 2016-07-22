@@ -49,6 +49,11 @@ aaxVec3f pos = { 1.0f, 3.0f, -2.5f };
 
 int main(int argc, char **argv)
 {
+    AAX::Vector v1(at);
+    AAX::Vector v2(pos);
+    AAX::Vector v3 = v1*v2;
+    printf("Vector(%2.1f, %2.1f, %2.1f) * Vector(%2.1f, %2.1f, %2.1f) = Vector(%2.1f, %2.1f, %2.1f)\n", v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
+
     AAX::Matrix64 im64, m64;
     AAX::Matrix im, m1, m2;
 
@@ -67,7 +72,7 @@ int main(int argc, char **argv)
 
     m1 += pos;
     m3 = m1 * im;
-    LOG("Multiplying imentity matrix by m1",m3,m1,true);
+    LOG("Multiplying identity matrix by m1",m3,m1,true);
 
     m1.set(pos, at, up); m1.rotate(0.13f, 1.0f, 0.0f, 0.0f);
     m64.set(pos, at, up); m64.rotate(0.13, 1.0, 0.0, 0.0);
