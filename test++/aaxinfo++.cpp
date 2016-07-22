@@ -107,39 +107,44 @@ int main(int argc, char **argv)
         std::cout << std::endl;
 
         std::cout << "Supported Filters:" << std::endl;
-        enum aaxFilterType f = aaxFilterType(AAX_FILTER_NONE+1);
         std::string str = "  ";
         size_t l = str.size();
-        const char *s;
-        while(aax.supports(s = aax.info(f))) {
-            std::string fs = s;
-            if ((l + fs.size()) > maximumWidth) {
-                fs = "\n   "+fs;
-                l = fs.size()+3;
-            } else {
-                fs = " "+fs;
-                l += fs.size();
+        for (enum aaxFilterType f = aaxFilterType(AAX_FILTER_NONE+1);
+             f < AAX_FILTER_MAX; f = aaxFilterType(f+1))
+        {
+            if (aax.supports(f))
+            {
+                std::string fs = aax.info(f);
+                if ((l + fs.size()) > maximumWidth) {
+                    fs = "\n   "+fs;
+                    l = fs.size()+3;
+                } else {
+                    fs = " "+fs;
+                    l += fs.size();
+                }
+                str += fs;
             }
-            str += fs;
-            f = aaxFilterType(f+1);
         }
         std::cout << str << std::endl << std::endl;
 
         std::cout << "Supported Effects:" << std::endl;
-        enum aaxEffectType e = aaxEffectType(AAX_EFFECT_NONE+1);
         str = "  ";
         l = str.size();
-        while(aax.supports(s = aax.info(e))) {
-            std::string es = s;
-            if ((l + es.size()) > maximumWidth) {
-                es = "\n   "+es;
-                l = es.size()+3;
-            } else {
-                es = " "+es;
-                l += es.size();
+        for (enum aaxEffectType e = aaxEffectType(AAX_EFFECT_NONE+1);
+             e < AAX_EFFECT_MAX; e = aaxEffectType(e+1))
+        {
+            if (aax.supports(e))
+            {
+                std::string es = aax.info(e);
+                if ((l + es.size()) > maximumWidth) {
+                    es = "\n   "+es;
+                    l = es.size()+3;
+                } else {
+                    es = " "+es;
+                    l += es.size();
+                }
+                str += es;
             }
-            str += es;
-            e = aaxEffectType(e+1);
         }
         std::cout << str << std::endl << std::endl;
     }

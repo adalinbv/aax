@@ -37,10 +37,11 @@
 
 #include <aax/AeonWave>
 
-#define LOG(a,b,c) \
-    if (((a)==(b))==(c)) printf((c)?"M1 == M2, great\n":"M1 != M2, great\n"); \
-    else { printf(c?"M1 != M2, this is wrong\n":"M1 == M2, this is wrong\n"); \
-           std::cout << "m1:\n" << (a); std::cout << "m2:\n" << (b); }
+#define LOG(s,a,b,c) \
+    if (((a)==(b))==(c)) printf((c)?"M1 == M2, succes":"M1 != M2, succes"); \
+    else { printf(c?"M1 != M2, failed":"M1 == M2, failed"); \
+           std::cout << "m1:\n" << (a); std::cout << "m2:\n" << (b); }\
+    printf(": %s\n",(s));
 
 aaxVec3f at  = { 2.0f, 0.0f, -1.0f };
 aaxVec3f up  = { 2.0f, 1.0f,  0.0f };
@@ -51,39 +52,32 @@ int main(int argc, char **argv)
     AAX::Matrix64 im64, m64;
     AAX::Matrix im, m1, m2;
 
-    printf("Initializing: ");
-    LOG(m1,m2,true);
+    LOG("Initializing",m1,m2,true);
 
-    printf("Rotating M1: ");
     m1.rotate(0.13f, 1.0f, 0.0f, 0.0f);
-    LOG(m1,m2,false);
+    LOG("Rotating",m1,m2,false);
 
-    printf("Convert from 64-bit to 32-bit: ");
     m1 = m64;
-    LOG(m1,m2,true);
+    LOG("Convert from 64-bit to 32-bit",m1,m2,true);
 
-    printf("Rotating M1 and M64: ");
     m1.rotate(-0.26f, 1.0f, 0.0f, 0.0f);
     m64.rotate(-0.26, 1.0, 0.0, 0.0);
     AAX::Matrix m3 = m64;
-    LOG(m1,m3,true);
+    LOG("Rotating M1 and M64",m1,m3,true);
 
-    printf("Multiplying imentity matrix by m1): ");
     m1 += pos;
     m3 = m1 * im;
-    LOG(m3,m1,true);
+    LOG("Multiplying imentity matrix by m1",m3,m1,true);
 
-    printf("Testing orientation: ");
     m1.set(pos, at, up); m1.rotate(0.13f, 1.0f, 0.0f, 0.0f);
     m64.set(pos, at, up); m64.rotate(0.13, 1.0, 0.0, 0.0);
     m3 = m64;
-    LOG(m1,m3,true);
+    LOG("Testing orientation",m1,m3,true);
 
-    printf("Inverse matrix: ");
     m2 = ~m1;
     m64.inverse();
     m3 = m64;
-    LOG(m2,m3,true);
+    LOG("Inverse matrix",m2,m3,true);
 
     return 0;
 }
