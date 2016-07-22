@@ -313,6 +313,12 @@ public:
     inline const char* info(enum aaxEffectType e) {
         return aaxEffectGetNameByType(_p,e);
     }
+    bool supports(enum aaxFilterType f) {
+        return aaxIsFilterSupported(_p, aaxFilterGetNameByType(_p,f));
+    }
+    bool supports(enum aaxEffectType e) {
+        return aaxIsEffectSupported(_p, aaxEffectGetNameByType(_p,e));
+    }
     bool supports(const char* fe) {
         return aaxIsFilterSupported(_p,fe) ? true : aaxIsEffectSupported(_p,fe);
     }
@@ -380,6 +386,7 @@ public:
     }
 
     Sensor& operator=(const Sensor& o) {
+        aaxGetErrorNo();
         if (_close) _close(_p);
         _p = o._p; _m = o._m; _close = o._close; o._close = 0;
         return *this;
@@ -572,6 +579,7 @@ public:
     }
 
     AeonWave& operator=(const AeonWave& o) {
+        aaxGetErrorNo();
         if (_close) _close(_p);
         _p = o._p; _m = o._m; _close = o._close; o._close = 0;
         return *this;
