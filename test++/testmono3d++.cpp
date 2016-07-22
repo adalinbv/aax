@@ -86,9 +86,9 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
-            dsp = config.scenery(AAX_DISTANCE_FILTER);
+            dsp = config.get(AAX_DISTANCE_FILTER);
             dsp.set(AAX_EXPONENTIAL_DISTANCE_DELAY);
-            res = config.scenery(dsp);
+            res = config.set(dsp);
             testForState(res, "aaxScenerySetDistanceModel");
 
             /** sensor settings */

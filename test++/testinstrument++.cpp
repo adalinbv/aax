@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 
 
         res = emitter.set(AAX_STOPPED);
-        res = emitter.remove();
+        res = emitter.remove_buffer();
         testForState(res, "aaxEmitterRemoveBuffer");
 
         res = config.remove(emitter);

@@ -47,16 +47,25 @@ int main(int argc, char **argv)
     aax.set(AAX_PLAYING);
 
     // Start the background music (file or http-stream)
-    bool res = aax.play(std::string(argv[1]));
-    if (!res) printf("Error: %s\n", aax.error());
-    do
-    {
-        // Your (game) code could be placed here
-
-        printf("\rposition: %5.1f", aax.offset());
-        sleep(1);
+    int i = 0;
+    if (argc > 1) {
+        while (++i < argc)
+        {
+            printf("Playing: %s ...\n", argv[i]);
+            bool res = aax.play(argv[i]);
+            if (!res) printf("Error: %s\n", aax.error());
+            do
+            {
+                // Your (game) code could be placed here
+                printf("\rposition: %5.1f", aax.offset());
+                sleep(1);
+            }
+            while (aax.playing());
+        }
     }
-    while (aax.playing());
+    else {
+        printf("Usage: %s <filename>\n", argv[0]);
+    }
 
     printf("\n");
     return 0;
