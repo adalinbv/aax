@@ -1510,6 +1510,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
    int m = (mode > 0) ? 1 : 0;
    time_t t_now;
 
+   psnd_lib_error_set_handler(_alsa_error_handler_none);
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
@@ -1593,6 +1594,7 @@ _aaxALSADriverGetDevices(const void *id, int mode)
        names[m][1022] = 0;
        names[m][1023] = 0;
    }
+   psnd_lib_error_set_handler(_alsa_error_handler);
 
    return (char *)&names[m];
 }
@@ -1604,6 +1606,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    int m = (mode > 0) ? 1 : 0;
    char *rv = handle->ifname[m];
 
+   psnd_lib_error_set_handler(_alsa_error_handler_none);
    if (!rv && devname)
    {
       char devlist[1024] = "\0\0";
@@ -1697,6 +1700,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
       }
       res = psnd_device_name_free_hint(hints);
    }
+   psnd_lib_error_set_handler(_alsa_error_handler);
 
    return rv;
 }
@@ -1711,6 +1715,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
    void **hints;
    int res;
 
+   psnd_lib_error_set_handler(_alsa_error_handler_none);
    res = psnd_device_name_hint(-1, "pcm", &hints);
    if (!res && hints)
    {
@@ -1785,6 +1790,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
       while (!found && (*lst != NULL));
       res = psnd_device_name_free_hint(hints);
    }
+   psnd_lib_error_set_handler(_alsa_error_handler);
 
    return _aax_strdup(rv);
 }
@@ -1798,6 +1804,7 @@ _aaxALSADriverGetInterfaceName(const void *id)
    void **hints;
    int res;
 
+   psnd_lib_error_set_handler(_alsa_error_handler_none);
    if (handle)
    {
       res = psnd_device_name_hint(-1, "pcm", &hints);
@@ -1846,6 +1853,7 @@ _aaxALSADriverGetInterfaceName(const void *id)
          res = psnd_device_name_free_hint(hints);
       }
    }
+   psnd_lib_error_set_handler(_alsa_error_handler);
 
    return rv;
 }
