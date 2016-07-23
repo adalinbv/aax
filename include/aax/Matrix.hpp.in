@@ -53,16 +53,26 @@ public:
         _v[0] = _v[1] = _v[2] = _v[3] = 0;
     }
     VecBase(const aaxVec3f& v) : _v4(false) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
     }
     VecBase(const aaxVec3d& v) : _v4(false) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
     }
     VecBase(const aaxVec4f& v) : _v4(true) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2]; _v[3] = (T)v[3];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
+        _v[3] = static_cast<T>(v[3]);
     }
     VecBase(const aaxVec4d& v) : _v4(true) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2]; _v[3] = (T)v[3];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
+        _v[3] = static_cast<T>(v[3]);
     }
     VecBase(T x, T y, T z) : _v4(false) {
         _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = 0;
@@ -83,7 +93,7 @@ public:
     T normalize() {
         float m = magnitude();
         if (m) {
-            T fi = (T)1/m;
+            T fi = static_cast<T>(1)/m;
             _v[0] *= fi; _v[1] *= fi; _v[2] *= fi;
             if (_v4) _v[3] *= fi;
         } else {
@@ -95,7 +105,7 @@ public:
         VecBase<T> r;
         float m = magnitude();
         if (m) {
-            T fi = (T)1/m;
+            T fi = static_cast<T>(1)/m;
             r[0] = _v[0]*fi; r[1] = _v[1]*fi; r[2] = _v[2]*fi;
             if (_v4) r[3] = _v[3]*fi;
         }
@@ -123,22 +133,32 @@ public:
         return *this;
     }
     VecBase& operator=(const aaxVec4f& v) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2]; _v[3] = (T)v[3];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
+        _v[3] = static_cast<T>(v[3]);
         _v4 = true;
         return *this;
     }
     VecBase& operator=(const aaxVec4d& v) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2]; _v[3] = (T)v[3];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
+        _v[3] = static_cast<T>(v[3]);
         _v4 = true;
         return *this;
     }
     VecBase& operator=(const aaxVec3f& v) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
         _v4 = false;
         return *this;
     }
     VecBase& operator=(const aaxVec3d& v) {
-        _v[0] = (T)v[0]; _v[1] = (T)v[1]; _v[2] = (T)v[2];
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
         _v4 = false;
         return *this;
     }
@@ -157,7 +177,7 @@ public:
         return *this;
     }
     VecBase& operator/=(T f) {
-        T fi = (T)1/f;
+        T fi = static_cast<T>(1)/f;
         _v[0] *= fi; _v[1] *= fi; _v[2] *= fi;
         if (_v4) _v[3] *= fi;
         return *this;
@@ -232,7 +252,7 @@ public:
         return _v;
     }
     inline bool is_v4() const {
-        return _v4 ? true : false;
+        return _v4;
     }
 
 private:
@@ -294,7 +314,7 @@ private:
         for(unsigned i=0; i<4; ++i) {
             for(unsigned j=0; j<4; ++j) {
                 T x = _m[i][j], y = m[i][j];
-                if (std::abs(x-y) > eps*std::max<T>(std::max<T>((T)1,std::abs(x)),std::abs(y))) return false;
+                if (std::abs(x-y) > eps*std::max<T>(std::max<T>(static_cast<T>(1),std::abs(x)),std::abs(y))) return false;
             }
         }
         return true;

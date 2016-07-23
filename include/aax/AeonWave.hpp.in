@@ -57,7 +57,7 @@ public:
     }
 
     explicit operator bool() {
-        return _p ? true : false;
+        return !!_p;
     }
 
 protected:
@@ -132,8 +132,8 @@ public:
     ~DSP() {}
 
     bool set(int s) {
-        return (_f) ? (aaxFilterSetState(_p,s) ? true : false)
-                    : (aaxEffectSetState(_p,s) ? true : false);
+        return (_f) ? !!aaxFilterSetState(_p,s)
+                    : !!aaxEffectSetState(_p,s);
     }
 
     int state() {
@@ -237,7 +237,7 @@ public:
         return aaxEmitterRemoveBuffer(_p);
     }
     inline Buffer get(unsigned int p, int c=AAX_FALSE) {
-        return Buffer(aaxEmitterGetBufferByPos(_p,p,c),c ? false : true);
+        return Buffer(aaxEmitterGetBufferByPos(_p,p,c),!c);
     }
     inline unsigned int get(enum aaxState s) {
         return aaxEmitterGetNoBuffers(_p,s);
