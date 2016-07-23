@@ -146,77 +146,14 @@ public:
         _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
         return *this;
     }
-    VecBase operator+(T f) {
-        VecBase r(_v);
-        r[0] += f; r[1] += f; r[2] += f;
-        if (_v4)  r[3] += f;
-        return r;
-    }
-    VecBase operator+(VecBase& v) {
-       VecBase r(_v);
-       r[0] += v[0]; r[1] += v[1]; r[2] += v[2];
-       if (_v4) r[3] += v[3];
-       return r;
-    }
-    VecBase operator-(T f) {
-        VecBase r(_v);
-        r[0] -= f; r[1] -= f; r[2] -= f;
-        if (_v4)  r[3] -= f;
-        return r;
-    }
-    VecBase operator-(VecBase& v) {
-       VecBase r(_v);
-       r[0] -= v[0]; r[1] -= v[1]; r[2] -= v[2];
-       if (_v4) r[3] -= v[3];
-       return r;
-    }
-    VecBase operator*(T f) {
-        VecBase r(_v);
-        r[0] *= f; r[1] *= f; r[2] *= f;
-        if (_v4)  r[3] *= f;
-        return r;
-    }
-    VecBase operator*(VecBase& v) {
-       VecBase r(_v);
-       r[0] *= v[0]; r[1] *= v[1]; r[2] *= v[2];
-       if (_v4) r[3] *= v[3];
-       return r;
-    }
-    VecBase operator/(T f) {
-        VecBase r(_v); f = (T)1/f;
-        r[0] *= f; r[1] *= f; r[2] *= f;
-        if (_v4)  r[3] *= f;
-        return r;
-    }
-    VecBase operator/(VecBase& v) {
-       VecBase r(_v);
-       r[0] /= v[0]; r[1] /= v[1]; r[2] /= v[2];
-       if (_v4) r[3] /= v[3];
-       return r;
+    VecBase& operator*=(T f) {
+        _v[0] *= f; _v[1] *= f; _v[2] *= f;
+        if (_v4) _v[3] *= f;
+        return *this;
     }
     VecBase& operator*=(const VecBase<T>& v) {
         _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2];
         if (_v4) _v[3] *= v[3];
-        return *this;
-    }
-    VecBase& operator/=(const VecBase<T>& v) {
-        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
-        if (_v4) _v[3] /= v[3];
-        return *this;
-    }
-    VecBase& operator*=(const MT v) {
-        _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2];
-        if (_v4) _v[3] *= v[3];
-        return *this;
-    }
-    VecBase& operator/=(const MT v) {
-        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
-        if (_v4) _v[3] /= v[3];
-        return *this;
-    }
-    VecBase& operator*=(T f) {
-        _v[0] *= f; _v[1] *= f; _v[2] *= f;
-        if (_v4) _v[3] *= f;
         return *this;
     }
     VecBase& operator/=(T f) {
@@ -225,24 +162,9 @@ public:
         if (_v4) _v[3] *= fi;
         return *this;
     }
-    VecBase& operator+=(const VecBase<T>& v) {
-        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
-        if (_v4) _v[3] += v[3];
-        return *this;
-    }
-    VecBase& operator-=(const VecBase<T>& v) {
-        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
-        if (_v4) _v[3] -= v[3];
-        return *this;
-    }
-    VecBase& operator+=(const MT v) {
-        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
-        if (_v4) _v[3] += v[3];
-        return *this;
-    }
-    VecBase& operator-=(const MT v) {
-        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
-        if (_v4) _v[3] -= v[3];
+    VecBase& operator/=(const VecBase<T>& v) {
+        _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
+        if (_v4) _v[3] /= v[3];
         return *this;
     }
     VecBase& operator+=(T f) {
@@ -250,10 +172,52 @@ public:
         if (_v4) _v[3] += f;
         return *this;
     }
+    VecBase& operator+=(const VecBase<T>& v) {
+        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
+        if (_v4) _v[3] += v[3];
+        return *this;
+    }
     VecBase& operator-=(T f) {
         _v[0] -= f; _v[1] -= f; _v[2] -= f;
         if (_v4) _v[3] -= f;
         return *this;
+    }
+    VecBase& operator-=(const VecBase<T>& v) {
+        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
+        if (_v4) _v[3] -= v[3];
+        return *this;
+    }
+    VecBase operator+(T f) {
+        VecBase r(_v); r += f;
+        return r;
+    }
+    VecBase operator+(const VecBase<T>& v) {
+       VecBase r(_v); r += v;
+       return r;
+    }
+    VecBase operator-(T f) {
+        VecBase r(_v); r -= f;
+        return r;
+    }
+    VecBase operator-(const VecBase<T>& v) {
+       VecBase r(_v); r -= v;
+       return r;
+    }
+    VecBase operator*(T f) {
+        VecBase r(_v); r *= f;
+        return r;
+    }
+    VecBase operator*(const VecBase<T>& v) {
+       VecBase r(_v); r *= v;
+       return r;
+    }
+    VecBase operator/(T f) {
+        VecBase r(_v); r /= f;
+        return r;
+    }
+    VecBase operator/(const VecBase<T>& v) {
+       VecBase r(_v); r /= v;
+       return r;
     }
     VecBase<T> operator-() {
         VecBase<T> v4;
