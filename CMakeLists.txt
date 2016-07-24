@@ -413,14 +413,6 @@ CONFIGURE_FILE(
     "${AeonWave_BINARY_DIR}/include/aax/aax.h")
 
 CONFIGURE_FILE(
-    "${AeonWave_SOURCE_DIR}/include/aax/AeonWave.hpp.in"
-    "${AeonWave_BINARY_DIR}/include/aax/AeonWave")
-
-CONFIGURE_FILE(
-    "${AeonWave_SOURCE_DIR}/include/aax/Matrix.hpp.in"
-    "${AeonWave_BINARY_DIR}/include/aax/Matrix")
-
-CONFIGURE_FILE(
     "${AeonWave_SOURCE_DIR}/include/config.h.in"
     "${AeonWave_BINARY_DIR}/include/config.h")
 
@@ -603,9 +595,9 @@ INSTALL(FILES
 )
 INSTALL(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
-        ${AeonWave_BINARY_DIR}/include/aax/AeonWave
-        ${AeonWave_BINARY_DIR}/include/aax/Matrix
         include/aax/defines.h
+        include/aax/aeonwave.hpp
+        include/aax/matrix.hpp
         DESTINATION include/aax
         COMPONENT Headers
 )

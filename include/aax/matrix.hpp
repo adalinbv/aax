@@ -43,7 +43,7 @@
 
 #include <aax/aax.h>
 
-namespace AAX
+namespace aax
 {
 
 template <typename T>
@@ -89,39 +89,31 @@ public:
     }
     ~VecBase() {}
 
-    T magnitude() {
+    T magnitude2() {
         T m = _v[0]*_v[0] + _v[1]*_v[1] + _v[2]*_v[2];
         if (_v4) m += _v[3]*_v[3];
-        return std::sqrt(m);
+        return m;
+    }
+    inline T magnitude() {
+        return std::sqrt(magnitude2());
     }
     T normalize() {
         float m = magnitude();
-        if (m) {
-            T fi = static_cast<T>(1)/m;
-            _v[0] *= fi; _v[1] *= fi; _v[2] *= fi;
-            if (_v4) _v[3] *= fi;
-        } else {
-            _v[0] = _v[1] = _v[2] = _v[3] = 0;
-        }
+        if (m) *this /= m;
+        else *this = 0;
         return m;
     }
-    VecBase<T> normalized() {
-        VecBase<T> r;
-        float m = magnitude();
-        if (m) {
-            T fi = static_cast<T>(1)/m;
-            r[0] = _v[0]*fi; r[1] = _v[1]*fi; r[2] = _v[2]*fi;
-            if (_v4) r[3] = _v[3]*fi;
-        }
+    VecBase normalized() {
+        VecBase r(_v); r.normalize();
         return r;
     }
-    T dot(const VecBase<T>& v) {
+    T dot(const VecBase& v) {
         T d = _v[0]*v[0] + _v[1]*v[1] + _v[2]*v[2];
         if (_v4) d += _v[3]*v[3];
         return d;
     }
-    VecBase<T> cross(const VecBase<T>& v2) {
-        VecBase<T> r;
+    VecBase cross(const VecBase& v2) {
+        VecBase r;
         if (_v4 == false) {
             r[0] = _v[1]*v2[2] - _v[2]*v2[1];
             r[1] = _v[2]*v2[0] - _v[0]*v2[2];
@@ -131,9 +123,27 @@ public:
     }
 
     // ** support ******
-    VecBase& operator=(const VecBase<T>& v) {
+    VecBase& operator=(const VecBase& v) {
         _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
         _v4 = v.is_v4();
+        return *this;
+    }
+    VecBase& operator=(T f) {
+        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
+        return *this;
+    }
+    VecBase& operator=(const aaxVec3f& v) {
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
+        _v4 = false;
+        return *this;
+    }
+    VecBase& operator=(const aaxVec3d& v) {
+        _v[0] = static_cast<T>(v[0]);
+        _v[1] = static_cast<T>(v[1]);
+        _v[2] = static_cast<T>(v[2]);
+        _v4 = false;
         return *this;
     }
     VecBase& operator=(const aaxVec4f& v) {
@@ -152,22 +162,24 @@ public:
         _v4 = true;
         return *this;
     }
-    VecBase& operator=(const aaxVec3f& v) {
-        _v[0] = static_cast<T>(v[0]);
-        _v[1] = static_cast<T>(v[1]);
-        _v[2] = static_cast<T>(v[2]);
-        _v4 = false;
+    VecBase& operator+=(T f) {
+        _v[0] += f; _v[1] += f; _v[2] += f;
+        if (_v4) _v[3] += f;
         return *this;
     }
-    VecBase& operator=(const aaxVec3d& v) {
-        _v[0] = static_cast<T>(v[0]);
-        _v[1] = static_cast<T>(v[1]);
-        _v[2] = static_cast<T>(v[2]);
-        _v4 = false;
+    VecBase& operator+=(const VecBase& v) {
+        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
+        if (_v4) _v[3] += v[3];
         return *this;
     }
-    VecBase& operator=(T f) {
-        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
+    VecBase& operator-=(T f) {
+        _v[0] -= f; _v[1] -= f; _v[2] -= f;
+        if (_v4) _v[3] -= f;
+        return *this;
+    }
+    VecBase& operator-=(const VecBase& v) {
+        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
+        if (_v4) _v[3] -= v[3];
         return *this;
     }
     VecBase& operator*=(T f) {
@@ -175,7 +187,7 @@ public:
         if (_v4) _v[3] *= f;
         return *this;
     }
-    VecBase& operator*=(const VecBase<T>& v) {
+    VecBase& operator*=(const VecBase& v) {
         _v[0] *= v[0]; _v[1] *= v[1]; _v[2] *= v[2];
         if (_v4) _v[3] *= v[3];
         return *this;
@@ -186,36 +198,16 @@ public:
         if (_v4) _v[3] *= fi;
         return *this;
     }
-    VecBase& operator/=(const VecBase<T>& v) {
+    VecBase& operator/=(const VecBase& v) {
         _v[0] /= v[0]; _v[1] /= v[1]; _v[2] /= v[2];
         if (_v4) _v[3] /= v[3];
-        return *this;
-    }
-    VecBase& operator+=(T f) {
-        _v[0] += f; _v[1] += f; _v[2] += f;
-        if (_v4) _v[3] += f;
-        return *this;
-    }
-    VecBase& operator+=(const VecBase<T>& v) {
-        _v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2];
-        if (_v4) _v[3] += v[3];
-        return *this;
-    }
-    VecBase& operator-=(T f) {
-        _v[0] -= f; _v[1] -= f; _v[2] -= f;
-        if (_v4) _v[3] -= f;
-        return *this;
-    }
-    VecBase& operator-=(const VecBase<T>& v) {
-        _v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2];
-        if (_v4) _v[3] -= v[3];
         return *this;
     }
     VecBase operator+(T f) {
         VecBase r(_v); r += f;
         return r;
     }
-    VecBase operator+(const VecBase<T>& v) {
+    VecBase operator+(const VecBase& v) {
        VecBase r(_v); r += v;
        return r;
     }
@@ -223,7 +215,7 @@ public:
         VecBase r(_v); r -= f;
         return r;
     }
-    VecBase operator-(const VecBase<T>& v) {
+    VecBase operator-(const VecBase& v) {
        VecBase r(_v); r -= v;
        return r;
     }
@@ -231,7 +223,7 @@ public:
         VecBase r(_v); r *= f;
         return r;
     }
-    VecBase operator*(const VecBase<T>& v) {
+    VecBase operator*(const VecBase& v) {
        VecBase r(_v); r *= v;
        return r;
     }
@@ -239,12 +231,12 @@ public:
         VecBase r(_v); r /= f;
         return r;
     }
-    VecBase operator/(const VecBase<T>& v) {
+    VecBase operator/(const VecBase& v) {
        VecBase r(_v); r /= v;
        return r;
     }
-    VecBase<T> operator-() {
-        VecBase<T> v4;
+    VecBase operator-() {
+        VecBase v4;
         v4[0] = -_v[0]; v4[1] = -_v[1]; v4[2] = -_v[2];
         if (_v4) v4[3] = -_v[3];
         return v4;
@@ -591,7 +583,7 @@ private:
     }
 };
 
-} // namespace AAX
+} // namespace aax
 
 #endif /* AEONWAVE_MATRIX */
 
