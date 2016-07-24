@@ -348,19 +348,19 @@ public:
     bool set(dsp& dsp) {
         int res = dsp.is_filter() ? aaxMixerSetFilter(ptr,dsp)
                                   : aaxMixerSetEffect(ptr,dsp);
-        if (!res) { error_no();
+        if (!res) { clear_error();
             res = dsp.is_filter() ? aaxScenerySetFilter(ptr,dsp)
                                   : aaxScenerySetEffect(ptr,dsp); }
         return res;
     }
     dsp get(enum aaxFilterType t) {
         aaxFilter f = aaxMixerGetFilter(ptr,t);
-        if (!f) { error_no(); f = aaxSceneryGetFilter(ptr,t); }
+        if (!f) { clear_error(); f = aaxSceneryGetFilter(ptr,t); }
         return dsp(f,t);
     }
     dsp get(enum aaxEffectType t) {
         aaxEffect e = aaxMixerGetEffect(ptr,t);
-        if (!e) { error_no(); e = aaxSceneryGetEffect(ptr,t); }
+        if (!e) { clear_error(); e = aaxSceneryGetEffect(ptr,t); }
         return dsp(e,t);
     }
 
@@ -395,12 +395,6 @@ public:
     // ** support ******
     inline const char* version() {
         return aaxGetVersionString(ptr);
-    }
-    static enum aaxErrorType error_no() {
-        return aaxGetErrorNo();
-    }
-    static const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
-        return aaxGetErrorString(e);
     }
 
     void swap(Sensor& o) {
@@ -577,19 +571,6 @@ public:
     }
 
     // ** support ******
-    static unsigned major_version() {
-        return aaxGetMajorVersion();
-    }
-    static unsigned minor_version() {
-        return aaxGetMinorVersion();
-    }
-    static unsigned int patch_level() {
-        return aaxGetPatchLevel();
-    }
-
-    inline bool valid(aaxConfig c, enum aaxHandleType t=AAX_CONFIG) {
-        return aaxIsValid(c,t);
-    }
     inline bool valid(enum aaxHandleType t) {
         return aaxIsValid(ptr,t);
     }
@@ -677,6 +658,41 @@ private:
     const char* _ed;
     aaxConfig _ec;
 };
+
+inline unsigned major_version() {
+    return aaxGetMajorVersion();
+}
+inline unsigned minor_version() {
+    return aaxGetMinorVersion();
+}
+inline unsigned int patch_level() {
+    return aaxGetPatchLevel();
+}
+
+inline void free(void *ptr) {
+    aaxFree(ptr);
+}
+
+inline unsigned no_bits(enum aaxFormat fmt) {
+    return aaxBitsPerSample(fmt);
+}
+inline unsigned no_bytes(enum aaxFormat fmt) {
+    return aaxBytesPerSample(fmt);
+}
+
+inline void clear_error() {
+    aaxGetErrorNo();
+}
+inline enum aaxErrorType error_no() {
+    return aaxGetErrorNo();
+}
+inline const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
+    return aaxGetErrorString(e);
+}
+
+inline bool valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
+    return aaxIsValid(c,t);
+}
 
 } // namespace aax
 
