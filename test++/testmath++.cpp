@@ -64,6 +64,9 @@ int main(int argc, char **argv)
     v3 = v2.normalized();
     printf("Normalized Vector(%2.1f, %2.1f, %2.1f) = Vector(%2.1f, %2.1f, %2.1f)\n", v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
 
+    v3 = 3.1415926536;
+    printf("set Vector(%2.1f, %2.1f, %2.1f) = 3.1415926535: Vector(%5.4f, %5.4f, %5.4f)\n", v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
+
     aax::Matrix64 im64, m64;
     aax::Matrix im, m1, m2;
 
@@ -93,6 +96,14 @@ int main(int argc, char **argv)
     m64.inverse();
     m3 = m64;
     LOG("Inverse matrix",m2,m3,true);
+
+    aaxVec3f at, up, pos;
+    m3.get(at, up, pos);
+    printf("mtx:   at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", at[0], at[1], at[2], up[0], up[1], up[2], pos[0], pos[1], pos[2]);
+
+    aaxVec3d at64, up64, pos64;
+    m64.get(at64, up64, pos64);
+    printf("mtx64: at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", at64[0], at64[1], at64[2], up64[0], up64[1], up64[2], pos64[0], pos64[1], pos64[2]);
 
     return 0;
 }
