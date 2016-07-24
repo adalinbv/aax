@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/AeonWave>
+#include <aax/aeonwave.hpp>
 
 #include <base/geometry.h>
 #include <base/types.h>

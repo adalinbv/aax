@@ -37,7 +37,7 @@
 #include <unistd.h>
 #include <string>
 
-#include <aax/AeonWave>
+#include <aax/aeonwave.hpp>
 
 int main(int argc, char **argv)
 {
