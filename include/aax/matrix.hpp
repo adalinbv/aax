@@ -39,6 +39,7 @@
 #include <cmath>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 #include <limits>
 
 #include <aax/aax.h>
@@ -107,12 +108,12 @@ public:
         VecBase r(_v); r.normalize();
         return r;
     }
-    T dot(const VecBase& v) {
+    T dot_product(const VecBase& v) {
         T d = _v[0]*v[0] + _v[1]*v[1] + _v[2]*v[2];
         if (_v4) d += _v[3]*v[3];
         return d;
     }
-    VecBase cross(const VecBase& v2) {
+    VecBase cross_product(const VecBase& v2) {
         VecBase r;
         if (_v4 == false) {
             r[0] = _v[1]*v2[2] - _v[2]*v2[1];
@@ -270,16 +271,16 @@ public:
     ~MtxBase() {}
 
     // ** support ******
-    bool operator==(MtxBase<T>& m) {
+    inline bool operator==(MtxBase<T>& m) {
         return mtxcmp(m);
     }
-    bool operator==(const MT& m) {
+    inline bool operator==(const MT& m) {
         return mtxcmp(m);
     }
-    bool operator!=(MtxBase<T>& m) {
+    inline bool operator!=(MtxBase<T>& m) {
         return ~mtxcmp(m);
     }
-    bool operator!=(const MT& m) {
+    inline bool operator!=(const MT& m) {
         return ~mtxcmp(m);
     }
     operator const MT&() const {
@@ -463,7 +464,7 @@ public:
         Vector64 pos(p[0], p[1], p[2], -1.0);
         Vector64 at(a[0], a[1], a[2]);
         Vector64 up(u[0], u[1], u[2]);
-        Vector64 side = at.cross(up);
+        Vector64 side = at.cross_product(up);
         set(0, side.normalized());
         set(1, up.normalized());
         set(2, -at.normalized());
