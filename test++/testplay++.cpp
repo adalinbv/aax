@@ -52,7 +52,7 @@ int main(int argc, char **argv)
         while (++i < argc)
         {
             printf("Playing: %s ...\n", argv[i]);
-            bool res = aax.play(argv[i]);
+            bool res = aax.playback(argv[i]);
             if (!res) printf("Error: %s\n", aax.error());
             do
             {

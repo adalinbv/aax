@@ -66,8 +66,8 @@ help()
     std::cout << "writing to an output file is fully optional." << std::endl;
     std::cout << std::endl;
 
-    AAX::AeonWave rec("AeonWave on Audio Files", AAX_MODE_READ);
-    AAX::AeonWave play("AeonWave on Audio Files");
+    aax::AeonWave rec("AeonWave on Audio Files", AAX_MODE_READ);
+    aax::AeonWave play("AeonWave on Audio Files");
     if (rec || play)
     {
         std::cout << "Supported file formats:" << std::endl;
@@ -119,9 +119,9 @@ int main(int argc, char **argv)
     }
 
     devname = getDeviceName(argc, argv);
-    AAX::AeonWave config(devname);
-    AAX::Sensor record;
-    AAX::Sensor file;
+    aax::AeonWave config(devname);
+    aax::Sensor record;
+    aax::Sensor file;
 
     testForError(config, "Audio output device is not available.");
     if (!config)
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        record = AAX::Sensor(idevname, AAX_MODE_READ);
+        record = aax::Sensor(idevname, AAX_MODE_READ);
         if (!record)
         {
             std::cout << "File not found: " << infile << std::endl;
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     if (outfile)
     {
         snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
-        file = AAX::Sensor(obuf);
+        file = aax::Sensor(obuf);
     }
 
     if (config && record && (rv >= 0))
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
         float dhour, hour, minutes, seconds;
         float duration, freq;
         unsigned int max_samples;
-        AAX::Mixer mixer;
+        aax::Mixer mixer;
         aaxEffect effect;
         aaxFilter filter;
         char tstr[80];
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
             std::cout << "  using audio-mixers" << std::endl;
 
             /** audio mixer */
-            mixer = AAX::Mixer(config);
+            mixer = aax::Mixer(config);
             testForError(mixer, "Unable to create a new audio mixer");   
 
             /** register audio mixer */

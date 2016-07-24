@@ -42,7 +42,7 @@ static int maximumWidth = 80;
 
 int main(int argc, char **argv)
 {
-    AAX::AeonWave aax(AAX_MODE_WRITE_STEREO);
+    aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
 
     std::cout << "AeonWave version " << aax.major_version() << "." << aax.minor_version() << "-" << aax.patch_level() << std::endl;
     std::cout << "Run aaxinfo -copyright to read the copyright information." << std::endl << std::endl;
