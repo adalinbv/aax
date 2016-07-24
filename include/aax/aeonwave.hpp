@@ -40,19 +40,19 @@
 #include <aax/matrix.hpp>
 #include <aax/aax.h>
 
-namespace AAX
+namespace aax
 {
 
-class Object
+class Obj
 {
 public:
     typedef int _close_fn(void*);
 
-    Object() : _p(0), _close(0) {}
+    Obj() : _p(0), _close(0) {}
 
-    Object(void *p, const _close_fn* c) : _p(p), _close(c) {}
+    Obj(void *p, const _close_fn* c) : _p(p), _close(c) {}
 
-    ~Object() {
+    ~Obj() {
         if (_close) _close(_p);
     }
 
@@ -69,16 +69,16 @@ protected:
     void* _p;
 };
 
-class Buffer : public Object
+class Buffer : public Obj
 {
 public:
-    Buffer() : Object() {}
+    Buffer() : Obj() {}
 
     Buffer(aaxBuffer b, bool o=true) :
-        Object(b, o ? aaxBufferDestroy : 0) {}
+        Obj(b, o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
-        Object(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
+        Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
     ~Buffer() {}
 
@@ -118,22 +118,22 @@ public:
 };
 
 
-class DSP : public Object
+class dsp : public Obj
 {
 public:
-    DSP() : Object(), _f(true) {}
+    dsp() : Obj(), _f(true) {}
 
-    DSP(aaxFilter c, enum aaxFilterType f) :
-        Object(c,aaxFilterDestroy), _f(true) {
+    dsp(aaxFilter c, enum aaxFilterType f) :
+        Obj(c,aaxFilterDestroy), _f(true) {
         if (!aaxIsValid(c, AAX_FILTER)) _p = aaxFilterCreate(c,f);
     }
 
-    DSP(aaxEffect c, enum aaxEffectType e) :
-        Object(c,aaxEffectDestroy), _f(false) {
+    dsp(aaxEffect c, enum aaxEffectType e) :
+        Obj(c,aaxEffectDestroy), _f(false) {
         if (!aaxIsValid(c, AAX_EFFECT)) _p = aaxEffectCreate(c,e);
     }
 
-    ~DSP() {}
+    ~dsp() {}
 
     bool set(int s) {
         return (_f) ? !!aaxFilterSetState(_p,s)
@@ -172,7 +172,7 @@ public:
     }
 
     // ** support ******
-    DSP& operator=(const DSP& o) {
+    dsp& operator=(const dsp& o) {
         if (_close) _close(_p);
         _p = o._p; _f = o._f; _close = o._close; o._close = 0;
         return *this;
@@ -187,10 +187,10 @@ private:
 };
 
 
-class Emitter : public Object
+class Emitter : public Obj
 {
 public:
-    Emitter() : Object(aaxEmitterCreate(), aaxEmitterDestroy) {}
+    Emitter() : Obj(aaxEmitterCreate(), aaxEmitterDestroy) {}
 
     ~Emitter() {}
 
@@ -208,15 +208,15 @@ public:
     }
 
     // ** filters and effects ******
-    bool set(DSP& dsp) {
+    bool set(dsp& dsp) {
         return dsp.is_filter() ? aaxEmitterSetFilter(_p,dsp)
                                : aaxEmitterSetEffect(_p,dsp);
     }
-    inline DSP get(enum aaxFilterType f) {
-        return DSP(aaxEmitterGetFilter(_p,f),f);
+    inline dsp get(enum aaxFilterType f) {
+        return dsp(aaxEmitterGetFilter(_p,f),f);
     }
-    inline DSP get(enum aaxEffectType e) {
-        return DSP(aaxEmitterGetEffect(_p,e),e);
+    inline dsp get(enum aaxEffectType e) {
+        return dsp(aaxEmitterGetEffect(_p,e),e);
     }
 
     // ** position and orientation ******
@@ -268,13 +268,13 @@ public:
 };
 
 
-class Sensor : public Object
+class Sensor : public Obj
 {
 public:
     Sensor() : _m(AAX_MODE_READ) {}
 
     Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ) :
-        Object(c, aaxDriverDestroy), _m(m) {}
+        Obj(c, aaxDriverDestroy), _m(m) {}
 
     Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(aaxDriverOpenByName(n,m), m) {}
@@ -331,7 +331,7 @@ public:
     }
 
     // ** filters and effects ******
-    bool set(DSP& dsp) {
+    bool set(dsp& dsp) {
         int res = dsp.is_filter() ? aaxMixerSetFilter(_p,dsp)
                                   : aaxMixerSetEffect(_p,dsp);
         if (!res) { error_no();
@@ -339,15 +339,15 @@ public:
                                   : aaxScenerySetEffect(_p,dsp); }
         return res;
     }
-    DSP get(enum aaxFilterType t) {
+    dsp get(enum aaxFilterType t) {
         aaxFilter f = aaxMixerGetFilter(_p,t);
         if (!f) { error_no(); f = aaxSceneryGetFilter(_p,t); }
-        return DSP(f,t);
+        return dsp(f,t);
     }
-    DSP get(enum aaxEffectType t) {
+    dsp get(enum aaxEffectType t) {
         aaxEffect e = aaxMixerGetEffect(_p,t);
         if (!e) { error_no(); e = aaxSceneryGetEffect(_p,t); }
-        return DSP(e,t);
+        return dsp(e,t);
     }
 
     // ** position and orientation ******
@@ -401,12 +401,12 @@ protected:
 };
 
 
-class Frame : public Object
+class Frame : public Obj
 {
 public:
     Frame() {}
 
-    Frame(aaxConfig c) : Object(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
+    Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
     ~Frame() {}
 
@@ -431,15 +431,15 @@ public:
     }
 
     // ** filters and effects ******
-    bool set(DSP& dsp) {
+    bool set(dsp& dsp) {
         return dsp.is_filter() ? aaxAudioFrameSetFilter(_p,dsp)
                                : aaxAudioFrameSetEffect(_p,dsp);
     }
-    inline DSP get(enum aaxFilterType t) {
-        return DSP(aaxAudioFrameGetFilter(_p,t),t);
+    inline dsp get(enum aaxFilterType t) {
+        return dsp(aaxAudioFrameGetFilter(_p,t),t);
     }
-    inline DSP get(enum aaxEffectType t) {
-        return DSP(aaxAudioFrameGetEffect(_p,t),t);
+    inline dsp get(enum aaxEffectType t) {
+        return dsp(aaxAudioFrameGetEffect(_p,t),t);
     }
 
     // ** sub-mixing ******
@@ -664,7 +664,7 @@ private:
     aaxConfig _ec;
 };
 
-}
+} // namespace aax
 
 #endif
 
