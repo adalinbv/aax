@@ -52,17 +52,20 @@ aaxVec3f pos = { 1.0f, 3.0f, -2.5f };
 
 int main(int argc, char **argv)
 {
-    AAX::Vector v1(at);
-    AAX::Vector v2(pos);
-    AAX::Vector v3;
+    aax::Vector v1(at);
+    aax::Vector v2(pos);
+    aax::Vector v3;
 
     v3 = v1+v2; PVEC('+',v1,v2,v3);
     v3 = v1-v2; PVEC('-',v1,v2,v3);
     v3 = v1*v2; PVEC('*',v1,v2,v3);
     v3 = v1/v2; PVEC('/',v1,v2,v3);
 
-    AAX::Matrix64 im64, m64;
-    AAX::Matrix im, m1, m2;
+    v3 = v2.normalized();
+    printf("Normalized Vector(%2.1f, %2.1f, %2.1f) = Vector(%2.1f, %2.1f, %2.1f)\n", v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
+
+    aax::Matrix64 im64, m64;
+    aax::Matrix im, m1, m2;
 
     LOG("Initializing",m1,m2,true);
 
@@ -74,7 +77,7 @@ int main(int argc, char **argv)
 
     m1.rotate(-0.26f, 1.0f, 0.0f, 0.0f);
     m64.rotate(-0.26, 1.0, 0.0, 0.0);
-    AAX::Matrix m3 = m64;
+    aax::Matrix m3 = m64;
     LOG("Rotating M1 and M64",m1,m3,true);
 
     m1 += pos;

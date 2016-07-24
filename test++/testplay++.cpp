@@ -42,7 +42,7 @@
 int main(int argc, char **argv)
 {
     // Open the default device for playback
-    AAX::AeonWave aax(AAX_MODE_WRITE_STEREO);
+    aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
     aax.set(AAX_INITIALIZED);
     aax.set(AAX_PLAYING);
 

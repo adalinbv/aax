@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
 
-    AAX::AeonWave config(devname, AAX_MODE_WRITE_STEREO);
+    aax::AeonWave config(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
     if (!config.valid(AAX_CONFIG_HD))
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
     if (config && (rv >= 0))
     {
-        AAX::Buffer buffer = config.buffer(infile);
+        aax::Buffer buffer = config.buffer(infile);
         if (buffer)
         {
             float dt = 0.0f;
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerInit");
 
             /** AudioFrame */
-            AAX::Mixer mixer(config);
+            aax::Mixer mixer(config);
             testForError(mixer, "aaxAudioFrameCreate");
 
             /* register the audio-mixer at the mixer */
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
             /* equalizer */
 #if ENABLE_FRAME_EQUALIZER
-            AAX::DSP dsp(config, AAX_EQUALIZER);
+            aax::dsp dsp(config, AAX_EQUALIZER);
             testForError(dsp, "aaxFilterCreate");
 
             res = dsp.set(0, 60.0f, 0.3f, 1.0f, 1.2f);
@@ -120,11 +120,11 @@ int main(int argc, char **argv)
 #endif
 
             /** emitter */
-            AAX::Emitter emitter;
+            aax::Emitter emitter;
             testForError(emitter, "Unable to create a new emitter");
 
             pitch = getPitch(argc, argv);
-            dsp = AAX::DSP(config, AAX_PITCH_EFFECT);
+            dsp = aax::dsp(config, AAX_PITCH_EFFECT);
             testForError(dsp, "aaxEffectCreate");
 
             res = dsp.set(AAX_PITCH, pitch);

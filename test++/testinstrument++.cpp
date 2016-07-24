@@ -97,13 +97,13 @@ static const char* aaxs_data_sax =   // A2, 200Hz
 
 int main(int argc, char **argv)
 {
-    AAX::AeonWave config;
+    aax::AeonWave config;
     int state, res;
     char *devname;
     int rv = 0;
 
     devname = getDeviceName(argc, argv);
-    config = AAX::AeonWave(devname, AAX_MODE_WRITE_STEREO);
+    config = aax::AeonWave(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
     if (!config.valid(AAX_CONFIG_HD))
@@ -118,13 +118,13 @@ int main(int argc, char **argv)
     if (config && (rv >= 0))
     {
         unsigned int no_samples;
-        AAX::Emitter emitter;
-        AAX::Buffer buffer;
-        AAX::DSP dsp;
+        aax::Emitter emitter;
+        aax::Buffer buffer;
+        aax::dsp dsp;
         int i;
 
         no_samples = (unsigned int)(1.0f*SAMPLE_FREQUENCY);
-        buffer = AAX::Buffer(config, no_samples, 1, AAX_AAXS16S);
+        buffer = aax::Buffer(config, no_samples, 1, AAX_AAXS16S);
         testForError(buffer, "Unable to generate buffer\n");
 
         res = buffer.set(AAX_FREQUENCY, SAMPLE_FREQUENCY);
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
         testForState(res, "aaxBufferSetData");
 
         /** emitter */
-        emitter = AAX::Emitter();
+        emitter = aax::Emitter();
         testForError(emitter, "Unable to create a new emitter\n");
 
         res = emitter.add(buffer);
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_TIMED_GAIN_FILTER
 	/* time dsp for emitter */
-        dsp = AAX::DSP(config, AAX_TIMED_GAIN_FILTER);
+        dsp = aax::dsp(config, AAX_TIMED_GAIN_FILTER);
         testForState(res, "aaxFilterCreate");
 
 #if SAX
@@ -173,7 +173,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_TIMED_PITCH_EFFECT
 	/* time dsp for emitter */
-        dsp = AAX::DSP(config, AAX_TIMED_PITCH_EFFECT);
+        dsp = aax::dsp(config, AAX_TIMED_PITCH_EFFECT);
         testForState(res, "aaxFilterCreate");
 
         res = dsp.set(0, 0.995f, 0.05f, 1.05f, 0.08f);
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_EMITTER_DYNAMIC_GAIN
 	/* tremolo dsp for emitter */
-        dsp = AAX::DSP(config, AAX_TREMOLO_FILTER);
+        dsp = aax::dsp(config, AAX_TREMOLO_FILTER);
         testForState(res, "aaxFilterCreate");
 
         res = dsp.set(0, 0.0f, 15.0f, 0.15f, 0.0f);
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_EMITTER_DYNAMIC_PITCH
 	/* vibrato dsp for emitter */
-        dsp = AAX::DSP(config, AAX_VIBRATO_EFFECT);
+        dsp = aax::dsp(config, AAX_VIBRATO_EFFECT);
         testForState(res, "aaxEffectCreate");
 
         res = dsp.set(0, 0.0f, 15.0f, 0.03f, 0.0f);
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 
 #if ENABLE_MIXER_DYNAMIC_GAIN
         /* tremolo dsp for mixer */
-        dsp = AAX::DSP(config, AAX_TREMOLO_FILTER);
+        dsp = aax::dsp(config, AAX_TREMOLO_FILTER);
         testForState(res, "aaxFilterCreate");
 
         res = dsp.set(0, 0.0f, 0.9f, 0.2f, 0.0f);
