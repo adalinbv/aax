@@ -55,7 +55,7 @@ protected:
 
 public:
     VecBase() : _v4(true) {
-        _v[0] = _v[1] = _v[2] = _v[3] = 0;
+        std::fill(_v, _v+4, 0);
     }
     VecBase(const aaxVec3f& v) : _v4(false) {
         _v[0] = static_cast<T>(v[0]);
@@ -86,17 +86,15 @@ public:
         _v[0] = w; _v[1] = x; _v[2] = y; _v[3] = z;
     }
     VecBase(T f) : _v4(true) {
-        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
+        std::fill(_v, _v+4, f);
     }
     ~VecBase() {}
 
-    T magnitude2() {
-        T m = _v[0]*_v[0] + _v[1]*_v[1] + _v[2]*_v[2];
-        if (_v4) m += _v[3]*_v[3];
-        return m;
+    inline T magnitude2() {
+        return dot_product(*this);
     }
     inline T magnitude() {
-        return std::sqrt(magnitude2());
+        return std::sqrt(dot_product(*this));
     }
     T normalize() {
         float m = magnitude();
@@ -125,12 +123,12 @@ public:
 
     // ** support ******
     VecBase& operator=(const VecBase& v) {
-        _v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; _v[3] = v[3];
+        std::copy(v._v, v._v+4, _v);
         _v4 = v.is_v4();
         return *this;
     }
     VecBase& operator=(T f) {
-        _v[0] = f; _v[1] = f; _v[2] = f; _v[3] = f;
+        std::fill(_v, _v+4, f);
         return *this;
     }
     VecBase& operator=(const aaxVec3f& v) {
@@ -351,11 +349,9 @@ public:
     inline bool set(const aaxVec3f& p, const aaxVec3f& a, const aaxVec3f& u) {
         return aaxMatrixSetOrientation(_m,p,a,u);
     }
-#if 0
     inline bool get(aaxVec3f& p, aaxVec3f& a, aaxVec3f& u) {
         return aaxMatrixGetOrientation(_m,p,a,u);
     }
-#endif
     inline bool translate(float dx, float dy, float dz) {
         return aaxMatrixTranslate(_m,dx,dy,dz);
     }
@@ -522,7 +518,7 @@ public:
         return *this;
     }
     Matrix64& operator+=(Vector& v) {
-        aaxMatrix64Translate(_m,(double)v[0],(double)v[1],(double)v[2]);
+        aaxMatrix64Translate(_m,static_cast<double>(v[0]),static_cast<double>(v[1]),static_cast<double>(v[2]));
         return *this;
     }
     Matrix64& operator+=(Vector64& v) {
@@ -530,7 +526,7 @@ public:
         return *this;
     }
     Matrix64& operator+=(const aaxVec3f& v) {
-        aaxMatrix64Translate(_m,(double)v[0],(double)v[1],(double)v[2]);
+        aaxMatrix64Translate(_m,static_cast<double>(v[0]),static_cast<double>(v[1]),static_cast<double>(v[2]));
         return *this;
     }
     Matrix64& operator+=(const aaxVec3d& v) {
@@ -546,7 +542,7 @@ public:
         return *this;
     }
     Matrix64& operator-=(const aaxVec3f& v) {
-        aaxMatrix64Translate(_m,-(double)v[0],-(double)v[1],-(double)v[2]);
+        aaxMatrix64Translate(_m,static_cast<double>(-v[0]),static_cast<double>(-v[1]),static_cast<double>(-v[2]));
         return *this;
     }
     Matrix64& operator-=(const aaxVec3d& v) {
@@ -576,11 +572,11 @@ public:
 
 private:
     void set(unsigned p, const Vector64& v) {
-        _m[p][0] = v[0]; _m[p][1] = v[1]; _m[p][2] = v[2];
-        if (v.is_v4()) _m[p][3] = v[3];
+        if (v.is_v4()) std::copy(v+0, v+4, _m[p]);
+        else std::copy(v+0, v+3, _m[p]);
     }
     void get(unsigned p, aaxVec3d& v) {
-        v[0] = _m[p][0]; v[1] = _m[p][1]; v[2] = _m[p][2];
+        std::copy(_m[p], _m[p]+4, v+0);
     }
 };
 
