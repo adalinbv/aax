@@ -35,13 +35,16 @@
 
 #include <ostream>
 
-#include <aax/AeonWave>
+#include <aax/aeonwave.hpp>
 
 #define LOG(s,a,b,c) \
     if (((a)==(b))==(c)) printf((c)?"M1 == M2, succes":"M1 != M2, succes"); \
     else { printf(c?"M1 != M2, failed":"M1 == M2, failed"); \
            std::cout << "m1:\n" << (a); std::cout << "m2:\n" << (b); }\
     printf(": %s\n",(s));
+
+#define PVEC(c,v1,v2,v3) \
+    printf("Vector(%2.1f, %2.1f, %2.1f) %c Vector(%2.1f, %2.1f, %2.1f) = Vector(%2.1f, %2.1f, %2.1f)\n", v1[0], v1[1], v1[2], c, v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
 
 aaxVec3f at  = { 2.0f, 0.0f, -1.0f };
 aaxVec3f up  = { 2.0f, 1.0f,  0.0f };
@@ -51,8 +54,12 @@ int main(int argc, char **argv)
 {
     AAX::Vector v1(at);
     AAX::Vector v2(pos);
-    AAX::Vector v3 = v1*v2;
-    printf("Vector(%2.1f, %2.1f, %2.1f) * Vector(%2.1f, %2.1f, %2.1f) = Vector(%2.1f, %2.1f, %2.1f)\n", v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
+    AAX::Vector v3;
+
+    v3 = v1+v2; PVEC('+',v1,v2,v3);
+    v3 = v1-v2; PVEC('-',v1,v2,v3);
+    v3 = v1*v2; PVEC('*',v1,v2,v3);
+    v3 = v1/v2; PVEC('/',v1,v2,v3);
 
     AAX::Matrix64 im64, m64;
     AAX::Matrix im, m1, m2;
