@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 {
     aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
 
-    std::cout << "AeonWave version " << aax.major_version() << "." << aax.minor_version() << "-" << aax.patch_level() << std::endl;
+    std::cout << "AeonWave version " << aax::major_version() << "." << aax::minor_version() << "-" << aax::patch_level() << std::endl;
     std::cout << "Run aaxinfo -copyright to read the copyright information." << std::endl << std::endl;
 
     std::cout << "Devices that support capture:" << std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     {
         std::cout << "Driver  : " << aax.info(AAX_DRIVER_STRING) << std::endl;
         std::cout << "Renderer: " << aax.info(AAX_RENDERER_STRING) << std::endl;
-        std::cout << "Version : " << aax.version() << " (" << aax.major_version() << "." << aax.minor_version() << ")" << std::endl;
+        std::cout << "Version : " << aax.version() << " (" << aax::major_version() << "." << aax::minor_version() << ")" << std::endl;
         std::cout << "Vendor  : " << aax.info(AAX_VENDOR_STRING) << std::endl;
         std::cout << "Mixer timed mode support:   " << (aax.get(AAX_TIMER_MODE) ? "yes" : "no") << std::endl;
         std::cout << "Mixer shared mode support:  " << (aax.get(AAX_SHARED_MODE) ? "yes" : "no") << std::endl;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     }
     else {
         std::cout << "Error opening the default device: ";
-        std::cout << aax.error() << std::endl << std::endl;
+        std::cout << aax::error() << std::endl << std::endl;
     }
 
     return 0;
