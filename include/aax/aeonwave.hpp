@@ -43,6 +43,41 @@
 namespace aax
 {
 
+inline unsigned major_version() {
+    return aaxGetMajorVersion();
+}
+inline unsigned minor_version() {
+    return aaxGetMinorVersion();
+}
+inline unsigned int patch_level() {
+    return aaxGetPatchLevel();
+}
+
+inline void free(void *ptr) {
+    aaxFree(ptr);
+}
+
+inline unsigned no_bits(enum aaxFormat fmt) {
+    return aaxGetBitsPerSample(fmt);
+}
+inline unsigned no_bytes(enum aaxFormat fmt) {
+    return aaxGetBytesPerSample(fmt);
+}
+
+inline void clear_error() {
+    aaxGetErrorNo();
+}
+inline enum aaxErrorType error_no() {
+    return aaxGetErrorNo();
+}
+inline const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
+    return aaxGetErrorString(e);
+}
+
+inline bool valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
+    return aaxIsValid(c,t);
+}
+
 class Obj
 {
 public:
@@ -658,41 +693,6 @@ private:
     const char* _ed;
     aaxConfig _ec;
 };
-
-inline unsigned major_version() {
-    return aaxGetMajorVersion();
-}
-inline unsigned minor_version() {
-    return aaxGetMinorVersion();
-}
-inline unsigned int patch_level() {
-    return aaxGetPatchLevel();
-}
-
-inline void free(void *ptr) {
-    aaxFree(ptr);
-}
-
-inline unsigned no_bits(enum aaxFormat fmt) {
-    return aaxBitsPerSample(fmt);
-}
-inline unsigned no_bytes(enum aaxFormat fmt) {
-    return aaxBytesPerSample(fmt);
-}
-
-inline void clear_error() {
-    aaxGetErrorNo();
-}
-inline enum aaxErrorType error_no() {
-    return aaxGetErrorNo();
-}
-inline const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
-    return aaxGetErrorString(e);
-}
-
-inline bool valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
-    return aaxIsValid(c,t);
-}
 
 } // namespace aax
 
