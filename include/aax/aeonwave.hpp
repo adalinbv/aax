@@ -87,15 +87,24 @@ public:
 
     Obj(void *p, const close_fn* c) : ptr(p), close(c) {}
 
-    Obj(const Obj& o) : close(o.close), ptr(o.ptr) {}
+    Obj(const Obj& o) : close(o.close), ptr(o.ptr) {
+printf("%s\n", __PRETTY_FUNCTION__);
+}
 
     ~Obj() {
         if (close) close(ptr);
     }
 
-    virtual void swap(Obj& o) {
-        std::swap(ptr, o.ptr);
-        std::swap(close, o.close);
+    friend void swap(Obj& o1, Obj& o2) {
+printf("%s\n", __PRETTY_FUNCTION__);
+        std::swap(o1.ptr, o2.ptr);
+        std::swap(o1.close, o2.close);
+    }
+
+    Obj& operator=(Obj o) {
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
+        return *this;
     }
 
     operator void*() const {
@@ -153,7 +162,8 @@ public:
 
     // ** support ******
     Buffer& operator=(Buffer o) {
-        swap(o);
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
         return *this;
     }
 };
@@ -216,13 +226,15 @@ public:
     }
 
     // ** support ******
-    void swap(dsp& o) {
-        std::swap(filter, o.filter);
-        std::swap(ptr, o.ptr);
-        std::swap(close, o.close);
+    friend void swap(dsp& o1, dsp& o2) {
+printf("%s\n", __PRETTY_FUNCTION__);
+        std::swap(o1.filter, o2.filter);
+        std::swap(o1.ptr, o2.ptr);
+        std::swap(o1.close, o2.close);
     }
     dsp& operator=(dsp o) {
-        swap(o);
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
         return *this;
     }
 
@@ -239,6 +251,10 @@ class Emitter : public Obj
 {
 public:
     Emitter() : Obj(aaxEmitterCreate(), aaxEmitterDestroy) {}
+
+    Emitter(const Emitter& o) : Obj(o) {
+printf("%s\n", __PRETTY_FUNCTION__);
+    }
 
     ~Emitter() {}
 
@@ -309,7 +325,8 @@ public:
 
     // ** support ******
     Emitter& operator=(Emitter o) {
-        swap(o);
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
         return *this;
     }
 };
@@ -329,7 +346,9 @@ public:
     Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(s.empty() ? NULL : s.c_str(),m) {}
 
-    Sensor(const Sensor& o) : Obj(o), mode(o.mode) {}
+    Sensor(const Sensor& o) : Obj(o), mode(o.mode) {
+printf("%s\n", __PRETTY_FUNCTION__);
+}
 
     ~Sensor() {}
 
@@ -432,13 +451,15 @@ public:
         return aaxGetVersionString(ptr);
     }
 
-    void swap(Sensor& o) {
-        std::swap(mode, o.mode);
-        std::swap(ptr, o.ptr);
-        std::swap(close, o.close);
+    friend void swap(Sensor& o1, Sensor& o2) {
+printf("%s\n", __PRETTY_FUNCTION__);
+        std::swap(o1.mode, o2.mode);
+        std::swap(o1.ptr, o2.ptr);
+        std::swap(o1.close, o2.close);
     }
     Sensor& operator=(Sensor o) {
-        swap(o);
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
         return *this;
     }
 
@@ -532,7 +553,8 @@ public:
 
     // ** support ******
     Frame& operator=(Frame o) {
-        swap(o);
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
         return *this;
     }
 };
@@ -542,7 +564,7 @@ typedef Frame Mixer;
 class AeonWave : public Sensor
 {
 public:
-    AeonWave() : Sensor(), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
+    AeonWave() : Sensor(), _ec(0) { std::fill(_e, _e+3, 0); }
 
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(n,m), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
@@ -552,6 +574,8 @@ public:
 
     AeonWave(enum aaxRenderMode m) :
         AeonWave(NULL,m) {}
+
+//  AeonWave(const AeonWave& o) : Sensor(o), _ec(0) { std::fill(_e, _e+3, 0); }
 
     ~AeonWave() {
         for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
@@ -615,7 +639,8 @@ public:
     }
 
     AeonWave& operator=(AeonWave o) {
-        swap(o);
+printf("%s\n", __PRETTY_FUNCTION__);
+        swap(*this, o);
         return *this;
     }
 
