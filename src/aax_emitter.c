@@ -1079,7 +1079,12 @@ aaxEmitterGetState(const aaxEmitter emitter)
          else if (_IS_PLAYING(src->props3d)) ret = AAX_PLAYING;
          else ret = AAX_INITIALIZED;
        }
-       else ret = AAX_INITIALIZED;
+       else
+       {
+          // get_valid_handle may() set an error which is bogus here
+          __aaxErrorSet(AAX_ERROR_NONE, NULL);
+          ret = AAX_INITIALIZED;
+       }
    }
    put_emitter(handle);
    return ret;
