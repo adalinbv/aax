@@ -83,20 +83,22 @@ class Obj
 public:
     typedef int close_fn(void*);
 
-    Obj() : ptr(0), close(0), refctr(0) {}
+    Obj() : ptr(0), close(0) {}
 
-    Obj(void *p, const close_fn* c) : ptr(p), close(c), refctr(!!c ? 1 : 0) {}
+    Obj(void *p, const close_fn* c) : ptr(p), close(c) {}
 
-    Obj(const Obj& o) : close(o.close), ptr(o.ptr), refctr(++o.refctr) {}
+    Obj(const Obj& o) {
+        std::swap(ptr, o.ptr);
+        std::swap(close, o.close);
+    }
 
     ~Obj() {
-        if (!!close && refctr > 0) { close(ptr); --refctr; }
+        if (!!close) close(ptr);
     }
 
     friend void swap(Obj& o1, Obj& o2) {
         std::swap(o1.ptr, o2.ptr);
         std::swap(o1.close, o2.close);
-        std::swap(o1.refctr, o2.refctr);
     }
 
     Obj& operator=(Obj o) {
@@ -113,9 +115,8 @@ public:
     }
 
 protected:
-    void* ptr;
-    close_fn* close;
-    mutable size_t refctr;
+    mutable void* ptr;
+    mutable close_fn* close;
 };
 
 class Buffer : public Obj
@@ -125,6 +126,9 @@ public:
 
     Buffer(aaxBuffer b, bool o=true) :
         Obj(b, o ? aaxBufferDestroy : 0) {}
+
+    Buffer(aaxConfig c, std::string n, bool o=true) :
+        Obj(aaxBufferReadFromStream(ptr,n.c_str()), o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
         Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
@@ -652,7 +656,7 @@ public:
     Buffer& buffer(std::string name) {
         _buffer_it it = _buffer_cache.find(name);
         if (it == _buffer_cache.end()) {
-            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(aaxBufferReadFromStream(ptr,name.c_str()),false))));
+            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(ptr,name,false))));
             it = ret.first;
         }
         it->second.first++;
