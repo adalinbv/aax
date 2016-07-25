@@ -97,12 +97,14 @@ int main(int argc, char **argv)
     m3 = m64;
     LOG("Inverse matrix",m2,m3,true);
 
+    std::cout << std::endl << "Matrix mtx and mtx64:\n" << (m3);
+
     aaxVec3f at, up, pos;
-    m3.get(at, up, pos);
+    m3.get(pos, at, up);
     printf("mtx:   at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", at[0], at[1], at[2], up[0], up[1], up[2], pos[0], pos[1], pos[2]);
 
     aaxVec3d at64, up64, pos64;
-    m64.get(at64, up64, pos64);
+    m64.get(pos64, at64, up64);
     printf("mtx64: at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", at64[0], at64[1], at64[2], up64[0], up64[1], up64[2], pos64[0], pos64[1], pos64[2]);
 
     return 0;
