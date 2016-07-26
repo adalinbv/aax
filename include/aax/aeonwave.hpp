@@ -37,6 +37,8 @@
 #define AEONWAVE 1
 
 #include <map>
+#include <vector>
+
 #include <aax/matrix.hpp>
 #include <aax/aax.h>
 
@@ -87,10 +89,15 @@ public:
 
     Obj(void *p, const close_fn* c) : ptr(p), close(c) {}
 
-    Obj(const Obj& o) {
-        std::swap(ptr, o.ptr);
-        std::swap(close, o.close);
+    Obj(const Obj& o) : ptr(o.ptr), close(o.close) {
+        o.close = 0;
     }
+
+#if __cplusplus >= 201103L
+    Obj(Obj&& o) : Obj() {
+        swap(*this, o);
+    }
+#endif
 
     ~Obj() {
         if (!!close) close(ptr);
@@ -115,7 +122,7 @@ public:
     }
 
 protected:
-    mutable void* ptr;
+    void* ptr;
     mutable close_fn* close;
 };
 
@@ -126,9 +133,6 @@ public:
 
     Buffer(aaxBuffer b, bool o=true) :
         Obj(b, o ? aaxBufferDestroy : 0) {}
-
-    Buffer(aaxConfig c, std::string n, bool o=true) :
-        Obj(aaxBufferReadFromStream(ptr,n.c_str()), o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
         Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
@@ -250,7 +254,11 @@ private:
 class Emitter : public Obj
 {
 public:
-    Emitter() : Obj(aaxEmitterCreate(), aaxEmitterDestroy) {}
+    Emitter() : Obj() {}
+
+    Emitter(enum aaxEmitterMode m) : Obj(aaxEmitterCreate(), aaxEmitterDestroy){
+        aaxEmitterSetMode(ptr, AAX_POSITION, m);
+    }
 
     Emitter(const Emitter& o) : Obj(o) {}
 
@@ -303,7 +311,7 @@ public:
         return aaxEmitterRemoveBuffer(ptr);
     }
     inline Buffer get(unsigned int p, int c=AAX_FALSE) {
-        return Buffer(aaxEmitterGetBufferByPos(ptr,p,c),!c);
+        return Buffer(aaxEmitterGetBufferByPos(ptr,p,c),~c);
     }
     inline unsigned int get(enum aaxState s) {
         return aaxEmitterGetNoBuffers(ptr,s);
@@ -562,11 +570,25 @@ public:
     AeonWave(enum aaxRenderMode m) :
         AeonWave(NULL,m) {}
 
-    AeonWave(const AeonWave& o) : Sensor(o) {}
+    AeonWave(const AeonWave& o) : Sensor(o),
+        frames(o.frames), sensors(o.sensors), emitters(o.emitters),
+        buffers(o.buffers) {}
 
     ~AeonWave() {
-        for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++){
-             aaxBufferDestroy(it->second.second); _buffer_cache.erase(it);
+        for (size_t i=0; i<frames.size(); ++i) {
+             aaxMixerDeregisterAudioFrame(ptr,frames[i]);
+        }
+        frames.clear();
+        for (size_t i=0; i<sensors.size(); ++i) {
+             aaxMixerDeregisterSensor(ptr,sensors[i]);
+        }
+        sensors.clear();
+        for (size_t i=0; i<emitters.size(); ++i) {
+             aaxMixerDeregisterEmitter(ptr,emitters[i]);
+        }
+        emitters.clear();
+        for(buffer_it it=buffers.begin(); it!=buffers.end(); it++){
+             aaxBufferDestroy(it->second.second); buffers.erase(it);
         }
     }
 
@@ -625,56 +647,78 @@ public:
         return aaxSensorGetOffset(ptr,t);
     }
 
+    friend void swap(AeonWave& o1, AeonWave& o2) {
+        swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
+        o1.frames.swap(o2.frames);
+        o1.sensors.swap(o2.sensors);
+        o1.emitters.swap(o2.emitters);
+        o1.buffers.swap(o2.buffers);
+        std::swap(o1.play, o2.play);
+    }
+
     AeonWave& operator=(AeonWave o) {
         swap(*this, o);
         return *this;
     }
 
     // ** mixing ******
-    inline bool add(Frame& m) {
+    bool add(Frame& m) {
+        frames.push_back(m);
         return aaxMixerRegisterAudioFrame(ptr,m);
     }
-    inline bool remove(Frame& m) {
+    bool remove(Frame& m) {
+        frame_it fi = std::find(frames.begin(),frames.end(),m);
+        if (fi != frames.end()) frames.erase(fi);
         return aaxMixerDeregisterAudioFrame(ptr,m);
     }
-    inline bool add(Sensor& s) {
+    bool add(Sensor& s) {
+        sensors.push_back(s);
         return aaxMixerRegisterSensor(ptr,s);
     }
-    inline bool remove(Sensor& s) {
+    bool remove(Sensor& s) {
+        sensor_it si = std::find(sensors.begin(),sensors.end(),s);
+        if (si != sensors.end()) sensors.erase(si);
         return aaxMixerDeregisterSensor(ptr,s);
     }
-    inline bool add(Emitter& e) {
+    bool add(Emitter& e) {
+        emitters.push_back(e);
         return aaxMixerRegisterEmitter(ptr,e);
     }
-    inline bool remove(Emitter& e) {
+    bool remove(Emitter& e) {
+        emitter_it ei = std::find(emitters.begin(),emitters.end(),e);
+        if (ei != emitters.end()) emitters.erase(ei);
         return aaxMixerDeregisterEmitter(ptr,e);
     }
 
     // ** buffer management ******
-    // Get a shared buffer from the buffer cache if it's URL is already
+    // Get a shared buffer from the buffer cache if it's name is already
     // in the cache. Otherwise create a new one and add it to the cache.
+    // The name can be an URL or a path to a file or just a reference-id.
+    // In the case of an RUL of a path the data is read automatically,
+    // otherwise the application should add the audio-data itself.
     Buffer& buffer(std::string name) {
-        _buffer_it it = _buffer_cache.find(name);
-        if (it == _buffer_cache.end()) {
-            std::pair<_buffer_it,bool> ret = _buffer_cache.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(ptr,name,false))));
+        buffer_it it = buffers.find(name);
+        if (it == buffers.end()) {
+            std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(aaxBufferReadFromStream(ptr,name.c_str()),false))));
             it = ret.first;
         }
         it->second.first++;
         return it->second.second;
     }
     void destroy(Buffer& b) {
-        for(_buffer_it it=_buffer_cache.begin(); it!=_buffer_cache.end(); it++)
+        for(buffer_it it=buffers.begin(); it!=buffers.end(); it++)
         {
             if (it->second.second == b && !(--it->second.first)) {
                 aaxBufferDestroy(it->second.second);
-                _buffer_cache.erase(it);
+                buffers.erase(it);
             }
         }
     }
 
     // ** handles for a single background music stream ******
-    bool playback(std::string f) {
-        std::string devname = std::string("AeonWave on Audio Files: ")+f;
+    // The name can be an URL or a path to a file.
+    bool playback(std::string name) {
+        std::string devname = std::string("AeonWave on Audio Files: ")+name;
         play = Sensor(devname, AAX_MODE_READ);
         return add(play) ? (play.set(AAX_INITIALIZED) ? play.sensor(AAX_CAPTURING) : false) : false;
     }
@@ -692,8 +736,17 @@ public:
     }
 
 private:
-    std::map<std::string,std::pair<size_t,Buffer> > _buffer_cache;
-    typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator _buffer_it;
+    std::vector<aaxFrame> frames;
+    typedef std::vector<aaxFrame>::iterator frame_it;
+
+    std::vector<aaxConfig> sensors;
+    typedef std::vector<aaxConfig>::iterator sensor_it;
+
+    std::vector<aaxEmitter> emitters;
+    typedef std::vector<aaxEmitter>::iterator emitter_it;
+
+    std::map<std::string,std::pair<size_t,Buffer> > buffers;
+    typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator buffer_it;
 
     // background music stream
     Sensor play;
