@@ -116,6 +116,7 @@ int main(int argc, char **argv)
             {
                 static float mul = 1.0f;
 
+                emitter[i] = aax::Emitter(AAX_ABSOLUTE);
                 res = emitter[i].add(buffer);
                 testForState(res, "aaxEmitterAddBuffer");
 
@@ -124,9 +125,6 @@ int main(int argc, char **argv)
                 res = emitter[i].matrix(mtx);
                 testForState(res, "aaxEmitterSetIdentityMatrix");
                 mul *= -1.0f;
-
-                res = emitter[i].set(AAX_POSITION, AAX_ABSOLUTE);
-                testForState(res, "aaxEmitterSetMode");
 
                 res = emitter[i].set(AAX_LOOPING, AAX_TRUE);
                 testForState(res, "aaxEmitterSetLooping");
