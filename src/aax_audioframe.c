@@ -124,7 +124,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
    _frame_t* handle = get_frame(frame, __func__);
    int rv = __release_mode;
 
-   if (!rv)
+   if (!rv && handle)
    {
       if (handle->handle) {
          _aaxErrorSet(AAX_INVALID_STATE);
@@ -621,7 +621,9 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
 
    if (!rv)
    {
-      if (!ssr_config || ssr_config->thread.started) {
+      if (!ssr_config) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (ssr_config->thread.started) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else if (ssr_config->mixer_pos < UINT_MAX) {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -945,7 +947,9 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
    if (!rv)
    {
-      if (!sframe || sframe->handle) {
+      if (!sframe) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (sframe->handle) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else if (sframe->mixer_pos < UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_STATE);
