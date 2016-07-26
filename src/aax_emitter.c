@@ -150,7 +150,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    _buffer_t* buffer = get_buffer(buf, __func__);
    int rv = __release_mode;
 
-   if (!rv)
+   if (!rv && handle)
    {
       if (!buffer) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -200,7 +200,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
    _emitter_t* handle = get_emitter(emitter, __func__);
    int rv = __release_mode;
 
-   if (!rv)
+   if (!rv && handle)
    {
       _aaxEmitter *src = handle->source;
       if (!_IS_PROCESSED(src->props3d) && src->buffer_pos == 0) {
