@@ -46,7 +46,7 @@
 
 int main(int argc, char **argv)
 {
-    printf("\n--- AeoNWave ---\n");
+    printf("\n--- AeonWave ---\n");
     // Open the default device for playback
     aax::AeonWave aax;
 
@@ -55,15 +55,14 @@ int main(int argc, char **argv)
     TRY( aax.set(AAX_PLAYING), "mixer playing" );
 
     printf("\n--- Emitter ---\n");
-    aax::Emitter emitter, emitter2;
-    emitter = aax::Emitter();
+    aax::Emitter emitter, emitter2(AAX_ABSOLUTE);
+    emitter = aax::Emitter(AAX_ABSOLUTE);
 //  TRY( emitter.set(AAX_LOOPING), "emitter looping" );
 
 
 
     printf("\n--- Buffer ---\n");
-    aax::Buffer buffer;
-    buffer = aax.buffer(IFILE_PATH);
+    aax::Buffer& buffer = aax.buffer(IFILE_PATH);
 
     TRY( emitter.add(buffer), "emitter1 buffer" );
     TRY( emitter2.add(buffer), "emitter2 buffer" );
@@ -72,7 +71,7 @@ int main(int argc, char **argv)
     printf("\nassign emitter = emitter2;\n");
     emitter = emitter2;
     TRY( emitter.remove_buffer(), "emitter2 remove_buffer" );
-    TRY( emitter2.remove_buffer(), "emitter1 remove_buffer" );
+    TRY( emitter2.remove_buffer(), "emitter1 remove_buffer, should provide an error" );
    
     printf("\n");
 
