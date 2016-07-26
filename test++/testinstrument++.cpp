@@ -134,7 +134,7 @@ int main(int argc, char **argv)
         testForState(res, "aaxBufferSetData");
 
         /** emitter */
-        emitter = aax::Emitter();
+        emitter = aax::Emitter(AAX_STEREO);
         testForError(emitter, "Unable to create a new emitter\n");
 
         res = emitter.add(buffer);

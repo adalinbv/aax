@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 #endif
 
             /** emitter */
-            aax::Emitter emitter;
+            aax::Emitter emitter(AAX_STEREO);
             testForError(emitter, "Unable to create a new emitter");
 
             pitch = getPitch(argc, argv);
