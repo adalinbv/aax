@@ -504,7 +504,7 @@ aaxDriverClose(aaxConfig config)
    _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
 
-   if (handle && handle->backend.handle)
+   if (handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
 
@@ -517,8 +517,8 @@ aaxDriverClose(aaxConfig config)
       handle->backend.handle = NULL;
       rv = AAX_TRUE;
    }
-   else if (handle) {
-       _aaxErrorSet(AAX_INVALID_STATE);
+   else {
+      _aaxErrorSet(AAX_ERROR_NONE);
    }
    return rv;
 }
