@@ -326,6 +326,9 @@ AAX_API aaxConfig AAX_APIENTRY
 aaxDriverOpen(aaxConfig config)
 {
    _handle_t *handle = _open_handle(config);
+   const char *env = getenv("AAX_RELEASE_MODE");
+   if (env) __release_mode = _aax_getbool(env) ? AAX_TRUE : AAX_FALSE;
+
    if (handle)
    {
       enum aaxRenderMode mode = handle->info->mode;

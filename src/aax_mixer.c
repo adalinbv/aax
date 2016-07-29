@@ -62,6 +62,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
       case AAX_MONO_EMITTERS:
          rv = (setup <= _aaxGetNoEmitters()) ? AAX_TRUE : AAX_FALSE;
          break;
+      case AAX_RELEASE_MODE:
+         __release_mode = setup ? AAX_TRUE : AAX_FALSE;
+         break;
       default:
          break;
       }
@@ -168,6 +171,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                rv = AAX_TRUE;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+         case AAX_RELEASE_MODE:
+            __release_mode = setup ? AAX_TRUE : AAX_FALSE;
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
