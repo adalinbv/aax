@@ -1,3 +1,13 @@
+* Fri Jul 29  2016 - tech@adalin.org
+- AeonWave (2.7.0) stable; urgency=low
+ * Add aeonwave.hpp, a header file only AeonWave C++ abstraction API.
+ * Add AAX_RELEASE_MODE to disable most of the error checking.
+ * prevent aaxDriver close from generating an error if handle == 0
+ * Prevent a segmentation fault when handle == 0 for aaxAudioFrameDestroy,
+   aaxEmitterAddBuffer and aaxEmitterRemoveBuffer
+
+-- Erik Hofman <tech@adalin.org>  Fri, 29 Jul  2016 11:13:00 + 0100
+
 * Fri Oct 15  2015 - tech@adalin.org
 - AeonWave (2.6.1) stable; urgency=low
  * Fix a few border case tests for mixer configuration.
