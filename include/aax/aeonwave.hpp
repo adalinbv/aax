@@ -85,12 +85,12 @@ class Obj
 public:
     typedef int close_fn(void*);
 
-    Obj() : ptr(0), close(0) {}
+    Obj() : ptr(0), closefn(0) {}
 
-    Obj(void *p, const close_fn* c) : ptr(p), close(c) {}
+    Obj(void *p, const close_fn* c) : ptr(p), closefn(c) {}
 
-    Obj(const Obj& o) : ptr(o.ptr), close(o.close) {
-        o.close = 0;
+    Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn) {
+        o.closefn = 0;
     }
 
 #if __cplusplus >= 201103L
@@ -100,12 +100,18 @@ public:
 #endif
 
     ~Obj() {
-        if (!!close) close(ptr);
+        if (!!closefn) closefn(ptr);
+    }
+
+    bool close() {
+        bool rv (!!closefn) ? closefn(ptr) : true;
+        closefn = 0;
+        return rv;
     }
 
     friend void swap(Obj& o1, Obj& o2) {
         std::swap(o1.ptr, o2.ptr);
-        std::swap(o1.close, o2.close);
+        std::swap(o1.closefn, o2.closefn);
     }
 
     Obj& operator=(Obj o) {
@@ -123,7 +129,7 @@ public:
 
 protected:
     void* ptr;
-    mutable close_fn* close;
+    mutable close_fn* closefn;
 };
 
 class Buffer : public Obj
@@ -142,7 +148,7 @@ public:
     ~Buffer() {}
 
     inline set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
-        ptr = aaxBufferCreate(c,n,t,f); close = aaxBufferDestroy;
+        ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
