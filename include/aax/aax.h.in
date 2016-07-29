@@ -255,7 +255,9 @@ enum aaxSetupType
    AAX_WEBSITE_STRING,
 
    AAX_MUSIC_PERFORMER_UPDATE = 0x2080,
-   AAX_TRACK_TITLE_UPDATE
+   AAX_TRACK_TITLE_UPDATE,
+
+   AAX_RELEASE_MODE = (unsigned int)-1
 };
 
 enum aaxErrorType
