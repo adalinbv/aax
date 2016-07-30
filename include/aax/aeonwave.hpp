@@ -66,13 +66,10 @@ inline unsigned no_bytes(enum aaxFormat fmt) {
     return aaxGetBytesPerSample(fmt);
 }
 
-inline void clear_error() {
-    aaxGetErrorNo();
-}
 inline enum aaxErrorType error_no() {
     return aaxGetErrorNo();
 }
-inline const char* error(enum aaxErrorType e=aaxGetErrorNo()) {
+inline const char* error(enum aaxErrorType e=error_no()) {
     return aaxGetErrorString(e);
 }
 
@@ -104,7 +101,7 @@ public:
     }
 
     bool close() {
-        bool rv (!!closefn) ? closefn(ptr) : true;
+        bool rv = (!!closefn) ? closefn(ptr) : false;
         closefn = 0;
         return rv;
     }
@@ -185,19 +182,19 @@ public:
 class dsp : public Obj
 {
 public:
-    dsp() : Obj(), filter(true) {}
+    dsp() : Obj(), filter(true), fetype(0) {}
 
     dsp(aaxFilter c, enum aaxFilterType f) :
-        Obj(c,aaxFilterDestroy), filter(true) {
+        Obj(c,aaxFilterDestroy), filter(true), fetype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
     dsp(aaxEffect c, enum aaxEffectType e) :
-        Obj(c,aaxEffectDestroy), filter(false) {
+        Obj(c,aaxEffectDestroy), filter(false), fetype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
-    dsp(const dsp& o) : Obj(o), filter(o.filter) {}
+    dsp(const dsp& o) : Obj(o), filter(o.filter), fetype(o.fetype) {}
 
     ~dsp() {}
 
@@ -242,18 +239,23 @@ public:
     friend void swap(dsp& o1, dsp& o2) {
         swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.filter, o2.filter);
+        std::swap(o1.fetype, o2.fetype);
     }
     dsp& operator=(dsp o) {
         swap(*this, o);
         return *this;
     }
 
+    inline int type() {
+        return fetype;
+    }
     inline bool is_filter() {
         return filter;
     }
 
 private:
     bool filter;
+    int fetype;
 };
 
 
@@ -403,21 +405,20 @@ public:
 
     // ** filters and effects ******
     bool set(dsp& dsp) {
-        int res = dsp.is_filter() ? aaxMixerSetFilter(ptr,dsp)
-                                  : aaxMixerSetEffect(ptr,dsp);
-        if (!res) { clear_error();
-            res = dsp.is_filter() ? aaxScenerySetFilter(ptr,dsp)
-                                  : aaxScenerySetEffect(ptr,dsp); }
-        return res;
+        return dsp.is_filter()
+               ? (scenery_filter(dsp.type()) ? aaxScenerySetFilter(ptr,dsp)
+                                             : aaxMixerSetFilter(ptr,dsp))
+               : (scenery_effect(dsp.type()) ? aaxScenerySetEffect(ptr,dsp)
+                                             : aaxMixerSetEffect(ptr,dsp));
     }
     dsp get(enum aaxFilterType t) {
-        aaxFilter f = aaxMixerGetFilter(ptr,t);
-        if (!f) { clear_error(); f = aaxSceneryGetFilter(ptr,t); }
+        aaxFilter f = scenery_filter(t) ? aaxSceneryGetFilter(ptr,t)
+                                        : aaxMixerGetFilter(ptr,t);
         return dsp(f,t);
     }
     dsp get(enum aaxEffectType t) {
-        aaxEffect e = aaxMixerGetEffect(ptr,t);
-        if (!e) { clear_error(); e = aaxSceneryGetEffect(ptr,t); }
+        aaxEffect e = scenery_effect(t) ? aaxSceneryGetEffect(ptr,t)
+                                        : aaxMixerGetEffect(ptr,t);
         return dsp(e,t);
     }
 
@@ -465,6 +466,20 @@ public:
 
 protected:
     enum aaxRenderMode mode;
+
+private:
+    inline bool scenery_filter(enum aaxFilterType type) {
+        return (type == AAX_DISTANCE_FILTER || type == AAX_FREQUENCY_FILTER);
+    }
+    inline bool scenery_filter(int type) {
+        return scenery_filter(aaxFilterType(type));
+    }
+    inline bool scenery_effect(enum aaxEffectType type) {
+        return (type == AAX_VELOCITY_EFFECT);
+    }
+    inline bool scenery_effect(int type) {
+        return scenery_effect(aaxEffectType(type));
+    }
 };
 
 
@@ -651,6 +666,9 @@ public:
 
     inline enum aaxErrorType error_no() {
         return aaxDriverGetErrorNo(ptr);
+    }
+    inline const char* error() {
+        return aaxGetErrorString(error_no());
     }
 
     inline unsigned long offset(enum aaxType t) {
