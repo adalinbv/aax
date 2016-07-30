@@ -56,7 +56,8 @@ extern "C" {
 
 
 /* --- Error support -- */
-#define _aaxErrorSet(a)		__aaxErrorSet(a,__func__)
+#define _aaxErrorSet(a)		__aaxDriverErrorSet(handle,(a),__func__)
+enum aaxErrorType __aaxDriverErrorSet(aaxConfig,enum aaxErrorType, const char*);
 enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
 
@@ -111,6 +112,7 @@ typedef struct
 
    int valid;
    int state;
+   enum aaxErrorType error;
    unsigned int be_pos;
    unsigned int mixer_pos;
    int registered_sensors;
@@ -250,6 +252,7 @@ typedef struct
 
    _aaxRingBuffer *ringbuffer;
    _aaxMixerInfo **info;
+   void *handle;
 } _buffer_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);

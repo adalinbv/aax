@@ -95,7 +95,7 @@ aaxEmitterCreate()
       }
    }
    else {
-      _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      __aaxErrorSet(AAX_INSUFFICIENT_RESOURCES, __func__);
    }
    return rv;
 }
@@ -526,9 +526,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
       case AAX_ANGULAR_FILTER:
       {
          _aaxEmitter *src = handle->source;
-         _handle_t *cfg = get_driver_handle(handle->handle);
-         _aaxMixerInfo* info = (cfg) ? cfg->info : _info;
-         rv = new_filter_handle(info, type, src->props2d, src->props3d);
+         rv = new_filter_handle(emitter, type, src->props2d, src->props3d);
          break;
       }
       default:
@@ -673,7 +671,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_VELOCITY_EFFECT:
       {
          _aaxEmitter *src = handle->source;
-         rv = new_effect_handle(src->info, type, src->props2d, src->props3d);
+         rv = new_effect_handle(emitter, type, src->props2d, src->props3d);
          break;
       }
       default:

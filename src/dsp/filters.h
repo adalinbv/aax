@@ -55,10 +55,11 @@ typedef struct
    enum aaxFilterType type;
    _aaxFilterInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;
+   _handle_t *handle;
 } _filter_t;
 
-_filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
-_filter_t* new_filter_handle(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+// _filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
+_filter_t* new_filter_handle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 _filter_t* get_filter(aaxFilter);
 
 extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
@@ -67,7 +68,7 @@ extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
 typedef aaxFilter _aaxFilterCreate(_handle_t*, enum aaxFilterType);
 typedef int _aaxFilterDestroy(_filter_t*);
 typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
-typedef _filter_t* _aaxNewFilterHandle(_aaxMixerInfo*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+typedef _filter_t* _aaxNewFilterHandle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxFilterConvert(float, int, unsigned char);
 
 typedef struct

@@ -476,8 +476,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       case AAX_COMPRESSOR:
       {
          _aaxAudioFrame* submix = handle->submix;
-         rv = new_filter_handle(submix->info, type, submix->props2d,
-                                                    submix->props3d);
+         rv = new_filter_handle(frame, type, submix->props2d, submix->props3d);
          break;
       }
       default:
@@ -556,8 +555,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       case AAX_PITCH_EFFECT:
       {
          _aaxAudioFrame* fmixer = handle->submix;
-         rv = new_effect_handle(fmixer->info, type, fmixer->props2d,
-                                                    fmixer->props3d);
+         rv = new_effect_handle(frame, type, fmixer->props2d, fmixer->props3d);
          break;
       }
       default:
@@ -1286,23 +1284,6 @@ put_frame(aaxFrame f)
          _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
       }
    }
-}
-
-_handle_t *
-get_driver_handle(aaxFrame f)
-{
-   _frame_t* frame = (_frame_t*)f;
-   _handle_t* rv = NULL;
-
-   if (frame)
-   {
-      if (frame->id == HANDLE_ID) {
-         rv = (_handle_t*)frame;
-      } else if (frame->id == AUDIOFRAME_ID) {
-         rv = frame->submix->info->backend;
-      }
-   }
-   return rv;
 }
 
 void

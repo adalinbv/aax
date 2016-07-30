@@ -78,6 +78,7 @@ _aaxTimedPitchEffectDestroy(_effect_t* effect)
 static aaxEffect
 _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 {
+   void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
    if TEST_FOR_TRUE(state)
@@ -156,7 +157,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 }
 
 static _effect_t*
-_aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    unsigned int size = sizeof(_effect_t);
    _effect_t* rv = NULL;
@@ -165,6 +166,8 @@ _aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
    rv = calloc(1, size);
    if (rv)
    {
+      _handle_t *handle = get_driver_handle(config);
+      _aaxMixerInfo* info = handle ? handle->info : _info;
       char *ptr = (char*)rv + sizeof(_effect_t);
       _aaxRingBufferEnvelopeData *env;
       unsigned int no_steps;
@@ -172,7 +175,8 @@ _aaxNewTimedPitchEffectHandle(_aaxMixerInfo* info, enum aaxEffectType type, _aax
       int i, stages;
 
       rv->id = EFFECT_ID;
-      rv->info = info ? info : _info;
+      rv->info = info;
+      rv->handle = handle;
       rv->slot[0] = (_aaxEffectInfo*)ptr;
       rv->pos = _eff_cvt_tbl[type].pos;
       rv->state = p2d->effect[rv->pos].state;

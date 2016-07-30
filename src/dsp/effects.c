@@ -36,6 +36,33 @@ _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
    &_aaxReverbEffect
 };
 
+_effect_t*
+new_effect_handle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+{
+   _effect_t* rv = NULL;
+   if (type <= AAX_EFFECT_MAX)
+   {
+      _eff_function_tbl *eff = _aaxEffects[type-1];
+      rv = eff->handle(config, type, p2d, p3d);
+   }
+   return rv;
+}
+
+_effect_t*
+get_effect(const aaxEffect e)
+{
+   _effect_t* rv = (_effect_t*)e;
+
+   if (rv && rv->id == EFFECT_ID) {
+      return rv;
+   }
+   else if (rv && rv->id == FADEDBAD) {
+      __aaxErrorSet(AAX_DESTROYED_HANDLE, __func__);
+   }
+
+   return NULL;
+}
+
 void
 _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type)
 {
