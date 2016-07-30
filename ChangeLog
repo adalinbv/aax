@@ -2,9 +2,10 @@
 - AeonWave (2.7.0) stable; urgency=low
  * Add aeonwave.hpp, a header file only AeonWave C++ abstraction API.
  * Add AAX_RELEASE_MODE to disable most of the error checking.
- * prevent aaxDriver close from generating an error if handle == 0
+ * Add aaxDriverGetErrorNo() and assign errors to the specific driver handle.
+ * Prevent aaxDriver close from generating an error if handle == 0.0
  * Prevent a segmentation fault when handle == 0 for aaxAudioFrameDestroy,
-   aaxEmitterAddBuffer and aaxEmitterRemoveBuffer
+   aaxEmitterAddBuffer and aaxEmitterRemoveBuffer.
 
 -- Erik Hofman <tech@adalin.org>  Fri, 29 Jul  2016 11:13:00 + 0100
 
