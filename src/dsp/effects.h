@@ -55,10 +55,11 @@ typedef struct
    enum aaxEffectType type;
    _aaxEffectInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;
+   _handle_t *handle;
 } _effect_t;
 
-_effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
-_effect_t* new_effect_handle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+// _effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
+_effect_t* new_effect_handle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 _effect_t* get_effect(aaxEffect);
 
 extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
@@ -68,7 +69,7 @@ extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 typedef aaxEffect _aaxEffectCreate(_handle_t*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
-typedef _effect_t* _aaxNewEffectHandle(_aaxMixerInfo*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+typedef _effect_t* _aaxNewEffectHandle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxEffectConvert(float, int, unsigned char);
 
 typedef struct

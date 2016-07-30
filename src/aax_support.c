@@ -244,7 +244,7 @@ aaxGetBytesPerSample(enum aaxFormat format)
       rv = 8;
       break;
    default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
    }
 
    return rv;
@@ -333,7 +333,7 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
          break;
       }
       default:
-         _aaxErrorSet(AAX_INVALID_ENUM);
+         __aaxErrorSet(AAX_INVALID_ENUM, __func__);
       }
    }
    return rv;

@@ -37,6 +37,33 @@ _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
    &_aaxCompressor
 };
 
+_filter_t*
+new_filter_handle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+{
+   _filter_t* rv = NULL;
+   if (type <= AAX_FILTER_MAX)
+   {
+      _flt_function_tbl *flt = _aaxFilters[type-1];
+      rv = flt->handle(config, type, p2d, p3d);
+   }
+   return rv;
+}
+
+_filter_t*
+get_filter(aaxFilter f)
+{
+   _filter_t* rv = (_filter_t*)f;
+
+   if (rv && rv->id == FILTER_ID) {
+      return rv;
+   }
+   else if (rv && rv->id == FADEDBAD) {
+      __aaxErrorSet(AAX_DESTROYED_HANDLE, __func__);
+   }
+
+   return NULL;
+}
+
 void
 _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
 {

@@ -649,6 +649,10 @@ public:
         return aaxIsValid(ptr,t);
     }
 
+    inline enum aaxErrorType error_no() {
+        return aaxDriverGetErrorNo(ptr);
+    }
+
     inline unsigned long offset(enum aaxType t) {
         return aaxSensorGetOffset(ptr,t);
     }

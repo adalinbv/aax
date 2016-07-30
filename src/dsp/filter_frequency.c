@@ -72,6 +72,7 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
 static aaxFilter
 _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
+   void *handle = filter->handle;
    int mask, istate, wstate;
    aaxFilter rv = NULL;
 
@@ -244,18 +245,21 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewFrequencyFilterHandle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
    _filter_t* rv = calloc(1, size);
 
    if (rv)
-   {
+   { 
+      _handle_t *handle = get_driver_handle(config);
+      _aaxMixerInfo* info = handle ? handle->info : _info;
       char *ptr = (char*)rv + sizeof(_filter_t);
       _aaxRingBufferFreqFilterData *freq;
 
       rv->id = FILTER_ID;
-      rv->info = info ? info : _info;
+      rv->info = info;
+      rv->handle = handle;
       rv->slot[0] = (_aaxFilterInfo*)ptr;
       rv->pos = _flt_cvt_tbl[type].pos;
       rv->state = p2d->filter[rv->pos].state;

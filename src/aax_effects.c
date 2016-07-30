@@ -70,32 +70,39 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, const aaxVec4f p)
 {
    aaxEffect rv = AAX_FALSE;
    _effect_t* effect = get_effect(e);
-   if (effect && p)
+   if (effect)
    {
-      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
+      void *handle = effect->handle;
+      if (p)
       {
-         int i;
-         for(i=0; i<4; i++)
+         if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
          {
-            if (!is_nan(p[i]))
+            int i;
+            for(i=0; i<4; i++)
             {
-               _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-               effect->slot[slot]->param[i] =
+               if (!is_nan(p[i]))
+               {
+                  _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+                  effect->slot[slot]->param[i] =
                                   eff->limit(eff->get(p[i], ptype, i), slot, i);
+               }
+            }
+            if TEST_FOR_TRUE(effect->state) {
+               rv = aaxEffectSetState(effect, effect->state);
+            } else {
+               rv = effect;
             }
          }
-         if TEST_FOR_TRUE(effect->state) {
-            rv = aaxEffectSetState(effect, effect->state);
-         } else {
-            rv = effect;
+         else {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
       }
       else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
       }
    }
    else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
    }
    return rv;
 }
@@ -110,8 +117,9 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
    param &= 0xF;
    if (!rv)
    {
+      void *handle = effect ? effect->handle : NULL;
       if (!effect) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
+         __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
       } else if ((slot >=_MAX_FE_SLOTS) || !effect->slot[slot]) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else if (param < 0 || param >= 4) {
@@ -194,6 +202,7 @@ aaxEffectGetParam(const aaxEffect e, int param, int ptype)
    float rv = 0.0f;
    if (effect)
    {
+      void *handle = effect->handle;
       unsigned slot = param >> 4;
       if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
@@ -212,7 +221,7 @@ aaxEffectGetParam(const aaxEffect e, int param, int ptype)
       }
    }
    else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
    }
    return rv;
 }
@@ -234,30 +243,34 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 {
    _effect_t* effect = get_effect(e);
    aaxEffect rv = AAX_FALSE;
-   if (effect && p)
+   if (effect)
    {
-      if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
+      void *handle = effect->handle;
+      if (p)
       {
-         int i;
-         for (i=0; i<4; i++)
+         if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
          {
-            _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-            p[i] = eff->set(effect->slot[slot]->param[i], ptype, i);
+            int i;
+            for (i=0; i<4; i++)
+            {
+               _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+               p[i] = eff->set(effect->slot[slot]->param[i], ptype, i);
+            }
+            rv = effect;
          }
-         rv = effect;
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         else {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
       }
    }
    else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
    }
    return rv;
 }
 
 AAX_API const char* AAX_APIENTRY
-aaxEffectGetNameByType(aaxConfig cfg, enum aaxEffectType type)
+aaxEffectGetNameByType(aaxConfig handle, enum aaxEffectType type)
 {
    const char *rv = NULL;
    if (type < AAX_EFFECT_MAX) {
@@ -301,32 +314,5 @@ aaxEffectApplyParam(const aaxEffect e, int s, int p, int ptype)
       }
    }
    return rv;
-}
-
-_effect_t*
-new_effect_handle(_aaxMixerInfo* info, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
-{
-   _effect_t* rv = NULL;
-   if (type <= AAX_EFFECT_MAX)
-   {
-      _eff_function_tbl *eff = _aaxEffects[type-1];
-      rv = eff->handle(info, type, p2d, p3d);
-   }
-   return rv;
-}
-
-_effect_t*
-get_effect(const aaxEffect e)
-{
-   _effect_t* rv = (_effect_t*)e;
-
-   if (rv && rv->id == EFFECT_ID) {
-      return rv;
-   }
-   else if (rv && rv->id == FADEDBAD) {
-      _aaxErrorSet(AAX_DESTROYED_HANDLE);
-   }
-
-   return NULL;
 }
 

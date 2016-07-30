@@ -93,12 +93,14 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, const aaxVec4f p)
             rv = filter;
          }
       }
-      else {
+      else
+      {
+         void *handle = filter->handle;
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
    else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
    }
    return rv;
 }
@@ -113,8 +115,9 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
    param &= 0xF;
    if (!rv)
    {
+      void *handle = filter ? filter->handle : NULL;
       if (!filter) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
+         __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
       } else if ((slot >=_MAX_FE_SLOTS) || !filter->slot[slot]) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else if (param < 0 || param >= 4) {
@@ -194,6 +197,7 @@ aaxFilterGetParam(const aaxFilter f, int param, int ptype)
    float rv = 0.0f;
    if (filter)
    {
+      void *handle = filter->handle;
       int slot = param >> 4;
       if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
@@ -212,7 +216,7 @@ aaxFilterGetParam(const aaxFilter f, int param, int ptype)
       }
    }
    else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
    }
    return rv;
 }
@@ -234,30 +238,36 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 {
    aaxFilter rv = AAX_FALSE;
    _filter_t* filter = get_filter(f);
-   if (filter && p)
+   if (filter)
    {
-      if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
+      void *handle = filter->handle;
+      if (p)
       {
-         int i;
-         for (i=0; i<4; i++)
+         if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
          {
-            _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-            p[i] = flt->set(filter->slot[slot]->param[i], ptype, i);
+            int i;
+            for (i=0; i<4; i++)
+            {
+               _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+               p[i] = flt->set(filter->slot[slot]->param[i], ptype, i);
+            }
+            rv = filter;
          }
-         rv = filter;
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         else {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+      } else {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
       }
    }
    else {
-      _aaxErrorSet(AAX_INVALID_HANDLE);
+      __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
    }
    return rv;
 }
 
 AAX_API const char* AAX_APIENTRY
-aaxFilterGetNameByType(aaxConfig cfg, enum aaxFilterType type)
+aaxFilterGetNameByType(aaxConfig handle, enum aaxFilterType type)
 {
    const char *rv = NULL;
    if (type < AAX_FILTER_MAX) {
@@ -301,32 +311,5 @@ aaxFilterApplyParam(const aaxFilter f, int s, int p, int ptype)
       }
    }
    return rv;
-}
-
-_filter_t*
-new_filter_handle(_aaxMixerInfo* info, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
-{
-   _filter_t* rv = NULL;
-   if (type <= AAX_FILTER_MAX)
-   {
-      _flt_function_tbl *flt = _aaxFilters[type-1];
-      rv = flt->handle(info, type, p2d, p3d);
-   }
-   return rv;
-}
-
-_filter_t*
-get_filter(aaxFilter f)
-{
-   _filter_t* rv = (_filter_t*)f;
-
-   if (rv && rv->id == FILTER_ID) {
-      return rv;
-   }
-   else if (rv && rv->id == FADEDBAD) {
-      _aaxErrorSet(AAX_DESTROYED_HANDLE);
-   }
-
-   return NULL;
 }
 

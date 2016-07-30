@@ -50,7 +50,7 @@ aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
       rv = AAX_TRUE;
    }
    else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
    }
    return rv;
 }
@@ -65,7 +65,7 @@ aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
       rv = AAX_TRUE;
    }
    else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
    }
    return rv;
 }
@@ -78,13 +78,13 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan(dx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (is_nan(dy)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else if (is_nan(dz)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else {
          rv  = AAX_TRUE;
       }
@@ -110,13 +110,13 @@ aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4d((const double(*)[4])mtx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan64(dx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (is_nan64(dy)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else if (is_nan64(dz)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -142,15 +142,15 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan(angle_rad)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (is_nan(x)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else if (is_nan(y)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else if (is_nan(z)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 4, __func__);
       } else {
          rv  = AAX_TRUE;
       }
@@ -176,15 +176,15 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4d((const double(*)[4])mtx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan64(angle_rad)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (is_nan64(x)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else if (is_nan64(y)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else if (is_nan64(z)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 4, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -211,9 +211,9 @@ aaxMatrixMultiply(aaxMtx4f mtx1, const aaxMtx4f mtx2)
    if (!rv)
    {
       if (!mtx1 || detect_nan_mtx4((const float(*)[4])mtx1)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (!mtx2 || detect_nan_mtx4((const float(*)[4])mtx2)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       }
    }
 
@@ -238,9 +238,9 @@ aaxMatrix64Multiply(aaxMtx4d mtx1, const aaxMtx4d mtx2)
    if (!rv)
    {
       if (!mtx1 || detect_nan_mtx4d((const double(*)[4])mtx1)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (!mtx2 || detect_nan_mtx4d((const double(*)[4])mtx2)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -267,7 +267,7 @@ aaxMatrixInverse(aaxMtx4f mtx)
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -292,7 +292,7 @@ aaxMatrix64Inverse(aaxMtx4d mtx)
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4d((const double(*)[4])mtx)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -317,11 +317,11 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
    if (!rv)
    {
       if (!mtx) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (!pos || detect_nan_vec3(pos)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (!at || detect_nan_vec3(at)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -370,13 +370,13 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
    if (!rv)
    {
       if (!mtx) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (!pos || detect_nan_vec3(pos)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (!at || detect_nan_vec3(at)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else if (!up || detect_nan_vec3(up)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -412,7 +412,7 @@ aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
    if (!rv)
    {
       if (!mtx) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
          rv = AAX_TRUE;
       }
@@ -442,9 +442,9 @@ aaxMatrix64ToMatrix(aaxMtx4f mtx, const aaxMtx4d mtx64)
    if (!rv)
    {
       if (!mtx) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
+         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
          rv = AAX_TRUE;
       }
