@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     }
     else {
         std::cout << "Error opening the default device: ";
-        std::cout << aax::error() << std::endl << std::endl;
+        std::cout << aax::strerror() << std::endl << std::endl;
     }
 
     return 0;

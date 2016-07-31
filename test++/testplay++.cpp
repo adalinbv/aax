@@ -53,7 +53,7 @@ int main(int argc, char **argv)
         {
             printf("Playing: %s ...\n", argv[i]);
             bool res = aax.playback(argv[i]);
-            if (!res) printf("Error: %s\n", aax::error());
+            if (!res) printf("Error: %s\n", aax::strerror());
             do
             {
                 // Your (game) code could be placed here

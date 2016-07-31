@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     if (!config)
     {
         if (!config) {
-           std::cout << "Warning: " << aax::error() << std::endl;
+           std::cout << "Warning: " << aax::strerror() << std::endl;
         }
         else
         {

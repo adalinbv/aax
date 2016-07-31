@@ -41,7 +41,7 @@
 
 #define IFILE_PATH		SRC_PATH"/stereo.wav"
 #define TRY(a,b) do { \
-    if (!(a)) printf("Error (%s): %s\n", (b), aax::error()); \
+    if (!(a)) printf("Error (%s): %s\n", (b), aax.strerror()); \
 } while(0)
 
 int main(int argc, char **argv)

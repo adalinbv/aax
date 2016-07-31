@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     aax::AeonWave config(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    if (!config.valid(AAX_CONFIG_HD))
+    if (!aax::is_valid(config, AAX_CONFIG_HD))
     {
         printf("Warning:\n");
         printf("  %s requires a registered version of AeonWave\n", argv[0]);
