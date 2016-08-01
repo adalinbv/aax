@@ -316,6 +316,7 @@ typedef struct
 
 typedef struct
 {
+   void *handle;
    _intBuffers *buffers;
    _intBuffers *emitters;
    _intBuffers *frames;

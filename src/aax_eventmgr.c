@@ -83,6 +83,7 @@ aaxEventManagerCreate(aaxConfig config)
       {
          _aaxEventMgr *eventmgr = handle->eventmgr;
 
+          eventmgr->handle = handle;
          _intBufCreate(&eventmgr->frames, _AAX_FRAME_CACHE);
          _intBufCreate(&eventmgr->buffers, _AAX_BUFFER_CACHE);
          _intBufCreate(&eventmgr->emitters, _AAX_EMITTER_CACHE);
@@ -392,6 +393,7 @@ _aaxEventStart(_aaxEventMgr *eventmgr)
       rv = AAX_TRUE;
    }
    else {
+      void *handle = eventmgr->handle;
       _aaxErrorSet(AAX_INVALID_STATE);
    }
    return rv;
