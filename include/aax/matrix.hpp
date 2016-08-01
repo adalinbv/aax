@@ -33,8 +33,8 @@
  * policies, either expressed or implied, of Adalin B.V.
  */
 
-#ifndef AEONWAVE_MATRIX
-#define AEONWAVE_MATRIX 1
+#ifndef AEONWAVE_MATRIX_HPP
+#define AEONWAVE_MATRIX_HPP 1
 
 #include <cmath>
 #include <iostream>
@@ -582,5 +582,5 @@ private:
 
 } // namespace aax
 
-#endif /* AEONWAVE_MATRIX */
+#endif
 
