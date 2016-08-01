@@ -597,6 +597,7 @@ INSTALL(FILES
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/defines.h
         include/aax/aeonwave.hpp
+        include/aax/strings.hpp
         include/aax/matrix.hpp
         DESTINATION include/aax
         COMPONENT Headers
