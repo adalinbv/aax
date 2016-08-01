@@ -400,7 +400,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    size_t bufsize, period_frames;
-   int rate, rv = AAX_FALSE;
+   int res, rate, rv = AAX_FALSE;
    float period_ms;
 
    assert(handle);
@@ -415,9 +415,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    period_rate = 1000.0f / period_ms;
 
    period_frames = (size_t)rintf(rate / period_rate);
-   rv = handle->ext->setup(handle->ext, handle->mode, &bufsize, rate,
+   res = handle->ext->setup(handle->ext, handle->mode, &bufsize, rate,
                                         *tracks, *fmt, period_frames, *bitrate);
-   if (rv)
+   if (res)
    {
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
       char *s, *protname, *server, *path;
@@ -448,8 +448,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
             if (handle->io->open(handle->io, server) >= 0)
             {   
-               int res = 0;
-
                handle->prot = _prot_create(protocol);
                if (handle->prot)
                {
@@ -467,6 +465,10 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   handle->prot = _prot_free(handle->prot);
                   handle->io->close(handle->io);
                   handle->io = _io_free(handle->io);
+                  res = AAX_FALSE;
+               }
+               else {
+                  res = AAX_TRUE;
                }
             }
             break;
@@ -483,6 +485,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   _aaxStreamDriverLog(id, 0, 0, "File read error");
                }
                handle->ext = _ext_free(handle->ext);
+               handle->io->close(handle->io);
+               handle->io = _io_free(handle->io);
+               res = AAX_FALSE;
             }
             break;
          default:
@@ -491,12 +496,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       free(s);
 
-      if ((handle->io->fd >= 0) || m)
+printf("res: %i, fd: %i, m: %i\n", res, res?handle->io->fd:0, m);
+      if (res && ((handle->io->fd >= 0) || m))
       {
          size_t no_samples = period_frames;
          void *header = NULL;
          void *buf = NULL;
-         int res = AAX_TRUE;
 
          if (bufsize) {
             header = malloc(bufsize);
@@ -1151,7 +1156,7 @@ _aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
    if (handle && handle->io->protocol == PROTOCOL_HTTP) {
        snprintf(_errstr, 256, "HTTP: %s\n", str);
    } else {
-      snprintf(_errstr, 256, "File: %s\n", str);
+      snprintf(_errstr, 256, "Stream: %s\n", str);
    }
    _errstr[255] = '\0';  /* always null terminated */
 
