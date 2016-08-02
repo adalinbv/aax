@@ -430,7 +430,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       protocol = _url_split(s, &protname, &server, &path, &port);
       handle->io = _io_create(protocol);
       handle->io->set(handle->io, __F_FLAGS, handle->mode);
-#if 1
+#if 0
  printf("name: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
