@@ -490,12 +490,14 @@ _aaxGetNoCores()
    cores = sysinfo.dwNumberOfProcessors;
 # endif
 
+#if 0
    do
    {
       int hyper_threading = check_cpuid_edx(CPUID_FEAT_EDX_HT);
       char vendor_str[13];
 
       __cpuid(regs, CPUID_GETVENDORSTRING);
+
       memcpy(&vendor_str[0], &regs[EBX], sizeof(int));
       memcpy(&vendor_str[4], &regs[EDX], sizeof(int));
       memcpy(&vendor_str[8], &regs[ECX], sizeof(int));
@@ -511,6 +513,7 @@ _aaxGetNoCores()
       }
    }
    while (0);
+#endif
 
    return (cores > 0) ? cores : 1;
 }
