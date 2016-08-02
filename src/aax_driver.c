@@ -696,6 +696,12 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 static const char* _aax_default_devname = "None";
 
+void
+_aaxDriverFree(void *handle)
+{
+   aaxDriverDestroy(handle);
+}
+
 static _intBuffers*
 get_backends()
 {
@@ -1435,8 +1441,8 @@ _aaxFreeSensor(void *ssr)
    if (smixer->ringbuffer) {
       _aaxRingBufferFree(smixer->ringbuffer);
    }
-   _intBufErase(&smixer->frames, _AAX_FRAME, free);
-   _intBufErase(&smixer->devices, _AAX_DEVICE, free);
+   _intBufErase(&smixer->frames, _AAX_FRAME, _aaxAudioFrameFree);
+   _intBufErase(&smixer->devices, _AAX_DEVICE, _aaxDriverFree);
    _intBufErase(&smixer->emitters_2d, _AAX_EMITTER, free);
    _intBufErase(&smixer->emitters_3d, _AAX_EMITTER, free);
    _intBufErase(&smixer->play_ringbuffers, _AAX_RINGBUFFER,

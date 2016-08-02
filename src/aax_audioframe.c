@@ -121,9 +121,12 @@ aaxAudioFrameCreate(aaxConfig config)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameDestroy(aaxFrame frame)
 {
-   _frame_t* handle = get_frame(frame, __func__);
+   _frame_t* handle;
    int rv = __release_mode;
 
+   aaxAudioFrameSetState(frame, AAX_STOPPED);
+
+   handle = get_frame(frame, __func__);
    if (!rv && handle)
    {
       if (handle->handle) {
@@ -133,7 +136,6 @@ aaxAudioFrameDestroy(aaxFrame frame)
       }
    }
 
-   aaxAudioFrameSetState(frame, AAX_STOPPED);
    if (rv)
    {
       _aaxRingBufferDelayEffectData* effect;
@@ -154,8 +156,8 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
       /* handle->ringbuffer gets removed bij the frame thread */
       /* be->destroy_ringbuffer(handle->ringbuffer); */
-      _intBufErase(&fmixer->frames, _AAX_FRAME, free);
-      _intBufErase(&fmixer->devices, _AAX_DEVICE, free);
+      _intBufErase(&fmixer->frames, _AAX_FRAME, _aaxAudioFrameFree);
+      _intBufErase(&fmixer->devices, _AAX_DEVICE, _aaxDriverFree);
       _intBufErase(&fmixer->emitters_2d, _AAX_EMITTER, free);
       _intBufErase(&fmixer->emitters_3d, _AAX_EMITTER, free);
       _intBufErase(&fmixer->play_ringbuffers, _AAX_RINGBUFFER,
@@ -172,6 +174,9 @@ aaxAudioFrameDestroy(aaxFrame frame)
       handle->id = FADEDBAD;
       free(handle);
       handle = 0;
+   }
+   else {
+      put_frame(frame);
    }
 
    return rv;
@@ -1204,6 +1209,12 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
 }
 
 /* -------------------------------------------------------------------------- */
+
+void
+_aaxAudioFrameFree(void *handle)
+{
+   aaxAudioFrameDestroy(handle);
+}
 
 _frame_t*
 get_frame(aaxFrame f, const char *func)
