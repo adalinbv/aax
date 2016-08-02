@@ -361,20 +361,6 @@ int main(int argc, char **argv)
 
         res = record.sensor(AAX_STOPPED);
         testForState(res, "aaxSensorCaptureStop");
-
-        if (mixer)
-        {
-            res = mixer.remove(record);
-            testForState(res, "aaxAudioFrameDeregisterSensor");
-
-            res = config.remove(mixer);
-            testForState(res, "aaxMixerDeregisterAudioFrame");
-        }
-        else
-        {
-            res = config.remove(record);
-            testForState(res, "aaxMixerDeregisterSensor");
-        }
     }
     else {
         std::cout << "Unable to open capture device." << std::endl;
@@ -384,9 +370,6 @@ int main(int argc, char **argv)
     {
         res = file.set(AAX_STOPPED);
         testForState(res, "aaxMixerSetState");
-
-        res = config.remove(file);
-        testForState(res, "aaxMixerDeregisterSensor file out");
     }
 
     return rv;

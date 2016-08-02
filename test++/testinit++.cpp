@@ -38,6 +38,7 @@
 #include <string>
 
 #include <aax/aeonwave.hpp>
+#include <aax/strings.hpp>
 
 #define IFILE_PATH		SRC_PATH"/stereo.wav"
 #define TRY(a,b) do { \
