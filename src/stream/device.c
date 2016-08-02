@@ -455,7 +455,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   const char *agent = aaxGetVersionString((aaxConfig)id);
                   res = handle->prot->connect(handle->prot, handle->io,
-                                           server, path, agent);
+                                              server, path, agent);
                   if (res > 0) {
                      handle->no_bytes = res;
                   }
@@ -463,6 +463,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
                if (res < 0)
                {
+                  _aaxStreamDriverLog(id, 0, 0, "Unable to open connection");
                   handle->ext = _ext_free(handle->ext);
                   handle->prot = _prot_free(handle->prot);
                   handle->io->close(handle->io);
@@ -472,6 +473,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                else {
                   res = AAX_TRUE;
                }
+            }
+            else {
+               _aaxStreamDriverLog(id, 0, 0, "Connection failed");
             }
             break;
          case PROTOCOL_FILE:
@@ -493,6 +497,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             }
             break;
          default:
+            _aaxStreamDriverLog(id, 0, 0, "Unknown protocol");
             break;
          }
       }
