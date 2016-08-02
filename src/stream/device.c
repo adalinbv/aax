@@ -496,7 +496,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       free(s);
 
-printf("res: %i, fd: %i, m: %i\n", res, res?handle->io->fd:0, m);
       if (res && ((handle->io->fd >= 0) || m))
       {
          size_t no_samples = period_frames;
