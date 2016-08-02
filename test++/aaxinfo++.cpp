@@ -37,6 +37,7 @@
 #include <limits>
 
 #include <aax/aeonwave.hpp>
+#include <aax/strings.hpp>
 
 static int maximumWidth = 80;
 
@@ -114,7 +115,7 @@ int main(int argc, char **argv)
         {
             if (aax.supports(f))
             {
-                std::string fs = aax.info(f);
+                std::string fs = aax::to_string(f);
                 if ((l + fs.size()) > maximumWidth) {
                     fs = "\n   "+fs;
                     l = fs.size()+3;
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
         {
             if (aax.supports(e))
             {
-                std::string es = aax.info(e);
+                std::string es = aax::to_string(e);
                 if ((l + es.size()) > maximumWidth) {
                     es = "\n   "+es;
                     l = es.size()+3;
