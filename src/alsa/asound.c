@@ -1881,13 +1881,13 @@ _aaxALSADriverLogVar(const void *id, const char *fmt, ...)
 static char *
 _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 {
-   _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = id ? ((_driver_t *)id)->handle : NULL;
    static char _errstr[256];
 
    snprintf(_errstr, 256, "alsa: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
-   __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
+   __aaxDriverErrorSet(handle, AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 #ifndef NDEBUG
    printf("%s", _errstr);
