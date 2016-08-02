@@ -142,6 +142,7 @@ typedef struct
 
 typedef struct
 {
+   void *handle;
    int mode;
    unsigned int noPorts;
    _port_t *port;
@@ -300,7 +301,7 @@ _aaxDMediaDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxDMediaDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    ALpv params[2];
@@ -312,11 +313,12 @@ _aaxDMediaDriverConnect(const void *id, void *xid, const char *renderer, enum aa
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxDMediaDriverNewHandle(mode);
+      id = handle = _aaxDMediaDriverNewHandle(mode);
    }
 
    if (handle)
    {
+      handle->handle = config;
       if (renderer) {
          handle->port[0].name = (char *)renderer;
       }
@@ -978,6 +980,7 @@ _aaxDMediaDriverGetInterfaces(const void *id, const char*devname, int mode)
 static char *
 _aaxDMediaDriverLog(const void *id, int prio, int type, const char *str)
 {
+   _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";
 
    if (str)
@@ -987,7 +990,7 @@ _aaxDMediaDriverLog(const void *id, int prio, int type, const char *str)
       memcpy(_errstr, str, len);
       _errstr[255] = '\0';  /* always null terminated */
 
-      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
       _AAX_SYSLOG(_errstr);
    }
 

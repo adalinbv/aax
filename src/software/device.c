@@ -102,6 +102,7 @@ static _aaxDriverLog _aaxLoopbackDriverLog;
 
 typedef struct
 {
+   void *handle;
    int mode;
    float latency;
    float frequency;
@@ -164,7 +165,7 @@ _aaxNoneDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxNoneDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxNoneDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    if (mode == AAX_MODE_READ) return NULL;
    return (void *)&_aaxNoneDriverBackend;
@@ -334,11 +335,12 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxLoopbackDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxLoopbackDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    if (!handle) {
       handle = _aaxLoopbackDriverNewHandle(mode);
+      if (handle) handle->handle = config;
    }
    return (void *)handle;
 }
@@ -462,6 +464,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
 {
+   _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";
 
    if (str)
@@ -471,7 +474,7 @@ _aaxLoopbackDriverLog(const void *id, int prio, int type, const char *str)
       memcpy(_errstr, str, len);
       _errstr[255] = '\0';  /* always null terminated */
 
-      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
       _AAX_SYSLOG(_errstr);
    }
 

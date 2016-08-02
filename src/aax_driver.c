@@ -356,7 +356,7 @@ aaxDriverOpen(aaxConfig config)
             const char* name = handle->devname[1];
             char *renderer;
 
-            handle->backend.handle = be->connect(nid, xoid, name, mode);
+            handle->backend.handle = be->connect(handle, nid, xoid, name, mode);
 
             if (handle->backend.driver != _default_renderer) {
                free(handle->backend.driver);

@@ -110,6 +110,7 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
 
 typedef struct
 {
+   void *handle;
    char *name;
 
    uint8_t no_channels;
@@ -185,7 +186,7 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxRenderMode mode)
+_aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *device, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;
@@ -249,11 +250,12 @@ _aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxR
    }
 
    if (!handle) {
-      handle = _aaxStreamDriverNewHandle(mode);
+      id = handle = _aaxStreamDriverNewHandle(mode);
    }
 
    if (handle)
    {
+      handle->handle = config;
       handle->ext = _ext_free(handle->ext);
       handle->ext = _aaxGetFormat(s, mode);
       if (handle->ext)
@@ -317,7 +319,7 @@ _aaxStreamDriverConnect(const void *id, void *xid, const char *device, enum aaxR
       }
       else
       {
-         _aaxStreamDriverLog(id, 0, 0, "Unsupported file format");
+         _aaxStreamDriverLog(handle, 0, 0, "Unsupported file format");
          _aaxStreamDriverDisconnect(handle);
          handle = 0;
       }
@@ -428,7 +430,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       protocol = _url_split(s, &protname, &server, &path, &port);
       handle->io = _io_create(protocol);
       handle->io->set(handle->io, __F_FLAGS, handle->mode);
-#if 0
+#if 1
  printf("name: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
@@ -1152,14 +1154,14 @@ _aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
 
-   if (handle && handle->io->protocol == PROTOCOL_HTTP) {
+   if (handle && handle->io && handle->io->protocol == PROTOCOL_HTTP) {
        snprintf(_errstr, 256, "HTTP: %s\n", str);
    } else {
       snprintf(_errstr, 256, "Stream: %s\n", str);
    }
    _errstr[255] = '\0';  /* always null terminated */
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+   __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;

@@ -121,6 +121,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 
 typedef struct
 {
+   void *handle;
    char *name;
    _aaxRenderer *render;
    char *devnode;
@@ -219,7 +220,7 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
 
 
 static void *
-_aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxOSSDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -228,7 +229,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxOSSDriverNewHandle(mode);
+      id = handle = _aaxOSSDriverNewHandle(mode);
    }
 
    if (handle)
@@ -323,6 +324,7 @@ _aaxOSSDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRe
    {
       int fd, m = handle->mode;
 
+      handle->handle = config;
       detect_devnode(handle, m);
       fd = open(handle->devnode, handle->mode|handle->exclusive);
       if (fd)
@@ -1038,6 +1040,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 static char *
 _aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
 {
+   _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";
 
    if (str)
@@ -1047,7 +1050,7 @@ _aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
       memcpy(_errstr, str, len);
       _errstr[255] = '\0';  /* always null terminated */
 
-      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
       _AAX_SYSLOG(_errstr);
    }
 

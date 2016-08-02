@@ -562,7 +562,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
       void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
 
       // xid makes the stream return sound data in file format when capturing
-      id = stream->connect(id, xid, url, AAX_MODE_READ);
+      id = stream->connect(config, id, xid, url, AAX_MODE_READ);
       xmlClose(xid);
 
       if (id)
