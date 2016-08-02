@@ -131,6 +131,7 @@ const _aaxDriverBackend _aaxLinuxDriverBackend =
 
 typedef struct
 {
+   void *handle;
    char *name;
    _aaxRenderer *render;
    enum aaxRenderMode mode;
@@ -299,7 +300,7 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
 
 
 static void *
-_aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxLinuxDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -308,7 +309,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxLinuxDriverNewHandle(mode);
+      id = handle = _aaxLinuxDriverNewHandle(mode);
    }
 
    if (handle)
@@ -420,6 +421,7 @@ _aaxLinuxDriverConnect(const void *id, void *xid, const char *renderer, enum aax
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
       if (detect_pcm(handle, m))
       {
+         handle->handle = config;
          handle->fd = open(handle->pcm, O_RDWR|O_NONBLOCK);
          if (handle->fd >= 0)
          {
@@ -1316,12 +1318,13 @@ _aaxLinuxDriverLogVar(const void *id, const char *fmt, ...)
 static char *
 _aaxLinuxDriverLog(const void *id, int prio, int type, const char *str)
 {
+   _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
 
    snprintf(_errstr, 256, DEFAULT_RENDERER": %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+   __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 #ifndef NDEBUG
    printf("%s", _errstr);

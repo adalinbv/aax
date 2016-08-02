@@ -104,7 +104,7 @@ typedef char *_aaxDriverLog(const void*, int, int, const char *);
 
 typedef int _aaxDriverDetect(int mode);
 typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
-typedef void *_aaxDriverConnect(const void*, void*, const char*, enum aaxRenderMode);
+typedef void *_aaxDriverConnect(void*, const void*, void*, const char*, enum aaxRenderMode);
 typedef int _aaxDriverDisconnect(void*);
 typedef int _aaxDriverSetup(const void*, float*, int*, unsigned int*, float*, int*, int, float);
 

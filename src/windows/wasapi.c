@@ -122,6 +122,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
 
 typedef struct
 {
+   void *handle;
    WCHAR *devname;
    LPWSTR devid;
 
@@ -360,7 +361,7 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxWASAPIDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    WAVEFORMATEXTENSIBLE fmt;
@@ -370,11 +371,12 @@ _aaxWASAPIDriverConnect(const void *id, void *xid, const char *renderer, enum aa
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxWASAPIDriverNewHandle(mode);
+      id = handle = _aaxWASAPIDriverNewHandle(mode);
    }
 
    if (handle)
    {
+      handle->handle = config;
       handle->setup = mode;
 
       fmt.Format.nSamplesPerSec = 48000;
@@ -1399,7 +1401,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
 
    if (type == WASAPI_VARLOG)
    {
-      __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&fn);
+      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&fn);
       OutputDebugString(fn);
       _AAX_SYSLOG(fn);
 
@@ -1417,7 +1419,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
       if (type_ctr > 0)
       {
          snprintf(perr, 255, "error repeated %i times", type_ctr+1);
-         __aaxErrorSet(AAX_BACKEND_ERROR, perr);
+         __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, perr);
          OutputDebugString(perr);
          _AAX_SYSLOG(perr);
 
@@ -1430,7 +1432,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
       }
 
       snprintf(perr, 255, "%s: %s", fn, _wasapi_errors[type]);
-      __aaxErrorSet(AAX_BACKEND_ERROR, perr);
+      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, perr);
       OutputDebugString(perr);
       _AAX_SYSLOG(perr);
  

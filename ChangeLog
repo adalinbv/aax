@@ -4,6 +4,7 @@
  * Add AAX_RELEASE_MODE to disable most of the error checking.
  * Add aaxDriverGetErrorNo() and assign errors to the specific driver handle.
  * Prevent aaxDriver close from generating an error if handle == 0.0
+ * Prevent a segmentation fault for invalidated remote streaming hosts.
  * Prevent a segmentation fault when handle == 0 for aaxAudioFrameDestroy,
    aaxEmitterAddBuffer and aaxEmitterRemoveBuffer.
 

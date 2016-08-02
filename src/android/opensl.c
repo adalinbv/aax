@@ -100,6 +100,7 @@ const _aaxDriverBackend _aaxSLESDriverBackend =
 
 typedef struct
 {
+   void *handle;
    SLEngineItf engineItf;
    SLObjectItf engineObjItf;
    SLObjectItf mixerObjItf;
@@ -199,7 +200,7 @@ _aaxSLESDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxSLESDriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxSLESDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    uint32_t res;
@@ -209,11 +210,12 @@ _aaxSLESDriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxSLESDriverNewHandle(mode);
+      id = handle = _aaxSLESDriverNewHandle(mode);
    }
 
    if (handle)
    {
+      handle->handle = config;
       if (renderer) {
          handle->name = (char *)renderer;
       }
@@ -709,7 +711,7 @@ _aaxSLESDriverLog(const void *id, int prio, int type, const char *str)
    snprintf(_errstr, 256, "sles: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+   __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;

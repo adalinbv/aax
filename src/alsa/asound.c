@@ -112,6 +112,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
 
 typedef struct
 {
+    void *handle;
     char *name;
     char *devname;
     char *default_name[2];
@@ -279,11 +280,11 @@ typedef struct {
 } _alsa_formats_t;
 
 #ifndef NDEBUG
-#define xrun_recovery(a,b)     _xrun_recovery_debug(a,b, __LINE__)
-static int _xrun_recovery_debug(snd_pcm_t *, int, int);
+#define xrun_recovery(a,b)     _xrun_recovery_debug(id,a,b, __LINE__)
+static int _xrun_recovery_debug(const void*,snd_pcm_t *, int, int);
 #else
-#define xrun_recovery(a,b)	_xrun_recovery(a,b)
-static int _xrun_recovery(snd_pcm_t *, int);
+#define xrun_recovery(a,b)	_xrun_recovery(id,a,b)
+static int _xrun_recovery(const void*,snd_pcm_t *, int);
 #endif
 
 static unsigned int get_devices_avail(int);
@@ -495,7 +496,7 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxALSADriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int rdr_aax_fmt;
@@ -505,7 +506,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      handle = _aaxALSADriverNewHandle(mode);
+      id = handle = _aaxALSADriverNewHandle(mode);
    }
 
    rdr_aax_fmt = (renderer && strstr(renderer, ": ")) ? 1 : 0;
@@ -632,6 +633,7 @@ _aaxALSADriverConnect(const void *id, void *xid, const char *renderer, enum aaxR
       char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
       int err;
 
+      handle->handle = config;
       handle->devnum = detect_devnum(handle, m);
       if (rdr_aax_fmt) {
          handle->devname = detect_devname(handle, m);
@@ -1879,12 +1881,13 @@ _aaxALSADriverLogVar(const void *id, const char *fmt, ...)
 static char *
 _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 {
+   _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
 
    snprintf(_errstr, 256, "alsa: %s\n", str);
    _errstr[255] = '\0';  /* always null terminated */
 
-   __aaxErrorSet(AAX_BACKEND_ERROR, (char*)&_errstr);
+   __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
 #ifndef NDEBUG
    printf("%s", _errstr);
@@ -2584,9 +2587,8 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
 }
 
 static int
-_xrun_recovery(snd_pcm_t *handle, int err)
+_xrun_recovery(const void *id, snd_pcm_t *handle, int err)
 {
-   const void *id = NULL;
    int res = psnd_pcm_recover(handle, err, 1);
 #if 0
    snd_output_t *output = NULL;
@@ -2620,10 +2622,10 @@ _xrun_recovery(snd_pcm_t *handle, int err)
 
 #ifndef NDEBUG
 static int
-_xrun_recovery_debug(snd_pcm_t *handle, int err, int line)
+_xrun_recovery_debug(const void *id, snd_pcm_t *handle, int err, int line)
 {
     printf("Alsa xrun error at line: %i\n", line);
-    return _xrun_recovery(handle, err);
+    return _xrun_recovery(id, handle, err);
 }
 #endif
 
