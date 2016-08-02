@@ -148,6 +148,7 @@ _handle_t* get_handle(aaxConfig, const char*);
 _handle_t* get_valid_handle(aaxConfig, const char*);
 _handle_t* get_read_handle(aaxConfig, const char*);
 _handle_t* get_write_handle(aaxConfig, const char*);
+void _aaxDriverFree(void*);
 
 /* --- AudioFrame --- */
 #define AUDIOFRAME_ID   0x3137ABFF
@@ -180,6 +181,7 @@ char _aaxAudioFrameRender(_aaxRingBuffer *, _aaxAudioFrame *, _aax2dProps*, _aax
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameMix(_aaxRingBuffer*, _intBuffers *, _aax2dProps*, const _aaxDriverBackend*, void*);
+void _aaxAudioFrameFree(void*);
 
 /* --- Instrument --- */
 #define INSTRUMENT_ID	0x0EB9A645
