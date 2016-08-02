@@ -586,13 +586,13 @@ public:
     AeonWave() : Sensor(), _ec(0) { std::fill(_e, _e+3, 0); }
 
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(n,m), _ec(0) { _e[0] = _e[1] = _e[2] = 0; }
+        Sensor(n,m), _ec(0) { std::fill(_e, _e+3, 0); }
 
     AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         AeonWave(s.empty() ? 0 : s.c_str(),m) {}
 
     AeonWave(enum aaxRenderMode m) :
-        AeonWave(NULL,m) {}
+        AeonWave(0, m) {}
 
     AeonWave(const AeonWave& o) : Sensor(o),
         frames(o.frames), sensors(o.sensors), emitters(o.emitters),
