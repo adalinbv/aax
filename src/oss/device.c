@@ -1133,7 +1133,7 @@ _oss_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_fra
          float rr = _MINMAX(dt/5.0f, 0.0f, 1.0f);       /* 10 sec average */
 
          /* Quickly adjust for a very large step in volume */
-         if (abs(volume - handle->volumeCur) > 82) rr = 0.9f;
+         if (labs(volume - handle->volumeCur) > 82) rr = 0.9f;
 
          hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
          handle->hwgain = hwgain;

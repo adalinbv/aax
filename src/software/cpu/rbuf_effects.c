@@ -216,7 +216,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
    volume =  effect->delay.gain;
    do
    {
-      size_t offs, noffs;
+      ssize_t offs, noffs;
       MIX_T *sptr = (MIX_T*)s + start;
       MIX_T *dptr = d + start;
 
@@ -237,7 +237,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       if (s == d)	/*  flanging */
       {
          size_t sign = (noffs < offs) ? -1 : 1;
-         size_t doffs = abs(noffs - offs);
+         size_t doffs = labs(noffs - offs);
          size_t i = no_samples;
          size_t coffs = offs;
          size_t step = end;
