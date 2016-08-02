@@ -73,7 +73,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
       rms += val;
       if (val > peak) peak = val;
 
-      asamp = (samp < 0) ? abs(samp-iasym) : abs(samp);
+      asamp = (samp < 0) ? fabsf(samp-iasym) : fabsf(samp);
       pos = ((int32_t)asamp >> SHIFT);
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 

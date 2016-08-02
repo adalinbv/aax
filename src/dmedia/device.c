@@ -1073,7 +1073,7 @@ sync_ports(const void *_handle)
 
       for (i = 0; i < handle->noPorts; i++) {
          buf_delta_msc = msc[i] - handle->port[i].offset;
-         if (abs((unsigned int)buf_delta_msc - (unsigned int)max_delta_msc)
+         if (abs((int)buf_delta_msc - (int)max_delta_msc)
                  > MAX_DELTA )
          {
             palDiscardFrames(handle->port[i].port,
