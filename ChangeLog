@@ -1,3 +1,8 @@
+* Thu Aug 04 2016 - <tech@adalin.org>
+- Add test programs for the new C++ API
+
+ -- Erik Hofman <info@adalin.org>  Tue, 04 Aug 2016 15:01:00 +0200
+
 * Sat Jul 21 2012 - <tech@adalin.org>
 - AeonWave-utils (0.2.0) stable; urgency=low
 
