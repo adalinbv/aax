@@ -124,14 +124,14 @@ inline std::string to_string(enum aaxTrackType type)
     {
     case AAX_TRACK_MIX: return "mix tracks";
     case AAX_TRACK_ALL: return "all tracks";
-    case AAX_TRACK_FRONT_LEFT: return "front-left";
-    case AAX_TRACK_FRONT_RIGHT: return "front-right";
-    case AAX_TRACK_REAR_LEFT: return "rear-left";
-    case AAX_TRACK_REAR_RIGHT: return "rear-right";
-    case AAX_TRACK_CENTER_FRONT: return "center-front";
-    case AAX_TRACK_SUBWOOFER: return "sub-woofer (low-frequency emitter)";
-    case AAX_TRACK_SIDE_LEFT: return "side-left";
-    case AAX_TRACK_SIDE_RIGHT: return "side-right";
+    case AAX_TRACK_FRONT_LEFT: return "front left";
+    case AAX_TRACK_FRONT_RIGHT: return "front right";
+    case AAX_TRACK_REAR_LEFT: return "rear left";
+    case AAX_TRACK_REAR_RIGHT: return "rear right";
+    case AAX_TRACK_CENTER_FRONT: return "center front";
+    case AAX_TRACK_SUBWOOFER: return "sub-woofer (low frequency emitter)";
+    case AAX_TRACK_SIDE_LEFT: return "side left";
+    case AAX_TRACK_SIDE_RIGHT: return "side right";
     }
 }
 
@@ -144,29 +144,29 @@ inline std::string to_string(enum aaxSetupType type)
     case AAX_RENDERER_STRING: return "renderer string";
     case AAX_VENDOR_STRING: return "vendor string";
     case AAX_FREQUENCY: return "frequency";
-    case AAX_TRACKS: return "number of stracks";
+    case AAX_TRACKS: return "number of tracks";
     case AAX_FORMAT: return "audio format";
     case AAX_REFRESHRATE: return "audio refresh rate";
     case AAX_TRACKSIZE: return "track size";
     case AAX_NO_SAMPLES: return "number of samples";
-    case AAX_LOOP_START: return "loop-start point";
-    case AAX_LOOP_END: return "loop-end point";
+    case AAX_LOOP_START: return "loop start point";
+    case AAX_LOOP_END: return "loop end point";
     case AAX_MONO_SOURCES: return "number of mono emitters";
     case AAX_STEREO_SOURCES: return "number of multi-track emitters";
-    case AAX_BLOCK_ALIGNMENT: return "block-alignment";
+    case AAX_BLOCK_ALIGNMENT: return "block alignment";
     case AAX_AUDIO_FRAMES: return "number of audio frames";
     case AAX_UPDATERATE: return "4D parameter update rate";
     case AAX_LATENCY: return "audio latency";
     case AAX_TRACK_LAYOUT: return "track layout";
-    case AAX_BITRATE: return" bit-rate";
-    case AAX_FRAME_TIMING: return "frame-timing";
-    case AAX_PEAK_VALUE: return "track peak-value";
+    case AAX_BITRATE: return" bit rate";
+    case AAX_FRAME_TIMING: return "frame timing";
+    case AAX_PEAK_VALUE: return "track peak value";
     case AAX_AVERAGE_VALUE: return "track average value";
-    case AAX_COMPRESSION_VALUE: return "track compression-value";
-    case AAX_GATE_ENABLED: return "noise-gate enabled";
-    case AAX_SHARED_MODE: return "driver shared-mode";
-    case AAX_TIMER_MODE: return "driver timer-driven mode";
-    case AAX_BATCHED_MODE: return "driver non-realtime batched-mode";
+    case AAX_COMPRESSION_VALUE: return "track compression value";
+    case AAX_GATE_ENABLED: return "noise gate enabled";
+    case AAX_SHARED_MODE: return "driver shared mode";
+    case AAX_TIMER_MODE: return "driver timer driven mode";
+    case AAX_BATCHED_MODE: return "driver non-realtime batched mode";
     case AAX_SEEKABLE_SUPPORT: return "driver seekable support";
     case AAX_TRACKS_MIN: return "minimum number of supported playback channels";
     case AAX_TRACKS_MAX: return "maximum number of supported playback channels";
@@ -201,7 +201,7 @@ inline std::string to_string(enum aaxEmitterMode mode)
 {
     switch(mode)
     {
-    case AAX_STEREO: return "multi-track stereo";
+    case AAX_STEREO: return "multi track stereo";
     case AAX_ABSOLUTE: return "absolute position";
     case AAX_RELATIVE: return "relative to the sensor position";
     }
@@ -230,7 +230,7 @@ inline std::string to_string(enum aaxRenderMode mode)
     case AAX_MODE_WRITE_STEREO: return "stereo playback";
     case AAX_MODE_WRITE_SPATIAL: return "spatialized stereo playback";
     case AAX_MODE_WRITE_SURROUND: return "surround sound playback";
-    case AAX_MODE_WRITE_HRTF: return "binaural Headphone playback";
+    case AAX_MODE_WRITE_HRTF: return "binaural headphone playback";
     }
 }
 
