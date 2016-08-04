@@ -47,6 +47,7 @@ _aaxDistanceFilterCreate(_handle_t *handle, enum aaxFilterType type)
 
       ptr = (char*)flt + sizeof(_filter_t);
       flt->slot[0] = (_aaxFilterInfo*)ptr;
+      flt->slot[0]->data = _aaxRingBufferDistanceFn[1];
       flt->pos = _flt_cvt_tbl[type].pos;
       flt->type = type;
 
@@ -110,6 +111,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, _aa
       rv->info = info;
       rv->handle = handle;
       rv->slot[0] = (_aaxFilterInfo*)ptr;
+      rv->slot[0]->data = _aaxRingBufferDistanceFn[1];
       rv->pos = _flt_cvt_tbl[type].pos;
       rv->state = p2d->filter[rv->pos].state;
       rv->type = type;

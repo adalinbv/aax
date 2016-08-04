@@ -124,6 +124,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type)
       filter->param[AAX_MAX_DISTANCE] = MAXFLOAT;
       filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
       filter->state = AAX_EXPONENTIAL_DISTANCE;
+      filter->data = _aaxRingBufferDistanceFn[1];
       break;
    case ANGULAR_FILTER:
       filter->param[AAX_INNER_ANGLE] = 1.0f;
