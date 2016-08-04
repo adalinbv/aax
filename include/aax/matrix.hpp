@@ -293,7 +293,7 @@ public:
         for (unsigned j = 0; j<4; ++j) {
             s << "[";
             for (unsigned i=0; i<4; ++i) {
-                s << " " << std::setw(7) << m[i][j];
+                s << " " << std::setw(12) << m[i][j];
             }
             s << " ]" << std::endl;
         }
