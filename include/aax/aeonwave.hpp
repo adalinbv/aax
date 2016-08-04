@@ -493,9 +493,23 @@ public:
 
     Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
-    Frame(const Frame& o) : Obj(o) {}
+    Frame(const Frame& o) : Obj(o),
+        frames(o.frames), sensors(o.sensors), emitters(o.emitters) {}
 
-    ~Frame() {}
+    ~Frame() {
+        for (size_t i=0; i<frames.size(); ++i) {
+             aaxAudioFrameDeregisterAudioFrame(ptr,frames[i]);
+        }
+        frames.clear();
+        for (size_t i=0; i<sensors.size(); ++i) {
+             aaxAudioFrameDeregisterSensor(ptr,sensors[i]);
+        }
+        sensors.clear();
+        for (size_t i=0; i<emitters.size(); ++i) {
+             aaxAudioFrameDeregisterEmitter(ptr,emitters[i]);
+        }
+        emitters.clear();
+    }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxAudioFrameSetSetup(ptr,t,s);
@@ -531,21 +545,30 @@ public:
 
     // ** sub-mixing ******
     bool add(Frame& m) {
+        frames.push_back(m);
         return aaxAudioFrameRegisterAudioFrame(ptr,m);
     }
     bool remove(Frame& m) {
+        frame_it fi = std::find(frames.begin(),frames.end(),m);
+        if (fi != frames.end()) frames.erase(fi);
         return aaxAudioFrameDeregisterAudioFrame(ptr,m);
     }
     bool add(Sensor& s) {
+        sensors.push_back(s);
         return aaxAudioFrameRegisterSensor(ptr,s);
     }
     bool remove(Sensor& s) {
+        sensor_it si = std::find(sensors.begin(),sensors.end(),s);
+        if (si != sensors.end()) sensors.erase(si);
         return aaxAudioFrameDeregisterSensor(ptr,s);
     }
     bool add(Emitter& e) {
+        emitters.push_back(e);
         return aaxAudioFrameRegisterEmitter(ptr,e);
     }
     bool remove(Emitter& e) {
+        emitter_it ei = std::find(emitters.begin(),emitters.end(),e);
+        if (ei != emitters.end()) emitters.erase(ei);
         return aaxAudioFrameDeregisterEmitter(ptr,e);
     }
 
@@ -572,10 +595,27 @@ public:
     }
 
     // ** support ******
+    friend void swap(Frame& o1, Frame& o2) {
+        swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
+        o1.frames.swap(o2.frames);
+        o1.sensors.swap(o2.sensors);
+        o1.emitters.swap(o2.emitters);
+    }
+
     Frame& operator=(Frame o) {
         swap(*this, o);
         return *this;
     }
+
+private:
+    std::vector<aaxFrame> frames;
+    typedef std::vector<aaxFrame>::iterator frame_it;
+
+    std::vector<aaxConfig> sensors;
+    typedef std::vector<aaxConfig>::iterator sensor_it;
+
+    std::vector<aaxEmitter> emitters;
+    typedef std::vector<aaxEmitter>::iterator emitter_it;
 };
 typedef Frame Mixer;
 
