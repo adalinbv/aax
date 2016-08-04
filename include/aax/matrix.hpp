@@ -335,6 +335,18 @@ public:
     Matrix(MtxBase<double>& m) {
         aaxMatrix64ToMatrix(_m,m);
     }
+    Matrix(Vector& p, Vector& a) {
+        set(p,a);
+    }
+    Matrix(const aaxVec3f& p, const aaxVec3f& a) {
+        set(p,a);
+    }
+    Matrix(Vector& p, Vector& a, Vector& u) {
+        set(p,a,u);
+    }
+    Matrix(const aaxVec3f& p, const aaxVec3f& a, const aaxVec3f& u) {
+        set(p,a,u);
+    }
     ~Matrix() {}
 
     inline bool set(Vector& p, Vector& a) {
@@ -437,6 +449,18 @@ public:
     }
     Matrix64(MtxBase<double>& m) {
         aaxMatrix64CopyMatrix64(_m,m);
+    }
+    Matrix64(Vector64& p, Vector64& a) {
+        set(p,a);
+    }
+    Matrix64(const aaxVec3d& p, const aaxVec3d& a) {
+        set(p,a);
+    }
+    Matrix64(Vector64& p, Vector64& a, Vector64& u) {
+        set(p,a,u);
+    }
+    Matrix64(const aaxVec3d& p, const aaxVec3d& a, const aaxVec3d& u) {
+        set(p,a,u);
     }
     ~Matrix64() {}
 
