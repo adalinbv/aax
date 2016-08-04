@@ -48,6 +48,7 @@ _aaxVelocityEffectCreate(_handle_t *handle, enum aaxEffectType type)
 
       ptr = (char*)eff + sizeof(_effect_t);
       eff->slot[0] = (_aaxEffectInfo*)ptr;
+      eff->slot[0]->data = _aaxRingBufferDopplerFn[0];
       eff->pos = _eff_cvt_tbl[type].pos;
       eff->type = type;
 
@@ -87,6 +88,7 @@ _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, _aa
       rv->info = info;
       rv->handle = handle;
       rv->slot[0] = (_aaxEffectInfo*)ptr;
+      rv->slot[0]->data = _aaxRingBufferDopplerFn[0];
       rv->pos = _eff_cvt_tbl[type].pos;
       rv->state = p2d->effect[rv->pos].state;
       rv->type = type;
