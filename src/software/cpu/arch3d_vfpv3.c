@@ -264,7 +264,7 @@ _vec4Matrix4_vfpv3(vec4 d, const vec4 v, const mtx4 m)
 }
 
 void
-_pt4Matrix4_vfpv3(vec4 d, const vec4 p, mtx4 m)
+_pt4Matrix4_vfpv3(vec4 d, const vec4 p, const mtx4 m)
 {
    float p0 = p[0], p1 = p[1], p2 = p[2]; // p3 = 1.0f;
 
