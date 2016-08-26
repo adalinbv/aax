@@ -755,6 +755,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (data)
          {
             // add data from the scratch buffer to ext's internal buffer
+printf("  process offs: %i, samples: %i\n", 0, samples);
             samples = handle->ext->process(handle->ext, data, samples);
             res = __F_PROCESS;
          }
@@ -762,9 +763,11 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          {
             // convert data from ext's internal buffer to tracks[]
             if (handle->copy_to_buffer) {
+printf("copy offs: %i, samples: %i\n", offs, samples);
                res = handle->ext->copy(handle->ext, sbuf[0], offs, samples);
             }
             else {
+printf("cvt: offs: %i, samples: %i\n", offs, no_samples);
                res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, samples);
             }
          }
@@ -805,6 +808,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
                // copy data from the read-threat to the scratch buffer
                ret = _MIN(handle->threadBufAvail, bufsize);
+printf("read: %i\n", ret);
                memcpy(data, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer
@@ -834,6 +838,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             break;
          }
       } while (no_samples);
+printf("------------\n\n");
 
       if (!handle->copy_to_buffer && bytes > 0)
       {
