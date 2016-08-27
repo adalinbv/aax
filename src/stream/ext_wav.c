@@ -353,6 +353,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                }
                else if (res < 0)
                {
+                  void *data;
+
                   if (res == __F_PROCESS) {
                      return buf;
                   }
@@ -374,6 +376,22 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   if (handle->capturing) {
                      handle->fmt->set(handle->fmt, __F_POSITION,
                                                    handle->io.read.blockbufpos);
+                  }
+
+                  // process the data already in the buffer otherwise it won't
+                  // have the proper signedness or endianness.
+                  data = malloc(handle->io.read.wavBufPos);
+                  if (data)
+                  {
+                      unsigned int tracks = handle->no_tracks;
+                      unsigned int bits = handle->bits_sample;
+                      size_t samples, bytes = handle->io.read.wavBufPos;
+                      handle->io.read.wavBufPos = 0;
+// TODO: off by one?
+                      samples = bytes*8/(tracks*bits);
+                      memcpy(data, handle->wavBuffer, bytes);
+                      _wav_process(ext, data, samples);
+                      free(data);
                   }
                }
                else if (res > 0)
