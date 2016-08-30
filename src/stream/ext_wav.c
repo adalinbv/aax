@@ -353,6 +353,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                }
                else if (res < 0)
                {
+                  void *data;
+
                   if (res == __F_PROCESS) {
                      return buf;
                   }
@@ -512,7 +514,6 @@ _wav_process(_ext_t *ext, void_ptr sptr, size_t num)
    offset = handle->io.read.wavBufPos;
    size = handle->wavBufSize - offset;
    bytes = _MIN(num*tracks*bits/8, size);
-// num = bytes*8/(tracks*bits);
 
    bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
    handle->io.read.wavBufPos += bytes;
@@ -560,7 +561,9 @@ _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
    if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
    {
       handle->io.read.wavBufPos -= bytes;
-      memmove(src, src+bytes, handle->io.read.wavBufPos);
+      if (handle->io.read.wavBufPos > 0) {
+         memmove(src, src+bytes, handle->io.read.wavBufPos);
+      }
    }
 
    if (handle->no_samples >= num) {

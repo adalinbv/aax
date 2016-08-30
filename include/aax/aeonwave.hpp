@@ -147,7 +147,7 @@ public:
 
     ~Buffer() {}
 
-    inline set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
+    inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
     }
 
@@ -187,12 +187,12 @@ class dsp : public Obj
 public:
     dsp() : Obj(), filter(true), fetype(0) {}
 
-    dsp(aaxFilter c, enum aaxFilterType f) :
+    dsp(aaxconfig c, enum aaxFilterType f) :
         Obj(c,aaxFilterDestroy), filter(true), fetype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
-    dsp(aaxEffect c, enum aaxEffectType e) :
+    dsp(aaxconfig c, enum aaxEffectType e) :
         Obj(c,aaxEffectDestroy), filter(false), fetype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
@@ -210,31 +210,31 @@ public:
         return (filter) ? aaxFilterGetState(ptr) : aaxEffectGetState(ptr);
     }
 
-    bool set(unsigned s, float p1, float p2, float p3, float p4, int t=AAX_LINEAR) {
+    bool set(unsigned s, float p1, float p2, float p3, float p4, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterSetSlot(ptr,s,t,p1,p2,p3,p4)
                         : aaxEffectSetSlot(ptr,s,t,p1,p2,p3,p4);
     }
-    bool get(unsigned s, float* p1, float* p2, float* p3, float* p4, int t=AAX_LINEAR) {
+    bool get(unsigned s, float* p1, float* p2, float* p3, float* p4, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterGetSlot(ptr,s,t,p1,p2,p3,p4)
                         : aaxEffectGetSlot(ptr,s,t,p1,p2,p3,p4);
     }
-    bool set(unsigned s, Vector& v, int t=AAX_LINEAR) {
+    bool set(unsigned s, Vector& v, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterSetSlotParams(ptr,s,t,v)
                     : aaxEffectSetSlotParams(ptr,s,t,v);
     }
-    bool set(unsigned s, const aaxVec4f v, int t=AAX_LINEAR) {
+    bool set(unsigned s, const aaxVec4f v, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterSetSlotParams(ptr,s,t,v)
                         : aaxEffectSetSlotParams(ptr,s,t,v);
     }
-    bool get(unsigned s, aaxVec4f v, int t=AAX_LINEAR) {
+    bool get(unsigned s, aaxVec4f v, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterGetSlotParams(ptr,s,t,v)
                         : aaxEffectGetSlotParams(ptr,s,t,v);
     }
-    bool set(int p, float v, int t=AAX_LINEAR) {
+    bool set(enum aaxParameter p, float v, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterSetParam(ptr,p,t,v)
                         : aaxEffectSetParam(ptr,p,t,v);
     }
-    float get(int p, int t=AAX_LINEAR) {
+    float get(enum aaxParameter p, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterGetParam(ptr,p,t) : aaxEffectGetParam(ptr,p,t);
     }
 
@@ -321,7 +321,7 @@ public:
     inline bool remove_buffer() {
         return aaxEmitterRemoveBuffer(ptr);
     }
-    inline Buffer get(unsigned int p, int c=AAX_FALSE) {
+    inline Buffer get(unsigned int p, bool c=false) {
         return Buffer(aaxEmitterGetBufferByPos(ptr,p,c),~c);
     }
     inline unsigned int get(enum aaxState s) {
@@ -706,7 +706,7 @@ public:
     inline enum aaxErrorType error_no() {
         return aaxDriverGetErrorNo(ptr);
     }
-    inline const char* strerror() {
+    inline  const char* strerror() {
         return aaxGetErrorString(error_no());
     }
 
