@@ -377,22 +377,6 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                      handle->fmt->set(handle->fmt, __F_POSITION,
                                                    handle->io.read.blockbufpos);
                   }
-
-                  // process the data already in the buffer otherwise it won't
-                  // have the proper signedness or endianness.
-                  data = malloc(handle->io.read.wavBufPos);
-                  if (data)
-                  {
-                      unsigned int tracks = handle->no_tracks;
-                      unsigned int bits = handle->bits_sample;
-                      size_t samples, bytes = handle->io.read.wavBufPos;
-                      handle->io.read.wavBufPos = 0;
-// TODO: off by one?
-                      samples = bytes*8/(tracks*bits);
-                      memcpy(data, handle->wavBuffer, bytes);
-                      _wav_process(ext, data, samples);
-                      free(data);
-                  }
                }
                else if (res > 0)
                {
@@ -530,7 +514,6 @@ _wav_process(_ext_t *ext, void_ptr sptr, size_t num)
    offset = handle->io.read.wavBufPos;
    size = handle->wavBufSize - offset;
    bytes = _MIN(num*tracks*bits/8, size);
-// num = bytes*8/(tracks*bits);
 
    bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
    handle->io.read.wavBufPos += bytes;
@@ -578,7 +561,9 @@ _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
    if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
    {
       handle->io.read.wavBufPos -= bytes;
-      memmove(src, src+bytes, handle->io.read.wavBufPos);
+      if (handle->io.read.wavBufPos > 0) {
+         memmove(src, src+bytes, handle->io.read.wavBufPos);
+      }
    }
 
    if (handle->no_samples >= num) {

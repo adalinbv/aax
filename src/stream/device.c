@@ -790,7 +790,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                ssize_t ret;
 
                bufsize = no_samples*frame_bits/8;
-               bufsize = ((bufsize/file_block)+1)*file_block;
+               if (file_block > frame_bits) {
+                  bufsize = _MAX((bufsize/file_block)*file_block, file_block);
+               }
                if (bufsize > scratchlen) {
                   bufsize = (scratchlen/frame_bits)*frame_bits;
                }
