@@ -60,8 +60,6 @@ extern const int16_t _ima4_index_table[16];
 extern const int16_t _ima4_index_adjust[16];
 extern const int16_t _alaw2linear_table[256];
 extern const int8_t _linear2alaw_table[128];
-extern const int16_t _mulaw2linear_table[256];
-extern const int8_t _linear2mulaw_table[256];
 
 /*
  * This function transforms a buffer into a signed, 32-bit buffer ready
@@ -101,7 +99,7 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
    char *sptr, *s = (char*)src - sdebytes;
    int32_t *dptr = dst - ddesamps;
 
-   assert (src_pos <= sno_samples);
+   assert(src_pos <= sno_samples);
 
    if (dbuflen >= (sno_samples-src_pos)) {
       new_len = sno_samples - src_pos;
@@ -145,7 +143,7 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
                new_len -= sbuflen;
                dptr += sbuflen;
             }
-            while (new_len > sbuflen);
+            while(new_len > sbuflen);
 
             /* and copy the remaining samples */
             if (new_len) {
@@ -212,10 +210,9 @@ _sw_bufcpy_mulaw(void *dst, const void *src, size_t l)
        * area of your processor cache to get hit too often, cache sloshing
        * will severely slow things down.
        */
-//    *d++ = _mulaw2linear_table[*s++] << 8;
       *d++ = _mulaw2linear(*s++) << 8;
    }     
-   while (--i);
+   while(--i);
 }
 
 #define ALAW_AMI_MASK   0x55
@@ -248,7 +245,6 @@ _sw_bufcpy_alaw(void *dst, const void *src, size_t l)
        * area of your processor cache to get hit too often, cache sloshing
        * will severely slow things down.
        */
-//    *d++ = _alaw2linear_table[*s++] << 8;
       *d++ = _alaw2linear(*s++) << 8;
    }
    while (--i);
@@ -376,30 +372,6 @@ _linear2mulaw(int16_t linear)
    return u_val;
 }
 
-#define _BIAS           0x80
-#define _CLIP           32635
-uint8_t
-_linear2mulaw_using_table(int16_t sample)
-{
-   int sign, exponent, mantissa;
-   int rv;
-
-   sign = (sample >> 8) & _BIAS;
-   if (sign) {
-      sample = (int16_t)-sample;
-   }
-   if (sample > _CLIP) {
-      sample = _CLIP;
-   }
-   sample = (int16_t)(sample + 0x84);
-
-   exponent = (int)_linear2mulaw_table[(sample>>7) & 0xFF];
-   mantissa = (sample >> (exponent+3)) & 0x0F;
-   rv = ~ (sign | (exponent << 4) | mantissa);
-
-   return (uint8_t)rv;
-}
-
 /** http://docs.freeswitch.org/g711_8h-source.html */
 #define ALAW_AMI_MASK		0x55
 uint8_t
@@ -436,37 +408,9 @@ _linear2alaw(int16_t linear)
    return (uint8_t)(((seg << 4) | ((linear >> ((seg) ? (seg+3) : 4)) & 0x0F))^ mask);
 }
 
-uint8_t
-_linear2alaw_using_table(int16_t sample)
-{
-     int sign, exponent, mantissa;
-     uint8_t rv;
-
-     sign = ((~sample) >> 8) & _BIAS;
-     if (!sign) {
-        sample = (int16_t)-sample;
-     }
-     if (sample > _CLIP) {
-        sample = _CLIP;
-     }
-     if (sample >= 256)
-     {
-          exponent = (int)_linear2alaw_table[(sample >> 8) & 0x7F];
-          mantissa = (sample >> (exponent + 3) ) & 0x0F;
-          rv = ((exponent << 4) | mantissa);
-     }
-     else
-     {
-          rv = (uint8_t)(sample >> 4);
-     }
-     rv ^= (sign ^ 0x55);
-
-     return rv;
-}
-
 /* single sample convert */
 int16_t
-_adpcm2linear (uint8_t nibble, int16_t *val, uint8_t *idx)
+_adpcm2linear(uint8_t nibble, int16_t *val, uint8_t *idx)
 {
   int32_t predictor;
   int16_t diff, step;
@@ -518,7 +462,7 @@ _linear2adpcm(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
    }
 
    mask = 4;
-   while (mask)
+   while(mask)
    {
       if (diff >= step)
       {

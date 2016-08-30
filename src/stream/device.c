@@ -755,7 +755,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (data)
          {
             // add data from the scratch buffer to ext's internal buffer
-printf("  process offs: %i, samples: %i\n", 0, samples);
             samples = handle->ext->process(handle->ext, data, samples);
             res = __F_PROCESS;
          }
@@ -763,11 +762,9 @@ printf("  process offs: %i, samples: %i\n", 0, samples);
          {
             // convert data from ext's internal buffer to tracks[]
             if (handle->copy_to_buffer) {
-printf("copy offs: %i, samples: %i\n", offs, samples);
                res = handle->ext->copy(handle->ext, sbuf[0], offs, samples);
             }
             else {
-printf("cvt: offs: %i, samples: %i\n", offs, no_samples);
                res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, samples);
             }
          }
@@ -793,7 +790,9 @@ printf("cvt: offs: %i, samples: %i\n", offs, no_samples);
                ssize_t ret;
 
                bufsize = no_samples*frame_bits/8;
-               bufsize = ((bufsize/file_block)+1)*file_block;
+               if (file_block > frame_bits) {
+                  bufsize = _MAX((bufsize/file_block)*file_block, file_block);
+               }
                if (bufsize > scratchlen) {
                   bufsize = (scratchlen/frame_bits)*frame_bits;
                }
@@ -808,7 +807,6 @@ printf("cvt: offs: %i, samples: %i\n", offs, no_samples);
 
                // copy data from the read-threat to the scratch buffer
                ret = _MIN(handle->threadBufAvail, bufsize);
-printf("read: %i\n", ret);
                memcpy(data, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer
@@ -838,7 +836,6 @@ printf("read: %i\n", ret);
             break;
          }
       } while (no_samples);
-printf("------------\n\n");
 
       if (!handle->copy_to_buffer && bytes > 0)
       {
