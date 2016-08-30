@@ -119,7 +119,6 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
    {
       dptr += (new_len + ddesamps);
       s += sdebytes;
-printf("A: dde: %i, pos: %i\n", ddesamps, new_len + ddesamps);
 
       /*
        * convert the remaining samples for the destination buffer or one
@@ -127,7 +126,6 @@ printf("A: dde: %i, pos: %i\n", ddesamps, new_len + ddesamps);
        */
       new_len = (dbuflen > sbuflen) ? sbuflen : dbuflen;
       sptr = s + loop_start*sbps;
-printf("B: start: %i, len; %i\n", loop_start, new_len);
       codecfn(dptr, sptr, new_len);
 
       dbuflen -= new_len;
@@ -135,10 +133,8 @@ printf("B: start: %i, len; %i\n", loop_start, new_len);
       {
          int32_t *start_dptr = dptr;
          dptr += new_len;
-printf("C: add: %i\n", new_len);
          if (dbuflen > sbuflen)
          {
-printf("D: %i - %i\n", dbuflen, sbuflen);
             /* copy the source buffer multiple times if required */
             new_len = dbuflen;
             do
@@ -150,7 +146,6 @@ printf("D: %i - %i\n", dbuflen, sbuflen);
             while(new_len > sbuflen);
 
             /* and copy the remaining samples */
-printf("E: remain: %i\n", new_len);
             if (new_len) {
                _aax_memcpy(dptr, start_dptr, new_len*dbps);
             }
@@ -159,7 +154,6 @@ printf("E: remain: %i\n", new_len);
          {
             sptr = s + loop_start*sbps;
             codecfn(dptr, sptr, dbuflen);
-printf("F: start: %i, len: %i: %i\n", loop_start, dbuflen);
          }
       }
    }
