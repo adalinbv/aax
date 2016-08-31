@@ -232,7 +232,7 @@ _pcm_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t nu
 }
 
 size_t
-_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
+_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t rv = *num;
@@ -283,16 +283,17 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, si
    }
    else
    {
-      if (handle->cvt_endianness) {
-         handle->cvt_endianness(sptr, rv);
-      }
-      if (handle->cvt_to_signed) {
-         handle->cvt_to_signed(sptr, rv);
-      }
-
       dptr_offs *= blocksize;
       bytes = rv*blocksize;
-      memcpy(dst+dptr_offs, sptr, bytes);
+      dst += dptr_offs;
+      memcpy(dst, sptr, bytes);
+
+      if (handle->cvt_endianness) {
+         handle->cvt_endianness(dst, rv);
+      }
+      if (handle->cvt_to_signed) {
+         handle->cvt_to_signed(dst, rv);
+      }
    }
 
    return rv;
