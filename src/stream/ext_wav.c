@@ -451,7 +451,7 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t num)
+_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t num)
 {
    _driver_t *handle = ext->id;
    char *src = (char*)handle->wavBuffer;
@@ -471,34 +471,38 @@ _wav_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t num)
       num = size;
    }
 
-   bytes = handle->fmt->copy(handle->fmt, dptr, offset, src, pos, tracks, &num);
+   bytes = handle->fmt->copy(handle->fmt, dptr, offs, src, pos, tracks, &num);
    if (handle->wav_format == MP3_WAVE_FILE) {
-      return bytes;
-   }
-   if (handle->format == AAX_IMA4_ADPCM)
-   {
-      rv = num;
-      num /= tracks;
+      rv = bytes;
    }
    else
    {
-      bytes = num*tracks*bits/8;
-      rv = num;
-   }
+      if (handle->format == AAX_IMA4_ADPCM)
+      {
+         rv = num;
+         num /= tracks;
+      }
+      else
+      {
+         bytes = num*tracks*bits/8;
+         rv = num;
+      }
 
-   if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
-   {
-      handle->io.read.wavBufPos -= bytes;
-      if (handle->io.read.wavBufPos > 0) {
-         memmove(src, src+bytes, handle->io.read.wavBufPos);
+      if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
+      {
+         handle->io.read.wavBufPos -= bytes;
+         if (handle->io.read.wavBufPos > 0) {
+            memmove(src, src+bytes, handle->io.read.wavBufPos);
+         }
+      }
+
+      if (handle->no_samples >= num) {
+         handle->no_samples -= num;
+      } else {
+         handle->no_samples = 0;
       }
    }
 
-   if (handle->no_samples >= num) {
-      handle->no_samples -= num;
-   } else {
-      handle->no_samples = 0;
-   }
    return rv;
 }
 

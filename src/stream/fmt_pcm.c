@@ -20,6 +20,7 @@
 #include <software/audio.h>
 #include <devices.h>
 #include <arch.h>
+#include <api.h>
 
 #include "audio.h"
 #include "format.h"
@@ -225,15 +226,6 @@ _pcm_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t nu
 {
    _driver_t *handle = fmt->id;
 
-#if 0
-   if (handle->cvt_endianness) {
-      handle->cvt_endianness(sptr, num);
-   }
-   if (handle->cvt_to_signed) {
-      handle->cvt_to_signed(sptr, num);
-   }
-#endif
-
    memcpy(dptr+offset, sptr, bytes);
 
    return bytes;
@@ -255,14 +247,12 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, const_char_
    }
    else
    {
-#if 1
       if (handle->cvt_endianness) {
          handle->cvt_endianness(sptr, rv);
       }
       if (handle->cvt_to_signed) {
          handle->cvt_to_signed(sptr, rv);
       }
-#endif
       if (handle->cvt_from_intl) {
          handle->cvt_from_intl(dptr, sptr, dptr_offs, tracks, rv);
       }
@@ -281,10 +271,11 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, si
    blocksize = handle->blocksize;
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      if (pos >= handle->blocksize)
+      if (pos >= blocksize)
       {
          rv = bytes = blocksize;
          memcpy(dst+dptr_offs, sptr, bytes);
+//       *num = BLOCKSIZE_TO_SMP(blocksize);
       }
       else {
          *num = rv = 0;
@@ -292,14 +283,12 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, si
    }
    else
    {
-#if 1
       if (handle->cvt_endianness) {
          handle->cvt_endianness(sptr, rv);
       }
       if (handle->cvt_to_signed) {
          handle->cvt_to_signed(sptr, rv);
       }
-#endif
 
       dptr_offs *= blocksize;
       bytes = rv*blocksize;
