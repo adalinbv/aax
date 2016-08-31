@@ -281,6 +281,10 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
       }
       else /* read: handle->capturing */
       {
+         if (handle->fmt && handle->fmt->open) {
+            return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+         }
+
          if (!handle->wavptr)
          {
             char *ptr = 0;
