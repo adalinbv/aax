@@ -35,36 +35,113 @@ static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsign
 
 typedef struct
 {
+   int mode;
+
+   char capturing;
+
+   uint8_t no_tracks;
+   uint8_t bits_sample;
+   int frequency;
+   int bitrate;
+   int blocksize;
+   enum aaxFormat format;
+   size_t no_samples;
+   size_t max_samples;
+
+   ssize_t pcmBufPos;
+   size_t pcmBufSize;
+   char *pcmBuffer;
+   void *pcmptr;
+
+   /* data conversion */
    _batch_cvt_proc cvt_to_signed;
    _batch_cvt_proc cvt_from_signed;
    _batch_cvt_proc cvt_endianness;
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
 
-   size_t blocksize;
-   int format;
-
-   union
-   {
-      struct
-      {
-         size_t blockbufpos;
-         int16_t predictor[_AAX_MAX_SPEAKERS];
-         uint8_t index[_AAX_MAX_SPEAKERS];
-      } read;
-   } io;
+   /* IMA */
+   int16_t predictor[_AAX_MAX_SPEAKERS];
+   uint8_t index[_AAX_MAX_SPEAKERS];
+   size_t blockbufpos;
 
 } _driver_t;
 
+int
+_pcm_detect(_fmt_t *fmt, int mode)
+{
+   int rv = AAX_FALSE;
+
+   fmt->id = calloc(1, sizeof(_driver_t));
+   if (fmt->id)
+   {
+      _driver_t *handle = fmt->id;
+
+      handle->mode = mode;
+      handle->capturing = (mode == 0) ? 1 : 0;
+
+      rv = AAX_TRUE;
+   }
+   else {
+      _AAX_FILEDRVLOG("PCM: Unable to create a handle");
+   }
+
+   return rv;
+}
+
+void*
+_pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+{
+   _driver_t *handle = fmt->id;
+   void *rv = NULL;
+
+   if (handle)
+   {
+      if (!handle->pcmptr)
+      {
+         char *ptr = 0;
+
+         handle->pcmBufPos = 0;
+         handle->pcmBufSize = 16384;
+         handle->pcmptr = _aax_malloc(&ptr, handle->pcmBufSize);
+         handle->pcmBuffer = ptr;
+
+         if (handle->pcmptr)
+         {
+            if (handle->capturing)
+            {
+               size_t  num = *bufsize/handle->blocksize;
+               _pcm_process(fmt, buf, &num);
+               // we're done decoding, return NULL
+            }
+         }
+         else {
+            _AAX_FILEDRVLOG("PCM: unable to allocate memory");
+            rv = buf;
+         }
+      }
+   }
+
+   return rv;
+}
+
+void
+_pcm_close(_fmt_t *fmt)
+{
+   _driver_t *handle = fmt->id;
+
+   if (handle)
+   {
+      _aax_free(handle->pcmptr);
+   }
+   free(handle);
+}
 
 int
 _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 {
    _driver_t *handle = fmt->id;
    int rv = AAX_FALSE;
-
-   fmt->id = calloc(1, sizeof(_driver_t));
-   handle = fmt->id;
 
    switch(pcm_fmt)
    {
@@ -163,7 +240,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          rv = AAX_TRUE;
          break;
       default:
-         _AAX_FILEDRVLOG("WAV: Unsupported format");
+            _AAX_FILEDRVLOG("PCM: Unsupported format");
          break;
       }
       break;
@@ -178,11 +255,192 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
    return rv;
 }
 
-void
-_pcm_close(_fmt_t *fmt)
+size_t
+_pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
-   free(fmt->id);
+   _driver_t *handle = fmt->id;
+   unsigned int blocksize;
+   size_t bytes, bufsize;
+   size_t rv = __F_EOF;
+   char *buf;
+
+   buf = (char*)handle->pcmBuffer;
+   bufsize = handle->pcmBufPos;
+   blocksize = handle->blocksize;
+
+   if (handle->format == AAX_IMA4_ADPCM) {
+      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
+   } else {
+      bytes = *num*blocksize;
+   }
+   bytes -= (bytes % blocksize);
+
+   if (bytes > bufsize)
+   {
+      bytes = bufsize;
+      bytes -= (bytes % blocksize);
+
+      if (handle->format == AAX_IMA4_ADPCM) {
+         *num = BLOCKSIZE_TO_SMP(bytes);
+      } else {
+         *num = bytes/blocksize;
+      }
+   }
+
+   if (bytes)
+   {
+      if (handle->cvt_endianness) {
+         handle->cvt_endianness(buf, *num);
+      }
+      if (handle->cvt_to_signed) {
+         handle->cvt_to_signed(buf, *num);
+      }
+
+      dptr_offs *= blocksize;
+      memcpy((char*)dptr+dptr_offs, buf, bytes);
+
+      /* skip processed data */
+      handle->pcmBufPos -= bytes;
+      if (handle->pcmBufPos > 0) {
+         memmove(buf, buf+bytes, handle->pcmBufPos);
+      }
+
+      rv = bytes;
+   }
+
+   return rv;
 }
+
+size_t
+_pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
+{
+   _driver_t *handle = fmt->id;
+   size_t bytes, bufpos, bufsize;
+   size_t rv = __F_EOF;
+
+   if (handle->format == AAX_IMA4_ADPCM) {
+      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
+   } else {
+      bytes = *num*handle->blocksize;
+   }
+
+   bufpos = handle->pcmBufPos;
+   bufsize = handle->pcmBufSize;
+   if ((bufpos+bytes) <= bufsize)
+   {
+      char *buf = (char*)handle->pcmBuffer + bufpos;
+
+      memcpy(buf, sptr, bytes);
+      handle->pcmBufPos += bytes;
+      rv = bytes;
+   }
+
+   return rv;
+}
+
+size_t
+_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
+{
+   _driver_t *handle = fmt->id;
+   size_t rv = __F_EOF;
+
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
+      if (pos >= handle->blocksize) {
+         rv = _batch_cvt24_adpcm_intl(fmt, dptr, sptr, dptr_offs, tracks, num);
+      } else {
+         *num = rv = 0;
+      }
+   }
+   else
+   {
+      rv = *num*handle->blocksize;
+      if (handle->cvt_from_intl) {
+         handle->cvt_from_intl(dptr, sptr, dptr_offs, tracks, *num);
+      }
+   }
+
+   return rv;
+}
+
+size_t
+_pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
+{
+   _driver_t *handle = fmt->id;
+   if (handle->cvt_to_intl) {
+      handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
+   }
+   return num;
+}
+
+off_t
+_pcm_get(_fmt_t *fmt, int type)
+{
+   _driver_t *handle = fmt->id;
+   off_t rv = 0;
+
+   switch(type)
+   {
+   case __F_FMT:
+      rv = handle->format;
+      break;
+   case __F_TRACKS:
+      rv = handle->no_tracks;
+      break;
+   case __F_FREQ:
+      rv = handle->frequency;
+      break;
+   case __F_BITS:
+      rv = handle->bits_sample;
+      break;
+   case __F_BLOCK:
+      rv = handle->blocksize;
+      break;
+   case __F_SAMPLES:
+      rv = handle->max_samples;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+off_t
+_pcm_set(_fmt_t *fmt, int type, off_t value)
+{
+   _driver_t *handle = fmt->id;
+   off_t rv = 0;
+
+   switch(type)
+   {
+   case __F_FREQ:
+      handle->frequency = value;
+      break;
+   case __F_RATE:
+      handle->bitrate = value;
+      break;
+   case __F_TRACKS:
+      handle->no_tracks = value;
+      break;
+   case __F_SAMPLES:
+      handle->no_samples = value;
+      break;
+   case __F_BITS:
+      handle->bits_sample = value;
+      break;
+   case __F_BLOCK:
+      handle->blocksize = value;
+      break;
+   case __F_POSITION:
+      handle->blockbufpos = value;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+/* -------------------------------------------------------------------------- */
 
 void
 _pcm_cvt_to_signed(_fmt_t *fmt, void_ptr dptr, size_t num)
@@ -211,115 +469,6 @@ _pcm_cvt_endianness(_fmt_t *fmt, void_ptr dptr, size_t num)
    }
 }
 
-size_t
-_pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
-{
-   _driver_t *handle = fmt->id;
-   if (handle->cvt_to_intl) {
-      handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
-   }
-   return num;
-}
-
-size_t
-_pcm_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t num, size_t bytes)
-{
-   _driver_t *handle = fmt->id;
-
-   memcpy(dptr+offset, sptr, bytes);
-
-   return bytes;
-}
-
-size_t
-_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
-{
-   _driver_t *handle = fmt->id;
-   size_t rv = *num;
-
-   if (handle->format == AAX_IMA4_ADPCM)
-   {
-      if (pos >= handle->blocksize) {
-         rv = _batch_cvt24_adpcm_intl(fmt, dptr, sptr, dptr_offs, tracks, num);
-      } else {
-         *num = rv = 0;
-      }
-   }
-   else
-   {
-      if (handle->cvt_endianness) {
-         handle->cvt_endianness(sptr, rv);
-      }
-      if (handle->cvt_to_signed) {
-         handle->cvt_to_signed(sptr, rv);
-      }
-      if (handle->cvt_from_intl) {
-         handle->cvt_from_intl(dptr, sptr, dptr_offs, tracks, rv);
-      }
-   }
-
-   return rv;
-}
-
-size_t
-_pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
-{
-   _driver_t *handle = fmt->id;
-   size_t blocksize, bytes, rv = *num;
-   char *dst = (char*)dptr;
-
-   blocksize = handle->blocksize;
-   if (handle->format == AAX_IMA4_ADPCM)
-   {
-      if (pos >= blocksize)
-      {
-         rv = bytes = blocksize;
-         memcpy(dst+dptr_offs, sptr, bytes);
-//       *num = BLOCKSIZE_TO_SMP(blocksize);
-      }
-      else {
-         *num = rv = 0;
-      }
-   }
-   else
-   {
-      dptr_offs *= blocksize;
-      bytes = rv*blocksize;
-      dst += dptr_offs;
-      memcpy(dst, sptr, bytes);
-
-      if (handle->cvt_endianness) {
-         handle->cvt_endianness(dst, rv);
-      }
-      if (handle->cvt_to_signed) {
-         handle->cvt_to_signed(dst, rv);
-      }
-   }
-
-   return rv;
-}
-
-off_t
-_pcm_set(_fmt_t *fmt, int ptype, off_t param)
-{
-   _driver_t *handle = fmt->id;
-   off_t rv = 0;
-   switch(ptype)
-   {
-   case __F_BLOCK:
-      handle->blocksize = param;
-      break;
-   case __F_POSITION:
-      handle->io.read.blockbufpos = param;
-      break;
-   default:
-      break;
-   }
-   return rv;
-}
-
-/* -------------------------------------------------------------------------- */
-
 static size_t
 _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
 
@@ -329,8 +478,8 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src,
 
    for (t=0; t<tracks; t++)
    {
-      int16_t predictor = handle->io.read.predictor[t];
-      uint8_t index = handle->io.read.index[t];
+      int16_t predictor = handle->predictor[t];
+      uint8_t index = handle->index[t];
       int32_t *d = dptr[t]+offset;
       int32_t *s = (int32_t*)src+t;
       size_t l, ctr = 4;
@@ -406,8 +555,8 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src,
          l--;
       }
 
-      handle->io.read.predictor[t] = predictor;
-      handle->io.read.index[t] = index;
+      handle->predictor[t] = predictor;
+      handle->index[t] = index;
 
       rv = num-l;
    }
@@ -425,17 +574,17 @@ _batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size
    size_t block_smp, decode_smp, offs_smp;
    size_t r;
 
-   offs_smp = handle->io.read.blockbufpos;
+   offs_smp = handle->blockbufpos;
    block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, tracks);
    decode_smp = _MIN(block_smp-offs_smp, num);
 
    r = _aaxWavMSADPCMBlockDecode(handle, dptr, src, offs_smp, decode_smp, offs, tracks);
-   handle->io.read.blockbufpos += r;
+   handle->blockbufpos += r;
    *n = r;
 
-   if (handle->io.read.blockbufpos >= block_smp)
+   if (handle->blockbufpos >= block_smp)
    {
-      handle->io.read.blockbufpos = 0;
+      handle->blockbufpos = 0;
       rv = handle->blocksize;
    }
 

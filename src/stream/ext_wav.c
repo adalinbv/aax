@@ -159,7 +159,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
-      if (!handle->capturing) // write
+      if (!handle->capturing)	/* write */
       {
          char *ptr, extfmt = AAX_FALSE;
          _fmt_type_t fmt;
@@ -181,26 +181,22 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             return rv;
          }
 
-         if (handle->fmt->open)
-         {
-            handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
-            handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
-            handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-            handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
-            handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
-
-            return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
-         }
-         else if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+         if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
          {
             handle->fmt = _fmt_free(handle->fmt);
             return rv;
          }
 
+         handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+         handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+         handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+         handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
+         handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
          handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
          if (handle->capturing) {
             handle->fmt->set(handle->fmt, __F_POSITION, handle->io.read.blockbufpos);
          }
+         rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
 
          ptr = 0;
          size = 4*handle->wavBufSize;
@@ -279,12 +275,9 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             _AAX_FILEDRVLOG("WAV: Insufficient memory");
          }
       }
-      else /* read: handle->capturing */
+      				/* read: handle->capturing */
+      else if (!handle->fmt || !handle->fmt->open)
       {
-         if (handle->fmt && handle->fmt->open) {
-            return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
-         }
-
          if (!handle->wavptr)
          {
             char *ptr = 0;
@@ -342,53 +335,51 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             }
             while (res > 0);
 
-            fmt = _getFmtFromWAVFormat(handle->wav_format);
-            handle->fmt = _fmt_create(fmt, handle->mode);
-            if (handle->fmt)
+            if (!handle->fmt)
             {
-               if (handle->fmt->open)
-               {
-                  handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
-                  handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
-                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-                  handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
-                  handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
-                  rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+               fmt = _getFmtFromWAVFormat(handle->wav_format);
+               handle->fmt = _fmt_create(fmt, handle->mode);
+               if (!handle->fmt) {
+                  return rv;
                }
-               else if (res < 0)
+
+               if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
                {
-                  void *data;
-
-                  if (res == __F_PROCESS) {
-                     return buf;
-                  }
-                  else if (size)
-                  {
-                     _AAX_FILEDRVLOG("WAV: Incorrect format");
-                     return rv;
-                  }
-
-                  // We're done reading the file header
-                  // Now set up the data format handler
-                   if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
-                  {
-                     handle->fmt = _fmt_free(handle->fmt);
-                     return rv;
-                  }
-
-                  handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
-                  if (handle->capturing) {
-                     handle->fmt->set(handle->fmt, __F_POSITION,
-                                                   handle->io.read.blockbufpos);
-                  }
+                  handle->fmt = _fmt_free(handle->fmt);
+                  return rv;
                }
-               else if (res > 0)
-               {
-                  *bufsize = 0;
-                   return buf;
+
+               handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+               handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+               handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+               handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
+               handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
+               handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+               if (handle->capturing) {
+                  handle->fmt->set(handle->fmt, __F_POSITION,
+                                                handle->io.read.blockbufpos);
                }
-               // else we're done decoding, return NULL
+
+               rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
             }
+
+            if (res < 0)
+            {
+               if (res == __F_PROCESS) {
+                  return buf;
+               }
+               else if (size)
+               {
+                  _AAX_FILEDRVLOG("WAV: Incorrect format");
+                  return rv;
+               }
+            }
+            else if (res > 0)
+            {
+               *bufsize = 0;
+                return buf;
+            }
+            // else we're done decoding, return NULL
          }
          else
          {
@@ -396,6 +387,10 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             return rv;
          }
       }
+      else if (handle->fmt && handle->fmt->open) {
+          return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+      }
+      else _AAX_FILEDRVLOG("WAV: Unknown opening error");
    }
    else {
       _AAX_FILEDRVLOG("WAV: Internal error: handle id equals 0");
@@ -455,149 +450,31 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t num)
+_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = ext->id;
-   char *src = (char*)handle->wavBuffer;
-   unsigned int tracks, bits;
-   size_t pos, size, bytes;
-   size_t rv = __F_EOF;
-
-   if (handle->no_samples < num) {
-      num = handle->no_samples;
-   }
-
-   bits = handle->bits_sample;
-   tracks = handle->no_tracks;
-   pos = handle->io.read.wavBufPos;
-   size = pos*8/(tracks*bits);
-   if (num > size) {
-      num = size;
-   }
-
-   bytes = handle->fmt->copy(handle->fmt, dptr, offs, src, pos, tracks, &num);
-   if (handle->wav_format == MP3_WAVE_FILE) {
-      rv = bytes;
-   }
-   else
-   {
-      if (handle->format == AAX_IMA4_ADPCM)
-      {
-         rv = num;
-         num /= tracks;
-      }
-      else
-      {
-         bytes = num*tracks*bits/8;
-         rv = num;
-      }
-
-      if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
-      {
-         handle->io.read.wavBufPos -= bytes;
-         if (handle->io.read.wavBufPos > 0) {
-            memmove(src, src+bytes, handle->io.read.wavBufPos);
-         }
-      }
-
-      if (handle->no_samples >= num) {
-         handle->no_samples -= num;
-      } else {
-         handle->no_samples = 0;
-      }
-   }
-
-   return rv;
+    return handle->fmt->copy(handle->fmt, dptr, offs, num);
 }
 
 size_t
-_wav_process(_ext_t *ext, void_ptr sptr, size_t num)
+_wav_process(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
-   char *dptr = (char*)handle->wavBuffer;
-   unsigned int tracks = handle->no_tracks;
-   unsigned int bits = handle->bits_sample;
-   size_t offset, size, bytes;
-
-   offset = handle->io.read.wavBufPos;
-   size = handle->wavBufSize - offset;
-   bytes = _MIN(num*tracks*bits/8, size);
-
-   bytes = handle->fmt->process(handle->fmt, dptr, sptr, offset, num, bytes);
-   handle->io.read.wavBufPos += bytes;
-
-   return num; // bytes;
+    return handle->fmt->process(handle->fmt, sptr, num);
 }
 
 size_t
-_wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
+_wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   char *src = (char*)handle->wavBuffer;
-   unsigned int tracks, bits;
-   size_t pos, size, bytes;
-   size_t rv = __F_EOF;
-
-   if (handle->no_samples < num) {
-      num = handle->no_samples;
-   }
-
-   bits = handle->bits_sample;
-   tracks = handle->no_tracks;
-   pos = handle->io.read.wavBufPos;
-   size = pos*8/(tracks*bits);
-   if (num > size) {
-      num = size;
-   }
-
-   bytes = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, src, pos,
-                                                   tracks, &num);
-   if (handle->wav_format == MP3_WAVE_FILE) {
-      return bytes;
-   }
-   if (handle->format == AAX_IMA4_ADPCM)
-   {
-      rv = num;
-      num /= tracks;
-   }
-   else
-   {
-      bytes = num*tracks*bits/8;
-      rv = num;
-   }
-
-   if (bytes > 0 && handle->wav_format != MP3_WAVE_FILE)
-   {
-      handle->io.read.wavBufPos -= bytes;
-      if (handle->io.read.wavBufPos > 0) {
-         memmove(src, src+bytes, handle->io.read.wavBufPos);
-      }
-   }
-
-   if (handle->no_samples >= num) {
-      handle->no_samples -= num;
-   } else {
-      handle->no_samples = 0;
-   }
-   return rv;
+   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, 0, 0, 0, num);
 }
 
 size_t
 _wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
-   unsigned int tracks;
-   size_t bytes, rv;
-
-   tracks = handle->no_tracks;
-   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, tracks, num,
-                                              scratch, scratchlen);
-   bytes = (rv*tracks*handle->bits_sample)/8;
-
-   handle->io.write.update_dt += (float)num/handle->frequency;
-   handle->no_samples += num;
-
-   return bytes;
+   return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, 0, scratch, scratchlen);
 }
 
 char*
@@ -655,54 +532,14 @@ off_t
 _wav_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
-
-   switch(type)
-   {
-   case __F_FMT:
-      rv = handle->format;
-      if (rv == AAX_PCM8U) rv = AAX_PCM8S;
-      break;
-   case __F_TRACKS:
-      rv = handle->no_tracks;
-      break;
-   case __F_FREQ:
-      rv = handle->frequency;
-      break;
-   case __F_BITS:
-      rv = handle->bits_sample;
-      break;
-   case __F_BLOCK:
-      rv = handle->blocksize;
-      break;
-   case __F_SAMPLES:
-      rv = handle->max_samples;
-      break;
-   case __F_POSITION:
-      break;
-   default:
-      break;
-   }
-   return rv;
+   return handle->fmt->get(handle->fmt, type);
 }
 
 off_t
 _wav_set(_ext_t *ext, int type, off_t value)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
-
-   switch(type)
-   {
-   case __F_BLOCK:
-      handle->blocksize = value;
-      break;
-   case __F_POSITION:
-      break;
-   default:
-      break;
-   }
-   return rv;
+   return handle->fmt->set(handle->fmt, type, value);
 }
 
 

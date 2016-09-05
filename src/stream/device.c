@@ -726,13 +726,13 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    *offset = 0;
    if (handle->io->fd >= 0 && frames && tracks)
    {
+      int32_t **sbuf = (int32_t**)tracks;
       int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
       int file_bits = handle->ext->get_param(handle->ext, __F_BITS);
       size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
-      int32_t **sbuf = (int32_t**)tracks;
-      size_t no_samples, bufsize;
-      ssize_t res, samples;
+      size_t no_samples, bufsize, samples;
+      ssize_t res;
       void *data;
 
       no_samples = *frames;
@@ -755,17 +755,17 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (data)
          {
             // add data from the scratch buffer to ext's internal buffer
-            samples = handle->ext->process(handle->ext, data, samples);
+            res = handle->ext->process(handle->ext, data, &samples);
             res = __F_PROCESS;
          }
          else
          {
             // convert data from ext's internal buffer to tracks[]
             if (handle->copy_to_buffer) {
-               res = handle->ext->copy(handle->ext, sbuf[0], offs, samples);
+               res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
             }
             else {
-               res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, samples);
+               res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
             }
          }
 
@@ -779,11 +779,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          }
          else if (samples > 0)
          {
-            size_t res_bytes = res*frame_bits/8;
-
-            offs += res;
-            no_samples -= res;
-            bytes += res_bytes;
+            offs += samples;
+            no_samples -= samples;
+            bytes += res;
 
             if (no_samples)
             {
