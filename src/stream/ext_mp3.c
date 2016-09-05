@@ -27,17 +27,6 @@ typedef struct
    int mode;
    enum aaxFormat format;
 
-#ifdef WINXP
-#if 0
-   HACMSTREAM acmStream;
-   ACMSTREAMHEADER acmStreamHeader;
-
-   LPBYTE pcmBuffer;
-   unsigned long pcmBufPos;
-   unsigned long pcmBufMax;
-#endif
-#endif
-
 } _driver_t;
 
 
@@ -123,24 +112,24 @@ _mp3_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_mp3_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t num)
+_mp3_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->copy(handle->fmt, dptr, offs, NULL, 0, 0, &num);
+   return handle->fmt->copy(handle->fmt, dptr, offs, num);
 }
 
 size_t
-_mp3_process(_ext_t *ext, void_ptr sptr, size_t num)
+_mp3_process(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->process(handle->fmt, NULL, sptr, 0, num, 0);
+   return handle->fmt->process(handle->fmt, sptr, num);
 }
 
 size_t
-_mp3_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t num)
+_mp3_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, 0, 0, 0, &num);
+   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, 0, 0, 0, num);
 }
 
 size_t
