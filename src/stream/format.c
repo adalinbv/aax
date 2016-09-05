@@ -25,19 +25,28 @@ _fmt_create(_fmt_type_t format, int mode)
       rv = calloc(1, sizeof(_fmt_t));
       if (rv)
       {
-         rv->id = NULL;
-         rv->setup = _pcm_setup;
-         rv->close = _pcm_close;
+         if (_pcm_detect(rv, mode))
+         {
+            rv->setup = _pcm_setup;
+            rv->open = _pcm_open;
+            rv->close = _pcm_close;
 
-         rv->cvt_to_signed = _pcm_cvt_to_signed;
-         rv->cvt_from_signed = _pcm_cvt_from_signed;
-         rv->cvt_endianness = _pcm_cvt_endianness;
-         rv->cvt_to_intl = _pcm_cvt_to_intl;
-         rv->cvt_from_intl = _pcm_cvt_from_intl;
-         rv->process = _pcm_process;
-         rv->copy = _pcm_copy;
+            rv->cvt_to_signed = _pcm_cvt_to_signed;
+            rv->cvt_from_signed = _pcm_cvt_from_signed;
+            rv->cvt_endianness = _pcm_cvt_endianness;
+            rv->cvt_to_intl = _pcm_cvt_to_intl;
+            rv->cvt_from_intl = _pcm_cvt_from_intl;
+            rv->process = _pcm_process;
+            rv->copy = _pcm_copy;
 
-         rv->set = _pcm_set;
+            rv->set = _pcm_set;
+            rv->get = _pcm_get;
+         }
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
       }
       break;
    case _FMT_MP3:

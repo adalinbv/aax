@@ -115,7 +115,7 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 };
 
 static char check_cpuid_ecx(unsigned int);
-static char check_cpuid_edx(unsigned int);
+//static char check_cpuid_edx(unsigned int);
 static char check_extcpuid_ecx(unsigned int);
 
 char
@@ -433,6 +433,7 @@ check_cpuid_ecx(unsigned int type)
    return  (regs[ECX] & type) ? 1 : 0;
 }
 
+#if 0
 static char
 check_cpuid_edx(unsigned int type)
 {
@@ -444,6 +445,7 @@ check_cpuid_edx(unsigned int type)
    }
    return (regs[EDX] & type) ? 1 : 0;
 }
+#endif
 
 static char
 check_extcpuid_ecx(unsigned int type)

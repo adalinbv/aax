@@ -216,12 +216,6 @@ _mpg123_detect(_fmt_t *fmt, int mode)
    return rv;
 }
 
-int
-_mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
-{
-   return AAX_TRUE;
-}
-
 void*
 _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 {
@@ -330,10 +324,10 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             // else we're done decoding, return NULL
          }
          else {
-            _AAX_FILEDRVLOG("MPG123: Unable to create a handler");
+            _AAX_FILEDRVLOG("MPG123: Unable to create a handle");
          }
       }
-      else
+      else	// playback
       {
          char *ptr = 0;
          /*
@@ -420,8 +414,14 @@ _mpg123_close(_fmt_t *fmt)
    }
 }
 
+int
+_mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
+{
+   return AAX_TRUE;
+}
+
 size_t
-_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int channels, size_t *num)
+_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
@@ -447,39 +447,41 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, const_char_ptr sptr,
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       unsigned int blocksize = tracks*bits/8;
-      rv = size/blocksize;
+
+      *num = size*blocksize;
+      rv = size;
 
       dptr_offs *= blocksize;
-      bytes = *num*blocksize;
       memcpy((char*)dptr+dptr_offs, buf, size);
    }
    return rv;
 }
 
 size_t
-_mpg123_process(_fmt_t *fmt, char_ptr dptr, void_ptr sptr, size_t offset, size_t num, size_t bytes)
+_mpg123_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks;
    size_t rv = __F_EOF;
+   size_t bytes;
    int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   bytes = num*tracks*bits/8;
+   bytes = *num*tracks*bits/8;
 
    ret = pmpg123_feed(handle->id, sptr, bytes);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
    if (ret == MPG123_OK) {
-      rv = __F_PROCESS;
+      rv = bytes;
    }
    return rv;
 }
 
 size_t
-_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
+_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, const_char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, size = 0;
@@ -497,14 +499,17 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, char_ptr bu
    if (bytes > buf_size) {
       bytes = buf_size;
    }
+
    ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      rv = size*8/(tracks*bits);
-      _batch_cvt24_16_intl(dptr, buf, offset, tracks, rv);
+      *num = size*8/(tracks*bits);
+      rv = size;
+
+      _batch_cvt24_16_intl(dptr, buf, offset, tracks, *num);
    }
    return rv;
 }
