@@ -48,9 +48,9 @@ typedef int (_ext_extension_fn)(char*);
 typedef off_t (_ext_get_param_fn)(struct _ext_st*, int);
 typedef off_t (_ext_set_param_fn)(struct _ext_st*, int, off_t);
 
-typedef size_t (_ext_process_fn)(struct _ext_st*, void_ptr, size_t);
-typedef size_t (_ext_copy_fn)(struct _ext_st*, int32_ptr, size_t, size_t);
-typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st*, int32_ptrptr, size_t, size_t);
+typedef size_t (_ext_process_fn)(struct _ext_st*, void_ptr, size_t*);
+typedef size_t (_ext_copy_fn)(struct _ext_st*, int32_ptr, size_t, size_t*);
+typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st*, int32_ptrptr, size_t, size_t*);
 typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st*, void_ptr, const_int32_ptrptr , size_t, size_t, void_ptr, size_t);
 
 
@@ -94,9 +94,9 @@ int _wav_extension(char*);
 off_t _wav_get(_ext_t*, int);
 off_t _wav_set(_ext_t*, int, off_t);
 
-size_t _wav_copy(_ext_t*, int32_ptr, size_t, size_t);
-size_t _wav_process(_ext_t*, void_ptr, size_t);
-size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t);
+size_t _wav_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _wav_process(_ext_t*, void_ptr, size_t*);
+size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t, void_ptr, size_t);
 
 /* MP3 */
@@ -112,9 +112,9 @@ int _mp3_extension(char*);
 off_t _mp3_get(_ext_t*, int);
 off_t _mp3_set(_ext_t*, int, off_t);
 
-size_t _mp3_copy(_ext_t*, int32_ptr, size_t, size_t);
-size_t _mp3_process(_ext_t*, void_ptr, size_t);
-size_t _mp3_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t);
+size_t _mp3_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _mp3_process(_ext_t*, void_ptr, size_t*);
+size_t _mp3_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _mp3_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t, void_ptr, size_t);
 
 #if defined(__cplusplus)
