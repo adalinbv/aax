@@ -26,7 +26,7 @@
 #include "format.h"
 
 
-#define MSBLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
+#define MSIMA_BLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 #define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
 
 static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, const_char_ptr, size_t, unsigned int, size_t*);
@@ -256,62 +256,6 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
-_pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
-{
-   _driver_t *handle = fmt->id;
-   unsigned int blocksize;
-   size_t bytes, bufsize;
-   size_t rv = __F_EOF;
-   char *buf;
-
-   buf = (char*)handle->pcmBuffer;
-   bufsize = handle->pcmBufPos;
-   blocksize = handle->blocksize;
-
-   if (handle->format == AAX_IMA4_ADPCM) {
-      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
-   } else {
-      bytes = *num*blocksize;
-   }
-   bytes -= (bytes % blocksize);
-
-   if (bytes > bufsize)
-   {
-      bytes = bufsize;
-      bytes -= (bytes % blocksize);
-
-      if (handle->format == AAX_IMA4_ADPCM) {
-         *num = BLOCKSIZE_TO_SMP(bytes);
-      } else {
-         *num = bytes/blocksize;
-      }
-   }
-
-   if (bytes)
-   {
-      if (handle->cvt_endianness) {
-         handle->cvt_endianness(buf, *num);
-      }
-      if (handle->cvt_to_signed) {
-         handle->cvt_to_signed(buf, *num);
-      }
-
-      dptr_offs *= blocksize;
-      memcpy((char*)dptr+dptr_offs, buf, bytes);
-
-      /* skip processed data */
-      handle->pcmBufPos -= bytes;
-      if (handle->pcmBufPos > 0) {
-         memmove(buf, buf+bytes, handle->pcmBufPos);
-      }
-
-      rv = bytes;
-   }
-
-   return rv;
-}
-
-size_t
 _pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = fmt->id;
@@ -332,6 +276,14 @@ _pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
 
       memcpy(buf, sptr, bytes);
       handle->pcmBufPos += bytes;
+
+      if (handle->cvt_endianness) {
+         handle->cvt_endianness(buf, *num);
+      }
+      if (handle->cvt_to_signed) {
+         handle->cvt_to_signed(buf, *num);
+      }
+
       rv = bytes;
    }
 
@@ -339,24 +291,116 @@ _pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
 }
 
 size_t
-_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, const_char_ptr sptr, size_t pos, unsigned int tracks, size_t *num)
+_pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
+   unsigned int blocksize;
+   size_t bytes, bufsize;
    size_t rv = __F_EOF;
+   char *buf;
 
-   if (handle->format == AAX_IMA4_ADPCM)
+   buf = (char*)handle->pcmBuffer;
+   bufsize = handle->pcmBufPos;
+   blocksize = handle->blocksize;
+
+   if ((*num + handle->no_samples) > handle->max_samples) {
+      *num = handle->max_samples - handle->no_samples;
+   }
+
+   if (handle->format == AAX_IMA4_ADPCM) {
+      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
+   } else {
+      bytes = *num*blocksize;
+   }
+
+   if (bytes > bufsize) {
+      bytes = bufsize;
+   }
+   bytes -= (bytes % blocksize);
+
+   if (handle->format == AAX_IMA4_ADPCM) {
+      *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
+   } else {
+      *num = bytes/blocksize;
+   }
+
+   if (bytes)
    {
-      if (pos >= handle->blocksize) {
-         rv = _batch_cvt24_adpcm_intl(fmt, dptr, sptr, dptr_offs, tracks, num);
-      } else {
-         *num = rv = 0;
+      dptr_offs *= blocksize;
+      memcpy((char*)dptr+dptr_offs, buf, bytes);
+
+      /* skip processed data */
+      handle->pcmBufPos -= bytes;
+      if (handle->pcmBufPos > 0) {
+         memmove(buf, buf+bytes, handle->pcmBufPos);
+      }
+
+      handle->no_samples += *num;
+      if (handle->no_samples < handle->max_samples) {
+         rv = bytes;
       }
    }
-   else
+
+   return rv;
+}
+
+size_t
+_pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
+{
+   _driver_t *handle = fmt->id;
+   unsigned int tracks, blocksize;
+   size_t bytes, bufsize;
+   size_t rv = __F_EOF;
+   char *buf;
+
+   blocksize = handle->blocksize;
+   tracks = handle->no_tracks;
+
+   buf = (char*)handle->pcmBuffer;
+   bufsize = handle->pcmBufPos;
+
+   if ((*num + handle->no_samples) > handle->max_samples) {
+      *num = handle->max_samples - handle->no_samples;
+   }
+
+   if (handle->format == AAX_IMA4_ADPCM) {
+      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
+   } else {
+      bytes = *num*blocksize;
+   }
+
+   if (bytes > bufsize) {
+      bytes = bufsize;
+   }
+   bytes -= (bytes % blocksize);
+
+   if (handle->format == AAX_IMA4_ADPCM) {
+      *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
+   } else {
+      *num = bytes/blocksize;
+   }
+
+   if (bytes)
    {
-      rv = *num*handle->blocksize;
-      if (handle->cvt_from_intl) {
-         handle->cvt_from_intl(dptr, sptr, dptr_offs, tracks, *num);
+      if (handle->format == AAX_IMA4_ADPCM) {
+         rv = _batch_cvt24_adpcm_intl(fmt, dptr, buf, offset, tracks, num);
+      }
+      else
+      {
+         if (handle->cvt_from_intl) {
+            handle->cvt_from_intl(dptr, buf, offset, tracks, *num);
+         }
+      }
+
+      /* skip processed data */
+      handle->pcmBufPos -= bytes;
+      if (handle->pcmBufPos > 0) {
+         memmove(buf, buf+bytes, handle->pcmBufPos);
+      }
+
+      handle->no_samples += *num;
+      if (handle->no_samples < handle->max_samples) {
+         rv = bytes;
       }
    }
 
@@ -423,7 +467,7 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
       handle->no_tracks = value;
       break;
    case __F_SAMPLES:
-      handle->no_samples = value;
+      handle->max_samples = value;
       break;
    case __F_BITS:
       handle->bits_sample = value;
@@ -575,7 +619,7 @@ _batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size
    size_t r;
 
    offs_smp = handle->blockbufpos;
-   block_smp = MSBLOCKSIZE_TO_SMP(handle->blocksize, tracks);
+   block_smp = MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize, tracks);
    decode_smp = _MIN(block_smp-offs_smp, num);
 
    r = _aaxWavMSADPCMBlockDecode(handle, dptr, src, offs_smp, decode_smp, offs, tracks);

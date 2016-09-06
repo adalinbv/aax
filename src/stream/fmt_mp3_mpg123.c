@@ -421,6 +421,29 @@ _mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
+_mpg123_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
+{
+   _driver_t *handle = fmt->id;
+   unsigned int bits, tracks;
+   size_t rv = __F_EOF;
+   size_t bytes;
+   int ret;
+
+   tracks = handle->no_tracks;
+   bits = handle->bits_sample;
+   bytes = *num*tracks*bits/8;
+
+   ret = pmpg123_feed(handle->id, sptr, bytes);
+   if (!handle->id3_found) {
+      _detect_mpg123_song_info(handle);
+   }
+   if (ret == MPG123_OK) {
+      rv = bytes;
+   }
+   return rv;
+}
+
+size_t
 _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
@@ -448,45 +471,23 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    {
       unsigned int blocksize = tracks*bits/8;
 
-      *num = size*blocksize;
-      rv = size;
-
       dptr_offs *= blocksize;
       memcpy((char*)dptr+dptr_offs, buf, size);
+
+      *num = size/blocksize;
+      rv = size;
    }
    return rv;
 }
 
 size_t
-_mpg123_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
+_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
+   size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
    size_t rv = __F_EOF;
-   size_t bytes;
-   int ret;
-
-   tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
-
-   ret = pmpg123_feed(handle->id, sptr, bytes);
-   if (!handle->id3_found) {
-      _detect_mpg123_song_info(handle);
-   }
-   if (ret == MPG123_OK) {
-      rv = bytes;
-   }
-   return rv;
-}
-
-size_t
-_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, const_char_ptr buf, size_t buf_size, unsigned int tracks, size_t *num)
-{
-   _driver_t *handle = fmt->id;
-   size_t bytes, size = 0;
-   unsigned int bits;
-   size_t rv = __F_EOF;
+   char *buf;
    int ret;
 
    tracks = handle->no_tracks;
@@ -494,10 +495,10 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, const_char_
    bytes = *num*tracks*bits/8;
 
    buf = handle->mp3Buffer;
-   buf_size = handle->mp3BufSize;
+   bufsize = handle->mp3BufSize;
 
-   if (bytes > buf_size) {
-      bytes = buf_size;
+   if (bytes > bufsize) {
+      bytes = bufsize;
    }
 
    ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
@@ -506,10 +507,12 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, const_char_
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      *num = size*8/(tracks*bits);
-      rv = size;
+      unsigned int blocksize = tracks*bits/8;
 
+      *num = size/blocksize;
       _batch_cvt24_16_intl(dptr, buf, offset, tracks, *num);
+
+      rv = size;
    }
    return rv;
 }
