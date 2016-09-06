@@ -461,7 +461,7 @@ aaxBufferGetData(const aaxBuffer buffer)
          if (native_fmt != AAX_PCM24S)	/* then convert to requested format */
          {
             int new_bps = aaxGetBytesPerSample(native_fmt);
-            int block_smp = BLOCKSIZE_TO_SMP(handle->blocksize);
+            int block_smp = IMA4_BLOCKSIZE_TO_SMP(handle->blocksize);
             int new_samples = ((no_samples/block_smp)+1)*block_smp;
             void** ndata;
             char *ptr;
@@ -1300,7 +1300,7 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
          break;
       case AAX_IMA4_ADPCM:
       {
-         int block_smp = BLOCKSIZE_TO_SMP(blocksize);
+         int block_smp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
          unsigned t;
          for (t=0; t<tracks; t++)
          {
@@ -1335,7 +1335,7 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
       d[t] = (int16_t*)dst[t];
    }
 
-   block_smp = BLOCKSIZE_TO_SMP(blocksize);
+   block_smp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
    blocks = no_samples / block_smp;
    i = blocks-1;
    do

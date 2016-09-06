@@ -236,7 +236,7 @@ _controller_t *get_valid_controller(aaxController);
 
 #define DEFAULT_IMA4_BLOCKSIZE		36
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
-#define BLOCKSIZE_TO_SMP(a)		((a) > 1) ? (((a)-4)*2) : 1
+#define IMA4_BLOCKSIZE_TO_SMP(a)	((a) > 1) ? (((a)-4)*2) : 1
 
 typedef struct
 {
