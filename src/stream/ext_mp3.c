@@ -129,7 +129,7 @@ size_t
 _mp3_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, 0, 0, 0, num);
+   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
 }
 
 size_t
