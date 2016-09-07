@@ -698,7 +698,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
       }
    }
    res = handle->ext->cvt_to_intl(handle->ext, handle->dataBuf,
-                                  (const int32_t**)sbuf, offs, no_samples, 
+                                  (const int32_t**)sbuf, offs, &no_samples,
                                   data, handle->dataBufSize);
    rb->release_tracks_ptr(rb);
    handle->threadBufAvail = res;

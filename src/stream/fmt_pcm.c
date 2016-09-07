@@ -408,13 +408,13 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 }
 
 size_t
-_pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
+_pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t *num, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
    if (handle->cvt_to_intl) {
-      handle->cvt_to_intl(dptr, sptr, offset, tracks, num);
+      handle->cvt_to_intl(dptr, sptr, offset, handle->no_tracks, *num);
    }
-   return num;
+   return *num*handle->blocksize;
 }
 
 off_t

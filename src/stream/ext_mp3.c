@@ -133,10 +133,10 @@ _mp3_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 }
 
 size_t
-_mp3_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t num, void_ptr scratch, size_t scratchlen)
+_mp3_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, 0, scratch, scratchlen);
+   return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
 }
 
 char*
