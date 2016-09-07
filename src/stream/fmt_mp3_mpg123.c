@@ -518,17 +518,15 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
 }
 
 size_t
-//_mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num, void *scratch, size_t scratchlen)
-_mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, unsigned int tracks, size_t num, void_ptr scratch, size_t scratchlen)
+_mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
    int res;
 
-   assert(scratchlen >= num*tracks*sizeof(int32_t));
+   assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
-   tracks = handle->no_tracks;
-   _batch_cvt16_intl_24(scratch, sptr, offs, tracks, num);
-   res = plame_encode_buffer_interleaved(handle->id, scratch, num,
+   _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
+   res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
                          (unsigned char*)handle->mp3Buffer, handle->mp3BufSize);
    _aax_memcpy(dptr, handle->mp3Buffer, res);
 

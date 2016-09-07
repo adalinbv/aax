@@ -471,10 +471,17 @@ _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 }
 
 size_t
-_wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t num, void_ptr scratch, size_t scratchlen)
+_wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, 0, scratch, scratchlen);
+   size_t rv;
+
+   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
+
+   handle->io.write.update_dt += (float)*num/handle->frequency;
+   handle->no_samples += *num;
+
+   return rv;
 }
 
 char*
