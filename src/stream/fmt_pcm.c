@@ -110,7 +110,13 @@ _pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          {
             if (handle->capturing)
             {
-               size_t  num = *bufsize/handle->blocksize;
+               size_t  num;
+
+               if (handle->format == AAX_IMA4_ADPCM) {
+                  num = IMA4_BLOCKSIZE_TO_SMP(*bufsize);
+               } else {
+                  num = *bufsize/handle->blocksize;
+               }
                _pcm_process(fmt, buf, &num);
                // we're done decoding, return NULL
             }
@@ -415,6 +421,12 @@ _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
       handle->cvt_to_intl(dptr, sptr, offset, handle->no_tracks, *num);
    }
    return *num*handle->blocksize;
+}
+
+char*
+_pcm_name(_fmt_t *fmt, enum _aaxStreamParam param)
+{
+   return NULL;
 }
 
 off_t
