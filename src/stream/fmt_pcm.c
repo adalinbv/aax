@@ -322,10 +322,18 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    if (bytes > bufsize) {
       bytes = bufsize;
    }
-   bytes -= (bytes % blocksize);
 
-   if (handle->format == AAX_IMA4_ADPCM) {
-      *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
+      if (bufsize >= blocksize)
+      {
+         bytes = bufsize - (bufsize % blocksize);
+         *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
+         blocksize = (handle->no_tracks*handle->bits_sample/8);
+      }
+      else {
+         *num = bytes = 0;
+      }
    } else {
       *num = bytes/blocksize;
    }
@@ -369,8 +377,17 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       *num = handle->max_samples - handle->no_samples;
    }
 
-   if (handle->format == AAX_IMA4_ADPCM) {
-      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
+      if (bufsize >= blocksize)
+      {
+         bytes = bufsize - (bufsize % blocksize);
+         *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
+         blocksize = (handle->no_tracks*handle->bits_sample/8);
+      } 
+      else {
+         *num = bytes = 0;
+      }
    } else {
       bytes = *num*blocksize;
    }
@@ -378,7 +395,6 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
    if (bytes > bufsize) {
       bytes = bufsize;
    }
-   bytes -= (bytes % blocksize);
 
    if (handle->format == AAX_IMA4_ADPCM) {
       *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
