@@ -87,6 +87,7 @@ size_t _pcm_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, 
 size_t _pcm_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
 size_t _pcm_process(_fmt_t*, void_ptr, size_t*);
 size_t _pcm_copy(_fmt_t*, int32_ptr, size_t, size_t*);
+char* _pcm_name(_fmt_t*, enum _aaxStreamParam);
 off_t _pcm_set(_fmt_t*, int, off_t);
 off_t _pcm_get(_fmt_t*, int);
 
