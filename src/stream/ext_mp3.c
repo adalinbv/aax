@@ -106,9 +106,7 @@ _mp3_close(_ext_t *ext)
 void*
 _mp3_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 {
-// _driver_t *handle = ext->id;
-   void *rv = NULL;
-   return rv;
+   return NULL;
 }
 
 size_t

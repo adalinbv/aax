@@ -13,6 +13,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -70,6 +71,7 @@ typedef struct
 
       struct
       {
+         size_t datasize;
          size_t blockbufpos;
          size_t wavBufPos;
          uint32_t last_tag;
@@ -108,6 +110,9 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
    int bits_sample = aaxGetBitsPerSample(format);
    int rv = AAX_FALSE;
 
+   assert(ext != NULL);
+   assert(ext->id == NULL);
+
    if (bits_sample)
    {
       _driver_t *handle = calloc(1, sizeof(_driver_t));
@@ -124,16 +129,15 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->no_samples = no_samples;
          handle->max_samples = 0;
 
-         if (!handle->capturing)
+         if (handle->capturing)
+         {
+            handle->no_samples = UINT_MAX;
+            *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
+         }
+         else /* playback */
          {
             handle->wav_format = _getWAVFormatFromAAXFormat(format);
             *bufsize = 0;
-         }
-         else
-         {
-            handle->max_samples = 0;
-            handle->no_samples = UINT_MAX;
-            *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
          ext->id = handle;
          rv = AAX_TRUE;
@@ -275,7 +279,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             _AAX_FILEDRVLOG("WAV: Insufficient memory");
          }
       }
-      				/* read: handle->capturing */
+			/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
       {
          if (!handle->wavptr)
@@ -290,7 +294,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
          if (handle->wavptr)
          {
-            size_t step, size = *bufsize;
+            size_t step, remaining = *bufsize, size = *bufsize;
             size_t avail = handle->wavBufSize-handle->io.read.wavBufPos;
             _fmt_type_t fmt;
             int res;
@@ -311,6 +315,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             {
                while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
                {
+                  remaining -= step;
+                  buf = (void*)((char*)buf + step);
                   handle->io.read.wavBufPos -= step;
                   memmove(handle->wavBuffer, (char*)handle->wavBuffer+step,
                           handle->io.read.wavBufPos);
@@ -360,7 +366,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                                                 handle->io.read.blockbufpos);
                }
 
-               rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+               rv = handle->fmt->open(handle->fmt, buf, &remaining,
+                                      handle->io.read.datasize);
             }
 
             if (res < 0)
@@ -387,8 +394,10 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             return rv;
          }
       }
+			/* Format requires more data to process it's header */
       else if (handle->fmt && handle->fmt->open) {
-          return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+          rv = handle->fmt->open(handle->fmt, buf, bufsize,
+                                 handle->io.read.datasize);
       }
       else _AAX_FILEDRVLOG("WAV: Unknown opening error");
    }
@@ -434,6 +443,12 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
+
+   /*
+    * Update the file header every second when writing to make sure there
+    * is only 1 seconds worth of data lost in case of an unexpected
+    * program termination
+    */
 
    *offs = 0;
    *size = 0;
@@ -488,36 +503,39 @@ char*
 _wav_name(_ext_t *ext, enum _aaxStreamParam param)
 {
    _driver_t *handle = ext->id;
-   char *rv = NULL;
+   char *rv = handle->fmt->name(handle->fmt, param);
 
-   switch(param)
+   if (!rv)
    {
-   case __F_ARTIST:
-      rv = handle->artist;
-      break;
-   case __F_TITLE:
-      rv = handle->title;
-      break;
-   case __F_GENRE:
-      rv = handle->genre;
-      break;
-   case __F_TRACKNO:
-      rv = handle->trackno;
-      break;
-   case __F_ALBUM:
-      rv = handle->album;
-      break;
-   case __F_DATE:
-      rv = handle->date;
-      break;
-   case __F_COMMENT:
-      rv = handle->comments;
-      break;
-   case __F_COPYRIGHT:
-      rv = handle->copyright;
-      break;
-   default:
-      break;
+      switch(param)
+      {
+      case __F_ARTIST:
+         rv = handle->artist;
+         break;
+      case __F_TITLE:
+         rv = handle->title;
+         break;
+      case __F_GENRE:
+         rv = handle->genre;
+         break;
+      case __F_TRACKNO:
+         rv = handle->trackno;
+         break;
+      case __F_ALBUM:
+         rv = handle->album;
+         break;
+      case __F_DATE:
+         rv = handle->date;
+         break;
+      case __F_COMMENT:
+         rv = handle->comments;
+         break;
+      case __F_COPYRIGHT:
+         rv = handle->copyright;
+         break;
+      default:
+         break;
+      }
    }
    return rv;
 }
@@ -843,6 +861,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    else if (curr == 0x61746164)         /* data */
    {
       curr = (8*header[1])/(handle->no_tracks*handle->bits_sample);
+      handle->io.read.datasize = header[1];
       handle->no_samples = curr;
       handle->max_samples = curr;
       *step = res = 2*sizeof(int32_t);
