@@ -30,6 +30,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->setup = _pcm_setup;
             rv->open = _pcm_open;
             rv->close = _pcm_close;
+            rv->name = _pcm_name;
 
             rv->cvt_to_signed = _pcm_cvt_to_signed;
             rv->cvt_from_signed = _pcm_cvt_from_signed;
