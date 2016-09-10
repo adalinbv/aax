@@ -731,7 +731,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       int file_bits = handle->ext->get_param(handle->ext, __F_BITS);
       size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
-      size_t no_samples, bufsize, samples, dpos;
+      size_t no_samples, bufsize, samples;
       ssize_t res;
       void *data;
 
@@ -746,7 +746,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          _aaxSignalTrigger(&handle->thread.signal);
       }
 
-      dpos = 0;
       bytes = 0;
       data = NULL;
       samples = no_samples;
