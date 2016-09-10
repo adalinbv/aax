@@ -197,9 +197,6 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
          handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
          handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
-         if (handle->capturing) {
-            handle->fmt->set(handle->fmt, __F_POSITION, handle->io.read.blockbufpos);
-         }
          rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
 
          ptr = 0;
@@ -294,7 +291,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
          if (handle->wavptr)
          {
-            size_t step, remaining = *bufsize, size = *bufsize;
+            size_t step, datapos, datasize = *bufsize, size = *bufsize;
             size_t avail = handle->wavBufSize-handle->io.read.wavBufPos;
             _fmt_type_t fmt;
             int res;
@@ -311,12 +308,13 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
              * read the file information and set the file-pointer to
              * the start of the data section
              */
+            datapos = 0;
             do
             {
                while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
                {
-                  remaining -= step;
-                  buf = (void*)((char*)buf + step);
+                  datapos += step;
+                  datasize -= step;
                   handle->io.read.wavBufPos -= step;
                   memmove(handle->wavBuffer, (char*)handle->wavBuffer+step,
                           handle->io.read.wavBufPos);
@@ -333,16 +331,20 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
                   avail = _MIN(size, avail);
 
+                  datapos = 0;
+                  datasize = avail;
+                  size -= avail;
                   memcpy((char*)handle->wavBuffer+handle->io.read.wavBufPos,
                          buf, avail);
                   handle->io.read.wavBufPos += avail;
-                  size -= avail;
                }
             }
             while (res > 0);
 
             if (!handle->fmt)
             {
+               char *dataptr;
+
                fmt = _getFmtFromWAVFormat(handle->wav_format);
                handle->fmt = _fmt_create(fmt, handle->mode);
                if (!handle->fmt) {
@@ -361,12 +363,10 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
                handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
                handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
-               if (handle->capturing) {
-                  handle->fmt->set(handle->fmt, __F_POSITION,
+               handle->fmt->set(handle->fmt, __F_POSITION,
                                                 handle->io.read.blockbufpos);
-               }
-
-               rv = handle->fmt->open(handle->fmt, buf, &remaining,
+               dataptr = (char*)buf + datapos;
+               rv = handle->fmt->open(handle->fmt, dataptr, &datasize,
                                       handle->io.read.datasize);
             }
 
