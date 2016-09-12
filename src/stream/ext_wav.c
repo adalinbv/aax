@@ -31,8 +31,8 @@ enum wavFormat
    FLOAT_WAVE_FILE = 3,
    ALAW_WAVE_FILE = 6,
    MULAW_WAVE_FILE = 7,
-   IMA4_ADPCM_WAVE_FILE = 17,
-   MP3_WAVE_FILE = 85,
+   IMA4_ADPCM_WAVE_FILE = 0x11, // 17
+   MP3_WAVE_FILE = 0x55,	// 85
 
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
 };
@@ -608,7 +608,7 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
     0x0001f400,                 /*  7. (sample_rate*channels*bits_sample/8)  */
     0x0010000F,                 /*  8. (channels*bits_sample/8)              *
                                  *     & 16 bits per sample                  */
-    0x00100016,                 /*  9. extension size & valid bits           */
+    0x00100022,                 /*  9. extension size & valid bits           */
     0,                          /* 10. speaker mask                          */
         /* sub-format */
     PCM_WAVE_FILE,              /* 11-14 GUID                                */
@@ -648,6 +648,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       if (bufsize < WAVE_HEADER_SIZE) {
          return res;
       }
+// TODO: 'fmt ' is not garuenteed to follow 'RIFF"
 
       /* normal or extended format header? */
       curr = BSWAPH(header[5] & 0xFFFF);
