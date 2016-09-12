@@ -469,12 +469,12 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      unsigned int blocksize = tracks*bits/8;
+      unsigned int framesize = tracks*bits/8;
 
-      dptr_offs *= blocksize;
+      dptr_offs *= framesize;
       memcpy((char*)dptr+dptr_offs, buf, size);
 
-      *num = size/blocksize;
+      *num = size/framesize;
       rv = size;
    }
    return rv;
@@ -507,11 +507,12 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      unsigned int blocksize = tracks*bits/8;
+      unsigned int framesize = tracks*bits/8;
 
-      *num = size/blocksize;
+      *num = size/framesize;
       _batch_cvt24_16_intl(dptr, buf, offset, tracks, *num);
 
+      handle->no_samples += *num;
       rv = size;
    }
    return rv;
