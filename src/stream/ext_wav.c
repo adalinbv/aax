@@ -394,7 +394,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             return rv;
          }
       }
-			/* Format requires more data to process it's header */
+	/* Format requires more data to process it's own header */
       else if (handle->fmt && handle->fmt->open) {
           rv = handle->fmt->open(handle->fmt, buf, bufsize,
                                  handle->io.read.datasize);
@@ -444,16 +444,13 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
    _driver_t *handle = ext->id;
    void *rv = NULL;
 
-   /*
-    * Update the file header every second when writing to make sure there
-    * is only 1 seconds worth of data lost in case of an unexpected
-    * program termination
-    */
-
    *offs = 0;
    *size = 0;
    if (handle && !handle->capturing)
    {
+      // Update the file header every second when writing to make sure there
+      // is only 1 seconds worth of data lost in case of an unexpected
+      // program termination.
       if ((handle->io.write.update_dt >= 1.0f) || close)
       {
          handle->io.write.update_dt -= 1.0f;
@@ -491,10 +488,10 @@ _wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    _driver_t *handle = ext->id;
    size_t rv;
 
-   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
-
-   handle->io.write.update_dt += (float)*num/handle->frequency;
+   rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num,
+                                 scratch, scratchlen);
    handle->no_samples += *num;
+   handle->io.write.update_dt += (float)*num/handle->frequency;
 
    return rv;
 }
@@ -861,10 +858,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
    else if (curr == 0x61746164)         /* data */
    {
-      curr = (8*header[1])/(handle->no_tracks*handle->bits_sample);
       handle->io.read.datasize = header[1];
-      handle->no_samples = curr;
-      handle->max_samples = curr;
+      if (handle->max_samples == 0)
+      {
+         curr = BSWAP(header[1])*8/(handle->no_tracks*handle->bits_sample);
+         handle->no_samples = curr;
+         handle->max_samples = curr;
+      }
       *step = res = 2*sizeof(int32_t);
    }
 
