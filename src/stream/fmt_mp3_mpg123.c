@@ -308,7 +308,7 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
                   rv = buf;
 
-                  if (pmpg123_length)
+                  if (handle->max_samples == 0 && pmpg123_length)
                   {
                      off_t length = pmpg123_length(handle->id);
                      handle->max_samples = (length > 0) ? length : 0;
@@ -475,6 +475,8 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       memcpy((char*)dptr+dptr_offs, buf, size);
 
       *num = size/framesize;
+      handle->no_samples += *num;
+
       rv = size;
    }
    return rv;
@@ -526,6 +528,7 @@ _mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t 
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
+   handle->no_samples += *num;
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
                          (unsigned char*)handle->mp3Buffer, handle->mp3BufSize);
@@ -643,6 +646,7 @@ _mpg123_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_SAMPLES:
       handle->no_samples = value;
+      handle->max_samples = value;
       break;
    case __F_BITS:
       handle->bits_sample = value;

@@ -1377,7 +1377,7 @@ _aaxStreamDriverReadThread(void *id)
 
    _aaxMutexLock(handle->thread.signal.mutex);
 
-   /* read all bytes already sent from the server */
+   /* read (clear) all bytes already sent from the server */
    if (handle->io->protocol != PROTOCOL_FILE)
    {
       do
