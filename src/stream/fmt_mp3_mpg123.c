@@ -421,24 +421,22 @@ _mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
-_mpg123_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
+_mpg123_process(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks;
-   size_t rv = __F_EOF;
-   size_t bytes;
+   size_t rv = 0;
    int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
 
-   ret = pmpg123_feed(handle->id, sptr, bytes);
+   ret = pmpg123_feed(handle->id, sptr, *bytes);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
    if (ret == MPG123_OK) {
-      rv = bytes;
+      rv = *bytes;
    }
    return rv;
 }

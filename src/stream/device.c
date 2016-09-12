@@ -825,7 +825,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   bytes = 0; // -1;
                   break;
                }
-               samples = ret*8/frame_bits;
+               samples = ret; // *8/frame_bits;
             }
          }
          else
