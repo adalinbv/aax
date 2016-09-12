@@ -108,22 +108,14 @@ _pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
          if (handle->pcmptr)
          {
-            if (handle->capturing)
-            {
-               size_t  num;
-
-               if (handle->format == AAX_IMA4_ADPCM) {
-                  num = IMA4_BLOCKSIZE_TO_SMP(*bufsize);
-               } else {
-                  num = *bufsize/handle->blocksize;
-               }
-               _pcm_process(fmt, buf, &num);
+            if (handle->capturing) {
+               _pcm_process(fmt, buf, bufsize);
                // we're done decoding, return NULL
             }
          }
          else {
             _AAX_FILEDRVLOG("PCM: unable to allocate memory");
-            rv = buf;
+            rv = buf;	// try again
          }
       }
    }
@@ -262,35 +254,21 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
-_pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *num)
+_pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufpos, bufsize;
-   size_t rv = __F_EOF;
-
-   if (handle->format == AAX_IMA4_ADPCM) {
-      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
-   } else {
-      bytes = *num*handle->blocksize;
-   }
+   size_t bufpos, bufsize;
+   size_t rv = 0;
 
    bufpos = handle->pcmBufPos;
    bufsize = handle->pcmBufSize;
-   if ((bufpos+bytes) <= bufsize)
+   if ((*bytes+bufpos) <= bufsize)
    {
       char *buf = (char*)handle->pcmBuffer + bufpos;
 
-      memcpy(buf, sptr, bytes);
-      handle->pcmBufPos += bytes;
-
-      if (handle->cvt_endianness) {
-         handle->cvt_endianness(buf, *num);
-      }
-      if (handle->cvt_to_signed) {
-         handle->cvt_to_signed(buf, *num);
-      }
-
-      rv = bytes;
+      memcpy(buf, sptr, *bytes);
+      handle->pcmBufPos += *bytes;
+      rv = *bytes;
    }
 
    return rv;
@@ -409,6 +387,13 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       }
       else
       {
+         if (handle->cvt_endianness) {
+            handle->cvt_endianness(buf, *num);
+         }
+         if (handle->cvt_to_signed) {
+            handle->cvt_to_signed(buf, *num);
+         }
+
          if (handle->cvt_from_intl) {
             handle->cvt_from_intl(dptr, buf, offset, tracks, *num);
          }
