@@ -421,15 +421,11 @@ _mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
-_mpg123_process(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
+_mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   unsigned int bits, tracks;
    size_t rv = 0;
    int ret;
-
-   tracks = handle->no_tracks;
-   bits = handle->bits_sample;
 
    ret = pmpg123_feed(handle->id, sptr, *bytes);
    if (!handle->id3_found) {
