@@ -46,7 +46,7 @@ typedef char* (_fmt_name_fn)(struct _fmt_st*, enum _aaxStreamParam);
 typedef void (_fmt_cvt_fn)(struct _fmt_st*, void_ptr, size_t);
 typedef size_t (_fmt_cvt_from_fn)(struct _fmt_st*, int32_ptrptr, size_t, size_t*);
 typedef size_t (_fmt_cvt_to_fn)(struct _fmt_st*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
-typedef size_t (_fmt_process_fn)(struct _fmt_st*, void_ptr, size_t*);
+typedef size_t (_fmt_fill_fn)(struct _fmt_st*, void_ptr, size_t*);
 typedef size_t (_fmt_copy_fn)(struct _fmt_st*, int32_ptr, size_t, size_t*);
 typedef off_t (_fmt_set_fn)(struct _fmt_st*, int, off_t);
 typedef off_t (_fmt_get_fn)(struct _fmt_st*, int);
@@ -64,7 +64,7 @@ struct _fmt_st
    _fmt_cvt_fn *cvt_endianness;
    _fmt_cvt_to_fn *cvt_to_intl;			// convert to file format
    _fmt_cvt_from_fn *cvt_from_intl;		// convert to mixer format
-   _fmt_process_fn *process;
+   _fmt_fill_fn *fill;
    _fmt_copy_fn *copy;				// copy raw sound data
 
    _fmt_set_fn *set;
@@ -85,7 +85,7 @@ void _pcm_cvt_from_signed(_fmt_t*, void_ptr, size_t);
 void _pcm_cvt_endianness(_fmt_t*, void_ptr, size_t);
 size_t _pcm_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _pcm_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
-size_t _pcm_process(_fmt_t*, void_ptr, size_t*);
+size_t _pcm_fill(_fmt_t*, void_ptr, size_t*);
 size_t _pcm_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _pcm_name(_fmt_t*, enum _aaxStreamParam);
 off_t _pcm_set(_fmt_t*, int, off_t);
@@ -98,7 +98,7 @@ void* _mpg123_open(_fmt_t*, void*, size_t*, size_t);
 void _mpg123_close(_fmt_t*);
 size_t _mpg123_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _mpg123_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
-size_t _mpg123_process(_fmt_t*, void_ptr, size_t*);
+size_t _mpg123_fill(_fmt_t*, void_ptr, size_t*);
 size_t _mpg123_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _mpg123_name(_fmt_t*, enum _aaxStreamParam);
 off_t _mpg123_set(_fmt_t*, int, off_t);

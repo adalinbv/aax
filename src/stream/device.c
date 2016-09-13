@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2015 by Erik Hofman.
- * Copyright 2009-2015 by Adalin B.V.
+ * Copyright 2005-2016 by Erik Hofman.
+ * Copyright 2009-2016 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -755,7 +755,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (data)
          {
             // add data from the scratch buffer to ext's internal buffer
-            res = handle->ext->process(handle->ext, data, &samples);
+            res = handle->ext->fill(handle->ext, data, &samples);
             res = __F_PROCESS;
          }
          else
