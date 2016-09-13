@@ -469,10 +469,10 @@ _wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
 }
 
 size_t
-_wav_process(_ext_t *ext, void_ptr sptr, size_t *num)
+_wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
-    return handle->fmt->process(handle->fmt, sptr, num);
+    return handle->fmt->fill(handle->fmt, sptr, num);
 }
 
 size_t

@@ -109,7 +109,7 @@ _pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          if (handle->pcmptr)
          {
             if (handle->capturing) {
-               _pcm_process(fmt, buf, bufsize);
+               _pcm_fill(fmt, buf, bufsize);
                // we're done decoding, return NULL
             }
          }
@@ -254,7 +254,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
-_pcm_process(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
+_pcm_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t bufpos, bufsize;
