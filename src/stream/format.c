@@ -37,7 +37,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->cvt_endianness = _pcm_cvt_endianness;
             rv->cvt_to_intl = _pcm_cvt_to_intl;
             rv->cvt_from_intl = _pcm_cvt_from_intl;
-            rv->process = _pcm_process;
+            rv->fill = _pcm_fill;
             rv->copy = _pcm_copy;
 
             rv->set = _pcm_set;
@@ -63,7 +63,7 @@ _fmt_create(_fmt_type_t format, int mode)
 
             rv->cvt_to_intl = _mpg123_cvt_to_intl;
             rv->cvt_from_intl = _mpg123_cvt_from_intl;
-            rv->process = _mpg123_process;
+            rv->fill = _mpg123_fill;
             rv->copy = _mpg123_copy;
 
             rv->set = _mpg123_set;

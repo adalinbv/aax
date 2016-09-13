@@ -40,7 +40,7 @@ _ext_create(_ext_type_t extension)
          rv->set_param = _wav_set;
 
          rv->copy = _wav_copy;
-         rv->process = _wav_process;
+         rv->fill = _wav_fill;
          rv->cvt_from_intl = _wav_cvt_from_intl;
          rv->cvt_to_intl = _wav_cvt_to_intl;
       }
@@ -64,7 +64,7 @@ _ext_create(_ext_type_t extension)
          rv->set_param = _mp3_set;
 
          rv->copy = _mp3_copy;
-         rv->process = _mp3_process;
+         rv->fill = _mp3_fill;
          rv->cvt_from_intl = _mp3_cvt_from_intl;
          rv->cvt_to_intl = _mp3_cvt_to_intl;
       }
