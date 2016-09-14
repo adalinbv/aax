@@ -756,12 +756,13 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (data)
          {
             // add data from the scratch buffer to ext's internal buffer
-            size_t bytes = samples + dataoffs;
-            res = handle->ext->fill(handle->ext, data, &bytes);
-            if (bytes < samples)
-            {
-                dataoffs = samples-bytes;
-                memmove(data, data+bytes, dataoffs);
+            size_t size = samples + dataoffs;
+            res = handle->ext->fill(handle->ext, data, &size);
+
+            samples -= size;
+            dataoffs = samples;
+            if (size < samples) {
+               memmove(data, data+size, dataoffs);
             }
             res = __F_PROCESS;
          }
@@ -812,7 +813,16 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                _aaxMutexLock(handle->thread.signal.mutex);
 
                // copy data from the read-threat to the scratch buffer
-               ret = _MIN(handle->threadBufAvail, bufsize);
+               ret = bufsize;
+               if (bufsize+dataoffs > handle->threadBufAvail)
+               {
+                  if (handle->threadBufAvail-dataoffs > 0) {
+                     ret = handle->threadBufAvail-dataoffs;
+                  } else {
+                     ret = 0;
+                  }
+               }
+//             ret = _MINMAX(handle->threadBufAvail-dataoffs, 0, bufsize);
                memcpy(data+dataoffs, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer

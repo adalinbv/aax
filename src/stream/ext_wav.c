@@ -473,12 +473,16 @@ size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
+
    if (handle->format == AAX_IMA4_ADPCM)
    {
       size_t blocksize = handle->blocksize;
       unsigned tracks = handle->no_tracks;
 
       *num -= (*num % blocksize);
+//
+*num = blocksize;
+
       if (tracks > 1) {
          _wav_cvt_msadpcm_to_ima4(sptr, *num, tracks, &blocksize);
       }
