@@ -23,13 +23,13 @@
 #include <api.h>
 
 #include "audio.h"
+#include "device.h"
 #include "format.h"
 
 
-#define MSIMA_BLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
-#define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
-
+#if 0
 static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, const_char_ptr, size_t, unsigned int, size_t*);
+#endif
 static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
@@ -340,16 +340,15 @@ size_t
 _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   unsigned int tracks, blocksize;
+   unsigned int blocksize, tracks;
    size_t bytes, bufsize;
    size_t rv = __F_EOF;
    char *buf;
 
-   blocksize = handle->blocksize;
-   tracks = handle->no_tracks;
-
    buf = (char*)handle->pcmBuffer;
    bufsize = handle->pcmBufPos;
+   blocksize = handle->blocksize;
+   tracks = handle->no_tracks;
 
    if ((*num + handle->no_samples) > handle->max_samples) {
       *num = handle->max_samples - handle->no_samples;
@@ -359,9 +358,8 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
    {
       if (bufsize >= blocksize)
       {
-         bytes = bufsize - (bufsize % blocksize);
+         bytes = blocksize; // bufsize - (bufsize % blocksize);
          *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
-         blocksize = (handle->no_tracks*handle->bits_sample/8);
       } 
       else {
          *num = bytes = 0;
@@ -382,8 +380,14 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 
    if (bytes)
    {
-      if (handle->format == AAX_IMA4_ADPCM) {
-         rv = _batch_cvt24_adpcm_intl(fmt, dptr, buf, offset, tracks, num);
+      if (handle->format == AAX_IMA4_ADPCM)
+      {
+         int t;
+         for (t=0; t<tracks; t++)
+         {
+            _sw_bufcpy_ima_adpcm(dptr[t]+offset, buf, *num);
+         }
+         rv = bytes;
       }
       else
       {
@@ -526,6 +530,36 @@ _pcm_cvt_endianness(_fmt_t *fmt, void_ptr dptr, size_t num)
    }
 }
 
+void _pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
+                                unsigned block_smp, int16_t* sample,
+                                uint8_t* index, short step)
+{
+   unsigned int i;
+   int16_t header;
+   uint8_t nibble;
+
+   header = *sample;
+   *ndata++ = header & 0xFF;
+   *ndata++ = header >> 8;
+   *ndata++ = *index;
+   *ndata++ = 0;
+
+   for (i=0; i<block_smp; i += 2)
+   {
+      int16_t nsample;
+
+      nsample = *data >> 8;
+      _linear2adpcm(sample, nsample, &nibble, index);
+      data += step;
+      *ndata = nibble;
+
+      nsample = *data >> 8;
+      _linear2adpcm(sample, nsample, &nibble, index);
+      data += step;
+      *ndata++ |= nibble << 4;
+   }
+}
+
 static size_t
 _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
 
@@ -621,6 +655,7 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src,
    return rv;
 }
 
+#if 0
 static size_t
 _batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size_t offs, unsigned int tracks, size_t *n)
 {
@@ -647,6 +682,7 @@ _batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size
 
    return rv;
 }
+#endif
 
 static void
 _batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
