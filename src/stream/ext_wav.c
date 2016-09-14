@@ -20,6 +20,7 @@
 #include <devices.h>
 #include <arch.h>
 
+#include "device.h"
 #include "extension.h"
 #include "format.h"
 
@@ -472,7 +473,18 @@ size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
-    return handle->fmt->fill(handle->fmt, sptr, num);
+   if (handle->format == AAX_IMA4_ADPCM)
+   {
+      size_t blocksize = handle->blocksize;
+      unsigned tracks = handle->no_tracks;
+
+      *num -= (*num % blocksize);
+      if (tracks > 1) {
+         _wav_cvt_msadpcm_to_ima4(sptr, *num, tracks, &blocksize);
+      }
+   }
+
+   return handle->fmt->fill(handle->fmt, sptr, num);
 }
 
 size_t
@@ -1069,6 +1081,48 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
       break;
    }
    return rv;
+}
+
+/**
+ * Shuffle the WAV based ADPCM interleaved channel blocks to
+ * IMA4 expected interleaved channel blocks.
+ */
+void
+_wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, int tracks, size_t *size)
+{
+   size_t blocksize = *size;
+   *size /= tracks;
+   if (tracks > 1)
+   {
+      int32_t *buf = (int32_t*)malloc(blocksize);
+      if (buf)
+      {
+         int32_t* dptr = (int32_t*)data;
+         size_t numBlocks, numChunks;
+         size_t blockNum;
+
+         numBlocks = bufsize/blocksize;
+         numChunks = blocksize/4;
+
+         for (blockNum=0; blockNum<numBlocks; blockNum++)
+         {
+            int t, i;
+
+            /* block shuffle */
+            memcpy(buf, dptr, blocksize);
+            for (t=0; t<tracks; t++)
+            {
+               int32_t *src = (int32_t*)buf + t;
+               for (i=0; i < numChunks; i++)
+               {
+                  *dptr++ = *src;
+                  src += tracks;
+               }
+            }
+         }
+         free(buf);
+      }
+   }
 }
 
 /**

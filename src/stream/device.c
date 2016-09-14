@@ -731,9 +731,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       int file_bits = handle->ext->get_param(handle->ext, __F_BITS);
       size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
-      size_t no_samples, bufsize, samples;
+      size_t no_samples, bufsize, samples, dataoffs;
       ssize_t res;
-      void *data;
+      char *data;
 
       no_samples = *frames;
       bufsize = no_samples*frame_bits/8;
@@ -748,6 +748,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
       bytes = 0;
       data = NULL;
+      dataoffs = 0;
       samples = no_samples;
       do
       {
@@ -755,12 +756,19 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (data)
          {
             // add data from the scratch buffer to ext's internal buffer
-            res = handle->ext->fill(handle->ext, data, &samples);
+            size_t bytes = samples + dataoffs;
+            res = handle->ext->fill(handle->ext, data, &bytes);
+            if (bytes < samples)
+            {
+                dataoffs = samples-bytes;
+                memmove(data, data+bytes, dataoffs);
+            }
             res = __F_PROCESS;
          }
          else
          {
-            // convert data from ext's internal buffer to tracks[]
+            // copy or convert data from ext's internal buffer to tracks[]
+            // this allows ext or fmt to convert it to a supported format.
             if (handle->copy_to_buffer) {
                res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
             }
@@ -805,7 +813,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
                // copy data from the read-threat to the scratch buffer
                ret = _MIN(handle->threadBufAvail, bufsize);
-               memcpy(data, handle->threadBuf, ret);
+               memcpy(data+dataoffs, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer
                handle->threadBufAvail -= ret;
