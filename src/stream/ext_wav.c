@@ -479,9 +479,15 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
       size_t blocksize = handle->blocksize;
       unsigned tracks = handle->no_tracks;
 
+#if 0
       *num -= (*num % blocksize);
-//
-*num = blocksize;
+#else
+      if (*num >= blocksize) {
+         *num = blocksize;
+      } else {
+         *num = 0;
+      }
+#endif
 
       if (tracks > 1) {
          _wav_cvt_msadpcm_to_ima4(sptr, *num, tracks, &blocksize);
