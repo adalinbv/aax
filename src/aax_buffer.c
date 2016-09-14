@@ -41,7 +41,6 @@ static void _bufFillInterleaved(_aaxRingBuffer*, const void*, unsigned);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
-static void _bufConvertMSADPCMToIMA4(void*, size_t, int, size_t*);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -616,8 +615,9 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                }
                while (res);
 
-               if (fmt == AAX_IMA4_ADPCM) { // convert from MS to IMA ADPCM
-                  _bufConvertMSADPCMToIMA4(dst[0], datasize, tracks,&blocksize);
+               // convert from WAV file ADPCM interleaved channels to IMA4
+               if (fmt == AAX_IMA4_ADPCM && tracks > 1) {
+                  _wav_cvt_msadpcm_to_ima4(dst[0], datasize, tracks, &blocksize);
                }
 
                rv = aaxBufferCreate(config, no_samples, tracks, fmt);
@@ -1022,44 +1022,6 @@ _aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 }
 
 static void
-_bufConvertMSADPCMToIMA4(void *data, size_t bufsize, int tracks, size_t *size)
-{
-   size_t blocksize = *size;
-   *size /= tracks;
-   if (tracks > 1)
-   {
-      int32_t *buf = (int32_t*)malloc(blocksize);
-      if (buf)
-      {
-         int32_t* dptr = (int32_t*)data;
-         size_t numBlocks, numChunks;
-         size_t blockNum;
-
-         numBlocks = bufsize/blocksize;
-         numChunks = blocksize/4;
-
-         for (blockNum=0; blockNum<numBlocks; blockNum++)
-         {
-            int t, i;
-
-            /* block shuffle */
-            memcpy(buf, dptr, blocksize);
-            for (t=0; t<tracks; t++)
-            {
-               int32_t *src = (int32_t*)buf + t;
-               for (i=0; i < numChunks; i++)
-               {
-                  *dptr++ = *src;
-                  src += tracks;
-               }
-            }
-         }
-         free(buf);
-      }
-   }
-}
-
-static void
 _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxFormat format)
 {
    if (ndata)
@@ -1159,36 +1121,6 @@ _aaxLinear2ALaw(uint8_t* ndata, int32_t* data, unsigned int i)
    } while (--i);
 }
 
-static void
-_aaxLinear2IMABlock(uint8_t* ndata, int32_t* data, unsigned block_smp,
-                   int16_t* sample, uint8_t* index, short step)
-{
-   unsigned int i;
-   int16_t header;
-   uint8_t nibble;
-
-   header = *sample;
-   *ndata++ = header & 0xFF;
-   *ndata++ = header >> 8;
-   *ndata++ = *index;
-   *ndata++ = 0;
-
-   for (i=0; i<block_smp; i += 2)
-   {
-      int16_t nsample;
-
-      nsample = *data >> 8;
-      _linear2adpcm(sample, nsample, &nibble, index);
-      data += step;
-      *ndata = nibble;
-
-      nsample = *data >> 8;
-      _linear2adpcm(sample, nsample, &nibble, index);
-      data += step;
-      *ndata++ |= nibble << 4;
-   }
-}
-
 /*
  * Incompatible with MS-IMA which specifies a different way of interleaving.
  */
@@ -1204,7 +1136,7 @@ _aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned bl
 
    for(i=0; i<no_blocks; i++)
    {
-      _aaxLinear2IMABlock(ndata, data, block_smp, &sample, &index, tracks);
+      _pcm_cvt_lin_to_ima4_block(ndata, data, block_smp, &sample, &index, tracks);
       ndata += blocksize*tracks;
       data += block_smp*tracks;
    }
@@ -1214,7 +1146,7 @@ _aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned bl
       unsigned int rest = (no_blocks+1)*block_smp - samples;
 
       samples = block_smp - rest;
-      _aaxLinear2IMABlock(ndata, data, samples, &sample, &index, tracks);
+      _pcm_cvt_lin_to_ima4_block(ndata, data, samples, &sample, &index, tracks);
 
       ndata += IMA4_SMP_TO_BLOCKSIZE(samples);
       memset(ndata, 0, rest/2);
