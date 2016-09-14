@@ -372,7 +372,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       bytes = bufsize;
    }
 
-   if (handle->format == AAX_IMA4_ADPCM) {
+   if (handle->format == AAX_IMA4_ADPCM && bytes > 0) {
       *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
    } else {
       *num = bytes/blocksize;
