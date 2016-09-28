@@ -40,6 +40,10 @@
 # include <ws2tcpip.h>
 # define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
+#ifndef WIN32
+#define closesocket	close
+#endif
+
 
 #include <base/types.h>
 #include <base/timer.h>
@@ -105,7 +109,7 @@ _socket_open(_io_t *io, const char *server)
                }
                else
                {
-                  close(fd);
+                  closesocket(fd);
                   fd = -1;
                }
             }
@@ -129,7 +133,7 @@ _socket_open(_io_t *io, const char *server)
 int
 _socket_close(_io_t *io)
 {
-   int rv = close(io->fd);
+   int rv = closesocket(io->fd);
    io->fd = -1;
    return rv;
 }
