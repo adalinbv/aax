@@ -80,6 +80,7 @@ _fmt_create(_fmt_type_t format, int mode)
       }
       break;
    case _FMT_VORBIS:
+   case _FMT_SPEEX:
    case _FMT_FLAC:
    default:
       break;
