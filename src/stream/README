@@ -1,0 +1,34 @@
+request URL: protocol://location/path/file.ext
+
+input/output
+----------------------------------------------
+  - io
+    + file
+      - file open/close
+      - file descriptor read/write
+      - extension
+    + http
+      - socket open/close
+      - file descriptor read/write
+      - extension
+
+file extension
+----------------------------------------------
+  - extension
+    + wav (container format)
+      - handle container header
+      - format
+    + mp3
+      - format
+
+data format
+----------------------------------------------
+  - format
+    + pcm
+      - big/little endian
+      - floats
+      - compressed
+      - integer
+        - signed/unsigned 
+    + mp3
+      - raw
