@@ -1,6 +1,6 @@
 request URL: protocol://location/path/file.ext
 
-input/output
+input/output (TODO: Use libcurl if available)
 ----------------------------------------------
   * io
     + file
@@ -12,6 +12,7 @@ input/output
       - file descriptor read/write
       * extension
 
+
 file extension
 ----------------------------------------------
   * extension
@@ -22,6 +23,7 @@ file extension
       * format (mp3)
   ( + ogg (vorbis/speex) )
   ( + flac (flac) )
+
 
 data format
 ----------------------------------------------
@@ -37,3 +39,4 @@ data format
   ( + vorbis )
   ( + speex )
   ( + flac )
+
