@@ -2,28 +2,30 @@ request URL: protocol://location/path/file.ext
 
 input/output
 ----------------------------------------------
-  - io
+  * io
     + file
       - file open/close
       - file descriptor read/write
-      - extension
+      * extension
     + http
       - socket open/close
       - file descriptor read/write
-      - extension
+      * extension
 
 file extension
 ----------------------------------------------
-  - extension
+  * extension
     + wav (container format)
       - handle container header
-      - format
+      * format
     + mp3
-      - format
+      * format (mp3)
+  ( + ogg (vorbis/speex) )
+  ( + flac (flac) )
 
 data format
 ----------------------------------------------
-  - format
+  * format
     + pcm
       - big/little endian
       - floats
@@ -32,3 +34,6 @@ data format
         - signed/unsigned 
     + mp3
       - raw
+  ( + vorbis )
+  ( + speex )
+  ( + flac )

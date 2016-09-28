@@ -32,6 +32,7 @@ typedef enum
    _FMT_MP3,
    _FMT_VORBIS,
    _FMT_FLAC,
+   _FMT_SPEEX,
 
    _FMT_MAX
 

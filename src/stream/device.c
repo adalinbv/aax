@@ -763,7 +763,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
             datasize -= fillsize;
             dataoffs = datasize;
-printf("fill: datasize: %i, dataoffs: %i, res: %i, size: %i\n", datasize, dataoffs, res, fillsize);
             if (dataoffs) {
                memmove(data, data+fillsize, dataoffs);
             }
@@ -808,7 +807,6 @@ printf("fill: datasize: %i, dataoffs: %i, res: %i, size: %i\n", datasize, dataof
                if (bufsize > scratchlen) {
                   bufsize = (scratchlen/frame_bits)*frame_bits;
                }
-printf("bufsize: %i\n", bufsize);
 
                if (batched) {
                   ret = _aaxStreamDriverReadChunk(id);
@@ -823,15 +821,12 @@ printf("bufsize: %i\n", bufsize);
                if (bufsize+dataoffs > handle->threadBufAvail)
                {
                   if (handle->threadBufAvail-dataoffs > 0) {
-printf("a\n");
                      ret = handle->threadBufAvail-dataoffs;
                   } else {
-printf("b\n");
                      ret = 0;
                   }
                }
 //             ret = _MINMAX(handle->threadBufAvail-dataoffs, 0, bufsize);
-printf("ret: %i\n", ret);
                memcpy(data+dataoffs, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer
