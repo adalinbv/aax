@@ -24,16 +24,20 @@
 #include "extension.h"
 #include "format.h"
 
+// https://tools.ietf.org/html/rfc2361
+// http://svn.tribler.org/vlc/trunk/include/vlc_codecs.h
 enum wavFormat
 {
-   UNSUPPORTED = 0,
-   PCM_WAVE_FILE = 1,
-   MSADPCM_WAVE_FILE = 2,
-   FLOAT_WAVE_FILE = 3,
-   ALAW_WAVE_FILE = 6,
-   MULAW_WAVE_FILE = 7,
-   IMA4_ADPCM_WAVE_FILE = 0x11, // 17
-   MP3_WAVE_FILE = 0x55,	// 85
+   UNSUPPORTED          = 0x0000,
+   PCM_WAVE_FILE        = 0x0001,
+   MSADPCM_WAVE_FILE    = 0x0002,
+   FLOAT_WAVE_FILE      = 0x0003,
+   ALAW_WAVE_FILE       = 0x0006,
+   MULAW_WAVE_FILE      = 0x0007,
+   IMA4_ADPCM_WAVE_FILE = 0x0011, //    17
+   MP3_WAVE_FILE        = 0x0055, //    85
+   VROBIS_WAVE_FILE     = 0x566f, // 22127
+   SPEEX_WAVE_FILE      = 0xa109, // 41225
 
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
 };
