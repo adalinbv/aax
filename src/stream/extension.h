@@ -26,9 +26,11 @@ extern "C" {
 
 typedef enum {
    _EXT_WAV = 0,
+   _EXT_PCM,
    _EXT_MP3,
-   _EXT_OGG,
+   _EXT_OPUS,
    _EXT_FLAC,
+   _EXT_OGG,
 
    _EXT_MAX
 
@@ -43,7 +45,7 @@ typedef int (_ext_close_fn)(struct _ext_st*);
 typedef void* (_ext_update_fn)(struct _ext_st*, size_t*, size_t*, char);
 typedef char* (_ext_get_name_fn)(struct _ext_st*, enum _aaxStreamParam);
 
-typedef char* (_ext_default_fname_fn)(int);
+typedef char* (_ext_default_fname_fn)(int, int);
 typedef int (_ext_extension_fn)(char*);
 typedef off_t (_ext_get_param_fn)(struct _ext_st*, int);
 typedef off_t (_ext_set_param_fn)(struct _ext_st*, int, off_t);
@@ -89,7 +91,7 @@ int _wav_close(_ext_t*);
 void* _wav_update(_ext_t*, size_t*, size_t*, char);
 char* _wav_name(_ext_t*, enum _aaxStreamParam);
 
-char* _wav_interfaces(int);
+char* _wav_interfaces(int, int);
 int _wav_extension(char*);
 off_t _wav_get(_ext_t*, int);
 off_t _wav_set(_ext_t*, int, off_t);
@@ -99,23 +101,23 @@ size_t _wav_fill(_ext_t*, void_ptr, size_t*);
 size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
-/* MP3 */
-int _mp3_detect(_ext_t*, int);
-int _mp3_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
-void* _mp3_open(_ext_t*, void*, size_t*, size_t);
-int _mp3_close(_ext_t*);
-void* _mp3_update(_ext_t*, size_t*, size_t*, char);
-char* _mp3_name(_ext_t*, enum _aaxStreamParam);
+/* RAW, MP3, OPUS, FLAC */
+int _raw_detect(_ext_t*, int);
+int _raw_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _raw_open(_ext_t*, void*, size_t*, size_t);
+int _raw_close(_ext_t*);
+void* _raw_update(_ext_t*, size_t*, size_t*, char);
+char* _raw_name(_ext_t*, enum _aaxStreamParam);
 
-char* _mp3_interfaces(int);
-int _mp3_extension(char*);
-off_t _mp3_get(_ext_t*, int);
-off_t _mp3_set(_ext_t*, int, off_t);
+char* _raw_interfaces(int, int);
+int _raw_extension(char*);
+off_t _raw_get(_ext_t*, int);
+off_t _raw_set(_ext_t*, int, off_t);
 
-size_t _mp3_copy(_ext_t*, int32_ptr, size_t, size_t*);
-size_t _mp3_fill(_ext_t*, void_ptr, size_t*);
-size_t _mp3_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
-size_t _mp3_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _raw_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _raw_fill(_ext_t*, void_ptr, size_t*);
+size_t _raw_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
+size_t _raw_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

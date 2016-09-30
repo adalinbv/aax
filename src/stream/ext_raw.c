@@ -1,0 +1,219 @@
+/*
+ * Copyright 2005-2016 by Erik Hofman.
+ * Copyright 2009-2016 by Adalin B.V.
+ * All Rights Reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
+ * the contents of this file may not be disclosed to third parties, copied or
+ * duplicated in any form, in whole or in part, without the prior written
+ * permission of Adalin B.V.
+ */
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <strings.h>
+#include <string.h>
+
+#include "extension.h"
+#include "format.h"
+
+typedef struct
+{
+   void *id;
+
+   _fmt_t *fmt;
+
+   int mode;
+   enum aaxFormat format;
+
+} _driver_t;
+
+
+int
+_raw_detect(_ext_t *ext, int mode)
+{
+   int rv = AAX_FALSE;
+
+   _driver_t *handle = calloc(1, sizeof(_driver_t));
+   if (handle)
+   {
+      handle->mode = mode;
+      ext->id = handle;
+      rv = AAX_TRUE;
+   }
+   else {
+      _AAX_FILEDRVLOG("RAW: Insufficient memory");
+   }
+   return rv;
+}
+
+int
+_raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
+{
+   _driver_t *handle = ext->id;
+   unsigned bits;
+   _fmt_t *fmt;
+
+   fmt = _fmt_create(format,  handle->mode);
+   if (fmt)
+   {
+      bits = aaxGetBitsPerSample(format);
+      handle->format = format;
+      handle->fmt = fmt;
+
+      handle->fmt->set(handle->fmt, __F_FREQ, freq);
+      handle->fmt->set(handle->fmt, __F_RATE, bitrate);
+      handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
+      handle->fmt->set(handle->fmt, __F_SAMPLES, no_samples);
+      handle->fmt->set(handle->fmt, __F_BITS, bits);
+
+      *bufsize = 0;
+      if (handle->mode == 0) {
+         *bufsize = (no_samples*tracks*bits)/8;
+      }
+   }
+
+   return AAX_TRUE;
+}
+
+void*
+_raw_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+
+}
+
+int
+_raw_close(_ext_t *ext)
+{
+   _driver_t *handle = ext->id;
+   int res = AAX_TRUE;
+
+   if (handle)
+   {
+      if (handle->fmt)
+      {
+         handle->fmt->close(handle->fmt);
+         handle->fmt = _fmt_free(handle->fmt);
+      }
+      free(handle);
+   }
+
+   return res;
+}
+
+void*
+_raw_update(_ext_t *ext, size_t *offs, size_t *size, char close)
+{
+   return NULL;
+}
+
+size_t
+_raw_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->copy(handle->fmt, dptr, offs, num);
+}
+
+size_t
+_raw_fill(_ext_t *ext, void_ptr sptr, size_t *num)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->fill(handle->fmt, sptr, num);
+}
+
+size_t
+_raw_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+}
+
+size_t
+_raw_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
+}
+
+char*
+_raw_name(_ext_t *ext, enum _aaxStreamParam param)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->name(handle->fmt, param);
+}
+
+char*
+_raw_interfaces(int ext, int mode)
+{
+   static const char *exts[_EXT_MAX] = {
+      NULL, "*.pcm", "*.mp3", "*.opus", "*.flac", NULL
+   };
+   static char *rd[2][_EXT_MAX] = {
+       { NULL, NULL, NULL, NULL, NULL, NULL },
+       { NULL, NULL, NULL, NULL, NULL, NULL }
+    };
+   int m = mode > 0 ? 1 : 0;
+
+   if (rd[m][ext] == NULL)
+   {
+      int format = _FMT_MAX;
+    
+      switch(ext)
+      {
+      case _EXT_PCM:
+         format = _FMT_PCM;
+         break;
+      case _EXT_MP3:
+         format = _FMT_MP3;
+         break;
+      case _EXT_OPUS:
+         format = _FMT_OPUS;
+         break;
+      case _EXT_FLAC:
+      default:
+         break;
+      }
+
+      _fmt_t *fmt = _fmt_create(format, m);
+      if (fmt)
+      {
+         _fmt_free(fmt);
+         rd[m][ext] = (char*)exts[ext];
+      }
+   }
+
+   return rd[mode][ext];
+}
+
+int
+_raw_extension(char *ext)
+{
+   int rv = 0;
+
+   if (ext)
+   {
+      if (!strcasecmp(ext, "pcm")) rv = AAX_TRUE;
+      else if (!strcasecmp(ext, "mp3")) rv = AAX_TRUE;
+      else if (!strcasecmp(ext, "opus")) rv = AAX_TRUE;
+   }
+   return rv;
+}
+
+off_t
+_raw_get(_ext_t *ext, int type)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->get(handle->fmt, type);
+}
+
+off_t
+_raw_set(_ext_t *ext, int type, off_t value)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->set(handle->fmt, type, value);
+}
+

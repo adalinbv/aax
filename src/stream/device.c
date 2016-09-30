@@ -1145,8 +1145,11 @@ _aaxStreamDriverGetInterfaces(const void *id, const char *devname, int mode)
          {
             if (ext->detect(ext, mode))
             {
-               char *ifs = ext->interfaces(mode);
-               size_t len = ifs ? strlen(ifs) : 0;
+               char *ifs;
+               size_t len;
+
+               ifs = ext->interfaces(i, mode);
+               len = ifs ? strlen(ifs) : 0;
                if (ifs && len)
                {
                   snprintf(ptr, buflen, "%s ", ifs);

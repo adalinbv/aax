@@ -79,6 +79,32 @@ _fmt_create(_fmt_type_t format, int mode)
          }
       }
       break;
+   case _FMT_OPUS:
+      rv = calloc(1, sizeof(_fmt_t));
+      if (rv)
+      {
+         if (_opus_detect(rv, mode))
+         {
+            rv->setup = _opus_setup;
+            rv->open = _opus_open;
+            rv->close = _opus_close;
+            rv->name = _opus_name;
+
+            rv->cvt_to_intl = _opus_cvt_to_intl;
+            rv->cvt_from_intl = _opus_cvt_from_intl;
+            rv->fill = _opus_fill;
+            rv->copy = _opus_copy;
+
+            rv->set = _opus_set;
+            rv->get = _opus_get;
+         }
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
+      }
+      break;
    case _FMT_VORBIS:
    case _FMT_SPEEX:
    case _FMT_FLAC:
