@@ -21,7 +21,7 @@ file extension
       * format
     + mp3
       * format (mp3)
-  ( + ogg (vorbis/speex) )
+  ( + ogg )
   ( + flac (flac) )
 
 
@@ -36,7 +36,6 @@ data format
         - signed/unsigned 
     + mp3
       - raw
-  ( + vorbis )
-  ( + speex )
   ( + flac )
+  ( + opus )
 

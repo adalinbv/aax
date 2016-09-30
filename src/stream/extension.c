@@ -45,32 +45,34 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _wav_cvt_to_intl;
       }
       break;
+   case _EXT_PCM:
    case _EXT_MP3:
-   rv = calloc(1, sizeof(_ext_t));
+   case _EXT_OPUS:
+   case _EXT_FLAC:
+      rv = calloc(1, sizeof(_ext_t));
       if (rv)
       {
          rv->id = NULL;
-         rv->detect = _mp3_detect;
-         rv->setup = _mp3_setup;
-         rv->open = _mp3_open;
-         rv->close = _mp3_close;
-         rv->update = _mp3_update;
-         rv->name = _mp3_name;
+         rv->detect = _raw_detect;
+         rv->setup = _raw_setup;
+         rv->open = _raw_open;
+         rv->close = _raw_close;
+         rv->update = _raw_update;
+         rv->name = _raw_name;
 
-         rv->supported = _mp3_extension;
-         rv->interfaces = _mp3_interfaces;
+         rv->supported = _raw_extension;
+         rv->interfaces = _raw_interfaces;
 
-         rv->get_param = _mp3_get;
-         rv->set_param = _mp3_set;
+         rv->get_param = _raw_get;
+         rv->set_param = _raw_set;
 
-         rv->copy = _mp3_copy;
-         rv->fill = _mp3_fill;
-         rv->cvt_from_intl = _mp3_cvt_from_intl;
-         rv->cvt_to_intl = _mp3_cvt_to_intl;
+         rv->copy = _raw_copy;
+         rv->fill = _raw_fill;
+         rv->cvt_from_intl = _raw_cvt_from_intl;
+         rv->cvt_to_intl = _raw_cvt_to_intl;
       }
       break;
    case _EXT_OGG:
-   case _EXT_FLAC:
    default:
       break;
    }

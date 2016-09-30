@@ -36,7 +36,7 @@ enum wavFormat
    MULAW_WAVE_FILE      = 0x0007,
    IMA4_ADPCM_WAVE_FILE = 0x0011, //    17
    MP3_WAVE_FILE        = 0x0055, //    85
-   VROBIS_WAVE_FILE     = 0x566f, // 22127
+   VORBIS_WAVE_FILE     = 0x566f, // 22127
    SPEEX_WAVE_FILE      = 0xa109, // 41225
 
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
@@ -564,7 +564,7 @@ _wav_name(_ext_t *ext, enum _aaxStreamParam param)
 }
 
 char*
-_wav_interfaces(int mode)
+_wav_interfaces(int ext, int mode)
 {
    static const char *rd[2] = { "*.wav\0", "*.wav\0" };
    return (char *)rd[mode];
