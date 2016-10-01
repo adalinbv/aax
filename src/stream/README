@@ -3,26 +3,28 @@ request URL: protocol://location/path/file.ext
 input/output (TODO: Use libcurl if available)
 ----------------------------------------------
   * io
-    + file
-      - file open/close
-      - file descriptor read/write
-      * extension
-    + http
-      - socket open/close
-      - file descriptor read/write
-      * extension
+    - protocol
+      + direct
+        - file open/close
+        - file descriptor read/write
+        * extension (file name extension)
+      + http
+        - socket open/close
+        - file descriptor read/write
+        * extension (content-type)
 
 
-file extension
+file extension (container format)
 ----------------------------------------------
   * extension
-    + wav (container format)
+    + wav (pcm, mp3)
       - handle container header
       * format
-    + mp3
-      * format (mp3)
-  ( + ogg )
-  ( + flac (flac) )
+    + ogg (pcm, speex, vorbis, opus, flac)
+      - handle container header
+      * format
+    + raw (pcm, mp3, flac)
+      * format
 
 
 data format
@@ -35,8 +37,9 @@ data format
       - integer
         - signed/unsigned 
     + mp3
-      - raw
-  ( + flac )
-  ( + opus )
+    + vorbis
+    + speex
+    = opus
+    + flac
 
 
