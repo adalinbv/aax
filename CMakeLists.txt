@@ -472,11 +472,11 @@ SET( AEONWAVE_OBJS
      src/stream/io_file.c
      src/stream/io_socket.c
      src/stream/protocol.c
+     src/stream/prot_direct.c
      src/stream/prot_http.c
      src/stream/extension.c
-     src/stream/ext_wav.c
      src/stream/ext_raw.c
-     src/stream/ext_ogg.c
+     src/stream/ext_wav.c
      src/stream/format.c
      src/stream/fmt_pcm.c
      src/stream/fmt_mp3_mpg123.c

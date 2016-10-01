@@ -28,7 +28,8 @@ extern "C" {
 
 typedef enum
 {
-   _FMT_PCM = 0,
+   _FMT_NONE = 0,
+   _FMT_PCM,
    _FMT_MP3,
    _FMT_OPUS,
    _FMT_FLAC,

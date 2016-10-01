@@ -73,6 +73,7 @@ enum _aaxStreamParam
 
    __F_RATE,
    __F_PORT,
+   __F_EXTENSION,
    __F_TIMEOUT,
    __F_FLAGS,
    __F_MODE,

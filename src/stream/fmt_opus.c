@@ -143,6 +143,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
             handle->pcm = _aax_aligned_alloc16(MAX_FRAME_SIZE*handle->no_tracks);
 
+            rv = buf;
          }
          else {
             _AAX_FILEDRVLOG("OPUS: Unable to create a handle");
@@ -153,6 +154,8 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
    {
       _AAX_FILEDRVLOG("OPUS: Internal error: handle id equals 0");
    }
+
+printf("opus: %i\n", rv);
 
    return rv;
 }

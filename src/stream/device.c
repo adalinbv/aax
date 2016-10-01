@@ -46,6 +46,7 @@
 #include "device.h"
 #include "io.h"
 #include "extension.h"
+#include "format.h"
 #include "audio.h"
 
 #define BACKEND_NAME_OLD	"File"
@@ -257,6 +258,7 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
    {
       handle->handle = config;
       handle->ext = _ext_free(handle->ext);
+printf("s: '%s'\n", s);
       handle->ext = _aaxGetFormat(s, mode);
       if (handle->ext)
       {
@@ -401,8 +403,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                     int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t bufsize, period_frames;
+   char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
+   char *s, *protname, *server, *path, *extension;
    int res, rate, rv = AAX_FALSE;
+   _protocol_t protocol;
+   int port;
+   size_t bufsize;
    float period_ms;
 
    assert(handle);
@@ -416,92 +422,106 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (period_ms < 4.0f) period_ms = 4.0f;
    period_rate = 1000.0f / period_ms;
 
-   period_frames = (size_t)rintf(rate / period_rate);
-   res = handle->ext->setup(handle->ext, handle->mode, &bufsize, rate,
-                                        *tracks, *fmt, period_frames, *bitrate);
-   if (res)
+   s = strdup(handle->name);
+   protocol = _url_split(s, &protname, &server, &path, &extension, &port);
+   handle->io = _io_create(protocol);
+   if (!handle->io)
    {
-      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-      char *s, *protname, *server, *path;
-      _protocol_t protocol;
-      int port;
+      _aaxStreamDriverLog(id, 0, 0, "Unable to create the protocol");
+      return rv;
+   }
 
-      s = strdup(handle->name);
-      protocol = _url_split(s, &protname, &server, &path, &port);
-      handle->io = _io_create(protocol);
-      handle->io->set(handle->io, __F_FLAGS, handle->mode);
-#if 0
+   handle->io->set(handle->io, __F_FLAGS, handle->mode);
+#if 1
  printf("name: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
  printf("path: '%s'\n", path);
+ printf("ext: '%s'\n", extension);
  printf("port: %i\n", port);
 #endif
 
-      if (!m)
+   res = AAX_FALSE;
+   if (!m)
+   {
+      switch (protocol)
       {
-         switch (protocol)
-         {
-         case PROTOCOL_HTTP:
-            handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
-
-            handle->io->set(handle->io, __F_RATE, rate);
-            handle->io->set(handle->io, __F_PORT, port);
-            handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
-            if (handle->io->open(handle->io, server) >= 0)
-            {   
-               handle->prot = _prot_create(protocol);
-               if (handle->prot)
-               {
-                  const char *agent = aaxGetVersionString((aaxConfig)id);
-                  res = handle->prot->connect(handle->prot, handle->io,
-                                              server, path, agent);
-                  if (res > 0) {
-                     handle->no_bytes = res;
-                  }
-               }
-
+      case PROTOCOL_HTTP:
+         handle->io->set(handle->io, __F_RATE, rate);
+         handle->io->set(handle->io, __F_PORT, port);
+         handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
+         if (handle->io->open(handle->io, server) >= 0)
+         {   
+            handle->prot = _prot_create(protocol);
+            if (handle->prot)
+            {
+               const char *agent = aaxGetVersionString((aaxConfig)id);
+               res = handle->prot->connect(handle->prot, handle->io,
+                                           server, path, agent);
                if (res < 0)
                {
                   _aaxStreamDriverLog(id, 0, 0, "Unable to open connection");
-                  handle->ext = _ext_free(handle->ext);
                   handle->prot = _prot_free(handle->prot);
                   handle->io->close(handle->io);
                   handle->io = _io_free(handle->io);
                   res = AAX_FALSE;
                }
-               else {
+               else
+               {
+                  handle->no_bytes = res;
                   res = AAX_TRUE;
                }
             }
             else {
-               _aaxStreamDriverLog(id, 0, 0, "Connection failed");
+               _aaxStreamDriverLog(id, 0, 0, "Unknow protocol");
             }
-            break;
-         case PROTOCOL_FILE:
-            handle->io->set(handle->io, __F_FLAGS, handle->mode);
-            if (handle->io->open(handle->io, path) >= 0) {
-               handle->no_bytes = handle->io->get(handle->io, __F_NO_BYTES);
-            }
-            else
-            {
-               if (handle->mode != AAX_MODE_READ) {
-                  _aaxStreamDriverLog(id, 0, 0, "File already exists");
-               } else {
-                  _aaxStreamDriverLog(id, 0, 0, "File read error");
-               }
-               handle->ext = _ext_free(handle->ext);
-               handle->io->close(handle->io);
-               handle->io = _io_free(handle->io);
-               res = AAX_FALSE;
-            }
-            break;
-         default:
-            _aaxStreamDriverLog(id, 0, 0, "Unknown protocol");
-            break;
          }
+         else {
+            _aaxStreamDriverLog(id, 0, 0, "Connection failed");
+         }
+         break;
+      case PROTOCOL_FILE:
+         handle->io->set(handle->io, __F_FLAGS, handle->mode);
+         if (handle->io->open(handle->io, path) >= 0)
+         {
+            handle->no_bytes = handle->io->get(handle->io, __F_NO_BYTES);
+            res = AAX_TRUE;
+         }
+         else
+         {
+            if (handle->mode != AAX_MODE_READ) {
+               _aaxStreamDriverLog(id, 0, 0, "File already exists");
+            } else {
+               _aaxStreamDriverLog(id, 0, 0, "File read error");
+            }
+            handle->io->close(handle->io);
+            handle->io = _io_free(handle->io);
+         }
+         break;
+      default:
+         _aaxStreamDriverLog(id, 0, 0, "Unknown protocol");
+         break;
       }
-      free(s);
+   }
+
+   if (res)
+   {
+      int format = _FMT_NONE;
+      size_t period_frames;
+
+      if (handle->prot) {
+         format = handle->prot->get(handle->prot, __F_FMT);
+      }
+      if (format == _FMT_NONE) {
+         format = handle->ext->supported(extension);
+      }
+
+      period_frames = (size_t)rintf(rate / period_rate);
+      res = handle->ext->setup(handle->ext, handle->mode, &bufsize, rate,
+                               *tracks, format, period_frames, *bitrate);
+      if (protocol == PROTOCOL_HTTP) {
+         handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
+      }
 
       if (res && ((handle->io->fd >= 0) || m))
       {
@@ -610,6 +630,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io = _io_free(handle->io);
          }
       }
+      free(s);
    }
    else {
       _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
@@ -1210,7 +1231,7 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
 
    extension = NULL;
    s = strdup(url);
-   res = _url_split(s, &protocol, &server, &path, &port);
+   res = _url_split(s, &protocol, &server, &path, &extension, &port);
    switch (res)
    {
    case PROTOCOL_HTTP:

@@ -25,12 +25,14 @@ extern "C" {
 #include "audio.h"
 
 typedef enum {
-   _EXT_WAV = 0,
+   _EXT_NONE = 0,
+   _EXT_WAV,
+   _EXT_OGG,
+
+   /* raw format extensions */
    _EXT_PCM,
    _EXT_MP3,
-   _EXT_OPUS,
    _EXT_FLAC,
-   _EXT_OGG,
 
    _EXT_MAX
 

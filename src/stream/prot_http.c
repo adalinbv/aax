@@ -22,6 +22,8 @@
 
 #include "device.h"
 #include "protocol.h"
+#include "extension.h"
+#include "format.h"
 
 #define MAX_BUFFER	512
 
@@ -54,6 +56,8 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
          s = _get_json(buf, "content-type");
          if (s && !strcasecmp(s, "audio/mpeg"))
          {
+            prot->content_type = strdup(s);
+
             s = _get_json(buf, "icy-name");
             if (s)
             {
@@ -61,7 +65,7 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
                memcpy(prot->artist+1, s, len);
                prot->artist[len] = '\0';
                prot->artist[0] = AAX_TRUE;
-                           prot->station = strdup(s);
+               prot->station = strdup(s);
             }
 
             s = _get_json(buf, "icy-description");
@@ -194,6 +198,60 @@ _http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
    case __F_POSITION:
       prot->meta_pos += param;
       rv = 0;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+int
+_http_get(_prot_t *prot, enum _aaxStreamParam ptype)
+{
+   int rv = -1;
+
+   switch (ptype)
+   {
+   case __F_FMT:
+      if (!strcasecmp(prot->content_type, "audio/mpeg")) {
+         rv = _FMT_MP3;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/flac")) { 
+         rv = _FMT_FLAC;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/opus")) {
+         rv = _FMT_OPUS;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/vorbis")) {
+         rv = _FMT_VORBIS;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/speex")) {
+         rv = _FMT_SPEEX;
+      }
+      else {
+         rv = _FMT_NONE;
+      }
+      break;
+   case __F_EXTENSION:
+      if (!strcasecmp(prot->content_type, "audio/wav") ||
+          !strcasecmp(prot->content_type, "audio/wave") ||
+          !strcasecmp(prot->content_type, "audio/x-wav")) {
+         rv = _EXT_WAV;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/ogg") ||
+               !strcasecmp(prot->content_type, "application/ogg") ||
+               !strcasecmp(prot->content_type, "audio/x-ogg")) {
+         rv = _EXT_OGG;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/mpeg")) {
+         rv = _EXT_MP3;
+      }
+      else if (!strcasecmp(prot->content_type, "audio/flac")) {
+         rv = _EXT_FLAC;
+      }
+      else {
+         rv = _EXT_NONE;
+      }
       break;
    default:
       break;
