@@ -56,7 +56,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
    unsigned bits;
    _fmt_t *fmt;
 
-   fmt = _fmt_create(format,  handle->mode);
+   fmt = _fmt_create(format, handle->mode);
    if (fmt)
    {
       bits = aaxGetBitsPerSample(format);
@@ -149,56 +149,61 @@ _raw_name(_ext_t *ext, enum _aaxStreamParam param)
 char*
 _raw_interfaces(int ext, int mode)
 {
-   static const char *exts[_EXT_MAX] = {
-      NULL, "*.pcm", "*.mp3", "*.opus", "*.flac", NULL
+   static const char *raw_exts[_EXT_MAX - _EXT_PCM] = {
+      "*.pcm", "*.mp3", "*.flac"
    };
-   static char *rd[2][_EXT_MAX] = {
-       { NULL, NULL, NULL, NULL, NULL, NULL },
-       { NULL, NULL, NULL, NULL, NULL, NULL }
-    };
-   int m = mode > 0 ? 1 : 0;
+   static char *rd[2][_EXT_MAX - _EXT_PCM] = {
+      { NULL, NULL, NULL },
+      { NULL, NULL, NULL }
+   };
+   char *rv = NULL;
 
-   if (rd[m][ext] == NULL)
+   if (ext >= _EXT_PCM)
    {
-      int format = _FMT_MAX;
+      int m = mode > 0 ? 1 : 0;
+      int pos = ext - _EXT_PCM;
+
+      if (rd[m][pos] == NULL)
+      {
+         int format = _FMT_MAX;
     
-      switch(ext)
-      {
-      case _EXT_PCM:
-         format = _FMT_PCM;
-         break;
-      case _EXT_MP3:
-         format = _FMT_MP3;
-         break;
-      case _EXT_OPUS:
-         format = _FMT_OPUS;
-         break;
-      case _EXT_FLAC:
-      default:
-         break;
-      }
+         switch(ext)
+         {
+         case _EXT_PCM:
+            format = _FMT_PCM;
+            break;
+         case _EXT_MP3:
+            format = _FMT_MP3;
+            break;
+         case _EXT_FLAC:
+            format = _FMT_FLAC;
+            break;
+         default:
+            break;
+         }
 
-      _fmt_t *fmt = _fmt_create(format, m);
-      if (fmt)
-      {
-         _fmt_free(fmt);
-         rd[m][ext] = (char*)exts[ext];
+         _fmt_t *fmt = _fmt_create(format, m);
+         if (fmt)
+         {
+            _fmt_free(fmt);
+            rd[m][pos] = (char*)raw_exts[pos];
+         }
       }
+      rv = rd[mode][pos];
    }
-
-   return rd[mode][ext];
+   return rv;
 }
 
 int
 _raw_extension(char *ext)
 {
-   int rv = 0;
+   int rv = _FMT_NONE;
 
    if (ext)
    {
-      if (!strcasecmp(ext, "pcm")) rv = AAX_TRUE;
-      else if (!strcasecmp(ext, "mp3")) rv = AAX_TRUE;
-      else if (!strcasecmp(ext, "opus")) rv = AAX_TRUE;
+      if (!strcasecmp(ext, "pcm")) rv = _FMT_PCM;
+      else if (!strcasecmp(ext, "mp3")) rv = _FMT_MP3;
+      else if (!strcasecmp(ext, "opus")) rv = _FMT_OPUS;
    }
    return rv;
 }

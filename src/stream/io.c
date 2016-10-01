@@ -37,7 +37,7 @@ _io_create(_protocol_t protocol)
          rv->param[_IO_SOCKET_PORT] = 80;
          rv->param[_IO_SOCKET_TIMEOUT] = 1000;
          break;
-      case PROTOCOL_FILE:
+      case PROTOCOL_DIRECT:
          rv->open = _file_open;
          rv->close = _file_close;
          rv->read = _file_read;

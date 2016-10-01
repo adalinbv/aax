@@ -32,12 +32,28 @@ _prot_create(_protocol_t protocol)
          rv->process = _http_process;
          rv->name = _http_name;
          rv->set = _http_set;
+         rv->get = _http_get;
 
          rv->protocol = protocol;
          rv->meta_interval = 0;
          rv->meta_pos = 0;
       }
-   case PROTOCOL_FILE:
+      break;
+   case PROTOCOL_DIRECT:
+      rv = calloc(1, sizeof(_prot_t));
+      if (rv)
+      {
+         rv->connect = _direct_connect;
+         rv->process = _direct_process;
+         rv->name = _direct_name;
+         rv->set = _direct_set;
+         rv->get = _direct_get;
+
+         rv->protocol = protocol;
+         rv->meta_interval = 0;
+         rv->meta_pos = 0;
+      }
+      break;
    default:
       break;
    }
@@ -47,6 +63,8 @@ _prot_create(_protocol_t protocol)
 void*
 _prot_free(_prot_t *prot)
 {
+   free(prot->path);
+   free(prot->content_type);
    free(prot->station);
    free(prot->description);
    free(prot->genre);
@@ -57,7 +75,7 @@ _prot_free(_prot_t *prot)
 
 /* NOTE: modifies url, make sure to strdup it before calling this function */
 _protocol_t
-_url_split(char *url, char **protocol, char **server, char **path, int *port)
+_url_split(char *url, char **protocol, char **server, char **path, char **extension, int *port)
 {
    _protocol_t rv;
    char *ptr;
@@ -74,8 +92,11 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       *ptr = '\0';
       url = ptr + strlen("://");
    }
-   else if (access(url, F_OK) != -1) {
+   else if (access(url, F_OK) != -1)
+   {
       *path = url;
+      *extension = strrchr(url, '.');
+      if (*extension) (*extension)++;
    }
 
    if (!*path)
@@ -87,6 +108,8 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       {
          *ptr++ = '\0';
          *path = ptr;
+         *extension = strrchr(ptr, '.');
+         if (*extension) (*extension)++;
       }
 
       ptr = strchr(url, ':');
@@ -104,7 +127,7 @@ _url_split(char *url, char **protocol, char **server, char **path, int *port)
       if (*port <= 0) *port = 80;
    }
    else if (!*protocol || !strcasecmp(*protocol, "file")) {
-      rv = PROTOCOL_FILE;
+      rv = PROTOCOL_DIRECT;
    } else {
       rv = PROTOCOL_UNSUPPORTED;
    }
