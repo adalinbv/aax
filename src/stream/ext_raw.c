@@ -170,7 +170,7 @@ _raw_interfaces(int ext, int mode)
          switch(ext)
          {
          case _EXT_PCM:
-            format = _FMT_PCM;
+//          format = _FMT_PCM;
             break;
          case _EXT_MP3:
             format = _FMT_MP3;
@@ -201,9 +201,9 @@ _raw_extension(char *ext)
 
    if (ext)
    {
-      if (!strcasecmp(ext, "pcm")) rv = _FMT_PCM;
-      else if (!strcasecmp(ext, "mp3")) rv = _FMT_MP3;
-      else if (!strcasecmp(ext, "opus")) rv = _FMT_OPUS;
+      if (!strcasecmp(ext, "mp3")) rv = _FMT_MP3;
+      else if (!strcasecmp(ext, "flac")) rv = _FMT_FLAC;
+      else if (!strcasecmp(ext, "pcm") || !strcasecmp(ext, "raw")) rv =_FMT_PCM;
    }
    return rv;
 }

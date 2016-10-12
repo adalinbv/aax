@@ -17,7 +17,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include <devices.h>
 #include <arch.h>
 
 #include "device.h"
@@ -36,7 +35,7 @@ enum wavFormat
    MULAW_WAVE_FILE      = 0x0007,
    IMA4_ADPCM_WAVE_FILE = 0x0011, //    17
    MP3_WAVE_FILE        = 0x0055, //    85
-   VORBIS_WAVE_FILE     = 0x566f, // 22127
+   VORBIS_WAVE_FILE     = 0x1A73, // 6771 (0x566f, // 22127)
    SPEEX_WAVE_FILE      = 0xa109, // 41225
 
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
@@ -44,6 +43,8 @@ enum wavFormat
 
 typedef struct
 {
+   _fmt_t *fmt;
+
    char *artist;
    char *title;
    char *album;
@@ -86,8 +87,6 @@ typedef struct
    void *wavptr;
    uint32_t *wavBuffer;
    size_t wavBufSize;
-
-   _fmt_t *fmt;
 
 } _driver_t;
 
@@ -467,13 +466,6 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
-{
-   _driver_t *handle = ext->id;
-    return handle->fmt->copy(handle->fmt, dptr, offs, num);
-}
-
-size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
@@ -499,6 +491,13 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
    }
 
    return handle->fmt->fill(handle->fmt, sptr, num);
+}
+
+size_t
+_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
+{
+   _driver_t *handle = ext->id;
+    return handle->fmt->copy(handle->fmt, dptr, offs, num);
 }
 
 size_t
@@ -594,9 +593,6 @@ _wav_set(_ext_t *ext, int type, off_t value)
 /* -------------------------------------------------------------------------- */
 #define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
-
-#define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
-#define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
 
 #define __COPY(p, c, h) if ((p = malloc(c)) != NULL) memcpy(p, h, c)
 
@@ -694,7 +690,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             header[i] = _bswap32(header[i]);
          }
       }
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
@@ -938,7 +934,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
       *bufsize = 4*handle->wavBufSize;
       res = handle->wavBuffer;
 
-#if 0
+#if 1
    printf("Write %s Header:\n", extfmt ? "Extnesible" : "Canonical");
    printf(" 0: %08x (ChunkID \"RIFF\")\n", handle->wavBuffer[0]);
    printf(" 1: %08x (ChunkSize: %i)\n", handle->wavBuffer[1], handle->wavBuffer[1]);

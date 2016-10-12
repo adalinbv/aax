@@ -365,7 +365,7 @@ _aaxStreamDriverDisconnect(void *id)
          }
          if (buf && (handle && handle->io))
          {
-            if (handle->io->protocol == PROTOCOL_FILE)
+            if (handle->io->protocol == PROTOCOL_DIRECT)
             {
                handle->io->set(handle->io, __F_POSITION, 0L);
                ret = handle->io->write(handle->io, buf, size);
@@ -432,7 +432,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    handle->io->set(handle->io, __F_FLAGS, handle->mode);
-#if 1
+#if 0
  printf("name: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
@@ -480,7 +480,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             _aaxStreamDriverLog(id, 0, 0, "Connection failed");
          }
          break;
-      case PROTOCOL_FILE:
+      case PROTOCOL_DIRECT:
          handle->io->set(handle->io, __F_FLAGS, handle->mode);
          if (handle->io->open(handle->io, path) >= 0)
          {
@@ -533,14 +533,17 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             header = malloc(bufsize);
          }
 
+printf(">>>>> Read Header(s) >>>>>>>>>>>>>\n");
          do
          {
             if (!m && header && bufsize)
             {
+               int tries = 100; /* 100*50 mSec = 5 seconds */
+printf("<><> io read: %i bytes\n", bufsize);
                do
                {
                   res = handle->io->read(handle->io, header, bufsize);
-                  if (res > 0) break;
+                  if (res > 0 || --tries == 0) break;
                   msecSleep(50);
                }
                while (res == 0);
@@ -571,6 +574,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             }
          }
          while (handle->mode == AAX_MODE_READ && buf && bufsize);
+printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+printf("<<<<< m: %i, buf: %x, bufsize: %i\n", handle->mode, buf, bufsize);
+printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
          free(header);
 
@@ -1238,7 +1244,7 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
       if (path) extension = strrchr(path, '.');
       if (!extension) extension = ".mp3";
       break;
-   case PROTOCOL_FILE:
+   case PROTOCOL_DIRECT:
       if (path) extension = strrchr(path, '.');
       break;
    default:
@@ -1424,7 +1430,7 @@ _aaxStreamDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.signal.mutex);
 
    /* read (clear) all bytes already sent from the server */
-   if (handle->io->protocol != PROTOCOL_FILE)
+   if (handle->io->protocol != PROTOCOL_DIRECT)
    {
       do
       {

@@ -14,6 +14,7 @@
 #endif
 
 #include <strings.h>
+#include <string.h>
 
 #include "extension.h"
 #include "protocol.h"
