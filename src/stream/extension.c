@@ -45,6 +45,31 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _wav_cvt_to_intl;
       }
       break;
+   case _EXT_OGG:
+// case _EXT_OPUS:
+      rv = calloc(1, sizeof(_ext_t));
+      if (rv)
+      {
+         rv->id = NULL;
+         rv->detect = _ogg_detect;
+         rv->setup = _ogg_setup;
+         rv->open = _ogg_open;
+         rv->close = _ogg_close;
+         rv->update = _ogg_update;
+         rv->name = _ogg_name;
+
+         rv->supported = _ogg_extension;
+         rv->interfaces = _ogg_interfaces;
+
+         rv->get_param = _ogg_get;
+         rv->set_param = _ogg_set;
+
+         rv->copy = _ogg_copy;
+         rv->fill = _ogg_fill;
+         rv->cvt_from_intl = _ogg_cvt_from_intl;
+         rv->cvt_to_intl = _ogg_cvt_to_intl;
+      }
+      break;
    case _EXT_PCM:
    case _EXT_MP3:
    case _EXT_FLAC:
@@ -71,8 +96,6 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _raw_cvt_to_intl;
       }
       break;
-// case _EXT_OPUS:
-   case _EXT_OGG:
    default:
       break;
    }

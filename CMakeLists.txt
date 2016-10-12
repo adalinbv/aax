@@ -477,6 +477,7 @@ SET( AEONWAVE_OBJS
      src/stream/extension.c
      src/stream/ext_raw.c
      src/stream/ext_wav.c
+     src/stream/ext_ogg.c
      src/stream/format.c
      src/stream/fmt_pcm.c
      src/stream/fmt_mp3_mpg123.c

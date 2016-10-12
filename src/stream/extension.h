@@ -21,8 +21,12 @@ extern "C" {
 #endif
 
 #include <base/types.h>
+#include <devices.h>
 
 #include "audio.h"
+
+#define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
+#define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
 
 typedef enum {
    _EXT_NONE = 0,
@@ -103,7 +107,25 @@ size_t _wav_fill(_ext_t*, void_ptr, size_t*);
 size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
-/* RAW, MP3, OPUS, FLAC */
+/* OGG, OPUS */
+int _ogg_detect(_ext_t*, int);
+int _ogg_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _ogg_open(_ext_t*, void*, size_t*, size_t);
+int _ogg_close(_ext_t*);
+void* _ogg_update(_ext_t*, size_t*, size_t*, char);
+char* _ogg_name(_ext_t*, enum _aaxStreamParam);
+
+char* _ogg_interfaces(int, int);
+int _ogg_extension(char*);
+off_t _ogg_get(_ext_t*, int);
+off_t _ogg_set(_ext_t*, int, off_t);
+
+size_t _ogg_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _ogg_fill(_ext_t*, void_ptr, size_t*);
+size_t _ogg_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
+size_t _ogg_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+
+/* RAW, MP3, FLAC */
 int _raw_detect(_ext_t*, int);
 int _raw_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
 void* _raw_open(_ext_t*, void*, size_t*, size_t);

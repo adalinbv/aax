@@ -9,8 +9,8 @@
  * permission of Adalin B.V.
  */
 
-#ifndef __FILE_EXT_OPUS_H
-#define __FILE_EXT_OPUS_H 1
+#ifndef __FILE_FMT_OPUS_H
+#define __FILE_FMT_OPUS_H 1
 
 typedef void* (*opus_decoder_create_proc)(int32_t, int, int*);
 typedef void (*opus_decoder_destroy_proc)(void*);
@@ -21,5 +21,5 @@ typedef void (*opus_encoder_destroy_proc)(void*);
 typedef int (*opus_encoder_ctl_proc) (void*, int, ...);
 typedef int32_t (*opus_encode_proc)(void*, const int16_t*, int, unsigned char*, int32_t);
 
-#endif /* __FILE_EXT_OPUS_H */
+#endif /* __FILE_FMT_OPUS_H */
 
