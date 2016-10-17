@@ -22,7 +22,6 @@
 #include "format.h"
 #include "fmt_vorbis.h"
 
-DECL_FUNCTION(vorbis_info_init);
 
 typedef struct
 {
@@ -42,11 +41,15 @@ typedef struct
    size_t no_samples;
    size_t max_samples;
 
-   vorbis_comment   vc;
-   vorbis_dsp_state vd;
-   vorbis_block     vb;
+   ssize_t vorbisBufPos;
+   size_t vorbisBufSize;
+   unsigned char *vorbisBuffer;
+   void *vorbisptr;
 
 } _driver_t;
+
+
+#define FRAME_SIZE		4096
 
 
 int
@@ -55,43 +58,21 @@ _vorbis_detect(_fmt_t *fmt, int mode)
    void *audio = NULL;
    int rv = AAX_FALSE;
 
-   audio = _aaxIsLibraryPresent("vorbis", "0");
-   if (!audio) {
-      audio = _aaxIsLibraryPresent("libvorbis", "0");
-   }
-
-   if (audio)
+   /* not required but useful */
+   fmt->id = calloc(1, sizeof(_driver_t));
+   if (fmt->id)
    {
-      char *error;
+      _driver_t *handle = fmt->id;
 
-      _aaxGetSymError(0);
+      handle->audio = audio;
+      handle->mode = mode;
+      handle->capturing = (mode == 0) ? 1 : 0;
+      handle->blocksize = FRAME_SIZE;
 
-      TIE_FUNCTION(vorbis_info_init)
-      if (pvorbis_info_init)
-      {
-         TIE_FUNCTION();
-
-         error = _aaxGetSymError(0);
-         if (!error)
-         {
-            /* not required but useful */
-            fmt->id = calloc(1, sizeof(_driver_t));
-            if (fmt->id)
-            {
-               _driver_t *handle = fmt->id;
-
-               handle->audio = audio;
-               handle->mode = mode;
-               handle->capturing = (mode == 0) ? 1 : 0;
-               handle->blocksize = FRAME_SIZE;
-
-               rv = AAX_TRUE;
-            }             
-            else {
-               _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
-            }
-         }
-      }
+      rv = AAX_TRUE;
+   }             
+   else {
+      _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
    }
 
    return rv;
@@ -107,27 +88,6 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
-      if (!handle->id)
-      {
-         int err;
-         handle->id = popus_decoder_create(handle->frequency, handle->no_tracks, &err);
-         if (err > 0)
-         {
-            char *ptr = 0;
-
-            handle->opusBufPos = 0;
-            handle->opusBufSize = MAX_PACKET_SIZE;
-            handle->opusptr = _aax_malloc(&ptr, handle->opusBufSize);
-            handle->opusBuffer = (unsigned char*)ptr;
-
-            handle->pcm = _aax_aligned_alloc16(MAX_FRAME_SIZE*handle->no_tracks);
-
-            rv = buf;
-         }
-         else {
-            _AAX_FILEDRVLOG("VORBIS: Unable to create a handle");
-         }
-      }
    }
    else
    {
@@ -144,12 +104,14 @@ _vorbis_close(_fmt_t *fmt)
 
    if (handle)
    {
-      popus_encoder_destroy(handle->id);
+#if 0
+      vorbis_encoder_destroy(handle->id);
       handle->id = NULL;
 
       _aax_aligned_free(handle->pcm);
-      free(handle->opusptr);
+      free(handle->vorbisptr);
       free(handle);
+#endif
    }
 }
 
@@ -166,14 +128,14 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    size_t bufpos, bufsize;
    size_t rv = 0;
 
-   bufpos = handle->opusBufPos;
-   bufsize = handle->opusBufSize;
+   bufpos = handle->vorbisBufPos;
+   bufsize = handle->vorbisBufSize;
    if ((*bytes+bufpos) <= bufsize)
    {
-      unsigned char *buf = handle->opusBuffer + bufpos;
+      unsigned char *buf = handle->vorbisBuffer + bufpos;
 
       memcpy(buf, sptr, *bytes);
-      handle->opusBufPos += *bytes;
+      handle->vorbisBufPos += *bytes;
       rv = *bytes;
    }
 
@@ -194,24 +156,15 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
-   buf = handle->opusBuffer;
-   bufsize = handle->opusBufSize;
+   buf = handle->vorbisBuffer;
+   bufsize = handle->vorbisBufSize;
 
    if (bytes > bufsize) {
       bytes = bufsize;
    }
 
-   /*
-    * -- about *num --
-    * Number of samples per channel of available space in pcm. If this is less
-    * than the maximum packet duration (120ms; 5760 for 48kHz), this function
-    * will not be capable of decoding some packets. In the case of PLC
-    * (data==NULL) or FEC (decode_fec=1), then frame_size needs to be exactly
-    * the duration of audio that is missing, otherwise the decoder will not be
-    * in the optimal state to decode the next incoming packet. For the PLC and
-    * FEC cases, frame_size must be a multiple of 2.5 ms.
-    */
-   ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, decode_fec);
+#if 0
+   ret = vorbis_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, decode_fec);
    if (ret >= 0)
    {
       unsigned int framesize = tracks*bits/8;
@@ -221,6 +174,7 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       rv = size;
    }
+#endif
    return rv;
 }
 
@@ -238,15 +192,16 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
-   buf = handle->opusBuffer;
-   bufsize = handle->opusBufSize;
+   buf = handle->vorbisBuffer;
+   bufsize = handle->vorbisBufSize;
 
    if (bytes > bufsize) {
       bytes = bufsize;
    }
 
+#if 0
    /* see the comments in _vorbis_copy() for *num */
-   ret = popus_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
+   ret = vorbis_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
    if (ret > 0)
    {
       unsigned int framesize = tracks*bits/8;
@@ -257,6 +212,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       handle->no_samples += *num;
       rv = size;
    }
+#endif
    return rv;
 }
 
@@ -271,17 +227,11 @@ _vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t 
    handle->no_samples += *num;
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
 
-   /*
-    * -- about *num --
-    * Number of samples per channel in the input signal. This must be an Opus
-    * frame size for the encoder's sampling rate. For example, at 48 kHz the
-    * permitted values are 120, 240, 480, 960, 1920, and 2880. Passing in a
-    * duration of less than 10 ms (480 samples at 48 kHz) will prevent the
-    * encoder from using the LPC or hybrid modes. 
-    */
-   res = popus_encode(handle->id, scratch, *num,
-                                  handle->opusBuffer, handle->opusBufSize);
-   _aax_memcpy(dptr, handle->opusBuffer, res);
+#if 0
+   res = vorbis_encode(handle->id, scratch, *num,
+                                  handle->vorbisBuffer, handle->vorbisBufSize);
+   _aax_memcpy(dptr, handle->vorbisBuffer, res);
+#endif
 
    return res;
 }

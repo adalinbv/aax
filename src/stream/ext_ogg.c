@@ -24,6 +24,14 @@
 #include "format.h"
 #include "ext_ogg.h"
 
+
+// https://wiki.xiph.org/index.php/Main_Page
+// https://xiph.org/vorbis/doc/v-comment.html
+// https://xiph.org/flac/ogg_mapping.html
+// https://wiki.xiph.org/OggOpus (superseded by RFC-7845)
+// https://wiki.xiph.org/OggPCM (listed under abandonware)
+
+
 typedef struct
 {
    void *id;
@@ -71,8 +79,6 @@ static int _getOggComment(_driver_t*, unsigned char*, size_t);
 
 #define OGG_HEADER_SIZE		8
 static const uint32_t _aaxDefaultOggHeader[OGG_HEADER_SIZE];
-
-#include "ext_ogg_crc.c"
 
 
 int
@@ -629,7 +635,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                segment_size = rv;
                break;
             default:
-               rv = handle->fmt->open(handle->fmt, header, bufsize,
+               rv = handle->fmt->open(handle->fmt, header, &bufsize,
                                       handle->datasize);
                break;
             }
@@ -858,6 +864,8 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 }
 
 // https://xiph.org/vorbis/doc/v-comment.html
+// https://wiki.xiph.org/OggOpus#Content_Type
+// https://wiki.xiph.org/OggPCM#Comment_packet
 #define COMMENT_SIZE	1024
 static int
 _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
