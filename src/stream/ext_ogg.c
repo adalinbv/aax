@@ -49,9 +49,17 @@ typedef struct
    size_t blocksize;
    size_t no_samples;
    size_t max_samples;
+
+   _fmt_type_t format_type;
    enum oggFormat ogg_format;
 
-   /* page header */
+   /*
+    * Indicate whether the data presented to the format code needs the Ogg
+    * page header or not. If not remove it from the data stream.
+    */
+   char keep_header;
+
+   /* page header information */
    char header_type;
    uint64_t granule_position;
    uint32_t bitstream_serial_no;
@@ -70,15 +78,18 @@ typedef struct
 } _driver_t;
 
 
-static _fmt_type_t _getFmtFromOGGFormat(enum oggFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
-static int _getOggPageHeader(_driver_t*, size_t);
-static int _getOggIdentification(_driver_t*, unsigned char*, size_t);
-static int _getOggComment(_driver_t*, unsigned char*, size_t);
 
-
+/*
+ * This handler does peek into the Ogg page header to determine it's serial
+ * number and remove any Ogg package which does not match. If the serial
+ * numbers do match however we send the complete Ogg page to the format
+ * handler (currently handled by stb_vorbis and rb_flac).
+ *
+ * The Vorbis code always expects an Ogg stream.
+ * The FLAC code automatically detects if it is an Ogg stream or a raw stream.
+ */
 #define OGG_HEADER_SIZE		8
-static const uint32_t _aaxDefaultOggHeader[OGG_HEADER_SIZE];
 
 
 int
@@ -149,7 +160,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
       {
       }
 			/* read: handle->capturing */
-      else if (1) // (!handle->fmt) || !handle->fmt->open)
+      else if (!handle->fmt || !handle->fmt->open)
       {
          if (!handle->oggptr)
          {
@@ -165,7 +176,6 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          {
             size_t step, datapos, datasize = *bufsize, size = *bufsize;
             size_t avail = handle->oggBufSize-handle->oggBufPos;
-            _fmt_type_t fmt;
             int res;
 
             avail = _MIN(size, avail);
@@ -199,7 +209,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                // The size of 'buf' may have been larger than the size of
                // handle->oggBuffer and there's still some data left.
                // Copy the next chunk and process it.
-               if (res > 0 && size)
+               if (size)
                {
                   avail = handle->oggBufSize-handle->oggBufPos;
                   if (!avail) break;
@@ -218,10 +228,10 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
             if (!handle->fmt)
             {
+               _fmt_type_t fmt = handle->format_type;
                char *dataptr;
 
-               fmt = _getFmtFromOGGFormat(handle->ogg_format);
-               handle->fmt = _fmt_create(fmt, handle->mode);
+               handle->fmt = _fmt_create(handle->format_type, handle->mode);
                if (!handle->fmt) {
                   return rv;
                }
@@ -240,28 +250,10 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
 //             handle->fmt->set(handle->fmt, __F_POSITION,
 //                                              handle->blockbufpos);
-               dataptr = (char*)buf + datapos;
+               dataptr = (char*)buf;
                rv = handle->fmt->open(handle->fmt, dataptr, &datasize,
                                       handle->datasize);
             }
-
-            if (res < 0)
-            {
-               if (res == __F_PROCESS) {
-                  return buf;
-               }
-               else if (size)
-               {
-                  _AAX_FILEDRVLOG("OGG: Incorrect format");
-                  return rv;
-               }
-            }
-            else if (res > 0)
-            {
-               *bufsize = 0;
-                return buf;
-            }
-            // else we're done decoding, return NULL
          }
          else
          {
@@ -270,9 +262,22 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          }
       }
         /* Format requires more data to process it's own header */
-      else if (handle->fmt && handle->fmt->open) {
-          rv = handle->fmt->open(handle->fmt, buf, bufsize,
+      else if (handle->fmt && handle->fmt->open)
+      {
+         size_t avail = handle->oggBufSize-handle->oggBufPos;
+         char *dataptr = (char*)handle->oggBuffer;
+         size_t size = *bufsize;
+
+         avail = _MIN(size, avail);
+         if (!avail) return NULL;
+
+         memcpy((char*)handle->oggBuffer+handle->oggBufPos, buf, avail);
+         handle->oggBufPos += avail;
+
+         size = handle->oggBufPos;
+         rv = handle->fmt->open(handle->fmt, dataptr, &size,
                                  handle->datasize);
+         *bufsize = size;
       }
       else _AAX_FILEDRVLOG("OGG: Unknown opening error");
    }
@@ -352,6 +357,7 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
 {
    _driver_t *handle = ext->id;
    char *rv = handle->fmt->name(handle->fmt, param);
+
 #if 0
    if (!rv)
    {
@@ -386,13 +392,14 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
       }
    }
 #endif
+
    return rv;
 }
 
 char*
 _ogg_interfaces(int ext, int mode)
 {
-   static const char *rd[2] = { "*.ogg\0", "*.ogg\0" };
+   static const char *rd[2] = { "\0", "*.ogg *.oga\0" };
    return (char *)rd[mode];
 }
 
@@ -402,10 +409,15 @@ _ogg_extension(char *ext)
    int rv = _EXT_NONE;
 
    if (ext) {
-      if (!strcasecmp(ext, "ogg") || !strcasecmp(ext, "oga") ||
-          !strcasecmp(ext, "ogx") || !strcasecmp(ext, "spx") ||
-          !strcasecmp(ext, "opus")) {
+      if (!strcasecmp(ext, "ogg") || !strcasecmp(ext, "oga")
+//        || !strcasecmp(ext, "ogx") || !strcasecmp(ext, "spx")
+//        || !strcasecmp(ext, "opus")
+         )
+      {
          rv = _EXT_OGG;
+      }
+      else if (!strcasecmp(ext, "flac")) {
+         rv = _EXT_FLAC;
       }
    }
    return rv;
@@ -426,20 +438,6 @@ _ogg_set(_ext_t *ext, int type, off_t value)
 }
 
 /* -------------------------------------------------------------------------- */
-
-static const uint32_t _aaxDefaultOggHeader[OGG_HEADER_SIZE] =
-{
-    0x5367674f,			/* 'OggS'                                    */
-    0x00000200,			/* granule[1,0], type & version              */
-    0x00000000,			/* granule[3,2,5,4]                          */
-    0x00000000,			/* granule[7,6] & serial[1,0]                */
-    0x00000000,			/* serial[3,2] & sequence[1,0]               */
-    0x00000000,			/* sequence[3,2] & CRC[1,0]                  */
-    0x00000000,			/* CRC[3,2] & seg_table[0], segments         */
-    0x00000000			/* segment table                             */
-};
-
-
 
 // https://www.ietf.org/rfc/rfc3533.txt
 static int
@@ -469,11 +467,9 @@ _getOggPageHeader(_driver_t *handle, size_t size)
       handle->header_type = (header[1] >> 8) & 0xFF;
       if (version == 0x0)
       {
-         curr = header[1] && 0xFFFF0000;
-         handle->granule_position = (uint64_t)curr << 32;
-
-         curr = ((uint64_t)header[2] << 16) | (header[3] & 0xFFFF);
-         handle->granule_position |= curr;
+         handle->granule_position  = ((uint64_t)header[1] >> 16);
+         handle->granule_position |= ((uint64_t)header[2] << 16); 
+         handle->granule_position |= ((uint64_t)header[3] << 48);
 
          curr = (header[3] >> 16) | (header[4] << 16);
          if (!handle->bitstream_serial_no || curr==handle->bitstream_serial_no)
@@ -507,7 +503,7 @@ _getOggPageHeader(_driver_t *handle, size_t size)
 }
 #endif
 
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    uint64_t i64;
@@ -520,7 +516,9 @@ _getOggPageHeader(_driver_t *handle, size_t size)
 
    printf("1: %08x (Version: %i | Type: %x)\n", header[1], ch[4], ch[5]);
 
-   i64 = ((uint64_t)(header[1] && 0xFFFF0000) << 32) | ((uint64_t)header[2] << 16) | (header[3] & 0xFFFF);
+   i64 = (uint64_t)(header[1] >> 16);
+   i64 |= ((uint64_t)header[2] << 16); 
+   i64 |= ((uint64_t)header[3] << 48);
    printf("2: %08x (Granule position: %li)\n", header[2], i64);
 
    i32 = (header[3] >> 16) | (header[4] << 16);
@@ -542,14 +540,7 @@ _getOggPageHeader(_driver_t *handle, size_t size)
 }
 #endif
                   rv = header_size;
-                  if (rv <= bufsize)
-                  {
-                     handle->oggBufPos -= rv;
-                     if (handle->oggBufPos > 0) {
-                        memmove(ch, ch+rv, bufsize);
-                     }
-                  }
-                  else {
+                  if (rv > bufsize) {
                      rv = __F_PROCESS;
                   }
                }
@@ -591,93 +582,15 @@ _getOggPageHeader(_driver_t *handle, size_t size)
    return rv;
 }
 
-int
-_aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
-{
-   uint32_t *header = handle->oggBuffer;
-   size_t bufsize = handle->oggBufPos;
-   int rv;
-
-   rv = _getOggPageHeader(handle, bufsize);
-   if (rv >= 0)
-   {
-     unsigned int page_size = 0;
-
-     /*
-      * The packets must occur in the order of identification,
-      * comment, setup. 
-      */
-      if ((handle->segment_size > 0) && (bufsize > handle->segment_size))
-      {
-         unsigned char *segment = (unsigned char*)header;
-         size_t segment_size = handle->segment_size;
-
-         /*
-          * https://tools.ietf.org/html/rfc3533.html#section-6
-          * As Ogg pages have a maximum size of about 64 kBytes, sometimes a
-          * packet has to be distributed over several pages.  To simplify that
-          * process, Ogg divides each packet into 255 byte long chunks plus a
-          * final shorter chunk.  These chunks are called "Ogg Segments".
-          *
-          * They are only a logical construct and do not have a header for
-          * themselves.
-          */
-
-         if (bufsize >= segment_size)
-         {
-            switch(segment[0])	// type
-            {
-            case HEADER_IDENTIFICATION:
-               rv = _getOggIdentification(handle, segment, segment_size);
-               break;
-            case HEADER_COMMENT:
-               rv = _getOggComment(handle, segment, segment_size);
-               segment_size = rv;
-               break;
-            default:
-               rv = handle->fmt->open(handle->fmt, header, &bufsize,
-                                      handle->datasize);
-               break;
-            }
-
-            if (rv > 0)
-            {
-               page_size += segment_size;
-               *step = page_size;
-               rv = page_size;
-            }
-         }
-         else {
-            *step = 0;
-            rv = __F_PROCESS;
-         }
-      }
-      else
-      {
-         *step = 0;
-         rv = __F_PROCESS;
-      }
-   }
-
-   return rv;
-}
-
-static _fmt_type_t
-_getFmtFromOGGFormat(enum oggFormat fmt)
-{
-   _fmt_type_t rv = _FMT_PCM;
-   return rv;
-}
-
 // https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-630004.2.2
 static int
 _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
 {
-   int rv = -1;
+   int rv = __F_EOF;
 
    if (len >= VORBIS_ID_HEADER_SIZE)
    {
-      uint32_t *header = (uint32_t*)h; 
+      uint32_t *header = (uint32_t*)h;
       int type = h[0];
 
       if (type == HEADER_IDENTIFICATION)
@@ -692,7 +605,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
    printf("  5: %08x (Nom. bitrate: %i)\n", header[5], (int32_t)header[5]);
    printf("  6: %08x (Min. bitrate: %i)\n", header[6], (int32_t)header[6]);
    printf("  7: %08x (block size: %i - %i, framing: %i)\n", header[7], 1 << (header[7] >> 28), 1 << ((header[7] >> 24) & 0xF), (header[7] >> 16) & 0x1);
-#endif 
+#endif
 
          uint32_t version = (header[2] << 8) | (header[3] >> 24);
          if (version == 0x0)
@@ -733,18 +646,20 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
    return rv;
 }
 
+#if 0
 // https://wiki.xiph.org/OggPCM#Main_Header_Packet
 static int
 _aaxFormatDriverReadPCMHeader(_driver_t *handle, char *h, size_t len)
 {
-   int rv = -1;
+
+   int rv = __F_EOF;
 
    if (len >= 16)
    {
       uint32_t *header = (uint32_t*)h;
       uint32_t pcm_format = header[3];
 
-#if 0
+#if 1
    printf("\n  oggPCM Header:\n");
    printf("0-1: %08x %08x (Codec identifier \"%c%c%c%c%c%c%c%c\"\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
    printf("  2: %08x (version %04x - %04x)\n", header[2], (header[2] & 0xFF), (header[2] >> 16));
@@ -826,47 +741,63 @@ _aaxFormatDriverReadPCMHeader(_driver_t *handle, char *h, size_t len)
    }
    return rv;
 }
+#endif
 
 // https://tools.ietf.org/html/rfc5334
 static int
 _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 {
    char *h = (char*)ch;
-   int rv = -1;
+   int rv = __F_PROCESS;
 
    if ((len > 5) && !strncmp(h, "\177FLAC", 5))
    {
+      handle->keep_header = AAX_FALSE;
       handle->ogg_format = FLAC_OGG_FILE;
+      handle->format_type = _FMT_FLAC;
       handle->format = AAX_PCM16S;
+      rv = 0;
    }
    else if ((len > 7) && !strncmp(h, "\x01vorbis", 7))
    {
+      handle->keep_header = AAX_TRUE;
+      handle->format_type = _FMT_VORBIS;
       handle->ogg_format = VORBIS_OGG_FILE;
       rv = _aaxFormatDriverReadVorbisHeader(handle, h, len);
    }
+   else if ((len > 8) && !strncmp(h, "OpusHead", 8))
+   {
+      handle->keep_header = AAX_FALSE;
+      handle->format_type = _FMT_OPUS;
+      handle->ogg_format = OPUS_OGG_FILE;
+      handle->format = AAX_PCM16S;
+      rv = 0;
+   }
+#if 0
    else if ((len > 8) && !strncmp(h, "PCM     ", 8))
    {
+      handle->keep_header = AAX_FALSE;
+      handle->format_type = _FMT_PCM;
       handle->ogg_format = PCM_OGG_FILE;
       rv = _aaxFormatDriverReadPCMHeader(handle, h, len);
    }
    else if ((len > 8) && !strncmp(h, "Speex   ", 8))
    {
+      handle->keep_header = AAX_FALSE;
+      handle->format_type = _FMT_SPEEX;
       handle->ogg_format = SPEEX_OGG_FILE;
       handle->format = AAX_PCM16S;
    }
-   else if ((len > 8) && !strncmp(h, "OpusHead", 8))
-   {
-      handle->ogg_format = OPUS_OGG_FILE;
-      handle->format = AAX_PCM16S;
-   }
+#endif
 
    return rv;
 }
 
+#if 0
 // https://xiph.org/vorbis/doc/v-comment.html
 // https://wiki.xiph.org/OggOpus#Content_Type
 // https://wiki.xiph.org/OggPCM#Comment_packet
-#define COMMENT_SIZE	1024
+#define COMMENT_SIZE    1024
 static int
 _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
 {
@@ -919,6 +850,67 @@ _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
    ptr++;
    printf("framing: %i\n", *ptr);
 #endif
+
+   return rv;
+}
+#endif
+
+int
+_aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
+{
+   uint32_t *header = handle->oggBuffer;
+   size_t bufsize = handle->oggBufPos;
+   int rv = __F_EOF;
+
+   rv = _getOggPageHeader(handle, bufsize);
+   if ((rv >= 0) && (handle->segment_size > 0))
+   {
+      unsigned char *segment = (unsigned char*)header + rv;
+      size_t segment_size = handle->segment_size;
+//    unsigned int page_size = rv;
+
+      /*
+       * The packets must occur in the order of identification,
+       * comment, setup.
+       */
+      if ((segment[0] == HEADER_IDENTIFICATION) &&
+          (bufsize >= segment_size))
+      {
+         /*
+          * https://tools.ietf.org/html/rfc3533.html#section-6
+          * As Ogg pages have a maximum size of about 64 kBytes, sometimes a
+          * packet has to be distributed over several pages.  To simplify that
+          * process, Ogg divides each packet into 255 byte long chunks plus a
+          * final shorter chunk.  These chunks are called "Ogg Segments".
+          *
+          * They are only a logical construct and do not have a header for
+          * themselves.
+          */
+         rv = _getOggIdentification(handle, segment, segment_size);
+         if (rv == __F_PROCESS) {
+            handle->bitstream_serial_no = 0;
+         }
+
+         if (rv > 0)
+         {
+//          page_size += segment_size;
+            rv = *step = 0;
+         }
+      }
+      else if (bufsize < segment_size)
+      {
+         *step = 0;
+         rv = __F_PROCESS;
+      }
+      else {	/* segment[0] != HEADER_IDENTIFICATION */
+         *step = rv = 0;
+      }
+   }
+   else
+   {
+      *step = 0;
+      rv = __F_PROCESS;
+   }
 
    return rv;
 }

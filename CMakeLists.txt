@@ -91,7 +91,7 @@ ELSE(WIN32)
   SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
   SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
   SET(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
-  SET(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0, libogg0")
+  SET(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
   SET(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
   SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/config;${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;${AeonWave_SOURCE_DIR}/admin/debian/templates;")
   SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -481,6 +481,9 @@ SET( AEONWAVE_OBJS
      src/stream/format.c
      src/stream/fmt_pcm.c
      src/stream/fmt_mp3_mpg123.c
+     src/stream/fmt_vorbis.c
+     src/stream/stb_vorbis.c
+     src/stream/fmt_flac.c
      src/stream/fmt_opus.c
      src/android/opensl.c
      src/software/device.c

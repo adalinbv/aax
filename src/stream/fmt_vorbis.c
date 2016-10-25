@@ -88,6 +88,72 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
+      if (!handle->vorbisptr)
+      {
+         char *ptr = 0;
+
+         handle->vorbisBufPos = 0;
+         handle->vorbisBufSize = 16384;
+         handle->vorbisptr = _aax_malloc(&ptr, handle->vorbisBufSize);
+         handle->vorbisBuffer = ptr;
+      }
+
+      if (handle->vorbisptr)
+      {
+         if (handle->capturing)
+         {
+            int err = VORBIS__no_error;
+            int used = 0;
+
+            if (!handle->id)
+            {
+               int max = *bufsize;
+               handle->id = stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
+            }
+
+            if (handle->id)
+            {
+               char *ptr = (char*)buf + used;
+               size_t size = *bufsize - used;
+
+               _pcm_fill(fmt, buf, &size);
+               // we're done decoding, return NULL
+            }
+            else
+            {
+               switch (err)
+               {
+               case VORBIS_missing_capture_pattern:
+                  _AAX_FILEDRVLOG("VORBIS: missing capture pattern");
+                  break;
+               case VORBIS_invalid_stream_structure_version:
+                  _AAX_FILEDRVLOG("VORBIS: invalid stream structure version");
+                  break;
+               case VORBIS_continued_packet_flag_invalid:
+                  _AAX_FILEDRVLOG("VORBIS: continued packet flag invalid");
+                  break;
+               case VORBIS_incorrect_stream_serial_number:
+                  _AAX_FILEDRVLOG("VORBIS: incorrect stream serial number");
+                  break;
+               case VORBIS_invalid_first_page:
+                  _AAX_FILEDRVLOG("VORBIS: invalid first page");
+                  break;
+               case VORBIS_bad_packet_type:
+                  _AAX_FILEDRVLOG("VORBIS: bad packet type");
+                  break;
+               case VORBIS_cant_find_last_page:
+                  _AAX_FILEDRVLOG("VORBIS: cant find last page");
+                  break;
+               default:
+                  rv = buf;
+                  break;
+               }
+            }
+         } /* handle->capturing */
+      }
+      else {
+         _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
+      }
    }
    else
    {
@@ -104,14 +170,11 @@ _vorbis_close(_fmt_t *fmt)
 
    if (handle)
    {
-#if 0
-      vorbis_encoder_destroy(handle->id);
+      stb_vorbis_close(handle->id);
       handle->id = NULL;
 
-      _aax_aligned_free(handle->pcm);
       free(handle->vorbisptr);
       free(handle);
-#endif
    }
 }
 
@@ -136,6 +199,7 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 
       memcpy(buf, sptr, *bytes);
       handle->vorbisBufPos += *bytes;
+printf("_vorbis_fill: size: %i, pos: %i\n", *bytes, handle->vorbisBufPos);
       rv = *bytes;
    }
 
@@ -184,9 +248,10 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
-   int ret, decode_fec = 0;
    size_t rv = __F_EOF;
    unsigned char *buf;
+   float **output;
+   int i, ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
@@ -199,20 +264,20 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       bytes = bufsize;
    }
 
-#if 0
-   /* see the comments in _vorbis_copy() for *num */
-   ret = vorbis_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
+   ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bytes, tracks,
+                                                      output, num);
+printf("_vorbis_cvt_from_intl: ret: %i\n", ret);
    if (ret > 0)
    {
-      unsigned int framesize = tracks*bits/8;
-
-      *num = size/framesize;
-      _batch_cvt24_16_intl(dptr, handle->pcm, offset, tracks, *num);
+      for (i=0; i<tracks; i++) {
+         _batch_cvt24_ps(dptr[i], output[i], *num);
+      }
 
       handle->no_samples += *num;
       rv = size;
    }
-#endif
+
+printf("rv: %i, *num: %i\n", rv, *num);
    return rv;
 }
 

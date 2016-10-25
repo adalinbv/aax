@@ -122,6 +122,33 @@ char* _opus_name(_fmt_t*, enum _aaxStreamParam);
 off_t _opus_set(_fmt_t*, int, off_t);
 off_t _opus_get(_fmt_t*, int);
 
+/* Vorbis */
+int _vorbis_detect(_fmt_t*, int);
+int _vorbis_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
+void* _vorbis_open(_fmt_t*, void*, size_t*, size_t);
+void _vorbis_close(_fmt_t*);
+size_t _vorbis_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _vorbis_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
+size_t _vorbis_fill(_fmt_t*, void_ptr, size_t*);
+size_t _vorbis_copy(_fmt_t*, int32_ptr, size_t, size_t*);
+char* _vorbis_name(_fmt_t*, enum _aaxStreamParam);
+off_t _vorbis_set(_fmt_t*, int, off_t);
+off_t _vorbis_get(_fmt_t*, int);
+
+/* FLAC */
+int _flac_detect(_fmt_t*, int);
+int _flac_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
+void* _flac_open(_fmt_t*, void*, size_t*, size_t);
+void _flac_close(_fmt_t*);
+size_t _flac_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _flac_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
+size_t _flac_fill(_fmt_t*, void_ptr, size_t*);
+size_t _flac_copy(_fmt_t*, int32_ptr, size_t, size_t*);
+char* _flac_name(_fmt_t*, enum _aaxStreamParam);
+off_t _flac_set(_fmt_t*, int, off_t);
+off_t _flac_get(_fmt_t*, int);
+
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

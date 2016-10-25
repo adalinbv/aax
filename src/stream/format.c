@@ -106,8 +106,58 @@ _fmt_create(_fmt_type_t format, int mode)
       }
       break;
    case _FMT_VORBIS:
-   case _FMT_SPEEX:
+      rv = calloc(1, sizeof(_fmt_t));
+      if (rv)
+      {
+         if (_vorbis_detect(rv, mode))
+         {
+            rv->setup = _vorbis_setup;
+            rv->open = _vorbis_open;
+            rv->close = _vorbis_close;
+            rv->name = _vorbis_name;
+
+            rv->cvt_to_intl = _vorbis_cvt_to_intl;
+            rv->cvt_from_intl = _vorbis_cvt_from_intl;
+            rv->fill = _vorbis_fill;
+            rv->copy = _vorbis_copy;
+
+            rv->set = _vorbis_set;
+            rv->get = _vorbis_get;
+         }
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
+      }
+      break;
    case _FMT_FLAC:
+      rv = calloc(1, sizeof(_fmt_t));
+      if (rv)
+      {
+         if (_flac_detect(rv, mode))
+         {
+            rv->setup = _flac_setup;
+            rv->open = _flac_open;
+            rv->close = _flac_close;
+            rv->name = _flac_name;
+
+            rv->cvt_to_intl = _flac_cvt_to_intl;
+            rv->cvt_from_intl = _flac_cvt_from_intl;
+            rv->fill = _flac_fill;
+            rv->copy = _flac_copy;
+
+            rv->set = _flac_set;
+            rv->get = _flac_get;
+         }
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
+      }
+      break;
+   case _FMT_SPEEX:
    default:
       break;
    }
