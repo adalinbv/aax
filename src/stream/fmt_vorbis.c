@@ -116,7 +116,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                char *ptr = (char*)buf + used;
                size_t size = *bufsize - used;
 
-               _pcm_fill(fmt, buf, &size);
+               _vorbis_fill(fmt, buf, &size);
                // we're done decoding, return NULL
             }
             else
@@ -266,7 +266,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
 
    ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bytes, tracks,
                                                       output, num);
-printf("_vorbis_cvt_from_intl: ret: %i\n", ret);
+printf("_vorbis_cvt_from_intl: ret: %i, num: %i\n", ret, *num);
    if (ret > 0)
    {
       for (i=0; i<tracks; i++) {
