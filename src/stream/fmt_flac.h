@@ -12,16 +12,14 @@
 #ifndef __FILE_FMT_FLAC_H
 #define __FILE_FMT_FLAC_H 1
 
-#include <aax/aax.h>
-#include <driver.h>
-
 /*
  * Public domain flac decoder:
  *
- * https://github.com/nothings/single_file_libs
- * https://raw.githubusercontent.com/mackron/dr_libs/master/dr_flac.h
+ * http://mackron.github.io/dr_flac.html
  */
-
+#define DR_FLAC_IMPLEMENTATION	1
+#define DR_FLAC_NO_STDIO	1
+#include "dr_flac.h"
 
 #endif /* __FILE_FMT_FLAC_H */
 

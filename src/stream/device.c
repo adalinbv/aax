@@ -1218,7 +1218,9 @@ _aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
    }
    _errstr[255] = '\0';  /* always null terminated */
 
-   __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
+   if (handle) {
+      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
+   }
    _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;

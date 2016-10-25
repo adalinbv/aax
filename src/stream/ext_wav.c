@@ -650,7 +650,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    uint32_t *header = handle->wavBuffer;
    size_t size, bufsize = handle->io.read.wavBufPos;
    int32_t curr, init_tag;
-   int bits, res = -1;
+   int bits, rv = __F_EOF;
    char extfmt;
 
    *step = 0;
@@ -665,7 +665,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    if (curr == 0x46464952)              /* RIFF */
    {
       if (bufsize < WAVE_HEADER_SIZE) {
-         return res;
+         return __F_EOF;
       }
 // TODO: 'fmt ' is not garuenteed to follow 'RIFF"
 
@@ -674,7 +674,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
       extfmt = (curr == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
       if (extfmt && (bufsize < WAVE_EXT_HEADER_SIZE)) {
-         return res;
+         return __F_EOF;
       }
 
       /* actual file size */
@@ -682,7 +682,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
       /* fmt chunk size */
       size = 5*sizeof(int32_t) + curr;
-      *step = res = size;
+      *step = rv = size;
       if (is_bigendian())
       {
          size_t i;
@@ -795,7 +795,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             *step += 2*sizeof(int32_t);
          }
          *step += sizeof(int32_t);
-         res = *step + size;
+         rv = *step + size;
 
          do
          {
@@ -852,9 +852,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                size = 0;
                *step -= sizeof(int32_t);
                if (head == 0x61746164) {         /* data */
-                  res = *step;
+                  rv = *step;
                } else {
-                  res = __F_EOF;
+                  rv = __F_EOF;
                }
                break;
             }
@@ -864,7 +864,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          if (size < 0)
          {
             handle->io.read.last_tag = 0x5453494c; /* LIST */
-            res = __F_PROCESS;
+            rv = __F_PROCESS;
          }
          else {
             handle->io.read.blockbufpos = 0;
@@ -876,7 +876,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       curr = BSWAP(header[2]);
       handle->no_samples = curr;
       handle->max_samples = curr;
-      *step = res = 3*sizeof(int32_t);
+      *step = rv = 3*sizeof(int32_t);
    }
    else if (curr == 0x61746164)         /* data */
    {
@@ -887,10 +887,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          handle->no_samples = curr;
          handle->max_samples = curr;
       }
-      *step = res = 2*sizeof(int32_t);
+      *step = rv = 2*sizeof(int32_t);
    }
 
-   return res;
+   return rv;
 }
 
 static void*

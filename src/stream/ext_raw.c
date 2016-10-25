@@ -158,7 +158,7 @@ _raw_interfaces(int ext, int mode)
    };
    char *rv = NULL;
 
-   if (ext >= _EXT_PCM)
+   if (ext >= _EXT_PCM && ext < _EXT_MAX)
    {
       int m = mode > 0 ? 1 : 0;
       int pos = ext - _EXT_PCM;
