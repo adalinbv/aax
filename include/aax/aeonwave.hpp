@@ -187,12 +187,12 @@ class dsp : public Obj
 public:
     dsp() : Obj(), filter(true), fetype(0) {}
 
-    dsp(aaxconfig c, enum aaxFilterType f) :
+    dsp(aaxConfig c, enum aaxFilterType f) :
         Obj(c,aaxFilterDestroy), filter(true), fetype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
-    dsp(aaxconfig c, enum aaxEffectType e) :
+    dsp(aaxConfig c, enum aaxEffectType e) :
         Obj(c,aaxEffectDestroy), filter(false), fetype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
