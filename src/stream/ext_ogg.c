@@ -176,12 +176,13 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          {
             size_t step, datapos, datasize = *bufsize, size = *bufsize;
             size_t avail = handle->oggBufSize-handle->oggBufPos;
+            char *oggbuf = (char*)handle->oggBuffer;
             int res;
 
             avail = _MIN(size, avail);
             if (!avail) return NULL;
 
-            memcpy((char*)handle->oggBuffer+handle->oggBufPos, buf, avail);
+            memcpy(oggbuf+handle->oggBufPos, buf, avail);
             handle->oggBufPos += avail;
             size -= avail;
 
@@ -200,8 +201,9 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                      datapos += step;
                      datasize -= step;
                      handle->oggBufPos -= step;
-                     memmove(handle->oggBuffer, (char*)handle->oggBuffer+step,
-                             handle->oggBufPos);
+                     if (handle->oggBufPos > 0) {
+                        memmove(oggbuf, oggbuf+step, handle->oggBufPos);
+                     }
                   }
                   if (res <= 0) break;
                }
@@ -219,8 +221,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   datapos = 0;
                   datasize = avail;
                   size -= avail;
-                  memcpy((char*)handle->oggBuffer+handle->oggBufPos,
-                         buf, avail);
+                  memcpy(oggbuf+handle->oggBufPos, buf, avail);
                   handle->oggBufPos += avail;
                }
             }
@@ -253,6 +254,13 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                dataptr = (char*)buf;
                rv = handle->fmt->open(handle->fmt, dataptr, &datasize,
                                       handle->datasize);
+               if (rv)
+               {
+                  handle->oggBufPos -= datasize;
+                  if (handle->oggBufPos > 0) {
+                     memmove(oggbuf, oggbuf+datasize, handle->oggBufPos);
+                  }
+               }
             }
          }
          else
@@ -265,7 +273,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
       else if (handle->fmt && handle->fmt->open)
       {
          size_t avail = handle->oggBufSize-handle->oggBufPos;
-         char *dataptr = (char*)handle->oggBuffer;
+         char *oggbuf = (char*)handle->oggBuffer;
          size_t size = *bufsize;
 
          avail = _MIN(size, avail);
@@ -275,8 +283,15 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          handle->oggBufPos += avail;
 
          size = handle->oggBufPos;
-         rv = handle->fmt->open(handle->fmt, dataptr, &size,
+         rv = handle->fmt->open(handle->fmt, oggbuf, &size,
                                  handle->datasize);
+         if (rv)
+         {
+            handle->oggBufPos -= size;
+            if (handle->oggBufPos > 0) {
+               memmove(oggbuf, oggbuf+size, handle->oggBufPos);
+            }
+         }
          *bufsize = size;
       }
       else _AAX_FILEDRVLOG("OGG: Unknown opening error");

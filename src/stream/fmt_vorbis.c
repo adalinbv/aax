@@ -105,18 +105,31 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             int err = VORBIS__no_error;
             int used = 0;
 
+            memcpy((char*)handle->vorbisBuffer+handle->vorbisBufPos, buf, *bufsize);
+            handle->vorbisBufPos += *bufsize;
+            buf = (char*)handle->vorbisBuffer;
+
             if (!handle->id)
             {
-               int max = *bufsize;
+               int max = handle->vorbisBufPos;
                handle->id = stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
             }
 
             if (handle->id)
             {
-               char *ptr = (char*)buf + used;
-               size_t size = *bufsize - used;
+               stb_vorbis_info info = stb_vorbis_get_info(handle->id);
 
-               _vorbis_fill(fmt, buf, &size);
+               handle->no_tracks = info.channels;
+               handle->frequency = info.sample_rate;
+#if 0
+  printf("%d channels, %d samples/sec\n", info.channels, info.sample_rate);
+  printf("Predicted memory needed: %d (%d + %d)\n", info.setup_memory_required + info.temp_memory_required,
+                info.setup_memory_required, info.temp_memory_required);
+#endif
+               handle->vorbisBufPos -= used;
+               if (handle->vorbisBufPos > 0) {
+                  memmove(buf, buf+used, handle->vorbisBufPos);
+               }
                // we're done decoding, return NULL
             }
             else
@@ -188,19 +201,20 @@ size_t
 _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t bufpos, bufsize;
+   size_t bufpos, bufsize, size;
    size_t rv = 0;
 
+   size = *bytes;
    bufpos = handle->vorbisBufPos;
    bufsize = handle->vorbisBufSize;
-   if ((*bytes+bufpos) <= bufsize)
+   if ((size+bufpos) <= bufsize)
    {
       unsigned char *buf = handle->vorbisBuffer + bufpos;
 
-      memcpy(buf, sptr, *bytes);
-      handle->vorbisBufPos += *bytes;
-printf("_vorbis_fill: size: %i, pos: %i\n", *bytes, handle->vorbisBufPos);
-      rv = *bytes;
+      memcpy(buf, sptr, size);
+      handle->vorbisBufPos += size;
+printf(">>  _vorbis_fill: size: %i\n", handle->vorbisBufPos);
+      rv = size;
    }
 
    return rv;
@@ -246,38 +260,57 @@ size_t
 _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize, size = 0;
+   size_t bytes, bufsize;
    unsigned int bits, tracks;
    size_t rv = __F_EOF;
    unsigned char *buf;
    float **output;
-   int i, ret;
+   int i, ret, n;
+   int num_c;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
    buf = handle->vorbisBuffer;
-   bufsize = handle->vorbisBufSize;
+   bufsize = handle->vorbisBufPos;
+printf("1 bytes: %i\n", bytes);
 
    if (bytes > bufsize) {
       bytes = bufsize;
    }
+printf("2 bytes: %i\n", bytes);
 
-   ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bytes, tracks,
-                                                      output, num);
-printf("_vorbis_cvt_from_intl: ret: %i, num: %i\n", ret, *num);
+   ret = 0;
+   do
+   {
+      if (ret > 0)
+      {
+         bytes -= ret;
+         handle->vorbisBufPos -= ret;
+         if (handle->vorbisBufPos > 0) {
+            memmove(buf, buf+ret, handle->vorbisBufPos);
+         }
+      }
+printf(">>  %c%c%c%c, size: %i\n", buf[0], buf[1], buf[2], buf[3], bytes);
+      ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bytes, &num_c,
+                                                         &output, &n);
+printf(">>  _vorbis_cvt_from_intl: ret: %i, n: %i, num_c: %i\n", ret, n, num_c);
+   }
+   while (ret && n == 0);
+
    if (ret > 0)
    {
+      *num = n;
       for (i=0; i<tracks; i++) {
-         _batch_cvt24_ps(dptr[i], output[i], *num);
+         _batch_cvt24_ps(dptr[i], output[i], n);
       }
 
-      handle->no_samples += *num;
-      rv = size;
+      handle->no_samples += n;
+      rv = ret;
    }
 
-printf("rv: %i, *num: %i\n", rv, *num);
+printf(">>  rv: %i, *num: %i\n", rv, *num);
    return rv;
 }
 
