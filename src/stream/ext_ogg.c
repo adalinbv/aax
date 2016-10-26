@@ -518,7 +518,7 @@ _getOggPageHeader(_driver_t *handle, size_t size)
 }
 #endif
 
-#if 1
+#if 0
 {
    char *ch = (char*)header;
    uint64_t i64;
@@ -610,7 +610,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
 
       if (type == HEADER_IDENTIFICATION)
       {
-#if 1
+#if 0
    printf("\n--Vorbis Identification Header:\n");
    printf("  0: %08x (Type: %x)\n", header[0], h[0]);
    printf("  1: %08x (Codec identifier \"%c%c%c%c%c%c\")\n", header[1], h[1], h[2], h[3], h[4], h[5], h[6]);

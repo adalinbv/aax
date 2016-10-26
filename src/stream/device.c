@@ -258,7 +258,6 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
    {
       handle->handle = config;
       handle->ext = _ext_free(handle->ext);
-printf("s: '%s'\n", s);
       handle->ext = _aaxGetFormat(s, mode);
       if (handle->ext)
       {
