@@ -268,11 +268,11 @@ size_t
 _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize, req;
+   size_t bytes, bufsize;
    unsigned int bits, tracks;
    size_t rv = __F_EOF;
    unsigned char *buf;
-   int i, ret, n;
+   int req, i, ret, n;
 
    req = *num;
    tracks = handle->no_tracks;
@@ -315,7 +315,7 @@ printf(">>  _vorbis copy from outputs: pos: %i, max: %i, req: %i (%i)\n", pos, m
       rv = 0;
    }
 
-   if (req > 0)
+   while (req > 0)
    {
       ret = 0;
       do
@@ -349,11 +349,15 @@ printf(">>    n: %i, req: %i\n", n, req);
          if (n > req)
          {
             handle->out_size = n;
-            n -= req;
+            n = req;
             handle->out_pos = n;
+            req = 0;
+printf(">>    >> new n: %i, req: %i\n", n, req);
          }
-         else {
+         else
+         {
             assert(handle->out_pos == 0);
+            req -= n;
          }
 
          *num += n;
@@ -366,7 +370,7 @@ printf(">>    n: %i, req: %i\n", n, req);
       }
    }
 
-printf(">>      rv: %i, *num: %i\n\n", rv, *num);
+printf(">> --   rv: %i, *num: %i, req: %i --------------\n\n", rv, *num, req);
    return rv;
 }
 
