@@ -99,7 +99,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          handle->vorbisBufPos = 0;
          handle->vorbisBufSize = 16384;
          handle->vorbisptr = _aax_malloc(&ptr, handle->vorbisBufSize);
-         handle->vorbisBuffer = ptr;
+         handle->vorbisBuffer = (unsigned char*)ptr;
       }
 
       if (handle->vorbisptr)
@@ -109,8 +109,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             int err = VORBIS__no_error;
             int used = 0;
 
-            memcpy((char*)handle->vorbisBuffer+handle->vorbisBufPos, buf, *bufsize);
-            handle->vorbisBufPos += *bufsize;
+            _vorbis_fill(fmt, buf, bufsize);
             buf = (char*)handle->vorbisBuffer;
 
             if (!handle->id)
@@ -136,7 +135,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 #endif
                handle->vorbisBufPos -= used;
                if (handle->vorbisBufPos > 0) {
-                  memmove(buf, buf+used, handle->vorbisBufPos);
+                  memmove(buf, (char*)buf+used, handle->vorbisBufPos);
                }
                // we're done decoding, return NULL
             }
@@ -269,24 +268,19 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize;
-   unsigned int bits, tracks;
-   size_t rv = __F_EOF;
    unsigned char *buf;
    int req, i, ret, n;
+   int bits, tracks;
+   size_t rv = 0;
 
    req = *num;
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   bytes = req*tracks*bits/8;
    *num = 0;
-printf("\n>> req: %i, tracks: %i, bits: %i, bytes: %i\n", req, tracks, bits, bytes);
+printf("\n>> req: %i, tracks: %i, bits: %i\n", req, tracks, bits);
 
    buf = handle->vorbisBuffer;
    bufsize = handle->vorbisBufPos;
-
-   if (bytes > bufsize) {
-      bytes = bufsize;
-   }
 
 // TODO: vorbis decodes blocks of max. handle->blocksize at a time
 //       it may happen that more data is decoded then requested, so
@@ -310,41 +304,36 @@ printf(">>  _vorbis copy from outputs: pos: %i, max: %i, req: %i (%i)\n", pos, m
          handle->out_pos = 0;
       }
       req -= max;
-      bytes = req*tracks*bits/8;
       *num = max;
-      rv = 0;
    }
 
+   rv = 0;
    while (req > 0)
    {
       ret = 0;
       do
       {
+         ret = stb_vorbis_decode_frame_pushdata(handle->id, buf,
+                                                handle->vorbisBufPos, &tracks,
+                                                &handle->outputs, &n);
          if (ret > 0)
          {
-            bytes -= ret;
             handle->vorbisBufPos -= ret;
             if (handle->vorbisBufPos > 0) {
                memmove(buf, buf+ret, handle->vorbisBufPos);
             }
+            rv += ret;
          }
-         ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bytes, &tracks,
-                                                         &handle->outputs, &n);
+
          if (tracks > _AAX_MAX_SPEAKERS) {
             tracks = _AAX_MAX_SPEAKERS;
          }
-printf(">>  _vorbis_cvt_from_intl: ret: %i, n: %i\n", ret, n);
+printf(">>  _vorbis_cvt_from_intl: ret: %i, n: %i, avail: %i\n", ret, n, handle->vorbisBufPos);
       }
       while (ret && n == 0);
 
       if (ret > 0)
       {
-         /* skip processed data */
-         handle->vorbisBufPos -= ret;
-         if (handle->vorbisBufPos > 0) {
-            memmove(buf, buf+ret, handle->vorbisBufPos);
-         }
-
 printf(">>    n: %i, req: %i\n", n, req);
          if (n > req)
          {
@@ -362,11 +351,13 @@ printf(">>    >> new n: %i, req: %i\n", n, req);
 
          *num += n;
          handle->no_samples += n;
-         rv = ret;
 
          for (i=0; i<tracks; i++) {
             memcpy(dptr[i]+offset, handle->outputs[i], n*bits/8);
          }
+      }
+      else {
+         break;
       }
    }
 
@@ -378,7 +369,7 @@ size_t
 _vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
-   int res;
+   int res = 0;
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
