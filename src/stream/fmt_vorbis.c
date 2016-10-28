@@ -126,7 +126,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                handle->frequency = info.sample_rate;
                handle->blocksize = info.max_frame_size;
 
-               handle->format = AAX_FLOAT;
+               handle->format = AAX_PCM24S;
                handle->bits_sample = aaxGetBitsPerSample(handle->format);
 #if 0
   printf("%d channels, %d samples/sec\n", info.channels, info.sample_rate);
@@ -296,7 +296,7 @@ printf("\n>> req: %i, tracks: %i, bits: %i\n", req, tracks, bits);
 printf(">>  _vorbis copy from outputs: pos: %i, max: %i, req: %i (%i)\n", pos, max, req, handle->out_size);
 
       for (i=0; i<tracks; i++) {
-         memcpy(dptr[i]+offset, handle->outputs[i]+pos, max*bits/8);
+         _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i]+pos, n);
       }
       offset += max;
       handle->out_pos += max;
@@ -314,7 +314,7 @@ printf(">>  _vorbis copy from outputs: pos: %i, max: %i, req: %i (%i)\n", pos, m
       do
       {
          ret = stb_vorbis_decode_frame_pushdata(handle->id, buf,
-                                                handle->vorbisBufPos, &tracks,
+                                                handle->vorbisBufPos, NULL,
                                                 &handle->outputs, &n);
          if (ret > 0)
          {
@@ -338,8 +338,8 @@ printf(">>    n: %i, req: %i\n", n, req);
          if (n > req)
          {
             handle->out_size = n;
+            handle->out_pos = req;
             n = req;
-            handle->out_pos = n;
             req = 0;
 printf(">>    >> new n: %i, req: %i\n", n, req);
          }
@@ -352,9 +352,11 @@ printf(">>    >> new n: %i, req: %i\n", n, req);
          *num += n;
          handle->no_samples += n;
 
+printf(">>    memcpy: offset: %i, size: %i\n", offset, n*bits/8);
          for (i=0; i<tracks; i++) {
-            memcpy(dptr[i]+offset, handle->outputs[i], n*bits/8);
+            _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i], n);
          }
+         offset += n;
       }
       else {
          break;
