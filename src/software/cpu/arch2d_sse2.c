@@ -42,6 +42,10 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
    int32_t *d = (int32_t*)dst;
    float *s = (float*)src;
 
+   if (((size_t)d & 0xF) == 0 || ((size_t)s & 0xF) == 0) {
+      return _batch_cvt24_ps_cpu(dst, src, num);
+   }
+
    assert(((size_t)d & 0xF) == 0);
    assert(((size_t)s & 0xF) == 0);
 
