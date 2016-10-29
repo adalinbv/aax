@@ -532,13 +532,11 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             header = malloc(bufsize);
          }
 
-printf(">>>>> Read Header(s) >>>>>>>>>>>>>\n");
          do
          {
             if (!m && header && bufsize)
             {
                int tries = 100; /* 100*50 mSec = 5 seconds */
-printf("<><> io read: %i bytes\n", bufsize);
                do
                {
                   res = handle->io->read(handle->io, header, bufsize);
@@ -573,9 +571,6 @@ printf("<><> io read: %i bytes\n", bufsize);
             }
          }
          while (handle->mode == AAX_MODE_READ && buf && bufsize);
-printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-printf("<<<<< m: %i, buf: %x, bufsize: %i\n", handle->mode, buf, bufsize);
-printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
          free(header);
 

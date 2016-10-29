@@ -220,7 +220,6 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 
       memcpy(buf, sptr, size);
       handle->vorbisBufPos += size;
-printf(">>  _vorbis_fill: size: %i\n", handle->vorbisBufPos);
       rv = size;
    }
 
@@ -230,11 +229,12 @@ printf(">>  _vorbis_fill: size: %i\n", handle->vorbisBufPos);
 size_t
 _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
+   size_t rv = __F_EOF;
+#if 0
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
    int ret, decode_fec = 0;
-   size_t rv = __F_EOF;
    unsigned char *buf;
 
    tracks = handle->no_tracks;
@@ -248,7 +248,6 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       bytes = bufsize;
    }
 
-#if 0
    ret = vorbis_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, decode_fec);
    if (ret >= 0)
    {
@@ -267,33 +266,23 @@ size_t
 _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize;
+   size_t bufsize, rv = 0;
    unsigned char *buf;
-   int req, i, ret, n;
-   int bits, tracks;
-   size_t rv = 0;
+   int req, ret, n;
+   int i, tracks;
 
    req = *num;
    tracks = handle->no_tracks;
-   bits = handle->bits_sample;
    *num = 0;
-printf("\n>> req: %i, tracks: %i, bits: %i\n", req, tracks, bits);
 
    buf = handle->vorbisBuffer;
    bufsize = handle->vorbisBufPos;
-
-// TODO: vorbis decodes blocks of max. handle->blocksize at a time
-//       it may happen that more data is decoded then requested, so
-//       keep them available for a next run and copy that before a
-//       new decode session starts.
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
    {
       unsigned int pos = handle->out_pos;
       unsigned int max = _MIN(req, handle->out_size - pos);
-
-printf(">>  _vorbis copy from outputs: pos: %i, max: %i, req: %i (%i)\n", pos, max, req, handle->out_size);
 
       for (i=0; i<tracks; i++) {
          _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i]+pos, n);
@@ -305,43 +294,38 @@ printf(">>  _vorbis copy from outputs: pos: %i, max: %i, req: %i (%i)\n", pos, m
       }
       req -= max;
       *num = max;
+      if (req == 0) {
+         rv = 1;
+      }
    }
 
-   rv = 0;
    while (req > 0)
    {
       ret = 0;
       do
       {
-         ret = stb_vorbis_decode_frame_pushdata(handle->id, buf,
-                                                handle->vorbisBufPos, NULL,
+         ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bufsize, NULL,
                                                 &handle->outputs, &n);
          if (ret > 0)
          {
+            bufsize -= ret;
             handle->vorbisBufPos -= ret;
             if (handle->vorbisBufPos > 0) {
                memmove(buf, buf+ret, handle->vorbisBufPos);
             }
             rv += ret;
          }
-
-         if (tracks > _AAX_MAX_SPEAKERS) {
-            tracks = _AAX_MAX_SPEAKERS;
-         }
-printf(">>  _vorbis_cvt_from_intl: ret: %i, n: %i, avail: %i\n", ret, n, handle->vorbisBufPos);
       }
       while (ret && n == 0);
 
       if (ret > 0)
       {
-printf(">>    n: %i, req: %i\n", n, req);
          if (n > req)
          {
             handle->out_size = n;
             handle->out_pos = req;
             n = req;
             req = 0;
-printf(">>    >> new n: %i, req: %i\n", n, req);
          }
          else
          {
@@ -352,7 +336,6 @@ printf(">>    >> new n: %i, req: %i\n", n, req);
          *num += n;
          handle->no_samples += n;
 
-printf(">>    memcpy: offset: %i, size: %i\n", offset, n*bits/8);
          for (i=0; i<tracks; i++) {
             _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i], n);
          }
@@ -363,7 +346,6 @@ printf(">>    memcpy: offset: %i, size: %i\n", offset, n*bits/8);
       }
    }
 
-printf(">> --   rv: %i, *num: %i, req: %i --------------\n\n", rv, *num, req);
    return rv;
 }
 
