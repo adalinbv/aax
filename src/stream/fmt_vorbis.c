@@ -285,7 +285,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       unsigned int max = _MIN(req, handle->out_size - pos);
 
       for (i=0; i<tracks; i++) {
-         _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i]+pos, n);
+         _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i]+pos, max);
       }
       offset += max;
       handle->out_pos += max;
