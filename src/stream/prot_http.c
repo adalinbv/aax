@@ -37,6 +37,11 @@ size_t
 _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, const char *agent)
 {
    int res = _http_send_request(io, "GET", server, path, agent);
+
+#if 0
+  printf("GET:\n server: '%s'\n path: '%s'\n agent: '%s'\n res: %i\n", server, path, agent, res);
+#endif
+
    if (res > 0)
    {
       char buf[4096];
@@ -54,10 +59,11 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
          }
 
          s = _get_json(buf, "content-type");
-         if (s && !strcasecmp(s, "audio/mpeg"))
-         {
+         if (s) {
             prot->content_type = strdup(s);
-
+         }
+         if (s && _http_get(prot, __F_EXTENSION) != _EXT_NONE)
+         {
             s = _get_json(buf, "icy-name");
             if (s)
             {
