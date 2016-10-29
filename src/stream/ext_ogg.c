@@ -414,7 +414,7 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
 char*
 _ogg_interfaces(int ext, int mode)
 {
-   static const char *rd[2] = { "\0", "*.ogg *.oga\0" };
+   static const char *rd[2] = { "*.ogg *.oga\0", "\0" };
    return (char *)rd[mode];
 }
 

@@ -71,7 +71,7 @@ _flac_detect(_fmt_t *fmt, int mode)
    int rv = AAX_FALSE;
 
    /* not required but useful */
-   if (mode > 0)
+   if (mode == 0)
    {
       fmt->id = calloc(1, sizeof(_driver_t));
       if (fmt->id)
