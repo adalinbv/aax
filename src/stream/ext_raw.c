@@ -34,48 +34,48 @@ typedef struct
 int
 _raw_detect(_ext_t *ext, int mode)
 {
-   int rv = AAX_FALSE;
-
-   _driver_t *handle = calloc(1, sizeof(_driver_t));
-   if (handle)
-   {
-      handle->mode = mode;
-      ext->id = handle;
-      rv = AAX_TRUE;
-   }
-   else {
-      _AAX_FILEDRVLOG("RAW: Insufficient memory");
-   }
-   return rv;
+   return AAX_TRUE;
 }
 
 int
 _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
-   _driver_t *handle = ext->id;
-   unsigned bits;
-   _fmt_t *fmt;
+   _driver_t *handle;
+   int rv = AAX_FALSE;
 
-   fmt = _fmt_create(format, handle->mode);
-   if (fmt)
+   handle = calloc(1, sizeof(_driver_t));
+   if (handle)
    {
-      bits = aaxGetBitsPerSample(format);
-      handle->format = format;
-      handle->fmt = fmt;
+      _fmt_t *fmt;
 
-      handle->fmt->set(handle->fmt, __F_FREQ, freq);
-      handle->fmt->set(handle->fmt, __F_RATE, bitrate);
-      handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
-      handle->fmt->set(handle->fmt, __F_SAMPLES, no_samples);
-      handle->fmt->set(handle->fmt, __F_BITS, bits);
+      handle->mode = mode;
+      ext->id = handle;
 
-      *bufsize = 0;
-      if (handle->mode == 0) {
-         *bufsize = (no_samples*tracks*bits)/8;
-      }
+      fmt = _fmt_create(format, handle->mode);
+      if (fmt)
+      {
+         unsigned bits = aaxGetBitsPerSample(format);
+         handle->format = format;
+         handle->fmt = fmt;
+
+         handle->fmt->set(handle->fmt, __F_FREQ, freq);
+         handle->fmt->set(handle->fmt, __F_RATE, bitrate);
+         handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
+         handle->fmt->set(handle->fmt, __F_SAMPLES, no_samples);
+         handle->fmt->set(handle->fmt, __F_BITS, bits);
+
+         *bufsize = 0;
+         if (handle->mode == 0) {
+            *bufsize = (no_samples*tracks*bits)/8;
+         }
+         rv = AAX_TRUE;
+      }  
+   }
+   else {
+      _AAX_FILEDRVLOG("RAW: Insufficient memory");
    }
 
-   return AAX_TRUE;
+   return rv;
 }
 
 void*

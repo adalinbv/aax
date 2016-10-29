@@ -257,72 +257,61 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
    if (handle)
    {
       handle->handle = config;
-      handle->ext = _ext_free(handle->ext);
-      handle->ext = _aaxGetFormat(s, mode);
-      if (handle->ext)
+      handle->name = s;
+
+      snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s",DEFAULT_RENDERER);
+
+      if (xid)
       {
-         handle->name = s;
+         float f;
+         int i;
 
-         snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s",DEFAULT_RENDERER);
-
-         if (xid)
+         f = (float)xmlNodeGetDouble(xid, "frequency-hz");
+         if (f)
          {
-            float f;
-            int i;
-
-            f = (float)xmlNodeGetDouble(xid, "frequency-hz");
-            if (f)
+            if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
-               {
-                  _AAX_FILEDRVLOG("File: frequency too small.");
-                  f = (float)_AAX_MIN_MIXER_FREQUENCY;
-               }
-               else if (f > _AAX_MAX_MIXER_FREQUENCY)
-               {
-                  _AAX_FILEDRVLOG("File: frequency too large.");
-                  f = (float)_AAX_MAX_MIXER_FREQUENCY;
-               }
-               handle->frequency = f;
+               _AAX_FILEDRVLOG("File: frequency too small.");
+               f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
-
-            i = xmlNodeGetInt(xid, "channels");
-            if (i)
+            else if (f > _AAX_MAX_MIXER_FREQUENCY)
             {
-               if (i < 1)
-               {
-                  _AAX_FILEDRVLOG("File: no. tracks too small.");
-                  i = 1;
-               }
-               else if (i > _AAX_MAX_SPEAKERS)
-               {
-                  _AAX_FILEDRVLOG("File: no. tracks too great.");
-                  i = _AAX_MAX_SPEAKERS;
-               }
-               handle->no_channels = i;
+               _AAX_FILEDRVLOG("File: frequency too large.");
+               f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
-
-            i = xmlNodeGetInt(xid, "bits-per-sample");
-            if (i)
-            {
-               if (i != 16)
-               {
-                  _AAX_FILEDRVLOG("File: unsopported bits-per-sample");
-                  i = 16;
-               }
-               handle->bits_sample = i;
-            }
-
-            if (xmlNodeGetBool(xid, "_ctb8")) {
-               handle->copy_to_buffer = 1;
-            }
+            handle->frequency = f;
          }
-      }
-      else
-      {
-         _aaxStreamDriverLog(handle, 0, 0, "Unsupported file format");
-         _aaxStreamDriverDisconnect(handle);
-         handle = 0;
+
+         i = xmlNodeGetInt(xid, "channels");
+         if (i)
+         {
+            if (i < 1)
+            {
+               _AAX_FILEDRVLOG("File: no. tracks too small.");
+               i = 1;
+            }
+            else if (i > _AAX_MAX_SPEAKERS)
+            {
+               _AAX_FILEDRVLOG("File: no. tracks too great.");
+               i = _AAX_MAX_SPEAKERS;
+            }
+            handle->no_channels = i;
+         }
+
+         i = xmlNodeGetInt(xid, "bits-per-sample");
+         if (i)
+         {
+            if (i != 16)
+            {
+               _AAX_FILEDRVLOG("File: unsopported bits-per-sample");
+               i = 16;
+            }
+            handle->bits_sample = i;
+         }
+
+         if (xmlNodeGetBool(xid, "_ctb8")) {
+            handle->copy_to_buffer = 1;
+         }
       }
    }
 
@@ -467,8 +456,14 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
                else
                {
-                  handle->no_bytes = res;
-                  res = AAX_TRUE;
+                  int fmt = handle->prot->get(handle->prot, __F_EXTENSION);
+                  handle->ext = _ext_free(handle->ext);
+                  handle->ext = _ext_create(fmt);
+                  if (handle->ext)
+                  {
+                     handle->no_bytes = res;
+                     res = AAX_TRUE;
+                  }
                }
             }
             else {
@@ -483,8 +478,13 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->io->set(handle->io, __F_FLAGS, handle->mode);
          if (handle->io->open(handle->io, path) >= 0)
          {
-            handle->no_bytes = handle->io->get(handle->io, __F_NO_BYTES);
-            res = AAX_TRUE;
+            handle->ext = _ext_free(handle->ext);
+            handle->ext = _aaxGetFormat(handle->name, handle->mode);
+            if (handle->ext)
+            {
+               handle->no_bytes = handle->io->get(handle->io, __F_NO_BYTES);
+               res = AAX_TRUE;
+            }
          }
          else
          {
@@ -519,7 +519,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       res = handle->ext->setup(handle->ext, handle->mode, &bufsize, rate,
                                *tracks, format, period_frames, *bitrate);
       if (protocol == PROTOCOL_HTTP) {
-         handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
+//       hsnandle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
       }
 
       if (res && ((handle->io->fd >= 0) || m))
