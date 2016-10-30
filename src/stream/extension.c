@@ -46,7 +46,7 @@ _ext_create(_ext_type_t extension)
       }
       break;
    case _EXT_OGG:
-// case _EXT_OPUS:
+   case _EXT_OPUS:
       rv = calloc(1, sizeof(_ext_t));
       if (rv)
       {

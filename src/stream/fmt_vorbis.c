@@ -126,6 +126,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                handle->frequency = info.sample_rate;
                handle->blocksize = info.max_frame_size;
 
+               handle->max_samples = 0;
                handle->format = AAX_PCM24S;
                handle->bits_sample = aaxGetBitsPerSample(handle->format);
 #if 0

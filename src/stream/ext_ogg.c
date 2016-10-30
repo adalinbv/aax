@@ -414,8 +414,48 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
 char*
 _ogg_interfaces(int ext, int mode)
 {
-   static const char *rd[2] = { "*.ogg *.oga\0", "\0" };
-   return (char *)rd[mode];
+   static const char *raw_exts[_EXT_MAX - _EXT_PCM] = {
+      "*.ogg *.oga", "*.opus"
+   };
+   static char *rd[2][_EXT_PCM - _EXT_OGG] = {
+      { NULL, NULL },
+      { NULL, NULL }
+   };
+   char *rv = NULL;
+
+   if (ext >= _EXT_OGG && ext < _EXT_PCM)
+   {
+      int m = mode > 0 ? 1 : 0;
+      int pos = ext - _EXT_OGG;
+
+      if (rd[m][pos] == NULL)
+      {
+         int format = _FMT_MAX;
+
+         switch(ext)
+         {
+         case _EXT_OGG:
+            format = _FMT_VORBIS;
+            break;
+         case _EXT_OPUS:
+            format = _FMT_OPUS;
+            break; 
+         default:
+            break;
+         }
+
+         _fmt_t *fmt = _fmt_create(format, m);
+         if (fmt)
+         {
+            _fmt_free(fmt);
+            rd[m][pos] = (char*)raw_exts[pos];
+         }
+      }
+      rv = rd[mode][pos];
+   }
+
+
+   return rv;
 }
 
 int
@@ -426,7 +466,7 @@ _ogg_extension(char *ext)
    if (ext) {
       if (!strcasecmp(ext, "ogg") || !strcasecmp(ext, "oga")
 //        || !strcasecmp(ext, "ogx") || !strcasecmp(ext, "spx")
-//        || !strcasecmp(ext, "opus")
+          || !strcasecmp(ext, "opus")
          )
       {
          rv = _EXT_OGG;
@@ -627,7 +667,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
          {
             int blocksize1;
 
-            handle->format = AAX_FLOAT;
+            handle->format = AAX_PCM24S;
             handle->no_tracks = header[2] >> 24;
             handle->frequency = header[3];
             handle->blocksize = 1 << (header[7] >> 28);
@@ -765,6 +805,10 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
    char *h = (char*)ch;
    int rv = __F_PROCESS;
 
+#if 0
+  printf("  Codec identifier \"%c%c%c%c%c%c%c\"\n", ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6]);
+#endif
+
    if ((len > 5) && !strncmp(h, "\177FLAC", 5))
    {
       handle->keep_header = AAX_FALSE;
@@ -888,8 +932,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
        * The packets must occur in the order of identification,
        * comment, setup.
        */
-      if ((segment[0] == HEADER_IDENTIFICATION) &&
-          (bufsize >= segment_size))
+      if (bufsize >= segment_size)
       {
          /*
           * https://tools.ietf.org/html/rfc3533.html#section-6
@@ -912,13 +955,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             rv = *step = 0;
          }
       }
-      else if (bufsize < segment_size)
+      else
       {
          *step = 0;
          rv = __F_PROCESS;
-      }
-      else {	/* segment[0] != HEADER_IDENTIFICATION */
-         *step = rv = 0;
       }
    }
    else
