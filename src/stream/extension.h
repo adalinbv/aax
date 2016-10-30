@@ -32,6 +32,8 @@ typedef enum {
    _EXT_NONE = 0,
    _EXT_WAV,
    _EXT_OGG,
+   _EXT_OPUS,
+// _EXT_SPEEX,
 
    /* raw format extensions */
    _EXT_PCM,
