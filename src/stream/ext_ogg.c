@@ -78,6 +78,7 @@ typedef struct
 } _driver_t;
 
 
+static int _getOggPageHeader(_driver_t*, size_t);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 
 /*
@@ -335,7 +336,33 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
 
-// TODO: handle packet header
+#if 1
+   if (!handle->keep_header)
+   {
+      size_t avail = handle->oggBufSize-handle->oggBufPos;
+      char *oggbuf = (char*)handle->oggBuffer;
+
+      avail = _MIN(*num, avail);
+      if (!avail) return 0;
+
+      memcpy(oggbuf+handle->oggBufPos, sptr, avail);
+      handle->oggBufPos += avail;
+
+      int res = _getOggPageHeader(handle, handle->oggBufPos);
+      if (res >= 0)
+      {
+         char *ptr = (char*)handle->oggBuffer;
+printf("C ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
+         handle->oggBufPos -= res;
+         memmove(ptr, ptr+res, handle->oggBufPos);
+printf("D ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
+      }
+
+      *num = avail;
+      return handle->fmt->fill(handle->fmt, oggbuf, num);
+   }
+#endif
+
    return handle->fmt->fill(handle->fmt, sptr, num);
 }
 
@@ -846,6 +873,7 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
       handle->format_type = _FMT_SPEEX;
       handle->ogg_format = SPEEX_OGG_FILE;
       handle->format = AAX_PCM16S;
+      rv = 0;
    }
 #endif
 
@@ -919,14 +947,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
    uint32_t *header = handle->oggBuffer;
    size_t bufsize = handle->oggBufPos;
-   int rv = __F_EOF;
+   int res, rv = __F_EOF;
 
-   rv = _getOggPageHeader(handle, bufsize);
-   if ((rv >= 0) && (handle->segment_size > 0))
+   res = _getOggPageHeader(handle, bufsize);
+   if ((res >= 0) && (handle->segment_size > 0))
    {
-      unsigned char *segment = (unsigned char*)header + rv;
+      unsigned char *segment = (unsigned char*)header + res;
       size_t segment_size = handle->segment_size;
-//    unsigned int page_size = rv;
 
       /*
        * The packets must occur in the order of identification,
@@ -949,9 +976,16 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             handle->bitstream_serial_no = 0;
          }
 
-         if (rv > 0)
+         if (rv >= 0)
          {
-//          page_size += segment_size;
+            if (!handle->keep_header)
+            {  
+               char *ptr = header;
+printf("A ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
+               handle->oggBufPos -= res;
+               memmove(ptr, ptr+res, handle->oggBufPos);
+printf("B ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
+            }
             rv = *step = 0;
          }
       }
