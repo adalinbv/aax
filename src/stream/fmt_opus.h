@@ -21,5 +21,8 @@ typedef void (*opus_encoder_destroy_proc)(void*);
 typedef int (*opus_encoder_ctl_proc) (void*, int, ...);
 typedef int32_t (*opus_encode_proc)(void*, const int16_t*, int, unsigned char*, int32_t);
 
+typedef const char* (*opus_strerror_proc)(int);
+typedef const char* (*opus_get_version_string_proc)(void);
+
 #endif /* __FILE_FMT_OPUS_H */
 

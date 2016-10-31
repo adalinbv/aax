@@ -36,6 +36,8 @@ DECL_FUNCTION(opus_encoder_destroy);
 DECL_FUNCTION(opus_encoder_ctl);
 DECL_FUNCTION(opus_encode);
 
+DECL_FUNCTION(opus_strerror);
+
 typedef struct
 {
    void *id;
@@ -96,6 +98,8 @@ _opus_detect(_fmt_t *fmt, int mode)
          if (!error)
          {
             /* not required but useful */
+            TIE_FUNCTION(opus_strerror);
+
             fmt->id = calloc(1, sizeof(_driver_t));
             if (fmt->id)
             {
@@ -128,25 +132,42 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
-      if (!handle->id)
+      if (!handle->opusptr)
       {
-         int err;
-         handle->id = popus_decoder_create(handle->frequency, handle->no_tracks, &err);
-         if (err > 0)
+         char *ptr = 0;
+ 
+         handle->opusBufPos = 0;
+         handle->opusBufSize = MAX_PACKET_SIZE;
+         handle->opusptr = _aax_malloc(&ptr, handle->opusBufSize);
+         handle->opusBuffer = (unsigned char*)ptr;
+
+         handle->pcm = _aax_aligned_alloc16(MAX_FRAME_SIZE*handle->no_tracks); 
+      }
+
+      if (handle->opusptr)
+      {
+         if (handle->capturing)
          {
-            char *ptr = 0;
+            if (!handle->id)
+            {
+               int err, tracks = handle->no_tracks;
+               int32_t freq = 48000;
 
-            handle->opusBufPos = 0;
-            handle->opusBufSize = MAX_PACKET_SIZE;
-            handle->opusptr = _aax_malloc(&ptr, handle->opusBufSize);
-            handle->opusBuffer = (unsigned char*)ptr;
+               handle->id = popus_decoder_create(freq, tracks, &err);
 
-            handle->pcm = _aax_aligned_alloc16(MAX_FRAME_SIZE*handle->no_tracks);
-
-            rv = buf;
-         }
-         else {
-            _AAX_FILEDRVLOG("OPUS: Unable to create a handle");
+               if (handle->id)
+               {
+                  _opus_fill(fmt, buf, bufsize);
+                  handle->frequency = freq;
+               }
+               else
+               {
+                  char s[1025];
+                  snprintf(s, 1024, "OPUS: Unable to create a handle (%s)",
+                                     opus_strerror(err));
+                  _aaxStreamDriverLog(NULL, 0, 0, s);
+               }
+            }
          }
       }
    }
@@ -154,8 +175,6 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
    {
       _AAX_FILEDRVLOG("OPUS: Internal error: handle id equals 0");
    }
-
-printf("opus: %i\n", rv);
 
    return rv;
 }
@@ -186,18 +205,19 @@ size_t
 _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t bufpos, bufsize;
+   size_t bufpos, bufsize, size;
    size_t rv = 0;
 
+   size = *bytes;
    bufpos = handle->opusBufPos;
    bufsize = handle->opusBufSize;
-   if ((*bytes+bufpos) <= bufsize)
+   if ((size+bufpos) <= bufsize)
    {
       unsigned char *buf = handle->opusBuffer + bufpos;
 
-      memcpy(buf, sptr, *bytes);
-      handle->opusBufPos += *bytes;
-      rv = *bytes;
+      memcpy(buf, sptr, size);
+      handle->opusBufPos += size;
+      rv = size;
    }
 
    return rv;
@@ -269,7 +289,9 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
    }
 
    /* see the comments in _opus_copy() for *num */
+printf("-- %c%c%c%c\n", buf[0], buf[1], buf[2], buf[3]);
    ret = popus_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
+printf("cvt_from: %i\n", ret);
    if (ret > 0)
    {
       unsigned int framesize = tracks*bits/8;
@@ -280,6 +302,9 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       handle->no_samples += *num;
       rv = size;
    }
+else
+fprintf(stderr, "error decoding frame: %s\n", popus_strerror(ret));
+
    return rv;
 }
 
