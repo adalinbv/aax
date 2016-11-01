@@ -36,6 +36,18 @@ typedef struct
 {
    void *id;
 
+   char *artist;
+   char *original;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *composer;
+   char *comments;
+   char *copyright;
+   char *website;
+
    _fmt_t *fmt;
 
    int capturing;
@@ -64,7 +76,8 @@ typedef struct
    uint64_t granule_position;
    uint32_t bitstream_serial_no;
    uint32_t page_sequence_no;
-   size_t segment_size;
+   unsigned int page_size;
+   unsigned int segment_size;
    /* page header */
 
    void *oggptr;
@@ -72,13 +85,12 @@ typedef struct
    size_t oggBufSize;
    size_t oggBufPos;
 
-   uint32_t *crc_table;
    size_t datasize;
 
 } _driver_t;
 
 
-static int _getOggPageHeader(_driver_t*, size_t);
+static int _getOggPageHeader(_driver_t*, uint32_t*, size_t);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 
 /*
@@ -318,7 +330,19 @@ _ogg_close(_ext_t *ext)
          handle->fmt->close(handle->fmt);
          _fmt_free(handle->fmt);
       }
-      free(handle->crc_table);
+
+      free(handle->trackno);
+      free(handle->artist);
+      free(handle->title);
+      free(handle->album);
+      free(handle->date);
+      free(handle->genre);
+      free(handle->comments);
+      free(handle->composer);
+      free(handle->copyright);
+      free(handle->original);
+      free(handle->website);
+
       free(handle);
    }
 
@@ -348,7 +372,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
       memcpy(oggbuf+handle->oggBufPos, sptr, avail);
       handle->oggBufPos += avail;
 
-      int res = _getOggPageHeader(handle, handle->oggBufPos);
+      int res = _getOggPageHeader(handle, handle->oggBuffer, handle->oggBufPos);
       if (res >= 0)
       {
          char *ptr = (char*)handle->oggBuffer;
@@ -400,7 +424,6 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
    _driver_t *handle = ext->id;
    char *rv = handle->fmt->name(handle->fmt, param);
 
-#if 0
    if (!rv)
    {
       switch(param)
@@ -410,6 +433,9 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
          break;
       case __F_TITLE:
          rv = handle->title;
+         break;
+      case __F_COMPOSER:
+         rv = handle->composer;
          break;
       case __F_GENRE:
          rv = handle->genre;
@@ -429,11 +455,16 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
       case __F_COPYRIGHT:
          rv = handle->copyright;
          break;
+      case __F_ORIGINAL:
+         rv = handle->original;
+         break;
+      case __F_WEBSITE:
+         rv = handle->website;
+         break;
       default:
          break;
       }
    }
-#endif
 
    return rv;
 }
@@ -521,11 +552,12 @@ _ogg_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 
+static int _getOggComment(_driver_t *handle, unsigned char *ch, size_t len);
+
 // https://www.ietf.org/rfc/rfc3533.txt
 static int
-_getOggPageHeader(_driver_t *handle, size_t size)
+_getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
-   uint32_t *header = handle->oggBuffer;
    size_t bufsize = handle->oggBufPos;
    int32_t curr;
    int rv = -1;
@@ -573,6 +605,7 @@ _getOggPageHeader(_driver_t *handle, size_t size)
                   for (i=0; i<no_segments; ++i) {
                      handle->segment_size += ch[27+i];
                   }
+                  handle->page_size = header_size + handle->segment_size;
 #if 0
 {
                   uint32_t crc32, i32;
@@ -880,7 +913,6 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
    return rv;
 }
 
-#if 0
 // https://xiph.org/vorbis/doc/v-comment.html
 // https://wiki.xiph.org/OggOpus#Content_Type
 // https://wiki.xiph.org/OggPCM#Comment_packet
@@ -888,37 +920,71 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 static int
 _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
 {
-   int32_t *header = (int32_t*)ch;
+   uint32_t *header = (uint32_t*)ch;
+   char field[COMMENT_SIZE+1];
    unsigned char *ptr;
    size_t i, size;
    int rv = len;
 
-   i = 11 + ((header[1] >> 24) | (header[2] << 8));
+   field[COMMENT_SIZE] = 0;
+
+   size = (header[1] >> 24) | (header[2] << 8);
+   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+11);
+// handle->vendor = strdup(field);
+
+   i = 11+size;
    ptr = ch+i;
    size = *(uint32_t*)ptr;
+
    ptr += 4;
    for (i=0; i<size; i++)
    {
-      size_t slen = *(uint32_t*)ptr;
-      ptr += 4 + slen;
+      uint32_t slen = *(uint32_t*)ptr;
 
+      ptr += sizeof(uint32_t);
+      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+      ptr += slen;
+
+      if (!STRCMP(field, "TITLE")) {
+          handle->title = strdup(field+strlen("TITLE="));
+      } else if (!STRCMP(field, "ALBUM")) {
+          handle->album = strdup(field+strlen("ALBUM="));
+      } else if (!STRCMP(field, "TRACKNUMBER")) {
+          handle->trackno = strdup(field+strlen("TRACKNUMBER="));
+      } else if (!STRCMP(field, "ARTIST")) {
+          handle->composer = strdup(field+strlen("ARTIST="));
+          handle->original = strdup(field+strlen("ARTIST="));
+      } else if (!STRCMP(field, "PERFORMER")) {
+          handle->artist = strdup(field+strlen("PERFORMER="));
+      } else if (!STRCMP(field, "COPYRIGHT")) {
+          handle->copyright = strdup(field+strlen("COPYRIGHT="));
+      } else if (!STRCMP(field, "GENRE")) {
+          handle->genre = strdup(field+strlen("GENRE="));
+      } else if (!STRCMP(field, "DATE")) {
+          handle->date = strdup(field+strlen("DATE="));
+      } else if (!STRCMP(field, "CONTACT")) {
+          handle->website = strdup(field+strlen("CONTACT="));
+      } else if (!STRCMP(field, "DESCRIPTION")) {
+          handle->comments = strdup(field+strlen("DESCRIPTION="));
+      }
+
+#if 0
       if ((ptr-ch) > len) {
           return __F_PROCESS;
       }
+#endif
    }
    ptr++;
    rv = ptr-ch;
 
 #if 0
-   char s[COMMENT_SIZE+1];
-
    printf("\n--Vorbis Comment Header:\n");
    printf("  0: %08x (Type: %x)\n", header[0], ch[0]);
    printf("  1: %08x (Codec identifier \"%c%c%c%c%c%c\")\n", header[1], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6]);
 
    size = (header[1] >> 24) | (header[2] << 8);
-   snprintf(s, _MIN(size+1, COMMENT_SIZE), "%s\0", ch+11);
-   printf("  2: %08x Vendor: '%s'\n", header[2], s);
+   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+11);
+   printf("  2: %08x Vendor: '%s'\n", header[2], field);
 
    i = 11+size;
    ptr = ch+i;
@@ -930,8 +996,8 @@ _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
    {
       size_t slen = *(uint32_t*)ptr;
       ptr += 4;
-      snprintf(s, _MIN(slen+1, COMMENT_SIZE), "%s\0", ptr);
-      printf("\t'%s'\n", s);
+      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+      printf("\t'%s'\n", field);
       ptr += slen;
    }
    ptr++;
@@ -940,7 +1006,6 @@ _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
 
    return rv;
 }
-#endif
 
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
@@ -949,7 +1014,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    size_t bufsize = handle->oggBufPos;
    int res, rv = __F_EOF;
 
-   res = _getOggPageHeader(handle, bufsize);
+   res = _getOggPageHeader(handle, header, bufsize);
    if ((res >= 0) && (handle->segment_size > 0))
    {
       unsigned char *segment = (unsigned char*)header + res;
@@ -978,9 +1043,24 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
          if (rv >= 0)
          {
+            unsigned int len = bufsize;
+            unsigned char *ch = (unsigned char*)header;
+            int size;
+
+            ch += handle->page_size;
+            len -= handle->page_size;
+
+            size = _getOggPageHeader(handle, (uint32_t*)ch, len);
+            if ((size >= 0) && (handle->segment_size > 0))
+            {
+               ch += size;
+               len -= size;
+               _getOggComment(handle, ch, len);
+            }
+
             if (!handle->keep_header)
             {  
-               char *ptr = header;
+               char *ptr = (char*)header;
 printf("A ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
                handle->oggBufPos -= res;
                memmove(ptr, ptr+res, handle->oggBufPos);

@@ -26,11 +26,9 @@
 typedef struct
 {
    void *id;
-   void *audio;
-
-   int mode;
 
    char capturing;
+   int mode;
 
    uint8_t no_tracks;
    uint8_t bits_sample;
@@ -59,7 +57,6 @@ typedef struct
 int
 _vorbis_detect(_fmt_t *fmt, int mode)
 {
-   void *audio = NULL;
    int rv = AAX_FALSE;
 
    /* not required but useful */
@@ -68,7 +65,6 @@ _vorbis_detect(_fmt_t *fmt, int mode)
    {
       _driver_t *handle = fmt->id;
 
-      handle->audio = audio;
       handle->mode = mode;
       handle->capturing = (mode == 0) ? 1 : 0;
       handle->blocksize = FRAME_SIZE;

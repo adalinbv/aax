@@ -347,7 +347,6 @@ _flac_set(_fmt_t *fmt, int type, off_t value)
 }
 
 /* -------------------------------------------------------------------------- */
-#define STRCMP(a, b)	strncmp((a), (b), strlen(b))
 #define COMMENT_SIZE	1024
 
 static void
