@@ -917,6 +917,28 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 // https://wiki.xiph.org/OggOpus#Content_Type
 // https://wiki.xiph.org/OggPCM#Comment_packet
 #define COMMENT_SIZE    1024
+static char*
+stradd(char *src, char *dest)
+{
+   char *rv;
+   if (src)
+   {
+      rv = realloc(src, strlen(src)+strlen(dest)+3);
+      if (rv)
+      {
+         strcat(rv, ", ");
+         strcat(rv, dest);
+     }
+     else {
+        rv = src;
+     }
+   }
+   else {
+      rv = strdup(dest);
+   }
+   return rv;
+}
+
 static int
 _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
 {
@@ -942,37 +964,35 @@ _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
       uint32_t slen = *(uint32_t*)ptr;
 
       ptr += sizeof(uint32_t);
+      if ((ptr+slen-ch) > len) {
+          return __F_PROCESS;
+      }
+
       snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
       ptr += slen;
 
       if (!STRCMP(field, "TITLE")) {
-          handle->title = strdup(field+strlen("TITLE="));
+          handle->title = stradd(handle->title, field+strlen("TITLE="));
       } else if (!STRCMP(field, "ALBUM")) {
-          handle->album = strdup(field+strlen("ALBUM="));
+          handle->album = stradd(handle->album, field+strlen("ALBUM="));
       } else if (!STRCMP(field, "TRACKNUMBER")) {
-          handle->trackno = strdup(field+strlen("TRACKNUMBER="));
+          handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
       } else if (!STRCMP(field, "ARTIST")) {
-          handle->composer = strdup(field+strlen("ARTIST="));
-          handle->original = strdup(field+strlen("ARTIST="));
+          handle->composer = stradd(handle->composer, field+strlen("ARTIST="));
+          handle->original = stradd(handle->original, field+strlen("ARTIST="));
       } else if (!STRCMP(field, "PERFORMER")) {
-          handle->artist = strdup(field+strlen("PERFORMER="));
+          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
       } else if (!STRCMP(field, "COPYRIGHT")) {
-          handle->copyright = strdup(field+strlen("COPYRIGHT="));
+          handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
       } else if (!STRCMP(field, "GENRE")) {
-          handle->genre = strdup(field+strlen("GENRE="));
+          handle->genre = stradd(handle->genre, field+strlen("GENRE="));
       } else if (!STRCMP(field, "DATE")) {
-          handle->date = strdup(field+strlen("DATE="));
+          handle->date = stradd(handle->date, field+strlen("DATE="));
       } else if (!STRCMP(field, "CONTACT")) {
-          handle->website = strdup(field+strlen("CONTACT="));
+          handle->website = stradd(handle->website, field+strlen("CONTACT="));
       } else if (!STRCMP(field, "DESCRIPTION")) {
-          handle->comments = strdup(field+strlen("DESCRIPTION="));
+          handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
       }
-
-#if 0
-      if ((ptr-ch) > len) {
-          return __F_PROCESS;
-      }
-#endif
    }
    ptr++;
    rv = ptr-ch;
