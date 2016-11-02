@@ -41,7 +41,6 @@ enum oggHeaderType
    HEADER_SETUP = 5
 };
 
-#define VORBIS_ID_HEADER_SIZE	(4*7-1)
 
 
 // https://wiki.xiph.org/OggPCM

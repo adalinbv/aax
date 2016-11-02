@@ -164,7 +164,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                {
                   char s[1025];
                   snprintf(s, 1024, "OPUS: Unable to create a handle (%s)",
-                                     opus_strerror(err));
+                                     popus_strerror(err));
                   _aaxStreamDriverLog(NULL, 0, 0, s);
                }
             }
@@ -289,9 +289,8 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
    }
 
    /* see the comments in _opus_copy() for *num */
-printf("-- %c%c%c%c\n", buf[0], buf[1], buf[2], buf[3]);
    ret = popus_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
-printf("cvt_from: %i\n", ret);
+printf("opus_decode: %i\n", ret);
    if (ret > 0)
    {
       unsigned int framesize = tracks*bits/8;

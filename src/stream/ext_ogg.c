@@ -29,6 +29,7 @@
 // https://xiph.org/vorbis/doc/v-comment.html
 // https://xiph.org/flac/ogg_mapping.html
 // https://wiki.xiph.org/OggOpus (superseded by RFC-7845)
+//  -- https://tools.ietf.org/html/rfc7845.html
 // https://wiki.xiph.org/OggPCM (listed under abandonware)
 
 
@@ -70,6 +71,10 @@ typedef struct
     * page header or not. If not remove it from the data stream.
     */
    char keep_header;
+
+   /* Opus */
+   size_t pre_skip;
+   float gain;
 
    /* page header information */
    char header_type;
@@ -243,7 +248,6 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             if (!handle->fmt)
             {
                _fmt_type_t fmt = handle->format_type;
-               char *dataptr;
 
                handle->fmt = _fmt_create(handle->format_type, handle->mode);
                if (!handle->fmt) {
@@ -264,8 +268,9 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
 //             handle->fmt->set(handle->fmt, __F_POSITION,
 //                                              handle->blockbufpos);
-               dataptr = (char*)buf;
-               rv = handle->fmt->open(handle->fmt, dataptr, &datasize,
+
+               datasize = handle->oggBufPos;
+               rv = handle->fmt->open(handle->fmt, oggbuf, &datasize,
                                       handle->datasize);
                if (rv)
                {
@@ -360,7 +365,6 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
 
-#if 1
    if (!handle->keep_header)
    {
       size_t avail = handle->oggBufSize-handle->oggBufPos;
@@ -376,16 +380,13 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
       if (res >= 0)
       {
          char *ptr = (char*)handle->oggBuffer;
-printf("C ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
          handle->oggBufPos -= res;
          memmove(ptr, ptr+res, handle->oggBufPos);
-printf("D ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
       }
 
       *num = avail;
       return handle->fmt->fill(handle->fmt, oggbuf, num);
    }
-#endif
 
    return handle->fmt->fill(handle->fmt, sptr, num);
 }
@@ -698,6 +699,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 }
 
 // https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-630004.2.2
+#define VORBIS_ID_HEADER_SIZE	(4*7-1)
 static int
 _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
 {
@@ -753,9 +755,77 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
             }
 
             rv = VORBIS_ID_HEADER_SIZE;
-            len -= VORBIS_ID_HEADER_SIZE;
          }
       }
+   }
+
+   return rv;
+}
+
+// https://tools.ietf.org/html/rfc7845.html#page-12
+#define OPUS_ID_HEADER_SIZE	(4*5-1)
+static int
+_aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
+{
+   int rv = __F_EOF;
+
+   if (len >= OPUS_ID_HEADER_SIZE)
+   {
+      int version = h[8];
+      if (version == 1)
+      {
+         unsigned char mapping_family;
+         int gain;
+
+         handle->format = AAX_PCM24S;
+         handle->no_tracks = (unsigned char)h[9];
+         handle->frequency = *((uint32_t*)h+3);
+         handle->pre_skip = (unsigned)h[10] << 8 | h[11];
+
+         gain = (int)h[16] << 8 | h[17];
+         handle->gain = pow(10, (float)gain/(20.0f*256.0f));
+
+         mapping_family = h[18];
+         if ((mapping_family == 0 || mapping_family == 1) &&
+             (handle->no_tracks > 1) && (handle->no_tracks <= 8))
+         {
+             /*
+              * The 'channel mapping table' MUST be omitted when the channel
+              * mapping family s 0, but is REQUIRED otherwise.
+              */
+             if (mapping_family == 1)
+             {
+                 int stream_count = h[19];
+                 int coupled_count = h[20];
+                 if ((stream_count > 0) && (stream_count <= coupled_count))
+                 {
+                    // what follows is 'no_tracks' bytes for the channel mapping
+                    rv = OPUS_ID_HEADER_SIZE + handle->no_tracks + 2;
+                    if (rv <= len) {
+                       rv = __F_PROCESS;
+                    }
+                 }
+             }
+             else {
+                rv = OPUS_ID_HEADER_SIZE;
+             }
+         }
+      }
+
+#if 0
+{
+  uint32_t *header = (uint32_t*)h;
+  float gain = (int)h[16] << 8 | h[17];
+  printf("\n-- Opus Identification Header:\n");
+  printf("  0: %08x %08x ('%c%c%c%c%c%c%c%c')\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
+  printf("  2: %08x (Version: %i, Tracks: %i, Pre Skip: %i)\n", header[2], h[8], (unsigned char)h[9], (unsigned)h[10] << 8 | h[11]);
+  printf("  3: %08x (Original Sample Rate: %i)\n", header[3],  header[3]);
+  printf("  4: %08x (Replay gain: %f, Mapping Family: %i)\n", header[4], pow(10, (float)gain/(20.0f*256.0f)), h[18]);
+  if (h[18] == 1) {
+    printf("  5: %08x (Stream Count: %i, Coupled Count: %i)\n", header[5], h[19], h[20]);
+  }
+}
+#endif
    }
 
    return rv;
@@ -774,7 +844,7 @@ _aaxFormatDriverReadPCMHeader(_driver_t *handle, char *h, size_t len)
       uint32_t *header = (uint32_t*)h;
       uint32_t pcm_format = header[3];
 
-#if 1
+#if 0
    printf("\n  oggPCM Header:\n");
    printf("0-1: %08x %08x (Codec identifier \"%c%c%c%c%c%c%c%c\"\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
    printf("  2: %08x (version %04x - %04x)\n", header[2], (header[2] & 0xFF), (header[2] >> 16));
@@ -889,8 +959,7 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
       handle->keep_header = AAX_FALSE;
       handle->format_type = _FMT_OPUS;
       handle->ogg_format = OPUS_OGG_FILE;
-      handle->format = AAX_PCM16S;
-      rv = 0;
+      rv = _aaxFormatDriverReadOpusHeader(handle, h, len);
    }
 #if 0
    else if ((len > 8) && !strncmp(h, "PCM     ", 8))
@@ -1042,7 +1111,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
       /*
        * The packets must occur in the order of identification,
-       * comment, setup.
+       * comment (, setup).
        */
       if (bufsize >= segment_size)
       {
@@ -1065,28 +1134,49 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          {
             unsigned int len = bufsize;
             unsigned char *ch = (unsigned char*)header;
-            int size;
+            int size, skip = handle->page_size;
 
-            ch += handle->page_size;
-            len -= handle->page_size;
+            ch += skip;
+            len -= skip;
 
             size = _getOggPageHeader(handle, (uint32_t*)ch, len);
             if ((size >= 0) && (handle->segment_size > 0))
             {
                ch += size;
                len -= size;
-               _getOggComment(handle, ch, len);
+               rv = _getOggComment(handle, ch, len);
+               if (rv == __F_PROCESS) {
+                  handle->bitstream_serial_no = 0;
+               }
+
+               skip += handle->page_size;
+               len -= handle->page_size;
             }
 
-            if (!handle->keep_header)
-            {  
-               char *ptr = (char*)header;
-printf("A ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
-               handle->oggBufPos -= res;
-               memmove(ptr, ptr+res, handle->oggBufPos);
-printf("B ## %c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3]);
+            if (rv >= 0)
+            {
+               rv = *step = 0;
+
+               if (!handle->keep_header)
+               {
+                  char *ptr = (char*)handle->oggBuffer + skip;
+
+                  size = _getOggPageHeader(handle, (uint32_t*)ptr, len);
+                  if ((size >= 0) && (handle->segment_size > 0))
+                  {
+                     skip += size;
+
+                     ptr = (char*)handle->oggBuffer;
+                     handle->oggBufPos -= skip;
+                     memmove(ptr, ptr+skip, handle->oggBufPos);
+                  }
+                  else
+                  {
+                     handle->bitstream_serial_no = 0;
+                     rv = __F_PROCESS;
+                  }
+               }
             }
-            rv = *step = 0;
          }
       }
       else
