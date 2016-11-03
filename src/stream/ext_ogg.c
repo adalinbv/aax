@@ -185,7 +185,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             char *ptr = 0;
 
             handle->oggBufPos = 0;
-            handle->oggBufSize = 16384;
+            handle->oggBufSize = 100*1024;
             handle->oggptr = _aax_malloc(&ptr, handle->oggBufSize);
             handle->oggBuffer = (uint32_t*)ptr;
          }
@@ -402,7 +402,16 @@ size_t
 _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   size_t rv;
+
+   rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   if (rv < 0)
+   {
+      rv = __F_EOF;
+      *num = 0;
+   }
+
+   return rv;
 }
 
 size_t
@@ -553,7 +562,8 @@ _ogg_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 
-static int _getOggComment(_driver_t *handle, unsigned char *ch, size_t len);
+static int _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len);
+static int _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len);
 
 // https://www.ietf.org/rfc/rfc3533.txt
 static int
@@ -1009,13 +1019,123 @@ stradd(char *src, char *dest)
 }
 
 static int
-_getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
+_getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
 {
    uint32_t *header = (uint32_t*)ch;
    char field[COMMENT_SIZE+1];
    unsigned char *ptr;
    size_t i, size;
    int rv = len;
+
+#if 0
+   printf("\n--Opus Comment Header:\n");
+   printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
+
+   size = header[2];
+   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
+   printf("  2: %08x Vendor: '%s'\n", header[2], field);
+
+   i = 12+size;
+   ptr = ch+i;
+   size = *(uint32_t*)ptr;
+// printf("User comment list length: %i\n", size);
+
+   ptr += 4;
+   for (i=0; i<size; i++)
+   {
+      size_t slen = *(uint32_t*)ptr;
+      ptr += 4;
+      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+      printf("\t'%s'\n", field);
+      ptr += slen;
+   }
+#endif
+
+   field[COMMENT_SIZE] = 0;
+
+   size = header[2];
+   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
+// handle->vendor = strdup(field);
+
+   i = 12+size;
+   ptr = ch+i;
+   size = *(uint32_t*)ptr;
+
+   ptr += 4;
+   for (i=0; i<size; i++)
+   {
+      uint32_t slen = *(uint32_t*)ptr;
+
+      ptr += sizeof(uint32_t);
+      if ((ptr+slen-ch) > len) {
+          return __F_PROCESS;
+      }
+
+      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+      ptr += slen;
+
+      if (!STRCMP(field, "TITLE")) {
+          handle->title = stradd(handle->title, field+strlen("TITLE="));
+      } else if (!STRCMP(field, "ALBUM")) {
+          handle->album = stradd(handle->album, field+strlen("ALBUM="));
+      } else if (!STRCMP(field, "TRACKNUMBER")) {
+          handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
+      } else if (!STRCMP(field, "ARTIST")) {
+          handle->composer = stradd(handle->composer, field+strlen("ARTIST="));
+          handle->original = stradd(handle->original, field+strlen("ARTIST="));
+      } else if (!STRCMP(field, "PERFORMER")) {
+          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+      } else if (!STRCMP(field, "COPYRIGHT")) {
+          handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
+      } else if (!STRCMP(field, "GENRE")) {
+          handle->genre = stradd(handle->genre, field+strlen("GENRE="));
+      } else if (!STRCMP(field, "DATE")) {
+          handle->date = stradd(handle->date, field+strlen("DATE="));
+      } else if (!STRCMP(field, "CONTACT")) {
+          handle->website = stradd(handle->website, field+strlen("CONTACT="));
+      } else if (!STRCMP(field, "DESCRIPTION")) {
+          handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
+      }
+   }
+   rv = ptr-ch;
+
+   return rv;
+}
+
+static int
+_getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
+{
+   uint32_t *header = (uint32_t*)ch;
+   char field[COMMENT_SIZE+1];
+   unsigned char *ptr;
+   size_t i, size;
+   int rv = len;
+
+#if 0
+   printf("\n--Vorbis Comment Header:\n");
+   printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
+
+   size = (header[1] >> 24) | (header[2] << 8);
+   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+11);
+   printf("  2: %08x Vendor: '%s'\n", header[2], field);
+
+   i = 11+size;
+   ptr = ch+i;
+   size = *(uint32_t*)ptr;
+// printf("User comment list length: %i\n", size);
+
+   ptr += 4;
+   for (i=0; i<size; i++)
+   {
+      size_t slen = *(uint32_t*)ptr;
+      ptr += 4;
+      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+      printf("\t'%s'\n", field);
+      ptr += slen;
+   }
+   ptr++;
+   printf("framing: %i\n", *ptr);
+#endif
 
    field[COMMENT_SIZE] = 0;
 
@@ -1063,35 +1183,9 @@ _getOggComment(_driver_t *handle, unsigned char *ch, size_t len)
           handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
       }
    }
+
    ptr++;
    rv = ptr-ch;
-
-#if 0
-   printf("\n--Vorbis Comment Header:\n");
-   printf("  0: %08x (Type: %x)\n", header[0], ch[0]);
-   printf("  1: %08x (Codec identifier \"%c%c%c%c%c%c\")\n", header[1], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6]);
-
-   size = (header[1] >> 24) | (header[2] << 8);
-   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+11);
-   printf("  2: %08x Vendor: '%s'\n", header[2], field);
-
-   i = 11+size;
-   ptr = ch+i;
-   size = *(uint32_t*)ptr;
-// printf("User comment list length: %i\n", size);
-
-   ptr += 4;
-   for (i=0; i<size; i++)
-   {
-      size_t slen = *(uint32_t*)ptr;
-      ptr += 4;
-      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
-      printf("\t'%s'\n", field);
-      ptr += slen;
-   }
-   ptr++;
-   printf("framing: %i\n", *ptr);
-#endif
 
    return rv;
 }
@@ -1144,7 +1238,19 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             {
                ch += size;
                len -= size;
-               rv = _getOggComment(handle, ch, len);
+               switch(handle->format_type)
+               {
+               case _FMT_VORBIS:
+                  rv = _getOggVorbisComment(handle, ch, len);
+                  break;
+               case _FMT_OPUS:
+                  rv = _getOggOpusComment(handle, ch, len);
+                  break;
+               default:
+                  rv = __F_EOF;
+                  break;
+               }
+
                if (rv == __F_PROCESS) {
                   handle->bitstream_serial_no = 0;
                }
@@ -1161,20 +1267,20 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                {
                   char *ptr = (char*)handle->oggBuffer + skip;
 
-                  size = _getOggPageHeader(handle, (uint32_t*)ptr, len);
-                  if ((size >= 0) && (handle->segment_size > 0))
+                  do
                   {
-                     skip += size;
+                     size = _getOggPageHeader(handle, (uint32_t*)ptr, len);
+                     if ((size >= 0) && (handle->segment_size > 0))
+                     {
+                        handle->oggBufPos -= size;
+                        memmove(ptr, ptr+size, handle->oggBufPos);
+                        ptr += handle->segment_size;
 
-                     ptr = (char*)handle->oggBuffer;
-                     handle->oggBufPos -= skip;
-                     memmove(ptr, ptr+skip, handle->oggBufPos);
+                        if (len <= handle->page_size) break;
+                        len -= handle->page_size;
+                     }
                   }
-                  else
-                  {
-                     handle->bitstream_serial_no = 0;
-                     rv = __F_PROCESS;
-                  }
+                  while (size > 0);
                }
             }
          }

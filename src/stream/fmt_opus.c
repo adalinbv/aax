@@ -137,7 +137,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          char *ptr = 0;
  
          handle->opusBufPos = 0;
-         handle->opusBufSize = MAX_PACKET_SIZE;
+         handle->opusBufSize = 100*1024; // ;MAX_PACKET_SIZE;
          handle->opusptr = _aax_malloc(&ptr, handle->opusBufSize);
          handle->opusBuffer = (unsigned char*)ptr;
 
@@ -229,9 +229,9 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
-   int ret, decode_fec = 0;
    size_t rv = __F_EOF;
    unsigned char *buf;
+   int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
@@ -254,7 +254,7 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
     * in the optimal state to decode the next incoming packet. For the PLC and
     * FEC cases, frame_size must be a multiple of 2.5 ms.
     */
-   ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, decode_fec);
+   ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, 0);
    if (ret >= 0)
    {
       unsigned int framesize = tracks*bits/8;

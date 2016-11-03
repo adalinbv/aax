@@ -54,7 +54,7 @@ extern "C" {
 #define KSDATAFORMAT_SUBTYPE2           0xaa000080
 #define KSDATAFORMAT_SUBTYPE3           0x719b3800
 
-#define STRCMP(a, b)                strncmp((a), (b), strlen(b))
+#define STRCMP(a, b)                strncasecmp((a), (b), strlen(b))
 #define _AAX_FILEDRVLOG(a)          _aaxStreamDriverLog(NULL, 0, 0, a);
 _aaxDriverLog _aaxStreamDriverLog;
 
