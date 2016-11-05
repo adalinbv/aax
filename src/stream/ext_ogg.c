@@ -268,11 +268,10 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
 //             handle->fmt->set(handle->fmt, __F_POSITION,
 //                                              handle->blockbufpos);
-
                datasize = handle->oggBufPos;
                rv = handle->fmt->open(handle->fmt, oggbuf, &datasize,
                                       handle->datasize);
-               if (rv)
+               if (datasize)
                {
                   handle->oggBufPos -= datasize;
                   if (handle->oggBufPos > 0) {
@@ -376,12 +375,19 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
       memcpy(oggbuf+handle->oggBufPos, sptr, avail);
       handle->oggBufPos += avail;
 
-      int res = _getOggPageHeader(handle, handle->oggBuffer, handle->oggBufPos);
-      if (res >= 0)
+      if (handle->oggBufPos > handle->page_size)
       {
-         char *ptr = (char*)handle->oggBuffer;
-         handle->oggBufPos -= res;
-         memmove(ptr, ptr+res, handle->oggBufPos);
+         int res;
+
+         oggbuf += handle->page_size;
+         avail = handle->oggBufPos - handle->page_size;
+         res = _getOggPageHeader(handle, (uint32_t *)oggbuf, avail);
+         if (res >= 0)
+         {
+            avail -= res;
+            handle->oggBufPos -= res;
+            memmove(oggbuf, oggbuf+res, avail);
+         }
       }
 
       *num = avail;
@@ -395,7 +401,13 @@ size_t
 _ogg_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->copy(handle->fmt, dptr, offs, num);
+   size_t rv;
+
+   rv = handle->fmt->copy(handle->fmt, dptr, offs, num);
+   if (rv > 0) {
+      handle->page_size -= rv;
+   }
+   return rv;
 }
 
 size_t
@@ -405,12 +417,9 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    size_t rv;
 
    rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
-   if (rv < 0)
-   {
-      rv = __F_EOF;
-      *num = 0;
+   if (rv > 0) {
+      handle->page_size -= rv;
    }
-
    return rv;
 }
 
@@ -1265,23 +1274,28 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
                if (!handle->keep_header)
                {
-                  char *ptr = (char*)handle->oggBuffer + skip;
+                  char *ptr = (char*)handle->oggBuffer;
+                  int i;
 
-                  do
+                  handle->page_sequence_no = 0;
+                  for (i=0; i<3; i++)
                   {
                      size = _getOggPageHeader(handle, (uint32_t*)ptr, len);
                      if ((size >= 0) && (handle->segment_size > 0))
                      {
+                        if (handle->page_sequence_no < 2) {
+                           size = handle->page_size;
+                        }
+
                         handle->oggBufPos -= size;
                         memmove(ptr, ptr+size, handle->oggBufPos);
-                        ptr += handle->segment_size;
-
-                        if (len <= handle->page_size) break;
-                        len -= handle->page_size;
+                        handle->page_size = handle->segment_size;
                      }
                   }
-                  while (size > 0);
                }
+
+uint32_t *ch = (uint32_t*)handle->oggBuffer;
+printf("OGG header: %8x\n", ch[0]);
             }
          }
       }

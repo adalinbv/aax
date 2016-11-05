@@ -37,6 +37,7 @@ DECL_FUNCTION(opus_encoder_ctl);
 DECL_FUNCTION(opus_encode);
 
 DECL_FUNCTION(opus_strerror);
+DECL_FUNCTION(opus_get_version_string);
 
 typedef struct
 {
@@ -99,6 +100,7 @@ _opus_detect(_fmt_t *fmt, int mode)
          {
             /* not required but useful */
             TIE_FUNCTION(opus_strerror);
+            TIE_FUNCTION(opus_get_version_string);
 
             fmt->id = calloc(1, sizeof(_driver_t));
             if (fmt->id)
@@ -154,18 +156,22 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                int32_t freq = 48000;
 
                handle->id = popus_decoder_create(freq, tracks, &err);
+               handle->frequency = freq;
 
-               if (handle->id)
-               {
-                  _opus_fill(fmt, buf, bufsize);
-                  handle->frequency = freq;
-               }
-               else
+               if (!handle->id && popus_strerror)
                {
                   char s[1025];
                   snprintf(s, 1024, "OPUS: Unable to create a handle (%s)",
                                      popus_strerror(err));
+                  s[1024] = 0;
                   _aaxStreamDriverLog(NULL, 0, 0, s);
+               }
+            }
+
+            if (handle->id)
+            {
+               if (_opus_fill(fmt, buf, bufsize) == __F_PROCESS) {
+                  rv = buf;
                }
             }
          }
@@ -288,6 +294,10 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       bytes = bufsize;
    }
 
+uint32_t *ch = (uint32_t*)handle->opusBuffer;
+printf("  OPUS: %8x\n", ch[0]);
+
+
    /* see the comments in _opus_copy() for *num */
    ret = popus_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
 printf("opus_decode: %i\n", ret);
@@ -301,7 +311,7 @@ printf("opus_decode: %i\n", ret);
       handle->no_samples += *num;
       rv = size;
    }
-else
+else if (popus_strerror)
 fprintf(stderr, "error decoding frame: %s\n", popus_strerror(ret));
 
    return rv;
