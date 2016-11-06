@@ -161,18 +161,15 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                if (!handle->id && popus_strerror)
                {
                   char s[1025];
-                  snprintf(s, 1024, "OPUS: Unable to create a handle (%s)",
+                  snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
                                      popus_strerror(err));
                   s[1024] = 0;
                   _aaxStreamDriverLog(NULL, 0, 0, s);
                }
             }
 
-            if (handle->id)
-            {
-               if (_opus_fill(fmt, buf, bufsize) == __F_PROCESS) {
-                  rv = buf;
-               }
+            if (handle->id) {
+               _opus_fill(fmt, buf, bufsize);
             }
          }
       }
@@ -224,6 +221,9 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
       memcpy(buf, sptr, size);
       handle->opusBufPos += size;
       rv = size;
+   }
+   else {
+      *bytes = 0;
    }
 
    return rv;
@@ -279,7 +279,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
-   int ret, decode_fec = 0;
+   int ret;
    size_t rv = __F_EOF;
    unsigned char *buf;
 
@@ -299,7 +299,8 @@ printf("  OPUS: %8x\n", ch[0]);
 
 
    /* see the comments in _opus_copy() for *num */
-   ret = popus_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
+printf("bytes: %i, *num: %i, MAX_FRAME_SIZE: %i\n", bufsize, *num, MAX_FRAME_SIZE);
+   ret = popus_decode(handle->id, buf, bufsize, handle->pcm, *num, 0);
 printf("opus_decode: %i\n", ret);
    if (ret > 0)
    {
