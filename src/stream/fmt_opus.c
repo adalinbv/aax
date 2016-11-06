@@ -29,7 +29,7 @@
 
 DECL_FUNCTION(opus_decoder_create);
 DECL_FUNCTION(opus_decoder_destroy);
-DECL_FUNCTION(opus_decode);
+DECL_FUNCTION(opus_decode_float);
 
 DECL_FUNCTION(opus_encoder_create);
 DECL_FUNCTION(opus_encoder_destroy);
@@ -62,7 +62,9 @@ typedef struct
    unsigned char *opusBuffer;
    char *opusptr;
 
-   int16_t *pcm;
+   float *outputs;
+   unsigned int out_pos;
+   unsigned int out_size;
 
 } _driver_t;
 
@@ -88,7 +90,7 @@ _opus_detect(_fmt_t *fmt, int mode)
       if (popus_decoder_create)
       {
          TIE_FUNCTION(opus_decoder_destroy);
-         TIE_FUNCTION(opus_decode);
+         TIE_FUNCTION(opus_decode_float);
 
          TIE_FUNCTION(opus_encoder_create);
          TIE_FUNCTION(opus_encoder_destroy);
@@ -143,7 +145,9 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          handle->opusptr = _aax_malloc(&ptr, handle->opusBufSize);
          handle->opusBuffer = (unsigned char*)ptr;
 
-         handle->pcm = _aax_aligned_alloc16(MAX_FRAME_SIZE*handle->no_tracks); 
+         handle->out_pos = 0;
+         handle->out_size = MAX_FRAME_SIZE*handle->no_tracks*sizeof(float);
+         handle->outputs = _aax_aligned_alloc16(handle->out_size);
       }
 
       if (handle->opusptr)
@@ -192,7 +196,7 @@ _opus_close(_fmt_t *fmt)
       popus_encoder_destroy(handle->id);
       handle->id = NULL;
 
-      _aax_aligned_free(handle->pcm);
+      _aax_aligned_free(handle->outputs);
       free(handle->opusptr);
       free(handle);
    }
@@ -260,7 +264,7 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
     * in the optimal state to decode the next incoming packet. For the PLC and
     * FEC cases, frame_size must be a multiple of 2.5 ms.
     */
-   ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, 0);
+// ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, 0);
    if (ret >= 0)
    {
       unsigned int framesize = tracks*bits/8;
@@ -277,43 +281,66 @@ size_t
 _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize, size = 0;
-   unsigned int bits, tracks;
-   int ret;
-   size_t rv = __F_EOF;
+   size_t bufsize, rv = 0;
    unsigned char *buf;
+   int req, tracks;
 
+   req = *num;
    tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
+   *num = 0;
 
    buf = handle->opusBuffer;
-   bufsize = handle->opusBufSize;
+   bufsize = handle->opusBufPos;
 
-   if (bytes > bufsize) {
-      bytes = bufsize;
-   }
-
-uint32_t *ch = (uint32_t*)handle->opusBuffer;
-printf("  OPUS: %8x\n", ch[0]);
-
-
-   /* see the comments in _opus_copy() for *num */
-printf("bytes: %i, *num: %i, MAX_FRAME_SIZE: %i\n", bufsize, *num, MAX_FRAME_SIZE);
-   ret = popus_decode(handle->id, buf, bufsize, handle->pcm, *num, 0);
-printf("opus_decode: %i\n", ret);
-   if (ret > 0)
+   /* there is still data left in the buffer from the previous run */
+   if (handle->out_pos > 0)
    {
-      unsigned int framesize = tracks*bits/8;
+      unsigned int pos = handle->out_pos*tracks;
+      unsigned int max = _MIN(req, handle->out_size - pos);
 
-      *num = size/framesize;
-      _batch_cvt24_16_intl(dptr, handle->pcm, offset, tracks, *num);
-
-      handle->no_samples += *num;
-      rv = size;
+      _batch_cvt24_ps_intl(dptr, handle->outputs+pos, offset, tracks, max);
+      offset += max;
+      handle->out_pos += max;
+      if (handle->out_pos == handle->out_size) {
+         handle->out_pos = 0;
+      }
+      req -= max;
+      *num = max;
+      if (req == 0) {
+         rv = 1;
+      }
    }
+
+   if (req > 0)
+   {
+   /* see the comments in _opus_copy() for *num */
+      int n = popus_decode_float(handle->id, buf, bufsize, handle->outputs,
+                               MAX_FRAME_SIZE, 0);
+printf("opus_decode: %i\n", n);
+      if (n > 0)
+      {
+         if (n > req)
+         {
+            handle->out_size = n;
+            handle->out_pos = req;
+            n = req;
+            req = 0;
+         }
+         else
+         {
+            assert(handle->out_pos == 0);
+            req -= n;
+         }
+
+         *num += n;
+         handle->no_samples += n;
+
+         _batch_cvt24_ps_intl(dptr, handle->outputs, offset, tracks, n);
+         offset += n;
+      }
 else if (popus_strerror)
-fprintf(stderr, "error decoding frame: %s\n", popus_strerror(ret));
+fprintf(stderr, "error decoding frame: %s\n", popus_strerror(n));
+   }
 
    return rv;
 }
