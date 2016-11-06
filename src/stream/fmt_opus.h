@@ -14,7 +14,7 @@
 
 typedef void* (*opus_decoder_create_proc)(int32_t, int, int*);
 typedef void (*opus_decoder_destroy_proc)(void*);
-typedef int (*opus_decode_proc)(void*, const unsigned char*, int32_t, int16_t*, int, int);
+typedef int (*opus_decode_float_proc)(void*, const unsigned char*, int32_t, float*, int, int);
 
 typedef void* (*opus_encoder_create_proc)(int32_t, int, int*);
 typedef void (*opus_encoder_destroy_proc)(void*);
