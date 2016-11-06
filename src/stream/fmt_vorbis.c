@@ -105,67 +105,69 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             int err = VORBIS__no_error;
             int used = 0;
 
-            _vorbis_fill(fmt, buf, bufsize);
-            buf = (char*)handle->vorbisBuffer;
-
-            if (!handle->id)
+            if (_vorbis_fill(fmt, buf, bufsize) > 0)
             {
-               int max = handle->vorbisBufPos;
-               handle->id = stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
-            }
+               buf = (char*)handle->vorbisBuffer;
 
-            if (handle->id)
-            {
-               stb_vorbis_info info = stb_vorbis_get_info(handle->id);
+               if (!handle->id)
+               {
+                  int max = handle->vorbisBufPos;
+                  handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
+               }
 
-               handle->no_tracks = info.channels;
-               handle->frequency = info.sample_rate;
-               handle->blocksize = info.max_frame_size;
+               if (handle->id)
+               {
+                  stb_vorbis_info info = stb_vorbis_get_info(handle->id);
 
-               handle->max_samples = 0;
-               handle->format = AAX_PCM24S;
-               handle->bits_sample = aaxGetBitsPerSample(handle->format);
+                  handle->no_tracks = info.channels;
+                  handle->frequency = info.sample_rate;
+                  handle->blocksize = info.max_frame_size;
+
+                  handle->max_samples = 0;
+                  handle->format = AAX_PCM24S;
+                  handle->bits_sample = aaxGetBitsPerSample(handle->format);
 #if 0
   printf("%d channels, %d samples/sec\n", info.channels, info.sample_rate);
   printf("Predicted memory needed: %d (%d + %d)\n", info.setup_memory_required + info.temp_memory_required,
                 info.setup_memory_required, info.temp_memory_required);
 #endif
-               handle->vorbisBufPos -= used;
-               if (handle->vorbisBufPos > 0) {
-                  memmove(buf, (char*)buf+used, handle->vorbisBufPos);
+                  handle->vorbisBufPos -= used;
+                  if (handle->vorbisBufPos > 0) {
+                     memmove(buf, (char*)buf+used, handle->vorbisBufPos);
+                  }
+                  // we're done decoding, return NULL
                }
-               // we're done decoding, return NULL
-            }
-            else
-            {
-               switch (err)
+               else
                {
-               case VORBIS_missing_capture_pattern:
-                  _AAX_FILEDRVLOG("VORBIS: missing capture pattern");
-                  break;
-               case VORBIS_invalid_stream_structure_version:
-                  _AAX_FILEDRVLOG("VORBIS: invalid stream structure version");
-                  break;
-               case VORBIS_continued_packet_flag_invalid:
-                  _AAX_FILEDRVLOG("VORBIS: continued packet flag invalid");
-                  break;
-               case VORBIS_incorrect_stream_serial_number:
-                  _AAX_FILEDRVLOG("VORBIS: incorrect stream serial number");
-                  break;
-               case VORBIS_invalid_first_page:
-                  _AAX_FILEDRVLOG("VORBIS: invalid first page");
-                  break;
-               case VORBIS_bad_packet_type:
-                  _AAX_FILEDRVLOG("VORBIS: bad packet type");
-                  break;
-               case VORBIS_cant_find_last_page:
-                  _AAX_FILEDRVLOG("VORBIS: cant find last page");
-                  break;
-               default:
-                  rv = buf;
-                  break;
+                  switch (err)
+                  {
+                  case VORBIS_missing_capture_pattern:
+                     _AAX_FILEDRVLOG("VORBIS: missing capture pattern");
+                     break;
+                  case VORBIS_invalid_stream_structure_version:
+                     _AAX_FILEDRVLOG("VORBIS: invalid stream structure version");
+                     break;
+                  case VORBIS_continued_packet_flag_invalid:
+                     _AAX_FILEDRVLOG("VORBIS: continued packet flag invalid");
+                     break;
+                  case VORBIS_incorrect_stream_serial_number:
+                     _AAX_FILEDRVLOG("VORBIS: incorrect stream serial number");
+                     break;
+                  case VORBIS_invalid_first_page:
+                     _AAX_FILEDRVLOG("VORBIS: invalid first page");
+                     break;
+                  case VORBIS_bad_packet_type:
+                     _AAX_FILEDRVLOG("VORBIS: bad packet type");
+                     break;
+                  case VORBIS_cant_find_last_page:
+                     _AAX_FILEDRVLOG("VORBIS: cant find last page");
+                     break;
+                  default:
+                     rv = buf;
+                     break;
+                  }
                }
-            }
+            } /* _buf_fill() != 0 */
          } /* handle->capturing */
       }
       else {
@@ -218,6 +220,9 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
       memcpy(buf, sptr, size);
       handle->vorbisBufPos += size;
       rv = size;
+   }
+   else {
+      *bytes = 0;
    }
 
    return rv;

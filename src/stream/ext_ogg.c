@@ -273,9 +273,18 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                                       handle->datasize);
                if (datasize)
                {
+                  handle->page_size -= datasize;
                   handle->oggBufPos -= datasize;
                   if (handle->oggBufPos > 0) {
                      memmove(oggbuf, oggbuf+datasize, handle->oggBufPos);
+                  }
+
+                  if (handle->page_size > 0)
+                  {
+                     rv = buf;
+                     if (*bufsize > handle->page_size) {
+                        *bufsize = handle->page_size;
+                     }
                   }
                }
             }
@@ -302,14 +311,23 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          size = handle->oggBufPos;
          rv = handle->fmt->open(handle->fmt, oggbuf, &size,
                                  handle->datasize);
-         if (rv)
+         if (size)
          {
+            handle->page_size -= size;
             handle->oggBufPos -= size;
             if (handle->oggBufPos > 0) {
                memmove(oggbuf, oggbuf+size, handle->oggBufPos);
             }
          }
-         *bufsize = size;
+#if 0
+         if (handle->page_size > 0)
+         {
+            rv = buf;
+            if (*bufsize > handle->page_size) {
+               *bufsize = handle->page_size;
+            }
+         }
+#endif
       }
       else _AAX_FILEDRVLOG("OGG: Unknown opening error");
    }
