@@ -14,11 +14,13 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>	// atoi
 #include <strings.h>
 #include <string.h>
 #include <assert.h>
 
 #include <arch.h>
+#include <api.h>
 
 #include "extension.h"
 #include "format.h"
@@ -400,6 +402,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
          oggbuf += handle->page_size;
          avail = handle->oggBufPos - handle->page_size;
          res = _getOggPageHeader(handle, (uint32_t *)oggbuf, avail);
+printf("D: %i\n", res);
          if (res >= 0)
          {
             avail -= res;
@@ -598,65 +601,13 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
    size_t bufsize = handle->oggBufPos;
    int32_t curr;
-   int rv = -1;
+   int rv = __F_EOF;
 
-   if (bufsize < OGG_HEADER_SIZE) {
+   if (bufsize < OGG_HEADER_SIZE || size < OGG_HEADER_SIZE) {
       return __F_PROCESS;
    }
 
-   curr = header[0];
-   if (curr == 0x5367674f)		/* OggS */
-   {
-      unsigned int version, header_size;
-
-      curr = (header[6] >> 16) & 0xFF;
-      header_size = 27 + curr;
-      if (bufsize < header_size) {
-         return -1;
-      }
-
-      version = header[1] & 0xFF;
-      handle->header_type = (header[1] >> 8) & 0xFF;
-      if (version == 0x0)
-      {
-         handle->granule_position  = ((uint64_t)header[1] >> 16);
-         handle->granule_position |= ((uint64_t)header[2] << 16); 
-         handle->granule_position |= ((uint64_t)header[3] << 48);
-
-         curr = (header[3] >> 16) | (header[4] << 16);
-         if (!handle->bitstream_serial_no || curr==handle->bitstream_serial_no)
-         {
-            handle->bitstream_serial_no = curr;
-
-            curr = (header[4] >> 16) | (header[5] << 16);
-            if (!handle->page_sequence_no || curr > handle->page_sequence_no)
-            {
-               unsigned char *ch = (unsigned char*)header;
-               unsigned int i, no_segments;
-
-               handle->page_sequence_no = curr;
-
-               no_segments = (header[6] >> 16) & 0xFF;
-               if (no_segments > 0)
-               {
-                  handle->segment_size = 0;
-                  for (i=0; i<no_segments; ++i) {
-                     handle->segment_size += ch[27+i];
-                  }
-                  handle->page_size = header_size + handle->segment_size;
-#if 0
-{
-                  uint32_t crc32, i32;
-
-                  // CRC check, must be last
-                  i32 = (header[5] >> 16) | (header[6] << 16);
-                  header[5] = (header[5] & 0x0000FFFF);
-                  header[6] = (header[6] & 0xFFFF0000);
-                  crc32 = crc32_calculcate(ch, header_size+handle->segment_size);
-}
-#endif
-
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    uint64_t i64;
@@ -670,7 +621,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    printf("1: %08x (Version: %i | Type: %x)\n", header[1], ch[4], ch[5]);
 
    i64 = (uint64_t)(header[1] >> 16);
-   i64 |= ((uint64_t)header[2] << 16); 
+   i64 |= ((uint64_t)header[2] << 16);
    i64 |= ((uint64_t)header[3] << 48);
    printf("2: %08x (Granule position: %li)\n", header[2], i64);
 
@@ -692,6 +643,61 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    printf("6: %08x (Page segments: %i, Total segment size: %li)\n", header[6], i32, i64);
 }
 #endif
+
+
+   curr = header[0];
+   if (curr == 0x5367674f)		/* OggS */
+   {
+      unsigned int version, header_size;
+
+      curr = (header[6] >> 16) & 0xFF;
+      header_size = 27 + curr;
+      if (bufsize < header_size) {
+         return -1;
+      }
+
+      version = header[1] & 0xFF;
+      handle->header_type = (header[1] >> 8) & 0xFF;
+      if (version == 0x0)
+      {
+         handle->granule_position  = ((uint64_t)header[1] >> 16);
+         handle->granule_position |= ((uint64_t)header[2] << 16); 
+         handle->granule_position |= ((uint64_t)header[3] << 48);
+
+         curr = (header[4] >> 16) | (header[5] << 16);
+         if ((!handle->page_sequence_no && !handle->bitstream_serial_no) 
+             || (curr > handle->page_sequence_no))
+         {
+            handle->page_sequence_no = curr;
+
+            curr = (header[3] >> 16) | (header[4] << 16);
+            if (!handle->bitstream_serial_no ||
+                curr == handle->bitstream_serial_no)
+            {
+               unsigned char *ch = (unsigned char*)header;
+               unsigned int i, no_segments;
+
+               handle->bitstream_serial_no = curr;
+
+               no_segments = (header[6] >> 16) & 0xFF;
+               if (no_segments > 0)
+               {
+                  handle->segment_size = 0;
+                  for (i=0; i<no_segments; ++i) {
+                     handle->segment_size += ch[27+i];
+                  }
+                  handle->page_size = header_size + handle->segment_size;
+#if 0
+{
+                  uint32_t crc32, i32;
+
+                  // CRC check, must be last
+                  i32 = (header[5] >> 16) | (header[6] << 16);
+                  header[5] = (header[5] & 0x0000FFFF);
+                  header[6] = (header[6] & 0xFFFF0000);
+                  crc32 = crc32_calculcate(ch, header_size+handle->segment_size);
+}
+#endif
                   rv = header_size;
                   if (rv > bufsize) {
                      rv = __F_PROCESS;
@@ -707,17 +713,20 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
             unsigned char *ch = (unsigned char*)header;
             unsigned int i, no_segments = (header[6] >> 16) & 0xFF;
 
-            rv = header_size;
+printf("SKIP page due to incorrect serial number\n");
+            rv = 0;
             for (i=0; i<no_segments; ++i) {
                rv += ch[27+i];
             }
 
+printf("\trv: %i, handle->oggBufPos: %i\n", rv, handle->oggBufPos);
             if (rv <= bufsize)
             {
                handle->oggBufPos -= rv;
                if (handle->oggBufPos > 0) {
                   memmove(ch, ch+rv, handle->oggBufPos);
                }
+               rv = 0;
             }
             else {
                rv = __F_PROCESS;
@@ -1123,6 +1132,11 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
       } else if (!STRCMP(field, "DESCRIPTION")) {
           handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
       }
+      else if (!STRCMP(field, "R128_TRACK_GAIN"))
+      {
+          int gain = atoi(field+strlen("R128_TRACK_GAIN="));
+          handle->gain = pow(10, (float)gain/(20.0f*256.0f));
+      }
    }
    rv = ptr-ch;
 
@@ -1209,6 +1223,14 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
       } else if (!STRCMP(field, "DESCRIPTION")) {
           handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
       }
+      // REPLAYGAIN_TRACK_PEAK
+      // REPLAYGAIN_ALBUM_GAIN
+      // REPLAYGAIN_ALBUM_PEAK
+      else if (!STRCMP(field, "REPLAYGAIN_TRACK_GAIN"))
+      {
+          float gain_db = atof(field+strlen("REPLAYGAIN_TRACK_GAIN="));
+          handle->gain = _db2lin(gain_db);
+      }
    }
 
    ptr++;
@@ -1220,113 +1242,98 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
-   uint32_t *header = handle->oggBuffer;
-   size_t bufsize = handle->oggBufPos;
-   int res, rv = __F_EOF;
+   unsigned char *header = (unsigned char*)handle->oggBuffer;
+   size_t skip, bufsize;
+   int rv = __F_EOF;
 
-   res = _getOggPageHeader(handle, header, bufsize);
-   if ((res >= 0) && (handle->segment_size > 0))
+   skip = 0;
+   bufsize = handle->oggBufPos;
+   do
    {
-      unsigned char *segment = (unsigned char*)header + res;
-      size_t segment_size = handle->segment_size;
-
-      /*
-       * The packets must occur in the order of identification,
-       * comment (, setup).
-       */
-      if (bufsize >= segment_size)
+      rv = _getOggPageHeader(handle, (uint32_t*)header, bufsize);
+      if ((rv > 0) && (handle->segment_size > 0))
       {
+         unsigned char *segment = (unsigned char*)header + rv;
+         size_t segment_size = handle->segment_size;
+
          /*
           * https://tools.ietf.org/html/rfc3533.html#section-6
           * As Ogg pages have a maximum size of about 64 kBytes, sometimes a
-          * packet has to be distributed over several pages.  To simplify that
+          * packet has to be distributed over several pages. To simplify that
           * process, Ogg divides each packet into 255 byte long chunks plus a
           * final shorter chunk.  These chunks are called "Ogg Segments".
           *
           * They are only a logical construct and do not have a header for
           * themselves.
           */
-         rv = _getOggIdentification(handle, segment, segment_size);
-         if (rv == __F_PROCESS) {
-            handle->bitstream_serial_no = 0;
-         }
-
-         if (rv >= 0)
+         if (bufsize >= segment_size)
          {
-            unsigned int len = bufsize;
-            unsigned char *ch = (unsigned char*)header;
-            int size, skip = handle->page_size;
-
-            ch += skip;
-            len -= skip;
-
-            size = _getOggPageHeader(handle, (uint32_t*)ch, len);
-            if ((size >= 0) && (handle->segment_size > 0))
+            /*
+             * The packets must occur in the order of identification,
+             * comment (and setup for Vorbis).
+             */
+            switch(handle->page_sequence_no)
             {
-               ch += size;
-               len -= size;
+            case 0:				// HEADER_IDENTIFICATION
+               rv = _getOggIdentification(handle, segment, segment_size);
+               break;
+            case 1:				// HEADER_COMMENT
                switch(handle->format_type)
                {
                case _FMT_VORBIS:
-                  rv = _getOggVorbisComment(handle, ch, len);
+                  rv = _getOggVorbisComment(handle, segment, segment_size);
                   break;
                case _FMT_OPUS:
-                  rv = _getOggOpusComment(handle, ch, len);
+                  rv = _getOggOpusComment(handle, segment, segment_size);
                   break;
                default:
                   rv = __F_EOF;
                   break;
                }
-
-               if (rv == __F_PROCESS) {
-                  handle->bitstream_serial_no = 0;
-               }
-
-               skip += handle->page_size;
-               len -= handle->page_size;
+               break;
+            default:
+               rv = __F_EOF;
+               break;
             }
 
-            if (rv >= 0)
+            if (rv > 0)
             {
-               rv = *step = 0;
-
-               if (!handle->keep_header)
+               if (bufsize >= handle->page_size)
                {
-                  char *ptr = (char*)handle->oggBuffer;
-                  int i;
-
-                  handle->page_sequence_no = 0;
-                  for (i=0; i<3; i++)
-                  {
-                     size = _getOggPageHeader(handle, (uint32_t*)ptr, len);
-                     if ((size >= 0) && (handle->segment_size > 0))
-                     {
-                        if (handle->page_sequence_no < 2) {
-                           size = handle->page_size;
-                        }
-
-                        handle->oggBufPos -= size;
-                        memmove(ptr, ptr+size, handle->oggBufPos);
-                        handle->page_size = handle->segment_size;
-                     }
-                  }
+                  header += handle->page_size;
+                  bufsize -= handle->page_size;
+                  skip += handle->page_size;
                }
+               else {
+                  rv = __F_PROCESS;
+               }
+            }
 
-uint32_t *ch = (uint32_t*)handle->oggBuffer;
-printf("OGG header: %8x\n", ch[0]);
+            if (rv == __F_PROCESS) {
+               handle->page_sequence_no = 0;
             }
          }
+         else { /* (bufsize >= segment_size) */
+            rv = __F_PROCESS;
+         }
       }
-      else
-      {
-         *step = 0;
-         rv = __F_PROCESS;
+      else if (handle->segment_size == 0) {
+         rv = __F_EOF;
       }
    }
-   else
+   while (rv > 0);
+
+   if (rv >= 0 && handle->page_sequence_no == 1)
    {
-      *step = 0;
-      rv = __F_PROCESS;
+      rv = *step = 0;
+
+      if (!handle->keep_header)
+      {
+         char *ptr = (char*)handle->oggBuffer;
+         handle->oggBufPos -= skip;
+         memmove(ptr, ptr+skip, handle->oggBufPos);
+         handle->page_size = handle->segment_size;
+      }
    }
 
    return rv;
