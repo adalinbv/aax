@@ -291,6 +291,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       }
       offset += max;
       handle->out_pos += max;
+      handle->no_samples += max;
       if (handle->out_pos == handle->out_size) {
          handle->out_pos = 0;
       }

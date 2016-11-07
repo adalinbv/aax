@@ -283,7 +283,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = 0;
    unsigned char *buf;
-   int req, tracks;
+   int tracks, req;
 
    req = *num;
    tracks = handle->no_tracks;
@@ -298,30 +298,37 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       unsigned int pos = handle->out_pos*tracks;
       unsigned int max = _MIN(req, handle->out_size - pos);
 
+printf("1. converting: %i\n", max);
       _batch_cvt24_ps_intl(dptr, handle->outputs+pos, offset, tracks, max);
       offset += max;
       handle->out_pos += max;
+      handle->no_samples += max;
       if (handle->out_pos == handle->out_size) {
          handle->out_pos = 0;
       }
       req -= max;
-      *num = max;
-      if (req == 0) {
-         rv = 1;
-      }
+      rv = max;
    }
 
    if (req > 0)
    {
-   /* see the comments in _opus_copy() for *num */
+      /*
+       * -- about frame_size --
+       * Number of samples per channel of available space in pcm. If this is
+       * less than the maximum packet duration (120ms; 5760 for 48kHz), this
+       * function will not be capable of decoding some packets. In the case of
+       * PLC (data==NULL) or FEC (decode_fec=1), then frame_size needs to be
+       * exactly the duration of audio that is missing, otherwise the decoder
+       * will not be n the optimal state to decode the next incoming packet.
+       * For the PLC and FEC cases, frame_size must be a multiple of 2.5 ms.
+       */
       int n = popus_decode_float(handle->id, buf, bufsize, handle->outputs,
-                               MAX_FRAME_SIZE, 0);
-printf("opus_decode: %i\n", n);
+                                 MAX_FRAME_SIZE, 0);
+printf("opus_decode: %i, requested: %i\n", n, MAX_FRAME_SIZE);
       if (n > 0)
       {
          if (n > req)
          {
-            handle->out_size = n;
             handle->out_pos = req;
             n = req;
             req = 0;
@@ -332,15 +339,21 @@ printf("opus_decode: %i\n", n);
             req -= n;
          }
 
-         *num += n;
+printf("2. converting: %i\n", n);
          handle->no_samples += n;
-
          _batch_cvt24_ps_intl(dptr, handle->outputs, offset, tracks, n);
-         offset += n;
+         rv += n;
       }
-else if (popus_strerror)
-fprintf(stderr, "error decoding frame: %s\n", popus_strerror(n));
+      else if (n < 0 && popus_strerror)
+      {
+         char s[1025];
+         snprintf(s, 1024, "OPUS: Decoding errpr: %s", popus_strerror(n));
+         s[1024] = 0;
+         _aaxStreamDriverLog(NULL, 0, 0, s);
+      }
    }
+
+   *num -= req;
 
    return rv;
 }

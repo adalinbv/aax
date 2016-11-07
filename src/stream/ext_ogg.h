@@ -33,7 +33,7 @@ enum oggPacketType
    PACKET_LAST_PAGE = 0x04
 };
 
-enum oggHeaderType
+enum oggVorbisHeaderType
 {
    HEADER_UNKNOWN = 0,
    HEADER_IDENTIFICATION = 1,
