@@ -187,7 +187,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             char *ptr = 0;
 
             handle->oggBufPos = 0;
-            handle->oggBufSize = 100*1024;
+            handle->oggBufSize = 200*1024;
             handle->oggptr = _aax_malloc(&ptr, handle->oggBufSize);
             handle->oggBuffer = (uint32_t*)ptr;
          }
@@ -665,8 +665,9 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
          handle->granule_position |= ((uint64_t)header[3] << 48);
 
          curr = (header[4] >> 16) | (header[5] << 16);
-         if ((!handle->page_sequence_no && !handle->bitstream_serial_no) 
-             || (curr > handle->page_sequence_no))
+//       if ((!handle->page_sequence_no && !handle->bitstream_serial_no) 
+//           || (curr > handle->page_sequence_no))
+if (1)
          {
             handle->page_sequence_no = curr;
 
@@ -1242,98 +1243,101 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
-   unsigned char *header = (unsigned char*)handle->oggBuffer;
+   unsigned char *header;
    size_t skip, bufsize;
    int rv = __F_EOF;
 
-   skip = 0;
+   header = (unsigned char*)handle->oggBuffer;
    bufsize = handle->oggBufPos;
    do
    {
       rv = _getOggPageHeader(handle, (uint32_t*)header, bufsize);
-      if ((rv > 0) && (handle->segment_size > 0))
+      if (rv > 0)
       {
-         unsigned char *segment = (unsigned char*)header + rv;
-         size_t segment_size = handle->segment_size;
-
-         /*
-          * https://tools.ietf.org/html/rfc3533.html#section-6
-          * As Ogg pages have a maximum size of about 64 kBytes, sometimes a
-          * packet has to be distributed over several pages. To simplify that
-          * process, Ogg divides each packet into 255 byte long chunks plus a
-          * final shorter chunk.  These chunks are called "Ogg Segments".
-          *
-          * They are only a logical construct and do not have a header for
-          * themselves.
-          */
-         if (bufsize >= segment_size)
+         if (handle->segment_size > 0)
          {
+            unsigned char *segment = (unsigned char*)header + rv;
+            size_t segment_size = handle->segment_size;
+
             /*
-             * The packets must occur in the order of identification,
-             * comment (and setup for Vorbis).
+             * https://tools.ietf.org/html/rfc3533.html#section-6
+             * As Ogg pages have a maximum size of about 64 kBytes, sometimes a
+             * packet has to be distributed over several pages. To simplify that
+             * process, Ogg divides each packet into 255 byte long chunks plus a
+             * final shorter chunk.  These chunks are called "Ogg Segments".
+             *
+             * They are only a logical construct and do not have a header for
+             * themselves.
              */
-            switch(handle->page_sequence_no)
+            if (bufsize >= segment_size)
             {
-            case 0:				// HEADER_IDENTIFICATION
-               rv = _getOggIdentification(handle, segment, segment_size);
-               break;
-            case 1:				// HEADER_COMMENT
-               switch(handle->format_type)
+               /*
+                * The packets must occur in the order of identification,
+                * comment (and setup for Vorbis).
+                */
+               switch(handle->page_sequence_no)
                {
-               case _FMT_VORBIS:
-                  rv = _getOggVorbisComment(handle, segment, segment_size);
+               case 0:				// HEADER_IDENTIFICATION
+                  rv = _getOggIdentification(handle, segment, segment_size);
                   break;
-               case _FMT_OPUS:
-                  rv = _getOggOpusComment(handle, segment, segment_size);
+               case 1:				// HEADER_COMMENT
+                  switch(handle->format_type)
+                  {
+                  case _FMT_VORBIS:
+                     rv = _getOggVorbisComment(handle, segment, segment_size);
+                     break;
+                  case _FMT_OPUS:
+                     rv = _getOggOpusComment(handle, segment, segment_size);
+                     break;
+                  default:
+                     rv = __F_EOF;
+                     break;
+                  }
                   break;
                default:
                   rv = __F_EOF;
                   break;
                }
-               break;
-            default:
-               rv = __F_EOF;
-               break;
-            }
 
-            if (rv > 0)
-            {
-               if (bufsize >= handle->page_size)
+               if (rv > 0)
                {
-                  header += handle->page_size;
-                  bufsize -= handle->page_size;
-                  skip += handle->page_size;
-               }
-               else {
-                  rv = __F_PROCESS;
-               }
-            }
+                  if (bufsize >= handle->page_size)
+                  {
+                     if (!handle->keep_header)
+                     {
+                        size_t size = handle->page_size;
 
-            if (rv == __F_PROCESS) {
-               handle->page_sequence_no = 0;
+                        handle->oggBufPos -= size;
+                        memmove(header, header+size, handle->oggBufPos);
+                     }
+                     else
+                     {
+                        header += handle->page_size;
+                        bufsize -= handle->page_size;
+                     }
+                  }
+                  else {
+                     rv = __F_PROCESS;
+                  }
+               }
+
+               if (rv == __F_PROCESS) {
+                  handle->page_sequence_no = 0;
+               }
+            }
+            else { /* (bufsize >= segment_size) */
+               rv = __F_PROCESS;
             }
          }
-         else { /* (bufsize >= segment_size) */
-            rv = __F_PROCESS;
+         else if (handle->segment_size == 0) {
+            rv = __F_EOF;
          }
-      }
-      else if (handle->segment_size == 0) {
-         rv = __F_EOF;
-      }
+      } /* rv > 0 */
    }
    while (rv > 0);
 
-   if (rv >= 0 && handle->page_sequence_no == 1)
-   {
+   if (rv >= 0 && handle->page_sequence_no == 1) {
       rv = *step = 0;
-
-      if (!handle->keep_header)
-      {
-         char *ptr = (char*)handle->oggBuffer;
-         handle->oggBufPos -= skip;
-         memmove(ptr, ptr+skip, handle->oggBufPos);
-         handle->page_size = handle->segment_size;
-      }
    }
 
    return rv;
