@@ -402,7 +402,6 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
          oggbuf += handle->page_size;
          avail = handle->oggBufPos - handle->page_size;
          res = _getOggPageHeader(handle, (uint32_t *)oggbuf, avail);
-printf("D: %i\n", res);
          if (res >= 0)
          {
             avail -= res;
@@ -600,7 +599,7 @@ static int
 _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
    size_t bufsize = handle->oggBufPos;
-   int32_t curr;
+   uint32_t curr;
    int rv = __F_EOF;
 
    if (bufsize < OGG_HEADER_SIZE || size < OGG_HEADER_SIZE) {
@@ -644,32 +643,34 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 }
 #endif
 
-
    curr = header[0];
    if (curr == 0x5367674f)		/* OggS */
    {
       unsigned int version, header_size;
+      uint32_t page_no;
+
+      curr = header[1] & 0xFF;
+      version = curr;
+
+      curr = (header[4] >> 16) | (header[5] << 16);
+      page_no = curr;
 
       curr = (header[6] >> 16) & 0xFF;
       header_size = 27 + curr;
-      if (bufsize < header_size) {
-         return -1;
-      }
 
-      version = header[1] & 0xFF;
-      handle->header_type = (header[1] >> 8) & 0xFF;
-      if (version == 0x0)
+      if ((bufsize >= header_size) && (version == 0x0))
       {
-         handle->granule_position  = ((uint64_t)header[1] >> 16);
-         handle->granule_position |= ((uint64_t)header[2] << 16); 
-         handle->granule_position |= ((uint64_t)header[3] << 48);
-
-         curr = (header[4] >> 16) | (header[5] << 16);
-//       if ((!handle->page_sequence_no && !handle->bitstream_serial_no) 
-//           || (curr > handle->page_sequence_no))
-if (1)
+         if ((!handle->page_sequence_no && !handle->bitstream_serial_no) 
+             || (page_no > handle->page_sequence_no))
          {
-            handle->page_sequence_no = curr;
+            handle->page_sequence_no = page_no;
+
+            curr = (header[1] >> 8) & 0xFF;
+            handle->header_type = curr;
+
+            handle->granule_position  = ((uint64_t)header[1] >> 16);
+            handle->granule_position |= ((uint64_t)header[2] << 16);
+            handle->granule_position |= ((uint64_t)header[3] << 48);
 
             curr = (header[3] >> 16) | (header[4] << 16);
             if (!handle->bitstream_serial_no ||
@@ -734,7 +735,9 @@ printf("\trv: %i, handle->oggBufPos: %i\n", rv, handle->oggBufPos);
             }
          }
       }
-      else {
+      else if (bufsize < header_size) {
+         rv = __F_PROCESS;
+      } else {
          rv = __F_EOF;
       }
    }
