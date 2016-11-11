@@ -85,6 +85,10 @@ typedef struct
    uint32_t page_sequence_no;
    unsigned int page_size;
    unsigned int segment_size;
+
+   unsigned short packet_no;
+   unsigned short no_packets;
+   unsigned short packet_offset[256];
    /* page header */
 
    void *oggptr;
@@ -644,7 +648,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    i64 = (uint64_t)(header[1] >> 16);
    i64 |= ((uint64_t)header[2] << 16);
    i64 |= ((uint64_t)header[3] << 48);
-   printf("2: %08x (Granule position: %li)\n", header[2], i64);
+   printf("2: %08x (Granule position: %llu)\n", header[2], i64);
 
    i32 = (header[3] >> 16) | (header[4] << 16);
    printf("3: %08x (Serial number: %08x)\n", header[3], i32);
@@ -707,11 +711,28 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                no_segments = (header[6] >> 16) & 0xFF;
                if (no_segments > 0)
                {
+                  unsigned int p = 0;
+
                   handle->segment_size = 0;
-                  for (i=0; i<no_segments; ++i) {
-                     handle->segment_size += ch[27+i];
+                  handle->packet_offset[p] = 0;
+                  for (i=0; i<no_segments; ++i)
+                  {
+                     unsigned char ps = ch[27+i];
+
+                     handle->segment_size += ps;
+                     handle->packet_offset[p] += ps;
+                     if (ps < 0xFF) {
+                        handle->packet_offset[++p] = handle->segment_size;
+                     }
                   }
+                  handle->no_packets = p-1;
                   handle->page_size = header_size + handle->segment_size;
+
+#if 0
+  printf("no. packets: %i\n", handle->no_packets);
+  for(i=0; i<handle->no_packets; i++)
+  printf(" %i: %u\n", i, handle->packet_offset[i+1] - handle->packet_offset[i]);
+#endif
 
                   if (handle->keep_header || (handle->page_size <= bufsize))
                   {

@@ -322,6 +322,7 @@ printf("1. converting: %i\n", max);
        * will not be n the optimal state to decode the next incoming packet.
        * For the PLC and FEC cases, frame_size must be a multiple of 2.5 ms.
        */
+bufsize = 320;
       int n = popus_decode_float(handle->id, buf, bufsize, handle->outputs,
                                  MAX_FRAME_SIZE, 0);
 printf("opus_decode: %i, requested: %i\n", n, MAX_FRAME_SIZE);
