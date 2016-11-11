@@ -446,6 +446,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = ext->id;
    size_t rv;
 
+   handle->fmt->set(handle->fmt, __F_BLOCK, handle->packet_offset[0]);
    rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
    if (rv > 0) {
       handle->page_size -= rv;
@@ -632,7 +633,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
       return __F_PROCESS;
    }
 
-#if 1
+#if 0
 {
    char *ch = (char*)header;
    uint64_t i64;
