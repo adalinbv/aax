@@ -265,6 +265,7 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
     * FEC cases, frame_size must be a multiple of 2.5 ms.
     */
 // ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, 0);
+ret = 0;
    if (ret >= 0)
    {
       unsigned int framesize = tracks*bits/8;
@@ -287,7 +288,6 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 
    req = *num;
    tracks = handle->no_tracks;
-   *num = 0;
 
    buf = handle->opusBuffer;
    bufsize = handle->opusBufPos;
@@ -312,6 +312,10 @@ printf("1. converting: %i\n", max);
 
    if (req > 0)
    {
+      unsigned int packet_sz = handle->blocksize;
+      unsigned int cvt = 0;
+      float *outputs;
+
       /*
        * -- about frame_size --
        * Number of samples per channel of available space in pcm. If this is
@@ -322,35 +326,53 @@ printf("1. converting: %i\n", max);
        * will not be n the optimal state to decode the next incoming packet.
        * For the PLC and FEC cases, frame_size must be a multiple of 2.5 ms.
        */
-bufsize = 320;
-      int n = popus_decode_float(handle->id, buf, bufsize, handle->outputs,
-                                 MAX_FRAME_SIZE, 0);
-printf("opus_decode: %i, requested: %i\n", n, MAX_FRAME_SIZE);
-      if (n > 0)
+      outputs = handle->outputs;
+      do
       {
-         if (n > req)
+         int n = popus_decode_float(handle->id, buf, packet_sz, outputs,
+                                    MAX_FRAME_SIZE, 0);
+printf("opus_decode: %i, requested: %i\n", n, req);
+         if (n > 0)
          {
-            handle->out_pos = req;
-            n = req;
-            req = 0;
+            if (n > req)
+            {
+               handle->out_pos = req;
+               cvt = req;
+               req = 0;
+            }
+            else
+            {
+               assert(handle->out_pos == 0);
+
+               buf += packet_sz;
+               bufsize -= packet_sz;
+               outputs += n*tracks;
+
+               cvt += n;
+               req -= n;
+            }
          }
          else
          {
-            assert(handle->out_pos == 0);
-            req -= n;
+            if (n < 0 && popus_strerror)
+            {
+               char s[81];
+               snprintf(s, 80, "OPUS: Decoding error: %s", popus_strerror(n));
+               s[80] = 0;
+               _aaxStreamDriverLog(NULL, 0, 0, s);
+            }
+            break;
          }
-
-printf("2. converting: %i\n", n);
-         handle->no_samples += n;
-         _batch_cvt24_ps_intl(dptr, handle->outputs, offset, tracks, n);
-         rv += n;
       }
-      else if (n < 0 && popus_strerror)
+      while ((req > 0) && (bufsize >= handle->blocksize));
+
+      if (cvt > 0)
       {
-         char s[1025];
-         snprintf(s, 1024, "OPUS: Decoding errpr: %s", popus_strerror(n));
-         s[1024] = 0;
-         _aaxStreamDriverLog(NULL, 0, 0, s);
+printf("2. converting: %i\n", cvt);
+         handle->no_samples += cvt;
+         _batch_cvt24_ps_intl(dptr, handle->outputs, offset, tracks, cvt);
+         req -= cvt;
+         rv += cvt;
       }
    }
 
@@ -439,6 +461,9 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
 
    switch(type)
    {
+   case __F_BLOCK:
+      handle->blocksize = value;
+      break;
    case __F_FREQ:
       handle->frequency = value;
       break;
