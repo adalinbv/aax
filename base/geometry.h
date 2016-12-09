@@ -51,51 +51,45 @@ extern "C" {
 
 typedef ALIGN16 float vec3_t[4] ALIGN16C;
 typedef ALIGN16 float mtx3_t[4][4] ALIGN16C;
-typedef float vec3[3];
-typedef float mtx3[3][3];
 
 typedef ALIGN16 int32_t ivec4_t[4] ALIGN16C;
 typedef ALIGN16 float vec4_t[4] ALIGN16C;
 typedef ALIGN16 float mtx4_t[4][4] ALIGN16C;
-typedef int32_t ivec4[4];
-typedef float vec4[4];
-typedef float mtx4[4][4];
 
-typedef double vec3d[3];
+typedef ALIGN16 double vec3d_t[4] ALIGN16C;
 typedef ALIGN16 double mtx4d_t[4][4] ALIGN16C;
-typedef double mtx4d[4][4];
 
 extern aaxVec4f aaxZeroVector;
 extern aaxVec4f aaxAxisUnitVec;
 extern aaxMtx4f aaxIdentityMatrix;
 extern aaxMtx4d aaxIdentityMatrix64;
 
-typedef void (*vec3Copy_proc)(vec3 d, const vec3 v);
-typedef void (*vec3Add_proc)(vec3 d, const vec3 v);
-typedef void (*vec3Sub_proc)(vec3 d, const vec3 v);
-typedef void (*vec3Devide_proc)(vec3 d, float s);
-typedef void (*vec3Mulvec3_proc)(vec3 r, const vec3 v1, const vec3 v2);
+typedef void (*vec3Copy_proc)(vec3_t d, const vec3_t v);
+typedef void (*vec3Add_proc)(vec3_t d, const vec3_t v);
+typedef void (*vec3Sub_proc)(vec3_t d, const vec3_t v);
+typedef void (*vec3Devide_proc)(vec3_t d, float s);
+typedef void (*vec3Mulvec3_proc)(vec3_t r, const vec3_t v1, const vec3_t v2);
 
 extern vec3Add_proc vec3Add;
 extern vec3Copy_proc vec3Copy;
 extern vec3Devide_proc vec3Devide;
 extern vec3Mulvec3_proc vec3Mulvec3;
 extern vec3Sub_proc vec3Sub;
-void vec3Set(vec3 d, float x, float y, float z);
-void vec3Negate(vec3 d, const vec3 v);
-//void vec3Matrix3(vec3 d, const vec3 v, const mtx3 m);
+void vec3Set(vec3_t d, float x, float y, float z);
+void vec3Negate(vec3_t d, const vec3_t v);
+//void vec3Matrix3(vec3_t d, const vec3_t v, const mtx3_t m);
 
-void mtx3Copy(mtx3 d, mtx3 m);
+void mtx3Copy(mtx3_t d, mtx3_t m);
 
-typedef float (*vec3Magnitude_proc)(const vec3 v);
-typedef float (*vec3MagnitudeSquared_proc)(const vec3 v);
-typedef float (*vec3DotProduct_proc)(const vec3 v1, const vec3 v2);
-typedef float (*vec3Normalize_proc)(vec3 d, const vec3 v);
-typedef void (*vec3CrossProduct_proc)(vec3 d, const vec3 v1, const vec3 v2);
+typedef float (*vec3Magnitude_proc)(const vec3_t v);
+typedef float (*vec3MagnitudeSquared_proc)(const vec3_t v);
+typedef float (*vec3DotProduct_proc)(const vec3_t v1, const vec3_t v2);
+typedef float (*vec3Normalize_proc)(vec3_t d, const vec3_t v);
+typedef void (*vec3CrossProduct_proc)(vec3_t d, const vec3_t v1, const vec3_t v2);
 
-typedef double (*vec3dMagnitude_proc)(const vec3d v);
-typedef double (*vec3dDotProduct_proc)(const vec3d v1, const vec3d v2);
-typedef double (*vec3dNormalize_proc)(vec3d d, const vec3d v);
+typedef double (*vec3dMagnitude_proc)(const vec3d_t v);
+typedef double (*vec3dDotProduct_proc)(const vec3d_t v1, const vec3d_t v2);
+typedef double (*vec3dNormalize_proc)(vec3d_t d, const vec3d_t v);
 
 extern vec3Magnitude_proc vec3Magnitude;
 extern vec3dMagnitude_proc vec3dMagnitude;
@@ -138,10 +132,10 @@ void mtx4InverseSimple(mtx4_t d, const mtx4_t m);
 void mtx4SetAbsolute(mtx4_t d, char);
 void mtx4Copy(mtx4_t d, const void *);
 
-void mtx4dCopy(mtx4d d, const void *);
-void mtx4dTranslate(mtx4d m, double x, double y, double z);
-void mtx4dRotate(mtx4d m, double angle, double x, double y, double z);
-void mtx4dInverseSimple(mtx4d d, mtx4d m);
+void mtx4dCopy(mtx4d_t d, const void *);
+void mtx4dTranslate(mtx4d_t m, double x, double y, double z);
+void mtx4dRotate(mtx4d_t m, double angle, double x, double y, double z);
+void mtx4dInverseSimple(mtx4d_t d, mtx4d_t m);
 
 typedef void (*ivec4Copy_proc)(ivec4_t d, const ivec4_t v);
 typedef void (*ivec4Add_proc)(ivec4_t d, const ivec4_t v);
