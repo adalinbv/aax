@@ -25,26 +25,26 @@
 
 
 void
-_vec3Copy(vec3 d, const vec3 v)
+_vec3Copy(vec3_t d, const vec3_t v)
 {
-   memcpy(d, v, sizeof(vec3));
+   memcpy(d, v, sizeof(vec3_t));
 }
 
 void
-_vec4Copy(vec4 d, const vec4 v)
+_vec4Copy(vec4_t d, const vec4_t v)
 {
-   memcpy(d, v, sizeof(vec4));
+   memcpy(d, v, sizeof(vec4_t));
 }
 
 void
-_ivec4Copy(ivec4 d, const ivec4 v)
+_ivec4Copy(ivec4_t d, const ivec4_t v)
 {
-   memcpy(d, v, sizeof(ivec4));
+   memcpy(d, v, sizeof(ivec4_t));
 }
 
 
 void
-vec3Set(vec3 d, float x, float y, float z)
+vec3Set(vec3_t d, float x, float y, float z)
 {
    d[0] = x;
    d[1] = y;
@@ -52,7 +52,7 @@ vec3Set(vec3 d, float x, float y, float z)
 }
 
 void
-vec4Set(vec4 d, float x, float y, float z, float w)
+vec4Set(vec4_t d, float x, float y, float z, float w)
 {
    d[0] = x;
    d[1] = y;
@@ -62,7 +62,7 @@ vec4Set(vec4 d, float x, float y, float z, float w)
 
 
 void
-vec3Negate(vec3 d, const vec3 v)
+vec3Negate(vec3_t d, const vec3_t v)
 {
    d[0] = -v[0];
    d[1] = -v[1];
@@ -70,7 +70,7 @@ vec3Negate(vec3 d, const vec3 v)
 }
 
 void
-vec4Negate(vec4 d, const vec4 v)
+vec4Negate(vec4_t d, const vec4_t v)
 {
    d[0] = -v[0];
    d[1] = -v[1];
@@ -80,7 +80,7 @@ vec4Negate(vec4 d, const vec4 v)
 
 
 void
-_vec3Add(vec3 d, const vec3 v)
+_vec3Add(vec3_t d, const vec3_t v)
 {
    d[0] += v[0];
    d[1] += v[1];
@@ -88,16 +88,7 @@ _vec3Add(vec3 d, const vec3 v)
 }
 
 void
-_vec4Add(vec4 d, const vec4 v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-   d[3] += v[3];
-}
-
-void
-_ivec4Add(ivec4 d, const ivec4 v)
+_vec4Add(vec4_t d, const vec4_t v)
 {
    d[0] += v[0];
    d[1] += v[1];
@@ -105,9 +96,18 @@ _ivec4Add(ivec4 d, const ivec4 v)
    d[3] += v[3];
 }
 
+void
+_ivec4Add(ivec4_t d, const ivec4_t v)
+{
+   d[0] += v[0];
+   d[1] += v[1];
+   d[2] += v[2];
+   d[3] += v[3];
+}
+
 
 void
-_vec3Sub(vec3 d, const vec3 v)
+_vec3Sub(vec3_t d, const vec3_t v)
 {
    d[0] -= v[0];
    d[1] -= v[1];
@@ -115,7 +115,7 @@ _vec3Sub(vec3 d, const vec3 v)
 }
 
 void
-_vec4Sub(vec4 d, const vec4 v)
+_vec4Sub(vec4_t d, const vec4_t v)
 {
    d[0] -= v[0];
    d[1] -= v[1];
@@ -124,7 +124,7 @@ _vec4Sub(vec4 d, const vec4 v)
 }
 
 void
-_ivec4Sub(ivec4 d, const ivec4 v)
+_ivec4Sub(ivec4_t d, const ivec4_t v)
 {
    d[0] -= v[0];
    d[1] -= v[1];
@@ -134,7 +134,7 @@ _ivec4Sub(ivec4 d, const ivec4 v)
 
 
 void
-_vec3Devide(vec3 v, float s)
+_vec3Devide(vec3_t v, float s)
 {
    if (s)
    {
@@ -145,7 +145,7 @@ _vec3Devide(vec3 v, float s)
 }
 
 void
-_vec4Devide(vec4 v, float s)
+_vec4Devide(vec4_t v, float s)
 {
    if (s)
    {
@@ -157,7 +157,7 @@ _vec4Devide(vec4 v, float s)
 }
 
 void
-_ivec4Devide(ivec4 v, float s)
+_ivec4Devide(ivec4_t v, float s)
 {
    if (s)
    {
@@ -170,7 +170,7 @@ _ivec4Devide(ivec4 v, float s)
 
 
 void
-vec4ScalarMul(vec4 r, float f)
+vec4ScalarMul(vec4_t r, float f)
 {
    r[0] *= f;
    r[1] *= f;
@@ -180,7 +180,7 @@ vec4ScalarMul(vec4 r, float f)
 
 
 void
-_vec3Mulvec3(vec3 r, const vec3 v1, const vec3 v2)
+_vec3Mulvec3(vec3_t r, const vec3_t v1, const vec3_t v2)
 {
    r[0] = v1[0]*v2[0];
    r[1] = v1[1]*v2[1];
@@ -188,7 +188,7 @@ _vec3Mulvec3(vec3 r, const vec3 v1, const vec3 v2)
 }
 
 void
-_vec4Mulvec4(vec4 r, const vec4 v1, const vec4 v2)
+_vec4Mulvec4(vec4_t r, const vec4_t v1, const vec4_t v2)
 {
    r[0] = v1[0]*v2[0];
    r[1] = v1[1]*v2[1];
@@ -197,7 +197,7 @@ _vec4Mulvec4(vec4 r, const vec4 v1, const vec4 v2)
 }
 
 void
-_ivec4Mulivec4(ivec4 r, const ivec4 v1, const ivec4 v2)
+_ivec4Mulivec4(ivec4_t r, const ivec4_t v1, const ivec4_t v2)
 {
    r[0] = v1[0]*v2[0];
    r[1] = v1[1]*v2[1];
@@ -207,39 +207,39 @@ _ivec4Mulivec4(ivec4 r, const ivec4 v1, const ivec4 v2)
 
 
 float
-_vec3Magnitude(const vec3 v)
+_vec3Magnitude(const vec3_t v)
 {
    float val = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
    return sqrtf(val);
 }
 
 double
-_vec3dMagnitude(const vec3d v)
+_vec3dMagnitude(const vec3d_t v)
 {
    double val = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
    return sqrt(val);
 }
 
 float
-_vec3MagnitudeSquared(const vec3 v)
+_vec3MagnitudeSquared(const vec3_t v)
 {
    return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
 float
-_vec3DotProduct(const vec3 v1, const vec3 v2)
+_vec3DotProduct(const vec3_t v1, const vec3_t v2)
 {
    return  (v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]);
 }
 
 double
-_vec3dDotProduct(const vec3d v1, const vec3d v2)
+_vec3dDotProduct(const vec3d_t v1, const vec3d_t v2)
 {
    return  (v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]);
 }
 
 void
-_vec3CrossProduct(vec3 d, const vec3 v1, const vec3 v2)
+_vec3CrossProduct(vec3_t d, const vec3_t v1, const vec3_t v2)
 {
    d[0] = v1[1]*v2[2] - v1[2]*v2[1];
    d[1] = v1[2]*v2[0] - v1[0]*v2[2];
@@ -247,7 +247,7 @@ _vec3CrossProduct(vec3 d, const vec3 v1, const vec3 v2)
 }
 
 float
-_vec3Normalize(vec3 d, const vec3 v)
+_vec3Normalize(vec3_t d, const vec3_t v)
 {
    float mag = vec3Magnitude(v);
    if (mag)
@@ -266,7 +266,7 @@ _vec3Normalize(vec3 d, const vec3 v)
 }
 
 double
-_vec3dNormalize(vec3d d, const vec3d v)
+_vec3dNormalize(vec3d_t d, const vec3d_t v)
 {
    double mag = vec3dMagnitude(v);
    if (mag)
@@ -286,7 +286,7 @@ _vec3dNormalize(vec3d d, const vec3d v)
 
 
 void
-vec3Matrix3(vec3 d, const vec3 v, const mtx3 m)
+vec3Matrix3(vec3_t d, const vec3_t v, const mtx3_t m)
 {
    float v0 = v[0], v1 = v[1], v2 = v[2];
 
@@ -306,7 +306,7 @@ vec3Matrix3(vec3 d, const vec3 v, const mtx3 m)
  * different amounts in the different axis)
  */
 void
-_vec4Matrix4(vec4 d, const vec4 v, const mtx4 m)
+_vec4Matrix4(vec4_t d, const vec4_t v, const mtx4_t m)
 {
    float v0 = v[0], v1 = v[1], v2 = v[2]; // v3 = 0.0f;
 
@@ -317,7 +317,7 @@ _vec4Matrix4(vec4 d, const vec4 v, const mtx4 m)
 }
 
 void
-_pt4Matrix4(vec4 d, const vec4 p, const mtx4 m)
+_pt4Matrix4(vec4_t d, const vec4_t p, const mtx4_t m)
 {
    float p0 = p[0], p1 = p[1], p2 = p[2]; // p3 = 1.0f;
 
@@ -329,31 +329,31 @@ _pt4Matrix4(vec4 d, const vec4 p, const mtx4 m)
 
 
 void
-mtx3Copy(mtx3 d, mtx3 m)
+mtx3Copy(mtx3_t d, mtx3_t m)
 {
-   memcpy(d, m, sizeof(mtx3));
+   memcpy(d, m, sizeof(mtx3_t));
 }
 
 void
-mtx4Copy(mtx4 d, const void *m)
+mtx4Copy(mtx4_t d, const void *m)
 {
-   memcpy(d, m, sizeof(mtx4));
+   memcpy(d, m, sizeof(mtx4_t));
 }
 
 void
-mtx4dCopy(mtx4d d, const void *m)
+mtx4dCopy(mtx4d_t d, const void *m)
 {
-   memcpy(d, m, sizeof(mtx4d));
+   memcpy(d, m, sizeof(mtx4d_t));
 }
 
 void
-mtx4SetAbsolute(mtx4 d, char absolute)
+mtx4SetAbsolute(mtx4_t d, char absolute)
 {
    d[3][3] = absolute ? 1.0f : 0.0f;
 }
 
 void
-mtx4MulVec4(vec4 d, mtx4 m, const vec4 v)
+mtx4MulVec4(vec4_t d, mtx4_t m, const vec4_t v)
 {
    float v0 = v[0], v1 = v[1], v2 = v[2], v3 = v[3];
 
@@ -364,7 +364,7 @@ mtx4MulVec4(vec4 d, mtx4 m, const vec4 v)
 }
 
 void
-_mtx4Mul(mtx4 dst, const mtx4 mtx1, const mtx4 mtx2)
+_mtx4Mul(mtx4_t dst, const mtx4_t mtx1, const mtx4_t mtx2)
 {
    const float *m20 = mtx2[0], *m21 = mtx2[1], *m22 = mtx2[2], *m23 = mtx2[3];
    float m10i, m11i, m12i, m13i;
@@ -387,7 +387,7 @@ _mtx4Mul(mtx4 dst, const mtx4 mtx1, const mtx4 mtx2)
 }
 
 void
-_mtx4dMul(mtx4d dst, const mtx4d mtx1, const mtx4d mtx2)
+_mtx4dMul(mtx4d_t dst, const mtx4d_t mtx1, const mtx4d_t mtx2)
 {
    const double *m20 = mtx2[0], *m21 = mtx2[1], *m22 = mtx2[2], *m23 = mtx2[3];
    double m10i, m11i, m12i, m13i;
@@ -410,7 +410,7 @@ _mtx4dMul(mtx4d dst, const mtx4d mtx1, const mtx4d mtx2)
 }
 
 void
-mtx4InverseSimple(mtx4 dst, const mtx4 mtx)
+mtx4InverseSimple(mtx4_t dst, const mtx4_t mtx)
 {
    /* side */
    dst[0][0] = mtx[0][0];
@@ -437,7 +437,7 @@ mtx4InverseSimple(mtx4 dst, const mtx4 mtx)
 }
 
 void
-mtx4dInverseSimple(mtx4d dst, mtx4d mtx)
+mtx4dInverseSimple(mtx4d_t dst, mtx4d_t mtx)
 {
    /* side */
    dst[0][0] = mtx[0][0];
@@ -464,7 +464,7 @@ mtx4dInverseSimple(mtx4d dst, mtx4d mtx)
 }
 
 void
-mtx4Translate(mtx4 m, float x, float y, float z)
+mtx4Translate(mtx4_t m, float x, float y, float z)
 {
    if (x || y || z)
    {
@@ -475,7 +475,7 @@ mtx4Translate(mtx4 m, float x, float y, float z)
 }
 
 void
-mtx4dTranslate(mtx4d m, double x, double y, double z)
+mtx4dTranslate(mtx4d_t m, double x, double y, double z)
 {
    if (x || y || z)
    {
@@ -486,14 +486,14 @@ mtx4dTranslate(mtx4d m, double x, double y, double z)
 }
 
 void
-mtx4Rotate(mtx4 mtx, float angle_rad, float x, float y, float z)
+mtx4Rotate(mtx4_t mtx, float angle_rad, float x, float y, float z)
 {
    if (angle_rad)
    {
       float s = sinf(angle_rad);
       float c = cosf(angle_rad);
       float t = 1.0f - c;
-      vec3 axis, tmp;
+      vec3_t axis, tmp;
       mtx4_t m, o;
 
       tmp[0] = x;
@@ -528,14 +528,14 @@ mtx4Rotate(mtx4 mtx, float angle_rad, float x, float y, float z)
 }
 
 void
-mtx4dRotate(mtx4d mtx, double angle_rad, double x, double y, double z)
+mtx4dRotate(mtx4d_t mtx, double angle_rad, double x, double y, double z)
 {
    if (angle_rad)
    {
       double s = sin(angle_rad);
       double c = cos(angle_rad);
       double t = 1.0 - c;
-      vec3d axis, tmp;
+      vec3d_t axis, tmp;
       mtx4d_t m, o;
 
       tmp[0] = x;
