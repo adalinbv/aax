@@ -19,7 +19,7 @@
  */
 #define DR_FLAC_IMPLEMENTATION	1
 #define DR_FLAC_NO_STDIO	1
-#include "dr_flac.h"
+#include "3rdparty/dr_flac.h"
 
 #endif /* __FILE_FMT_FLAC_H */
 
