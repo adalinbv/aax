@@ -236,7 +236,7 @@ ELSE(MSVC)
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
           "Flags used by al build types."
           FORCE)
-      SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -shared -funroll-loops" CACHE STRING
+      SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
           "Flags used by al build types."
           FORCE)
 
@@ -408,6 +408,8 @@ IF(HAVE_DLFCN_H)
   ENDIF(HAVE_LIBDL)
 ENDIF(HAVE_DLFCN_H)
 
+ADD_SUBDIRECTORY(test)
+
 CONFIGURE_FILE(
     "${AeonWave_SOURCE_DIR}/include/aax/aax.h.in"
     "${AeonWave_BINARY_DIR}/include/aax/aax.h")
@@ -549,6 +551,8 @@ SET_TARGET_PROPERTIES(${LIBAEONWAVE}
 )
 IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES PREFIX "")
+ELSE()
+    SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES COMPILE_FLAGS "-shared")
 ENDIF()
 
 TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
@@ -628,6 +632,7 @@ ENDIF(UNIX AND NOT WIN32)
 IF(NOT SINGLE_PACKAGE)
   INCLUDE (CPack)
 ENDIF(NOT SINGLE_PACKAGE)
+
 
 #-----------------------------------------------------------------------------
 ### uninstall target
