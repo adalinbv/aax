@@ -50,13 +50,6 @@ extern "C" {
 # define ALIGN32C	__attribute__((aligned(32)))
 # define ALIGN64
 # define ALIGN64C	__attribute__((aligned(64)))
-#elif defined(__APPLE__)
-# define ALIGN16
-# define ALIGN16C	__attribute__ ((aligned(16)))
-# define ALIGN32
-# define ALIGN32C	__attribute__ ((aligned(32)))
-# define ALIGN64
-# define ALIGN64C	__attribute__ ((aligned(64)))
 #else
 # define ALIGN16
 # define ALIGN16C

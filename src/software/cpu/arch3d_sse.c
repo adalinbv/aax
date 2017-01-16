@@ -22,7 +22,7 @@
 #if 0
 // http://fastcpp.blogspot.nl/2011/04/vector-cross-product-using-sse-code.html
 FN_PREALIGN void 
-_vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
+_vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2)
 {
    __m128 xmm1 = _mm_setr_ps(v1[0], v1[1], v1[2], 0);
    __m128 xmm2 = _mm_setr_ps(v2[0], v2[1], v2[2], 0);
@@ -41,7 +41,7 @@ _vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
 #define VECTOR3D_ROT2_MASK 0xD2
 
 FN_PREALIGN void 
-_vec3CrossProduct_sse(vec3 d, const vec3 v1, const vec3 v2)
+_vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2)
 {
    __m128 L0 = _mm_set_ps(v1[0], v1[1], v1[2], 0);
    __m128 R0 = _mm_set_ps(v2[0], v2[1], v2[2], 0);
