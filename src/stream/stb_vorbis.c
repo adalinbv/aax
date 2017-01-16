@@ -825,7 +825,6 @@ struct stb_vorbis
    uint16 *bit_reverse[2];
 
   // current page/packet/segment streaming info
-#ifndef STB_VORBIS_NO_OGG_PAGE_HANDLING
    uint32 serial; // stream serial number for verification
    int last_page;
    int segment_count;
@@ -843,7 +842,6 @@ struct stb_vorbis
    uint32 known_loc_for_packet;
    int discard_samples_deferred;
    uint32 samples_output;
-#endif
 
   // push mode scanning
    int page_crc_tests; // only in push_mode: number of tests active; -1 if not searching
@@ -1383,7 +1381,6 @@ static int set_file_offset(stb_vorbis *f, unsigned int loc)
 }
 
 
-#ifndef STB_VORBIS_NO_OGG_PAGE_HANDLING
 static uint8 ogg_page_header[4] = { 0x4f, 0x67, 0x67, 0x53 };
 
 static int capture_pattern(vorb *f)
@@ -1514,7 +1511,6 @@ static int next_segment(vorb *f)
    f->bytes_in_seg = len;
    return len;
 }
-#endif
 
 #define EOP    (-1)
 #define INVALID_BITS  (-1)
@@ -3496,7 +3492,6 @@ static void vorbis_pump_first_frame(stb_vorbis *f)
 }
 
 #ifndef STB_VORBIS_NO_PUSHDATA_API
-#ifndef STB_VORBIS_NO_OGG_PAGE_HANDLING
 static int is_whole_packet_present(stb_vorbis *f, int end_page)
 {
    // make sure that we have the packet available before continuing...
@@ -3560,7 +3555,6 @@ static int is_whole_packet_present(stb_vorbis *f, int end_page)
    }
    return TRUE;
 }
-#endif // !STB_VORBIS_NO_OGG_PAGE_HANDLING
 #endif // !STB_VORBIS_NO_PUSHDATA_API
 
 static int start_decoder(vorb *f)
@@ -3570,7 +3564,7 @@ static int start_decoder(vorb *f)
    int longest_floorlist=0;
 
    // first page, first packet
-#ifndef STB_VORBIS_NO_OGG_PAGE_HANDLING
+
    if (!start_page(f))                              return FALSE;
    // validate page flag
    if (!(f->page_flag & PAGEFLAG_first_page))       return error(f, VORBIS_invalid_first_page);
@@ -3631,7 +3625,6 @@ static int start_decoder(vorb *f)
       }
    }
    #endif
-#endif	// !STB_VORBIS_NO_OGG_PAGE_HANDLING
 
    crc32_init(); // always init it, to avoid multithread race conditions
 
