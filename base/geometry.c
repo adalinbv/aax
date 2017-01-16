@@ -44,24 +44,6 @@ _ivec4Copy(ivec4_t d, const ivec4_t v)
 
 
 void
-vec3Set(vec3_t d, float x, float y, float z)
-{
-   d[0] = x;
-   d[1] = y;
-   d[3] = z;
-}
-
-void
-vec4Set(vec4_t d, float x, float y, float z, float w)
-{
-   d[0] = x;
-   d[1] = y;
-   d[3] = z;
-   d[4] = w;
-}
-
-
-void
 vec3Negate(vec3_t d, const vec3_t v)
 {
    d[0] = -v[0];
@@ -76,96 +58,6 @@ vec4Negate(vec4_t d, const vec4_t v)
    d[1] = -v[1];
    d[2] = -v[2];
    d[3] = -v[3];
-}
-
-
-void
-_vec3Add(vec3_t d, const vec3_t v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-}
-
-void
-_vec4Add(vec4_t d, const vec4_t v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-   d[3] += v[3];
-}
-
-void
-_ivec4Add(ivec4_t d, const ivec4_t v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-   d[3] += v[3];
-}
-
-
-void
-_vec3Sub(vec3_t d, const vec3_t v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-}
-
-void
-_vec4Sub(vec4_t d, const vec4_t v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-   d[3] -= v[3];
-}
-
-void
-_ivec4Sub(ivec4_t d, const ivec4_t v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-   d[3] -= v[3];
-}
-
-
-void
-_vec3Devide(vec3_t v, float s)
-{
-   if (s)
-   {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-   }
-}
-
-void
-_vec4Devide(vec4_t v, float s)
-{
-   if (s)
-   {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-      v[3] /= s;
-   }
-}
-
-void
-_ivec4Devide(ivec4_t v, float s)
-{
-   if (s)
-   {
-      v[0] = (int32_t)(v[0]/s);
-      v[1] = (int32_t)(v[1]/s);
-      v[2] = (int32_t)(v[2]/s);
-      v[3] = (int32_t)(v[3]/s);
-   }
 }
 
 
@@ -593,11 +485,8 @@ AAX_API ALIGN64 aaxMtx4f aaxIdentityMatrix ALIGN64C = {
   { 0.0f, 0.0f, 0.0f, 1.0f },
 };
 
-vec3Add_proc vec3Add = _vec3Add;
 vec3Copy_proc vec3Copy = _vec3Copy;
-vec3Devide_proc vec3Devide = _vec3Devide;
 vec3Mulvec3_proc vec3Mulvec3 = _vec3Mulvec3;
-vec3Sub_proc vec3Sub = _vec3Sub;
 
 vec3Magnitude_proc vec3Magnitude = _vec3Magnitude;
 vec3dMagnitude_proc vec3dMagnitude = _vec3dMagnitude;
@@ -608,19 +497,13 @@ vec3Normalize_proc vec3Normalize = _vec3Normalize;
 vec3dNormalize_proc vec3dNormalize = _vec3dNormalize;
 vec3CrossProduct_proc vec3CrossProduct = _vec3CrossProduct;
 
-vec4Add_proc vec4Add = _vec4Add;
 vec4Copy_proc vec4Copy = _vec4Copy;
-vec4Devide_proc vec4Devide = _vec4Devide;
 vec4Mulvec4_proc vec4Mulvec4 = _vec4Mulvec4;
-vec4Sub_proc vec4Sub = _vec4Sub;
 vec4Matrix4_proc vec4Matrix4 = _vec4Matrix4;
 vec4Matrix4_proc pt4Matrix4 = _pt4Matrix4;
 mtx4Mul_proc mtx4Mul = _mtx4Mul;
 mtx4dMul_proc mtx4dMul = _mtx4dMul;
 
-ivec4Add_proc ivec4Add = _ivec4Add;
 ivec4Copy_proc ivec4Copy = _ivec4Copy;
-ivec4Devide_proc ivec4Devide = _ivec4Devide;
 ivec4Mulivec4_proc ivec4Mulivec4 = _ivec4Mulivec4;
-ivec4Sub_proc ivec4Sub=  _ivec4Sub;
 

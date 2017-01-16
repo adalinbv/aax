@@ -19,32 +19,41 @@
 
 #include <smmintrin.h>
 
+static inline __m128
+load_vec3(const vec3_t v)
+{
+   __m128i xy = _mm_loadl_epi64((const __m128i*)&v);
+   __m128 z = _mm_load_ss(&v[2]);
+   return _mm_movelh_ps(_mm_castsi128_ps(xy), z);
+}
+
+
 FN_PREALIGN float
 _vec3Magnitude_sse41(const vec3_t v3)
 {
-   __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
+   __m128 v = load_vec3(v3);
    return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v, v, 0x71)));
 }
 
 FN_PREALIGN float
 _vec3MagnitudeSquared_sse41(const vec3_t v3)
 {
-    __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
+    __m128 v = load_vec3(v3);
    return _mm_cvtss_f32(_mm_dp_ps(v, v, 0x71));
 }
 
 FN_PREALIGN float
 _vec3DotProduct_sse41(const vec3_t v31, const vec3_t v32)
 {
-   __m128 v1 = _mm_set_ps(v31[0], v31[1], v31[2], 0);
-   __m128 v2 = _mm_set_ps(v32[0], v32[1], v32[2], 0);
+   __m128 v1 = load_vec3(v31);
+   __m128 v2 = load_vec3(v32);
    return _mm_cvtss_f32(_mm_dp_ps(v1, v2,  0x71));
 }
 
 FN_PREALIGN float
 _vec3Normalize_sse41(vec3_t d, const vec3_t v3)
 {
-   __m128 v = _mm_set_ps(v3[0], v3[1], v3[2], 0);
+   __m128 v = load_vec3(v3);
    __m128 inverse_norm = _mm_rsqrt_ps(_mm_dp_ps(v, v, 0x77));
    __m128 norm =_mm_mul_ps(v, inverse_norm);
    vec4_t r;

@@ -115,8 +115,10 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 };
 
 static char check_cpuid_ecx(unsigned int);
-static char check_cpuid_edx(unsigned int);
 static char check_extcpuid_ecx(unsigned int);
+# ifndef __x86_64__
+static char check_cpuid_edx(unsigned int);
+# endif
 
 char
 _aaxArchDetectMMX()
@@ -286,11 +288,11 @@ _aaxGetSIMDSupportString()
    level = _aaxGetSSELevel();
    if (_aax_arch_capabilities & AAX_ARCH_SSE)
    {
-//    vec3CrossProduct = _vec3CrossProduct_sse;
-      vec4Add = _vec4Add_sse;
-      vec4Sub = _vec4Sub_sse;
+      vec3Magnitude = _vec3Magnitude_sse;
+      vec3MagnitudeSquared = _vec3MagnitudeSquared_sse;
+      vec3DotProduct = _vec3DotProduct_sse;
+      vec3CrossProduct = _vec3CrossProduct_sse;
       vec4Copy = _vec4Copy_sse;
-      vec4Devide = _vec4Devide_sse;
       vec4Mulvec4 = _vec4Mulvec4_sse;
       vec4Matrix4 = _vec4Matrix4_sse;
       pt4Matrix4 = _pt4Matrix4_sse;
@@ -319,6 +321,9 @@ _aaxGetSIMDSupportString()
    }
    if (_aax_arch_capabilities & AAX_ARCH_SSE3)
    {
+      vec3Magnitude = _vec3Magnitude_sse3;
+      vec3MagnitudeSquared = _vec3MagnitudeSquared_sse3;
+      vec3DotProduct = _vec3DotProduct_sse3;
       vec4Matrix4 = _vec4Matrix4_sse3;
       pt4Matrix4 = _pt4Matrix4_sse3;
       _batch_imul_value = _batch_imul_value_sse3;
@@ -433,6 +438,7 @@ check_cpuid_ecx(unsigned int type)
    return  (regs[ECX] & type) ? 1 : 0;
 }
 
+# ifndef __x86_64__
 static char
 check_cpuid_edx(unsigned int type)
 {
@@ -444,6 +450,7 @@ check_cpuid_edx(unsigned int type)
    }
    return (regs[EDX] & type) ? 1 : 0;
 }
+# endif
 
 static char
 check_extcpuid_ecx(unsigned int type)

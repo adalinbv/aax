@@ -16,24 +16,6 @@
 
 #ifdef __ARM_VFPV2
 void
-_vec3Set_vfpv2(vec3 d, float x, float y, float z)
-{
-   d[0] = x;
-   d[1] = y;
-   d[3] = z;
-}
-
-void
-_vec4Set_vfpv2(vec4 d, float x, float y, float z, float w)
-{
-   d[0] = x;
-   d[1] = y;
-   d[3] = z;
-   d[4] = w;
-}
-
-
-void
 _vec3Negate_vfpv2(vec3 d, const vec3 v)
 {
    d[0] = -v[0];
@@ -48,78 +30,6 @@ _vec4Negate_vfpv2(vec4 d, const vec4 v)
    d[1] = -v[1];
    d[2] = -v[2];
    d[3] = -v[3];
-}
-
-
-void
-_vec3Add_vfpv2(vec3 d, const vec3 v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-}
-
-void
-_vec4Add_vfpv2(vec4 d, const vec4 v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-   d[3] += v[3];
-}
-
-
-void
-_vec3Sub_vfpv2(vec3 d, const vec3 v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-}
-
-void
-_vec4Sub_vfpv2(vec4 d, const vec4 v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-   d[3] -= v[3];
-}
-
-
-void
-_vec3Devide_vfpv2(vec3 v, float s)
-{
-   if (s)
-   {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-   }
-}
-
-void
-_vec4Devide_vfpv2(vec4 v, float s)
-{
-   if (s)
-   {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-      v[3] /= s;
-   }
-}
-
-void
-_ivec4Devide_vfpv2(ivec4 v, float s)
-{
-   if (s)
-   {
-      v[0] = (int32_t)(v[0]/s);
-      v[1] = (int32_t)(v[1]/s);
-      v[2] = (int32_t)(v[2]/s);
-      v[3] = (int32_t)(v[3]/s);
-   }
 }
 
 
@@ -273,12 +183,6 @@ _pt4Matrix4_vfpv2(vec4 d, const vec4 p, const mtx4 m)
    d[3] = p0*m[0][3] + p1*m[1][3] + p2*m[2][3] + m[3][3]; // *p3
 }
 
-
-void
-_mtx4SetAbsolute_vfpv2(mtx4 d, char absolute)
-{
-   d[3][3] = absolute ? 1.0f : 0.0f;
-}
 
 #if 0
 void
