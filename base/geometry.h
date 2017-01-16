@@ -65,17 +65,10 @@ extern aaxMtx4f aaxIdentityMatrix;
 extern aaxMtx4d aaxIdentityMatrix64;
 
 typedef void (*vec3Copy_proc)(vec3_t d, const vec3_t v);
-typedef void (*vec3Add_proc)(vec3_t d, const vec3_t v);
-typedef void (*vec3Sub_proc)(vec3_t d, const vec3_t v);
-typedef void (*vec3Devide_proc)(vec3_t d, float s);
 typedef void (*vec3Mulvec3_proc)(vec3_t r, const vec3_t v1, const vec3_t v2);
 
-extern vec3Add_proc vec3Add;
 extern vec3Copy_proc vec3Copy;
-extern vec3Devide_proc vec3Devide;
 extern vec3Mulvec3_proc vec3Mulvec3;
-extern vec3Sub_proc vec3Sub;
-void vec3Set(vec3_t d, float x, float y, float z);
 void vec3Negate(vec3_t d, const vec3_t v);
 //void vec3Matrix3(vec3_t d, const vec3_t v, const mtx3_t m);
 
@@ -101,23 +94,16 @@ extern vec3dNormalize_proc vec3dNormalize;
 extern vec3CrossProduct_proc vec3CrossProduct;
 
 typedef void (*vec4Copy_proc)(vec4_t d, const vec4_t v);
-typedef void (*vec4Add_proc)(vec4_t d, const vec4_t v);
-typedef void (*vec4Sub_proc)(vec4_t d, const vec4_t v);
-typedef void (*vec4Devide_proc)(vec4_t d, float s);
 typedef void (*vec4Mulvec4_proc)(vec4_t r, const vec4_t v1, const vec4_t v2);
 typedef void (*vec4Matrix4_proc)(vec4_t d, const vec4_t v, const mtx4_t m);
 
-extern vec4Add_proc vec4Add;
 extern vec4Copy_proc vec4Copy;
-extern vec4Devide_proc vec4Devide;
 extern vec4Mulvec4_proc vec4Mulvec4;
-extern vec4Sub_proc vec4Sub;
 extern vec4Matrix4_proc vec4Matrix4;
 extern vec4Matrix4_proc pt4Matrix4;
 
 void vec4ScalarMul(vec4_t r, float v);
 void vec4Negate(vec4_t d, const vec4_t v);
-void vec4Set(vec4_t d, float x, float y, float z, float w);
 
 typedef void (*mtx4Mul_proc)(mtx4_t d, const mtx4_t m1, const mtx4_t m2);
 typedef void (*mtx4dMul_proc)(mtx4d_t d, const mtx4d_t m1, const mtx4d_t m2);
@@ -129,7 +115,6 @@ extern mtx4dMul_proc mtx4dMul;
 void mtx4Translate(mtx4_t m, float x, float y, float z);
 void mtx4Rotate(mtx4_t m, float angle, float x, float y, float z);
 void mtx4InverseSimple(mtx4_t d, const mtx4_t m);
-void mtx4SetAbsolute(mtx4_t d, char);
 void mtx4Copy(mtx4_t d, const void *);
 
 void mtx4dCopy(mtx4d_t d, const void *);
@@ -138,16 +123,10 @@ void mtx4dRotate(mtx4d_t m, double angle, double x, double y, double z);
 void mtx4dInverseSimple(mtx4d_t d, mtx4d_t m);
 
 typedef void (*ivec4Copy_proc)(ivec4_t d, const ivec4_t v);
-typedef void (*ivec4Add_proc)(ivec4_t d, const ivec4_t v);
-typedef void (*ivec4Sub_proc)(ivec4_t d, const ivec4_t v);
-typedef void (*ivec4Devide_proc)(ivec4_t d, float s);
 typedef void (*ivec4Mulivec4_proc)(ivec4_t r, const ivec4_t v1, const ivec4_t v2);
 
-extern ivec4Add_proc ivec4Add;
 extern ivec4Copy_proc ivec4Copy;
-extern ivec4Devide_proc ivec4Devide;
 extern ivec4Mulivec4_proc ivec4Mulivec4;
-extern ivec4Sub_proc ivec4Sub;
 
 #if defined(__cplusplus)
 }  /* extern "C" */

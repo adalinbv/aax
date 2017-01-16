@@ -60,17 +60,20 @@ extern "C" {
 #endif
 
 /* SSE*/
+float _vec3Magnitude_sse(const vec3_t v);
+float _vec3MagnitudeSquared_sse(const vec3_t v);
+float _vec3DotProduct_sse(const vec3_t v1, const vec3_t v2);
 void _vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2);
-void _vec4Add_sse(vec4_t d, const vec4_t v);
 void _vec4Copy_sse(vec4_t d, const vec4_t v);
-void _vec4Devide_sse(vec4_t d, float s);
 void _vec4Mulvec4_sse(vec4_t r, const vec4_t v1, const vec4_t v2);
-void _vec4Sub_sse(vec4_t d, const vec4_t v);
 void _vec4Matrix4_sse(vec4_t d, const vec4_t v, const mtx4_t m);
 void _pt4Matrix4_sse(vec4_t d, const vec4_t p, const mtx4_t m);
 void _mtx4Mul_sse(mtx4_t d, const mtx4_t m1, const mtx4_t m2);
 
 /* SSE3 */
+float _vec3Magnitude_sse3(const vec3_t v);
+float _vec3MagnitudeSquared_sse3(const vec3_t v);
+float _vec3DotProduct_sse3(const vec3_t v1, const vec3_t v2);
 void _vec4Matrix4_sse3(vec4_t d, const vec4_t v, const mtx4_t m);
 void _pt4Matrix4_sse3(vec4_t d, const vec4_t p, const mtx4_t m);
 
@@ -81,17 +84,8 @@ float _vec3DotProduct_sse41(const vec3_t v1, const vec3_t v2);
 float _vec3Normalize_sse41(vec3_t d, const vec3_t v);
 
 /* VFPV2 */
-void _vec3Set_vfpv2(vec3_t d, float x, float y, float z);
-void _vec4Set_vfpv2(vec4_t d, float x, float y, float z, float w);
 void _vec3Negate_vfpv2(vec3_t d, const vec3_t v);
 void _vec4Negate_vfpv2(vec4_t d, const vec4_t v);
-void _vec3Add_vfpv2(vec3_t d, const vec3_t v);
-void _vec4Add_vfpv2(vec4_t d, const vec4_t v);
-void _vec3Sub_vfpv2(vec3_t d, const vec3_t v);
-void _vec4Sub_vfpv2(vec4_t d, const vec4_t v);
-void _vec3Devide_vfpv2(vec3_t v, float s);
-void _vec4Devide_vfpv2(vec4_t v, float s);
-void _ivec4Devide_vfpv2(ivec4_t v, float s);
 void _vec4ScalarMul_vfpv2(vec4_t r, float f);
 void _vec3Mulvec3_vfpv2(vec3_t r, const vec3_t v1, const vec3_t v2);
 void _vec4Mulvec4_vfpv2(vec4_t r, const vec4_t v1, const vec4_t v2);
@@ -118,17 +112,8 @@ void _mtx4Rotate_vfpv2(mtx4_t mtx, float angle_rad, float x, float y, float z);
 void _mtx4dRotate_vfpv2(mtx4d_t mtx, double angle_rad, double x, double y, double z);
 
 /* VFPV3 */
-void _vec3Set_vfpv3(vec3_t d, float x, float y, float z);
-void _vec4Set_vfpv3(vec4_t d, float x, float y, float z, float w);
 void _vec3Negate_vfpv3(vec3_t d, const vec3_t v);
 void _vec4Negate_vfpv3(vec4_t d, const vec4_t v);
-void _vec3Add_vfpv3(vec3_t d, const vec3_t v);
-void _vec4Add_vfpv3(vec4_t d, const vec4_t v);
-void _vec3Sub_vfpv3(vec3_t d, const vec3_t v);
-void _vec4Sub_vfpv3(vec4_t d, const vec4_t v);
-void _vec3Devide_vfpv3(vec3_t v, float s);
-void _vec4Devide_vfpv3(vec4_t v, float s);
-void _ivec4Devide_vfpv3(ivec4_t v, float s);
 void _vec4ScalarMul_vfpv3(vec4_t r, float f);
 void _vec3Mulvec3_vfpv3(vec3_t r, const vec3_t v1, const vec3_t v2);
 void _vec4Mulvec4_vfpv3(vec4_t r, const vec4_t v1, const vec4_t v2);
@@ -155,11 +140,8 @@ void _mtx4Rotate_vfpv3(mtx4_t mtx, float angle_rad, float x, float y, float z);
 void _mtx4dRotate_vfpv3(mtx4d_t mtx, double angle_rad, double x, double y, double z);
 
 /* NEON */
-void _vec4Add_neon(vec4_t d, const vec4_t v);
 void _vec4Copy_neon(vec4_t d, const vec4_t v);
-void _vec4Devide_neon(vec4_t d, float s);
 void _vec4Mulvec4_neon(vec4_t r, const vec4_t v1, const vec4_t v2);
-void _vec4Sub_neon(vec4_t d, const vec4_t v);
 void _vec4Matrix4_neon(vec4_t d, const vec4_t v, const mtx4_t m);
 void _pt4Matrix4_neon(vec4_t d, const vec4_t p, const mtx4_t m);
 void _mtx4Mul_neon(mtx4_t d, const mtx4_t m1, const mtx4_t m2);

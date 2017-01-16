@@ -19,49 +19,58 @@
 
 #ifdef __SSE__
 
-#if 0
-// http://fastcpp.blogspot.nl/2011/04/vector-cross-product-using-sse-code.html
+static inline __m128
+load_vec3(const vec3_t v)
+{
+   __m128 xy = _mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&v);
+   __m128 z = _mm_load_ss(&v[2]);
+   return _mm_movelh_ps(xy, z);
+}
+
+static inline float
+hsum_ps_sse(__m128 v) {
+   __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf = _mm_movehl_ps(shuf, sums);
+   sums = _mm_add_ss(sums, shuf);
+   return _mm_cvtss_f32(sums);
+}
+
+FN_PREALIGN float
+_vec3MagnitudeSquared_sse(const vec3_t v3)
+{
+   __m128 v = load_vec3(v3);
+   return hsum_ps_sse(_mm_mul_ps(v, v));
+}
+
+FN_PREALIGN float
+_vec3Magnitude_sse(const vec3_t v3)
+{  
+   __m128 v = load_vec3(v3);
+   return sqrtf(hsum_ps_sse(_mm_mul_ps(v, v)));
+}
+
+FN_PREALIGN float
+_vec3DotProduct_sse(const vec3_t v1, const vec3_t v2)
+{
+   return hsum_ps_sse(_mm_mul_ps(load_vec3(v1), load_vec3(v2)));
+}
+
+// http://threadlocalmutex.com/?p=8
 FN_PREALIGN void 
 _vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2)
 {
-   __m128 xmm1 = _mm_setr_ps(v1[0], v1[1], v1[2], 0);
-   __m128 xmm2 = _mm_setr_ps(v2[0], v2[1], v2[2], 0);
-   __m128 result = _mm_sub_ps(
-         _mm_mul_ps(xmm2, _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 0, 2, 1))),
-         _mm_mul_ps(xmm1, _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1)))
-      );
+   __m128 xmm1 = load_vec3(v1);
+   __m128 xmm2 = load_vec3(v2);
+   __m128 a = _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 0, 2, 1));
+   __m128 b = _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1));
+   __m128 c = _mm_sub_ps(_mm_mul_ps(xmm1, b), _mm_mul_ps(a, xmm2));
    vec4_t r;
 
-   _mm_store_ps(r, _mm_shuffle_ps(result, result, _MM_SHUFFLE(3, 0, 2, 1 )));
+   _mm_store_ps(r, _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1)));
    _aax_memcpy(d, r, 3*sizeof(float));
 }
-#else
 
-#define VECTOR3D_ROT1_MASK 0xC9
-#define VECTOR3D_ROT2_MASK 0xD2
-
-FN_PREALIGN void 
-_vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2)
-{
-   __m128 L0 = _mm_set_ps(v1[0], v1[1], v1[2], 0);
-   __m128 R0 = _mm_set_ps(v2[0], v2[1], v2[2], 0);
-   __m128 L1 = L0;
-   __m128 R1 = R0;
-   vec4_t r;
-
-   L0 = _mm_shuffle_ps(L0, L0, VECTOR3D_ROT1_MASK);
-   R1 = _mm_shuffle_ps(R1, R1, VECTOR3D_ROT1_MASK);
-   R0 = _mm_shuffle_ps(R0, R0, VECTOR3D_ROT2_MASK);
-   L1 = _mm_shuffle_ps(L1, L1, VECTOR3D_ROT2_MASK);
-
-   L0 = _mm_mul_ps(L0, R0);
-   L1 = _mm_mul_ps(L1, R1);
-
-   L0 = _mm_sub_ps(L0, L1);
-   _mm_store_ps(r, L0);
-   _aax_memcpy(d, r, 3*sizeof(float));
-}
-#endif
 
 FN_PREALIGN void
 _vec4Copy_sse(vec4_t d, const vec4_t v)
@@ -72,41 +81,6 @@ _vec4Copy_sse(vec4_t d, const vec4_t v)
    _mm_store_ps(d, xmm1); 
 }
 
-FN_PREALIGN void
-_vec4Add_sse(vec4_t d, const vec4_t v)
-{
-   __m128 xmm1, xmm2; 
-   
-   xmm1 = _mm_load_ps(d); 
-   xmm2 = _mm_load_ps(v); 
-   xmm1 = _mm_add_ps(xmm1, xmm2);
-   _mm_store_ps(d, xmm1);
-}
-
-FN_PREALIGN void
-_vec4Sub_sse(vec4_t d, const vec4_t v)
-{
-   __m128 xmm1, xmm2;
-
-   xmm1 = _mm_load_ps(d);
-   xmm2 = _mm_load_ps(v);
-   xmm1 = _mm_sub_ps(xmm1, xmm2);
-   _mm_store_ps(d, xmm1);
-}
-
-FN_PREALIGN void
-_vec4Devide_sse(vec4_t v, float s)
-{
-   if (s)
-   {
-      __m128 xmm1, xmm2;
-
-      xmm1 = _mm_load_ps(v);
-      xmm2 = _mm_set1_ps(s);
-      xmm1 = _mm_div_ps(xmm1, xmm2);
-      _mm_store_ps(v, xmm1);
-   }
-}
 
 FN_PREALIGN void
 _vec4Mulvec4_sse(vec4_t r, const vec4_t v1, const vec4_t v2)

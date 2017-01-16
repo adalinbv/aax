@@ -16,24 +16,6 @@
 
 #ifdef __ARM_VFPV3
 void
-_vec3Set_vfpv3(vec3 d, float x, float y, float z)
-{
-   d[0] = x;
-   d[1] = y;
-   d[3] = z;
-}
-
-void
-_vec4Set_vfpv3(vec4 d, float x, float y, float z, float w)
-{
-   d[0] = x;
-   d[1] = y;
-   d[3] = z;
-   d[4] = w;
-}
-
-
-void
 _vec3Negate_vfpv3(vec3 d, const vec3 v)
 {
    d[0] = -v[0];
@@ -48,78 +30,6 @@ _vec4Negate_vfpv3(vec4 d, const vec4 v)
    d[1] = -v[1];
    d[2] = -v[2];
    d[3] = -v[3];
-}
-
-
-void
-_vec3Add_vfpv3(vec3 d, const vec3 v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-}
-
-void
-_vec4Add_vfpv3(vec4 d, const vec4 v)
-{
-   d[0] += v[0];
-   d[1] += v[1];
-   d[2] += v[2];
-   d[3] += v[3];
-}
-
-
-void
-_vec3Sub_vfpv3(vec3 d, const vec3 v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-}
-
-void
-_vec4Sub_vfpv3(vec4 d, const vec4 v)
-{
-   d[0] -= v[0];
-   d[1] -= v[1];
-   d[2] -= v[2];
-   d[3] -= v[3];
-}
-
-
-void
-_vec3Devide_vfpv3(vec3 v, float s)
-{
-   if (s)
-   {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-   }
-}
-
-void
-_vec4Devide_vfpv3(vec4 v, float s)
-{
-   if (s)
-   {
-      v[0] /= s;
-      v[1] /= s;
-      v[2] /= s;
-      v[3] /= s;
-   }
-}
-
-void
-_ivec4Devide_vfpv3(ivec4 v, float s)
-{
-   if (s)
-   {
-      v[0] = (int32_t)(v[0]/s);
-      v[1] = (int32_t)(v[1]/s);
-      v[2] = (int32_t)(v[2]/s);
-      v[3] = (int32_t)(v[3]/s);
-   }
 }
 
 

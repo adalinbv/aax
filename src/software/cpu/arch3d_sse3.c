@@ -17,6 +17,43 @@
 
 #ifdef __SSE3__
 
+static inline __m128
+load_vec3(const vec3_t v)
+{
+   __m128i xy = _mm_loadl_epi64((const __m128i*)&v);
+   __m128 z = _mm_load_ss(&v[2]);
+   return _mm_movelh_ps(_mm_castsi128_ps(xy), z);
+}
+
+static inline float
+hsum_ps_sse3(__m128 v) {
+   __m128 shuf = _mm_movehdup_ps(v);
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf = _mm_movehl_ps(shuf, sums);
+   sums = _mm_add_ss(sums, shuf);
+   return _mm_cvtss_f32(sums);
+}
+
+FN_PREALIGN float
+_vec3MagnitudeSquared_sse3(const vec3_t v3)
+{   
+   __m128 v = load_vec3(v3);
+   return hsum_ps_sse3(_mm_mul_ps(v, v));
+}
+
+FN_PREALIGN float
+_vec3Magnitude_sse3(const vec3_t v3)
+{
+   __m128 v = load_vec3(v3);
+   return sqrtf(hsum_ps_sse3(_mm_mul_ps(v, v)));
+}
+
+FN_PREALIGN float
+_vec3DotProduct_sse3(const vec3_t v1, const vec3_t v2)
+{
+   return hsum_ps_sse3(_mm_mul_ps(load_vec3(v1), load_vec3(v2)));
+}
+
 FN_PREALIGN void
 _vec4Matrix4_sse3(vec4_t d, const vec4_t pv, const mtx4_t m)
 {
