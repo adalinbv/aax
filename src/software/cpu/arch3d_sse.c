@@ -93,67 +93,31 @@ _vec4Mulvec4_sse(vec4_t r, const vec4_t v1, const vec4_t v2)
 FN_PREALIGN void
 _vec4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
 {
-   __m128 a_line, b_line, r_line;
-   vec4_t v;
-   const float *a, *b; 
-   float *r;
+   __m128 mx = _mm_load_ps((const float *)&m[0]);
+   __m128 mv = _mm_mul_ps(mx, _mm_set1_ps(vi[0]));
    int i;
-
-   vec3Copy(v, vi);
-   v[3] = 0.0f;
-
-   a = (const float *)m;
-   b = (const float *)v;
-   r = (float *)d;
-
-  /*
-   * unroll the first step of the loop to avoid having to initialize
-   * r_line to zero
-   */
-   a_line = _mm_load_ps(a);		/* a_line = vec4(column(m, 0)) */
-   b_line = _mm_set1_ps(b[0]);		/* b_line = vec4(v[0])         */
-   r_line = _mm_mul_ps(a_line, b_line);	/* r_line = a_line * b_line    */
-   for (i=1; i<4; i++)
-   {
-      a_line = _mm_load_ps(&a[i*4]);	/* a_line = vec4(column(m, i)) */
-      b_line = _mm_set1_ps(b[i]);	/* b_line = vec4(v[i])         */
-					/* r_line += a_line * b_line   */
-      r_line = _mm_add_ps(_mm_mul_ps(a_line, b_line), r_line);
+   for (i=1; i<3; ++i) {
+      __m128 mx = _mm_load_ps((const float *)&m[i]);
+      __m128 row = _mm_mul_ps(mx, _mm_set1_ps(vi[i]));
+      mv = _mm_add_ps(mv, row);
    }
-   _mm_store_ps(r, r_line);		/* r = r_line                  */
+   _mm_store_ps(d, mv);
 }
 
 FN_PREALIGN void
 _pt4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
 {
-   __m128 a_line, b_line, r_line;
-   vec4_t v;
-   const float *a, *b;
-   float *r;
+   __m128 mx = _mm_load_ps((const float *)&m[0]);
+   __m128 mv = _mm_mul_ps(mx, _mm_set1_ps(vi[0]));
    int i;
-
-   vec3Copy(v, vi);
-   v[3] = 1.0f;
-
-   a = (const float *)m;
-   b = (const float *)v;
-   r = (float *)d;
-
-  /*
-   * unroll the first step of the loop to avoid having to initialize
-   * r_line to zero
-   */
-   a_line = _mm_load_ps(a);		/* a_line = vec4(column(m, 0)) */
-   b_line = _mm_set1_ps(b[0]);		/* b_line = vec4(v[0])         */
-   r_line = _mm_mul_ps(a_line, b_line);	/* r_line = a_line * b_line    */
-   for (i=1; i<4; i++)
-   {
-      a_line = _mm_load_ps(&a[i*4]);	/* a_line = vec4(column(m, i)) */
-      b_line = _mm_set1_ps(b[i]);	/* b_line = vec4(v[i])         */
-					/* r_line += a_line * b_line   */
-      r_line = _mm_add_ps(_mm_mul_ps(a_line, b_line), r_line);
+   for (i=1; i<3; ++i) {
+      __m128 mx = _mm_load_ps((const float *)&m[i]);
+      __m128 row = _mm_mul_ps(mx, _mm_set1_ps(vi[i]));
+      mv = _mm_add_ps(mv, row);
    }
-   _mm_store_ps(r, r_line);		/* r = r_line                  */
+   mx = _mm_load_ps((const float *)&m[3]);
+   mv = _mm_add_ps(mv, mx);
+   _mm_store_ps(d, mv);
 }
 
 FN_PREALIGN void
