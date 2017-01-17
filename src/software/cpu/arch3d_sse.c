@@ -123,30 +123,17 @@ _pt4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
 FN_PREALIGN void
 _mtx4Mul_sse(mtx4_t d, const mtx4_t m1, const mtx4_t m2)
 {
-   __m128 a_line, b_line, r_line;
-   const float *a = (const float *)m1;
-   const float *b = (const float *)m2;
-   float *r = (float *)d;
    int i;
-
-   for (i=0; i<16; i += 4)
-   {
-     int j;
-     /*
-      * unroll the first step of the loop to avoid having to initialize
-      * r_line to zero
-      */
-      a_line = _mm_load_ps(a);		   /* a_line = vec4(column(a, 0)) */
-      b_line = _mm_set1_ps(b[i]);	   /* b_line = vec4(b[i][0])      */
-      r_line = _mm_mul_ps(a_line, b_line); /* r_line = a_line * b_line    */
-      for (j=1; j<4; j++)
-      {
-         a_line = _mm_load_ps(&a[j*4]);    /* a_line = vec4(column(a, j)) */
-         b_line = _mm_set1_ps(b[i+j]);     /* b_line = vec4(b[i][j])      */
-                                           /* r_line += a_line * b_line   */
-         r_line = _mm_add_ps(_mm_mul_ps(a_line, b_line), r_line);
+   for (i=0; i<4; ++i) {
+      __m128 m1x = _mm_load_ps((const float *)&m1[0]);
+      __m128 col = _mm_set1_ps(m2[i][0]);
+      __m128 row = _mm_mul_ps(m1x, col);
+      for (int j=1; j<4; ++j) {
+         m1x = _mm_load_ps((const float *)&m1[j]);
+         col = _mm_set1_ps(m2[i][j]);
+         row = _mm_add_ps(row, _mm_mul_ps(m1x, col));
       }
-      _mm_store_ps(&r[i], r_line);         /* r[i] = r_line               */
+      _mm_store_ps(d[i], row);
    }
 }
 #endif /* SSE */
