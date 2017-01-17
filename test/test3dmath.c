@@ -30,7 +30,7 @@ int main()
 {
     vec3_t a3, b3, c3, x3, y3, z3;
     vec4_t a4, b4, c4, x4, y4, z4;
-    mtx4_t m;
+    mtx4_t k, l, m, n;
     float f;
 
     vec3Copy(a3, t1); vec3Copy(b3, t2);
@@ -70,6 +70,18 @@ int main()
     pt4Matrix4(c4, b4, m);
     _pt4Matrix4_sse(z4, y4, m);
     TEST4(c4,z4);
+
+    f = vec3Normalize(z3, y3);
+    mtx4Copy(n, aaxIdentityMatrix);
+    mtx4Rotate(n, f, z3[0], z3[1], z3[2]);
+    mtx4Translate(n, -.2f, 4.507f, 1.39f);
+
+    mtx4Mul(k, m, n);
+    _mtx4Mul_sse(l, m, n);
+    TEST4(k[0],l[0]);
+    TEST4(k[1],l[1]);
+    TEST4(k[2],l[2]);
+    TEST4(k[3],l[3]);
 
     return 0;
 }
