@@ -13,6 +13,8 @@
 #include "config.h"
 #endif
 
+#include <api.h>
+
 #include "arch3d_simd.h"
 
 #ifdef __SSE3__
@@ -20,7 +22,7 @@
 static inline __m128
 load_vec3(const vec3_t v)
 {
-   __m128i xy = _mm_loadl_epi64((const __m128i*)&v);
+   __m128i xy = _mm_loadl_epi64((const __m128i*)&v[0]);
    __m128 z = _mm_load_ss(&v[2]);
    return _mm_movelh_ps(_mm_castsi128_ps(xy), z);
 }
@@ -57,35 +59,17 @@ _vec3DotProduct_sse3(const vec3_t v1, const vec3_t v2)
 FN_PREALIGN void
 _vec4Matrix4_sse3(vec4_t d, const vec4_t pv, const mtx4_t m)
 {
-   vec4_t vi;
-   __m128 v;
-   
-   vec4Copy(vi, pv);
-   vi[3] = 0.0f;
-
-   v = _mm_load_ps((const float*)vi);
-   __m128 vm0 = _mm_mul_ps(_mm_load_ps((const float*)(m+0)), v);
-   __m128 vm1 = _mm_mul_ps(_mm_load_ps((const float*)(m+1)), v);
-   __m128 vm2 = _mm_mul_ps(_mm_load_ps((const float*)(m+2)), v);
-   __m128 vm3 = _mm_mul_ps(_mm_load_ps((const float*)(m+3)), v);
-   _mm_store_ps(d, _mm_hadd_ps(_mm_hadd_ps(vm0, vm1), _mm_hadd_ps(vm2, vm3)));
-}
-
-FN_PREALIGN void
-_pt4Matrix4_sse3(vec4_t d, const vec4_t pv, const mtx4_t m)
-{
-   vec4_t vi;
-   __m128 v;
-   
-   vec4Copy(vi, pv);
-   vi[3] = 1.0f;
-
-   v = _mm_load_ps((const float*)vi);
-   __m128 vm0 = _mm_mul_ps(_mm_load_ps((const float*)(m+0)), v);
-   __m128 vm1 = _mm_mul_ps(_mm_load_ps((const float*)(m+1)), v);
-   __m128 vm2 = _mm_mul_ps(_mm_load_ps((const float*)(m+2)), v);
-   __m128 vm3 = _mm_mul_ps(_mm_load_ps((const float*)(m+3)), v);
-   _mm_store_ps(d, _mm_hadd_ps(_mm_hadd_ps(vm0, vm1), _mm_hadd_ps(vm2, vm3)));
+   __m128 v = load_vec3(pv);
+   __m128 m0 = _mm_load_ps((const float *)&m[0]);
+   __m128 m1 = _mm_load_ps((const float *)&m[1]);
+   __m128 m2 = _mm_load_ps((const float *)&m[2]);
+   __m128 s0 = _mm_mul_ps(v, m0);
+   __m128 s1 = _mm_mul_ps(v, m1);
+   __m128 s2 = _mm_mul_ps(v, m2);
+   __m128 s3 = _mm_setzero_ps();
+   __m128 s01 = _mm_hadd_ps(s0, s1);
+   __m128 s23 = _mm_hadd_ps(s2, s3);
+   _mm_store_ps(d, _mm_hadd_ps(s01, s23));
 }
 
 #endif /* SSE3 */

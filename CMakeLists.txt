@@ -158,9 +158,6 @@ IF(MSVC)
     SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse41.c APPEND
-                 PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4_1__"
-    )
     SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
@@ -273,9 +270,6 @@ ELSE(MSVC)
           SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse41.c APPEND
-                       PROPERTY COMPILE_FLAGS "-msse4.1"
-          )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                      PROPERTY COMPILE_FLAGS "-mavx -march=corei7-avx"
           )
@@ -307,9 +301,6 @@ ELSE(MSVC)
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
-          )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse41.c APPEND
-                       PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=corei7"
           )
 
           SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
@@ -518,7 +509,6 @@ SET( AEONWAVE_OBJS
      src/software/cpu/arch3d_neon.c
      src/software/cpu/arch3d_sse.c
      src/software/cpu/arch3d_sse3.c
-     src/software/cpu/arch3d_sse41.c
      src/software/cpu/arch2d_cpu.c
      src/software/cpu/arch2d_vfpv2.c
      src/software/cpu/arch2d_vfpv3.c

@@ -325,7 +325,6 @@ _aaxGetSIMDSupportString()
       vec3MagnitudeSquared = _vec3MagnitudeSquared_sse3;
       vec3DotProduct = _vec3DotProduct_sse3;
       vec4Matrix4 = _vec4Matrix4_sse3;
-      pt4Matrix4 = _pt4Matrix4_sse3;
       _batch_imul_value = _batch_imul_value_sse3;
       _batch_fmul_value = _batch_fmul_value_sse3;
 
@@ -338,10 +337,6 @@ _aaxGetSIMDSupportString()
 
    if (_aax_arch_capabilities & AAX_ARCH_SSE41)
    {
-      vec3Magnitude = _vec3Magnitude_sse41;
-      vec3MagnitudeSquared = _vec3MagnitudeSquared_sse41;
-      vec3DotProduct = _vec3DotProduct_sse41;
-      vec3Normalize = _vec3Normalize_sse41;
    }
 
 #  if SIZEOF_SIZE_T == 8

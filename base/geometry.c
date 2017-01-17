@@ -194,7 +194,7 @@ vec3Matrix3(vec3_t d, const vec3_t v, const mtx3_t m)
  * coordinate is the homogenoeous coordinate, it should be 1 for points and 0
  * for vectors.
  *
- * Note: this doe not work for non-uniform scaling (that means scaling by
+ * Note: this does not work for non-uniform scaling (that means scaling by
  * different amounts in the different axis)
  */
 void
@@ -218,7 +218,6 @@ _pt4Matrix4(vec4_t d, const vec4_t p, const mtx4_t m)
    d[2] = p0*m[0][2] + p1*m[1][2] + p2*m[2][2] + m[3][2]; // *p3
    d[3] = p0*m[0][3] + p1*m[1][3] + p2*m[2][3] + m[3][3]; // *p3
 }
-
 
 void
 mtx3Copy(mtx3_t d, mtx3_t m)

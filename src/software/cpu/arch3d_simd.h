@@ -75,7 +75,6 @@ float _vec3Magnitude_sse3(const vec3_t v);
 float _vec3MagnitudeSquared_sse3(const vec3_t v);
 float _vec3DotProduct_sse3(const vec3_t v1, const vec3_t v2);
 void _vec4Matrix4_sse3(vec4_t d, const vec4_t v, const mtx4_t m);
-void _pt4Matrix4_sse3(vec4_t d, const vec4_t p, const mtx4_t m);
 
 /* SSE4 */
 float _vec3Magnitude_sse41(const vec3_t v);
