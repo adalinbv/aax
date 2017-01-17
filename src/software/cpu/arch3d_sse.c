@@ -22,7 +22,7 @@
 static inline __m128
 load_vec3(const vec3_t v)
 {
-   __m128 xy = _mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&v);
+   __m128 xy = _mm_loadl_pi(_mm_setzero_ps(), (const __m64*)v);
    __m128 z = _mm_load_ss(&v[2]);
    return _mm_movelh_ps(xy, z);
 }
@@ -65,10 +65,7 @@ _vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2)
    __m128 a = _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 0, 2, 1));
    __m128 b = _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1));
    __m128 c = _mm_sub_ps(_mm_mul_ps(xmm1, b), _mm_mul_ps(a, xmm2));
-   vec4_t r;
-
-   _mm_store_ps(r, _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1)));
-   _aax_memcpy(d, r, 3*sizeof(float));
+   _mm_store_ps(d, _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1)));
 }
 
 
@@ -102,7 +99,7 @@ _vec4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
    float *r;
    int i;
 
-   vec4Copy(v, vi);
+   vec3Copy(v, vi);
    v[3] = 0.0f;
 
    a = (const float *)m;
@@ -135,7 +132,7 @@ _pt4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
    float *r;
    int i;
 
-   vec4Copy(v, vi);
+   vec3Copy(v, vi);
    v[3] = 1.0f;
 
    a = (const float *)m;
