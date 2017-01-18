@@ -20,32 +20,22 @@
 void
 _vec4Copy_neon(vec4 d, const vec4 v)
 {
-   const float32_t *src = (const float32_t *)v;
-   float32_t *dst = (float32_t *)d;
-   float32x4_t nfr1;
-
-   nfr1 = vld1q_f32(src);
-   vst1q_f32(dst, nfr1);
+   float32x4_t vec = vld1q_f32(v);
+   vst1q_f32(d, vec);
 }
 
 void
 _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2)
 {
-   const float32_t *src1 = (const float32_t *)v1;
-   const float32_t *src2 = (const float32_t *)v2;
-   float32_t *dst = (float32_t *)r;
-   float32x4_t nfr1, nfr2;
-
-   nfr1 = vld1q_f32(src1);
-   nfr2 = vld1q_f32(src2);
-   nfr1 = vmulq_f32(nfr1, nfr2);
-   vst1q_f32(dst, nfr1);
+   float32x4_t vec1 = vld1q_f32(v1);
+   float32x4_t vec2 = vld1q_f32(v2);
+   vec1 = vmulq_f32(vec1, vec2);
+   vst1q_f32(r, vec1);
 }
 
 void
-_pt4Matrix4_neon(vec4 d, const vec4 p, const mtx4 m)
+_vec4Matrix4_neon(vec4 d, const vec4 p, const mtx4 m)
 {
-#if 1
    float32x4_t mx = vld1q_f32((const float *)&m[0]);
    float32x4_t mv = vmulq_f32(mx, vdupq_n_f32(vi[0]));
    int i;
@@ -58,9 +48,8 @@ _pt4Matrix4_neon(vec4 d, const vec4 p, const mtx4 m)
 }
 
 void
-_vec4Matrix4_neon(vec4 d, const vec4 vi, const mtx4 m)
+_pt4Matrix4_neon(vec4 d, const vec4 vi, const mtx4 m)
 {
-#if 1
    float32x4_t mx = vld1q_f32((const float *)&m[0]);
    float32x4_t mv = vmulq_f32(mx, vdupq_n_f32(vi[0]));
    int i;
