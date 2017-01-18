@@ -43,79 +43,52 @@ _vec4Mulvec4_neon(vec4 r, const vec4 v1, const vec4 v2)
 }
 
 void
-__vec4Matrix4_neon(vec4 d, const vec4 v, const mtx4 m)
-{
-   float32x4_t a_line, b_line, r_line;
-   const float32_t *a = (const float32_t *)m;
-   const float32_t *b = (const float32_t *)v;
-   float32_t *r = (float32_t *)d;
-   int i;
-
-  /*
-   * unroll the first step of the loop to avoid having to initialize
-   * r_line to zero
-   */
-   a_line = vld1q_f32(a);             /* a_line = vec4(column(m, 0)) */
-   b_line = vdupq_n_f32(b[0]);          /* b_line = vec4(v[0])         */
-   r_line = vmulq_f32(a_line, b_line); /* r_line = a_line * b_line    */
-   for (i=1; i<4; i++)
-   {
-      a_line = vld1q_f32(&a[i*4]);    /* a_line = vec4(column(m, i)) */
-      b_line = vdupq_n_f32(b[i]);       /* b_line = vec4(v[i])         */
-                                        /* r_line += a_line * b_line   */
-      r_line = vaddq_f32(vmulq_f32(a_line, b_line), r_line);
-   }
-   vst1q_f32(r, r_line);             /* r = r_line                  */
-}
-
-void
 _pt4Matrix4_neon(vec4 d, const vec4 p, const mtx4 m)
 {
-   vec4_t v;
-
-   vec4Copy(v, p);
-   v[3] = 1.0f;
-   __vec4Matrix4_neon(d, v, m);
+#if 1
+   float32x4_t mx = vld1q_f32((const float *)&m[0]);
+   float32x4_t mv = vmulq_f32(mx, vdupq_n_f32(vi[0]));
+   int i;
+   for (i=1; i<3; ++i) {
+      float32x4_t mx = vld1q_f32((const float *)&m[i]);
+      float32x4_t row = vmulq_f32(mx, vdupq_n_f32(vi[i]));
+      mv = vaddq_f32(mv, row);
+   }
+   vst1q_f32(d, mv);
 }
 
 void
 _vec4Matrix4_neon(vec4 d, const vec4 vi, const mtx4 m)
 {
-   vec4_t v;
-
-   vec4Copy(v, vi);
-   v[3] = 0.0f;
-   __vec4Matrix4_neon(d, v, m);
+#if 1
+   float32x4_t mx = vld1q_f32((const float *)&m[0]);
+   float32x4_t mv = vmulq_f32(mx, vdupq_n_f32(vi[0]));
+   int i;
+   for (i=1; i<3; ++i) {
+      float32x4_t mx = vld1q_f32((const float *)&m[i]);
+      float32x4_t row = vmulq_f32(mx, vdupq_n_f32(vi[i]));
+      mv = vaddq_f32(mv, row);
+   }
+   mx = vdupq_n_f32((const float *)&m[3]);
+   mv = vaddq_f32(mv, row);
+   vst1q_f32(d, mv);
 }
 
 
 void
 _mtx4Mul_neon(mtx4 d, const mtx4 m1, const mtx4 m2)
 {
-   float32x4_t a_line, b_line, r_line;
-   const float32_t *a = (const float32_t *)m1;
-   const float32_t *b = (const float32_t *)m2;
-   float32_t *r = (float32_t *)d;
    int i;
-
-   for (i=0; i<16; i += 4)
-   {
-     int j;
-     /*
-      * unroll the first step of the loop to avoid having to initialize
-      * r_line to zero
-      */
-      a_line = vld1q_f32(a);             /* a_line = vec4(column(a, 0)) */
-      b_line = vdupq_n_f32(b[i]);          /* b_line = vec4(b[i][0])      */
-      r_line = vmulq_f32(a_line, b_line); /* r_line = a_line * b_line    */
-      for (j=1; j<4; j++)
-      {
-         a_line = vld1q_f32(&a[j*4]);    /* a_line = vec4(column(a, j)) */
-         b_line = vdupq_n_f32(b[i+j]);     /* b_line = vec4(b[i][j])      */
-                                           /* r_line += a_line * b_line   */
-         r_line = vaddq_f32(vmulq_f32(a_line, b_line), r_line);
+   for (i=0; i<4; ++i) {
+      float32x4_t m1x = vld1q_f32((const float *)&m1[0]);
+      float32x4_t col = vdupq_n_f32(m2[i][0]);
+      float32x4_t row = vmulq_f32(m1x, col);
+      for (int j=1; j<4; ++j) {
+         m1x = vld1q_f32((const float *)&m1[j]);
+         col = vdupq_n_f32(m2[i][j]);
+         row = vaddq_f32(row, vmulq_f32(m1x, col));
       }
-      vst1q_f32(&r[i], r_line);         /* r[i] = r_line               */
+       vst1q_f32(d[i], row);
    }
 }
 
