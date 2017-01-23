@@ -209,28 +209,28 @@ aaxAudioFrameSetMatrix(aaxFrame frame, const aaxMtx4f mtx)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
-                     sensor->mixer->props3d->m_dprops3d->matrix);
+            mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+                      &sensor->mixer->props3d->m_dprops3d->matrix);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
       else if (parent && parent->id == AUDIOFRAME_ID)
       {
          _frame_t *parent = (_frame_t*)handle->handle;
-         mtx4Copy(fmixer->props3d->m_dprops3d->matrix,
-                  parent->submix->props3d->m_dprops3d->matrix);
+         mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+                   &parent->submix->props3d->m_dprops3d->matrix);
       }
 
-      mtx4Copy(fmixer->props3d->dprops3d->matrix, mtx);
+      mtx4fFill(fmixer->props3d->dprops3d->matrix.m4, mtx);
       if (_IS_RELATIVE(handle))
       {
-         fmixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
-         fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+         fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
+         fmixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
       }
       else
       {
-         fmixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
-         fmixer->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
+         fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
+         fmixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 1.0f;
       }
       _PROP_MTX_SET_CHANGED(fmixer->props3d);
    }
@@ -255,7 +255,7 @@ aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4f mtx)
    }
 
    if (rv) {
-      mtx4Copy(mtx, handle->submix->props3d->dprops3d->matrix);
+      mtx4fFill(mtx, handle->submix->props3d->dprops3d->matrix.m4);
    }
    put_frame(frame);
 
@@ -282,7 +282,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
       _aaxDelayed3dProps *dp3d;
 
       dp3d = handle->submix->props3d->dprops3d;
-      vec3Copy(dp3d->velocity[VELOCITY], velocity);
+      vec3fFill(dp3d->velocity.m4[VELOCITY], velocity);
       _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
       _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
@@ -311,7 +311,7 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
       _aaxDelayed3dProps *dp3d;
 
       dp3d = handle->submix->props3d->dprops3d;
-      vec3Copy(velocity, dp3d->velocity[VELOCITY]);
+      vec3fFill(velocity, dp3d->velocity.m4[VELOCITY]);
    }
    put_frame(frame);
 
@@ -591,9 +591,9 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(handle, m);
             if TEST_FOR_TRUE(m) {
-               fmixer->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
+               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
             } else {
-               fmixer->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
+               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
             }
          }
          break;
@@ -1324,8 +1324,8 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
        * Align the modified frame matrix with the sensor by multiplying 
        * the frame matrix by the modified parent matrix.
        */
-      mtx4Mul(fdp3d_m->matrix, pdp3d_m->matrix, fdp3d->matrix);
-      dist = vec3Magnitude(fdp3d_m->matrix[LOCATION]);
+      mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+      dist = vec3fMagnitude((vec3f_t*)&fdp3d_m->matrix.s4x4[LOCATION]);
       fp2d->dist_delay_sec = dist / vs;
 
 #if 0

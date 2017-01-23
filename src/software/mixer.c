@@ -499,12 +499,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* read-only data */
                _aax_memcpy(&sp2d.speaker, handle->info->speaker,
-                                          2*_AAX_MAX_SPEAKERS*sizeof(vec4_t));
-               _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4_t));
+                                          2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
+               _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
 
                /* update the modified properties */
-               mtx4Copy(sdp3d_m->matrix, sdp3d->matrix);
-               mtx4Mul(sdp3d_m->velocity, sdp3d->matrix, sdp3d->velocity);
+               mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
+               mtx4fMul(&sdp3d_m->velocity, &sdp3d->matrix, &sdp3d->velocity);
 #if 0
  if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
  printf("matrix:\t\t\t\tvelocity\n");

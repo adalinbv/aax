@@ -702,13 +702,13 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
             _TAS_RELATIVE(src->props3d, m);
             if TEST_FOR_TRUE(m)
             {
-               src->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
-               src->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+               src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
+               src->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
             }
             else
             {
-               src->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
-               src->props3d->dprops3d->velocity[VELOCITY][3] = 1.0f;
+               src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
+               src->props3d->dprops3d->velocity.m4[VELOCITY][3] = 1.0f;
             }
          }
          rv = AAX_TRUE;
@@ -770,11 +770,11 @@ aaxEmitterSetMatrix(aaxEmitter emitter, const aaxMtx4f mtx)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
-      mtx4Copy(src->props3d->dprops3d->matrix, mtx);
+      mtx4fFill(src->props3d->dprops3d->matrix.m4, mtx);
       if (_IS_RELATIVE(src->props3d)) {
-         src->props3d->dprops3d->matrix[LOCATION][3] = 0.0f;
+         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
       } else {
-         src->props3d->dprops3d->matrix[LOCATION][3] = 1.0f;
+         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
       }
       _PROP_MTX_SET_CHANGED(src->props3d);
    }
@@ -803,7 +803,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
       _aaxDelayed3dProps *dp3d;
 
       dp3d = handle->source->props3d->dprops3d;
-      vec3Copy(dp3d->velocity[VELOCITY], velocity);
+      vec3fFill(dp3d->velocity.m4[VELOCITY], velocity);
       _PROP_SPEED_SET_CHANGED(handle->source->props3d);
    }
    put_emitter(handle);
@@ -829,7 +829,7 @@ aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
-      mtx4Copy(mtx, src->props3d->dprops3d->matrix);
+      mtx4fFill(mtx, src->props3d->dprops3d->matrix.m4);
    }
    put_emitter(handle);
 
@@ -1053,7 +1053,7 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
       _aaxDelayed3dProps *dp3d;
 
       dp3d = handle->source->props3d->dprops3d;
-      vec3Copy(velocity, dp3d->velocity[VELOCITY]);
+      vec3fFill(velocity, dp3d->velocity.m4[VELOCITY]);
    }
    put_emitter(handle);
 
@@ -1313,8 +1313,8 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
        * Align the modified emitter matrix with the sensor by multiplying 
        * the emitter matrix by the modified frame matrix.
        */ 
-      mtx4Mul(edp3d_m->matrix, fdp3d_m->matrix, edp3d->matrix);
-      dist = vec3Magnitude(edp3d_m->matrix[LOCATION]);
+      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      dist = vec3fMagnitude(&edp3d_m->matrix.v34[LOCATION]);
       ep2d->dist_delay_sec = dist / vs;
 
 #if 0

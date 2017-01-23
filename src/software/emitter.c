@@ -207,7 +207,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fp3d:    parent frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4_t *speaker, _aaxDelayed3dProps* fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps* fdp3d_m)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
@@ -277,7 +277,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m) || 
        _PROP3D_MTXSPEED_HAS_CHANGED(src))
    {
-      vec4_t epos;
+      vec3f_t epos;
       float refdist, dist_fact, maxdist, rolloff;
       float dist, esv, vs;
       unsigned int i, t;
@@ -294,8 +294,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
-      mtx4Mul(edp3d_m->matrix, fdp3d_m->matrix, edp3d->matrix);
-      dist = vec3Normalize(epos, edp3d_m->matrix[LOCATION]);
+      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      dist = vec3fNormalize(&epos, &edp3d_m->matrix.v34[LOCATION]);
 #if 0
  printf("# emitter parent:\t\t\t\temitter:\n");
  PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
@@ -319,10 +319,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
           */
-         mtx4Mul(edp3d_m->velocity, fdp3d_m->velocity, edp3d->velocity);
+         mtx4fMul(&edp3d_m->velocity, &fdp3d_m->velocity, &edp3d->velocity);
 
          vf = 0.0f;
-         ve = vec3DotProduct(edp3d_m->velocity[LOCATION], epos);
+         ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], &epos);
          df = dopplerfn(vf, ve, vs/sdf);
 #if 0
 # if 1
@@ -363,14 +363,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             {
                float dp, offs, fact;
 
-               dp = vec3DotProduct(speaker[3*t+i], epos) * speaker[t][3];
-               ep2d->speaker[t][i] = dp * dist_fact;		/* -1 .. +1 */
+               dp = vec3fDotProduct(&speaker[3*t+i].v3, &epos) * speaker[t].v4[3];
+               ep2d->speaker[t].v4[i] = dp * dist_fact;		/* -1 .. +1 */
 
-               offs = info->hrtf[HRTF_OFFSET][i];
-               fact = info->hrtf[HRTF_FACTOR][i];
+               offs = info->hrtf[HRTF_OFFSET].v4[i];
+               fact = info->hrtf[HRTF_FACTOR].v4[i];
 
-               dp = vec3DotProduct(speaker[_AAX_MAX_SPEAKERS + 3*t+i], epos);
-               ep2d->hrtf[t][i] = _MAX(offs + dp*fact, 0.0f);
+               dp = vec3fDotProduct(&speaker[_AAX_MAX_SPEAKERS+3*t+i].v3,&epos);
+               ep2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
             }
          }
          break;
@@ -378,21 +378,21 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          for (t=0; t<info->no_tracks; t++)
          {
 #ifdef USE_SPATIAL_FOR_SURROUND
-            float dp = vec3DotProduct(speaker[t], epos) * speaker[t][3];
-            ep2d->speaker[t][0] = 0.5f + dp*dist_fact;
+            float dp = vec3fDotProduct(&speaker[t].v3, &epos)*speaker[t].v4[3];
+            ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
 #else
-            vec4Mulvec4(ep2d->speaker[t], speaker[t], epos);
-            vec4ScalarMul(ep2d->speaker[t], dist_fact);
+            vec4fMulvec4(&ep2d->speaker[t], &speaker[t], &epos);
+            vec4fScalarMul(&ep2d->speaker[t], dist_fact);
 #endif
             i = DIR_UPWD;
             do				/* skip left-right and back-front */
             {
                float dp, offs, fact;
 
-               offs = info->hrtf[HRTF_OFFSET][i];
-               fact = info->hrtf[HRTF_FACTOR][i];
-               dp = vec3DotProduct(speaker[_AAX_MAX_SPEAKERS + 3*t+i], epos);
-               ep2d->hrtf[t][i] = _MAX(offs + dp*fact, 0.0f);
+               offs = info->hrtf[HRTF_OFFSET].v4[i];
+               fact = info->hrtf[HRTF_FACTOR].v4[i];
+               dp = vec3fDotProduct(&speaker[_AAX_MAX_SPEAKERS+3*t+i].v3,&epos);
+               ep2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
             }
             while(0);
          }
@@ -400,15 +400,15 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       case AAX_MODE_WRITE_SPATIAL:
          for (t=0; t<info->no_tracks; t++)
          {                      /* speaker == sensor_pos */
-            float dp = vec3DotProduct(speaker[t], epos) * speaker[t][3];
-            ep2d->speaker[t][0] = 0.5f + dp*dist_fact;
+            float dp = vec3fDotProduct(&speaker[t].v3, &epos)*speaker[t].v4[3];
+            ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
          }
          break;
       default: /* AAX_MODE_WRITE_STEREO */
          for (t=0; t<info->no_tracks; t++)
          {
-            vec4Mulvec4(ep2d->speaker[t], speaker[t], epos);
-            vec4ScalarMul(ep2d->speaker[t], dist_fact);
+            vec3fMulvec3(&ep2d->speaker[t].v3, &speaker[t].v3, &epos);
+            vec4fScalarMul(&ep2d->speaker[t], dist_fact);
          }
       }
 
@@ -424,7 +424,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
          forward_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_FORWARD_GAIN);
          inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
-         tmp = -edp3d_m->matrix[DIR_BACK][2];
+         tmp = -edp3d_m->matrix.m4[DIR_BACK][2];
 
          if (tmp < inner_vec)
          {

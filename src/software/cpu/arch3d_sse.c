@@ -19,15 +19,15 @@
 
 #ifdef __SSE__
 
-static inline __m128
-load_vec3(const vec3_t v)
+static inline FN_PREALIGN __m128
+load_vec3f(const vec3f_ptr v)
 {
-   __m128 xy = _mm_loadl_pi(_mm_setzero_ps(), (const __m64*)v);
-   __m128 z = _mm_load_ss(&v[2]);
+   __m128 xy = _mm_loadl_pi(_mm_setzero_ps(), (const __m64*)v->v3);
+   __m128 z = _mm_load_ss(&v->v3[2]);
    return _mm_movelh_ps(xy, z);
 }
 
-static inline float
+static inline FN_PREALIGN float
 hsum_ps_sse(__m128 v) {
    __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
    __m128 sums = _mm_add_ps(v, shuf);
@@ -37,103 +37,88 @@ hsum_ps_sse(__m128 v) {
 }
 
 FN_PREALIGN float
-_vec3MagnitudeSquared_sse(const vec3_t v3)
+_vec3fMagnitudeSquared_sse(const vec3f_ptr v3)
 {
-   __m128 v = load_vec3(v3);
+   __m128 v = load_vec3f(v3);
    return hsum_ps_sse(_mm_mul_ps(v, v));
 }
 
 FN_PREALIGN float
-_vec3Magnitude_sse(const vec3_t v3)
+_vec3fMagnitude_sse(const vec3f_ptr v3)
 {  
-   __m128 v = load_vec3(v3);
+   __m128 v = load_vec3f(v3);
    return sqrtf(hsum_ps_sse(_mm_mul_ps(v, v)));
 }
 
 FN_PREALIGN float
-_vec3DotProduct_sse(const vec3_t v1, const vec3_t v2)
+_vec3fDotProduct_sse(const vec3f_ptr v1, const vec3f_ptr v2)
 {
-   return hsum_ps_sse(_mm_mul_ps(load_vec3(v1), load_vec3(v2)));
+   return hsum_ps_sse(_mm_mul_ps(load_vec3f(v1), load_vec3f(v2)));
 }
 
 // http://threadlocalmutex.com/?p=8
 FN_PREALIGN void 
-_vec3CrossProduct_sse(vec3_t d, const vec3_t v1, const vec3_t v2)
+_vec3fCrossProduct_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
 {
-   __m128 xmm1 = load_vec3(v1);
-   __m128 xmm2 = load_vec3(v2);
+   __m128 xmm1 = load_vec3f(v1);
+   __m128 xmm2 = load_vec3f(v2);
    __m128 a = _mm_shuffle_ps(xmm1, xmm1, _MM_SHUFFLE(3, 0, 2, 1));
    __m128 b = _mm_shuffle_ps(xmm2, xmm2, _MM_SHUFFLE(3, 0, 2, 1));
    __m128 c = _mm_sub_ps(_mm_mul_ps(xmm1, b), _mm_mul_ps(a, xmm2));
-   _mm_store_ps(d, _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1)));
+   d->s4 = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1));
 }
 
 
 FN_PREALIGN void
-_vec4Copy_sse(vec4_t d, const vec4_t v)
+_vec4fCopy_sse(vec4f_ptr d, const vec4f_ptr v)
 {
-   __m128 xmm1; 
-   
-   xmm1 = _mm_load_ps(v); 
-   _mm_store_ps(d, xmm1); 
+   d->s4 = v->s4;
 }
 
 
 FN_PREALIGN void
-_vec4Mulvec4_sse(vec4_t r, const vec4_t v1, const vec4_t v2)
+_vec4fMulvec4_sse(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
-   __m128 xmm1, xmm2;
-
-   xmm1 = _mm_load_ps(v1);
-   xmm2 = _mm_load_ps(v2);
-   xmm1 = _mm_mul_ps(xmm1, xmm2);
-   _mm_store_ps(r, xmm1);
+   r->s4 = _mm_mul_ps(v1->s4, v2->s4);
 }
 
 FN_PREALIGN void
-_vec4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
+_vec4fMatrix4_sse(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
 {
-   __m128 mx = _mm_load_ps((const float *)&m[0]);
-   __m128 mv = _mm_mul_ps(mx, _mm_set1_ps(vi[0]));
    int i;
+
+   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(vi->v4[0]));
    for (i=1; i<3; ++i) {
-      __m128 mx = _mm_load_ps((const float *)&m[i]);
-      __m128 row = _mm_mul_ps(mx, _mm_set1_ps(vi[i]));
-      mv = _mm_add_ps(mv, row);
+      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(vi->v4[i]));
+      d->s4 = _mm_add_ps(d->s4, row);
    }
-   _mm_store_ps(d, mv);
 }
 
 FN_PREALIGN void
-_pt4Matrix4_sse(vec4_t d, const vec4_t vi, const mtx4_t m)
+_pt4fMatrix4_sse(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
 {
-   __m128 mx = _mm_load_ps((const float *)&m[0]);
-   __m128 mv = _mm_mul_ps(mx, _mm_set1_ps(vi[0]));
    int i;
+
+   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(vi->v4[0]));
    for (i=1; i<3; ++i) {
-      __m128 mx = _mm_load_ps((const float *)&m[i]);
-      __m128 row = _mm_mul_ps(mx, _mm_set1_ps(vi[i]));
-      mv = _mm_add_ps(mv, row);
+      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(vi->v4[i]));
+      d->s4 = _mm_add_ps(d->s4, row);
    }
-   mx = _mm_load_ps((const float *)&m[3]);
-   mv = _mm_add_ps(mv, mx);
-   _mm_store_ps(d, mv);
+   d->s4 = _mm_add_ps(d->s4, m->s4x4[3]);
 }
 
 FN_PREALIGN void
-_mtx4Mul_sse(mtx4_t d, const mtx4_t m1, const mtx4_t m2)
+_mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 {
    int i;
+
    for (i=0; i<4; ++i) {
-      __m128 m1x = _mm_load_ps((const float *)&m1[0]);
-      __m128 col = _mm_set1_ps(m2[i][0]);
-      __m128 row = _mm_mul_ps(m1x, col);
+      __m128 row = _mm_mul_ps(m1->s4x4[0], _mm_set1_ps(m2->m4[i][0]));
       for (int j=1; j<4; ++j) {
-         m1x = _mm_load_ps((const float *)&m1[j]);
-         col = _mm_set1_ps(m2[i][j]);
-         row = _mm_add_ps(row, _mm_mul_ps(m1x, col));
+          __m128 col = _mm_set1_ps(m2->m4[i][j]);
+          row = _mm_add_ps(row, _mm_mul_ps(m1->s4x4[j], col));
       }
-      _mm_store_ps(d[i], row);
+      d->s4x4[i] = row;
    }
 }
 #endif /* SSE */

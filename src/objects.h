@@ -218,9 +218,9 @@ enum
  */
 typedef ALIGN16 struct
 {
-   vec4_t hrtf[2];
-   vec4_t speaker[2*_AAX_MAX_SPEAKERS];
-   vec4_t *delay;
+   vec4f_t hrtf[2];
+   vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
+   vec4f_t *delay;
 
    unsigned char router[_AAX_MAX_SPEAKERS];
    unsigned no_tracks;
@@ -246,8 +246,8 @@ typedef ALIGN16 struct
 typedef ALIGN16 struct
 {
    /* modelview matrix and velocity */
-   mtx4_t matrix;
-   mtx4_t velocity;
+   mtx4f_t matrix;
+   mtx4f_t velocity;
 
    float pitch, gain;
    int state3d;
@@ -273,14 +273,14 @@ typedef ALIGN16 struct
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
       /* pos[2] position; -1.0 front, 0.0 center, 1.0 back  */
-   vec4_t speaker[2*_AAX_MAX_SPEAKERS];
+   vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
 
       /* head[0] side delay sec    */
       /* head[1] up delay sec      */
       /* head[2] forward delay sec */
       /* head[3] up offset sec     */
-   vec4_t hrtf[2];
-   vec4_t hrtf_prev[2];
+   vec4f_t hrtf[2];
+   vec4f_t hrtf_prev[2];
 
    /* HRTF head shadow */
    float freqfilter_history[_AAX_MAX_SPEAKERS];
@@ -374,11 +374,11 @@ typedef struct
 } _aaxEmitter;
 
 
-extern vec4_t _aaxContextDefaultHead[2];
-extern vec4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS];
-extern vec4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS];
-extern vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS];
-extern vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS];
+extern fx4_t _aaxContextDefaultHead[2];
+extern fx4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS];
+extern fx4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS];
+extern fx4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS];
+extern fx4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS];
 
 void _aaxFreeSource(void *);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);
