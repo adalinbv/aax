@@ -19,40 +19,37 @@
 
 # define vandq_f32(a,b) vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a), vreinterpretq_u32_f32(b)))
 
-static const uint32_t m3a32[] = { 0xffffffff,0xffffffff,0xffffffff,0 };
-static const float32x4_t fmask3 = vld1q_f32((const float*)m3a32);
-static const float32x2_t zero = vdup_n_f32(0);
-
 static inline float32x4_t
-load_vec3(const vec3_ptr v)
+load_vec3f(const vec3_ptr v)
 {  
-   return vandq_f32(v->s4, fmask3);
+   static const uint32_t m3a32[] = { 0xffffffff,0xffffffff,0xffffffff,0 };
+   return vandq_f32(v->s4, vld1q_f32((const float*)m3a32));
 }
 
 static inline float
 hsum_float32x4_neon(float32x4_t v) {
-    float32x2_ptr r = vadd_f32(vget_high_f32(v->s4), vget_low_f32(v->s4));
+    float32x2_ptr r = vadd_f32(vget_high_f32(v), vget_low_f32(v));
     return vget_lane_f32(vpadd_f32(r, r), 0);
 }
 
 float
 _vec3fMagnitudeSquared_neon(const vec3_ptr v3)
 {
-   float32x4_t v = load_vec3(v3);
+   float32x4_t v = load_vec3f(v3);
    return hsum_float32x4_neon(vmulq_f32(v, v));
 }
 
 float
 _vec3fMagnitude_neon(const vec3_ptr v3)
 {
-   float32x4_t v = load_vec3(v3);
+   float32x4_t v = load_vec3f(v3);
    return sqrtf(hsum_float32x4_neon(vmulq_f32(v, v)));
 }
 
 float
 _vec3fDotProduct_neon(const vec3_ptr v1, const vec3_ptr v2)
 {
-   return hsum_float32x4_neon(vmulq_f32(load_vec3(v1), load_vec3(v2)));
+   return hsum_float32x4_neon(vmulq_f32(load_vec3f(v1), load_vec3f(v2)));
 }
 
 void
