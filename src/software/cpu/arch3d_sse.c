@@ -22,9 +22,8 @@
 static inline FN_PREALIGN __m128
 load_vec3f(const vec3f_ptr v)
 {
-   __m128 xy = _mm_loadl_pi(_mm_setzero_ps(), (const __m64*)v->v3);
-   __m128 z = _mm_load_ss(&v->v3[2]);
-   return _mm_movelh_ps(xy, z);
+   static const uint32_t m3a32[] = { 0xffffffff,0xffffffff,0xffffffff,0 };
+   return _mm_and_ps(v->s4, _mm_load_ps((const float*)m3a32));
 }
 
 static inline FN_PREALIGN float

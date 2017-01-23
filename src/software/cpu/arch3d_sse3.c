@@ -19,12 +19,11 @@
 
 #ifdef __SSE3__
 
-static inline __m128
-load_vec3(const vec3f_ptr v)
+static inline FN_PREALIGN __m128
+load_vec3f(const vec3f_ptr v)
 {
-   __m128i xy = _mm_loadl_epi64((const __m128i*)&v->v3[0]);
-   __m128 z = _mm_load_ss(&v->v3[2]);
-   return _mm_movelh_ps(_mm_castsi128_ps(xy), z);
+   static const uint32_t m3a32[] = { 0xffffffff,0xffffffff,0xffffffff,0 };
+   return _mm_and_ps(v->s4, _mm_load_ps((const float*)m3a32));
 }
 
 static inline float
@@ -39,27 +38,27 @@ hsum_ps_sse3(__m128 v) {
 FN_PREALIGN float
 _vec3fMagnitudeSquared_sse3(const vec3f_ptr v3)
 {   
-   __m128 v = load_vec3(v3);
+   __m128 v = load_vec3f(v3);
    return hsum_ps_sse3(_mm_mul_ps(v, v));
 }
 
 FN_PREALIGN float
 _vec3fMagnitude_sse3(const vec3f_ptr v3)
 {
-   __m128 v = load_vec3(v3);
+   __m128 v = load_vec3f(v3);
    return sqrtf(hsum_ps_sse3(_mm_mul_ps(v, v)));
 }
 
 FN_PREALIGN float
 _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2)
 {
-   return hsum_ps_sse3(_mm_mul_ps(load_vec3(v1), load_vec3(v2)));
+   return hsum_ps_sse3(_mm_mul_ps(load_vec3f(v1), load_vec3f(v2)));
 }
 
 FN_PREALIGN void
 _vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr pv, const mtx4f_ptr m)
 {
-   __m128 v = load_vec3(&pv->v3);
+   __m128 v = load_vec3f(&pv->v3);
    __m128 s0 = _mm_mul_ps(v, m->s4x4[0]);
    __m128 s1 = _mm_mul_ps(v, m->s4x4[1]);
    __m128 s2 = _mm_mul_ps(v, m->s4x4[2]);
