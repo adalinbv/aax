@@ -37,10 +37,10 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 {
    unsigned int size;
 
-   size = 2*sizeof(vec4_t); 
+   size = 2*sizeof(vec4f_t); 
    _aax_memcpy(&info->hrtf, &_aaxContextDefaultHead, size);
 
-   size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
+   size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
    _aax_memcpy(&info->speaker, &_aaxContextDefaultSpeakersVolume, size);
 
    info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
@@ -78,11 +78,11 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    assert (p2d);
 
    /* normalized  directions */
-   size = _AAX_MAX_SPEAKERS*sizeof(vec4_t);
+   size = _AAX_MAX_SPEAKERS*sizeof(vec4f_t);
    memset(p2d->speaker, 0, 2*size);
 
    /* HRTF sample offsets */
-   size = 2*sizeof(vec4_t);
+   size = 2*sizeof(vec4f_t);
    memset(p2d->hrtf, 0, size);
    memset(p2d->hrtf_prev, 0, size);
 
@@ -123,10 +123,10 @@ _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
    assert(dp3d);
 
    /* modelview matrix */
-   mtx4Copy(dp3d->matrix, aaxIdentityMatrix);
+   mtx4fFill(dp3d->matrix.m4, aaxIdentityMatrix);
 
    /* velocity     */
-   mtx4Copy(dp3d->velocity, aaxIdentityMatrix);
+   mtx4fFill(dp3d->velocity.m4, aaxIdentityMatrix);
 
    /* status */
    dp3d->state3d = 0;
@@ -219,14 +219,14 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
  * up:    0.00ms, 0.100 ms, 0.015 ms
  * down:  0.00ms, 0.325 ms, 0.015 ms
  */
-vec4_t _aaxContextDefaultHead[2] = 
+fx4_t _aaxContextDefaultHead[2] = 
 {
 //     RIGHT     UP        BACK
    { 0.000640f,-0.000110f, 0.000120f, 0.0f },	/* head delay factors */
    { 0.000000f, 0.000200f, 0.000010f, 0.0f }	/* head delay offsets */
 };
 
-vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
+fx4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (volume)                          --- */
    { 1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
@@ -241,7 +241,7 @@ vec4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
    { 0.00f, 0.00f, 0.000, 0.0f }
 };
 
-vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
+fx4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
 {
    /* left headphone shell (delay)                           --- */
    {-1.00f, 0.00f, 0.00f, 0.0f },        /* left-right           */
@@ -256,7 +256,7 @@ vec4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
    { 0.00f, 0.00f, 0.000, 0.0f }
 };
 
-vec4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
+fx4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
 {
    { 1.00f, 0.00f, 1.00f, 1.0f },	/* front left speaker    */
    {-1.00f, 0.00f, 1.00f, 1.0f },	/* front right speaker   */
@@ -268,7 +268,7 @@ vec4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
    {-1.00f, 0.00f, 0.00f, 1.0f }	/* right side speaker    */
 };
 
-vec4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS] =
+fx4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS] =
 {
    { 0.00f, 0.00f, 0.00f, 1.0f },       /* front left speaker    */
    { 0.00f, 0.00f, 0.00f, 1.0f },       /* front right speaker   */

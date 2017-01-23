@@ -54,8 +54,8 @@ aaxSensorSetMatrix(aaxConfig config, const aaxMtx4f mtx)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
-         mtx4Copy(smixer->props3d->dprops3d->matrix, mtx);
-         mtx4Copy(smixer->props3d->m_dprops3d->matrix, mtx);
+         mtx4fFill(smixer->props3d->dprops3d->matrix.m4, mtx);
+         mtx4fFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
@@ -92,7 +92,7 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
-          mtx4Copy(mtx, smixer->props3d->dprops3d->matrix);
+          mtx4fFill(mtx, smixer->props3d->dprops3d->matrix.m4);
           _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
@@ -127,16 +127,16 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
       dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr)
       {
-         mtx4_t mtx;
+         mtx4f_t mtx;
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxDelayed3dProps *dp3d;
 
-         mtx4Copy(mtx, aaxIdentityMatrix);
-         vec3Copy(mtx[VELOCITY], velocity);
-         mtx[VELOCITY][3] = 0.0f;
+         mtx4fFill(mtx.m4, aaxIdentityMatrix);
+         vec3fFill(mtx.m4[VELOCITY], velocity);
+         mtx.m4[VELOCITY][3] = 0.0f;
 
          dp3d = sensor->mixer->props3d->dprops3d;
-         mtx4InverseSimple(dp3d->velocity, mtx);
+         mtx4fInverseSimple(&dp3d->velocity, &mtx);
          _PROP_SPEED_SET_CHANGED(sensor->mixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
@@ -171,15 +171,15 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
       dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr)
       {
-         mtx4_t mtx;
+         mtx4f_t mtx;
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxDelayed3dProps *dp3d;
 
          dp3d = sensor->mixer->props3d->dprops3d;
-         mtx4InverseSimple(mtx, dp3d->velocity);
+         mtx4fInverseSimple(&mtx, &dp3d->velocity);
          _intBufReleaseData(dptr, _AAX_SENSOR);
 
-         vec3Copy(velocity, mtx[VELOCITY]);
+         vec3fFill(velocity, mtx.m4[VELOCITY]);
       }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);

@@ -25,7 +25,7 @@ aaxMatrixCopyMatrix(aaxMtx4f dmtx, const aaxMtx4f smtx)
 {
    int rv = AAX_FALSE;
    if (dmtx && smtx) {
-        mtx4Copy(dmtx, smtx);
+        mtx4fFill(dmtx, smtx);
    }
    return rv;
 }
@@ -35,7 +35,7 @@ aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, const aaxMtx4d smtx)
 {
    int rv = AAX_FALSE;
    if (dmtx && smtx) {
-        mtx4dCopy(dmtx, smtx);
+        mtx4dFill(dmtx, smtx);
    }
    return rv;
 }
@@ -46,7 +46,7 @@ aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
    int rv = AAX_FALSE;
    if (mtx)
    {
-      mtx4Copy(mtx, aaxIdentityMatrix);
+      mtx4fFill(mtx, aaxIdentityMatrix);
       rv = AAX_TRUE;
    }
    else {
@@ -61,7 +61,7 @@ aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
    int rv = AAX_FALSE;
    if (mtx)
    {
-      mtx4dCopy(mtx, aaxIdentityMatrix64);
+      mtx4dFill(mtx, aaxIdentityMatrix64);
       rv = AAX_TRUE;
    }
    else {
@@ -92,11 +92,11 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
 
    if (rv)
    {
-      mtx4_t m;
+      mtx4f_t m;
 
-      mtx4Copy(m, mtx);
-      mtx4Translate(m, dx, dy, dz);
-      mtx4Copy(mtx, m);
+      mtx4fFill(m.m4, mtx);
+      mtx4fTranslate(&m, dx, dy, dz);
+      mtx4fFill(mtx, m.m4);
    }
 
    return rv;
@@ -126,9 +126,9 @@ aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
    {
       mtx4d_t m;
 
-      mtx4dCopy(m, mtx);
-      mtx4dTranslate(m, dx, dy, dz);
-      mtx4dCopy(mtx, m);
+      mtx4dFill(m.m4, mtx);
+      mtx4dTranslate(&m, dx, dy, dz);
+      mtx4dFill(mtx, m.m4);
    }
 
    return rv;
@@ -158,11 +158,11 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
 
    if (rv)
    {
-      mtx4_t m;
+      mtx4f_t m;
 
-      mtx4Copy(m, mtx);
-      mtx4Rotate(m, angle_rad, x, y, z);
-      mtx4Copy(mtx, m);
+      mtx4fFill(m.m4, mtx);
+      mtx4fRotate(&m, angle_rad, x, y, z);
+      mtx4fFill(mtx, m.m4);
    }
 
    return rv;
@@ -194,9 +194,9 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
    {
       mtx4d_t m;
 
-      mtx4dCopy(m, mtx);
-      mtx4dRotate(m, angle_rad, x, y, z);
-      mtx4dCopy(mtx, m);
+      mtx4dFill(m.m4, mtx);
+      mtx4dRotate(&m, angle_rad, x, y, z);
+      mtx4dFill(mtx, m.m4);
    }
 
    return rv;
@@ -219,12 +219,12 @@ aaxMatrixMultiply(aaxMtx4f mtx1, const aaxMtx4f mtx2)
 
    if (rv)
    {
-      mtx4_t m1, m2, m3;
+      mtx4f_t m1, m2, m3;
 
-      mtx4Copy(m1, mtx1);
-      mtx4Copy(m2, mtx2);
-      mtx4Mul(m3, m1, m2);
-      mtx4Copy(mtx1, m3);
+      mtx4fFill(m1.m4, mtx1);
+      mtx4fFill(m2.m4, mtx2);
+      mtx4fMul(&m3, &m1, &m2);
+      mtx4fFill(mtx1, m3.m4);
    }
 
    return rv;
@@ -250,10 +250,10 @@ aaxMatrix64Multiply(aaxMtx4d mtx1, const aaxMtx4d mtx2)
    {
       mtx4d_t m1, m2, m3;
 
-      mtx4dCopy(m1, mtx1);
-      mtx4dCopy(m2, mtx2);
-      mtx4dMul(m3, m1, m2);
-      mtx4dCopy(mtx1, m3);
+      mtx4dFill(m1.m4, mtx1);
+      mtx4dFill(m2.m4, mtx2);
+      mtx4dMul(&m3, &m1, &m2);
+      mtx4dFill(mtx1, m3.m4);
    }
 
    return rv;
@@ -275,10 +275,10 @@ aaxMatrixInverse(aaxMtx4f mtx)
 
    if (rv)
    {
-      mtx4_t m1, m2;
-      mtx4Copy(m1, mtx);
-      mtx4InverseSimple(m2, m1);
-      mtx4Copy(mtx, m2);
+      mtx4f_t m1, m2;
+      mtx4fFill(m1.m4, mtx);
+      mtx4fInverseSimple(&m2, &m1);
+      mtx4fFill(mtx, m2.m4);
    }
 
    return rv;
@@ -301,9 +301,9 @@ aaxMatrix64Inverse(aaxMtx4d mtx)
    if (rv)
    {
       mtx4d_t m1, m2;
-      mtx4dCopy(m1, mtx);
-      mtx4dInverseSimple(m2, m1);
-      mtx4dCopy(mtx, m2);
+      mtx4dFill(m1.m4, mtx);
+      mtx4dInverseSimple(&m2, &m1);
+      mtx4dFill(mtx, m2.m4);
    }
 
    return rv;
@@ -329,11 +329,14 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
 
    if (rv)
    {
-      mtx4Copy(mtx, aaxIdentityMatrix);
+      vec3f_t loc;
+      mtx4f_t m;
+
+      mtx4fFill(m.m4, aaxIdentityMatrix);
       if (at[0] || at[1] || at[2])
       {
          aaxVec3f up = { 0.0f, 1.0f, 0.0f }; 
-         vec3_t side, upwd, fwd, back;
+         vec3f_t side, upwd, fwd, back;
 
          if ((fabsf(at[0]) < FLT_EPSILON)  && (fabsf(at[2]) < FLT_EPSILON))
          {  
@@ -342,16 +345,19 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
             else              up[2] =  1.0f;
          }  
 
-         vec3Copy(upwd, up);
-         vec3Copy(fwd, at);
-         vec3CrossProduct(side, fwd, upwd);
+         vec3fFill(upwd.v3, up);
+         vec3fFill(fwd.v3, at);
+         vec3fCrossProduct(&side, &fwd, &upwd);
 
-         vec3Negate(back, fwd);
-         vec3Normalize(mtx[0], side);
-         vec3Normalize(mtx[1], up);
-         vec3Normalize(mtx[2], back);
+         vec3fNegate(&back, &fwd);
+         vec3fNormalize(&m.v34[0], &side);
+         vec3fNormalize(&m.v34[1], &upwd);
+         vec3fNormalize(&m.v34[2], &back);
       }
-      vec3Negate(mtx[3], pos);
+
+      vec3fFill(loc.v3, pos);
+      vec3fNegate(&m.v34[3], &loc);
+      vec3fFill(mtx, m.m4);
 #if 0
  printf("SetDirection:\n");
  PRINT_MATRIX(mtx);
@@ -384,21 +390,27 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
 
    if (rv)
    {
-      mtx4Copy(mtx, aaxIdentityMatrix);
+      vec3f_t loc;
+      mtx4f_t m;
+
+      mtx4fFill(m.m4, aaxIdentityMatrix);
       if ((at[0] || at[1] || at[2]) || (up[0] || up[1] || up[2]))
       {
-         vec3_t side, upwd, fwd, back;
+         vec3f_t side, upwd, fwd, back;
 
-         vec3Copy(upwd, up);
-         vec3Copy(fwd, at);
-         vec3CrossProduct(side, fwd, upwd);
+         vec3fFill(upwd.v3, up);
+         vec3fFill(fwd.v3, at);
+         vec3fCrossProduct(&side, &fwd, &upwd);
 
-         vec3Negate(back, fwd);
-         vec3Normalize(mtx[0], side);
-         vec3Normalize(mtx[1], up);
-         vec3Normalize(mtx[2], back);
+         vec3fNegate(&back, &fwd);
+         vec3fNormalize(&m.v34[0], &side);
+         vec3fNormalize(&m.v34[1], &upwd);
+         vec3fNormalize(&m.v34[2], &back);
       }
-      vec3Negate(mtx[3], pos);
+
+      vec3fFill(loc.v3, pos);
+      vec3fNegate(&m.v34[3], &loc);
+      vec3fFill(mtx, m.m4);
    }
 
    return rv;
@@ -421,13 +433,13 @@ aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
    if (rv)
    {
       if (pos) {
-         vec3Copy(pos, mtx[3]);	/* LOCATION */
+         vec3fFill(pos, mtx[3]);/* LOCATION */
       }
       if (at) {
-         vec3Copy(at, mtx[2]);	/* DIR_UPWD */
+         vec3fFill(at, mtx[2]);	/* DIR_UPWD */
       }
       if (up) {
-         vec3Copy(up, mtx[1]); /* DIR_BACK */
+         vec3fFill(up, mtx[1]); /* DIR_BACK */
       }
    }
 

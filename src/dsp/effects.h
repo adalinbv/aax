@@ -43,8 +43,8 @@ typedef struct {
 } _eff_cvt_tbl_t;
 
 typedef struct {
-   vec4_t min;
-   vec4_t max;
+   fx4_t min;
+   fx4_t max;
 } _eff_minmax_tbl_t;
 
 typedef struct

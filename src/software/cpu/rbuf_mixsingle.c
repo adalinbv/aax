@@ -60,7 +60,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 #ifdef PURE_STEREO
       dir_fact = _MINMAX(ep2d->speaker[t][DIR_RIGHT], 0.0f, 1.0f);
 #else
-      dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
+      dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
       vstart = dir_fact * svol * ep2d->prev_gain[t];
       vend   = dir_fact * evol * gain;
@@ -121,9 +121,9 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
        * horizontal positioning, left-right
        **/
 #ifdef USE_SPATIAL_FOR_SURROUND
-      dir_fact = ep2d->speaker[t][DIR_RIGHT];
+      dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
 #else
-      dir_fact = _MIN(0.8776f + ep2d->speaker[t][DIR_RIGHT], 1.0f);
+      dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
       vstart = svol * ep2d->prev_gain[t];
       vend = evol * gain;
@@ -136,14 +136,14 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       /**
        * vertical positioning
        **/
-      dir_fact = ep2d->speaker[t][DIR_UPWD];
+      dir_fact = ep2d->speaker[t].v4[DIR_UPWD];
       hrtf_volume[DIR_UPWD] = 0.1f + 0.125f*dir_fact;
       gain *= 0.76923f; 		/* 1.0f/0.3f */
 
       i = DIR_UPWD;			/* skip left-right and back-front */
       do
       {
-         ssize_t diff = (ssize_t)ep2d->hrtf[t][i];
+         ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
          float v_start, v_step;
 
          if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0)) {
@@ -181,7 +181,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
       float vstart, vend, vstep;
       float dir_fact;
 
-      dir_fact = ep2d->speaker[t][DIR_RIGHT];
+      dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
       vstart = dir_fact * svol * ep2d->prev_gain[t];
       vend   = dir_fact * evol * gain;
       vstep  = (vend - vstart) / dno_samples;
@@ -217,20 +217,20 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       /**
        * vertical positioning
        **/
-      dir_fact = ep2d->speaker[t][DIR_UPWD];
+      dir_fact = ep2d->speaker[t].v4[DIR_UPWD];
       hrtf_volume[DIR_UPWD] = 0.1f + 0.125f*dir_fact; // 0.66 + 0.33f*dir_fact;
 
       /**
        * horizontal positioning, back-front
        **/
-      dir_fact = ep2d->speaker[t][DIR_BACK];
+      dir_fact = ep2d->speaker[t].v4[DIR_BACK];
       hrtf_volume[DIR_BACK] = 0.175f + 0.05f*dir_fact; // 0.66f + 0.33f*dir_fact;
 
       /**
        * horizontal positioning, left-right
        * WARNING: must be last: dir_fact is used for head shadow filtering
        **/
-      dir_fact = ep2d->speaker[t][DIR_RIGHT];
+      dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
       hrtf_volume[DIR_RIGHT] = dir_fact; // _MIN(0.66f + dir_fact, 1.0f);
 
 #if 0
@@ -242,7 +242,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       ptr = sptr[ch]+offs;
       for (i=0; i<3; i++)
       {
-         ssize_t diff = (ssize_t)ep2d->hrtf[t][i];
+         ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
          float v_start, v_end, v_step;
 
          if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0))

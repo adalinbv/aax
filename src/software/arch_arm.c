@@ -178,30 +178,30 @@ _aaxGetSIMDSupportString()
       _batch_resample = _batch_resample_vfpv2;
 #endif
 
-      vec3Add = _vec3Add_vfpv2;
-      vec3Devide = _vec3Devide_vfpv2;
-      vec3Mulvec3 = _vec3Mulvec3_vfpv2;
-      vec3Sub = _vec3Sub_vfpv2;
+      vec3fAdd = _vec3fAdd_vfpv2;
+      vec3fDevide = _vec3fDevide_vfpv2;
+      vec3fMulvec3 = _vec3fMulvec3_vfpv2;
+      vec3fSub = _vec3fSub_vfpv2;
 
-      vec3Magnitude = _vec3Magnitude_vfpv2;
+      vec3fMagnitude = _vec3fMagnitude_vfpv2;
       vec3dMagnitude = _vec3dMagnitude_vfpv2;
-      vec3MagnitudeSquared = _vec3MagnitudeSquared_vfpv2;
-      vec3DotProduct = _vec3DotProduct_vfpv2;
+      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv2;
+      vec3fDotProduct = _vec3fDotProduct_vfpv2;
       vec3dDotProduct = _vec3dDotProduct_vfpv2;
-      vec3Normalize = _vec3Normalize_vfpv2;
+      vec3fNormalize = _vec3fNormalize_vfpv2;
       vec3dNormalize = _vec3dNormalize_vfpv2;
-      vec3CrossProduct = _vec3CrossProduct_vfpv2;
+      vec3fCrossProduct = _vec3fCrossProduct_vfpv2;
 
-      vec4Add = _vec4Add_vfpv2;
-      vec4Devide = _vec4Devide_vfpv2;
-      vec4Mulvec4 = _vec4Mulvec4_vfpv2;
-      vec4Sub = _vec4Sub_vfpv2;
-      vec4Matrix4 = _vec4Matrix4_vfpv2;
-      pt4Matrix4 = _pt4Matrix4_vfpv2;
-      mtx4Mul = _mtx4Mul_vfpv2;
+      vec4fAdd = _vec4fAdd_vfpv2;
+      vec4fDevide = _vec4fDevide_vfpv2;
+      vec4fMulvec4 = _vec4fMulvec4_vfpv2;
+      vec4fSub = _vec4fSub_vfpv2;
+      vec4fMatrix4 = _vec4fMatrix4_vfpv2;
+      pt4fMatrix4 = _pt4fMatrix4_vfpv2;
+      mtx4fMul = _mtx4fMul_vfpv2;
       mtx4dMul = _mtx4dMul_vfpv2;
 
-      ivec4Devide = _ivec4Devide_vfpv2;
+      vec4iDevide = _vec4iDevide_vfpv2;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_HF)
@@ -229,42 +229,47 @@ _aaxGetSIMDSupportString()
       _batch_resample = _batch_resample_vfpv3;
 #endif
 
-      vec3Add = _vec3Add_vfpv3;
-      vec3Devide = _vec3Devide_vfpv3;
-      vec3Mulvec3 = _vec3Mulvec3_vfpv3;
-      vec3Sub = _vec3Sub_vfpv3;
+      vec3fAdd = _vec3fAdd_vfpv3;
+      vec3fDevide = _vec3fDevide_vfpv3;
+      vec3fMulvec3 = _vec3fMulvec3_vfpv3;
+      vec3fSub = _vec3fSub_vfpv3;
 
-      vec3Magnitude = _vec3Magnitude_vfpv3;
+      vec3fMagnitude = _vec3fMagnitude_vfpv3;
       vec3dMagnitude = _vec3dMagnitude_vfpv3;
-      vec3MagnitudeSquared = _vec3MagnitudeSquared_vfpv3;
-      vec3DotProduct = _vec3DotProduct_vfpv3;
+      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv3;
+      vec3fDotProduct = _vec3fDotProduct_vfpv3;
       vec3dDotProduct = _vec3dDotProduct_vfpv3;
-      vec3Normalize = _vec3Normalize_vfpv3;
+      vec3fNormalize = _vec3fNormalize_vfpv3;
       vec3dNormalize = _vec3dNormalize_vfpv3;
-      vec3CrossProduct = _vec3CrossProduct_vfpv3;
+      vec3fCrossProduct = _vec3fCrossProduct_vfpv3;
 
-      vec4Add = _vec4Add_vfpv3;
-      vec4Devide = _vec4Devide_vfpv3;
-      vec4Mulvec4 = _vec4Mulvec4_vfpv3;
-      vec4Sub = _vec4Sub_vfpv3;
-      vec4Matrix4 = _vec4Matrix4_vfpv3;
-      pt4Matrix4 = _pt4Matrix4_vfpv3;
-      mtx4Mul = _mtx4Mul_vfpv3;
+      vec4fAdd = _vec4fAdd_vfpv3;
+      vec4fDevide = _vec4fDevide_vfpv3;
+      vec4fMulvec4 = _vec4fMulvec4_vfpv3;
+      vec4fSub = _vec4fSub_vfpv3;
+      vec4fMatrix4 = _vec4fMatrix4_vfpv3;
+      pt4fMatrix4 = _pt4fMatrix4_vfpv3;
+      mtx4fMul = _mtx4fMul_vfpv3;
       mtx4dMul = _mtx4dMul_vfpv3;
 
-      ivec4Devide = _ivec4Devide_vfpv3;
+      vec4iDevide = _vec4iDevide_vfpv3;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_NEON)
    {
-      vec4Add = _vec4Add_neon;
-      vec4Sub = _vec4Sub_neon;
-      vec4Copy = _vec4Copy_neon;
-      vec4Devide = _vec4Devide_neon;
-      vec4Mulvec4 = _vec4Mulvec4_neon;
-      vec4Matrix4 = _vec4Matrix4_neon;
-      pt4Matrix4 = _pt4Matrix4_neon;
-      mtx4Mul = _mtx4Mul_neon;
+      vec3fMagnitude = _vec3fMagnitude_neon;
+      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
+      vec3fDotProduct = _vec3fDotProduct_neon;
+      vec3fCrossProduct = _vec3fCrossProduct_neon;
+
+      vec4fAdd = _vec4fAdd_neon;
+      vec4fSub = _vec4fSub_neon;
+      vec4fCopy = _vec4fCopy_neon;
+      vec4fDevide = _vec4fDevide_neon;
+      vec4fMulvec4 = _vec4fMulvec4_neon;
+      vec4fMatrix4 = _vec4fMatrix4_neon;
+      pt4fMatrix4 = _pt4fMatrix4_neon;
+      mtx4fMul = _mtx4fMul_neon;
 
 #if 0
       _batch_cvtps_24 = _batch_cvtps_24_sse2;

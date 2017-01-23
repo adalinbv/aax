@@ -907,7 +907,7 @@ _open_handle(aaxConfig config)
                smixer->props3d = _aax3dPropsCreate();
                if (smixer->props3d)
                {
-                  smixer->props3d->dprops3d->velocity[VELOCITY][3] = 0.0f;
+                  smixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
                   _EFFECT_SETD3D_DATA(smixer, VELOCITY_EFFECT,
                                             _aaxRingBufferDopplerFn[0]);
                   _FILTER_SETD3D_DATA(smixer, DISTANCE_FILTER,
@@ -1190,7 +1190,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                _aaxMixerInfo* info = sensor->mixer->info;
                unsigned int size;
 
-               size = _AAX_MAX_SPEAKERS * sizeof(vec4_t);
+               size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
                if (handle->info->mode == AAX_MODE_WRITE_HRTF)
                {
                   handle->info->no_tracks = 2;
@@ -1202,11 +1202,11 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                    * delays in seconds get converted into sample offsets.
                    */
                   _aaxContextSetupHRTF(config->node[0].hrtf, 0);
-                  vec4Copy(info->hrtf[0], _aaxContextDefaultHead[0]);
-                  vec4ScalarMul(info->hrtf[0], fq);
+                  vec4fFill(info->hrtf[0].v4, _aaxContextDefaultHead[0]);
+                  vec4fScalarMul(&info->hrtf[0], fq);
 
-                  vec4Copy(info->hrtf[1], _aaxContextDefaultHead[1]);
-                  vec4ScalarMul(info->hrtf[1], fq);
+                  vec4fFill(info->hrtf[1].v4, _aaxContextDefaultHead[1]);
+                  vec4fScalarMul(&info->hrtf[1], fq);
                }
                else
                {
@@ -1217,9 +1217,10 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                                            info->router, info->no_tracks);
                   for (t=0; t<handle->info->no_tracks; t++)
                   {
-                     float gain = vec3Normalize(info->speaker[t],
-                                              _aaxContextDefaultSpeakersVolume[t]);
-                     info->speaker[t][3] = 1.0f/gain;
+                     vec3f_t sv;
+                     vec3fFill(&sv, _aaxContextDefaultSpeakersVolume[t]);
+                     float gain = vec3fNormalize((vec3f_ptr)&info->speaker[t], &sv);
+                     info->speaker[t].v4[3] = 1.0f/gain;
                   }
                   _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
                }
@@ -1312,8 +1313,8 @@ _aaxContextSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
       if (xsid)
       {
          unsigned int channel;
+         vec3f_t v;
          float f;
-         vec3_t v;
 
          channel = xmlNodeGetInt(xsid, "channel");
          if (channel >= n) channel = n-1;
@@ -1327,10 +1328,10 @@ _aaxContextSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
             _aaxContextDefaultSpeakersVolume[channel][GAIN] = 1.0f;
          }
 
-         v[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
-         v[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
-         v[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
-         vec3Copy(_aaxContextDefaultSpeakersVolume[channel], v);
+         v.v3[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
+         v.v3[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
+         v.v3[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
+         vec3fFill(_aaxContextDefaultSpeakersVolume[channel], v.v3);
       }
    }
 }

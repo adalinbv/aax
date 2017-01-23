@@ -288,15 +288,15 @@ _aaxGetSIMDSupportString()
    level = _aaxGetSSELevel();
    if (_aax_arch_capabilities & AAX_ARCH_SSE)
    {
-      vec3Magnitude = _vec3Magnitude_sse;
-      vec3MagnitudeSquared = _vec3MagnitudeSquared_sse;
-      vec3DotProduct = _vec3DotProduct_sse;
-      vec3CrossProduct = _vec3CrossProduct_sse;
-      vec4Copy = _vec4Copy_sse;
-      vec4Mulvec4 = _vec4Mulvec4_sse;
-      vec4Matrix4 = _vec4Matrix4_sse;
-      pt4Matrix4 = _pt4Matrix4_sse;
-      mtx4Mul = _mtx4Mul_sse;
+      vec3fMagnitude = _vec3fMagnitude_sse;
+      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse;
+      vec3fDotProduct = _vec3fDotProduct_sse;
+      vec3fCrossProduct = _vec3fCrossProduct_sse;
+      vec4fCopy = _vec4fCopy_sse;
+      vec4fMulvec4 = _vec4fMulvec4_sse;
+      vec4fMatrix4 = _vec4fMatrix4_sse;
+      pt4fMatrix4 = _pt4fMatrix4_sse;
+      mtx4fMul = _mtx4fMul_sse;
    }
    if (_aax_arch_capabilities & AAX_ARCH_SSE2)
    {
@@ -321,10 +321,10 @@ _aaxGetSIMDSupportString()
    }
    if (_aax_arch_capabilities & AAX_ARCH_SSE3)
    {
-      vec3Magnitude = _vec3Magnitude_sse3;
-      vec3MagnitudeSquared = _vec3MagnitudeSquared_sse3;
-      vec3DotProduct = _vec3DotProduct_sse3;
-      vec4Matrix4 = _vec4Matrix4_sse3;
+      vec3fMagnitude = _vec3fMagnitude_sse3;
+      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse3;
+      vec3fDotProduct = _vec3fDotProduct_sse3;
+      vec4fMatrix4 = _vec4fMatrix4_sse3;
       _batch_imul_value = _batch_imul_value_sse3;
       _batch_fmul_value = _batch_fmul_value_sse3;
 

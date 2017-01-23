@@ -124,7 +124,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    {
       if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
       {
-         mtx4Mul(fdp3d_m->matrix, pdp3d_m->matrix, fdp3d->matrix);
+         mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #if 0
  printf("!  parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
@@ -139,7 +139,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       if (_PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m) ||
           _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
       {
-         mtx4Mul(fdp3d_m->velocity, pdp3d_m->velocity, fdp3d->velocity);
+         mtx4fMul(&fdp3d_m->velocity, &pdp3d_m->velocity, &fdp3d->velocity);
 
 #if 0
  printf("parent velocity:\t\t\tframe velocity:\n");
@@ -279,8 +279,8 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
 
       /* read-only data */           
       _aax_memcpy(&sfp2d.speaker, fp2d->speaker,
-                                  2*_AAX_MAX_SPEAKERS*sizeof(vec4_t));
-      _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, 2*sizeof(vec4_t));
+                                  2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
+      _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, 2*sizeof(vec4f_t));
 
       /* clear the buffer for use by the subframe */
       dest_rb->set_state(frame_rb, RB_CLEARED);
@@ -308,10 +308,10 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
          dptr = _intBufGet(hf, _AAX_FRAME, i);
          m_sfdp3d = sfmixer->props3d->m_dprops3d;
          if (!_PROP_MTX_HAS_CHANGED(sfmixer->props3d)) {
-            mtx4Copy(m_sfdp3d->matrix, sfdp3d_m->matrix);
+            mtx4fCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
          }
          if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
-            mtx4Copy(m_sfdp3d->velocity, sfdp3d_m->velocity);
+            mtx4fCopy(&m_sfdp3d->velocity, &sfdp3d_m->velocity);
          }
          _intBufReleaseData(dptr, _AAX_FRAME);
 
