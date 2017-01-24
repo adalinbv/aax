@@ -95,7 +95,7 @@ float _vec3fDotProduct_vfpv2(const vec3f_ptr v1, const vec3f_ptr v2);
 double _vec3dDotProduct_vfpv2(const vec3d_ptr v1, const vec3d_ptr v2);
 void _vec3fCrossProduct_vfpv2(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 float _vec3fNormalize_vfpv2(vec3f_ptr d, const vec3f_ptr v);
-double _vec3fdNormalize_vfpv2(vec3d_ptr d, const vec3d_ptr v);
+double _vec3dNormalize_vfpv2(vec3d_ptr d, const vec3d_ptr v);
 //void _vec3fMatrix3_vfpv2(vec3f_ptr d, const vec3f_ptr v, mtx3 m);
 void _vec4fMatrix4_vfpv2(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
 void _pt4fMatrix4_vfpv2(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m);

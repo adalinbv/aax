@@ -178,10 +178,10 @@ _aaxGetSIMDSupportString()
       _batch_resample = _batch_resample_vfpv2;
 #endif
 
-      vec3fAdd = _vec3fAdd_vfpv2;
-      vec3fDevide = _vec3fDevide_vfpv2;
+//    vec3fAdd = _vec3fAdd_vfpv2;
+//    vec3fDevide = _vec3fDevide_vfpv2;
       vec3fMulvec3 = _vec3fMulvec3_vfpv2;
-      vec3fSub = _vec3fSub_vfpv2;
+//    vec3fSub = _vec3fSub_vfpv2;
 
       vec3fMagnitude = _vec3fMagnitude_vfpv2;
       vec3dMagnitude = _vec3dMagnitude_vfpv2;
@@ -192,16 +192,16 @@ _aaxGetSIMDSupportString()
       vec3dNormalize = _vec3dNormalize_vfpv2;
       vec3fCrossProduct = _vec3fCrossProduct_vfpv2;
 
-      vec4fAdd = _vec4fAdd_vfpv2;
-      vec4fDevide = _vec4fDevide_vfpv2;
+//    vec4fAdd = _vec4fAdd_vfpv2;
+//    vec4fDevide = _vec4fDevide_vfpv2;
       vec4fMulvec4 = _vec4fMulvec4_vfpv2;
-      vec4fSub = _vec4fSub_vfpv2;
+//    vec4fSub = _vec4fSub_vfpv2;
       vec4fMatrix4 = _vec4fMatrix4_vfpv2;
       pt4fMatrix4 = _pt4fMatrix4_vfpv2;
       mtx4fMul = _mtx4fMul_vfpv2;
       mtx4dMul = _mtx4dMul_vfpv2;
 
-      vec4iDevide = _vec4iDevide_vfpv2;
+//    vec4iDevide = _vec4iDevide_vfpv2;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_HF)
@@ -229,10 +229,10 @@ _aaxGetSIMDSupportString()
       _batch_resample = _batch_resample_vfpv3;
 #endif
 
-      vec3fAdd = _vec3fAdd_vfpv3;
-      vec3fDevide = _vec3fDevide_vfpv3;
+//    vec3fAdd = _vec3fAdd_vfpv3;
+//    vec3fDevide = _vec3fDevide_vfpv3;
       vec3fMulvec3 = _vec3fMulvec3_vfpv3;
-      vec3fSub = _vec3fSub_vfpv3;
+//    vec3fSub = _vec3fSub_vfpv3;
 
       vec3fMagnitude = _vec3fMagnitude_vfpv3;
       vec3dMagnitude = _vec3dMagnitude_vfpv3;
@@ -243,16 +243,16 @@ _aaxGetSIMDSupportString()
       vec3dNormalize = _vec3dNormalize_vfpv3;
       vec3fCrossProduct = _vec3fCrossProduct_vfpv3;
 
-      vec4fAdd = _vec4fAdd_vfpv3;
-      vec4fDevide = _vec4fDevide_vfpv3;
+//    vec4fAdd = _vec4fAdd_vfpv3;
+//    vec4fDevide = _vec4fDevide_vfpv3;
       vec4fMulvec4 = _vec4fMulvec4_vfpv3;
-      vec4fSub = _vec4fSub_vfpv3;
+//    vec4fSub = _vec4fSub_vfpv3;
       vec4fMatrix4 = _vec4fMatrix4_vfpv3;
       pt4fMatrix4 = _pt4fMatrix4_vfpv3;
       mtx4fMul = _mtx4fMul_vfpv3;
       mtx4dMul = _mtx4dMul_vfpv3;
 
-      vec4iDevide = _vec4iDevide_vfpv3;
+//    vec4iDevide = _vec4iDevide_vfpv3;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_NEON)
@@ -262,10 +262,10 @@ _aaxGetSIMDSupportString()
       vec3fDotProduct = _vec3fDotProduct_neon;
       vec3fCrossProduct = _vec3fCrossProduct_neon;
 
-      vec4fAdd = _vec4fAdd_neon;
-      vec4fSub = _vec4fSub_neon;
+//    vec4fAdd = _vec4fAdd_neon;
+//    vec4fSub = _vec4fSub_neon;
       vec4fCopy = _vec4fCopy_neon;
-      vec4fDevide = _vec4fDevide_neon;
+//    vec4fDevide = _vec4fDevide_neon;
       vec4fMulvec4 = _vec4fMulvec4_neon;
       vec4fMatrix4 = _vec4fMatrix4_neon;
       pt4fMatrix4 = _pt4fMatrix4_neon;
