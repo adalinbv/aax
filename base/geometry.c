@@ -31,7 +31,7 @@ vec3fFill(void* d, const void* v)
 }
 
 void
-_vec3fCopy(vec3f_ptr d, const vec3f_ptr v)
+_vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 {
    memcpy(d->v3, v->v3, sizeof(vec3f_t));
 }
@@ -43,13 +43,13 @@ vec4fFill(void* d, const void* v)
 }
 
 void
-_vec4fCopy(vec4f_ptr d, const vec4f_ptr v)
+_vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v)
 {
    memcpy(d->v4, v->v4, sizeof(vec4f_t));
 }
 
 void
-_vec4iCopy(vec4i_ptr d, const vec4i_ptr v)
+_vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v)
 {
    memcpy(d->v4, v->v4, sizeof(vec4i_t));
 }
@@ -84,7 +84,7 @@ vec4fScalarMul(vec4f_ptr r, float f)
 
 
 void
-_vec3fMulvec3(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
+_vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
 {
    r->v3[0] = v1->v3[0]*v2->v3[0];
    r->v3[1] = v1->v3[1]*v2->v3[1];
@@ -92,7 +92,7 @@ _vec3fMulvec3(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
 }
 
 void
-_vec4fMulvec4(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
+_vec4fMulvec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
    r->v4[0] = v1->v4[0]*v2->v4[0];
    r->v4[1] = v1->v4[1]*v2->v4[1];
@@ -101,7 +101,7 @@ _vec4fMulvec4(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 }
 
 void
-_vec4iMulvec4i(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2)
+_vec4iMulvec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2)
 {
    r->v4[0] = v1->v4[0]*v2->v4[0];
    r->v4[1] = v1->v4[1]*v2->v4[1];
@@ -111,39 +111,39 @@ _vec4iMulvec4i(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2)
 
 
 float
-_vec3fMagnitude(const vec3f_ptr v)
+_vec3fMagnitude_cpu(const vec3f_ptr v)
 {
    float val = v->v3[0]*v->v3[0] + v->v3[1]*v->v3[1] + v->v3[2]*v->v3[2];
    return sqrtf(val);
 }
 
 double
-_vec3dMagnitude(const vec3d_ptr v)
+_vec3dMagnitude_cpu(const vec3d_ptr v)
 {
    double val = v->v3[0]*v->v3[0] + v->v3[1]*v->v3[1] + v->v3[2]*v->v3[2];
    return sqrt(val);
 }
 
 float
-_vec3fMagnitudeSquared(const vec3f_ptr v)
+_vec3fMagnitudeSquared_cpu(const vec3f_ptr v)
 {
    return (v->v3[0]*v->v3[0] + v->v3[1]*v->v3[1] + v->v3[2]*v->v3[2]);
 }
 
 float
-_vec3fDotProduct(const vec3f_ptr v1, const vec3f_ptr v2)
+_vec3fDotProduct_cpu(const vec3f_ptr v1, const vec3f_ptr v2)
 {
    return  (v1->v3[0]*v2->v3[0] + v1->v3[1]*v2->v3[1] + v1->v3[2]*v2->v3[2]);
 }
 
 double
-_vec3dDotProduct(const vec3d_ptr v1, const vec3d_ptr v2)
+_vec3dDotProduct_cpu(const vec3d_ptr v1, const vec3d_ptr v2)
 {
    return  (v1->v3[0]*v2->v3[0] + v1->v3[1]*v2->v3[1] + v1->v3[2]*v2->v3[2]);
 }
 
 void
-_vec3fCrossProduct(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
+_vec3fCrossProduct_cpu(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
 {
    d->v3[0] = v1->v3[1]*v2->v3[2] - v1->v3[2]*v2->v3[1];
    d->v3[1] = v1->v3[2]*v2->v3[0] - v1->v3[0]*v2->v3[2];
@@ -151,7 +151,7 @@ _vec3fCrossProduct(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
 }
 
 float
-_vec3fNormalize(vec3f_ptr d, const vec3f_ptr v)
+_vec3fNormalize_cpu(vec3f_ptr d, const vec3f_ptr v)
 {
    float mag = vec3fMagnitude(v);
    if (mag)
@@ -170,7 +170,7 @@ _vec3fNormalize(vec3f_ptr d, const vec3f_ptr v)
 }
 
 double
-_vec3dNormalize(vec3d_ptr d, const vec3d_ptr v)
+_vec3dNormalize_cpu(vec3d_ptr d, const vec3d_ptr v)
 {
    double mag = vec3dMagnitude(v);
    if (mag)
@@ -210,7 +210,7 @@ vec3fMatrix3(vec3f_ptr d, const vec3f_ptr v, const mtx3f_ptr m)
  * different amounts in the different axis)
  */
 void
-_vec4fMatrix4(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m)
+_vec4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m)
 {
    float v0 = v->v4[0], v1 = v->v4[1], v2 = v->v4[2]; // v3 = 0.0f;
 
@@ -221,7 +221,7 @@ _vec4fMatrix4(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m)
 }
 
 void
-_pt4fMatrix4(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m)
+_pt4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m)
 {
    float p0 = p->v4[0], p1 = p->v4[1], p2 = p->v4[2]; // p3 = 1.0f;
 
@@ -238,7 +238,7 @@ mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m)
 }
 
 void
-_mtx4fCopy(mtx4f_ptr d, const mtx4f_ptr m)
+_mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m)
 {
    memcpy(d->m4, m->m4, sizeof(mtx4f_t));
 }
@@ -250,7 +250,7 @@ mtx4fFill(void* d, const void *m)
 }
 
 void
-_mtx4dCopy(mtx4d_ptr d, const mtx4d_ptr m)
+_mtx4dCopy_cpu(mtx4d_ptr d, const mtx4d_ptr m)
 {
    memcpy(d->m4, m->m4, sizeof(mtx4d_t));
 }
@@ -279,7 +279,7 @@ mtx4fMulVec4(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
 }
 
 void
-_mtx4fMul(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2)
+_mtx4fMul_cpu(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2)
 {
    const float *m20 = mtx2->m4[0], *m21 = mtx2->m4[1];
    const float *m22 = mtx2->m4[2], *m23 = mtx2->m4[3];
@@ -303,7 +303,7 @@ _mtx4fMul(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2)
 }
 
 void
-_mtx4dMul(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2)
+_mtx4dMul_cpu(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2)
 {
    const double *m20 = mtx2->m4[0], *m21 = mtx2->m4[1];
    const double *m22 = mtx2->m4[2], *m23 = mtx2->m4[3];
@@ -510,27 +510,27 @@ AAX_API ALIGN64 aaxMtx4f aaxIdentityMatrix ALIGN64C = {
   { 0.0f, 0.0f, 0.0f, 1.0f },
 };
 
-vec3fCopy_proc vec3fCopy = _vec3fCopy;
-vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3;
+vec3fCopy_proc vec3fCopy = _vec3fCopy_cpu;
+vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3_cpu;
 
-vec3fMagnitude_proc vec3fMagnitude = _vec3fMagnitude;
-vec3dMagnitude_proc vec3dMagnitude = _vec3dMagnitude;
-vec3fMagnitudeSquared_proc vec3fMagnitudeSquared = _vec3fMagnitudeSquared;
-vec3fDotProduct_proc vec3fDotProduct = _vec3fDotProduct;
-vec3dDotProduct_proc vec3dDotProduct = _vec3dDotProduct;
-vec3fNormalize_proc vec3fNormalize = _vec3fNormalize;
-vec3dNormalize_proc vec3dNormalize = _vec3dNormalize;
-vec3fCrossProduct_proc vec3fCrossProduct = _vec3fCrossProduct;
+vec3fMagnitude_proc vec3fMagnitude = _vec3fMagnitude_cpu;
+vec3dMagnitude_proc vec3dMagnitude = _vec3dMagnitude_cpu;
+vec3fMagnitudeSquared_proc vec3fMagnitudeSquared = _vec3fMagnitudeSquared_cpu;
+vec3fDotProduct_proc vec3fDotProduct = _vec3fDotProduct_cpu;
+vec3dDotProduct_proc vec3dDotProduct = _vec3dDotProduct_cpu;
+vec3fNormalize_proc vec3fNormalize = _vec3fNormalize_cpu;
+vec3dNormalize_proc vec3dNormalize = _vec3dNormalize_cpu;
+vec3fCrossProduct_proc vec3fCrossProduct = _vec3fCrossProduct_cpu;
 
-vec4fCopy_proc vec4fCopy = _vec4fCopy;
-mtx4fCopy_proc mtx4fCopy = _mtx4fCopy;
-mtx4dCopy_proc mtx4dCopy = _mtx4dCopy;
-vec4fMulvec4f_proc vec4fMulvec4 = _vec4fMulvec4;
-vec4fMatrix4_proc vec4fMatrix4 = _vec4fMatrix4;
-vec4fMatrix4_proc pt4fMatrix4 = _pt4fMatrix4;
-mtx4fMul_proc mtx4fMul = _mtx4fMul;
-mtx4dMul_proc mtx4dMul = _mtx4dMul;
+vec4fCopy_proc vec4fCopy = _vec4fCopy_cpu;
+mtx4fCopy_proc mtx4fCopy = _mtx4fCopy_cpu;
+mtx4dCopy_proc mtx4dCopy = _mtx4dCopy_cpu;
+vec4fMulvec4f_proc vec4fMulvec4 = _vec4fMulvec4_cpu;
+vec4fMatrix4_proc vec4fMatrix4 = _vec4fMatrix4_cpu;
+vec4fMatrix4_proc pt4fMatrix4 = _pt4fMatrix4_cpu;
+mtx4fMul_proc mtx4fMul = _mtx4fMul_cpu;
+mtx4dMul_proc mtx4dMul = _mtx4dMul_cpu;
 
-vec4iCopy_proc vec4iCopy = _vec4iCopy;
-vec4iMulvec4if_proc vec4iMulvec4i = _vec4iMulvec4i;
+vec4iCopy_proc vec4iCopy = _vec4iCopy_cpu;
+vec4iMulvec4if_proc vec4iMulvec4i = _vec4iMulvec4i_cpu;
 

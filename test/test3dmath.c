@@ -37,17 +37,17 @@ int main()
     vec3fFill(x3.v3, t1); vec3fFill(y3.v3, t2);
 
     vec3fCopy(&c3, &a3); vec3fCopy(&z3, &x3);
-    vec3fDotProduct(&c3, &b3);
+    _vec3fDotProduct_cpu(&c3, &b3);
     _vec3fDotProduct_sse(&z3, &y3);
     TEST3(c3,z3);
 
     vec3fCopy(&c3, &a3); vec3fCopy(&z3, &x3);
-    vec3fDotProduct(&c3, &b3);
+    _vec3fDotProduct_cpu(&c3, &b3);
     _vec3fDotProduct_sse3(&z3, &y3);
     TEST3(c3,z3);
 
     vec3fCopy(&c3, &a3); vec3fCopy(&z3, &x3);
-    vec3fCrossProduct(&c3, &a3, &b3);
+    _vec3fCrossProduct_cpu(&c3, &a3, &b3);
     _vec3fCrossProduct_sse(&z3, &x3, &y3);
     TEST3(c3,z3);
 
@@ -60,14 +60,14 @@ int main()
     mtx4fRotate(&m, f, z3.v3[0], z3.v3[1], z3.v3[2]);
     mtx4fTranslate(&m, 3.3f, -1.07f, 0.87f);
 
-    vec4fMatrix4(&c4, &a4, &m);
+    _vec4fMatrix4_cpu(&c4, &a4, &m);
     _vec4fMatrix4_sse(&z4, &x4, &m);
     TEST4(c4,z4);
 
     _vec4fMatrix4_sse3(&z4, &x4, &m);
     TEST4(c4,z4)
 
-    pt4fMatrix4(&c4, &b4, &m);
+    _pt4fMatrix4_cpu(&c4, &b4, &m);
     _pt4fMatrix4_sse(&z4, &y4, &m);
     TEST4(c4,z4);
 
@@ -76,7 +76,7 @@ int main()
     mtx4fRotate(&n, f, z3.v3[0], z3.v3[1], z3.v3[2]);
     mtx4fTranslate(&n, -.2f, 4.507f, 1.39f);
 
-    mtx4fMul(&k, &m, &n);
+    _mtx4fMul_cpu(&k, &m, &n);
     _mtx4fMul_sse(&l, &m, &n);
 //  TEST4(k[0],l[0]);
 //  TEST4(k[1],l[1]);
