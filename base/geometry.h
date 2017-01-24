@@ -214,6 +214,32 @@ typedef void (*vec4iMulvec4if_proc)(vec4i_ptr r, const vec4i_ptr v1, const vec4i
 extern vec4iCopy_proc vec4iCopy;
 extern vec4iMulvec4if_proc vec4iMulvec4i;
 
+
+/* CPU implementTION */
+void _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v);
+void _vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
+
+float _vec3fMagnitude_cpu(const vec3f_ptr v);
+double _vec3dMagnitude_cpu(const vec3d_ptr v);
+float _vec3fMagnitudeSquared_cpu(const vec3f_ptr v);
+float _vec3fDotProduct_cpu(const vec3f_ptr v1, const vec3f_ptr v2);
+double _vec3dDotProduct_cpu(const vec3d_ptr v1, const vec3d_ptr v2);
+float _vec3fNormalize_cpu(vec3f_ptr d, const vec3f_ptr v);
+double _vec3dNormalize_cpu(vec3d_ptr d, const vec3d_ptr v);
+void _vec3fCrossProduct_cpu(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+
+void _vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v);
+void _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m);
+void _mtx4dCopy_cpu(mtx4d_ptr d, const mtx4d_ptr m);
+void _vec4fMulvec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
+void _vec4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
+void _pt4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m);
+void _mtx4fMul_cpu(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2);
+void _mtx4dMul_cpu(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
+
+void _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v);
+void _vec4iMulvec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
