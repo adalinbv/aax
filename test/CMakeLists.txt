@@ -15,6 +15,7 @@ set (SRC_OBJS
     ${AeonWave_SOURCE_DIR}/base/geometry.c
     ${AeonWave_SOURCE_DIR}/src/software/cpu/arch3d_sse.c
     ${AeonWave_SOURCE_DIR}/src/software/cpu/arch3d_sse3.c
+    ${AeonWave_SOURCE_DIR}/src/software/cpu/arch3d_neon.c
 )
 
 add_executable(test3dmath ${SOURCE} ${SRC_OBJS})

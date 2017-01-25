@@ -100,7 +100,7 @@ _vec4fMatrix4_neon(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
 
    d->s4 = vmulq_f32(m->s4x4[0], vdupq_n_f32(vi->v4[0]));
    for (i=1; i<3; ++i) {
-      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(vi->v4[1]));
+      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(vi->v4[i]));
       d->s4 = vaddq_f32(d->s4, row);
    }
 }
@@ -112,7 +112,7 @@ _pt4fMatrix4_neon(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
 
    d->s4 = vmulq_f32(m->s4x4[0], vdupq_n_f32(vi->v4[0]));
    for (i=1; i<3; ++i) {
-      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(vi->v4[1]));
+      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(vi->v4[i]));
       d->s4 = vaddq_f32(d->s4, row);
    }
    d->s4 = vaddq_f32(d->s4, m->s4x4[3]);
