@@ -22,7 +22,9 @@
 static inline FN_PREALIGN __m128
 load_vec3f(const vec3f_ptr v)
 {
-   static const uint32_t m3a32[] = { 0xffffffff,0xffffffff,0xffffffff,0 };
+   static ALIGN16 const uint32_t m3a32[] ALIGN16C = {
+       0xffffffff,0xffffffff,0xffffffff,0
+   };
    return _mm_and_ps(v->s4, _mm_load_ps((const float*)m3a32));
 }
 
