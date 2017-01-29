@@ -355,9 +355,22 @@ _aaxGetSIMDSupportString()
       }
 #   endif
 #   endif
+      //    _aax_memcpy = _aax_memcpy_avx;
+      _batch_cvtps_24 = _batch_cvtps_24_avx;
+      _batch_cvt24_ps = _batch_cvt24_ps_avx;
+      _batch_cvt24_16 = _batch_cvt24_16_avx;
+      _batch_cvt16_24 = _batch_cvt16_24_avx;
+      _batch_cvt16_intl_24 = _batch_cvt16_intl_24_avx;
+
 #   if RB_FLOAT_DATA
+      _batch_fmadd = _batch_fmadd_avx;
+      _batch_cvtps24_24 = _batch_cvtps24_24_avx;
+      _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
+      _batch_freqfilter_float = _batch_freqfilter_float_avx;
       _batch_resample_float = _batch_resample_float_avx;
 #   else
+      _batch_imadd = _batch_imadd_avx;
+      _batch_freqfilter = _batch_freqfilter_avx;
       _batch_resample = _batch_resample_avx;
 #   endif
    }
