@@ -170,11 +170,25 @@ void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 #endif
 
 /* AVX */
+void* _aax_memcpy_avx(void_ptr, const_void_ptr, size_t);
+
+void _batch_imadd_avx(int32_ptr, const_int32_ptr, size_t, float, float);
+void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
+void _batch_freqfilter_avx(int32_ptr, const_int32_ptr, int, size_t, void*);
+void _batch_freqfilter_float_avx(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
+void _batch_cvtps24_24_avx(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_avx(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 #else
 void _batch_resample_avx(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
+
+void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_16_avx(void_ptr, const_void_ptr, size_t);
+void _batch_cvt16_24_avx(void_ptr, const_void_ptr, size_t);
+void _batch_cvt16_intl_24_avx(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 void _batch_fma3_avx(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fma4_avx(int32_ptr, const_int32_ptr, size_t, float, float);
