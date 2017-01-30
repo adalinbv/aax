@@ -29,6 +29,15 @@
 extern "C" {
 #endif
 
+#include <assert.h>
+#if defined(_MSC_VER)
+# include <intrin.h>
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+# include <x86intrin.h>
+#elif defined(__GNUC__) && defined(__ARM_NEON__)
+# include <arm_neon.h>
+#endif
+
 #include <aax/aax.h>
 
 #include "types.h"
@@ -49,19 +58,17 @@ extern "C" {
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
 
-typedef ALIGN16 int32_t ix4_t[4] ALIGN16C;
-typedef ALIGN16 float   fx4_t[4] ALIGN16C;
-typedef ALIGN32 double  dx4_t[4] ALIGN32C;
-typedef fx4_t           fx4x4_t[4];
-typedef dx4_t           dx4x4_t[4];
+typedef ALIGN int32_t ix4_t[4] ALIGNC;
+typedef ALIGN float   fx4_t[4] ALIGNC;
+typedef ALIGN double  dx4_t[4] ALIGNC;
+typedef ALIGN float   fx4x4_t[4][4] ALIGNC;
+typedef ALIGN double  dx4x4_t[4][4] ALIGNC;
 
 #ifdef __ARM_NEON__
-# include <arm_neon.h>
 typedef double		simd4d_t[4];
 typedef float32x4_t	simd4f_t;
 typedef int32x4_t	simd4i_t;
 #elif defined __SSE__
-# include <xmmintrin.h>
 typedef __m128d		simd4d_t[2];
 typedef __m128		simd4f_t;
 typedef __m128i		simd4i_t;

@@ -14,7 +14,6 @@
 #endif
 
 #ifdef __ARM_NEON__
-# include <arm_neon.h>
 #include "arch3d_simd.h"
 
 # define vandq_f32(a,b) vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a), vreinterpretq_u32_f32(b)))

@@ -50,20 +50,25 @@ extern "C" {
 # pragma warning( disable : 4056 )
 # define AAX_FPINFINITE		(FLT_MAX+FLT_MAX)
 # define AAX_FPNONE		(AAX_FPINFINITE-AAX_FPINFINITE)
-# define ALIGN16		__declspec(align(16))
-# define ALIGN16C
+# if SIZEOF_SIZE_T == 8
+#  define ALIGN		__declspec(align(32))
+# else
+#  define ALIGN		__declspec(align(16))
+# endif
+# define ALIGNC
 #else
 # define AAX_FPNONE		(0.0f/0.0f)
 # define AAX_FPINFINITE		(1.0f/0.0f)
 # if defined(__GNUC__) || defined(__TINYC__)
-#  define AAX_ALIGN16
-#  define AAX_ALIGN16C		__attribute__((aligned(16)))
-# elif defined(__APPLE__)
-#  define AAX_ALIGN16
-#  define AAX_ALIGN16C		__attribute__ ((aligned(16)))
+#  define AAX_ALIGN
+#  if SIZEOF_SIZE_T == 8
+#   define AAX_ALIGNC		__attribute__((aligned(32)))
+#  else
+#   define AAX_ALIGNC		__attribute__((aligned(16)))
+#  endif
 # else
-#  define AAX_ALIGN16
-#  define AAX_ALIGN16C
+#  define AAX_ALIGN
+#  define AAX_ALIGNC
 # endif
 #endif
 #define AAX_INVERSE		0x10000000
@@ -487,12 +492,12 @@ typedef void* aaxFilter;
 typedef void* aaxEffect;
 typedef void* aaxFrame;
 
-typedef AAX_ALIGN16 float aaxVec3f[3] AAX_ALIGN16C;
-typedef AAX_ALIGN16 double aaxVec3d[3] AAX_ALIGN16C;
-typedef AAX_ALIGN16 float aaxVec4f[4] AAX_ALIGN16C;
-typedef AAX_ALIGN16 double aaxVec4d[4] AAX_ALIGN16C;
-typedef AAX_ALIGN16 float aaxMtx4f[4][4] AAX_ALIGN16C;
-typedef AAX_ALIGN16 double aaxMtx4d[4][4] AAX_ALIGN16C;
+typedef AAX_ALIGN float aaxVec3f[3] AAX_ALIGNC;
+typedef AAX_ALIGN double aaxVec3d[3] AAX_ALIGNC;
+typedef AAX_ALIGN float aaxVec4f[4] AAX_ALIGNC;
+typedef AAX_ALIGN double aaxVec4d[4] AAX_ALIGNC;
+typedef AAX_ALIGN float aaxMtx4f[4][4] AAX_ALIGNC;
+typedef AAX_ALIGN double aaxMtx4d[4][4] AAX_ALIGNC;
 
 
 /*

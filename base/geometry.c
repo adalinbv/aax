@@ -488,22 +488,22 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
 
 /* -------------------------------------------------------------------------- */
 
-AAX_API ALIGN16 aaxVec4f aaxZeroVector ALIGN16C = {
+AAX_API ALIGN aaxVec4f aaxZeroVector ALIGNC = {
     0.0f, 0.0f, 0.0f, 0.0f
 };
 
-AAX_API ALIGN16 aaxVec4f aaxAxisUnitVec ALIGN16C = {
+AAX_API ALIGN aaxVec4f aaxAxisUnitVec ALIGNC = {
     1.0f, 1.0f, 1.0f, 0.0f
 };
 
-AAX_API ALIGN64 aaxMtx4d aaxIdentityMatrix64 ALIGN64C = {
+AAX_API ALIGN aaxMtx4d aaxIdentityMatrix64 ALIGNC = {
   { 1.0, 0.0, 0.0, 0.0 },
   { 0.0, 1.0, 0.0, 0.0 },
   { 0.0, 0.0, 1.0, 0.0 },
   { 0.0, 0.0, 0.0, 1.0 },
 };
 
-AAX_API ALIGN64 aaxMtx4f aaxIdentityMatrix ALIGN64C = {
+AAX_API ALIGN aaxMtx4f aaxIdentityMatrix ALIGNC = {
   { 1.0f, 0.0f, 0.0f, 0.0f },
   { 0.0f, 1.0f, 0.0f, 0.0f },
   { 0.0f, 0.0f, 1.0f, 0.0f },

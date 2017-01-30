@@ -253,22 +253,22 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                size_t i;
                for (i=0; i<handle->wavBufSize; i++)
                {
-                  uint32_t tmp = _bswap32(handle->wavBuffer[i]);
+                  uint32_t tmp = _aax_bswap32(handle->wavBuffer[i]);
                   handle->wavBuffer[i] = tmp;
                }
 
-               handle->wavBuffer[5] =_bswap32(handle->wavBuffer[5]);
-               handle->wavBuffer[6] =_bswap32(handle->wavBuffer[6]);
-               handle->wavBuffer[7] =_bswap32(handle->wavBuffer[7]);
-               handle->wavBuffer[8] =_bswap32(handle->wavBuffer[8]);
+               handle->wavBuffer[5] = _aax_bswap32(handle->wavBuffer[5]);
+               handle->wavBuffer[6] = _aax_bswap32(handle->wavBuffer[6]);
+               handle->wavBuffer[7] = _aax_bswap32(handle->wavBuffer[7]);
+               handle->wavBuffer[8] = _aax_bswap32(handle->wavBuffer[8]);
                if (extfmt)
                {
                   handle->wavBuffer[9] =
-                                           _bswap32(handle->wavBuffer[9]);
+                                           _aax_bswap32(handle->wavBuffer[9]);
                   handle->wavBuffer[10] =
-                                          _bswap32(handle->wavBuffer[10]);
+                                          _aax_bswap32(handle->wavBuffer[10]);
                   handle->wavBuffer[11] =
-                                          _bswap32(handle->wavBuffer[11]);
+                                          _aax_bswap32(handle->wavBuffer[11]);
                }
             }
             _aaxFormatDriverUpdateHeader(handle, bufsize);
@@ -687,7 +687,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       {
          size_t i;
          for (i=0; i<size/sizeof(int32_t); i++) {
-            header[i] = _bswap32(header[i]);
+            header[i] = _aax_bswap32(header[i]);
          }
       }
 #if 0
@@ -920,14 +920,14 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
 
       if (is_bigendian())
       {
-         handle->wavBuffer[1] = _bswap32(handle->wavBuffer[1]);
+         handle->wavBuffer[1] = _aax_bswap32(handle->wavBuffer[1]);
          if (extfmt)
          {
-            handle->wavBuffer[17] = _bswap32(handle->wavBuffer[17]);
-            handle->wavBuffer[19] = _bswap32(handle->wavBuffer[19]);
+            handle->wavBuffer[17] = _aax_bswap32(handle->wavBuffer[17]);
+            handle->wavBuffer[19] = _aax_bswap32(handle->wavBuffer[19]);
          }
          else {
-            handle->wavBuffer[10] = _bswap32(handle->wavBuffer[10]);
+            handle->wavBuffer[10] = _aax_bswap32(handle->wavBuffer[10]);
          }
       }
 
