@@ -362,7 +362,7 @@ _aaxGetSIMDSupportString()
 #   if RB_FLOAT_DATA
       _batch_fmadd = _batch_fmadd_avx;
       _batch_cvtps24_24 = _batch_cvtps24_24_avx;
-//    _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
+      _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
       _batch_resample_float = _batch_resample_float_avx;
 #   else
       _batch_resample = _batch_resample_avx;
